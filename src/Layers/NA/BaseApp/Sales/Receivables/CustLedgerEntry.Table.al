@@ -1902,10 +1902,12 @@ table 21 "Cust. Ledger Entry"
     var
         InvoiceVATPostingSetup: Record "VAT Posting Setup";
         CreditMemoVATPostingSetup: Record "VAT Posting Setup";
-        TempEquivalentVATPostingSetup: Record "VAT Posting Setup" temporary;
         VATProdGroupAmounts: Dictionary of [Code[20], Decimal];
         DocumentVATBusPostingGroup: Code[20];
         DocumentVATProdPostingGroup: Code[20];
+        CandidateVATBusPostingGroup: Code[20];
+        CandidateVATProdPostingGroup: Code[20];
+        EquivalentVATGroupCount: Integer;
     begin
         InvoiceVATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup);
 
@@ -1914,17 +1916,18 @@ table 21 "Cust. Ledger Entry"
             foreach DocumentVATProdPostingGroup in VATProdGroupAmounts.Keys() do begin
                 CreditMemoVATPostingSetup.Get(
                   DocumentVATBusPostingGroup, DocumentVATProdPostingGroup);
-                if AreEquivalentSalesCashBasisVATPostingSetups(InvoiceVATPostingSetup, CreditMemoVATPostingSetup) then
-                    InsertTempVATPostingSetup(
-                      TempEquivalentVATPostingSetup, DocumentVATBusPostingGroup, DocumentVATProdPostingGroup);
+                if AreEquivalentSalesCashBasisVATPostingSetups(InvoiceVATPostingSetup, CreditMemoVATPostingSetup) then begin
+                    EquivalentVATGroupCount += 1;
+                    CandidateVATBusPostingGroup := DocumentVATBusPostingGroup;
+                    CandidateVATProdPostingGroup := DocumentVATProdPostingGroup;
+                end;
             end;
         end;
 
-        if TempEquivalentVATPostingSetup.Count() <> 1 then
+        if EquivalentVATGroupCount <> 1 then
             exit(0);
-        TempEquivalentVATPostingSetup.FindFirst();
-        CreditMemoVATBusPostingGroup := TempEquivalentVATPostingSetup."VAT Bus. Posting Group";
-        CreditMemoVATProdPostingGroup := TempEquivalentVATPostingSetup."VAT Prod. Posting Group";
+        CreditMemoVATBusPostingGroup := CandidateVATBusPostingGroup;
+        CreditMemoVATProdPostingGroup := CandidateVATProdPostingGroup;
 
         VATProdGroupAmounts := VATGroupAmounts.Get(CreditMemoVATBusPostingGroup);
         exit(VATProdGroupAmounts.Get(CreditMemoVATProdPostingGroup));
@@ -1932,12 +1935,25 @@ table 21 "Cust. Ledger Entry"
 
     internal procedure GetInvoiceVATPostingGroupForCreditMemoVATGroup(CreditMemoDocumentNo: Code[20]; CreditMemoVATBusPostingGroup: Code[20]; CreditMemoVATProdPostingGroup: Code[20]; var InvoiceVATBusPostingGroup: Code[20]; var InvoiceVATProdPostingGroup: Code[20]): Boolean
     var
+        TempDocumentVATPostingSetup: Record "VAT Posting Setup" temporary;
+        InvoiceVATGroupsLoaded: Boolean;
+    begin
+        exit(
+          GetInvoiceVATPostingGroupForCreditMemoVATGroup(
+            CreditMemoDocumentNo, CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup,
+            InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup, TempDocumentVATPostingSetup, InvoiceVATGroupsLoaded));
+    end;
+
+    // Reuse the loaded groups only within one operation for the same invoice.
+    internal procedure GetInvoiceVATPostingGroupForCreditMemoVATGroup(CreditMemoDocumentNo: Code[20]; CreditMemoVATBusPostingGroup: Code[20]; CreditMemoVATProdPostingGroup: Code[20]; var InvoiceVATBusPostingGroup: Code[20]; var InvoiceVATProdPostingGroup: Code[20]; var TempDocumentVATPostingSetup: Record "VAT Posting Setup" temporary; var InvoiceVATGroupsLoaded: Boolean): Boolean
+    var
         InvoiceVATPostingSetup: Record "VAT Posting Setup";
         CreditMemoVATPostingSetup: Record "VAT Posting Setup";
         SalesInvoiceLine: Record "Sales Invoice Line";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
-        TempDocumentVATPostingSetup: Record "VAT Posting Setup" temporary;
-        TempEquivalentVATPostingSetup: Record "VAT Posting Setup" temporary;
+        CandidateVATBusPostingGroup: Code[20];
+        CandidateVATProdPostingGroup: Code[20];
+        EquivalentVATGroupCount: Integer;
     begin
         Clear(InvoiceVATBusPostingGroup);
         Clear(InvoiceVATProdPostingGroup);
@@ -1961,21 +1977,27 @@ table 21 "Cust. Ledger Entry"
 
         CreditMemoVATPostingSetup.Get(CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup);
 
-        InsertTempVATPostingSetupFromInvoice(TempDocumentVATPostingSetup, Rec."Document No.");
+        TempDocumentVATPostingSetup.Reset();
+        if not InvoiceVATGroupsLoaded then begin
+            TempDocumentVATPostingSetup.DeleteAll();
+            InsertTempVATPostingSetupFromInvoice(TempDocumentVATPostingSetup, Rec."Document No.");
+            InvoiceVATGroupsLoaded := true;
+        end;
         if TempDocumentVATPostingSetup.FindSet() then
             repeat
                 InvoiceVATPostingSetup.Get(
                   TempDocumentVATPostingSetup."VAT Bus. Posting Group", TempDocumentVATPostingSetup."VAT Prod. Posting Group");
-                if AreEquivalentSalesCashBasisVATPostingSetups(InvoiceVATPostingSetup, CreditMemoVATPostingSetup) then
-                    InsertTempVATPostingSetup(
-                      TempEquivalentVATPostingSetup, TempDocumentVATPostingSetup."VAT Bus. Posting Group", TempDocumentVATPostingSetup."VAT Prod. Posting Group");
+                if AreEquivalentSalesCashBasisVATPostingSetups(InvoiceVATPostingSetup, CreditMemoVATPostingSetup) then begin
+                    EquivalentVATGroupCount += 1;
+                    CandidateVATBusPostingGroup := TempDocumentVATPostingSetup."VAT Bus. Posting Group";
+                    CandidateVATProdPostingGroup := TempDocumentVATPostingSetup."VAT Prod. Posting Group";
+                end;
             until TempDocumentVATPostingSetup.Next() = 0;
 
-        if TempEquivalentVATPostingSetup.Count() <> 1 then
+        if EquivalentVATGroupCount <> 1 then
             exit(false);
-        TempEquivalentVATPostingSetup.FindFirst();
-        InvoiceVATBusPostingGroup := TempEquivalentVATPostingSetup."VAT Bus. Posting Group";
-        InvoiceVATProdPostingGroup := TempEquivalentVATPostingSetup."VAT Prod. Posting Group";
+        InvoiceVATBusPostingGroup := CandidateVATBusPostingGroup;
+        InvoiceVATProdPostingGroup := CandidateVATProdPostingGroup;
         exit(true);
     end;
 

@@ -1600,6 +1600,76 @@
         Assert.AreEqual('', CreditMemoVATProdPostingGroup, 'An ambiguous mapping must not select a VAT product posting group');
     end;
 
+    [Test]
+    procedure InvoiceVATGroupMappingReusesOperationScopedGroups()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        InvoiceVATPostingSetup: Record "VAT Posting Setup";
+        TempDocumentVATPostingSetup: Record "VAT Posting Setup" temporary;
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoDocumentNo: Code[20];
+        InvoiceVATBusPostingGroup: Code[20];
+        InvoiceVATProdPostingGroup: Code[20];
+        InvoiceVATGroupsLoaded: Boolean;
+    begin
+        // [SCENARIO 648925] Invoice groups are loaded once per operation, with duplicate lines counted as one group.
+        Initialize();
+        CreditMemoDocumentNo := CreateCrMemoWithOffsettingVATLines(VATPostingSetup, 116);
+        InvoiceVATPostingSetup."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(InvoiceVATPostingSetup, 16);
+        InvoiceVATPostingSetup.Validate("Sales VAT Account", VATPostingSetup[1]."Sales VAT Account");
+        InvoiceVATPostingSetup.Validate("Sales VAT Unreal. Account", VATPostingSetup[1]."Sales VAT Unreal. Account");
+        InvoiceVATPostingSetup.Modify(true);
+
+        // [GIVEN] Two invoice lines with the same group, equivalent to both credit memo groups
+        SalesInvoiceLine."Document No." :=
+          LibraryUtility.GenerateRandomCode(SalesInvoiceLine.FieldNo("Document No."), DATABASE::"Sales Invoice Line");
+        SalesInvoiceLine."Line No." := 10000;
+        SalesInvoiceLine.Type := SalesInvoiceLine.Type::"G/L Account";
+        SalesInvoiceLine."VAT Bus. Posting Group" := InvoiceVATPostingSetup."VAT Bus. Posting Group";
+        SalesInvoiceLine."VAT Prod. Posting Group" := InvoiceVATPostingSetup."VAT Prod. Posting Group";
+        SalesInvoiceLine.Insert();
+        SalesInvoiceLine."Line No." += 10000;
+        SalesInvoiceLine.Insert();
+        CustLedgerEntry."Document No." := SalesInvoiceLine."Document No.";
+
+        // [WHEN] Map the first credit memo group
+        Assert.IsTrue(
+          CustLedgerEntry.GetInvoiceVATPostingGroupForCreditMemoVATGroup(
+            CreditMemoDocumentNo, VATPostingSetup[1]."VAT Bus. Posting Group", VATPostingSetup[1]."VAT Prod. Posting Group",
+            InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup, TempDocumentVATPostingSetup, InvoiceVATGroupsLoaded),
+          'Repeated invoice lines must identify one equivalent VAT group');
+
+        // [THEN] The operation stores one distinct invoice group
+        Assert.IsTrue(InvoiceVATGroupsLoaded, 'Invoice groups must be marked as loaded');
+        Assert.RecordCount(TempDocumentVATPostingSetup, 1);
+        Assert.AreEqual(InvoiceVATPostingSetup."VAT Bus. Posting Group", InvoiceVATBusPostingGroup, 'Invoice VAT business group must match');
+        Assert.AreEqual(InvoiceVATPostingSetup."VAT Prod. Posting Group", InvoiceVATProdPostingGroup, 'Invoice VAT product group must match');
+
+        // [GIVEN] The invoice lines are removed to detect any repeated read of the document
+        SalesInvoiceLine.SetRange("Document No.", CustLedgerEntry."Document No.");
+        SalesInvoiceLine.DeleteAll();
+
+        // [WHEN] Map the second credit memo group in the same operation
+        Assert.IsTrue(
+          CustLedgerEntry.GetInvoiceVATPostingGroupForCreditMemoVATGroup(
+            CreditMemoDocumentNo, VATPostingSetup[2]."VAT Bus. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group",
+            InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup, TempDocumentVATPostingSetup, InvoiceVATGroupsLoaded),
+          'The next credit memo group must reuse the invoice groups already loaded');
+        Assert.AreEqual(InvoiceVATPostingSetup."VAT Bus. Posting Group", InvoiceVATBusPostingGroup, 'Cached invoice VAT business group must match');
+        Assert.AreEqual(InvoiceVATPostingSetup."VAT Prod. Posting Group", InvoiceVATProdPostingGroup, 'Cached invoice VAT product group must match');
+
+        // [THEN] An independent operation does not reuse the previous operation's groups
+        Assert.IsFalse(
+          CustLedgerEntry.GetInvoiceVATPostingGroupForCreditMemoVATGroup(
+            CreditMemoDocumentNo, VATPostingSetup[2]."VAT Bus. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group",
+            InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup),
+          'An independent operation must load the current invoice groups');
+        Assert.AreEqual('', InvoiceVATBusPostingGroup, 'No invoice VAT business group must be selected');
+        Assert.AreEqual('', InvoiceVATProdPostingGroup, 'No invoice VAT product group must be selected');
+    end;
+
     local procedure CreateCrMemoWithOffsettingVATLines(var VATPostingSetup: array[2] of Record "VAT Posting Setup"; LineAmount: Decimal): Code[20]
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";

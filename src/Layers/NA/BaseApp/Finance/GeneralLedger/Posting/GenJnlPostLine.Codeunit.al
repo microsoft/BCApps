@@ -4576,6 +4576,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary;
+        InvoiceVATGroupsLoaded: Boolean;
         IsHandled: Boolean;
         ShouldConsiderVATPostingGrouping: Boolean;
         IsLCYTransaction: Boolean;
@@ -4627,13 +4629,23 @@ codeunit 12 "Gen. Jnl.-Post Line"
         else
             if TempVATPostingSetup.FindSet() then
                 repeat
-                    CustUnrealizedVAT(true, TempVATPostingSetup, GenJnlLine, CustLedgEntry2, SettledAmount, GainLossLCY, AppliedCurrencyFactor, PostingDate);
+                    CustUnrealizedVAT(true, TempVATPostingSetup, GenJnlLine, CustLedgEntry2, SettledAmount, GainLossLCY, AppliedCurrencyFactor, PostingDate, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded);
                 until TempVATPostingSetup.Next() = 0;
 
         InsertSummarizedVAT(GenJnlLine);
     end;
 
     internal procedure CustUnrealizedVAT(ShouldConsiderVATPostingGrouping: Boolean; TempVATPostingSetup: Record "VAT Posting Setup" temporary; GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; GainLossLCY: Decimal; CurrencyFactor: Decimal; PostingDate: Date)
+    var
+        TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary;
+        InvoiceVATGroupsLoaded: Boolean;
+    begin
+        CustUnrealizedVAT(
+          ShouldConsiderVATPostingGrouping, TempVATPostingSetup, GenJnlLine, CustLedgEntry2, SettledAmount,
+          GainLossLCY, CurrencyFactor, PostingDate, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded);
+    end;
+
+    local procedure CustUnrealizedVAT(ShouldConsiderVATPostingGrouping: Boolean; TempVATPostingSetup: Record "VAT Posting Setup" temporary; GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; GainLossLCY: Decimal; AppliedCurrencyFactor: Decimal; PostingDate: Date; var TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary; var InvoiceVATGroupsLoaded: Boolean)
     var
         VATEntry2: Record "VAT Entry";
         TaxJurisdiction: Record "Tax Jurisdiction";
@@ -4686,7 +4698,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         then
             if not CustLedgEntry2.GetInvoiceVATPostingGroupForCreditMemoVATGroup(
                  CreditMemoDocumentNo, TempVATPostingSetup."VAT Bus. Posting Group", TempVATPostingSetup."VAT Prod. Posting Group",
-                 InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup)
+                 InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded)
             then
                 exit;
         PaidAmount := CustLedgEntry2."Amount (LCY)" - CustLedgEntry2."Remaining Amt. (LCY)";
@@ -4809,22 +4821,22 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     if (VATPostingSetup."Unrealized VAT Type" = VATPostingSetup."Unrealized VAT Type"::"Cash Basis") and
                        (GainLossLCY <> 0)
                     then begin
-                        if CurrencyFactor = 1 then // LCY to FCY application
-                            CurrencyFactor := CurrExchRate.ExchangeRate(PostingDate, CustLedgEntry2."Currency Code");
+                        if AppliedCurrencyFactor = 1 then // LCY to FCY application
+                            AppliedCurrencyFactor := CurrExchRate.ExchangeRate(PostingDate, CustLedgEntry2."Currency Code");
                         VATBaseFCY := Round(
                             CurrExchRate.ExchangeAmtLCYToFCY(
                               PostingDate, CustLedgEntry2."Currency Code", VATBase, CustLedgEntry2."Original Currency Factor"));
                         VATBaseCash :=
                           Round(
                             CurrExchRate.ExchangeAmtFCYToLCY(
-                              PostingDate, CustLedgEntry2."Currency Code", VATBaseFCY, CurrencyFactor));
+                              PostingDate, CustLedgEntry2."Currency Code", VATBaseFCY, AppliedCurrencyFactor));
                         VATAmountFCY := Round(
                             CurrExchRate.ExchangeAmtLCYToFCY(
                               PostingDate, CustLedgEntry2."Currency Code", VATAmount, CustLedgEntry2."Original Currency Factor"));
                         VATAmountCash :=
                           Round(
                             CurrExchRate.ExchangeAmtFCYToLCY(
-                              PostingDate, CustLedgEntry2."Currency Code", VATAmountFCY, CurrencyFactor));
+                              PostingDate, CustLedgEntry2."Currency Code", VATAmountFCY, AppliedCurrencyFactor));
                     end else
                         RealizedPart := 1;
                     RealizedVATAmount := 0;
