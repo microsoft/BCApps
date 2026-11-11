@@ -50,7 +50,7 @@ codeunit 10675 "SAF-T Export Mgt."
         SAFTZipFileTxt: Label 'SAF-T Financial_%1.zip', Locked = true;
         ZipArchiveSaveDialogTxt: Label 'Export SAF-T archive';
         MasterDataMsg: Label 'MasterData';
-        GLEntriesMsg: Label 'General Ledger Entries from %1 to %2';
+        GLEntriesMsg: Label 'General Ledger Entries from %1 to %2', Comment = '%1 = starting date, %2 = ending date';
         NoZipFileGeneratedErr: Label 'No zip file generated.';
         NoOfJobsInProgressTxt: Label 'No of jobs in progress: %1', Comment = '%1 = number';
         JobsStartedOrFailedTxt: Label 'There are %1 jobs not started or failed', Comment = '%1 = number';

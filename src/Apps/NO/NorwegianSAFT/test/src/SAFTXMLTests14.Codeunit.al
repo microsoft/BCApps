@@ -41,6 +41,9 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     procedure DebitCurrencyAmountsUseLongMonetaryPrecision()
     begin
         // [SCENARIO] Debit CurrencyAmount and ExchangeRate retain 18 decimal places, including calculated currency amounts.
+        // [GIVEN] Debit entries with stored and calculated foreign-currency amounts and an exchange rate with 18 decimal places.
+        // [WHEN] The entries are exported to SAF-T 1.4.
+        // [THEN] Both DebitAmount nodes retain the expected currency amounts and exchange rate without rounding.
         VerifyLongMonetaryCurrencyAmounts(true);
     end;
 
@@ -50,6 +53,9 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     procedure CreditCurrencyAmountsUseLongMonetaryPrecision()
     begin
         // [SCENARIO] Credit currency amounts retain 18 decimal places and are exported as positive magnitudes.
+        // [GIVEN] Credit entries with stored and calculated foreign-currency amounts and an exchange rate with 18 decimal places.
+        // [WHEN] The entries are exported to SAF-T 1.4.
+        // [THEN] Both CreditAmount nodes contain positive amounts and retain currency amount and exchange rate precision.
         VerifyLongMonetaryCurrencyAmounts(false);
     end;
 
@@ -59,6 +65,9 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     procedure ForeignCurrencyInvoiceExportsCreditNOKTaxAmount()
     begin
         // [SCENARIO] A foreign-currency sales invoice exports CreditTaxAmount and the corresponding NOK amount and base.
+        // [GIVEN] A posted foreign-currency sales invoice with VAT and an exchange rate of 0.5.
+        // [WHEN] The posted entries are exported to SAF-T 1.4.
+        // [THEN] CreditTaxAmount contains the foreign-currency tax details, with CreditNOKTaxAmount and NOK tax base.
         VerifyPostedSalesTaxAmounts("Sales Document Type"::Invoice, true);
     end;
 
@@ -68,6 +77,9 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     procedure ForeignCurrencyCreditMemoExportsDebitNOKTaxAmount()
     begin
         // [SCENARIO] A foreign-currency sales credit memo exports DebitTaxAmount and the corresponding NOK amount and base.
+        // [GIVEN] A posted foreign-currency sales credit memo with VAT and an exchange rate of 0.5.
+        // [WHEN] The posted entries are exported to SAF-T 1.4.
+        // [THEN] DebitTaxAmount contains the foreign-currency tax details, with DebitNOKTaxAmount and NOK tax base.
         VerifyPostedSalesTaxAmounts("Sales Document Type"::"Credit Memo", true);
     end;
 
@@ -77,6 +89,9 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     procedure LocalCurrencyInvoiceDoesNotExportNOKTaxAmount()
     begin
         // [SCENARIO] A local-currency invoice has CreditTaxAmount without redundant NOK or foreign-currency children.
+        // [GIVEN] A posted local-currency sales invoice with VAT.
+        // [WHEN] The posted entries are exported to SAF-T 1.4.
+        // [THEN] CreditTaxAmount and the tax base match the VAT entry, without NOK or foreign-currency children.
         VerifyPostedSalesTaxAmounts("Sales Document Type"::Invoice, false);
     end;
 
@@ -86,6 +101,9 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     procedure LocalCurrencyCreditMemoDoesNotExportNOKTaxAmount()
     begin
         // [SCENARIO] A local-currency credit memo has DebitTaxAmount without redundant NOK or foreign-currency children.
+        // [GIVEN] A posted local-currency sales credit memo with VAT.
+        // [WHEN] The posted entries are exported to SAF-T 1.4.
+        // [THEN] DebitTaxAmount and the tax base match the VAT entry, without NOK or foreign-currency children.
         VerifyPostedSalesTaxAmounts("Sales Document Type"::"Credit Memo", false);
     end;
 
@@ -95,6 +113,9 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     procedure NOKSourceCurrencyDoesNotExportNOKTaxAmount()
     begin
         // [SCENARIO] A tax amount already denominated in NOK does not require a separate NOK tax amount.
+        // [GIVEN] A purchase VAT entry with NOK as its source currency and a source tax amount with 18 decimal places.
+        // [WHEN] The linked G/L entry is exported to SAF-T 1.4.
+        // [THEN] DebitTaxAmount retains the source currency amount without a separate DebitNOKTaxAmount node.
         VerifySourceCurrencyTaxAmount('NOK');
     end;
 
@@ -106,7 +127,11 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         Currency: Record Currency;
     begin
         // [SCENARIO] Tax CurrencyAmount retains 18 decimal places instead of monetary or currency rounding.
+        // [GIVEN] A purchase VAT entry with a foreign source currency and a source tax amount with 18 decimal places.
         LibraryERM.CreateCurrency(Currency);
+
+        // [WHEN] The linked G/L entry is exported to SAF-T 1.4.
+        // [THEN] DebitTaxAmount retains all source currency decimals and DebitNOKTaxAmount matches the VAT entry.
         VerifySourceCurrencyTaxAmount(Currency.Code);
     end;
 
@@ -124,12 +149,13 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     local procedure CreateExportSetup(var SAFTExportHeader: Record "SAF-T Export Header")
     var
         SAFTMappingRange: Record "SAF-T Mapping Range";
+        SafTVersion: Enum "SAF-T Version";
     begin
         Initialize();
         SAFTTestHelper.SetupSAFT(SAFTMappingRange, "SAF-T Mapping Type"::"Four Digit Standard Account", 1, false);
         SAFTTestHelper.MatchGLAccountsFourDigit(SAFTMappingRange.Code);
         SAFTTestHelper.IncludesNoSourceCodeToTheFirstSAFTSourceCode();
-        SAFTTestHelper.CreateSAFTExportHeader(SAFTExportHeader, SAFTMappingRange.Code, "SAF-T Version"::"1.40");
+        SAFTTestHelper.CreateSAFTExportHeader(SAFTExportHeader, SAFTMappingRange.Code, SafTVersion::"1.40");
         SAFTExportHeader.Validate("Split By Month", false);
         SAFTExportHeader.Modify(true);
     end;
@@ -169,6 +195,7 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         AmountNode: Text;
         DocumentNo: Code[20];
     begin
+        // [GIVEN] Two entries exercise stored and calculated currency amounts with an 18-decimal exchange rate.
         GeneralLedgerSetup.Get();
         CreateExportSetup(SAFTExportHeader);
         LibraryERM.CreateCurrency(Currency);
@@ -192,8 +219,10 @@ codeunit 148111 "SAF-T XML Tests 1.4"
             GLEntry."Source Type"::Customer.AsInteger(), Customer."No.", '',
             IsDebit ? 1 : 0, IsDebit ? 0 : -1);
 
+        // [WHEN] The entries are exported to SAF-T 1.4.
         ExportEntries(TempXMLBuffer, SAFTExportHeader, GeneralLedgerSetup."LCY Code");
 
+        // [THEN] Both amount nodes contain the expected amounts, currency code, and unrounded exchange rate.
         Assert.IsTrue(
             TempXMLBuffer.FindNodesByXPath(TempXMLBuffer,
                 '/n1:AuditFile/n1:GeneralLedgerEntries/n1:Journal/n1:Transaction/n1:Line/n1:' + AmountNode),
@@ -233,6 +262,7 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         TempXMLBuffer: Record "XML Buffer" temporary;
         DocumentNo: Code[20];
     begin
+        // [GIVEN] A sales document is posted with 25 percent VAT and the requested currency.
         GeneralLedgerSetup.Get();
         CreateExportSetup(SAFTExportHeader);
         Customer.FindFirst();
@@ -266,8 +296,10 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         Assert.AreEqual(UseForeignCurrency ? 50 : 25, Abs(VATEntry.Amount), 'Unexpected posted tax amount.');
         Assert.AreEqual(UseForeignCurrency ? 200 : 100, Abs(VATEntry.Base), 'Unexpected posted tax base.');
 
+        // [WHEN] The posted entries are exported to SAF-T 1.4.
         ExportEntries(TempXMLBuffer, SAFTExportHeader, GeneralLedgerSetup."LCY Code");
 
+        // [THEN] The tax amount direction, base, and currency children match the posted VAT entry.
         VerifyTaxStructure(
             TempXMLBuffer, VATEntry, DocumentType = DocumentType::"Credit Memo", UseForeignCurrency,
             UseForeignCurrency ? Currency.Code : '', UseForeignCurrency ? 25 : 0);
@@ -283,6 +315,7 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         TempXMLBuffer: Record "XML Buffer" temporary;
         TransactionNo: Integer;
     begin
+        // [GIVEN] A purchase VAT entry has a source currency tax amount with 18 decimal places and a linked G/L entry.
         GeneralLedgerSetup.Get();
         CreateExportSetup(SAFTExportHeader);
         GLAccount.FindFirst();
@@ -298,8 +331,10 @@ codeunit 148111 "SAF-T XML Tests 1.4"
                 GLEntry."Source Type"::" ".AsInteger(), '', '', VATEntry.Amount, 0),
             VATEntry."Entry No.");
 
+        // [WHEN] The linked G/L entry is exported to SAF-T 1.4.
         ExportEntries(TempXMLBuffer, SAFTExportHeader, GeneralLedgerSetup."LCY Code");
 
+        // [THEN] The source tax amount retains its precision and a separate NOK amount is present only for a non-NOK source currency.
         VerifyTaxStructure(TempXMLBuffer, VATEntry, true, SourceCurrencyCode <> 'NOK', SourceCurrencyCode, 0.000123456789012345);
         AssertSingleValue(TempXMLBuffer, TaxInformationXPathLbl + '/n1:DebitTaxAmount/n1:CurrencyAmount', '0.000123456789012345');
     end;
