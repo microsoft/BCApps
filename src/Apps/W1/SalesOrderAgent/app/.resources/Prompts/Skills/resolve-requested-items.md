@@ -10,10 +10,10 @@ Open "Item Availability" (page 4410) and search every requested item:
 
 1. Include any item number, SKU, vendor code, or other identifier exactly as supplied, with descriptive names, features, and variants. Preserve identifier spelling and punctuation; singularize and correct spelling only in descriptive keywords. Keep quantities, dates, and units out of the search text.
 2. Explicitly set "Quantity filter" to the requested amount in its requested unit without conversion, or 1 if unspecified.
-3. Set "Date Filter" through the latest non-past explicitly requested delivery date, including the entire period before it. Do not use document/order dates or quote the date filter. Set it blank if no valid delivery date was requested.
+3. Set "Date Filter" through the latest non-past explicitly requested delivery date, including the entire period before it. Do not use document/order dates or quote the date filter. If no valid delivery date was requested, use the page's default availability period: either a blank filter or a system-generated availability-period range is valid. Clear a filter inherited from another item's requested delivery date once, then accept any default range restored by the page. Do not repeatedly clear or recheck it, try alternative filter syntax, or request assistance solely because it is not blank. Continue normal result handling even when no items match. The internal availability period is not a requested delivery date; do not copy it to the quote's "Requested Delivery Date".
 4. Set "UOM filter" to the requested unit or packaging code, or blank if unspecified.
 5. Preserve "Customer No.", "Contact No.", and "Location filter" exactly as they are, including blank values and `''`. They are not prerequisites; do not resolve a buyer or request these fields before searching.
-6. Invoke Search last, after preparing every filter for this item. Do not reuse stale filters from another item.
+6. Invoke Search last, after setting Quantity and UOM and handling Date Filter as above. Explicitly set UOM blank when unspecified; a blank Date Filter or the page's default availability-period range satisfies the date requirement when no valid delivery date was requested. Do not require an explicitly set or persistently blank Date Filter, or reuse another item's requested delivery date.
 
 ## Results and availability
 
