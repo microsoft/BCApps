@@ -222,17 +222,31 @@ page 6988 "Expense"
                         CurrPage.Update();
                     end;
                 }
-                field("Starting Point"; Rec."Starting Point")
+                field("Starting Point"; StartingPoint)
                 {
                     ApplicationArea = Basic, Suite;
+                    Caption = 'Starting Point';
                     ToolTip = 'Specifies the starting location for mileage. Available for Mileage expenses.';
                     Editable = IsMileageCategory;
+
+                    trigger OnValidate()
+                    begin
+                        Rec.TestStatusOpen();
+                        Rec.SetStartingPoint(StartingPoint);
+                    end;
                 }
-                field("Ending Point"; Rec."Ending Point")
+                field("Ending Point"; EndingPoint)
                 {
                     ApplicationArea = Basic, Suite;
+                    Caption = 'Ending Point';
                     ToolTip = 'Specifies the ending location for mileage. Available for Mileage expenses.';
                     Editable = IsMileageCategory;
+
+                    trigger OnValidate()
+                    begin
+                        Rec.TestStatusOpen();
+                        Rec.SetEndingPoint(EndingPoint);
+                    end;
                 }
                 field(Mileage; Rec.Mileage)
                 {
@@ -705,6 +719,8 @@ page 6988 "Expense"
     begin
         SetCategoryTypeVisibility();
         CalculateTotalMileage();
+        StartingPoint := Rec.GetStartingPoint();
+        EndingPoint := Rec.GetEndingPoint();
 
         if IsNullGuid(Rec."Applied Rule Id") then
             ShowAppliedRuleTxt := ''
@@ -719,6 +735,9 @@ page 6988 "Expense"
     begin
         if Rec."Expense Date" = 0D then
             Rec."Expense Date" := WorkDate();
+
+        StartingPoint := '';
+        EndingPoint := '';
     end;
 
     var
@@ -728,6 +747,8 @@ page 6988 "Expense"
         HasPdfAttachment: Boolean;
         RuleStyleTxt: Text;
         ShowAppliedRuleTxt: Text[50];
+        StartingPoint: Text;
+        EndingPoint: Text;
         TotalMileage: Decimal;
         AllowVATReclaim: Boolean;
         ViewAppliedRuleLbl: Label 'View Applied Rule';

@@ -21,6 +21,7 @@ using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
+using System.Reflection;
 
 table 6916 "Posted Expense Report Line"
 {
@@ -220,10 +221,26 @@ table 6916 "Posted Expense Report Line"
         field(36; "Starting Point"; Text[50])
         {
             Caption = 'Starting Point';
+            ObsoleteReason = 'Replaced by field "Starting Point Description" because addresses can be longer than 50 characters. Use SetStartingPoint and GetStartingPoint instead.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
         field(37; "Ending Point"; Text[50])
         {
             Caption = 'Ending Point';
+            ObsoleteReason = 'Replaced by field "Ending Point Description" because addresses can be longer than 50 characters. Use SetEndingPoint and GetEndingPoint instead.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
         field(38; "Non-Refundable Amount (LCY)"; Decimal)
         {
@@ -464,6 +481,16 @@ table 6916 "Posted Expense Report Line"
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(107; "Starting Point Description"; Blob)
+        {
+            Caption = 'Starting Point';
+            DataClassification = CustomerContent;
+        }
+        field(108; "Ending Point Description"; Blob)
+        {
+            Caption = 'Ending Point';
+            DataClassification = CustomerContent;
+        }
         field(999; "Is Canceled"; Boolean)
         {
             Caption = 'Canceled';
@@ -531,6 +558,60 @@ table 6916 "Posted Expense Report Line"
     internal procedure GetPolicyStatus(): Enum "Expense Policy Status"
     begin
         exit(Rec."Policy Status At Posting");
+    end;
+
+    /// <summary>
+    /// Stores the starting point of a mileage line.
+    /// </summary>
+    /// <param name="NewStartingPoint">The starting point, for example an address.</param>
+    procedure SetStartingPoint(NewStartingPoint: Text)
+    var
+        OutStream: OutStream;
+    begin
+        Clear(Rec."Starting Point Description");
+        Rec."Starting Point Description".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(NewStartingPoint);
+    end;
+
+    /// <summary>
+    /// Retrieves the starting point of a mileage line.
+    /// </summary>
+    /// <returns>The starting point.</returns>
+    procedure GetStartingPoint(): Text
+    var
+        TypeHelper: Codeunit "Type Helper";
+        InStream: InStream;
+    begin
+        Rec.CalcFields("Starting Point Description");
+        Rec."Starting Point Description".CreateInStream(InStream, TextEncoding::UTF8);
+        exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), Rec.FieldName("Starting Point Description")));
+    end;
+
+    /// <summary>
+    /// Stores the ending point of a mileage line.
+    /// </summary>
+    /// <param name="NewEndingPoint">The ending point, for example an address.</param>
+    procedure SetEndingPoint(NewEndingPoint: Text)
+    var
+        OutStream: OutStream;
+    begin
+        Clear(Rec."Ending Point Description");
+        Rec."Ending Point Description".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(NewEndingPoint);
+    end;
+
+    /// <summary>
+    /// Retrieves the ending point of a mileage line.
+    /// </summary>
+    /// <returns>The ending point.</returns>
+    procedure GetEndingPoint(): Text
+    var
+        TypeHelper: Codeunit "Type Helper";
+        InStream: InStream;
+    begin
+        Rec.CalcFields("Ending Point Description");
+        Rec."Ending Point Description".CreateInStream(InStream, TextEncoding::UTF8);
+        exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), Rec.FieldName("Ending Point Description")));
     end;
 
     internal procedure IsItemizationRequired(): Boolean

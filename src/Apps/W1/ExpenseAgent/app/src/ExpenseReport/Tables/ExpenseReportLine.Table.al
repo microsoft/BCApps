@@ -25,6 +25,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
+using System.Reflection;
 using System.Utilities;
 
 table 6907 "Expense Report Line"
@@ -617,6 +618,14 @@ table 6907 "Expense Report Line"
         field(36; "Starting Point"; Text[50])
         {
             Caption = 'Starting Point';
+            ObsoleteReason = 'Replaced by field "Starting Point Description" because addresses can be longer than 50 characters. Use SetStartingPoint and GetStartingPoint instead.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
 
             trigger OnValidate()
             begin
@@ -626,6 +635,14 @@ table 6907 "Expense Report Line"
         field(37; "Ending Point"; Text[50])
         {
             Caption = 'Ending Point';
+            ObsoleteReason = 'Replaced by field "Ending Point Description" because addresses can be longer than 50 characters. Use SetEndingPoint and GetEndingPoint instead.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
 
             trigger OnValidate()
             begin
@@ -1110,6 +1127,16 @@ table 6907 "Expense Report Line"
             FieldClass = FlowField;
             CalcFormula = exist("Expense Policy Evaluation" where("Subject System Id" = field(SystemId), "Subject Type" = const("Expense Report Line"), "Subject Version" = field("Evaluated Policy Version"), "Compliant" = const(false)));
             Editable = false;
+        }
+        field(107; "Starting Point Description"; Blob)
+        {
+            Caption = 'Starting Point';
+            DataClassification = CustomerContent;
+        }
+        field(108; "Ending Point Description"; Blob)
+        {
+            Caption = 'Ending Point';
+            DataClassification = CustomerContent;
         }
     }
     keys
@@ -2244,6 +2271,60 @@ table 6907 "Expense Report Line"
         SkipRuleApplication := NewSkipRuleApplication;
     end;
 
+    /// <summary>
+    /// Stores the starting point of a mileage line.
+    /// </summary>
+    /// <param name="NewStartingPoint">The starting point, for example an address.</param>
+    procedure SetStartingPoint(NewStartingPoint: Text)
+    var
+        OutStream: OutStream;
+    begin
+        Clear(Rec."Starting Point Description");
+        Rec."Starting Point Description".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(NewStartingPoint);
+    end;
+
+    /// <summary>
+    /// Retrieves the starting point of a mileage line.
+    /// </summary>
+    /// <returns>The starting point.</returns>
+    procedure GetStartingPoint(): Text
+    var
+        TypeHelper: Codeunit "Type Helper";
+        InStream: InStream;
+    begin
+        Rec.CalcFields("Starting Point Description");
+        Rec."Starting Point Description".CreateInStream(InStream, TextEncoding::UTF8);
+        exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), Rec.FieldName("Starting Point Description")));
+    end;
+
+    /// <summary>
+    /// Stores the ending point of a mileage line.
+    /// </summary>
+    /// <param name="NewEndingPoint">The ending point, for example an address.</param>
+    procedure SetEndingPoint(NewEndingPoint: Text)
+    var
+        OutStream: OutStream;
+    begin
+        Clear(Rec."Ending Point Description");
+        Rec."Ending Point Description".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(NewEndingPoint);
+    end;
+
+    /// <summary>
+    /// Retrieves the ending point of a mileage line.
+    /// </summary>
+    /// <returns>The ending point.</returns>
+    procedure GetEndingPoint(): Text
+    var
+        TypeHelper: Codeunit "Type Helper";
+        InStream: InStream;
+    begin
+        Rec.CalcFields("Ending Point Description");
+        Rec."Ending Point Description".CreateInStream(InStream, TextEncoding::UTF8);
+        exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), Rec.FieldName("Ending Point Description")));
+    end;
+
     procedure TestStatusOpen()
     begin
         GetExpenseReportHeader();
@@ -2412,6 +2493,8 @@ table 6907 "Expense Report Line"
         SourceLineNo := Rec."Line No.";
 
         NewLine.TransferFields(Rec, false);
+        NewLine.SetStartingPoint(Rec.GetStartingPoint());
+        NewLine.SetEndingPoint(Rec.GetEndingPoint());
         NewLine."Policies Evaluated At" := 0DT;
         NewLine."Policy Eval Version" := 0;
         NewLine."Evaluated Policy Version" := 0;

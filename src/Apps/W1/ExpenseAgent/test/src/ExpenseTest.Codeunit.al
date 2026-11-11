@@ -789,18 +789,6 @@ codeunit 148305 "Expense Test"
         // [THEN] Verify that the "Mileage" cannot be changed in Expense.
         Assert.ExpectedTestFieldError(Expense.FieldCaption(Status), Format(Expense.Status::Open));
 
-        // [WHEN] Update "Starting Point" in Expense.
-        asserterror Expense.Validate("Starting Point", '');
-
-        // [THEN] Verify that the "Starting Point" cannot be changed in Expense.
-        Assert.ExpectedTestFieldError(Expense.FieldCaption(Status), Format(Expense.Status::Open));
-
-        // [WHEN] Update "Ending Point" in Expense.
-        asserterror Expense.Validate("Ending Point", '');
-
-        // [THEN] Verify that the "Ending Point" cannot be changed in Expense.
-        Assert.ExpectedTestFieldError(Expense.FieldCaption(Status), Format(Expense.Status::Open));
-
         // [WHEN] Update "Reimbursable Amount" in Expense.
         asserterror Expense.Validate("Reimbursable Amount", LibraryRandom.RandDec(100, 2));
 

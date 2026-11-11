@@ -237,6 +237,8 @@ codeunit 6987 "Expense Report-Post"
 
                 PostedExpenseReportLine.Init();
                 PostedExpenseReportLine.TransferFields(ExpenseReportLine);
+                PostedExpenseReportLine.SetStartingPoint(ExpenseReportLine.GetStartingPoint());
+                PostedExpenseReportLine.SetEndingPoint(ExpenseReportLine.GetEndingPoint());
                 PostedExpenseReportLine."Document No." := PostedExpenseReportHeader."No.";
                 PostedExpenseReportLine."Policy Status At Posting" := ExpenseReportLine.GetPolicyStatus();
                 PostedExpenseReportLine.Insert();

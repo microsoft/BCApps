@@ -17,6 +17,7 @@ using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
+using System.Reflection;
 using System.Security.AccessControl;
 using System.Utilities;
 
@@ -430,6 +431,14 @@ table 6900 Expense
         field(28; "Starting Point"; Text[50])
         {
             Caption = 'Starting Point';
+            ObsoleteReason = 'Replaced by field "Starting Point Description" because addresses can be longer than 50 characters. Use SetStartingPoint and GetStartingPoint instead.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
 
             trigger OnValidate()
             begin
@@ -439,6 +448,14 @@ table 6900 Expense
         field(29; "Ending Point"; Text[50])
         {
             Caption = 'Ending Point';
+            ObsoleteReason = 'Replaced by field "Ending Point Description" because addresses can be longer than 50 characters. Use SetEndingPoint and GetEndingPoint instead.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
 
             trigger OnValidate()
             begin
@@ -721,6 +738,16 @@ table 6900 Expense
             TableRelation = "Expense Vendor";
             Editable = false;
         }
+        field(64; "Starting Point Description"; Blob)
+        {
+            Caption = 'Starting Point';
+            DataClassification = CustomerContent;
+        }
+        field(65; "Ending Point Description"; Blob)
+        {
+            Caption = 'Ending Point';
+            DataClassification = CustomerContent;
+        }
     }
     keys
     {
@@ -951,6 +978,60 @@ table 6900 Expense
     procedure TestStatusOpen()
     begin
         Rec.TestField(Status, Status::Open);
+    end;
+
+    /// <summary>
+    /// Stores the starting point of a mileage expense.
+    /// </summary>
+    /// <param name="NewStartingPoint">The starting point, for example an address.</param>
+    procedure SetStartingPoint(NewStartingPoint: Text)
+    var
+        OutStream: OutStream;
+    begin
+        Clear(Rec."Starting Point Description");
+        Rec."Starting Point Description".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(NewStartingPoint);
+    end;
+
+    /// <summary>
+    /// Retrieves the starting point of a mileage expense.
+    /// </summary>
+    /// <returns>The starting point.</returns>
+    procedure GetStartingPoint(): Text
+    var
+        TypeHelper: Codeunit "Type Helper";
+        InStream: InStream;
+    begin
+        Rec.CalcFields("Starting Point Description");
+        Rec."Starting Point Description".CreateInStream(InStream, TextEncoding::UTF8);
+        exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), Rec.FieldName("Starting Point Description")));
+    end;
+
+    /// <summary>
+    /// Stores the ending point of a mileage expense.
+    /// </summary>
+    /// <param name="NewEndingPoint">The ending point, for example an address.</param>
+    procedure SetEndingPoint(NewEndingPoint: Text)
+    var
+        OutStream: OutStream;
+    begin
+        Clear(Rec."Ending Point Description");
+        Rec."Ending Point Description".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(NewEndingPoint);
+    end;
+
+    /// <summary>
+    /// Retrieves the ending point of a mileage expense.
+    /// </summary>
+    /// <returns>The ending point.</returns>
+    procedure GetEndingPoint(): Text
+    var
+        TypeHelper: Codeunit "Type Helper";
+        InStream: InStream;
+    begin
+        Rec.CalcFields("Ending Point Description");
+        Rec."Ending Point Description".CreateInStream(InStream, TextEncoding::UTF8);
+        exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), Rec.FieldName("Ending Point Description")));
     end;
 
     procedure GetRuleStyleText() StatusStyleText: Text

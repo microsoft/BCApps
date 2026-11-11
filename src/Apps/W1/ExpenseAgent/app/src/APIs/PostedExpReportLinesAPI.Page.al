@@ -225,11 +225,11 @@ page 6913 "Posted Exp. Report Lines API"
                 {
                     Caption = 'Ending Date and Time';
                 }
-                field(startingPoint; Rec."Starting Point")
+                field(startingPoint; StartingPoint)
                 {
                     Caption = 'Starting Point';
                 }
-                field(endingPoint; Rec."Ending Point")
+                field(endingPoint; EndingPoint)
                 {
                     Caption = 'Ending Point';
                 }
@@ -319,6 +319,8 @@ page 6913 "Posted Exp. Report Lines API"
         CurrencyCodeDisplay: Code[10];
         CurrencyLCYDisplay: Code[10];
         TotalMileage: Decimal;
+        StartingPoint: Text;
+        EndingPoint: Text;
         JobDescription: Text[100];
         JobTaskDescription: Text[100];
 
@@ -343,6 +345,8 @@ page 6913 "Posted Exp. Report Lines API"
     begin
         CurrencyCodeDisplay := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Expense Currency Code");
         TotalMileage := ExpenseAutoPopulation.GetEffectiveDistance(Rec.Mileage, Rec."Round Trip");
+        StartingPoint := Rec.GetStartingPoint();
+        EndingPoint := Rec.GetEndingPoint();
 
         JobDescription := '';
         JobTaskDescription := '';
