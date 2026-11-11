@@ -1385,7 +1385,6 @@ table 112 "Sales Invoice Header"
         DocTxt: Label 'Invoice';
         PaymentReference: Text;
         PaymentReferenceLbl: Text;
-        CorrInvDoesNotExistErr: Label 'The Corrected Invoice No. does not exist. \Identification fields and values:\Corrected Invoice No. = %1.', Comment = '%1 = number of document';
 
     /// <summary>
     /// Checks if the invoice is fully open (no payments applied).
@@ -1599,25 +1598,6 @@ table 112 "Sales Invoice Header"
         PAGE.RunModal(0, ValueEntry);
     end;
 
-    [Scope('OnPrem')]
-    procedure LookupInvoice(CustNo: Code[20]) Selected: Boolean
-    var
-        PostedSalesInvoices: Page "Posted Sales Invoices";
-    begin
-        SetCurrentKey("No.");
-        SetRange("Bill-to Customer No.", CustNo);
-
-        PostedSalesInvoices.SetTableView(Rec);
-        PostedSalesInvoices.SetRecord(Rec);
-        PostedSalesInvoices.LookupMode(true);
-        if PostedSalesInvoices.RunModal() = ACTION::LookupOK then begin
-            PostedSalesInvoices.GetRecord(Rec);
-            Selected := true;
-        end;
-        Clear(PostedSalesInvoices);
-        exit(Selected);
-    end;
-
     /// <summary>
     /// Gets the customer's VAT registration number.
     /// </summary>
@@ -1724,22 +1704,6 @@ table 112 "Sales Invoice Header"
             exit(0);
 
         exit(CustLedgerEntry."Remaining Amount");
-    end;
-
-    [Scope('OnPrem')]
-    procedure CheckCorrectedDocumentExist(CustNo: Code[20]; CorrInvNo: Code[20])
-    var
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeCheckCorrectedDocumentExist(CustNo, CorrInvNo, IsHandled);
-        if IsHandled then
-            exit;
-
-        SetRange("Bill-to Customer No.", CustNo);
-        SetRange("No.", CorrInvNo);
-        if not FindFirst() then
-            Error(CorrInvDoesNotExistErr, CorrInvNo);
     end;
 
     /// <summary>
@@ -1962,11 +1926,6 @@ table 112 "Sales Invoice Header"
     /// <param name="DocTxt">The document type text.</param>
     /// <param name="ShowDialog">Indicates whether to show the email dialog.</param>
     /// <param name="IsHandled">Set to true to skip default email processing.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckCorrectedDocumentExist(CustNo: Code[20]; CorrInvNo: Code[20]; var IsHandled: Boolean)
-    begin
-    end;
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEmailRecords(var ReportSelections: Record "Report Selections"; var SalesInvoiceHeader: Record "Sales Invoice Header"; DocTxt: Text; var ShowDialog: Boolean; var IsHandled: Boolean)
     begin

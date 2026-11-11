@@ -356,26 +356,6 @@ page 22 "Customer List"
                                   "No." = field("No.");
                     ToolTip = 'View or add comments for the record.';
                 }
-                action("&Payment Days")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = '&Payment Days';
-                    Image = PaymentDays;
-                    RunObject = Page "Payment Days";
-                    RunPageLink = "Table Name" = const(Customer),
-                                  Code = field("Payment Days Code");
-                    ToolTip = 'View or edit the payment days that are associated with the payment code.';
-                }
-                action("N&on-Payment Periods")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'N&on-Payment Periods';
-                    Image = PaymentPeriod;
-                    RunObject = Page "Non-Payment Periods";
-                    RunPageLink = "Table Name" = const(Customer),
-                                  Code = field("Non-Paymt. Periods Code");
-                    ToolTip = 'View or edit the periods for which payments will not be made.';
-                }
                 group(Dimensions)
                 {
                     Caption = 'Dimensions';

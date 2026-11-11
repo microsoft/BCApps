@@ -427,9 +427,6 @@ report 1307 "Standard Sales - Credit Memo"
             column(VATClause_Lbl; VATClause.TableCaption())
             {
             }
-            column(CorrectedInvoiceNo; "Corrected Invoice No.")
-            {
-            }
             dataitem(Line; "Sales Cr.Memo Line")
             {
                 DataItemLink = "Document No." = field("No.");

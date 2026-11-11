@@ -400,26 +400,6 @@ page 27 "Vendor List"
                                   "No." = field("No.");
                     ToolTip = 'View or add comments for the record.';
                 }
-                action("P&ayment Days")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'P&ayment Days';
-                    Image = PaymentDays;
-                    RunObject = Page "Payment Days";
-                    RunPageLink = "Table Name" = const(Vendor),
-                                  Code = field("Payment Days Code");
-                    ToolTip = 'View or edit the payment days that are associated with the payment code.';
-                }
-                action("Non-Pa&yment Periods")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Non-Pa&yment Periods';
-                    Image = PaymentPeriod;
-                    RunObject = Page "Non-Payment Periods";
-                    RunPageLink = "Table Name" = const(Vendor),
-                                  Code = field("Non-Paymt. Periods Code");
-                    ToolTip = 'View or edit the periods for which payments will not be made.';
-                }
                 action("Item Refe&rences")
                 {
                     AccessByPermission = TableData "Item Reference" = R;

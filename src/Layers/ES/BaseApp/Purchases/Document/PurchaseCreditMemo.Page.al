@@ -361,11 +361,6 @@ page 52 "Purchase Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
-                field("Corrected Invoice No."; Rec."Corrected Invoice No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the posted invoice that you have corrected.';
-                }
                 field(DocAmount; Rec."Doc. Amount Incl. VAT")
                 {
                     ApplicationArea = Basic, Suite;

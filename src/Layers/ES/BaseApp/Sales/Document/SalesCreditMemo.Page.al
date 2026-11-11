@@ -337,11 +337,6 @@ page 44 "Sales Credit Memo"
                     Importance = Promoted;
                     StyleExpr = StatusStyleTxt;
                 }
-                field("Corrected Invoice No."; Rec."Corrected Invoice No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the posted invoice that you need to correct.';
-                }
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
                     ApplicationArea = Basic, Suite;

@@ -896,15 +896,6 @@ page 132 "Posted Sales Invoice"
                         Rec.StartTrackingSite();
                     end;
                 }
-                action(FindCorrectiveInvoices)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = '&Find Corrective Invoices';
-                    Image = FindCreditMemo;
-                    RunObject = Page "Posted Sales Credit Memos";
-                    RunPageLink = "Corrected Invoice No." = field("No.");
-                    ToolTip = 'View related corrective invoices. You can send a corrective invoice when there is an error or dispute that affects a VAT amount or fiscal data. This invoice includes all legally required data and refers to the original invoice or invoices.';
-                }
             }
             action(SendCustom)
             {
@@ -1000,6 +991,22 @@ page 132 "Posted Sales Invoice"
                 trigger OnAction()
                 begin
                     Rec.ShowActivityLog();
+                end;
+            }
+            action("Update Document")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Update Document';
+                Image = Edit;
+                ToolTip = 'Add new information that is relevant to the document. You can only edit a few fields because the document has already been posted.';
+
+                trigger OnAction()
+                var
+                    PostedSalesInvoiceUpdate: Page "Posted Sales Invoice - Update";
+                begin
+                    PostedSalesInvoiceUpdate.LookupMode := true;
+                    PostedSalesInvoiceUpdate.SetRec(Rec);
+                    PostedSalesInvoiceUpdate.RunModal();
                 end;
             }
             group(IncomingDocument)
@@ -1143,22 +1150,6 @@ page 132 "Posted Sales Invoice"
                     ShortCutKey = 'Shift+F7';
                     ToolTip = 'View or edit detailed information about the customer.';
                 }
-            }
-            action("Update Document")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Update Document';
-                Image = Edit;
-                ToolTip = 'Add new information that is relevant to the document. You can only edit a few fields because the document has already been posted.';
-
-                trigger OnAction()
-                var
-                    PostedSalesInvoiceUpdate: Page "Posted Sales Invoice - Update";
-                begin
-                    PostedSalesInvoiceUpdate.LookupMode := true;
-                    PostedSalesInvoiceUpdate.SetRec(Rec);
-                    PostedSalesInvoiceUpdate.RunModal();
-                end;
             }
         }
         area(Promoted)

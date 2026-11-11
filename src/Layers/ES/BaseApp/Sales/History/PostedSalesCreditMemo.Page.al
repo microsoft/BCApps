@@ -273,12 +273,6 @@ page 134 "Posted Sales Credit Memo"
                         ToolTip = 'Specifies the products or services being offered.';
                     }
                 }
-                field("Corrected Invoice No."; Rec."Corrected Invoice No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the number of the posted invoice that you need to correct.';
-                }
             }
             part(SalesCrMemoLines; "Posted Sales Cr. Memo Subform")
             {

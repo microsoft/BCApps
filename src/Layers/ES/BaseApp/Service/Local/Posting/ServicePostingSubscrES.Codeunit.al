@@ -5,7 +5,6 @@
 namespace Microsoft.Service.Posting;
 
 using Microsoft.Bank.BankAccount;
-using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
@@ -17,7 +16,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Service.Document;
-using Microsoft.Service.History;
 
 codeunit 10789 "Service Posting Subscr. ES"
 {
@@ -26,14 +24,6 @@ codeunit 10789 "Service Posting Subscr. ES"
         Text1100000: Label 'The Credit Memo doesn''t have a Corrected Invoice No. Do you want to continue?';
         Text1100001: Label 'The posting process has been cancelled by the user.';
         Text1100002: Label 'Corrective Invoice';
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", 'OnAfterPostWithLines', '', true, true)]
-    local procedure OnAfterPostWithLines(var PassedServiceHeader: Record "Service Header"; var IsHandled: Boolean)
-    var
-        ServSIIManagement: Codeunit "Serv. SII Management";
-    begin
-        ServSIIManagement.OnAfterPostServiceDoc(PassedServiceHeader);
-    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", 'OnCheckAndSetConstantsOnBeforeSetPostingOptions', '', true, true)]
     local procedure OnCheckAndSetConstantsOnBeforeSetPostingOptions(var ServiceHeader: Record "Service Header"; Invoice: Boolean; Ship: Boolean)
@@ -196,20 +186,6 @@ codeunit 10789 "Service Posting Subscr. ES"
                   Format(CustLedgEntry."Document No."),
                   Format(ServiceHeader."Document Type"),
                   Format(ServiceHeader."No."));
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Serv-Documents Mgt.", 'OnFinalizeInvoiceDocumentOnBeforeServiceInvoiceHeaderInsert', '', true, true)]
-    local procedure OnFinalizeInvoiceDocumentOnBeforeServiceInvoiceHeaderInsert(var ServiceInvoiceHeaderToInsert: Record "Service Invoice Header"; var TempServiceInvoiceHeader: Record "Service Invoice Header" temporary; var TempServiceHeader: Record "Service Header" temporary)
-    begin
-        ServiceInvoiceHeaderToInsert.SetSIIFirstSummaryDocNo(ServiceInvoiceHeaderToInsert.GetSIIFirstSummaryDocNo());
-        ServiceInvoiceHeaderToInsert.SetSIILastSummaryDocNo(ServiceInvoiceHeaderToInsert.GetSIILastSummaryDocNo());
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Serv-Documents Mgt.", 'OnFinalizeCrMemoDocumentOnBeforeServiceCreditMemoHeaderInsert', '', true, true)]
-    local procedure OnFinalizeCrMemoDocumentOnBeforeServiceCreditMemoHeaderInsert(var ServiceCrMemoHeaderToInsert: Record "Service Cr.Memo Header"; var TempServiceCrMemoHeader: Record "Service Cr.Memo Header" temporary; var TempServiceHeader: Record "Service Header" temporary)
-    begin
-        ServiceCrMemoHeaderToInsert.SetSIIFirstSummaryDocNo(ServiceCrMemoHeaderToInsert.GetSIIFirstSummaryDocNo());
-        ServiceCrMemoHeaderToInsert.SetSIILastSummaryDocNo(ServiceCrMemoHeaderToInsert.GetSIILastSummaryDocNo());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Serv-Documents Mgt.", 'OnGetAndCheckCustomerOnAfterCheckBlocked', '', true, true)]

@@ -444,16 +444,6 @@ page 26 "Vendor Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                 }
-                field("Payment Days Code"; Rec."Payment Days Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment day code used by this vendor.';
-                }
-                field("Non-Paymt. Periods Code"; Rec."Non-Paymt. Periods Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the non-payment day code used by this vendor.';
-                }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Basic, Suite;
@@ -693,26 +683,6 @@ page 26 "Vendor Card"
                     RunPageLink = "Table Name" = const(Vendor),
                                   "No." = field("No.");
                     ToolTip = 'View or add comments for the record.';
-                }
-                action("P&ayment Days")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'P&ayment Days';
-                    Image = PaymentDays;
-                    RunObject = Page "Payment Days";
-                    RunPageLink = "Table Name" = const(Vendor),
-                                  Code = field("Payment Days Code");
-                    ToolTip = 'View or edit the payment days that are associated with the payment code.';
-                }
-                action("Non-Pa&yment Periods")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Non-Pa&yment Periods';
-                    Image = PaymentPeriod;
-                    RunObject = Page "Non-Payment Periods";
-                    RunPageLink = "Table Name" = const(Vendor),
-                                  Code = field("Non-Paymt. Periods Code");
-                    ToolTip = 'View or edit the periods for which payments will not be made.';
                 }
                 action(ApprovalEntries)
                 {

@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.History;
 
-using Microsoft.EServices.EDocument;
-
 tableextension 10795 "Service Cr.Memo Line ES" extends "Service Cr.Memo Line"
 {
     fields
@@ -29,11 +27,6 @@ tableextension 10795 "Service Cr.Memo Line ES" extends "Service Cr.Memo Line"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'EC Difference';
-            DataClassification = CustomerContent;
-        }
-        field(10709; "Special Scheme Code"; Enum "SII Sales Special Scheme Code")
-        {
-            Caption = 'Special Scheme Code';
             DataClassification = CustomerContent;
         }
     }

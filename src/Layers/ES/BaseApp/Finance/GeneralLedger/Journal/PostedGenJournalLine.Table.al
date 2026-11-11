@@ -1891,18 +1891,6 @@ table 181 "Posted Gen. Journal Line"
             OptionCaption = '01 General,02 Special System Activities,03 Special System,04 Gold,05 Travel Agencies,06 Groups of Entities,07 Special Cash,08  IPSI / IGIC,09 Intra-Community Acquisition,12 Business Premises Leasing Operations,13 Import (Without DUA),14 First Half 2017';
             OptionMembers = "01 General","02 Special System Activities","03 Special System","04 Gold","05 Travel Agencies","06 Groups of Entities","07 Special Cash","08  IPSI / IGIC","09 Intra-Community Acquisition","12 Business Premises Leasing Operations","13 Import (Without DUA)","14 First Half 2017";
         }
-        field(10715; "Correction Type"; Option)
-        {
-            Caption = 'Correction Type';
-            DataClassification = CustomerContent;
-            OptionCaption = ' ,Replacement,Difference,Removal';
-            OptionMembers = " ",Replacement,Difference,Removal;
-        }
-        field(10716; "Corrected Invoice No."; Code[20])
-        {
-            Caption = 'Corrected Invoice No.';
-            DataClassification = CustomerContent;
-        }
         field(10720; "Succeeded Company Name"; Text[250])
         {
             Caption = 'Succeeded Company Name';

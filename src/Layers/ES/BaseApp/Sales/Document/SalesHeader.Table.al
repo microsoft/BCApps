@@ -301,8 +301,7 @@ table 36 "Sales Header"
 
                             SalesLine.Reset();
 
-                            if xRec."Bill-to Customer No." <> "Bill-to Customer No." then
-                                "Corrected Invoice No." := '';
+                            OnValidateBillToCustomerNoOnAfterResetSalesLines(Rec, xRec);
                         end else
                             "Bill-to Customer No." := xRec."Bill-to Customer No.";
 
@@ -3689,28 +3688,6 @@ table 36 "Sales Header"
                     Error(
                       Text061, "Assigned User ID",
                       RespCenter.TableCaption(), UserSetupMgt.GetSalesFilter("Assigned User ID"));
-            end;
-        }
-        field(10705; "Corrected Invoice No."; Code[20])
-        {
-            Caption = 'Corrected Invoice No.';
-
-            trigger OnLookup()
-            var
-                SalesInvoiceHeader: Record "Sales Invoice Header";
-            begin
-                if SalesInvoiceHeader.LookupInvoice("Bill-to Customer No.") then
-                    Validate("Corrected Invoice No.", SalesInvoiceHeader."No.");
-            end;
-
-            trigger OnValidate()
-            var
-                SalesInvoiceHeader: Record "Sales Invoice Header";
-            begin
-                if "Corrected Invoice No." <> '' then
-                    SalesInvoiceHeader.CheckCorrectedDocumentExist("Bill-to Customer No.", "Corrected Invoice No.");
-
-                OnAfterValidateCorrectedInvoiceNoOnSII(Rec);
             end;
         }
         field(10706; "Due Date Modified"; Boolean)
@@ -9979,11 +9956,6 @@ table 36 "Sales Header"
     begin
     end;
 
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterValidateCorrectedInvoiceNoOnSII(var SalesHeader: Record "Sales Header")
-    begin
-    end;
-
     /// <summary>
     /// Raised after the number series is initialized for the sales header.
     /// </summary>
@@ -14154,6 +14126,11 @@ table 36 "Sales Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeResponsibilityCenterValidate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateBillToCustomerNoOnAfterResetSalesLines(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header")
     begin
     end;
 }

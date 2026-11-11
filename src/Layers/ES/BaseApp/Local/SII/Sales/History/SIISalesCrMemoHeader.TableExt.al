@@ -65,13 +65,6 @@ tableextension 7000023 "SII Sales Cr. Memo Header" extends "Sales Cr.Memo Header
             Caption = 'Operation Description';
             DataClassification = CustomerContent;
         }
-        field(10711; "Correction Type"; Option)
-        {
-            Caption = 'Correction Type';
-            DataClassification = CustomerContent;
-            OptionCaption = ' ,Replacement,Difference,Removal';
-            OptionMembers = " ",Replacement,Difference,Removal;
-        }
         field(10712; "Operation Description 2"; Text[250])
         {
             Caption = 'Operation Description 2';

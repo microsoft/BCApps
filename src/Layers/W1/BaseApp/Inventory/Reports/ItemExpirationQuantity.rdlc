@@ -1293,6 +1293,159 @@
     </ReportSection>
   </ReportSections>
   <ReportParameters>
+    <ReportParameter Name="ItemExpirationQuantityLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemExpirationQuantityLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemExpirationQuantityLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemExpQuantityPrintLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemExpQuantityPrintLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemExpQuantityPrintLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemExpQuantityAnalysisLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemExpQuantityAnalysisLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemExpQuantityAnalysisLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DataRetrievedLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DataRetrievedLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DataRetrievedLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="BeforeLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>BeforeLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>BeforeLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="AfterLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>AfterLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>AfterLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Inventory2Lbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Inventory2Lbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Inventory2Lbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Inventory3Lbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Inventory3Lbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Inventory3Lbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Inventory4Lbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Inventory4Lbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Inventory4Lbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InventoryLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="AboutTheReportLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>AboutTheReportLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>AboutTheReportLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="EnvironmentLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>EnvironmentLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>EnvironmentLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="CompanyLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>CompanyLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>CompanyLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="UserLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>UserLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>UserLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="RunOnLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>RunOnLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>RunOnLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ReportNameLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ReportNameLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ReportNameLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DocumentationLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DocumentationLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DocumentationLbl</Prompt>
+    </ReportParameter>
     <ReportParameter Name="ItemExpirationQutyCaption">
       <DataType>String</DataType>
       <DefaultValue>
@@ -1356,46 +1509,201 @@
       </DefaultValue>
       <Prompt>ItemNoCaption</Prompt>
     </ReportParameter>
+    <ReportParameter Name="No_ItemCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>No_ItemCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>No_ItemCaption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="Description_ItemCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>Description_ItemCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>Description_ItemCaption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InventoryPostingGroup_ItemCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryPostingGroup_ItemCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryPostingGroup_ItemCaption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="StatisticsGroup_ItemCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>StatisticsGroup_ItemCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>StatisticsGroup_ItemCaption</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ItemTrackingCode_ItemCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ItemTrackingCode_ItemCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ItemTrackingCode_ItemCaption</Prompt>
+    </ReportParameter>
   </ReportParameters>
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>1</NumberOfColumns>
-      <NumberOfRows>7</NumberOfRows>
+      <NumberOfRows>29</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>0</RowIndex>
-          <ParameterName>ItemExpirationQutyCaption</ParameterName>
+          <ParameterName>ItemExpirationQuantityLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>1</RowIndex>
-          <ParameterName>PageCaption</ParameterName>
+          <ParameterName>ItemExpQuantityPrintLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>2</RowIndex>
-          <ParameterName>AfterCaption</ParameterName>
+          <ParameterName>ItemExpQuantityAnalysisLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>3</RowIndex>
-          <ParameterName>BeforeCaption</ParameterName>
+          <ParameterName>DataRetrievedLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>4</RowIndex>
-          <ParameterName>TotalInvtQtyCaption</ParameterName>
+          <ParameterName>BeforeLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>5</RowIndex>
-          <ParameterName>DescriptionCaption</ParameterName>
+          <ParameterName>AfterLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>6</RowIndex>
+          <ParameterName>Inventory2Lbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>7</RowIndex>
+          <ParameterName>Inventory3Lbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>8</RowIndex>
+          <ParameterName>Inventory4Lbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>9</RowIndex>
+          <ParameterName>InventoryLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>10</RowIndex>
+          <ParameterName>AboutTheReportLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>11</RowIndex>
+          <ParameterName>EnvironmentLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>12</RowIndex>
+          <ParameterName>CompanyLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>13</RowIndex>
+          <ParameterName>UserLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>14</RowIndex>
+          <ParameterName>RunOnLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>15</RowIndex>
+          <ParameterName>ReportNameLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>16</RowIndex>
+          <ParameterName>DocumentationLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>17</RowIndex>
+          <ParameterName>ItemExpirationQutyCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>18</RowIndex>
+          <ParameterName>PageCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>19</RowIndex>
+          <ParameterName>AfterCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>20</RowIndex>
+          <ParameterName>BeforeCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>21</RowIndex>
+          <ParameterName>TotalInvtQtyCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>22</RowIndex>
+          <ParameterName>DescriptionCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>23</RowIndex>
           <ParameterName>ItemNoCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>24</RowIndex>
+          <ParameterName>No_ItemCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>25</RowIndex>
+          <ParameterName>Description_ItemCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>26</RowIndex>
+          <ParameterName>InventoryPostingGroup_ItemCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>27</RowIndex>
+          <ParameterName>StatisticsGroup_ItemCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>28</RowIndex>
+          <ParameterName>ItemTrackingCode_ItemCaption</ParameterName>
         </CellDefinition>
       </CellDefinitions>
     </GridLayoutDefinition>
@@ -1474,6 +1782,15 @@ End Function
         </Field>
         <Field Name="Description_Item">
           <DataField>Description_Item</DataField>
+        </Field>
+        <Field Name="InventoryPostingGroup_Item">
+          <DataField>InventoryPostingGroup_Item</DataField>
+        </Field>
+        <Field Name="StatisticsGroup_Item">
+          <DataField>StatisticsGroup_Item</DataField>
+        </Field>
+        <Field Name="ItemTrackingCode_Item">
+          <DataField>ItemTrackingCode_Item</DataField>
         </Field>
         <Field Name="InvtQty1">
           <DataField>InvtQty1</DataField>

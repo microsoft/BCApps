@@ -1598,6 +1598,7 @@ table 21 "Cust. Ledger Entry"
         "Applies-to Bill No." := GenJnlLine."Applies-to Bill No.";
         "VAT Reporting Date" := GenJnlLine."VAT Reporting Date";
 
+        OnCopyFromGenJnlLineOnAfterCopyFields(Rec, GenJnlLine);
         OnAfterCopyCustLedgerEntryFromGenJnlLine(Rec, GenJnlLine);
     end;
 
@@ -1951,4 +1952,9 @@ table 21 "Cust. Ledger Entry"
     begin
     end;
 
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCopyFromGenJnlLineOnAfterCopyFields(var CustLedgerEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line")
+    begin
+    end;
 }

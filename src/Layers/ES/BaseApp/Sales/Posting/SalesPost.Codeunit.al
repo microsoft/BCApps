@@ -262,12 +262,9 @@ codeunit 80 "Sales-Post"
         TotalInvoiceAmountNegativeErr: Label 'The total amount for the invoice must be 0 or greater.';
         PaymentMethod: Record "Payment Method";
         SplitPayment: Codeunit "Invoice-Split Payment";
-        Text1100000: Label 'The Credit Memo doesn''t have a Corrected Invoice No. Do you want to continue?';
-        Text1100011: Label 'The posting process has been cancelled by the user.';
         CannotCreateCarteraDocErr: Label 'You do not have permissions to create Documents in Cartera.\Please, change the Payment Method.';
         Text1100102: Label 'Posting to bal. account    #5######\';
         Text1100103: Label 'Creating documents         #6######';
-        Text1100104: Label 'Corrective Invoice';
         SendShipmentAlsoQst: Label 'You can take the same actions for the related Sales - Shipment document.\\Do you want to do that now?';
         SuppressCommit: Boolean;
         PostingPreviewNoTok: Label '***', Locked = true;
@@ -12006,7 +12003,6 @@ codeunit 80 "Sales-Post"
 
     local procedure CheckCorrectedInvoice(var SalesHeader: Record "Sales Header")
     var
-        ConfirmManagement: Codeunit "Confirm Management";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -12014,21 +12010,7 @@ codeunit 80 "Sales-Post"
         if IsHandled then
             exit;
 
-        if (SalesHeader."Document Type" = SalesHeader."Document Type"::"Credit Memo") or
-           ((SalesHeader."Document Type" = SalesHeader."Document Type"::"Return Order") and SalesHeader.Invoice)
-        then begin
-            if SalesSetup."Correct. Doc. No. Mandatory" then
-                SalesHeader.TestField("Corrected Invoice No.")
-            else begin
-                if SalesHeader."Correction Type" in [SalesHeader."Correction Type"::Replacement, SalesHeader."Correction Type"::Removal] then
-                    SalesHeader.TestField("Corrected Invoice No.");
-                if SalesHeader."Corrected Invoice No." = '' then
-                    if not ConfirmManagement.GetResponseOrDefault(Text1100000, true) then
-                        Error(Text1100011);
-            end;
-            if (SalesHeader."Corrected Invoice No." <> '') and (SalesHeader."Posting Description" = '') then
-                SalesHeader."Posting Description" := Format(Text1100104) + ' ' + SalesHeader."No."
-        end;
+        OnCheckCorrectedInvoice(SalesHeader, SalesSetup);
     end;
 
     local procedure CreatePrepaymentLineForCreditMemo(var SalesHeader: Record "Sales Header")
@@ -13470,6 +13452,11 @@ codeunit 80 "Sales-Post"
     end;
 
     [IntegrationEvent(false, false)]
+    procedure OnCheckCorrectedInvoiceOnBeforeConfirm(SalesHeader: Record "Sales Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemChargeLine(var SalesLine: Record "Sales Line"; SalesLineACY: Record "Sales Line")
     begin
     end;
@@ -14168,6 +14155,11 @@ codeunit 80 "Sales-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnSyncSurPlusItemTrackingOnBeforeModifyQtyToHandleInvoice(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var ReservationEntry: Record "Reservation Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckCorrectedInvoice(var SalesHeader: Record "Sales Header"; SalesSetup: Record "Sales & Receivables Setup")
     begin
     end;
 }

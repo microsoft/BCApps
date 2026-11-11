@@ -508,12 +508,9 @@ codeunit 90 "Purch.-Post"
         AutoDocNo: Code[20];
 #pragma warning disable AA0074
 #pragma warning disable AA0470
-        Text1100000: Label 'The Credit Memo doesn''t have a Corrected Invoice No. Do you want to continue?';
-        Text1100011: Label 'The posting process has been cancelled by the user.';
         CannotCreateCarteraDocErr: Label 'You do not have permissions to create Documents in Cartera.\Please, change the Payment Method.';
         Text1100102: Label 'Posting to bal. account    #5######\';
         Text1100103: Label 'Creating documents         #6######';
-        Text1100104: Label 'Corrective Invoice';
         ReservationDisruptedQst: Label 'One or more reservation entries exist for the item with %1 = %2, %3 = %4, %5 = %6 which may be disrupted if you post this negative adjustment. Do you want to continue?', Comment = 'One or more reservation entries exist for the item with No. = 1000, Location Code = SILVER, Variant Code = NEW which may be disrupted if you post this negative adjustment. Do you want to continue?';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
@@ -1006,7 +1003,6 @@ codeunit 90 "Purch.-Post"
 
     local procedure CheckCorrectedInvoiceNo(var PurchaseHeader: Record "Purchase Header")
     var
-        ConfirmManagement: Codeunit "Confirm Management";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -1014,19 +1010,7 @@ codeunit 90 "Purch.-Post"
         if IsHandled then
             exit;
 
-        if PurchaseHeader.IsCreditDocType() and PurchaseHeader.Invoice then begin
-            if PurchSetup."Correct. Doc. No. Mandatory" then
-                PurchaseHeader.TestField("Corrected Invoice No.")
-            else begin
-                if PurchaseHeader."Correction Type" = PurchaseHeader."Correction Type"::Removal then
-                    PurchaseHeader.TestField("Corrected Invoice No.");
-                if PurchaseHeader."Corrected Invoice No." = '' then
-                    if not ConfirmManagement.GetResponseOrDefault(Text1100000, false) then
-                        Error(Text1100011);
-            end;
-            if (PurchaseHeader."Corrected Invoice No." <> '') and (PurchaseHeader."Posting Description" = '') then
-                PurchaseHeader."Posting Description" := Format(Text1100104) + ' ' + PurchaseHeader."No."
-        end;
+        OnCheckCorrectedInvoiceNo(PurchaseHeader, PurchSetup);
     end;
 
     /// <summary>
@@ -9761,6 +9745,11 @@ codeunit 90 "Purch.-Post"
     end;
 
     [IntegrationEvent(false, false)]
+    procedure OnCheckCorrectedInvoiceNoOnBeforeConfirm(PurchaseHeader: Record "Purchase Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckExternalDocumentNumber(VendorLedgerEntry: Record "Vendor Ledger Entry"; PurchaseHeader: Record "Purchase Header"; var Handled: Boolean; DocType: Option; ExtDocNo: Text[35]; SrcCode: Code[10]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; GenJnlLineDocNo: Code[20]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var TotalPurchLine: Record "Purchase Line"; var TotalPurchLineLCY: Record "Purchase Line")
     begin
     end;
@@ -11830,6 +11819,11 @@ codeunit 90 "Purch.-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckCorrectedInvoiceNo(var PurchaseHeader: Record "Purchase Header"; PurchSetup: Record "Purchases & Payables Setup")
     begin
     end;
 }

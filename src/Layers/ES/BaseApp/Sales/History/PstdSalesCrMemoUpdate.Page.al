@@ -82,22 +82,6 @@ page 1354 "Pstd. Sales Cr. Memo - Update"
                     ApplicationArea = Suite;
                 }
             }
-            group("Invoice Details")
-            {
-                Caption = 'Invoice Details';
-                field("Correction Type"; Rec."Correction Type")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = true;
-                    ToolTip = 'Specifies the Correction Type.';
-                }
-                field("Corrected Invoice No."; Rec."Corrected Invoice No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = true;
-                    ToolTip = 'Specifies the number of the posted invoice that you need to correct.';
-                }
-            }
         }
     }
 
@@ -126,11 +110,10 @@ page 1354 "Pstd. Sales Cr. Memo - Update"
           (Rec."Shipping Agent Code" <> xSalesCrMemoHeader."Shipping Agent Code") or
           (Rec."Shipping Agent Service Code" <> xSalesCrMemoHeader."Shipping Agent Service Code") or
           (Rec."Package Tracking No." <> xSalesCrMemoHeader."Package Tracking No.") or
-          (Rec."Corrected Invoice No." <> xSalesCrMemoHeader."Corrected Invoice No.") or
-          (Rec."Correction Type" <> xSalesCrMemoHeader."Correction Type") or
           (Rec."Company Bank Account Code" <> xSalesCrMemoHeader."Company Bank Account Code") or
           (Rec."Posting Description" <> xSalesCrMemoHeader."Posting Description");
 
+        OnRecordChangedOnAfterCompareFields(Rec, xSalesCrMemoHeader, IsChanged);
         OnAfterRecordChanged(Rec, xSalesCrMemoHeader, IsChanged);
     end;
 
@@ -146,6 +129,11 @@ page 1354 "Pstd. Sales Cr. Memo - Update"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterRecordChanged(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; xSalesCrMemoHeader: Record "Sales Cr.Memo Header"; var IsChanged: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRecordChangedOnAfterCompareFields(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; xSalesCrMemoHeader: Record "Sales Cr.Memo Header"; var IsChanged: Boolean)
     begin
     end;
 }

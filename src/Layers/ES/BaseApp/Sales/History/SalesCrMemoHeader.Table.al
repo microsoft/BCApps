@@ -1137,19 +1137,6 @@ table 114 "Sales Cr.Memo Header"
             Caption = 'Draft Cr. Memo System Id';
             DataClassification = SystemMetadata;
         }
-        field(10705; "Corrected Invoice No."; Code[20])
-        {
-            Caption = 'Corrected Invoice No.';
-            TableRelation = "Sales Invoice Header";
-
-            trigger OnLookup()
-            var
-                SalesInvoiceHeader: Record "Sales Invoice Header";
-            begin
-                if SalesInvoiceHeader.LookupInvoice("Bill-to Customer No.") then
-                    Validate("Corrected Invoice No.", SalesInvoiceHeader."No.");
-            end;
-        }
         field(7000000; "Applies-to Bill No."; Code[20])
         {
             Caption = 'Applies-to Bill No.';

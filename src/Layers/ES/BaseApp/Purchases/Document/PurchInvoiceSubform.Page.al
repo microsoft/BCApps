@@ -474,11 +474,6 @@ page 55 "Purch. Invoice Subform"
                         UpdateForm(false);
                     end;
                 }
-                field("Special Scheme Code"; Rec."Special Scheme Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the special scheme code.';
-                }
                 field("Allocation Account No."; Rec."Selected Alloc. Account No.")
                 {
                     ApplicationArea = All;

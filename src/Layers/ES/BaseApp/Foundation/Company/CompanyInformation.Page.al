@@ -283,16 +283,6 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("Payment Days Code"; Rec."Payment Days Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment day code that is used by the customer or vendor.';
-                }
-                field("Non-Paymt. Periods Code"; Rec."Non-Paymt. Periods Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the non-payment period code that is used by the customer or vendor.';
-                }
                 field("SWIFT Code"; Rec."SWIFT Code")
                 {
                     ApplicationArea = Basic, Suite;
@@ -561,31 +551,6 @@ page 1 "Company Information"
     {
         area(navigation)
         {
-            group("P&ayments")
-            {
-                Caption = 'P&ayments';
-                Image = Payment;
-                action("Payment Days")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Payment Days';
-                    Image = PaymentDays;
-                    RunObject = Page "Payment Days";
-                    RunPageLink = "Table Name" = const("Company Information"),
-                                  Code = field("Payment Days Code");
-                    ToolTip = 'View or edit the list of payment days that can be associated with a payment code.';
-                }
-                action("Non-Payment Periods")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Non-Payment Periods';
-                    Image = PaymentPeriod;
-                    RunObject = Page "Non-Payment Periods";
-                    RunPageLink = "Table Name" = const("Company Information"),
-                                  Code = field("Non-Paymt. Periods Code");
-                    ToolTip = 'View or edit the periods for which payments will not be made.';
-                }
-            }
             action("Responsibility Centers")
             {
                 ApplicationArea = Advanced;

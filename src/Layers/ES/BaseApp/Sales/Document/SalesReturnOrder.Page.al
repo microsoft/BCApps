@@ -336,11 +336,6 @@ page 6630 "Sales Return Order"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
-                field("Corrected Invoice No."; Rec."Corrected Invoice No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the posted invoice that you need to correct.';
-                }
             }
             part(SalesLines; "Sales Return Order Subform")
             {

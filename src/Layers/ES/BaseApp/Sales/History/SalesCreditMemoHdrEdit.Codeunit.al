@@ -26,6 +26,7 @@ codeunit 1408 "Sales Credit Memo Hdr. - Edit"
         SalesCrMemoHeader."Package Tracking No." := Rec."Package Tracking No.";
         SalesCrMemoHeader."Company Bank Account Code" := Rec."Company Bank Account Code";
         SalesCrMemoHeader."Posting Description" := Rec."Posting Description";
+        OnRunOnAfterCopyHeaderFields(SalesCrMemoHeader, Rec);
         OnBeforeSalesCrMemoHeaderModify(SalesCrMemoHeader, Rec);
         SalesCrMemoHeader.TestField("No.", Rec."No.");
         SalesCrMemoHeader.Modify();
@@ -71,6 +72,11 @@ codeunit 1408 "Sales Credit Memo Hdr. - Edit"
 
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterSalesCrMemoHeaderEdit(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRunOnAfterCopyHeaderFields(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; FromSalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
     end;
 }

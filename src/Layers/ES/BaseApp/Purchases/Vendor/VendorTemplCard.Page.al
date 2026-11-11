@@ -275,16 +275,6 @@ page 1386 "Vendor Templ. Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
-                field("Payment Days Code"; Rec."Payment Days Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment day code used by this vendor.';
-                }
-                field("Non-Paymt. Periods Code"; Rec."Non-Paymt. Periods Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the non-payment day code used by this vendor.';
-                }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Basic, Suite;

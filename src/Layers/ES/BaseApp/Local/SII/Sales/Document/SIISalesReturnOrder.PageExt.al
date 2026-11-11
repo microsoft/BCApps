@@ -43,11 +43,6 @@ pageextension 7000009 "SII Sales Return Order" extends "Sales Return Order"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the Invoice Type.';
                 }
-                field("Correction Type"; Rec."Correction Type")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the Correction Type.';
-                }
                 field("ID Type"; Rec."ID Type")
                 {
                     ApplicationArea = Basic, Suite;

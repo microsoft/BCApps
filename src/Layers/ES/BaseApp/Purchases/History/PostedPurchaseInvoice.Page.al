@@ -964,15 +964,6 @@ page 138 "Posted Purchase Invoice"
                         PurchInvHeader.PrintRecordsAutoInv(true);
                     end;
                 }
-                action(FindCorrectiveInvoices)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = '&Find Corrective Invoices';
-                    Image = FindCreditMemo;
-                    RunObject = Page "Posted Purchase Credit Memos";
-                    RunPageLink = "Corrected Invoice No." = field("No.");
-                    ToolTip = 'View related corrective invoices. You can send a corrective invoice when there is an error or dispute that affects a VAT amount or fiscal data. This invoice includes all legally required data and refers to the original invoice or invoices.';
-                }
             }
             group(IncomingDocument)
             {

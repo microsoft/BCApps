@@ -34,22 +34,15 @@ codeunit 7000029 "SII VAT Subscribers"
         Rec.SetRange("Ignore In SII", NoTaxableEntry."Ignore In SII");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterValidateEvent', 'Account Type', true, false)]
-    local procedure GenJournalLineOnAfterValidateAccountType(var Rec: Record "Gen. Journal Line")
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnBeforeClearInvCrMemoTypeFields', '', true, false)]
+    local procedure OnBeforeClearInvCrMemoTypeFields(var GenJournalLine: Record "Gen. Journal Line")
     begin
-        Rec.ClearInvCrMemoTypeFields();
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterValidateEvent', 'Account No.', true, false)]
-    local procedure GenJournalLineOnAfterValidateAccountNo(var Rec: Record "Gen. Journal Line")
-    begin
-        Rec.ClearInvCrMemoTypeFields();
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterValidateEvent', 'Bal. Account Type', true, false)]
-    local procedure GenJournalLineOnAfterValidateBalAccountType(var Rec: Record "Gen. Journal Line")
-    begin
-        Rec.ClearInvCrMemoTypeFields();
+        GenJournalLine."Sales Invoice Type" := GenJournalLine."Sales Invoice Type"::"F1 Invoice";
+        GenJournalLine."Sales Cr. Memo Type" := GenJournalLine."Sales Cr. Memo Type"::"R1 Corrected Invoice";
+        GenJournalLine."Sales Special Scheme Code" := GenJournalLine."Sales Special Scheme Code"::"01 General";
+        GenJournalLine."Purch. Invoice Type" := GenJournalLine."Purch. Invoice Type"::"F1 Invoice";
+        GenJournalLine."Purch. Cr. Memo Type" := GenJournalLine."Purch. Cr. Memo Type"::"R1 Corrected Invoice";
+        GenJournalLine."Purch. Special Scheme Code" := GenJournalLine."Purch. Special Scheme Code"::"01 General";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterCopyGenJnlLineFromPurchHeader', '', true, false)]

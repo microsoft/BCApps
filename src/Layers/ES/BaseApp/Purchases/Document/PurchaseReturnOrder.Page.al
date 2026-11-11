@@ -327,11 +327,6 @@ page 6640 "Purchase Return Order"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
-                field("Corrected Invoice No."; Rec."Corrected Invoice No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the posted invoice that you have corrected.';
-                }
             }
             part(PurchLines; "Purchase Return Order Subform")
             {

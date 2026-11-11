@@ -1129,6 +1129,7 @@ table 25 "Vendor Ledger Entry"
             "Remit-to Code" := GenJnlLine."Remit-to Code";
         "VAT Reporting Date" := GenJnlLine."VAT Reporting Date";
 
+        OnCopyFromGenJnlLineOnAfterCopyFields(Rec, GenJnlLine);
         OnAfterCopyVendLedgerEntryFromGenJnlLine(Rec, GenJnlLine);
     end;
 
@@ -1386,5 +1387,10 @@ table 25 "Vendor Ledger Entry"
     begin
     end;
 
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCopyFromGenJnlLineOnAfterCopyFields(var VendorLedgerEntry: Record "Vendor Ledger Entry"; GenJournalLine: Record "Gen. Journal Line")
+    begin
+    end;
 }
 

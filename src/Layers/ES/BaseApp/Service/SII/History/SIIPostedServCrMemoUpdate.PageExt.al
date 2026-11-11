@@ -1,50 +1,18 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Service.History;
+namespace Microsoft.EServices.EDocument;
 
-using Microsoft.EServices.EDocument;
+using Microsoft.Service.History;
 
-page 10769 "Posted Serv. Cr. Memo - Update"
+#pragma warning disable AS0088
+pageextension 7000085 "SII Posted Serv. Cr.Memo Upd." extends "Posted Serv. Cr. Memo - Update"
 {
-    Caption = 'Posted Service Credit Memo - Update';
-    DeleteAllowed = false;
-    Editable = true;
-    InsertAllowed = false;
-    ModifyAllowed = true;
-    PageType = Card;
-    ShowFilter = false;
-    SourceTable = "Service Cr.Memo Header";
-    SourceTableTemporary = true;
-
     layout
     {
-        area(content)
+        addafter(General)
         {
-            group(General)
-            {
-                Caption = 'General';
-                field("No."; Rec."No.")
-                {
-                    ApplicationArea = Service;
-                    Editable = false;
-                    ToolTip = 'Specifies the posted credit memo number.';
-                }
-                field(Name; Rec.Name)
-                {
-                    ApplicationArea = Service;
-                    Caption = 'Customer';
-                    Editable = false;
-                    ToolTip = 'Specifies the name of the customer to whom you shipped the service on the credit memo.';
-                }
-                field("Posting Date"; Rec."Posting Date")
-                {
-                    ApplicationArea = Service;
-                    Editable = false;
-                    ToolTip = 'Specifies the date when the credit memo was posted.';
-                }
-            }
             group(Invoicing)
             {
                 Caption = 'Invoicing';
@@ -111,23 +79,11 @@ page 10769 "Posted Serv. Cr. Memo - Update"
         }
     }
 
-    actions
-    {
-    }
-
     trigger OnOpenPage()
     var
         SIIManagement: Codeunit "SII Management";
     begin
-        xServiceCrMemoHeader := Rec;
         SIIManagement.CombineOperationDescription(Rec."Operation Description", Rec."Operation Description 2", OperationDescription);
-    end;
-
-    trigger OnQueryClosePage(CloseAction: Action): Boolean
-    begin
-        if CloseAction = Action::LookupOK then
-            if RecordChanged() then
-                Codeunit.Run(Codeunit::"Service Cr. Memo Header - Edit", Rec);
     end;
 
     trigger OnAfterGetRecord()
@@ -137,35 +93,7 @@ page 10769 "Posted Serv. Cr. Memo - Update"
     end;
 
     var
-        xServiceCrMemoHeader: Record "Service Cr.Memo Header";
         OperationDescription: Text[500];
         SIIFirstSummaryDocNo: Text[35];
         SIILastSummaryDocNo: Text[35];
-
-    local procedure RecordChanged() RecordIsChanged: Boolean
-    begin
-        RecordIsChanged :=
-          (Rec."Operation Description" <> xServiceCrMemoHeader."Operation Description") or
-          (Rec."Operation Description 2" <> xServiceCrMemoHeader."Operation Description 2") or
-          (Rec."Special Scheme Code" <> xServiceCrMemoHeader."Special Scheme Code") or
-          (Rec."Cr. Memo Type" <> xServiceCrMemoHeader."Cr. Memo Type") or
-          (Rec."Issued By Third Party" <> xServiceCrMemoHeader."Issued By Third Party") or
-          (Rec.GetSIIFirstSummaryDocNo() <> xServiceCrMemoHeader.GetSIIFirstSummaryDocNo()) or
-          (Rec.GetSIILastSummaryDocNo() <> xServiceCrMemoHeader.GetSIILastSummaryDocNo());
-
-        OnAfterRecordIsChanged(Rec, xServiceCrMemoHeader, RecordIsChanged);
-    end;
-
-    [Scope('OnPrem')]
-    procedure SetRec(ServiceCrMemoHeader: Record "Service Cr.Memo Header")
-    begin
-        Rec := ServiceCrMemoHeader;
-        Rec.Insert();
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterRecordIsChanged(var ServiceCrMemoHeader: Record "Service Cr.Memo Header"; xServiceCrMemoHeader: Record "Service Cr.Memo Header"; var RecordIsChanged: Boolean)
-    begin
-    end;
 }
-

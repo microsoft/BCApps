@@ -44,8 +44,8 @@ codeunit 906 "SO Activities Calculate"
         ReturnResults.Add(SalesCue.FieldName("Partially Shipped"), Format(SalesCue."Partially Shipped"));
         ReturnResults.Add(SalesCue.FieldName(Delayed), Format(SalesCue.Delayed));
         ReturnResults.Add(SalesCue.FieldName("S. Ord. - Reserved From Stock"), Format(SalesCue."S. Ord. - Reserved From Stock"));
-        ReturnResults.Add(SalesCue.FieldName("Missing SII Entries"), Format(SalesCue."Missing SII Entries"));
-        ReturnResults.Add(SalesCue.FieldName("Days Since Last SII Check"), Format(SalesCue."Days Since Last SII Check"));
+
+        OnAfterCalculateFieldValues(SalesCue, ReturnResults);
     end;
 
     /// <summary>
@@ -72,10 +72,8 @@ codeunit 906 "SO Activities Calculate"
             Evaluate(SalesCue.Delayed, ResultValue);
         if TryGetDictionaryValue(ResultsDictionary, SalesCue.FieldName("S. Ord. - Reserved From Stock"), ResultValue) then
             Evaluate(SalesCue."S. Ord. - Reserved From Stock", ResultValue);
-        if TryGetDictionaryValue(ResultsDictionary, SalesCue.FieldName("Missing SII Entries"), ResultValue) then
-            Evaluate(SalesCue."Missing SII Entries", ResultValue);
-        if TryGetDictionaryValue(ResultsDictionary, SalesCue.FieldName("Days Since Last SII Check"), ResultValue) then
-            Evaluate(SalesCue."Days Since Last SII Check", ResultValue);
+
+        OnAfterEvaluateResults(ResultsDictionary, SalesCue);
     end;
 
     [TryFunction]
@@ -100,6 +98,16 @@ codeunit 906 "SO Activities Calculate"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalculateCueFieldValues(var SalesCue: Record "Sales Cue")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalculateFieldValues(SalesCue: Record "Sales Cue"; var ReturnResults: Dictionary of [Text, Text])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterEvaluateResults(ResultsDictionary: Dictionary of [Text, Text]; var SalesCue: Record "Sales Cue")
     begin
     end;
 }

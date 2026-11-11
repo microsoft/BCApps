@@ -84,11 +84,6 @@ page 1382 "Customer Templ. Card"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
-                field("Not in AEAT"; Rec."Not in AEAT")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the customer is not registered in Spanish tax agency.';
-                }
             }
             group("Address & Contact")
             {
@@ -325,16 +320,6 @@ page 1382 "Customer Templ. Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                }
-                field("Payment Days Code"; Rec."Payment Days Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment days code used by this customer.';
-                }
-                field("Non-Paymt. Periods Code"; Rec."Non-Paymt. Periods Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the non-payment period code used by this customer.';
                 }
                 field("Reminder Terms Code"; Rec."Reminder Terms Code")
                 {

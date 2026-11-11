@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
-using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Setup;
 
 page 1351 "Posted Purch. Invoice - Update"
@@ -61,53 +60,6 @@ page 1351 "Posted Purch. Invoice - Update"
                     ApplicationArea = Basic, Suite;
                     Editable = true;
                 }
-                field(OperationDescription; OperationDescription)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Operation Description';
-                    Editable = true;
-                    MultiLine = true;
-                    ToolTip = 'Specifies the Operation Description.';
-
-                    trigger OnValidate()
-                    var
-                        SIIManagement: Codeunit "SII Management";
-                    begin
-                        SIIManagement.SplitOperationDescription(OperationDescription, Rec."Operation Description", Rec."Operation Description 2");
-                        Rec.Validate("Operation Description");
-                        Rec.Validate("Operation Description 2");
-                    end;
-                }
-                field("Special Scheme Code"; Rec."Special Scheme Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = true;
-                    ToolTip = 'Specifies the Special Scheme Code.';
-                }
-                field("Invoice Type"; Rec."Invoice Type")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = true;
-                    ToolTip = 'Specifies the Invoice Type.';
-                }
-                field("ID Type"; Rec."ID Type")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = true;
-                    ToolTip = 'Specifies the ID Type.';
-                }
-                field("Succeeded Company Name"; Rec."Succeeded Company Name")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = true;
-                    ToolTip = 'Specifies the name of the company successor in connection with corporate restructuring.';
-                }
-                field("Succeeded VAT Registration No."; Rec."Succeeded VAT Registration No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = true;
-                    ToolTip = 'Specifies the VAT registration number of the company successor in connection with corporate restructuring.';
-                }
                 field("Posting Description"; Rec."Posting Description")
                 {
                     ApplicationArea = Basic, Suite;
@@ -137,11 +89,8 @@ page 1351 "Posted Purch. Invoice - Update"
     }
 
     trigger OnOpenPage()
-    var
-        SIIManagement: Codeunit "SII Management";
     begin
         xPurchInvHeader := Rec;
-        SIIManagement.CombineOperationDescription(Rec."Operation Description", Rec."Operation Description 2", OperationDescription);
         GLSetup.Get();
         IsPaymentMethodCodeVisible := not GLSetup."Hide Payment Method Code";
     end;
@@ -156,7 +105,6 @@ page 1351 "Posted Purch. Invoice - Update"
     var
         xPurchInvHeader: Record "Purch. Inv. Header";
         GLSetup: Record "General Ledger Setup";
-        OperationDescription: Text[500];
         IsPaymentMethodCodeVisible: Boolean;
 
     local procedure RecordChanged() IsChanged: Boolean
@@ -166,13 +114,6 @@ page 1351 "Posted Purch. Invoice - Update"
           (Rec."Payment Method Code" <> xPurchInvHeader."Payment Method Code") or
           (Rec."Creditor No." <> xPurchInvHeader."Creditor No.") or
           (Rec."Ship-to Code" <> xPurchInvHeader."Ship-to Code") or
-          (Rec."Operation Description" <> xPurchInvHeader."Operation Description") or
-          (Rec."Operation Description 2" <> xPurchInvHeader."Operation Description 2") or
-          (Rec."Special Scheme Code" <> xPurchInvHeader."Special Scheme Code") or
-          (Rec."Invoice Type" <> xPurchInvHeader."Invoice Type") or
-          (Rec."ID Type" <> xPurchInvHeader."ID Type") or
-          (Rec."Succeeded Company Name" <> xPurchInvHeader."Succeeded Company Name") or
-          (Rec."Succeeded VAT Registration No." <> xPurchInvHeader."Succeeded VAT Registration No.") or
           (Rec."Posting Description" <> xPurchInvHeader."Posting Description") or
           (Rec."Dispute Status" <> xPurchInvHeader."Dispute Status");
 
