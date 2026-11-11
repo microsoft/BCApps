@@ -31,6 +31,11 @@ reportextension 7305 "Mfg. WhseSourceCreateDocument" extends "Whse.-Source - Cre
                     SkipProdOrderComp: Boolean;
                     EmptyGuid: Guid;
                 begin
+                    if not "Prod. Order Component".IsEligibleForWarehousePick() then begin
+                        CurrReport.Skip();
+                        exit;
+                    end;
+
                     if "Prod. Order Component"."Location Code" <> '' then begin
                         Location.Get("Prod. Order Component"."Location Code");
                         if not (Location."Prod. Consump. Whse. Handling" in [Location."Prod. Consump. Whse. Handling"::"Warehouse Pick (mandatory)", Location."Prod. Consump. Whse. Handling"::"Warehouse Pick (optional)"]) then
@@ -111,7 +116,6 @@ reportextension 7305 "Mfg. WhseSourceCreateDocument" extends "Whse.-Source - Cre
                         "Flushing Method"::"Pick + Manual",
                         "Flushing Method"::"Pick + Forward",
                         "Flushing Method"::"Pick + Backward");
-                    SetRange("Planning Level Code", 0);
                     SetFilter("Expected Qty. (Base)", '>0');
 
                     WhseWkshLine.SetCurrentKey("Source Type", "Source Subtype", "Source No.", "Source Line No.", "Source Subline No.");
