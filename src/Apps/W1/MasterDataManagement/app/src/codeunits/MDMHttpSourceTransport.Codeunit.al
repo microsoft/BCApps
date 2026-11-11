@@ -93,9 +93,10 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
 
         for Attempt := 0 to MaxRetries() do
             if TrySend(MasterDataManagementSetup, ActionName, RequestBody, ResponseMessage) then begin
-                ResponseMessage.Content().ReadAs(ResponseBodyText);
-                if ResponseMessage.IsSuccessStatusCode() then
+                if ResponseMessage.IsSuccessStatusCode() then begin
+                    ResponseMessage.Content().ReadAs(ResponseBodyText);
                     exit(UnwrapODataValue(ResponseBodyText));
+                end;
                 if not ShouldRetry(ResponseMessage, Attempt, RetryAfter) then begin
                     LogRequestFailure(MasterDataManagementSetup, ActionName, ResponseMessage);
                     Error(SetupNavigationError(HttpStatusErrorMessage(MasterDataManagementSetup, ResponseMessage.HttpStatusCode())));

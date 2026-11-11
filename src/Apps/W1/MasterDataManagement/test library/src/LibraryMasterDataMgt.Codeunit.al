@@ -301,6 +301,19 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(MasterDataManagementSetup.UsesSourceClientCertificate());
     end;
 
+    /// <summary>Clears the cross-environment connection details and removes the stored credentials from Isolated Storage.</summary>
+    procedure ClearCrossEnvConnection()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        if not MasterDataManagementSetup.Get() then
+            exit;
+        MasterDataManagementSetup.ClearCrossEnvConnection();
+#pragma warning disable AA0214 // ClearCrossEnvConnection modifies the record's connection and credential fields
+        MasterDataManagementSetup.Modify(false);
+#pragma warning restore AA0214
+    end;
+
     /// <summary>Checks whether a cross-environment credential entry exists in the app's Isolated Storage, without reading its value.</summary>
     /// <param name="CredentialKey">The Isolated Storage key of the credential, as stored on the setup record.</param>
     /// <returns>True if an Isolated Storage entry exists for the key.</returns>

@@ -2023,13 +2023,11 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
             MasterDataManagementSetup.Insert();
         end;
         MasterDataManagementSetup."Source Environment Name" := '';
-        // Setup commits survive AutoRollback, so drop a certificate left by an earlier test; otherwise the wizard
-        // opens in certificate mode for tests that enter a client secret.
-        Clear(MasterDataManagementSetup."Source Client Certificate Key");
-        Clear(MasterDataManagementSetup."Source Cert. Password Key");
-        MasterDataManagementSetup."Source Cert. Thumbprint" := '';
-        MasterDataManagementSetup."Source Cert. Expiration Date" := 0DT;
         MasterDataManagementSetup.Modify(false);
+        // Setup commits survive AutoRollback, so remove a connection and credentials left by an earlier test through the
+        // setup's own cleanup, which also deletes them from Isolated Storage; otherwise the wizard opens in certificate
+        // mode for tests that enter a client secret.
+        LibraryMasterDataMgt.ClearCrossEnvConnection();
     end;
 
     [ConfirmHandler]
@@ -2062,6 +2060,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         InProcessTransport.Deactivate();
         PagingConfig.Deactivate();
         LibraryMasterDataMgt.SetSourceEnvironmentName('');
+        LibraryMasterDataMgt.ClearCrossEnvConnection(); // removes stored credentials from Isolated Storage, not just their keys
         DeleteTestArtifacts();
     end;
 
