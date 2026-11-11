@@ -11,6 +11,7 @@ codeunit 31031 "SOAP WS Request Management CZL"
 {
     var
         ResponseHttpResponseMessage: HttpResponseMessage;
+        RequestHttpRequestMessage: HttpRequestMessage;
         ResponseContentXmlDocument: XmlDocument;
         GlobalBasicUsername, GlobalBasicPassword, GlobalSoapAction, GlobalContentType : Text;
         GlobalStreamEncoding: TextEncoding;
@@ -24,32 +25,36 @@ codeunit 31031 "SOAP WS Request Management CZL"
         SecurityExtensionNamespaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd', Locked = true;
         SoapNamespaceTxt: Label 'http://schemas.xmlsoap.org/soap/envelope/', Locked = true;
         UsernameTokenNamepsaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText', Locked = true;
+        InvalidUriErr: Label 'The URI is not valid.';
+        NonSecureUriErr: Label 'The URI is not secure.';
 
     [TryFunction]
     procedure SendRequestToWebService(ServiceUrl: Text; RequestContentInStream: InStream)
     var
         RequestTempBlob: Codeunit "Temp Blob";
-        WebRequestHelper: Codeunit "Web Request Helper";
+        Uri: Codeunit Uri;
         WSHttpClient: HttpClient;
         RequestHttpContent: HttpContent;
         RequestContentHttpHeaders: HttpHeaders;
         RequestHttpHeaders: HttpHeaders;
-        RequestHttpRequestMessage: HttpRequestMessage;
         RequestInStream: InStream;
         RequestOutStream: OutStream;
         ContentTypeTok: Label 'text/xml; charset=utf-8', Locked = true;
         Xml: Text;
     begin
         ClearLastError();
+        Clear(RequestHttpRequestMessage);
         Clear(ResponseHttpResponseMessage);
         Clear(ResponseContentXmlDocument);
         RequestTempBlob.CreateInStream(RequestInStream);
         RequestTempBlob.CreateOutStream(RequestOutStream);
-
-        if GlobalSkipCheckHttps then
-            WebRequestHelper.IsValidUri(ServiceUrl)
-        else
-            WebRequestHelper.IsSecureHttpUrl(ServiceUrl);
+        if not Uri.IsValidUri(ServiceUrl) then
+            Error(InvalidUriErr);
+        if not GlobalSkipCheckHttps then begin
+            Uri.Init(ServiceUrl);
+            if not Uri.IsSecureHttpUrl() then
+                Error(NonSecureUriErr);
+        end;
 
         RequestHttpRequestMessage.Method := 'POST';
         RequestHttpRequestMessage.SetRequestUri := ServiceUrl;
@@ -118,7 +123,6 @@ codeunit 31031 "SOAP WS Request Management CZL"
         EnvelopeXmlDocument := XmlDocument.Create();
         XMLDOMManagement.AddRootElementWithPrefix(EnvelopeXmlDocument, 'Envelope', 'soap', SoapNamespaceTxt, EnvelopeXmlNode);
         XMLDOMManagement.AddElementWithPrefix(EnvelopeXmlNode, 'Header', '', 'soap', SoapNamespaceTxt, HeaderXmlNode);
-
         if (Username <> '') or (Password <> '') then begin
             XMLDOMManagement.AddElementWithPrefix(HeaderXmlNode, 'Security', '', 'wsse', SecurityExtensionNamespaceTxt, SecurityXmlNode);
             XMLDOMManagement.AddNamespaceDeclaration(SecurityXmlNode, 'wsu', SecurityUtilityNamespaceTxt);
@@ -189,6 +193,16 @@ codeunit 31031 "SOAP WS Request Management CZL"
     begin
         ContentXmlDocument.GetRoot(ContentXmlElement);
         exit(XMLDOMManagement.FindNodeWithNamespace(ContentXmlElement.AsXmlNode(), EnvelopePathTxt, 'soap', SoapNamespaceTxt, EnvelopeXmlNode));
+    end;
+
+    procedure GetHttpRequestMessage(): HttpRequestMessage
+    begin
+        exit(RequestHttpRequestMessage);
+    end;
+
+    procedure GetHttpResponseMessage(): HttpResponseMessage
+    begin
+        exit(ResponseHttpResponseMessage);
     end;
 
     procedure GetResponseAsText(): Text

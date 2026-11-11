@@ -408,6 +408,13 @@ page 30 "Item Card"
                         Enabled = IsInventoriable;
                         Importance = Additional;
                     }
+                    field("Overhead Rate"; Rec."Overhead Rate")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Enabled = IsInventoriable;
+                        Importance = Additional;
+                        ToolTip = 'Specifies the item''s indirect cost as an absolute amount.';
+                    }
                     field("Last Direct Cost"; Rec."Last Direct Cost")
                     {
                         ApplicationArea = Basic, Suite;

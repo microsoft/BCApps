@@ -8,6 +8,7 @@
 
 namespace Microsoft.Agent.SalesOrderAgent;
 
+using Microsoft.Inventory.Availability;
 using System.Agents;
 using System.AI;
 using System.Email;
@@ -27,7 +28,7 @@ page 4400 "SOA Setup"
     RefreshOnActivate = true;
     InherentEntitlements = X;
     InherentPermissions = X;
-    HelpLink = 'https://go.microsoft.com/fwlink/?linkid=2281481';
+    HelpLink = 'https://go.microsoft.com/fwlink/?LinkId=2382318';
 
     layout
     {
@@ -258,6 +259,8 @@ page 4400 "SOA Setup"
                             Editable = OnlyAvailableItemsActive;
                             trigger OnValidate()
                             begin
+                                if Rec."Incl. Capable to Promise" then
+                                    VerifyOrderPromisingSetupConfigured();
                                 ConfigUpdated();
                             end;
                         }
@@ -562,9 +565,13 @@ page 4400 "SOA Setup"
             exit(true);
         end;
 
-        if EnabledAgentFirstConfig() then
+        if EnabledAgentFirstConfig() then begin
             if Confirm(ReadyToActivateLbl) then
-                Rec.State := Rec.State::Enabled;
+                ActivateAgent();
+        end else
+            if ShouldOfferActivation(CreateTrialTask) then
+                if Confirm(ActivateInactiveAgentQst) then
+                    ActivateAgent();
 
         UpdateAgentSetupBuffer();
         if (TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Enabled) and (MailboxChanged or StateChanged()) then begin
@@ -616,6 +623,29 @@ page 4400 "SOA Setup"
     local procedure StateChanged(): Boolean
     begin
         exit((TempAgentSetupBuffer.State <> InitialState) or IsFirstConfig());
+    end;
+
+    local procedure ShouldOfferActivation(CreateTrialTask: Boolean): Boolean
+    begin
+        if CreateTrialTask then
+            exit(false);
+
+        UpdateAgentSetupBuffer();
+        IsConfigUpdated := IsConfigUpdated or AgentSetup.GetChangesMade(TempAgentSetupBuffer);
+
+        exit(IsConfigUpdated and
+             (not TempAgentSetupBuffer."State Updated") and
+             (InitialState = TempAgentSetupBuffer.State::Disabled) and
+             (TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Disabled));
+    end;
+
+    local procedure ActivateAgent()
+    begin
+        UpdateAgentSetupBuffer();
+        TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
+        TempAgentSetupBuffer.Modify();
+        CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
+        CurrPage.AgentSetupPart.Page.Update()
     end;
 
     local procedure ShouldScheduleTask(): Boolean
@@ -686,6 +716,22 @@ page 4400 "SOA Setup"
 
         if EnabledAgentFirstConfig() then
             TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Enabled;
+    end;
+
+    local procedure VerifyOrderPromisingSetupConfigured()
+    var
+        OrderPromisingSetup: Record "Order Promising Setup";
+        SOAShipmentDateMgt: Codeunit "SOA Shipment Date Mgt.";
+    begin
+        if SOAShipmentDateMgt.OrderPromisingSetupConfigured() then
+            exit;
+
+        // Capable to Promise needs the Order Promising Setup template and worksheet; offer to configure it so the agent does not fail later.
+        if Confirm(OrderPromisingSetupMissingQst, false, OrderPromisingSetup.TableCaption()) then
+            Page.RunModal(Page::"Order Promising Setup");
+
+        if not SOAShipmentDateMgt.OrderPromisingSetupConfigured() then
+            Rec."Incl. Capable to Promise" := false;
     end;
 
     local procedure EnabledAgentFirstConfig(): Boolean
@@ -863,9 +909,11 @@ page 4400 "SOA Setup"
         ConfiguredBy: Text[80];
         SOACreateTaskLbl: Label 'Create task for the agent';
         EnableAgentForTaskQst: Label 'Trying out the agent will activate it with the current settings.\\Do you want to continue?';
+        ActivateInactiveAgentQst: Label 'The agent is configured but not active, so it won''t process emails or tasks.\\Do you want to activate it now?';
         IsConfigUpdated: Boolean;
         InboxFolderNameTok: Label 'Inbox', Locked = true;
         InboxFolderIdTok: Label 'inbox', Locked = true;
         NoFolderSelectedInboxWarningQst: Label 'There is no mail folder selected, so the agent will process emails from the inbox (%1 emails since %2). Do you want to continue?', Comment = '%1=email count, %2=start date';
         AgentArchivedNotificationMsg: Label 'This agent is archived, so its settings are read-only. Its tasks and logs remain available for auditing.';
+        OrderPromisingSetupMissingQst: Label '%1 is not fully configured and is required to include capable-to-promise items.\\Do you want to set it up now?', Comment = '%1 = Order Promising Setup caption';
 }

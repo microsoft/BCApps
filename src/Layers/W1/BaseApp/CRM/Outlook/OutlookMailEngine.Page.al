@@ -65,10 +65,11 @@ page 1600 "Outlook Mail Engine"
         [RunOnClient]
         OfficeHost: DotNet OfficeHost;
     begin
-        if OfficeHost.IsAvailable() then begin
-            OfficeHost := OfficeHost.Create();
-            OfficeMgt.InitializeHost(OfficeHost, OfficeHost.HostType);
-        end;
+        if not OfficeMgt.IsAvailable() then
+            if OfficeHost.IsAvailable() then begin
+                OfficeHost := OfficeHost.Create();
+                OfficeMgt.InitializeHost(OfficeHost, OfficeHost.HostType);
+            end;
 
         GetDetailsFromFilters();
         SendTelemetryOnAddinStarted();
@@ -140,4 +141,3 @@ page 1600 "Outlook Mail Engine"
         Session.LogMessage('0000BOY', StrSubstNo(OfficeAddinStartedTelemetryMsg, Rec.GetFilters(), FieldValuesText), Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', OfficeMgt.GetOfficeAddinTelemetryCategory());
     end;
 }
-

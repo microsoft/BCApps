@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PEPPOL BIS Ordering 3.0 — Order Response whose OrderReference does not match any outgoing E-Document. -->
+<OrderResponse xmlns="urn:oasis:names:specification:ubl:schema:xsd:OrderResponse-2"
+    xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+    xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+    <cbc:CustomizationID>urn:fdc:peppol.eu:poacc:trns:order_response:3</cbc:CustomizationID>
+    <cbc:ProfileID>urn:fdc:peppol.eu:poacc:bis:ordering:3</cbc:ProfileID>
+    <cbc:ID>RESP-UNMATCHED-1</cbc:ID>
+    <cbc:IssueDate>2026-01-16</cbc:IssueDate>
+    <cbc:OrderResponseCode>AP</cbc:OrderResponseCode>
+    <cac:OrderReference>
+        <cbc:ID>UNKNOWN-ORDER-999</cbc:ID>
+    </cac:OrderReference>
+</OrderResponse>

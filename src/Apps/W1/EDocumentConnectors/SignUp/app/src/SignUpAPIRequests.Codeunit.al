@@ -244,18 +244,19 @@ codeunit 6441 "SignUp API Requests"
 
     local procedure GetSetup(var SignUpConnectionSetup: Record "SignUp Connection Setup")
     var
+        SignUpAuthentication: Codeunit "SignUp Authentication";
         MissingSetupErrorInfo: ErrorInfo;
     begin
-        if not IsNullGuid(SignUpConnectionSetup.SystemId) then
-            exit;
+        if IsNullGuid(SignUpConnectionSetup.SystemId) then
+            if not SignUpConnectionSetup.Get() then begin
+                MissingSetupErrorInfo.Title := this.MissingSetupErr;
+                MissingSetupErrorInfo.Message := this.MissingSetupMessageErr;
+                MissingSetupErrorInfo.PageNo := Page::"E-Document Services";
+                MissingSetupErrorInfo.AddNavigationAction(this.MissingSetupNavigationActionErr);
+                Error(MissingSetupErrorInfo);
+            end;
 
-        if not SignUpConnectionSetup.Get() then begin
-            MissingSetupErrorInfo.Title := this.MissingSetupErr;
-            MissingSetupErrorInfo.Message := this.MissingSetupMessageErr;
-            MissingSetupErrorInfo.PageNo := Page::"E-Document Services";
-            MissingSetupErrorInfo.AddNavigationAction(this.MissingSetupNavigationActionErr);
-            Error(MissingSetupErrorInfo);
-        end;
+        SignUpConnectionSetup."Service URL" := CopyStr(SignUpAuthentication.GetServiceUrl(), 1, MaxStrLen(SignUpConnectionSetup."Service URL"));
     end;
 
     local procedure GetCompanyId(): Text[100]

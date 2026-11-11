@@ -69,6 +69,36 @@ table 6432 "E-Document Message"
             TableRelation = "E-Document Service";
             DataClassification = SystemMetadata;
         }
+        field(10; "Last Attempt At"; DateTime)
+        {
+            Caption = 'Last Attempt At';
+            DataClassification = SystemMetadata;
+        }
+        field(11; "Retry Count"; Integer)
+        {
+            Caption = 'Retry Count';
+            DataClassification = SystemMetadata;
+        }
+        field(12; "Last Error"; Text[2048])
+        {
+            Caption = 'Last Error';
+            DataClassification = CustomerContent;
+        }
+        field(13; "External Message ID"; Text[250])
+        {
+            Caption = 'External Message ID';
+            DataClassification = CustomerContent;
+        }
+        field(14; "External Document ID"; Text[250])
+        {
+            Caption = 'External Document ID';
+            DataClassification = CustomerContent;
+        }
+        field(15; "Received At"; DateTime)
+        {
+            Caption = 'Received At';
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys
@@ -78,6 +108,9 @@ table 6432 "E-Document Message"
             Clustered = true;
         }
         key(EDocument; "E-Document Entry No.")
+        {
+        }
+        key(ExternalMessage; Service, "External Message ID")
         {
         }
     }

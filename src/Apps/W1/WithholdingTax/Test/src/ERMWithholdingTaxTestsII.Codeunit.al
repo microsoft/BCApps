@@ -46,6 +46,7 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         WHTProdPostGroupNotCopiedErr: Label 'Withholding Tax Prod. Post. Group must be copied from the applied Invoice to the Payment line.';
         EmployeeOnlyOptionErr: Label 'The %1 option can be used only when the withholding tax is for employees.', Comment = '%1 = field caption';
         ThresholdPeriodNotAllowedErr: Label 'The %1 can be specified only when %2 is %3 or %4.', Comment = '%1 = Withholding Threshold Period field caption, %2 = Withholding Threshold Base field caption, %3 = Category in Period option, %4 = Total in Period option';
+        GenJnlTemplateNotFoundErr: Label 'A general journal template with Type Purchases does not exist.';
         IsInitialized: Boolean;
 
     [Test]
@@ -762,6 +763,60 @@ codeunit 148322 "ERM Withholding Tax Tests II"
 
         // [THEN] The value is accepted.
         Assert.AreEqual(WHTPostingSetup."WHT Threshold Period"::Month, WHTPostingSetup."WHT Threshold Period", ValueMustBeSameMsg);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure PostingWHTPaymentWithoutPurchaseJournalTemplateErr()
+    var
+        BankAccount: Record "Bank Account";
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalLine2: Record "Gen. Journal Line";
+        GLAccount: Record "G/L Account";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        VATPostingSetup: Record "VAT Posting Setup";
+        WHTBusPostingGroup: Record "Wthldg. Tax Bus. Post. Group";
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+        WHTProdPostingGroup: Record "Wthldg. Tax Prod. Post. Group";
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [AI Test]
+        // [SCENARIO 647253] Posting a WHT payment without a purchase journal template results in an error.
+        Initialize();
+
+        // [GIVEN] A posted purchase invoice with withholding tax.
+        UpdateLocalFunctionalitiesOnGeneralLedgerSetup(true);
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        LibraryWithholdingTax.CreateWHTBusinessPostingGroup(WHTBusPostingGroup);
+        LibraryWithholdingTax.CreateWHTProductPostingGroup(WHTProdPostingGroup);
+        CreateGeneralJournalLineWithBalAccountType(
+            GenJournalLine, GenJournalLine."Document Type"::Invoice, CreateVendor(VATPostingSetup."VAT Bus. Posting Group", WHTBusPostingGroup.Code), '',
+            '', GenJournalLine."Bal. Account Type"::"G/L Account", CreateGLAccountWithVATBusPostingGroup(VATPostingSetup, WHTProdPostingGroup.Code),
+            -LibraryRandom.RandDecInRange(100, 200, 2));
+        UpdateGenJournalLineWHTAbsorbBase(GenJournalLine);
+        FindWHTPostingSetup(WHTPostingSetup, GenJournalLine."Wthldg. Tax Bus. Post. Group", GenJournalLine."Wthldg. Tax Prod. Post. Group", '');
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        DocumentNo := FindVendorLedgerEntry(GenJournalLine."Account No.");
+
+        // [GIVEN] A payment journal line applied to the posted invoice.
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.CreateBankAccount(BankAccount, GLAccount);
+        CreateGeneralJournalLineWithBalAccountType(
+            GenJournalLine2, GenJournalLine."Document Type"::Payment, GenJournalLine."Account No.", DocumentNo,
+            '', GenJournalLine2."Bal. Account Type"::"Bank Account", BankAccount."No.", -FindVendorLedgerEntryAmount(DocumentNo));
+        GenJournalLine2.Validate("Wthldg. Tax Prod. Post. Group", WHTPostingSetup."Wthldg. Tax Prod. Post. Group");
+        GenJournalLine2.Modify(true);
+
+        // [GIVEN] No general journal template of type Purchases exists.
+        GenJournalTemplate.SetRange(Type, GenJournalTemplate.Type::Purchases);
+        GenJournalTemplate.DeleteAll(true);
+
+        // [WHEN] Post the payment journal.
+        asserterror LibraryERM.PostGeneralJnlLine(GenJournalLine2);
+
+        // [THEN] The missing purchase journal template error is raised.
+        Assert.ExpectedError(GenJnlTemplateNotFoundErr);
     end;
 
     local procedure Initialize()

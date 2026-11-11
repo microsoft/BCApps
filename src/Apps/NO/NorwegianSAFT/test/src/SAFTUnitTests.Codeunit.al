@@ -642,6 +642,79 @@ codeunit 148102 "SAF-T Unit Tests"
     end;
 
     [Test]
+    procedure ImportMultipleAccountsWithSameExtendedCategory()
+    var
+        SAFTMappingSource: Record "SAF-T Mapping Source";
+        SAFTMappingCategory: Record "SAF-T Mapping Category";
+        SAFTMapping: Record "SAF-T Mapping";
+        SAFTXMLImport: Codeunit "SAF-T XML Import";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Multiple accounts with the same extended category code use one generated category
+        Initialize();
+
+        // [GIVEN] SAF-T Mapping Source "S" with two accounts sharing an extended category code
+        CleanupIncomeStatementMappingData();
+        CreateMappingSourceWithXML(
+            SAFTMappingSource,
+            BuildGroupingCodeXML(
+                BuildGroupingCodeAccountXML('EXTENDED_CATEGORY_SHARED_VERY_LONG', 'Shared Category', '5101', 'Item One', false) +
+                BuildGroupingCodeAccountXML('EXTENDED_CATEGORY_SHARED_VERY_LONG', 'Shared Category', '5102', 'Item Two', false)));
+
+        // [WHEN] ImportFromMappingSource is called with "S"
+        SAFTXMLImport.ImportFromMappingSource(SAFTMappingSource);
+
+        // [THEN] One imported category and the not-applicable category exist
+        SAFTMappingCategory.SetRange("Mapping Type", SAFTMappingCategory."Mapping Type"::"Income Statement");
+        Assert.RecordCount(SAFTMappingCategory, 2);
+        VerifySAFTMappingCategory('CAT000001', 'Shared Category', 'EXTENDED_CATEGORY_SHARED_VERY_LONG');
+
+        // [THEN] Both mappings use the generated category
+        VerifySAFTMapping('CAT000001', '5101', 'Item One');
+        VerifySAFTMapping('CAT000001', '5102', 'Item Two');
+        SAFTMapping.SetRange("Mapping Type", SAFTMapping."Mapping Type"::"Income Statement");
+        Assert.RecordCount(SAFTMapping, 3);
+    end;
+
+    [Test]
+    procedure ImportAccountReusesExistingExtendedCategory()
+    var
+        SAFTMappingSource: Record "SAF-T Mapping Source";
+        SAFTMappingCategory: Record "SAF-T Mapping Category";
+        SAFTXMLImport: Codeunit "SAF-T XML Import";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] An account with an extended category code reuses the matching persisted category
+        Initialize();
+
+        // [GIVEN] SAF-T Mapping Category "C" with an extended category code
+        CleanupIncomeStatementMappingData();
+        SAFTMappingCategory.Init();
+        SAFTMappingCategory."Mapping Type" := SAFTMappingCategory."Mapping Type"::"Income Statement";
+        SAFTMappingCategory."No." := 'CAT000007';
+        SAFTMappingCategory.Description := 'Old Description';
+        SAFTMappingCategory."Extended No." := 'EXTENDED_CATEGORY_EXISTING_VERY_LONG';
+        SAFTMappingCategory.Insert();
+
+        // [GIVEN] SAF-T Mapping Source "S" with an account using the same extended category code
+        CreateMappingSourceWithXML(
+            SAFTMappingSource,
+            BuildGroupingCodeXML(
+                BuildGroupingCodeAccountXML('EXTENDED_CATEGORY_EXISTING_VERY_LONG', 'Updated Description', '5201', 'Existing Item', false)));
+
+        // [WHEN] ImportFromMappingSource is called with "S"
+        SAFTXMLImport.ImportFromMappingSource(SAFTMappingSource);
+
+        // [THEN] The persisted category is reused and no additional imported category is created
+        SAFTMappingCategory.SetRange("Mapping Type", SAFTMappingCategory."Mapping Type"::"Income Statement");
+        Assert.RecordCount(SAFTMappingCategory, 2);
+        VerifySAFTMappingCategory('CAT000007', 'Updated Description', 'EXTENDED_CATEGORY_EXISTING_VERY_LONG');
+
+        // [THEN] The imported mapping uses the persisted category number
+        VerifySAFTMapping('CAT000007', '5201', 'Existing Item');
+    end;
+
+    [Test]
     procedure ImportGroupingCodeWithCategoryDescElement()
     var
         SAFTMappingSource: Record "SAF-T Mapping Source";

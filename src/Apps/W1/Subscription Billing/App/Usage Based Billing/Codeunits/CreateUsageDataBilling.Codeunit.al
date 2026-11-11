@@ -27,7 +27,7 @@ codeunit 8023 "Create Usage Data Billing"
                 if not (UsageDataImport."Processing Status" = "Processing Status"::Error) then
                     CreateUsageDataBillingFromImport();
                 if not (UsageDataImport."Processing Status" = "Processing Status"::Error) then
-                    UpdateImportStatus();
+                    UsageDataImport.UpdateProcessingStatus();
             until UsageDataImport.Next() = 0;
     end;
 
@@ -36,7 +36,7 @@ codeunit 8023 "Create Usage Data Billing"
         UsageDataProcessing.CreateBillingData(UsageDataImport);
     end;
 
-    internal procedure CollectServiceCommitments(var TempServiceCommitment: Record "Subscription Line" temporary; ServiceObjectNo: Code[20]; SubscriptionEndDate: Date)
+    procedure CollectServiceCommitments(var TempServiceCommitment: Record "Subscription Line" temporary; ServiceObjectNo: Code[20]; SubscriptionEndDate: Date)
     begin
         FillTempServiceCommitment(TempServiceCommitment, ServiceObjectNo, SubscriptionEndDate);
         OnAfterCollectServiceCommitments(TempServiceCommitment, ServiceObjectNo, SubscriptionEndDate);
@@ -116,21 +116,6 @@ codeunit 8023 "Create Usage Data Billing"
         UsageDataProcessing.ValidateImportedData(UsageDataImport);
     end;
 
-    local procedure UpdateImportStatus()
-    var
-        UsageDataBilling: Record "Usage Data Billing";
-    begin
-        UsageDataProcessing.UpdateImportStatus(UsageDataImport);
-        if UsageDataImport."Processing Status" = Enum::"Processing Status"::Error then
-            exit;
-        UsageDataBilling.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
-        UsageDataBilling.SetRange("Processing Status", Enum::"Processing Status"::Error);
-        if not UsageDataBilling.IsEmpty() then begin
-            UsageDataImport.SetErrorReason(UsageDataLinesProcessingErr);
-            UsageDataImport.Modify(false);
-        end;
-    end;
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateUsageDataBillingFromTempSubscriptionLine(var TempSubscriptionLine: Record "Subscription Line"; var UsageDataBilling: Record "Usage Data Billing")
     begin
@@ -154,5 +139,4 @@ codeunit 8023 "Create Usage Data Billing"
 
     var
         UsageDataImport: Record "Usage Data Import";
-        UsageDataLinesProcessingErr: Label 'Errors were detected when processing the usage data lines.';
 }

@@ -112,6 +112,9 @@ codeunit 144013 "ERM Payment Management"
 
     trigger OnRun()
     begin
+#if not CLEAN28
+        BindSubscription(this);
+#endif
     end;
 
     var
@@ -173,6 +176,66 @@ codeunit 144013 "ERM Payment Management"
     begin
         // Verify Applied Amount without calculate payment discount on Credit Memo without Currency for Vendor.
         PaymentDiscountOnPurchaseCrMemo('', false);  // Using Blank for Currency Code, False for Calc. Pmt. Discount,    
+    end;
+
+    [Test]
+    [HandlerFunctions('PaymentClassListModalPageHandler,SuggestCustomerPaymentsRequestPageHandler,ConfirmHandlerTrue')]
+    procedure PostCustomerInvoiceAndCreditMemoWithOppositeEntries()
+    var
+        Customer: Record Customer;
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentClass: Record "Payment Class FR";
+        PaymentHeader: Record "Payment Header FR";
+        PaymentLine: Record "Payment Line FR";
+        PaymentStepLedger: Record "Payment Step Ledger FR";
+        InvoiceDebitGLEntry: Record "G/L Entry";
+        InvoiceCreditGLEntry: Record "G/L Entry";
+        CreditMemoDebitGLEntry: Record "G/L Entry";
+        CreditMemoCreditGLEntry: Record "G/L Entry";
+        CustomerNo: Code[20];
+        PaymentClassCode: Text[30];
+        Amount: Decimal;
+    begin
+        // [SCENARIO 644993] Invoice and credit memo payment lines post with opposite signs and document types.
+        Initialize();
+
+        Amount := LibraryRandom.RandDecInRange(100, 1000, 2);
+        CustomerNo := CreateCustomer('');
+        Customer.Get(CustomerNo);
+        Customer.Validate("Payment Terms Code", '');
+        Customer.Modify(true);
+        CreateAndPostGeneralJournal(
+            GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo,
+            GenJournalLine."Document Type"::Invoice, Amount, WorkDate());
+        CreateAndPostGeneralJournal(
+            GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo,
+            GenJournalLine."Document Type"::"Credit Memo", -Amount / 2, WorkDate());
+        PaymentClassCode := SetupForPaymentSlipPost(PaymentStepLedger."Detail Level"::Line, PaymentClass.Suggestions::Customer);
+        PaymentStepLedger.SetRange("Payment Class", PaymentClassCode);
+        PaymentStepLedger.ModifyAll("Document Type", PaymentStepLedger."Document Type"::Payment, true);
+        CreatePaymentHeader(PaymentHeader);
+        Commit();
+        SuggestCustomerPaymentLines(CustomerNo, '', PaymentHeader);
+
+        PostPaymentSlipHeaderNo(PaymentHeader."No.");
+
+        FindPostedPaymentLine(PaymentLine, PaymentHeader."No.", PaymentLine."Applies-to Doc. Type"::Invoice);
+        InvoiceDebitGLEntry.Get(PaymentLine."Entry No. Debit");
+        InvoiceCreditGLEntry.Get(PaymentLine."Entry No. Credit");
+        InvoiceDebitGLEntry.TestField("Document Type", InvoiceDebitGLEntry."Document Type"::Payment);
+        InvoiceCreditGLEntry.TestField("Document Type", InvoiceCreditGLEntry."Document Type"::Payment);
+
+        FindPostedPaymentLine(PaymentLine, PaymentHeader."No.", PaymentLine."Applies-to Doc. Type"::"Credit Memo");
+        CreditMemoDebitGLEntry.Get(PaymentLine."Entry No. Debit");
+        CreditMemoCreditGLEntry.Get(PaymentLine."Entry No. Credit");
+        CreditMemoDebitGLEntry.TestField("Document Type", CreditMemoDebitGLEntry."Document Type"::Refund);
+        CreditMemoCreditGLEntry.TestField("Document Type", CreditMemoCreditGLEntry."Document Type"::Refund);
+        Assert.AreEqual(
+            InvoiceDebitGLEntry."G/L Account No.", CreditMemoCreditGLEntry."G/L Account No.",
+            CreditMemoCreditGLEntry.FieldCaption("G/L Account No."));
+        Assert.AreEqual(
+            InvoiceCreditGLEntry."G/L Account No.", CreditMemoDebitGLEntry."G/L Account No.",
+            CreditMemoDebitGLEntry.FieldCaption("G/L Account No."));
     end;
 
     local procedure PaymentDiscountOnPurchaseCrMemo(CurrencyCode: Code[10]; CalcPmtDiscOnCrMemos: Boolean)
@@ -605,6 +668,7 @@ codeunit 144013 "ERM Payment Management"
         SellToCustomerNo: Code[20];
     begin
         // Verify that Posting of Payment Slip of Customer with error is not possible.
+        Initialize();
 
         // Setup
 
@@ -627,6 +691,7 @@ codeunit 144013 "ERM Payment Management"
         BuyFromVendorNo: Code[20];
     begin
         // Verify that Posting of Payment Slip of of Vendor with error is not possible.
+        Initialize();
 
         // Setup
 
@@ -1922,6 +1987,104 @@ codeunit 144013 "ERM Payment Management"
         PaymentSlipSubform.Close();
     end;
 
+    [Test]
+    [HandlerFunctions('PaymentClassListModalPageHandler,SuggestCustomerPaymentsSummarizedRequestPageHandler')]
+    procedure SuggestCustPaymentsPerDueDateGroupsNonConsecutiveEntries()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentLine: Record "Payment Line FR";
+        SummarizePer: Option " ",Customer,"Due date";
+        CustomerNo: array[2] of Code[20];
+        DueDate: array[2] of Date;
+        InvoiceAmount: array[2] of Decimal;
+        CrMemoAmount: Decimal;
+    begin
+        // [FEATURE] [Sales]
+        // [SCENARIO 654495] "Suggest Customer Payments" with "Summarize per" = "Due date" groups entries with the same due date when they are not consecutive.
+        Initialize();
+
+        // [GIVEN] Customer with posted Invoice "I1" with "Due Date" = "D1" and Invoice "I2" with "Due Date" = "D2"
+        CustomerNo[1] := CreateCustomer('');
+        CustomerNo[2] := CustomerNo[1];
+        DueDate[1] := WorkDate() - LibraryRandom.RandIntInRange(10, 20);
+        DueDate[2] := WorkDate() - LibraryRandom.RandInt(5);
+        InvoiceAmount[1] := LibraryRandom.RandDecInRange(100, 200, 2);
+        InvoiceAmount[2] := LibraryRandom.RandDecInRange(100, 200, 2);
+        CrMemoAmount := LibraryRandom.RandDecInRange(10, 50, 2);
+        CreateAndPostGeneralJournal(
+          GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo[1],
+          GenJournalLine."Document Type"::Invoice, InvoiceAmount[1], DueDate[1]);
+        CreateAndPostGeneralJournal(
+          GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo[1],
+          GenJournalLine."Document Type"::Invoice, InvoiceAmount[2], DueDate[2]);
+        // [GIVEN] Posted Credit Memo "CM" with "Due Date" = "D1"
+        CreateAndPostGeneralJournal(
+          GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo[1],
+          GenJournalLine."Document Type"::"Credit Memo", -CrMemoAmount, DueDate[1]);
+
+        // [WHEN] Suggest Customer Payments with "Summarize per" = "Due date"
+        CreateCustomerPaymentSlip(CustomerNo, SummarizePer::"Due date");
+
+        // [THEN] Two payment lines are created, one per due date
+        PaymentLine.SetRange("Account No.", CustomerNo[1]);
+        Assert.RecordCount(PaymentLine, 2);
+        // [THEN] Payment line for "D1" summarizes "I1" and "CM"
+        VerifyCustPaymentLinePerDueDate(CustomerNo[1], DueDate[1], -(InvoiceAmount[1] - CrMemoAmount), 2);
+        // [THEN] Payment line for "D2" contains "I2" only
+        VerifyCustPaymentLinePerDueDate(CustomerNo[1], DueDate[2], -InvoiceAmount[2], 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('PaymentClassListModalPageHandler,SuggestVendorPaymentsFRSummarizedRequestPageHandler')]
+    procedure SuggestVendPaymentsPerDueDateGroupsNonConsecutiveEntries()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentLine: Record "Payment Line FR";
+        Vendor: Record Vendor;
+        SummarizePer: Option " ",Vendor,"Due date";
+        VendorNo: array[2] of Code[20];
+        DueDate: array[2] of Date;
+        InvoiceAmount: array[2] of Decimal;
+        CrMemoAmount: Decimal;
+    begin
+        // [FEATURE] [Purchase]
+        // [SCENARIO 654495] "Suggest Vendor Payments" with "Summarize per" = "Due date" groups entries with the same due date when they are not consecutive.
+        Initialize();
+
+        // [GIVEN] Vendor without payment discount, with posted Invoice "I1" with "Due Date" = "D1" and Invoice "I2" with "Due Date" = "D2"
+        VendorNo[1] := CreateVendor('');
+        VendorNo[2] := VendorNo[1];
+        Vendor.Get(VendorNo[1]);
+        Vendor.Validate("Payment Terms Code", '');
+        Vendor.Modify(true);
+        DueDate[1] := WorkDate() - LibraryRandom.RandIntInRange(10, 20);
+        DueDate[2] := WorkDate() - LibraryRandom.RandInt(5);
+        InvoiceAmount[1] := LibraryRandom.RandDecInRange(100, 200, 2);
+        InvoiceAmount[2] := LibraryRandom.RandDecInRange(100, 200, 2);
+        CrMemoAmount := LibraryRandom.RandDecInRange(10, 50, 2);
+        CreateAndPostGeneralJournal(
+          GenJournalLine, GenJournalLine."Account Type"::Vendor, VendorNo[1],
+          GenJournalLine."Document Type"::Invoice, -InvoiceAmount[1], DueDate[1]);
+        CreateAndPostGeneralJournal(
+          GenJournalLine, GenJournalLine."Account Type"::Vendor, VendorNo[1],
+          GenJournalLine."Document Type"::Invoice, -InvoiceAmount[2], DueDate[2]);
+        // [GIVEN] Posted Credit Memo "CM" with "Due Date" = "D1"
+        CreateAndPostGeneralJournal(
+          GenJournalLine, GenJournalLine."Account Type"::Vendor, VendorNo[1],
+          GenJournalLine."Document Type"::"Credit Memo", CrMemoAmount, DueDate[1]);
+
+        // [WHEN] Suggest Vendor Payments with "Summarize per" = "Due date"
+        CreateVendorPaymentSlip(VendorNo, SummarizePer::"Due date"); // SuggestVendorPaymentsFRSummarizedRequestPageHandler
+
+        // [THEN] Two payment lines are created, one per due date
+        PaymentLine.SetRange("Account No.", VendorNo[1]);
+        Assert.RecordCount(PaymentLine, 2);
+        // [THEN] Payment line for "D1" summarizes "I1" and "CM"
+        VerifyVendPaymentLinePerDueDate(VendorNo[1], DueDate[1], InvoiceAmount[1] - CrMemoAmount, 2);
+        // [THEN] Payment line for "D2" contains "I2" only
+        VerifyVendPaymentLinePerDueDate(VendorNo[1], DueDate[2], InvoiceAmount[2], 1);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Payment Management");
@@ -1929,6 +2092,7 @@ codeunit 144013 "ERM Payment Management"
         LibraryVariableStorage.Clear();
         ClearPaymentSlipData();
     end;
+
 
     local procedure ApplyPaymentSlip(PaymentClass: Text[30])
     var
@@ -2999,6 +3163,15 @@ codeunit 144013 "ERM Payment Management"
         PaymentLine.FindFirst();
     end;
 
+    local procedure FindPostedPaymentLine(var PaymentLine: Record "Payment Line FR"; PaymentHeaderNo: Code[20]; AppliesToDocumentType: Enum "Gen. Journal Document Type")
+    begin
+        PaymentLine.Reset();
+        PaymentLine.SetRange("No.", PaymentHeaderNo);
+        PaymentLine.SetRange("Applies-to Doc. Type", AppliesToDocumentType);
+        PaymentLine.FindFirst();
+        PaymentLine.TestField(Posted, true);
+    end;
+
     local procedure FindVATEntry(var VATEntry: Record "VAT Entry"; DocumentNo: Code[20])
     begin
         VATEntry.SetRange("Document No.", DocumentNo);
@@ -3119,6 +3292,44 @@ codeunit 144013 "ERM Payment Management"
         TempDimSetEntry.SetRange("Dimension Code", DimensionValue."Dimension Code");
         TempDimSetEntry.SetRange("Dimension Value Code", DimensionValue.Code);
         Assert.RecordIsNotEmpty(TempDimSetEntry);
+    end;
+
+    local procedure VerifyCustPaymentLinePerDueDate(CustomerNo: Code[20]; DueDate: Date; ExpectedAmount: Decimal; ExpectedEntryCount: Integer)
+    var
+        PaymentLine: Record "Payment Line FR";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        PaymentLine.SetRange("Account Type", PaymentLine."Account Type"::Customer);
+        PaymentLine.SetRange("Account No.", CustomerNo);
+        PaymentLine.SetRange("Due Date", DueDate);
+        Assert.RecordCount(PaymentLine, 1);
+        PaymentLine.FindFirst();
+        PaymentLine.TestField(Amount, ExpectedAmount);
+
+        CustLedgerEntry.SetRange("Customer No.", CustomerNo);
+        CustLedgerEntry.SetRange("Applies-to ID", PaymentLine."Applies-to ID");
+        Assert.RecordCount(CustLedgerEntry, ExpectedEntryCount);
+        CustLedgerEntry.SetFilter("Due Date", '<>%1', DueDate);
+        Assert.RecordIsEmpty(CustLedgerEntry);
+    end;
+
+    local procedure VerifyVendPaymentLinePerDueDate(VendorNo: Code[20]; DueDate: Date; ExpectedAmount: Decimal; ExpectedEntryCount: Integer)
+    var
+        PaymentLine: Record "Payment Line FR";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        PaymentLine.SetRange("Account Type", PaymentLine."Account Type"::Vendor);
+        PaymentLine.SetRange("Account No.", VendorNo);
+        PaymentLine.SetRange("Due Date", DueDate);
+        Assert.RecordCount(PaymentLine, 1);
+        PaymentLine.FindFirst();
+        PaymentLine.TestField(Amount, ExpectedAmount);
+
+        VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
+        VendorLedgerEntry.SetRange("Applies-to ID", PaymentLine."Applies-to ID");
+        Assert.RecordCount(VendorLedgerEntry, ExpectedEntryCount);
+        VendorLedgerEntry.SetFilter("Due Date", '<>%1', DueDate);
+        Assert.RecordIsEmpty(VendorLedgerEntry);
     end;
 
     local procedure VerifyPaymentLineCurrencyFactor(var PaymentHeader: Record "Payment Header FR"; RateFactor: Decimal)

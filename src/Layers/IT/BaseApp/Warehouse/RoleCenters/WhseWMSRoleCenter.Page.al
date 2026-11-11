@@ -19,9 +19,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Reports;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
-#if not CLEAN28
 using Microsoft.Manufacturing.Document;
-#endif
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
@@ -174,27 +172,17 @@ page 9000 "Whse. WMS Role Center"
                 Image = "Report";
                 RunObject = Report "Customer - Labels";
             }
-#if not CLEAN28
             separator(Action1130001)
             {
-                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '28.0';
             }
             action("Subcontract. Transfer Shipment")
             {
-                ApplicationArea = LegacySubcontracting;
-                Caption = 'Subcontract. Transfer Shipment';
+                ApplicationArea = Warehouse;
+                Caption = 'Transfer Shipment';
                 Image = "Report";
                 RunObject = Report "Subcontract. Transfer Shipment";
-                ToolTip = 'Create a subcontracting transfer shipment.';
-                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                ObsoleteState = Pending;
-#pragma warning disable AS0072
-                ObsoleteTag = '27.0';
-#pragma warning restore AS0072
+                ToolTip = 'Print an Italian transfer shipment document.';
             }
-#endif
         }
         area(embedding)
         {
@@ -275,7 +263,7 @@ page 9000 "Whse. WMS Role Center"
                 RunObject = Page "Phys. Inventory Recording List";
                 ToolTip = 'Prepare to count inventory by creating a recording document to capture the quantities.';
             }
-#if not CLEAN27
+#if not CLEAN28
             action("Subcontracting Transfers")
             {
                 ApplicationArea = LegacySubcontracting;
@@ -804,4 +792,3 @@ page 9000 "Whse. WMS Role Center"
         }
     }
 }
-

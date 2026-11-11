@@ -908,7 +908,7 @@ table 4812 "Intrastat Report Line"
         end;
     end;
 
-    local procedure GetPartnerIDForCountry(CountryRegionCode: Code[10]; VATRegistrationNo: Text[50]; IsPrivatePerson: Boolean; IsThirdPartyTrade: Boolean): Text[50]
+    procedure GetPartnerIDForCountry(CountryRegionCode: Code[10]; VATRegistrationNo: Text[50]; IsPrivatePerson: Boolean; IsThirdPartyTrade: Boolean): Text[50]
     var
         CountryRegion: Record "Country/Region";
         PartnerID: Text[50];

@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9,6 +10,9 @@ using Microsoft.Utilities;
 codeunit 9099 "Postcode Business Logic GB"
 {
     Permissions = TableData "Post Code" = rimd;
+    ObsoleteReason = 'GetAddress.io UK Postcodes extension is discontinued';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
 
     trigger OnRun()
     begin
@@ -246,4 +250,4 @@ codeunit 9099 "Postcode Business Logic GB"
           UKPostcodeAutocompleteLbl, '', PAGE::"Postcode Configuration Page W1");
     end;
 }
-
+#endif

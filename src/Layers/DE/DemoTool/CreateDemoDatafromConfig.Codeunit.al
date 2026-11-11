@@ -45,8 +45,11 @@ codeunit 101899 "Create Demo Data from Config"
 
     procedure SetupDemonstrationData(var DemoDataSetup: Record "Demo Data Setup")
     var
+        GLSetup: Record "General Ledger Setup";
         DemoDataTool: Page "Demonstration Data Tool";
     begin
+        if not GLSetup.Get() then
+            CODEUNIT.Run(CODEUNIT::"Company-Initialize");
         if DemoDataSetup.Get() then
             DemoDataSetup.Delete();
         ImportDemoDataConfig();

@@ -1,13 +1,32 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Message;
 
 pageextension 6148 "E-Doc. Issued Reminder" extends "Issued Reminder"
 {
+    layout
+    {
+        addlast(FactBoxes)
+        {
+            part(EDocStatusFactBox; "E-Doc. Status FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document';
+                ShowFilter = false;
+            }
+            part(EDocMessages; "E-Document Messages FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document Messages';
+                ShowFilter = false;
+            }
+        }
+    }
     actions
     {
         addafter("&Reminder")
@@ -20,6 +39,7 @@ pageextension 6148 "E-Doc. Issued Reminder" extends "Issued Reminder"
                     Caption = 'Open';
                     Image = CopyDocument;
                     ToolTip = 'Opens the E-Document card page.';
+                    Enabled = EDocumentExists;
 
                     trigger OnAction()
                     var
@@ -59,7 +79,8 @@ pageextension 6148 "E-Doc. Issued Reminder" extends "Issued Reminder"
     var
         EDocument: Record "E-Document";
     begin
-        EDocument.SetRange("Document Record ID", Rec.RecordId());
-        EDocumentExists := not EDocument.IsEmpty();
+        EDocumentExists := EDocument.HasEDocument(Rec.RecordId());
+        CurrPage.EDocMessages.Page.SetSourceRecordId(Rec.RecordId());
+        CurrPage.EDocStatusFactBox.Page.SetDocumentRecordId(Rec.RecordId());
     end;
 }

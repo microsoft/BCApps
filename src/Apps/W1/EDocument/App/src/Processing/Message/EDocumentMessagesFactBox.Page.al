@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Message;
 
+using Microsoft.eServices.EDocument;
 using System.Utilities;
 
 /// <summary>
@@ -53,6 +54,31 @@ page 6434 "E-Document Messages FactBox"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies when the message was created.';
                 }
+                field("Last Attempt At"; Rec."Last Attempt At")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies when the service last attempted to send the message.';
+                }
+                field("Retry Count"; Rec."Retry Count")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies how many background send attempts have failed.';
+                }
+                field("Last Error"; Rec."Last Error")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the error returned by the most recent failed send attempt.';
+                }
+                field("External Message ID"; Rec."External Message ID")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the identifier assigned to the message by the external service.';
+                }
+                field("Received At"; Rec."Received At")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies when the external service created or delivered the incoming message.';
+                }
             }
         }
     }
@@ -61,6 +87,23 @@ page 6434 "E-Document Messages FactBox"
     {
         area(processing)
         {
+            action(Retry)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Retry';
+                ToolTip = 'Retry the failed message transmission or response polling operation using its existing payload.';
+                Image = Refresh;
+                Scope = Repeater;
+                Enabled = RetryEnabled;
+
+                trigger OnAction()
+                var
+                    EDocumentMessageAPI: Codeunit "E-Document Message API";
+                begin
+                    EDocumentMessageAPI.RetryMessage(Rec."Entry No.");
+                    CurrPage.Update(false);
+                end;
+            }
             action(ViewXML)
             {
                 ApplicationArea = Basic, Suite;
@@ -87,8 +130,59 @@ page 6434 "E-Document Messages FactBox"
         }
     }
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        RetryEnabled := (Rec.Direction = Rec.Direction::Outgoing) and (Rec.Status in [Rec.Status::Error, Rec.Status::"Response Error"]);
+    end;
+
     var
+        RetryEnabled: Boolean;
         FileNameTok: Label 'E-Document_%1_Response_%2.xml', Comment = '%1 = E-Document number, %2 = human-readable response type', Locked = true;
+
+    internal procedure SetSourceRecordId(SourceRecordId: RecordId)
+    var
+        EDocument: Record "E-Document";
+        FilterTxt: TextBuilder;
+    begin
+        EDocument.SetLoadFields("Entry No");
+        EDocument.SetRange("Document Record ID", SourceRecordId);
+        if EDocument.ReadPermission() then
+            if EDocument.FindSet() then
+                repeat
+                    if FilterTxt.Length() > 0 then
+                        FilterTxt.Append('|');
+                    FilterTxt.Append(Format(EDocument."Entry No"));
+                until EDocument.Next() = 0;
+
+        if FilterTxt.Length() > 0 then
+            Rec.SetFilter("E-Document Entry No.", FilterTxt.ToText())
+        else
+            // No e-documents bound to the source record: filter to a value that cannot exist so the FactBox stays empty.
+            Rec.SetRange("E-Document Entry No.", -1);
+        CurrPage.Update(false);
+    end;
+
+    internal procedure SetSourceDocumentIdentity(DocumentNo: Code[20]; PostingDate: Date; PartnerNo: Code[20]; EDocumentDirection: Enum "E-Document Direction"; DocumentType: Enum "E-Document Type")
+    var
+        EDocument: Record "E-Document";
+        FilterTxt: TextBuilder;
+    begin
+        EDocument.SetLoadFields("Entry No");
+        EDocument.SetDocumentIdentityFilters(EDocument, DocumentNo, PostingDate, PartnerNo, EDocumentDirection, DocumentType);
+        if EDocument.ReadPermission() then
+            if EDocument.FindSet() then
+                repeat
+                    if FilterTxt.Length() > 0 then
+                        FilterTxt.Append('|');
+                    FilterTxt.Append(Format(EDocument."Entry No"));
+                until EDocument.Next() = 0;
+
+        if FilterTxt.Length() > 0 then
+            Rec.SetFilter("E-Document Entry No.", FilterTxt.ToText())
+        else
+            Rec.SetRange("E-Document Entry No.", -1);
+        CurrPage.Update(false);
+    end;
 
     local procedure BuildFileName(): Text
     var

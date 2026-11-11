@@ -693,6 +693,7 @@ codeunit 6140 "E-Doc. Import"
         EDocExport: Codeunit "E-Doc. Export";
         SourceDocumentHeaderMapped, SourceDocumentLineMapped : RecordRef;
         EDocInterface: Interface "E-Document";
+        ErrorText: Text;
     begin
         OnBeforePrepareReceivedDoc(EDocument, TempBlob, SourceDocumentHeader, SourceDocumentLine, TempEDocMapping);
 
@@ -706,6 +707,11 @@ codeunit 6140 "E-Doc. Import"
                 EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(DocTypeIsNotSupportedErr, EDocument."Document Type"));
                 exit;
             end;
+        end;
+
+        if not EDocExport.CheckDocumentTypeSupportedForImport(EDocumentService, EDocument."Document Type", ErrorText) then begin
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, ErrorText);
+            exit;
         end;
 
         // Commit before getting full info with error handling (if Codeunit.Run then )
@@ -938,19 +944,6 @@ codeunit 6140 "E-Doc. Import"
     local procedure OnAfterPrepareReceivedDoc(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; SourceDocumentHeader: RecordRef; SourceDocumentLine: RecordRef; TempEDocMapping: Record "E-Doc. Mapping" temporary);
     begin
     end;
-#if not CLEAN27
-    [Obsolete('This event is not raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateDocument(var EDocument: Record "E-Document"; var TempDocumentHeader: RecordRef; var TempDocumentLine: RecordRef; var DocumentHeader: RecordRef)
-    begin
-    end;
-
-    [Obsolete('This event is not raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateDocument(var EDocument: Record "E-Document"; var TempDocumentHeader: RecordRef; var TempDocumentLine: RecordRef; var DocumentHeader: RecordRef)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDocument(var EDocument: Record "E-Document"; var TempDocumentHeader: RecordRef; var TempDocumentLine: RecordRef; var DocumentHeader: RecordRef)
     begin

@@ -104,6 +104,18 @@ page 6220 "Sustainability Ledger Entries"
                 {
                     ToolTip = 'Specifies the custom amount of the entry.';
                 }
+                field("Collected from G/L Entries"; Rec."Collected from G/L Entries")
+                {
+                    ToolTip = 'Specifies whether the amount of the entry was collected from general ledger entries. Use the Collected G/L Entries action to see which entries were consumed.';
+                }
+                field("Collect From Date"; Rec."Collect From Date")
+                {
+                    ToolTip = 'Specifies the start of the period that the general ledger entries were collected for.';
+                }
+                field("Collect To Date"; Rec."Collect To Date")
+                {
+                    ToolTip = 'Specifies the end of the period that the general ledger entries were collected for.';
+                }
                 field("Emission Factor CO2"; Rec."Emission Factor CO2")
                 {
                     ToolTip = 'Specifies the emission factor CO2 of the entry.';
@@ -271,6 +283,17 @@ page 6220 "Sustainability Ledger Entries"
                         Rec.SetFilter("Dimension Set ID", DimensionSetIDFilter.LookupFilter());
                     end;
                 }
+                action(CollectedGLEntries)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Collected G/L Entries';
+                    Image = GLRegisters;
+                    RunObject = page "Sust. G/L - Sust. Ledger Rel.";
+                    RunPageLink = "Sust. Ledger Entry No." = field("Entry No.");
+                    Scope = Repeater;
+                    ToolTip = 'View the general ledger entries that were collected into the selected sustainability entry.';
+                    Visible = ShowPostedEntryActions;
+                }
             }
         }
         area(processing)
@@ -282,6 +305,7 @@ page 6220 "Sustainability Ledger Entries"
                 Image = Navigate;
                 ShortCutKey = 'Ctrl+Alt+Q';
                 ToolTip = 'Find entries and documents that exist for the document number and posting date on the selected document. (Formerly this action was named Navigate.)';
+                Visible = ShowPostedEntryActions;
 
                 trigger OnAction()
                 begin
@@ -295,6 +319,7 @@ page 6220 "Sustainability Ledger Entries"
                 Caption = 'Reverse Transaction';
                 ToolTip = 'Reverse the selected sustainability ledger entry by creating a new entry with negated emission values.';
                 Image = ReverseRegister;
+                Visible = ShowPostedEntryActions;
 
                 trigger OnAction()
                 var
@@ -327,21 +352,30 @@ page 6220 "Sustainability Ledger Entries"
                 Caption = 'Entry';
                 actionref(Dimensions_Promoted; Dimensions) { }
                 actionref(SetDimensionFilter_Promoted; SetDimensionFilter) { }
+                actionref(CollectedGLEntries_Promoted; CollectedGLEntries) { }
             }
         }
     }
 
     var
+        SustPreviewPostInstance: Codeunit "Sust. Preview Post Instance";
         DimensionSetIDFilter: Page "Dimension Set ID Filter";
         NavigatePage: Page Navigate;
         Dim1Visible, Dim2Visible, Dim3Visible, Dim4Visible, Dim5Visible, Dim6Visible, Dim7Visible, Dim8Visible : Boolean;
+        ShowPostedEntryActions: Boolean;
         DimensionCaptionLbl: Label '%1 %2', Locked = true;
         ReversalSuccessMsg: Label 'The entry has been successfully reversed.';
         ReversalMultipleSuccessMsg: Label '%1 entries have been successfully reversed.', Comment = '%1 = Count';
 
     trigger OnOpenPage()
     begin
+        ShowPostedEntryActions := true;
         SetDimVisibility();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        ShowPostedEntryActions := not (Rec.IsTemporary() and SustPreviewPostInstance.IsPreviewLedgerEntry(Rec."Entry No."));
     end;
 
     local procedure SetDimVisibility()
