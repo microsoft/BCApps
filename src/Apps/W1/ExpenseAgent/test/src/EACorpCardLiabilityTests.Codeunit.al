@@ -485,14 +485,17 @@ codeunit 148363 EACorpCardLiabilityTests
         end;
 
         ReversalEntry.ReverseTransaction(ExpenseLedgerEntry."Transaction No.");
+        GLEntry.SetRange("Transaction No.", ExpenseLedgerEntry."Transaction No.");
+        GLEntry.SetRange(Reversed, true);
+        Assert.IsFalse(GLEntry.IsEmpty(), 'The original G/L transaction must be reversed before requesting liability transfer.');
         BankEntryCount := BankAccountLedgerEntry.Count();
 
         // [WHEN] The liability transfer is requested.
         asserterror LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
 
-        // [THEN] The missing unreversed posting is reported without new bank entries.
-        Assert.ExpectedError('original unreversed expense posting');
-        Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'The real original G/L posting must still exist unreversed.');
+        // [THEN] The internal posting-validation error is masked without new bank entries.
+        Assert.ExpectedError('An error has occurred. If the error persists, please contact your system administrator.');
+        Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'Rejecting transfer must not create bank entries.');
     end;
 
     [Test]
