@@ -1593,11 +1593,10 @@ codeunit 144103 "Test SEPA CT v09"
         BankAccount: Record "Bank Account";
         GeneralLedgerSetup: Record "General Ledger Setup";
         Vendor: Record Vendor;
-        VendorBankAccount: Record "Vendor Bank Account";
         TestSEPACTv09: Codeunit "Test SEPA CT v09";
         ExportProtocolCode: Code[20];
         FileName: Text;
-        TotalAmount: Decimal;
+        i: Integer;
     begin
         // [SCENARIO] A legacy subscriber forces NORMAL priority and initializes InstrPrty to NORM.
         Initialize();
@@ -1606,15 +1605,15 @@ codeunit 144103 "Test SEPA CT v09"
         UpdateGLSetupCurrency(GeneralLedgerSetup."Local Currency"::Euro, '', 'EUR');
         UpdateLocalInstrPrtyInGenLedgSetup(true);
         ExportProtocolCode := FindXMLPortEuroSEPAExportProtocol();
-        SetupForExportByNumberOfDocuments(BankAccount, VendorBankAccount, ExportProtocolCode, 5, TotalAmount);
+        SetUpTransactionMode(CreateSEPABankAccount(BankAccount, ''), ExportProtocolCode);
 
         // [GIVEN] Truncating five full-length creditor names shortens the rewritten XML.
-        Vendor.SetRange("Transaction Mode Code", BankAccount."No.");
-        Vendor.FindSet();
-        repeat
+        for i := 1 to 5 do begin
+            CreateVendorWithBankAccount(Vendor, BankAccount, '');
+            CreateAndPostPurchInvoice(Vendor."No.", false);
             Vendor.Name := PadStr(Vendor."No.", MaxStrLen(Vendor.Name), 'X');
             Vendor.Modify();
-        until Vendor.Next() = 0;
+        end;
 
         // [GIVEN] A legacy subscriber that forces NORMAL priority.
         BindSubscription(TestSEPACTv09);

@@ -4128,7 +4128,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
         GenJournalLine: Record "Gen. Journal Line";
         CBGStatement: Record "CBG Statement";
         CBGStatementLine: Record "CBG Statement Line";
-        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        PaymentToleranceMgtNL: Codeunit "Payment Tolerance Mgt. NL";
     begin
         // [GIVEN] An invoice for 1,000 with a maximum payment tolerance of 50 and an applies-to ID.
         LibraryPmtDiscSetup.SetPmtToleranceWarning(false);
@@ -4154,10 +4154,9 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
         CBGStatementLine."Account No." := Customer."No.";
         CBGStatementLine.Amount := -990;
         CBGStatementLine."Applies-to ID" := AppliesToID;
-        PaymentToleranceMgt.SetSuppressCommit(true);
 
         // [WHEN] Payment tolerance is calculated.
-        Assert.IsTrue(PaymentToleranceMgt.PmtTolCBGJnl(CBGStatementLine), 'Customer payment tolerance calculation failed.');
+        Assert.IsTrue(PaymentToleranceMgtNL.PmtTolCBGJnl(CBGStatementLine), 'Customer payment tolerance calculation failed.');
 
         // [THEN] The full ID is preserved and the invoice accepts the difference of 10.
         CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
@@ -4167,7 +4166,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
 
         // [WHEN] The payment is changed to the full invoice amount.
         CBGStatementLine.Amount := -1000;
-        Assert.IsTrue(PaymentToleranceMgt.PmtTolCBGJnl(CBGStatementLine), 'Customer payment tolerance recalculation failed.');
+        Assert.IsTrue(PaymentToleranceMgtNL.PmtTolCBGJnl(CBGStatementLine), 'Customer payment tolerance recalculation failed.');
 
         // [THEN] The previously accepted tolerance is cleared using the same full ID.
         CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
@@ -4181,7 +4180,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
         GenJournalLine: Record "Gen. Journal Line";
         CBGStatement: Record "CBG Statement";
         CBGStatementLine: Record "CBG Statement Line";
-        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        PaymentToleranceMgtNL: Codeunit "Payment Tolerance Mgt. NL";
     begin
         // [GIVEN] An invoice for 1,000 with a maximum payment tolerance of 50 and an applies-to ID.
         LibraryPmtDiscSetup.SetPmtToleranceWarning(false);
@@ -4207,10 +4206,9 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
         CBGStatementLine."Account No." := Vendor."No.";
         CBGStatementLine.Amount := 990;
         CBGStatementLine."Applies-to ID" := AppliesToID;
-        PaymentToleranceMgt.SetSuppressCommit(true);
 
         // [WHEN] Payment tolerance is calculated.
-        Assert.IsTrue(PaymentToleranceMgt.PmtTolCBGJnl(CBGStatementLine), 'Vendor payment tolerance calculation failed.');
+        Assert.IsTrue(PaymentToleranceMgtNL.PmtTolCBGJnl(CBGStatementLine), 'Vendor payment tolerance calculation failed.');
 
         // [THEN] The full ID is preserved and the invoice accepts the difference of 10.
         VendorLedgerEntry.Get(VendorLedgerEntry."Entry No.");
@@ -4220,7 +4218,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
 
         // [WHEN] The payment is changed to the full invoice amount.
         CBGStatementLine.Amount := 1000;
-        Assert.IsTrue(PaymentToleranceMgt.PmtTolCBGJnl(CBGStatementLine), 'Vendor payment tolerance recalculation failed.');
+        Assert.IsTrue(PaymentToleranceMgtNL.PmtTolCBGJnl(CBGStatementLine), 'Vendor payment tolerance recalculation failed.');
 
         // [THEN] The previously accepted tolerance is cleared using the same full ID.
         VendorLedgerEntry.Get(VendorLedgerEntry."Entry No.");

@@ -45,12 +45,12 @@ codeunit 144001 "UT TAB Apply GL Entries"
         GLEntry: Record "G/L Entry";
         AnalysisView: Record "Analysis View";
         DateComprRegister: Record "Date Compr. Register";
-        DateComprRetainFields: Record "Date Compr. Retain Fields";
+        TempDateComprRetainFields: Record "Date Compr. Retain Fields";
         DimensionSelectionBuffer: Record "Dimension Selection Buffer";
+        DateCompressGeneralLedger: Report "Date Compress General Ledger";
         LibraryERM: Codeunit "Library - ERM";
         LibraryFiscalYear: Codeunit "Library - Fiscal Year";
         DateCompression: Codeunit "Date Compression";
-        DateCompressGeneralLedger: Report "Date Compress General Ledger";
         GLAccountNo: array[2] of Code[20];
         PartialEntryNo: array[2] of Integer;
         ClosedEntryNo: array[2] of Integer;
@@ -77,7 +77,7 @@ codeunit 144001 "UT TAB Apply GL Entries"
         GLEntry.SetFilter("G/L Account No.", '%1|%2', GLAccountNo[1], GLAccountNo[2]);
         DateCompressGeneralLedger.SetTableView(GLEntry);
         DateCompressGeneralLedger.InitializeRequest(
-            PostingDate, PostingDate, DateComprRegister."Period Length"::Day, '', DateComprRetainFields,
+            PostingDate, PostingDate, DateComprRegister."Period Length"::Day, '', TempDateComprRetainFields,
             DimensionSelectionBuffer.GetDimSelectionText(3, Report::"Date Compress General Ledger", ''), false);
         DateCompressGeneralLedger.UseRequestPage(false);
 
