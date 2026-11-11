@@ -609,6 +609,16 @@ table 311 "Sales & Receivables Setup"
             ToolTip = 'Specifies that the reservation confirmation message is not shown on sales lines. This is useful to avoid noise when you are processing many lines.';
         }
         /// <summary>
+        /// Indicates whether posting a sales credit memo or return order restores the reversed quantities on the related sales order.
+        /// </summary>
+        field(70; "Restore Order Qty. on Return"; Boolean)
+        {
+            Caption = 'Restore Order quantities on Credit Memo or Return Order posting';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether posting a sales credit memo or sales return order restores quantities on the related sales order. When enabled, Qty. to Ship, Qty. to Invoice, and the shipped and invoiced quantities on the original sales order are updated based on the reversed quantity.';
+            InitValue = true;
+        }
+        /// <summary>
         /// Indicates whether customer name changes on open sales documents apply only to the document without searching for matching customers.
         /// </summary>
         field(160; "Disable Search by Name"; Boolean)
@@ -999,9 +1009,6 @@ table 311 "Sales & Receivables Setup"
         {
             Caption = 'Posting Date Check on Posting';
             ToolTip = 'Specifies if you want the program to warn you when you post a sales document with a posting date that is different from the Work Date.';
-#if not CLEAN27
-            InitValue = true;
-#endif
         }
 #if not CLEANSCHEMA30
         field(10501; "Reverse Charge VAT Posting Gr."; Code[20])
@@ -1009,38 +1016,23 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Reverse Charge VAT Posting Gr.';
             TableRelation = "VAT Business Posting Group";
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
         field(10502; "Domestic Customers"; Code[20])
         {
             Caption = 'Domestic Customers';
             TableRelation = "VAT Business Posting Group";
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
         field(10503; "Invoice Wording"; Text[30])
         {
             Caption = 'Invoice Wording';
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
 #endif
     }

@@ -3266,10 +3266,16 @@ table 5767 "Warehouse Activity Line"
         end
     end;
 
-    local procedure OverReceiptProcessing(): Boolean
+    local procedure OverReceiptProcessing() Result: Boolean
     var
         OverReceiptMgt: Codeunit "Over-Receipt Mgt.";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeOverReceiptProcessing(Rec, CurrFieldNo, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
         if ("Source Document" <> "Source Document"::"Purchase Order") then
             exit(false);
 
@@ -3596,6 +3602,11 @@ table 5767 "Warehouse Activity Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyOldWhseActivLine(var WarehouseActivityLine: Record "Warehouse Activity Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOverReceiptProcessing(var WarehouseActivityLine: Record "Warehouse Activity Line"; CurrFieldNo: Integer; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 

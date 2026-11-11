@@ -58,6 +58,8 @@ report 742 "VAT Report Request Page"
                 VATStatementReportLine.SetRange("VAT Report Config. Code", "VAT Report Config. Code");
                 VATStatementReportLine.DeleteAll();
                 repeat
+                    VATStatementReportLine.Init();
+                    VATStatementReportLine.Validate("Box No.", VATStatementLine."Box No.");
                     OnBeforeCalcLineTotalWithBase(VATStatementReportLine, VATStatementLine, "VAT Report Header");
                     VATStatement.CalcLineTotalWithNonDeductiblePart(VATStatementLine, Amount, Base, NDAmount, NDBase, 0);
                     if VATStatementLine."Print with" = VATStatementLine."Print with"::"Opposite Sign" then begin
@@ -66,13 +68,11 @@ report 742 "VAT Report Request Page"
                         NDAmount := -NDAmount;
                         NDBase := -NDBase;
                     end;
-                    VATStatementReportLine.Init();
                     VATStatementReportLine.Validate("VAT Report No.", "No.");
                     VATStatementReportLine.Validate("VAT Report Config. Code", "VAT Report Config. Code");
                     VATStatementReportLine.Validate("Line No.", VATStatementLine."Line No.");
                     VATStatementReportLine.Validate("Row No.", VATStatementLine."Row No.");
                     VATStatementReportLine.Validate(Description, VATStatementLine.Description);
-                    VATStatementReportLine.Validate("Box No.", VATStatementLine."Box No.");
                     VATStatementReportLine.Validate(Amount, Amount);
                     VATStatementReportLine.Validate(Base, Base);
                     VATStatementReportLine.Validate("Non-Deductible Amount", NDAmount);
