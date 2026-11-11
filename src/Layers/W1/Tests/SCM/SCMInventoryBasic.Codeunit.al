@@ -3986,8 +3986,8 @@ codeunit 137280 "SCM Inventory Basic"
     var
         FromLocation: Record Location;
         MatrixLocations: array[32] of Record Location;
-        MatrixColumns: array[32] of Text[1024];
         TransferRoutesMatrixPage: Page "Transfer Routes Matrix";
+        MatrixColumns: array[32] of Text[1024];
     begin
         FromLocation.SetRange(Code, FromLocationCode);
         MatrixLocations[1].Get(ToLocationCode);
