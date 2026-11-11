@@ -618,14 +618,6 @@ table 6907 "Expense Report Line"
         field(36; "Starting Point"; Text[50])
         {
             Caption = 'Starting Point';
-            ObsoleteReason = 'Replaced by field "Starting Point Description" because addresses can be longer than 50 characters. Use SetStartingPoint and GetStartingPoint instead.';
-#if not CLEAN30
-            ObsoleteState = Pending;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '33.0';
-#endif
 
             trigger OnValidate()
             begin
@@ -635,14 +627,6 @@ table 6907 "Expense Report Line"
         field(37; "Ending Point"; Text[50])
         {
             Caption = 'Ending Point';
-            ObsoleteReason = 'Replaced by field "Ending Point Description" because addresses can be longer than 50 characters. Use SetEndingPoint and GetEndingPoint instead.';
-#if not CLEAN30
-            ObsoleteState = Pending;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '33.0';
-#endif
 
             trigger OnValidate()
             begin

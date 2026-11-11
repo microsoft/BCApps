@@ -257,7 +257,6 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     var
         Expense: Record Expense;
     begin
-#pragma warning disable AL0432
         Expense.SetLoadFields("Starting Point", "Ending Point");
         Expense.SetFilter("Starting Point", '<>%1', '');
         if Expense.FindSet() then
@@ -273,14 +272,12 @@ codeunit 6978 "Upgrade Expense Agent Setup"
                 Expense.SetEndingPoint(Expense."Ending Point");
                 Expense.Modify();
             until Expense.Next() = 0;
-#pragma warning restore AL0432
     end;
 
     local procedure MigrateExpenseReportLineStartingAndEndingPoint()
     var
         ExpenseReportLine: Record "Expense Report Line";
     begin
-#pragma warning disable AL0432
         ExpenseReportLine.SetLoadFields("Starting Point", "Ending Point");
         ExpenseReportLine.SetFilter("Starting Point", '<>%1', '');
         if ExpenseReportLine.FindSet() then
@@ -296,14 +293,12 @@ codeunit 6978 "Upgrade Expense Agent Setup"
                 ExpenseReportLine.SetEndingPoint(ExpenseReportLine."Ending Point");
                 ExpenseReportLine.Modify();
             until ExpenseReportLine.Next() = 0;
-#pragma warning restore AL0432
     end;
 
     local procedure MigratePostedExpenseReportLineStartingAndEndingPoint()
     var
         PostedExpenseReportLine: Record "Posted Expense Report Line";
     begin
-#pragma warning disable AL0432
         PostedExpenseReportLine.SetLoadFields("Starting Point", "Ending Point");
         PostedExpenseReportLine.SetFilter("Starting Point", '<>%1', '');
         if PostedExpenseReportLine.FindSet() then
@@ -319,7 +314,6 @@ codeunit 6978 "Upgrade Expense Agent Setup"
                 PostedExpenseReportLine.SetEndingPoint(PostedExpenseReportLine."Ending Point");
                 PostedExpenseReportLine.Modify();
             until PostedExpenseReportLine.Next() = 0;
-#pragma warning restore AL0432
     end;
 
     local procedure GetRemoveLegacyPrivacyNoticeUpgradeTag(): Code[250]
