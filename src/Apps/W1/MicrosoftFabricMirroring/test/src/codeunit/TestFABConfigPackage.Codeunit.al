@@ -796,6 +796,7 @@ codeunit 140011 "Test FAB Config Package"
     begin
         //[SCENARIO] An existing v1.0 package receives Detailed Employee Ledger Entry on upgrade
         Initialize();
+        //[GIVEN] An existing v1.0 package containing tables 18 and 5222
         GivenPackage('MS-STD', 18, 5222);
         Assert.IsFalse(PackageLine.Get('MS-STD', 5223), 'Expected table 5223 to be absent from the old package.');
         LibraryLowerPermissions.SetOutsideO365Scope();
