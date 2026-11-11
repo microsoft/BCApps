@@ -4675,10 +4675,15 @@ codeunit 139197 DocumentSendingPostTests
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
     begin
-        CreateCustomerWithEmail(Customer);
+        CreateElectronicDocumentCustomer(Customer);
         Customer.Validate("Document Sending Profile", DocumentSendingProfileCode);
         Customer.Modify(true);
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        // The e-mail is set after the sales header exists: localizations (e.g. DK OIOUBL) re-validate "Sell-to Contact No."
+        // on "Sell-to Customer No.", which asks for confirmation when the customer has an e-mail but the contact has none.
+        Customer.Validate("E-Mail", CopyStr(GenerateRandomEmailAddress(), 1, MaxStrLen(Customer."E-Mail")));
+        Customer.Modify();
+        SalesHeader.Validate("Sell-to E-Mail", Customer."E-Mail");
         UpdateYourReferenceSalesHeader(SalesHeader, LibraryUtility.GenerateGUID());
         LibraryInventory.CreateItem(Item);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
