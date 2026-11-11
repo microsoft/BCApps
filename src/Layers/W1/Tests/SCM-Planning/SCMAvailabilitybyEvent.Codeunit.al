@@ -35,6 +35,7 @@ codeunit 137009 "SCM Availability by Event"
         WrongReservedQtyErr: Label 'Wrong reserved quantity in Item Availability by Event';
         ProdOrderComponentNotFoundErr: Label 'Mocked Prod. Order Component not found on "Prod. Order Components" page.';
         DemandAfterDueDateMissingErr: Label 'Item Availability by Event must show demand dated after the production order Due Date.';
+        WrongNoOfInventoryEventsErr: Label 'Wrong number of inventory events in Item Availability by Event';
 
     local procedure Initialize()
     begin
@@ -628,6 +629,44 @@ codeunit 137009 "SCM Availability by Event"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    procedure InventoryIsShownForLocationWhenOtherLocationHasOpenNegativeAndPositiveEntries()
+    var
+        Item: Record Item;
+        FirstLocation: Record Location;
+        LastLocation: Record Location;
+        TempInventoryEventBuffer: Record "Inventory Event Buffer" temporary;
+        CalcItemAvailability: Codeunit "Calc. Item Availability";
+        Qty: Decimal;
+        OffsetQty: Decimal;
+    begin
+        // [FEATURE] [Item Availability] [Location]
+        // [SCENARIO 13752] Item Availability by Event shows inventory for a location when another location has both negative and positive open item ledger entries.
+        Initialize();
+        Qty := LibraryRandom.RandIntInRange(10, 100);
+        OffsetQty := LibraryRandom.RandIntInRange(200, 300);
+
+        // [GIVEN] Item "I" and locations "A" and "B", where "A" sorts before "B".
+        LibraryInventory.CreateItem(Item);
+        CreateLocationsInCodeOrder(FirstLocation, LastLocation);
+
+        // [GIVEN] Open item ledger entries on "B" with remaining quantity -"Y" and "Y", and on "A" with remaining quantity "X".
+        MockOpenItemLedgerEntry(Item."No.", LastLocation.Code, -OffsetQty);
+        MockOpenItemLedgerEntry(Item."No.", FirstLocation.Code, Qty);
+        MockOpenItemLedgerEntry(Item."No.", LastLocation.Code, OffsetQty);
+
+        // [WHEN] Inventory events are calculated for "I".
+        CalcItemAvailability.CalcNewInvtEventBuf(Item, '', false, 0D, false);
+        CalcItemAvailability.GetInvEventBuffer(TempInventoryEventBuffer);
+
+        // [THEN] One inventory event exists, for location "A" with quantity "X".
+        TempInventoryEventBuffer.SetRange(Type, TempInventoryEventBuffer.Type::Inventory);
+        Assert.AreEqual(1, TempInventoryEventBuffer.Count(), WrongNoOfInventoryEventsErr);
+        TempInventoryEventBuffer.FindFirst();
+        TempInventoryEventBuffer.TestField("Location Code", FirstLocation.Code);
+        TempInventoryEventBuffer.TestField("Remaining Quantity (Base)", Qty);
+    end;
+
     local procedure FindProdOrderLine(var ProdOrderLine: Record "Prod. Order Line"; ProductionOrder: Record "Production Order")
     begin
         ProdOrderLine.SetRange(Status, ProductionOrder.Status);
@@ -828,6 +867,35 @@ codeunit 137009 "SCM Availability by Event"
 
         ItemLedgerEntry.Quantity := -ConsumedQty;
         ItemLedgerEntry.Insert();
+    end;
+
+    local procedure MockOpenItemLedgerEntry(ItemNo: Code[20]; LocationCode: Code[10]; Qty: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.Init();
+        ItemLedgerEntry."Entry No." := LibraryUtility.GetNewRecNo(ItemLedgerEntry, ItemLedgerEntry.FieldNo("Entry No."));
+        ItemLedgerEntry."Item No." := ItemNo;
+        ItemLedgerEntry."Location Code" := LocationCode;
+        ItemLedgerEntry."Posting Date" := WorkDate();
+        ItemLedgerEntry.Quantity := Qty;
+        ItemLedgerEntry."Remaining Quantity" := Qty;
+        ItemLedgerEntry.Open := true;
+        ItemLedgerEntry.Positive := Qty > 0;
+        ItemLedgerEntry.Insert();
+    end;
+
+    local procedure CreateLocationsInCodeOrder(var FirstLocation: Record Location; var LastLocation: Record Location)
+    var
+        Location: Record Location;
+    begin
+        LibraryWarehouse.CreateLocation(FirstLocation);
+        LibraryWarehouse.CreateLocation(LastLocation);
+        if FirstLocation.Code > LastLocation.Code then begin
+            Location := FirstLocation;
+            FirstLocation := LastLocation;
+            LastLocation := Location;
+        end;
     end;
 
     local procedure OpenProdOrderComponentsAndAssertActConsQty(ProdOrderComponent: Record "Prod. Order Component"; var ProdOrderComponents: TestPage "Prod. Order Components"; ExpectedShownQty: Decimal)
