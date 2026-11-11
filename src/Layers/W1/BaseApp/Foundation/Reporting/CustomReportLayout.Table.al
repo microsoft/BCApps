@@ -25,7 +25,7 @@ table 9650 "Custom Report Layout"
     DataClassification = CustomerContent;
     ObsoleteState = Pending;
     ObsoleteReason = 'Replaced by system page "Report Layouts". This table will be removed in a future version.';
-    ObsoleteTag = '30.0';
+    ObsoleteTag = '29.0';
 
     fields
     {

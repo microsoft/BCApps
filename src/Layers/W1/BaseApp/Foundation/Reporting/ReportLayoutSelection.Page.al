@@ -23,7 +23,7 @@ page 9652 "Report Layout Selection"
     AboutText = '**This page has been deprecated and will be removed in a later release**. Please migrate your layouts to the new system page _Report Layouts_ using the _Migrate to System Layouts_ action.';
     ObsoleteState = Pending;
     ObsoleteReason = 'Replaced by system page "Report Layouts". This page will be removed in a future version.';
-    ObsoleteTag = '30.0';
+    ObsoleteTag = '29.0';
 
     layout
     {
