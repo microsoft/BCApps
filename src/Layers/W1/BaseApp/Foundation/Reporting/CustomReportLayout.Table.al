@@ -23,9 +23,6 @@ table 9650 "Custom Report Layout"
 #endif
     Permissions = TableData "Custom Report Layout" = rimd;
     DataClassification = CustomerContent;
-    ObsoleteState = Pending;
-    ObsoleteReason = 'Replaced by system page "Report Layouts". This table will be removed in a future version.';
-    ObsoleteTag = '29.0';
 
     fields
     {
