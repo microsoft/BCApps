@@ -787,6 +787,30 @@ codeunit 140011 "Test FAB Config Package"
         VerifyMsStdPackageRegistered();
     end;
 
+    [Test]
+    procedure EnsureMsStdPackageUpgradesExistingVersion()
+    var
+        Pkg: Record "Fabric Config Package";
+        PackageLine: Record "Fabric Config Package Line";
+        FabricInstall: Codeunit "Fabric Install";
+    begin
+        //[SCENARIO] An existing v1.0 package receives Detailed Employee Ledger Entry on upgrade
+        Initialize();
+        GivenPackage('MS-STD', 18, 5222);
+        Assert.IsFalse(PackageLine.Get('MS-STD', 5223), 'Expected table 5223 to be absent from the old package.');
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The built-in definition is registered by the upgrade path
+        FabricInstall.EnsureMsStdPackage();
+
+        //[THEN] The new definition includes table 5223 without activating the package
+        VerifyMsStdPackageRegistered();
+        VerifyPackageLineExists(PackageLine, 5223);
+        Pkg.Get('MS-STD');
+        Assert.IsFalse(Pkg.Active, 'Expected an inactive package to remain inactive after upgrade.');
+    end;
+
     local procedure VerifyMsStdPackageRegistered()
     var
         Pkg: Record "Fabric Config Package";
@@ -795,7 +819,7 @@ codeunit 140011 "Test FAB Config Package"
     begin
         Assert.IsTrue(Pkg.Get('MS-STD'), 'Expected the MS-STD package header to exist.');
         Assert.AreEqual('Microsoft Standard', Pkg.Description, 'Expected the package description to match.');
-        Assert.AreEqual('1.0', Pkg.Version, 'Expected the package version to match.');
+        Assert.AreEqual('1.1', Pkg.Version, 'Expected the package version to match.');
 
         // Only curated tables installed in this environment can be registered.
         AllObj.SetRange("Object Type", AllObj."Object Type"::Table);

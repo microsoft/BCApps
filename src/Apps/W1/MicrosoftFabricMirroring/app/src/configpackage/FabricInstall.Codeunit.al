@@ -287,7 +287,7 @@ codeunit 48522 "Fabric Install"
         TableIds.Add(99000765); // Manufacturing Setup
         TableIds.Add(99000777); // Routing Link
         TableIds.Add(99000829); // Planning Component
-        FabricConfigPackageMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '1.0', TableIds);
+        FabricConfigPackageMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '1.1', TableIds);
     end;
 
     var
