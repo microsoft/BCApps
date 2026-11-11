@@ -441,8 +441,11 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         // [GIVEN] An open VAT entry with its own VAT posting setup.
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATCalculationType, 20);
         GenPostingType := GenPostingType::Sale;
-        if VATCalculationType = VATCalculationType::"Reverse Charge VAT" then
+        if VATCalculationType = VATCalculationType::"Reverse Charge VAT" then begin
+            VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+            VATPostingSetup.Modify(true);
             GenPostingType := GenPostingType::Purchase;
+        end;
         CreateGenJnlBatch(GenJournalBatch);
         LibraryERM.CreateGeneralJnlLine2WithBalAcc(
             GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
@@ -469,6 +472,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
             LibraryERM.CreateGLAccountNoWithDirectPosting(), true, PostSettlement);
         VATPostingSetup.SetRecFilter();
         CalcandPostVATSettlement.SetTableView(VATPostingSetup);
+        Commit();
         CalcandPostVATSettlement.Run();
         UnbindSubscription(ERMConcurrentGenJnlPosting);
         LibraryReportDataset.LoadDataSetFile();
