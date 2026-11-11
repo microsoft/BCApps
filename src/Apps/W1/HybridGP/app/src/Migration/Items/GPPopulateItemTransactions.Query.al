@@ -81,10 +81,12 @@ query 40100 "GP Populate Item Transactions"
 
                     column(QTYRECVDGPIV00300; QTYRECVD)
                     {
+                        Method = Sum;
                     }
 
                     column(QTYSOLDGPIV00300; QTYSOLD)
                     {
+                        Method = Sum;
                     }
 
                     dataitem(GPIV00200; "GP IV00200")
