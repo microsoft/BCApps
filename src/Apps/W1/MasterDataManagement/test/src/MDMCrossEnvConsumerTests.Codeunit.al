@@ -11,6 +11,12 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         LibrarySalesLib: Codeunit "Library - Sales";
         WizardPrivacyNoticeOpenCount: Integer;
         InvalidSourceHostErr: Label 'not a valid Business Central endpoint', Locked = true;
+        // Test certificates are generated at run time, so no certificate, private key, or password is checked in.
+        [NonDebuggable]
+        TestCertificatePfxBase64: Text;
+        TestCertificatePublicBase64: Text;
+        TestCertificateThumbprint: Text;
+        TestCertificatePassword: SecretText;
 
     [Test]
     procedure CrossEnvGetBySystemIdRoundTripsSourceRecord()
@@ -595,6 +601,305 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
 
         MasterDataManagementSetup."Is Enabled" := false;
         MasterDataManagementSetup.Modify(false);
+        CleanUp();
+    end;
+
+    [Test]
+    procedure SourceClientCertificateIsStoredAndReplacesClientSecret()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        ClientSecretKey: Guid;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] Storing a client certificate keeps the certificate and its password in Isolated Storage, records the
+        //            thumbprint and expiration date, and removes a previously stored client secret.
+        Initialize();
+        // [GIVEN] a cross-environment connection that authenticates with a client secret
+        SetCrossEnvConnectionDetails();
+        LibraryMasterDataMgt.SetSourceClientSecret(SecretStrSubstNo('super-secret'));
+        MasterDataManagementSetup.Get();
+        ClientSecretKey := MasterDataManagementSetup."Source Client Secret Key";
+        Assert.IsTrue(LibraryMasterDataMgt.IsSourceCredentialStored(ClientSecretKey), 'Precondition: client secret should be stored');
+
+        // [WHEN] a password-protected certificate with a private key is stored
+        LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), GetTestCertificatePassword());
+
+        // [THEN] the certificate and password are stored, the client secret is removed, and the connection is configured
+        MasterDataManagementSetup.Get();
+        Assert.IsTrue(LibraryMasterDataMgt.IsSourceCredentialStored(MasterDataManagementSetup."Source Client Certificate Key"), 'Certificate should be stored');
+        Assert.IsTrue(LibraryMasterDataMgt.IsSourceCredentialStored(MasterDataManagementSetup."Source Cert. Password Key"), 'Certificate password should be stored');
+        Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Client secret key should be cleared when a certificate is stored');
+        Assert.IsFalse(LibraryMasterDataMgt.IsSourceCredentialStored(ClientSecretKey), 'Client secret should be removed from Isolated Storage when a certificate is stored');
+        Assert.AreEqual(GetTestCertificateThumbprint(), MasterDataManagementSetup."Source Cert. Thumbprint", 'Certificate thumbprint not saved');
+        Assert.IsTrue(MasterDataManagementSetup."Source Cert. Expiration Date" > CurrentDateTime(), 'Certificate expiration date not saved');
+        Assert.IsTrue(LibraryMasterDataMgt.UsesSourceClientCertificate(), 'Connection should authenticate with the certificate');
+        Assert.IsTrue(LibraryMasterDataMgt.IsCrossEnvConnectionConfigured(), 'A certificate should complete the cross-environment connection');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure DeletingSetupRemovesStoredSourceCredentials()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        ClientSecretKey: Guid;
+        CertificateKey: Guid;
+        CertificatePasswordKey: Guid;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO] Deleting the setup removes the stored client secret, certificate, and certificate password from
+        //            Isolated Storage, so no credential is left behind without a record that references it.
+        Initialize();
+        // [GIVEN] a client secret that a certificate later replaces, and the resulting certificate connection
+        SetCrossEnvConnectionDetails();
+        LibraryMasterDataMgt.SetSourceClientSecret(SecretStrSubstNo('super-secret'));
+        LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), GetTestCertificatePassword());
+        MasterDataManagementSetup.Get();
+        CertificateKey := MasterDataManagementSetup."Source Client Certificate Key";
+        CertificatePasswordKey := MasterDataManagementSetup."Source Cert. Password Key";
+        Assert.IsTrue(LibraryMasterDataMgt.IsSourceCredentialStored(CertificateKey), 'Precondition: certificate should be stored');
+        Assert.IsTrue(LibraryMasterDataMgt.IsSourceCredentialStored(CertificatePasswordKey), 'Precondition: certificate password should be stored');
+
+        // [WHEN] the setup is deleted
+        MasterDataManagementSetup.Delete(true);
+
+        // [THEN] the certificate and its password are removed from Isolated Storage
+        Assert.IsFalse(LibraryMasterDataMgt.IsSourceCredentialStored(CertificateKey), 'Certificate should be removed from Isolated Storage when the setup is deleted');
+        Assert.IsFalse(LibraryMasterDataMgt.IsSourceCredentialStored(CertificatePasswordKey), 'Certificate password should be removed from Isolated Storage when the setup is deleted');
+
+        // [GIVEN] a new setup that authenticates with a client secret
+        MasterDataManagementSetup.Init();
+        MasterDataManagementSetup.Insert(true);
+        SetCrossEnvConnectionDetails();
+        LibraryMasterDataMgt.SetSourceClientSecret(SecretStrSubstNo('super-secret'));
+        MasterDataManagementSetup.Get();
+        ClientSecretKey := MasterDataManagementSetup."Source Client Secret Key";
+        Assert.IsTrue(LibraryMasterDataMgt.IsSourceCredentialStored(ClientSecretKey), 'Precondition: client secret should be stored');
+
+        // [WHEN] the setup is deleted
+        MasterDataManagementSetup.Delete(true);
+
+        // [THEN] the client secret is removed from Isolated Storage
+        Assert.IsFalse(LibraryMasterDataMgt.IsSourceCredentialStored(ClientSecretKey), 'Client secret should be removed from Isolated Storage when the setup is deleted');
+
+        // Recreate the setup that the other tests and CleanUp expect.
+        MasterDataManagementSetup.Init();
+        MasterDataManagementSetup.Insert(true);
+        CleanUp();
+    end;
+
+    [Test]
+    procedure SourceClientSecretReplacesClientCertificate()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        CertificateKey: Guid;
+        CertificatePasswordKey: Guid;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] Storing a client secret removes a previously stored certificate, its password, and its details.
+        Initialize();
+        // [GIVEN] a cross-environment connection that authenticates with a certificate
+        SetCrossEnvConnectionDetails();
+        LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), GetTestCertificatePassword());
+        MasterDataManagementSetup.Get();
+        CertificateKey := MasterDataManagementSetup."Source Client Certificate Key";
+        CertificatePasswordKey := MasterDataManagementSetup."Source Cert. Password Key";
+
+        // [WHEN] a client secret is stored
+        LibraryMasterDataMgt.SetSourceClientSecret(SecretStrSubstNo('super-secret'));
+
+        // [THEN] the certificate is removed and the connection authenticates with the client secret
+        MasterDataManagementSetup.Get();
+        Assert.IsTrue(LibraryMasterDataMgt.IsSourceCredentialStored(MasterDataManagementSetup."Source Client Secret Key"), 'Client secret should be stored');
+        Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Client Certificate Key"), 'Certificate key should be cleared when a client secret is stored');
+        Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Cert. Password Key"), 'Certificate password key should be cleared when a client secret is stored');
+        Assert.IsFalse(LibraryMasterDataMgt.IsSourceCredentialStored(CertificateKey), 'Certificate should be removed from Isolated Storage when a client secret is stored');
+        Assert.IsFalse(LibraryMasterDataMgt.IsSourceCredentialStored(CertificatePasswordKey), 'Certificate password should be removed from Isolated Storage when a client secret is stored');
+        Assert.AreEqual('', MasterDataManagementSetup."Source Cert. Thumbprint", 'Certificate thumbprint should be cleared');
+        Assert.AreEqual(0DT, MasterDataManagementSetup."Source Cert. Expiration Date", 'Certificate expiration date should be cleared');
+        Assert.IsFalse(LibraryMasterDataMgt.UsesSourceClientCertificate(), 'Connection should authenticate with the client secret');
+        Assert.IsTrue(LibraryMasterDataMgt.IsCrossEnvConnectionConfigured(), 'A client secret should complete the cross-environment connection');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure SourceClientCertificateWithWrongPasswordIsRejected()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] A certificate that cannot be read with the given password is not stored.
+        Initialize();
+        SetCrossEnvConnectionDetails();
+
+        // [WHEN] the certificate is stored with a wrong password
+        asserterror LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), SecretStrSubstNo('wrong-password'));
+
+        // [THEN] an actionable error is raised and no credential is stored
+        Assert.ExpectedError('The certificate could not be read');
+        Assert.IsFalse(LibraryMasterDataMgt.UsesSourceClientCertificate(), 'A certificate that cannot be read should not be stored');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure SourceClientCertificateWithoutPrivateKeyIsRejected()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] A certificate without the private key cannot sign the token request, so it is not stored.
+        Initialize();
+        SetCrossEnvConnectionDetails();
+
+        // [WHEN] the public part of the certificate (no private key) is stored
+        asserterror LibraryMasterDataMgt.SetSourceClientCertificate(GetTestPublicCertificateBase64(), SecretStrSubstNo(''));
+
+        // [THEN] an actionable error is raised and no credential is stored
+        Assert.ExpectedError('The certificate does not contain a private key');
+        Assert.IsFalse(LibraryMasterDataMgt.UsesSourceClientCertificate(), 'A certificate without a private key should not be stored');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure SourceClientCertificateExpiredIsRejected()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] An expired certificate is not stored.
+        Initialize();
+        SetCrossEnvConnectionDetails();
+
+        // [WHEN] an expired certificate is stored
+        asserterror LibraryMasterDataMgt.SetSourceClientCertificate(GetTestExpiredCertificateBase64(), GetTestCertificatePassword());
+
+        // [THEN] an actionable error is raised and no credential is stored
+        Assert.ExpectedError('The certificate expired on');
+        Assert.IsFalse(LibraryMasterDataMgt.UsesSourceClientCertificate(), 'An expired certificate should not be stored');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure ConnectionDetailsWizardRequiresCertificateWhenCertificateSelected()
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] Choosing certificate authentication in the wizard replaces the client secret field with the
+        //            certificate fields, and the wizard cannot continue until a certificate is provided.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+
+        // [GIVEN] the connection step with the source environment, company, and client ID filled in
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.SourceEnvironmentName.SetValue('CONTOSO-PROD');
+        ConnectionDetails.SourceCompanyName.SetValue('CRONUS');
+        ConnectionDetails.OAuth2ClientId.SetValue('11111111-2222-3333-4444-555555555555');
+
+        // [WHEN] certificate authentication is chosen
+        ConnectionDetails.AuthenticationType.SetValue('Certificate');
+
+        // [THEN] the certificate fields replace the client secret, and Next stays disabled without a certificate
+        Assert.IsFalse(ConnectionDetails.OAuth2ClientSecret.Visible(), 'Client secret should be hidden for certificate authentication');
+        Assert.IsTrue(ConnectionDetails.ClientCertificate.Visible(), 'Certificate should be shown for certificate authentication');
+        Assert.IsTrue(ConnectionDetails.CertificatePassword.Visible(), 'Certificate password should be shown for certificate authentication');
+        Assert.IsFalse(ConnectionDetails.ActionNext.Enabled(), 'Next should be disabled until a certificate is uploaded');
+
+        // [WHEN] the user switches back to client secret authentication and enters a secret
+        ConnectionDetails.AuthenticationType.SetValue('Client Secret');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+
+        // [THEN] the certificate fields are hidden and Next is enabled
+        Assert.IsFalse(ConnectionDetails.ClientCertificate.Visible(), 'Certificate should be hidden for client secret authentication');
+        Assert.IsTrue(ConnectionDetails.ActionNext.Enabled(), 'Next should be enabled once the client secret is entered');
+        ConnectionDetails.Close();
+
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerNo')]
+    procedure ConnectionDetailsWizardKeepsStoredCertificate()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] Reopening the wizard for a connection that uses a certificate shows the stored certificate details
+        //            and lets the user finish without uploading the certificate again.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        // [GIVEN] a cross-environment connection that authenticates with a certificate
+        SetCrossEnvConnectionDetails();
+        LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), GetTestCertificatePassword());
+
+        // [WHEN] the wizard is opened and the connection step is shown
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+
+        // [THEN] certificate authentication and the stored certificate's thumbprint are shown, and Next is enabled
+        Assert.AreEqual('Certificate', ConnectionDetails.AuthenticationType.Value(), 'Certificate authentication should be selected');
+        Assert.AreEqual(GetTestCertificateThumbprint(), ConnectionDetails.CertificateThumbprint.Value(), 'Stored certificate thumbprint should be shown');
+        Assert.IsTrue(ConnectionDetails.ActionNext.Enabled(), 'Next should be enabled with a stored certificate');
+
+        // [WHEN] the wizard is finished without uploading a new certificate
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionFinish.Invoke();
+
+        // [THEN] the stored certificate is kept
+        MasterDataManagementSetup.Get();
+        Assert.IsFalse(IsNullGuid(MasterDataManagementSetup."Source Client Certificate Key"), 'Stored certificate should be kept');
+        Assert.AreEqual(GetTestCertificateThumbprint(), MasterDataManagementSetup."Source Cert. Thumbprint", 'Stored certificate thumbprint should be kept');
+
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
+    procedure EnvironmentCopyClearsSourceCertificateAndDisablesCrossEnvSync()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        EnvironmentTriggers: Codeunit "Environment Triggers";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate] [Security]
+        // [SCENARIO] Copying an environment removes the stored certificate and its password and disables
+        //            cross-environment synchronization, keeping the rest of the connection for re-entry.
+        Initialize();
+        // [GIVEN] an enabled cross-environment connection that authenticates with a certificate
+        SetCrossEnvConnectionDetails();
+        LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), GetTestCertificatePassword());
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup."Is Enabled" := true; // set directly to skip the enable side effects; the cleanup is what we assert
+        MasterDataManagementSetup.Modify(false);
+
+        // [WHEN] the environment is copied from production to a sandbox
+        EnvironmentTriggers.OnAfterCopyEnvironmentPerCompany(0, 'PRODUCTION', 1, 'SANDBOX');
+
+        // [THEN] the certificate, its password, and its details are cleared and synchronization is disabled
+        MasterDataManagementSetup.Get();
+        Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Client Certificate Key"), 'Certificate should be removed on environment copy');
+        Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Cert. Password Key"), 'Certificate password should be removed on environment copy');
+        Assert.AreEqual('', MasterDataManagementSetup."Source Cert. Thumbprint", 'Certificate thumbprint should be cleared on environment copy');
+        Assert.IsFalse(MasterDataManagementSetup."Is Enabled", 'Cross-environment synchronization should be disabled on environment copy');
+        // [THEN] the rest of the connection is kept, so an admin only re-uploads the certificate
+        Assert.AreEqual('CONTOSO-PROD', MasterDataManagementSetup."Source Environment Name", 'Source environment should be kept');
+        Assert.AreEqual('11111111-2222-3333-4444-555555555555', MasterDataManagementSetup."Source OAuth Client Id", 'Source client id should be kept');
+
         CleanUp();
     end;
 
@@ -1718,6 +2023,12 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
             MasterDataManagementSetup.Insert();
         end;
         MasterDataManagementSetup."Source Environment Name" := '';
+        // Setup commits survive AutoRollback, so drop a certificate left by an earlier test; otherwise the wizard
+        // opens in certificate mode for tests that enter a client secret.
+        Clear(MasterDataManagementSetup."Source Client Certificate Key");
+        Clear(MasterDataManagementSetup."Source Cert. Password Key");
+        MasterDataManagementSetup."Source Cert. Thumbprint" := '';
+        MasterDataManagementSetup."Source Cert. Expiration Date" := 0DT;
         MasterDataManagementSetup.Modify(false);
     end;
 
@@ -1830,5 +2141,78 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         LibraryRandomCu: Codeunit "Library - Random";
     begin
         exit(LibraryRandomCu.RandIntInRange(1, 999999));
+    end;
+
+    local procedure SetCrossEnvConnectionDetails()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.Validate("Source Environment Name", 'CONTOSO-PROD');
+        MasterDataManagementSetup."Source Environment URL" := 'https://api.businesscentral.dynamics.com/v2.0/contoso-prod';
+        MasterDataManagementSetup."Source Company Name" := 'CRONUS';
+        MasterDataManagementSetup."Source OAuth Client Id" := '11111111-2222-3333-4444-555555555555';
+        MasterDataManagementSetup.Modify(false);
+    end;
+
+    // A self-signed certificate is generated on first use, so no certificate, private key, or password is checked in.
+    local procedure GetTestCertificateBase64(): Text
+    begin
+        EnsureTestCertificate();
+        exit(TestCertificatePfxBase64);
+    end;
+
+    // The public part of the GetTestCertificateBase64 certificate, without the private key.
+    local procedure GetTestPublicCertificateBase64(): Text
+    begin
+        EnsureTestCertificate();
+        exit(TestCertificatePublicBase64);
+    end;
+
+    local procedure GetTestCertificatePassword(): SecretText
+    begin
+        EnsureTestCertificate();
+        exit(TestCertificatePassword);
+    end;
+
+    local procedure GetTestCertificateThumbprint(): Text
+    begin
+        EnsureTestCertificate();
+        exit(TestCertificateThumbprint);
+    end;
+
+    local procedure GetTestExpiredCertificateBase64(): Text
+    var
+        PublicCertificateBase64: Text;
+    begin
+        EnsureTestCertificate();
+        exit(CreateSelfSignedCertificate(CreateDateTime(CalcDate('<-2Y>', Today()), 0T), CreateDateTime(CalcDate('<-1Y>', Today()), 0T), PublicCertificateBase64));
+    end;
+
+    local procedure EnsureTestCertificate()
+    var
+        X509Certificate2: Codeunit X509Certificate2;
+        NoPassword: SecretText;
+    begin
+        if TestCertificatePfxBase64 <> '' then
+            exit;
+        TestCertificatePassword := SecretStrSubstNo(DelChr(Format(CreateGuid()), '=', '{}-'));
+        TestCertificatePfxBase64 := CreateSelfSignedCertificate(CreateDateTime(CalcDate('<-1D>', Today()), 0T), CreateDateTime(CalcDate('<+1Y>', Today()), 0T), TestCertificatePublicBase64);
+        X509Certificate2.GetCertificateThumbprint(TestCertificatePublicBase64, NoPassword, TestCertificateThumbprint);
+    end;
+
+    // Returns a password-protected PKCS#12 (.pfx) with a fresh RSA private key; PublicCertificateBase64 receives the
+    // DER-encoded public part.
+    [NonDebuggable]
+    local procedure CreateSelfSignedCertificate(NotBefore: DateTime; NotAfter: DateTime; var PublicCertificateBase64: Text): Text
+    var
+        CertificateRequest: Codeunit CertificateRequest;
+        X509Certificate2: Codeunit X509Certificate2;
+        PrivateKeyXml: SecretText;
+    begin
+        CertificateRequest.InitializeRSA(2048, true, PrivateKeyXml);
+        CertificateRequest.InitializeCertificateRequestUsingRSA('CN=MDM Cross-Environment Test', Enum::"Hash Algorithm"::SHA256, Enum::"RSA Signature Padding"::Pkcs1);
+        CertificateRequest.CreateSelfSigned(NotBefore, NotAfter, Enum::"X509 Content Type"::Cert, PublicCertificateBase64);
+        exit(X509Certificate2.CreateFromPemAndExportAsBase64(PublicCertificateBase64, PrivateKeyXml, TestCertificatePassword));
     end;
 }
