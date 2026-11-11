@@ -75,7 +75,7 @@ codeunit 5616 "Depreciation Calculation"
     begin
         if ThisDate = 0D then
             exit(0D);
-	    
+
         if Year365Days then
             exit(ToMorrow365(ThisDate));
         ThisDate := ThisDate + 1;
@@ -522,7 +522,7 @@ codeunit 5616 "Depreciation Calculation"
                 FiscalYearBegin := FADepreciationBook."Depreciation Starting Date";
         SetFAFilter(FALedgEntry, FANo, DeprBookCode, true);
         FALedgEntry.SetFilter("FA Posting Date", '%1..', FiscalYearBegin);
-        FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Depreciation);
+        FALedgEntry.SetFilter("FA Posting Type", '%1|%2', FALedgEntry."FA Posting Type"::Depreciation, FALedgEntry."FA Posting Type"::Derogatory);
         FALedgEntry.SetRange("Part of Book Value", true);
         FALedgEntry.SetRange("Reclassification Entry", false);
         FALedgEntry.CalcSums(Amount);

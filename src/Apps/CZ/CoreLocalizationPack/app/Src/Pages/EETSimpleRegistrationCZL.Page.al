@@ -22,6 +22,8 @@ page 31137 "EET Simple Registration CZL"
     SourceTable = "EET Entry CZL";
     SourceTableTemporary = true;
     SourceTableView = sorting("Entry No.") where("Entry No." = const(0));
+    ApplicationArea = Basic, Suite;
+    UsageCategory = Tasks;
 
     layout
     {
@@ -32,9 +34,7 @@ page 31137 "EET Simple Registration CZL"
                 Caption = 'General';
                 field("Business Premises Code"; Rec."Business Premises Code")
                 {
-                    ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the code of the business premises.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -48,9 +48,7 @@ page 31137 "EET Simple Registration CZL"
                 }
                 field("Cash Register Code"; Rec."Cash Register Code")
                 {
-                    ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the code of the EET cash register.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -64,32 +62,13 @@ page 31137 "EET Simple Registration CZL"
                 }
                 field("Document No."; Rec."Document No.")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the entry''s document number.';
                 }
                 field(Description; Rec.Description)
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the EET entry.';
-                }
-                field(TotalSalesAmount; TotalSalesAmount)
-                {
-                    AutoFormatType = 1;
-                    AutoFormatExpression = '';
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Total Sales Amount';
-                    ToolTip = 'Specifies the total amount of cash document.';
-
-                    trigger OnValidate()
-                    begin
-                        ValidateTotalSalesAmount();
-                    end;
                 }
                 field("Applied Document Type"; Rec."Applied Document Type")
                 {
-                    ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the type of the applied document.';
 
                     trigger OnValidate()
                     begin
@@ -98,9 +77,7 @@ page 31137 "EET Simple Registration CZL"
                 }
                 field("Applied Document No."; Rec."Applied Document No.")
                 {
-                    ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of the applied document.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -113,15 +90,68 @@ page 31137 "EET Simple Registration CZL"
                     end;
                 }
             }
+            group(TaxpayerAuthorization)
+            {
+                Caption = 'Taxpayer and Authorization';
+                field("Taxpayer ID"; Rec."Taxpayer ID")
+                {
+                }
+                field("Authorizing Taxpayer ID"; Rec."Authorizing Taxpayer ID")
+                {
+                }
+                field("Multiple Taxpayer Auth."; Rec."Multiple Taxpayer Auth.")
+                {
+                }
+            }
             group(Sales)
             {
                 Caption = 'Sales';
+
+                field(TotalSalesAmount; TotalSalesAmount)
+                {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    Caption = 'Total Sales Amount';
+                    ToolTip = 'Specifies the total amount of the sale that was actually received, in the local currency.';
+
+                    trigger OnValidate()
+                    begin
+                        CheckTotalSalesAmount();
+                    end;
+                }
+                field(AmtForSubseqDrawSettle; AmtForSubseqDrawSettle)
+                {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    Caption = 'Amt. For Subseq. Draw/Settle';
+                    Importance = Additional;
+                    ToolTip = 'Specifies the amount of the payment that is intended for subsequent drawdown or settlement, for example when a voucher, a prepaid card or a chip is topped up.';
+
+                    trigger OnValidate()
+                    begin
+                        CheckTotalSalesAmount();
+                    end;
+                }
+                field(AmtSubseqDrawnSettled; AmtSubseqDrawnSettled)
+                {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    Caption = 'Amt. Subseq. Drawn/Settled';
+                    Importance = Additional;
+                    ToolTip = 'Specifies the amount of the payment that is a subsequent drawdown or settlement of an amount that was paid earlier, for example when a voucher or a prepaid card is used.';
+
+                    trigger OnValidate()
+                    begin
+                        CheckTotalSalesAmount();
+                    end;
+                }
                 group(GroupVATRateBasic)
                 {
                     Caption = 'VAT Rate Basic';
+                    Visible = false;
+                    Enabled = false;
                     field("SalesAmount[1]"; SalesAmount[1])
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
                         AutoFormatExpression = '';
                         Caption = 'Sales Amount';
@@ -134,7 +164,6 @@ page 31137 "EET Simple Registration CZL"
                     }
                     field("VATBase[1]"; VATBase[1])
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
                         AutoFormatExpression = '';
                         Caption = 'VAT Base';
@@ -147,7 +176,6 @@ page 31137 "EET Simple Registration CZL"
                     }
                     field("VATAmount[1]"; VATAmount[1])
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
                         AutoFormatExpression = '';
                         Caption = 'VAT Amount';
@@ -160,7 +188,6 @@ page 31137 "EET Simple Registration CZL"
                     }
                     field("VATRate[1]"; VATRate[1])
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 0;
                         Caption = 'VAT %';
                         DecimalPlaces = 0 : 2;
@@ -175,7 +202,6 @@ page 31137 "EET Simple Registration CZL"
                     }
                     field("AmountArt90[1]"; AmountArt90[1])
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
                         AutoFormatExpression = '';
                         Caption = 'Amount - Art.90';
@@ -191,9 +217,10 @@ page 31137 "EET Simple Registration CZL"
                 group(GroupVATRateReduced)
                 {
                     Caption = 'VAT Rate Reduced';
+                    Visible = false;
+                    Enabled = false;
                     field("SalesAmount[2]"; SalesAmount[2])
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
                         AutoFormatExpression = '';
                         Caption = 'Sales Amount';
@@ -206,7 +233,6 @@ page 31137 "EET Simple Registration CZL"
                     }
                     field("VATBase[2]"; VATBase[2])
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
                         AutoFormatExpression = '';
                         Caption = 'VAT Base';
@@ -219,7 +245,6 @@ page 31137 "EET Simple Registration CZL"
                     }
                     field("VATAmount[2]"; VATAmount[2])
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
                         AutoFormatExpression = '';
                         Caption = 'VAT Amount';
@@ -232,7 +257,6 @@ page 31137 "EET Simple Registration CZL"
                     }
                     field("VATRate[2]"; VATRate[2])
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 0;
                         Caption = 'VAT %';
                         DecimalPlaces = 0 : 2;
@@ -247,7 +271,6 @@ page 31137 "EET Simple Registration CZL"
                     }
                     field("AmountArt90[2]"; AmountArt90[2])
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
                         AutoFormatExpression = '';
                         Caption = 'Amount - Art.90';
@@ -263,9 +286,10 @@ page 31137 "EET Simple Registration CZL"
                 group(GroupVATRateReduced2)
                 {
                     Caption = 'VAT Rate Reduced 2';
+                    Visible = false;
+                    Enabled = false;
                     field("SalesAmount[3]"; SalesAmount[3])
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
                         AutoFormatExpression = '';
                         Caption = 'Sales Amount';
@@ -278,7 +302,6 @@ page 31137 "EET Simple Registration CZL"
                     }
                     field("VATBase[3]"; VATBase[3])
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
                         AutoFormatExpression = '';
                         Caption = 'VAT Base';
@@ -291,7 +314,6 @@ page 31137 "EET Simple Registration CZL"
                     }
                     field("VATAmount[3]"; VATAmount[3])
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
                         AutoFormatExpression = '';
                         Caption = 'VAT Amount';
@@ -305,7 +327,6 @@ page 31137 "EET Simple Registration CZL"
                     field("VATRate[3]"; VATRate[3])
                     {
                         AutoFormatType = 0;
-                        ApplicationArea = Basic, Suite;
                         Caption = 'VAT %';
                         DecimalPlaces = 0 : 2;
                         MaxValue = 100;
@@ -319,7 +340,6 @@ page 31137 "EET Simple Registration CZL"
                     }
                     field("AmountArt90[3]"; AmountArt90[3])
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
                         AutoFormatExpression = '';
                         Caption = 'Amount - Art.90';
@@ -335,9 +355,10 @@ page 31137 "EET Simple Registration CZL"
                 group(GroupAmountOthers)
                 {
                     Caption = 'Others';
+                    Visible = false;
+                    Enabled = false;
                     field(AmountArt89; AmountArt89)
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
                         AutoFormatExpression = '';
                         Caption = 'Amount - Art.89';
@@ -351,40 +372,11 @@ page 31137 "EET Simple Registration CZL"
                     }
                     field(AmountExtFromVAT; AmountExtFromVAT)
                     {
-                        ApplicationArea = Basic, Suite;
                         AutoFormatType = 1;
                         AutoFormatExpression = '';
                         Caption = 'Amount Exempted From VAT';
                         Importance = Additional;
                         ToolTip = 'Specifies the amount of cash document VAT-exempt.';
-
-                        trigger OnValidate()
-                        begin
-                            UpdateTotalSalesAmount();
-                        end;
-                    }
-                    field(AmtForSubseqDrawSettle; AmtForSubseqDrawSettle)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        AutoFormatType = 1;
-                        AutoFormatExpression = '';
-                        Caption = 'Amt. For Subseq. Draw/Settle';
-                        Importance = Additional;
-                        ToolTip = 'Specifies the amount of the payments for subsequent drawdown or settlement.';
-
-                        trigger OnValidate()
-                        begin
-                            UpdateTotalSalesAmount();
-                        end;
-                    }
-                    field(AmtSubseqDrawnSettled; AmtSubseqDrawnSettled)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        AutoFormatType = 1;
-                        AutoFormatExpression = '';
-                        Caption = 'Amt. Subseq. Drawn/Settled';
-                        Importance = Additional;
-                        ToolTip = 'Specifies the amount of the subsequent drawing or settlement.';
 
                         trigger OnValidate()
                         begin
@@ -402,10 +394,9 @@ page 31137 "EET Simple Registration CZL"
         {
             action(Send)
             {
-                ApplicationArea = Basic, Suite;
                 Caption = 'Send';
                 Image = SendElectronicDocument;
-                ToolTip = 'Sends the selected entry to the EET service to register.';
+                ToolTip = 'Creates a new EET entry from the entered sale and sends it to the EET service.';
 
                 trigger OnAction()
                 begin
@@ -435,6 +426,11 @@ page 31137 "EET Simple Registration CZL"
         GetSetup();
     end;
 
+    trigger OnInit()
+    begin
+        Rec."Taxpayer ID" := Rec.GetTaxpayerID();
+    end;
+
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
         EETServiceSetupCZL: Record "EET Service Setup CZL";
@@ -449,6 +445,7 @@ page 31137 "EET Simple Registration CZL"
         AmountExtFromVAT: Decimal;
         AmtForSubseqDrawSettle: Decimal;
         AmtSubseqDrawnSettled: Decimal;
+        TotalSalesAmountErr: Label 'Total Sales Amount cannot be less than the sum of subsequent drawn/settled amounts.';
 
     local procedure GetSetup()
     begin
@@ -489,6 +486,7 @@ page 31137 "EET Simple Registration CZL"
         if Rec."Business Premises Code" <> '' then
             EETBusinessPremisesCZL.Get(Rec."Business Premises Code");
         Rec."Cash Register Code" := '';
+        Rec."Taxpayer ID" := Rec.GetTaxpayerID();
     end;
 
     local procedure LookupCashRegisterCode(var Text: Text): Boolean
@@ -510,11 +508,14 @@ page 31137 "EET Simple Registration CZL"
     begin
         Rec."Cash Register Type" := Rec."Cash Register Type"::Default;
         Rec."Cash Register No." := '';
-
+        Rec."Authorizing Taxpayer ID" := '';
+        Rec."Multiple Taxpayer Auth." := false;
         if Rec."Cash Register Code" <> '' then begin
             EETCashRegisterCZL.Get(Rec."Business Premises Code", Rec."Cash Register Code");
             Rec."Cash Register Type" := EETCashRegisterCZL."Cash Register Type";
             Rec."Cash Register No." := EETCashRegisterCZL."Cash Register No.";
+            Rec."Authorizing Taxpayer ID" := EETCashRegisterCZL."Authorizing Taxpayer ID";
+            Rec."Multiple Taxpayer Auth." := EETCashRegisterCZL."Multiple Taxpayer Auth.";
         end;
     end;
 
@@ -591,29 +592,18 @@ page 31137 "EET Simple Registration CZL"
         UpdateTotalSalesAmount();
     end;
 
-    local procedure ValidateTotalSalesAmount()
-    begin
-        Clear(SalesAmount);
-        Clear(VATBase);
-        Clear(VATAmount);
-        Clear(VATRate);
-        Clear(AmountArt89);
-        Clear(AmountArt90);
-        Clear(AmountExtFromVAT);
-        Clear(AmtForSubseqDrawSettle);
-        Clear(AmtSubseqDrawnSettled);
-        InitVATRate();
-
-        SalesAmount[1] := TotalSalesAmount;
-        ValidateSalesAmount(1);
-    end;
-
     local procedure UpdateTotalSalesAmount()
     begin
         TotalSalesAmount :=
           SalesAmount[1] + SalesAmount[2] + SalesAmount[3] +
           AmountArt89 + AmountArt90[1] + AmountArt90[2] + AmountArt90[3] +
           AmountExtFromVAT + AmtForSubseqDrawSettle + AmtSubseqDrawnSettled;
+    end;
+
+    local procedure CheckTotalSalesAmount()
+    begin
+        if TotalSalesAmount < (AmtForSubseqDrawSettle + AmtSubseqDrawnSettled) then
+            Error(TotalSalesAmountErr);
     end;
 
     procedure SendToService()
@@ -631,7 +621,6 @@ page 31137 "EET Simple Registration CZL"
             Error(MustEnterErr, Rec.FieldCaption("Cash Register Code"));
         if TotalSalesAmount = 0 then
             Error(MustEnterErr, Rec.FieldCaption("Total Sales Amount"));
-
         if not ConfirmManagement.GetResponseOrDefault(SendToServiceQst, true) then
             exit;
 
@@ -652,7 +641,6 @@ page 31137 "EET Simple Registration CZL"
 
         EETEntryCZL.Init();
         EETEntryCZL.CopyFromEETEntry(Rec);
-        EETEntryCZL.TestField("Total Sales Amount", EETEntryCZL.SumPartialAmounts());
         NewEETEntryNo := EETManagementCZL.CreateSimpleEETEntry(EETEntryCZL);
         Commit();
 
@@ -663,7 +651,6 @@ page 31137 "EET Simple Registration CZL"
         CurrPage.Update();
         InitVATRate();
         Clear(TotalSalesAmount);
-        ValidateTotalSalesAmount();
 
         Commit();
         if ConfirmManagement.GetResponse(StrSubstNo(OpenNewEntryQst, EETEntryCZL."Entry No."), true) then

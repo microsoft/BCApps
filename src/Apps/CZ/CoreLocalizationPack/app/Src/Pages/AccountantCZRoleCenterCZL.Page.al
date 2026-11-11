@@ -101,6 +101,11 @@ page 31210 "Accountant CZ Role Center CZL"
             {
                 ApplicationArea = Basic, Suite;
             }
+            part("EET Activities"; "EET Activities CZL")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
             part("Intercompany Activities"; "Intercompany Activities")
             {
                 ApplicationArea = Intercompany;

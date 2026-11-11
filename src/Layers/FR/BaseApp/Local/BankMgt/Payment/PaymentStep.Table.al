@@ -53,8 +53,13 @@ table 10862 "Payment Step"
             Caption = 'Next Status';
             TableRelation = "Payment Status".Line where("Payment Class" = field("Payment Class"));
         }
-#if not CLEAN28
+#if CLEAN28
+#pragma warning disable AS0105
+#endif
         field(6; "Action Type"; Enum "Payment Step Action Type")
+#if CLEAN28
+#pragma warning restore AS0105
+#endif
         {
             Caption = 'Action Type';
 #if CLEAN28
@@ -67,7 +72,6 @@ table 10862 "Payment Step"
             ObsoleteReason = 'Moved to the Payment Management FR first-party app';
 #endif
         }
-#endif
         field(7; "Report No."; Integer)
         {
             Caption = 'Report No.';

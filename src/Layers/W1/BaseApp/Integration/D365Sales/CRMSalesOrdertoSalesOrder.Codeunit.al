@@ -528,8 +528,15 @@ codeunit 5343 "CRM Sales Order to Sales Order"
     var
         CRMSalesorderdetail: Record "CRM Salesorderdetail";
         SalesLine: Record "Sales Line";
+        ExistingSalesLine: Record "Sales Line";
     begin
         Session.LogMessage('0000DF5', StrSubstNo(StartingToCreateSalesOrderLinesTelemetryMsg, CRMProductName.CDSServiceName(), CRMSalesorder.SalesOrderId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CrmTelemetryCategoryTok);
+
+        LastSalesLineNo := 0;
+        ExistingSalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        ExistingSalesLine.SetRange("Document No.", SalesHeader."No.");
+        if ExistingSalesLine.FindLast() then
+            LastSalesLineNo := ExistingSalesLine."Line No.";
 
         // If any of the products on the lines are not found in NAV, err
         CRMSalesorderdetail.SetRange(SalesOrderId, CRMSalesorder.SalesOrderId); // Get all sales order lines

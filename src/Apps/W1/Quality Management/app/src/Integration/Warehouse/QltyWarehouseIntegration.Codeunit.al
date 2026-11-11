@@ -156,6 +156,17 @@ codeunit 20438 "Qlty. Warehouse Integration"
     /// <param name="OptionalSourceLineVariant">The purchase, sales, or transfer line from which to collect reservations.</param>
     /// <param name="TempTrackingSpecification">The temporary tracking specification populated from matching reservations.</param>
     internal procedure CollectSourceItemTracking(var OptionalSourceLineVariant: Variant; var TempTrackingSpecification: Record "Tracking Specification" temporary)
+    begin
+        CollectSourceItemTracking(OptionalSourceLineVariant, TempTrackingSpecification, false);
+    end;
+
+    /// <summary>
+    /// Collects nonzero reservation tracking details for a supported source line.
+    /// </summary>
+    /// <param name="OptionalSourceLineVariant">The purchase, sales, or transfer line from which to collect reservations.</param>
+    /// <param name="TempTrackingSpecification">The temporary tracking specification populated from matching reservations.</param>
+    /// <param name="IncludeQtyToHandle">Specifies whether each tracking line receives the quantity to handle of its reservation as Quantity (Base). Only use it when the reservation is the authoritative quantity for the inspection, because the tracking quantity takes priority over the quantity of the other source records.</param>
+    internal procedure CollectSourceItemTracking(var OptionalSourceLineVariant: Variant; var TempTrackingSpecification: Record "Tracking Specification" temporary; IncludeQtyToHandle: Boolean)
     var
         ReservationEntry: Record "Reservation Entry";
         TransferLineReserve: Codeunit "Transfer Line-Reserve";
@@ -192,6 +203,8 @@ codeunit 20438 "Qlty. Warehouse Integration"
                 TempTrackingSpecification."Entry No." := ReservationCounter;
                 TempTrackingSpecification.SetSourceFromReservEntry(ReservationEntry);
                 TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
+                if IncludeQtyToHandle then
+                    TempTrackingSpecification."Quantity (Base)" := Abs(ReservationEntry."Qty. to Handle (Base)");
                 TempTrackingSpecification.Insert();
             until ReservationEntry.Next() = 0;
     end;

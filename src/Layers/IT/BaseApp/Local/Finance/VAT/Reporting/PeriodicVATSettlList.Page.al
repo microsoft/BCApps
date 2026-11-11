@@ -5,9 +5,6 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Finance.VAT.Setup;
-#if not CLEAN27
-using System.Environment.Configuration;
-#endif
 
 page 12216 "Periodic VAT Settl. List"
 {
@@ -161,15 +158,4 @@ page 12216 "Periodic VAT Settl. List"
 
     }
 
-#if not CLEAN27
-    trigger OnOpenPage()
-    var
-        FeatureManagementIT: Codeunit "Feature Management IT";
-    begin
-        if not FeatureManagementIT.IsVATSettlementPerActivityCodeFeatureEnabled() then begin
-            Page.Run(Page::"Periodic VAT Settlement List");
-            Error('');
-        end;
-    end;
-#endif
 }
