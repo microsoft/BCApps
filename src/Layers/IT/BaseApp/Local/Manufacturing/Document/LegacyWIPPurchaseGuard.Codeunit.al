@@ -60,8 +60,10 @@ codeunit 99001048 "Legacy WIP Purchase Guard"
         PurchaseLine.LockTable();
         PurchaseLine.SetLoadFields("Outstanding Quantity");
         PurchaseLineRecordRef.GetTable(PurchaseLine);
-        if PurchaseLineRecordRef.FieldExist(GetWIPItemFieldNo()) then
-            PurchaseLine.AddLoadFields(GetWIPItemFieldNo());
+        if PurchaseLineRecordRef.FieldExist(GetWIPItemFieldNo()) then begin
+            PurchaseLineRecordRef.AddLoadFields(GetWIPItemFieldNo());
+            PurchaseLineRecordRef.SetTable(PurchaseLine);
+        end;
         repeat
             PurchaseLineKey := StrSubstNo('%1|%2', PurchRcptLineToCheck."Order No.", PurchRcptLineToCheck."Order Line No.");
             if not CheckedPurchaseLines.ContainsKey(PurchaseLineKey) then begin
