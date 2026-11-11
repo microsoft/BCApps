@@ -771,6 +771,8 @@ codeunit 139052 "Office Addin Initiate Tasks"
         ChangeBusinessRelationCodeForCustomers(BusinessRelation.Code);
         NewBusinessRelationCode := BusinessRelation.Code;
         LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("E-Mail", Email);
+        Customer.Modify(true);
 
         // Create Contact from Customer by running the report Create Conts. from Customers.
         Customer.SetRecFilter();
@@ -997,7 +999,6 @@ codeunit 139052 "Office Addin Initiate Tasks"
         Customer: Record Customer;
     begin
         Customer.Get(CustomerNo);
-        Customer."E-Mail" := 'testuser@somewhere.com';
         Customer."Document Sending Profile" := DocSendingProfile;
         Customer.Modify(true);
     end;
@@ -1074,4 +1075,3 @@ codeunit 139052 "Office Addin Initiate Tasks"
         Choice := 3;
     end;
 }
-
