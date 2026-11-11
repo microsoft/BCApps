@@ -8,7 +8,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Comment;
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Manufacturing.Document;
 #endif
 #if not CLEAN29
@@ -342,7 +342,7 @@ page 99000754 "Work Center Card"
                     CalculateWorkCenterCalendar.RunModal();
                 end;
             }
-#if not CLEAN27
+#if not CLEAN28
             action("Subcontr. &Prices")
             {
                 ApplicationArea = LegacySubcontracting;
@@ -385,7 +385,7 @@ page 99000754 "Work Center Card"
                 actionref("Calculate Work Center Calendar_Promoted"; "Calculate Work Center Calendar")
                 {
                 }
-#if not CLEAN27
+#if not CLEAN28
                 actionref("Subcontr. &Prices_Promoted"; "Subcontr. &Prices")
                 {
                     ObsoleteReason = 'Preparation for replacement by Subcontracting app';
