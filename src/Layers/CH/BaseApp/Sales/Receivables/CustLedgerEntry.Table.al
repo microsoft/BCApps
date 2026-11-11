@@ -1838,4 +1838,3 @@ table 21 "Cust. Ledger Entry"
     begin
     end;
 }
-

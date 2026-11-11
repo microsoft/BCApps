@@ -6090,9 +6090,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // [SCENARIO] When using parentheses as negative format, a negative amount should be displayed with parentheses on the page
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
         GLSetup.Get();
 
         // [GIVEN] An account schedule line with negative value
@@ -6184,9 +6181,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // [SCENARIO] Account Schedule defaults negative format option from GL Setup
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
 
         // [GIVEN] GL Setup negative amount format is set minus sign
         GLSetup.Get();
@@ -6225,9 +6219,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // [SCENARIO] Account Schedule defaults negative format option from GL Setup
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
 
         // [GIVEN] GL Setup negative amount format is set parentheses
         GLSetup.Get();
@@ -6259,9 +6250,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // Check that correct values updated in the newly created column on Account Schedule Overview Page when the default View by is set to Day.
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
         LibraryLowerPermissions.SetFinancialReporting();
         LibraryLowerPermissions.AddO365Setup();
         AccountScheduleOverviewByPeriod(ViewByRef::Day);
@@ -6274,9 +6262,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // Check that correct values updated in the newly created column on Account Schedule Overview Page when the default View by is set to Week.
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
         LibraryLowerPermissions.SetFinancialReporting();
         LibraryLowerPermissions.AddO365Setup();
         AccountScheduleOverviewByPeriod(ViewByRef::Week);
@@ -6289,9 +6274,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // Check that correct values updated in the newly created column on Account Schedule Overview Page when the default View by is set to Month.
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
         LibraryLowerPermissions.SetFinancialReporting();
         LibraryLowerPermissions.AddO365Setup();
         AccountScheduleOverviewByPeriod(ViewByRef::Month);
@@ -6304,9 +6286,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // Check that correct values updated in the newly created column on Account Schedule Overview Page when the default View by is set to Quarter.
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
         LibraryLowerPermissions.SetFinancialReporting();
         LibraryLowerPermissions.AddO365Setup();
         AccountScheduleOverviewByPeriod(ViewByRef::Quarter);
@@ -6319,9 +6298,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // Check that correct values updated in the newly created column on Account Schedule Overview Page when the default View by is set to Year.
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
         LibraryLowerPermissions.SetFinancialReporting();
         LibraryLowerPermissions.AddO365Setup();
         AccountScheduleOverviewByPeriod(ViewByRef::Year);
@@ -6351,18 +6327,6 @@ codeunit 134902 "ERM Account Schedule"
         AccScheduleOverview.OK().Invoke();
     end;
 
-#if not CLEAN27
-    local procedure EnabledFinancialReportDefaultsFeature()
-    var
-        FeatureKey: Record "Feature Key";
-        FeatureFinancialReportDef: Codeunit "Feature - Fin. Report Default";
-    begin
-        if FeatureKey.Get(FeatureFinancialReportDef.GetFinancialReportDefaultsFeatureKey()) then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
-            FeatureKey.Modify();
-        end;
-    end;
-#endif
 
     [Test]
     procedure ColumnLayoutGLAccountTotaling()
