@@ -180,6 +180,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NextCheckEntryNo: BigInteger;
         InsertedTempGLEntryVAT: BigInteger;
         GLEntryNo: BigInteger;
+        PreviousGLEntryNoForSequenceCheck: BigInteger;
+        PreviousVATEntryNoForSequenceCheck: BigInteger;
         UseCurrFactorOnly: Boolean;
         NonAddCurrCodeOccured: Boolean;
         FADimAlreadyChecked: Boolean;
