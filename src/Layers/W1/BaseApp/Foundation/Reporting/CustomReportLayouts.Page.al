@@ -16,7 +16,7 @@ using System.Utilities;
 page 9650 "Custom Report Layouts"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Custom Report Layouts';
+    Caption = 'Custom Report Layouts (Obsolete)';
     InsertAllowed = false;
     PageType = List;
     SourceTable = "Custom Report Layout";

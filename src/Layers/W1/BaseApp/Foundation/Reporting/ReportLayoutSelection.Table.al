@@ -12,6 +12,9 @@ table 9651 "Report Layout Selection"
     Caption = 'Report Layout Selection';
     DataPerCompany = false;
     DataClassification = CustomerContent;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by system page "Report Layouts". This page will be removed in a future version.';
+    ObsoleteTag = '30.0';
 
     fields
     {
