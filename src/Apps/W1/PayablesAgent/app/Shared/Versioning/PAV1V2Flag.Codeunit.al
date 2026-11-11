@@ -7,7 +7,6 @@ namespace Microsoft.Agent.PayablesAgent;
 
 #if not CLEAN30
 using System.Azure.Identity;
-using System.Environment;
 #endif
 
 codeunit 3339 "PA V1V2 Flag"
@@ -24,7 +23,6 @@ codeunit 3339 "PA V1V2 Flag"
         V2PreviewNotAllowedErr: Label 'The Payables Agent version 2 preview can only be selected in the designated preview tenant.';
 #endif
 
-    // V2 is active when the setup selects the V2 preview; selecting it is only allowed in the designated preview tenant.
     internal procedure IsV2Active(): Boolean
     begin
 #if not CLEAN30
@@ -38,11 +36,10 @@ codeunit 3339 "PA V1V2 Flag"
     internal procedure CheckV2PreviewSelectable()
     var
         AzureADTenant: Codeunit "Azure AD Tenant";
-        EnvironmentInformation: Codeunit "Environment Information";
         TenantId: Text;
     begin
         TenantId := LowerCase(DelChr(AzureADTenant.GetAadTenantId(), '=', '{}'));
-        if (TenantId <> PreviewTenantIdTok) and (not EnvironmentInformation.IsOnPrem()) then
+        if (TenantId <> PreviewTenantIdTok) and (TenantId <> 'common') then
             Error(V2PreviewNotAllowedErr);
     end;
 #endif

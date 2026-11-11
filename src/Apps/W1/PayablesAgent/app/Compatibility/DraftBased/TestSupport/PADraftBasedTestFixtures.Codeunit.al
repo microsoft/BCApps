@@ -10,7 +10,6 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Purchases.Vendor;
-using System.Agents;
 
 // Version-specific setup and user actions used by the version-neutral Payables Agent test fixture.
 codeunit 3347 "PA Draft Based Test Fixtures"
@@ -90,99 +89,6 @@ codeunit 3347 "PA Draft Based Test Fixtures"
         PurchaseInvoice.Add('lines', Lines);
         PurchaseInvoice.Add('totals', Totals);
         exit(true);
-    end;
-
-    internal procedure ReceiveEmail(SenderEmail: Text; Subject: Text; var WorkItem: Codeunit "PA Work Item"): Boolean
-    var
-        EDocument: Record "E-Document";
-        DraftBasedSetupStore: Codeunit "PA Draft Based Setup Store";
-    begin
-        EDocument.Service := DraftBasedSetupStore.GetOrCreateService().Code;
-        EDocument.Direction := EDocument.Direction::Incoming;
-        EDocument."Source Details" := CopyStr(SenderEmail, 1, MaxStrLen(EDocument."Source Details"));
-        EDocument."Additional Source Details" := CopyStr(Subject, 1, MaxStrLen(EDocument."Additional Source Details"));
-        EDocument."Outlook Mail Message Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(EDocument."Outlook Mail Message Id"));
-        EDocument.Insert();
-        exit(WorkItem.Load(EDocument.SystemId));
-    end;
-
-    // Requires an already configured PA agent; fixture tasks must have a real PA owner too.
-    internal procedure CreateUploadWorkItemContractScenario(var WorkItem: Codeunit "PA Work Item"; var ExpectedResult: RecordId; var UnrelatedResult: RecordId): Boolean
-    var
-        Agent: Record Agent;
-        AgentTask: Record "Agent Task";
-        AgentTaskMessage: Record "Agent Task Message";
-        Document: Record "E-Document";
-        OtherDocument: Record "E-Document";
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        PASetup: Codeunit "PA Setup";
-        DraftBasedSetupStore: Codeunit "PA Draft Based Setup Store";
-    begin
-        Clear(WorkItem);
-        Clear(ExpectedResult);
-        Clear(UnrelatedResult);
-        if not PASetup.TryFindAgent(Agent) then
-            exit(false);
-        if Agent."Agent Metadata Provider" <> "Agent Metadata Provider"::"Payables Agent" then
-            exit(false);
-
-        Document.Service := DraftBasedSetupStore.GetOrCreateService().Code;
-        Document."Source Details" := 'fixture.pdf';
-        Document.Insert();
-        EDocumentPurchaseHeader."E-Document Entry No." := Document."Entry No";
-        EDocumentPurchaseHeader."Vendor Company Name" := 'Fixture Vendor';
-        EDocumentPurchaseHeader."Vendor Invoice No." := 'FIXTURE-INV';
-        EDocumentPurchaseHeader."Document Date" := DMY2Date(1, 1, 2026);
-        EDocumentPurchaseHeader."Currency Code" := 'EUR';
-        EDocumentPurchaseHeader."Sub Total" := 20;
-        EDocumentPurchaseHeader."Total VAT" := 5;
-        EDocumentPurchaseHeader.Total := 25;
-        EDocumentPurchaseHeader.Insert();
-        EDocumentPurchaseLine."E-Document Entry No." := Document."Entry No";
-        EDocumentPurchaseLine."Line No." := 10000;
-        EDocumentPurchaseLine.Description := 'Fixture line';
-        EDocumentPurchaseLine.Quantity := 2;
-        EDocumentPurchaseLine."Unit Price" := 10;
-        EDocumentPurchaseLine."Sub Total" := 20;
-        EDocumentPurchaseLine."VAT Rate" := 25;
-        EDocumentPurchaseLine.Insert();
-        OtherDocument.Insert();
-
-        AgentTask."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(AgentTask."Company Name"));
-        AgentTask."Agent User Security ID" := Agent."User Security ID";
-        AgentTask."External ID" := Format(Document."Entry No");
-        AgentTask.Insert();
-        AgentTaskMessage.ID := CreateGuid();
-        AgentTaskMessage."Task ID" := AgentTask.ID;
-        AgentTaskMessage."External ID" := Format(Document."Entry No");
-        AgentTaskMessage.Insert();
-        if not WorkItem.LoadByAgentTaskId(AgentTask.ID) then
-            exit(false);
-
-        ExpectedResult := Document.RecordId();
-        UnrelatedResult := OtherDocument.RecordId();
-        exit(true);
-    end;
-
-    internal procedure SeedImporterEnabled()
-    var
-        Service: Record "E-Document Service";
-        DraftBasedSetupStore: Codeunit "PA Draft Based Setup Store";
-    begin
-        Service := DraftBasedSetupStore.GetOrCreateService();
-        Service."Auto Import" := true;
-        Clear(Service."Import Recurrent Job Id");
-        Service.Modify();
-    end;
-
-    internal procedure IsImporterEnabled(): Boolean
-    var
-        Service: Record "E-Document Service";
-        DraftBasedSetupStore: Codeunit "PA Draft Based Setup Store";
-    begin
-        Service := DraftBasedSetupStore.GetOrCreateService();
-        exit(Service."Auto Import");
     end;
 
     internal procedure SelectVendor(AgentTaskId: BigInteger; VendorName: Text; var ErrorText: Text): Boolean

@@ -8,7 +8,6 @@ namespace System.Test.Agents.PayablesAgent;
 using Microsoft.Agent.PayablesAgent;
 using System.Email;
 
-// PA-owned mailbox proposal behavior; framework activation/task/page behavior is tested by runtime validation.
 codeunit 133723 "PA Setup Tests"
 {
     Subtype = Test;

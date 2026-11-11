@@ -63,6 +63,8 @@ table 3308 "PA Known Sender"
 
     internal procedure RecordIfNew(WorkItem: Codeunit "PA Work Item")
     begin
+        if WorkItem.GetSourceType() <> "PA Source Type"::Email then
+            exit;
         InsertSenderIfNew(WorkItem.GetSenderAddress());
     end;
 

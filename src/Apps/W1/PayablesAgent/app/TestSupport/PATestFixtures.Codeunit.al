@@ -10,13 +10,14 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using System.Agents;
+using System.Email;
 
 codeunit 3326 "PA Test Fixtures"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata Agent = RD, tabledata "Agent Task" = R, tabledata "Payables Agent Setup" = RIM, tabledata "Payables Agent Work Item" = D;
+    Permissions = tabledata Agent = RD, tabledata "Agent Task" = R, tabledata "Payables Agent Setup" = RIM, tabledata "Payables Agent Work Item" = ID, tabledata "Email Inbox" = I;
 
     #region AI evaluation fixtures
 
@@ -439,30 +440,26 @@ codeunit 3326 "PA Test Fixtures"
 
     internal procedure ReceiveEmail(SenderEmail: Text; Subject: Text; var WorkItem: Codeunit "PA Work Item"): Boolean
     var
-        DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
+        EmailInbox: Record "Email Inbox";
+        StoredWorkItem: Record "Payables Agent Work Item";
     begin
-        exit(DraftBasedFixtures.ReceiveEmail(SenderEmail, Subject, WorkItem));
+        EmailInbox."Sender Address" := CopyStr(SenderEmail, 1, MaxStrLen(EmailInbox."Sender Address"));
+        EmailInbox.Description := CopyStr(Subject, 1, MaxStrLen(EmailInbox.Description));
+        EmailInbox.Insert();
+        StoredWorkItem."Email Inbox Id" := EmailInbox.Id;
+        StoredWorkItem."Admission Status" := "PA Work Item Admission Status"::Received;
+        StoredWorkItem.Insert();
+        exit(WorkItem.Load(StoredWorkItem.SystemId));
     end;
 
-    internal procedure CreateDraftBasedUploadContractScenario(var WorkItem: Codeunit "PA Work Item"; var ExpectedResult: RecordId; var UnrelatedResult: RecordId): Boolean
+    internal procedure ReceiveUpload(FileName: Text; var WorkItem: Codeunit "PA Work Item"): Boolean
     var
-        DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
+        StoredWorkItem: Record "Payables Agent Work Item";
     begin
-        exit(DraftBasedFixtures.CreateUploadWorkItemContractScenario(WorkItem, ExpectedResult, UnrelatedResult));
-    end;
-
-    internal procedure SeedDraftBasedImporterEnabled()
-    var
-        DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
-    begin
-        DraftBasedFixtures.SeedImporterEnabled();
-    end;
-
-    internal procedure IsDraftBasedImporterEnabled(): Boolean
-    var
-        DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
-    begin
-        exit(DraftBasedFixtures.IsImporterEnabled());
+        StoredWorkItem."File Name" := CopyStr(FileName, 1, MaxStrLen(StoredWorkItem."File Name"));
+        StoredWorkItem."Admission Status" := "PA Work Item Admission Status"::Received;
+        StoredWorkItem.Insert();
+        exit(WorkItem.Load(StoredWorkItem.SystemId));
     end;
 
     internal procedure LoadConfiguration(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters"; CreateAgentUser: Boolean)
@@ -479,16 +476,6 @@ codeunit 3326 "PA Test Fixtures"
     begin
         PASetupUpdateParameters.CopyProposal(DesiredSetup);
         PASetupUpdateParameters.SetEmailMonitoring(MonitorEmail, ReviewPolicy, EmailAccountId, DesiredSetup.GetEmailFolder(), DesiredSetup.GetEmailFolderId());
-    end;
-
-    internal procedure Activate(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters")
-    var
-        TempAgentSetupBuffer: Record "Agent Setup Buffer" temporary;
-    begin
-        PASetupUpdateParameters.GetAgentSetupBuffer(TempAgentSetupBuffer);
-        TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Enabled;
-        PASetupUpdateParameters.SetAgentSetupBuffer(TempAgentSetupBuffer);
-        PASetupUpdate.Update(PASetupUpdateParameters);
     end;
 
     internal procedure Reset()
@@ -512,13 +499,6 @@ codeunit 3326 "PA Test Fixtures"
         PASetup.ResetProposal();
         PASetup.ApplySetup(false);
         PASetup.DeleteSetup(CopyStr(CompanyName(), 1, 30));
-    end;
-
-    internal procedure AdmitWorkItem(var WorkItem: Codeunit "PA Work Item"): Boolean
-    var
-        Intake: Codeunit "PA Work Item Intake";
-    begin
-        exit(Intake.Admit(WorkItem));
     end;
 
     #endregion

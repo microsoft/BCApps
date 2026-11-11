@@ -66,4 +66,22 @@ codeunit 133703 "PA Known Sender Tests"
         PAKnownSender.SetRange(Email, SenderEmailTok);
         Assert.RecordCount(PAKnownSender, 1);
     end;
+
+    [Test]
+    procedure RecordIfNewIgnoresUploads()
+    var
+        PAKnownSender: Record "PA Known Sender";
+        WorkItem: Codeunit "PA Work Item";
+    begin
+        // [SCENARIO] A manually uploaded PDF has no sender, so recording it adds no known sender.
+        // [GIVEN] A clean Known Sender table and an uploaded work item.
+        PAKnownSender.DeleteAll();
+        Assert.IsTrue(PATestFixtures.ReceiveUpload('invoice.pdf', WorkItem), 'The upload should be received as a work item');
+
+        // [WHEN] The agent-side recording path runs.
+        PAKnownSender.RecordIfNew(WorkItem);
+
+        // [THEN] No known sender is added.
+        Assert.TableIsEmpty(Database::"PA Known Sender");
+    end;
 }
