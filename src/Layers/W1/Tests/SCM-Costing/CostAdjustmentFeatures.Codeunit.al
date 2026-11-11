@@ -1815,7 +1815,7 @@ codeunit 137085 "Cost Adjustment Features"
     local procedure AddRoundOfAdjustment(var Item: Record Item; var ItemLedgEntryToAdjust: Dictionary of [Code[20], List of [BigInteger]])
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
-        ItemLedgerEntryList: List of [Integer];
+        ItemLedgerEntryList: List of [BigInteger];
         TestFunctionName: Text;
     begin
         TestFunctionName := LibraryVariableStorage.PeekText(1);

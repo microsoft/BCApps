@@ -536,7 +536,7 @@ codeunit 133504 "SCM Costing Performance"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Adjustment", OnBeforeUpdateItemUnitCost2, '', false, false)]
     local procedure CountTrackedBufferedReceipts(var Item: Record Item; var ItemLedgEntryToAdjust: Dictionary of [Code[20], List of [BigInteger]])
     var
-        BufferedEntries: List of [Integer];
+        BufferedEntries: List of [BigInteger];
         EntryNo: Integer;
     begin
         if Item."No." <> ObservedItemNo then
