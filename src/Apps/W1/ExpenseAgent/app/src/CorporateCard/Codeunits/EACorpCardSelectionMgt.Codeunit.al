@@ -106,7 +106,10 @@ codeunit 7447 "EA Corp Card Selection Mgt"
         exit(true);
     end;
 
-    internal procedure GetReportLineCardLookupError(ExpenseReportLine: Record "Expense Report Line"): ErrorInfo
+    // Pass by reference to preserve the caller's temporary-table identity.
+#pragma warning disable AA0150
+    internal procedure GetReportLineCardLookupError(var ExpenseReportLine: Record "Expense Report Line"): ErrorInfo
+#pragma warning restore AA0150
     var
         StoredExpenseReportLine: Record "Expense Report Line";
         CardLookupError: ErrorInfo;
