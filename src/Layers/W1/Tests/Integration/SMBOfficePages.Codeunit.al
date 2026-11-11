@@ -26,6 +26,7 @@ codeunit 139048 "SMB Office Pages"
         BusRelCodeForCustomers: Code[10];
         IsInitialized: Boolean;
         AttachAvailableErr: Label 'Unexpected result of AttachAvailable for %1 Office Host Type.', Comment = '%1 = Office host type';
+        OfficeHostFixtureUnavailableErr: Label 'The Office host fixture is unavailable after initializing %1.', Locked = true;
         MustSelectAndEmailBodyOrAttahmentErr: Label 'You must select an email body or attachment in report selection for', Comment = '%1 = Usage, for example Sales Invoice';
 
     [Test]
@@ -1368,7 +1369,7 @@ codeunit 139048 "SMB Office Pages"
     begin
         Assert.AreEqual(ExpectedHostType, HostType, 'The OfficeHostType .NET getter returned an unexpected host type.');
         InitializeWithHostType(HostType);
-        Assert.IsTrue(OfficeManagement.IsAvailable(), StrSubstNo('The Office host fixture is unavailable after initializing %1.', ExpectedHostType));
+        Assert.IsTrue(OfficeManagement.IsAvailable(), StrSubstNo(OfficeHostFixtureUnavailableErr, ExpectedHostType));
         Assert.AreEqual(ExpectedHostType, OfficeHostManagement.GetHostType(), 'The Office host fixture did not preserve the requested host type.');
         Assert.AreEqual(Expected, OfficeManagement.AttachAvailable(), StrSubstNo(AttachAvailableErr, HostType));
     end;

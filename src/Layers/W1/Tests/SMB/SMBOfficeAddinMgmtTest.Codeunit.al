@@ -24,6 +24,10 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
         AdminEmail: Text[80];
         AdminPassword: Text[50];
         CloseReopenHandlerAction: Option CloseImmediately,EnterCredentials;
+        IncorrectAddinRetrievedErr: Label 'Incorrect add-in retrieved. Incoming HostType="%1"; HostTypeLength=%2; ExpectedCodeunit=%3; ActualCodeunit=%4.', Locked = true;
+        ManifestLookupStartedTelemetryTxt: Label 'Starting direct manifest lookup. Incoming HostType="%1"; HostTypeLength=%2; ExpectedCodeunit=%3.', Locked = true;
+        ManifestLookupCompletedTelemetryTxt: Label 'Completed direct manifest lookup. Incoming HostType="%1"; HostTypeLength=%2; ExpectedCodeunit=%3; ActualCodeunit=%4.', Locked = true;
+        IncorrectManifestCodeunitErr: Label 'Incorrect manifest codeunit retrieved. Incoming HostType="%1"; HostTypeLength=%2; ExpectedCodeunit=%3; ActualCodeunit=%4.', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -1169,7 +1173,7 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
     begin
         AddinManifestManagement.GetAddinByHostType(OfficeAddin, HostType);
         Assert.AreEqual(CodeunitID, OfficeAddin."Manifest Codeunit",
-            StrSubstNo('Incorrect add-in retrieved. Incoming HostType="%1"; HostTypeLength=%2; ExpectedCodeunit=%3; ActualCodeunit=%4.',
+            StrSubstNo(IncorrectAddinRetrievedErr,
                 HostType, StrLen(HostType), CodeunitID, OfficeAddin."Manifest Codeunit"));
     end;
 
@@ -1178,15 +1182,15 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
         ActualCodeunit: Integer;
     begin
         Session.LogMessage('OfficeManifestTestLookupStarted',
-            StrSubstNo('Starting direct manifest lookup. Incoming HostType="%1"; HostTypeLength=%2; ExpectedCodeunit=%3.', HostType, StrLen(HostType), ExpectedCodeunit),
+            StrSubstNo(ManifestLookupStartedTelemetryTxt, HostType, StrLen(HostType), ExpectedCodeunit),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
         AddinManifestManagement.GetManifestCodeunit(ActualCodeunit, HostType);
         Session.LogMessage('OfficeManifestTestLookupCompleted',
-            StrSubstNo('Completed direct manifest lookup. Incoming HostType="%1"; HostTypeLength=%2; ExpectedCodeunit=%3; ActualCodeunit=%4.',
+            StrSubstNo(ManifestLookupCompletedTelemetryTxt,
                 HostType, StrLen(HostType), ExpectedCodeunit, ActualCodeunit),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
         Assert.AreEqual(ExpectedCodeunit, ActualCodeunit,
-            StrSubstNo('Incorrect manifest codeunit retrieved. Incoming HostType="%1"; HostTypeLength=%2; ExpectedCodeunit=%3; ActualCodeunit=%4.',
+            StrSubstNo(IncorrectManifestCodeunitErr,
                 HostType, StrLen(HostType), ExpectedCodeunit, ActualCodeunit));
     end;
 
@@ -1428,4 +1432,3 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
         PrivacyNotice.Accept.Invoke();
     end;
 }
-
