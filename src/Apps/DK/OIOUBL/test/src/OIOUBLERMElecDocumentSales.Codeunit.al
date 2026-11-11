@@ -3,8 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using Microsoft.Foundation.Reporting.FileNaming;
-
 codeunit 148053 "OIOUBL-ERM Elec Document Sales"
 {
     Subtype = Test;
@@ -1124,7 +1122,7 @@ codeunit 148053 "OIOUBL-ERM Elec Document Sales"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         DocumentSendingProfile: Record "Document Sending Profile";
         ElectronicDocumentFormat: Record "Electronic Document Format";
-        ReportFilenameSetup: Record "Report Filename Setup";
+        ReportFilenameSetup: Record Microsoft.Foundation.Reporting.FileNaming."Report Filename Setup";
         SalesInvoice: TestPage "Sales Invoice";
         FileNameLst: List of [Text];
     begin
