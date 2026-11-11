@@ -27,6 +27,7 @@ codeunit 7449 "EA Corp Card Liability Mgt"
         GenJournalLine: Record "Gen. Journal Line";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
+        BankEntryErrorInfo: ErrorInfo;
     begin
         LockTransaction(CorpCardTrans, CorpCardStatement);
         if CorpCardTrans."Liability Reversal Trans. No." <> 0 then
@@ -48,8 +49,12 @@ codeunit 7449 "EA Corp Card Liability Mgt"
         GenJnlPostLine.SetIgnoreJournalTemplNameMandatoryCheck();
         GenJnlPostLine.RunWithCheck(GenJournalLine);
 
-        if BankAccountLedgerEntry.Count() <> 1 then
-            Error(BankEntryNotUniqueErr, CorpCardTrans."Entry No.");
+        if BankAccountLedgerEntry.Count() <> 1 then begin
+            BankEntryErrorInfo.ErrorType := ErrorType::Internal;
+            BankEntryErrorInfo.DataClassification := DataClassification::SystemMetadata;
+            BankEntryErrorInfo.Message := StrSubstNo(BankEntryNotUniqueErr, CorpCardTrans."Entry No.");
+            Error(BankEntryErrorInfo);
+        end;
         BankAccountLedgerEntry.FindFirst();
         BankAccountLedgerEntry.TestField("Bank Account No.", BankAccount."No.");
         BankAccountLedgerEntry.TestField("Currency Code", BankAccount."Currency Code");
@@ -174,22 +179,32 @@ codeunit 7449 "EA Corp Card Liability Mgt"
                 if ExpenseLedgerEntry."Posting Date" = PostedExpenseReportHeader."Posting Date" then begin
                     MatchingExpenseLedgerEntries += 1;
                     if MatchingExpenseLedgerEntries > 1 then
-                        Error(OriginalPostingMissingErr, PostedExpenseReportLine."Document No.");
+                        Error(GetOriginalPostingMissingError(PostedExpenseReportLine."Document No."));
                     ExpenseLedgerEntry.TestField("Transaction No.");
                     TransactionNo := ExpenseLedgerEntry."Transaction No.";
                 end;
             until ExpenseLedgerEntry.Next() = 0;
         if MatchingExpenseLedgerEntries <> 1 then
-            Error(OriginalPostingMissingErr, PostedExpenseReportLine."Document No.");
+            Error(GetOriginalPostingMissingError(PostedExpenseReportLine."Document No."));
         GLEntry.ReadIsolation := IsolationLevel::RepeatableRead;
         GLEntry.SetRange("Transaction No.", TransactionNo);
         GLEntry.SetRange(Reversed, true);
         if not GLEntry.IsEmpty() then
-            Error(OriginalPostingMissingErr, PostedExpenseReportLine."Document No.");
+            Error(GetOriginalPostingMissingError(PostedExpenseReportLine."Document No."));
         GLEntry.SetRange(Reversed, false);
         GLEntry.SetRange("G/L Account No.", PostedExpenseReportLine."Card Payable Account No.");
         if GLEntry.IsEmpty() then
-            Error(OriginalPostingMissingErr, PostedExpenseReportLine."Document No.");
+            Error(GetOriginalPostingMissingError(PostedExpenseReportLine."Document No."));
+    end;
+
+    local procedure GetOriginalPostingMissingError(PostedExpenseReportNo: Code[20]): ErrorInfo
+    var
+        OriginalPostingErrorInfo: ErrorInfo;
+    begin
+        OriginalPostingErrorInfo.ErrorType := ErrorType::Internal;
+        OriginalPostingErrorInfo.DataClassification := DataClassification::CustomerContent;
+        OriginalPostingErrorInfo.Message := StrSubstNo(OriginalPostingMissingErr, PostedExpenseReportNo);
+        exit(OriginalPostingErrorInfo);
     end;
 
     local procedure GetProviderBankAccount(CorpCardTrans: Record "EA Corp Card Trans"; var BankAccount: Record "Bank Account")

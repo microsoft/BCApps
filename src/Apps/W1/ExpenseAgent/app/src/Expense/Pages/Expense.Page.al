@@ -378,6 +378,7 @@ page 6988 "Expense"
                     Caption = 'Corporate Card';
                     ToolTip = 'Specifies the provider short name and last four card digits. Choose a credit card payment method to select a card belonging to the expense user.';
                     Editable = CorporateCardEditable;
+                    ShowMandatory = CorporateCardMandatory;
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -763,6 +764,7 @@ page 6988 "Expense"
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         CorporateCardDisplay: Text[150];
         CorporateCardEditable: Boolean;
+        CorporateCardMandatory: Boolean;
         UseCardLookupErr: Label 'Choose a corporate card from the lookup instead of entering a card number.';
         IsMileageCategory, IsPerDiemCategory, IsParticipantCategory, IsItemizationCategory, IsEnforcedItemizationCategory : Boolean;
         DocNoVisible: Boolean;
@@ -782,8 +784,9 @@ page 6988 "Expense"
 
     local procedure SetCategoryTypeVisibility()
     begin
+        CorporateCardMandatory := Rec."Reimbursement Type" = Rec."Reimbursement Type"::"Credit Card";
         CorporateCardEditable :=
-            (Rec."Reimbursement Type" = Rec."Reimbursement Type"::"Credit Card") and
+            CorporateCardMandatory and
             (Rec."Expense User No." <> '') and (Rec.Status = Rec.Status::Open) and (Rec."Credit Card Feed No." = 0);
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;

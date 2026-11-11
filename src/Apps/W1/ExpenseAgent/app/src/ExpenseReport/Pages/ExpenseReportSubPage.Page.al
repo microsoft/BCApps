@@ -123,6 +123,7 @@ page 6999 "Expense Report SubPage"
                     Caption = 'Corporate Card';
                     ToolTip = 'Specifies the provider short name and last four card digits. Expenses copied to a report retain the card selected on the expense.';
                     Editable = (Rec."Credit Card Feed No." = 0) and (Rec."Expense No." = '');
+                    ShowMandatory = CorporateCardMandatory;
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -672,6 +673,7 @@ page 6999 "Expense Report SubPage"
         ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         CorporateCardDisplay: Text[150];
+        CorporateCardMandatory: Boolean;
         TotalAmountLCY: Decimal;
         TotalVATAmountLCY: Decimal;
         TotalAmountWithoutVATLCY: Decimal;
@@ -691,6 +693,7 @@ page 6999 "Expense Report SubPage"
     local procedure UpdateControls()
     begin
         CorporateCardDisplay := CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id");
+        CorporateCardMandatory := Rec."Reimbursement Type" = Rec."Reimbursement Type"::"Credit Card";
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;
         IsItemizationCategory := Rec.IsItemizationRequired();

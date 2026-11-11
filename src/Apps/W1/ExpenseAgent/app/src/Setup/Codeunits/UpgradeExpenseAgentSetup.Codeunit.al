@@ -252,9 +252,12 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         if UpgradeTag.HasUpgradeTag(GetCorporateCardIdentityUpgradeTag()) then
             exit;
 
+        CorpCardTrans.SetLoadFields("Card Id");
+
         // Legacy feed links do not distinguish imported drafts from manually linked expenses.
         Expense.SetRange("Corporate Card Id", '');
         Expense.SetFilter("Credit Card Feed No.", '<>%1', 0);
+        Expense.SetLoadFields("Credit Card Feed No.", "Corporate Card Id");
         if Expense.FindSet(true) then
             repeat
                 if CorpCardTrans.Get(Expense."Credit Card Feed No.") then begin
@@ -265,6 +268,7 @@ codeunit 6978 "Upgrade Expense Agent Setup"
 
         ExpenseReportLine.SetRange("Corporate Card Id", '');
         ExpenseReportLine.SetFilter("Credit Card Feed No.", '<>%1', 0);
+        ExpenseReportLine.SetLoadFields("Credit Card Feed No.", "Corporate Card Id");
         if ExpenseReportLine.FindSet(true) then
             repeat
                 if CorpCardTrans.Get(ExpenseReportLine."Credit Card Feed No.") then begin
@@ -275,6 +279,7 @@ codeunit 6978 "Upgrade Expense Agent Setup"
 
         PostedExpenseReportLine.SetRange("Corporate Card Id", '');
         PostedExpenseReportLine.SetFilter("Credit Card Feed No.", '<>%1', 0);
+        PostedExpenseReportLine.SetLoadFields("Credit Card Feed No.", "Corporate Card Id");
         if PostedExpenseReportLine.FindSet(true) then
             repeat
                 if CorpCardTrans.Get(PostedExpenseReportLine."Credit Card Feed No.") then begin

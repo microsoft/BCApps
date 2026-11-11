@@ -48,6 +48,7 @@ codeunit 148365 EACorpCardSelectionUITests
         ExpenseCard.GoToRecord(ManualExpense);
         Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'The corporate card must be shown for a credit-card expense.');
         Assert.IsTrue(ExpenseCard.CorporateCard.Editable(), 'An open manual expense must allow card selection.');
+        Assert.IsTrue(ExpenseCard.CorporateCard.ShowMandatory(), 'Credit-card expenses must indicate that a corporate card is required.');
         ExpenseCard.GoToRecord(ReleasedExpense);
         Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'The selected card must remain visible after release.');
         Assert.IsFalse(ExpenseCard.CorporateCard.Editable(), 'A released expense must not allow card selection.');
@@ -56,6 +57,7 @@ codeunit 148365 EACorpCardSelectionUITests
         ExpenseCard.GoToRecord(EmployeePaidExpense);
         Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'The card selector must remain visible so it can be enabled after choosing CARD.');
         Assert.IsFalse(ExpenseCard.CorporateCard.Editable(), 'Employee-paid expenses must not allow corporate card selection.');
+        Assert.IsFalse(ExpenseCard.CorporateCard.ShowMandatory(), 'Employee-paid expenses must not require a corporate card.');
         ExpenseCard.Close();
     end;
 
@@ -80,11 +82,13 @@ codeunit 148365 EACorpCardSelectionUITests
         ExpenseCard."Expense Category".SetValue(ExpenseCategory.Code);
         Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'The card selector must be present on a newly created expense.');
         Assert.IsFalse(ExpenseCard.CorporateCard.Editable(), 'A non-credit-card payment method must not allow card selection.');
+        Assert.IsFalse(ExpenseCard.CorporateCard.ShowMandatory(), 'A non-credit-card payment method must not require a corporate card.');
 
         ExpenseCard."Payment Method Code".SetValue('CARD');
 
         Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'Choosing CARD must not require reopening the expense to find the selector.');
         Assert.IsTrue(ExpenseCard.CorporateCard.Editable(), 'Choosing CARD must immediately enable card selection.');
+        Assert.IsTrue(ExpenseCard.CorporateCard.ShowMandatory(), 'Choosing CARD must immediately indicate that a corporate card is required.');
         ExpenseCard.CorporateCard.Lookup();
         ExpenseCard.CorporateCard.AssertEquals(CorpCardSelectionMgt.GetCardDisplay(CorpCard."Card Id"));
         ExpenseCard.Close();
@@ -281,11 +285,10 @@ codeunit 148365 EACorpCardSelectionUITests
     procedure UnsavedReportLineCardErrorHasNoPersistedTarget()
     var
         ExpenseReportLine: Record "Expense Report Line";
-        TempExpenseReportLine: Record "Expense Report Line" temporary;
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         CardLookupError: ErrorInfo;
     begin
-        // [SCENARIO] New and temporary lines do not offer recovery against a nonexistent or unrelated persisted row.
+        // [SCENARIO] An unsaved line does not offer recovery against a nonexistent persisted row.
         Initialize();
 
         // [GIVEN] A new report line has not been inserted.
@@ -297,6 +300,18 @@ codeunit 148365 EACorpCardSelectionUITests
 
         // [THEN] The error has no persisted target.
         Assert.IsTrue(IsNullGuid(CardLookupError.SystemId), 'An unsaved line must not have a persisted recovery target.');
+    end;
+
+    [Test]
+    procedure TemporaryReportLineCardErrorHasNoPersistedTarget()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        TempExpenseReportLine: Record "Expense Report Line" temporary;
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        CardLookupError: ErrorInfo;
+    begin
+        // [SCENARIO] A temporary line does not offer recovery against its saved source.
+        Initialize();
 
         // [GIVEN] A temporary copy has the system ID of a saved line.
         CreateManualReportLine(ExpenseReportLine);
@@ -307,6 +322,27 @@ codeunit 148365 EACorpCardSelectionUITests
 
         // [THEN] The error must not target the saved source line.
         Assert.IsTrue(IsNullGuid(CardLookupError.SystemId), 'A temporary line must not offer recovery against its saved source.');
+    end;
+
+    [Test]
+    procedure ReportLineCorporateCardMandatoryFollowsReimbursementType()
+    var
+        CreditCardReportLine: Record "Expense Report Line";
+        EmployeePaidReportLine: Record "Expense Report Line";
+        ExpenseReportSubPage: TestPage "Expense Report SubPage";
+    begin
+        Initialize();
+        CreateManualReportLine(CreditCardReportLine);
+        CreateManualReportLine(EmployeePaidReportLine);
+        EmployeePaidReportLine."Reimbursement Type" := EmployeePaidReportLine."Reimbursement Type"::"Employee Paid";
+        EmployeePaidReportLine.Modify();
+
+        ExpenseReportSubPage.OpenEdit();
+        ExpenseReportSubPage.GoToRecord(CreditCardReportLine);
+        Assert.IsTrue(ExpenseReportSubPage.CorporateCard.ShowMandatory(), 'Credit-card report lines must indicate that a corporate card is required.');
+        ExpenseReportSubPage.GoToRecord(EmployeePaidReportLine);
+        Assert.IsFalse(ExpenseReportSubPage.CorporateCard.ShowMandatory(), 'Employee-paid report lines must not require a corporate card.');
+        ExpenseReportSubPage.Close();
     end;
 
     local procedure CreateManualReportLine(var ExpenseReportLine: Record "Expense Report Line")

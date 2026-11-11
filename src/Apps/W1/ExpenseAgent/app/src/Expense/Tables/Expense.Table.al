@@ -803,10 +803,8 @@ table 6900 Expense
     var
         StoredExpense: Record Expense;
     begin
-        CheckCorporateCardSourceFields();
         StoredExpense := xRec;
-        if not Rec.IsTemporary() then
-            StoredExpense.Get("No.");
+        CheckCorporateCardSourceFields(StoredExpense);
         if ("Corporate Card Id" <> StoredExpense."Corporate Card Id") or
            ("Expense User No." <> StoredExpense."Expense User No.") or
            ("Expense Date" <> StoredExpense."Expense Date") or
@@ -1014,6 +1012,11 @@ table 6900 Expense
     local procedure CheckCorporateCardSourceFields()
     var
         StoredExpense: Record Expense;
+    begin
+        CheckCorporateCardSourceFields(StoredExpense);
+    end;
+
+    local procedure CheckCorporateCardSourceFields(var StoredExpense: Record Expense)
     begin
         if Rec.IsTemporary() or IsNullGuid(Rec.SystemId) then
             exit;
