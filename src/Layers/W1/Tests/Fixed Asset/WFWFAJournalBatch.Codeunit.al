@@ -8,7 +8,7 @@ using System.Automation;
 using System.Security.User;
 using System.TestLibraries.Utilities;
 
-codeunit 134080 "WFW FA Journal Batch"
+codeunit 134244 "WFW FA Journal Batch"
 {
     EventSubscriberInstance = Manual;
     Permissions = TableData "User Setup" = imd,
