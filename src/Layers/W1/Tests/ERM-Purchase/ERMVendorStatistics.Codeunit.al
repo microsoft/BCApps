@@ -1810,6 +1810,8 @@ codeunit 134334 "ERM Vendor Statistics"
         Vendor.Modify(true);
         PurchaseHeader."Buy-from Vendor No." := Vendor."No.";
         CreatePurchaseHeader(PurchaseHeader);
+        PurchaseHeader.Validate("Prepayment Due Date", WorkDate());
+        PurchaseHeader.Modify(true);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", LineGLAccount."No.", 1);
         PurchaseLine.Validate("Direct Unit Cost", 100);
         PurchaseLine.Validate("Prepayment %", 20);
