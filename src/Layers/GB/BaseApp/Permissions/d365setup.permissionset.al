@@ -350,11 +350,6 @@ permissionset 191 "D365 SETUP"
                   tabledata "Gen. Journal Template" = RIMD,
                   tabledata "General Ledger Setup" = RIMD,
                   tabledata "General Posting Setup" = RIMD,
-#if not CLEAN27
-                  tabledata "GovTalk Message Parts" = RIMD,
-                  tabledata "GovTalk Setup" = RIMD,
-                  tabledata GovTalkMessage = RIMD,
-#endif
                   tabledata "Human Resources Setup" = Rimd,
                   tabledata "Incoming Document" = RIMD,
                   tabledata "Incoming Document Approver" = RIMD,

@@ -65,14 +65,15 @@ codeunit 8452 "IC Purch.-Post"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostPurchLineOnGLAccount, '', true, false)]
-    local procedure OnPostPurchLineOnGLAccount(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; xPurchLine: Record "Purchase Line" temporary; var PurchLineACY: Record "Purchase Line"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; var InvoicePostingInterface: Interface "Invoice Posting"; var InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean)
+    local procedure OnPostPurchLineOnGLAccount(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; xPurchLine: Record "Purchase Line" temporary; var PurchLineACY: Record "Purchase Line"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; var InvoicePostingInterface: Interface "Invoice Posting"; var InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean; UseJobUnitCostToInvoice: Boolean; JobUnitCostToInvoice: Decimal; JobUnitCostToInvoiceLCY: Decimal)
     begin
         PostGLAccICLine(
             PurchHeader, PurchLine, xPurchLine, PurchLineACY, PurchInvHeader, PurchCrMemoHeader,
-            InvoicePostingInterface, InvoicePostingParameters, SuppressCommit);
+            InvoicePostingInterface, InvoicePostingParameters, SuppressCommit,
+            UseJobUnitCostToInvoice, JobUnitCostToInvoice, JobUnitCostToInvoiceLCY);
     end;
 
-    local procedure PostGLAccICLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; xPurchLine: Record "Purchase Line" temporary; PurchLineACY: Record "Purchase Line"; PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; var InvoicePostingInterface: Interface "Invoice Posting"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean)
+    local procedure PostGLAccICLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; xPurchLine: Record "Purchase Line" temporary; PurchLineACY: Record "Purchase Line"; PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; var InvoicePostingInterface: Interface "Invoice Posting"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean; UseJobUnitCostToInvoice: Boolean; JobUnitCostToInvoice: Decimal; JobUnitCostToInvoiceLCY: Decimal)
     var
         JobPurchLine: Record "Purchase Line";
         IsHandled: Boolean;
@@ -94,7 +95,9 @@ codeunit 8452 "IC Purch.-Post"
                 PurchPost.RunOnPostGLAccICLineOnBeforeCreateJobPurchLine(PurchHeader, PurchLine, IsHandled);
 #endif
                 if not IsHandled then begin
-                    CreateJobPurchLine(JobPurchLine, PurchLine, PurchHeader."Prices Including VAT");
+                    CreateJobPurchLineWithInvDiscToInvoice(
+                        JobPurchLine, PurchLine, PurchHeader."Prices Including VAT",
+                        UseJobUnitCostToInvoice, JobUnitCostToInvoice, JobUnitCostToInvoiceLCY);
                     OnPostGLAccICLineOnAfterCreateJobPurchLine(PurchHeader);
 #if not CLEAN30
                     PurchPost.RunOnPostGLAccICLineOnAfterCreateJobPurchLine(PurchHeader);
@@ -497,12 +500,22 @@ codeunit 8452 "IC Purch.-Post"
     /// <param name="PricesIncludingVAT">Specifies if the purchase document that is being posted has prices with VAT</param>
     procedure CreateJobPurchLine(var JobPurchLine2: Record "Purchase Line"; PurchLine2: Record "Purchase Line"; PricesIncludingVAT: Boolean)
     begin
+        CreateJobPurchLineWithInvDiscToInvoice(JobPurchLine2, PurchLine2, PricesIncludingVAT, false, 0, 0);
+    end;
+
+    local procedure CreateJobPurchLineWithInvDiscToInvoice(var JobPurchLine2: Record "Purchase Line"; PurchLine2: Record "Purchase Line"; PricesIncludingVAT: Boolean; UseJobUnitCostToInvoice: Boolean; JobUnitCostToInvoice: Decimal; JobUnitCostToInvoiceLCY: Decimal)
+    begin
         JobPurchLine2 := PurchLine2;
         if PricesIncludingVAT then
             if JobPurchLine2."VAT Calculation Type" = JobPurchLine2."VAT Calculation Type"::"Full VAT" then
                 JobPurchLine2."Direct Unit Cost" := 0
             else
                 JobPurchLine2."Direct Unit Cost" := JobPurchLine2."Direct Unit Cost" / (1 + JobPurchLine2."VAT %" / 100);
+
+        if UseJobUnitCostToInvoice then begin
+            JobPurchLine2."Unit Cost" := JobUnitCostToInvoice;
+            JobPurchLine2."Unit Cost (LCY)" := JobUnitCostToInvoiceLCY;
+        end;
 
         OnAfterCreateJobPurchLine(JobPurchLine2, PurchLine2);
 #if not CLEAN30

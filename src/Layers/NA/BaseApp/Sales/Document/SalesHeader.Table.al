@@ -2076,13 +2076,7 @@ table 36 "Sales Header"
         /// <summary>
         /// Specifies the package tracking number from the shipping agent.
         /// </summary>
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(106; "Package Tracking No."; Text[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Package Tracking No.';
             ToolTip = 'Specifies the shipping agent''s package number.';
@@ -7208,28 +7202,10 @@ table 36 "Sales Header"
         Commit();
     end;
 
-
     local procedure IsOrderDocument(): Boolean
     begin
         exit("Document Type" in ["Document Type"::Order, "Document Type"::"Blanket Order", "Document Type"::"Return Order"])
     end;
-
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    procedure GetStatisticsPageID(): Integer
-    begin
-        if "Tax Area Code" <> '' then begin
-            if IsOrderDocument() or ("Document Type" in ["Document Type"::Invoice, "Document Type"::"Credit Memo"]) then
-                exit(PAGE::"Sales Order Stats.");
-
-            exit(PAGE::"Sales Stats.");
-        end;
-        if IsOrderDocument() then
-            exit(PAGE::"Sales Order Statistics");
-
-        exit(PAGE::"Sales Statistics");
-    end;
-#endif
 
     /// <summary>
     /// Determines the available credit limit for the customer associated with the sales header.
@@ -13000,20 +12976,6 @@ table 36 "Sales Header"
     begin
     end;
 
-#if not CLEAN27
-    /// <summary>
-    /// Raised before validating the bill-to name.
-    /// </summary>
-    /// <param name="SalesHeader">The sales header record being validated.</param>
-    /// <param name="Customer">The customer record.</param>
-    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
-    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateBillToName(var SalesHeader: Record "Sales Header"; var Customer: Record Customer; var IsHandled: Boolean; xSalesHeader: Record "Sales Header")
-    begin
-    end;
-#endif
     /// <summary>
     /// Raised before validating tax liable when validating the ship-to code.
     /// </summary>
@@ -13969,19 +13931,6 @@ table 36 "Sales Header"
     begin
     end;
 
-#if not CLEAN27
-    /// <summary>
-    /// Raised before checking if the document is not fully cancelled.
-    /// </summary>
-    /// <param name="SalesCrMemoHeader">The sales credit memo header record.</param>
-    /// <param name="Result">The result indicating whether the document is not fully cancelled.</param>
-    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
-    [Obsolete('Removed Not used anymore.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeIsNotFullyCancelled(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var Result: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     /// <summary>
     /// Raised after the credit limit check.
@@ -14046,17 +13995,6 @@ table 36 "Sales Header"
     end;
 
 
-#if not CLEAN27
-    /// <summary>
-    /// Raised after setting sales line filters when calculating outstanding quantity base.
-    /// </summary>
-    /// <param name="SalesLine">The sales line record with filters applied.</param>
-    [Obsolete('Not used anymore due to new implementation that uses Query. Replaced by OnBeforeCalculateReservableOutstandingQuantityBase.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCalcOutstandingQuantityBaseOnAfterSalesLineSetFilters(var SalesLine: Record "Sales Line")
-    begin
-    end;
-#endif
 
     /// <summary>
     /// Raised before calculating the reservable outstanding quantity base.

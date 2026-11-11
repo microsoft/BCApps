@@ -150,6 +150,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         CustNoTotal: Decimal;
         VendNo: Decimal;
         VendNoTotal: Decimal;
+        EmplNo: Decimal;
+        EmplNoTotal: Decimal;
         BankAccNo: Decimal;
         BankAccNoTotal: Decimal;
         GLAccNo: Decimal;
@@ -199,6 +201,9 @@ codeunit 699 "Exch. Rate Adjmt. Process"
 
         if ExchRateAdjmtParameters."Adjust Vendors" then
             AdjustVendors();
+
+        if ExchRateAdjmtParameters."Adjust Employees" then
+            AdjustEmployees(ExchRateAdjmtParameters);
 
         AdjustGLAccountsAndVATEntries(ExchRateAdjmtParameters);
 
@@ -303,6 +308,32 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 HandlePostAdjmtRU("Exch. Rate Adjmt. Account Type"::Vendor)
             else
                 HandlePostAdjmt("Exch. Rate Adjmt. Account Type"::Vendor);
+    end;
+
+#pragma warning disable AA0150, AA0244
+    local procedure AdjustEmployees(var ExchRateAdjmtParameters: Record "Exch. Rate Adjmt. Parameters" temporary);
+#pragma warning restore AA0150, AA0244
+    var
+        Employee: Record Employee;
+    begin
+        EmplNo := 0;
+        GetNewEmplLedgEntryNo();
+
+        EmplNoTotal := Employee.Count();
+        Employee.SetView(ExchRateAdjmtParameters."Employee Filter");
+        Employee.SetRange("Date Filter", ExchRateAdjmtParameters."Start Date", ExchRateAdjmtParameters."End Date");
+        if Employee.FindSet() then
+            repeat
+                EmplNo := EmplNo + 1;
+                if not ExchRateAdjmtParameters."Hide UI" then
+                    Window.Update(5, Round(EmplNo / EmplNoTotal * 10000, 1));
+
+                ProcessEmployeeAdjustment(Employee);
+
+            until Employee.Next() = 0;
+
+        if EmplNo <> 0 then
+            HandlePostAdjmt("Exch. Rate Adjmt. Account Type"::Employee);
     end;
 
     local procedure AdjustGLAccountsAndVATEntries(ExchRateAdjmtParameters: Record "Exch. Rate Adjmt. Parameters")
@@ -717,6 +748,65 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         OnAfterSetDtldVendLedgEntryFilters(DtldVendLedgEntry2, VendLedgEntry2);
     end;
 
+    local procedure ProcessEmployeeAdjustment(var Employee: Record Employee)
+    var
+        EmployeeLedgerEntry: Record "Employee Ledger Entry";
+        DtldEmplLedgEntryToAdjust: Record "Detailed Employee Ledger Entry";
+        TempEmployeeLedgerEntry: Record "Employee Ledger Entry" temporary;
+    begin
+        TotalAdjAmount := 0;
+        PrepareTempEmplLedgEntry(Employee, TempEmployeeLedgerEntry);
+
+        if TempEmployeeLedgerEntry.Find('-') then
+            repeat
+                TempDtldEmplLedgEntrySums.DeleteAll();
+
+                EmployeeLedgerEntry.Get(TempEmployeeLedgerEntry."Entry No.");
+                if ShouldAdjustEmployeeLedgEntry(EmployeeLedgerEntry) then begin
+                    AdjustEmployeeLedgerEntry(Employee, EmployeeLedgerEntry, ExchRateAdjmtParameters."Posting Date", false);
+
+                    SetDtldEmplLedgEntryFilters(DtldEmplLedgEntryToAdjust, EmployeeLedgerEntry);
+                    if DtldEmplLedgEntryToAdjust.FindSet() then
+                        repeat
+                            AdjustEmployeeLedgerEntry(Employee, EmployeeLedgerEntry, ExchRateAdjmtParameters."Posting Date", true);
+                        until DtldEmplLedgEntryToAdjust.Next() = 0;
+                end;
+            until TempEmployeeLedgerEntry.Next() = 0;
+
+        OnAfterProcessEmployeeAdjustment(TempEmployeeLedgerEntry);
+    end;
+
+    local procedure ShouldAdjustEmployeeLedgEntry(EmplLedgEntry: Record "Employee Ledger Entry") ShouldAdjust: Boolean
+    begin
+        ShouldAdjust := true;
+
+        OnAfterShouldAdjustEmplLedgEntry(EmplLedgEntry, ShouldAdjust);
+    end;
+
+    local procedure GetNewEmplLedgEntryNo()
+    var
+        EmployeeLedgerEntry: Record "Employee Ledger Entry";
+    begin
+        DtldEmplLedgEntry.LockTable();
+        EmployeeLedgerEntry.LockTable();
+
+        EmplNo := 0;
+
+        if DtldEmplLedgEntry.Find('+') then
+            NewEntryNo := DtldEmplLedgEntry."Entry No." + 1
+        else
+            NewEntryNo := 1;
+    end;
+
+    local procedure SetDtldEmplLedgEntryFilters(var DtldEmplLedgEntry2: Record "Detailed Employee Ledger Entry"; EmplLedgEntry2: Record "Employee Ledger Entry")
+    begin
+        DtldEmplLedgEntry2.SetCurrentKey("Employee Ledger Entry No.");
+        DtldEmplLedgEntry2.SetRange("Employee Ledger Entry No.", EmplLedgEntry2."Entry No.");
+        DtldEmplLedgEntry2.SetFilter("Posting Date", '%1..', CalcDate('<+1D>', ExchRateAdjmtParameters."Posting Date"));
+
+        OnAfterSetDtldEmplLedgEntryFilters(DtldEmplLedgEntry2, EmplLedgEntry2);
+    end;
+
     local procedure PostAdjmt(ExchRateAdjmtBuffer: Record "Exch. Rate Adjmt. Buffer"; var TempDimSetEntry: Record "Dimension Set Entry" temporary; CVLedgEntryBuf: Record "CV Ledger Entry Buffer"; Gains: Boolean): Integer
     begin
         OnBeforePostAdjmt(ExchRateAdjmtBuffer, TempDimSetEntry);
@@ -869,6 +959,41 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         if TempDtldCVLedgEntryBuf.Insert() then;
         InsertExchRateAdjmtReg(
             "Exch. Rate Adjmt. Account Type"::Vendor, ExchRateAdjmtBuffer."Posting Group", ExchRateAdjmtBuffer."Currency Code", ExchRateAdjmtBuffer.Index);
+        TempDtldCVLedgEntryBuf.Get(TempDtldCVLedgEntryBuf."Entry No.");
+        TempDtldCVLedgEntryBuf."Exch. Rate Adjmt. Reg. No." := ExchRateAdjmtReg."No.";
+        TempDtldCVLedgEntryBuf.Modify();
+    end;
+
+#pragma warning disable AA0244
+    local procedure PostEmplAdjmt(ExchRateAdjmtBuffer: Record "Exch. Rate Adjmt. Buffer"; var TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary; var TempDimSetEntry: Record "Dimension Set Entry" temporary)
+#pragma warning restore AA0244
+    var
+        EmployeeLedgerEntry: Record "Employee Ledger Entry";
+        CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
+    begin
+        if GLSetup."Enable Russian Accounting" then begin
+            EmployeeLedgerEntry.Get(ExchRateAdjmtBuffer."Entry No.");
+            CVLedgEntryBuf.CopyFromEmplLedgEntry(EmployeeLedgerEntry);
+            CVLedgEntryBuf."Bal. Account Type" := "Gen. Journal Account Type"::Employee;
+            CVLedgEntryBuf."Bal. Account No." := EmployeeLedgerEntry."Employee No.";
+        end;
+
+        if ExchRateAdjmtBuffer."Gains Amount" <> 0 then
+            TempDtldCVLedgEntryBuf."Transaction No." :=
+                PostAdjmt(
+                    ExchRateAdjmtBuffer."Account No.", ExchRateAdjmtBuffer."Gains Amount", ExchRateAdjmtBuffer."Adjmt. Base",
+                    ExchRateAdjmtBuffer."Currency Code", TempDimSetEntry,
+                    ExchRateAdjmtBuffer."Posting Date", ExchRateAdjmtBuffer."IC Partner Code", CVLedgEntryBuf, true);
+        if ExchRateAdjmtBuffer."Losses Amount" <> 0 then
+            TempDtldCVLedgEntryBuf."Transaction No." :=
+                PostAdjmt(
+                    ExchRateAdjmtBuffer."Account No.", ExchRateAdjmtBuffer."Losses Amount", ExchRateAdjmtBuffer."Adjmt. Base",
+                    ExchRateAdjmtBuffer."Currency Code", TempDimSetEntry,
+                    ExchRateAdjmtBuffer."Posting Date", ExchRateAdjmtBuffer."IC Partner Code", CVLedgEntryBuf, false);
+
+        if TempDtldCVLedgEntryBuf.Insert() then;
+        InsertExchRateAdjmtReg(
+            "Exch. Rate Adjmt. Account Type"::Employee, ExchRateAdjmtBuffer."Posting Group", ExchRateAdjmtBuffer."Currency Code", ExchRateAdjmtBuffer.Index);
         TempDtldCVLedgEntryBuf.Get(TempDtldCVLedgEntryBuf."Entry No.");
         TempDtldCVLedgEntryBuf."Exch. Rate Adjmt. Reg. No." := ExchRateAdjmtReg."No.";
         TempDtldCVLedgEntryBuf.Modify();
@@ -1088,12 +1213,16 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 repeat
                     TempDtldCVLedgEntryBuf.Init();
                     TempDtldCVLedgEntryBuf."Entry No." := TempExchRateAdjmtBuffer.Index;
-                    if TempExchRateAdjmtBuffer."Adjmt. Amount" <> 0 then
+                    if (TempExchRateAdjmtBuffer."Adjmt. Amount" <> 0) or
+                       (AdjustAccType = "Exch. Rate Adjmt. Account Type"::Employee)
+                    then
                         case AdjustAccType of
                             "Exch. Rate Adjmt. Account Type"::Customer:
                                 PostCustAdjmt(TempExchRateAdjmtBuffer, TempDtldCVLedgEntryBuf, TempDimSetEntry, CVLedgEntryBuf);
                             "Exch. Rate Adjmt. Account Type"::Vendor:
                                 PostVendAdjmt(TempExchRateAdjmtBuffer, TempDtldCVLedgEntryBuf, TempDimSetEntry, CVLedgEntryBuf);
+                            "Exch. Rate Adjmt. Account Type"::Employee:
+                                PostEmplAdjmt(TempExchRateAdjmtBuffer, TempDtldCVLedgEntryBuf, TempDimSetEntry);
                         end;
                     TempDtldCVLedgEntryBuf."Exch. Rate Adjmt. Reg. No." := ExchRateAdjmtReg."No.";
                     TempDtldCVLedgEntryBuf.Modify();
@@ -1101,20 +1230,23 @@ codeunit 699 "Exch. Rate Adjmt. Process"
 
                 OnHandlePostAdjmtOnBeforePostAdjmt(TempExchRateAdjmtBuffer2, TempCurrencyToAdjust, TempDimSetEntry, AdjustAccType);
                 TempCurrencyToAdjust.Get(TempExchRateAdjmtBuffer2."Currency Code");
-                if TempExchRateAdjmtBuffer2."Gains Amount" <> 0 then
-                    PostAdjmt(
-                        GetUnrealizedGainsAccount(TempCurrencyToAdjust),
-                        -TempExchRateAdjmtBuffer2."Gains Amount", -TempExchRateAdjmtBuffer2."Adjmt. Base",
-                        TempExchRateAdjmtBuffer2."Currency Code", TempDimSetEntry,
-                        TempExchRateAdjmtBuffer2."Posting Date", TempExchRateAdjmtBuffer2."IC Partner Code",
-                        CVLedgEntryBuf, true);
-                if TempExchRateAdjmtBuffer2."Losses Amount" <> 0 then
-                    PostAdjmt(
-                        GetUnrealizedLossesAccount(TempCurrencyToAdjust),
-                        -TempExchRateAdjmtBuffer2."Losses Amount", -TempExchRateAdjmtBuffer2."Adjmt. Base",
-                        TempExchRateAdjmtBuffer2."Currency Code", TempDimSetEntry,
-                        TempExchRateAdjmtBuffer2."Posting Date", TempExchRateAdjmtBuffer2."IC Partner Code",
-                        CVLedgEntryBuf, true);
+                // Employee adjustments already include their balancing gain/loss entries.
+                if AdjustAccType <> "Exch. Rate Adjmt. Account Type"::Employee then begin
+                    if TempExchRateAdjmtBuffer2."Gains Amount" <> 0 then
+                        PostAdjmt(
+                            GetUnrealizedGainsAccount(TempCurrencyToAdjust),
+                            -TempExchRateAdjmtBuffer2."Gains Amount", -TempExchRateAdjmtBuffer2."Adjmt. Base",
+                            TempExchRateAdjmtBuffer2."Currency Code", TempDimSetEntry,
+                            TempExchRateAdjmtBuffer2."Posting Date", TempExchRateAdjmtBuffer2."IC Partner Code",
+                            CVLedgEntryBuf, true);
+                    if TempExchRateAdjmtBuffer2."Losses Amount" <> 0 then
+                        PostAdjmt(
+                            GetUnrealizedLossesAccount(TempCurrencyToAdjust),
+                            -TempExchRateAdjmtBuffer2."Losses Amount", -TempExchRateAdjmtBuffer2."Adjmt. Base",
+                            TempExchRateAdjmtBuffer2."Currency Code", TempDimSetEntry,
+                            TempExchRateAdjmtBuffer2."Posting Date", TempExchRateAdjmtBuffer2."IC Partner Code",
+                            CVLedgEntryBuf, true);
+                end;
             until TempExchRateAdjmtBuffer2.Next() = 0;
 
         case AdjustAccType of
@@ -1374,6 +1506,51 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         VendorLedgerEntryFilter.SetRange("Entry No.", VendorLedgerEntry."Entry No.");
         VendorLedgerEntryFilter.SetFilter("Vendor Posting Group", VendPostingGroupFilter);
         exit(not VendorLedgerEntryFilter.IsEmpty());
+    end;
+
+#pragma warning disable AA0150
+    local procedure PrepareTempEmplLedgEntry(var Employee: Record Employee; var TempEmployeeLedgerEntry: Record "Employee Ledger Entry" temporary);
+#pragma warning restore AA0150
+    var
+        EmployeeLedgerEntry2: Record "Employee Ledger Entry";
+        DtldEmplLedgEntry2: Record "Detailed Employee Ledger Entry";
+    begin
+        TempEmployeeLedgerEntry.DeleteAll();
+
+        Currency.CopyFilter(Code, EmployeeLedgerEntry2."Currency Code");
+        EmployeeLedgerEntry2.FilterGroup(2);
+        EmployeeLedgerEntry2.SetFilter("Currency Code", '<>%1', '');
+        OnPrepareTempEmplLedgEntryOnAfterSetEmplLedgerEntryFilters(EmployeeLedgerEntry2);
+        EmployeeLedgerEntry2.FilterGroup(0);
+
+        DtldEmplLedgEntry2.Reset();
+        DtldEmplLedgEntry2.SetCurrentKey("Employee No.", "Posting Date", "Entry Type");
+        DtldEmplLedgEntry2.SetRange("Employee No.", Employee."No.");
+        DtldEmplLedgEntry2.SetRange("Posting Date", CalcDate('<+1D>', ExchRateAdjmtParameters."End Date"), DMY2Date(31, 12, 9999));
+        OnPrepareTempEmplLedgEntryOnAfterSetDtldEmplLedgerEntryFilters(DtldEmplLedgEntry2);
+        if DtldEmplLedgEntry2.Find('-') then
+            repeat
+                EmployeeLedgerEntry2."Entry No." := DtldEmplLedgEntry2."Employee Ledger Entry No.";
+                if EmployeeLedgerEntry2.Find('=') then
+                    if (EmployeeLedgerEntry2."Posting Date" >= ExchRateAdjmtParameters."Start Date") and
+                        (EmployeeLedgerEntry2."Posting Date" <= ExchRateAdjmtParameters."End Date")
+                    then begin
+                        TempEmployeeLedgerEntry."Entry No." := EmployeeLedgerEntry2."Entry No.";
+                        if TempEmployeeLedgerEntry.Insert() then;
+                    end;
+            until DtldEmplLedgEntry2.Next() = 0;
+
+        EmployeeLedgerEntry2.SetCurrentKey("Employee No.", Open);
+        EmployeeLedgerEntry2.SetRange("Employee No.", Employee."No.");
+        EmployeeLedgerEntry2.SetRange(Open, true);
+        EmployeeLedgerEntry2.SetRange("Posting Date", 0D, ExchRateAdjmtParameters."End Date");
+        OnPrepareTempEmplLedgEntryOnAfterSetEmplLedgerEntryFilters(EmployeeLedgerEntry2);
+        if EmployeeLedgerEntry2.Find('-') then
+            repeat
+                TempEmployeeLedgerEntry."Entry No." := EmployeeLedgerEntry2."Entry No.";
+                if TempEmployeeLedgerEntry.Insert() then;
+            until EmployeeLedgerEntry2.Next() = 0;
+        EmployeeLedgerEntry2.Reset();
     end;
 
     local procedure AdjustVATEntries(var VATEntry: Record "VAT Entry"; var TotalVATEntry: Record "VAT Entry"; VATType: Enum "General Posting Type"; UseTax: Boolean)
@@ -2284,7 +2461,11 @@ codeunit 699 "Exch. Rate Adjmt. Process"
             InitDtldEmplLedgEntry(EmplLedgerEntry, TempDtldEmplLedgEntry);
             TempDtldEmplLedgEntry."Entry No." := NewEntryNo;
             TempDtldEmplLedgEntry."Posting Date" := PostingDate2;
-            TempDtldEmplLedgEntry."Document No." := ExchRateAdjmtParameters."Document No.";
+            if GLSetup."Enable Russian Accounting" then begin
+                TempDtldEmplLedgEntry."Document No." := EmplLedgerEntry."Document No.";
+                TempDtldEmplLedgEntry."Document Type" := EmplLedgerEntry."Document Type";
+            end else
+                TempDtldEmplLedgEntry."Document No." := ExchRateAdjmtParameters."Document No.";
 
             Correction :=
                 (EmplLedgerEntry."Debit Amount" < 0) or
@@ -3290,13 +3471,11 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised.', '27.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetDtldEmplLedgEntryFilters(var DtldEmplLedgEntry: Record "Detailed Employee Ledger Entry"; EmplLedgEntry: Record "Employee Ledger Entry")
     begin
     end;
-#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterShouldAdjustCurrency(Currency: Record Currency; var ShouldAdjust: Boolean)
     begin
@@ -3312,13 +3491,11 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised.', '27.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterShouldAdjustEmplLedgEntry(EmplLedgEntry: Record "Employee Ledger Entry"; var ShouldAdjust: Boolean)
     begin
     end;
-#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetVATEntryFilters(var VATEntry: Record "VAT Entry")
     begin
@@ -3379,13 +3556,11 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised.', '27.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessEmployeeAdjustment(var TempEmployeeLedgerEntry: Record "Employee Ledger Entry" temporary)
     begin
     end;
-#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterRunAdjustment(var ExchRateAdjmtParameters: Record "Exch. Rate Adjmt. Parameters" temporary)
     begin
@@ -3496,19 +3671,16 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised.', '27.0')]
     [IntegrationEvent(false, false)]
     local procedure OnPrepareTempEmplLedgEntryOnAfterSetEmplLedgerEntryFilters(var EmployeeLedgerEntry: Record "Employee Ledger Entry")
     begin
     end;
 
-    [Obsolete('The event is never raised.', '27.0')]
     [IntegrationEvent(false, false)]
     local procedure OnPrepareTempEmplLedgEntryOnAfterSetDtldEmplLedgerEntryFilters(var DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry")
     begin
     end;
-#endif
+
     [IntegrationEvent(false, false)]
     local procedure OnSetPostingDimensionsOnCaseSourceEntryDimensions(var GenJournalLine: Record "Gen. Journal Line"; var DimensionSetEntry: Record "Dimension Set Entry")
     begin

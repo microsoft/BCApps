@@ -1178,21 +1178,21 @@ table 5110 "Purchase Line Archive"
             OptionCaption = ' ,Current,Current Calendar Year,Previous Calendar Year';
             OptionMembers = " ",Current,"Current Calendar Year","Previous Calendar Year";
         }
-#if not CLEANSCHEMA30
+#if not CLEANSCHEMA31
         field(12180; "WIP Item"; Boolean)
         {
             Caption = 'WIP Item';
             Editable = false;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
-#if not CLEAN27
+#if not CLEAN28
         field(12182; "WIP Qty at Subc.Loc. (Base)"; Decimal)
         {
             AutoFormatType = 0;
@@ -1213,12 +1213,12 @@ table 5110 "Purchase Line Archive"
             Caption = 'Not Proc. WIP Qty to Receive';
             DecimalPlaces = 0 : 5;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
         field(12184; "Base UM Qty/Pricelist UM Qty"; Decimal)
@@ -1229,12 +1229,12 @@ table 5110 "Purchase Line Archive"
             Editable = false;
             InitValue = 1;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
         field(12185; "UoM for Pricelist"; Code[10])
@@ -1243,12 +1243,12 @@ table 5110 "Purchase Line Archive"
             Editable = false;
             TableRelation = "Unit of Measure";
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
         field(12186; "Pricelist UM Qty/Base UM Qty"; Decimal)
@@ -1258,12 +1258,12 @@ table 5110 "Purchase Line Archive"
             DecimalPlaces = 0 : 5;
             Editable = false;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
         field(12187; "Pricelist Cost"; Decimal)
@@ -1272,12 +1272,12 @@ table 5110 "Purchase Line Archive"
             AutoFormatType = 2;
             Editable = false;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
 #endif
