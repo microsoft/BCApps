@@ -1191,7 +1191,7 @@ codeunit 13916 "Export XRechnung Document"
         ItemElement := XmlElement.Create('Item', XmlNamespaceCAC);
         if SalesInvLine."Description 2" <> '' then
             ItemElement.Add(XmlElement.Create('Description', XmlNamespaceCBC, SalesInvLine."Description 2"));
-        ItemElement.Add(XmlElement.Create('Name', XmlNamespaceCBC, CopyStr(SalesInvLine.Description, 1, 40)));
+        ItemElement.Add(XmlElement.Create('Name', XmlNamespaceCBC, SalesInvLine.Description));
         InsertSellersItemIdentification(ItemElement, SalesInvLine."No.");
         if SalesInvLine.Type = SalesInvLine.Type::Item then
             InsertStandardItemIdentification(ItemElement, SalesInvLine."No.");
@@ -1206,7 +1206,7 @@ codeunit 13916 "Export XRechnung Document"
         ItemElement := XmlElement.Create('Item', XmlNamespaceCAC);
         if SalesCrMemoLine."Description 2" <> '' then
             ItemElement.Add(XmlElement.Create('Description', XmlNamespaceCBC, SalesCrMemoLine."Description 2"));
-        ItemElement.Add(XmlElement.Create('Name', XmlNamespaceCBC, CopyStr(SalesCrMemoLine.Description, 1, 40)));
+        ItemElement.Add(XmlElement.Create('Name', XmlNamespaceCBC, SalesCrMemoLine.Description));
         InsertSellersItemIdentification(ItemElement, SalesCrMemoLine."No.");
         if SalesCrMemoLine.Type = SalesCrMemoLine.Type::Item then
             InsertStandardItemIdentification(ItemElement, SalesCrMemoLine."No.");
