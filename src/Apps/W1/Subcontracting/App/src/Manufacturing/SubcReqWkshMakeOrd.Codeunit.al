@@ -139,6 +139,8 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
     local procedure HandleSubcontractingAfterPurchOrderLineInsert(var PurchaseLine: Record "Purchase Line"; var NextLineNo: Integer; var RequisitionLine: Record "Requisition Line")
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
+        SubcFeatureTelemetry: Codeunit "Subc. Feature Telemetry";
         SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
     begin
         SubcPurchaseOrderCreator.InsertProdDescriptionOnAfterInsertPurchOrderLine(PurchaseLine, RequisitionLine);
@@ -157,6 +159,9 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                 PurchaseLine.Modify();
             end;
         end;
+
+        if SubcontractingManagement.IsSubcontractingPurchaseLine(PurchaseLine) then
+            SubcFeatureTelemetry.LogFeatureUptakeUsed();
     end;
 
     local procedure UpdateSubcontractingComponentPurchLines(PurchaseLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")

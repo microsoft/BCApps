@@ -9889,27 +9889,7 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line"; PurchRcptHeader2: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; CommitIsSupressed: Boolean; QtyToBeInvoiced: Decimal)
-    begin
-        OnAfterPostItemJnlLineCopyProdOrder(ItemJnlLine, PurchLine, PurchRcptHeader2, QtyToBeReceived, CommitIsSupressed, QtyToBeInvoiced);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPurchPost', '27.0')]
-    /// <summary>
-    /// Event raised by OnAfterPostItemJnlLineCopyProdOrder.
-    /// </summary>
-    /// <param name="ItemJnlLine"></param>
-    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
-    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
-    /// <param name="QtyToBeReceived">Specifies the QtyToBeReceived parameter.</param>
-    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
-    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line"; PurchRcptHeader: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; CommitIsSupressed: Boolean; QtyToBeInvoiced: Decimal)
-    begin
-    end;
-
+#if not CLEAN28
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Purch.-Post", 'OnAfterPostItemJnlLineCopyProdOrder', '', false, false)]
     local procedure HandleOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line"; PurchRcptHeader: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; CommitIsSupressed: Boolean; QtyToBeInvoiced: Decimal)
     var
@@ -11232,28 +11212,6 @@ codeunit 90 "Purch.-Post"
     local procedure OnBeforePostItemChargePerSalesShpt(var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforePostItemJnlLineCopyProdOrder(PurchLine: Record "Purchase Line"; var ItemJnlLine: Record "Item Journal Line"; QtyToBeReceived: Decimal; QtyToBeInvoiced: Decimal; CommitIsSupressed: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforePostItemJnlLineCopyProdOrder(PurchLine, ItemJnlLine, QtyToBeReceived, QtyToBeInvoiced, CommitIsSupressed, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPurchPost', '27.0')]
-    /// <summary>
-    /// Event raised by OnBeforePostItemJnlLineCopyProdOrder.
-    /// </summary>
-    /// <param name="PurchLine"></param>
-    /// <param name="ItemJnlLine">Specifies the ItemJnlLine parameter.</param>
-    /// <param name="QtyToBeReceived">Specifies the QtyToBeReceived parameter.</param>
-    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
-    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
-    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
-    [IntegrationEvent(true, false)]
-    local procedure OnBeforePostItemJnlLineCopyProdOrder(PurchLine: Record "Purchase Line"; var ItemJnlLine: Record "Item Journal Line"; QtyToBeReceived: Decimal; QtyToBeInvoiced: Decimal; CommitIsSupressed: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     /// <summary>
     /// Event raised by OnBeforePostPurchaseDoc.
@@ -14914,27 +14872,6 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN27
-    /// <summary>
-    /// Event raised by OnSetPostingPreviewDocumentNo.
-    /// </summary>
-    /// <param name="PreviewDocumentNo"></param>
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer used.', '27.0')]
-    local procedure OnSetPostingPreviewDocumentNo(var PreviewDocumentNo: Code[20])
-    begin
-    end;
-
-    /// <summary>
-    /// Event raised by OnGetPostingPreviewDocumentNos.
-    /// </summary>
-    /// <param name="PreviewDocumentNos"></param>
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer used.', '27.0')]
-    local procedure OnGetPostingPreviewDocumentNos(var PreviewDocumentNos: List of [Code[20]])
-    begin
-    end;
-#endif
     /// <summary>
     /// Event raised by OnInsertPostedHeadersOnAfterInvoice.
     /// </summary>

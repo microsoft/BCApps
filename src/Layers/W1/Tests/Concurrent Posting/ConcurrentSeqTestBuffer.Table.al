@@ -7,6 +7,7 @@ namespace Microsoft.Finance.Test;
 table 134083 "Concurrent Seq. Test Buffer"
 {
     DataClassification = SystemMetadata;
+    ReplicateData = false;
 
     fields
     {

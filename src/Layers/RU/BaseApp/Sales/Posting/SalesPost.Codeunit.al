@@ -15308,20 +15308,6 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    /// <summary>
-    /// Event raised by OnAfterGetAmountsForDeferral.
-    /// </summary>
-    /// <param name="SalesLine"></param>
-    /// <param name="AmtToDefer">Specifies the AmtToDefer parameter.</param>
-    /// <param name="AmtToDeferACY">Specifies the AmtToDeferACY parameter.</param>
-    /// <param name="DeferralAccount">Specifies the DeferralAccount parameter.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterGetAmountsForDeferral(SalesLine: Record "Sales Line"; var AmtToDefer: Decimal; var AmtToDeferACY: Decimal; var DeferralAccount: Code[20])
-    begin
-    end;
-#endif
     /// <summary>
     /// Event raised by OnPostJobContractLineBeforeTestFields.
     /// </summary>
@@ -15804,27 +15790,6 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
-#if not CLEAN27
-    /// <summary>
-    /// Event raised by OnSetPostingPreviewDocumentNo.
-    /// </summary>
-    /// <param name="PreviewDocumentNo"></param>
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer used.', '27.0')]
-    local procedure OnSetPostingPreviewDocumentNo(var PreviewDocumentNo: Code[20]; var SalesHeader: Record "Sales Header")
-    begin
-    end;
-
-    /// <summary>
-    /// Event raised by OnGetPostingPreviewDocumentNos.
-    /// </summary>
-    /// <param name="PreviewDocumentNos"></param>
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer used.', '27.0')]
-    local procedure OnGetPostingPreviewDocumentNos(var PreviewDocumentNos: List of [Code[20]])
-    begin
-    end;
-#endif
     /// <summary>
     /// Event raised by OnPostInvoiceOnAfterPostLines.
     /// </summary>
