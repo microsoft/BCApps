@@ -1378,6 +1378,7 @@ codeunit 9510 "Document Service Management"
         UploadedFileName: Text;
         InStr: InStream;
         OutStr: OutStream;
+        SaveFailed: Boolean;
     begin
         if Handled then
             exit;
@@ -1409,10 +1410,12 @@ codeunit 9510 "Document Service Management"
 
         if not GuiAllowed() then
             TrySaveStreamFromRec(InStr, DocumentSharing.Name, Enum::"Doc. Sharing Conflict Behavior"::Fail, TempDocumentServiceRec, DocumentUri, UploadedFileName)
-        else
-            if not TrySaveStreamFromRec(InStr, DocumentSharing.Name, Enum::"Doc. Sharing Conflict Behavior"::Fail, TempDocumentServiceRec, DocumentUri, UploadedFileName)
-                or (DocumentUri = '')
-            then
+        else begin
+            SaveFailed := not TrySaveStreamFromRec(InStr, DocumentSharing.Name, Enum::"Doc. Sharing Conflict Behavior"::Fail, TempDocumentServiceRec, DocumentUri, UploadedFileName);
+            if SaveFailed and not DocumentService.LastError.IsConflict then
+                CheckError();
+
+            if SaveFailed or (DocumentUri = '') then
                 // Use given behavior if not behavior "Ask"
                 if DocumentSharing."Conflict Behavior" <> Enum::"Doc. Sharing Conflict Behavior"::Ask then
                     TrySaveStreamFromRec(InStr, DocumentSharing.Name, DocumentSharing."Conflict Behavior", TempDocumentServiceRec, DocumentUri, UploadedFileName)
@@ -1430,6 +1433,7 @@ codeunit 9510 "Document Service Management"
                         3: // Keep both
                             TrySaveStreamFromRec(InStr, DocumentSharing.Name, Enum::"Doc. Sharing Conflict Behavior"::Rename, TempDocumentServiceRec, DocumentUri, UploadedFileName);
                     end;
+        end;
 
         DocumentSharing.Name := CopyStr(UploadedFileName, 1, MaxStrLen(DocumentSharing.Name));
         DocumentSharing.DocumentUri := CopyStr(DocumentUri, 1, MaxStrLen(DocumentSharing.DocumentUri));
