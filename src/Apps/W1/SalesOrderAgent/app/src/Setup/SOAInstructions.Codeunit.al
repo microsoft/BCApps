@@ -64,7 +64,8 @@ codeunit 4598 "SOA Instructions"
             BusinessSkill.Status := BusinessSkill.Status::Active;
             BusinessSkill.Modify(true);
         end else begin
-            BusinessSkillBuilder.Initialize(SkillTitle, SkillText);
+            BusinessSkillBuilder.Initialize(CopyStr(ResourceName, 1, MaxStrLen(BusinessSkill."Skill ID")), SkillTitle, SkillText);
+            BusinessSkillBuilder.SetReadOnly(false);
             BusinessSkillBuilder.SetDescription(SkillDescription);
             BusinessSkillBuilder.SetActive(true);
             BusinessSkillBuilder.AddCompany(CompanyName());
