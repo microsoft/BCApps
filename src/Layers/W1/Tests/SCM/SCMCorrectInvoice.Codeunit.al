@@ -1539,9 +1539,7 @@ codeunit 137019 "SCM Correct Invoice"
         BlanketSalesLine.TestField("Qty. Invoiced (Base)", ExpectedQtyBase);
 
         // [THEN] The posted credit memo and inventory entry retain the credited base quantity.
-        SalesCrMemoLine.SetRange("Document No.", PostedCreditMemoNo);
-        SalesCrMemoLine.SetRange(Type, SalesCrMemoLine.Type::Item);
-        SalesCrMemoLine.FindFirst();
+        SalesCrMemoLine.Get(PostedCreditMemoNo, CreditMemoLine."Line No.");
         SalesCrMemoLine.TestField("Quantity (Base)", 80 - ExpectedQtyBase);
         ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Sales Credit Memo");
         ItemLedgerEntry.SetRange("Document No.", PostedCreditMemoNo);
