@@ -1105,7 +1105,7 @@ codeunit 139733 "APIV1 - Attachments E2E"
         EXIT(Id);
     end;
 
-    local procedure GetGLEntryNo(var DocumentRecordRef: RecordRef): Integer
+    local procedure GetGLEntryNo(var DocumentRecordRef: RecordRef): BigInteger
     var
         DummyGLEntry: Record "G/L Entry";
         DataTypeManagement: Codeunit "Data Type Management";
