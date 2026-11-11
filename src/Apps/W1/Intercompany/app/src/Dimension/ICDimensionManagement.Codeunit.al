@@ -481,7 +481,7 @@ codeunit 8408 "IC Dimension Management"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnCopyICDocDimtoICDocDim', '', false, false)]
-    local procedure OnCopyICDocDimtoICDocDim(var Sender: Codeunit DimensionManagement; FromSourceICDocDim: Record "IC Document Dimension"; var ToSourceICDocDim: Record "IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer; var IsHandled: Boolean)
+    local procedure OnCopyICDocDimtoICDocDim(var Sender: Codeunit DimensionManagement; var FromSourceICDocDim: Record "IC Document Dimension"; var ToSourceICDocDim: Record "IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer; var IsHandled: Boolean)
     begin
         if IsHandled then
             exit;
@@ -551,7 +551,7 @@ codeunit 8408 "IC Dimension Management"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::DimensionManagement, 'OnMoveICDocDimtoICDocDim', '', false, false)]
-    local procedure OnMoveICDocDimtoICDocDim(var Sender: Codeunit DimensionManagement; FromSourceICDocDim: Record "IC Document Dimension"; var ToSourceICDocDim: Record "IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer; var IsHandled: Boolean)
+    local procedure OnMoveICDocDimtoICDocDim(var Sender: Codeunit DimensionManagement; var FromSourceICDocDim: Record "IC Document Dimension"; var ToSourceICDocDim: Record "IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer; var IsHandled: Boolean)
     begin
         if IsHandled then
             exit;

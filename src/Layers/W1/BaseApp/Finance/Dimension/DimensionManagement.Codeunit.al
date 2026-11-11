@@ -2029,7 +2029,7 @@ codeunit 408 DimensionManagement
 
     [Obsolete('Compatibility event for the obsolete CopyICDocDimtoICDocDim procedure.', '30.0')]
     [InternalEvent(true, false)]
-    local procedure OnCopyICDocDimtoICDocDim(FromSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; var ToSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer; var IsHandled: Boolean)
+    local procedure OnCopyICDocDimtoICDocDim(var FromSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; var ToSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer; var IsHandled: Boolean)
     begin
     end;
 
@@ -2071,7 +2071,7 @@ codeunit 408 DimensionManagement
 
     [Obsolete('Compatibility event for the obsolete MoveICDocDimtoICDocDim procedure.', '30.0')]
     [InternalEvent(true, false)]
-    local procedure OnMoveICDocDimtoICDocDim(FromSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; var ToSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer; var IsHandled: Boolean)
+    local procedure OnMoveICDocDimtoICDocDim(var FromSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; var ToSourceICDocDim: Record Microsoft.Intercompany.Dimension."IC Document Dimension"; ToTableID: Integer; ToTransactionSource: Integer; var IsHandled: Boolean)
     begin
     end;
 
