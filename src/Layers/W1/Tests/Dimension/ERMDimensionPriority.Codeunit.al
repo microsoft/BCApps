@@ -945,6 +945,196 @@ codeunit 134381 "ERM Dimension Priority"
                 RequisitionLine.TableCaption()));
     end;
 
+    [Test]
+    procedure OrderPlanningComponentDimensionsWithoutPriorities()
+    begin
+        // [SCENARIO 657806] Without priorities, Order Planning components inherit the parent dimensions, just like Refresh.
+        VerifyOrderPlanningComponentDimensions(0, 0, false);
+    end;
+
+    [Test]
+    procedure OrderPlanningComponentDimensionsWithItemPriority()
+    begin
+        // [SCENARIO 657806] Component item dimensions win when the item has higher production-order dimension priority.
+        VerifyOrderPlanningComponentDimensions(1, 0, false);
+    end;
+
+    [Test]
+    procedure OrderPlanningComponentDimensionsWithUnrelatedPriority()
+    begin
+        // [SCENARIO 657806] An unrelated table priority does not override inherited parent dimensions.
+        VerifyOrderPlanningComponentDimensions(0, 1, false);
+    end;
+
+    [Test]
+    procedure OrderPlanningChangedToProductionWithoutPriorities()
+    begin
+        // [SCENARIO 657806] Changing Purchase to Prod. Order uses the active parent dimensions without priorities.
+        VerifyOrderPlanningComponentDimensions(0, 0, true);
+    end;
+
+    [Test]
+    procedure OrderPlanningChangedToProductionWithItemPriority()
+    begin
+        // [SCENARIO 657806] Changing Purchase to Prod. Order respects the component item's dimension priority.
+        VerifyOrderPlanningComponentDimensions(1, 0, true);
+    end;
+
+    [Test]
+    procedure OrderPlanningChangedToProductionWithUnrelatedPriority()
+    begin
+        // [SCENARIO 657806] Changing Purchase to Prod. Order retains parent precedence with an unrelated priority.
+        VerifyOrderPlanningComponentDimensions(0, 1, true);
+    end;
+
+    local procedure VerifyOrderPlanningComponentDimensions(ItemPriority: Integer; CustomerPriority: Integer; ChangeReplenishmentSystem: Boolean)
+    var
+        Dimension: Record Dimension;
+        CompDimensionValue: Record "Dimension Value";
+        ProdDimensionValue: Record "Dimension Value";
+        SalesDimensionValue: Record "Dimension Value";
+        CompOnlyDimensionValue: Record "Dimension Value";
+        DefaultDimension: Record "Default Dimension";
+        SourceCodeSetup: Record "Source Code Setup";
+        ProdItem: Record Item;
+        CompItem: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        RequisitionLine: Record "Requisition Line";
+        StoredRequisitionLine: Record "Requisition Line";
+        PlanningComponent: Record "Planning Component";
+        TempManufacturingUserTemplate: Record "Manufacturing User Template" temporary;
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ExpectedDimensionSetEntry: Record "Dimension Set Entry";
+        ActualDimensionSetEntry: Record "Dimension Set Entry";
+        MakeSupplyOrdersYesNo: Codeunit "Make Supply Orders (Yes/No)";
+        ExpectedDimSetID: Integer;
+        ExpectedParentDimSetID: Integer;
+        ExpectedDimensionValue: Code[20];
+    begin
+        Initialize();
+
+        // [GIVEN] Production-order dimension priorities, or no priorities.
+        SourceCodeSetup.Get();
+        SourceCodeSetup.TestField("Production Order");
+        ClearDefaultDimensionPriorities(SourceCodeSetup."Production Order");
+        if ItemPriority <> 0 then
+            CreateDefaultDimensionPriority(SourceCodeSetup."Production Order", Database::Item, ItemPriority);
+        if CustomerPriority <> 0 then
+            CreateDefaultDimensionPriority(SourceCodeSetup."Production Order", Database::Customer, CustomerPriority);
+
+        // [GIVEN] A finished item and its component have conflicting global dimension values.
+        LibraryDimension.CreateDimension(Dimension);
+        LibraryERM.SetGlobalDimensionCode(1, Dimension.Code);
+        CreateItemWithDefaultDimension(CompItem, CompDimensionValue, Dimension.Code);
+        CreateItemWithDefaultDimension(ProdItem, ProdDimensionValue, Dimension.Code);
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem."No.", 1);
+        ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::"Prod. Order");
+        ProdItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        if ChangeReplenishmentSystem then
+            ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::Purchase);
+        ProdItem.Modify(true);
+
+        // [GIVEN] A component-only default and a sales-line-only dimension must both be retained.
+        LibraryDimension.CreateDimWithDimValue(CompOnlyDimensionValue);
+        LibraryDimension.CreateDefaultDimensionItem(
+            DefaultDimension, CompItem."No.", CompOnlyDimensionValue."Dimension Code", CompOnlyDimensionValue.Code);
+        LibraryDimension.CreateDimWithDimValue(SalesDimensionValue);
+        LibraryERM.SetGlobalDimensionCode(2, SalesDimensionValue."Dimension Code");
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ProdItem."No.", 1);
+        SalesLine.Validate("Shipment Date", CalcDate('<1M>', WorkDate()));
+        SalesLine.Validate(
+            "Dimension Set ID",
+            LibraryDimension.CreateDimSet(SalesLine."Dimension Set ID", SalesDimensionValue."Dimension Code", SalesDimensionValue.Code));
+        SalesLine.Modify(true);
+        ExpectedDimensionValue := ProdDimensionValue.Code;
+        if ItemPriority <> 0 then
+            ExpectedDimensionValue := CompDimensionValue.Code;
+        // [WHEN] Order Planning calculates the sales demand.
+        LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
+        RequisitionLine.SetRange("Worksheet Template Name", '');
+        RequisitionLine.SetRange("Demand Order No.", SalesHeader."No.");
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", ProdItem."No.");
+        RequisitionLine.FindFirst();
+        if ChangeReplenishmentSystem then begin
+            // [WHEN] Components are calculated while the saved parent still has Purchase replenishment.
+            RequisitionLine.TestField("Replenishment System", RequisitionLine."Replenishment System"::Purchase);
+            StoredRequisitionLine.Get(
+                RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name", RequisitionLine."Line No.");
+            StoredRequisitionLine.TestField("Replenishment System", StoredRequisitionLine."Replenishment System"::Purchase);
+            RequisitionLine.SetCurrFieldNo(RequisitionLine.FieldNo("Replenishment System"));
+            RequisitionLine.Validate("Replenishment System", RequisitionLine."Replenishment System"::"Prod. Order");
+            RequisitionLine.SetCurrFieldNo(0);
+            RequisitionLine.Modify(true);
+        end;
+        ExpectedParentDimSetID := RequisitionLine."Dimension Set ID";
+        ExpectedDimensionSetEntry.SetRange("Dimension Set ID", SalesLine."Dimension Set ID");
+        ExpectedDimensionSetEntry.FindSet();
+        repeat
+            ActualDimensionSetEntry.Get(ExpectedParentDimSetID, ExpectedDimensionSetEntry."Dimension Code");
+            ActualDimensionSetEntry.TestField("Dimension Value Code", ExpectedDimensionSetEntry."Dimension Value Code");
+        until ExpectedDimensionSetEntry.Next() = 0;
+        // Requisition defaults can add dimensions beyond those inherited from the sales line.
+        ExpectedDimSetID :=
+            LibraryDimension.EditDimSet(ExpectedParentDimSetID, Dimension.Code, ExpectedDimensionValue);
+        ExpectedDimSetID :=
+            LibraryDimension.CreateDimSet(ExpectedDimSetID, CompOnlyDimensionValue."Dimension Code", CompOnlyDimensionValue.Code);
+        PlanningComponent.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
+        PlanningComponent.SetRange("Worksheet Batch Name", RequisitionLine."Journal Batch Name");
+        PlanningComponent.SetRange("Worksheet Line No.", RequisitionLine."Line No.");
+        PlanningComponent.SetRange("Item No.", CompItem."No.");
+        PlanningComponent.FindFirst();
+
+        // [THEN] Planning components follow production-order priorities without dropping non-conflicting dimensions.
+        ExpectedDimensionSetEntry.SetRange("Dimension Set ID", ExpectedDimSetID);
+        ExpectedDimensionSetEntry.FindSet();
+        repeat
+            ActualDimensionSetEntry.Get(PlanningComponent."Dimension Set ID", ExpectedDimensionSetEntry."Dimension Code");
+            ActualDimensionSetEntry.TestField("Dimension Value Code", ExpectedDimensionSetEntry."Dimension Value Code");
+        until ExpectedDimensionSetEntry.Next() = 0;
+        ActualDimensionSetEntry.SetRange("Dimension Set ID", PlanningComponent."Dimension Set ID");
+        ActualDimensionSetEntry.FindSet();
+        repeat
+            ExpectedDimensionSetEntry.Get(ExpectedDimSetID, ActualDimensionSetEntry."Dimension Code");
+        until ActualDimensionSetEntry.Next() = 0;
+        PlanningComponent.TestField("Dimension Set ID", ExpectedDimSetID);
+        PlanningComponent.TestField("Shortcut Dimension 1 Code", ExpectedDimensionValue);
+        PlanningComponent.TestField("Shortcut Dimension 2 Code", SalesDimensionValue.Code);
+
+        // [WHEN] Make Orders creates a firm planned production order for the active line.
+        TempManufacturingUserTemplate."Make Orders" := TempManufacturingUserTemplate."Make Orders"::"The Active Line";
+        TempManufacturingUserTemplate."Create Production Order" := TempManufacturingUserTemplate."Create Production Order"::"Firm Planned";
+        MakeSupplyOrdersYesNo.SetManufUserTemplate(TempManufacturingUserTemplate);
+        MakeSupplyOrdersYesNo.SetBlockForm();
+        Commit();
+        MakeSupplyOrdersYesNo.Run(RequisitionLine);
+
+        // [THEN] The production-order line keeps the sales dimensions, and the component keeps the calculated dimensions.
+        ProdOrderLine.SetRange(Status, ProdOrderLine.Status::"Firm Planned");
+        ProdOrderLine.SetRange("Item No.", ProdItem."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.TestField("Dimension Set ID", ExpectedParentDimSetID);
+        ProductionOrder.Get(ProdOrderLine.Status, ProdOrderLine."Prod. Order No.");
+        FindProdOrderComponent(ProdOrderComponent, ProductionOrder.Status, ProductionOrder."No.", CompItem."No.");
+        ProdOrderComponent.TestField("Dimension Set ID", ExpectedDimSetID);
+        ProdOrderComponent.TestField("Shortcut Dimension 1 Code", ExpectedDimensionValue);
+        ProdOrderComponent.TestField("Shortcut Dimension 2 Code", SalesDimensionValue.Code);
+
+        // [WHEN] Only the component need is refreshed.
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, false, false, true, false);
+
+        // [THEN] Refresh leaves both the dimension set and shortcut dimensions unchanged.
+        FindProdOrderComponent(ProdOrderComponent, ProductionOrder.Status, ProductionOrder."No.", CompItem."No.");
+        ProdOrderComponent.TestField("Dimension Set ID", ExpectedDimSetID);
+        ProdOrderComponent.TestField("Shortcut Dimension 1 Code", ExpectedDimensionValue);
+        ProdOrderComponent.TestField("Shortcut Dimension 2 Code", SalesDimensionValue.Code);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1781,4 +1971,3 @@ codeunit 134381 "ERM Dimension Priority"
         Assert.Fail(StrSubstNo('Message at Step %1 not expected.', Step));
     end;
 }
-
