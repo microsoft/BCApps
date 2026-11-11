@@ -28,7 +28,6 @@ codeunit 134047 "ERM VAT Setup"
         LibraryUtility: Codeunit "Library - Utility";
         VendorNo: Code[20];
         CustomerNo: Code[20];
-        ContactNo: Code[20];
         IsInitialized: Boolean;
         UnexpectedMsg: Label 'Unexpected message dialog: %1';
         ExpectedMessage: Label 'The VAT Registration number is not valid.The first character (T Element) of the number is invalid.Do you still want to save it?';
@@ -431,7 +430,7 @@ codeunit 134047 "ERM VAT Setup"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandlerContact,InvalidCharConfirmHandler')]
+    [HandlerFunctions('MessageHandler,InvalidCharConfirmHandler')]
     [Scope('OnPrem')]
     procedure DuplicateVATOnContact()
     var
@@ -451,15 +450,14 @@ codeunit 134047 "ERM VAT Setup"
         CreateVendorWithCountryVAT(Vendor, CountryRegionCode, VATRegistrationNo);
         CreateCustomerWithCountryVAT(Customer, CountryRegionCode, VATRegistrationNo);
         CreateContactWithCountryVAT(Contact, CountryRegionCode, VATRegistrationNo);
-        ContactNo := Contact."No.";
+        LibraryVariableStorage.Clear();
 
         // Exercise: Create a new Contact and update same Country and VAT Registration No. on Contact.
         CreateContactWithCountryVAT(Contact2, CountryRegionCode, VATRegistrationNo);
 
         // Verify: Verify the message appeared.
-        // ---------------------------------------------------------------------------
-        // Verification done in Message Handler for Contact: MessageHandlerContact.
-        // ---------------------------------------------------------------------------
+        VerifyDuplicateContactMessage(Contact."No.", LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.AssertEmpty();
 
         // Tear Down: Delete Country, Customer, Vendor and Contacts created.
         DeleteCountryRegion(CountryRegionCode);
@@ -1381,6 +1379,12 @@ codeunit 134047 "ERM VAT Setup"
             VATPostingSetup.TestField("Purchase VAT Account", '');
     end;
 
+    local procedure VerifyDuplicateContactMessage(ExpectedContactNo: Code[20]; Message: Text)
+    begin
+        Assert.IsTrue(StrPos(Message, StrSubstNo(MultiContactMsg, '')) = 1, StrSubstNo(UnexpectedMsg, Message));
+        Assert.IsTrue(StrPos(Message, ExpectedContactNo) > 0, StrSubstNo(UnexpectedMsg, Message));
+    end;
+
     local procedure VerifyVATRegistrationOnGeneralJournalLine(GenJournalLine: Record "Gen. Journal Line"; VATRegistrationNo: Text[20])
     begin
         GenJournalLine.Get(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", GenJournalLine."Line No.");
@@ -1509,15 +1513,6 @@ codeunit 134047 "ERM VAT Setup"
 
     [MessageHandler]
     [Scope('OnPrem')]
-    procedure MessageHandlerContact(Msg: Text[1024])
-    begin
-        if StrPos(Msg, StrSubstNo(MultiContactMsg, ContactNo)) = 1 then
-            exit;
-        Assert.IsTrue(StrPos(Msg, StrSubstNo(MultiContactMsg, ContactNo)) = 1, StrSubstNo(UnexpectedMsg, Msg));
-    end;
-
-    [MessageHandler]
-    [Scope('OnPrem')]
     procedure MessageHandlerCustomer(Msg: Text[1024])
     begin
         if StrPos(Msg, StrSubstNo(MultiCustomerMsg, CustomerNo)) = 1 then
@@ -1548,4 +1543,3 @@ codeunit 134047 "ERM VAT Setup"
         VATRegistrationLog.OK().Invoke();
     end;
 }
-

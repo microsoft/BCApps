@@ -371,25 +371,6 @@ codeunit 312 "Cust-Check Cr. Limit"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Serv. Check Credit Limit', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnServiceHeaderCheckOnBeforeShowWarning(var CustCheckCreditLimit: Page "Check Credit Limit")
-    begin
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Check Credit Limit', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnServiceLineCheckOnBeforeShowWarning(var CustCheckCreditLimit: Page "Check Credit Limit")
-    begin
-    end;
-
-    [Obsolete('Moved to codeunit Serv. Check Credit Limit', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnServiceContractHeaderCheckOnBeforeShowWarning(var CustCheckCreditLimit: Page "Check Credit Limit")
-    begin
-    end;
-#endif
 
     /// <summary>
     /// Raised before showing the credit limit warning when converting a blanket order to a sales order.

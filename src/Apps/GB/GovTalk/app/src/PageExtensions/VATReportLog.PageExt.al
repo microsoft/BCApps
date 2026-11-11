@@ -12,31 +12,12 @@ pageextension 10519 "VAT Report Log" extends "VAT Report Log"
     {
         modify("Download Submission Message")
         {
-#if not CLEAN27
-            Visible = DownloadMessage;
-#else
             Visible = true;
-#endif
         }
         modify("Download Response Message")
         {
-#if not CLEAN27
-            Visible = DownloadMessage;
-#else
             Visible = true;
-#endif
         }
     }
 
-#if not CLEAN27
-    trigger OnOpenPage()
-    var
-        GovTalk: Codeunit GovTalk;
-    begin
-        DownloadMessage := GovTalk.IsEnabled();
-    end;
-
-    var
-        DownloadMessage: Boolean;
-#endif
 }

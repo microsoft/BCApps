@@ -43,9 +43,26 @@
 					"value": "\n## **Active Configuration**",
 					"steps": [
 						{
-							"name": "item_availability",
-							"value": "Check item availability for the requested quantities and resolve low-inventory warnings before proceeding."
+							"value": "Use all the item-related identifiers and keywords to search for items by invoking search. Don't proceed before performing a search first.",
+							"steps_include_numbering": "true",
+							"steps": [
+								"{% if page.id == 4410 -%}",
+								"Build the search text for the current item from all available identification and descriptive information. If the request provides an item identifier, always include it exactly as provided together with the item name, features, variants, attributes, and other relevant keywords. For example, for item number \"BK-2048\" described as \"Red Kids Mountain Bicycles\", search for \"BK-2048 red kid mountain bicycle\". Never search by description alone when an item identifier is available.",
+								"Preserve item identifiers exactly as provided, including letters, numbers, hyphens, and other punctuation. Do not correct spelling, change singular or plural forms, or otherwise rewrite an item identifier.",
+								"Use the singular form of descriptive search keywords, for example: use \"bicycle\" instead of \"bicycles\".",
+								"Fix spelling errors only in item names, features, and other descriptive keywords. For example, \"tennsi\" should be corrected to \"tennis\".",
+								"Quantity filter is set to the amount requested in the specified unit of measure in the request for the current item. Important: If the quantity is not specified in the request, default it to 1. Otherwise, **do NOT convert or modify** the requested quantities — use them exactly as provided in the request.",
+								"Set the Date Filter from the customer's request only when they explicitly request delivery on or by a specific date for the current item that is not in the past. Use that requested delivery date and consider the entire period before it, including dates before today. Do not use or infer a delivery date from a document date, order date, issue date, creation date, or any other date that does not explicitly state when the customer wants the item delivered. If several requested delivery dates are provided for the current item, ignore past dates and use the furthest date in the future. When setting the Date Filter, use the standard date filter without single quotes.",
+								"If the customer does not explicitly request a delivery date for the current item, or all requested delivery dates are in the past, use the page's default availability period. The Date Filter may be blank or show a system-generated availability-period range; both are valid. If the filter was set for a different item's requested delivery date, clear it once before searching the current item. The page may replace a blank or successfully cleared filter with its availability-period range. Accept that result and continue with the search and normal item-result handling, including when no items match. Do not repeatedly clear or recheck the Date Filter, try alternative filter syntax, or request assistance solely because it is not blank. This internal availability period is not a customer-requested delivery date; do not copy it into the sales quote's Requested Delivery Date.",
+								"UOM filter is set to requested unit of measurement or packaging/grouping method code for the current item.",
+								"Customer No. is set to the designated customer number used for calculating prices and discounts. If not empty, **always** use in search. Do not modify this value under any circumstances.",
+								"Contact No. is set to the designated contact number used for calculating prices and discounts. If not empty, **always** use in search. Do not modify this value under any circumstances.",
+								"Location filter is set to the designated location code used for calculating availability. If not empty or **is equal to two single quotes**, **always** use in search. Do not modify this value under any circumstances.",
+								"Do NOT include quantity, date and unit of measure in search text, but use the dedicated filter fields instead.",
+								"Always perform the search as the final action for the current item, after setting the Quantity filter and UOM filter and handling the Date Filter as instructed above. Before searching, confirm that the Quantity filter uses the requested quantity or its instructed default, and explicitly set the UOM filter to blank when no unit is specified. When no delivery date or only past delivery dates were requested, a blank Date Filter or the page's default availability-period range satisfies the date requirement; do not require an explicitly set or persistently blank Date Filter."
+							]
 						},
+						"{% endif -%}",
 						{
 							"name": "item_availability_off",
 							"value": "Search for requested items without evaluating stock availability. Ignore stock quantities, availability levels, earliest shipment dates, and inventory warnings; do not reject returned items or request assistance because of stock. Missing items and unresolved variants still require handling."

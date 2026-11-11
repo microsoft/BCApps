@@ -226,15 +226,6 @@ codeunit 10758 "SII Scheme Code Mgt."
         until SalesLine.Next() = 0;
     end;
 
-#if not CLEAN27
-    [Obsolete('moved to codeunit Serv. SII Management', '27.0')]
-    procedure UpdateServiceSpecialSchemeCodeInSalesHeader(ServiceHeader: Record Microsoft.Service.Document."Service Header"; xServiceHeader: Record Microsoft.Service.Document."Service Header")
-    var
-        ServSIIManagement: Codeunit "Serv. SII Management";
-    begin
-        ServSIImanagement.UpdateServiceSpecialSchemeCodeInSalesHeader(ServiceHeader, xServiceHeader);
-    end;
-#endif
 
     procedure UpdateSalesSpecialSchemeCodeInSalesLine(var SalesLine: Record "Sales Line")
     var
@@ -266,15 +257,6 @@ codeunit 10758 "SII Scheme Code Mgt."
             "SII Purch. Special Scheme Code".FromInteger(VATPostingSetup."Purch. Special Scheme Code".AsInteger() - 1);
     end;
 
-#if not CLEAN27
-    [Obsolete('moved to codeunit Serv. SII Management', '27.0')]
-    procedure UpdatePurchSpecialSchemeCodeInServiceine(var ServiceLine: Record Microsoft.Service.Document."Service Line")
-    var
-        ServSIIManagement: Codeunit "Serv. SII Management";
-    begin
-        ServSIIManagement.UpdatePurchSpecialSchemeCodeInServiceine(ServiceLine);
-    end;
-#endif
 
     local procedure GetSpecialRegimeDocTypeFromSIIDocUploadState(SIIDocUploadState: Record "SII Doc. Upload State"): Integer
     var
