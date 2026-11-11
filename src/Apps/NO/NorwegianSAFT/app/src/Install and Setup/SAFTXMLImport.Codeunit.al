@@ -55,7 +55,7 @@ codeunit 10671 "SAF-T XML Import"
     begin
         CopyTenantMediaToTempFromMappingSources(TempTenantMedia, SAFTMappingRange.GetSAFTMappingSourceTypeByMappingType(), false);
         if not TempTenantMedia.FindSet() then
-            error(NotPossibleToFindXMLFilesForMappingTypeErr, format(SAFTMappingRange."Mapping Type"));
+            error(NotPossibleToFindXMLFilesForMappingTypeErr, Format(SAFTMappingRange."Mapping Type"));
         repeat
             FillXMLBufferFromMediaResource(TempXMLBuffer, TempTenantMedia);
             Case SAFTMappingRange."Mapping Type" of

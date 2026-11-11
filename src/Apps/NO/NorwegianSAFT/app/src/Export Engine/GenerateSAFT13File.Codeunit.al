@@ -100,7 +100,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         SAFTXMLHelper.Initialize();
         if GuiAllowed() then
             Window.Update(1, GeneratingHeaderTxt);
-        CompanyInformation.get();
+        CompanyInformation.Get();
         SAFTXMLHelper.AddNewXMLNode('Header', '');
         SAFTXMLHelper.AppendXMLNode('AuditFileVersion', '1.30');
         if CompanyInformation."Country/Region Code" <> '' then begin
@@ -110,19 +110,19 @@ codeunit 10692 "Generate SAF-T 1.3 File"
             else
                 SAFTXMLHelper.AppendXMLNode('AuditFileCountry', CountryRegion."ISO Code");
         end;
-        SAFTXMLHelper.AppendXMLNode('AuditFileDateCreated', FormatDate(today()));
+        SAFTXMLHelper.AppendXMLNode('AuditFileDateCreated', FormatDate(Today()));
         SAFTXMLHelper.AppendXMLNode('SoftwareCompanyName', 'Microsoft');
         SAFTXMLHelper.AppendXMLNode('SoftwareID', 'Microsoft Dynamics 365 Business Central');
         SAFTXMLHelper.AppendXMLNode('SoftwareVersion', ApplicationSystemConstants.ApplicationVersion());
         ExportCompanyInfo('Company');
-        GeneralLedgerSetup.get();
+        GeneralLedgerSetup.Get();
         SAFTXMLHelper.AppendXMLNode('DefaultCurrencyCode', GeneralLedgerSetup."LCY Code");
 
         SAFTXMLHelper.AddNewXMLNode('SelectionCriteria', '');
-        SAFTXMLHelper.AppendXMLNode('PeriodStart', format(Date2DMY(SAFTExportHeader."Starting Date", 2)));
-        SAFTXMLHelper.AppendXMLNode('PeriodStartYear', format(Date2DMY(SAFTExportHeader."Starting Date", 3)));
-        SAFTXMLHelper.AppendXMLNode('PeriodEnd', format(Date2DMY(SAFTExportHeader."Ending Date", 2)));
-        SAFTXMLHelper.AppendXMLNode('PeriodEndYear', format(Date2DMY(SAFTExportHeader."Ending Date", 3)));
+        SAFTXMLHelper.AppendXMLNode('PeriodStart', Format(Date2DMY(SAFTExportHeader."Starting Date", 2)));
+        SAFTXMLHelper.AppendXMLNode('PeriodStartYear', Format(Date2DMY(SAFTExportHeader."Starting Date", 3)));
+        SAFTXMLHelper.AppendXMLNode('PeriodEnd', Format(Date2DMY(SAFTExportHeader."Ending Date", 2)));
+        SAFTXMLHelper.AppendXMLNode('PeriodEndYear', Format(Date2DMY(SAFTExportHeader."Ending Date", 3)));
         SAFTXMLHelper.FinalizeXMLNode();
 
         SAFTXMLHelper.AppendXMLNode('HeaderComment', SAFTExportHeader."Header Comment");
@@ -137,7 +137,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         Employee: Record Employee;
     begin
         SAFTXMLHelper.AddNewXMLNode(ParentNodeName, '');
-        CompanyInformation.get();
+        CompanyInformation.Get();
         SAFTXMLHelper.AppendXMLNode('RegistrationNumber', CompanyInformation."VAT Registration No.");
         SAFTXMLHelper.AppendXMLNode('Name', CombineWithSpace(CompanyInformation.Name, CompanyInformation."Name 2"));
         ExportAddress(
@@ -252,7 +252,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         GroupingCategoryValue: Text[500];
         GroupingCodeValue: Text[500];
     begin
-        GLAccount.get(GLAccNo);
+        GLAccount.Get(GLAccNo);
         GroupingCategoryValue := GroupingCategory;
         if SAFTMappingCategory.Get(SAFTMappingCategory."Mapping Type"::"Income Statement", GroupingCategory) then
             if SAFTMappingCategory."Extended No." <> '' then
@@ -344,16 +344,16 @@ codeunit 10692 "Generate SAF-T 1.3 File"
     begin
         CustLedgerEntry.SetCurrentKey("Customer No.", "Posting Date");
         CustLedgerEntry.SetRange("Customer No.", Customer."No.");
-        CustLedgerEntry.SetRange("Posting Date", SAFTExportHeader."Starting Date", closingdate(SAFTExportHeader."Ending Date"));
+        CustLedgerEntry.SetRange("Posting Date", SAFTExportHeader."Starting Date", ClosingDate(SAFTExportHeader."Ending Date"));
         if CustLedgerEntry.IsEmpty() then
             exit;
-        Customer.SetRange("Date Filter", 0D, closingdate(SAFTExportHeader."Starting Date" - 1));
+        Customer.SetRange("Date Filter", 0D, ClosingDate(SAFTExportHeader."Starting Date" - 1));
         Customer.CalcFields("Net Change (LCY)");
         if Customer."Net Change (LCY)" > 0 then
             OpeningDebitBalance := Customer."Net Change (LCY)"
         else
             OpeningCreditBalance := -Customer."Net Change (LCY)";
-        Customer.SetRange("Date Filter", 0D, closingdate(SAFTExportHeader."Ending Date"));
+        Customer.SetRange("Date Filter", 0D, ClosingDate(SAFTExportHeader."Ending Date"));
         Customer.CalcFields("Net Change (LCY)");
         if Customer."Net Change (LCY)" > 0 then
             ClosingDebitBalance := Customer."Net Change (LCY)"
@@ -378,7 +378,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
                     CustomerBankAccount."SWIFT Code", CustomerBankAccount."Currency Code", '');
             until CustomerBankAccount.Next() = 0;
         SAFTXMLHelper.AppendXMLNode('CustomerID', Customer."No.");
-        CustomerPostingGroup.get(customer."Customer Posting Group");
+        CustomerPostingGroup.Get(customer."Customer Posting Group");
         ExportBalanceAccount(CustomerPostingGroup."Receivables Account", OpeningDebitBalance, OpeningCreditBalance, ClosingDebitBalance, ClosingCreditBalance);
         ExportPartyInfo(Database::Customer, Customer."No.", Customer."Currency Code", Customer."Payment Terms Code");
         SAFTXMLHelper.FinalizeXMLNode();
@@ -423,16 +423,16 @@ codeunit 10692 "Generate SAF-T 1.3 File"
     begin
         VendorLedgerEntry.SetCurrentKey("Vendor No.", "Posting Date");
         VendorLedgerEntry.SetRange("Vendor No.", Vendor."No.");
-        VendorLedgerEntry.SetRange("Posting Date", SAFTExportHeader."Starting Date", closingdate(SAFTExportHeader."Ending Date"));
+        VendorLedgerEntry.SetRange("Posting Date", SAFTExportHeader."Starting Date", ClosingDate(SAFTExportHeader."Ending Date"));
         if VendorLedgerEntry.IsEmpty() then
             exit;
-        Vendor.SetRange("Date Filter", 0D, closingdate(SAFTExportHeader."Starting Date" - 1));
+        Vendor.SetRange("Date Filter", 0D, ClosingDate(SAFTExportHeader."Starting Date" - 1));
         Vendor.CalcFields("Net Change (LCY)");
         if Vendor."Net Change (LCY)" > 0 then
             OpeningCreditBalance := Vendor."Net Change (LCY)"
         else
             OpeningDebitBalance := -Vendor."Net Change (LCY)";
-        Vendor.SetRange("Date Filter", 0D, closingdate(SAFTExportHeader."Ending Date"));
+        Vendor.SetRange("Date Filter", 0D, ClosingDate(SAFTExportHeader."Ending Date"));
         Vendor.CalcFields("Net Change (LCY)");
         if Vendor."Net Change (LCY)" > 0 then
             ClosingCreditBalance := Vendor."Net Change (LCY)"
@@ -771,7 +771,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
             end;
             GetFCYData(CurrencyCode, ExchangeRate, EntryAmount, EntryAmountLCY, SAFTExportHeader, GLEntry);
             SAFTXMLHelper.AddNewXMLNode('Line', '');
-            SAFTXMLHelper.AppendXMLNode('RecordID', format(GLEntry."Entry No."));
+            SAFTXMLHelper.AppendXMLNode('RecordID', Format(GLEntry."Entry No."));
             SAFTXMLHelper.AppendXMLNode('AccountID', GLEntry."G/L Account No.");
             CopyDimeSetIDToDimIDBuffer(TempDimIDBuffer, GLEntry."Dimension Set ID");
             ExportAnalysisInfo(TempDimIDBuffer);
@@ -824,8 +824,8 @@ codeunit 10692 "Generate SAF-T 1.3 File"
     begin
         SAFTXMLHelper.AddNewXMLNode('Transaction', '');
         SAFTXMLHelper.AppendXMLNode('TransactionID', TransactionID);
-        SAFTXMLHelper.AppendXMLNode('Period', format(Date2DMY(GLEntry."Posting Date", 2)));
-        SAFTXMLHelper.AppendXMLNode('PeriodYear', format(Date2DMY(GLEntry."Posting Date", 3)));
+        SAFTXMLHelper.AppendXMLNode('Period', Format(Date2DMY(GLEntry."Posting Date", 2)));
+        SAFTXMLHelper.AppendXMLNode('PeriodYear', Format(Date2DMY(GLEntry."Posting Date", 3)));
         SAFTXMLHelper.AppendXMLNode('TransactionDate', FormatDate(GLEntry."Document Date"));
         SAFTXMLHelper.AppendXMLNode('SourceID', GetSAFTMiddle1Text(GLEntry."User ID"));
         if GLEntry."Document Type" = GLEntry."Document Type"::" " then
@@ -855,7 +855,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         if not (VATEntry.Type in [VATEntry.Type::Sale, VATEntry.Type::Purchase]) then
             exit;
 
-        VATPostingSetup.get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
+        VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
         SAFTXMLHelper.AddNewXMLNode('TaxInformation', '');
         SAFTXMLHelper.AppendXMLNode('TaxType', 'MVA');
         if VATEntry.Type = VATEntry.Type::Sale then
@@ -960,11 +960,11 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         if PaymentTermsCode = '' then
             exit;
 
-        PaymentTerms.get(PaymentTermsCode);
+        PaymentTerms.Get(PaymentTermsCode);
         SAFTXMLHelper.AddNewXMLNode('PaymentTerms', '');
-        SAFTXMLHelper.AppendXMLNode('Days', format(CalcDate(PaymentTerms."Due Date Calculation", WorkDate()) - WorkDate()));
-        if format(PaymentTerms."Discount Date Calculation") <> '' then
-            SAFTXMLHelper.AppendXMLNode('CashDiscountDays', format(CalcDate(PaymentTerms."Discount Date Calculation", WorkDate()) - WorkDate()));
+        SAFTXMLHelper.AppendXMLNode('Days', Format(CalcDate(PaymentTerms."Due Date Calculation", WorkDate()) - WorkDate()));
+        if Format(PaymentTerms."Discount Date Calculation") <> '' then
+            SAFTXMLHelper.AppendXMLNode('CashDiscountDays', Format(CalcDate(PaymentTerms."Discount Date Calculation", WorkDate()) - WorkDate()));
         SAFTXMLHelper.AppendXMLNode('CashDiscountRate', FormatAmount(PaymentTerms."Discount %"));
         SAFTXMLHelper.FinalizeXMLNode();
     end;
@@ -1021,7 +1021,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         TempDimIDBuffer.DeleteAll();
         if DefaultDimension.FindSet() then
             repeat
-                Dimension.get(DefaultDimension."Dimension Code");
+                Dimension.Get(DefaultDimension."Dimension Code");
                 if Dimension."Export to SAF-T" then begin
                     TempDimIDBuffer."Parent ID" += 1;
                     TempDimIDBuffer."Dimension Code" := Dimension."SAF-T Analysis Type";
@@ -1131,12 +1131,12 @@ codeunit 10692 "Generate SAF-T 1.3 File"
 
     local procedure FormatDate(DateToFormat: Date): Text
     begin
-        exit(format(DateToFormat, 0, 9));
+        exit(Format(DateToFormat, 0, 9));
     end;
 
     local procedure FormatAmount(AmountToFormat: Decimal): Text
     begin
-        exit(format(AmountToFormat, 0, 9))
+        exit(Format(AmountToFormat, 0, 9))
     end;
 
     local procedure GetSAFTShortText(InputText: Text): Text

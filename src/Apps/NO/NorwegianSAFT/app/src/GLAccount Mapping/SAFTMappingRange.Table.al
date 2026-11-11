@@ -91,7 +91,7 @@ table 10676 "SAF-T Mapping Range"
                     "Range Type" := "Range Type"::None
                 else begin
                     "Range Type" := "Range Type"::"Accounting Period";
-                    AccountingPeriod.get("Accounting Period");
+                    AccountingPeriod.Get("Accounting Period");
                     "Starting Date" := AccountingPeriod."Starting Date";
                     "Ending Date" := AccountingPeriod.GetFiscalYearEndDate("Starting Date");
                     if "Ending Date" = 0D then

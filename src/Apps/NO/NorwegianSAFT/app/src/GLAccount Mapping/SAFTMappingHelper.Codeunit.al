@@ -192,7 +192,7 @@ codeunit 10672 "SAF-T Mapping Helper"
     begin
         if MappingRangeCode = '' then
             exit;
-        if not SAFTMappingRange.get(MappingRangeCode) then
+        if not SAFTMappingRange.Get(MappingRangeCode) then
             exit;
         SAFTGLAccountMapping.SetRange("Mapping Range Code", SAFTMappingRange.Code);
         if SAFTGLAccountMapping.FindSet() then
