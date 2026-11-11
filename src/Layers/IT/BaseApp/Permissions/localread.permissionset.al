@@ -19,7 +19,7 @@ using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Setup;
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Manufacturing.Document;
 #endif
 using Microsoft.Purchases.Vendor;
@@ -73,9 +73,6 @@ permissionset 1002 "LOCAL READ"
                   tabledata "Lifo Band" = R,
                   tabledata "Lifo Category" = R,
                   tabledata "Payment Lines" = R,
-#if not CLEAN27
-                  tabledata "Periodic Settlement VAT Entry" = R,
-#endif
                   tabledata "Periodic VAT Settlement Entry" = R,
                   tabledata "Posted Payment Lines" = R,
                   tabledata "Posted Vendor Bill Header" = R,
@@ -84,7 +81,7 @@ permissionset 1002 "LOCAL READ"
                   tabledata "Reprint Info Fiscal Reports" = R,
                   tabledata "Service Tariff Number" = R,
                   tabledata "Spesometro Appointment" = R,
-#if not CLEAN27
+#if not CLEAN28
                   tabledata "Subcontractor Prices" = R,
 #endif
                   tabledata "Tmp Withholding Contribution" = R,

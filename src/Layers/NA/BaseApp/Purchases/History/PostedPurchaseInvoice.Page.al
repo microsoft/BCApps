@@ -713,27 +713,6 @@ page 138 "Posted Purchase Invoice"
             {
                 Caption = '&Invoice';
                 Image = Invoice;
-#if not CLEAN27
-                action(Statistics)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Statistics';
-                    Image = Statistics;
-                    ShortCutKey = 'F7';
-                    ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-                    ObsoleteReason = 'The statistics action will be replaced with the PurchaseInvoiceStatistics and PurchaseInvoiceStats actions. The new actions use RunObject and do not run the action trigger. Use a page extension to modify the behaviour.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-
-                    trigger OnAction()
-                    begin
-                        if Rec."Tax Area Code" = '' then
-                            PAGE.RunModal(PAGE::"Purchase Invoice Statistics", Rec, Rec."No.")
-                        else
-                            PAGE.RunModal(PAGE::"Purchase Invoice Stats.", Rec, Rec."No.");
-                    end;
-                }
-#endif
                 action(PurchaseInvoiceStatistics)
                 {
                     ApplicationArea = Basic, Suite;
@@ -741,11 +720,7 @@ page 138 "Posted Purchase Invoice"
                     Image = Statistics;
                     ShortCutKey = 'F7';
                     ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-#if CLEAN27
                     Visible = not PurchaseInvoiceStatsVisible;
-#else
-                    Visible = false;
-#endif
                     RunObject = PAGE "Purchase Invoice Statistics";
                     RunPageOnRec = true;
                 }
@@ -756,11 +731,7 @@ page 138 "Posted Purchase Invoice"
                     Image = Statistics;
                     ShortCutKey = 'F7';
                     ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-#if CLEAN27
                     Visible = PurchaseInvoiceStatsVisible;
-#else
-                    Visible = false;
-#endif
                     RunObject = PAGE "Purchase Invoice Stats.";
                     RunPageOnRec = true;
                 }
@@ -1106,21 +1077,12 @@ page 138 "Posted Purchase Invoice"
                 actionref(Dimensions_Promoted; Dimensions)
                 {
                 }
-#if not CLEAN27
-                actionref(Statistics_Promoted; Statistics)
-                {
-                    ObsoleteReason = 'The statistics action will be replaced with the PurchaseInvoiceStatistics and PurchaseInvoiceStats actions. The new actions use RunObject and do not run the action trigger. Use a page extension to modify the behaviour.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#else
                 actionref(PurchaseInvoiceStatistics_Promoted; PurchaseInvoiceStatistics)
                 {
                 }
                 actionref(PurchaseInvoiceStats_Promoted; PurchaseInvoiceStats)
                 {
                 }
-#endif
                 actionref(DocAttach_Promoted; DocAttach)
                 {
                 }

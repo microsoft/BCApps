@@ -407,6 +407,7 @@ table 7504 "Item Attribute Value Selection"
         if IsNotBlankDecimal(ItemAttributeValueSelection.Value) then begin
             Evaluate(ValDecimal, ItemAttributeValueSelection.Value);
             ItemAttributeValue.SetRange("Numeric Value", ValDecimal);
+            ItemAttributeValue.SetFilter(Value, '<>%1', '');
         end else
             if IsNotBlankDate() then begin
                 Evaluate(ValDate, ItemAttributeValueSelection.Value);
@@ -522,4 +523,3 @@ table 7504 "Item Attribute Value Selection"
     begin
     end;
 }
-
