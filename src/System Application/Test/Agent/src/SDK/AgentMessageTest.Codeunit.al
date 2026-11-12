@@ -1330,6 +1330,29 @@ codeunit 133963 "Agent Message Test"
     end;
 
     [Test]
+    procedure SanitizeMessagePreservesBasicFormatting()
+    var
+        AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
+        Body: Text;
+    begin
+        Body := '<p style="color:red" onclick="alert()">Hello <b>world</b><br>4 &lt; 5</p>';
+
+        Assert.AreEqual('<p>Hello <b>world</b><br>4 &lt; 5</p>', AgentTaskMsgBuilderImpl.SanitizeMessage(Body), 'Agent messages must retain basic formatting and encoded text without styling or event handlers.');
+    end;
+
+    [Test]
+    procedure SanitizeMessageRemovesMathmlIntegrationPoints()
+    var
+        AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
+        Body: Text;
+    begin
+        Body := '<p>Safe</p><math><annotation-xml encoding="text/html"><title><a encoding="</title><img src=x onerror=alert()>"></annotation-xml></math>';
+
+        Assert.AreEqual('<p>Safe</p>', AgentTaskMsgBuilderImpl.SanitizeMessage(Body), 'Foreign HTML integration points and their contents must not survive agent message sanitization.');
+        Assert.AreEqual('<p>Safe</p>', AgentTaskMsgBuilderImpl.SanitizeMessage(Body.Replace('text/html', 'application/xhtml+xml')), 'The XHTML encoding must receive the same sanitization policy.');
+    end;
+
+    [Test]
     procedure ContentTypeFromFilenameForKnownExtensions()
     var
         AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";

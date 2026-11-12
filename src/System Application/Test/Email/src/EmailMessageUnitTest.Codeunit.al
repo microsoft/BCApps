@@ -79,6 +79,68 @@ codeunit 134689 "Email Message Unit Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CreateMessageWithSanitizationPreservesBasicFormatting()
+    var
+        Message: Codeunit "Email Message";
+    begin
+        PermissionsMock.Set('Email Edit');
+
+        Message.Create('recipient@test.com', 'Test subject', '<p style="color:red" onclick="alert()">Hello <b>world</b><br>4 &lt; 5</p>', true, true);
+
+        Assert.AreEqual('<p>Hello <b>world</b><br>4 &lt; 5</p>', Message.GetBody(), 'Sanitization must preserve basic formatting and encoded text but remove styling and event handlers.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CreateMessageWithSanitizationRemovesMathmlIntegrationPoints()
+    var
+        Message: Codeunit "Email Message";
+        Body: Text;
+    begin
+        PermissionsMock.Set('Email Edit');
+        Body := '<p>Safe</p><math><annotation-xml encoding="text/html"><title><a encoding="</title><img src=x onerror=alert()>"></annotation-xml></math>';
+
+        Message.Create('recipient@test.com', 'Test subject', Body, true, true);
+        Assert.AreEqual('<p>Safe</p>', Message.GetBody(), 'Foreign HTML integration points and their contents must not survive email sanitization.');
+
+        Body := Body.Replace('text/html', 'application/xhtml+xml');
+        Message.Create('recipient@test.com', 'Test subject', Body, true, true);
+        Assert.AreEqual('<p>Safe</p>', Message.GetBody(), 'The XHTML encoding must receive the same sanitization policy.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CreatePlainTextMessageDoesNotApplyHtmlSanitization()
+    var
+        Message: Codeunit "Email Message";
+        Body: Text;
+    begin
+        PermissionsMock.Set('Email Edit');
+        Body := '<p>Literal text</p> & <b>more text</b>';
+
+        Message.Create('recipient@test.com', 'Test subject', Body, false, true);
+
+        Assert.AreEqual(Body, Message.GetBody(), 'The sanitization option must not alter a plain-text message.');
+        Assert.IsFalse(Message.IsBodyHTMLFormatted(), 'The message must remain plain text.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CreateHtmlMessageCanKeepSanitizationDisabled()
+    var
+        Message: Codeunit "Email Message";
+        Body: Text;
+    begin
+        PermissionsMock.Set('Email Edit');
+        Body := '<p style="color:red">Formatted text</p>';
+
+        Message.Create('recipient@test.com', 'Test subject', Body, true, false);
+
+        Assert.AreEqual(Body, Message.GetBody(), 'The dependency upgrade must not implicitly enable the optional sanitizer.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure CreateMessageWithCCAndBCCTest()
     var
         Message: Codeunit "Email Message";
