@@ -3,5 +3,6 @@
   <AITSuite Code="MT_HARMS" Description="Marketing Text - Harms Tests " Dataset="MT_Harms_Formal_Paragraph" TestRunnerId="130450">
     <Line CodeunitID="133553" Description="Harms - Formal / Paragraph" Dataset="MT_Harms_Formal_Paragraph" />
     <Line CodeunitID="133553" Description="UPIA - Formal / Paragraph" Dataset="MT_UPIA_Formal_Paragraph" />
+    <Line CodeunitID="133553" Description="XPIA - Formal / Paragraph" Dataset="MT_XPIA_Formal_Paragraph" />
   </AITSuite>
 </Root>
