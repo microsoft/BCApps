@@ -44,14 +44,11 @@ The agent task is created with direct information about its source, the agent us
 Backlog to resolve in dedicated efforts. Currently acknowledged gaps:
 
 - Email sourcing: V1s sourcing of tasks is done via the E-Document framework. The plan is to bring the monitoring to this app for v2, inline with what SOA does (with the behavior that we have in v1). The `KnownSenders` capability should also apply in v2.
-- Purchase credit memos: Recently added functionality for V1. We need to add AI E2E tests (different repository) that measure these scenarios, to have a baseline to compare against with V2. Instructions for creating Purchase Credit Memos will be required.
+- Purchase credit memos: Recently added functionality for V1. We need to add AI E2E tests (different repository) that measure these scenarios, to have a baseline to compare against with V2. Instructions for creating Purchase Credit Memos will then be required.
 - OCV Customer feedback: V1 showed the button for supplying feedback in the draft page, we need to decide a new place for it that doesn't interfere with regular operations.
 - Billing: V1 billing is based on the draft lines extracted. We still need to define the billing model impact for v2.
-- V1 scenario coverage and making V2 match accuracy
-    - PO matching: 
-    - TtA mapping, history
-    - Harms
-- V1/V2 transition
+- V1 scenario coverage and making V2 match accuracy: We need to ensure that our current E2E AI test suite maps out all the guaranteed behavior of V1, measure for baseline against more robust datasets, and make the changes required for V2 to match it.
+- V1/V2 transition: The story of the coexistence and transition between both versions needs to be spelled out. It is currently available only to internal tenants and for local development.
 
 ## Code in this AL app
 
