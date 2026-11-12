@@ -1813,6 +1813,83 @@ table 98 "General Ledger Setup"
         exit(UseVATFieldRef.Value);
     end;
 
+    procedure CheckVATPaymentDiscountAdjustment()
+    var
+        PaymentDiscountPolicy: Interface "Payment Discount Policy";
+    begin
+        PaymentDiscountPolicy := GetPaymentDiscountPolicy();
+        PaymentDiscountPolicy.CheckVATPaymentDiscountAdjustment(Rec);
+    end;
+
+    procedure CheckPaymentDiscountPosting()
+    var
+        PaymentDiscountPolicy: Interface "Payment Discount Policy";
+    begin
+        PaymentDiscountPolicy := GetPaymentDiscountPolicy();
+        PaymentDiscountPolicy.CheckPaymentDiscountPosting(Rec);
+    end;
+
+    procedure ShouldAdjustVATForPaymentDiscount(): Boolean
+    var
+        PaymentDiscountPolicy: Interface "Payment Discount Policy";
+    begin
+        PaymentDiscountPolicy := GetPaymentDiscountPolicy();
+        exit(PaymentDiscountPolicy.ShouldAdjustVATForPaymentDiscount(Rec));
+    end;
+
+    procedure ShouldCalculatePaymentDiscountOnLines(): Boolean
+    var
+        PaymentDiscountPolicy: Interface "Payment Discount Policy";
+    begin
+        PaymentDiscountPolicy := GetPaymentDiscountPolicy();
+        exit(PaymentDiscountPolicy.ShouldCalculatePaymentDiscountOnLines(Rec));
+    end;
+
+    procedure CalculateLineAmountForVAT(LineAmount: Decimal; PaymentDiscountAmount: Decimal): Decimal
+    var
+        PaymentDiscountPolicy: Interface "Payment Discount Policy";
+    begin
+        PaymentDiscountPolicy := GetPaymentDiscountPolicy();
+        exit(PaymentDiscountPolicy.CalculateLineAmountForVAT(Rec, LineAmount, PaymentDiscountAmount));
+    end;
+
+    procedure CalculateInvoiceDiscount(LineAmount: Decimal; LineDiscountAmount: Decimal; DiscountPercent: Decimal; RoundingPrecision: Decimal; var Remainder: Decimal): Decimal
+    var
+        PaymentDiscountPolicy: Interface "Payment Discount Policy";
+    begin
+        PaymentDiscountPolicy := GetPaymentDiscountPolicy();
+        exit(PaymentDiscountPolicy.CalculateInvoiceDiscount(Rec, LineAmount, LineDiscountAmount, DiscountPercent, RoundingPrecision, Remainder));
+    end;
+
+    procedure CalculateLinePaymentDiscount(LineAmount: Decimal; LineDiscountAmount: Decimal; InvoiceDiscountAmount: Decimal; DiscountPercent: Decimal; var Remainder: Decimal): Decimal
+    var
+        PaymentDiscountPolicy: Interface "Payment Discount Policy";
+    begin
+        PaymentDiscountPolicy := GetPaymentDiscountPolicy();
+        exit(PaymentDiscountPolicy.CalculateLinePaymentDiscount(Rec, LineAmount, LineDiscountAmount, InvoiceDiscountAmount, DiscountPercent, Remainder));
+    end;
+
+    procedure CalculatePaymentDiscountBase(GenJournalLine: Record "Gen. Journal Line"; VATAmountLCY: Decimal): Decimal
+    var
+        PaymentDiscountPolicy: Interface "Payment Discount Policy";
+    begin
+        PaymentDiscountPolicy := GetPaymentDiscountPolicy();
+        exit(PaymentDiscountPolicy.CalculatePaymentDiscountBase(Rec, GenJournalLine, VATAmountLCY));
+    end;
+
+    local procedure GetPaymentDiscountPolicy() PaymentDiscountPolicy: Interface "Payment Discount Policy"
+    var
+        DefaultPaymentDiscountPolicy: Codeunit "Payment Discount Policy";
+    begin
+        PaymentDiscountPolicy := DefaultPaymentDiscountPolicy;
+        OnAfterGetPaymentDiscountPolicy(PaymentDiscountPolicy);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetPaymentDiscountPolicy(var PaymentDiscountPolicy: Interface "Payment Discount Policy")
+    begin
+    end;
+
     /// <summary>
     /// Validates that posting dates fall within allowed posting periods defined in general ledger setup.
     /// </summary>

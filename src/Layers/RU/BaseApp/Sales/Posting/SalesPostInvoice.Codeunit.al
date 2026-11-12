@@ -175,8 +175,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         if SalesLine."Deferral Code" <> '' then
             GetAmountsForDeferral(SalesLine, AmtToDefer, AmtToDeferACY, DeferralAccount);
 
-        InvoiceDiscountPosting := SalesSetup."Discount Posting" in
-           [SalesSetup."Discount Posting"::"Invoice Discounts", SalesSetup."Discount Posting"::"All Discounts"];
+        InvoiceDiscountPosting := SalesSetup.ShouldPostInvoiceDiscount();
         SalesPostInvoiceEvents.RunOnPrepareLineOnAfterSetInvoiceDiscountPosting(SalesHeader, SalesLine, InvoiceDiscountPosting);
         if InvoiceDiscountPosting then begin
             IsHandled := false;
@@ -199,8 +198,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
             end;
         end;
 
-        LineDiscountPosting := SalesSetup."Discount Posting" in
-           [SalesSetup."Discount Posting"::"Line Discounts", SalesSetup."Discount Posting"::"All Discounts"];
+        LineDiscountPosting := SalesSetup.ShouldPostLineDiscount();
         SalesPostInvoiceEvents.RunOnPrepareLineOnAfterSetLineDiscountPosting(SalesHeader, SalesLine, LineDiscountPosting);
         if LineDiscountPosting then begin
             IsHandled := false;

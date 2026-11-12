@@ -118,7 +118,7 @@ table 325 "VAT Posting Setup"
 
                 if "Adjust for Payment Discount" then begin
                     GLSetup.Get();
-                    GLSetup.TestField("Adjust for Payment Disc.", true);
+                    GLSetup.CheckVATPaymentDiscountAdjustment();
                 end;
             end;
         }

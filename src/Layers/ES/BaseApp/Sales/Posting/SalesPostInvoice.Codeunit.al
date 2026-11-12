@@ -175,7 +175,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         if SalesLine."Deferral Code" <> '' then
             GetAmountsForDeferral(SalesLine, AmtToDefer, AmtToDeferACY, DeferralAccount);
 
-        InvoiceDiscountPosting := SalesSetup."Post Invoice Discount";
+        InvoiceDiscountPosting := SalesSetup.ShouldPostInvoiceDiscount();
         SalesPostInvoiceEvents.RunOnPrepareLineOnAfterSetInvoiceDiscountPosting(SalesHeader, SalesLine, InvoiceDiscountPosting);
         if InvoiceDiscountPosting then begin
             IsHandled := false;
@@ -198,7 +198,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
             end;
         end;
 
-        LineDiscountPosting := SalesSetup."Post Line Discount";
+        LineDiscountPosting := SalesSetup.ShouldPostLineDiscount();
         SalesPostInvoiceEvents.RunOnPrepareLineOnAfterSetLineDiscountPosting(SalesHeader, SalesLine, LineDiscountPosting);
         if LineDiscountPosting then begin
             IsHandled := false;
@@ -224,7 +224,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
             end;
         end;
 
-        if SalesSetup."Post Payment Discount" then begin
+        if SalesSetup.ShouldPostPaymentDiscount() then begin
             if SalesLine."VAT Calculation Type" = SalesLine."VAT Calculation Type"::"Reverse Charge VAT" then
                 InvoicePostingBuffer.CalcDiscountNoVAT(-SalesLine."Pmt. Discount Amount", -SalesLineACY."Pmt. Discount Amount")
             else

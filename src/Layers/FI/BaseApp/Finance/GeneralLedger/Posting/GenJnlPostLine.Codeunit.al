@@ -2726,6 +2726,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     local procedure CalcPmtDiscPossible(GenJnlLine: Record "Gen. Journal Line"; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer")
     var
         PaymentDiscountDateWithGracePeriod: Date;
+        VATAmountLCY: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -2742,13 +2743,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if (PaymentDiscountDateWithGracePeriod >= CVLedgEntryBuf."Posting Date") or
                (PaymentDiscountDateWithGracePeriod = 0D)
             then begin
-                if GLSetup."Pmt. Disc. Excl. VAT" then begin
-                    if GenJnlLine."Sales/Purch. (LCY)" = 0 then
-                        CVLedgEntryBuf."Original Pmt. Disc. Possible" := (GenJnlLine."Amount (LCY)" + TotalVATAmountOnJnlLines(GenJnlLine)) * GenJnlLine.Amount / GenJnlLine."Amount (LCY)"
-                    else
-                        CVLedgEntryBuf."Original Pmt. Disc. Possible" := GenJnlLine."Sales/Purch. (LCY)" * GenJnlLine.Amount / GenJnlLine."Amount (LCY)"
-                end else
-                    CVLedgEntryBuf."Original Pmt. Disc. Possible" := GenJnlLine.Amount;
+                if GLSetup."Pmt. Disc. Excl. VAT" and (GenJnlLine."Sales/Purch. (LCY)" = 0) then
+                    VATAmountLCY := TotalVATAmountOnJnlLines(GenJnlLine);
+                CVLedgEntryBuf."Original Pmt. Disc. Possible" := GLSetup.CalculatePaymentDiscountBase(GenJnlLine, VATAmountLCY);
                 OnCalcPmtDiscPossibleOnBeforeOriginalPmtDiscPossible(GenJnlLine, CVLedgEntryBuf, AmountRoundingPrecision);
                 CVLedgEntryBuf."Original Pmt. Disc. Possible" :=
                     Round(CVLedgEntryBuf."Original Pmt. Disc. Possible" * GenJnlLine."Payment Discount %" / 100, AmountRoundingPrecision);
@@ -2817,7 +2814,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         else
             PmtTolAddCurr := CalcLCYToAddCurr(PmtTolLCY);
 
-        if not GLSetup."Pmt. Disc. Excl. VAT" and GLSetup."Adjust for Payment Disc." and (PmtTolLCY <> 0) then
+        if GLSetup.ShouldAdjustVATForPaymentDiscount() and (PmtTolLCY <> 0) then
             CalcPmtDiscIfAdjVAT(
                 NewCVLedgEntryBuf, OldCVLedgEntryBuf2, DtldCVLedgEntryBuf, GenJnlLine, PmtTolLCY, PmtTolAddCurr,
                 NextTransactionNo, FirstNewVATEntryNo, DtldCVLedgEntryBuf."Entry Type"::"Payment Tolerance (VAT Excl.)");
@@ -2886,7 +2883,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 NewCVLedgEntryBuf, OldCVLedgEntryBuf, OldCVLedgEntryBuf2, DtldCVLedgEntryBuf, GenJnlLine,
                 PmtTolAmtToBeApplied, PmtDisc, PmtDiscLCY, PmtDiscAddCurr);
 
-            if not GLSetup."Pmt. Disc. Excl. VAT" and GLSetup."Adjust for Payment Disc." and (PmtDiscLCY <> 0) then
+            if GLSetup.ShouldAdjustVATForPaymentDiscount() and (PmtDiscLCY <> 0) then
                 CalcPmtDiscIfAdjVAT(
                   NewCVLedgEntryBuf, OldCVLedgEntryBuf2, DtldCVLedgEntryBuf, GenJnlLine, PmtDiscLCY, PmtDiscAddCurr,
                   NextTransactionNo, FirstNewVATEntryNo, DtldCVLedgEntryBuf."Entry Type"::"Payment Discount (VAT Excl.)");
@@ -3121,7 +3118,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         else
             PmtDiscTolAddCurr := CalcLCYToAddCurr(PmtDiscTolLCY);
 
-        if not GLSetup."Pmt. Disc. Excl. VAT" and GLSetup."Adjust for Payment Disc." and (PmtDiscTolLCY <> 0) then
+        if GLSetup.ShouldAdjustVATForPaymentDiscount() and (PmtDiscTolLCY <> 0) then
             CalcPmtDiscIfAdjVAT(
               NewCVLedgEntryBuf, OldCVLedgEntryBuf2, DtldCVLedgEntryBuf, GenJnlLine, PmtDiscTolLCY, PmtDiscTolAddCurr,
               NextTransactionNo, FirstNewVATEntryNo, DtldCVLedgEntryBuf."Entry Type"::"Payment Discount Tolerance (VAT Excl.)");
@@ -6246,7 +6243,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 DetailedCustLedgEntry2.TestField(Unapplied, false);
                 if IsVATAdjustment(DetailedCustLedgEntry2."Entry Type") then
                     UnapplyVATEntries := true;
-                if not GLSetup."Pmt. Disc. Excl. VAT" and GLSetup."Adjust for Payment Disc." then
+                if GLSetup.ShouldAdjustVATForPaymentDiscount() then
                     if IsVATExcluded(DetailedCustLedgEntry2."Entry Type") then
                         UnapplyVATEntries := true;
                 if DetailedCustLedgEntry2."Entry Type" = DetailedCustLedgEntry2."Entry Type"::"Payment Discount Tolerance (VAT Excl.)" then
@@ -6462,7 +6459,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 DetailedVendorLedgEntry2.TestField(Unapplied, false);
                 if IsVATAdjustment(DetailedVendorLedgEntry2."Entry Type") then
                     UnapplyVATEntries := true;
-                if not GLSetup."Pmt. Disc. Excl. VAT" and GLSetup."Adjust for Payment Disc." then
+                if GLSetup.ShouldAdjustVATForPaymentDiscount() then
                     if IsVATExcluded(DetailedVendorLedgEntry2."Entry Type") then
                         UnapplyVATEntries := true;
                 if DetailedVendorLedgEntry2."Entry Type" = DetailedVendorLedgEntry2."Entry Type"::"Payment Discount Tolerance (VAT Excl.)" then

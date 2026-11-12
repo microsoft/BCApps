@@ -104,7 +104,7 @@ tableextension 10790 "Service Header ES" extends "Service Header"
     begin
         GeneralLedgerSetup.GetRecordOnce();
         if ("Document Type" <> "Document Type"::"Credit Memo") or
-           (GeneralLedgerSetup."Payment Discount Type" = GeneralLedgerSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines")
+           GeneralLedgerSetup.ShouldCalculatePaymentDiscountOnLines()
         then
             if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
                 PaymentTerms.Get("Payment Terms Code");
