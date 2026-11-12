@@ -1893,7 +1893,7 @@ codeunit 134897 "ERM Source Currency"
         // [GIVEN] Purchase invoice "PI" for "V" in "C" with a single G/L line of 3.00 FCY excl. VAT (VAT = 0.75).
         CreateGLAccount(GLAccount, Enum::"General Posting Type"::Purchase, GeneralPostingSetup, VATPostingSetup);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
-        PurchaseHeader.Validate("Posting Date", WorkDate() + 1);
+        PurchaseHeader.Validate("Posting Date", WorkDate());
         PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
         PurchaseHeader.Validate("Currency Code", Currency.Code);
         PurchaseHeader.Modify(true);

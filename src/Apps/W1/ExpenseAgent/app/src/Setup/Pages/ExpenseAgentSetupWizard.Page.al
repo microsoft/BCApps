@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using System.Agents;
@@ -418,6 +419,38 @@ page 6991 "Expense Agent Setup Wizard"
                                 ExpenseCategories.RunModal();
                             end;
                         }
+                    }
+                }
+                group(VATSection)
+                {
+                    Caption = 'VAT';
+
+                    field("Default VAT Bus. Posting Group"; Rec."Default VAT Bus. Posting Group")
+                    {
+                        trigger OnValidate()
+                        begin
+                            ConfigUpdated();
+                        end;
+                    }
+                    field("Allow VAT Reclaim"; Rec."Allow VAT Reclaim")
+                    {
+                        trigger OnValidate()
+                        begin
+                            ConfigUpdated();
+                        end;
+                    }
+                    field(VATPostingSetupLink; VATPostingSetupLinkTxt)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Opens the VAT posting setup to review the VAT rates and accounts used for expense processing.';
+
+                        trigger OnDrillDown()
+                        var
+                            VATPostingSetup: Page "VAT Posting Setup";
+                        begin
+                            VATPostingSetup.RunModal();
+                        end;
                     }
                 }
             }
@@ -1090,6 +1123,7 @@ page 6991 "Expense Agent Setup Wizard"
         PaymentMethodsAppliedLinkTxt: Label 'View payment methods including new defaults';
         PostingGroupsLinkTxt: Label 'Preview the default expense posting groups that will be added';
         PostingGroupsAppliedLinkTxt: Label 'View expense posting groups including new defaults';
+        VATPostingSetupLinkTxt: Label 'Configure VAT posting setup';
         CategoriesLinkTxt: Label 'Preview the default expense categories that will be added';
         CategoriesAppliedLinkTxt: Label 'View expense categories including new defaults';
         LocationsLinkTxt: Label 'Preview the default expense locations that will be added';
@@ -1341,7 +1375,10 @@ page 6991 "Expense Agent Setup Wizard"
         if not ExpenseAgentSetup.Get() then
             exit;
         if ApplyNoSeries and not NoSeriesLocked then
-            ExpenseAgentSetup.CreateNoSeriesDefaults();
+            ExpenseAgentSetup.CreateNoSeriesDefaults()
+        else
+            if ExpenseAgentSetup."No. Series Applied" then
+                ExpenseAgentSetup.EnsureExpenseVendorNoSeries();
         if ApplyPaymentMethods and not PaymentMethodsLocked then
             ExpenseAgentSetup.CreatePaymentMethodsDefaults();
         if ApplyPostingGroups and not PostingGroupsLocked then

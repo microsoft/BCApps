@@ -162,13 +162,6 @@ codeunit 1311 "Activities Mgt."
             TotalAmount := CustLedgEntrySales.Sum_Sales_LCY;
     end;
 
-#if not CLEAN27
-    [Obsolete('"Sales This Month" cue field is no longer calculated using cached value. Use CalcSalesThisMonthAmount(CalledFromWebService: Boolean) for live data.', '27.0')]
-    procedure CalcSalesThisMonthAmount(CalledFromWebService: Boolean; UseCachedValue: Boolean) TotalAmount: Decimal
-    begin
-        exit(CalcSalesThisMonthAmount(CalledFromWebService));
-    end;
-#endif
 
     [Scope('OnPrem')]
     procedure SetFilterForCalcSalesThisMonthAmount(var CustLedgerEntry: Record "Cust. Ledger Entry"; CalledFromWebService: Boolean)

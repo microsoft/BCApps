@@ -497,7 +497,7 @@ page 6910 "Expense Report"
                     Image = UserSetup;
                     ToolTip = 'Assign an optional interim approver who approves before the final approver.';
                     Visible = AgentEnabled;
-                    Enabled = Rec.Status = Rec.Status::"Pending Approval";
+                    Enabled = AssignInterimApproverEnabled;
 
                     trigger OnAction()
                     begin
@@ -778,6 +778,7 @@ page 6910 "Expense Report"
         ApprovalActionsEnabled: Boolean;
         AgentEnabled: Boolean;
         ExpenseReportUrl: Text;
+        AssignInterimApproverEnabled: Boolean;
 
     protected var
         SubmitEnabled: Boolean;
@@ -795,6 +796,7 @@ page 6910 "Expense Report"
         ReopenSubmittedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Submitted");
         ApproveEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::Approve);
         ReopenApprovedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Approved");
+        AssignInterimApproverEnabled := ExpenseReportApprovalMgt.CanAssignInterimApprover(Rec);
 
         ExpenseAgentSetup.GetRecordOnce();
         AgentEnabled := ExpenseAgentSetup."Enable Agent";

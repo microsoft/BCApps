@@ -27,7 +27,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ApproverMustBeEnabledInExpenseUserErr: Label '%1 must be enabled to approve or reject expense reports in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         UserIdForApprovalMustNotBeBlankInExpenseUserErr: Label '%1 must not be blank in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         InterimApproverAgentRequiredErr: Label 'An interim approver can only be assigned when the agent is enabled in %1.', Comment = '%1 = Expense Agent Setup table caption';
-        InterimApproverStatusErr: Label 'You can only assign an interim approver while the expense report is %1.', Comment = '%1 = Pending Approval status caption';
+        InterimApproverStatusErr: Label 'You can only assign an interim approver while the expense report is %1 or %2.', Comment = '%1 = Released status caption, %2 = Pending Approval status caption';
         InterimApproverRequiredErr: Label 'Select an interim approver from the available approvers.';
         InterimApproverConflictErr: Label 'The %1 cannot be the same as the %2 (value: %3).', Comment = '%1 = Interim Approver No. caption, %2 = conflicting field caption, %3 = conflicting field value';
         InterimApproverCannotFinalizeErr: Label '%1 %2 cannot give final approval. Final approval must be completed by a different approver.', Comment = '%1 = Interim Approver No. caption, %2 = Interim Approver No.';
@@ -274,8 +274,11 @@ codeunit 6901 "Expense Report Approval Mgmt"
         if not ExpenseAgentSetup."Enable Agent" then
             Error(InterimApproverAgentRequiredErr, ExpenseAgentSetup.TableCaption());
 
-        if ExpenseReportHeader.Status <> ExpenseReportHeader.Status::"Pending Approval" then
-            Error(InterimApproverStatusErr, Format(ExpenseReportHeader.Status::"Pending Approval"));
+        if not CanAssignInterimApprover(ExpenseReportHeader) then
+            Error(
+                InterimApproverStatusErr,
+                Format(ExpenseReportHeader.Status::Released),
+                Format(ExpenseReportHeader.Status::"Pending Approval"));
 
         if NewApproverExpenseUserNo = '' then
             Error(InterimApproverRequiredErr);
@@ -302,6 +305,18 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
         SetInterimApproverInExpenseReport(ExpenseReportHeader, InterimApprover);
         LogInterimApproverAssigned(ExpenseReportHeader, InterimApprover, ActorExpenseUserNo, ActorRole);
+    end;
+
+    /// <summary>
+    /// Returns whether an interim approver can be assigned to the expense report in its current status.
+    /// </summary>
+    /// <param name="ExpenseReportHeader">The expense report to check.</param>
+    /// <returns>True before submission (Released) and while the report is Pending Approval.</returns>
+    internal procedure CanAssignInterimApprover(ExpenseReportHeader: Record "Expense Report Header"): Boolean
+    begin
+        exit(ExpenseReportHeader.Status in [
+            ExpenseReportHeader.Status::Released,
+            ExpenseReportHeader.Status::"Pending Approval"]);
     end;
 
     local procedure CheckInterimApproverConflict(ExpenseReportHeader: Record "Expense Report Header"; InterimApproverExpenseUserNo: Code[20])
@@ -440,8 +455,10 @@ codeunit 6901 "Expense Report Approval Mgmt"
     local procedure SetInterimApproverInExpenseReport(var ExpenseReportHeader: Record "Expense Report Header"; InterimApprover: Record "Expense User")
     begin
         ExpenseReportHeader."Interim Approver No." := InterimApprover."No.";
-        ExpenseReportHeader."Approver Expense User No." := InterimApprover."No.";
-        ExpenseReportHeader."Approver Expense User ID" := InterimApprover."User Id For Approvals";
+        if ExpenseReportHeader.Status = ExpenseReportHeader.Status::"Pending Approval" then begin
+            ExpenseReportHeader."Approver Expense User No." := InterimApprover."No.";
+            ExpenseReportHeader."Approver Expense User ID" := InterimApprover."User Id For Approvals";
+        end;
         ExpenseReportHeader.Modify(true);
     end;
 
@@ -471,7 +488,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         exit(ExpenseUser."Can Approve" and (ExpenseUser."User Id For Approvals" <> ''));
     end;
 
-    // Restarts the two-stage flow at a still-assigned interim on resubmit or reopen (no-op when no interim is set).
+    // Starts the two-stage flow at an assigned interim on submit, resubmit, or reopen (no-op when no interim is set).
     local procedure RouteToInterimIfAssigned(var ExpenseReportHeader: Record "Expense Report Header")
     var
         InterimApprover: Record "Expense User";
@@ -479,8 +496,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         if ExpenseReportHeader."Interim Approver No." = '' then
             exit;
 
-        if ExpenseReportHeader."Interim Approver No." = ExpenseReportHeader."Final Approver No." then
-            exit;
+        CheckInterimApproverConflict(ExpenseReportHeader, ExpenseReportHeader."Interim Approver No.");
 
         InterimApprover.Get(ExpenseReportHeader."Interim Approver No.");
         if not IsApproverEligible(InterimApprover) then
