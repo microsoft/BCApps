@@ -2278,6 +2278,154 @@ codeunit 148346 "Expense Interim Approval Test"
     end;
 
     [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ApproveConfirmHandler')]
+    procedure OwnerMappedToOtherApproverCanSelfApproveReportBelowOwnApprovalLimit()
+    var
+        Owner: Record "Expense User";
+        Approver: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] An approver-capable owner mapped to another approver can approve their own report below their approval limit.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is mapped to unlimited approver "B", and "A" has a released report for 49.99.
+        CreateOwnerMappedToApproverScenario(Owner, Approver, 50);
+        CreateAndReleaseExpenseReportWithAmount(Owner, ExpenseReportHeader, 49.99);
+
+        // [WHEN] "A" submits the expense report.
+        ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report is pending approval with "A" as both the active and final approver.
+        VerifyApprovalRouting(ExpenseReportHeader, Owner, Owner);
+
+        // [WHEN] "A" approves the expense report from the card.
+        ExpenseReportPage.OpenView();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsTrue(ExpenseReportPage.Approve.Visible(), 'The owner must see Approve below their approval limit.');
+        Assert.IsTrue(ExpenseReportPage.Approve.Enabled(), 'The owner must be able to approve below their approval limit.');
+        ExpenseReportPage.Approve.Invoke();
+        ExpenseReportPage.Close();
+
+        // [THEN] The report is approved by "A".
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        ExpenseReportHeader.TestField("Approved/Rejected Exp.User No.", Owner."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ApproveConfirmHandler')]
+    procedure OwnerMappedToOtherApproverCanSelfApproveReportEqualToOwnApprovalLimit()
+    var
+        Owner: Record "Expense User";
+        Approver: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] An approver-capable owner mapped to another approver can approve their own report equal to their approval limit.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is mapped to unlimited approver "B", and "A" has a released report for 50.
+        CreateOwnerMappedToApproverScenario(Owner, Approver, 50);
+        CreateAndReleaseExpenseReportWithAmount(Owner, ExpenseReportHeader, 50);
+
+        // [WHEN] "A" submits the expense report.
+        ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report is pending approval with "A" as both the active and final approver.
+        VerifyApprovalRouting(ExpenseReportHeader, Owner, Owner);
+
+        // [WHEN] "A" approves the expense report from the card.
+        ExpenseReportPage.OpenView();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsTrue(ExpenseReportPage.Approve.Visible(), 'The owner must see Approve at their approval limit.');
+        Assert.IsTrue(ExpenseReportPage.Approve.Enabled(), 'The owner must be able to approve at their approval limit.');
+        ExpenseReportPage.Approve.Invoke();
+        ExpenseReportPage.Close();
+
+        // [THEN] The report is approved by "A".
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        ExpenseReportHeader.TestField("Approved/Rejected Exp.User No.", Owner."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure OwnerMappedToOtherApproverReportAboveOwnApprovalLimitRoutesToMappedApprover()
+    var
+        Owner: Record "Expense User";
+        Approver: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] A report above the owner's approval limit is handed off to the owner's mapped approver.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is mapped to unlimited approver "B", and "A" has a released report for 50.01.
+        CreateOwnerMappedToApproverScenario(Owner, Approver, 50);
+        CreateAndReleaseExpenseReportWithAmount(Owner, ExpenseReportHeader, 50.01);
+
+        // [WHEN] "A" submits the expense report.
+        ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report is pending approval with "B" as both the active and final approver, and "A" does not see Approve.
+        VerifyApprovalRouting(ExpenseReportHeader, Approver, Approver);
+        ExpenseReportPage.OpenView();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsFalse(ExpenseReportPage.Approve.Visible(), 'The owner must not see Approve above their approval limit.');
+        ExpenseReportPage.Close();
+
+        // Preserve the report when the expected validation error rolls back its transaction.
+        Commit();
+
+        // [WHEN] "A" tries to approve the expense report.
+        asserterror ExpenseReportHeader.PerformManualApproved(Owner."No.");
+
+        // [THEN] An error explains that the report exceeds "A"'s approval limit.
+        Assert.ExpectedError(StrSubstNo(ApproverApprovalLimitErr, ExpenseReportHeader."No.", Owner.FieldCaption("Approval Limit (LCY)"), Owner."No."));
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyApprovalRouting(ExpenseReportHeader, Approver, Approver);
+
+        // [WHEN] "B" approves the expense report.
+        ExpenseReportHeader.PerformManualApproved(Approver."No.");
+
+        // [THEN] The report is approved by "B".
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        ExpenseReportHeader.TestField("Approved/Rejected Exp.User No.", Approver."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure OwnerMappedToOtherApproverRoutesReportsByAmountWithoutSetupChanges()
+    var
+        Owner: Record "Expense User";
+        Approver: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        WithinLimitExpenseReportHeader: Record "Expense Report Header";
+        AboveLimitExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] One A-to-B setup routes reports within the owner's limit to the owner and reports above it to the mapped approver.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is mapped to unlimited approver "B".
+        CreateOwnerMappedToApproverScenario(Owner, Approver, 50);
+
+        // [WHEN] "A" submits a report for 50 and then a report for 50.01 without changing the approval setup.
+        CreateAndReleaseExpenseReportWithAmount(Owner, WithinLimitExpenseReportHeader, 50);
+        ExpenseReportApprovalMgmt.Submit(WithinLimitExpenseReportHeader, Owner."No.");
+        CreateAndReleaseExpenseReportWithAmount(Owner, AboveLimitExpenseReportHeader, 50.01);
+        ExpenseReportApprovalMgmt.Submit(AboveLimitExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report for 50 is assigned to "A", the report for 50.01 is assigned to "B", and "A" remains mapped to "B".
+        VerifyApprovalRouting(WithinLimitExpenseReportHeader, Owner, Owner);
+        VerifyApprovalRouting(AboveLimitExpenseReportHeader, Approver, Approver);
+        ExpenseApprovalSetup.Get(Owner."No.");
+        ExpenseApprovalSetup.TestField("Approver No.", Approver."No.");
+    end;
+
+    [Test]
     [HandlerFunctions('ExpensesModalPageHandler')]
     procedure SubmissionExceedingLimitWithCircularApproverChainFails()
     var
@@ -2621,6 +2769,16 @@ codeunit 148346 "Expense Interim Approval Test"
         LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, Owner."No.", Owner."No.");
         CreateApproverExpenseUser(DefaultApprover);
         SetDefaultApprover(DefaultApprover."No.");
+    end;
+
+    local procedure CreateOwnerMappedToApproverScenario(var Owner: Record "Expense User"; var Approver: Record "Expense User"; ApprovalLimit: Decimal)
+    var
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        CreateSelfApprovalScenario(Owner, Approver, ApprovalLimit);
+        ExpenseApprovalSetup.Get(Owner."No.");
+        ExpenseApprovalSetup.Validate("Approver No.", Approver."No.");
+        ExpenseApprovalSetup.Modify(true);
     end;
 
     [ModalPageHandler]
