@@ -8,7 +8,6 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
-using System.TestLibraries.Utilities;
 
 codeunit 140005 "Subc. PO Target Resil. Test"
 {
