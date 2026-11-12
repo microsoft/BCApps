@@ -1471,7 +1471,7 @@ codeunit 137019 "SCM Correct Invoice"
         CreditMemoHeader: Record "Sales Header";
         CreditMemoLine: Record "Sales Line";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
-        ItemLedgerEntry: Record "Item Ledger Entry";
+        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         CopyDocMgt: Codeunit "Copy Document Mgt.";
         PostedInvoiceNo: Code[20];
         PostedCreditMemoNo: Code[20];
@@ -1541,11 +1541,10 @@ codeunit 137019 "SCM Correct Invoice"
         // [THEN] The posted credit memo and inventory entry retain the credited base quantity.
         SalesCrMemoLine.Get(PostedCreditMemoNo, CreditMemoLine."Line No.");
         SalesCrMemoLine.TestField("Quantity (Base)", 80 - ExpectedQtyBase);
-        ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Sales Credit Memo");
-        ItemLedgerEntry.SetRange("Document No.", PostedCreditMemoNo);
-        ItemLedgerEntry.SetRange("Item No.", Item."No.");
-        ItemLedgerEntry.FindFirst();
-        ItemLedgerEntry.TestField(Quantity, 80 - ExpectedQtyBase);
+        SalesCrMemoLine.GetItemLedgEntries(TempItemLedgerEntry, false);
+        TempItemLedgerEntry.FindFirst();
+        TempItemLedgerEntry.TestField("Item No.", Item."No.");
+        TempItemLedgerEntry.TestField(Quantity, 80 - ExpectedQtyBase);
     end;
 
     local procedure CreateAndShipSalesOrderWithItem(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CustomerNo: Code[20]; ItemNo: Code[20]; Qty: Decimal)
