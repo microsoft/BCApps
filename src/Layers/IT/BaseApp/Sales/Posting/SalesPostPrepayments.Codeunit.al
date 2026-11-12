@@ -1832,6 +1832,7 @@ codeunit 442 "Sales-Post Prepayments"
     local procedure InsertSalesInvHeader(var SalesInvHeader: Record "Sales Invoice Header"; SalesHeader: Record "Sales Header"; PostingDescription: Text[100]; GenJnlLineDocNo: Code[20]; SrcCode: Code[10]; PostingNoSeriesCode: Code[20])
     begin
         SalesInvHeader.Init();
+        SalesHeader.CalcFields("Work Description");
         SalesInvHeader.TransferFields(SalesHeader);
         SalesInvHeader."Posting Description" := PostingDescription;
         SalesInvHeader."Payment Terms Code" := SalesHeader."Prepmt. Payment Terms Code";
@@ -1907,6 +1908,7 @@ codeunit 442 "Sales-Post Prepayments"
     local procedure InsertSalesCrMemoHeader(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; SalesHeader: Record "Sales Header"; PostingDescription: Text[100]; GenJnlLineDocNo: Code[20]; SrcCode: Code[10]; PostingNoSeriesCode: Code[20]; CalcPmtDiscOnCrMemos: Boolean)
     begin
         SalesCrMemoHeader.Init();
+        SalesHeader.CalcFields("Work Description");
         SalesCrMemoHeader.TransferFields(SalesHeader);
         SalesCrMemoHeader."Payment Terms Code" := SalesHeader."Prepmt. Payment Terms Code";
         SalesCrMemoHeader."Pmt. Discount Date" := SalesHeader."Prepmt. Pmt. Discount Date";

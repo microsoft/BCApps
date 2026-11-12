@@ -483,6 +483,9 @@ table 5907 "Service Ledger Entry"
         key(Key9; "Service Register No.")
         {
         }
+        key(Key10; "Service Contract No.", "Service Item No. (Serviced)", "Entry Type", "Applies-to Entry No.")
+        {
+        }
     }
 
     fieldgroups

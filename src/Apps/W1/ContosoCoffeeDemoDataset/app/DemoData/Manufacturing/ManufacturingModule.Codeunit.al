@@ -5,6 +5,7 @@
 
 namespace Microsoft.DemoData.Manufacturing;
 
+using Microsoft.DemoData.Common;
 using Microsoft.DemoTool;
 
 codeunit 4783 "Manufacturing Module" implements "Contoso Demo Data Module"
@@ -27,6 +28,7 @@ codeunit 4783 "Manufacturing Module" implements "Contoso Demo Data Module"
         ManufacturingDemoDataSetup: Record "Manufacturing Module Setup";
     begin
         ManufacturingDemoDataSetup.InitRecord();
+        Codeunit.Run(Codeunit::"Create Common GL Account");
         Codeunit.Run(Codeunit::"Create Mfg Cap Unit of Measure");
         Codeunit.Run(Codeunit::"Create Mfg GL Account");
         Codeunit.Run(Codeunit::"Create Mfg No Series");
@@ -43,6 +45,7 @@ codeunit 4783 "Manufacturing Module" implements "Contoso Demo Data Module"
         Codeunit.Run(Codeunit::"Create Mfg Item Category");
         Codeunit.Run(Codeunit::"Create Mfg Availability Setup");
         Codeunit.Run(Codeunit::"Create Mfg Vendor");
+        Codeunit.Run(Codeunit::"Create Mfg Item Template");
         Codeunit.Run(Codeunit::"Create Mfg Item");
         Codeunit.Run(Codeunit::"Create Mfg Capacity");
         Codeunit.Run(Codeunit::"Create Mfg Standard Task");

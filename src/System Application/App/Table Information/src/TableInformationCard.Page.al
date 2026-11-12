@@ -14,10 +14,11 @@ using System.Reflection;
 page 8705 "Table Information Card"
 {
     PageType = Card;
+    UsageCategory = Administration;
     ApplicationArea = All;
-    AdditionalSearchTerms = 'Database,Size,Storage';
+    AdditionalSearchTerms = 'Database,Size,Storage,Index,Key,Table';
     SourceTable = "Table Metadata";
-    Caption = 'Table Data Management - Card';
+    Caption = 'Index Management';
     DeleteAllowed = false;
     InsertAllowed = false;
     ModifyAllowed = false;
@@ -99,8 +100,10 @@ page 8705 "Table Information Card"
 
     local procedure SetBasedOnCompanyName(NewCompanyName: Text)
     var
+        AllObjWithCaption: Record AllObjWithCaption;
         DatabaseIndex: Record "Database Index";
         TableMetadata: Record "Table Metadata";
+        Objects: Page System.Reflection.Objects;
         Recref: RecordRef;
         TableId: Integer;
     begin
@@ -109,11 +112,27 @@ page 8705 "Table Information Card"
         else
             if Evaluate(TableId, Rec.GetFilter("ID")) and (TableId <> 0) then
                 TableId := TableId
-            else
-                exit;
+            else begin
+                // Originally the page was opened via Table Information,
+                // but we want to allow opening the page directly, so we need to prompt the user to select a table.
+
+                AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
+                Objects.SetRecord(AllObjWithCaption);
+                Objects.SetTableView(AllObjWithCaption);
+                Objects.Caption(SelectTableLbl);
+                Objects.LookupMode(true);
+
+                if Objects.RunModal() <> Action::LookupOK then
+                    Error(NoTableSelectedErr);
+
+                Objects.GetRecord(AllObjWithCaption);
+                TableId := AllObjWithCaption."Object ID";
+
+                Rec.SetRange(Id, TableId);
+            end;
 
         if not TableMetadata.Get(TableId) then
-            exit;
+            Error(TableNotFoundErr, TableId);
 
         // By-default show data for the current company.
         if TableMetadata.DataPerCompany and (NewCompanyName <> '') then begin
@@ -146,4 +165,7 @@ page 8705 "Table Information Card"
         SetCompanyName: Text;
         SqlServerRestartTime: DateTime;
         PerCompany: Boolean;
+        NoTableSelectedErr: Label 'No table selected. Please select a table to view its information.';
+        SelectTableLbl: Label 'Select Table';
+        TableNotFoundErr: Label 'Table %1 could not be found.', Comment = '%1 = table ID';
 }

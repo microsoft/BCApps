@@ -38,6 +38,7 @@ page 1824 "Jobs Setup Wizard"
                     Editable = false;
                     ShowCaption = false;
                 }
+
             }
             group(Control98)
             {
@@ -86,7 +87,7 @@ page 1824 "Jobs Setup Wizard"
                         trigger OnValidate()
                         begin
                             if not NoSeries.Get(NoSeriesJob) then begin
-                                Message(ValueNotExistMsg, JobsSetup.FieldName("Job Nos."));
+                                Message(ValueNotExistMsg, JobsSetup.FieldCaption("Job Nos."));
                                 NoSeriesJob := ''
                             end
                         end;
@@ -100,7 +101,7 @@ page 1824 "Jobs Setup Wizard"
                         trigger OnValidate()
                         begin
                             if not NoSeries.Get(NoSeriesResource) then begin
-                                Message(ValueNotExistMsg, ResourcesSetup.FieldName("Resource Nos."));
+                                Message(ValueNotExistMsg, ResourcesSetup.FieldCaption("Resource Nos."));
                                 NoSeriesResource := ''
                             end
                         end;
@@ -114,7 +115,7 @@ page 1824 "Jobs Setup Wizard"
                         trigger OnValidate()
                         begin
                             if not NoSeries.Get(NoSeriesTimeSheet) then begin
-                                Message(ValueNotExistMsg, ResourcesSetup.FieldName("Time Sheet Nos."));
+                                Message(ValueNotExistMsg, ResourcesSetup.FieldCaption("Time Sheet Nos."));
                                 NoSeriesTimeSheet := ''
                             end
                         end;
@@ -128,7 +129,7 @@ page 1824 "Jobs Setup Wizard"
                         trigger OnValidate()
                         begin
                             if not NoSeries.Get(NoSeriesTimeSheet) then begin
-                                Message(ValueNotExistMsg, JobsSetup.FieldName("Job WIP Nos."));
+                                Message(ValueNotExistMsg, JobsSetup.FieldCaption("Job WIP Nos."));
                                 NoSeriesJobWIP := ''
                             end
                         end;
@@ -155,7 +156,7 @@ page 1824 "Jobs Setup Wizard"
                             JobPostingGroup: Record "Job Posting Group";
                         begin
                             if not JobPostingGroup.Get(DefaultJobPostingGroup) then begin
-                                Message(ValueNotExistMsg, JobsSetup.FieldName("Default Job Posting Group"));
+                                Message(ValueNotExistMsg, JobsSetup.FieldCaption("Default Job Posting Group"));
                                 DefaultJobPostingGroup := ''
                             end
                         end;
@@ -177,7 +178,7 @@ page 1824 "Jobs Setup Wizard"
                             JobWIPMethod: Record "Job WIP Method";
                         begin
                             if not JobWIPMethod.Get(DefaultWIPMethod) then begin
-                                Message(ValueNotExistMsg, JobsSetup.FieldName("Default WIP Posting Method"));
+                                Message(ValueNotExistMsg, JobsSetup.FieldCaption("Default WIP Posting Method"));
                                 DefaultWIPMethod := ''
                             end
                         end;

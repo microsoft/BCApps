@@ -1,3 +1,4 @@
+
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -51,6 +52,8 @@ codeunit 6950 "Expense Agent Privacy Subs."
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Location");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Rule Condition");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Rule Header");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Policy");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Policy Evaluation");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Posting Group");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Subcategory");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense VAT Specification");
@@ -78,11 +81,27 @@ codeunit 6950 "Expense Agent Privacy Subs."
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Posted Exp. Rep. Line Item");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Posted Exp. Rep. Line Per Diem");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Posted Exp. Rep. Line VAT Spec");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Posted Exp. Policy Evaluation");
         DataClassificationMgt.SetFieldToPersonal(
             Database::"Posted Exp. Rep. Line VAT Spec", PostedExpRepLineVATSpec.FieldNo("Reclaim Approved By"));
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Tenant Feedback Setting");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA KPI");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA KPI Entry");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::Traveler);
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Mileage Rate Setup");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Vehicle Type");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Alternate Approver");
+
+        // Corporate Card tables
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Statement");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Exception");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card MCC Map");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Merchant Rule");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Provider");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Trans");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Trans Detail");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Settlement");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Settlement Line");
     end;
 }

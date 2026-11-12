@@ -5,6 +5,7 @@
 namespace Microsoft.Bank.Documents;
 
 using Microsoft.Foundation.Attachment;
+using System.Automation;
 
 page 31265 "Iss. Payment Orders CZB"
 {
@@ -104,24 +105,6 @@ page 31265 "Iss. Payment Orders CZB"
     {
         area(Navigation)
         {
-#if not CLEAN27
-            action(Statistics)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Statistics';
-                Image = Statistics;
-                ShortCutKey = 'F7';
-                ToolTip = 'View the statistics on the selected payment order.';
-                ObsoleteReason = 'The statistics action will be replaced with the IssPaymentOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-
-                trigger OnAction()
-                begin
-                    Rec.ShowStatistics();
-                end;
-            }
-#endif
             action(IssPaymentOrderStatistics)
             {
                 ApplicationArea = VAT;
@@ -130,11 +113,7 @@ page 31265 "Iss. Payment Orders CZB"
                 ShortcutKey = 'F7';
                 Enabled = Rec."No." <> '';
                 ToolTip = 'View statistical information for the record.';
-#if CLEAN27
                 Visible = true;
-#else
-                Visible = false;
-#endif
                 RunObject = Page "Iss. Pmt. Order Statistics CZB";
                 RunPageOnRec = true;
             }
@@ -153,6 +132,21 @@ page 31265 "Iss. Payment Orders CZB"
                     RecRef.GetTable(Rec);
                     DocumentAttachmentDetails.OpenForRecRef(RecRef);
                     DocumentAttachmentDetails.RunModal();
+                end;
+            }
+            action(Approvals)
+            {
+                AccessByPermission = TableData "Posted Approval Entry" = R;
+                ApplicationArea = Basic, Suite;
+                Caption = 'Approvals';
+                Image = Approvals;
+                ToolTip = 'View a list of the records that are waiting to be approved. For example, you can see who requested the record to be approved, when it was sent, and when it is due to be approved.';
+
+                trigger OnAction()
+                var
+                    ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                begin
+                    ApprovalsMgmt.ShowPostedApprovalEntries(Rec.RecordId);
                 end;
             }
         }
@@ -242,18 +236,12 @@ page 31265 "Iss. Payment Orders CZB"
             {
                 Caption = 'Payment Order';
 
-#if not CLEAN27
-                actionref(Statistics_Promoted; Statistics)
-                {
-                    ObsoleteReason = 'The statistics action will be replaced with the IssPaymentOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#else
                 actionref(IssPaymentOrderStatistics_Promoted; IssPaymentOrderStatistics)
                 {
                 }
-#endif
+                actionref(Approvals_Promoted; Approvals)
+                {
+                }
             }
         }
     }

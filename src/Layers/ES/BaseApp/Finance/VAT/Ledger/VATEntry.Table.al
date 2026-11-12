@@ -777,6 +777,7 @@ table 254 "VAT Entry"
         field(95; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
+            DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
@@ -1044,6 +1045,18 @@ table 254 "VAT Entry"
         NoTaxableEntry.SetRange("Document No.", "Document No.");
         NoTaxableEntry.SetRange("Posting Date", "Posting Date");
         NoTaxableEntry.ModifyAll("VAT Reporting Date", NewDate);
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"VAT Entry", 'r')]
+    /// <summary>
+    /// Retrieves the next entry number from the VAT Entry table.
+    /// </summary>
+    /// <returns>Next VAT entry number to be used in the system</returns>
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"VAT Entry"));
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"VAT Entry", 'r')]

@@ -29,6 +29,7 @@ codeunit 6253 "Sust. Sales Subscriber"
     [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnAfterAssignItemValues', '', false, false)]
     local procedure OnAfterAssignItemValues(var SalesLine: Record "Sales Line"; Item: Record Item)
     begin
+        SalesLine.Validate("EUDR Relevant", Item."EUDR Relevant");
         if SustainabilitySetup.IsValueChainTrackingEnabled() then
             SalesLine.Validate("Sust. Account No.", Item."Default Sust. Account");
     end;

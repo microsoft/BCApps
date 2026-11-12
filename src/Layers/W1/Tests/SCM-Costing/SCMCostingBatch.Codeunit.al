@@ -52,6 +52,7 @@ codeunit 137402 "SCM Costing Batch"
         SingleLevelMaterialCostMustMatchErr: Label 'Single-Level Material Cost of Item and SKU must match for Item No. %1', Comment = '%1 = Item No.';
         SingleLevelMaterialCostMustNotMatchErr: Label 'Single-Level Material Cost of Item and SKU must not match for Item No. %1', Comment = '%1 = Item No.';
         CostAmountMustNotMatchErr: Label 'Cost Amount for Item and SKU must not match for Item No. %1 in Prod. Order Line.', Comment = '%1 = Item No.';
+        SKUCostShouldNotBeUpdatedErr: Label 'SKU Standard Cost should not be updated when Load SKU Cost on Manufacturing is enabled for Item No. %1', Comment = '%1 = Item No.';
         CurrentSaveValuesId: Integer;
 
     [Test]
@@ -1808,6 +1809,166 @@ codeunit 137402 "SCM Costing Batch"
             StrSubstNo(AmountErr, ProdOrderLine.FieldCaption("Cost Amount"), Item."Standard Cost", ProdOrderLine.TableCaption()));
     end;
 
+    [Test]
+    [HandlerFunctions('ImplementStandardCostChangeHandler,MessageHandler')]
+    procedure SKUCostNotUpdatedWhenLoadSKUCostOnMfgEnabled()
+    var
+        Item: Record Item;
+        ManufacturingSetup: Record "Manufacturing Setup";
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        StandardCostWorksheet: Record "Standard Cost Worksheet";
+        StandardCostWorksheetName: Code[10];
+        OriginalSKUStandardCost: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 637759] SKU Standard Cost is not updated when "Load SKU Cost on Manufacturing" is enabled
+
+        // [GIVEN] Item "I" with Standard Cost
+        CreateItem(Item);
+        Item.Validate("Costing Method", Item."Costing Method"::Standard);
+        Item.Validate("Standard Cost", LibraryRandom.RandIntInRange(100, 200));
+        Item.Modify(true);
+
+        // [GIVEN] Stockkeeping Unit "S" for Item "I"
+        CreateStockkeepingUnit(Item);
+        FindStockkeepingUnit(StockkeepingUnit, Item."No.");
+        OriginalSKUStandardCost := StockkeepingUnit."Standard Cost";
+
+        // [GIVEN] "Load SKU Cost on Manufacturing" is enabled in Manufacturing Setup
+        ManufacturingSetup.Get();
+        ManufacturingSetup.Validate("Load SKU Cost on Manufacturing", true);
+        ManufacturingSetup.Modify(true);
+
+        // [GIVEN] Standard Cost Worksheet with suggested item standard cost
+        StandardCostWorksheetName := CreateStandardCostWorksheetName();
+        LibraryCosting.SuggestItemStandardCost(Item, StandardCostWorksheetName, LibraryRandom.RandIntInRange(2, 5), '');
+
+        // [WHEN] Run Implement Standard Cost Change
+        RunImplementStandardCostChange(StandardCostWorksheetName, StandardCostWorksheet.Type::Item, Item."No.");
+
+        // [THEN] SKU Standard Cost remains unchanged
+        FindStockkeepingUnit(StockkeepingUnit, Item."No.");
+        Assert.AreEqual(
+            OriginalSKUStandardCost,
+            StockkeepingUnit."Standard Cost",
+            StrSubstNo(SKUCostShouldNotBeUpdatedErr, Item."No."));
+    end;
+
+    [Test]
+    [HandlerFunctions('StrMenuHandler,ImplementStandardCostChangeHandler,MessageHandler')]
+    procedure SKUWithOwnRoutingRetainsCostWhenLoadSKUCostOnMfgEnabled()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ProductionBOMLine: Record "Production BOM Line";
+        RoutingHeader: array[2] of Record "Routing Header";
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        StandardCostWorksheet: Record "Standard Cost Worksheet";
+        WorkCenter: array[2] of Record "Work Center";
+        CalculateStandardCost: Codeunit "Calculate Standard Cost";
+        StandardCostWorksheetName: Code[10];
+        OriginalSKUStandardCost: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 637759] SKU with its own routing retains its independently calculated Standard Cost after Implement Standard Cost Change when "Load SKU Cost on Manufacturing" is enabled
+
+        // [GIVEN] Two Work Centers "WC1" and "WC2" with different unit costs
+        LibraryManufacturing.CreateWorkCenterWithCalendar(WorkCenter[1]);
+        WorkCenter[1].Validate("Unit Cost", LibraryRandom.RandIntInRange(10, 20));
+        WorkCenter[1].Modify(true);
+        LibraryManufacturing.CreateWorkCenterWithCalendar(WorkCenter[2]);
+        WorkCenter[2].Validate("Unit Cost", LibraryRandom.RandIntInRange(30, 50));
+        WorkCenter[2].Modify(true);
+
+        // [GIVEN] Two Routings "R1" and "R2" with different Work Centers
+        CreateRouting(RoutingHeader[1], WorkCenter[1]."No.");
+        CreateRouting(RoutingHeader[2], WorkCenter[2]."No.");
+
+        // [GIVEN] Item "I" with Routing "R1" and Production BOM
+        CreateItemWithRoutingAndProdBOM(Item, RoutingHeader[1], ProductionBOMLine);
+
+        // [GIVEN] Calculate Standard Cost for Item "I"
+        Clear(CalculateStandardCost);
+        CalculateStandardCost.CalcItem(Item."No.", false);
+
+        // [GIVEN] Location "L" and Stockkeeping Unit "S" for Item "I" with Routing "R2"
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        LibraryInventory.CreateStockKeepingUnit(Item, Enum::"SKU Creation Method"::"Location & Variant", false, false);
+        StockkeepingUnit.SetRange("Item No.", Item."No.");
+        StockkeepingUnit.FindFirst();
+        StockkeepingUnit.Validate("Location Code", Location.Code);
+        StockkeepingUnit.Validate("Routing No.", RoutingHeader[2]."No.");
+        StockkeepingUnit.Modify(true);
+
+        // [GIVEN] Calculate Standard Cost for SKU "S"
+        CalculateStandardCost.CalcItemSKU(StockkeepingUnit."Item No.", StockkeepingUnit."Location Code", StockkeepingUnit."Variant Code");
+        StockkeepingUnit.Get(StockkeepingUnit."Location Code", StockkeepingUnit."Item No.", StockkeepingUnit."Variant Code");
+        OriginalSKUStandardCost := StockkeepingUnit."Standard Cost";
+
+        // [GIVEN] "Load SKU Cost on Manufacturing" is enabled
+        ManufacturingSetup.Get();
+        ManufacturingSetup.Validate("Load SKU Cost on Manufacturing", true);
+        ManufacturingSetup.Modify(true);
+
+        // [GIVEN] Standard Cost Worksheet with suggested item standard cost
+        StandardCostWorksheetName := CreateStandardCostWorksheetName();
+        LibraryCosting.SuggestItemStandardCost(Item, StandardCostWorksheetName, LibraryRandom.RandIntInRange(2, 5), '');
+
+        // [WHEN] Run Implement Standard Cost Change
+        RunImplementStandardCostChange(StandardCostWorksheetName, StandardCostWorksheet.Type::Item, Item."No.");
+
+        // [THEN] SKU Standard Cost remains at its independently calculated value
+        StockkeepingUnit.Get(StockkeepingUnit."Location Code", StockkeepingUnit."Item No.", StockkeepingUnit."Variant Code");
+        Assert.AreEqual(
+            OriginalSKUStandardCost,
+            StockkeepingUnit."Standard Cost",
+            StrSubstNo(SKUCostShouldNotBeUpdatedErr, Item."No."));
+    end;
+
+    [Test]
+    [HandlerFunctions('ImplementStandardCostChangeHandler,CaptureMessageHandler')]
+    procedure InstructionMsgShownWhenSKUCostUpdateSkipped()
+    var
+        Item: Record Item;
+        ManufacturingSetup: Record "Manufacturing Setup";
+        StandardCostWorksheet: Record "Standard Cost Worksheet";
+        StandardCostWorksheetName: Code[10];
+        CapturedMessage: Text;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 637759] Instruction message is shown when SKU cost update is skipped due to "Load SKU Cost on Manufacturing" being enabled
+
+        // [GIVEN] Item "I" with Standard Cost
+        CreateItem(Item);
+        Item.Validate("Costing Method", Item."Costing Method"::Standard);
+        Item.Validate("Standard Cost", LibraryRandom.RandIntInRange(100, 200));
+        Item.Modify(true);
+
+        // [GIVEN] Stockkeeping Unit "S" for Item "I"
+        CreateStockkeepingUnit(Item);
+
+        // [GIVEN] "Load SKU Cost on Manufacturing" is enabled in Manufacturing Setup
+        ManufacturingSetup.Get();
+        ManufacturingSetup.Validate("Load SKU Cost on Manufacturing", true);
+        ManufacturingSetup.Modify(true);
+
+        // [GIVEN] Standard Cost Worksheet with suggested item standard cost
+        StandardCostWorksheetName := CreateStandardCostWorksheetName();
+        LibraryCosting.SuggestItemStandardCost(Item, StandardCostWorksheetName, LibraryRandom.RandIntInRange(2, 5), '');
+        LibraryVariableStorage.Clear();
+
+        // [WHEN] Run Implement Standard Cost Change
+        RunImplementStandardCostChange(StandardCostWorksheetName, StandardCostWorksheet.Type::Item, Item."No.");
+
+        // [THEN] Message contains instruction to use Calc. Standard Cost action on SKU Card
+        CapturedMessage := LibraryVariableStorage.DequeueText();
+        Assert.ExpectedMessage('Stockkeeping Unit Card', CapturedMessage);
+        Assert.ExpectedMessage('Calc. Standard Cost', CapturedMessage);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2569,6 +2730,13 @@ codeunit 137402 "SCM Costing Batch"
     [Scope('OnPrem')]
     procedure MessageHandler(Message: Text[1024])
     begin
+    end;
+
+    [MessageHandler]
+    [Scope('OnPrem')]
+    procedure CaptureMessageHandler(Message: Text[1024])
+    begin
+        LibraryVariableStorage.Enqueue(Message);
     end;
 
     [ModalPageHandler]

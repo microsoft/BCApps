@@ -73,6 +73,7 @@ codeunit 134289 "Non-Deductible VAT Pmt. Disc."
     begin
         // [FEATURE] [Adjust For Payment Discount] [Application]
         // [SCENARIO 475533] Posting results are correct after applying payment to purchase invoice with Reverse Charge VAT, payment discount and "Adjust For Payment Discount" option enabled
+        // [SCENARIO 649383] Non-deductible Reverse Charge VAT payment discount correction is posted to the purchase payment discount account
 
         Initialize();
         LibraryPmtDiscSetup.SetAdjustForPaymentDisc(true);
@@ -345,9 +346,9 @@ codeunit 134289 "Non-Deductible VAT Pmt. Disc."
         GLEntry.FindFirst();
         GLEntry.TestField(Amount, -GenJournalLine.Amount);
         GLEntry.SetRange("G/L Account No.", VATPostingSetup."Purchase VAT Account");
-        Assert.RecordCount(GLEntry, 2);
+        Assert.RecordCount(GLEntry, 1);
         GLEntry.CalcSums(Amount);
-        GLEntry.TestField(Amount, -VATAmount - NDVATAmount);
+        GLEntry.TestField(Amount, -VATAmount);
         GLEntry.SetRange("G/L Account No.", VATPostingSetup."Reverse Chrg. VAT Acc.");
         Assert.RecordCount(GLEntry, 2);
         GLEntry.CalcSums(Amount);
@@ -360,10 +361,9 @@ codeunit 134289 "Non-Deductible VAT Pmt. Disc."
         GLEntry.TestField(Amount, PurchaseLine.Amount);
         GeneralPostingSetup.Get(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         GLEntry.SetRange("G/L Account No.", GeneralPostingSetup."Purch. Pmt. Disc. Credit Acc.");
-        GLEntry.FindFirst();
-        GLEntry.TestField(Amount, -VATBase);
-        GLEntry.TestField("VAT Amount", VATEntry.Amount);
-        GLEntry.TestField("Non-Deductible VAT Amount", VATEntry."Non-Deductible VAT Amount");
+        Assert.RecordCount(GLEntry, 2);
+        GLEntry.CalcSums(Amount);
+        GLEntry.TestField(Amount, -VATBase - NDVATAmount);
         GLEntry.SetRange("G/L Account No.", VendPostingGroup."Payment Disc. Credit Acc.");
         GLEntry.FindFirst();
         GLEntry.TestField(Amount, -NDVATBase);

@@ -88,6 +88,7 @@ table 38 "Purchase Header"
 
             trigger OnValidate()
             var
+                MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
                 IsHandled: Boolean;
                 SkipCheckVendorRegistered: Boolean;
             begin
@@ -215,6 +216,8 @@ table 38 "Purchase Header"
                         Rec.Validate("Remit-to Code", '');
                 end else
                     SelectDefaultRemitAddress(Rec);
+
+                MatchedOrderLineMgmt.ApplyVendorsReceiptOnInvoicePolicy(Rec);
             end;
         }
         field(3; "No."; Code[20])
@@ -2190,7 +2193,7 @@ table 38 "Purchase Header"
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request that this purchase document relates to.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const(" "));
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -2792,10 +2795,7 @@ table 38 "Purchase Header"
             var
                 MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
             begin
-                if "Receipt on Invoice" then
-                    MatchedOrderLineMgmt.CheckReceiptOnInvoiceAllowed(Rec);
-
-                MatchedOrderLineMgmt.RefreshMatchedOrderLineReceipt(Rec);
+                MatchedOrderLineMgmt.ApplyReceiptOnInvoiceToLines(Rec);
             end;
         }
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
@@ -6660,7 +6660,7 @@ table 38 "Purchase Header"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeHasMixedDropShipment(Rec, Result, IsHandled);
+        OnBeforeHasMixedDropShipment(Rec, Result, IsHandled, PurchaseLine);
         if IsHandled then
             exit(Result);
 
@@ -9578,7 +9578,7 @@ table 38 "Purchase Header"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeHasMixedDropShipment(var PurchaseHeader: Record "Purchase Header"; var Result: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeHasMixedDropShipment(var PurchaseHeader: Record "Purchase Header"; var Result: Boolean; var IsHandled: Boolean; var PurchaseLine: Record "Purchase Line")
     begin
     end;
 

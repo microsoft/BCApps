@@ -363,13 +363,7 @@ table 5050 Contact
                 SetSearchEmail();
             end;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(103; "Home Page"; Text[255])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Home Page';
             ToolTip = 'Specifies the contact''s web site.';
@@ -946,10 +940,20 @@ table 5050 Contact
             Caption = 'Stock Capital';
             OptimizeForTextSearch = true;
         }
+#if not CLEANSCHEMA33
         field(10805; "SIREN No."; Code[9])
         {
             Caption = 'SIREN No.';
+            ObsoleteReason = 'Moved to Sales FR app.';
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#endif
         }
+#endif
     }
 
     keys
@@ -1321,7 +1325,11 @@ table 5050 Contact
 
         if "No." <> '' then
             if IsUpdateNeeded(ContactBeforeModify) then
+#if not CLEAN30
+                UpdateRelatedRecordsPreservingCustomerSIREN();
+#else
                 UpdateCustVendBank.Run(Rec);
+#endif
 
         if Type = Type::Company then begin
             RMSetup.Get();
@@ -3620,6 +3628,41 @@ table 5050 Contact
           TempErrorMessage."Message Type"::Warning,
           WarningMessage);
     end;
+
+#if not CLEAN30
+    local procedure UpdateRelatedRecordsPreservingCustomerSIREN()
+    var
+        Customer: Record Customer;
+        ContactBusinessRelation: Record "Contact Business Relation";
+        SIRENNo: Code[9];
+        CustomerFound: Boolean;
+    begin
+        ContactBusinessRelation.SetRange("Contact No.", "No.");
+        ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Customer);
+        if ContactBusinessRelation.FindFirst() then begin
+            Customer.LockTable();
+            CustomerFound := Customer.Get(ContactBusinessRelation."No.");
+            if CustomerFound then
+                SIRENNo := Customer."SIREN No.";
+        end;
+
+        UpdateCustVendBank.Run(Rec);
+        if CustomerFound then
+            UpdateSIRENNoInCustomer(ContactBusinessRelation."No.", SIRENNo);
+    end;
+
+    local procedure UpdateSIRENNoInCustomer(CustomerNo: Code[20]; SIRENNo: Code[9])
+    var
+        Customer: Record Customer;
+    begin
+        if not Customer.Get(CustomerNo) then
+            exit;
+        if Customer."SIREN No." = SIRENNo then
+            exit;
+        Customer."SIREN No." := SIRENNo;
+        Customer.Modify();
+    end;
+#endif
 
     internal procedure LookupNewVendorTemplate(): Code[20]
     var

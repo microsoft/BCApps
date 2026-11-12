@@ -47,7 +47,6 @@ codeunit 148306 "Expense Report Test"
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
         CannotAssignManuallyErr: Label 'You may not enter numbers manually. If you want to enter numbers manually, please activate %1 in %2 %3.', Comment = '%1 = Manual Nos. setting, %2 = No. Series table caption, %3 = No. Series Code';
         ExpenseReportLineDoesNotExistErr: Label 'There is no expense report lines with the number %1.', Comment = '%1 - Document No.';
-        CannotReleaseDocumentWithNothingToRefundErr: Label 'Cannot release the Expense Report No. %1 because there is nothing to refund for this Line No. %2.', Comment = '%1 - Expense No. , %2 - Line No.';
         FieldShouldNotBeEditableErr: Label '%1 should not be editable in Page %2', Comment = '%1 = Field Caption , %2 = Page Caption';
         FieldShouldBeEditableErr: Label '%1 should be editable in Page %2', Comment = '%1 = Field Caption , %2 = Page Caption';
         FieldShouldBeVisibleErr: Label '%1 should be visible in Page %2', Comment = '%1 = Field Caption , %2 = Page Caption';
@@ -799,6 +798,56 @@ codeunit 148306 "Expense Report Test"
             true,
             ExpenseReportLine.FindFirst(),
             StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Document No."), TargetExpenseReportHeader."No.", ExpenseReportLine.TableCaption()));
+    end;
+
+    [Test]
+    procedure RelinkExpenseReportLineMustResetPolicyEvaluation()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        SourceExpenseReportHeader: Record "Expense Report Header";
+        TargetExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+        CreateExpReport: Codeunit "Create Expense Report";
+        SourceSystemId: Guid;
+    begin
+        // [SCENARIO] Moving an evaluated line resets policy state because the new line has a new identity.
+        Initialize();
+
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory,
+            ExpenseCategory."Reimbursement Type"::"Employee Paid",
+            ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', true, '', 100);
+        Expense.PerformManualRelease();
+        LibraryExpense.CreateExpenseReport(SourceExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+        LibraryExpense.CreateExpenseReport(TargetExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+        CreateExpReport.AddSingleExpenseToExpenseReport(Expense, SourceExpenseReportHeader);
+        FindExpenseReportLine(ExpenseReportLine, SourceExpenseReportHeader."No.");
+
+        LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseCategory.Code, 'Policy text.');
+        LibraryExpense.CreateExpensePolicyEvaluation(
+            ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Policy violation.', false);
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        Assert.AreEqual("Expense Policy Status"::Flagged, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the source line must be flagged.');
+        SourceSystemId := ExpenseReportLine.SystemId;
+
+        ExpenseReportLine.MoveToExpenseReport(TargetExpenseReportHeader."No.");
+
+        Assert.AreNotEqual(SourceSystemId, ExpenseReportLine.SystemId, 'The moved line must have a new SystemId.');
+        Assert.AreEqual(0DT, ExpenseReportLine."Policies Evaluated At", 'The moved line must not retain the source evaluation timestamp.');
+        Assert.AreEqual(0, ExpenseReportLine."Policy Eval Version", 'The moved line must restart policy versioning.');
+        Assert.AreEqual(0, ExpenseReportLine."Evaluated Policy Version", 'The moved line must not retain the evaluated source version.');
+        Assert.AreEqual("Expense Policy Status"::"Not Evaluated", ExpenseReportLine.GetPolicyStatus(), 'The moved line must require policy evaluation.');
+
+        ExpensePolicyEvaluation.SetRange("Subject System Id", SourceSystemId);
+        Assert.RecordIsEmpty(ExpensePolicyEvaluation);
     end;
 
     [Test]
@@ -2547,7 +2596,7 @@ codeunit 148306 "Expense Report Test"
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler')]
-    procedure CannotReleaseExpenseReportIfRefundableIsFalseAndReimbursementTypeIsEmployeePaid()
+    procedure ReleaseExpenseReportIfRefundableIsFalseAndReimbursementTypeIsEmployeePaid()
     var
         Expense: Record Expense;
         PostCode: Record "Post Code";
@@ -2561,7 +2610,7 @@ codeunit 148306 "Expense Report Test"
         Amount: Decimal;
         CurrencyCode: Code[10];
     begin
-        // [SCENARIO 614287] Verify that Expense Report cannot be released if Refundable is false and Reimbursement Type is Employee Paid.
+        // [SCENARIO 654115] Verify that Expense Report can be released if Refundable is false and Reimbursement Type is Employee Paid.
         Initialize();
 
         // [GIVEN] Find "Post Code".
@@ -2618,10 +2667,31 @@ codeunit 148306 "Expense Report Test"
             StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Reimbursable Amount (LCY)"), 0, ExpenseReportLine.TableCaption()));
 
         // [WHEN] Release Expense Report.
-        asserterror ReleaseExpenseReportDocument.PerformManualRelease(ExpenseReportHeader);
+        ReleaseExpenseReportDocument.PerformManualRelease(ExpenseReportHeader);
 
-        // [THEN] Verify that Expense Report cannot be released if Refundable is false and Reimbursement Type is Employee Paid.
-        Assert.ExpectedError(StrSubstNo(CannotReleaseDocumentWithNothingToRefundErr, ExpenseReportHeader."No.", ExpenseReportLine."Line No."));
+        // [THEN] Verify that Expense Report is released without reimbursing the non-refundable line.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        Assert.AreEqual(
+            ExpenseReportHeader.Status::Released,
+            ExpenseReportHeader.Status,
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportHeader.FieldCaption(Status), ExpenseReportHeader.Status::Released, ExpenseReportHeader.TableCaption()));
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(
+            false,
+            ExpenseReportLine.Refundable,
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption(Refundable), false, ExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            ExpenseReportLine."Reimbursement Type"::"Employee Paid",
+            ExpenseReportLine."Reimbursement Type",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Reimbursement Type"), ExpenseReportLine."Reimbursement Type"::"Employee Paid", ExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            0,
+            ExpenseReportLine."Reimbursable Amount",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Reimbursable Amount"), 0, ExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            0,
+            ExpenseReportLine."Reimbursable Amount (LCY)",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Reimbursable Amount (LCY)"), 0, ExpenseReportLine.TableCaption()));
     end;
 
     [Test]
@@ -3251,9 +3321,61 @@ codeunit 148306 "Expense Report Test"
         FindExpenseReportLine(ExpenseReportLine, Expense);
         ExpenseSubcategory.Get(Expense."Expense Category", Expense."Expense Subcategory");
         Assert.AreEqual(
-            Format(Amount) + ' - ' + ExpenseSubcategory."Posting Description",
+            Format(Amount) + ' / ' + ExpenseSubcategory."Posting Description",
             ExpenseReportLine.Description,
             StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Description"), Format(Amount), ExpenseReportLine.TableCaption()));
+    end;
+
+    [Test]
+    procedure PostingDescriptionUsesAvailableSubcategoryDescription()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: array[2] of Record "Expense Subcategory";
+        ExpenseReportLine: Record "Expense Report Line";
+        BaseDescription: Text[100];
+    begin
+        // [SCENARIO] The posting description uses the selected subcategory description when it is available.
+        Initialize();
+
+        // [GIVEN] A report line whose description already includes its original subcategory description.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory[1], ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory[2], ExpenseCategory.Code, true);
+        BaseDescription := ExpenseCategory."Posting Description";
+        ExpenseReportLine."Expense Category" := ExpenseCategory.Code;
+        ExpenseReportLine."Expense Subcategory Code" := ExpenseSubcategory[1].Code;
+        ExpenseReportLine.Description := CopyStr(BaseDescription + ' / ' + ExpenseSubcategory[1]."Posting Description", 1, MaxStrLen(ExpenseReportLine.Description));
+
+        // [WHEN] A different subcategory is used for posting.
+        // [THEN] Its posting description replaces the original subcategory suffix.
+        Assert.AreEqual(
+            BaseDescription + ' / ' + ExpenseSubcategory[2]."Posting Description",
+            ExpenseReportLine.UpdatePostingDescription(ExpenseCategory.Code, ExpenseSubcategory[2].Code),
+            'The posting description must use the selected subcategory description.');
+
+        // [WHEN] The original subcategory suffix was truncated by the description length limit.
+        BaseDescription := PadStr('', 95, 'B');
+        ExpenseSubcategory[1]."Posting Description" := 'OLD SUFFIX';
+        ExpenseSubcategory[1].Modify();
+        ExpenseSubcategory[2]."Posting Description" := 'NEW SUFFIX';
+        ExpenseSubcategory[2].Modify();
+        ExpenseReportLine.Description := CopyStr(BaseDescription + ' / ' + ExpenseSubcategory[1]."Posting Description", 1, MaxStrLen(ExpenseReportLine.Description));
+
+        // [THEN] The stored part of the old suffix is removed before the new suffix is applied.
+        Assert.AreEqual(
+            CopyStr(BaseDescription + ' / ' + ExpenseSubcategory[2]."Posting Description", 1, MaxStrLen(ExpenseReportLine.Description)),
+            ExpenseReportLine.UpdatePostingDescription(ExpenseCategory.Code, ExpenseSubcategory[2].Code),
+            'The truncated posting-description suffix must be replaced.');
+
+        // [WHEN] The selected subcategory has no posting description.
+        ExpenseSubcategory[2]."Posting Description" := '';
+        ExpenseSubcategory[2].Modify();
+
+        // [THEN] The base description is retained without a separator.
+        Assert.AreEqual(
+            BaseDescription,
+            ExpenseReportLine.UpdatePostingDescription(ExpenseCategory.Code, ExpenseSubcategory[2].Code),
+            'The base posting description must be retained when the subcategory posting description is unavailable.');
     end;
 
     [Test]
@@ -4485,7 +4607,7 @@ codeunit 148306 "Expense Report Test"
         FindExpenseReportLine(ExpenseReportLine, CopyStr(ExpenseReportPage."No.".Value, 1, 20));
 
         // [GIVEN] Update "Merchant Name" in Expense Report Line.
-        ExpenseReportLine.Validate("Merchant Name", LibraryRandom.RandText(20));
+        ExpenseReportLine.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(20), 1, 100));
         ExpenseReportLine.Modify();
 
         // [GIVEN] Enqueue Expense Sub Category Code, Quantity and Amount for Expense Itemization.
@@ -4570,7 +4692,7 @@ codeunit 148306 "Expense Report Test"
 
         // [GIVEN] Enqueue expected Message text.
         LibraryVariableStorage.Enqueue(1);
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, Amount - 1, Amount));
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, Format(Amount - 1, 0, '<Precision,2:2><Standard Format,0>'), Format(Amount, 0, '<Precision,2:2><Standard Format,0>')));
 
         // [WHEN] Set Non-Refundable Amount in Expense Report Line.
         ExpenseReportPage."Expense Report Subform"."Non-Refundable Amount".SetValue(AmountReduction);
@@ -4702,7 +4824,7 @@ codeunit 148306 "Expense Report Test"
         FindExpenseReportLine(ExpenseReportLine, CopyStr(ExpenseReportPage."No.".Value, 1, 20));
 
         // [GIVEN] Update "Merchant Name" in Expense Report Line.
-        ExpenseReportLine.Validate("Merchant Name", LibraryRandom.RandText(20));
+        ExpenseReportLine.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(20), 1, 100));
         ExpenseReportLine.Modify();
 
         // [GIVEN] Create Expense Report Line Itemization with Refundable and Non-Refundable Expense Sub Category.
@@ -5127,7 +5249,7 @@ codeunit 148306 "Expense Report Test"
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
         Amount: Decimal;
         CurrencyCode: Code[10];
-        NewStartingPoint: Text;
+        NewStartingPoint: Text[50];
     begin
         // [SCENARIO 617013] Verify Starting Point can be updated in Expense Report Line When Expense Report is created from Expense and Starting Point is blank in Expense.
         Initialize();
@@ -5154,7 +5276,7 @@ codeunit 148306 "Expense Report Test"
         FindExpenseReportLine(ExpenseReportLine, Expense);
 
         // [GIVEN] Generate New Starting Point.
-        NewStartingPoint := LibraryRandom.RandText(50);
+        NewStartingPoint := CopyStr(LibraryRandom.RandText(50), 1, 50);
 
         // [WHEN] Update "Starting Point" in Expense Report Line.
         ExpenseReportLine.Validate("Starting Point", NewStartingPoint);
@@ -5177,7 +5299,7 @@ codeunit 148306 "Expense Report Test"
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
         Amount: Decimal;
         CurrencyCode: Code[10];
-        NewEndingPoint: Text;
+        NewEndingPoint: Text[50];
     begin
         // [SCENARIO 617013] Verify Ending Point can be updated in Expense Report Line When Expense Report is created from Expense and Ending Point is blank in Expense.
         Initialize();
@@ -5204,7 +5326,7 @@ codeunit 148306 "Expense Report Test"
         FindExpenseReportLine(ExpenseReportLine, Expense);
 
         // [GIVEN] Generate New Ending Point.
-        NewEndingPoint := LibraryRandom.RandText(50);
+        NewEndingPoint := CopyStr(LibraryRandom.RandText(50), 1, 50);
 
         // [WHEN] Update "Ending Point" in Expense Report Line.
         ExpenseReportLine.Validate("Ending Point", NewEndingPoint);
@@ -6169,8 +6291,8 @@ codeunit 148306 "Expense Report Test"
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
         Amount: Decimal;
         CurrencyCode: Code[10];
-        MerchantName: Text;
-        ExpenseExtDocNo: Text;
+        MerchantName: Text[100];
+        ExpenseExtDocNo: Text[30];
         OriginalMileage: Decimal;
     begin
         // [SCENARIO 616955] Verify that Merchant Name and Ext. Doc. No. must flow from Expense to Expense Report.
@@ -6185,8 +6307,8 @@ codeunit 148306 "Expense Report Test"
         // [GIVEN] Generate Random Amount.
         Amount := LibraryRandom.RandInt(100);
         OriginalMileage := LibraryRandom.RandDecInRange(50, 500, 2);
-        MerchantName := LibraryRandom.RandText(20);
-        ExpenseExtDocNo := LibraryRandom.RandText(20);
+        MerchantName := CopyStr(LibraryRandom.RandText(20), 1, 100);
+        ExpenseExtDocNo := CopyStr(LibraryRandom.RandText(20), 1, 30);
 
         // [GIVEN] Create Expense with Mileage.
         CreateExpense(Expense, true, CurrencyCode, Amount);
@@ -6337,9 +6459,9 @@ codeunit 148306 "Expense Report Test"
         CurrencyCode: Code[10];
         JobNo: Code[20];
         Amount: array[3] of Decimal;
-        LineDescription: Text;
-        AdditionalInformation: Text;
-        LineJustification: Text;
+        LineDescription: Text[100];
+        AdditionalInformation: Text[100];
+        LineJustification: Text[100];
         i: Integer;
     begin
         // [SCENARIO 580731] Verify the data of "Expense Report Details".
@@ -6741,10 +6863,10 @@ codeunit 148306 "Expense Report Test"
         ExpenseUserNo: Code[20];
         CurrencyCode: Code[10];
         Amount: Decimal;
-        MerchantName: Text;
-        LineDescription: Text;
-        AdditionalInformation: Text;
-        LineJustification: Text;
+        MerchantName: Text[100];
+        LineDescription: Text[100];
+        AdditionalInformation: Text[100];
+        LineJustification: Text[100];
         IsBillable: Boolean;
         var JobNo: Code[20])
     var
@@ -6863,19 +6985,19 @@ codeunit 148306 "Expense Report Test"
         ExpenseUserNo: Code[20];
         CurrencyCode: Code[10];
         var Amount: array[3] of Decimal;
-        LineDescription: Text;
-        AdditionalInformation: Text;
-        LineJustification: Text;
+        LineDescription: Text[100];
+        AdditionalInformation: Text[100];
+        LineJustification: Text[100];
         Refundable: Boolean;
         var JobNo: Code[20];
         NumberOfLines: Integer)
     var
         i: Integer;
-        MerchantName: Text;
+        MerchantName: Text[100];
     begin
         for i := 1 to NumberOfLines do begin
             Amount[i] := LibraryRandom.RandIntInRange(100, 200);
-            MerchantName := LibraryRandom.RandText(20);
+            MerchantName := CopyStr(LibraryRandom.RandText(20), 1, 100);
             CreateExpenseReportLine(ExpenseReportLine[i], ExpenseReportHeader, ExpenseUserNo, CurrencyCode, Amount[i], MerchantName, LineDescription, AdditionalInformation, LineJustification, Refundable, JobNo);
         end;
     end;

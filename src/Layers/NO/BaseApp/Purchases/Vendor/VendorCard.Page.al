@@ -548,6 +548,11 @@ page 26 "Vendor Card"
                     ApplicationArea = All;
                     Visible = OverReceiptAllowed;
                 }
+                field("Receipt on Invoice Policy"; Rec."Receipt on Invoice Policy")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Receipt on Invoice';
+                }
             }
         }
         area(factboxes)

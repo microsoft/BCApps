@@ -276,9 +276,6 @@ table 39 "Purchase Line"
                 InitHeaderDefaults(PurchHeader, TempPurchLine);
                 UpdateLeadTimeFields();
                 UpdateDates();
-#if not CLEAN27
-                "Reverse Charge Item" := false;
-#endif
 
                 OnAfterAssignHeaderValues(Rec, PurchHeader);
 
@@ -401,9 +398,12 @@ table 39 "Purchase Line"
                 end;
                 "Bin Code" := '';
 
-                if Type = Type::Item then
-                    if "Location Code" <> xRec."Location Code" then
-                        PlanPriceCalcByField(FieldNo("Location Code"));
+                IsHandled := false;
+                OnValidateLocationCodeOnBeforePlanPriceCalcByField(Rec, IsHandled, CurrFieldNo, xRec);
+                if not IsHandled then
+                    if Type = Type::Item then
+                        if "Location Code" <> xRec."Location Code" then
+                            PlanPriceCalcByField(FieldNo("Location Code"));
 
                 IsHandled := false;
                 OnValidateLocationCodeOnBeforeSetInboundWhseHandlingTime(CurrFieldNo, Rec, xRec, IsHandled);
@@ -420,7 +420,8 @@ table 39 "Purchase Line"
 
                 GetDefaultBin();
                 CheckWMS();
-                MatchedOrderLineMgmt.CheckReceiptOnInvoiceAllowedForLocation("Location Code", GetPurchHeader());
+                if Rec."Receipt on Invoice" and not MatchedOrderLineMgmt.IsReceiptOnInvoiceAllowedForLocation("Location Code") then
+                    Rec.Validate("Receipt on Invoice", false);
 
                 if "Document Type" = "Document Type"::"Return Order" then
                     ValidateReturnReasonCode(FieldNo("Location Code"));
@@ -1585,20 +1586,8 @@ table 39 "Purchase Line"
                                 end;
                         end;
 
-#if not CLEAN27
-                    GetPurchSetup();
-                    if ("VAT Bus. Posting Group" = PurchSetup."Reverse Charge VAT Posting Gr.") and
-                       (PurchHeader."VAT Bus. Posting Group" <> PurchSetup."Domestic Vendors") and
-                       (not "Reverse Charge Item")
-                    then
-                        FieldError("VAT Bus. Posting Group", StrSubstNo(Text1041002, "VAT Bus. Posting Group"));
-                    if (not "Reverse Charge Item") and
-                       ("VAT Bus. Posting Group" = PurchSetup."Reverse Charge VAT Posting Gr.")
-                    then
-                        FieldError("VAT Bus. Posting Group", StrSubstNo(Text1041003, "VAT Bus. Posting Group"));
-#endif
 
-                    ShouldUpdateUnitCost := PurchHeader."Prices Including VAT" and (Rec.Type in [Rec.Type::"G/L Account", Rec.Type::Item, Rec.Type::Resource]);
+                    ShouldUpdateUnitCost := PurchHeader."Prices Including VAT" and (Rec.Type in [Rec.Type::Item, Rec.Type::Resource]);
                     OnValidateVATProdPostingGroupOnAfterCalcShouldUpdateUnitCost(Rec, VATPostingSetup, ShouldUpdateUnitCost);
                     if ShouldUpdateUnitCost then
                         Validate("Direct Unit Cost",
@@ -2161,7 +2150,7 @@ table 39 "Purchase Line"
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request that this purchase document relates to.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const(" "));
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -2643,6 +2632,7 @@ table 39 "Purchase Line"
                 DeferralPostDate: Date;
             begin
                 GetPurchHeader();
+                TestStatusOpen();
                 DeferralPostDate := GetDeferralPostDate(PurchHeader);
 
                 DeferralUtilities.DeferralCodeOnValidate(
@@ -3888,19 +3878,32 @@ table 39 "Purchase Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(8513; "Receipt on Invoice"; Boolean)
+        {
+            Caption = 'Receipt on Invoice';
+            ToolTip = 'Specifies whether the receipt is posted automatically with the invoice.';
+
+            trigger OnValidate()
+            var
+                MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
+            begin
+                if "Receipt on Invoice" then
+                    MatchedOrderLineMgmt.CheckLineReceiptOnInvoiceAllowed(Rec);
+
+                if "Document Type" = "Document Type"::Order then
+                    InitQtyToReceive();
+
+                MatchedOrderLineMgmt.ApplyPurchaseLineReceiptSettingToMatches(Rec);
+            end;
+        }
 #if not CLEANSCHEMA30
         field(10500; "Reverse Charge Item"; Boolean)
         {
             Caption = 'Reverse Charge Item';
             Editable = false;
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
 #endif
         field(12100; "No. of Fixed Asset Cards"; Integer)
@@ -4150,9 +4153,6 @@ table 39 "Purchase Line"
         end;
         LockTable();
         OnInsertOnAfterLockTable(Rec, CurrFieldNo);
-#if not CLEAN27
-        DomesticVendorWarning();
-#endif
         if ("Deferral Code" <> '') and (GetDeferralAmount() <> 0) then
             UpdateDeferralAmounts();
         PurchHeader."No." := '';
@@ -4178,9 +4178,6 @@ table 39 "Purchase Line"
         if ((Quantity <> 0) or (xRec.Quantity <> 0)) and ItemExists(xRec."No.") then
             PurchLineReserve.VerifyChange(Rec, xRec);
         OnAfterModifyOnAfterVerifyChange(Rec, CurrFieldNo);
-#if not CLEAN27
-        DomesticVendorWarning();
-#endif
     end;
 
     trigger OnRename()
@@ -4285,11 +4282,6 @@ table 39 "Purchase Line"
 #pragma warning disable AA0470
         Text054: Label 'The quantity that you are trying to invoice is greater than the quantity in return shipment %1.';
         Text99000000: Label 'You cannot change %1 when the purchase order is associated to a production order.';
-#if not CLEAN27
-        Text1041000: Label 'Warning: You have selected an item that is subject to Reverse Charge VAT. Please check that the VAT Code %1 in the %2 field is correct. If necessary, update this field before posting. ';
-        Text1041002: Label 'cannot be %1. %1 can only be used for domestic customers and vendors. ';
-        Text1041003: Label 'cannot be %1. %1 can only be used for reverse charge items. ';
-#endif
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         MustNotBeSpecifiedErr: Label 'must not be specified when %1 = %2', Comment = '%1 - the field name, %2 - the field value';
@@ -4539,6 +4531,7 @@ table 39 "Purchase Line"
         "Promised Receipt Date" := PurchHeader."Promised Receipt Date";
         "Inbound Whse. Handling Time" := PurchHeader."Inbound Whse. Handling Time";
         "Order Date" := PurchHeader."Order Date";
+        Rec."Receipt on Invoice" := PurchHeader."Receipt on Invoice";
 
         OnAfterInitHeaderDefaults(Rec, PurchHeader, TempPurchLine);
     end;
@@ -4821,7 +4814,8 @@ table 39 "Purchase Line"
                 Item.TestField("Inventory Posting Group");
                 "Posting Group" := Item."Inventory Posting Group";
             end;
-            MatchedOrderLineMgmt.CheckReceiptOnInvoiceAllowedForItem(Item, GetPurchHeader());
+            if Rec."Receipt on Invoice" and not MatchedOrderLineMgmt.IsReceiptOnInvoiceAllowedForItem(Item) then
+                Rec.Validate("Receipt on Invoice", false);
         end;
 
         OnCopyFromItemOnAfterCheck(Rec, Item, CurrFieldNo);
@@ -4840,9 +4834,6 @@ table 39 "Purchase Line"
         "Item Category Code" := Item."Item Category Code";
         "Allow Item Charge Assignment" := true;
         PrepaymentMgt.SetPurchPrepaymentPct(Rec, PurchHeader."Posting Date");
-#if not CLEAN27
-        "Reverse Charge Item" := Item."Reverse Charge Applies";
-#endif
         if IsInventoriableItem() then
             PostingSetupMgt.CheckInvtPostingSetupInventoryAccount("Location Code", "Posting Group");
 
@@ -4866,8 +4857,11 @@ table 39 "Purchase Line"
                     GLSetup."Unit-Amount Rounding Precision");
         end;
 
-        if PurchHeader."Language Code" <> '' then
-            GetItemTranslation();
+        IsHandled := false;
+        OnCopyFromItemOnBeforeGetItemTranslation(Rec, Item, IsHandled);
+        if not IsHandled then
+            if PurchHeader."Language Code" <> '' then
+                GetItemTranslation();
 
         OnCopyFromItemOnAfterGetItemTranslation(Rec, Item);
 
@@ -7246,6 +7240,12 @@ table 39 "Purchase Line"
                                     VATAmount := PurchLine.CalcLineAmount();
                                     NewAmount := 0;
                                     NewVATBaseAmount := 0;
+                                    if VATAmountLine.CalcLineAmount() = 0 then
+                                        NonDedVATAmount := 0
+                                    else
+                                        NonDedVATAmount :=
+                                            NonDeductibleVAT.GetNonDedVATAmountFromVATAmountLine(
+                                                TempVATAmountLineRemainder, VATAmountLine, Currency, PurchLine.CalcLineAmount(), VATAmountLine.CalcLineAmount());
                                 end else begin
                                     NewAmount := PurchLine.CalcLineAmount();
                                     NewVATBaseAmount :=
@@ -8785,9 +8785,14 @@ table 39 "Purchase Line"
     end;
 
     local procedure CheckWMS()
+    var
+        SkipCheckLocationOnWMS: Boolean;
     begin
-        if CurrFieldNo <> 0 then
-            CheckLocationOnWMS();
+        SkipCheckLocationOnWMS := false;
+        OnCheckWMSOnBeforeCheckLocationOnWMS(Rec, CurrFieldNo, SkipCheckLocationOnWMS);
+        if not SkipCheckLocationOnWMS then
+            if CurrFieldNo <> 0 then
+                CheckLocationOnWMS();
         if "Document Type" = "Document Type"::"Return Order" then
             if ("Job No." <> '') and (Type = Type::Item) then
                 if Location.Get("Location Code") then
@@ -9027,21 +9032,6 @@ table 39 "Purchase Line"
         OnAfterUpdateDimensionsFromJobTask(Rec);
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to Reverse Charge VAT GB app', '27.0')]
-    local procedure DomesticVendorWarning()
-    begin
-        GetGLSetup();
-        GetPurchSetup();
-        GetPurchHeader();
-        if (CurrFieldNo = 0) and GLSetup."Threshold applies" and
-           (PurchHeader."VAT Registration No." <> '') and
-           (Type = Type::Item) and "Reverse Charge Item" and
-           ("VAT Bus. Posting Group" = PurchSetup."Domestic Vendors")
-        then
-            Message(Text1041000, "VAT Bus. Posting Group", FieldCaption("VAT Bus. Posting Group"));
-    end;
-#endif
 
     local procedure UpdateItemReference()
     var
@@ -9548,7 +9538,9 @@ table 39 "Purchase Line"
     var
         OutstandingAmountExclTax: Decimal;
     begin
-        if (Rec.Quantity <> 0) and (Rec."Outstanding Quantity" = 0) and (Rec."Qty. Rcd. Not Invoiced" = 0) then
+        if (Rec.Quantity <> 0) and (Rec."Outstanding Quantity" = 0) and (Rec."Qty. Rcd. Not Invoiced" = 0) and
+           (Rec.Quantity = xRec.Quantity)
+        then
             if PurchHeader."Document Type" <> PurchHeader."Document Type"::Invoice then
                 exit;
 
@@ -9566,7 +9558,7 @@ table 39 "Purchase Line"
             CheckPrepmtAmounts();
     end;
 
-    local procedure CalculateOutstandingAmountExclTax(): Decimal
+    procedure CalculateOutstandingAmountExclTax(): Decimal
     var
         OutstandingAmount: Decimal;
         QuantityNotInvoiced: Decimal;
@@ -10825,6 +10817,11 @@ table 39 "Purchase Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnCheckWMSOnBeforeCheckLocationOnWMS(var PurchaseLine: Record "Purchase Line"; CurrFieldNo: Integer; var SkipCheckLocationOnWMS: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckNoAndQuantityForItemChargeAssgnt(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
@@ -11495,6 +11492,11 @@ table 39 "Purchase Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateLocationCodeOnBeforeSpecialOrderError(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; CurrFieldNo: Integer; xPurchaseLine: Record "Purchase Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateLocationCodeOnBeforePlanPriceCalcByField(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; CurrFieldNo: Integer; xPurchaseLine: Record "Purchase Line")
     begin
     end;
 
@@ -12279,6 +12281,11 @@ table 39 "Purchase Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnShowDimensionsOnAfterEditDimensionSet(var PurchaseLine: Record "Purchase Line"; OldDimensionSetId: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCopyFromItemOnBeforeGetItemTranslation(var PurchaseLine: Record "Purchase Line"; var Item: Record Item; var IsHandled: Boolean)
     begin
     end;
 

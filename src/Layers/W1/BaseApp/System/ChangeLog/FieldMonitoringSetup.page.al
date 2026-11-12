@@ -15,6 +15,8 @@ page 1366 "Field Monitoring Setup"
     AccessByPermission = tabledata "Field Monitoring Setup" = M;
     RefreshOnActivate = true;
     Caption = 'Field Monitoring Setup';
+    AboutTitle = 'Monitor changes to sensitive business data';
+    AboutText = 'Use Field Monitoring to track changes to important information such as vendor bank accounts, customer details, posting setup, or other critical fields. Monitoring helps strengthen internal controls, supports audits, and provides visibility into changes that could affect financial or operational processes.';
 
     layout
     {

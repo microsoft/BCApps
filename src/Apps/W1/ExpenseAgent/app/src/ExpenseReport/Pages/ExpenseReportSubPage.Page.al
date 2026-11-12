@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.Finance.SpendRequest;
 
 page 6999 "Expense Report SubPage"
 {
@@ -44,6 +43,24 @@ page 6999 "Expense Report SubPage"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if there are any rule violations for the expense line.';
+                }
+                field(PolicyStatus; PolicyStatus)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Policy Status';
+                    Editable = false;
+                    StyleExpr = PolicyStatusStyleExpr;
+                    Visible = PolicyEvaluationEnabled;
+                    ToolTip = 'Specifies the policy evaluation status for the expense: Not Evaluated when the agent has not assessed it yet, Flagged when one or more policies were not met, or Cleared when all evaluated policies were met. Choose the value to see the policies that were evaluated for this expense.';
+
+                    trigger OnDrillDown()
+                    var
+                        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+                    begin
+                        ExpensePolicyEvaluation.SetRange("Subject Type", "Expense Policy Subject"::"Expense Report Line");
+                        ExpensePolicyEvaluation.SetRange("Subject System Id", Rec.SystemId);
+                        Page.RunModal(Page::"Expense Policy Evaluations", ExpensePolicyEvaluation);
+                    end;
                 }
                 field("Expense Location"; Rec."Expense Location")
                 {
@@ -274,6 +291,17 @@ page 6999 "Expense Report SubPage"
                         CurrPage.Update();
                     end;
                 }
+                field("Vehicle Type"; Rec."Vehicle Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the vehicle type used for this mileage expense. The matching vehicle-specific mileage rate is applied, or the generic rate when none exists. Available when the expense requires mileage details.';
+                    Editable = IsMileageCategory;
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update();
+                    end;
+                }
                 field(Refundable; Rec.Refundable)
                 {
                     ApplicationArea = Basic, Suite;
@@ -328,8 +356,8 @@ page 6999 "Expense Report SubPage"
                 field("Non-Refundable Amount"; Rec."Non-Refundable Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value of the Non-Refundable Amount field.';
-                    Editable = Rec.Refundable and (not IsItemizationCategory);
+                    ToolTip = 'Specifies the reduction to the reimbursable amount. Available when Refundable is on and itemization is not required or is enforced by policy.';
+                    Editable = Rec.Refundable and ((not IsItemizationCategory) or IsEnforcedItemizationCategory);
 
                     trigger OnValidate()
                     begin
@@ -583,9 +611,9 @@ page 6999 "Expense Report SubPage"
                 {
                     ApplicationArea = Basic, Suite;
                     Image = ProjectExpense;
-                    Caption = 'Spend Request';
-                    ToolTip = 'View the details of the spend request associated with this expense report line.';
-                    RunObject = Page "Spend Request Card";
+                    Caption = 'Travel Request';
+                    ToolTip = 'View the details of the travel request associated with this expense report line.';
+                    RunObject = Page "Travel Request Card";
                     RunPageLink = "No." = field("Spend Request No.");
                     Visible = Rec."Spend Request No." <> '';
                 }
@@ -615,24 +643,29 @@ page 6999 "Expense Report SubPage"
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
+        ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
         TotalAmountLCY: Decimal;
         TotalVATAmountLCY: Decimal;
         TotalAmountWithoutVATLCY: Decimal;
         TotalNonRefundableAmountLCY: Decimal;
         TotalReimbursableAmountLCY, TotalRefundableAmountLCY : Decimal;
         TotalReimbursableAmount, TotalRefundableAmount : Decimal;
-        IsMileageCategory, IsPerDiemCategory, IsParticipantCategory, IsItemizationCategory : Boolean;
+        IsMileageCategory, IsPerDiemCategory, IsParticipantCategory, IsItemizationCategory, IsEnforcedItemizationCategory : Boolean;
         IsRuleApplied: Boolean;
         TotalMileage: Decimal;
         AllowVATReclaim: Boolean;
+        PolicyEvaluationEnabled: Boolean;
         ReimbursementAmountLbl: Label '%1 (%2)', Comment = '%1 = Field Caption, %2 = Field Value';
         LCYLbl: Label 'LCY';
+        PolicyStatus: Enum "Expense Policy Status";
+        PolicyStatusStyleExpr: Text;
 
     local procedure UpdateControls()
     begin
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;
-        IsItemizationCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize;
+        IsItemizationCategory := Rec.IsItemizationRequired();
+        IsEnforcedItemizationCategory := Rec.IsEnforcedItemizationRequired();
         IsParticipantCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Participants;
 
         IsRuleApplied := not IsNullGuid(Rec."Applied Rule Id");
@@ -643,6 +676,25 @@ page 6999 "Expense Report SubPage"
 
         ExpenseAgentSetup.GetRecordOnce();
         AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
+        PolicyEvaluationEnabled := ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AiAssistedPolicyEvaluation);
+        if PolicyEvaluationEnabled then begin
+            PolicyStatus := Rec.GetPolicyStatus();
+            SetPolicyStatusStyle();
+        end;
+    end;
+
+    local procedure SetPolicyStatusStyle()
+    begin
+        case PolicyStatus of
+            PolicyStatus::Cleared,
+            PolicyStatus::"No Policies":
+                PolicyStatusStyleExpr := 'Favorable';
+            PolicyStatus::Flagged,
+            PolicyStatus::Stale:
+                PolicyStatusStyleExpr := 'Attention';
+            else
+                PolicyStatusStyleExpr := '';
+        end;
     end;
 
     local procedure ValidateHeaderAmountField()

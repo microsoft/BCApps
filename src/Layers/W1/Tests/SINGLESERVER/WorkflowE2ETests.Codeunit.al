@@ -260,8 +260,7 @@ codeunit 134302 "Workflow E2E Tests"
 
         // Pre-Exercise
         FindApprovalEntry(ApprovalEntry, DATABASE::"Purchase Header", PurchaseHeader."Document Type", PurchaseHeader."No.");
-        ApprovalEntry.ModifyAll("Sender ID", RequestorUserSetup."Approver ID", true);
-        ApprovalEntry.ModifyAll("Approver ID", RequestorUserSetup."User ID", true);
+        ApprovalEntry.ModifyAll("Sender ID", RequestorUserSetup."Approver ID", "Approver ID", RequestorUserSetup."User ID", true);
 
         // Exercise
         BindSubscription(LibraryJobQueue);
@@ -332,8 +331,7 @@ codeunit 134302 "Workflow E2E Tests"
 
         // Pre-Exercise
         FindApprovalEntry(ApprovalEntry, DATABASE::"Purchase Header", PurchaseHeader."Document Type", PurchaseHeader."No.");
-        ApprovalEntry.ModifyAll("Sender ID", RequestorUserSetup."Approver ID", true);
-        ApprovalEntry.ModifyAll("Approver ID", RequestorUserSetup."User ID", true);
+        ApprovalEntry.ModifyAll("Sender ID", RequestorUserSetup."Approver ID", "Approver ID", RequestorUserSetup."User ID", true);
 
         // Exercise
         BindSubscription(LibraryJobQueue);
@@ -408,8 +406,7 @@ codeunit 134302 "Workflow E2E Tests"
 
         // Pre-Exercise
         FindApprovalEntry(ApprovalEntry, DATABASE::"Purchase Header", PurchaseHeader."Document Type", PurchaseHeader."No.");
-        ApprovalEntry.ModifyAll("Sender ID", RequestorUserSetup."Approver ID", true);
-        ApprovalEntry.ModifyAll("Approver ID", RequestorUserSetup."User ID", true);
+        ApprovalEntry.ModifyAll("Sender ID", RequestorUserSetup."Approver ID", "Approver ID", RequestorUserSetup."User ID", true);
 
         // Exercise
         BindSubscription(LibraryJobQueue);
@@ -479,8 +476,7 @@ codeunit 134302 "Workflow E2E Tests"
 
         // Pre-Exercise
         FindApprovalEntry(ApprovalEntry, DATABASE::"Purchase Header", PurchaseHeader."Document Type", PurchaseHeader."No.");
-        ApprovalEntry.ModifyAll("Sender ID", RequestorUserSetup."Approver ID", true);
-        ApprovalEntry.ModifyAll("Approver ID", RequestorUserSetup."User ID", true);
+        ApprovalEntry.ModifyAll("Sender ID", RequestorUserSetup."Approver ID", "Approver ID", RequestorUserSetup."User ID", true);
 
         // Exercise
         BindSubscription(LibraryJobQueue);

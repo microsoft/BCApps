@@ -53,7 +53,7 @@ page 7414 "Excise Tax Types"
                 Caption = 'Excise Duty Rates';
                 ToolTip = 'Configure excise duty rates for specific items and fixed assets.';
                 Image = Setup;
-                RunObject = Page "Excise Tax Item/FA Rates";
+                RunObject = Page "Excise Tax Rates";
                 RunPageLink = "Excise Tax Type Code" = field(Code);
             }
         }

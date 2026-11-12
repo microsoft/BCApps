@@ -496,10 +496,12 @@ report 10549 "Reverse Charge Sales List GB"
         AccountingPeriod2: Record "Accounting Period";
     begin
         AccountingPeriod2."Starting Date" := UseStartDate;
+#pragma warning disable AA0181, AA0233 // Positional Find() paired with Next(); suppression tracked for follow-up
         if AccountingPeriod2.Find('>') then
             repeat
                 exit(AccountingPeriod2."Starting Date" - 1);
             until AccountingPeriod2.Next() = 0;
+#pragma warning restore AA0181, AA0233
         exit(DMY2Date(31, 12, 9999));
     end;
 

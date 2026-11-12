@@ -116,7 +116,7 @@ page 6909 "Exp. Report Line Particip. API"
         if ExpenseReportLine.Get(Rec."Expense Report No.", Rec."Expense Report Line No.") then begin
             ExpenseReportLine.ApplyRule();
 #pragma warning disable AA0214
-            ExpenseReportLine.Modify();
+            ExpenseReportLine.Modify(true);
 #pragma warning restore AA0214
         end;
 

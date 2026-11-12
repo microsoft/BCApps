@@ -2579,7 +2579,7 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request that this journal line relates to.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const(" "));
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -6541,11 +6541,8 @@ table 81 "Gen. Journal Line"
         GenJournalLine.SetFilter("Line No.", '<>%1', "Line No.");
         GenJournalLine.SetRange("Document Type", "Applies-to Doc. Type");
         GenJournalLine.SetRange("Document No.", "Applies-to Doc. No.");
-        if not GenJournalLine.IsEmpty() then begin
-            GenJournalLine.ModifyAll("Applied Automatically", false);
-            GenJournalLine.ModifyAll("Account Type", GenJournalLine."Account Type"::"G/L Account");
-            GenJournalLine.ModifyAll("Account No.", '');
-        end;
+        if not GenJournalLine.IsEmpty() then
+            GenJournalLine.ModifyAll("Applied Automatically", false, "Account Type", GenJournalLine."Account Type"::"G/L Account", "Account No.", '');
     end;
 
     procedure GetIncomingDocumentURL(): Text[1024]

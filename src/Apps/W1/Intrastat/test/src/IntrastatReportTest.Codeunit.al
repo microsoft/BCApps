@@ -1094,8 +1094,7 @@ codeunit 139550 "Intrastat Report Test"
         // [GIVEN] A Intrastat Report with empty Quantity and "Supplementary Units" = false
         CreateIntrastatReportAndSuggestLines(InvoiceDate, IntrastatReportNo);
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
-        IntrastatReportLine.ModifyAll(Quantity, 0);
-        IntrastatReportLine.ModifyAll("Supplementary Units", false);
+        IntrastatReportLine.ModifyAll(Quantity, 0, "Supplementary Units", false);
 
         // [WHEN] Running checklist
         IntrastatReportPage.OpenEdit();
@@ -1140,8 +1139,7 @@ codeunit 139550 "Intrastat Report Test"
         // [GIVEN] A Intrastat Report with empty "Total Weight" and "Supplementary Units" = true
         CreateIntrastatReportAndSuggestLines(InvoiceDate, IntrastatReportNo);
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
-        IntrastatReportLine.ModifyAll("Total Weight", 0);
-        IntrastatReportLine.ModifyAll("Supplementary Units", true);
+        IntrastatReportLine.ModifyAll("Total Weight", 0, "Supplementary Units", true);
 
         // [WHEN] Running checklist
         IntrastatReportPage.OpenEdit();
@@ -1186,8 +1184,7 @@ codeunit 139550 "Intrastat Report Test"
         // [GIVEN] A Intrastat Report with empty "Country/Region of Origin Code" and Type = Receipt
         CreateIntrastatReportAndSuggestLines(InvoiceDate, IntrastatReportNo);
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
-        IntrastatReportLine.ModifyAll("Country/Region of Origin Code", '');
-        IntrastatReportLine.ModifyAll(Type, IntrastatReportLine.Type::Receipt);
+        IntrastatReportLine.ModifyAll("Country/Region of Origin Code", '', Type, IntrastatReportLine.Type::Receipt);
 
         // [WHEN] Running checklist
         IntrastatReportPage.OpenEdit();
@@ -1232,8 +1229,7 @@ codeunit 139550 "Intrastat Report Test"
         // [GIVEN] A Intrastat Report with empty "Partner VAT ID" and Type = Receipt
         CreateIntrastatReportAndSuggestLines(InvoiceDate, IntrastatReportNo);
         IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportNo);
-        IntrastatReportLine.ModifyAll("Partner VAT ID", '');
-        IntrastatReportLine.ModifyAll(Type, IntrastatReportLine.Type::Receipt);
+        IntrastatReportLine.ModifyAll("Partner VAT ID", '', Type, IntrastatReportLine.Type::Receipt);
 
         // [WHEN] Running checklist
         IntrastatReportPage.OpenEdit();
@@ -4827,6 +4823,38 @@ codeunit 139550 "Intrastat Report Test"
 
         //[THEN] Tariff No selected successfully No error occur
         Assert.AreEqual(TariffNo."No.", ItemTempl."Tariff No.", '');
+    end;
+
+    [Test]
+    procedure ManualIntrastatReportLineUsesIntrastatCode()
+    var
+        CountryRegion: array[2] of Record "Country/Region";
+        IntrastatReportLine: Record "Intrastat Report Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 644797] A manually added Intrastat report line uses the country's Intrastat Code.
+        Initialize();
+
+        // [GIVEN] Create country/region with a different Intrastat Code.
+        LibraryIntrastat.CreateCountryRegion(CountryRegion[1], true);
+        LibraryIntrastat.CreateCountryRegion(CountryRegion[2], true);
+        CountryRegion[1].Validate("Intrastat Code", CountryRegion[2].Code);
+        CountryRegion[1].Modify(true);
+
+        // [GIVEN] Create a manually added Intrastat report line.
+        LibraryIntrastat.CreateIntrastatReportLine(IntrastatReportLine);
+
+        // [WHEN] The Country/Region Code is validated on the line.
+        IntrastatReportLine.Validate("Country/Region Code", CountryRegion[1].Code);
+
+        // [THEN] The Intrastat Country/Region Code uses the country's Intrastat Code.
+        IntrastatReportLine.TestField("Intrastat Country/Region Code", CountryRegion[2].Code);
+
+        // [WHEN] The Country/Region Code is cleared.
+        IntrastatReportLine.Validate("Country/Region Code", '');
+
+        // [THEN] The Intrastat Country/Region Code is also cleared.
+        IntrastatReportLine.TestField("Intrastat Country/Region Code", '');
     end;
 
     local procedure Initialize()

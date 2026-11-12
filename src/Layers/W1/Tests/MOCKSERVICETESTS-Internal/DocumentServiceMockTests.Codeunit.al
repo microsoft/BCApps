@@ -252,7 +252,7 @@ codeunit 139325 "Document Service Mock Tests"
         Result := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Http Web Request Mgt.", 'OnOverrideUrl', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Service Management", 'OnOverrideRequestUrl', '', false, false)]
     local procedure OverrideUrl(var Url: Text)
     var
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";

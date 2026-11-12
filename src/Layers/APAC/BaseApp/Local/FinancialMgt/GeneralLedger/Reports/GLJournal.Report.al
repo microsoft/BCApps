@@ -66,7 +66,9 @@ report 28160 "G/L Journal"
             column(Grand_Total__Caption; Grand_Total__CaptionLbl)
             {
             }
+#pragma warning disable AL0589 // Accepted: renaming the data item or column would break the report layout.
             dataitem(SourceCode; "Source Code")
+#pragma warning restore AL0589
             {
                 DataItemTableView = sorting(Code);
                 PrintOnlyIfDetail = true;
@@ -84,7 +86,9 @@ report 28160 "G/L Journal"
                 {
                     DataItemLink = "Source Code" = field(Code);
                     DataItemTableView = sorting("Source Code", "Posting Date");
+#pragma warning disable AL0589 // Accepted: renaming the data item or column would break the report layout.
                     column(SourceCode; SourceCode.Code)
+#pragma warning restore AL0589
                     {
                     }
                     column(SourceCodeDescription; SourceCode.Description)

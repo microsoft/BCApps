@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
-using System.Integration;
 using System.Privacy;
+using System.Utilities;
 
 table 11724 "EPO Service Setup CZL"
 {
@@ -90,9 +90,16 @@ table 11724 "EPO Service Setup CZL"
 
     local procedure CheckUrl(Url: Text[250])
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        Uri: Codeunit Uri;
+        InvalidUrlErr: Label 'The URL is not valid.';
+        NonSecureUrlErr: Label 'The URL is not secure.';
     begin
-        HttpWebRequestMgt.CheckUrl(Url);
+        if not Uri.IsValidUri(Url) then
+            Error(InvalidUrlErr);
+
+        Uri.Init(Url);
+        if Uri.GetScheme() <> 'https' then
+            Error(NonSecureUrlErr);
     end;
 }
 

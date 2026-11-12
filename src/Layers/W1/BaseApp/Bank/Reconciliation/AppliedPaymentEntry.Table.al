@@ -895,6 +895,11 @@ table 1294 "Applied Payment Entry"
         OnAfterGetLedgEntryInfo(Rec);
     end;
 
+    internal procedure RunOnAfterGetLedgEntryInfo()
+    begin
+        OnAfterGetLedgEntryInfo(Rec);
+    end;
+
     local procedure GetCustLedgEntryInfo()
     var
         CustLedgEntry: Record "Cust. Ledger Entry";

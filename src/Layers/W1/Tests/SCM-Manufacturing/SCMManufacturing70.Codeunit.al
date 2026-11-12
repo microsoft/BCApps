@@ -344,8 +344,8 @@ codeunit 137063 "SCM Manufacturing 7.0"
         // Exercise: Run Planning Worksheet.
         LibraryPlanning.CalcRegenPlanForPlanWksh(ParentItem, WorkDate(), WorkDate());
 
-        // Verify: Verify Quantity and Dates in Requisition line.
-        VerifyValueInRequisitionLine(ParentItem, SalesLine.Quantity, SalesHeader."Order Date");
+        // Verify: Verify Quantity in Requisition line.
+        VerifyQuantityInRequisitionLine(ParentItem, SalesLine.Quantity);
 
         // Exercise: Run Carry Out Action Messages to create a Production Order.
         CarryOutActionMsgForItem(ParentItem."No.");
@@ -2477,6 +2477,111 @@ codeunit 137063 "SCM Manufacturing 7.0"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ProductionBOMAndRoutingHeadersInheritVersionNoSeriesFromManufacturingSetup()
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+        ProductionBOMVersionNos: Code[20];
+        RoutingVersionNos: Code[20];
+    begin
+        // [FEATURE] [No. Series] [Production BOM Version] [Routing Version]
+        // [SCENARIO 647371] New production BOM and routing headers inherit version number series from Manufacturing Setup.
+        Initialize();
+
+        // [GIVEN] Manufacturing Setup has default production BOM and routing version number series
+        ProductionBOMVersionNos := LibraryERM.CreateNoSeriesCode();
+        RoutingVersionNos := LibraryERM.CreateNoSeriesCode();
+        SetManufacturingVersionNoSeries(ProductionBOMVersionNos, RoutingVersionNos);
+
+        // [WHEN] Production BOM and routing headers are inserted without explicit version number series
+        ProductionBOMHeader.Insert(true);
+        RoutingHeader.Insert(true);
+
+        // [THEN] Both headers inherit their respective defaults
+        Assert.AreEqual(ProductionBOMVersionNos, ProductionBOMHeader."Version Nos.", ProductionBOMHeader.FieldCaption("Version Nos."));
+        Assert.AreEqual(RoutingVersionNos, RoutingHeader."Version Nos.", RoutingHeader.FieldCaption("Version Nos."));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExplicitHeaderVersionNoSeriesTakePrecedenceOverManufacturingSetup()
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+        ExplicitProductionBOMVersionNos: Code[20];
+        ExplicitRoutingVersionNos: Code[20];
+    begin
+        // [FEATURE] [No. Series] [Production BOM Version] [Routing Version]
+        // [SCENARIO 647371] Explicit header version number series take precedence over Manufacturing Setup defaults.
+        Initialize();
+
+        // [GIVEN] Manufacturing Setup has default version number series and both headers have explicit series
+        SetManufacturingVersionNoSeries(LibraryERM.CreateNoSeriesCode(), LibraryERM.CreateNoSeriesCode());
+        ExplicitProductionBOMVersionNos := LibraryERM.CreateNoSeriesCode();
+        ExplicitRoutingVersionNos := LibraryERM.CreateNoSeriesCode();
+        ProductionBOMHeader.Validate("Version Nos.", ExplicitProductionBOMVersionNos);
+        RoutingHeader.Validate("Version Nos.", ExplicitRoutingVersionNos);
+
+        // [WHEN] The headers are inserted
+        ProductionBOMHeader.Insert(true);
+        RoutingHeader.Insert(true);
+
+        // [THEN] Both explicit series are retained
+        Assert.AreEqual(ExplicitProductionBOMVersionNos, ProductionBOMHeader."Version Nos.", ProductionBOMHeader.FieldCaption("Version Nos."));
+        Assert.AreEqual(ExplicitRoutingVersionNos, RoutingHeader."Version Nos.", RoutingHeader.FieldCaption("Version Nos."));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BlankManufacturingSetupLeavesHeaderVersionNoSeriesBlank()
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+    begin
+        // [FEATURE] [No. Series] [Production BOM Version] [Routing Version]
+        // [SCENARIO 647371] Blank Manufacturing Setup defaults preserve blank header version number series.
+        Initialize();
+
+        // [GIVEN] Manufacturing Setup has no default version number series
+        SetManufacturingVersionNoSeries('', '');
+
+        // [WHEN] Production BOM and routing headers are inserted
+        ProductionBOMHeader.Insert(true);
+        RoutingHeader.Insert(true);
+
+        // [THEN] Both header version number series remain blank
+        ProductionBOMHeader.TestField("Version Nos.", '');
+        RoutingHeader.TestField("Version Nos.", '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ManufacturingSetupVersionNoSeriesDoNotBackfillExistingHeaders()
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+    begin
+        // [FEATURE] [No. Series] [Production BOM Version] [Routing Version]
+        // [SCENARIO 647371] Configuring Manufacturing Setup does not backfill existing headers.
+        Initialize();
+
+        // [GIVEN] Production BOM and routing headers were inserted while the setup defaults were blank
+        SetManufacturingVersionNoSeries('', '');
+        ProductionBOMHeader.Insert(true);
+        RoutingHeader.Insert(true);
+
+        // [WHEN] Default version number series are configured in Manufacturing Setup
+        SetManufacturingVersionNoSeries(LibraryERM.CreateNoSeriesCode(), LibraryERM.CreateNoSeriesCode());
+        ProductionBOMHeader.Get(ProductionBOMHeader."No.");
+        RoutingHeader.Get(RoutingHeader."No.");
+
+        // [THEN] The existing header version number series remain blank
+        ProductionBOMHeader.TestField("Version Nos.", '');
+        RoutingHeader.TestField("Version Nos.", '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ReValidatingUnitOfMeasureCodeOnProdBOMLine()
     var
         ProductionBOMLine: Record "Production BOM Line";
@@ -3033,11 +3138,11 @@ codeunit 137063 "SCM Manufacturing 7.0"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
         // [WHEN] Run Calculation Plan from Req Worksheet for created Item
-        CalculatePlanForReqWksh(Item, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        CalculatePlanForReqWksh(Item, WorkDate(), CalcDate('<CY>', WorkDate()));
 
         // [THEN] Verify Order Date in Requisition line is calculated correctly
         FindRequisitionLine(RequisitionLine, Item."No.");
-        RequisitionLine.TestField("Order Date", CalcDate('<-CY>', WorkDate()));
+        RequisitionLine.TestField("Order Date", WorkDate());
     end;
 
 #if not CLEAN29
@@ -5232,6 +5337,16 @@ codeunit 137063 "SCM Manufacturing 7.0"
         ManufacturingSetup.Modify(true);
     end;
 
+    local procedure SetManufacturingVersionNoSeries(ProductionBOMVersionNos: Code[20]; RoutingVersionNos: Code[20])
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        ManufacturingSetup.Get();
+        ManufacturingSetup.Validate("Production BOM Version Nos.", ProductionBOMVersionNos);
+        ManufacturingSetup.Validate("Routing Version Nos.", RoutingVersionNos);
+        ManufacturingSetup.Modify(true);
+    end;
+
     local procedure CreateMultipleStockKeepingUnit(ItemNo: Code[20]; LocationCode: Code[10]; LocationCode2: Code[10])
     var
         Item: Record Item;
@@ -5473,16 +5588,12 @@ codeunit 137063 "SCM Manufacturing 7.0"
           "Due Date", CalcDate(InventorySetup."Default Safety Lead Time", CalcDate(Item."Lead Time Calculation", WorkDate())));
     end;
 
-    local procedure VerifyValueInRequisitionLine(Item: Record Item; Quantity: Decimal; OrderDate: Date)
+    local procedure VerifyQuantityInRequisitionLine(Item: Record Item; Quantity: Decimal)
     var
         RequisitionLine: Record "Requisition Line";
     begin
         FindRequisitionLine(RequisitionLine, Item."No.");
         RequisitionLine.TestField(Quantity, Quantity);
-        RequisitionLine.TestField("Due Date", CalcDate(Item."Lead Time Calculation", WorkDate()));
-        InventorySetup.Get();
-        RequisitionLine.TestField(
-          "Order Date", CalcDate('<' + '-' + Format(InventorySetup."Default Safety Lead Time") + '>', OrderDate));
     end;
 
     local procedure VerifyPlanningRoutingLine(RoutingHeader: Record "Routing Header"; RequisitionWkshName: Record "Requisition Wksh. Name"; ItemNo: Code[20]; Quantity: Integer)

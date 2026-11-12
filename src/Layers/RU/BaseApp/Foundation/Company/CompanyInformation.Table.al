@@ -303,13 +303,7 @@ table 79 "Company Information"
                 MailManagement.ValidateEmailAddressField("E-Mail");
             end;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(35; "Home Page"; Text[255])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Home Page';
             ToolTip = 'Specifies your company''s web site.';
@@ -503,6 +497,23 @@ table 79 "Company Information"
             Caption = 'Cal. Convergence Time Frame';
             ToolTip = 'Specifies how dates based on calendar and calendar-related documents are calculated.';
             InitValue = '1Y';
+        }
+        field(7610; "Power BI Workspace Id"; Guid)
+        {
+            Caption = 'Power BI Workspace Id';
+            ToolTip = 'Specifies the ID of the Power BI workspace that deployable Power BI reports are deployed to. An empty value means the reports are deployed to "My Workspace".';
+
+            trigger OnValidate()
+            begin
+                if IsNullGuid("Power BI Workspace Id") then
+                    Clear("Power BI Workspace Name");
+            end;
+        }
+        field(7611; "Power BI Workspace Name"; Text[200])
+        {
+            Caption = 'Power BI Workspace Name';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the name of the Power BI workspace that deployable Power BI reports are deployed to. An empty value means the reports are deployed to "My Workspace".';
         }
         field(12400; "Director No."; Code[20])
         {
@@ -814,6 +825,11 @@ table 79 "Company Information"
             OptionCaption = 'Replace,Skip,Prompt';
             OptionMembers = Replace,Skip,Prompt;
         }
+        field(7612; "Company Description"; Blob)
+        {
+            Caption = 'Company Description';
+            ToolTip = 'Specifies the company''s nature and intended purpose. The description can provide context for AI-powered experiences.';
+        }
     }
 
     keys
@@ -985,6 +1001,50 @@ table 79 "Company Information"
         Result := FieldCaption("Registration No.");
         OnAfterGetRegistrationNumberLbl(Result);
     end;
+
+    procedure GetCompanyDescription(): Text
+    var
+        DescriptionInStream: InStream;
+    begin
+        CalcFields("Company Description");
+        if not "Company Description".HasValue() then
+            exit('');
+
+        "Company Description".CreateInStream(DescriptionInStream, GetTextEncoding());
+        exit(ReadText(DescriptionInStream));
+    end;
+
+    procedure SetCompanyDescription(Description: Text)
+    var
+        DescriptionOutStream: OutStream;
+    begin
+        Clear("Company Description");
+        "Company Description".CreateOutStream(DescriptionOutStream, GetTextEncoding());
+        DescriptionOutStream.WriteText(Description);
+        Modify(true);
+    end;
+
+    local procedure ReadText(Input: InStream): Text
+    var
+        TextBuilder: TextBuilder;
+        TextLine: Text;
+        FirstLine: Boolean;
+    begin
+        FirstLine := true;
+        while not Input.EOS() do begin
+            Input.ReadText(TextLine);
+            if not FirstLine then
+                TextBuilder.AppendLine('');
+            TextBuilder.Append(TextLine);
+            FirstLine := false;
+        end;
+        exit(TextBuilder.ToText());
+    end;
+    local procedure GetTextEncoding(): TextEncoding
+    begin
+        exit(TextEncoding::UTF8);
+    end;
+
 
     procedure GetVATRegistrationNumber() Result: Text
     begin
@@ -1190,13 +1250,6 @@ table 79 "Company Information"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateShipToCity(var CompanyInformation: Record "Company Information"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShipToPostCode(var CompanyInformation: Record "Company Information"; var IsHandled: Boolean)
     begin

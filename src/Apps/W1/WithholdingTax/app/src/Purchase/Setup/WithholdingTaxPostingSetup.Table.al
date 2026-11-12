@@ -115,18 +115,46 @@ table 6786 "Withholding Tax Posting Setup"
         field(100; "Calculation Base"; Enum "Withholding Calculation Base")
         {
             Caption = 'Calculation Base';
+
+            trigger OnValidate()
+            begin
+                if "Calculation Base" <> "Calculation Base"::Gross then
+                    TestEmployeeParty(FieldCaption("Calculation Base"));
+            end;
         }
         field(101; "Calculation Method"; Enum "Withholding Calculation Method")
         {
             Caption = 'Calculation Method';
+
+            trigger OnValidate()
+            begin
+                if "Calculation Method" <> "Calculation Method"::Simple then
+                    TestEmployeeParty(FieldCaption("Calculation Method"));
+            end;
         }
         field(102; "WHT Threshold Base"; Enum "Withholding Threshold Base")
         {
             Caption = 'Withholding Threshold Base';
+
+            trigger OnValidate()
+            begin
+                if "WHT Threshold Base" <> "WHT Threshold Base"::Record then
+                    TestEmployeeParty(FieldCaption("WHT Threshold Base"));
+
+                if not ("WHT Threshold Base" in ["WHT Threshold Base"::"Category Period", "WHT Threshold Base"::"Total Period"]) then
+                    "WHT Threshold Period" := "WHT Threshold Period"::" ";
+            end;
         }
         field(103; "WHT Threshold Period"; Enum "WHT Threshold Period Type")
         {
             Caption = 'Withholding Threshold Period';
+
+            trigger OnValidate()
+            begin
+                if "WHT Threshold Period" <> "WHT Threshold Period"::" " then
+                    if not ("WHT Threshold Base" in ["WHT Threshold Base"::"Category Period", "WHT Threshold Base"::"Total Period"]) then
+                        Error(ThresholdPeriodNotAllowedErr, FieldCaption("WHT Threshold Period"), FieldCaption("WHT Threshold Base"), Format("WHT Threshold Base"::"Category Period"), Format("WHT Threshold Base"::"Total Period"));
+            end;
         }
     }
 
@@ -144,6 +172,24 @@ table 6786 "Withholding Tax Posting Setup"
     fieldgroups
     {
     }
+
+    var
+        EmployeeOnlyOptionErr: Label 'The %1 option can be used only when the withholding tax is for employees.', Comment = '%1 = field caption';
+        ThresholdPeriodNotAllowedErr: Label 'The %1 can be specified only when %2 is %3 or %4.', Comment = '%1 = Withholding Threshold Period field caption, %2 = Withholding Threshold Base field caption, %3 = Category in Period option, %4 = Total in Period option';
+
+    local procedure TestEmployeeParty(FieldCaptionText: Text)
+    var
+        WthldgTaxBusPostGroup: Record "Wthldg. Tax Bus. Post. Group";
+    begin
+        if "Wthldg. Tax Bus. Post. Group" = '' then
+            exit;
+
+        if not WthldgTaxBusPostGroup.Get("Wthldg. Tax Bus. Post. Group") then
+            exit;
+
+        if WthldgTaxBusPostGroup."Party Applicability" <> WthldgTaxBusPostGroup."Party Applicability"::Employee then
+            Error(EmployeeOnlyOptionErr, FieldCaptionText);
+    end;
 
     procedure GetPrepaidWithholdingTaxAccount(): Code[20]
     begin

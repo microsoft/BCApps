@@ -17,11 +17,15 @@ table 4593 "SOA KPI"
 #if not CLEAN29
     ObsoleteState = Pending;
     ObsoleteReason = 'Replaced by table SOA KPI Summary for multi-agent KPI tracking.';
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
     ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #else
     ObsoleteState = Removed;
     ObsoleteReason = 'Replaced by table SOA KPI Summary for multi-agent KPI tracking.';
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
     ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
 
     fields

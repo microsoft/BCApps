@@ -31,11 +31,11 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         NegativeTrackingErr: Label 'Cannot create negative tracking entries on the item %1 in the purchase document %2', Comment = '%1=the item no., %2=the purchase document no';
 
     /// <summary>
-    /// Creates an item journal line reservation entry for the supplyed journal line.
+    /// Creates a reservation entry from the item-tracking values on an item journal line.
     /// Set the tracking on the line (no modify needed) to give the tracking instruction.
     /// </summary>
-    /// <param name="ItemJournalLine"></param>
-    /// <param name="CreatedActualReservationEntry"></param>
+    /// <param name="ItemJournalLine">The item journal line supplying source, quantity, dates, and tracking values.</param>
+    /// <param name="CreatedActualReservationEntry">The created reservation entry.</param>
     internal procedure CreateItemJournalLineReservationEntry(var ItemJournalLine: Record "Item Journal Line"; var CreatedActualReservationEntry: Record "Reservation Entry")
     var
         InstructionForReservationEntry: Record "Reservation Entry";
@@ -122,10 +122,10 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     end;
 
     /// <summary>
-    /// Copy item tracking information.
+    /// Copies expiration and new item-tracking values to a created reservation entry.
     /// </summary>
-    /// <param name="InstructionForReservationEntry"></param>
-    /// <param name="CreatedActualReservationEntry"></param>
+    /// <param name="InstructionForReservationEntry">The reservation instruction supplying tracking values.</param>
+    /// <param name="CreatedActualReservationEntry">The reservation entry to update.</param>
     local procedure CopyReservationEntryItemTracking(var InstructionForReservationEntry: Record "Reservation Entry"; var CreatedActualReservationEntry: Record "Reservation Entry")
     begin
         if (InstructionForReservationEntry."Expiration Date" <> 0D) and (CreatedActualReservationEntry."Expiration Date" = 0D) then
@@ -148,7 +148,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <summary>
     /// Sets the "Item Tracking" flag on the reservation entry based on the state of the item tracking on the item journal line.
     /// </summary>
-    /// <param name="ReservationEntry"></param>
+    /// <param name="ReservationEntry">The reservation entry whose item-tracking flag is set.</param>
     local procedure SetItemTrackingFlag(var ReservationEntry: Record "Reservation Entry")
     var
         ItemTrackingEntryType: Enum "Item Tracking Entry Type";
@@ -158,10 +158,10 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     end;
 
     /// <summary>
-    /// Used for BindSubscription use in template selection.
+    /// Restricts item journal template selection to the template containing the configured quality management batch.
     /// </summary>
-    /// <param name="ItemJnlTemplate"></param>
-    /// <param name="PageTemplate"></param>
+    /// <param name="ItemJnlTemplate">The item journal templates whose filters can be narrowed.</param>
+    /// <param name="PageTemplate">The page template option supplied by item journal management.</param>
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::ItemJnlManagement, 'OnTemplateSelectionSetFilter', '', true, true)]
     local procedure HandleOnTemplateSelectionSetFilter(var ItemJnlTemplate: Record "Item Journal Template"; var PageTemplate: Option)
@@ -216,11 +216,11 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     end;
 
     /// <summary>
-    /// Used to help choose which template to use when multiple templates are configured for a given template type.
+    /// Restricts warehouse journal template selection to the template containing the configured quality management batch.
     /// </summary>
-    /// <param name="WarehouseJournalLine"></param>
-    /// <param name="WhseJnlTemplate"></param>
-    /// <param name="OpenFromBatch"></param>
+    /// <param name="WarehouseJournalLine">The warehouse journal line supplied by template selection.</param>
+    /// <param name="WhseJnlTemplate">The warehouse journal templates whose filters can be narrowed.</param>
+    /// <param name="OpenFromBatch">Indicates whether template selection was opened from a batch.</param>
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Journal Line", 'OnTemplateSelectionOnAfterSetFilters', '', true, true)]
     local procedure HandleOnTemplateSelectionOnAfterSetFilters(var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseJnlTemplate: Record "Warehouse Journal Template"; OpenFromBatch: Boolean)
@@ -275,11 +275,11 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     end;
 
     /// <summary>
-    /// Gets the most recent expiration date for the given item, variant, item tracking.
+    /// Gets the warehouse expiration date for the item-tracking values on an inspection at a location.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="LocationCode"></param>
-    /// <returns></returns>   
+    /// <param name="QltyInspectionHeader">The inspection supplying item, variant, and tracking values.</param>
+    /// <param name="LocationCode">The location at which to resolve the expiration date.</param>
+    /// <returns>The warehouse expiration date, or zero date when none is available.</returns>
     internal procedure GetExpirationDate(QltyInspectionHeader: Record "Qlty. Inspection Header"; LocationCode: Code[10]) ExpirationDate: Date
     begin
         exit(GetExpirationDate(
@@ -291,6 +291,16 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
                 QltyInspectionHeader."Source Package No."));
     end;
 
+    /// <summary>
+    /// Gets the warehouse expiration date for specified item, location, and item-tracking values.
+    /// </summary>
+    /// <param name="LocationCode">The location at which to resolve the expiration date.</param>
+    /// <param name="ItemNo">The item number.</param>
+    /// <param name="VariantCode">The item variant code.</param>
+    /// <param name="LotNo">The lot number.</param>
+    /// <param name="SerialNo">The serial number.</param>
+    /// <param name="PackageNo">The package number.</param>
+    /// <returns>The warehouse expiration date, or zero date when none is available.</returns>
     local procedure GetExpirationDate(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[20]; LotNo: Code[50]; SerialNo: Code[50]; PackageNo: Code[50]) ExpirationDate: Date
     var
         Location: Record Location;
@@ -308,10 +318,10 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     end;
 
     /// <summary>
-    /// Returns true if the item is lot warehouse, or serial warehouse, or package warehouse tracked.
+    /// Determines whether an item uses lot, serial, or package warehouse tracking.
     /// </summary>
-    /// <param name="ItemNo"></param>
-    /// <returns></returns>
+    /// <param name="ItemNo">The item number to inspect.</param>
+    /// <returns>True if any warehouse tracking type is enabled; otherwise, false.</returns>
     internal procedure GetIsWarehouseTracked(ItemNo: Code[20]): Boolean
     var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -323,11 +333,11 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     end;
 
     /// <summary>
-    /// Returns true if the item tracking could be fetched or not.
+    /// Gets the item tracking code assigned to an item.
     /// </summary>
-    /// <param name="ItemNo"></param>
-    /// <param name="ItemTrackingCode"></param>
-    /// <returns></returns>
+    /// <param name="ItemNo">The item number whose tracking code is requested.</param>
+    /// <param name="ItemTrackingCode">The assigned item tracking code record.</param>
+    /// <returns>True if the item has an existing item tracking code; otherwise, false.</returns>
     internal procedure GetItemTrackingCode(ItemNo: Code[20]; var ItemTrackingCode: Record "Item Tracking Code"): Boolean
     var
         Item: Record Item;
@@ -345,9 +355,11 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     end;
 
     /// <summary>
-    /// To simplify a situation where the Purchase Order Return line may have multiple associated tracking lines from the originating Purchase Receipt line, or may be based off of a receipt line with the wrong 
-    /// item tracking, this deletes all Reservation Entries for the line and creates a single entry with the updated quantity.
+    /// Replaces all reservation entries for a purchase return line with one entry using the inspection tracking values and requested quantity.
     /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection supplying item and item-tracking values.</param>
+    /// <param name="ReturnOrderPurchaseLine">The purchase return line whose reservation entries are replaced.</param>
+    /// <param name="QtyToReturn">The quantity for the replacement reservation entry.</param>
     internal procedure DeleteAndRecreatePurchaseReturnOrderLineTracking(QltyInspectionHeader: Record "Qlty. Inspection Header"; ReturnOrderPurchaseLine: Record "Purchase Line"; QtyToReturn: Decimal)
     var
         ReservationEntry: Record "Reservation Entry";
@@ -386,11 +398,11 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     end;
 
     /// <summary>
-    /// Create 
+    /// Creates an outbound surplus reservation entry for a transfer line from inspection tracking values.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
-    /// <param name="TransferLine"></param>
+    /// <param name="QltyInspectionHeader">The inspection supplying item-tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The disposition instruction supplying quantity and expiration date.</param>
+    /// <param name="TransferLine">The outbound transfer line for which tracking is created.</param>
     internal procedure CreateOutboundTransferLineReservationEntries(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TransferLine: Record "Transfer Line")
     var
         Item: Record Item;
@@ -467,14 +479,14 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     end;
 
     /// <summary>
-    /// Adds/Removes Purchase Return Line item tracking entries. When used with serial numbers only one serial number can be created at a time.
+    /// Adds, reduces, or replaces surplus item-tracking entries for a purchase return line.
     /// </summary>
-    /// <param name="PurchPurchaseLine"></param>
-    /// <param name="SerialNo"></param>
-    /// <param name="LotNo"></param>
-    /// <param name="PackageNo"></param>
-    /// <param name="ExpirationDate"></param>
-    /// <param name="ChangeQty"></param>
+    /// <param name="PurchPurchaseLine">The purchase return line whose tracking quantity is changed.</param>
+    /// <param name="SerialNo">The serial number for the tracking entry.</param>
+    /// <param name="LotNo">The lot number for the tracking entry.</param>
+    /// <param name="PackageNo">The package number for the tracking entry.</param>
+    /// <param name="ExpirationDate">The expiration date for the tracking entry.</param>
+    /// <param name="ChangeQty">The quantity change in the line's unit of measure.</param>
     internal procedure CreatePurchaseReturnReservationEntries(PurchPurchaseLine: Record "Purchase Line"; SerialNo: Code[50]; LotNo: Code[50]; PackageNo: Code[50]; ExpirationDate: Date; ChangeQty: Decimal)
     var
         ReservationEntry: Record "Reservation Entry";
@@ -549,12 +561,12 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     end;
 
     /// <summary>
-    /// Creates a new warehouse journal line reservation entry
+    /// Creates a warehouse item-tracking line for a disposition warehouse journal line.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
-    /// <param name="WarehouseJournalLine"></param>
-    /// <param name="WhseItemTrackingLine"></param>
+    /// <param name="QltyInspectionHeader">The inspection supplying current item-tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The disposition instruction supplying quantity and new tracking values.</param>
+    /// <param name="WarehouseJournalLine">The warehouse journal line to associate with the tracking line.</param>
+    /// <param name="WhseItemTrackingLine">The created warehouse item-tracking line.</param>
     internal procedure CreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     var
         ExpirationDate: Date;
@@ -616,53 +628,61 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
         OnAfterCreateWarehouseJournalLineReservationEntry(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalLine, WhseItemTrackingLine);
     end;
 
+    /// <summary>
+    /// Notifies subscribers before purchase return reservation entries are changed and permits replacement of the standard behavior.
+    /// </summary>
+    /// <param name="PurchPurchaseLine">The purchase return line being updated.</param>
+    /// <param name="SerialNo">The serial number for the tracking entry.</param>
+    /// <param name="LotNo">The lot number for the tracking entry.</param>
+    /// <param name="PackageNo">The package number for the tracking entry.</param>
+    /// <param name="ExpirationDate">The expiration date for the tracking entry.</param>
+    /// <param name="ChangeQty">The requested quantity change.</param>
+    /// <param name="IsHandled">Set to true to skip the standard behavior.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePurchaseReturnReservationEntries(var PurchPurchaseLine: Record "Purchase Line"; var SerialNo: Code[50]; var LotNo: Code[50]; var PackageNo: Code[50]; var ExpirationDate: Date; var ChangeQty: Decimal; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Occurs before a warehouse journal line reservation entry has been made as a result of a dispositoin.
+    /// Notifies subscribers before a warehouse item-tracking line is created and permits replacement of the standard behavior.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
-    /// <param name="WhseJnlWarehouseJournalLine"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="QltyInspectionHeader">The inspection supplying item-tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The disposition instruction being applied.</param>
+    /// <param name="WhseJnlWarehouseJournalLine">The warehouse journal line receiving tracking.</param>
+    /// <param name="IsHandled">Set to true to skip the standard behavior.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WhseJnlWarehouseJournalLine: Record "Warehouse Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Occurs before the item journal line reservation entry has been made.
-    /// Use this as an opportunity to replace the base behavior.
+    /// Notifies subscribers before an item journal reservation entry is created and permits replacement of the standard behavior.
     /// </summary>
-    /// <param name="ItemJournalLine"></param>
-    /// <param name="CreatedActualReservationEntry"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="ItemJournalLine">The item journal line receiving tracking.</param>
+    /// <param name="CreatedActualReservationEntry">The reservation entry that subscribers can populate.</param>
+    /// <param name="IsHandled">Set to true to skip the standard behavior.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateItemJournalLineReservationEntry(var ItemJournalLine: Record "Item Journal Line"; var CreatedActualReservationEntry: Record "Reservation Entry"; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Occurs after the item journal line reservation entry has been made.
-    /// Use this as an opportunity to extend the base behavior.
+    /// Notifies subscribers after an item journal reservation entry is created.
     /// </summary>
-    /// <param name="ItemJournalLine"></param>
-    /// <param name="ReservationEntry"></param>
+    /// <param name="ItemJournalLine">The item journal line associated with the tracking entry.</param>
+    /// <param name="ReservationEntry">The created reservation entry.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateItemJournalLineReservationEntry(var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
     begin
     end;
 
     /// <summary>
-    /// Occurs after the creation of a warehouse journal line reservation entry.
+    /// Notifies subscribers after a warehouse item-tracking line is created.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
-    /// <param name="WhseJnlWarehouseJournalLine"></param>
-    /// <param name="WhseItemTrackingLine"></param>
+    /// <param name="QltyInspectionHeader">The inspection supplying item-tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The applied disposition instruction.</param>
+    /// <param name="WhseJnlWarehouseJournalLine">The warehouse journal line associated with the tracking line.</param>
+    /// <param name="WhseItemTrackingLine">The created warehouse item-tracking line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateWarehouseJournalLineReservationEntry(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WhseJnlWarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     begin

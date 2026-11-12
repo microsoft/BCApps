@@ -10,7 +10,7 @@ page 46887 "BC14 Old Cust. Ledg. List"
     Caption = 'BC14 Old Customer Ledger Entries';
     PageType = List;
     ApplicationArea = All;
-    UsageCategory = Lists;
+    UsageCategory = History;
     SourceTable = "BC14 Old Cust. Ledg. Entry";
     Editable = false;
 

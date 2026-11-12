@@ -50,6 +50,10 @@ page 6927 "Expenses API"
                 {
                     Caption = 'Expense Report No.';
                 }
+                field(postedExpenseReportNo; Rec."Posted Expense Report No.")
+                {
+                    Caption = 'Posted Expense Report No.';
+                }
                 field(expenseCategory; Rec."Expense Category")
                 {
                     Caption = 'Expense Category';
@@ -184,6 +188,11 @@ page 6927 "Expenses API"
                 {
                     Caption = 'Round Trip';
                     ToolTip = 'Specifies whether the mileage expense is a round trip.';
+                }
+                field(vehicleType; Rec."Vehicle Type")
+                {
+                    Caption = 'Vehicle Type';
+                    ToolTip = 'Specifies the vehicle type used for this mileage expense.';
                 }
                 field(totalMileage; TotalMileage)
                 {

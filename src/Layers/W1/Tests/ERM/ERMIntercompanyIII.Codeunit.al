@@ -2272,6 +2272,7 @@ codeunit 134154 "ERM Intercompany III"
         ICInboxTransaction: Record "IC Inbox Transaction";
         ICInboxJnlLine: Record "IC Inbox Jnl. Line";
         ICGLAccount: Record "IC G/L Account";
+        CompleteICInboxAction: Report "Complete IC Inbox Action";
         ICPartnerCode: Code[20];
     begin
         // [SCENARIO 290460] Intercompany general journal line created when IC setup has filled in default intercompany template and batch
@@ -2285,7 +2286,10 @@ codeunit 134154 "ERM Intercompany III"
         CreateDummyICInboxJnlLine(ICInboxJnlLine, ICGLAccount, ICPartnerCode);
 
         // [WHEN] Run report "Complete IC Inbox Action"
-        Report.Run(Report::"Complete IC Inbox Action", false, false, ICInboxTransaction);
+        CompleteICInboxAction.SetJournal(ICSetup."Default IC Gen. Jnl. Template", ICSetup."Default IC Gen. Jnl. Batch");
+        CompleteICInboxAction.SetTableView(ICInboxTransaction);
+        CompleteICInboxAction.UseRequestPage(false);
+        CompleteICInboxAction.Run();
 
         // [THEN] One general journal line is created
         GenJournalLine.SetRange("Journal Template Name", ICSetup."Default IC Gen. Jnl. Template");
@@ -3598,6 +3602,7 @@ codeunit 134154 "ERM Intercompany III"
     end;
 
     [Test]
+    [HandlerFunctions('RequestPageHandler')]
     procedure OpenICPurchaseInvoiceWithVendorOrderNoExceeding20Chars()
     var
         ICInboxPurchaseHeader: Record "IC Inbox Purchase Header";

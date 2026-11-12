@@ -43,6 +43,7 @@ codeunit 134327 "ERM Purchase Order"
         AmountError: Label '%1 must be %2 in %3.';
         PostError: Label 'Amount must be negative';
         CountErr: Label 'There must be %1 record(-s) in table %2 with the following filters: %3';
+        NavigateLineNotFoundErr: Label 'Find Entries has no line for table %1.', Comment = '%1 = table ID';
         ColumnWrongVisibilityErr: Label 'Column[%1] has wrong visibility';
         IncorrectFieldValueErr: Label 'Incorrect %1 field value.';
         WrongQtyToReceiveErr: Label 'Qty. to Receive should not be non zero because Quantity was not changed.';
@@ -961,7 +962,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [Scope('OnPrem')]
-    procedure PurchaseInvoice()
+    procedure PurchaseInvoicePostAndVerify()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -982,7 +983,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [Scope('OnPrem')]
-    procedure PurchaseCreditMemo()
+    procedure PurchaseCreditMemoPostAndVerify()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1779,6 +1780,106 @@ codeunit 134327 "ERM Purchase Order"
     end;
 
     [Test]
+    procedure PartialInvoicesUsePostedReceiptBaseQuantities()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        BaseItemUnitOfMeasure: Record "Item Unit of Measure";
+        PurchaseItemUnitOfMeasure: Record "Item Unit of Measure";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        ValueEntry: Record "Value Entry";
+        ReceiptQuantities: array[6] of Decimal;
+        InvoiceQuantities: array[4] of Decimal;
+        PostedInvoiceNos: array[4] of Code[20];
+        PurchaseOrderNo: Code[20];
+        PurchaseLineNo: Integer;
+        Index: Integer;
+        ItemLedgerEntryCount: Integer;
+        TotalReceivedBaseQuantity: Decimal;
+    begin
+        // [FEATURE] [Purchase Order] [Partial Invoice] [Unit of Measure] [Rounding]
+        // [SCENARIO 656817] Partial invoices use the base quantities posted on the related purchase receipts.
+        Initialize();
+
+        // [GIVEN] An item with 1 PCS base quantity rounding and a purchase unit of measure where 1 TON = 135 PCS.
+        LibraryInventory.CreateItem(Item);
+        BaseItemUnitOfMeasure.Get(Item."No.", Item."Base Unit of Measure");
+        BaseItemUnitOfMeasure.Validate("Qty. Rounding Precision", 1);
+        BaseItemUnitOfMeasure.Modify(true);
+        LibraryInventory.CreateItemUnitOfMeasureCode(PurchaseItemUnitOfMeasure, Item."No.", 135);
+
+        // [GIVEN] A purchase order for 500 TON.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, CreateVendor());
+        PurchaseHeader.Validate("Prices Including VAT", false);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 500);
+        PurchaseLine.Validate("Unit of Measure Code", PurchaseItemUnitOfMeasure.Code);
+        PurchaseLine.Validate("Direct Unit Cost", 135);
+        PurchaseLine.Modify(true);
+        PurchaseOrderNo := PurchaseHeader."No.";
+        PurchaseLineNo := PurchaseLine."Line No.";
+
+        // [GIVEN] Six partial receipts whose individually rounded base quantities total 67500 PCS.
+        ReceiptQuantities[1] := 49.95;
+        ReceiptQuantities[2] := 99.9;
+        ReceiptQuantities[3] := 99.9;
+        ReceiptQuantities[4] := 37.962;
+        ReceiptQuantities[5] := 112.288;
+        ReceiptQuantities[6] := 100;
+        for Index := 1 to ArrayLen(ReceiptQuantities) do begin
+            PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, PurchaseOrderNo);
+            PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchaseOrderNo, PurchaseLineNo);
+            PurchaseLine.Validate("Qty. to Receive", ReceiptQuantities[Index]);
+            PurchaseLine.Validate("Qty. to Invoice", 0);
+            PurchaseLine.Modify(true);
+            LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        end;
+
+        // [WHEN] The receipts are invoiced in four partial invoices, including one invoice covering three receipts.
+        InvoiceQuantities[1] := 49.95;
+        InvoiceQuantities[2] := 237.762;
+        InvoiceQuantities[3] := 112.288;
+        InvoiceQuantities[4] := 100;
+        for Index := 1 to ArrayLen(InvoiceQuantities) do begin
+            PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, PurchaseOrderNo);
+            PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+            PurchaseHeader.Modify(true);
+            PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchaseOrderNo, PurchaseLineNo);
+            PurchaseLine.Validate("Qty. to Receive", 0);
+            PurchaseLine.Validate("Qty. to Invoice", InvoiceQuantities[Index]);
+            PurchaseLine.Modify(true);
+            PostedInvoiceNos[Index] := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+        end;
+
+        // [THEN] All receipts are fully invoiced for 67500 PCS and each invoice's item costs equal its net amount.
+        PurchInvHeader.Get(PostedInvoiceNos[2]);
+        PurchInvHeader.CalcFields(Amount);
+        Assert.AreEqual(32097.87, PurchInvHeader.Amount, 'Unexpected net amount for the invoice covering three receipts.');
+        for Index := 1 to ArrayLen(PostedInvoiceNos) do begin
+            PurchInvHeader.Get(PostedInvoiceNos[Index]);
+            PurchInvHeader.CalcFields(Amount);
+            ValueEntry.SetRange("Item No.", Item."No.");
+            ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+            ValueEntry.SetRange("Document No.", PostedInvoiceNos[Index]);
+            ValueEntry.CalcSums("Cost Amount (Actual)");
+            Assert.AreEqual(PurchInvHeader.Amount, ValueEntry."Cost Amount (Actual)", 'The total item cost must equal the net invoice amount.');
+        end;
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Purchase);
+        ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Purchase Receipt");
+        ItemLedgerEntry.FindSet();
+        repeat
+            ItemLedgerEntry.TestField("Invoiced Quantity", ItemLedgerEntry.Quantity);
+            TotalReceivedBaseQuantity += ItemLedgerEntry.Quantity;
+            ItemLedgerEntryCount += 1;
+        until ItemLedgerEntry.Next() = 0;
+        Assert.AreEqual(ArrayLen(ReceiptQuantities), ItemLedgerEntryCount, 'Unexpected number of purchase receipt item ledger entries.');
+        Assert.AreEqual(67500, TotalReceivedBaseQuantity, 'The total received base quantity must be fully invoiced.');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure BaseValuesAreRoundedWithRoundingPrecisionSpecifiedOnPurchaseOrderLine()
     var
@@ -2128,7 +2229,6 @@ codeunit 134327 "ERM Purchase Order"
 
         // [THEN] "Qty. to Receive " in Purchase Order Line is "X"
         Assert.AreEqual(Qty, PurchaseLine4."Qty. to Receive", StrSubstNo(QtyToReceiveUpdateErr, Qty));
-
     end;
 
     [Test]
@@ -7991,7 +8091,7 @@ codeunit 134327 "ERM Purchase Order"
     end;
 
     [Test]
-    procedure VerifyQtyReceivedBaseAfterCorrectOnPartialInvoice()
+    procedure VerifyQtyReceivedBaseAfterCorrectOnPartialInvoiceWhenRestoreQtyEnabled()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -8001,6 +8101,7 @@ codeunit 134327 "ERM Purchase Order"
     begin
         // [SCENARIO 494646] Verify Qty. Received (Base) on Purchase Line after Correct Posted Purchase Invoice on Partial Invoice
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create Purchase Order
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, CreateVendor());
@@ -8558,7 +8659,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseOrderUpdatedAfterPartialCorrectPostedPurchaseInvoice()
+    procedure VerifyPurchaseOrderUpdatedAfterPartialCorrectPostedPurchaseInvoiceWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         PurchaseLine: Record "Purchase Line";
@@ -8571,6 +8672,7 @@ codeunit 134327 "ERM Purchase Order"
     begin
         // [SCENARIO 578443] Verify quantity on posted Purchase Order updated correctly after partial posting of Corrective Credit memo.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create an Item.
         LibraryInventory.CreateItem(Item);
@@ -8610,7 +8712,58 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseOrderUpdatedAfterCorrectPostedPurchaseInvoiceDifferentQuantity()
+    procedure VerifyPurchaseOrderNotUpdatedAfterPartialCorrectPostedPurchaseInvoiceWhenRestoreQtyDisabled()
+    var
+        Item: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseHeaderCorrection: Record "Purchase Header";
+        PurchaseLineCorrection: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        PurchaseCreditMemo: TestPage "Purchase Credit Memo";
+    begin
+        // [SCENARIO 649626] Purchase Order quantities are not restored after posting a partial Corrective Credit Memo when restoring order quantities is disabled.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(false);
+
+        // [GIVEN] A partially received and invoiced Purchase Order with Quantity 10 and posted Quantity 5.
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseDocumentWithItem(
+            PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order, CreateVendor(),
+            Item."No.", LibraryRandom.RandIntInRange(10, 10), '', WorkDate());
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 100, 2));
+        PurchaseLine.Validate("Qty. to Receive", LibraryRandom.RandIntInRange(5, 5));
+        PurchaseLine.Modify(true);
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+
+        // [GIVEN] A Corrective Credit Memo for 2 of the 5 invoiced units.
+        CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeaderCorrection);
+        PurchaseHeaderCorrection.Validate("Vendor Cr. Memo No.", PurchaseHeaderCorrection."No.");
+        PurchaseHeaderCorrection.Modify(true);
+        PurchaseLineCorrection.SetRange("Document Type", PurchaseHeaderCorrection."Document Type");
+        PurchaseLineCorrection.SetRange("Document No.", PurchaseHeaderCorrection."No.");
+        PurchaseLineCorrection.SetRange("No.", Item."No.");
+        PurchaseLineCorrection.FindFirst();
+        PurchaseLineCorrection.Validate(Quantity, 2);
+        PurchaseLineCorrection.Modify(true);
+
+        // [WHEN] The Corrective Credit Memo is posted.
+        PurchaseCreditMemo.OpenView();
+        PurchaseCreditMemo.GotoRecord(PurchaseHeaderCorrection);
+        PurchaseCreditMemo.Post.Invoke();
+
+        // [THEN] The Purchase Order quantities remain unchanged.
+        PurchaseLine.Find();
+        PurchaseLine.TestField("Quantity Received", 5);
+        PurchaseLine.TestField("Quantity Invoiced", 5);
+        PurchaseLine.TestField("Qty. to Receive", 5);
+        PurchaseLine.TestField("Qty. to Invoice", 5);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyPurchaseOrderUpdatedAfterCorrectPostedPurchaseInvoiceDifferentQuantityWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         PurchaseLine: Record "Purchase Line";
@@ -8623,6 +8776,7 @@ codeunit 134327 "ERM Purchase Order"
     begin
         // [SCENARIO 578443] Verify quantity on posted Purchase Order updated correctly after partial posting of Corrective Credit memo.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create an Item.
         LibraryInventory.CreateItem(Item);
@@ -8669,7 +8823,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseOrderUpdatedAfterCorrectPostedPurchaseInvoiceApplyEntries()
+    procedure VerifyPurchaseOrderUpdatedAfterCorrectPostedPurchaseInvoiceApplyEntriesWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         PurchaseLine: Record "Purchase Line";
@@ -8682,6 +8836,7 @@ codeunit 134327 "ERM Purchase Order"
     begin
         // [SCENARIO 578443] Verify quantity on posted Purchase Order updated correctly after posting of Corrective Credit memo with Application.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create an Item.
         LibraryInventory.CreateItem(Item);
@@ -8858,7 +9013,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler,PostedPurchaseDocumentLinesHandler')]
-    procedure VerifyManuallyCreatedPurchaseCrMemoUpdateExistingPurchaseOrder()
+    procedure VerifyManuallyCreatedPurchaseCrMemoUpdateExistingPurchaseOrderWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
@@ -8869,6 +9024,7 @@ codeunit 134327 "ERM Purchase Order"
     begin
         // [SCENARIO 578769] Verify manually created Purchase Credit Memo with get posted document lines to reverse should update the existing Purchase Order.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create an Item.
         LibraryInventory.CreateItem(Item);
@@ -8969,7 +9125,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyQuantityToReceiveOnPurchOrderUpdatedWithGLAccountWithCorrectiveCreditMemo()
+    procedure PurchOrderQuantitiesRetainedAfterGLAccountCorrectiveCreditMemoWhenRestoreQtyEnabled()
     var
         GLAccount: Record "G/L Account";
         PurchaseHeader: Record "Purchase Header";
@@ -8983,9 +9139,11 @@ codeunit 134327 "ERM Purchase Order"
         GLAccountCode: Code[20];
         Quantity: Decimal;
     begin
-        // [SCENARIO 615866] Verify Qty. to Receive and  Qty. to Invoice are updated for G/L Account lines
+        // [SCENARIO 615866] Verify Qty. to Receive and Qty. to Invoice are retained for G/L Account lines
         // after creating a Corrective Credit Memo from the Posted Purchase Invoice.
+        // [SCENARIO 649626] Temporary scenario for testing behavior per current design.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
         Quantity := LibraryRandom.RandIntInRange(10, 10);
 
         // [GIVEN] Create a G/L Account.
@@ -9019,8 +9177,8 @@ codeunit 134327 "ERM Purchase Order"
         PurchCreditMemo.GotoRecord(PurchaseHeader2);
         PurchCreditMemo.Post.Invoke();
 
-        // [THEN] Verify Purchase Order Qty. to Receive and Qty. to Invoice are updated in Purchase line.
-        VerifyPurchaseOrderAfterPartialPostCorrectiveCreditMemo(PurchaseHeader."No.", Quantity);
+        // [THEN] Verify Purchase Order Qty. to Receive and Qty. to Invoice retain the unposted quantity.
+        VerifyPurchaseOrderAfterPartialPostCorrectiveCreditMemo(PurchaseHeader."No.", Quantity / 2);
     end;
 
     [Test]
@@ -9048,7 +9206,7 @@ codeunit 134327 "ERM Purchase Order"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure VerifyPurchaseCrMemoUpdateExistingPurchaseOrderForNonInventoryAndServiceItem()
+    procedure PurchOrderQuantitiesRetainedAfterReversingNonInventoryAndServiceItemsWhenRestoreQtyEnabled()
     var
         FromPurchInvLine: Record "Purch. Inv. Line";
         NonInvItem: Record Item;
@@ -9065,8 +9223,10 @@ codeunit 134327 "ERM Purchase Order"
         MissingExCostRevLink: Boolean;
     begin
         // [SCENARIO 620074] When you use "Get Posted Document Lines to Reverse" in the Purchase credit Memo
-        // the Quantity to receive and the Quantity to invoice should be corrected For Non-Inventory and Service Items
+        // the Quantity to Receive and the Quantity to Invoice are retained for Non-Inventory and Service Items.
+        // [SCENARIO 649626] Temporary scenario for testing behavior per current design.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create a Non-Inventory Type Item.
         LibraryInventory.CreateNonInventoryTypeItem(NonInvItem);
@@ -9109,8 +9269,8 @@ codeunit 134327 "ERM Purchase Order"
         PurchCreditMemo.GotoRecord(PurchaseHeader2);
         PurchCreditMemo.Post.Invoke();
 
-        // [THEN] Verify Purchase Order Qty. to Receive and Qty. to Invoice are updated as Quantity in the Purchase line.
-        VerifyPurchaseOrderQuantityforManualPurchaseCreditMemo(PurchaseHeader."No.", Quantity);
+        // [THEN] Verify Purchase Order Qty. to Receive and Qty. to Invoice retain the unposted quantity.
+        VerifyPurchaseOrderQuantityforManualPurchaseCreditMemo(PurchaseHeader."No.", Quantity / 2);
     end;
 
     [Test]
@@ -9273,6 +9433,277 @@ codeunit 134327 "ERM Purchase Order"
         Assert.RecordIsNotEmpty(GLEntry);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure PurchOrderQuantitiesRetainedAfterPostingCopyDocumentCreditMemoForInventoryItemWhenRestoreQtyEnabled()
+    var
+        Item: Record Item;
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        PurchaseHeaderCreditMemo: Record "Purchase Header";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchaseCreditMemoPage: TestPage "Purchase Credit Memo";
+        VendorNo: Code[20];
+        OrderNo: Code[20];
+        OrderLineNo: Integer;
+        Qty: Decimal;
+    begin
+        // [FEATURE] [Copy Document] [Credit Memo]
+        // [SCENARIO 647007] Posting a Purchase Credit Memo created via Copy Document from a posted Purchase Invoice must not revert the received and invoiced quantities on the originating Purchase Order for inventory items.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(true);
+
+        // [GIVEN] "Exact Cost Reversing Mandatory" is disabled in Purchases & Payables Setup.
+        LibraryPurchase.SetExactCostReversingMandatory(false);
+
+        // [GIVEN] Purchase Order for an inventory item with Quantity = 10, fully received.
+        Qty := LibraryRandom.RandIntInRange(10, 20);
+        LibraryInventory.CreateItem(Item);
+        VendorNo := CreateVendor();
+        LibraryPurchase.CreatePurchaseDocumentWithItem(
+            PurchaseHeaderOrder, PurchaseLineOrder, PurchaseHeaderOrder."Document Type"::Order, VendorNo, Item."No.", Qty, '', WorkDate());
+        OrderNo := PurchaseHeaderOrder."No.";
+        OrderLineNo := PurchaseLineOrder."Line No.";
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+
+        // [GIVEN] Purchase Invoice created from the receipt line and posted, so the Purchase Order line is fully received and invoiced.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, VendorNo);
+        PurchRcptLine.SetRange("Order No.", OrderNo);
+        PurchRcptLine.SetRange("Order Line No.", OrderLineNo);
+        PurchRcptLine.FindFirst();
+        PurchaseLineInvoice.Init();
+        PurchaseLineInvoice.Validate("Document Type", PurchaseHeaderInvoice."Document Type");
+        PurchaseLineInvoice.Validate("Document No.", PurchaseHeaderInvoice."No.");
+        PurchRcptLine.InsertInvLineFromRcptLine(PurchaseLineInvoice);
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, false, true));
+
+        PurchaseLineOrder.Get(PurchaseLineOrder."Document Type"::Order, OrderNo, OrderLineNo);
+        PurchaseLineOrder.TestField("Quantity Received", Qty);
+        PurchaseLineOrder.TestField("Quantity Invoiced", Qty);
+
+        // [GIVEN] Purchase Credit Memo with lines copied from the posted Purchase Invoice using Copy Document.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderCreditMemo, PurchaseHeaderCreditMemo."Document Type"::"Credit Memo", VendorNo);
+        Commit();
+        PurchaseCopyDocument(PurchaseHeaderCreditMemo, PurchInvHeader."No.", "Purchase Document Type From"::"Posted Invoice");
+        PurchaseHeaderCreditMemo.Get(PurchaseHeaderCreditMemo."Document Type"::"Credit Memo", PurchaseHeaderCreditMemo."No.");
+        PurchaseHeaderCreditMemo.Validate("Vendor Cr. Memo No.", PurchaseHeaderCreditMemo."No.");
+        PurchaseHeaderCreditMemo.Modify(true);
+
+        // [WHEN] Post the Purchase Credit Memo.
+        PurchaseCreditMemoPage.OpenView();
+        PurchaseCreditMemoPage.GotoRecord(PurchaseHeaderCreditMemo);
+        PurchaseCreditMemoPage.Post.Invoke();
+
+        // [THEN] The originating Purchase Order line keeps Quantity Received and Quantity Invoiced, with nothing left to receive or invoice.
+        PurchaseLineOrder.Get(PurchaseLineOrder."Document Type"::Order, OrderNo, OrderLineNo);
+        PurchaseLineOrder.TestField("Quantity Received", Qty);
+        PurchaseLineOrder.TestField("Quantity Invoiced", Qty);
+        PurchaseLineOrder.TestField("Qty. to Receive", 0);
+        PurchaseLineOrder.TestField("Qty. to Invoice", 0);
+    end;
+
+    [Test]
+    procedure OrderNoIsPopulatedOnPurchaseInvoiceWithInvoiceRoundingLine()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        InvoicePurchaseHeader: Record "Purchase Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchInvLine: Record "Purch. Inv. Line";
+        Vendor: Record Vendor;
+        VendorPostingGroup: Record "Vendor Posting Group";
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Invoice Rounding] [Get Receipt Lines] [AI]
+        // [SCENARIO 647878] A generated invoice rounding line does not prevent copying the source order number to the posted invoice.
+        Initialize();
+        LibraryERM.SetInvRoundingPrecisionLCY(1);
+        LibraryPurchase.SetInvoiceRounding(true);
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateAndReceivePurchaseOrder(PurchaseHeader, Vendor."No.", 100.4);
+        InvoicePostedPurchaseOrder(InvoicePurchaseHeader, PurchaseHeader);
+
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoicePurchaseHeader, false, true);
+
+        PurchInvHeader.Get(InvoiceNo);
+        PurchInvHeader.TestField("Order No.", PurchaseHeader."No.");
+        VendorPostingGroup.Get(Vendor."Vendor Posting Group");
+        PurchInvLine.SetRange("Document No.", InvoiceNo);
+        PurchInvLine.SetRange(Type, PurchInvLine.Type::"G/L Account");
+        PurchInvLine.SetRange("No.", VendorPostingGroup."Invoice Rounding Account");
+        PurchInvLine.FindFirst();
+        PurchInvLine.TestField("System-Created Entry", true);
+        PurchInvLine.TestField("Order No.", '');
+    end;
+
+    [Test]
+    procedure OrderNoIsBlankOnPurchaseInvoiceFromTwoOrdersWithInvoiceRoundingLine()
+    var
+        PurchaseHeader: array[2] of Record "Purchase Header";
+        InvoicePurchaseHeader: Record "Purchase Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        Vendor: Record Vendor;
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Invoice Rounding] [Get Receipt Lines] [AI]
+        // [SCENARIO 647878] A rounding line does not hide that a purchase invoice contains receipts from two orders.
+        Initialize();
+        LibraryERM.SetInvRoundingPrecisionLCY(1);
+        LibraryPurchase.SetInvoiceRounding(true);
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateAndReceivePurchaseOrder(PurchaseHeader[1], Vendor."No.", 100.2);
+        CreateAndReceivePurchaseOrder(PurchaseHeader[2], Vendor."No.", 100.2);
+        InvoicePostedPurchaseOrder(InvoicePurchaseHeader, PurchaseHeader[1]);
+        AddPostedPurchaseOrderToInvoice(InvoicePurchaseHeader, PurchaseHeader[2]);
+
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoicePurchaseHeader, false, true);
+
+        PurchInvHeader.Get(InvoiceNo);
+        PurchInvHeader.TestField("Order No.", '');
+    end;
+
+    [Test]
+    procedure OrderNoIsBlankOnPurchaseInvoiceWithManualBlankOrderLineAndInvoiceRoundingLine()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        InvoicePurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        Vendor: Record Vendor;
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Invoice Rounding] [Get Receipt Lines] [AI]
+        // [SCENARIO 647878] A manual blank-order line is not mistaken for a generated invoice rounding line.
+        Initialize();
+        LibraryERM.SetInvRoundingPrecisionLCY(1);
+        LibraryPurchase.SetInvoiceRounding(true);
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateAndReceivePurchaseOrder(PurchaseHeader, Vendor."No.", 100.4);
+        InvoicePostedPurchaseOrder(InvoicePurchaseHeader, PurchaseHeader);
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, InvoicePurchaseHeader, PurchaseLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithPurchSetup(), 1);
+        PurchaseLine.Validate("Direct Unit Cost", 1);
+        PurchaseLine.Modify(true);
+
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoicePurchaseHeader, false, true);
+
+        PurchInvHeader.Get(InvoiceNo);
+        PurchInvHeader.TestField("Order No.", '');
+    end;
+
+    [Test]
+    procedure ShowUnpostedPurchaseReturnOrderFromFindEntries()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Navigate: TestPage Navigate;
+        PurchaseReturnOrder: TestPage "Purchase Return Order";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651758] Show Related Entries in Find Entries opens the unposted Purchase Return Order.
+        Initialize();
+
+        // [GIVEN] Unposted Purchase Return Order "RO" found in Find Entries by document number.
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, CreateVendor(), PurchaseHeader."Document Type"::"Return Order");
+        FindEntriesByDocumentNo(Navigate, PurchaseHeader."No.");
+        Navigate.Filter.SetFilter("Document Type", Format(Enum::"Document Entry Document Type"::"Return Order"));
+        VerifyNavigatePageNoOfRecords(Navigate, Database::"Purchase Header", 1);
+
+        // [WHEN] Invoke Show Related Entries on the Purchase Header line.
+        PurchaseReturnOrder.Trap();
+        Navigate.Show.Invoke();
+
+        // [THEN] The Purchase Return Order card opens for "RO".
+        PurchaseReturnOrder."No.".AssertEquals(PurchaseHeader."No.");
+        PurchaseReturnOrder.Close();
+        Navigate.Close();
+    end;
+
+    [Test]
+    procedure ShowUnpostedPurchaseCreditMemoFromFindEntries()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Navigate: TestPage Navigate;
+        PurchaseCreditMemoPage: TestPage "Purchase Credit Memo";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651758] Show Related Entries in Find Entries opens the unposted Purchase Credit Memo.
+        Initialize();
+
+        // [GIVEN] Unposted Purchase Credit Memo "CM" found in Find Entries by document number.
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, CreateVendor(), PurchaseHeader."Document Type"::"Credit Memo");
+        FindEntriesByDocumentNo(Navigate, PurchaseHeader."No.");
+        Navigate.Filter.SetFilter("Document Type", Format(Enum::"Document Entry Document Type"::"Credit Memo"));
+        VerifyNavigatePageNoOfRecords(Navigate, Database::"Purchase Header", 1);
+
+        // [WHEN] Invoke Show Related Entries on the Purchase Header line.
+        PurchaseCreditMemoPage.Trap();
+        Navigate.Show.Invoke();
+
+        // [THEN] The Purchase Credit Memo card opens for "CM".
+        PurchaseCreditMemoPage."No.".AssertEquals(PurchaseHeader."No.");
+        PurchaseCreditMemoPage.Close();
+        Navigate.Close();
+    end;
+
+    [Test]
+    procedure UnpostedPurchaseReturnOrderFindByVendorExtDocNo()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Navigate: TestPage Navigate;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651758] Find Entries by vendor and external document number finds an unposted Purchase Return Order when no vendor ledger entry exists.
+        Initialize();
+
+        // [GIVEN] Unposted Purchase Return Order for vendor "V" with "Vendor Cr. Memo No." = "X".
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, CreateVendor(), PurchaseHeader."Document Type"::"Return Order");
+
+        // [WHEN] Search Find Entries by business contact vendor "V" and external document number "X".
+        FindEntriesByVendor(Navigate, PurchaseHeader."Buy-from Vendor No.", PurchaseHeader."Vendor Cr. Memo No.");
+
+        // [THEN] The unposted Purchase Return Order is found.
+        VerifyNavigatePageNoOfRecords(Navigate, Database::"Purchase Header", 1);
+        Navigate.Close();
+    end;
+
+    [Test]
+    procedure UnpostedPurchaseCreditMemoFindByVendorExtDocNoWithPostedInvoice()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Navigate: TestPage Navigate;
+        VendorNo: Code[20];
+        ExtDocNo: Code[35];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 651758] Find Entries by vendor and external document number keeps an unposted Purchase Credit Memo when a vendor ledger entry is also found.
+        Initialize();
+        VendorNo := CreateVendor();
+
+        // [GIVEN] Posted Purchase Invoice for vendor "V" with "Vendor Invoice No." = "X".
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, VendorNo, PurchaseHeader."Document Type"::Invoice);
+        ExtDocNo := PurchaseHeader."Vendor Invoice No.";
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Unposted Purchase Credit Memo for vendor "V" with "Vendor Cr. Memo No." = "X".
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, VendorNo, PurchaseHeader."Document Type"::"Credit Memo");
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", ExtDocNo);
+        PurchaseHeader.Modify(true);
+
+        // [WHEN] Search Find Entries by business contact vendor "V" and external document number "X".
+        FindEntriesByVendor(Navigate, VendorNo, ExtDocNo);
+
+        // [THEN] Both the posted Purchase Invoice and the unposted Purchase Credit Memo are found.
+        VerifyNavigatePageNoOfRecords(Navigate, Database::"Purch. Inv. Header", 1);
+        VerifyNavigatePageNoOfRecords(Navigate, Database::"Purchase Header", 1);
+        Navigate.Close();
+    end;
+
     local procedure Initialize()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -9302,6 +9733,15 @@ codeunit 134327 "ERM Purchase Order"
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Purchase Order");
+    end;
+
+    local procedure SetRestoreOrderQtyOnReturn(RestoreOrderQtyOnReturn: Boolean)
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
+        PurchasesPayablesSetup.Modify(true);
     end;
 
     local procedure CreateAccountingPeriod()
@@ -9415,6 +9855,31 @@ codeunit 134327 "ERM Purchase Order"
             PurchRcptLine.SetRange("Document No.", PurchRcptHeader."No.");
             PurchGetReceipt.CreateInvLines(PurchRcptLine);
         until PurchRcptHeader.Next() = 0;
+    end;
+
+    local procedure AddPostedPurchaseOrderToInvoice(var InvoicePurchaseHeader: Record "Purchase Header"; PostedPurchaseHeader: Record "Purchase Header")
+    var
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+    begin
+        PurchGetReceipt.SetPurchHeader(InvoicePurchaseHeader);
+        PurchRcptHeader.SetRange("Order No.", PostedPurchaseHeader."No.");
+        PurchRcptHeader.FindFirst();
+        PurchRcptLine.SetRange("Document No.", PurchRcptHeader."No.");
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+    end;
+
+    local procedure CreateAndReceivePurchaseOrder(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; DirectUnitCost: Decimal)
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, VendorNo);
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithPurchSetup(), 1);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
     end;
 
     local procedure CrMemoPostedPurchaseReturnOrder(var CrMemoPurchaseHeader: Record "Purchase Header"; PostedPurchaseHeader: Record "Purchase Header")
@@ -11180,7 +11645,6 @@ codeunit 134327 "ERM Purchase Order"
     begin
         LibraryPurchase.CreatePurchHeader(
           PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
-
         for i := 1 to 3 do
             CreatePurchaseLineWithDirectUnitCost(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItemNo(), 10, 10);
 
@@ -11584,6 +12048,31 @@ codeunit 134327 "ERM Purchase Order"
         DocumentEntry.SetRange("Table ID", TableID);
         DocumentEntry.FindFirst();
         DocumentEntry.TestField("No. of Records", NoOfRecords);
+    end;
+
+    local procedure FindEntriesByVendor(var Navigate: TestPage Navigate; VendorNo: Code[20]; ExtDocNo: Code[35])
+    begin
+        Navigate.OpenView();
+        Navigate.FindByBusinessContact.Invoke();
+        Navigate.ContactType.SetValue(Format(Enum::"Navigate Contact Type"::Vendor));
+        Navigate.ContactNo.SetValue(VendorNo);
+        Navigate.ExtDocNo.SetValue(ExtDocNo);
+        Navigate.Find.Invoke();
+    end;
+
+    local procedure FindEntriesByDocumentNo(var Navigate: TestPage Navigate; DocumentNo: Code[20])
+    begin
+        Navigate.OpenView();
+        Navigate.FindByDocument.Invoke();
+        Navigate.DocNoFilter.SetValue(DocumentNo);
+        Navigate.Find.Invoke();
+    end;
+
+    local procedure VerifyNavigatePageNoOfRecords(var Navigate: TestPage Navigate; TableID: Integer; NoOfRecords: Integer)
+    begin
+        Navigate.Filter.SetFilter("Table ID", Format(TableID));
+        Assert.IsTrue(Navigate.First(), StrSubstNo(NavigateLineNotFoundErr, TableID));
+        Navigate."No. of Records".AssertEquals(NoOfRecords);
     end;
 
     local procedure VerifyPurchaseCreditMemo(DocumentNo: Code[20]; PurchaseLine: Record "Purchase Line")
@@ -12043,7 +12532,6 @@ codeunit 134327 "ERM Purchase Order"
         ReturnShipmentLine.SetRange("No.", PurchaseLine."No.");
         ReturnShipmentLine.FindLast();
         ReturnShipmentLine.TestField(Quantity, -1 * PurchaseLine."Return Qty. to Ship");
-
     end;
 
     local procedure SetupMyNotificationsForPostingSetup()
@@ -12507,7 +12995,6 @@ codeunit 134327 "ERM Purchase Order"
         DocumentAttachment.Init();
         CreateTempBLOBWithImageOfType(TempBlob, 'jpeg');
         DocumentAttachment.SaveAttachment(RecRef, 'test.jpeg', TempBlob);
-
         if FlowPurchase then
             DocumentAttachment."Document Flow Purchase" := true;
         if FlowSales then
@@ -12636,7 +13123,6 @@ codeunit 134327 "ERM Purchase Order"
         DefaultDimension: Record "Default Dimension";
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-
         if DimensionCode = '' then
             exit;
         LibraryDimension.CreateDimensionValue(DimensionValue, DimensionCode);
@@ -12830,7 +13316,6 @@ codeunit 134327 "ERM Purchase Order"
     begin
         LibraryVariableStorage.Dequeue(DequedVar);
         IsSetup := DequedVar;
-
         if IsSetup then begin
             LibraryVariableStorage.Dequeue(DequedVar);
             QuantityToAssign := DequedVar;
@@ -12991,7 +13476,6 @@ codeunit 134327 "ERM Purchase Order"
         FieldVisibilityArray[30] := MatrixForm.Field30.Visible();
         FieldVisibilityArray[31] := MatrixForm.Field31.Visible();
         FieldVisibilityArray[32] := MatrixForm.Field32.Visible();
-
         for Index := 1 to Count do
             Assert.AreEqual(true, FieldVisibilityArray[Index], StrSubstNo(ColumnWrongVisibilityErr, Index));
     end;

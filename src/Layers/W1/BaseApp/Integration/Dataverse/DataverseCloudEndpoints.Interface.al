@@ -36,4 +36,16 @@ interface "Dataverse Cloud Endpoints"
     /// </summary>
     /// <returns>The Global Discovery instances URL, for example 'https://globaldisco.crm.dynamics.com/api/discovery/v2.0/Instances'.</returns>
     procedure GetGlobalDiscoveryApiUrl(): Text;
+
+    /// <summary>
+    /// Gets the trusted host suffix for this cloud's Dataverse environment URLs, used to validate the
+    /// user-entered environment URL for online (SaaS) connections. Return an empty string to skip host
+    /// validation. The default implementation returns an empty string, so clouds that do not override
+    /// it are not affected.
+    /// </summary>
+    /// <returns>The trusted environment host suffix, for example 'dynamics.com'; empty to skip validation.</returns>
+    procedure GetEnvironmentHostSuffix(): Text
+    begin
+        exit('');
+    end;
 }

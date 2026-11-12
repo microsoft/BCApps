@@ -48,6 +48,21 @@ pageextension 20509 "Subc. Routing Version Lines" extends "Routing Version Lines
     }
     actions
     {
+        addafter("Co&mments")
+        {
+            action("Subc. Subcontracting Comments")
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting Comments';
+                Enabled = TransferWIPItemEnabled;
+                Image = ViewComments;
+                RunObject = Page "Subc. Routing Comments";
+                RunPageLink = "Routing No." = field("Routing No."),
+                              "Version Code" = field("Version Code"),
+                              "Operation No." = field("Operation No.");
+                ToolTip = 'View or edit subcontracting comments for the routing version line.';
+            }
+        }
         addafter("Quality Measures")
         {
             action("Subc. Prices")
@@ -65,7 +80,7 @@ pageextension 20509 "Subc. Routing Version Lines" extends "Routing Version Lines
         }
     }
 
-#if not CLEAN29
+#if not CLEAN28
     trigger OnOpenPage()
     begin
 #pragma warning disable AL0432
@@ -78,7 +93,7 @@ pageextension 20509 "Subc. Routing Version Lines" extends "Routing Version Lines
 
     trigger OnAfterGetRecord()
     begin
-#if not CLEAN29
+#if not CLEAN28
         if not SubcontractingEnabled then
             exit;
 #endif
@@ -87,7 +102,7 @@ pageextension 20509 "Subc. Routing Version Lines" extends "Routing Version Lines
 
     trigger OnAfterGetCurrRecord()
     begin
-#if not CLEAN29
+#if not CLEAN28
         if not SubcontractingEnabled then
             exit;
 #endif
@@ -95,7 +110,7 @@ pageextension 20509 "Subc. Routing Version Lines" extends "Routing Version Lines
     end;
 
     var
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -113,7 +128,7 @@ pageextension 20509 "Subc. Routing Version Lines" extends "Routing Version Lines
     var
         SubcontractorPrice: Record "Subcontractor Price";
     begin
-#if not CLEAN29
+#if not CLEAN28
         if not SubcontractingEnabled then
             exit;
 #endif

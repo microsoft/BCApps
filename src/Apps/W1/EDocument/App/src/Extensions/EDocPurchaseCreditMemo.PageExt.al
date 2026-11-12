@@ -1,13 +1,32 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Message;
 
 pageextension 6138 "E-Doc. Purchase Credit Memo" extends "Purchase Credit Memo"
 {
+    layout
+    {
+        addlast(FactBoxes)
+        {
+            part(EDocStatusFactBox; "E-Doc. Status FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document';
+                ShowFilter = false;
+            }
+            part(EDocMessages; "E-Document Messages FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document Messages';
+                ShowFilter = false;
+            }
+        }
+    }
     actions
     {
         addafter("&Credit Memo")
@@ -32,4 +51,10 @@ pageextension 6138 "E-Doc. Purchase Credit Memo" extends "Purchase Credit Memo"
             }
         }
     }
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        CurrPage.EDocMessages.Page.SetSourceRecordId(Rec.RecordId());
+        CurrPage.EDocStatusFactBox.Page.SetDocumentRecordId(Rec.RecordId());
+    end;
 }

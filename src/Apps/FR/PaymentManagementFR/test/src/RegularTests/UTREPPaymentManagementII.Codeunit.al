@@ -49,6 +49,9 @@ codeunit 144035 "UT REP Payment Management II"
 
     trigger OnRun()
     begin
+#if not CLEAN28
+        BindSubscription(this);
+#endif
     end;
 
     var
@@ -345,6 +348,8 @@ codeunit 144035 "UT REP Payment Management II"
     begin
         // Purpose of test is to validate error of New Name for Report 10872 (Duplicate parameter).
         // Verify actual error: "The Payment Class already exists. Identification fields and values.'"
+        CreatePaymentClass();
+        CreatePaymentClass();
         RunMiscellaneousReportsAndVerifyError(LibraryUTUtility.GetNewCode(), REPORT::"Duplicate parameter FR", 'DB:RecordExists');
     end;
 

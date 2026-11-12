@@ -368,6 +368,7 @@ report 99001026 "Replan Production Order"
     var
         ProdOrderLine: Record "Prod. Order Line";
         ExtReservedQtyBase: Decimal;
+        OldQuantityBase: Decimal;
     begin
         ProdOrderLine.SetCalledFromComponent(true);
         ProdOrderLine.LockTable();
@@ -381,13 +382,15 @@ report 99001026 "Replan Production Order"
                         ProdOrderLine.Delete(true)
                     else begin
                         ExtReservedQtyBase := CalcQtyReservedFromExternalDemand(ProdOrderLine, Database::"Prod. Order Component");
+                        OldQuantityBase := ProdOrderLine."Quantity (Base)";
                         ProdOrderLine.Validate(
                           Quantity,
                           UOMMgt.CalcQtyFromBase(
                             ProdOrderLine."Item No.", ProdOrderLine."Variant Code", ProdOrderLine."Unit of Measure Code", ExtReservedQtyBase, ProdOrderLine."Qty. per Unit of Measure"));
-                        if ProdOrderLine.Quantity > 0 then
-                            ProdOrderLine.Modify(true)
-                        else
+                        if ProdOrderLine.Quantity > 0 then begin
+                            OnDeleteUnreservedLowLevelProdOrderLinesOnBeforeProdOrderLineModify(ProdOrderLine, ProdOrder, ExtReservedQtyBase, OldQuantityBase);
+                            ProdOrderLine.Modify(true);
+                        end else
                             ProdOrderLine.Delete(true);
                     end;
                 end;
@@ -413,6 +416,11 @@ report 99001026 "Replan Production Order"
                 then
                     ReservedQtyBase += ReservEntry."Quantity (Base)";
             until ReservEntry.Next() = 0;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnDeleteUnreservedLowLevelProdOrderLinesOnBeforeProdOrderLineModify(var ProdOrderLine: Record "Prod. Order Line"; ProdOrder: Record "Production Order"; ExternalReservedQuantityBase: Decimal; OldQuantityBase: Decimal)
+    begin
     end;
 
     [IntegrationEvent(false, false)]
@@ -445,4 +453,3 @@ report 99001026 "Replan Production Order"
     begin
     end;
 }
-

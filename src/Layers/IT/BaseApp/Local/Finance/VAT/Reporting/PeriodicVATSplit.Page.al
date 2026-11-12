@@ -94,21 +94,12 @@ page 12217 "Periodic VAT Split"
 
                 trigger OnAction()
                 var
-#if CLEAN27
                     PeriodicVATSettlement: Codeunit "Periodic VAT Settlement";
-#endif
                 begin
-#if not CLEAN27
-                    if ValidateSplit(Rec."VAT Period") then
-                        Message(SplitIsValidMsg)
-                    else
-                        Message(SplitIsInvalidMsg);
-#else
                     if PeriodicVATSettlement.ValidateSplit(Rec."VAT Period") then
                         Message(SplitIsValidMsg)
                     else
                         Message(SplitIsInvalidMsg);
-#endif
                 end;
             }
 

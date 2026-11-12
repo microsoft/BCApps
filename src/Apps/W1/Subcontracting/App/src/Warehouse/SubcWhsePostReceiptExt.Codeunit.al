@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 
 using Microsoft.Inventory.Transfer;
@@ -13,12 +14,11 @@ using Microsoft.Purchases.Document;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
-using Microsoft.Warehouse.Journal;
 
 codeunit 20551 "Subc. WhsePostReceipt Ext"
 {
     var
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -37,7 +37,7 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Receipt Line", OnBeforeOpenItemTrackingLines, '', false, false)]
     local procedure CheckOverDeliveryOnBeforeOpenItemTrackingLines(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; var IsHandled: Boolean; CallingFieldNo: Integer)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -59,7 +59,7 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -74,7 +74,7 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
         Item: Record Microsoft.Inventory.Item.Item;
         UnitOfMeasureManagement: Codeunit "Unit of Measure Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -91,7 +91,7 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purchases Warehouse Mgt.", OnPurchLine2ReceiptLineOnAfterInitNewLine, '', false, false)]
     local procedure SetSubcPurchaseLineTypeOnReceiptLine_OnPurchLine2ReceiptLineOnAfterInitNewLine(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -106,7 +106,7 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
         OutstandingQtyBase: Decimal;
         WhseOutstandingQtyBase: Decimal;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -130,7 +130,7 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Purch. Release", OnReleaseOnBeforeCreateWhseRequest, '', false, false)]
     local procedure CreateWhseRequestForInventoriableItem_OnReleaseOnBeforeCreateWhseRequest(var PurchaseLine: Record "Purchase Line"; var DoCreateWhseRequest: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -142,7 +142,7 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Receipt Line", OnBeforeCalcBaseQty, '', false, false)]
     local procedure SuppressQtyPerUoMTestfieldForSubcontracting_OnBeforeCalcBaseQty(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; var Qty: Decimal; FromFieldName: Text; ToFieldName: Text; var SuppressQtyPerUoMTestfield: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -155,7 +155,7 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Receipt Line", OnValidateQtyToReceiveOnBeforeUOMMgtValidateQtyIsBalanced, '', false, false)]
     local procedure SkipValidateQtyBalancedForSubcontracting_OnValidateQtyToReceiveOnBeforeUOMMgtValidateQtyIsBalanced(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; xWarehouseReceiptLine: Record "Warehouse Receipt Line"; var IsHandled: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -170,7 +170,7 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Receipt", OnBeforePostWhseJnlLine, '', false, false)]
     local procedure SkipPostWhseJnlLineForSubcontracting_OnBeforePostWhseJnlLine(var PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header"; var PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var WhseReceiptLine: Record "Warehouse Receipt Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -183,18 +183,25 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Receipt", OnPostWhseJnlLineOnAfterInsertWhseItemEntryRelation, '', false, false)]
-    local procedure SkipWhseItemEntryRelationForSubcontracting_OnPostWhseJnlLineOnAfterInsertWhseItemEntryRelation(var PostedWhseRcptHeader: Record "Posted Whse. Receipt Header"; var PostedWhseRcptLine: Record "Posted Whse. Receipt Line"; var TempWhseSplitSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean; ReceivingNo: Code[20]; PostingDate: Date; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary)
+    local procedure SkipReceiptWarehouseJournalForSubcontracting_OnPostWhseJnlLineOnAfterInsertWhseItemEntryRelation(var PostedWhseRcptHeader: Record "Posted Whse. Receipt Header"; var PostedWhseRcptLine: Record "Posted Whse. Receipt Line"; var TempWhseSplitSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean)
+    var
+        Location: Record Location;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
             exit;
 #endif
-        if PostedWhseRcptLine."Subc. Purchase Line Type" <> "Subc. Purchase Line Type"::None then
-            IsHandled := true;
+        if PostedWhseRcptLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::None then
+            exit;
         if PostedWhseRcptLine."Transfer WIP Item" then
-            IsHandled := true;
+            exit;
+        Location.SetLoadFields("Require Put-away");
+        if not Location.Get(PostedWhseRcptLine."Location Code") then
+            exit;
+
+        IsHandled := not Location."Require Put-away";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Receipt Line", OnBeforeOpenItemTrackingLineForPurchLine, '', false, false)]
@@ -202,7 +209,7 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
     var
         ProdOrderLine: Record "Prod. Order Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -218,7 +225,7 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Receipt", OnCreatePostedRcptLineOnBeforePutAwayProcessing, '', false, false)]
     local procedure SkipPutAwayForSubcontracting_OnCreatePostedRcptLineOnBeforePutAwayProcessing(var PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var SkipPutAwayProcessing: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -233,7 +240,7 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Receipt", OnBeforeCreatePutAwayLine, '', false, false)]
     local procedure SkipPutAwayCreationForSubcontracting_OnBeforeCreatePutAwayLine(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var SkipPutAwayCreationForLine: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

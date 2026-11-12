@@ -434,6 +434,8 @@ report 7000080 "Post Payment Order"
         GenJnlLine.Description := PmtOrd."Posting Description";
         if PmtOrd."Currency Code" <> '' then begin
             GenJnlLine.Validate("Currency Code", PmtOrd."Currency Code");
+            GenJnlLine."Source Currency Code" := PmtOrd."Currency Code";
+            GenJnlLine."Source Currency Amount" := Amount2;
             if CurrFactor <> 0 then
                 GenJnlLine.Validate("Currency Factor", CurrFactor);
         end;

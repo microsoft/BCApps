@@ -665,7 +665,9 @@ page 6402 "Sales Document Entity"
                     ApplicationArea = All;
                     Caption = 'Incoming Document Entry No.', Locked = true;
                 }
+#pragma warning disable AW0004 // Accepted: pre-existing page field; changing the source expression would be a breaking change.
                 field(workDescription; Rec."Work Description")
+#pragma warning restore AW0004
                 {
                     ApplicationArea = All;
                     Caption = 'Work Description', Locked = true;

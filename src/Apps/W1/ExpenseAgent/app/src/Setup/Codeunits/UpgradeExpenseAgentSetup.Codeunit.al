@@ -36,6 +36,9 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     begin
         UpgradeClearStaleCopyCompanyState();
         UpgradeEnableCommunicationDefault();
+        UpgradeMigratePostedExpRepLineCanceled();
+        UpgradeMigrateExpenseUserUnlimitedApproval();
+        UpgradeExpenseVendorNoSeries();
     end;
 
     local procedure UpgradeClearStaleCopyCompanyState()
@@ -120,6 +123,9 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     begin
         PerCompanyUpgradeTags.Add(GetClearStaleCopyCompanyStateUpgradeTag());
         PerCompanyUpgradeTags.Add(GetEnableCommunicationDefaultUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetMigratePostedExpRepLineCanceledTag());
+        PerCompanyUpgradeTags.Add(GetMigrateExpenseUserUnlimitedApprovalTag());
+        PerCompanyUpgradeTags.Add(GetExpenseVendorNoSeriesUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
@@ -162,6 +168,70 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         InstallExpenseAgentSetup.ClearPerCompanyAgentState('');
     end;
 
+    local procedure UpgradeMigratePostedExpRepLineCanceled()
+    var
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetMigratePostedExpRepLineCanceledTag()) then
+            exit;
+
+        PostedExpenseReportHeader.SetLoadFields(Canceled);
+        PostedExpenseReportLine.SetLoadFields("Document No.", "Is Canceled");
+#pragma warning disable AL0432
+        PostedExpenseReportLine.SetRange(Canceled, true);
+#pragma warning restore AL0432
+        if PostedExpenseReportLine.FindSet() then
+            repeat
+                if PostedExpenseReportHeader.Get(PostedExpenseReportLine."Document No.") and PostedExpenseReportHeader.Canceled then begin
+                    PostedExpenseReportLine."Is Canceled" := true;
+                    PostedExpenseReportLine.Modify();
+                end;
+            until PostedExpenseReportLine.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(GetMigratePostedExpRepLineCanceledTag());
+    end;
+
+    local procedure UpgradeMigrateExpenseUserUnlimitedApproval()
+    var
+        ExpenseUser: Record "Expense User";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetMigrateExpenseUserUnlimitedApprovalTag()) then
+            exit;
+
+        ExpenseUser.SetLoadFields("Can Approve", "Unlimited Approval");
+        ExpenseUser.SetRange("Can Approve", true);
+        ExpenseUser.SetRange("Unlimited Approval", false);
+        if ExpenseUser.FindSet() then
+            repeat
+                ExpenseUser."Unlimited Approval" := true;
+                ExpenseUser.Modify();
+            until ExpenseUser.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(GetMigrateExpenseUserUnlimitedApprovalTag());
+    end;
+
+    internal procedure UpgradeExpenseVendorNoSeries()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetExpenseVendorNoSeriesUpgradeTag()) then
+            exit;
+
+        if ExpenseAgentSetup.Get() then
+            ExpenseAgentSetup.EnsureExpenseVendorNoSeries();
+
+        UpgradeTag.SetUpgradeTag(GetExpenseVendorNoSeriesUpgradeTag());
+    end;
+
+    internal procedure GetExpenseVendorNoSeriesUpgradeTag(): Code[250]
+    begin
+        exit('MS-658051-ExpenseVendorNoSeries-20261105');
+    end;
+
     local procedure GetRemoveLegacyPrivacyNoticeUpgradeTag(): Code[250]
     begin
         exit('MS-646070-RemoveLegacyPrivacyNotice-20260818');
@@ -177,4 +247,13 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         exit('MS-636970-EnableCommunicationDefault-20260701');
     end;
 
+    local procedure GetMigratePostedExpRepLineCanceledTag(): Code[250]
+    begin
+        exit('MS-647233-MigratePostedExpRepLineCanceled-20260820');
+    end;
+
+    local procedure GetMigrateExpenseUserUnlimitedApprovalTag(): Code[250]
+    begin
+        exit('MS-640938-MigrateExpenseUserUnlimitedApproval-20260925');
+    end;
 }
