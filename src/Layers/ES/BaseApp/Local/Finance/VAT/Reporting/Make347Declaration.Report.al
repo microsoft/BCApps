@@ -52,7 +52,9 @@ report 10707 "Make 347 Declaration"
             {
                 CalcFields = Amount;
                 DataItemLink = "Customer No." = field("No."), "VAT Reporting Date" = field("Date Filter");
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
                 DataItemTableView = sorting("Document Type", "Customer No.", "Global Dimension 1 Code", "Global Dimension 2 Code", "VAT Reporting Date", "Currency Code");
+#pragma warning restore AL0254
                 dataitem(GLEntry1; "G/L Entry")
                 {
                     DataItemLink = "Document No." = field("Document No."), "VAT Reporting Date" = field("VAT Reporting Date");
@@ -260,7 +262,9 @@ report 10707 "Make 347 Declaration"
             {
                 CalcFields = Amount;
                 DataItemLink = "Vendor No." = field("No."), "VAT Reporting Date" = field("Date Filter");
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
                 DataItemTableView = sorting("Document Type", "Vendor No.", "Global Dimension 1 Code", "Global Dimension 2 Code", "VAT Reporting Date", "Currency Code");
+#pragma warning restore AL0254
                 dataitem(GLEntry2; "G/L Entry")
                 {
                     DataItemLink = "Document No." = field("Document No."), "VAT Reporting Date" = field("VAT Reporting Date");

@@ -70,7 +70,7 @@ page 8067 "Recurring Billing"
                     trigger OnDrillDown()
                     begin
                         ContractsGeneralMgt.OpenPartnerCard(Rec.Partner, Rec."Partner No.");
-                        InitTempTable();
+                        RefreshCurrentRowGroup();
                     end;
                 }
                 field("Partner Name"; PartnerNameTxt)
@@ -83,7 +83,7 @@ page 8067 "Recurring Billing"
                     trigger OnDrillDown()
                     begin
                         ContractsGeneralMgt.OpenPartnerCard(Rec.Partner, Rec."Partner No.");
-                        InitTempTable();
+                        RefreshCurrentRowGroup();
                     end;
                 }
                 field("Contract No."; Rec."Subscription Contract No.")
@@ -94,7 +94,7 @@ page 8067 "Recurring Billing"
                     trigger OnDrillDown()
                     begin
                         ContractsGeneralMgt.OpenContractCard(Rec.Partner, Rec."Subscription Contract No.");
-                        InitTempTable();
+                        RefreshCurrentRowGroup();
                     end;
                 }
                 field(ContractDescriptionField; ContractDescriptionTxt)
@@ -107,7 +107,7 @@ page 8067 "Recurring Billing"
                     trigger OnDrillDown()
                     begin
                         ContractsGeneralMgt.OpenContractCard(Rec.Partner, Rec."Subscription Contract No.");
-                        InitTempTable();
+                        RefreshCurrentRowGroup();
                     end;
                 }
                 field("Billing from"; Rec."Billing from")
@@ -182,8 +182,7 @@ page 8067 "Recurring Billing"
 
                     trigger OnDrillDown()
                     begin
-                        Rec.OpenDocumentCard();
-                        InitTempTable();
+                        RefreshAfterDocumentDrillDown();
                     end;
                 }
                 field("Service Start Date"; Rec."Subscription Line Start Date")
@@ -204,7 +203,7 @@ page 8067 "Recurring Billing"
                     trigger OnDrillDown()
                     begin
                         ServiceObject.OpenServiceObjectCard(Rec."Subscription Header No.");
-                        InitTempTable();
+                        RefreshCurrentRowGroup();
                     end;
                 }
                 field("Service Object Description"; Rec."Subscription Description")
@@ -335,6 +334,7 @@ page 8067 "Recurring Billing"
                     BillingLine: Record "Billing Line";
                     ChangeDate: Page "Change Date";
                     NewBillingToDate: Date;
+                    AffectedGroupKeys: List of [Code[20]];
                 begin
                     if BillingDate <> 0D then
                         ChangeDate.SetDate(BillingDate);
@@ -343,8 +343,9 @@ page 8067 "Recurring Billing"
                     else
                         exit;
                     CurrPage.SetSelectionFilter(BillingLine);
+                    CollectSelectionGroupKeys(BillingLine, AffectedGroupKeys);
                     BillingProposal.UpdateBillingToDate(BillingLine, NewBillingToDate);
-                    InitTempTable();
+                    RefreshGroups(AffectedGroupKeys);
                 end;
             }
             action(DeleteBillingLineAction)
@@ -357,10 +358,12 @@ page 8067 "Recurring Billing"
                 trigger OnAction()
                 var
                     BillingLine: Record "Billing Line";
+                    AffectedGroupKeys: List of [Code[20]];
                 begin
                     CurrPage.SetSelectionFilter(BillingLine);
+                    CollectSelectionGroupKeys(BillingLine, AffectedGroupKeys);
                     BillingProposal.DeleteBillingLines(BillingLine);
-                    InitTempTable();
+                    RefreshGroups(AffectedGroupKeys);
                 end;
             }
             action(Refresh)
@@ -390,7 +393,7 @@ page 8067 "Recurring Billing"
                 trigger OnAction()
                 begin
                     ContractsGeneralMgt.OpenPartnerCard(Rec.Partner, Rec."Partner No.");
-                    InitTempTable();
+                    RefreshCurrentRowGroup();
                 end;
             }
             action(OpenContractAction)
@@ -403,7 +406,7 @@ page 8067 "Recurring Billing"
                 trigger OnAction()
                 begin
                     ContractsGeneralMgt.OpenContractCard(Rec.Partner, Rec."Subscription Contract No.");
-                    InitTempTable();
+                    RefreshCurrentRowGroup();
                 end;
             }
             action(OpenServiceObjectAction)
@@ -416,7 +419,7 @@ page 8067 "Recurring Billing"
                 trigger OnAction()
                 begin
                     ServiceObject.OpenServiceObjectCard(Rec."Subscription Header No.");
-                    InitTempTable();
+                    RefreshCurrentRowGroup();
                 end;
             }
             action(Dimensions)
@@ -466,8 +469,11 @@ page 8067 "Recurring Billing"
 
     trigger OnAfterGetRecord()
     begin
-        ContractDescriptionTxt := ContractsGeneralMgt.GetContractDescription(Rec.Partner, Rec."Subscription Contract No.");
-        PartnerNameTxt := ContractsGeneralMgt.GetPartnerName(Rec.Partner, Rec."Partner No.");
+        // Resolve the contract description and partner name from per-page caches: OnAfterGetRecord fires on every
+        // row of every render cycle, and the same contract/partner repeats across many rows, so an uncached lookup
+        // per row turns into thousands of redundant Get calls. The caches are reset whenever the lines are rebuilt.
+        ContractDescriptionTxt := GetCachedContractDescription(Rec.Partner, Rec."Subscription Contract No.");
+        PartnerNameTxt := GetCachedPartnerName(Rec.Partner, Rec."Partner No.");
         SetLineStyleExpr();
     end;
 
@@ -487,6 +493,8 @@ page 8067 "Recurring Billing"
         PartnerNameTxt: Text;
         GroupBy: Enum "Contract Billing Grouping";
         UsageDataEnabled: Boolean;
+        ContractDescriptionCache: Dictionary of [Text, Text];
+        PartnerNameCache: Dictionary of [Text, Text];
 
     protected var
         BillingDate: Date;
@@ -553,9 +561,154 @@ page 8067 "Recurring Billing"
 
     procedure InitTempTable()
     begin
+        // The lines are about to be rebuilt, so drop the row-render caches; contract descriptions or partner names
+        // may have changed since they were last read.
+        Clear(ContractDescriptionCache);
+        Clear(PartnerNameCache);
         BillingProposal.InitTempTable(Rec, GroupBy);
         if Rec.FindFirst() then; //to enable CollapseAll
         CurrPage.Update(false);
+    end;
+
+    // Rebuilds the temp table group that contains the current row. Called after any drilldown or navigate action
+    // that opens a card which may have been edited (partner name, contract discount, subscription quantity, etc.).
+    local procedure RefreshCurrentRowGroup()
+    var
+        GroupKeys: List of [Code[20]];
+    begin
+        GroupKeys.Add(GetGroupKey(Rec."Partner No.", Rec."Subscription Contract No."));
+        RefreshGroups(GroupKeys);
+    end;
+
+    // Special refresh for the Document No. drilldown: a document may be deleted inside the card, which clears
+    // Document No. on all billing lines it covered — potentially across multiple groups for collective documents.
+    // All affected groups are captured before the card opens, so the rebuild is correct regardless of what changes.
+    local procedure RefreshAfterDocumentDrillDown()
+    var
+        TempDocumentBillingLine: Record "Billing Line" temporary;
+        AffectedGroupKeys: List of [Code[20]];
+        GroupKey: Code[20];
+    begin
+        if Rec."Document No." = '' then
+            exit;
+        TempDocumentBillingLine.Copy(Rec, true); // shared-table copy — no data copy, cursor untouched
+        TempDocumentBillingLine.Reset();
+        TempDocumentBillingLine.SetRange("Document Type", Rec."Document Type");
+        TempDocumentBillingLine.SetRange("Document No.", Rec."Document No.");
+        if TempDocumentBillingLine.FindSet() then
+            repeat
+                GroupKey := GetGroupKey(TempDocumentBillingLine."Partner No.", TempDocumentBillingLine."Subscription Contract No.");
+                if not AffectedGroupKeys.Contains(GroupKey) then
+                    AffectedGroupKeys.Add(GroupKey);
+            until TempDocumentBillingLine.Next() = 0;
+
+        Rec.OpenDocumentCard();
+
+        // RefreshGroups preserves Rec's position; if the document was deleted and the billing line no longer
+        // exists it falls back to the first record automatically.
+        RefreshGroups(AffectedGroupKeys);
+    end;
+
+    // Collects the group key for each line in the selection before a mutating action (Delete Billing Line,
+    // Change Billing To Date) runs, so only those groups need rebuilding afterwards.
+    local procedure CollectSelectionGroupKeys(var BillingLine: Record "Billing Line"; var GroupKeys: List of [Code[20]])
+    var
+        GroupKey: Code[20];
+    begin
+        if BillingLine.FindSet() then
+            repeat
+                GroupKey := GetGroupKey(BillingLine."Partner No.", BillingLine."Subscription Contract No.");
+                if not GroupKeys.Contains(GroupKey) then
+                    GroupKeys.Add(GroupKey);
+            until BillingLine.Next() = 0;
+    end;
+
+    // Returns the grouping key for a billing line: the contract no. for Contract grouping, the partner no. for
+    // Contract Partner grouping. Centralizes the GroupBy decision so callers do not repeat it.
+    local procedure GetGroupKey(PartnerNo: Code[20]; ContractNo: Code[20]): Code[20]
+    begin
+        if GroupBy = GroupBy::"Contract Partner" then
+            exit(PartnerNo);
+        exit(ContractNo);
+    end;
+
+    // Common entry point for all targeted refreshes: clears the per-page render caches, rebuilds the specified
+    // groups in the temp table, and refreshes the page. The user's current row position is preserved; if the row
+    // no longer exists after the rebuild (e.g. it was deleted), the page falls back to the first record.
+    local procedure RefreshGroups(GroupKeys: List of [Code[20]])
+    var
+        CurrentEntryNo: Integer;
+        SavedGroupKey: Code[20];
+        IsHeaderRow: Boolean;
+    begin
+        // Detail rows keep their stable Billing Line Entry No. across a rebuild, but group header rows are
+        // reinserted with new negative Entry Nos. every time. So for a header row we remember its group key
+        // (contract no. or partner no.) and re-locate the rebuilt header by that key afterwards.
+        IsHeaderRow := Rec."Entry No." < 0;
+        if IsHeaderRow then
+            SavedGroupKey := GetGroupKey(Rec."Partner No.", Rec."Subscription Contract No.")
+        else
+            CurrentEntryNo := Rec."Entry No.";
+        Clear(ContractDescriptionCache);
+        Clear(PartnerNameCache);
+        BillingProposal.RefreshGroupsInTempTable(Rec, GroupBy, GroupKeys);
+        if IsHeaderRow then
+            CurrentEntryNo := FindHeaderEntryNo(SavedGroupKey);
+        // Get positions by primary key regardless of the page's view filters (User ID / Partner), so the
+        // page's own filtering is left untouched; fall back to the first visible row if the target is gone.
+        if not Rec.Get(CurrentEntryNo) then
+            if Rec.FindFirst() then;
+        CurrPage.Update(false);
+    end;
+
+    // Locates the rebuilt group header for GroupKey and returns its (new, negative) Entry No., searching a
+    // shared-table copy so the page record's own filters are never disturbed. Returns 0 if no header matches.
+    local procedure FindHeaderEntryNo(GroupKey: Code[20]): Integer
+    var
+        TempHeaderBillingLine: Record "Billing Line" temporary;
+    begin
+        TempHeaderBillingLine.Copy(Rec, true); // shared-table copy — same temp data, independent cursor/filters
+        TempHeaderBillingLine.Reset();
+        TempHeaderBillingLine.SetRange(Indent, 0); // header rows only; detail rows are Indent 1
+        case GroupBy of
+            GroupBy::Contract:
+                TempHeaderBillingLine.SetRange("Subscription Contract No.", GroupKey);
+            GroupBy::"Contract Partner":
+                TempHeaderBillingLine.SetRange("Partner No.", GroupKey);
+        end;
+        if TempHeaderBillingLine.FindFirst() then
+            exit(TempHeaderBillingLine."Entry No.");
+        exit(0);
+    end;
+
+    local procedure GetCachedContractDescription(Partner: Enum "Service Partner"; ContractNo: Code[20]): Text
+    var
+        CacheKey: Text;
+        CachedValue: Text;
+    begin
+        if ContractNo = '' then
+            exit('');
+        CacheKey := Format(Partner) + '|' + ContractNo;
+        if ContractDescriptionCache.Get(CacheKey, CachedValue) then
+            exit(CachedValue);
+        CachedValue := ContractsGeneralMgt.GetContractDescription(Partner, ContractNo);
+        ContractDescriptionCache.Add(CacheKey, CachedValue);
+        exit(CachedValue);
+    end;
+
+    local procedure GetCachedPartnerName(Partner: Enum "Service Partner"; PartnerNo: Code[20]): Text
+    var
+        CacheKey: Text;
+        CachedValue: Text;
+    begin
+        if PartnerNo = '' then
+            exit('');
+        CacheKey := Format(Partner) + '|' + PartnerNo;
+        if PartnerNameCache.Get(CacheKey, CachedValue) then
+            exit(CachedValue);
+        CachedValue := ContractsGeneralMgt.GetPartnerName(Partner, PartnerNo);
+        PartnerNameCache.Add(CacheKey, CachedValue);
+        exit(CachedValue);
     end;
 
     local procedure UpdateServiceCommitmentDimension()

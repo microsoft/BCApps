@@ -16,6 +16,7 @@ codeunit 148103 "Dim. Automatic Creation CZA"
         Dimension: Record Dimension;
         DefaultDimension: Record "Default Dimension";
         DimensionValue: Record "Dimension Value";
+        AutoCreateDefaultDimCZA: Record "Auto. Create Default Dim. CZA";
         DimensionAutoCreateMgtCZA: Codeunit "Dimension Auto.Create Mgt. CZA";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryWarehouse: Codeunit "Library - Warehouse";
@@ -134,10 +135,10 @@ codeunit 148103 "Dim. Automatic Creation CZA"
         // [GIVEN] Create Default Dimension with automatic creation description.
         LibraryDimension.CreateDefaultDimension(DefaultDimension, Database::Job, '', Dimension.Code, '');
         CreateDefaultDimensionAutomaticCreation(DefaultDimension);
-        DefaultDimension."Dim. Description Field ID CZA" := Job.FieldNo(Description);
-        DefaultDimension."Dim. Description Update CZA" := DefaultDimension."Dim. Description Update CZA"::Create;
-        DefaultDimension."Dim. Description Format CZA" := JobDescriptionTok;
-        DefaultDimension.Modify(true);
+        AutoCreateDefaultDimCZA."Dim. Description Field ID" := Job.FieldNo(Description);
+        AutoCreateDefaultDimCZA."Dim. Description Update" := AutoCreateDefaultDimCZA."Dim. Description Update"::Create;
+        AutoCreateDefaultDimCZA."Dim. Description Format" := JobDescriptionTok;
+        AutoCreateDefaultDimCZA.Modify(true);
         Commit();
 
         // [WHEN] Create new Job.
@@ -166,10 +167,10 @@ codeunit 148103 "Dim. Automatic Creation CZA"
         // [GIVEN] Create Default Dimension with automatic creation description.
         LibraryDimension.CreateDefaultDimension(DefaultDimension, Database::Job, '', Dimension.Code, '');
         CreateDefaultDimensionAutomaticCreation(DefaultDimension);
-        DefaultDimension."Dim. Description Field ID CZA" := Job.FieldNo(Description);
-        DefaultDimension."Dim. Description Update CZA" := DefaultDimension."Dim. Description Update CZA"::Update;
-        DefaultDimension."Dim. Description Format CZA" := JobDescriptionTok;
-        DefaultDimension.Modify(true);
+        AutoCreateDefaultDimCZA."Dim. Description Field ID" := Job.FieldNo(Description);
+        AutoCreateDefaultDimCZA."Dim. Description Update" := AutoCreateDefaultDimCZA."Dim. Description Update"::Update;
+        AutoCreateDefaultDimCZA."Dim. Description Format" := JobDescriptionTok;
+        AutoCreateDefaultDimCZA.Modify(true);
         Commit();
 
         // [WHEN] Create new Job and modify description.
@@ -188,8 +189,10 @@ codeunit 148103 "Dim. Automatic Creation CZA"
 
     local procedure CreateDefaultDimensionAutomaticCreation(var VarDefaultDimension: Record "Default Dimension")
     begin
-        VarDefaultDimension."Automatic Create CZA" := true;
-        VarDefaultDimension."Auto. Create Value Posting CZA" := VarDefaultDimension."Auto. Create Value Posting CZA"::"Same Code";
-        VarDefaultDimension."Value Posting" := VarDefaultDimension."Value Posting"::"Code Mandatory";
+        AutoCreateDefaultDimCZA.Init();
+        AutoCreateDefaultDimCZA."Table ID" := VarDefaultDimension."Table ID";
+        AutoCreateDefaultDimCZA."Dimension Code" := VarDefaultDimension."Dimension Code";
+        AutoCreateDefaultDimCZA."Auto. Create Value Posting" := AutoCreateDefaultDimCZA."Auto. Create Value Posting"::"Same Code";
+        AutoCreateDefaultDimCZA.Insert(true);
     end;
 }

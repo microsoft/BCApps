@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -627,7 +627,8 @@ table 5740 "Transfer Header"
 
                 Modify(true);
 
-                VerifyNoInboundWhseHandlingOnLocation("Transfer-to Code");
+                if "Direct Transfer" then
+                    VerifyNoInboundWhseHandlingOnLocation("Transfer-to Code");
                 UpdateTransLines(Rec, FieldNo("Direct Transfer"));
             end;
         }
@@ -758,13 +759,7 @@ table 5740 "Transfer Header"
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "User Setup";
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(12100; "Package Tracking No."; Text[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Package Tracking No.';
         }
@@ -1779,6 +1774,8 @@ table 5740 "Transfer Header"
     var
         DummyTrackingSpecification: Record "Tracking Specification";
     begin
+        OnBeforeTestTransferLine(TransferLine, Ship);
+
         if Ship then
             DummyTrackingSpecification.CheckItemTrackingQuantity(Database::"Transfer Line", 0, "No.", TransferLine."Line No.",
                 TransferLine."Qty. to Ship (Base)", TransferLine."Qty. to Ship (Base)", true, false)
@@ -2166,6 +2163,11 @@ table 5740 "Transfer Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnUpdateTransLinesOnAfterUpdateFromDirectTransfer(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeTestTransferLine(TransferLine: Record "Transfer Line"; Ship: Boolean)
     begin
     end;
 }

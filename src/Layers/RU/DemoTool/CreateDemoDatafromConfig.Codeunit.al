@@ -45,8 +45,11 @@ codeunit 101899 "Create Demo Data from Config"
 
     procedure SetupDemonstrationData(var DemoDataSetup: Record "Demo Data Setup")
     var
+        GLSetup: Record "General Ledger Setup";
         DemoDataTool: Page "Demonstration Data Tool";
     begin
+        if not GLSetup.Get() then
+            CODEUNIT.Run(CODEUNIT::"Company-Initialize");
         if DemoDataSetup.Get() then
             DemoDataSetup.Delete();
         ImportDemoDataConfig();
@@ -64,7 +67,7 @@ codeunit 101899 "Create Demo Data from Config"
         DemoDataSetup."VAT Rate 2" := 20;
         // Regular VAT Rate
         DemoDataSetup."Russian Accounting" := true;
-        DemoDataSetup."Tax Accounting" := true;
+        DemoDataSetup."Tax Accounting" := false;
         DemoDataSetup."Import Electronic Reporting" := false;
         DemoDataSetup.SetTaxRates();
         DemoDataSetup.Modify(true);

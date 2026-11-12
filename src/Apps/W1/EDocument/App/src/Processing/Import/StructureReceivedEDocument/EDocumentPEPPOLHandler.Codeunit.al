@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Message;
 using System.Utilities;
 
 /// <summary>
@@ -19,7 +20,7 @@ using System.Utilities;
 ///                 https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-creditnote/tree/
 ///                 https://docs.peppol.eu/poacc/upgrade-3/syntax/Order/tree/
 /// </summary>
-codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
+codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IEDocResponseProvider
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -28,7 +29,9 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
     var
         PeppolUtility: Codeunit "E-Document PEPPOL Utility";
         BillingReferenceEmptyTelemetryTxt: Label 'CreditNote BillingReference is empty - no originating invoice reference found.', Locked = true;
-        UnsupportedRootElementErr: Label 'Unsupported XML root element: %1. Only Invoice, CreditNote, and Order are supported.', Comment = '%1 = XML root element name';
+        OrderResponseNoMatchTelemetryTxt: Label 'Inbound Order Response could not be matched: no outbound E-Document found for order reference.', Locked = true;
+        OrderResponseNoMatchErr: Label 'The order response cannot be processed because no outgoing e-document was found for order reference %1.', Comment = '%1 = Order reference ID from the order response';
+        UnsupportedRootElementErr: Label 'Unsupported XML root element: %1. Only Invoice, CreditNote, Order, and OrderResponse are supported.', Comment = '%1 = XML root element name';
 
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
@@ -37,11 +40,13 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
         XmlNamespaces: XmlNamespaceManager;
         RootElement: XmlElement;
         OrderNamespaceLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:Order-2', Locked = true;
+        OrderResponseNamespaceLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:OrderResponse-2', Locked = true;
     begin
         TempBlob.CreateInStream(DocStream, TextEncoding::UTF8);
         XmlDocument.ReadFrom(DocStream, PeppolXML);
         PeppolUtility.InitializePEPPOL3Namespaces(XmlNamespaces);
         XmlNamespaces.AddNamespace('order', OrderNamespaceLbl);
+        XmlNamespaces.AddNamespace('resp', OrderResponseNamespaceLbl);
 
         PeppolXML.GetRoot(RootElement);
 
@@ -54,6 +59,8 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
                 exit(ProcessCreditNote(EDocument, PeppolXML, XmlNamespaces));
             'ORDER':
                 exit(ProcessOrder(EDocument, PeppolXML, XmlNamespaces));
+            'ORDERRESPONSE':
+                exit(HandleInboundOrderResponse(EDocument, TempBlob, PeppolXML, XmlNamespaces));
             else
                 Error(UnsupportedRootElementErr, RootElement.LocalName());
         end;
@@ -143,8 +150,8 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
         if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cac:OrderReference/cbc:ID', Value) then
             Header."Purchase Order No." := CopyStr(Value, 1, MaxStrLen(Header."Purchase Order No."));
         if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', Value) then
-            Header."Applies-to Ext. Invoice No." := CopyStr(Value, 1, MaxStrLen(Header."Applies-to Ext. Invoice No."));
-        if Header."Applies-to Ext. Invoice No." = '' then
+            Header."Vendor Invoice No." := CopyStr(Value, 1, MaxStrLen(Header."Vendor Invoice No."));
+        if Header."Vendor Invoice No." = '' then
             Session.LogMessage('0000SNJ', BillingReferenceEmptyTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
     end;
 
@@ -216,6 +223,10 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
             if XmlNode.AsXmlAttribute().Value() = '0088' then
                 if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID', Value) then
                     Header."Buyer GLN" := CopyStr(Value, 1, MaxStrLen(Header."Buyer GLN"));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID', Value) then
+            Header."Buyer Endpoint Id" := CopyStr(Value, 1, MaxStrLen(Header."Buyer Endpoint Id"));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID/@schemeID', Value) then
+            Header."Buyer Endpoint Scheme Id" := CopyStr(Value, 1, MaxStrLen(Header."Buyer Endpoint Scheme Id"));
     end;
 
     local procedure PopulateSellerParty(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Sales Header")
@@ -243,6 +254,10 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
             if XmlNode.AsXmlAttribute().Value() = '0088' then
                 if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID', Value) then
                     Header."Seller GLN" := CopyStr(Value, 1, MaxStrLen(Header."Seller GLN"));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID', Value) then
+            Header."Seller Endpoint Id" := CopyStr(Value, 1, MaxStrLen(Header."Seller Endpoint Id"));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID/@schemeID', Value) then
+            Header."Seller Endpoint Scheme Id" := CopyStr(Value, 1, MaxStrLen(Header."Seller Endpoint Scheme Id"));
     end;
 
     local procedure PopulateOriginatorParty(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Sales Header")
@@ -520,4 +535,55 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
         Error('A view is not implemented for this handler.');
     end;
 
+    procedure GetResponseMessageType(EDocument: Record "E-Document"): Enum "E-Document Message Type"
+    begin
+        if EDocument."Process Draft Impl." = "E-Doc. Process Draft"::"Sales Order" then
+            exit("E-Document Message Type"::"PEPPOL Order Response");
+        exit("E-Document Message Type"::Unknown);
+    end;
+
+    local procedure HandleInboundOrderResponse(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"; PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager): Enum "E-Doc. Process Draft"
+    var
+        OutboundEDocument: Record "E-Document";
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        ResponseCode: Text;
+        OrderRefId: Text;
+        ResponseType: Enum "E-Doc. Response Type";
+    begin
+        PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/resp:OrderResponse/cbc:OrderResponseCode', ResponseCode);
+        PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/resp:OrderResponse/cac:OrderReference/cbc:ID', OrderRefId);
+        ResponseType := CodeToResponseType(ResponseCode);
+
+        OutboundEDocument.SetRange("Document No.", CopyStr(OrderRefId, 1, MaxStrLen(OutboundEDocument."Document No.")));
+        OutboundEDocument.SetRange(Direction, OutboundEDocument.Direction::Outgoing);
+        if not OutboundEDocument.FindLast() then begin
+            Session.LogMessage('0000UWG', OrderResponseNoMatchTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+            Error(OrderResponseNoMatchErr, OrderRefId);
+        end;
+
+        EDocMessageMgt.CreateMessage(OutboundEDocument, "E-Document Message Type"::"PEPPOL Order Response", "E-Document Direction"::Incoming, ResponseType, TempBlob);
+
+        // Response stored on the outbound E-Document; inbound carrier must not continue through the import pipeline.
+        EDocument.DeleteOrphanedImport();
+        Error('');
+    end;
+
+    local procedure CodeToResponseType(ResponseCode: Text): Enum "E-Doc. Response Type"
+    begin
+        case UpperCase(ResponseCode) of
+            'AB':
+                exit("E-Doc. Response Type"::Acknowledged);
+            'AP':
+                exit("E-Doc. Response Type"::Accepted);
+            'AC':
+                // Legacy inbound alias: earlier BC versions sent AC for an accepted order; outbound responses use AP only
+                exit("E-Doc. Response Type"::Accepted);
+            'CA':
+                exit("E-Doc. Response Type"::"Conditionally Accepted");
+            'RE':
+                exit("E-Doc. Response Type"::Rejected);
+            else
+                exit("E-Doc. Response Type"::None);
+        end;
+    end;
 }

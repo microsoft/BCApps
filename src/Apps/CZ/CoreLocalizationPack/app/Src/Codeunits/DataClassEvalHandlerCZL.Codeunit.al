@@ -181,6 +181,7 @@ codeunit 11710 "Data Class. Eval. Handler CZL"
         DataClassificationMgt.SetTableFieldsToNormal(Database::"EET Cash Register CZL");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"EET Entry CZL");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"EET Entry Status Log CZL");
+        DataClassificationMgt.SetTableFieldsToNormal(Database::"EPO Service Setup CZL");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Excel Template CZL");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Invt. Movement Template CZL");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Non-Deductible VAT Setup CZL");
@@ -238,7 +239,9 @@ codeunit 11710 "Data Class. Eval. Handler CZL"
         DataClassificationMgt.SetFieldToCompanyConfidential(Database::"EET Entry CZL", EETEntryCZL.FieldNo("Taxpayer's Signature Code"));
         DataClassificationMgt.SetFieldToCompanyConfidential(Database::"EET Entry CZL", EETEntryCZL.FieldNo("Taxpayer's Security Code"));
         DataClassificationMgt.SetFieldToCompanyConfidential(Database::"EET Entry CZL", EETEntryCZL.FieldNo("Fiscal Identification Code"));
+        DataClassificationMgt.SetFieldToCompanyConfidential(Database::"EET Entry CZL", EETEntryCZL.FieldNo("Acknowledgement Code"));
         DataClassificationMgt.SetFieldToCompanyConfidential(Database::"EET Entry CZL", EETEntryCZL.FieldNo("Receipt Serial No."));
+        DataClassificationMgt.SetFieldToCompanyConfidential(Database::"EET Entry CZL", EETEntryCZL.FieldNo("Multiple Taxpayer Auth."));
         DataClassificationMgt.SetFieldToCompanyConfidential(Database::"EET Entry CZL", EETEntryCZL.FieldNo("Total Sales Amount"));
         DataClassificationMgt.SetFieldToCompanyConfidential(Database::"EET Entry CZL", EETEntryCZL.FieldNo("Amount Exempted From VAT"));
         DataClassificationMgt.SetFieldToCompanyConfidential(Database::"EET Entry CZL", EETEntryCZL.FieldNo("VAT Base (Basic)"));
@@ -302,11 +305,6 @@ codeunit 11710 "Data Class. Eval. Handler CZL"
         DataClassificationMgt.SetFieldToNormal(Database::"G/L Account", GLAccount.FieldNo("Net Change (VAT Date) CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"G/L Account", GLAccount.FieldNo("Debit Amount (VAT Date) CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"G/L Account", GLAccount.FieldNo("Credit Amount (VAT Date) CZL"));
-#if not CLEAN27 
-#pragma warning disable AL0432
-        DataClassificationMgt.SetFieldToNormal(Database::"G/L Account Net Change", TempGLAccountNetChange.FieldNo("Account Type CZL"));
-#pragma warning restore AL0432
-#endif
         DataClassificationMgt.SetFieldToNormal(Database::"G/L Account Net Change", TempGLAccountNetChange.FieldNo("Acc. Type CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"G/L Account Net Change", TempGLAccountNetChange.FieldNo("Account No. CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"G/L Account Net Change", TempGLAccountNetChange.FieldNo("Net Change in Jnl. Curr. CZL"));
@@ -406,21 +404,11 @@ codeunit 11710 "Data Class. Eval. Handler CZL"
         DataClassificationMgt.SetFieldToNormal(Database::"Return Shipment Line", ReturnShipmentLine.FieldNo("Tariff No. CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Cr.Memo Header", SalesCrMemoHeader.FieldNo("VAT Currency Factor CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Cr.Memo Header", SalesCrMemoHeader.FieldNo("VAT Currency Code CZL"));
-#if not CLEAN27
-#pragma warning disable AL0432
-        DataClassificationMgt.SetFieldToNormal(Database::"Sales Cr.Memo Header", SalesCrMemoHeader.FieldNo("Registration No. CZL"));
-#pragma warning restore AL0432
-#endif
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Cr.Memo Header", SalesCrMemoHeader.FieldNo("Tax Registration No. CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Cr.Memo Header", SalesCrMemoHeader.FieldNo("EU 3-Party Intermed. Role CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Cr.Memo Line", SalesCrMemoLine.FieldNo("Tariff No. CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Header", SalesHeader.FieldNo("VAT Currency Factor CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Header", SalesHeader.FieldNo("VAT Currency Code CZL"));
-#if not CLEAN27
-#pragma warning disable AL0432
-        DataClassificationMgt.SetFieldToNormal(Database::"Sales Header", SalesHeader.FieldNo("Registration No. CZL"));
-#pragma warning restore AL0432
-#endif
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Header", SalesHeader.FieldNo("Tax Registration No. CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Header", SalesHeader.FieldNo("Credit Memo Type CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Header", SalesHeader.FieldNo("EU 3-Party Intermed. Role CZL"));
@@ -432,11 +420,6 @@ codeunit 11710 "Data Class. Eval. Handler CZL"
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Header Archive", SalesHeaderArchive.FieldNo("EU 3-Party Intermed. Role CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Invoice Header", SalesInvoiceHeader.FieldNo("VAT Currency Factor CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Invoice Header", SalesInvoiceHeader.FieldNo("VAT Currency Code CZL"));
-#if not CLEAN27
-#pragma warning disable AL0432
-        DataClassificationMgt.SetFieldToNormal(Database::"Sales Invoice Header", SalesInvoiceHeader.FieldNo("Registration No. CZL"));
-#pragma warning restore AL0432
-#endif
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Invoice Header", SalesInvoiceHeader.FieldNo("Tax Registration No. CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Invoice Header", SalesInvoiceHeader.FieldNo("EU 3-Party Intermed. Role CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Sales Invoice Line", SalesInvoiceLine.FieldNo("Tariff No. CZL"));

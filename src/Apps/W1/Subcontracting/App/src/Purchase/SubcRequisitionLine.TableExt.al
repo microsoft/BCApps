@@ -11,12 +11,12 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Routing;
 
-tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
+tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001516; "Subc. Standard Task Code"; Code[10])
+        field(20516; "Subc. Standard Task Code"; Code[10])
         {
             Caption = 'Standard Task Code';
             DataClassification = CustomerContent;
@@ -24,7 +24,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
             ToolTip = 'Specifies the code that is assigned to the standard task.';
             trigger OnValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -38,7 +38,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
                     UpdateSubcontractorPrice();
             end;
         }
-        field(99001517; "Base UM Qty/PL UM Qty"; Decimal)
+        field(20517; "Base UM Qty/PL UM Qty"; Decimal)
         {
             Access = Internal;
             AutoFormatType = 0;
@@ -49,7 +49,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
             InitValue = 1;
             ToolTip = 'Specifies the quantity of the base unit of measure or the price list unit of measure.';
         }
-        field(99001518; "PL UM Qty/Base UM Qty"; Decimal)
+        field(20518; "PL UM Qty/Base UM Qty"; Decimal)
         {
             Access = Internal;
             AutoFormatType = 0;
@@ -59,7 +59,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
             ToolTip = 'Specifies the quantity of the price list unit of measure or the base unit of measure.';
             trigger OnValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -75,16 +75,16 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
                 end;
             end;
         }
-        field(99001519; "Subc. UoM for Pricelist"; Code[10])
+        field(20519; "Subc. UoM for Pricelist"; Code[10])
         {
-            Access = Internal;
+            Access = Public;
             Caption = 'UoM for Price list';
             DataClassification = CustomerContent;
             TableRelation = "Unit of Measure";
             ToolTip = 'Specifies the unit of measure for the price list that is on the subcontracting worksheet.';
             trigger OnValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -97,7 +97,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
                     UpdateSubcontractorPriceUOM();
             end;
         }
-        field(99001520; "Subc. Pricelist Cost"; Decimal)
+        field(20520; "Subc. Pricelist Cost"; Decimal)
         {
             Access = Internal;
             AutoFormatExpression = "Currency Code";
@@ -126,7 +126,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
             end;
         }
     }
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -137,7 +137,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
     var
         ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -151,7 +151,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
     var
         ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -165,7 +165,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
     var
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -179,7 +179,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
     var
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

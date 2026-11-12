@@ -911,26 +911,16 @@ table 115 "Sales Cr.Memo Line"
             Caption = 'Reverse Charge Item';
             Editable = false;
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
         field(10501; "Reverse Charge"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Reverse Charge';
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
 #endif
     }
@@ -1199,6 +1189,13 @@ table 115 "Sales Cr.Memo Line"
 
     internal procedure GetSalesInvoiceLine(var SalesInvoiceLine: Record "Sales Invoice Line")
     var
+        TempUsedSalesInvoiceLine: Record "Sales Invoice Line" temporary;
+    begin
+        GetSalesInvoiceLine(SalesInvoiceLine, TempUsedSalesInvoiceLine);
+    end;
+
+    internal procedure GetSalesInvoiceLine(var SalesInvoiceLine: Record "Sales Invoice Line"; var TempUsedSalesInvoiceLine: Record "Sales Invoice Line" temporary)
+    var
         ItemLedgerEntry: Record "Item Ledger Entry";
         SalesCreditMemoHeader: Record "Sales Cr.Memo Header";
         ValueEntry: Record "Value Entry";
@@ -1225,17 +1222,37 @@ table 115 "Sales Cr.Memo Line"
             SalesCreditMemoHeader.Get("Document No.");
             if SalesCreditMemoHeader."Applies-to Doc. Type" <> SalesCrMemoHeader."Applies-to Doc. Type"::Invoice then
                 exit;
+            if SalesCreditMemoHeader."Applies-to Doc. No." = '' then
+                exit;
 
             SalesInvoiceLine.Reset();
             SalesInvoiceLine.SetRange("Document No.", SalesCreditMemoHeader."Applies-to Doc. No.");
             SalesInvoiceLine.SetRange(Type, Type);
             SalesInvoiceLine.SetRange("No.", "No.");
+            SalesInvoiceLine.SetRange("Variant Code", "Variant Code");
+
+            SalesInvoiceLine.SetRange(Quantity, Quantity);
+            if FindUnusedSalesInvoiceLine(SalesInvoiceLine, TempUsedSalesInvoiceLine) then
+                exit;
             SalesInvoiceLine.SetFilter(Quantity, '>=%1', Quantity);
-            if SalesInvoiceLine.FindFirst() then
+            if FindUnusedSalesInvoiceLine(SalesInvoiceLine, TempUsedSalesInvoiceLine) then
                 exit;
             SalesInvoiceLine.SetRange(Quantity);
-            if SalesInvoiceLine.FindFirst() then;
+            if FindUnusedSalesInvoiceLine(SalesInvoiceLine, TempUsedSalesInvoiceLine) then
+                exit;
+
+            Clear(SalesInvoiceLine);
         end;
+    end;
+
+    local procedure FindUnusedSalesInvoiceLine(var SalesInvoiceLine: Record "Sales Invoice Line"; var TempUsedSalesInvoiceLine: Record "Sales Invoice Line" temporary): Boolean
+    begin
+        if SalesInvoiceLine.FindSet() then
+            repeat
+                if not TempUsedSalesInvoiceLine.Get(SalesInvoiceLine."Document No.", SalesInvoiceLine."Line No.") then
+                    exit(true);
+            until SalesInvoiceLine.Next() = 0;
+        exit(false);
     end;
 
     local procedure CheckApplFromItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry")
@@ -1362,7 +1379,7 @@ table 115 "Sales Cr.Memo Line"
         SalesLine: Record "Sales Line";
     begin
         if Type = Type::" " then
-            exit(SalesLine.FormatType());
+            exit(SalesLine.FormatTypeAsText());
 
         exit(Format(Type));
     end;

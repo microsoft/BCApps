@@ -11,8 +11,8 @@ page 37098 "Production Order Overview"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Production Order Overview';
-    AboutTitle = 'About Production Order Overview';
+    Caption = 'Production Order Overview (Power BI)';
+    AboutTitle = 'About Production Order Overview (Power BI)';
     AboutText = 'The Production Order Overview dashboard presents key metrics and charts including a breakdown of total actual costs, the number of production orders by status, and the completion percentages for each source item.';
 
     layout

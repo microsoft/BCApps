@@ -1,0 +1,23 @@
+{
+    "items": [
+        {
+            "createTime": "2024-04-09T08:28:42.747Z",
+            "documentInfo": {
+                "direction": "Received",
+                "documentIdentifier": "{{DOCUMENTNO}}",
+                "documentSubType": "{{SUBTYPE}}",
+                "documentType": "ApplicationResponse"
+            },
+            "fileId": "1234567890",
+            "id": "7d3f1c92-1b6a-4f0e-9c53-1f5a2d6b8e41",
+            "isFetched": false,
+            "sendMode": "Test"
+        }
+    ],
+    "meta": {
+        "count": 1,
+        "limit": 10,
+        "offset": 0,
+        "total": 1
+    }
+}

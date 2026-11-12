@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+#pragma warning disable AL0659 // Accepted: renaming the enum is a breaking change
 enum 11512 "Swiss QR-Bill Payment Reference Type"
+#pragma warning restore AL0659
 {
     Extensible = false;
 

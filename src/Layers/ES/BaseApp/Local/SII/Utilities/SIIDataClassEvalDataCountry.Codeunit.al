@@ -7,13 +7,16 @@ namespace Microsoft.Utilities;
 using Microsoft.EServices.EDocument;
 using System.Privacy;
 
-codeunit 7000100 "SII DataClass EvalData Country"
+#pragma warning disable AS0088
+codeunit 7000030 "SII DataClass EvalData Country"
 {
+    Access = Internal;
+
     var
         DataClassificationMgt: Codeunit "Data Classification Mgt.";
         DataClassificationEvalData: Codeunit "Data Classification Eval. Data";
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Class. Eval. Data Country", 'OnAfterClassifyCountrySpecificTables', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Class. Eval. Data Country", 'OnAfterClassifyCountrySpecificTables', '', true, false)]
     local procedure OnAfterClassifyCountrySpecificTables()
     begin
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"SII History");

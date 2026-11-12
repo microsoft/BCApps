@@ -85,6 +85,16 @@
     "method": "TestHandleTooManyCallsError"
   },
   {
+    "codeunitId": 135206,
+    "codeunitName": "Image Analysis Management Test",
+    "method": "TestOAuth2SecretsNotConfiguredFallsBackToApiKey"
+  },
+  {
+    "codeunitId": 135206,
+    "codeunitName": "Image Analysis Management Test",
+    "method": "TestOAuth2PartialConfigFallsBackToApiKey"
+  },
+  {
     "codeunitId": 135208,
     "codeunitName": "ML Prediction Management Test",
     "method": "TestDetailedError"

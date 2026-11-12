@@ -20,7 +20,9 @@ pageextension 6491 "Serv. Workflow Customer Entity" extends "Workflow - Customer
                 ApplicationArea = All;
                 Caption = 'Contract Gain/Loss Amount', Locked = true;
             }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
             field(shipToFilter; Rec."Ship-to Filter")
+#pragma warning restore AW0007
             {
                 ApplicationArea = All;
                 Caption = 'Ship-to Filter', Locked = true;

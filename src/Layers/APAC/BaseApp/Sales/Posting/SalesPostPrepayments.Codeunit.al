@@ -1861,6 +1861,7 @@ codeunit 442 "Sales-Post Prepayments"
         SalesLine.SetFilter(Type, '<>%1', SalesLine.Type::" ");
         SalesLine.SetFilter("Line Amount", '<>0');
         SalesLine.SetFilter("Prepayment %", '<>0');
+        OnUpdatePrepmtAmountOnSaleslinesOnAfterSetFilters(SalesLine, SalesHeader, NewTotalPrepmtAmount);
         SalesLine.LockTable();
         if SalesLine.Find('-') then
             repeat
@@ -1887,6 +1888,7 @@ codeunit 442 "Sales-Post Prepayments"
                 else
                     SalesLine.Validate("Prepmt. Line Amount", NewTotalPrepmtAmount - TotalPrepmtAmount);
                 TotalPrepmtAmount := TotalPrepmtAmount + SalesLine."Prepmt. Line Amount";
+                OnUpdatePrepmtAmountOnSaleslinesOnBeforeModify(SalesLine, SalesHeader, NewTotalPrepmtAmount, TotalPrepmtAmount);
                 SalesLine.Modify();
             until SalesLine.Next() = 0;
     end;
@@ -1986,6 +1988,7 @@ codeunit 442 "Sales-Post Prepayments"
             SalesHeader."Last Prepmt. Cr. Memo No." := GenJnlLineDocNo;
             SalesHeader."Prepmt. Cr. Memo No." := '';
             SalesLine.SetFilter("Prepmt. Amt. Inv.", '<>0');
+            OnUpdateSalesDocumentOnBeforeFindSetCreditMemoSalesLine(SalesHeader, SalesLine);
             if SalesLine.FindSet(true) then
                 repeat
                     SalesLine."Prepmt. Amt. Inv." := SalesLine."Prepmt Amt Deducted";
@@ -2045,6 +2048,7 @@ codeunit 442 "Sales-Post Prepayments"
     local procedure InsertSalesInvHeader(var SalesInvHeader: Record "Sales Invoice Header"; SalesHeader: Record "Sales Header"; PostingDescription: Text[100]; GenJnlLineDocNo: Code[20]; SrcCode: Code[10]; PostingNoSeriesCode: Code[20])
     begin
         SalesInvHeader.Init();
+        SalesHeader.CalcFields("Work Description");
         SalesInvHeader.TransferFields(SalesHeader);
         SalesInvHeader."Posting Description" := PostingDescription;
         SalesInvHeader."Payment Terms Code" := SalesHeader."Prepmt. Payment Terms Code";
@@ -2136,6 +2140,7 @@ codeunit 442 "Sales-Post Prepayments"
     local procedure InsertSalesCrMemoHeader(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; SalesHeader: Record "Sales Header"; PostingDescription: Text[100]; GenJnlLineDocNo: Code[20]; SrcCode: Code[10]; PostingNoSeriesCode: Code[20]; CalcPmtDiscOnCrMemos: Boolean)
     begin
         SalesCrMemoHeader.Init();
+        SalesHeader.CalcFields("Work Description");
         SalesCrMemoHeader.TransferFields(SalesHeader);
         SalesCrMemoHeader."Payment Terms Code" := SalesHeader."Prepmt. Payment Terms Code";
         SalesCrMemoHeader."Pmt. Discount Date" := SalesHeader."Prepmt. Pmt. Discount Date";
@@ -2518,8 +2523,8 @@ codeunit 442 "Sales-Post Prepayments"
     begin
         if HasInvoiceDiscount and (SalesHeader."Prepayment %" <> 0) then begin
             Currency.Initialize(SalesHeader."Currency Code");
-            SalesHeader.CalcFields(Amount);
-            PrepmtAmt := Round(SalesHeader.Amount * SalesHeader."Prepayment %" / 100, Currency."Amount Rounding Precision");
+
+            PrepmtAmt := CalcPrepmtAmount(SalesHeader, Currency);
             if TotalPrepmtInvLineBuffer.Amount > PrepmtAmt then begin
                 DifferenceAmt := TotalPrepmtInvLineBuffer.Amount - PrepmtAmt;
 
@@ -2532,6 +2537,20 @@ codeunit 442 "Sales-Post Prepayments"
                 end;
             end;
         end;
+    end;
+
+    local procedure CalcPrepmtAmount(SalesHeader: Record "Sales Header"; Currency: Record Currency): Decimal
+    var
+        SalesLine: Record "Sales Line";
+        PrepmtAmt: Decimal;
+    begin
+        ApplyFilter(SalesHeader, 2, SalesLine);
+	    SalesLine.SetLoadFields(Amount, "Prepayment %");
+        if SalesLine.FindSet() then
+            repeat
+                PrepmtAmt += SalesLine.Amount * SalesLine."Prepayment %" / 100;
+            until SalesLine.Next() = 0;
+        exit(Round(PrepmtAmt, Currency."Amount Rounding Precision"));
     end;
 
     /// <summary>
@@ -3141,6 +3160,16 @@ codeunit 442 "Sales-Post Prepayments"
     end;
 
     /// <summary>
+    /// Raised before finding the credit memo sales lines during prepayment document update.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales lines to be filtered.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateSalesDocumentOnBeforeFindSetCreditMemoSalesLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
+    begin
+    end;
+
+    /// <summary>
     /// Raised before modifying the sales line during credit memo prepayment document update.
     /// </summary>
     /// <param name="SalesLine">The sales line to be modified.</param>
@@ -3230,6 +3259,29 @@ codeunit 442 "Sales-Post Prepayments"
     /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePrepmtAmountOnSaleslines(SalesHeader: Record "Sales Header"; NewTotalPrepmtAmount: Decimal; var IsHandled: Boolean);
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after setting filters on sales lines when updating prepayment amounts.
+    /// </summary>
+    /// <param name="SalesLine">The filtered sales lines.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="NewTotalPrepmtAmount">The new total prepayment amount.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdatePrepmtAmountOnSaleslinesOnAfterSetFilters(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var NewTotalPrepmtAmount: Decimal)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before modifying a sales line with its updated prepayment amount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to modify.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="NewTotalPrepmtAmount">The new total prepayment amount.</param>
+    /// <param name="TotalPrepmtAmount">The accumulated prepayment amount.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdatePrepmtAmountOnSaleslinesOnBeforeModify(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var NewTotalPrepmtAmount: Decimal; var TotalPrepmtAmount: Decimal)
     begin
     end;
 

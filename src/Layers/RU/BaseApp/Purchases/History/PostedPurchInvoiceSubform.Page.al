@@ -337,6 +337,11 @@ page 139 "Posted Purch. Invoice Subform"
                     ToolTip = 'Specifies the tax difference code associated with this line.';
                     Visible = false;
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
             }
             group(Control31)
             {

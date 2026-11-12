@@ -112,13 +112,13 @@ permissionset 47005 "SL Migration-Objects"
                   table "SL PJEquip" = X,
                   table "SL PJPent" = X,
                   table "SL PJProj" = X,
-                  table "SL PurchOrd" = X,
-                  table "SL PurOrdDet" = X,
                   table "SL SOHeader" = X,
                   table "SL SOLine" = X,
                   table "SL SOType" = X,
 #pragma warning restore AL0432
-#endif            
+#endif
+                  table "SL PurchOrd" = X,
+                  table "SL PurOrdDet" = X,
                   codeunit "SL Account Migrator" = X,
                   codeunit "SL Cloud Migration" = X,
                   codeunit "SL Customer Migrator" = X,

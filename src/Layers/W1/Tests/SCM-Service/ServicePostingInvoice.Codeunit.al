@@ -2642,7 +2642,7 @@ codeunit 136108 "Service Posting - Invoice"
         CustomerNo: Code[20];
     begin
         // [FEATURE] [External Document No.]
-        // [SCENARIO 287958] External Document No. processing does not depend on SalesSetup.Ext. Doc. No. Mandatory
+        // [SCENARIO 287958] External Document No. is left blank when Ext. Doc. No. Mandatory is disabled and no External Document No. was entered
         Initialize();
 
         // [GIVEN] Set SalesSetup.Ext. Doc. No. Mandatory = No
@@ -2656,10 +2656,10 @@ codeunit 136108 "Service Posting - Invoice"
         // [WHEN] Service invoice is being posted
         LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
 
-        // [THEN] Created customer ledger entry has External Document No. = ServiceHeader."No."
+        // [THEN] Created customer ledger entry has External Document No. = ''
         CustLedgerEntry.SetRange("Customer No.", CustomerNo);
         CustLedgerEntry.FindFirst();
-        CustLedgerEntry.TestField("External Document No.", ServiceHeader."No.");
+        CustLedgerEntry.TestField("External Document No.", '');
     end;
 
     [Test]
@@ -3175,6 +3175,96 @@ codeunit 136108 "Service Posting - Invoice"
         ActivityLog.DeleteAll();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostServiceOrderWithoutExternalDocNoLeavesGLEntriesBlank()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceLine: Record "Service Line";
+        ServiceItem: Record "Service Item";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        GLEntry: Record "G/L Entry";
+        Customer: Record Customer;
+        ServiceMgtSetup: Record "Service Mgt. Setup";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 638182] GL entries have blank External Document No. when service order is posted without External Document No.
+        Initialize();
+
+        // [GIVEN] Service Mgt. Setup with "Ext. Doc. No. Mandatory" disabled
+        ServiceMgtSetup.Get();
+        ServiceMgtSetup.Validate("Ext. Doc. No. Mandatory", false);
+        ServiceMgtSetup.Modify(true);
+
+        // [GIVEN] Service Order "SO" for Customer "C" with blank External Document No.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryService.CreateServiceItem(ServiceItem, Customer."No.");
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, Customer."No.");
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, ServiceItem."No.");
+        CreateServiceLineWithItem(ServiceLine, ServiceHeader, ServiceItem."No.");
+        ServiceHeader.Validate("External Document No.", '');
+        ServiceHeader.Modify(true);
+
+        // [WHEN] Post service order with Ship and Invoice
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+
+        // [THEN] GL entries for posted service invoice have blank External Document No.
+        ServiceInvoiceHeader.SetRange("Order No.", ServiceHeader."No.");
+        ServiceInvoiceHeader.FindFirst();
+        GLEntry.SetRange("Document Type", GLEntry."Document Type"::Invoice);
+        GLEntry.SetRange("Document No.", ServiceInvoiceHeader."No.");
+        Assert.RecordIsNotEmpty(GLEntry);
+        GLEntry.FindSet();
+        repeat
+            Assert.AreEqual('', GLEntry."External Document No.", 'External Document No. should be blank on G/L Entry when not specified on Service Order');
+        until GLEntry.Next() = 0;
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostServiceCreditMemoWithoutExternalDocNoLeavesGLEntriesBlank()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        GLEntry: Record "G/L Entry";
+        Customer: Record Customer;
+        ServiceMgtSetup: Record "Service Mgt. Setup";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 638182] GL entries have blank External Document No. when service credit memo is posted without External Document No.
+        Initialize();
+
+        // [GIVEN] Service Mgt. Setup with "Ext. Doc. No. Mandatory" disabled
+        ServiceMgtSetup.Get();
+        ServiceMgtSetup.Validate("Ext. Doc. No. Mandatory", false);
+        ServiceMgtSetup.Modify(true);
+
+        // [GIVEN] Service Credit Memo for Customer "C" with blank External Document No.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::"Credit Memo", Customer."No.");
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup());
+        ServiceLine.Validate(Quantity, LibraryRandom.RandInt(100));
+        ServiceLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        ServiceLine.Modify(true);
+        ServiceHeader.Validate("External Document No.", '');
+        ServiceHeader.Modify(true);
+
+        // [WHEN] Post service credit memo
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+
+        // [THEN] GL entries for posted service credit memo have blank External Document No.
+        FindServiceCreditMemoHeader(ServiceCrMemoHeader, ServiceHeader."No.");
+        GLEntry.SetRange("Document Type", GLEntry."Document Type"::"Credit Memo");
+        GLEntry.SetRange("Document No.", ServiceCrMemoHeader."No.");
+        Assert.RecordIsNotEmpty(GLEntry);
+        GLEntry.FindSet();
+        repeat
+            Assert.AreEqual('', GLEntry."External Document No.", 'External Document No. should be blank on G/L Entry when not specified on Service Credit Memo');
+        until GLEntry.Next() = 0;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", OnSetCommitBehavior, '', false, false)]
     local procedure OnSetCommitBehaviorHandler(var IgnoreCommit: Boolean)
     begin
@@ -3194,6 +3284,44 @@ codeunit 136108 "Service Posting - Invoice"
         ActivityLog.Insert();
         Commit();
         Error(TestRollbackAfterCommitErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostServiceInvoiceWithoutExternalDocNoSalesExtDocMandatory()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceMgtSetup: Record "Service Mgt. Setup";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [External Document No.]
+        // [SCENARIO 650733] Sales setup does not make External Document No. mandatory on a service invoice
+        Initialize();
+
+        // [GIVEN] External Document No. is mandatory in Sales setup but not in Service setup
+        SetSalesSetupExtDocNoMandatory(true);
+        ServiceMgtSetup.Get();
+        ServiceMgtSetup.Validate("Ext. Doc. No. Mandatory", false);
+        ServiceMgtSetup.Modify(true);
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.TestField("Ext. Doc. No. Mandatory", true);
+        ServiceMgtSetup.TestField("Ext. Doc. No. Mandatory", false);
+
+        // [GIVEN] A service invoice with a blank External Document No.
+        CustomerNo := LibrarySales.CreateCustomerNo();
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, CustomerNo);
+        CreateServiceLine(ServiceHeader);
+        ServiceHeader.TestField("External Document No.", '');
+
+        // [WHEN] The service invoice is posted without an error
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+
+        // [THEN] The posted service invoice has a blank External Document No.
+        CustLedgerEntry.SetRange("Customer No.", CustomerNo);
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.TestField("External Document No.", '');
     end;
 
     local procedure Initialize()
@@ -4082,7 +4210,6 @@ codeunit 136108 "Service Posting - Invoice"
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
         SalesReceivablesSetup.Get();
-
         if LibraryVariableStorage.DequeueBoolean() then begin
             PostBatchForm.PostingDate.SetValue(20200101D);
             PostBatchForm.ReplacePostingDate.SetValue(true);
@@ -4108,7 +4235,6 @@ codeunit 136108 "Service Posting - Invoice"
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
         SalesReceivablesSetup.Get();
-
         if LibraryVariableStorage.DequeueBoolean() then begin
             PostBatchForm.PostingDate.SetValue(20200101D);
             PostBatchForm.ReplacePostingDate.SetValue(true);
@@ -4134,7 +4260,6 @@ codeunit 136108 "Service Posting - Invoice"
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
         SalesReceivablesSetup.Get();
-
         if LibraryVariableStorage.DequeueBoolean() then begin
             PostBatchForm.Ship.SetValue(true);
             PostBatchForm.Invoice.SetValue(true);

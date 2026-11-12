@@ -18,8 +18,11 @@ codeunit 143005 "Library - IT Datifattura"
         NameValueBuffer: Record "Name/Value Buffer";
         LibraryITDatifattura: Codeunit "Library - IT Datifattura";
         DatifatturaExport: Codeunit "Datifattura Export";
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
         VATReportReleaseReopen: Codeunit "VAT Report Release/Reopen";
     begin
+        TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Windows);
+        BindSubscription(TestClientTypeSubscriber);
         BindSubscription(LibraryITDatifattura);
         VATReportHeader.SetRecFilter();
         VATReportReleaseReopen.Release(VATReportHeader);
@@ -126,4 +129,3 @@ codeunit 143005 "Library - IT Datifattura"
             Error('%1: <%2> in %3', Rec."Message Type", Rec.Message, Rec."Context Record ID");
     end;
 }
-

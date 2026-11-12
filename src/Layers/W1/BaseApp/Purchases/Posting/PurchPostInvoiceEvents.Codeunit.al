@@ -210,13 +210,6 @@ codeunit 826 "Purch. Post Invoice Events"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Use the procedure with AccountNo parameter instead.', '27.0')]
-    procedure RunOnBeforePrepareLineFADiscount(var InvoicePostingBuffer: Record "Invoice Posting Buffer"; GenPostingSetup: Record "General Posting Setup"; var IsHandled: Boolean)
-    begin
-        RunOnBeforePrepareLineFADiscount(InvoicePostingBuffer, GenPostingSetup, '', IsHandled);
-    end;
-#endif
 
     procedure RunOnBeforePrepareLineFADiscount(var InvoicePostingBuffer: Record "Invoice Posting Buffer"; GenPostingSetup: Record "General Posting Setup"; AccountNo: Code[20]; var IsHandled: Boolean)
     begin

@@ -153,7 +153,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Customer - Order Su&mmary';
                 Image = "Report";
                 RunObject = Report "Customer - Order Summary";
-                ToolTip = 'View the order detail (the quantity not yet shipped) for each customer in three periods of 30 days each, starting from a selected date. There are also columns with orders to be shipped before and after the three periods and a column with the total order detail for each customer. The report can be used to analyze a company''s expected sales volume.';
             }
 #if not CLEAN28
             action("Customer - T&op 10 List")
@@ -174,7 +173,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Customer/&Item Sales';
                 Image = "Report";
                 RunObject = Report "Customer/Item Sales";
-                ToolTip = 'View a list of item sales for each customer during a selected time period. The report contains information on quantity, sales amount, profit, and possible discounts. It can be used, for example, to analyze a company''s customer groups.';
             }
             separator(Action75)
             {
@@ -185,7 +183,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Salesperson - Sales &Statistics';
                 Image = "Report";
                 RunObject = Report "Salesperson - Sales Statistics";
-                ToolTip = 'View amounts for sales, profit, invoice discount, and payment discount, as well as profit percentage, for each salesperson for a selected period. The report also shows the adjusted profit and adjusted profit percentage, which reflect any changes to the original costs of the items in the sales.';
             }
             action("Price &List")
             {
@@ -205,7 +202,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Inventory - Sales &Back Orders';
                 Image = "Report";
                 RunObject = Report "Inventory - Sales Back Orders";
-                ToolTip = 'View a list with the order lines whose shipment date has been exceeded. The following information is shown for the individual orders for each item: number, customer name, customer''s telephone number, shipment date, order quantity and quantity on back order. The report also shows whether there are other items for the customer on back order.';
             }
             separator(Action129)
             {
@@ -309,30 +305,6 @@ page 9020 "Small Business Owner RC"
                 RunObject = Report "G/L - VAT Reconciliation";
                 ToolTip = 'Verify that the VAT amounts on the VAT statements match the amounts from the G/L entries.';
             }
-#if not CLEAN27
-            action("VAT Audit")
-            {
-                ApplicationArea = VAT;
-                Caption = 'VAT Audit';
-                Image = "Report";
-                RunObject = Report "VAT Audit";
-                ObsoleteReason = 'Moved to VAT Audit Reports GB app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-                ToolTip = 'Prepare for the HMC&E VAT audit by exports the relevant data for VAT auditors into comma-separated files.';
-            }
-            action("VAT Entry Exception List")
-            {
-                ApplicationArea = VAT;
-                Caption = 'VAT Entry Exception List';
-                Image = "Report";
-                RunObject = Report "VAT Entry Exception Report";
-                ObsoleteReason = 'Moved to VAT Audit Reports GB app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-                ToolTip = 'View or print the differences between the calculated VAT and the changes that occur because of rounding, VAT tolerance percentage, and discounts. The report also displays the difference in VAT amounts for the tax authorities.';
-            }
-#endif
             action("VAT-VIES Declaration Tax A&uth")
             {
                 ApplicationArea = BasicEU;

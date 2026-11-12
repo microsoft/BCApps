@@ -1176,7 +1176,7 @@ codeunit 137019 "SCM Correct Invoice"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure CheckCorrectiveCreditMemoConfirmDialogOnPostedSalesInv()
+    procedure CheckCorrectiveCreditMemoConfirmDialogOnPostedSalesInvWhenRestoreQtyEnabled()
     var
         Cust: Record Customer;
         Item: Record Item;
@@ -1189,6 +1189,7 @@ codeunit 137019 "SCM Correct Invoice"
         // [SCENARIO 578461] Message when using "Create corrective Credit Memo" on a partial sales or purchase invoice related to an 
         // existing Order needs to inform that the Order Quantities will be changed.
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create a Item with a Price
         CreateItemWithPrice(Item, LibraryRandom.RandDec(10, 2));
@@ -1212,6 +1213,37 @@ codeunit 137019 "SCM Correct Invoice"
 
         // [THEN] Assert that confirm was called.
         Assert.IsTrue(WasConfirmShown, ConfirmDialogErr);
+    end;
+
+    [Test]
+    procedure CheckCorrectiveCreditMemoConfirmDialogNotShownWhenRestoreQtyDisabled()
+    var
+        Cust: Record Customer;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesHeaderCorrection: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesLine: Record "Sales Line";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+    begin
+        // [SCENARIO 649626] The order quantity restoration confirmation is not shown when "Restore Order Qty. on Return" is disabled.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(false);
+
+        // [GIVEN] A partially posted sales order invoice.
+        CreateItemWithPrice(Item, LibraryRandom.RandDec(10, 2));
+        LibrarySales.CreateCustomer(Cust);
+        CreateSalesOrderForItem(Cust, Item, 10, SalesHeader, SalesLine);
+        SalesLine.Validate("Qty. to Ship", 5);
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        GetPostedInvoice(SalesInvoiceHeader, SalesHeader);
+
+        // [WHEN] A corrective credit memo is created.
+        CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesHeaderCorrection);
+
+        // [THEN] The credit memo is created without requiring a confirmation handler.
+        SalesHeaderCorrection.TestField("No.");
     end;
 
     [Test]
@@ -1264,7 +1296,7 @@ codeunit 137019 "SCM Correct Invoice"
     end;
 
     [Test]
-    procedure PostCrMemoCopyDocWithModifiedQtyUpdatesCorrectSalesOrderLine()
+    procedure PostCrMemoCopyDocWithModifiedQtyUpdatesCorrectSalesOrderLineWhenRestoreQtyEnabled()
     var
         Item: Record Item;
         Customer: Record Customer;
@@ -1280,6 +1312,7 @@ codeunit 137019 "SCM Correct Invoice"
         // [SCENARIO 626470] Quantities on Sales Order lines remain consistent after posting a Credit Memo
         // created via Copy Document from Posted Invoice when lines are modified (quantity reduced).
         Initialize();
+        SetRestoreOrderQtyOnReturn(true);
 
         // [GIVEN] Create an Item with a Price.
         CreateItemWithPrice(Item, LibraryRandom.RandDecInRange(10, 50, 2));
@@ -1333,6 +1366,82 @@ codeunit 137019 "SCM Correct Invoice"
             StrSubstNo(SalesOrderLineReducedErr, SalesLine[1].FieldCaption("Quantity Shipped")));
     end;
 
+    [Test]
+    procedure PostCrMemoCopyDocRevertsCorrectOrderLinesForSameItemAcrossOrdersWhenRestoreQtyEnabled()
+    var
+        Item: Record Item;
+        Customer: Record Customer;
+        SalesHeaderOrder: array[2] of Record "Sales Header";
+        SalesLineOrder: array[2] of Record "Sales Line";
+        SalesHeaderInvoice: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        CreditMemoHeader: Record "Sales Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        SalesGetShipment: Codeunit "Sales-Get Shipment";
+        CopyDocMgt: Codeunit "Copy Document Mgt.";
+        OrderQty: array[2] of Decimal;
+    begin
+        // [SCENARIO 646375] Negative Shipped and Invoiced quantities no longer appear on Sales Order lines
+        // when the same item is shipped from several orders, invoiced together, and a Credit Memo is created
+        // via Copy Document from that Posted Invoice.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(true);
+
+        // [GIVEN] An item with stock.
+        CreateItemWithPrice(Item, LibraryRandom.RandDecInRange(10, 50, 2));
+        PostItemJournalPositiveAdj(Item."No.", '', 100);
+
+        // [GIVEN] Two Sales Orders for the same customer, each with a line for the same item but different quantities.
+        LibrarySales.CreateCustomer(Customer);
+        OrderQty[1] := LibraryRandom.RandIntInRange(11, 20);
+        OrderQty[2] := LibraryRandom.RandIntInRange(5, 10);
+        CreateAndShipSalesOrderWithItem(SalesHeaderOrder[1], SalesLineOrder[1], Customer."No.", Item."No.", OrderQty[1]);
+        CreateAndShipSalesOrderWithItem(SalesHeaderOrder[2], SalesLineOrder[2], Customer."No.", Item."No.", OrderQty[2]);
+
+        // [GIVEN] A single Sales Invoice created via Get Shipment Lines from both shipments, then posted.
+        LibrarySales.CreateSalesHeader(SalesHeaderInvoice, "Sales Document Type"::Invoice, Customer."No.");
+        SalesShipmentLine.SetFilter("Order No.", '%1|%2', SalesHeaderOrder[1]."No.", SalesHeaderOrder[2]."No.");
+        SalesGetShipment.SetSalesHeader(SalesHeaderInvoice);
+        SalesGetShipment.CreateInvLines(SalesShipmentLine);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeaderInvoice, true, true));
+
+        // [GIVEN] A Credit Memo created via Copy Document from the Posted Invoice.
+        CreditMemoHeader.Init();
+        CreditMemoHeader.Validate("Document Type", CreditMemoHeader."Document Type"::"Credit Memo");
+        CreditMemoHeader.Insert(true);
+        CopyDocMgt.SetProperties(true, false, false, false, false, false, false);
+        CopyDocMgt.CopySalesDoc("Sales Document Type From"::"Posted Invoice", SalesInvoiceHeader."No.", CreditMemoHeader);
+
+        // [WHEN] Post the Credit Memo and update the linked Sales Order lines (as the Sales Credit Memo page does after posting).
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(CreditMemoHeader, true, true));
+        CreditMemoHeader.UpdateSalesOrderLineIfExist();
+
+        // [THEN] Each Sales Order line is reverted to its own shipped/invoiced quantity, with no negative values.
+        SalesLineOrder[1].Find();
+        Assert.AreEqual(
+            0, SalesLineOrder[1]."Quantity Shipped",
+            StrSubstNo(SalesOrderLineReducedErr, SalesLineOrder[1].FieldCaption("Quantity Shipped")));
+        Assert.AreEqual(
+            0, SalesLineOrder[1]."Quantity Invoiced",
+            StrSubstNo(SalesOrderLineReducedErr, SalesLineOrder[1].FieldCaption("Quantity Invoiced")));
+
+        SalesLineOrder[2].Find();
+        Assert.AreEqual(
+            0, SalesLineOrder[2]."Quantity Shipped",
+            StrSubstNo(SalesOrderLineReducedErr, SalesLineOrder[2].FieldCaption("Quantity Shipped")));
+        Assert.AreEqual(
+            0, SalesLineOrder[2]."Quantity Invoiced",
+            StrSubstNo(SalesOrderLineReducedErr, SalesLineOrder[2].FieldCaption("Quantity Invoiced")));
+    end;
+
+    local procedure CreateAndShipSalesOrderWithItem(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CustomerNo: Code[20]; ItemNo: Code[20]; Qty: Decimal)
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, Qty);
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1358,6 +1467,15 @@ codeunit 137019 "SCM Correct Invoice"
         LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Correct Invoice");
+    end;
+
+    local procedure SetRestoreOrderQtyOnReturn(RestoreOrderQtyOnReturn: Boolean)
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
+        SalesReceivablesSetup.Modify(true);
     end;
 
     local procedure SetGlobalNoSeriesInSetups()
@@ -1723,4 +1841,3 @@ codeunit 137019 "SCM Correct Invoice"
         Reply := true;
     end;
 }
-

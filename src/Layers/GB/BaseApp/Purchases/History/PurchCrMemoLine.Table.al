@@ -734,26 +734,16 @@ table 125 "Purch. Cr. Memo Line"
             Caption = 'Reverse Charge Item';
             Editable = false;
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
         field(10501; "Reverse Charge"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Reverse Charge';
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
 #endif
     }
@@ -995,7 +985,7 @@ table 125 "Purch. Cr. Memo Line"
         PurchaseLine: Record "Purchase Line";
     begin
         if Type = Type::" " then
-            exit(PurchaseLine.FormatType());
+            exit(PurchaseLine.FormatTypeAsText());
 
         exit(Format(Type));
     end;
@@ -1078,11 +1068,24 @@ table 125 "Purch. Cr. Memo Line"
             end;
         end;
 
-        if ItemLedgerEntry."Entry No." = 0 then begin
+        if (ItemLedgerEntry."Entry No." = 0) and ("Order No." <> '') then begin
+            // Only a corrective/cancel credit memo may revert the order; a copied credit memo must not.
+            if not IsCorrectiveCreditMemo() then
+                exit;
             PurchInvLine.SetRange("Order No.", "Order No.");
             PurchInvLine.SetRange("Order Line No.", "Order Line No.");
             if PurchInvLine.FindFirst() then;
         end;
+    end;
+
+    local procedure IsCorrectiveCreditMemo(): Boolean
+    var
+        PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
+    begin
+        if not PurchCrMemoHdr.Get("Document No.") then
+            exit(false);
+        PurchCrMemoHdr.CalcFields(Corrective);
+        exit(PurchCrMemoHdr.Corrective);
     end;
 
     local procedure CheckApplFromItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry")

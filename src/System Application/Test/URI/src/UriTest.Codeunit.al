@@ -64,6 +64,50 @@ codeunit 135070 "Uri Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure IsSecureHttpUrlTest()
+    var
+        Uri: Codeunit Uri;
+    begin
+        // [Given] An https URL, also with an uppercase scheme
+        // [Then] It is a secure HTTP URL
+        Uri.Init('https://microsoft.com');
+        LibraryAssert.IsTrue(Uri.IsSecureHttpUrl(), 'https URL should be secure');
+        Uri.Init('HTTPS://microsoft.com');
+        LibraryAssert.IsTrue(Uri.IsSecureHttpUrl(), 'HTTPS URL should be secure');
+
+        // [Given] Non-https URLs
+        // [Then] They are not secure HTTP URLs
+        Uri.Init('http://microsoft.com');
+        LibraryAssert.IsFalse(Uri.IsSecureHttpUrl(), 'http URL should not be secure');
+        Uri.Init('ftp://microsoft.com');
+        LibraryAssert.IsFalse(Uri.IsSecureHttpUrl(), 'ftp URL should not be secure');
+        Uri.Init('file:///c:/temp/file.txt');
+        LibraryAssert.IsFalse(Uri.IsSecureHttpUrl(), 'file URL should not be secure');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure IsHttpUrlTest()
+    var
+        Uri: Codeunit Uri;
+    begin
+        // [Given] http and https URLs
+        // [Then] They are HTTP URLs
+        Uri.Init('http://microsoft.com');
+        LibraryAssert.IsTrue(Uri.IsHttpUrl(), 'http URL should be an HTTP URL');
+        Uri.Init('HTTPS://microsoft.com');
+        LibraryAssert.IsTrue(Uri.IsHttpUrl(), 'https URL should be an HTTP URL');
+
+        // [Given] Non-HTTP URLs
+        // [Then] They are not HTTP URLs
+        Uri.Init('ftp://microsoft.com');
+        LibraryAssert.IsFalse(Uri.IsHttpUrl(), 'ftp URL should not be an HTTP URL');
+        Uri.Init('file:///c:/temp/file.txt');
+        LibraryAssert.IsFalse(Uri.IsHttpUrl(), 'file URL should not be an HTTP URL');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure GetHostTest()
     var
         Uri: Codeunit Uri;
@@ -287,6 +331,35 @@ codeunit 135070 "Uri Test"
 
         // [Given] Invalid Integration URLs with different hosts or schemes
         LibraryAssert.AreNotEqual(Uri.ValidateIntegrationURL('https://subdomain1.example.com/api', 'https://subdomain2.example.com/api'), 'https://subdomain1.example.com/api', 'Invalid integration URL should return false');
+
+        // [Given] A same-host URL that downgrades the scheme from https to http
+        // [Then] Validation should fall back to the hardcoded https URL instead of allowing cleartext
+        LibraryAssert.AreEqual(Uri.ValidateIntegrationURL('http://valid-integration.com/api', 'https://valid-integration.com/api'), 'https://valid-integration.com/api', 'A same-host http downgrade should fall back to the hardcoded https URL');
+
+        // [Given] A malformed stored URL
+        // [Then] Validation should fall back to the hardcoded URL without throwing
+        LibraryAssert.AreEqual(Uri.ValidateIntegrationURL('not a valid url', 'https://valid-integration.com/api'), 'https://valid-integration.com/api', 'A malformed stored URL should fall back to the hardcoded URL');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AreURIsHaveSameSchemeTest()
+    var
+        Uri: Codeunit Uri;
+    begin
+        // [Given] Two URIs with the same scheme
+        // [Then] AreURIsHaveSameScheme should return true
+        LibraryAssert.IsTrue(Uri.AreURIsHaveSameScheme('https://microsoft.com/path1', 'https://contoso.com/path2'), 'URIs with the same scheme should return true');
+        LibraryAssert.IsTrue(Uri.AreURIsHaveSameScheme('https://microsoft.com', 'https://MICROSOFT.COM'), 'URIs with case differences in scheme should return true');
+
+        // [Given] URIs with different schemes
+        // [Then] AreURIsHaveSameScheme should return false
+        LibraryAssert.IsFalse(Uri.AreURIsHaveSameScheme('http://microsoft.com/path1', 'https://microsoft.com/path2'), 'URIs with different schemes should return false');
+        LibraryAssert.IsFalse(Uri.AreURIsHaveSameScheme('ftp://files.example.com', 'https://files.example.com'), 'URIs with different schemes should return false');
+
+        // [Given] A malformed URI string
+        // [Then] AreURIsHaveSameScheme should return false instead of throwing
+        LibraryAssert.IsFalse(Uri.AreURIsHaveSameScheme('not a valid url', 'https://microsoft.com'), 'A malformed URI should return false');
     end;
 
     local procedure TestUriWellformed(UriString: Text; UriKind: Enum UriKind; ExpectedResult: Boolean)

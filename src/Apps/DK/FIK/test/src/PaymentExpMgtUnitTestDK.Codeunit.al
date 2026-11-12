@@ -3,7 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+#pragma warning disable AS0011 // Accepted: renaming this existing object to add the mandatory affix would break references. Tracked by AB#640773.
 codeunit 148030 "Payment Exp Mgt Unit Test DK"
+#pragma warning restore AS0011
 {
     Subtype = Test;
     TestType = IntegrationTest;

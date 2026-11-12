@@ -15,7 +15,7 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 
-report 99001505 "Subc. Calculate Subcontracts"
+report 20505 "Subc. Calculate Subcontracts"
 {
     ApplicationArea = Subcontracting;
     Caption = 'Calculate Subcontracts';
@@ -82,7 +82,7 @@ report 99001505 "Subc. Calculate Subcontracts"
 
     trigger OnInitReport()
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -116,7 +116,7 @@ report 99001505 "Subc. Calculate Subcontracts"
         Item: Record Item;
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -133,7 +133,7 @@ report 99001505 "Subc. Calculate Subcontracts"
 
     procedure SetWkShLine(NewReqLine: Record "Requisition Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -204,6 +204,7 @@ report 99001505 "Subc. Calculate Subcontracts"
         ReqLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ReqLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ReqLine.Validate("Vendor No.", WorkCenter."Subcontractor No.");
+        SubcontractingManagement.SetSubcontractingOrderDate(ReqLine, ProdOrderRoutingLine."Starting Date");
         ReqLine.Description := ProdOrderRoutingLine.Description;
         ReqLine."Description 2" := ProdOrderRoutingLine."Description 2";
         SetVendorItemNo();

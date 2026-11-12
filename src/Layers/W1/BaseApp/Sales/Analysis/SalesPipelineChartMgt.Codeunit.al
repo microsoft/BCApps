@@ -109,8 +109,10 @@ codeunit 781 "Sales Pipeline Chart Mgt."
     begin
         NextSalesCycle := CurrentSalesCycle;
         OnTryNextSalesCycleOnBeforeNextSalesCycleFind(NextSalesCycle);
+#pragma warning disable AA0181, AA0233 // Positional Find() paired with Next(); suppression tracked for follow-up
         NextSalesCycle.Find('=><');
         exit(NextSalesCycle.Next() <> 0);
+#pragma warning restore AA0181, AA0233
     end;
 
     local procedure TryPrevSalesCycle(CurrentSalesCycle: Record "Sales Cycle"): Boolean
@@ -119,8 +121,10 @@ codeunit 781 "Sales Pipeline Chart Mgt."
     begin
         PrevSalesCycle := CurrentSalesCycle;
         OnTryPrevSalesCycleOnBeforePrevSalesCycleFind(PrevSalesCycle);
+#pragma warning disable AA0181, AA0233 // Positional Find() paired with Next(); suppression tracked for follow-up
         PrevSalesCycle.Find('=><');
         exit(PrevSalesCycle.Next(-1) <> 0);
+#pragma warning restore AA0181, AA0233
     end;
 
     /// <summary>

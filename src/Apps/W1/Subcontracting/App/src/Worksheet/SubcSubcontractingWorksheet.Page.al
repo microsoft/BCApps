@@ -10,7 +10,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using System.Security.User;
 
-page 99001504 "Subc. Subcontracting Worksheet"
+page 20504 "Subc. Subcontracting Worksheet"
 {
     ApplicationArea = Subcontracting;
     AutoSplitKey = true;
@@ -395,19 +395,22 @@ page 99001504 "Subc. Subcontracting Worksheet"
 
     trigger OnOpenPage()
     var
+        SubcFeatureTelemetry: Codeunit "Subc. Feature Telemetry";
         JnlSelected: Boolean;
     begin
         OpenedFromBatch := (Rec."Journal Batch Name" <> '') and (Rec."Worksheet Template Name" = '');
         if OpenedFromBatch then begin
             CurrentJnlBatchName := Rec."Journal Batch Name";
             ReqJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
-            exit;
+        end else begin
+            ReqJnlManagement.WkshTemplateSelection(
+                PAGE::"Subc. Subcontracting Worksheet", false, "Req. Worksheet Template Type"::Subcontracting, Rec, JnlSelected);
+            if not JnlSelected then
+                Error('');
+            ReqJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
         end;
-        ReqJnlManagement.WkshTemplateSelection(
-            PAGE::"Subc. Subcontracting Worksheet", false, "Req. Worksheet Template Type"::Subcontracting, Rec, JnlSelected);
-        if not JnlSelected then
-            Error('');
-        ReqJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
+
+        SubcFeatureTelemetry.LogFeatureUptakeDiscovered();
     end;
 
     var

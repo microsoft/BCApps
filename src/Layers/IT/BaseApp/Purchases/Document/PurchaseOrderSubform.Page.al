@@ -18,6 +18,7 @@ using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.History;
@@ -251,6 +252,11 @@ page 54 "Purchase Order Subform"
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
+                    Visible = false;
+                }
+                field("Receipt on Invoice"; Rec."Receipt on Invoice")
+                {
+                    ApplicationArea = All;
                     Visible = false;
                 }
                 field("Drop Shipment"; Rec."Drop Shipment")
@@ -938,6 +944,22 @@ page 54 "Purchase Order Subform"
                     ApplicationArea = FixedAssets;
                     Visible = false;
                 }
+                field("FA Posting Type"; Rec."FA Posting Type")
+                {
+                    ApplicationArea = FixedAssets;
+                    Visible = false;
+                }
+                field("Depreciation Book Code"; Rec."Depreciation Book Code")
+                {
+                    ApplicationArea = FixedAssets;
+                    Visible = false;
+                }
+                field("Maintenance Code"; Rec."Maintenance Code")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies a maintenance code.';
+                    Visible = false;
+                }
                 field("No. of Fixed Asset Cards"; Rec."No. of Fixed Asset Cards")
                 {
                     ApplicationArea = FixedAssets;
@@ -952,6 +974,11 @@ page 54 "Purchase Order Subform"
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = AttachingLinesEnabled;
+                }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
                 }
             }
             group(Control43)
@@ -1390,6 +1417,20 @@ page 54 "Purchase Order Subform"
                     trigger OnAction()
                     begin
                         Rec.ShowOrderTracking();
+                    end;
+                }
+                action(SupplyWhatIfPlanningAnalysis)
+                {
+                    ApplicationArea = Planning;
+                    Caption = 'Supply Planning What-If Analysis';
+                    Image = CalculateRegenerativePlan;
+                    ToolTip = 'Analyze how changes to this purchase order would impact the overall supply planning suggestions.';
+
+                    trigger OnAction()
+                    var
+                        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+                    begin
+                        SupplyWhatIfPlanningEngine.OpenWhatIfPlanning(Rec);
                     end;
                 }
             }
@@ -2030,4 +2071,3 @@ page 54 "Purchase Order Subform"
     begin
     end;
 }
-

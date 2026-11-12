@@ -31,6 +31,10 @@ page 4580 "Ext. SharePoint Account"
             }
             field("SharePoint Url"; Rec."SharePoint Url") { }
             field("Base Relative Folder Path"; Rec."Base Relative Folder Path") { }
+            field("REST Base Folder Path Format"; Rec."REST Base Folder Path Format")
+            {
+                Visible = Rec."Use legacy REST API";
+            }
             field("Tenant Id"; Rec."Tenant Id") { }
             field("Client Id"; Rec."Client Id") { }
             field("Authentication Type"; Rec."Authentication Type")
@@ -97,10 +101,18 @@ page 4580 "Ext. SharePoint Account"
                 }
             }
             field(Disabled; Rec.Disabled) { }
+            field("Use legacy REST API"; Rec."Use legacy REST API")
+            {
+                trigger OnValidate()
+                begin
+                    Message(CheckBasePathMsg);
+                end;
+            }
         }
     }
 
     var
+        CheckBasePathMsg: Label 'The API type has been changed. Please verify that the Base Relative Folder Path is still correct for the selected API type.';
         PageEditable: Boolean;
         ClientSecretVisible: Boolean;
         CertificateVisible: Boolean;

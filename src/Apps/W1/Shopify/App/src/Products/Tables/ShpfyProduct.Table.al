@@ -168,6 +168,9 @@ table 30127 "Shpfy Product"
         key(Key2; "Shop Code", "Item SystemId")
         {
         }
+        key(Key3; "Item SystemId")
+        {
+        }
     }
 
     trigger OnDelete()

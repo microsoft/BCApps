@@ -24,6 +24,8 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
     var
         NoVendorInformationErr: Label 'There is no vendor information in the source document. Verify that the source document is an invoice, and if it''s not, consider deleting this E-Document.';
         PurchaseOrderNoTruncatedMsg: Label 'Purchase Order No. was truncated because it exceeded the maximum length of 20 characters.', Locked = true;
+        ItemDescriptionReasonMsg: Label 'Item was found by an exact description match.';
+        ItemDescriptionSourceMsg: Label 'Item %1', Comment = '%1 - Item No.';
 
 
     procedure GetVendor(EDocument: Record "E-Document") Vendor: Record Vendor
@@ -101,6 +103,7 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
     procedure GetPurchaseLine(var EDocumentPurchaseLine: Record "E-Document Purchase Line")
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        Item: Record Item;
         ItemReference: Record "Item Reference";
         EDocument: Record "E-Document";
         TextToAccountMapping: Record "Text-to-Account Mapping";
@@ -140,6 +143,16 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
 
             SetActivityLog(EDocumentPurchaseLine.SystemId, EDocumentPurchaseLine.FieldNo("[BC] Purchase Type No."), StrSubstNo(AccountNumberReasonMsg, VendorNo), TextToAccountMapping, Page::"Text-to-Account Mapping", StrSubstNo(AccountNumberSourceMsg, TextToAccountMapping."Line No."), ActivityLog);
             EDocActivityLogSession.Set(EDocActivityLogSession.TextToAccountMappingTok(), ActivityLog);
+            exit;
+        end;
+
+        if GetPurchaseLineItemByDescription(EDocumentPurchaseLine, Item) then begin
+            EDocumentPurchaseLine."[BC] Purchase Line Type" := "Purchase Line Type"::Item;
+            EDocumentPurchaseLine.Validate("[BC] Purchase Type No.", Item."No.");
+            EDocImpSessionTelemetry.SetLineBool(EDocumentPurchaseLine.SystemId, 'ItemDescriptionMatch', true);
+
+            SetActivityLog(EDocumentPurchaseLine.SystemId, EDocumentPurchaseLine.FieldNo("[BC] Purchase Type No."), ItemDescriptionReasonMsg, Item, Page::"Item Card", StrSubstNo(ItemDescriptionSourceMsg, Item."No."), ActivityLog);
+            EDocActivityLogSession.Set(EDocActivityLogSession.ItemDescriptionTok(), ActivityLog);
             exit;
         end;
     end;
@@ -187,6 +200,32 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
         if ItemReference.FindFirst() then
             if Item.Get(ItemReference."Item No.") then
                 exit(true);
+    end;
+
+    local procedure GetPurchaseLineItemByDescription(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var Item: Record Item): Boolean
+    var
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+    begin
+        if EDocumentPurchaseLine.Description = '' then
+            exit(false);
+
+        Item.SetLoadFields("No.");
+        Item.SetRange(Description, EDocumentPurchaseLine.Description);
+        Item.SetRange(Blocked, false);
+        Item.SetRange("Purchasing Blocked", false);
+
+        if not Item.FindFirst() then begin
+            EDocImpSessionTelemetry.SetLineText(EDocumentPurchaseLine.SystemId, 'ItemDescriptionMatchResult', 'NoMatch');
+            exit(false);
+        end;
+
+        if Item.Count() = 1 then begin
+            EDocImpSessionTelemetry.SetLineText(EDocumentPurchaseLine.SystemId, 'ItemDescriptionMatchResult', 'Single');
+            exit(true);
+        end;
+
+        EDocImpSessionTelemetry.SetLineText(EDocumentPurchaseLine.SystemId, 'ItemDescriptionMatchResult', 'Multiple');
+        exit(false);
     end;
 
 }

@@ -11,8 +11,8 @@ page 37101 "Sales Decomposition"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales Decomposition';
-    AboutTitle = 'About Sales Decomposition';
+    Caption = 'Sales Decomposition (Power BI)';
+    AboutTitle = 'About Sales Decomposition (Power BI)';
     AboutText = 'The Sales Decomposition report breaks down sales metrics into its key contributing components to help users understand what is driving changes in sales and why.';
 
     layout

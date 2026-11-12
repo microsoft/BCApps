@@ -1366,7 +1366,7 @@ table 1003 "Job Planning Line"
         {
             AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding" where("Activity Type" = filter(<> "Put-away"),
-                                                                                  "Source Type" = const(167),
+                                                                                  "Source Type" = const(1003),
                                                                                   "Source No." = field("Job No."),
                                                                                   "Source Line No." = field("Job Contract Entry No."),
                                                                                   "Source Subline No." = field("Line No."),
@@ -1411,7 +1411,7 @@ table 1003 "Job Planning Line"
         {
             AutoFormatType = 0;
             CalcFormula = sum("Warehouse Activity Line"."Qty. Outstanding (Base)" where("Activity Type" = filter(<> "Put-away"),
-                                                                                         "Source Type" = const(167),
+                                                                                         "Source Type" = const(1003),
                                                                                          "Source No." = field("Job No."),
                                                                                          "Source Line No." = field("Job Contract Entry No."),
                                                                                          "Source Subline No." = field("Line No."),
@@ -3128,11 +3128,15 @@ table 1003 "Job Planning Line"
         JobPlanningLine2.SetRange("Location Code", JobPlanningLine."Location Code");
 
         if JobPlanningLine2.IsEmpty() then
+            // Check for both old format (Database::Job, 0) and new format (Database::"Job Planning Line", Order)
             if WarehouseRequest.Get(Enum::"Warehouse Request Type"::Outbound, JobPlanningLine."Location Code", Database::Job, 0, JobPlanningLine."Job No.") then
                 WarehouseRequest.Delete(true)
             else
-                if WhsePickRequest.Get(WhsePickRequest."Document Type"::Job, 0, JobPlanningLine."Job No.", JobPlanningLine."Location Code") then
-                    WhsePickRequest.Delete(true);
+                if WarehouseRequest.Get(Enum::"Warehouse Request Type"::Outbound, JobPlanningLine."Location Code", Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), JobPlanningLine."Job No.") then
+                    WarehouseRequest.Delete(true)
+                else
+                    if WhsePickRequest.Get(WhsePickRequest."Document Type"::Job, 0, JobPlanningLine."Job No.", JobPlanningLine."Location Code") then
+                        WhsePickRequest.Delete(true);
     end;
 
     internal procedure CreateWarehouseRequest()
@@ -3162,9 +3166,9 @@ table 1003 "Job Planning Line"
                     WarehouseRequest.Init();
                     WarehouseRequest.Type := WarehouseRequest.Type::Outbound;
                     WarehouseRequest."Location Code" := Rec."Location Code";
-                    WarehouseRequest."Source Type" := Database::Job;
+                    WarehouseRequest."Source Type" := Database::"Job Planning Line";
                     WarehouseRequest."Source No." := Rec."Job No.";
-                    WarehouseRequest."Source Subtype" := 0;
+                    WarehouseRequest."Source Subtype" := "Job Planning Line Status"::Order.AsInteger();
                     WarehouseRequest."Source Document" := WarehouseRequest."Source Document"::"Job Usage";
                     WarehouseRequest."Document Status" := WarehouseRequest."Document Status"::Released;
                     if WarehouseRequest.Insert() then;
@@ -3174,7 +3178,11 @@ table 1003 "Job Planning Line"
 
     local procedure GetWarehouseRequest(var WarehouseRequest: Record "Warehouse Request"): Boolean
     begin
+        // Check for both old format (Database::Job, 0) and new format (Database::"Job Planning Line", Order)
         if WarehouseRequest.Get(WarehouseRequest.Type::Outbound, Rec."Location Code", Database::Job, 0, Rec."Job No.") then
+            if (WarehouseRequest."Source Document" = WarehouseRequest."Source Document"::"Job Usage") and (WarehouseRequest."Document Status" = WarehouseRequest."Document Status"::Released) then
+                exit(true);
+        if WarehouseRequest.Get(WarehouseRequest.Type::Outbound, Rec."Location Code", Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), Rec."Job No.") then
             if (WarehouseRequest."Source Document" = WarehouseRequest."Source Document"::"Job Usage") and (WarehouseRequest."Document Status" = WarehouseRequest."Document Status"::Released) then
                 exit(true);
     end;

@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
-page 99001502 "Subc. Routing Info Factbox"
+page 20502 "Subc. Routing Info Factbox"
 {
     ApplicationArea = Subcontracting;
     Caption = 'Subcontracting Routing Details';

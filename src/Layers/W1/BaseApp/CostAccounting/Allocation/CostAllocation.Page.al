@@ -175,7 +175,6 @@ page 1105 "Cost Allocation"
                 Caption = 'Allocations';
                 Image = Allocations;
                 RunObject = Report "Cost Allocations";
-                ToolTip = 'Verify and print the allocation source and targets that are defined in the Cost Allocation window for controlling purposes.';
             }
         }
         area(Promoted)

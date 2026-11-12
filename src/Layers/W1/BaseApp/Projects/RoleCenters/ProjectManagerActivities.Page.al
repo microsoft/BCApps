@@ -46,7 +46,6 @@ page 9068 "Project Manager Activities"
                         ApplicationArea = Jobs;
                         Caption = 'Project Create Sales Invoice';
                         RunObject = Report "Job Create Sales Invoice";
-                        ToolTip = 'Create an invoice for a project or for one or more project tasks for a customer when either the work to be invoiced is complete or the date for invoicing based on an invoicing schedule has been reached.';
                     }
                 }
             }
@@ -72,7 +71,6 @@ page 9068 "Project Manager Activities"
                         ApplicationArea = Jobs;
                         Caption = 'Update Project Item Cost';
                         RunObject = Report "Update Job Item Cost";
-                        ToolTip = 'Update the usage costs in the project ledger entries to match the actual costs in the item ledger entry. If adjustment value entries have a different date than the original value entry, such as when the inventory period is closed, then the project ledger is not updated.';
                     }
                     action("<Action15>")
                     {

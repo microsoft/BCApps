@@ -10,6 +10,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Setup;
 using System.Environment;
+using System.Environment.Configuration;
 using System.Text;
 
 page 5801 "Cost Adjustment Overview"
@@ -197,16 +198,24 @@ page 5801 "Cost Adjustment Overview"
     {
         area(Processing)
         {
+#if not CLEAN30
             group(Filters)
             {
                 Caption = 'Show/hide';
                 Image = FilterLines;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by the Non-adjusted items and Excluded from adjustment views.';
+                ObsoleteTag = '30.0';
 
                 action("Show Non-Adjusted")
                 {
                     Caption = 'Show non-adjusted';
                     ToolTip = 'Show only items for which the cost has not been adjusted.';
                     Image = Line;
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Non-adjusted items view.';
+                    ObsoleteTag = '30.0';
 
                     trigger OnAction();
                     begin
@@ -220,6 +229,10 @@ page 5801 "Cost Adjustment Overview"
                     Caption = 'Show included';
                     ToolTip = 'Show only items that are included in the cost adjustment process.';
                     Image = CompleteLine;
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Non-adjusted items and Excluded from adjustment views.';
+                    ObsoleteTag = '30.0';
 
                     trigger OnAction();
                     begin
@@ -233,6 +246,10 @@ page 5801 "Cost Adjustment Overview"
                     Caption = 'Show excluded';
                     ToolTip = 'Show only items that are excluded from the cost adjustment process.';
                     Image = CancelLine;
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Excluded from adjustment view.';
+                    ObsoleteTag = '30.0';
 
                     trigger OnAction();
                     begin
@@ -246,6 +263,10 @@ page 5801 "Cost Adjustment Overview"
                     Caption = 'Show all';
                     ToolTip = 'Show all items regardless of whether the cost has been adjusted.';
                     Image = AllLines;
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the All view.';
+                    ObsoleteTag = '30.0';
 
                     trigger OnAction();
                     begin
@@ -254,6 +275,7 @@ page 5801 "Cost Adjustment Overview"
                     end;
                 }
             }
+#endif
             group("Adjust Cost")
             {
                 Caption = 'Adjust';
@@ -451,6 +473,13 @@ page 5801 "Cost Adjustment Overview"
                     Image = PostInventoryToGL;
                     RunObject = Report "Post Inventory Cost to G/L";
                 }
+                action("Value Entries to Post to G/L")
+                {
+                    Caption = 'Value entries to post to G/L';
+                    ToolTip = 'View the value entries whose cost is waiting to be posted to the general ledger, and clean up entries that are already fully posted.';
+                    Image = EntriesList;
+                    RunObject = page "Post Value Entries to G/L";
+                }
             }
             group(Diagnostics)
             {
@@ -469,6 +498,7 @@ page 5801 "Cost Adjustment Overview"
                     Caption = 'Export item data';
                     ToolTip = 'Use this function to export item related data to text file (you can attach this file to support requests in case you may have issues with costing calculation).';
                     Image = Export;
+                    Visible = not ManufacturingEnabled;
 
                     trigger OnAction()
                     var
@@ -483,7 +513,7 @@ page 5801 "Cost Adjustment Overview"
                     Caption = 'Import item data';
                     ToolTip = 'Use this function to import item related data from text file.';
                     Image = Import;
-                    Visible = SandboxActionsVisible;
+                    Visible = SandboxActionsVisible and not ManufacturingEnabled;
 
                     trigger OnAction()
                     begin
@@ -524,15 +554,40 @@ page 5801 "Cost Adjustment Overview"
         }
         area(Promoted)
         {
+#if not CLEAN30
             group("Show/Hide_Promoted")
             {
                 Caption = 'Show/hide';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by the Non-adjusted items and Excluded from adjustment views.';
+                ObsoleteTag = '30.0';
 
-                actionref("Show Non-Adjusted_Promoted"; "Show Non-Adjusted") { }
-                actionref("Show Included_Promoted"; "Show Included") { }
-                actionref("Show Excluded_Promoted"; "Show Excluded") { }
-                actionref("Show All_Promoted"; "Show All") { }
+                actionref("Show Non-Adjusted_Promoted"; "Show Non-Adjusted")
+                {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Non-adjusted items view.';
+                    ObsoleteTag = '30.0';
+                }
+                actionref("Show Included_Promoted"; "Show Included")
+                {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Non-adjusted items and Excluded from adjustment views.';
+                    ObsoleteTag = '30.0';
+                }
+                actionref("Show Excluded_Promoted"; "Show Excluded")
+                {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Excluded from adjustment view.';
+                    ObsoleteTag = '30.0';
+                }
+                actionref("Show All_Promoted"; "Show All")
+                {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the All view.';
+                    ObsoleteTag = '30.0';
+                }
             }
+#endif
             group("Adjust Cost_Promoted")
             {
                 Caption = 'Adjust';
@@ -567,6 +622,7 @@ page 5801 "Cost Adjustment Overview"
                 actionref("Exclude From Adjustment_Promoted"; "Exclude From Adjustment") { }
                 actionref("Include In Adjustment_Promoted"; "Include In Adjustment") { }
                 actionref("Post Inventory Cost to G/L_Promoted"; "Post Inventory Cost to G/L") { }
+                actionref("Value Entries to Post to G/L_Promoted"; "Value Entries to Post to G/L") { }
 
             }
             group("Diagnostics_Promoted")
@@ -583,6 +639,20 @@ page 5801 "Cost Adjustment Overview"
         }
     }
 
+    views
+    {
+        view(CostNotAdjusted)
+        {
+            Caption = 'Non-adjusted items';
+            Filters = where("Cost is Adjusted" = const(false));
+        }
+        view(ExcludedFromCostAdjustment)
+        {
+            Caption = 'Excluded from adjustment';
+            Filters = where("Excluded from Cost Adjustment" = const(true));
+        }
+    }
+
     var
         InventorySetup: Record "Inventory Setup";
         LastCostAdjustmentRunStatus, LastCostAdjustmentItemStatus : Enum "Cost Adjustment Run Status";
@@ -592,6 +662,7 @@ page 5801 "Cost Adjustment Overview"
         AverageCostCalcType, AverageCostPeriod : Text;
         StatusRunStyleExpr, StatusItemStyleExpr : Text;
         SandboxActionsVisible: Boolean;
+        ManufacturingEnabled: Boolean;
         StrMenuOptionsTxt: Label 'Selected,All', Comment = 'Comma separated phrases must be translated separately.';
         ScheduleInstructionTxt: Label 'For which items do you want to schedule the cost adjustment?';
         RunInstructionTxt: Label 'For which items do you want to run the cost adjustment?';
@@ -601,8 +672,10 @@ page 5801 "Cost Adjustment Overview"
 
     trigger OnOpenPage()
     var
+        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
         SandboxActionsVisible := IsSandBoxActionsVisible();
+        ManufacturingEnabled := ApplicationAreaMgmtFacade.IsManufacturingEnabled();
 
         CheckActionMessages();
     end;

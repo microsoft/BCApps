@@ -41,6 +41,7 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         AppliesToIDNotSetErr: Label 'Applies-to ID is not set on Vendor Ledger Entry';
         AppliesToIDNotRemovedErr: Label 'Applies-to ID is not removed on Vendor Ledger Entry';
         SuggestToVendorRefundErr: Label 'Document No. must be blank.';
+        RemainingAmountFilterNotRestoredErr: Label 'Remaining Amount filter on Vendor Ledger Entry is not restored.';
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -1932,6 +1933,57 @@ codeunit 134076 "ERM Suggest Vendor Payment"
     end;
 
     [Test]
+    [HandlerFunctions('CreatePaymentWithPostingModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure CreatePaymentForVendorLedgerEntriesFilteredByRemainingAmountInSpanish()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        BankAccount: Record "Bank Account";
+        PaymentJournal: TestPage "Payment Journal";
+        OriginalLanguageId: Integer;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Create Payment for Vendor Ledger Entries filtered by "Remaining Amount" succeeds when the language is Spanish
+        Initialize();
+
+        // [GIVEN] Posted Purchase Invoice "PI" for Vendor "V"
+        GenJournalLine.DeleteAll();
+        LibraryPurchase.CreatePurchaseInvoice(PurchaseHeader);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Bank Account "B", Starting Document No. and Posting Date for the "Create Payment" page
+        LibraryERM.FindBankAccount(BankAccount);
+        LibraryVariableStorage.Enqueue(LibraryUtility.GenerateGUID());
+        LibraryVariableStorage.Enqueue(BankAccount."No.");
+        LibraryVariableStorage.Enqueue(WorkDate());
+
+        // [GIVEN] Vendor Ledger Entries of Vendor "V" filtered by "Remaining Amount" <> 0
+        VendorLedgerEntry.SetRange("Vendor No.", PurchaseHeader."Buy-from Vendor No.");
+        VendorLedgerEntry.SetFilter("Remaining Amount", '<>0');
+
+        // [GIVEN] Language is Spanish (Spain)
+        OriginalLanguageId := GlobalLanguage();
+        GlobalLanguage(3082);
+
+        // [WHEN] Run "Create Payment" for the filtered Vendor Ledger Entries
+        PaymentJournal.Trap();
+        InvokeCreatePayment(VendorLedgerEntry);
+        GlobalLanguage(OriginalLanguageId);
+
+        // [THEN] Payment Journal Line is created for Vendor "V"
+        PaymentJournal."Account No.".AssertEquals(PurchaseHeader."Buy-from Vendor No.");
+        PaymentJournal."Document Type".AssertEquals(GenJournalLine."Document Type"::Payment);
+        PaymentJournal.Close();
+
+        // [THEN] "Remaining Amount" filter on Vendor Ledger Entry is restored
+        Assert.AreEqual('<>0', VendorLedgerEntry.GetFilter("Remaining Amount"), RemainingAmountFilterNotRestoredErr);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [HandlerFunctions('SuggestVendorPaymentsStartingDocNoRequestPageHandler,MessageHandler')]
     [Scope('OnPrem')]
     procedure SuggestVendorPaymentsTwoVendorsNoSeriesIncrBy10()
@@ -3332,8 +3384,7 @@ codeunit 134076 "ERM Suggest Vendor Payment"
     local procedure UpdateGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; VendorNo: Code[20])
     begin
         FindGeneralJournalLines(GenJournalLine);
-        GenJournalLine.ModifyAll("Bal. Account Type", GenJournalLine."Bal. Account Type"::Vendor, true);
-        GenJournalLine.ModifyAll("Bal. Account No.", VendorNo, true);
+        GenJournalLine.ModifyAll("Bal. Account Type", GenJournalLine."Bal. Account Type"::Vendor, "Bal. Account No.", VendorNo, true);
         UpdateDimensionOnGeneralJournalLine(GenJournalLine);
     end;
 

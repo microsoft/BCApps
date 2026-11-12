@@ -67,6 +67,7 @@ permissionset 9977 "D365 SALES DOC, POST"
                   tabledata "G/L Entry - VAT Entry Link" = Ri,
                   tabledata "G/L Entry" = Rimd,
                   tabledata "G/L Register" = Rimd,
+                  tabledata "G/L Transaction" = Rimd,
                   tabledata "Interaction Log Entry" = Rimd,
                   tabledata "Interaction Template" = R,
                   tabledata "Interaction Tmpl. Language" = R,

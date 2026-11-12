@@ -212,7 +212,6 @@ page 53 "Purchase List"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Purchase Reservation Avail.";
-                ToolTip = 'Print, view, or save a list of the availability of items for shipment on purchase documents, for example credit memos.';
             }
         }
         area(Promoted)

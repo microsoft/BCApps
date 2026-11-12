@@ -23,8 +23,10 @@ using Microsoft.Projects.Project.Setup;
 using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Setup;
 using System.Diagnostics;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
+using System.Integration.PowerBI;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
@@ -52,6 +54,43 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
+                }
+                grid(Descriptions)
+                {
+                    Caption = 'Descriptions';
+                    GridLayout = Columns;
+                    group(CompanyDescriptionGroup)
+                    {
+                        ShowCaption = false;
+                        field(CompanyDescription; CompanyDescription)
+                        {
+                            ApplicationArea = Basic, Suite;
+                            Caption = 'Company Description';
+                            MultiLine = true;
+                            ToolTip = 'Specifies the company''s nature and intended purpose. The description applies to the current company and can provide context for AI-powered experiences.';
+
+                            trigger OnValidate()
+                            begin
+                                Rec.SetCompanyDescription(CompanyDescription);
+                            end;
+                        }
+                    }
+                    group(EnvironmentDescriptionGroup)
+                    {
+                        ShowCaption = false;
+                        field(EnvironmentDescription; EnvironmentDescription)
+                        {
+                            ApplicationArea = Basic, Suite;
+                            Caption = 'Environment Description';
+                            MultiLine = true;
+                            ToolTip = 'Specifies the environment''s nature and intended purpose. The description can provide context for AI-powered experiences.';
+
+                            trigger OnValidate()
+                            begin
+                                EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
+                            end;
+                        }
+                    }
                 }
                 field(Address; Rec.Address)
                 {
@@ -138,7 +177,9 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+#pragma warning disable AW0009 // Accepted: The field remains Blob/Bitmap; migrating existing data to Media or MediaSet requires a breaking schema and data upgrade. Tracked by AB#640773.
                 field(Picture; Rec.Picture)
+#pragma warning restore AW0009
                 {
                     ApplicationArea = Basic, Suite;
 
@@ -437,12 +478,12 @@ page 1 "Company Information"
             group(Reporting)
             {
                 Caption = 'Reporting';
-                Visible = DocumentReportExperienceEnabled;
 
                 field(DefaultThemePart; ThemePartDisplay)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Default Theme';
+                    Visible = DocumentReportExperienceEnabled;
                     ToolTip = 'Specifies the default theme applied to this company''s Word report layouts when no more specific configuration applies. Use the assist-edit to pick a theme; clear the value to remove it.';
 
                     trigger OnAssistEdit()
@@ -461,6 +502,7 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Default Header/Footer';
+                    Visible = DocumentReportExperienceEnabled;
                     ToolTip = 'Specifies the default header/footer applied to this company''s Word report layouts when no more specific configuration applies. Use the assist-edit to pick a part; clear the value to remove it.';
 
                     trigger OnAssistEdit()
@@ -473,6 +515,29 @@ page 1 "Company Information"
                     begin
                         if HeaderPartDisplay = '' then
                             LookupHelper.ClearCompanyDefaultPart(Enum::"Report Layout Subtype"::HeaderFooter);
+                    end;
+                }
+                field(PowerBIWorkspace; PowerBIWorkspaceDisplayName)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Power BI Workspace';
+                    Editable = false;
+                    ToolTip = 'Specifies the Power BI workspace that Power BI reports are deployed to. Leave blank to deploy to "My Workspace".';
+
+                    trigger OnAssistEdit()
+                    var
+                        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
+                        NewWorkspaceId: Guid;
+                        NewWorkspaceName: Text[200];
+                    begin
+                        NewWorkspaceId := Rec."Power BI Workspace Id";
+                        NewWorkspaceName := Rec."Power BI Workspace Name";
+                        if PowerBIWorkspaceMgt.LookupTargetWorkspace(NewWorkspaceId, NewWorkspaceName) then begin
+                            Rec.Validate("Power BI Workspace Id", NewWorkspaceId);
+                            Rec.Validate("Power BI Workspace Name", NewWorkspaceName);
+                            UpdatePowerBIWorkspaceDisplayName();
+                            CurrPage.Update(true);
+                        end;
                     end;
                 }
             }
@@ -758,6 +823,8 @@ page 1 "Company Information"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateSystemIndicator();
+        UpdatePowerBIWorkspaceDisplayName();
+        LoadDescriptions();
     end;
 
     trigger OnClosePage()
@@ -767,7 +834,6 @@ page 1 "Company Information"
     begin
         if ApplicationAreaMgmtFacade.SaveExperienceTierCurrentCompany(Experience) then
             RestartSession();
-
         if SystemIndicatorChanged then begin
             Message(CompanyBadgeRefreshPageTxt);
             AuditLog.LogAuditMessage(StrSubstNo(CompanyBadgeChangedLbl, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
@@ -808,7 +874,10 @@ page 1 "Company Information"
         CompanyInformationMgt: Codeunit "Company Information Mgt.";
         FormatAddress: Codeunit "Format Address";
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        EnvironmentInformation: Codeunit "Environment Information";
         Experience: Text;
+        CompanyDescription: Text;
+        EnvironmentDescription: Text;
         SystemIndicatorText: Code[6];
         SystemIndicatorTextEditable: Boolean;
         IBANMissing: Boolean;
@@ -821,9 +890,17 @@ page 1 "Company Information"
         DocumentReportExperienceEnabled: Boolean;
         HeaderPartDisplay: Text;
         ThemePartDisplay: Text;
+        PowerBIWorkspaceDisplayName: Text[200];
 
     protected var
         SystemIndicatorChanged: Boolean;
+
+    local procedure UpdatePowerBIWorkspaceDisplayName()
+    var
+        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
+    begin
+        PowerBIWorkspaceDisplayName := PowerBIWorkspaceMgt.GetTargetWorkspaceDisplayName();
+    end;
 
     local procedure UpdateSystemIndicator()
     var
@@ -850,6 +927,12 @@ page 1 "Company Information"
         IsShipToCountyVisible := FormatAddress.UseCounty(Rec."Ship-to Country/Region Code");
     end;
 
+    local procedure LoadDescriptions()
+    begin
+        CompanyDescription := Rec.GetCompanyDescription();
+        EnvironmentDescription := EnvironmentInformation.GetEnvironmentDescription();
+    end;
+
     local procedure SetShowMandatoryConditions()
     begin
         BankBranchNoOrAccountNoMissing := (Rec."Bank Branch No." = '') or (Rec."Bank Account No." = '');
@@ -864,4 +947,3 @@ page 1 "Company Information"
         SessionSetting.RequestSessionUpdate(false);
     end;
 }
-

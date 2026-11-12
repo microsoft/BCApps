@@ -29,6 +29,7 @@ codeunit 31261 "Upgrade Tag Definitions CZA"
         PerCompanyUpgradeTags.Add(GetDefaultBusinessPostingGroupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetPostedDefaultBusinessPostingGroupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetAutoCreateDefaultDimensionValuePostingUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetMigrateAutoCreateDefaultDimToTableUpgradeTag());
     end;
 
     procedure GetDataVersion180PerDatabaseUpgradeTag(): Code[250]
@@ -104,5 +105,10 @@ codeunit 31261 "Upgrade Tag Definitions CZA"
     procedure GetAutoCreateDefaultDimensionValuePostingUpgradeTag(): Code[250]
     begin
         exit('CZA-598511-AutoCreateDefaultDimensionValuePostingUpgradeTag-20250826');
+    end;
+
+    procedure GetMigrateAutoCreateDefaultDimToTableUpgradeTag(): Code[250]
+    begin
+        exit('CZA-640068-MigrateAutoCreateDefaultDimToTableUpgradeTag-20260623');
     end;
 }

@@ -314,6 +314,85 @@ codeunit 148909 "BC14 Page Tests"
         UpgradeStatusPage.Close();
     end;
 
+    [Test]
+    procedure TestCompanyUpgradeStatus_Started_ActivePhase_ShowsInProgress()
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        BC14CompanyMigrationInfo: Record BC14CompanyMigrationInfo;
+        UpgradeStatusPage: TestPage "BC14 Company Upgrade Status";
+    begin
+        // [SCENARIO] A company in Started that is inside a running migration phase (e.g. Master) is
+        // shown as In Progress at the BC14 display layer, not the raw Started value.
+        ClearStatuses();
+        InsertHybridStatus('CO_ACTIVE', HybridCompanyStatus."Upgrade Status"::Started);
+        BC14CompanyMigrationInfo.Init();
+        BC14CompanyMigrationInfo.Name := 'CO_ACTIVE';
+        BC14CompanyMigrationInfo."Current Migration Step" := BC14CompanyMigrationInfo."Current Migration Step"::Master;
+        BC14CompanyMigrationInfo.Insert();
+
+        // [WHEN] The page is opened
+        UpgradeStatusPage.OpenView();
+        UpgradeStatusPage.GotoKey('CO_ACTIVE');
+
+        // [THEN] The Upgrade Status column shows In Progress
+        Assert.AreEqual('In Progress', UpgradeStatusPage."Upgrade Status".Value(), 'Actively migrating company should display In Progress.');
+
+        UpgradeStatusPage.Close();
+    end;
+
+    [Test]
+    procedure TestCompanyUpgradeStatus_Started_NotStartedPhase_ShowsStarted()
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        BC14CompanyMigrationInfo: Record BC14CompanyMigrationInfo;
+        UpgradeStatusPage: TestPage "BC14 Company Upgrade Status";
+    begin
+        // [SCENARIO] A company whose status just flipped to Started but has not yet entered any
+        // migration phase (Current Migration Step = NotStarted) still shows the raw Started value,
+        // not In Progress.
+        ClearStatuses();
+        InsertHybridStatus('CO_SETUP', HybridCompanyStatus."Upgrade Status"::Started);
+        BC14CompanyMigrationInfo.Init();
+        BC14CompanyMigrationInfo.Name := 'CO_SETUP';
+        BC14CompanyMigrationInfo."Current Migration Step" := BC14CompanyMigrationInfo."Current Migration Step"::NotStarted;
+        BC14CompanyMigrationInfo.Insert();
+
+        // [WHEN] The page is opened
+        UpgradeStatusPage.OpenView();
+        UpgradeStatusPage.GotoKey('CO_SETUP');
+
+        // [THEN] The Upgrade Status column still shows Started
+        Assert.AreEqual('Started', UpgradeStatusPage."Upgrade Status".Value(), 'A company that has not entered any phase should still display Started.');
+
+        UpgradeStatusPage.Close();
+    end;
+
+    [Test]
+    procedure TestCompanyUpgradeStatus_Started_SetupPhase_ShowsInProgress()
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        BC14CompanyMigrationInfo: Record BC14CompanyMigrationInfo;
+        UpgradeStatusPage: TestPage "BC14 Company Upgrade Status";
+    begin
+        // [SCENARIO] A company in Started that is already running the Setup phase is actively
+        // migrating and is shown as In Progress at the BC14 display layer, not the raw Started value.
+        ClearStatuses();
+        InsertHybridStatus('CO_SETUP_ACTIVE', HybridCompanyStatus."Upgrade Status"::Started);
+        BC14CompanyMigrationInfo.Init();
+        BC14CompanyMigrationInfo.Name := 'CO_SETUP_ACTIVE';
+        BC14CompanyMigrationInfo."Current Migration Step" := BC14CompanyMigrationInfo."Current Migration Step"::Setup;
+        BC14CompanyMigrationInfo.Insert();
+
+        // [WHEN] The page is opened
+        UpgradeStatusPage.OpenView();
+        UpgradeStatusPage.GotoKey('CO_SETUP_ACTIVE');
+
+        // [THEN] The Upgrade Status column shows In Progress
+        Assert.AreEqual('In Progress', UpgradeStatusPage."Upgrade Status".Value(), 'A company running the Setup phase should display In Progress.');
+
+        UpgradeStatusPage.Close();
+    end;
+
     // ============================================================
     // Errored Buffer Records Page (from BC14ErroredBufferPgTests.codeunit.al)
     // ============================================================

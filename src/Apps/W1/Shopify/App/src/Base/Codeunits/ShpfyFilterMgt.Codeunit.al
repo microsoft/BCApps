@@ -18,4 +18,9 @@ codeunit 30104 "Shpfy Filter Mgt."
     begin
         exit(CleanFilterValue(CopyStr(Value, 1, MaxLength)));
     end;
+
+    internal procedure KeepDigits(Value: Text): Text;
+    begin
+        exit(DelChr(Value, '=', DelChr(Value, '=', '0123456789')));
+    end;
 }

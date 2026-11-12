@@ -947,7 +947,6 @@ page 291 "Req. Worksheet"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Inventory Order Details";
-                ToolTip = 'View a list of the orders that have not yet been shipped or received and the items in the orders. It shows the order number, customer''s name, shipment date, order quantity, quantity on back order, outstanding quantity and unit price, as well as possible discount percentage and amount. The quantity on back order and outstanding quantity and amount are totaled for each item. The list can be used to find out whether there are currently shipment problems or any can be expected.';
             }
             action("Inventory Purchase Orders")
             {
@@ -1172,6 +1171,8 @@ page 291 "Req. Worksheet"
             SetControlAppearanceFromWkshBatch();
             exit;
         end;
+        if GetCurrentJnlBatchName() then
+            exit;
         OnBeforeTemplateSelection(Rec, CurrentJnlBatchName);
         ReqJnlManagement.WkshTemplateSelection(
             PAGE::"Req. Worksheet", false, Enum::"Req. Worksheet Template Type"::"Req.", Rec, JnlSelected);
@@ -1250,6 +1251,20 @@ page 291 "Req. Worksheet"
 
         ShowWorkflowStatusOnBatch := CurrPage.WorkflowStatusBatch.Page.SetFilterOnWorkflowRecord(RequisitionWkshName.RecordId());
         RequisitionWkshName.SetApprovalStateForWkshBatch(RequisitionWkshName, Rec, OpenApprovalEntriesExistForCurrUser, OpenApprovalEntriesOnWkshBatchExist, CanCancelApprovalForWkshBatch, CanRequestFlowApprovalForWkshBatch, CanCancelFlowApprovalForWkshBatch, ApprovalEntriesExistSentByCurrentUser, EnabledWkshBatchWorkflowsExist);
+    end;
+
+    local procedure GetCurrentJnlBatchName(): boolean
+    begin
+       if (Rec."Journal Batch Name" = '') or (Rec."Worksheet Template Name" = '') then
+            exit(false);
+
+        CurrentJnlBatchName := Rec."Journal Batch Name";
+        Rec.FilterGroup := 2;
+        Rec.SetRange("Worksheet Template Name", Rec."Worksheet Template Name");
+        Rec.FilterGroup := 0;
+        ReqJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
+        SetControlAppearanceFromWkshBatch();
+        exit(true);
     end;
 
     [IntegrationEvent(false, false)]

@@ -15,6 +15,7 @@ codeunit 4592 "SOA Events"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata "SOA Attachment Transfer" = D;
 
     [EventSubscriber(ObjectType::Report, Report::"Copy Company", 'OnAfterCreatedNewCompanyByCopyCompany', '', false, false)]
     local procedure HandleOnAfterCreatedNewCompanyByCopyCompany(NewCompanyName: Text[30])
@@ -23,6 +24,7 @@ codeunit 4592 "SOA Events"
         SOAKPIEntry: Record "SOA KPI Entry";
         SOAKPISummary: Record "SOA KPI Summary";
         SOAEmail: Record "SOA Email";
+        SOAAttachmentTransfer: Record "SOA Attachment Transfer";
     begin
         SOASetup.ChangeCompany(NewCompanyName);
         SOASetup.DeleteAll();
@@ -35,6 +37,9 @@ codeunit 4592 "SOA Events"
 
         SOAEmail.ChangeCompany(NewCompanyName);
         SOAEmail.DeleteAll();
+
+        SOAAttachmentTransfer.ChangeCompany(NewCompanyName);
+        SOAAttachmentTransfer.DeleteAll();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", 'OnCreateEvaluationDataOnAfterClassifyTablesToNormal', '', false, false)]
@@ -62,5 +67,5 @@ codeunit 4592 "SOA Events"
         SetupSalesOrderAgentTitleTxt: Label 'Set up Sales Order Agent';
         SetupSalesOrderAgentShortTitleTxt: Label 'Set up Sales Order Agent', MaxLength = 50;
         SetupSalesOrderAgentDescriptionTxt: Label 'Set up Sales Order Agent to automate the process of capturing sales orders.';
-        SetupSalesOrderAgentHelpTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2346050', Locked = true;
+        SetupSalesOrderAgentHelpTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2382318', Locked = true;
 }

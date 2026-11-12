@@ -16,4 +16,18 @@ tableextension 31046 "Vendor CZZ" extends Vendor
         PurchAdvLetterHeaderCZZ.SetFilter(Status, '%1|%2', PurchAdvLetterHeaderCZZ.Status::"To Pay", PurchAdvLetterHeaderCZZ.Status::"To Use");
         exit(PurchAdvLetterHeaderCZZ.Count());
     end;
+
+
+    /// <summary>
+    /// Checks if the vendor is blocked for the specified advance letter and raises an error if blocked.
+    /// </summary>
+    /// <param name="Transaction">Indicates whether this is a posting transaction.</param>
+    procedure CheckBlockedVendOnAdvanceLettersCZZ(Transaction: Boolean)
+    begin
+        if "Privacy Blocked" then
+            VendPrivacyBlockedErrorMessage(Rec, Transaction);
+
+        if Blocked <> Blocked::" " then
+            VendBlockedErrorMessage(Rec, Transaction);
+    end;
 }

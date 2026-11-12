@@ -1,3 +1,4 @@
+#if not CLEAN29
 namespace Microsoft.EServices.EDocument.OrderMatch.Copilot;
 
 using Microsoft.eServices.EDocument;
@@ -13,6 +14,9 @@ table 6163 "E-Doc. PO Match Prop. Buffer"
     InherentPermissions = X;
     InherentEntitlements = X;
     DataClassification = CustomerContent;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
+    ObsoleteTag = '29.0';
 
 #pragma warning disable AA0473
     fields
@@ -106,3 +110,4 @@ table 6163 "E-Doc. PO Match Prop. Buffer"
     end;
 
 }
+#endif

@@ -573,23 +573,46 @@ table 'Sustainability Ledger Entries'
 			
 			VAR Endpoint = "&page=6220&"
 			VAR BaseLink = [Base Link] & Endpoint // Filter Context
-			VAR AccountNo =
-			    CONCATENATEX (
-			        VALUES ( 'Sustainability Ledger Entries'[Sustainability Account No.] ),
-			        'Sustainability Ledger Entries'[Sustainability Account No.],
-			        "|"
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
 			    )
-			VAR DimensionSetIDs =
-			    CONCATENATEX (
-			        VALUES ( 'Sustainability Ledger Entries'[Dimension Set ID] ),
-			        'Sustainability Ledger Entries'[Dimension Set ID],
-			        "|"
-			    )
-			VAR AccountNoFilter = "filter='Sustainability Ledger Entry'.'Account No.' IS '" & AccountNo & "'"
-			VAR DateFilter = " AND 'Sustainability Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'"
-			VAR DimensionFilter = " AND 'Sustainability Ledger Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( BaseLink )
+			    + LEN ( "filter='Sustainability Ledger Entry'.'Account No.' IS ''" )
+			    + SUMX ( VALUES ( 'Sustainability Ledger Entries'[Sustainability Account No.] ), LEN ( 'Sustainability Ledger Entries'[Sustainability Account No.] ) + 1 )
+			    + LEN ( " AND 'Sustainability Ledger Entry'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'Sustainability Ledger Entries'[Dimension Set ID] ), LEN ( 'Sustainability Ledger Entries'[Dimension Set ID] ) + 1 )
+			    + LEN ( " AND 'Sustainability Ledger Entry'.'Posting Date' IS ''" ) + ProjectedRangedLength
 			RETURN
-			    BaseLink & AccountNoFilter & DimensionFilter & DateFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        VAR AccountNo =
+			            CONCATENATEX (
+			                VALUES ( 'Sustainability Ledger Entries'[Sustainability Account No.] ),
+			                'Sustainability Ledger Entries'[Sustainability Account No.],
+			                "|"
+			            )
+			        VAR DimensionSetIDs =
+			            CONCATENATEX (
+			                VALUES ( 'Sustainability Ledger Entries'[Dimension Set ID] ),
+			                'Sustainability Ledger Entries'[Dimension Set ID],
+			                "|"
+			            )
+			        VAR AccountNoFilter = "filter='Sustainability Ledger Entry'.'Account No.' IS '" & AccountNo & "'"
+			        VAR DateFilter = " AND 'Sustainability Ledger Entry'.'Posting Date' IS '" & [Ranged] & "'"
+			        VAR DimensionFilter = " AND 'Sustainability Ledger Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			        RETURN
+			            BaseLink & AccountNoFilter & DimensionFilter & DateFilter,
+			        BaseLink
+			    )
 		displayFolder: _Back Links
 		lineageTag: f24f87a5-4019-4ed5-ae4b-67285d98d57a
 

@@ -24,7 +24,7 @@ using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.SyncEngine;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Tracking;
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Manufacturing.Document;
 #endif
 using Microsoft.Pricing.Calculation;
@@ -384,6 +384,12 @@ page 26 "Vendor Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+                field("Self-Billing Invoice Nos."; Rec."Self-Billing Invoice Nos.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                    Enabled = Rec."Self-Billing Agreement";
+                }
                 field("Price Calculation Method"; Rec."Price Calculation Method")
                 {
                     Visible = ExtendedPriceEnabled;
@@ -741,6 +747,11 @@ page 26 "Vendor Card"
 #pragma warning restore AS0072
                 }
 #endif
+                field("Receipt on Invoice Policy"; Rec."Receipt on Invoice Policy")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Receipt on Invoice';
+                }
             }
         }
         area(factboxes)
@@ -1101,7 +1112,7 @@ page 26 "Vendor Card"
                     RunPageView = sorting("Vendor No.");
                     ToolTip = 'View or edit the percentages of the price that can be paid as a prepayment. ';
                 }
-#if not CLEAN27
+#if not CLEAN28
                 separator(Action1130031)
                 {
                     ObsoleteReason = 'Preparation for replacement by Suncontracting app ';
@@ -2331,4 +2342,3 @@ page 26 "Vendor Card"
     begin
     end;
 }
-

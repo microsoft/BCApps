@@ -280,6 +280,88 @@ codeunit 148087 "Fixed Assets CZF"
         GLEntry.TestField("G/L Account No.", FAExtendedPostingGroupCZF."Sales Acc. On Disp. (Gain)");
     end;
 
+    [Test]
+    procedure SetFATaxDeprGroupDoesNotClearTaxDepreciationGroupWhenDepreciationBookTaxDepGroupIsBlank()
+    var
+        FASetup: Record "FA Setup";
+        FixedAsset: Record "Fixed Asset";
+        FADepreciationBook: Record "FA Depreciation Book";
+        TaxDepreciationGroupCZF: Record "Tax Depreciation Group CZF";
+        FAGeneralReportCZF: Codeunit "FA General Report CZF";
+        OriginalTaxDepGroupCode: Code[20];
+    begin
+        // [SCENARIO] SetFATaxDeprGroup does not clear Tax Deprec. Group Code CZF on Fixed Asset
+        // when FA Depreciation Book has blank Tax Deprec. Group Code CZF.
+
+        Initialize();
+        FASetup.Get();
+
+        // [GIVEN] Fixed Asset and FA Depreciation Book with Tax Deprec. Group Code CZF are created.
+        CreateFixedAsset(FixedAsset);
+        CreateTaxDepreciationGroupCZF(TaxDepreciationGroupCZF, TaxDepreciationGroupCZF."Depreciation Type"::"Straight-line");
+        CreateFADepreciationBook(
+          FADepreciationBook, FixedAsset."No.",
+          FASetup."Tax Depreciation Book CZF", TaxDepreciationGroupCZF.Code, true,
+          FADepreciationBook."Depreciation Method"::"Straight-Line");
+        FixedAsset.Validate("Tax Deprec. Group Code CZF", TaxDepreciationGroupCZF.Code);
+        FixedAsset.Modify(true);
+        OriginalTaxDepGroupCode := FixedAsset."Tax Deprec. Group Code CZF";
+
+        // [GIVEN] FA Depreciation Book Tax Deprec. Group Code CZF is blank.
+        FADepreciationBook."Tax Deprec. Group Code CZF" := ''; // Without validation because validation set the Fixed Asset Tax Deprec. Group Code CZF to blank.
+        FADepreciationBook.Modify(true);
+
+        // [WHEN] SetFATaxDeprGroup is called.
+        FixedAsset.SetRange("No.", FixedAsset."No.");
+        FAGeneralReportCZF.SetFATaxDeprGroup(FixedAsset, FADepreciationBook."Depreciation Book Code");
+
+        // [THEN] Tax Deprec. Group Code CZF on Fixed Asset remains unchanged.
+        FixedAsset.Get(FixedAsset."No.");
+        FixedAsset.TestField("Tax Deprec. Group Code CZF", OriginalTaxDepGroupCode);
+    end;
+
+    [Test]
+    procedure SetFATaxDeprGroupUpdatesTaxDepreciationGroupWhenDepreciationBookTaxDepGroupIsDifferentAndNotBlank()
+    var
+        FASetup: Record "FA Setup";
+        FixedAsset: Record "Fixed Asset";
+        FADepreciationBook: Record "FA Depreciation Book";
+        TaxDepreciationGroupCZF: Record "Tax Depreciation Group CZF";
+        NewTaxDepreciationGroupCZF: Record "Tax Depreciation Group CZF";
+        FAGeneralReportCZF: Codeunit "FA General Report CZF";
+        NewTaxDepGroupCode: Code[20];
+    begin
+        // [SCENARIO] SetFATaxDeprGroup updates Tax Deprec. Group Code CZF on Fixed Asset
+        // when FA Depreciation Book has a different non-blank Tax Deprec. Group Code CZF.
+
+        Initialize();
+        FASetup.Get();
+
+        // [GIVEN] Fixed Asset and FA Depreciation Book with initial Tax Deprec. Group Code CZF are created.
+        CreateFixedAsset(FixedAsset);
+        CreateTaxDepreciationGroupCZF(TaxDepreciationGroupCZF, TaxDepreciationGroupCZF."Depreciation Type"::"Straight-line");
+        CreateFADepreciationBook(
+          FADepreciationBook, FixedAsset."No.",
+          FASetup."Tax Depreciation Book CZF", TaxDepreciationGroupCZF.Code, true,
+          FADepreciationBook."Depreciation Method"::"Straight-Line");
+        FixedAsset.Validate("Tax Deprec. Group Code CZF", TaxDepreciationGroupCZF.Code);
+        FixedAsset.Modify(true);
+
+        // [GIVEN] FA Depreciation Book has another non-blank Tax Deprec. Group Code CZF.
+        CreateTaxDepreciationGroupCZF(NewTaxDepreciationGroupCZF, NewTaxDepreciationGroupCZF."Depreciation Type"::"Declining-Balance");
+        NewTaxDepGroupCode := NewTaxDepreciationGroupCZF.Code;
+        FADepreciationBook."Tax Deprec. Group Code CZF" := NewTaxDepGroupCode; // Without validation because validation set the Fixed Asset Tax Deprec. Group Code CZF to new value.
+        FADepreciationBook.Modify(true);
+
+        // [WHEN] SetFATaxDeprGroup is called.
+        FixedAsset.SetRange("No.", FixedAsset."No.");
+        FAGeneralReportCZF.SetFATaxDeprGroup(FixedAsset, FADepreciationBook."Depreciation Book Code");
+
+        // [THEN] Tax Deprec. Group Code CZF on Fixed Asset is updated from FA Depreciation Book.
+        FixedAsset.Get(FixedAsset."No.");
+        FixedAsset.TestField("Tax Deprec. Group Code CZF", NewTaxDepGroupCode);
+    end;
+
     local procedure CreateFixedAsset(var FixedAsset: Record "Fixed Asset")
     begin
         LibraryFixedAsset.CreateFixedAsset(FixedAsset);

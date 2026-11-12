@@ -346,6 +346,7 @@ permissionset 191 "D365 SETUP"
                   tabledata "G/L Entry - VAT Entry Link" = d,
                   tabledata "G/L Entry" = Rd,
                   tabledata "G/L Register" = d,
+                  tabledata "G/L Transaction" = d,
                   tabledata "Gen. Journal Line" = RIMD,
                   tabledata "Gen. Journal Template" = RIMD,
                   tabledata "General Ledger Setup" = RIMD,

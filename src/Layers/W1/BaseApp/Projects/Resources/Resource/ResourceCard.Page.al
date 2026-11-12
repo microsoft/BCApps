@@ -567,7 +567,6 @@ page 76 "Resource Card"
                 Caption = 'Resource Statistics';
                 Image = "Report";
                 RunObject = Report "Resource Statistics";
-                ToolTip = 'View detailed, historical information for the resource.';
             }
             action("Resource Usage")
             {
@@ -575,7 +574,6 @@ page 76 "Resource Card"
                 Caption = 'Resource Usage';
                 Image = "Report";
                 RunObject = Report "Resource Usage";
-                ToolTip = 'View the resource utilization that has taken place. The report includes the resource capacity, quantity of usage, and the remaining balance.';
             }
             action("Resource - Cost Breakdown")
             {
@@ -583,7 +581,6 @@ page 76 "Resource Card"
                 Caption = 'Resource - Cost Breakdown';
                 Image = "Report";
                 RunObject = Report "Resource - Cost Breakdown";
-                ToolTip = 'View the direct unit costs and the total direct costs for each resource. Only usage postings are considered in this report. Resource usage can be posted in the resource journal or the project journal.';
             }
         }
         area(processing)

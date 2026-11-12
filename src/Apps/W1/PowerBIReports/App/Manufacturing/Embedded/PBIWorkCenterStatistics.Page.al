@@ -11,8 +11,8 @@ page 37094 "PBI Work Center Statistics"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Work Center Statistics';
-    AboutTitle = 'About Work Center Statistics';
+    Caption = 'Work Center Statistics (Power BI)';
+    AboutTitle = 'About Work Center Statistics (Power BI)';
     AboutText = 'View your work center statistics and explore detailed metrics on total and effective capacity, expected and actual efficiency, actual need, cost, and allocated time.';
 
     layout

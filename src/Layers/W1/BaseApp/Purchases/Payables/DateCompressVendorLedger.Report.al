@@ -16,9 +16,11 @@ report 398 "Date Compress Vendor Ledger"
 {
     ApplicationArea = Suite;
     Caption = 'Date Compress Vendor Ledger';
+    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
     Permissions = TableData "G/L Entry" = rimd,
                   TableData "Vendor Ledger Entry" = rimd,
                   TableData "G/L Register" = rimd,
+                  TableData "G/L Transaction" = rimd,
                   TableData "Date Compr. Register" = rimd,
                   TableData "Dimension Set ID Filter Line" = rimd,
                   TableData "Detailed Vendor Ledg. Entry" = rimd;
@@ -120,6 +122,7 @@ report 398 "Date Compress Vendor Ledger"
 
                 SourceCodeSetup.Get();
                 SourceCodeSetup.TestField("Compress Vend. Ledger");
+                CheckConcurrentPostingIsNotEnabled();
 
                 SelectedDim.GetSelectedDim(
                   UserId, 3, REPORT::"Date Compress Vendor Ledger", '', TempSelectedDim);
@@ -349,6 +352,16 @@ report 398 "Date Compress Vendor Ledger"
 #pragma warning restore AA0074
         StartDateCompressionTelemetryMsg: Label 'Running date compression report %1 %2.', Locked = true;
         EndDateCompressionTelemetryMsg: Label 'Completed date compression report %1 %2.', Locked = true;
+
+    local procedure CheckConcurrentPostingIsNotEnabled()
+    var
+        GLSetup: Record "General Ledger Setup";
+        ConcurrentPostingNotSupportedErr: Label 'Date compression is not supported while concurrent posting is enabled in General Ledger Setup.';
+    begin
+        GLSetup.Get();
+        if GLSetup.UseConcurrentPosting() then
+            Error(ConcurrentPostingNotSupportedErr);
+    end;
 
     local procedure InitRegisters()
     var

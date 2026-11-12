@@ -1399,6 +1399,29 @@ codeunit 144021 "IT - CU 2015 Unit Test"
         // Verification is done inside ErrorPageHandler
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ModifyingStandardFieldOnReportedWithholdingTaxIsBlocked()
+    var
+        WithholdingTax: Record "Withholding Tax";
+    begin
+        // [FEATURE] [Withholding Tax]
+        // [SCENARIO] Modifying a standard field on a reported withholding tax entry is blocked
+        Initialize();
+
+        // [GIVEN] A reported withholding tax entry
+        WithholdingTax.Get(CreateWithholdingTaxWithAU001006WithEmptyNonTaxable(CreateVendor(), "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate()));
+        WithholdingTax.Reported := true;
+        WithholdingTax.Modify(false);
+
+        // [WHEN] A standard field is modified and the record is saved
+        WithholdingTax."External Document No." := 'MODIFIED';
+        asserterror WithholdingTax.Modify(true);
+
+        // [THEN] The modification is blocked with the standard error
+        Assert.ExpectedError('Paid and/or certified withholding taxes cannot be modified.');
+    end;
+
     local procedure Initialize()
     var
         WithholdingTax: Record "Withholding Tax";

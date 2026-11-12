@@ -344,6 +344,7 @@ report 12121 "G/L Book - Print"
                 GLBookEntry.SetRange("Progressive No.", 0);
                 GLBookEntry.SetFilter("Official Date", '<%1', StartDate);
                 GLBookEntry.SetFilter(Amount, '<>0');
+                OnPreDataItemOnAfterSetGLBookEntryFilters(GLBookEntry, "GL Book Entry");
 
                 if GLBookEntry.FindFirst() and
                    (ReportType <> ReportType::"Test Print")
@@ -751,6 +752,11 @@ report 12121 "G/L Book - Print"
                 if PurchCrMemoHeader.Get("GL Book Entry"."Document No.") then
                     Descr := PurchCrMemoHeader."Pay-to Name";
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPreDataItemOnAfterSetGLBookEntryFilters(var CheckGLBookEntry: Record "GL Book Entry"; var SourceGLBookEntry: Record "GL Book Entry")
+    begin
     end;
 }
 

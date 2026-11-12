@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -101,7 +101,8 @@ table 25 "Vendor Ledger Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Vendor Ledg. Entry".Amount where("Vendor Ledger Entry No." = field("Entry No."),
-                                                                          "Posting Date" = field("Date Filter")));
+                                                                          "Posting Date" = field("Date Filter"),
+                                                                          "Excluded from calculation" = const(false)));
             Caption = 'Remaining Amount';
             ToolTip = 'Specifies the amount that remains to be applied to before the entry is totally applied to.';
             Editable = false;
@@ -123,7 +124,8 @@ table 25 "Vendor Ledger Entry"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor Ledger Entry No." = field("Entry No."),
-                                                                                  "Posting Date" = field("Date Filter")));
+                                                                                  "Posting Date" = field("Date Filter"),
+                                                                                  "Excluded from calculation" = const(false)));
             Caption = 'Remaining Amt. (LCY)';
             Editable = false;
             FieldClass = FlowField;
@@ -728,6 +730,25 @@ table 25 "Vendor Ledger Entry"
             TableRelation = "Dispute Status";
             DataClassification = CustomerContent;
             ToolTip = 'Specifies if there is an ongoing dispute for this document.';
+
+            trigger OnValidate()
+            var
+                DisputeStatus: Record "Dispute Status";
+                MarkedAsOnHoldLbl: label 'X', Locked = true;
+                NewOnHold: Code[3];
+            begin
+                NewOnHold := "On Hold";
+                if (xRec."Dispute Status" <> '') and (xRec."Dispute Status" <> Rec."Dispute Status") and (NewOnHold = MarkedAsOnHoldLbl) then
+                    if DisputeStatus.Get(xRec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            NewOnHold := '';
+                if Rec."Dispute Status" <> '' then
+                    if DisputeStatus.Get(Rec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            NewOnHold := MarkedAsOnHoldLbl;
+                if NewOnHold <> "On Hold" then
+                    Validate("On Hold", NewOnHold);
+            end;
         }
 #if not CLEANSCHEMA26
         field(10500; "Invoice Receipt Date"; Date)
@@ -795,6 +816,10 @@ table 25 "Vendor Ledger Entry"
         key(Key26; "Applies-to ID")
         {
             IncludedFields = "Accepted Payment Tolerance";
+        }
+        // Supports the Payment Reconciliation Journal candidate search (Document Type + Open + date range).
+        key(PmtReconCandidates; "Document Type", Open, "Posting Date")
+        {
         }
     }
 

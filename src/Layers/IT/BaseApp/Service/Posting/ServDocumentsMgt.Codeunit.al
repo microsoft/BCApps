@@ -989,7 +989,7 @@ codeunit 5988 "Serv-Documents Mgt."
         end;
 
         UseAsExternalDocumentNo := ServInvHeader."External Document No.";
-        if UseAsExternalDocumentNo = '' then
+        if (UseAsExternalDocumentNo = '') and ServMgtSetup."Ext. Doc. No. Mandatory" then
             UseAsExternalDocumentNo := ServHeader."No.";
         SetGenJnlLineDocNos(GenJnlLineDocType::Invoice, ServInvHeader."No.", UseAsExternalDocumentNo);
 
@@ -1054,7 +1054,7 @@ codeunit 5988 "Serv-Documents Mgt."
         ServLogMgt.ServCrMemoPost(ServHeader."No.", ServCrMemoHeader."No.");
 
         UseAsExternalDocumentNo := ServCrMemoHeader."External Document No.";
-        if UseAsExternalDocumentNo = '' then
+        if (UseAsExternalDocumentNo = '') and ServMgtSetup."Ext. Doc. No. Mandatory" then
             UseAsExternalDocumentNo := ServHeader."No.";
         SetGenJnlLineDocNos(GenJnlLineDocType::"Credit Memo", ServCrMemoHeader."No.", UseAsExternalDocumentNo);
 

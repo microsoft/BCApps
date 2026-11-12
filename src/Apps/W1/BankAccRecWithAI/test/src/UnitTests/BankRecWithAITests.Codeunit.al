@@ -746,6 +746,75 @@ codeunit 139777 "Bank Rec. With AI Tests"
         Assert.IsTrue(TempBankStatementMatchingBuffer.Get(LineNos.Get(2), EntryNos.Get(3)), '');
     end;
 
+    [Test]
+    procedure ProcessCopilotAnswerTransferToGLAccountIgnoresNonMatchText()
+    var
+        BankRecTransToAcc: Codeunit "Bank Acc. Rec. Trans. to Acc.";
+        CompletionAnswerTxt: Text;
+        Result: Dictionary of [Integer, Code[20]];
+    begin
+        // Explanatory parentheses, echoed id prefixes and markdown must not break parsing
+        CompletionAnswerTxt := 'Matches (Statement Line Id, G/L Account Id): (#Id: 1000, #Id: 6100), (2000, **Gasoline**) (no suitable account for line 3000)';
+        BankRecTransToAcc.ProcessCompletionAnswer(CompletionAnswerTxt, Result);
+        Assert.AreEqual(2, Result.Count(), '');
+        Assert.AreEqual('6100', Result.Get(1000), '');
+        Assert.AreEqual('GASOLINE', Result.Get(2000), '');
+    end;
+
+    [Test]
+    procedure ProcessCopilotMatchingAnswerIgnoresNonMatchText()
+    var
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary;
+        TempBankAccLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary;
+        BankRecAIMatchingImpl: Codeunit "Bank Rec. AI Matching Impl.";
+        PostingDate: Date;
+        BankAccountNo: Code[20];
+        StatementNo: Code[20];
+        DocumentNo: Code[20];
+        Description: Text[50];
+        Amount: Decimal;
+        EntryNos: List of [Integer];
+        LineNos: List of [Integer];
+        NumberOfMatches: Integer;
+        CompletionAnswerTxt: Text;
+    begin
+        NumberOfMatches := 0;
+        Initialize();
+
+        // Setup.
+        CreateInputData(PostingDate, BankAccountNo, StatementNo, DocumentNo, Description, Amount);
+        EntryNos.Add(CreateBankAccLedgerEntry(BankAccountNo, PostingDate, DocumentNo, '', Amount, Description));
+        BankAccountLedgerEntry.Get(EntryNos.Get(1));
+        InsertFromBankAccLedgerEntry(TempBankAccLedgerEntryMatchingBuffer, BankAccountLedgerEntry);
+        EntryNos.Add(CreateBankAccLedgerEntry(BankAccountNo, PostingDate, DocumentNo, '', Amount, Description));
+        BankAccountLedgerEntry.Get(EntryNos.Get(2));
+        InsertFromBankAccLedgerEntry(TempBankAccLedgerEntryMatchingBuffer, BankAccountLedgerEntry);
+        EntryNos.Add(CreateBankAccLedgerEntry(BankAccountNo, PostingDate, DocumentNo, '', Amount, Description));
+        BankAccountLedgerEntry.Get(EntryNos.Get(3));
+        InsertFromBankAccLedgerEntry(TempBankAccLedgerEntryMatchingBuffer, BankAccountLedgerEntry);
+        CreateBankAccRec(BankAccReconciliation, BankAccountNo, StatementNo);
+        LineNos.Add(CreateBankAccRecLine(BankAccReconciliation, PostingDate, Description, '', Amount + Amount));
+        LineNos.Add(CreateBankAccRecLine(BankAccReconciliation, PostingDate, Description, '', Amount));
+        BankAccReconciliationLine.Get(BankAccReconciliation."Statement Type", BankAccReconciliation."Bank Account No.", BankAccReconciliation."Statement No.", LineNos.Get(1));
+
+        // Execute: explanatory parentheses, missing space, echoed id prefixes and a repeated match
+        CompletionAnswerTxt := 'Matches (Statement Line Id, [Ledger Entry Ids]): ' +
+            '(' + Format(LineNos.Get(1)) + ',[' + Format(EntryNos.Get(1)) + ']) ' +
+            '(' + Format(LineNos.Get(1)) + ', [' + Format(EntryNos.Get(1)) + ', ' + Format(EntryNos.Get(2)) + ']) ' +
+            '(#Id: ' + Format(LineNos.Get(2)) + ', [#Id: ' + Format(EntryNos.Get(3)) + '])';
+        BankRecAIMatchingImpl.ProcessCompletionAnswer(CompletionAnswerTxt, BankAccReconciliationLine, TempBankAccLedgerEntryMatchingBuffer, TempBankStatementMatchingBuffer, NumberOfMatches);
+
+        // Assert
+        Assert.AreEqual(3, NumberOfMatches, '');
+        Assert.AreEqual(3, TempBankStatementMatchingBuffer.Count(), '');
+        Assert.IsTrue(TempBankStatementMatchingBuffer.Get(LineNos.Get(1), EntryNos.Get(1)), '');
+        Assert.IsTrue(TempBankStatementMatchingBuffer.Get(LineNos.Get(1), EntryNos.Get(2)), '');
+        Assert.IsTrue(TempBankStatementMatchingBuffer.Get(LineNos.Get(2), EntryNos.Get(3)), '');
+    end;
+
     local procedure Initialize()
     var
         BankAccReconciliation: Record "Bank Acc. Reconciliation";

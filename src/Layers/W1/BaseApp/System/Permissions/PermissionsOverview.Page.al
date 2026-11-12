@@ -308,6 +308,8 @@ page 9883 "Permissions Overview"
         AddInherentPermissions(Rec."Object Type"::XMLport, Database::"XMLport Metadata", XMLportMetadata.FieldNo(ID), XMLportMetadata.FieldNo(InherentPermissions));
         AddInherentPermissions(Rec."Object Type"::Query, Database::"Query Metadata", QueryMetadata.FieldNo(ID), QueryMetadata.FieldNo(InherentPermissions));
 
+        ApplyInitialFilters();
+
         if Rec.FindFirst() then;
     end;
 
@@ -332,6 +334,9 @@ page 9883 "Permissions Overview"
         AppNameFilter: Text[250];
         ExtUserFilterText: Text;
         IsBuffered: Boolean;
+        InitialRoleIDFilter: Text[30];
+        InitialObjTypeFilter: Option None,"Table Data","Table",,"Report",,"Codeunit","XMLport",MenuSuite,"Page","Query",System;
+        InitialObjIDFilter: Text;
 
     local procedure AddInherentPermissions(ForObjectType: Option; MetadataTableId: Integer; ObjectIdFieldId: Integer; InherentPermissionFieldId: Integer)
     var
@@ -573,6 +578,30 @@ page 9883 "Permissions Overview"
         exit(PublishedApplication.Name);
     end;
 
+    local procedure ApplyInitialFilters()
+    begin
+        if InitialRoleIDFilter <> '' then begin
+            RoleIDFilter := InitialRoleIDFilter;
+            Rec.FilterGroup(2);
+            Rec.SetFilter("Role ID", RoleIDFilter);
+            Rec.FilterGroup(0);
+        end;
+
+        if InitialObjTypeFilter <> InitialObjTypeFilter::None then begin
+            ObjTypeFilter := InitialObjTypeFilter;
+            Rec.FilterGroup(2);
+            Rec.SetRange("Object Type", ObjTypeFilter - 1);
+            Rec.FilterGroup(0);
+        end;
+
+        if InitialObjIDFilter <> '' then begin
+            ObjIDFilter := InitialObjIDFilter;
+            Rec.FilterGroup(2);
+            Rec.SetFilter("Object ID", ObjIDFilter);
+            Rec.FilterGroup(0);
+        end;
+    end;
+
     local procedure SetScope()
     begin
         case true of
@@ -583,6 +612,26 @@ page 9883 "Permissions Overview"
             else
                 PermSetScope := PermSetScope::System;
         end;
+    end;
+
+    /// <summary>
+    /// Sets the initial Role ID filter to apply when the page opens.
+    /// </summary>
+    /// <param name="NewRoleIDFilter">The Role ID to filter on.</param>
+    procedure SetInitialRoleIDFilter(NewRoleIDFilter: Text[30])
+    begin
+        InitialRoleIDFilter := NewRoleIDFilter;
+    end;
+
+    /// <summary>
+    /// Sets the initial object type and ID filters to apply when the page opens.
+    /// </summary>
+    /// <param name="NewObjTypeFilter">The object type to filter on.</param>
+    /// <param name="NewObjIDFilter">The object ID to filter on.</param>
+    procedure SetInitialObjectFilter(NewObjTypeFilter: Option None,"Table Data","Table",,"Report",,"Codeunit","XMLport",MenuSuite,"Page","Query",System; NewObjIDFilter: Text)
+    begin
+        InitialObjTypeFilter := NewObjTypeFilter;
+        InitialObjIDFilter := NewObjIDFilter;
     end;
 }
 

@@ -14,6 +14,7 @@ report 1128 "Cost Acctg. Journal"
     RDLCLayout = './CostAccounting/Reports/CostAcctgJournal.rdlc';
     ApplicationArea = CostAccounting;
     Caption = 'Cost Acctg. Journal';
+    ToolTip = 'Run the Cost Acctg. Journal report.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

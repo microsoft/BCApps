@@ -44,6 +44,8 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         CreateCopyDocument(Rec, PurchaseHeader, PurchaseHeader."Document Type"::"Credit Memo", false);
         PurchaseHeader."Vendor Cr. Memo No." := PurchaseHeader."No.";
 
+        CheckPurchaseOrderLinesCanAbsorbCancellation(Rec."No.");
+
         SuppressCommit := not NoSeries.IsNoSeriesInDateOrder(PurchaseHeader."Posting No. Series");
 
         OnAfterCreateCorrectivePurchCrMemo(Rec, PurchaseHeader, CancellingOnly, SuppressCommit);
@@ -71,6 +73,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         AlreadyCancelledErr: Label 'You cannot cancel this posted purchase invoice because it has already been canceled.';
         CorrCorrectiveDocErr: Label 'You cannot correct this posted purchase invoice because it represents a correction of a credit memo.';
         CancelCorrectiveDocErr: Label 'You cannot cancel this posted purchase invoice because it represents a correction of a credit memo.';
+        CancelledQtyExceedsOrderErr: Label 'The credit memo quantity to reverse exceeds the received or invoiced quantity on purchase order %1 line %2. A corrective credit memo cannot reverse more than was originally received and invoiced.', Comment = '%1 = Purchase order no. %2 = Purchase order line no.';
         VendorIsBlockedCorrectErr: Label 'You cannot correct this posted purchase invoice because vendor %1 is blocked.', Comment = '%1 = Customer name';
         VendorIsBlockedCancelErr: Label 'You cannot cancel this posted purchase invoice because vendor %1 is blocked.', Comment = '%1 = Customer name';
         ItemIsBlockedCorrectErr: Label 'You cannot correct this posted purchase invoice because item %1 %2 is blocked.', Comment = '%1 = Item No. %2 = Item Description';
@@ -190,17 +193,20 @@ codeunit 1313 "Correct Posted Purch. Invoice"
 
     procedure CreateCreditMemoCopyDocument(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchaseHeader: Record "Purchase Header"): Boolean
     var
-        PurchHeader: Record "Purchase Header";
+        PurchaseHeaderOrder: Record "Purchase Header";
     begin
         if not PurchInvHeader.IsFullyOpen() then begin
             ShowInvoiceAppliedNotification(PurchInvHeader);
             exit(false);
         end;
-        PurchHeader.SetRange("Document Type", PurchHeader."Document Type"::Order);
-        PurchHeader.SetRange("No.", PurchInvHeader."Order No.");
-        if not PurchHeader.IsEmpty then
-            if not Confirm(CreateCreditMemoQst) then
-                exit(false);
+
+        if IsOrderQtyRestorationEnabled() then begin
+            PurchaseHeaderOrder.SetRange("Document Type", PurchaseHeaderOrder."Document Type"::Order);
+            PurchaseHeaderOrder.SetRange("No.", PurchInvHeader."Order No.");
+            if not PurchaseHeaderOrder.IsEmpty() then
+                if not Confirm(CreateCreditMemoQst) then
+                    exit(false);
+        end;
 
         CreateCopyDocument(PurchInvHeader, PurchaseHeader, PurchaseHeader."Document Type"::"Credit Memo", false);
         exit(true);
@@ -833,20 +839,29 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         PurchaseLine: Record "Purchase Line";
         PurchInvLine: Record "Purch. Inv. Line";
         UndoPostingManagement: Codeunit "Undo Posting Management";
+        RestoreOrderQuantity: Boolean;
     begin
+        RestoreOrderQuantity := IsOrderQtyRestorationEnabled();
+
         PurchInvLine.SetRange("Document No.", PurchInvHeaderNo);
         PurchInvLine.SetRange("Prepayment Line", false);
         if PurchInvLine.FindSet() then
             repeat
-                TempItemLedgerEntry.Reset();
-                TempItemLedgerEntry.DeleteAll();
-                PurchInvLine.GetItemLedgEntries(TempItemLedgerEntry, false);
                 if PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchInvLine."Order No.", PurchInvLine."Order Line No.") then begin
-                    UpdatePurchaseOrderLineInvoicedQuantity(PurchaseLine, PurchInvLine.Quantity, PurchInvLine."Quantity (Base)");
+                    if RestoreOrderQuantity then begin
+                        TempItemLedgerEntry.Reset();
+                        TempItemLedgerEntry.DeleteAll();
+                        PurchInvLine.GetItemLedgEntries(TempItemLedgerEntry, false);
+                        UpdatePurchaseOrderLineInvoicedQuantity(PurchaseLine, PurchInvLine.Quantity, PurchInvLine."Quantity (Base)");
+                    end;
+
                     UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine);
-                    UpdateReverseItemChargeAssignment(PurchaseLine, PurchInvLine.Quantity);
-                    TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None.AsInteger());
-                    UndoPostingManagement.RevertPostedItemTracking(TempItemLedgerEntry, PurchaseLine."Expected Receipt Date", true);
+
+                    if RestoreOrderQuantity then begin
+                        UpdateReverseItemChargeAssignment(PurchaseLine, PurchInvLine.Quantity);
+                        TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None.AsInteger());
+                        UndoPostingManagement.RevertPostedItemTracking(TempItemLedgerEntry, PurchaseLine."Expected Receipt Date", true);
+                    end;
                 end;
             until PurchInvLine.Next() = 0;
     end;
@@ -933,27 +948,30 @@ codeunit 1313 "Correct Posted Purch. Invoice"
     internal procedure UpdatePurchaseOrderLineIfExist(PurchaseCreditMemoNo: Code[20])
     var
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
+        RestoreOrderQuantity: Boolean;
     begin
+        RestoreOrderQuantity := IsOrderQtyRestorationEnabled();
+
         PurchCrMemoLine.SetLoadFields("Document No.", "No.", Quantity);
         PurchCrMemoLine.SetRange("Document No.", PurchaseCreditMemoNo);
         PurchCrMemoLine.SetFilter("No.", '<>%1', '');
         PurchCrMemoLine.SetFilter(Quantity, '<>%1', 0);
         if PurchCrMemoLine.FindSet() then
             repeat
-                GetPurchInvLineAndUpdatePurchaseOrderLines(PurchCrMemoLine);
+                GetPurchInvLineAndUpdatePurchaseOrderLines(PurchCrMemoLine, RestoreOrderQuantity);
             until PurchCrMemoLine.Next() = 0;
     end;
 
-    local procedure GetPurchInvLineAndUpdatePurchaseOrderLines(PurchCrMemoLine: Record "Purch. Cr. Memo Line")
+    local procedure GetPurchInvLineAndUpdatePurchaseOrderLines(PurchCrMemoLine: Record "Purch. Cr. Memo Line"; RestoreOrderQuantity: Boolean)
     var
         PurchInvLine: Record "Purch. Inv. Line";
     begin
         PurchCrMemoLine.GetPurchaseInvoiceLine(PurchInvLine);
         if PurchInvLine."Line No." <> 0 then
-            UpdatePurchaseOrderLinesFromCreditMemo(PurchInvLine, PurchCrMemoLine);
+            UpdatePurchaseOrderLinesFromCreditMemo(PurchInvLine, PurchCrMemoLine, RestoreOrderQuantity);
     end;
 
-    local procedure UpdatePurchaseOrderLinesFromCreditMemo(PurchInvLine: Record "Purch. Inv. Line"; PurchCrMemoLine: Record "Purch. Cr. Memo Line")
+    local procedure UpdatePurchaseOrderLinesFromCreditMemo(PurchInvLine: Record "Purch. Inv. Line"; PurchCrMemoLine: Record "Purch. Cr. Memo Line"; RestoreOrderQuantity: Boolean)
     var
         PurchaseLine: Record "Purchase Line";
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
@@ -962,19 +980,23 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         if not PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchInvLine."Order No.", PurchInvLine."Order Line No.") then
             exit;
 
-        if PurchInvLine.Type = PurchInvLine.Type::Item then
-            PurchInvLine.GetItemLedgEntries(TempItemLedgerEntry, false);
+        if RestoreOrderQuantity then begin
+            if PurchInvLine.Type = PurchInvLine.Type::Item then
+                PurchInvLine.GetItemLedgEntries(TempItemLedgerEntry, false);
 
-        UpdatePurchaseOrderLineInvoicedQuantity(PurchaseLine, PurchCrMemoLine.Quantity, PurchCrMemoLine."Quantity (Base)");
+            UpdatePurchaseOrderLineInvoicedQuantity(PurchaseLine, PurchCrMemoLine.Quantity, PurchCrMemoLine."Quantity (Base)");
+        end;
+
         UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine);
 
-        if PurchInvLine.Type = PurchInvLine.Type::Item then begin
-            if PurchaseLine."Qty. to Receive" = 0 then
-                UpdateWhseRequest(Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Location Code");
+        if RestoreOrderQuantity then
+            if PurchInvLine.Type = PurchInvLine.Type::Item then begin
+                if PurchaseLine."Qty. to Receive" = 0 then
+                    UpdateWhseRequest(Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Location Code");
 
-            TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None.AsInteger());
-            UndoPostingManagement.RevertPostedItemTracking(TempItemLedgerEntry, PurchInvLine."Posting Date", true);
-        end;
+                TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None.AsInteger());
+                UndoPostingManagement.RevertPostedItemTracking(TempItemLedgerEntry, PurchInvLine."Posting Date", true);
+            end;
     end;
 
     local procedure UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine: Record "Purch. Inv. Line")
@@ -1008,12 +1030,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
                     PurchInvLine.Quantity * (PurchaseLine."Prepmt. Line Amount" / PurchaseLine.Quantity),
                     Currency."Amount Rounding Precision"));
 
-        PurchaseLine.Validate(
-            "Prepmt Amt to Deduct",
-            PurchaseLine."Prepmt Amt to Deduct" +
-                Round(
-                    PurchInvLine.Quantity * (PurchaseLine."Prepmt. Line Amount" / PurchaseLine.Quantity),
-                    Currency."Amount Rounding Precision"));
+        PurchaseLine.CalcPrepaymentToDeduct();
 
         PurchaseLine.Modify(true);
     end;
@@ -1116,8 +1133,45 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         IncomingDocument.Modify(true);
 
         IncomingDocumentAttachment.SetRange("Incoming Document Entry No.", IncomingDocument."Entry No.");
-        IncomingDocumentAttachment.ModifyAll("Document No.", '');
-        IncomingDocumentAttachment.ModifyAll("Posting Date", 0D);
+        IncomingDocumentAttachment.ModifyAll("Document No.", '', "Posting Date", 0D);
+    end;
+
+    local procedure CheckPurchaseOrderLinesCanAbsorbCancellation(PurchInvHeaderNo: Code[20])
+    var
+        PurchaseLine: Record "Purchase Line";
+        PurchInvLine: Record "Purch. Inv. Line";
+    begin
+        if not IsOrderQtyRestorationEnabled() then
+            exit;
+
+        PurchaseLine.SetLoadFields("Quantity Invoiced", "Qty. Invoiced (Base)", "Quantity Received", "Qty. Received (Base)");
+        PurchInvLine.SetLoadFields("Order No.", "Order Line No.", Quantity, "Quantity (Base)");
+        PurchInvLine.SetRange("Document No.", PurchInvHeaderNo);
+        PurchInvLine.SetRange("Prepayment Line", false);
+        if PurchInvLine.FindSet() then
+            repeat
+                if PurchaseLine.Get(PurchaseLine."Document Type"::Order, PurchInvLine."Order No.", PurchInvLine."Order Line No.") then
+                    CheckCancelledQuantityWithinOrderLine(PurchaseLine, PurchInvLine.Quantity, PurchInvLine."Quantity (Base)");
+            until PurchInvLine.Next() = 0;
+    end;
+
+    local procedure CheckCancelledQuantityWithinOrderLine(PurchaseLine: Record "Purchase Line"; CancelledQuantity: Decimal; CancelledQtyBase: Decimal)
+    begin
+        if (Abs(CancelledQuantity) > Abs(PurchaseLine."Quantity Invoiced")) or
+           (Abs(CancelledQtyBase) > Abs(PurchaseLine."Qty. Invoiced (Base)")) or
+           (Abs(CancelledQuantity) > Abs(PurchaseLine."Quantity Received")) or
+           (Abs(CancelledQtyBase) > Abs(PurchaseLine."Qty. Received (Base)"))
+        then
+            Error(CancelledQtyExceedsOrderErr, PurchaseLine."Document No.", PurchaseLine."Line No.");
+    end;
+
+    /// <summary>
+    /// Reads whether order quantity restoration is enabled.
+    /// </summary>
+    local procedure IsOrderQtyRestorationEnabled(): Boolean
+    begin
+        PurchasesPayablesSetup.GetRecordOnce();
+        exit(PurchasesPayablesSetup."Restore Order Qty. on Return");
     end;
 
     [IntegrationEvent(false, false)]

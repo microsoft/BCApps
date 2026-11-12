@@ -248,6 +248,7 @@ codeunit 31038 "Sales Posting Handler CZL"
                                     SalesLine.TestField("Unit of Measure Code", TariffNumber."VAT Stat. UoM Code CZL");
 
                         if (TariffNumber."Statement Code CZL" <> '') and SalesHeader.Invoice then begin
+                            GetCurrency(SalesHeader."Currency Code");
                             TariffNumber.TestField("Statement Limit Code CZL");
                             CommodityCZL.Get(TariffNumber."Statement Limit Code CZL");
                         end else
@@ -269,7 +270,10 @@ codeunit 31038 "Sales Posting Handler CZL"
                                 Temp1InventoryBuffer.Insert();
                             end;
 
-                            LineAmount := SalesLine."Unit Price" * QtyToInvoice;
+                            if SalesLine.Quantity <> 0 then
+                                LineAmount := Round(SalesLine.Amount * QtyToInvoice / SalesLine.Quantity, Currency."Amount Rounding Precision")
+                            else
+                                LineAmount := 0;
                             if SalesHeader."Currency Code" <> '' then
                                 LineAmount :=
                                   CurrencyExchangeRate.ExchangeAmtFCYToLCY(

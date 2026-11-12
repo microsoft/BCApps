@@ -5,12 +5,17 @@
 
 namespace Microsoft.Purchases.Vendor.RemittanceAdvice;
 
+#if not CLEAN29
 using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Reports;
 
 codeunit 4031 SetupRemittanceReports
 {
     Subtype = Install;
+    ObsoleteReason = 'Report selection setup for V.Remittance and P.V.Remit. is now seeded by Microsoft.Foundation.Reporting."Report Selection Mgt.".InitReportSelectionPurch, called from CompanyInitialize.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+
     trigger OnInstallAppPerCompany()
     begin
         SetupReportSelections();
@@ -39,3 +44,4 @@ codeunit 4031 SetupRemittanceReports
         end;
     end;
 }
+#endif

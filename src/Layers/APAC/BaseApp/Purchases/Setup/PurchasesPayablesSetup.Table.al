@@ -339,19 +339,14 @@ table 312 "Purchases & Payables Setup"
             Caption = 'Ignore Updated Addresses';
             ToolTip = 'Specifies if changes to addresses made on purchase documents are copied to the vendor card. By default, changes are copied to the vendor card.';
         }
-#if not CLEANSCHEMA29        
+#if not CLEANSCHEMA30
         field(57; "Create Item from Item No."; Boolean)
         {
             Caption = 'Create Item from Item No.';
             ToolTip = 'Specifies if the system will suggest to create a new item when no item matches the number that you enter in the No. Field on purchase lines.';
             ObsoleteReason = 'Discontinued function';
-#if CLEAN27
             ObsoleteState = Removed;
-            ObsoleteTag = '29.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
+            ObsoleteTag = '30.0';
         }
 #endif        
         field(58; "Copy Vendor Name to Entries"; Boolean)
@@ -371,6 +366,16 @@ table 312 "Purchases & Payables Setup"
         {
             Caption = 'Copy Invoice No. To Payment Reference';
             ToolTip = 'Specifies if the value of the Vendor Invoice No. field must be copied to the Payment Reference field during posting unless the Payment Reference field is not blank.';
+        }
+        /// <summary>
+        /// Indicates whether posting a purchase credit memo or return order restores the reversed quantities on the related purchase order.
+        /// </summary>
+        field(70; "Restore Order Qty. on Return"; Boolean)
+        {
+            Caption = 'Restore Order quantities on Credit Memo posting';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether posting a purchase credit memo restores quantities on the related purchase order. When enabled, Qty. to Receive, Qty. to Invoice, and the received and invoiced quantities on the original purchase order are updated based on the reversed quantity.';
+            InitValue = true;
         }
         field(160; "Disable Search by Name"; Boolean)
         {

@@ -54,6 +54,8 @@ codeunit 10032 "IRS 1099 BaseApp Subscribers"
     [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", 'OnAfterCopyVendLedgerEntryFromGenJnlLine', '', false, false)]
     local procedure UpdateIRSDataOnAfterCopyVendLedgerEntryFromGenJnlLine(var VendorLedgerEntry: Record "Vendor Ledger Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin
+        if GenJournalLine."IRS 1099 Form Box No." = '' then
+            exit;
         if GenJournalLine."IRS 1099 Reporting Amount" = 0 then
             exit;
         VendorLedgerEntry."IRS 1099 Subject For Reporting" := true;
@@ -267,7 +269,7 @@ codeunit 10032 "IRS 1099 BaseApp Subscribers"
 
     local procedure SaveChangesInGenJnlLine(var GenJnlLine: Record "Gen. Journal Line")
     begin
-        if GenJnlLine."Line No." <> 0 then
+        if (GenJnlLine."Line No." <> 0) and (GenJnlLine."Job Queue Status" = GenJnlLine."Job Queue Status"::" ") then
             if GenJnlLine.Modify(true) then;
     end;
 

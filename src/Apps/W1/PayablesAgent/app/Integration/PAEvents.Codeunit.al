@@ -5,7 +5,9 @@
 namespace Microsoft.Agent.PayablesAgent;
 
 using Microsoft.eServices.EDocument;
+#if not CLEAN29
 using Microsoft.eServices.EDocument.Format;
+#endif
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocumentConnector.Microsoft365;
@@ -18,6 +20,8 @@ codeunit 3316 "PA Events"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+#if not CLEAN29
+#pragma warning disable AL0432
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. PDF File Format", OnAfterSetIStructureReceivedEDocumentForPdf, '', false, false)]
     local procedure UseMLLMWhenEnabledInSetup(var Result: Enum "Structure Received E-Doc.")
     var
@@ -27,6 +31,8 @@ codeunit 3316 "PA Events"
         if PayablesAgentSetup."Use MLLM Processing" then
             Result := "Structure Received E-Doc."::MLLM;
     end;
+#pragma warning restore AL0432
+#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
     local procedure TrackFinalizedEDocuments(EDocument: Record "E-Document")
@@ -85,7 +91,24 @@ codeunit 3316 "PA Events"
         if not TryFindAgentTaskID(EDocument, AgentTaskID) then
             exit;
 
-        PayablesAgent.SetAgentTaskTitle(AgentTaskID, CopyStr(EDocumentPurchaseHeader."Sales Invoice No.", 1, 50), CopyStr(EDocumentPurchaseHeader."Vendor Company Name", 1, 100));
+        PayablesAgent.SetAgentTaskTitle(AgentTaskID, IsCreditNote(EDocument), CopyStr(EDocumentPurchaseHeader."Sales Invoice No.", 1, 50), CopyStr(EDocumentPurchaseHeader."Vendor Company Name", 1, 100));
+    end;
+
+    local procedure IsCreditNote(EDocument: Record "E-Document"): Boolean
+    var
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
+        InStream: InStream;
+        StructuredData: Text;
+        SourceJsonObject: JsonObject;
+    begin
+        if not EDocDataStorage.Get(EDocument."Structured Data Entry No.") then
+            exit(false);
+        EDocDataStorage.GetTempBlob().CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.Read(StructuredData);
+        if not SourceJsonObject.ReadFrom(StructuredData) then
+            exit(false);
+        exit(EDocMLLMSchemaHelper.IsCreditNote(SourceJsonObject));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. M365 Conn. Events", OnGetOutlookCategoryDescription, '', false, false)]

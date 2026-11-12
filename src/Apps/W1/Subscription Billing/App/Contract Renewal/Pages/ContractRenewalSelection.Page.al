@@ -278,9 +278,17 @@ page 8006 "Contract Renewal Selection"
     end;
 
     trigger OnAfterGetRecord()
+    var
+        BufferedRenewalTerm: DateFormula;
+        IsBuffered: Boolean;
     begin
         Rec.GetServiceObject(ServiceObject);
+        // Reload to reflect changes made on the Subscription card, but keep the Renewal Term entered on this page
+        IsBuffered := TempServiceCommitment.Get(Rec."Subscription Line Entry No.");
+        BufferedRenewalTerm := TempServiceCommitment."Renewal Term";
         Rec.LoadServiceCommitmentForContractLine(TempServiceCommitment);
+        if IsBuffered then
+            TempServiceCommitment."Renewal Term" := BufferedRenewalTerm;
         RenewalTerm := TempServiceCommitment."Renewal Term";
         RenewalTermEnabled := TempServiceCommitment."Subscription Header No." <> '';
 

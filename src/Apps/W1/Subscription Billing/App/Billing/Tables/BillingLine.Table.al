@@ -34,19 +34,22 @@ table 8061 "Billing Line"
         field(10; "Partner No."; Code[20])
         {
             Caption = 'Partner No.';
-            TableRelation = if (Partner = const(Customer)) Customer else
+            TableRelation =
+            if (Partner = const(Customer)) Customer else
             if (Partner = const(Vendor)) Vendor;
         }
         field(20; "Subscription Contract No."; Code[20])
         {
             Caption = 'Subscription Contract No.';
-            TableRelation = if (Partner = const(Customer)) "Customer Subscription Contract" else
+            TableRelation =
+            if (Partner = const(Customer)) "Customer Subscription Contract" else
             if (Partner = const(Vendor)) "Vendor Subscription Contract";
         }
         field(21; "Subscription Contract Line No."; Integer)
         {
             Caption = 'Subscription Contract Line No.';
-            TableRelation = if (Partner = const(Customer)) "Cust. Sub. Contract Line"."Line No." where("Subscription Contract No." = field("Subscription Contract No.")) else
+            TableRelation =
+            if (Partner = const(Customer)) "Cust. Sub. Contract Line"."Line No." where("Subscription Contract No." = field("Subscription Contract No.")) else
             if (Partner = const(Vendor)) "Vend. Sub. Contract Line"."Line No." where("Subscription Contract No." = field("Subscription Contract No."));
         }
         field(30; "Subscription Header No."; Code[20])
@@ -57,6 +60,7 @@ table 8061 "Billing Line"
         field(31; "Subscription Line Entry No."; Integer)
         {
             Caption = 'Subscription Line Entry No.';
+            TableRelation = "Subscription Line"."Entry No.";
         }
         field(32; "Subscription Description"; Text[100])
         {
@@ -127,7 +131,8 @@ table 8061 "Billing Line"
         field(56; "Document No."; Code[20])
         {
             Caption = 'Document No.';
-            TableRelation = if ("Document Type" = const(Invoice), Partner = const(Customer)) "Sales Header"."No." where("Document Type" = const(Invoice)) else
+            TableRelation =
+            if ("Document Type" = const(Invoice), Partner = const(Customer)) "Sales Header"."No." where("Document Type" = const(Invoice)) else
             if ("Document Type" = const("Credit Memo"), Partner = const(Customer)) "Sales Header"."No." where("Document Type" = const("Credit Memo")) else
             if ("Document Type" = const("Credit Memo"), Partner = const(Vendor)) "Purchase Header"."No." where("Document Type" = const("Credit Memo")) else
             if ("Document Type" = const("Invoice"), Partner = const(Vendor)) "Purchase Header"."No." where("Document Type" = const("Invoice"));
@@ -154,7 +159,8 @@ table 8061 "Billing Line"
         field(61; "Correction Document No."; Code[20])
         {
             Caption = 'Correction Document No.';
-            TableRelation = if ("Correction Document Type" = const(Invoice), Partner = const(Customer)) "Sales Invoice Header"."No." else
+            TableRelation =
+            if ("Correction Document Type" = const(Invoice), Partner = const(Customer)) "Sales Invoice Header"."No." else
             if ("Correction Document Type" = const("Credit Memo"), Partner = const(Customer)) "Sales Cr.Memo Header"."No." else
             if ("Correction Document Type" = const(Invoice), Partner = const(Vendor)) "Purch. Inv. Header"."No." else
             if ("Correction Document Type" = const("Credit Memo"), Partner = const(Vendor)) "Purch. Cr. Memo Hdr."."No.";
@@ -163,7 +169,8 @@ table 8061 "Billing Line"
         {
             BlankZero = true;
             Caption = 'Document Line No.';
-            TableRelation = if (Partner = const(Customer),
+            TableRelation =
+            if (Partner = const(Customer),
                                 "Document Type" = const(Invoice)) "Sales Line"."Line No." where("Document Type" = const(Invoice), "Document No." = field("Document No."))
             else
             if (Partner = const(Customer), "Document Type" = const("Credit Memo")) "Sales Line"."Line No." where("Document Type" = const("Credit Memo"), "Document No." = field("Document No."))
@@ -243,11 +250,22 @@ table 8061 "Billing Line"
         key(SK6; "Billing Template Code", Partner)
         {
         }
+        key(SK7; "Subscription Line Entry No.")
+        {
+        }
+    }
+
+    fieldgroups
+    {
+        fieldgroup(DropDown; "Subscription Header No.", "Billing from", "Billing to", Amount)
+        {
+        }
     }
 
     trigger OnDelete()
     var
         BillingLine2: Record "Billing Line";
+        UsageDataBilling: Record "Usage Data Billing";
     begin
         if "Document No." <> '' then
             Error(CannotDeleteBillingLinesWithDocumentNoErr);
@@ -257,6 +275,8 @@ table 8061 "Billing Line"
         else
             Error(OnlyLastServiceLineCanBeDeletedErr, "Subscription Header No.");
         RecalculateCustomerContractHarmonizedBillingFields();
+        UsageDataBilling.SetRange("Billing Line Entry No.", "Entry No.");
+        UsageDataBilling.ModifyAll("Billing Line Entry No.", 0, false);
     end;
 
     var
@@ -313,6 +333,7 @@ table 8061 "Billing Line"
         BillingLine: Record "Billing Line";
     begin
         BillingLine.Copy(Rec);
+        BillingLine.SetRange(Partner, Rec.Partner);
         BillingLine.SetRange("Subscription Contract No.", Rec."Subscription Contract No.");
         BillingLine.CalcSums(Amount);
         exit(BillingLine.Amount);
@@ -420,7 +441,6 @@ table 8061 "Billing Line"
         OnBeforeOpenSalesDocumentCard(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if SalesHeader.Get(GetSalesDocumentTypeFromBillingDocumentType(), "Document No.") then
             PageManagement.PageRunModal(SalesHeader);
     end;
@@ -454,6 +474,11 @@ table 8061 "Billing Line"
     begin
         Rec.FilterBillingLineOnContract(ServicePartner, ContractNo);
         Rec.SetRange("Subscription Contract Line No.", ContractLineNo);
+    end;
+
+    internal procedure FilterBillingLineOnServiceCommitment(ServiceCommitmentEntryNo: Integer)
+    begin
+        Rec.SetRange("Subscription Line Entry No.", ServiceCommitmentEntryNo);
     end;
 
     local procedure RecalculateCustomerContractHarmonizedBillingFields()

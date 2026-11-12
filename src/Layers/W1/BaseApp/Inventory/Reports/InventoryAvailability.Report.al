@@ -12,6 +12,7 @@ report 705 "Inventory Availability"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Availability';
+    ToolTip = 'View, print, or save a summary of historical inventory transactions with selected items, for example, to decide when to purchase the items. The report specifies quantity on sales order, quantity on purchase order, back orders from vendors, minimum inventory, and whether there are reorders.';
     DataAccessIntent = ReadOnly;
     DefaultRenderingLayout = Excel;
     UsageCategory = ReportsAndAnalysis;

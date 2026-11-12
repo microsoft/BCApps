@@ -15,6 +15,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.WithholdingTax;
@@ -44,6 +45,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                   TableData "Cust. Ledger Entry" = rimd,
                   TableData "Vendor Ledger Entry" = rimd,
                   TableData "G/L Register" = rm,
+                  TableData "G/L Transaction" = rm,
                   TableData "G/L Entry - VAT Entry Link" = rimd,
                   TableData "VAT Entry" = rimd,
                   TableData "Bank Account Ledger Entry" = rimd,
@@ -51,6 +53,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                   TableData "Detailed Cust. Ledg. Entry" = rimd,
                   TableData "Detailed Vendor Ledg. Entry" = rimd,
                   TableData "Employee Ledger Entry" = rimd,
+                  TableData "Spend Request to G/L Link" = rimd,
                   TableData "Detailed Employee Ledger Entry" = ri;
     TableNo = "Gen. Journal Line";
 
@@ -61,6 +64,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     var
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
+        ReversalGLRegisterNo: Integer;
         ReversalMismatchErr: Label 'Reversal found a %1 without a matching general ledger entry.', Comment = '%1 - table caption';
         CannotReverseErr: Label 'You cannot reverse the transaction, because it has already been reversed.';
         DimCombBlockedErr: Label 'The combination of dimensions used in general ledger entry %1 is blocked. %2.', Comment = '%1 - entry no, %2 - error text';
@@ -160,6 +164,8 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         OnReverseOnAfterStartPosting(GenJournalLine, GenJnlPostLine, GLRegister, GLRegister2);
 
         GenJnlPostLine.SetGLRegReverse(GLRegister);
+        ReversalGLRegisterNo := GLRegister."No.";
+        FAInsertLedgerEntry.SetGLRegisterNo(GLRegister."No.");
 
         CopyCustLedgEntry(CustLedgerEntry, TempCustLedgerEntry);
         CopyVendLedgEntry(VendorLedgerEntry, TempVendorLedgerEntry);
@@ -320,6 +326,8 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                             ReverseBankAccLedgEntry(TempBankAccountLedgerEntry, GLEntry."Entry No.", GenJournalLine."Source Code");
                             TempBankAccountLedgerEntry.Delete();
                         end;
+                    SpendRequestLinkedToGLEntry(GLEntry2."Entry No."):
+                        ReverseSpendRequest(GLEntry2."Entry No.", GLEntry."Entry No.");
                     else
                         OnReverseGLEntryOnCaseElse(GLEntry2, GLEntry, GenJournalLine, GenJnlPostLine, TempBankAccountLedgerEntry);
                 end;
@@ -376,6 +384,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         OnReverseCustLedgEntryOnBeforeModifyCustLedgerEntry(NewCustLedgerEntry, CustLedgerEntry);
         CustLedgerEntry.Modify();
         OnReverseCustLedgEntryOnBeforeInsertCustLedgEntry(NewCustLedgerEntry, CustLedgerEntry, GenJnlPostLine);
+        NewCustLedgerEntry."G/L Register No." := ReversalGLRegisterNo;
         NewCustLedgerEntry.Insert();
         OnReverseCustLedgEntryOnAfterInsertCustLedgEntry(NewCustLedgerEntry, CustLedgerEntry, GenJnlPostLine);
 
@@ -460,6 +469,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         VendorLedgerEntry."EFT Bank Account No." := '';
         VendorLedgerEntry.Modify();
         OnReverseVendLedgEntryOnBeforeInsertVendLedgEntry(NewVendorLedgerEntry, VendorLedgerEntry, GenJnlPostLine);
+        NewVendorLedgerEntry."G/L Register No." := ReversalGLRegisterNo;
         NewVendorLedgerEntry.Insert();
         OnReverseVendLedgEntryOnAfterInsertVendLedgEntry(NewVendorLedgerEntry);
 
@@ -530,6 +540,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         EmployeeLedgerEntry.Reversed := true;
         EmployeeLedgerEntry.Modify();
         OnReverseEmplLedgEntryOnBeforeInsertEmplLedgEntry(NewEmployeeLedgerEntry, EmployeeLedgerEntry);
+        NewEmployeeLedgerEntry."G/L Register No." := ReversalGLRegisterNo;
         NewEmployeeLedgerEntry.Insert();
 
         if NextDtldEmplLedgEntryNo = 0 then begin
@@ -603,6 +614,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         BankAccountLedgerEntry.Reversed := true;
         BankAccountLedgerEntry.Modify();
         OnReverseBankAccLedgEntryOnBeforeInsert(NewBankAccountLedgerEntry, BankAccountLedgerEntry, GenJnlPostLine);
+        NewBankAccountLedgerEntry."G/L Register No." := ReversalGLRegisterNo;
         NewBankAccountLedgerEntry.Insert(true);
     end;
 
@@ -646,6 +658,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                 NewVATEntry."Source Code" := SourceCode;
                 NewVATEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewVATEntry."User ID"));
                 NewVATEntry."Entry No." := GenJnlPostLine.GetNextVATEntryNo();
+                NewVATEntry."G/L Register No." := ReversalGLRegisterNo;
                 NewVATEntry."Reversed Entry No." := VATEntry."Entry No.";
                 NewVATEntry."BAS Doc. No." := '';
                 NewVATEntry."BAS Version" := 0;
@@ -671,6 +684,27 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                 ReverseGST(VATEntry);
                 GenJnlPostLine.IncrNextVATEntryNo();
             until GLEntryVATEntryLink.Next() = 0;
+    end;
+
+    local procedure ReverseSpendRequest(OldGLEntryNo: Integer; NewGLEntryNo: Integer)
+    var
+        SpendRequestToGLLink: Record "Spend Request To G/L Link";
+    begin
+        SpendRequestToGLLink.ReadIsolation(IsolationLevel::UpdLock);
+        SpendRequestToGLLink.SetRange("G/L Entry No.", OldGLEntryNo);
+        if not SpendRequestToGLLink.FindFirst() then
+            exit;
+        SpendRequestToGLLink."G/L Entry No." := NewGLEntryNo;
+        SpendRequestToGLLink.Amount := -SpendRequestToGLLink.Amount;
+        if SpendRequestToGLLink.Insert() then;
+    end;
+
+    local procedure SpendRequestLinkedToGLEntry(GLEntryNo: Integer): Boolean
+    var
+        SpendRequestToGLLink: Record "Spend Request To G/L Link";
+    begin
+        SpendRequestToGLLink.SetRange("G/L Entry No.", GLEntryNo);
+        exit(not SpendRequestToGLLink.IsEmpty());
     end;
 
     local procedure ApplyCustLedgEntryByReversal(CustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry2: Record "Cust. Ledger Entry"; DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry"; AppliedEntryNo: Integer; var NextDtldCustLedgEntryEntryNo: Integer)

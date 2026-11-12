@@ -264,6 +264,93 @@
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure CancelFALedgerEntryIntoNonEmptyGenJournalUsesLastDocumentNo()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FALedgerEntry: Record "FA Ledger Entry";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        CancelFALedgEntries: Codeunit "Cancel FA Ledger Entries";
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [Cancel FA Ledger Entries]
+        // [SCENARIO 651316] Cancelling an FA ledger entry into a non-empty FA G/L journal uses the document number of the last journal line.
+        Initialize();
+
+        // [GIVEN] Fixed asset with posted acquisition cost in a depreciation book with G/L integration.
+        CreateFAWithPostedAcquisitionCost(FixedAsset, DepreciationBook, false);
+        IndexationAndIntegrationInBook(DepreciationBook.Code);
+
+        // [GIVEN] FA G/L journal batch with a number series and an existing line with Document No. = "D".
+        CreateGenJournalBatch(GenJournalBatch);
+        SetGenJournalBatchInFAJournalSetup(DepreciationBook.Code, GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+          GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), LibraryRandom.RandDec(100, 2));
+        DocumentNo := LibraryUtility.GenerateGUID();
+        GenJournalLine."Document No." := DocumentNo;
+        GenJournalLine.Modify();
+
+        // [WHEN] Cancel the acquisition cost FA ledger entry.
+        FALedgerEntry.SetRange("FA No.", FixedAsset."No.");
+        FALedgerEntry.FindLast();
+        CancelFALedgEntries.TransferLine(FALedgerEntry, false, 0D);
+
+        // [THEN] The cancellation line is added as the last line of the batch with Document No. = "D".
+        GenJournalLine.Reset();
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine.FindLast();
+        GenJournalLine.TestField("FA Error Entry No.", FALedgerEntry."Entry No.");
+        GenJournalLine.TestField("Document No.", DocumentNo);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure CancelFALedgerEntryIntoNonEmptyFAJournalUsesLastDocumentNo()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FALedgerEntry: Record "FA Ledger Entry";
+        FAJournalBatch: Record "FA Journal Batch";
+        FAJournalLine: Record "FA Journal Line";
+        CancelFALedgEntries: Codeunit "Cancel FA Ledger Entries";
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [Cancel FA Ledger Entries]
+        // [SCENARIO 651316] Cancelling an FA ledger entry into a non-empty FA journal uses the document number of the last journal line.
+        Initialize();
+
+        // [GIVEN] Fixed asset with posted acquisition cost in a depreciation book without G/L integration.
+        CreateFAWithPostedAcquisitionCost(FixedAsset, DepreciationBook, false);
+
+        // [GIVEN] FA journal batch with a number series and an existing line with Document No. = "D".
+        CreateFAJournalBatch(FAJournalBatch);
+        SetFAJournalBatchInFAJournalSetup(DepreciationBook.Code, FAJournalBatch);
+        LibraryFixedAsset.CreateFAJournalLine(FAJournalLine, FAJournalBatch."Journal Template Name", FAJournalBatch.Name);
+        DocumentNo := LibraryUtility.GenerateGUID();
+        FAJournalLine."Document No." := DocumentNo;
+        FAJournalLine.Modify();
+
+        // [WHEN] Cancel the acquisition cost FA ledger entry.
+        FALedgerEntry.SetRange("FA No.", FixedAsset."No.");
+        FALedgerEntry.FindLast();
+        CancelFALedgEntries.TransferLine(FALedgerEntry, false, 0D);
+
+        // [THEN] The cancellation line is added as the last line of the batch with Document No. = "D".
+        FAJournalLine.Reset();
+        FAJournalLine.SetRange("Journal Template Name", FAJournalBatch."Journal Template Name");
+        FAJournalLine.SetRange("Journal Batch Name", FAJournalBatch.Name);
+        FAJournalLine.FindLast();
+        FAJournalLine.TestField("FA Error Entry No.", FALedgerEntry."Entry No.");
+        FAJournalLine.TestField("Document No.", DocumentNo);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure CopyFixedAssets()
     var
@@ -436,6 +523,69 @@
         // 3.Verify: Verify that the line in FA G/L Journal created for Fixed Asset.
         GenJournalLine.SetRange("Document No.", FADepreciationBook."FA No.");
         GenJournalLine.FindFirst();
+    end;
+
+    [Test]
+    [HandlerFunctions('DepreciationCalcFAJnlConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure DecliningBalanceDeprBasisExcludesDeprPostedBeforeStartingDate()
+    var
+        FixedAsset: Record "Fixed Asset";
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FAJournalLine: Record "FA Journal Line";
+        FAJournalSetup: Record "FA Journal Setup";
+        DeprStartingDate: Date;
+        UntilDate: Date;
+        ExpectedDeprAmount: Decimal;
+    begin
+        // [FEATURE] [Depreciation] [Declining-Balance]
+        // [SCENARIO 640832] Declining-Balance depreciation basis excludes depreciation posted before the "Depreciation Starting Date".
+        Initialize();
+
+        DeprStartingDate := DMY2Date(1, 3, 2026);
+        UntilDate := DMY2Date(31, 3, 2026);
+
+        // [GIVEN] Depreciation Book without G/L integration and a related FA Journal Setup.
+        LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
+        DepreciationBook.Validate("G/L Integration - Acq. Cost", false);
+        DepreciationBook.Validate("G/L Integration - Depreciation", false);
+        DepreciationBook.Modify(true);
+        CreateFAJournalSetupForDepreciationBook(DepreciationBook.Code);
+
+        // [GIVEN] Fixed Asset using "Declining-Balance 1" 20% with "Depreciation Starting Date" = 01-03-2026.
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code);
+        FADepreciationBook.Validate("Depreciation Method", FADepreciationBook."Depreciation Method"::"Declining-Balance 1");
+        FADepreciationBook.Validate("Declining-Balance %", 20);
+        FADepreciationBook.Validate("Depreciation Ending Date", 0D);
+        FADepreciationBook.Validate("Depreciation Starting Date", DeprStartingDate);
+        FADepreciationBook.Modify(true);
+
+        // [GIVEN] Acquisition of 1270 and prior-year depreciation, plus a depreciation of 149.01 posted on 28-02-2026 (before the "Depreciation Starting Date"). Book Value = 663.79.
+        CreateAndPostFAJournalLineWithAmountAndDate(
+            FixedAsset."No.", DepreciationBook.Code, "FA Journal Line FA Posting Type"::"Acquisition Cost", 1270, DMY2Date(20, 4, 2023));
+        CreateAndPostFAJournalLineWithAmountAndDate(
+            FixedAsset."No.", DepreciationBook.Code, "FA Journal Line FA Posting Type"::Depreciation, -254, DMY2Date(19, 4, 2024));
+        CreateAndPostFAJournalLineWithAmountAndDate(
+            FixedAsset."No.", DepreciationBook.Code, "FA Journal Line FA Posting Type"::Depreciation, -203.20, DMY2Date(19, 4, 2025));
+        CreateAndPostFAJournalLineWithAmountAndDate(
+            FixedAsset."No.", DepreciationBook.Code, "FA Journal Line FA Posting Type"::Depreciation, -149.01, DMY2Date(28, 2, 2026));
+
+        // [WHEN] Calculate Depreciation until 31-03-2026.
+        RunCalculateDepreciationWithDate(FixedAsset."No.", DepreciationBook.Code, UntilDate);
+
+        // [THEN] Depreciation is based on the 663.79 book value at the "Depreciation Starting Date" (not the 812.80 book value at the beginning of the calendar year): -(20% * 30/360 * 663.79) = -11.06.
+        ExpectedDeprAmount := -Round(0.2 * 30 / 360 * 663.79);
+        FAJournalSetup.Get(DepreciationBook.Code, '');
+        FAJournalLine.SetRange("Journal Template Name", FAJournalSetup."FA Jnl. Template Name");
+        FAJournalLine.SetRange("Journal Batch Name", FAJournalSetup."FA Jnl. Batch Name");
+        FAJournalLine.SetRange("FA Posting Type", FAJournalLine."FA Posting Type"::Depreciation);
+        FAJournalLine.SetRange("FA No.", FixedAsset."No.");
+        FAJournalLine.FindFirst();
+        Assert.AreEqual(
+            ExpectedDeprAmount, FAJournalLine.Amount,
+            'Declining-Balance depreciation basis must exclude depreciation posted before the Depreciation Starting Date.');
     end;
 
     [Test]
@@ -3191,6 +3341,26 @@
         CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code);
     end;
 
+    local procedure CreateAndPostFAJournalLineWithAmountAndDate(FANo: Code[20]; DepreciationBookCode: Code[10]; FAPostingType: Enum "FA Journal Line FA Posting Type"; Amount: Decimal; FAPostingDate: Date)
+    var
+        FAJournalLine: Record "FA Journal Line";
+        FAJournalSetup: Record "FA Journal Setup";
+        FAJournalBatch: Record "FA Journal Batch";
+    begin
+        FAJournalSetup.Get(DepreciationBookCode, '');
+        FAJournalBatch.Get(FAJournalSetup."FA Jnl. Template Name", FAJournalSetup."FA Jnl. Batch Name");
+        LibraryFixedAsset.CreateFAJournalLine(FAJournalLine, FAJournalBatch."Journal Template Name", FAJournalBatch.Name);
+        FAJournalLine.Validate("Document No.", LibraryUtility.GenerateGUID());
+        FAJournalLine.Validate("Posting Date", FAPostingDate);
+        FAJournalLine.Validate("FA Posting Date", FAPostingDate);
+        FAJournalLine.Validate("FA Posting Type", FAPostingType);
+        FAJournalLine.Validate("FA No.", FANo);
+        FAJournalLine.Validate("Depreciation Book Code", DepreciationBookCode);
+        FAJournalLine.Validate(Amount, Amount);
+        FAJournalLine.Modify(true);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+    end;
+
     local procedure CreateFADepreciationBook(var FADepreciationBook: Record "FA Depreciation Book"; FANo: Code[20]; FAPostingGroupCode: Code[20]; DepreciationBookCode: Code[10])
     begin
         LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FANo, DepreciationBookCode);
@@ -3214,6 +3384,42 @@
         LibraryFixedAsset.CreateFAJournalSetup(FAJournalSetup, DepreciationBook.Code, '');
         UpdateFAJournalSetup(FAJournalSetup);
         UpdateFAPostingTypeSetup(DepreciationBook.Code); // NAVCZ
+    end;
+
+    local procedure CreateFAWithPostedAcquisitionCost(var FixedAsset: Record "Fixed Asset"; var DepreciationBook: Record "Depreciation Book"; AllowChangesInDeprFields: Boolean)
+    var
+        FADepreciationBook: Record "FA Depreciation Book";
+        FAJournalLine: Record "FA Journal Line";
+    begin
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateJournalSetupDepreciation(DepreciationBook);
+        DepreciationBook.Validate("Allow Changes in Depr. Fields", AllowChangesInDeprFields);
+        DepreciationBook.Modify(true);
+        CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code);
+        CreateFAJournalLine(
+          FAJournalLine, FixedAsset."No.", DepreciationBook.Code, FAJournalLine."Document Type"::" ",
+          FAJournalLine."FA Posting Type"::"Acquisition Cost");
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+    end;
+
+    local procedure SetGenJournalBatchInFAJournalSetup(DepreciationBookCode: Code[10]; GenJournalBatch: Record "Gen. Journal Batch")
+    var
+        FAJournalSetup: Record "FA Journal Setup";
+    begin
+        FAJournalSetup.Get(DepreciationBookCode, '');
+        FAJournalSetup.Validate("Gen. Jnl. Template Name", GenJournalBatch."Journal Template Name");
+        FAJournalSetup.Validate("Gen. Jnl. Batch Name", GenJournalBatch.Name);
+        FAJournalSetup.Modify(true);
+    end;
+
+    local procedure SetFAJournalBatchInFAJournalSetup(DepreciationBookCode: Code[10]; FAJournalBatch: Record "FA Journal Batch")
+    var
+        FAJournalSetup: Record "FA Journal Setup";
+    begin
+        FAJournalSetup.Get(DepreciationBookCode, '');
+        FAJournalSetup.Validate("FA Jnl. Template Name", FAJournalBatch."Journal Template Name");
+        FAJournalSetup.Validate("FA Jnl. Batch Name", FAJournalBatch.Name);
+        FAJournalSetup.Modify(true);
     end;
 
     local procedure CreateGenJournalBatch(var GenJournalBatch: Record "Gen. Journal Batch")
@@ -3654,6 +3860,20 @@
         CalculateDepreciation.SetTableView(FixedAsset);
         CalculateDepreciation.InitializeRequest(
           DepreciationBookCode, NewPostingDate, false, 0, NewPostingDate, No, FixedAsset.Description, BalAccount);
+        CalculateDepreciation.UseRequestPage(false);
+        CalculateDepreciation.Run();
+    end;
+
+    local procedure RunCalculateDepreciationWithDate(No: Code[20]; DepreciationBookCode: Code[10]; UntilDate: Date)
+    var
+        FixedAsset: Record "Fixed Asset";
+        CalculateDepreciation: Report "Calculate Depreciation";
+    begin
+        Clear(CalculateDepreciation);
+        FixedAsset.SetRange("No.", No);
+        CalculateDepreciation.SetTableView(FixedAsset);
+        CalculateDepreciation.InitializeRequest(
+          DepreciationBookCode, UntilDate, false, 0, UntilDate, No, FixedAsset.Description, false);
         CalculateDepreciation.UseRequestPage(false);
         CalculateDepreciation.Run();
     end;
@@ -4500,6 +4720,13 @@
     procedure DepreciationCalcConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Assert.ExpectedMessage(CompletionStatsGenJnlQst, Question);
+        Reply := false;
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure DepreciationCalcFAJnlConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
         Reply := false;
     end;
 

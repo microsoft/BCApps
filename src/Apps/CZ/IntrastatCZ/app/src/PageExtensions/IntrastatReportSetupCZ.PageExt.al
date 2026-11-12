@@ -8,6 +8,14 @@ pageextension 31342 "Intrastat Report Setup CZ" extends "Intrastat Report Setup"
 {
     layout
     {
+        addafter("Def. Country Code for Item Tr.")
+        {
+            field("Get Ctry/Reg. of Origin CZ"; Rec."Get Ctry/Reg. of Origin CZ")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies whether to get the item''s country/region of origin information from the item card or posted entries.';
+            }
+        }
         addafter("Default Trans. Type - Returns")
         {
             field("Def. Phys. Trans. - Returns CZ"; Rec."Def. Phys. Trans. - Returns CZ")

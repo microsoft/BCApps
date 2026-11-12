@@ -202,13 +202,7 @@ table 288 "Vendor Bank Account"
                 MailManagement.ValidateEmailAddressField("E-Mail");
             end;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(23; "Home Page"; Text[255])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Home Page';
             ToolTip = 'Specifies the bank web site.';
@@ -536,8 +530,11 @@ table 288 "Vendor Bank Account"
         DomesticIBAN := CHMgt.IsDomesticIBAN(IBAN);
 
         // Payment Type 2.2
+        // When the Clearing No. field is left blank, the bank clearing number is derived from the domestic IBAN,
+        // but only when no SWIFT Code is provided so SWIFT-routed accounts still classify as Payment Type 3/4.
         if ("Payment Form" = "Payment Form"::"Bank Payment Domestic") and
-           ("Clearing No." <> '') and DomesticCurrency and DomesticIBAN and
+           (("Clearing No." <> '') or (("SWIFT Code" = '') and (CHMgt.GetClearingNoFromIBAN(IBAN) <> ''))) and
+           DomesticCurrency and DomesticIBAN and
            (IBAN <> '')
         then begin
             PaymentType := DummyPaymentExportData."Swiss Payment Type"::"2.2";

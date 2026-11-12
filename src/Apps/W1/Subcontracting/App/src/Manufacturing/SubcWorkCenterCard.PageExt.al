@@ -5,8 +5,9 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Document;
 
-pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
+pageextension 20506 "Subc. Work Center Card" extends "Work Center Card"
 {
     layout
     {
@@ -14,7 +15,8 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
         {
             trigger OnAfterValidate()
             begin
-                CurrPage.Update(false);
+                CurrPage.Update();
+                SubcNotificationMgmt.ShowMissingSubcontractingLocationNotification(Rec."Subcontractor No.");
             end;
         }
     }
@@ -48,17 +50,29 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
                     RunPageLink = "Work Center No." = field("No.");
                     ToolTip = 'View the Subcontracting WIP Entries that track work-in-progress quantities at this work center''s subcontracting location.';
                 }
+                action("Subcontractor Dispatch List")
+                {
+                    ApplicationArea = Subcontracting;
+                    Caption = 'Subcontractor - Dispatch List';
+                    Enabled = IsSubcontractingWorkCenter;
+                    Image = Print;
+                    ToolTip = 'Print the dispatching list for the subcontractor assigned to this work center.';
+
+                    trigger OnAction()
+                    var
+                        PurchaseHeader: Record "Purchase Header";
+                    begin
+                        PurchaseHeader.SetRange("Buy-from Vendor No.", Rec."Subcontractor No.");
+                        Report.Run(Report::"Subc. Dispatching List", true, false, PurchaseHeader);
+                    end;
+                }
             }
-        }
-        modify("Subcontractor - Dispatch List")
-        {
-            Enabled = IsSubcontractingWorkCenter;
         }
     }
 
     trigger OnOpenPage()
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
 #pragma warning restore AL0432
@@ -67,7 +81,7 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
 
     trigger OnAfterGetCurrRecord()
     begin
-#if not CLEAN29
+#if not CLEAN28
         if not SubcontractingEnabled then
             exit;
 
@@ -76,7 +90,8 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
     end;
 
     var
-#if not CLEAN29
+        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432

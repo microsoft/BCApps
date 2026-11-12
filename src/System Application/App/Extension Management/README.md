@@ -10,3 +10,11 @@ Use this module to do the following:
 - Enable or disable http client requests
 - Retrieve an extension's logo
 
+The Extension Settings card supports editing extension settings and the same
+per-extension lifecycle actions as Extension Management, including Uninstall.
+New and Delete are not available because creating or deleting a settings record
+does not install or uninstall an extension.
+
+Marketplace installation skips an already-installed app before opening the wizard.
+The installation page also checks installed state when reopened after a session
+refresh, so returning from post-install setup does not restart installation.

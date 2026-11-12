@@ -12,6 +12,7 @@ report 303 "Vendor Register"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor Register';
+    ToolTip = 'View vendor ledger entries that have been posted in connection with a general ledger register. The entries are divided into, and sorted according to, G/L registers. By using a filter, you can select exactly the entries in the registers that you need to see. The report can be used to document the contents of the various registers for internal or external audits.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
@@ -188,6 +189,7 @@ report 303 "Vendor Register"
                 trigger OnPreDataItem()
                 begin
                     SetRange("Entry No.", "G/L Register"."From Entry No.", "G/L Register"."To Entry No.");
+                    SetFilter("G/L Register No.", '0|%1', "G/L Register"."No.");
                     ClearAmounts();
                 end;
             }

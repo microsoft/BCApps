@@ -7,9 +7,9 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
 
-codeunit 99001544 "Subc. Transfer Line Ext."
+codeunit 20544 "Subc. Transfer Line Ext."
 {
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -19,7 +19,7 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterGetTransHeader, '', false, false)]
     local procedure OnAfterGetTransHeader(var TransferLine: Record "Transfer Line"; TransferHeader: Record "Transfer Header")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -28,12 +28,28 @@ codeunit 99001544 "Subc. Transfer Line Ext."
         TransferLine."Subc. Return Order" := TransferHeader."Subc. Return Order";
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnBeforeCheckItemAvailable, '', false, false)]
+    local procedure OnBeforeCheckItemAvailable(var TransferLine: Record "Transfer Line"; CalledByFieldNo: Integer; CurrentFieldNo: Integer; var IsHandled: Boolean)
+    begin
+        if TransferLine.IsTemporary() then
+            exit;
+
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if TransferLine."Transfer WIP Item" then
+            IsHandled := true;
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteEvent(var Rec: Record "Transfer Line"; RunTrigger: Boolean)
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -53,7 +69,7 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -76,7 +92,7 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -99,7 +115,7 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -120,7 +136,7 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnValidateItemNoOnCopyFromTempTransLine, '', false, false)]
     local procedure OnValidateItemNoOnCopyFromTempTransLine_TransferLine(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -132,7 +148,7 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnValidateUnitofMeasureCodeOnBeforeValidateQuantity, '', false, false)]
     local procedure OnValidateUnitofMeasureCodeOnBeforeValidateQuantity(var TransferLine: Record "Transfer Line"; Item: Record Item; xTransferLine: Record "Transfer Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -154,5 +170,6 @@ codeunit 99001544 "Subc. Transfer Line Ext."
         TransferLine."Subc. Work Center No." := TempTransferLine."Subc. Work Center No.";
         TransferLine."Subc. Operation No." := TempTransferLine."Subc. Operation No.";
         TransferLine."Subc. Return Order" := TempTransferLine."Subc. Return Order";
+        TransferLine."Transfer WIP Item" := TempTransferLine."Transfer WIP Item";
     end;
 }

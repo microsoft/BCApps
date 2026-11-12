@@ -18,6 +18,7 @@ report 113 "Customer/Item Sales"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Customer/Item Sales';
+    ToolTip = 'View a list of item sales for each customer during a selected time period. The report contains information on quantity, sales amount, profit, and possible discounts. It can be used, for example, to analyze a company''s customer groups.';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;

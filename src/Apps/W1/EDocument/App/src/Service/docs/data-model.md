@@ -4,10 +4,32 @@ This describes the service configuration data model. For the full cross-module d
 
 ## Service configuration and type bridge
 
+*Updated: 2026-07-29 -- Added service-owned import v2 and draft-format configuration.*
+
 The `E-Document Service` table (6103) is the configuration hub. The `E-Doc. Service Supported Type` table (6122) creates an N:M bridge between services and the `E-Document Type` enum, with a composite primary key of `(E-Document Service Code, Source Document Type)`. This means a single service can handle Sales Invoices, Purchase Invoices, and Credit Memos, while the same document type can be handled by multiple services.
+
+The service also owns the default inbound import strategy. `Import Process` now initializes to Version 2.0 for new services, `Automatic Import Processing` decides whether the v2 pipeline continues automatically or stops for review, and `Read into Draft Impl.` is the service-level Draft Format used to read structured content into a draft when the integration or structuring step has not selected a reader.
 
 ```mermaid
 erDiagram
+    E-Document-Service {
+        Code Code PK
+        Enum Document_Format
+        Enum Service_Integration_V2
+        Enum Import_Process
+        Enum Automatic_Import_Processing
+        Enum Read_into_Draft_Impl
+    }
+    E-Doc-Service-Supported-Type {
+        Code E-Document_Service_Code PK
+        Enum Source_Document_Type PK
+    }
+    Service-Participant {
+        Code Service PK
+        Enum Participant_Type PK
+        Code Participant PK
+        Text Participant_Identifier
+    }
     E-Document-Service ||--o{ E-Doc-Service-Supported-Type : "accepts document types"
     E-Document-Service ||--o{ E-Document-Service-Status : "tracks per-document state"
     E-Document-Service ||--o{ Service-Participant : "has participants"
@@ -36,7 +58,11 @@ The batch and import jobs use separate scheduling configurations: batch jobs hav
 
 ## Design decisions and gotchas
 
+*Updated: 2026-07-29 -- Clarified why import reader selection belongs to the service record.*
+
 - The `Service Integration` field (v1) is being replaced by `Service Integration V2`. The old field is pending removal (CLEAN26/29 tags). During the transition, both fields may coexist, and code paths check both. The v2 field uses the `Service Integration` enum which implements `IConsentManager` for privacy consent.
+
+- The import version and Draft Format live on the service rather than on the connector. This lets the same integration receive different structured payloads while the service record tells the v2 import pipeline which `E-Doc. Read into Draft` implementation should consume the structured data.
 
 - The supported type bridge table has `ReplicateData = false`, meaning it is not replicated across environments. This is intentional -- service configurations are environment-specific.
 

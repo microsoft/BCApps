@@ -22,7 +22,10 @@ codeunit 139544 "Trial Balance Excel Reports"
     var
         LibraryERM: Codeunit "Library - ERM";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
+        LibraryRandom: Codeunit "Library - Random";
         Assert: Codeunit Assert;
+        CombinationNotExportedErr: Label 'Combination %1 should be exported.', Comment = '%1 = account and dimension combination', Locked = true;
+        UnexpectedNetChangeErr: Label 'Unexpected net change for combination %1.', Comment = '%1 = account and dimension combination', Locked = true;
 
     [Test]
     [HandlerFunctions('EXRTrialBalanceExcelHandler')]
@@ -233,6 +236,129 @@ codeunit 139544 "Trial Balance Excel Reports"
         LibraryReportDataset.FindCurrentRowValue('Dim2Code', Variant);
         ReportValue := Variant;
         Assert.AreEqual(DimensionValue.Code, ReportValue, 'The exported dimension should be the dimension in the GLEntry');
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRTrialBalanceByPeriodHideZeroValuesHandler')]
+    procedure TrialBalanceByPeriodDoesntExportZeroValueDimensionCombinations()
+    var
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [SCENARIO] Trial Balance by Period only exports dimension combinations with values.
+        Initialize();
+        CreateTrialBalanceByPeriodDataWithUnusedDimensions();
+        Commit();
+
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Trial Bal by Period Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Trial Bal by Period Excel", Variant, RequestPageXml);
+
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="EXRTrialBalanceBuffer"]');
+        Assert.AreEqual(8, LibraryReportDataset.RowCount(), 'Only dimension combinations with values should be exported');
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRTrialBalanceByPeriodIncludeZeroValuesHandler')]
+    procedure TrialBalanceByPeriodExportsZeroValueDimensionCombinationsWhenRequested()
+    var
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [SCENARIO] Trial Balance by Period exports zero-value dimension combinations when requested.
+        Initialize();
+        CreateTrialBalanceByPeriodDataWithUnusedDimensions();
+        Commit();
+
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Trial Bal by Period Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Trial Bal by Period Excel", Variant, RequestPageXml);
+
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="EXRTrialBalanceBuffer"]');
+        Assert.AreEqual(18, LibraryReportDataset.RowCount(), 'All dimension combinations should be exported');
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRTrialBalanceByPeriodTwoPeriodsHandler')]
+    procedure TrialBalanceByPeriodAggregatesNetChangePerDimensionCombination()
+    var
+        PostingGLAccount: Record "G/L Account";
+        TotalGLAccount: Record "G/L Account";
+        Dimension1: Record Dimension;
+        Dimension2: Record Dimension;
+        DimensionValueA1: Record "Dimension Value";
+        DimensionValueA2: Record "Dimension Value";
+        DimensionValueB1: Record "Dimension Value";
+        DimensionValueB2: Record "Dimension Value";
+        NetChangePerCombination: Dictionary of [Text, Decimal];
+        Variant: Variant;
+        RequestPageXml: Text;
+        SecondPeriodStart: Date;
+    begin
+        // [SCENARIO] Trial Balance by Period calculates the net change per account and period for the total, each global dimension value and each combination
+        Initialize();
+        // [GIVEN] A posting account and an End-Total account totaling it
+        CreateGLAccount(PostingGLAccount);
+        CreateGLAccount(TotalGLAccount, Enum::"G/L Account Type"::"End-Total", PostingGLAccount."No.");
+        // [GIVEN] Global dimension 1 values A1, A2 and global dimension 2 values B1, B2
+        CreateGlobalDimensionValue(Dimension1, DimensionValueA1, 1);
+        CreateGlobalDimensionValue(Dimension1, DimensionValueA2, 1);
+        CreateGlobalDimensionValue(Dimension2, DimensionValueB1, 2);
+        CreateGlobalDimensionValue(Dimension2, DimensionValueB2, 2);
+        // [GIVEN] First period entries (A1, B1, 100), (A1, B2, -30), (A2, B1, 50) and (blank, B2, 7)
+        CreateGLEntryWithAmount(PostingGLAccount."No.", DimensionValueA1.Code, DimensionValueB1.Code, '', WorkDate(), 100);
+        CreateGLEntryWithAmount(PostingGLAccount."No.", DimensionValueA1.Code, DimensionValueB2.Code, '', WorkDate(), -30);
+        CreateGLEntryWithAmount(PostingGLAccount."No.", DimensionValueA2.Code, DimensionValueB1.Code, '', WorkDate(), 50);
+        CreateGLEntryWithAmount(PostingGLAccount."No.", '', DimensionValueB2.Code, '', WorkDate(), 7);
+        // [GIVEN] Second period entry (A2, B2, 20)
+        SecondPeriodStart := CalcDate('<1M>', WorkDate());
+        CreateGLEntryWithAmount(PostingGLAccount."No.", DimensionValueA2.Code, DimensionValueB2.Code, '', SecondPeriodStart, 20);
+        Commit();
+
+        // [WHEN] Running the report for WorkDate..WorkDate+1M+1D with period length 1M hiding zero lines
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Trial Bal by Period Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Trial Bal by Period Excel", Variant, RequestPageXml);
+        CollectNetChangePerCombination(NetChangePerCombination);
+
+        // [THEN] Both the posting and the total account show the same net change per period and dimension combination
+        VerifyNetChangePerCombination(NetChangePerCombination, PostingGLAccount."No.", SecondPeriodStart, DimensionValueA1.Code, DimensionValueA2.Code, DimensionValueB1.Code, DimensionValueB2.Code);
+        VerifyNetChangePerCombination(NetChangePerCombination, TotalGLAccount."No.", SecondPeriodStart, DimensionValueA1.Code, DimensionValueA2.Code, DimensionValueB1.Code, DimensionValueB2.Code);
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRTrialBalanceByPeriodVATReportingDateFilterHandler')]
+    procedure TrialBalanceByPeriodUsesVATReportingDateUpperLimitForBalance()
+    var
+        GLAccount: Record "G/L Account";
+        Dimension1: Record Dimension;
+        DimensionValueA1: Record "Dimension Value";
+        NetChangePerCombination: Dictionary of [Text, Decimal];
+        Variant: Variant;
+        RequestPageXml: Text;
+        SecondPeriodStart: Date;
+    begin
+        // [SCENARIO] With a VAT Reporting Date Filter, net change uses the whole filter while the balance (which decides
+        // whether a line is hidden) uses only its upper limit, like the "Net Change" and "Balance at Date" flowfields.
+        Initialize();
+        CreateGLAccount(GLAccount);
+        CreateGlobalDimensionValue(Dimension1, DimensionValueA1, 1);
+        // [GIVEN] An entry (A1, 100) with a VAT reporting date before the lower bound of the VAT Reporting Date Filter
+        CreateGLEntryWithVATReportingDate(GLAccount."No.", DimensionValueA1.Code, WorkDate(), WorkDate() - 1, 100);
+        // [GIVEN] An entry (blank, 40) with a VAT reporting date within the filter
+        CreateGLEntryWithVATReportingDate(GLAccount."No.", '', WorkDate(), WorkDate(), 40);
+        Commit();
+
+        // [WHEN] Running the report with VAT Reporting Date Filter WorkDate..WorkDate+1Y hiding zero lines
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Trial Bal by Period Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Trial Bal by Period Excel", Variant, RequestPageXml);
+        CollectNetChangePerCombination(NetChangePerCombination);
+
+        // [THEN] Net change only includes the entry within the VAT Reporting Date Filter
+        // The report adds a trailing period that starts after it ends, it repeats the balance with zero net change.
+        SecondPeriodStart := CalcDate('<1M>', WorkDate());
+        VerifyNetChangeForCombination(NetChangePerCombination, GLAccount."No.", WorkDate(), '', '', 40);
+        VerifyNetChangeForCombination(NetChangePerCombination, GLAccount."No.", SecondPeriodStart, '', '', 0);
+        // [THEN] The A1 line is exported in both periods with zero net change, because its balance includes the entry before the lower bound
+        VerifyNetChangeForCombination(NetChangePerCombination, GLAccount."No.", WorkDate(), DimensionValueA1.Code, '', 0);
+        VerifyNetChangeForCombination(NetChangePerCombination, GLAccount."No.", SecondPeriodStart, DimensionValueA1.Code, '', 0);
     end;
 
     [Test]
@@ -789,6 +915,267 @@ codeunit 139544 "Trial Balance Excel Reports"
         Assert.AreEqual(PriorYearActivity + ClosingAmount + CurrentYearActivity, TempTrialBalanceData.Balance, 'Balance should equal Starting Balance + Net Change');
     end;
 
+    [Test]
+    procedure QueryPathRespectsGlobalDimension1Filter()
+    var
+        GLAccount: Record "G/L Account";
+        Dimension: Record Dimension;
+        DimensionValue1, DimensionValue2 : Record "Dimension Value";
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        PostingAccount: Code[20];
+        MatchingAmount, OtherAmount : Decimal;
+    begin
+        // [FEATURE] [Trial Balance] [Dimensions] [AI test 0.4]
+        // [SCENARIO 647661] The query path only returns data for entries matching the Global Dimension 1 Filter.
+        // [GIVEN] A posting account with entries under two different Global Dimension 1 values
+        Initialize();
+        CreateGLAccount(GLAccount);
+        PostingAccount := GLAccount."No.";
+        MatchingAmount := LibraryRandom.RandDecInRange(100, 10000, 2);
+        OtherAmount := LibraryRandom.RandDecInRange(100, 10000, 2);
+        CreateGlobalDimensionValue(Dimension, DimensionValue1, 1);
+        CreateGlobalDimensionValue(Dimension, DimensionValue2, 1);
+        CreateGLEntryWithAmount(PostingAccount, DimensionValue1.Code, '', '', WorkDate(), MatchingAmount);
+        CreateGLEntryWithAmount(PostingAccount, DimensionValue2.Code, '', '', WorkDate(), OtherAmount);
+
+        // [WHEN] Running the query-based trial balance filtered on the first Global Dimension 1 value
+        ApplyCurrentYearFilter(GLAccount, PostingAccount);
+        GLAccount.SetFilter("Global Dimension 1 Filter", DimensionValue1.Code);
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+
+        // [THEN] Only the combination matching the Global Dimension 1 Filter is returned
+        Assert.AreEqual(1, TempTrialBalanceData.Count(), 'Only the filtered Global Dimension 1 combination should be in the buffer');
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(DimensionValue1.Code, TempTrialBalanceData."Dimension 1 Code", 'The filtered dimension value should be the one returned');
+        Assert.AreEqual(MatchingAmount, TempTrialBalanceData.Balance, 'Balance should match only the filtered dimension entry');
+    end;
+
+    [Test]
+    procedure QueryPathRespectsGlobalDimension2Filter()
+    var
+        GLAccount: Record "G/L Account";
+        Dimension: Record Dimension;
+        DimensionValue1, DimensionValue2 : Record "Dimension Value";
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        PostingAccount: Code[20];
+        MatchingAmount, OtherAmount : Decimal;
+    begin
+        // [FEATURE] [Trial Balance] [Dimensions] [AI test 0.4]
+        // [SCENARIO 647661] The query path only returns data for entries matching the Global Dimension 2 Filter.
+        // [GIVEN] A posting account with entries under two different Global Dimension 2 values
+        Initialize();
+        CreateGLAccount(GLAccount);
+        PostingAccount := GLAccount."No.";
+        MatchingAmount := LibraryRandom.RandDecInRange(100, 10000, 2);
+        OtherAmount := LibraryRandom.RandDecInRange(100, 10000, 2);
+        CreateGlobalDimensionValue(Dimension, DimensionValue1, 2);
+        CreateGlobalDimensionValue(Dimension, DimensionValue2, 2);
+        CreateGLEntryWithAmount(PostingAccount, '', DimensionValue1.Code, '', WorkDate(), MatchingAmount);
+        CreateGLEntryWithAmount(PostingAccount, '', DimensionValue2.Code, '', WorkDate(), OtherAmount);
+
+        // [WHEN] Running the query-based trial balance filtered on the first Global Dimension 2 value
+        ApplyCurrentYearFilter(GLAccount, PostingAccount);
+        GLAccount.SetFilter("Global Dimension 2 Filter", DimensionValue1.Code);
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+
+        // [THEN] Only the combination matching the Global Dimension 2 Filter is returned
+        Assert.AreEqual(1, TempTrialBalanceData.Count(), 'Only the filtered Global Dimension 2 combination should be in the buffer');
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(DimensionValue1.Code, TempTrialBalanceData."Dimension 2 Code", 'The filtered dimension value should be the one returned');
+        Assert.AreEqual(MatchingAmount, TempTrialBalanceData.Balance, 'Balance should match only the filtered dimension entry');
+    end;
+
+    [Test]
+    procedure QueryPathRespectsCombinedDim1AndDim2Filters()
+    var
+        GLAccount: Record "G/L Account";
+        Dimension1, Dimension2 : Record Dimension;
+        Dim1ValueA, Dim1ValueB, Dim2ValueA, Dim2ValueB : Record "Dimension Value";
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        PostingAccount: Code[20];
+        MatchingAmount, OtherAmount1, OtherAmount2 : Decimal;
+    begin
+        // [FEATURE] [Trial Balance] [Dimensions] [AI test 0.4]
+        // [SCENARIO 647661] The query path applies both the Global Dimension 1 and Global Dimension 2 filters together.
+        // [GIVEN] A posting account with entries across several Dim1/Dim2 combinations
+        Initialize();
+        CreateGLAccount(GLAccount);
+        PostingAccount := GLAccount."No.";
+        MatchingAmount := LibraryRandom.RandDecInRange(100, 10000, 2);
+        OtherAmount1 := LibraryRandom.RandDecInRange(100, 10000, 2);
+        OtherAmount2 := LibraryRandom.RandDecInRange(100, 10000, 2);
+        CreateGlobalDimensionValue(Dimension1, Dim1ValueA, 1);
+        CreateGlobalDimensionValue(Dimension1, Dim1ValueB, 1);
+        CreateGlobalDimensionValue(Dimension2, Dim2ValueA, 2);
+        CreateGlobalDimensionValue(Dimension2, Dim2ValueB, 2);
+        CreateGLEntryWithAmount(PostingAccount, Dim1ValueA.Code, Dim2ValueA.Code, '', WorkDate(), MatchingAmount);
+        CreateGLEntryWithAmount(PostingAccount, Dim1ValueA.Code, Dim2ValueB.Code, '', WorkDate(), OtherAmount1);
+        CreateGLEntryWithAmount(PostingAccount, Dim1ValueB.Code, Dim2ValueA.Code, '', WorkDate(), OtherAmount2);
+
+        // [WHEN] Running the query-based trial balance filtered on Dim1=A and Dim2=A
+        ApplyCurrentYearFilter(GLAccount, PostingAccount);
+        GLAccount.SetFilter("Global Dimension 1 Filter", Dim1ValueA.Code);
+        GLAccount.SetFilter("Global Dimension 2 Filter", Dim2ValueA.Code);
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+
+        // [THEN] Only the single intersecting combination is returned
+        Assert.AreEqual(1, TempTrialBalanceData.Count(), 'Only the combination matching both dimension filters should be in the buffer');
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(Dim1ValueA.Code, TempTrialBalanceData."Dimension 1 Code", 'Dimension 1 should be the filtered value');
+        Assert.AreEqual(Dim2ValueA.Code, TempTrialBalanceData."Dimension 2 Code", 'Dimension 2 should be the filtered value');
+        Assert.AreEqual(MatchingAmount, TempTrialBalanceData.Balance, 'Balance should match only the intersecting combination');
+    end;
+
+    [Test]
+    procedure QueryPathDimensionFilterAppliesToStartingBalance()
+    var
+        GLAccount: Record "G/L Account";
+        Dimension: Record Dimension;
+        DimensionValue1, DimensionValue2 : Record "Dimension Value";
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        PostingAccount: Code[20];
+        OpeningAmount, InPeriodAmount, OtherDimOpening : Decimal;
+        PriorYear: Integer;
+    begin
+        // [FEATURE] [Trial Balance] [Dimensions] [AI test 0.4]
+        // [SCENARIO 647661] The Global Dimension 1 filter constrains the Starting Balance too, not only the Net Change.
+        // [GIVEN] A posting account with opening (prior-year) and in-period entries under two Global Dimension 1 values
+        Initialize();
+        CreateGLAccount(GLAccount);
+        PostingAccount := GLAccount."No.";
+        PriorYear := Date2DMY(WorkDate(), 3) - 1;
+        OpeningAmount := LibraryRandom.RandDecInRange(1000, 10000, 2);
+        InPeriodAmount := LibraryRandom.RandDecInRange(100, 1000, 2);
+        OtherDimOpening := LibraryRandom.RandDecInRange(100, 1000, 2);
+        CreateGlobalDimensionValue(Dimension, DimensionValue1, 1);
+        CreateGlobalDimensionValue(Dimension, DimensionValue2, 1);
+        CreateGLEntryWithAmount(PostingAccount, DimensionValue1.Code, '', '', DMY2Date(15, 6, PriorYear), OpeningAmount);
+        CreateGLEntryWithAmount(PostingAccount, DimensionValue2.Code, '', '', DMY2Date(15, 6, PriorYear), OtherDimOpening);
+        CreateGLEntryWithAmount(PostingAccount, DimensionValue1.Code, '', '', DMY2Date(15, 6, Date2DMY(WorkDate(), 3)), InPeriodAmount);
+
+        // [WHEN] Running the query-based trial balance filtered on the first Global Dimension 1 value
+        ApplyCurrentYearFilter(GLAccount, PostingAccount);
+        GLAccount.SetFilter("Global Dimension 1 Filter", DimensionValue1.Code);
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+
+        // [THEN] Only the filtered dimension is present, and its Starting Balance excludes the other dimension's opening
+        Assert.AreEqual(1, TempTrialBalanceData.Count(), 'Only the filtered dimension combination should be in the buffer');
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(DimensionValue1.Code, TempTrialBalanceData."Dimension 1 Code", 'The filtered dimension value should be the one returned');
+        Assert.AreEqual(OpeningAmount, TempTrialBalanceData."Starting Balance", 'Starting Balance should only include the filtered dimension opening');
+        Assert.AreEqual(InPeriodAmount, TempTrialBalanceData."Net Change", 'Net Change should only include the filtered dimension activity');
+        Assert.AreEqual(OpeningAmount + InPeriodAmount, TempTrialBalanceData.Balance, 'Balance should equal Starting Balance + Net Change for the filtered dimension');
+    end;
+
+    [Test]
+    procedure QueryPathDimensionFilterSupportsFilterExpression()
+    var
+        GLAccount: Record "G/L Account";
+        Dimension: Record Dimension;
+        DimensionValue1, DimensionValue2, DimensionValue3 : Record "Dimension Value";
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        PostingAccount: Code[20];
+        ListedAmount1, ListedAmount2, UnlistedAmount : Decimal;
+    begin
+        // [FEATURE] [Trial Balance] [Dimensions] [AI test 0.4]
+        // [SCENARIO 647661] The Global Dimension 1 filter accepts a filter expression (value list) and returns the union.
+        // [GIVEN] A posting account with entries under three different Global Dimension 1 values
+        Initialize();
+        CreateGLAccount(GLAccount);
+        PostingAccount := GLAccount."No.";
+        ListedAmount1 := LibraryRandom.RandDecInRange(100, 10000, 2);
+        ListedAmount2 := LibraryRandom.RandDecInRange(100, 10000, 2);
+        UnlistedAmount := LibraryRandom.RandDecInRange(100, 10000, 2);
+        CreateGlobalDimensionValue(Dimension, DimensionValue1, 1);
+        CreateGlobalDimensionValue(Dimension, DimensionValue2, 1);
+        CreateGlobalDimensionValue(Dimension, DimensionValue3, 1);
+        CreateGLEntryWithAmount(PostingAccount, DimensionValue1.Code, '', '', WorkDate(), ListedAmount1);
+        CreateGLEntryWithAmount(PostingAccount, DimensionValue2.Code, '', '', WorkDate(), ListedAmount2);
+        CreateGLEntryWithAmount(PostingAccount, DimensionValue3.Code, '', '', WorkDate(), UnlistedAmount);
+
+        // [WHEN] Running the query-based trial balance filtered on a list of two dimension values
+        ApplyCurrentYearFilter(GLAccount, PostingAccount);
+        GLAccount.SetFilter("Global Dimension 1 Filter", '%1|%2', DimensionValue1.Code, DimensionValue2.Code);
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+
+        // [THEN] Only the two listed dimension combinations are returned, the third is excluded
+        Assert.AreEqual(2, TempTrialBalanceData.Count(), 'Only the two listed dimension combinations should be in the buffer');
+        TempTrialBalanceData.SetRange("Dimension 1 Code", DimensionValue1.Code);
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(ListedAmount1, TempTrialBalanceData.Balance, 'First listed dimension balance should match');
+        TempTrialBalanceData.SetRange("Dimension 1 Code", DimensionValue2.Code);
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(ListedAmount2, TempTrialBalanceData.Balance, 'Second listed dimension balance should match');
+        TempTrialBalanceData.SetRange("Dimension 1 Code", DimensionValue3.Code);
+        Assert.IsTrue(TempTrialBalanceData.IsEmpty(), 'The unlisted dimension should be excluded');
+    end;
+
+    [Test]
+    procedure ConsolidatedQueryPathRespectsDimensionFilters()
+    var
+        GLAccount: Record "G/L Account";
+        BusinessUnit1, BusinessUnit2 : Record "Business Unit";
+        Dimension: Record Dimension;
+        DimensionValue1, DimensionValue2 : Record "Dimension Value";
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        PostingAccount: Code[20];
+        AmountBU1, AmountBU2, OtherDimAmount : Decimal;
+    begin
+        // [FEATURE] [Trial Balance] [Dimensions] [Consolidation] [AI test 0.4]
+        // [SCENARIO 647661] The consolidated (Business Unit) query path also honors the Global Dimension filters.
+        // [GIVEN] A posting account with entries for two Business Units across two Global Dimension 1 values
+        Initialize();
+        CreateGLAccount(GLAccount);
+        PostingAccount := GLAccount."No.";
+        LibraryERM.CreateBusinessUnit(BusinessUnit1);
+        LibraryERM.CreateBusinessUnit(BusinessUnit2);
+        CreateGlobalDimensionValue(Dimension, DimensionValue1, 1);
+        CreateGlobalDimensionValue(Dimension, DimensionValue2, 1);
+        AmountBU1 := LibraryRandom.RandDecInRange(100, 10000, 2);
+        AmountBU2 := LibraryRandom.RandDecInRange(100, 10000, 2);
+        OtherDimAmount := LibraryRandom.RandDecInRange(100, 10000, 2);
+        CreateGLEntryWithAmount(PostingAccount, DimensionValue1.Code, '', BusinessUnit1.Code, WorkDate(), AmountBU1);
+        CreateGLEntryWithAmount(PostingAccount, DimensionValue2.Code, '', BusinessUnit1.Code, WorkDate(), OtherDimAmount);
+        CreateGLEntryWithAmount(PostingAccount, DimensionValue1.Code, '', BusinessUnit2.Code, WorkDate(), AmountBU2);
+
+        // [WHEN] Running the consolidated trial balance filtered on the first Global Dimension 1 value
+        ApplyCurrentYearFilter(GLAccount, PostingAccount);
+        GLAccount.SetFilter("Global Dimension 1 Filter", DimensionValue1.Code);
+        TrialBalance.ConfigureTrialBalance(true, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+
+        // [THEN] Only the filtered dimension is returned, split per Business Unit
+        TempTrialBalanceData.SetRange("G/L Account No.", PostingAccount);
+        Assert.AreEqual(2, TempTrialBalanceData.Count(), 'Only the filtered dimension should remain, one row per Business Unit');
+
+        TempTrialBalanceData.SetRange("Business Unit Code", BusinessUnit1.Code);
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(DimensionValue1.Code, TempTrialBalanceData."Dimension 1 Code", 'BU1 row should be the filtered dimension');
+        Assert.AreEqual(AmountBU1, TempTrialBalanceData.Balance, 'BU1 balance should match only the filtered dimension entry');
+
+        TempTrialBalanceData.SetRange("Business Unit Code", BusinessUnit2.Code);
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(DimensionValue1.Code, TempTrialBalanceData."Dimension 1 Code", 'BU2 row should be the filtered dimension');
+        Assert.AreEqual(AmountBU2, TempTrialBalanceData.Balance, 'BU2 balance should match only the filtered dimension entry');
+    end;
+
     local procedure CreateSampleBusinessUnits(HowMany: Integer)
     var
         BusinessUnit: Record "Business Unit";
@@ -896,9 +1283,137 @@ codeunit 139544 "Trial Balance Excel Reports"
         DimensionValue.Modify();
     end;
 
+    local procedure CreateTrialBalanceByPeriodDataWithUnusedDimensions()
+    var
+        GLAccount: Record "G/L Account";
+        Dimension1: Record Dimension;
+        Dimension2: Record Dimension;
+        DimensionValue1: Record "Dimension Value";
+        DimensionValue2: Record "Dimension Value";
+    begin
+        CreateGLAccount(GLAccount);
+        LibraryERM.CreateDimension(Dimension1);
+        LibraryERM.CreateDimensionValue(DimensionValue1, Dimension1.Code);
+        DimensionValue1."Global Dimension No." := 1;
+        DimensionValue1.Modify();
+        LibraryERM.CreateDimensionValue(DimensionValue1, Dimension1.Code);
+        DimensionValue1."Global Dimension No." := 1;
+        DimensionValue1.Modify();
+        LibraryERM.CreateDimension(Dimension2);
+        LibraryERM.CreateDimensionValue(DimensionValue2, Dimension2.Code);
+        DimensionValue2."Global Dimension No." := 2;
+        DimensionValue2.Modify();
+        LibraryERM.CreateDimensionValue(DimensionValue2, Dimension2.Code);
+        DimensionValue2."Global Dimension No." := 2;
+        DimensionValue2.Modify();
+        CreateGLEntryWithAmount(GLAccount."No.", DimensionValue1.Code, DimensionValue2.Code, '', WorkDate(), 100);
+    end;
+
+    local procedure CollectNetChangePerCombination(var NetChangePerCombination: Dictionary of [Text, Decimal])
+    var
+        Variant: Variant;
+        AccountNo, Dimension1Code, Dimension2Code, PeriodStart : Text;
+        NetChange: Decimal;
+    begin
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="EXRTrialBalanceBuffer"]');
+        while LibraryReportDataset.GetNextRow() do begin
+            LibraryReportDataset.FindCurrentRowValue('Account', Variant);
+            AccountNo := Format(Variant);
+            LibraryReportDataset.FindCurrentRowValue('PeriodStart', Variant);
+            PeriodStart := Format(EvaluateDatasetDate(Format(Variant)), 0, 9);
+            LibraryReportDataset.FindCurrentRowValue('Dimension1Code', Variant);
+            Dimension1Code := Format(Variant);
+            LibraryReportDataset.FindCurrentRowValue('Dimension2Code', Variant);
+            Dimension2Code := Format(Variant);
+            LibraryReportDataset.FindCurrentRowValue('NetChange', Variant);
+            NetChange := EvaluateDatasetDecimal(Format(Variant));
+            NetChangePerCombination.Add(GetCombinationKey(AccountNo, PeriodStart, Dimension1Code, Dimension2Code), NetChange);
+        end;
+    end;
+
+    // The XML dataset may contain values in XML format or in the session's regional format, so both are accepted.
+    local procedure EvaluateDatasetDate(Value: Text) Result: Date
+    begin
+        if Evaluate(Result, CopyStr(Value, 1, 10), 9) then
+            exit(Result);
+        Evaluate(Result, Value);
+    end;
+
+    local procedure EvaluateDatasetDecimal(Value: Text) Result: Decimal
+    begin
+        if Value = '' then
+            exit(0);
+        if Evaluate(Result, Value, 9) then
+            exit(Result);
+        Evaluate(Result, Value);
+    end;
+
+    local procedure VerifyNetChangePerCombination(var NetChangePerCombination: Dictionary of [Text, Decimal]; AccountNo: Code[20]; SecondPeriodStart: Date; DimensionA1Code: Code[20]; DimensionA2Code: Code[20]; DimensionB1Code: Code[20]; DimensionB2Code: Code[20])
+    begin
+        // First period
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), '', '', 127);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), DimensionA1Code, '', 70);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), DimensionA2Code, '', 50);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), DimensionA1Code, DimensionB1Code, 100);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), DimensionA1Code, DimensionB2Code, -30);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), DimensionA2Code, DimensionB1Code, 50);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), '', DimensionB1Code, 150);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, WorkDate(), '', DimensionB2Code, -23);
+        Assert.IsFalse(
+            NetChangePerCombination.ContainsKey(GetCombinationKey(AccountNo, Format(WorkDate(), 0, 9), DimensionA2Code, DimensionB2Code)),
+            'Combinations without entries or balance should not be exported');
+        // Second period: only the (A2, B2) entry is net change, combinations with a balance are exported with zero net change
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, '', '', 20);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, DimensionA2Code, '', 20);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, DimensionA2Code, DimensionB2Code, 20);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, '', DimensionB2Code, 20);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, DimensionA1Code, '', 0);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, DimensionA1Code, DimensionB1Code, 0);
+        VerifyNetChangeForCombination(NetChangePerCombination, AccountNo, SecondPeriodStart, '', DimensionB1Code, 0);
+    end;
+
+    local procedure VerifyNetChangeForCombination(var NetChangePerCombination: Dictionary of [Text, Decimal]; AccountNo: Text; PeriodStart: Date; Dimension1Code: Text; Dimension2Code: Text; ExpectedNetChange: Decimal)
+    var
+        CombinationKey: Text;
+    begin
+        CombinationKey := GetCombinationKey(AccountNo, Format(PeriodStart, 0, 9), Dimension1Code, Dimension2Code);
+        Assert.IsTrue(NetChangePerCombination.ContainsKey(CombinationKey), StrSubstNo(CombinationNotExportedErr, CombinationKey));
+        Assert.AreEqual(ExpectedNetChange, NetChangePerCombination.Get(CombinationKey), StrSubstNo(UnexpectedNetChangeErr, CombinationKey));
+    end;
+
+    local procedure GetCombinationKey(AccountNo: Text; PeriodStart: Text; Dimension1Code: Text; Dimension2Code: Text): Text
+    begin
+        exit(AccountNo + '|' + PeriodStart + '|' + Dimension1Code + '|' + Dimension2Code);
+    end;
+
+    local procedure CreateGLEntryWithVATReportingDate(GLAccountNo: Code[20]; Dim1Code: Code[20]; PostingDate: Date; VATReportingDate: Date; Amount: Decimal)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        CreateGLEntryWithAmount(GLAccountNo, Dim1Code, '', '', PostingDate, Amount);
+        GLEntry.FindLast();
+        GLEntry."VAT Reporting Date" := VATReportingDate;
+        GLEntry.Modify();
+    end;
+
     local procedure CreateGLEntry(GLAccountNo: Code[20]; DimensionValue2Code: Code[20])
     begin
         CreateGLEntryWithAmount(GLAccountNo, '', DimensionValue2Code, '', WorkDate(), 1337);
+    end;
+
+    local procedure CreateGlobalDimensionValue(var Dimension: Record Dimension; var DimensionValue: Record "Dimension Value"; GlobalDimensionNo: Integer)
+    begin
+        if Dimension.Code = '' then
+            LibraryERM.CreateDimension(Dimension);
+        LibraryERM.CreateDimensionValue(DimensionValue, Dimension.Code);
+        DimensionValue."Global Dimension No." := GlobalDimensionNo;
+        DimensionValue.Modify();
+    end;
+
+    local procedure ApplyCurrentYearFilter(var GLAccount: Record "G/L Account"; PostingAccount: Code[20])
+    begin
+        GLAccount.SetRange("No.", PostingAccount);
+        GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
     end;
 
     local procedure CreateGLEntryWithAmount(GLAccountNo: Code[20]; Dim1Code: Code[20]; Dim2Code: Code[20]; BusinessUnitCode: Code[20]; PostingDate: Date; Amount: Decimal)
@@ -935,6 +1450,39 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [RequestPageHandler]
+    procedure EXRTrialBalanceByPeriodHideZeroValuesHandler(var EXRTrialBalanceByPeriodExcel: TestRequestPage "EXR Trial Bal by Period Excel")
+    begin
+        EXRTrialBalanceByPeriodExcel.TrialBalanceByPeriod.SetFilter("Date Filter", Format(WorkDate()));
+        EXRTrialBalanceByPeriodExcel.HideLinesWithZeroValuesField.SetValue(true);
+        EXRTrialBalanceByPeriodExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRTrialBalanceByPeriodTwoPeriodsHandler(var EXRTrialBalanceByPeriodExcel: TestRequestPage "EXR Trial Bal by Period Excel")
+    begin
+        EXRTrialBalanceByPeriodExcel.TrialBalanceByPeriod.SetFilter("Date Filter", Format(WorkDate()) + '..' + Format(CalcDate('<1M+1D>', WorkDate())));
+        EXRTrialBalanceByPeriodExcel.HideLinesWithZeroValuesField.SetValue(true);
+        EXRTrialBalanceByPeriodExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRTrialBalanceByPeriodVATReportingDateFilterHandler(var EXRTrialBalanceByPeriodExcel: TestRequestPage "EXR Trial Bal by Period Excel")
+    begin
+        EXRTrialBalanceByPeriodExcel.TrialBalanceByPeriod.SetFilter("Date Filter", Format(WorkDate()));
+        EXRTrialBalanceByPeriodExcel.TrialBalanceByPeriod.SetFilter("VAT Reporting Date Filter", Format(WorkDate()) + '..' + Format(CalcDate('<1Y>', WorkDate())));
+        EXRTrialBalanceByPeriodExcel.HideLinesWithZeroValuesField.SetValue(true);
+        EXRTrialBalanceByPeriodExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRTrialBalanceByPeriodIncludeZeroValuesHandler(var EXRTrialBalanceByPeriodExcel: TestRequestPage "EXR Trial Bal by Period Excel")
+    begin
+        EXRTrialBalanceByPeriodExcel.TrialBalanceByPeriod.SetFilter("Date Filter", Format(WorkDate()));
+        EXRTrialBalanceByPeriodExcel.HideLinesWithZeroValuesField.SetValue(false);
+        EXRTrialBalanceByPeriodExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
     procedure EXRTrialBalanceHideNoActivityHandler(var EXRTrialBalanceExcel: TestRequestPage "EXR Trial Balance Excel")
     begin
         EXRTrialBalanceExcel.GLAccounts.SetFilter("Date Filter", Format(DMY2Date(1, 1, Date2DMY(WorkDate(), 3))) + '..' + Format(DMY2Date(31, 12, Date2DMY(WorkDate(), 3))));
@@ -956,14 +1504,5 @@ codeunit 139544 "Trial Balance Excel Reports"
         EXRConsolidatedTrialBalance.OK().Invoke();
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0432
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Trial Balance", OnIsPerformantTrialBalanceFeatureActive, '', false, false)]
-    local procedure OnIsPerformantTrialBalanceFeatureActive(var Active: Boolean)
-    begin
-        Active := true;
-    end;
-#pragma warning restore AL0432
-#endif
 
 }

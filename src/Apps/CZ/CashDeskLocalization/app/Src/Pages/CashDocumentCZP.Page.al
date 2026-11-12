@@ -314,25 +314,6 @@ page 31160 "Cash Document CZP"
             {
                 Caption = 'Cash Document';
                 Image = Document;
-#if not CLEAN27
-                action(Statistics)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Statistics';
-                    Image = Statistics;
-                    ShortCutKey = 'F7';
-                    RunPageMode = View;
-                    ToolTip = 'View the statistics on the selected cash document.';
-                    ObsoleteReason = 'The statistics action will be replaced with the CashDocumentStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-
-                    trigger OnAction()
-                    begin
-                        CurrPage.CashDocLines.Page.ShowStatistics();
-                    end;
-                }
-#endif
                 action(CashDocumentStatistics)
                 {
                     ApplicationArea = Basic, Suite;
@@ -340,11 +321,7 @@ page 31160 "Cash Document CZP"
                     Image = Statistics;
                     ShortCutKey = 'F7';
                     ToolTip = 'View the statistics on the selected cash document.';
-#if CLEAN27
                     Visible = true;
-#else
-                    Visible = false;
-#endif
                     RunObject = Page "Cash Doc. Statistics CZP";
                     RunPageLink = "Cash Desk No." = field("Cash Desk No."), "No." = field("No.");
                 }
@@ -540,7 +517,7 @@ page 31160 "Cash Document CZP"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Release and Send';
                     Image = SendConfirmation;
-                    Enabled = (Rec."Document Type" = Rec."Document Type"::Receipt) and (Rec.Status = Rec.Status::Released);
+                    Enabled = Rec."Document Type" = Rec."Document Type"::Receipt;
                     Ellipsis = true;
                     ToolTip = 'Release and prepare to send the document according to the customer''s sending profile, such as attachment to an email. The Send document to window opens first so you can confirm or select a sending profile.';
 
@@ -631,7 +608,7 @@ page 31160 "Cash Document CZP"
                     Caption = 'Post and Send';
                     Ellipsis = true;
                     Image = PostSendTo;
-                    Enabled = (Rec."Document Type" = Rec."Document Type"::Receipt) and (Rec.Status = Rec.Status::Released);
+                    Enabled = Rec."Document Type" = Rec."Document Type"::Receipt;
                     ToolTip = 'Finalize and prepare to send the document according to the customer''s sending profile, such as attachment to an email. The Send document to window opens first so you can confirm or select a sending profile.';
 
                     trigger OnAction()

@@ -5,14 +5,8 @@
 
 namespace Microsoft.Finance.ExcelReports;
 
-#if not CLEAN27
-using Microsoft.Finance.Consolidation;
-#endif
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
-#if not CLEAN27
-using System.Environment.Configuration;
-#endif
 
 codeunit 4410 "Trial Balance"
 {
@@ -38,162 +32,18 @@ codeunit 4410 "Trial Balance"
     begin
         if GLAccount.IsEmpty() then
             exit;
-#if not CLEAN27
-        if IsPerformantTrialBalanceFeatureActive() then
-            InsertTrialBalanceReportDataFromQueries(GLAccount, Dimension1Values, Dimension2Values, TrialBalanceData)
-        else
-            InsertTrialBalanceReportDataLooping(GLAccount, Dimension1Values, Dimension2Values, TrialBalanceData);
-#else
         InsertTrialBalanceReportDataFromQueries(GLAccount, Dimension1Values, Dimension2Values, TrialBalanceData);
-#endif
     end;
 
-#if not CLEAN27
-    local procedure IsPerformantTrialBalanceFeatureActive() Active: Boolean
-    var
-        FeatureManagementFacade: Codeunit "Feature Management Facade";
-    begin
-#pragma warning disable AL0432
-        OnIsPerformantTrialBalanceFeatureActive(Active);
-#pragma warning restore AL0432
-        if Active then
-            exit(Active);
-        exit(FeatureManagementFacade.IsEnabled('EXRPerformantTrialBalance'));
-    end;
-#endif
 
     #region Looping approach - to be removed
-#if not CLEAN27
-    local procedure InsertTrialBalanceReportDataLooping(var GLAccount: Record "G/L Account"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer")
-    var
-        DimensionValue: Record "Dimension Value";
-        BusinessUnitFilters, Dimension1Filters, Dimension2Filters : List of [Code[20]];
-    begin
-        DimensionValue.SetRange("Global Dimension No.", 1);
-        InsertDimensionFiltersFromDimensionValues(DimensionValue, Dimension1Filters);
-        DimensionValue.SetRange("Global Dimension No.", 2);
-        InsertDimensionFiltersFromDimensionValues(DimensionValue, Dimension2Filters);
-        if GlobalBreakdownByBusinessUnit then
-            InsertBusinessUnitFilters(BusinessUnitFilters);
-
-        Clear(TrialBalanceData);
-        TrialBalanceData.DeleteAll();
-        repeat
-            InsertBreakdownForGLAccount(GLAccount, Dimension1Filters, Dimension2Filters, BusinessUnitFilters, TrialBalanceData, Dimension1Values, Dimension2Values);
-        until GLAccount.Next() = 0;
-    end;
-
-    local procedure InsertBusinessUnitFilters(var BusinessUnitFilters: List of [Code[20]])
-    var
-        BusinessUnit: Record "Business Unit";
-    begin
-        BusinessUnitFilters.Add('');
-        if not BusinessUnit.FindSet() then
-            exit;
-        repeat
-            BusinessUnitFilters.Add(BusinessUnit.Code);
-        until BusinessUnit.Next() = 0;
-    end;
-
-    local procedure InsertDimensionFiltersFromDimensionValues(var DimensionValue: Record "Dimension Value"; var DimensionFilters: List of [Code[20]])
-    var
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-#pragma warning disable AL0432
-        OnBeforeInsertDimensionFiltersFromDimensionValues(DimensionValue, DimensionFilters, IsHandled);
-#pragma warning restore AL0432
-        if IsHandled then
-            exit;
-        DimensionFilters.Add('');
-        if not DimensionValue.FindSet() then
-            exit;
-        repeat
-            DimensionFilters.Add(DimensionValue.Code);
-        until DimensionValue.Next() = 0;
-    end;
-
-    local procedure InsertBreakdownForGLAccount(var GLAccount: Record "G/L Account"; Dimension1Filters: List of [Code[20]]; Dimension2Filters: List of [Code[20]]; BusinessUnitCodeFilters: List of [Code[20]]; var TrialBalanceData: Record "EXR Trial Balance Buffer"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary)
-    var
-        i, j, k : Integer;
-    begin
-        for i := 1 to Dimension1Filters.Count do
-            for j := 1 to Dimension2Filters.Count do
-                if GlobalBreakdownByBusinessUnit then
-                    for k := 1 to BusinessUnitCodeFilters.Count do
-                        InsertGLAccountTotalsForFilters(Dimension1Filters.Get(i), Dimension2Filters.Get(j), BusinessUnitCodeFilters.Get(k), GLAccount, TrialBalanceData, Dimension1Values, Dimension2Values)
-                else
-                    InsertGLAccountTotalsForFilters(Dimension1Filters.Get(i), Dimension2Filters.Get(j), GLAccount, TrialBalanceData, Dimension1Values, Dimension2Values)
-    end;
-
-    local procedure InsertGLAccountTotalsForFilters(Dimension1ValueCode: Code[20]; Dimension2ValueCode: Code[20]; var GLAccount: Record "G/L Account"; var TrialBalanceData: Record "EXR Trial Balance Buffer"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary)
-    begin
-        InsertGLAccountTotalsForFilters(Dimension1ValueCode, Dimension2ValueCode, '', GLAccount, TrialBalanceData, Dimension1Values, Dimension2Values);
-    end;
-
-    local procedure InsertGLAccountTotalsForFilters(Dimension1ValueCode: Code[20]; Dimension2ValueCode: Code[20]; BusinessUnitCode: Code[20]; var GLAccount: Record "G/L Account"; var TrialBalanceData: Record "EXR Trial Balance Buffer"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary)
-    var
-        LocalGlAccount: Record "G/L Account";
-    begin
-        LocalGlAccount.Copy(GLAccount);
-        LocalGLAccount.SetFilter("Global Dimension 1 Filter", '= ''%1''', Dimension1ValueCode);
-        LocalGLAccount.SetFilter("Global Dimension 2 Filter", '= ''%1''', Dimension2ValueCode);
-        if GlobalBreakdownByBusinessUnit then
-            LocalGLAccount.SetFilter("Business Unit Filter", '= %1', BusinessUnitCode);
-        InsertTrialBalanceDataForGLAccountWithFilters(LocalGlAccount, Dimension1ValueCode, Dimension2ValueCode, BusinessUnitCode, TrialBalanceData, Dimension1Values, Dimension2Values);
-    end;
-
-    local procedure InsertTrialBalanceDataForGLAccountWithFilters(var GLAccount: Record "G/L Account"; Dimension1ValueCode: Code[20]; Dimension2ValueCode: Code[20]; BusinessUnitCode: Code[20]; var TrialBalanceData: Record "EXR Trial Balance Buffer"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary)
-    var
-        GLAccount2: Record "G/L Account";
-    begin
-        Clear(TrialBalanceData);
-        if GLAccount.GetFilter("Date Filter") <> '' then begin
-            GLAccount2.Copy(GLAccount);
-            GLAccount2.SetFilter("Date Filter", '..%1', ClosingDate(GLAccount2.GetRangeMin("Date Filter") - 1));
-            GLAccount2.CalcFields("Balance at Date", "Add.-Currency Balance at Date", "Debit Amount", "Credit Amount", "Add.-Currency Debit Amount", "Add.-Currency Credit Amount");
-            TrialBalanceData."Starting Balance" := GLAccount2."Balance at Date";
-            TrialBalanceData."Starting Balance (Debit)" := GLAccount2."Debit Amount";
-            TrialBalanceData."Starting Balance (Credit)" := GLAccount2."Credit Amount";
-            TrialBalanceData."Starting Balance (ACY)" := GLAccount2."Add.-Currency Balance at Date";
-            TrialBalanceData."Starting Balance (Debit) (ACY)" := GLAccount2."Add.-Currency Debit Amount";
-            TrialBalanceData."Starting Balance (Credit)(ACY)" := GLAccount2."Add.-Currency Credit Amount";
-        end;
-        GlAccount.CalcFields("Net Change", "Balance at Date", "Additional-Currency Net Change", "Add.-Currency Balance at Date", "Budgeted Amount", "Budget at Date", "Debit Amount", "Credit Amount", "Add.-Currency Debit Amount", "Add.-Currency Credit Amount");
-        TrialBalanceData."G/L Account No." := GlAccount."No.";
-        TrialBalanceData."Dimension 1 Code" := Dimension1ValueCode;
-        TrialBalanceData."Dimension 2 Code" := Dimension2ValueCode;
-        TrialBalanceData."Business Unit Code" := BusinessUnitCode;
-        TrialBalanceData."Net Change" := GLAccount."Net Change";
-        TrialBalanceData."Net Change (Debit)" := GLAccount."Debit Amount";
-        TrialBalanceData."Net Change (Credit)" := GLAccount."Credit Amount";
-        TrialBalanceData.Balance := GLAccount."Balance at Date";
-        TrialBalanceData."Balance (Debit)" := TrialBalanceData."Starting Balance (Debit)" + TrialBalanceData."Net Change (Debit)";
-        TrialBalanceData."Balance (Credit)" := TrialBalanceData."Starting Balance (Credit)" + TrialBalanceData."Net Change (Credit)";
-        TrialBalanceData."Net Change (ACY)" := GLAccount."Additional-Currency Net Change";
-        TrialBalanceData."Net Change (Debit) (ACY)" := GLAccount."Add.-Currency Debit Amount";
-        TrialBalanceData."Net Change (Credit) (ACY)" := GLAccount."Add.-Currency Credit Amount";
-        TrialBalanceData."Balance (ACY)" := GLAccount."Add.-Currency Balance at Date";
-        TrialBalanceData."Balance (Debit) (ACY)" := TrialBalanceData."Starting Balance (Debit) (ACY)" + TrialBalanceData."Net Change (Debit) (ACY)";
-        TrialBalanceData."Balance (Credit) (ACY)" := TrialBalanceData."Starting Balance (Credit)(ACY)" + TrialBalanceData."Net Change (Credit) (ACY)";
-        TrialBalanceData.Validate("Budget (Net)", GLAccount."Budgeted Amount");
-        TrialBalanceData.Validate("Budget (Bal. at Date)", GLAccount."Budget at Date");
-        TrialBalanceData.CalculateBudgetComparisons();
-        TrialBalanceData.CheckAllZero();
-        if not TrialBalanceData."All Zero" then begin
-            TrialBalanceData.Insert(true);
-            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
-            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
-        end;
-    end;
-#endif
     #endregion
     #region Query-based approach
     local procedure InsertTrialBalanceReportDataFromQueries(var GLAccount: Record "G/L Account"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer")
     var
         TempTotalsBuffer: Record "EXR Trial Balance Buffer" temporary;
         AccountToTotals: Dictionary of [Code[20], List of [Code[20]]];
-        AccountNoFilter: Text;
+        AccountNoFilter, Dimension1Filter, Dimension2Filter : Text;
         StartDate, EndDate : Date;
     begin
         Session.LogMessage('0000PYC', 'Running query-based trial balance', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'Excel Reports');
@@ -202,11 +52,13 @@ codeunit 4410 "Trial Balance"
         // the trial balance returns starting balance, net change, and ending balance with regard to such dates
         GetRangeDatesForGLAccountFilter(GLAccount.GetFilter("Date Filter"), StartDate, EndDate);
         AccountNoFilter := GLAccount.GetFilter("No.");
+        Dimension1Filter := GLAccount.GetFilter("Global Dimension 1 Filter");
+        Dimension2Filter := GLAccount.GetFilter("Global Dimension 2 Filter");
 
         if GlobalBreakdownByBusinessUnit then
-            InsertTrialBalanceFromBUQuery(Dimension1Values, Dimension2Values, TrialBalanceData, StartDate, EndDate, AccountNoFilter)
+            InsertTrialBalanceFromBUQuery(Dimension1Values, Dimension2Values, TrialBalanceData, StartDate, EndDate, AccountNoFilter, Dimension1Filter, Dimension2Filter)
         else
-            InsertTrialBalanceFromQuery(Dimension1Values, Dimension2Values, TrialBalanceData, StartDate, EndDate, AccountNoFilter);
+            InsertTrialBalanceFromQuery(Dimension1Values, Dimension2Values, TrialBalanceData, StartDate, EndDate, AccountNoFilter, Dimension1Filter, Dimension2Filter);
 
         if GlobalIncludeBudgetData then
             InsertBudgetDataFromQuery(GLAccount, TrialBalanceData, StartDate, EndDate);
@@ -219,13 +71,17 @@ codeunit 4410 "Trial Balance"
         MergeTotalsIntoBuffer(TempTotalsBuffer, TrialBalanceData);
     end;
 
-    local procedure InsertTrialBalanceFromQuery(var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer"; StartDate: Date; EndDate: Date; AccountNoFilter: Text)
+    local procedure InsertTrialBalanceFromQuery(var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer"; StartDate: Date; EndDate: Date; AccountNoFilter: Text; Dimension1Filter: Text; Dimension2Filter: Text)
     var
         EXRTrialBalanceQuery: Query "EXR Trial Balance";
     begin
         // We first get the balances at the ending date
         if AccountNoFilter <> '' then
             EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.AccountNo, AccountNoFilter);
+        if Dimension1Filter <> '' then
+            EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.DimensionValue1Code, Dimension1Filter);
+        if Dimension2Filter <> '' then
+            EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.DimensionValue2Code, Dimension2Filter);
         EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.PostingDate, '..%1', EndDate);
         EXRTrialBalanceQuery.Open();
         while EXRTrialBalanceQuery.Read() do begin
@@ -290,13 +146,17 @@ codeunit 4410 "Trial Balance"
         end;
     end;
 
-    local procedure InsertTrialBalanceFromBUQuery(var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer"; StartDate: Date; EndDate: Date; AccountNoFilter: Text)
+    local procedure InsertTrialBalanceFromBUQuery(var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer"; StartDate: Date; EndDate: Date; AccountNoFilter: Text; Dimension1Filter: Text; Dimension2Filter: Text)
     var
         EXRTrialBalanceBUQuery: Query "EXR Trial Balance BU";
     begin
         // We first get the balances at the ending date
         if AccountNoFilter <> '' then
             EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.AccountNo, AccountNoFilter);
+        if Dimension1Filter <> '' then
+            EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.DimensionValue1Code, Dimension1Filter);
+        if Dimension2Filter <> '' then
+            EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.DimensionValue2Code, Dimension2Filter);
         EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.PostingDate, '..%1', EndDate);
         EXRTrialBalanceBUQuery.Open();
         while EXRTrialBalanceBUQuery.Read() do begin
@@ -551,17 +411,4 @@ codeunit 4410 "Trial Balance"
     end;
     #endregion
 
-#if not CLEAN27
-    [IntegrationEvent(true, false)]
-    [Obsolete('This event is no longer called in the query based retrieval of the trial balance. ', '28.0')]
-    local procedure OnBeforeInsertDimensionFiltersFromDimensionValues(var DimensionValue: Record "Dimension Value"; var DimensionFilters: List of [Code[20]]; var IsHandled: Boolean)
-    begin
-    end;
-
-    [Obsolete('This event is temporary to try the functionality before it''s officially released as a feature in feature management.', '27.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnIsPerformantTrialBalanceFeatureActive(var Active: Boolean)
-    begin
-    end;
-#endif
 }

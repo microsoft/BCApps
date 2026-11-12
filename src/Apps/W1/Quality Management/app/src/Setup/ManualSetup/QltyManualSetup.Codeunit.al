@@ -52,6 +52,10 @@ codeunit 20400 "Qlty. Manual Setup"
         QualityManagementSetupDescriptionTxt: Label 'Set up how and when inspections are created. Manage when to show inspections, set up test generation rules, such as for production scenarios or inventory and warehouse inspections.';
         QualityManagementSetupKeywordsTxt: Label 'Quality Management Setup';
 
+    /// <summary>
+    /// Registers the Quality Management manual setup entries.
+    /// </summary>
+    /// <param name="Sender">The guided experience codeunit used to register the entries.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", 'OnRegisterManualSetup', '', false, false)]
     local procedure InsertQualityManagementManualSetupOnRegisterManualSetup(var Sender: Codeunit "Guided Experience")
     var

@@ -1615,7 +1615,6 @@ page 88 "Job Card"
                 Caption = 'Project Actual to Budget';
                 Image = "Report";
                 RunObject = Report "Job Actual To Budget";
-                ToolTip = 'Compare budgeted and usage amounts for selected projects. All lines of the selected project show quantity, total cost, and line amount.';
             }
             action("Job Analysis")
             {
@@ -1623,7 +1622,6 @@ page 88 "Job Card"
                 Caption = 'Project Analysis';
                 Image = "Report";
                 RunObject = Report "Job Analysis";
-                ToolTip = 'Analyze the project, such as the budgeted prices, usage prices, and billable prices, and then compares the three sets of prices.';
             }
             action("Job - Planning Lines")
             {
@@ -1631,7 +1629,6 @@ page 88 "Job Card"
                 Caption = 'Project - Planning Lines';
                 Image = "Report";
                 RunObject = Report "Job - Planning Lines";
-                ToolTip = 'View all planning lines for the project. You use this window to plan what items, resources, and general ledger expenses that you expect to use on a project (budget) or you can specify what you actually agreed with your customer that he should pay for the project (billable).';
             }
             action("Job - Suggested Billing")
             {
@@ -1639,7 +1636,6 @@ page 88 "Job Card"
                 Caption = 'Project - Suggested Billing';
                 Image = "Report";
                 RunObject = Report "Job Suggested Billing";
-                ToolTip = 'View a list of all projects, grouped by customer, how much the customer has already been invoiced, and how much remains to be invoiced, that is, the suggested billing.';
             }
             action("Report Job Quote")
             {
@@ -1918,8 +1914,8 @@ page 88 "Job Card"
 
         WarehouseActivityLine.Reset();
         WarehouseActivityLine.SetCurrentKey("Source Type", "Source Subtype", "Source No.", "Source Line No.", "Source Subline No.", "Unit of Measure Code", "Action Type", "Breakbulk No.", "Original Breakbulk");
-        WarehouseActivityLine.SetRange("Source Type", Database::Job);
-        WarehouseActivityLine.SetRange("Source Subtype", 0);
+        WarehouseActivityLine.SetFilter("Source Type", '%1|%2', Database::Job, Database::"Job Planning Line");
+        WarehouseActivityLine.SetFilter("Source Subtype", '%1|%2', 0, "Job Planning Line Status"::Order.AsInteger());
         WarehouseActivityLine.SetRange("Source No.", Rec."No.");
         if WarehouseActivityLine.FindSet() then
             repeat

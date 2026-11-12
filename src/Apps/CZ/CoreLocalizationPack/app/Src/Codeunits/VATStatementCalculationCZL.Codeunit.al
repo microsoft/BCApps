@@ -15,6 +15,7 @@ codeunit 11723 "VAT Statement Calculation CZL"
     var
         TempVATStatementLineBuffer: Record "VAT Statement Line" temporary;
         GlobalVATStatement: Report "VAT Statement";
+        VATStatementCalcEventsCZL: Codeunit "VAT Statement Calc. Events CZL";
         BufferingMode: Boolean;
         CircularRefErr: Label 'Formula cannot be calculated due to circular references.';
         DivideByZeroErr: Label 'Dividing by zero is not possible.';
@@ -167,7 +168,7 @@ codeunit 11723 "VAT Statement Calculation CZL"
         if VATStatementLine."VAT Prod. Posting Group" <> '' then
             GLEntry.SetRange("VAT Prod. Posting Group", VATStatementLine."VAT Prod. Posting Group");
         GLEntry.SetRange("VAT Reporting Date", VATStmtCalcParametersCZL."Start Date", VATStmtCalcParametersCZL."End Date");
-        OnRunGeneralLedgerEntriesOnAfterSetGLEntryFilters(GLEntry, VATStatementLine, VATStmtCalcParametersCZL);
+        VATStatementCalcEventsCZL.OnRunGeneralLedgerEntriesOnAfterSetGLEntryFilters(GLEntry, VATStatementLine, VATStmtCalcParametersCZL);
         Page.Run(Page::"General Ledger Entries", GLEntry);
     end;
 
@@ -190,7 +191,7 @@ codeunit 11723 "VAT Statement Calculation CZL"
                 VATEntry.SetCurrentKey(
                   Type, Closed, "Tax Jurisdiction Code", "Use Tax", "Posting Date");
             VATEntry.SetVATStmtCalcFilters(VATStatementLine, VATStmtCalcParametersCZL);
-            OnRunVATEntriesOnAfterSetVATEntryFilters(VATEntry, VATStatementLine, VATStmtCalcParametersCZL);
+            VATStatementCalcEventsCZL.OnRunVATEntriesOnAfterSetVATEntryFilters(VATEntry, VATStatementLine, VATStmtCalcParametersCZL);
 #if not CLEAN28
             VATStatementPreviewLineCZL.RaiseOnBeforeOpenPageVATEntryTotaling(VATEntry, VATStatementLine);
 #endif
@@ -219,7 +220,7 @@ codeunit 11723 "VAT Statement Calculation CZL"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnHandleAnotherLineType(VATStatementLine, VATStmtCalcParametersCZL, IsHandled);
+        VATStatementCalcEventsCZL.OnHandleAnotherLineType(VATStatementLine, VATStmtCalcParametersCZL, IsHandled);
 #if not CLEAN28
         VATStatementPreviewLineCZL.RaiseOnColumnValueDrillDownVATStatementLineTypeCase(VATStatementLine, IsHandled);
 #endif
@@ -380,20 +381,5 @@ codeunit 11723 "VAT Statement Calculation CZL"
         Amount := Amount * VATStatementLine.GetCalculateSign();
         if VATStmtCalcParametersCZL."Print in Integers" and VATStatementLine.Print then
             Amount := Round(Amount, 1, VATStmtCalcParametersCZL.GetRoundingDirection());
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnRunGeneralLedgerEntriesOnAfterSetGLEntryFilters(var GLEntry: Record "G/L Entry"; VATStatementLine: Record "VAT Statement Line"; VATStmtCalcParametersCZL: Record "VAT Stmt. Calc. Parameters CZL")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnRunVATEntriesOnAfterSetVATEntryFilters(var VATEntry: Record "VAT Entry"; VATStatementLine: Record "VAT Statement Line"; VATStmtCalcParametersCZL: Record "VAT Stmt. Calc. Parameters CZL")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnHandleAnotherLineType(VATStatementLine: Record "VAT Statement Line"; VATStmtCalcParametersCZL: Record "VAT Stmt. Calc. Parameters CZL"; var IsHandled: Boolean)
-    begin
     end;
 }

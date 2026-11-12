@@ -13,6 +13,7 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Projects.Project.Job;
+using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Project.Setup;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.ADCS;
@@ -160,13 +161,7 @@ table 14 Location
                 MailManagement.ValidateEmailAddressField("E-Mail");
             end;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(5719; "Home Page"; Text[255])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Home Page';
             ToolTip = 'Specifies the location''s web site.';
@@ -681,8 +676,10 @@ table 14 Location
 
             trigger OnValidate()
             begin
-                if Rec."Job Consump. Whse. Handling" <> xRec."Job Consump. Whse. Handling" then
+                if Rec."Job Consump. Whse. Handling" <> xRec."Job Consump. Whse. Handling" then begin
                     CheckInventoryActivityExists(Rec.Code, Database::Job, Rec.FieldCaption("Job Consump. Whse. Handling"));
+                    CheckInventoryActivityExists(Rec.Code, Database::"Job Planning Line", Rec.FieldCaption("Job Consump. Whse. Handling"));
+                end;
             end;
         }
         field(7600; "Base Calendar Code"; Code[10])

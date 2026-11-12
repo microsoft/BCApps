@@ -63,7 +63,7 @@ codeunit 18694 "TDS Tax Configuration"
         UseCases.Add('{B0C259BC-64CC-4818-887A-3337D357CDFF}', 2);
         UseCases.Add('{33BFBE99-9140-4112-A55B-35EC0D9B61B9}', 7);
         UseCases.Add('{271D5BC6-17E8-424E-9E34-3BEE548F938F}', 1);
-        UseCases.Add('{A8E114BF-F8CD-44DB-A2B3-614BC18F4442}', 34);
+        UseCases.Add('{A8E114BF-F8CD-44DB-A2B3-614BC18F4442}', 35);
         UseCases.Add('{6FBA1A5C-41A0-4430-976E-6B54E4884164}', 1);
         UseCases.Add('{FEE5DFFF-0BC1-4246-AD90-6CB3DC44A451}', 2);
         UseCases.Add('{FA0E357D-1AC0-42AA-94DE-6DACA521D38E}', 2);
@@ -87,7 +87,7 @@ codeunit 18694 "TDS Tax Configuration"
         UseCases.Add('{08737F79-35F1-4670-BD1D-E41764E3A9DE}', 1);
         UseCases.Add('{f8bf58d9-7681-458d-9dfc-71ea23a9f853}', 4);
         UseCases.Add('{1abe2c56-9700-4a30-a14a-5e8ecc2f32dd}', 2);
-        UseCases.Add('{b8a33720-278b-45b4-8465-2d9fa273d813}', 5);
+        UseCases.Add('{b8a33720-278b-45b4-8465-2d9fa273d813}', 6);
         UseCases.Add('{3EFD6FE9-72B2-427F-A254-C36E7CA61D6D}', 1);
         UseCases.Add('{5F2E69B7-0288-468A-83C8-D6A2AF993782}', 2);
         UseCases.Add('{430D7BC2-7F79-4B77-A16C-63C758DA1FD0}', 1);

@@ -563,7 +563,6 @@ page 1002 "Job Task Lines"
                 Caption = 'Project Actual to Budget';
                 Image = "Report";
                 RunObject = Report "Job Actual To Budget";
-                ToolTip = 'Compare budgeted and usage amounts for selected projects. All lines of the selected project show quantity, total cost, and line amount.';
             }
             action("Job Analysis")
             {
@@ -571,7 +570,6 @@ page 1002 "Job Task Lines"
                 Caption = 'Project Analysis';
                 Image = "Report";
                 RunObject = Report "Job Analysis";
-                ToolTip = 'Analyze the project, such as the budgeted prices, usage prices, and billable prices, and then compares the three sets of prices.';
             }
             action("Job - Planning Lines")
             {
@@ -579,7 +577,6 @@ page 1002 "Job Task Lines"
                 Caption = 'Project - Planning Lines';
                 Image = "Report";
                 RunObject = Report "Job - Planning Lines";
-                ToolTip = 'View all planning lines for the project. You use this window to plan what items, resources, and general ledger expenses that you expect to use on a project (budget) or you can specify what you actually agreed with your customer that he should pay for the project (billable).';
             }
             action("Job - Suggested Billing")
             {
@@ -587,7 +584,6 @@ page 1002 "Job Task Lines"
                 Caption = 'Project - Suggested Billing';
                 Image = "Report";
                 RunObject = Report "Job Suggested Billing";
-                ToolTip = 'View a list of all projects, grouped by customer, how much the customer has already been invoiced, and how much remains to be invoiced, that is, the suggested billing.';
             }
             action("Jobs - Transaction Detail")
             {
@@ -597,7 +593,6 @@ page 1002 "Job Task Lines"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Job - Transaction Detail";
-                ToolTip = 'View all postings with entries for a selected project for a selected period, which have been charged to a certain project. At the end of each project list, the amounts are totaled separately for the Sales and Usage entry types.';
             }
         }
         area(Promoted)

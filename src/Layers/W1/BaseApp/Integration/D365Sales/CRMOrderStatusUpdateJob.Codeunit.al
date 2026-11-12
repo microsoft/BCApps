@@ -58,6 +58,7 @@ codeunit 5352 "CRM Order Status Update Job"
     begin
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::Dataverse);
         IntegrationTableMapping.SetRange("Table ID", DATABASE::"Sales Header");
+        OnUpdateSalesOrdersOnBeforeFindIntegrationTableMapping(IntegrationTableMapping);
         if IntegrationTableMapping.FindFirst() then
             IntegrationTableSynch.BeginIntegrationSynchJob(TABLECONNECTIONTYPE::CRM, IntegrationTableMapping, DATABASE::"Sales Header")
         else
@@ -257,6 +258,11 @@ codeunit 5352 "CRM Order Status Update Job"
     begin
         if CRMPostBuffer.Get(TempCRMPostBuffer.ID) then
             CRMPostBuffer.Delete();
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateSalesOrdersOnBeforeFindIntegrationTableMapping(var IntegrationTableMapping: Record "Integration Table Mapping")
+    begin
     end;
 }
 

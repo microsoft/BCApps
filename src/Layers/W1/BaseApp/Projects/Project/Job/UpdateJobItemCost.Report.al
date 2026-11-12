@@ -14,6 +14,7 @@ report 1095 "Update Job Item Cost"
     AdditionalSearchTerms = 'Update Job Item Cost';
     ApplicationArea = Jobs;
     Caption = 'Update Project Item Cost';
+    ToolTip = 'Update the usage costs in the project ledger entries to match the actual costs in the item ledger entry. If adjustment value entries have a different date than the original value entry, such as when the inventory period is closed, then the project ledger is not updated.';
     Permissions = TableData "Job Ledger Entry" = rm,
                   TableData "Value Entry" = rm;
     ProcessingOnly = true;
@@ -200,9 +201,7 @@ report 1095 "Update Job Item Cost"
 
     local procedure ModifyAllValueEntries(var ToValueEntry: Record "Value Entry"; var FromValueEntry: Record "Value Entry")
     begin
-        ToValueEntry.ModifyAll("Job No.", FromValueEntry."Job No.");
-        ToValueEntry.ModifyAll("Job Task No.", FromValueEntry."Job Task No.");
-        ToValueEntry.ModifyAll("Job Ledger Entry No.", FromValueEntry."Job Ledger Entry No.");
+        ToValueEntry.ModifyAll("Job No.", FromValueEntry."Job No.", "Job Task No.", FromValueEntry."Job Task No.", "Job Ledger Entry No.", FromValueEntry."Job Ledger Entry No.");
 
         OnAfterModifyAllValueEntries(ToValueEntry, FromValueEntry);
     end;

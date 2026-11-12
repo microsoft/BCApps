@@ -113,6 +113,9 @@ codeunit 5777 "Whse. Validate Source Line"
         if NewTransLine."Unit of Measure Code" <> OldTransLine."Unit of Measure Code" then
             NewTransLine.FieldError("Unit of Measure Code", StrSubstNo(Text000, TableCaptionValue, NewTransLine.TableCaption));
 
+        if NewTransLine."Direct Transfer" <> OldTransLine."Direct Transfer" then
+            NewTransLine.FieldError("Direct Transfer", StrSubstNo(Text000, TableCaptionValue, NewTransLine.TableCaption));
+
         IsHandled := false;
         OnTransLineCommonVerificationOnBeforeQuantityCheck(OldTransLine, NewTransLine, IsHandled);
         if not IsHandled then
@@ -191,7 +194,7 @@ codeunit 5777 "Whse. Validate Source Line"
 
     procedure WhseWorkSheetLinesExistForJobOrProdOrderComponent(SourceType: Integer; SourceSubType: Option; SourceNo: Code[20]; SourceLineNo: Integer; SourceSublineNo: Integer; SourceQty: Decimal): Boolean
     begin
-        if (SourceType in [Database::Job, 5407]) then // Database::"Prod. Order Component"
+        if (SourceType in [Database::Job, Database::"Job Planning Line", 5407]) then // Database::"Prod. Order Component"
             exit(WhseWorkSheetLinesExist(SourceType, SourceSubType, SourceNo, SourceLineNo, SourceSublineNo, SourceQty));
 
         TableCaptionValue := '';
@@ -296,7 +299,7 @@ codeunit 5777 "Whse. Validate Source Line"
             if RequireInventoryPicking(JobJournalLine) then begin
                 if JobJournalLine."Job Planning Line No." <> 0 then
                     WarehouseActivityLine.SetRange("Source Subline No.", JobJournalLine."Job Planning Line No.");
-                WarehouseActivityLine.SetRange("Source Type", Database::Job);
+                WarehouseActivityLine.SetFilter("Source Type", '%1|%2', Database::Job, Database::"Job Planning Line");
                 WarehouseActivityLine.SetRange("Source No.", JobJournalLine."Job No.");
                 exit(not WarehouseActivityLine.IsEmpty());
             end;

@@ -16,6 +16,7 @@ report 1085 "Job Post WIP to G/L"
     AdditionalSearchTerms = 'posted work in process to general ledger,posted work in progress to general ledger, Job Post WIP to G/L';
     ApplicationArea = Jobs;
     Caption = 'Project Post WIP to G/L';
+    ToolTip = 'Post to the general ledger the entries calculated for your projects.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

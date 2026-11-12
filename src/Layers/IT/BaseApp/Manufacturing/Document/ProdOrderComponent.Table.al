@@ -190,6 +190,9 @@ table 5407 "Prod. Order Component"
             begin
                 UpdateExpectedQuantity();
 
+                if IsTemporary() then
+                    exit;
+
                 ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
 
                 IsHandled := false;
@@ -230,8 +233,8 @@ table 5407 "Prod. Order Component"
                                 ProdOrderLine."Location Code");
                                 Validate("Location Code", SKU."Components at Location");
 #endif
+                            end;
                         end;
-                    end;
                 end;
                 if Format("Lead-Time Offset") <> '' then begin
                     "Due Date" :=
@@ -1286,13 +1289,46 @@ table 5407 "Prod. Order Component"
         "Completely Picked" := ("Qty. Picked" >= "Expected Quantity") and ("Expected Quantity" >= 0);
     end;
 
+    procedure IsEligibleForWarehousePick(): Boolean
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        OutputLocation: Record Location;
+    begin
+        if "Planning Level Code" = 0 then
+            exit(true);
+
+        if ("Planning Level Code" < 0) or ("Supplied-by Line No." = 0) then
+            exit(false);
+        if not ProdOrderLine.Get(Status, "Prod. Order No.", "Supplied-by Line No.") then
+            exit(false);
+        if (ProdOrderLine."Item No." <> "Item No.") or
+           (ProdOrderLine."Variant Code" <> "Variant Code") or
+           (ProdOrderLine."Location Code" <> "Location Code") or
+           (ProdOrderLine."Qty. Put Away (Base)" <= 0)
+        then
+            exit(false);
+        if not OutputLocation.Get(ProdOrderLine."Location Code") then
+            exit(false);
+        if OutputLocation."Prod. Output Whse. Handling" <> OutputLocation."Prod. Output Whse. Handling"::"Warehouse Put-away" then
+            exit(false);
+
+        // The warehouse pick engine allocates quantities and excludes outstanding put-away takes.
+        exit(true);
+    end;
+
     procedure ProdOrderNeeds(): Decimal
     var
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRtngLine: Record "Prod. Order Routing Line";
         NeededQty: Decimal;
+        IsHandled: Boolean;
     begin
-        ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
+        OnBeforeGetProdOrderNeeds(Rec, ProdOrderLine, IsHandled);
+        if IsHandled then
+            exit;
+
+        if ProdOrderLine."Prod. Order No." = '' then
+            ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
 
         if "Due Date" = 0D then begin
             "Due Date" := ProdOrderLine."Starting Date";
@@ -1373,7 +1409,10 @@ table 5407 "Prod. Order Component"
             if IsHandled then
                 exit(NeededQty);
 
-            CompQtyBase := MfgCostCalcMgt.CalcActNeededQtyBase(ProdOrderLine, Rec, OutputQtyBase);
+            IsHandled := false;
+            OnGetNeededQtyOnBeforeCalcCompQtyBase(Rec, OutputQtyBase, CompQtyBase, IsHandled);
+            if not IsHandled then
+                CompQtyBase := MfgCostCalcMgt.CalcActNeededQtyBase(ProdOrderLine, Rec, OutputQtyBase);
             OnGetNeededQtyAfterCalcCompQtyBase(Rec, CompQtyBase, OutputQtyBase);
 
             NeededQty := UOMMgt.RoundToItemRndPrecision(CompQtyBase / "Qty. per Unit of Measure", RoundingPrecision);
@@ -1390,6 +1429,7 @@ table 5407 "Prod. Order Component"
                     exit(NeededQty);
                 exit(NeededQty);
             end;
+            OnGetNeededQtyOnBeforeExitAfterPreviousPosting(Rec, CompQtyBase, NeededQty);
             exit(NeededQty);
         end;
         OnGetNeededQtyOnAfterCalcBasedOn(Rec);
@@ -1538,9 +1578,11 @@ table 5407 "Prod. Order Component"
         ProdOrderLine: Record "Prod. Order Line";
         IsHandled: Boolean;
     begin
-        IsHandled := false;
         OnBeforeCreateDim(Rec, DefaultDimSource, CurrFieldNo, IsHandled);
         if IsHandled then
+            exit;
+
+        if IsTemporary() then
             exit;
 
         SourceCodeSetup.Get();
@@ -1766,10 +1808,12 @@ table 5407 "Prod. Order Component"
     begin
         OnBeforeGetDefaultConsumptionBin(Rec, ProdOrderRtngLine, BinCode);
 
-        ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
-        if "Location Code" = ProdOrderLine."Location Code" then
-            if FindFirstRtngLine(ProdOrderRtngLine, ProdOrderLine) then
-                BinCode := GetBinCodeFromRtngLine(ProdOrderRtngLine);
+        if not IsTemporary() then begin
+            ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
+            if "Location Code" = ProdOrderLine."Location Code" then
+                if FindFirstRtngLine(ProdOrderRtngLine, ProdOrderLine) then
+                    BinCode := GetBinCodeFromRtngLine(ProdOrderRtngLine);
+        end;
 
         OnGetDefaultConsumptionBinOnAfterGetBinCodeFromRtngLine(Rec, ProdOrderRtngLine, BinCode);
         if BinCode <> '' then
@@ -1898,9 +1942,11 @@ table 5407 "Prod. Order Component"
         ProdOrderComp2: Record "Prod. Order Component";
         OverwriteBinCode, IsHandled : Boolean;
     begin
-        IsHandled := false;
         OnBeforeUpdateBin(ProdOrderComp, FieldNo, FieldCaption, IsHandled);
         if IsHandled then
+            exit;
+
+        if IsTemporary() then
             exit;
 
         ProdOrderComp2 := ProdOrderComp;
@@ -2195,12 +2241,21 @@ table 5407 "Prod. Order Component"
 
     procedure CalcBaseQty(Qty: Decimal; FromFieldName: Text; ToFieldName: Text) Result: Decimal
     var
+        UnroundedBaseQty: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeCalcBaseQty(Rec, CurrFieldNo, Qty, FromFieldName, ToFieldName, Result, IsHandled);
         if IsHandled then
             exit;
+
+        UnroundedBaseQty := Qty * "Qty. per Unit of Measure";
+        if (FromFieldName = FieldCaption(Quantity)) and
+           ("Qty. per Unit of Measure" > 0) and ("Qty. per Unit of Measure" < 1) and
+           (UnroundedBaseQty <> 0) and
+           (UOMMgt.RoundQty(UnroundedBaseQty, "Qty. Rounding Precision (Base)") = 0)
+        then
+            exit(UnroundedBaseQty);
 
         exit(UOMMgt.CalcBaseQty(
             "Item No.", "Variant Code", "Unit of Measure Code", Qty, "Qty. per Unit of Measure", "Qty. Rounding Precision (Base)", FieldCaption("Qty. Rounding Precision"), FromFieldName, ToFieldName));
@@ -2210,6 +2265,8 @@ table 5407 "Prod. Order Component"
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
     begin
+        if IsTemporary() then
+            exit;
         InitDefaultDimensionSources(DefaultDimSource);
         CreateDim(DefaultDimSource);
     end;
@@ -2521,6 +2578,16 @@ table 5407 "Prod. Order Component"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnGetNeededQtyOnBeforeCalcCompQtyBase(var ProdOrderComponent: Record "Prod. Order Component"; var OutputQtyBase: Decimal; var CompQtyBase: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetNeededQtyOnBeforeExitAfterPreviousPosting(var ProdOrderComponent: Record "Prod. Order Component"; var CompQtyBase: Decimal; var Result: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnGetNeededQtyOnBeforeExitWithPreviousPosting(var ProdOrderComponent: Record "Prod. Order Component"; var CompQtyBase: Decimal; var Result: Decimal; var IsHandled: Boolean)
     begin
     end;
@@ -2670,5 +2737,9 @@ table 5407 "Prod. Order Component"
     local procedure OnBeforeCreateDim(var ProdOrderComponent: Record "Prod. Order Component"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetProdOrderNeeds(var ProdOrderComponent: Record "Prod. Order Component"; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
+    begin
+    end;
+}

@@ -783,6 +783,8 @@ table 7326 "Whse. Worksheet Line"
 
             AvailableQty := AvailQtyBase - QtyAssgndOnWkshBase + AssignedQtyOnReservedLines();
         end;
+
+        OnAfterCalcAvailableQtyBase(Rec, AvailableQty);
     end;
 
     procedure CalcReservedNotFromILEQty(QtyBaseAvailToPick: Decimal; var QtyToPick: Decimal; var QtyToPickBase: Decimal)
@@ -1712,6 +1714,11 @@ table 7326 "Whse. Worksheet Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcAvailableQtyBase(var WhseWorksheetLine: Record "Whse. Worksheet Line"; var AvailableQty: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalcAvailableQtyBase(var WhseWorksheetLine: Record "Whse. Worksheet Line"; var AvailableQty: Decimal)
     begin
     end;
 

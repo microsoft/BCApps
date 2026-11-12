@@ -19,7 +19,9 @@ pageextension 20659 "SO Processor Activities BF" extends "SO Processor Activitie
     }
     actions
     {
+#pragma warning disable AL0611 // Accepted: the CueGroup action modification is intentional and works as designed.
         modify("New Sales Order")
+#pragma warning restore AL0611
         {
             ApplicationArea = Advanced, BFOrders;
         }

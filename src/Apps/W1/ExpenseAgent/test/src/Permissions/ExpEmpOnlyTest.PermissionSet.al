@@ -1,0 +1,18 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Test.ExpenseAgent;
+
+using System.Security.AccessControl;
+
+permissionset 148300 "Exp. Emp. Only Test"
+{
+    Access = Internal;
+    Assignable = false;
+    IncludedPermissionSets = "D365 BASIC ISV",
+                             "Employee - Edit";
+
+    Permissions = codeunit Assert = X,
+                  codeunit "Library - Lower Permissions" = X;
+}

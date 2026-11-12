@@ -2138,13 +2138,7 @@ table 36 "Sales Header"
         /// <summary>
         /// Specifies the package tracking number from the shipping agent.
         /// </summary>
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(106; "Package Tracking No."; Text[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Package Tracking No.';
             ToolTip = 'Specifies the shipping agent''s package number.';
@@ -4705,7 +4699,10 @@ table 36 "Sales Header"
         ShouldCreateSalsesLine := not TempSalesLine.IsExtendedText();
         OnRecreateSalesLinesHandleSupplementTypesOnAfterCalcShouldCreateSalsesLine(TempSalesLine, ShouldCreateSalsesLine, SalesLine);
         if ShouldCreateSalsesLine then begin
-            CreateSalesLine(TempSalesLine);
+            IsHandled := false;
+            OnBeforeRecreateSalesLine(IsHandled, SalesLine, TempSalesLine, Rec);
+            if not IsHandled then
+                CreateSalesLine(TempSalesLine);
             ExtendedTextAdded := false;
             OnAfterRecreateSalesLine(SalesLine, TempSalesLine, Rec);
 
@@ -8096,7 +8093,10 @@ table 36 "Sales Header"
         end else
             "Payment Method Code" := BillToCustomer."Payment Method Code";
 
-        AltCustVATRegFacade.UpdateSetupOnBillToCustomerChangeInSalesHeader(Rec, xRec, BillToCustomer);
+        IsHandled := false;
+        OnBeforeUpdateSetupOnBillToCustomerChangeInSalesHeader(Rec, BillToCustomer, IsHandled);
+        if not IsHandled then
+            AltCustVATRegFacade.UpdateSetupOnBillToCustomerChangeInSalesHeader(Rec, xRec, BillToCustomer);
 
         "Customer Posting Group" := BillToCustomer."Customer Posting Group";
         "Currency Code" := BillToCustomer."Currency Code";
@@ -9667,7 +9667,7 @@ table 36 "Sales Header"
             exit(Result);
 
         Contact.FilterGroup(2);
-        if ("Sell-to Customer No." <> '') and ("Document Type" <> "Document Type"::Quote) then
+        if "Sell-to Customer No." <> '' then
             if Contact.Get("Sell-to Contact No.") then
                 Contact.SetRange("Company No.", Contact."Company No.")
             else
@@ -10105,6 +10105,18 @@ table 36 "Sales Header"
     end;
 
     /// <summary>
+    /// Raised before a sales line is recreated from temporary storage, allowing subscribers to replace the standard sales line creation.
+    /// </summary>
+    /// <param name="IsHandled">Set to true to skip the standard CreateSalesLine call.</param>
+    /// <param name="SalesLine">The sales line record being recreated.</param>
+    /// <param name="TempSalesLine">The temporary sales line used as source.</param>
+    /// <param name="SalesHeader">The parent sales header record.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeRecreateSalesLine(var IsHandled: Boolean; var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header")
+    begin
+    end;
+
+    /// <summary>
     /// Raised after a sales line is recreated from temporary storage.
     /// </summary>
     /// <param name="SalesLine">The recreated sales line record.</param>
@@ -10512,6 +10524,17 @@ table 36 "Sales Header"
     /// <param name="CUrrentFieldNo">The field number that triggered the update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetFieldsBilltoCustomer(var SalesHeader: Record "Sales Header"; Customer: Record Customer; xSalesHeader: Record "Sales Header"; SkipBillToContact: Boolean; CUrrentFieldNo: Integer)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before updating the VAT registration setup on a bill-to customer change in the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="BillToCustomer">The bill-to customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the standard update of the VAT registration setup.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateSetupOnBillToCustomerChangeInSalesHeader(var SalesHeader: Record "Sales Header"; BillToCustomer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
@@ -13022,20 +13045,6 @@ table 36 "Sales Header"
     begin
     end;
 
-#if not CLEAN27
-    /// <summary>
-    /// Raised before validating the bill-to name.
-    /// </summary>
-    /// <param name="SalesHeader">The sales header record being validated.</param>
-    /// <param name="Customer">The customer record.</param>
-    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
-    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateBillToName(var SalesHeader: Record "Sales Header"; var Customer: Record Customer; var IsHandled: Boolean; xSalesHeader: Record "Sales Header")
-    begin
-    end;
-#endif
     /// <summary>
     /// Raised before validating tax liable when validating the ship-to code.
     /// </summary>
@@ -13991,19 +14000,6 @@ table 36 "Sales Header"
     begin
     end;
 
-#if not CLEAN27
-    /// <summary>
-    /// Raised before checking if the document is not fully cancelled.
-    /// </summary>
-    /// <param name="SalesCrMemoHeader">The sales credit memo header record.</param>
-    /// <param name="Result">The result indicating whether the document is not fully cancelled.</param>
-    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
-    [Obsolete('Removed Not used anymore.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeIsNotFullyCancelled(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var Result: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     /// <summary>
     /// Raised after the credit limit check.
@@ -14068,17 +14064,6 @@ table 36 "Sales Header"
     end;
 
 
-#if not CLEAN27
-    /// <summary>
-    /// Raised after setting sales line filters when calculating outstanding quantity base.
-    /// </summary>
-    /// <param name="SalesLine">The sales line record with filters applied.</param>
-    [Obsolete('Not used anymore due to new implementation that uses Query. Replaced by OnBeforeCalculateReservableOutstandingQuantityBase.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCalcOutstandingQuantityBaseOnAfterSalesLineSetFilters(var SalesLine: Record "Sales Line")
-    begin
-    end;
-#endif
 
     /// <summary>
     /// Raised before calculating the reservable outstanding quantity base.

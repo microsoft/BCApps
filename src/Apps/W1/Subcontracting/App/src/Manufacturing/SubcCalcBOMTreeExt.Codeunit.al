@@ -8,25 +8,19 @@ using Microsoft.Inventory.BOM.Tree;
 using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.Routing;
 
-codeunit 99001521 "Subc. Calc BOM Tree Ext."
+codeunit 20521 "Subc. Calc BOM Tree Ext."
 {
-#if not CLEAN27
-#pragma warning disable AL0432
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate BOM Tree", OnBeforeCalcRoutingLineCosts, '', false, false)]
-#pragma warning restore AL0432
-#else
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Calculate BOM Tree", OnBeforeCalcRoutingLineCosts, '', false, false)]
-#endif
     local procedure OnBeforeCalcRoutingLineCosts(var RoutingLine: Record "Routing Line"; var LotSize: Decimal; var ScrapPct: Decimal; ParentItem: Record Item)
     var
         SubcSessionState: Codeunit "Subc. Session State";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

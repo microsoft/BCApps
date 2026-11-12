@@ -1364,7 +1364,7 @@ codeunit 99000774 "Calculate Routing Line"
         CalcExpectedCost(ProdOrderRoutingLine, TotalQtyPerOperation, TotalCapacityPerOperation);
 
         IsHandled := false;
-        OnBeforeScheduleRoutingLine(ProdOrderRoutingLine, CalcStartEndDate, IsHandled);
+        OnBeforeScheduleRoutingLine(ProdOrderRoutingLine, CalcStartEndDate, IsHandled, Direction);
         if not IsHandled then
             if ProdOrderRoutingLine."Schedule Manually" then
                 CalculateRoutingLineFixed()
@@ -2079,6 +2079,11 @@ codeunit 99000774 "Calculate Routing Line"
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
     begin
+        if not (ProdOrderRoutingLine.Status in
+                [ProdOrderRoutingLine.Status::Released, ProdOrderRoutingLine.Status::Finished])
+        then
+            exit(0);
+
         if TimeType in [TimeType::"Setup Time", TimeType::"Run Time"] then begin
             CapacityLedgerEntry.SetRange("Order Type", CapacityLedgerEntry."Order Type"::Production);
             CapacityLedgerEntry.SetRange("Order No.", ProdOrderRoutingLine."Prod. Order No.");
@@ -2345,7 +2350,7 @@ codeunit 99000774 "Calculate Routing Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeScheduleRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var CalcStartEndDate: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeScheduleRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var CalcStartEndDate: Boolean; var IsHandled: Boolean; var Direction: Option Forward,Backward)
     begin
     end;
 

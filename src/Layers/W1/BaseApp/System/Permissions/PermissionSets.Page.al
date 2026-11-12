@@ -197,6 +197,41 @@ page 9802 "Permission Sets"
                     ToolTip = 'Set up or modify security groups as a fast way of giving users access to the functionality that is relevant to their work.';
                 }
             }
+            group(PermissionsOverviewGroup)
+            {
+                Caption = 'Permissions Overview';
+                Image = Permission;
+                action("Where-Used")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Where-Used';
+                    Image = Track;
+                    Scope = Repeater;
+                    ToolTip = 'View where the selected permission set is used, including which users and security groups have been assigned with it.';
+
+                    trigger OnAction()
+                    var
+                        PermissionsOverviewPage: Page "Permissions Overview";
+                    begin
+                        PermissionsOverviewPage.SetInitialRoleIDFilter(Rec."Role ID");
+                        PermissionsOverviewPage.Run();
+                    end;
+                }
+                action("Permissions Overview")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Permissions Overview';
+                    Image = Permission;
+                    ToolTip = 'View an overview of how permissions are distributed across permission sets, users, and security groups.';
+
+                    trigger OnAction()
+                    var
+                        PermissionsOverviewPage: Page "Permissions Overview";
+                    begin
+                        PermissionsOverviewPage.Run();
+                    end;
+                }
+            }
         }
         area(processing)
         {
@@ -325,43 +360,25 @@ page 9802 "Permission Sets"
                     Caption = 'Remove Obsolete Permissions';
                     Enabled = CanManageUsersOnTenant;
                     Image = Delete;
-                    ToolTip = 'Remove all permissions related to the objects which are obsolete or removed.';
+                    ToolTip = 'Remove permissions related to obsolete or removed objects from tenant permission sets, including extension-owned permission sets.';
 
                     trigger OnAction()
                     var
                         TableMetadata: Record "Table Metadata";
-                        Permission: Record Permission;
                         TenantPermission: Record "Tenant Permission";
                         AllObjWithCaption: Record AllObjWithCaption;
-                        PermissionToDelete: Record Permission;
                         TenantPermissionToDelete: Record "Tenant Permission";
                         PermissionsCount: Integer;
                     begin
                         TableMetadata.SetRange(ObsoleteState, TableMetadata.ObsoleteState::Removed);
                         if TableMetadata.FindSet() then begin
-                            Permission.SetRange("Object Type", Permission."Object Type"::"Table Data", Permission."Object Type"::Table);
-                            TenantPermission.SetRange("Object Type", Permission."Object Type"::"Table Data", Permission."Object Type"::Table);
+                            TenantPermission.SetRange("Object Type", TenantPermission."Object Type"::"Table Data", TenantPermission."Object Type"::Table);
                             repeat
-                                Permission.SetRange("Object ID", TableMetadata.ID);
                                 TenantPermission.SetRange("Object ID", TableMetadata.ID);
-                                PermissionsCount += Permission.Count + TenantPermission.Count();
-                                Permission.DeleteAll();
+                                PermissionsCount += TenantPermission.Count();
                                 TenantPermission.DeleteAll();
                             until TableMetadata.Next() = 0;
                         end;
-                        Permission.SetFilter(
-                            "Object Type", '%1|%2|%3|%4|%5',
-                            Permission."Object Type"::Codeunit, Permission."Object Type"::Page, Permission."Object Type"::Query,
-                            Permission."Object Type"::Report, Permission."Object Type"::XMLport);
-                        Permission.SetFilter("Object ID", '<>0');
-                        if Permission.FindSet() then
-                            repeat
-                                if not AllObjWithCaption.Get(Permission."Object Type", Permission."Object ID") then begin
-                                    PermissionToDelete.Get(Permission."Role ID", Permission."Object Type", Permission."Object ID");
-                                    PermissionToDelete.Delete();
-                                    PermissionsCount += 1;
-                                end;
-                            until Permission.Next() = 0;
                         TenantPermission.SetFilter(
                             "Object Type", '%1|%2|%3|%4|%5',
                             TenantPermission."Object Type"::Codeunit, TenantPermission."Object Type"::Page, TenantPermission."Object Type"::Query,
@@ -611,4 +628,3 @@ page 9802 "Permission Sets"
         PermissionSetsTenantLbl: Label 'UserDefinedPermissionSets.xml', Locked = true;
         PermissionSetsSystemLbl: Label 'SystemPermissionSets.xml', Locked = true;
 }
-

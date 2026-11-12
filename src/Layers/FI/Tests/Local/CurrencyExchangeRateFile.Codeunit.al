@@ -1,5 +1,9 @@
+#if not CLEAN29
 codeunit 144001 CurrencyExchangeRateFile
 {
+    ObsoleteReason = 'Moved to the FI Core app.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     EventSubscriberInstance = Manual;
     Subtype = Test;
     TestPermissions = Disabled;
@@ -231,4 +235,5 @@ codeunit 144001 CurrencyExchangeRateFile
         FileName := ImportFileName;
     end;
 }
+#endif
 

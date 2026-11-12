@@ -7,6 +7,7 @@ namespace Microsoft.CRM.Task;
 report 5188 "Delete Tasks"
 {
     Caption = 'Delete Tasks';
+    ToolTip = 'Find and delete canceled tasks.';
     ProcessingOnly = true;
 
     dataset

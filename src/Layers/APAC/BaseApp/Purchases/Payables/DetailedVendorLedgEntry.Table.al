@@ -13,6 +13,7 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System.Security.AccessControl;
@@ -257,9 +258,15 @@ table 380 "Detailed Vendor Ledg. Entry"
         field(95; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
+            DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
+        }
+        field(7000004; "Excluded from calculation"; Boolean)
+        {
+            Caption = 'Excluded from calculation';
+            Editable = false;
         }
         field(17130; "Document Date"; Date)
         {
@@ -273,7 +280,7 @@ table 380 "Detailed Vendor Ledg. Entry"
         {
             Clustered = true;
         }
-        key(Key2; "Vendor No.", "Currency Code")
+        key(Key2; "Vendor No.", "Currency Code", "Excluded from calculation")
         {
             SumIndexFields = Amount, "Amount (LCY)";
         }
@@ -281,7 +288,7 @@ table 380 "Detailed Vendor Ledg. Entry"
         {
             IncludedFields = Amount, "Amount (LCY)";
         }
-        key(Key4; "Vendor Ledger Entry No.", "Ledger Entry Amount", "Posting Date")
+        key(Key4; "Vendor Ledger Entry No.", "Ledger Entry Amount", "Posting Date", "Excluded from calculation")
         {
             IncludedFields = "Currency Code", Amount, "Amount (LCY)", "Debit Amount", "Credit Amount", "Debit Amount (LCY)", "Credit Amount (LCY)";
         }
@@ -289,7 +296,7 @@ table 380 "Detailed Vendor Ledg. Entry"
         {
             IncludedFields = Amount, "Amount (LCY)";
         }
-        key(Key6; "Vendor No.", "Currency Code", "Initial Entry Global Dim. 1", "Initial Entry Global Dim. 2", "Initial Entry Due Date", "Posting Date")
+        key(Key6; "Vendor No.", "Currency Code", "Initial Entry Global Dim. 1", "Initial Entry Global Dim. 2", "Initial Entry Due Date", "Posting Date", "Excluded from calculation")
         {
             IncludedFields = Amount, "Amount (LCY)";
         }
@@ -328,6 +335,22 @@ table 380 "Detailed Vendor Ledg. Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Detailed Vendor Ledg. Entry", 'r')]
+    /// <summary>
+    /// Retrieves the next entry number from the Detailed Vendor Ledg. Entry table.
+    /// </summary>
+    /// <returns>Next Detailed Vendor Ledg. Entry number to be used in the system</returns>
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Detailed Vendor Ledg. Entry"));
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Detailed Vendor Ledg. Entry", 'r')]
+    /// <summary>
+    /// Retrieves the last entry number from the Detailed Vendor Ledg. Entry table.
+    /// </summary>
+    /// <returns>Last Detailed Vendor Ledg. Entry number used in the system</returns>
     procedure GetLastEntryNo(): Integer;
     var
         FindRecordManagement: Codeunit "Find Record Management";
