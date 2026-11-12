@@ -1821,6 +1821,84 @@ codeunit 137064 "SCM Warehouse Management"
     end;
 
     [Test]
+    [HandlerFunctions('DummyMessageHandler')]
+    [Scope('OnPrem')]
+    procedure InventoryPickAddsNewlyReceivedQuantity()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WarehouseReceiptHeader: Record "Warehouse Receipt Header";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        OriginalWarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseRequest: Record "Warehouse Request";
+        CreateInventoryPickMovement: Codeunit "Create Inventory Pick/Movement";
+    begin
+        // [SCENARIO 651545] Newly received inventory is added to an existing inventory pick without changing its original line.
+        Initialize();
+
+        // [GIVEN] A location requiring warehouse receipts and inventory picks, with two sales units in stock.
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, true, true, false);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.PostPositiveAdjustment(Item, Location.Code, '', '', 2, WorkDate(), 0);
+
+        // [GIVEN] A sales order for ten units and an inventory pick containing two units, one marked to handle.
+        CreateSalesHeader(SalesHeader, '', Location.Code, SalesHeader."Shipping Advice"::Partial);
+        CreateSalesLine(SalesHeader, SalesLine, Item."No.", Location.Code, 10);
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+        LibraryWarehouse.CreateInvtPutPickSalesOrder(SalesHeader);
+        FindWarehouseActivityHeader(WarehouseActivityHeader, Location.Code, WarehouseActivityHeader.Type::"Invt. Pick");
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityLine.TestField(Quantity, 2);
+        WarehouseActivityLine.Validate("Qty. to Handle", 1);
+        WarehouseActivityLine.Modify(true);
+        OriginalWarehouseActivityLine := WarehouseActivityLine;
+
+        // [GIVEN] Eight more units have been received through a warehouse receipt.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        CreatePurchaseLine(PurchaseHeader, PurchaseLine, Item."No.", Location.Code, 8);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        LibraryWarehouse.CreateWhseReceiptFromPO(PurchaseHeader);
+        FindWarehouseReceiptHeader(WarehouseReceiptHeader, Location.Code);
+        LibraryWarehouse.PostWhseReceipt(WarehouseReceiptHeader);
+
+        // [WHEN] Get Source Document is run on the existing inventory pick.
+        WarehouseRequest.SetRange(Type, WarehouseRequest.Type::Outbound);
+        WarehouseRequest.SetRange("Source Type", Database::"Sales Line");
+        WarehouseRequest.SetRange("Source No.", SalesHeader."No.");
+        WarehouseRequest.FindFirst();
+        CreateInventoryPickMovement.SetWhseRequest(WarehouseRequest, true);
+        CreateInventoryPickMovement.Run(WarehouseActivityHeader);
+
+        // [THEN] A new line contains only the available unassigned quantity; the original line is preserved.
+        Assert.RecordCount(WarehouseActivityLine, 2);
+        OriginalWarehouseActivityLine.Find();
+        OriginalWarehouseActivityLine.TestField(Quantity, 2);
+        OriginalWarehouseActivityLine.TestField("Qty. to Handle", 1);
+        WarehouseActivityLine.FindLast();
+        WarehouseActivityLine.TestField(Quantity, 8);
+        WarehouseActivityLine.CalcSums(Quantity, "Qty. (Base)");
+        WarehouseActivityLine.TestField(Quantity, 10);
+        WarehouseActivityLine.TestField("Qty. (Base)", 10);
+
+        // [WHEN] Get Source Document is run again without receiving more inventory.
+        Clear(CreateInventoryPickMovement);
+        CreateInventoryPickMovement.SetWhseRequest(WarehouseRequest, true);
+        CreateInventoryPickMovement.Run(WarehouseActivityHeader);
+
+        // [THEN] No duplicate quantities are added.
+        Assert.RecordCount(WarehouseActivityLine, 2);
+        WarehouseActivityLine.CalcSums(Quantity);
+        WarehouseActivityLine.TestField(Quantity, 10);
+    end;
+
+    [Test]
     [HandlerFunctions('SourceDocPageHandler')]
     [Scope('OnPrem')]
     procedure BlockedLotAffectsAvailabilityForPick_BW_SalesWithNoLot()
