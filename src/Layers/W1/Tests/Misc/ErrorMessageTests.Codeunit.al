@@ -1376,7 +1376,7 @@ codeunit 135000 "Error Message Tests"
         ErrorMessageMgt: Codeunit "Error Message Management";
         ErrorMessageHandler: Codeunit "Error Message Handler";
         Ordinals: List of [Integer];
-        Ordinal, ShiftedOrdinal, HighestOrdinal : Integer;
+        Ordinal, HighestOrdinal : Integer;
     begin
         // [FEATURE] [UT]
         // [SCENARIO 10082] LogTestField names the expected enum value when its ordinal exceeds the number of enum values
