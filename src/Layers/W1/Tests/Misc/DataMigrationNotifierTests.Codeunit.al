@@ -4,17 +4,19 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Inventory.Item;
 
 codeunit 135024 "Data Migration Notifier Tests"
+// [FEATURE] [Data Migration] [Notification]
 {
     Subtype = Test;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
-        // [FEATURE] [Data Migration] [Notification]
     end;
 
     var
         Assert: Codeunit Assert;
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryUtility: Codeunit "Library - Utility";
         ListEmptyMsg: Label 'There isn''t data here yet. Want to import', Locked = true;
         ListEmptyNotificationSent: Boolean;
 
@@ -53,7 +55,7 @@ codeunit 135024 "Data Migration Notifier Tests"
         // [GIVEN] No items, but a G/L entry exists
         DeleteItemsAndGLEntries();
         GLEntry.Init();
-        GLEntry."Entry No." := 1;
+        GLEntry."Entry No." := LibraryUtility.GetNewRecNo(GLEntry, GLEntry.FieldNo("Entry No."));
         GLEntry.Insert();
 
         // [WHEN] Open the Item List
@@ -77,9 +79,7 @@ codeunit 135024 "Data Migration Notifier Tests"
 
         // [GIVEN] No G/L entries, but an item exists
         DeleteItemsAndGLEntries();
-        Item.Init();
-        Item."No." := 'NOTIF13275';
-        Item.Insert();
+        LibraryInventory.CreateItem(Item);
 
         // [WHEN] Open the Item List
         ItemList.OpenView();
@@ -106,7 +106,7 @@ codeunit 135024 "Data Migration Notifier Tests"
         GLEntry.DeleteAll();
     end;
 
-    [SendNotificationHandler]
+    [SendNotificationHandler(true)]
     procedure ListEmptySendNotificationHandler(var Notification: Notification): Boolean
     begin
         if StrPos(Notification.Message, ListEmptyMsg) = 1 then

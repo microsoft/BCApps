@@ -10,6 +10,7 @@ using System.Environment.Configuration;
 
 codeunit 1802 "Data Migration Notifier"
 {
+    Permissions = tabledata "G/L Entry" = r;
 
     trigger OnRun()
     begin
@@ -61,9 +62,6 @@ codeunit 1802 "Data Migration Notifier"
         if not IsTableEmpty(TableId) then
             exit;
 
-        if not IsTableEmpty(Database::"G/L Entry") then
-            exit;
-
         SkipListEmptyNotification(TableId, SkipNotification);
         if SkipNotification then
             exit;
@@ -89,6 +87,10 @@ codeunit 1802 "Data Migration Notifier"
         end;
 
         if not MyNotifications.IsEnabled(NotificationId) then
+            exit;
+
+        // A company with posted G/L entries is in use, so do not suggest importing data.
+        if not IsTableEmpty(Database::"G/L Entry") then
             exit;
 
         NotificationMsg := StrSubstNo(ListEmptyMsg, PageCaption);
