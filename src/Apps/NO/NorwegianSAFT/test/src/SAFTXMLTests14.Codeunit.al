@@ -127,6 +127,8 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         Currency: Record Currency;
     begin
         // [SCENARIO] Tax CurrencyAmount retains 18 decimal places instead of monetary or currency rounding.
+        Initialize();
+
         // [GIVEN] A purchase VAT entry with a foreign source currency and a source tax amount with 18 decimal places.
         LibraryERM.CreateCurrency(Currency);
 
