@@ -9,18 +9,22 @@ codeunit 7448 "EA Corp Card Expense Match" implements "EA Corp Card Expense Matc
     Access = Internal;
     Permissions =
         tabledata Expense = rm,
+        tabledata "Expense Report Header" = r,
         tabledata "Expense Report Line" = rm,
+        tabledata "Posted Expense Report Header" = r,
         tabledata "Posted Expense Report Line" = rm;
 
-    procedure MatchExistingExpense(CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]): Boolean
+    procedure MatchExistingExpense(CorpCardTrans: Record "EA Corp Card Trans"; var MatchedDocumentId: RecordId): Boolean
     var
         Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
         CorpCard: Record "EA Corp Card";
         ExpenseAgentSetup: Record "Expense Agent Setup";
         MatchDateWindow: Integer;
         AmountTolerance: Decimal;
     begin
-        ExpenseNo := '';
+        Clear(MatchedDocumentId);
         CorpCard.Get(CorpCardTrans."Card Id");
         if CorpCard."Expense User No." = '' then
             exit(false);
@@ -40,18 +44,82 @@ codeunit 7448 "EA Corp Card Expense Match" implements "EA Corp Card Expense Matc
         Expense.SetLoadFields("No.");
         if Expense.FindSet() then
             repeat
-                if ExpenseNo <> '' then
-                    Error(AmbiguousExpenseMatchErr, CorpCardTrans."Entry No.");
-                ExpenseNo := Expense."No.";
+                RegisterMatch(MatchedDocumentId, Expense.RecordId, CorpCardTrans."Entry No.");
             until Expense.Next() = 0;
-        if ExpenseNo <> '' then
+
+        // Lines with a source expense are represented by that expense, not a second candidate.
+        ExpenseReportLine.SetRange("Expense No.", '');
+        ExpenseReportLine.SetRange("Corporate Card Id", CorpCardTrans."Card Id");
+        ExpenseReportLine.SetRange("Expense User No.", CorpCard."Expense User No.");
+        ExpenseReportLine.SetRange("Reimbursement Type", ExpenseReportLine."Reimbursement Type"::"Credit Card");
+        ExpenseReportLine.SetRange("Credit Card Feed No.", 0);
+        ExpenseReportLine.SetRange("Expense Currency Code", CorpCardTrans."Currency Code");
+        ExpenseReportLine.SetRange(Amount, CorpCardTrans.Amount);
+        ExpenseReportLine.SetRange("Expense Date", CorpCardTrans."Trans Date" - MatchDateWindow, CorpCardTrans."Trans Date" + MatchDateWindow);
+        ExpenseReportLine.SetLoadFields("Document No.", "Line No.");
+        if ExpenseReportLine.FindSet() then
+            repeat
+                RegisterMatch(MatchedDocumentId, ExpenseReportLine.RecordId, CorpCardTrans."Entry No.");
+            until ExpenseReportLine.Next() = 0;
+
+        PostedExpenseReportLine.SetRange("Expense No.", '');
+        PostedExpenseReportLine.SetRange("Corporate Card Id", CorpCardTrans."Card Id");
+        PostedExpenseReportLine.SetRange("Expense User No.", CorpCard."Expense User No.");
+        PostedExpenseReportLine.SetRange("Reimbursement Type", PostedExpenseReportLine."Reimbursement Type"::"Credit Card");
+        PostedExpenseReportLine.SetRange("Credit Card Feed No.", 0);
+        PostedExpenseReportLine.SetRange("Is Canceled", false);
+        PostedExpenseReportLine.SetRange("Expense Currency Code", CorpCardTrans."Currency Code");
+        PostedExpenseReportLine.SetRange(Amount, CorpCardTrans.Amount);
+        PostedExpenseReportLine.SetRange("Expense Date", CorpCardTrans."Trans Date" - MatchDateWindow, CorpCardTrans."Trans Date" + MatchDateWindow);
+        PostedExpenseReportLine.SetLoadFields("Document No.", "Line No.");
+        if PostedExpenseReportLine.FindSet() then
+            repeat
+                RegisterMatch(MatchedDocumentId, PostedExpenseReportLine.RecordId, CorpCardTrans."Entry No.");
+            until PostedExpenseReportLine.Next() = 0;
+
+        if MatchedDocumentId.TableNo <> 0 then
             exit(true);
         if AmountTolerance > 0 then begin
             Expense.SetRange(Amount, CorpCardTrans.Amount - AmountTolerance, CorpCardTrans.Amount + AmountTolerance);
-            if not Expense.IsEmpty() then
+            ExpenseReportLine.SetRange(Amount, CorpCardTrans.Amount - AmountTolerance, CorpCardTrans.Amount + AmountTolerance);
+            PostedExpenseReportLine.SetRange(Amount, CorpCardTrans.Amount - AmountTolerance, CorpCardTrans.Amount + AmountTolerance);
+            if not Expense.IsEmpty() or not ExpenseReportLine.IsEmpty() or not PostedExpenseReportLine.IsEmpty() then
                 Error(ExpenseAmountNeedsReviewErr, CorpCardTrans."Entry No.");
         end;
         exit(false);
+    end;
+
+    procedure LinkExpense(var CorpCardTrans: Record "EA Corp Card Trans"; MatchedDocumentId: RecordId)
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        MatchedDocument: RecordRef;
+    begin
+        CheckTransactionNotLinked(CorpCardTrans);
+        if not (MatchedDocumentId.TableNo in [Database::Expense, Database::"Expense Report Line", Database::"Posted Expense Report Line"]) then
+            Error(UnsupportedMatchDocumentErr, MatchedDocumentId.TableNo);
+        MatchedDocument.Open(MatchedDocumentId.TableNo);
+        MatchedDocument.LockTable();
+        MatchedDocument.Get(MatchedDocumentId);
+        case MatchedDocumentId.TableNo of
+            Database::Expense:
+                begin
+                    MatchedDocument.SetTable(Expense);
+                    LinkExpense(CorpCardTrans, Expense."No.");
+                end;
+            Database::"Expense Report Line":
+                begin
+                    MatchedDocument.SetTable(ExpenseReportLine);
+                    LinkReportLine(CorpCardTrans, ExpenseReportLine);
+                end;
+            Database::"Posted Expense Report Line":
+                begin
+                    MatchedDocument.SetTable(PostedExpenseReportLine);
+                    LinkPostedReportLine(CorpCardTrans, PostedExpenseReportLine);
+                end;
+        end;
+        MatchedDocument.Close();
     end;
 
     procedure LinkExpense(var CorpCardTrans: Record "EA Corp Card Trans"; ExpenseNo: Code[20])
@@ -64,14 +132,10 @@ codeunit 7448 "EA Corp Card Expense Match" implements "EA Corp Card Expense Matc
         ExpenseAgentSetup: Record "Expense Agent Setup";
         MatchDateWindow: Integer;
     begin
-        CorpCardTrans.TestField("Expense No.", '');
-        CorpCardTrans.TestField("Posted Expense Report No.", '');
+        CheckTransactionNotLinked(CorpCardTrans);
         Expense.LockTable();
         Expense.Get(ExpenseNo);
-        CorpCard.Get(CorpCardTrans."Card Id");
-        CorpCard.TestField("Expense User No.");
-        CorpCard.TestField(Blocked, false);
-        CorpCard.TestField("Provider Code", CorpCardTrans."Provider Code");
+        GetTransactionCard(CorpCardTrans, CorpCard);
         Expense.TestField("Expense User No.", CorpCard."Expense User No.");
         Expense.TestField("Reimbursement Type", Expense."Reimbursement Type"::"Credit Card");
         Expense.TestField("Credit Card Feed No.", 0);
@@ -81,10 +145,7 @@ codeunit 7448 "EA Corp Card Expense Match" implements "EA Corp Card Expense Matc
         Expense.TestField(Amount, CorpCardTrans.Amount);
         if ExpenseAgentSetup.Get() then
             MatchDateWindow := ExpenseAgentSetup."Corp Card Date Match Window";
-        if (Expense."Expense Date" < CorpCardTrans."Trans Date" - MatchDateWindow) or
-           (Expense."Expense Date" > CorpCardTrans."Trans Date" + MatchDateWindow)
-        then
-            Error(ExpenseDateOutsideMatchWindowErr, ExpenseNo, CorpCardTrans."Entry No.");
+        CheckMatchDate(Expense."Expense Date", ExpenseNo, CorpCardTrans, MatchDateWindow);
 
         ExpenseReportLine.LockTable();
         ExpenseReportLine.SetRange("Expense No.", ExpenseNo);
@@ -106,7 +167,7 @@ codeunit 7448 "EA Corp Card Expense Match" implements "EA Corp Card Expense Matc
                 Error(PostedExpenseLineNotUniqueErr, ExpenseNo);
             PostedExpenseReportLine.FindFirst();
             PostedExpenseReportLine.TestField("Credit Card Feed No.", 0);
-            PostedExpenseReportLine.TestField("Corporate Card Id", CorpCardTrans."Card Id");
+            CheckPostedReportLine(PostedExpenseReportLine, CorpCardTrans, CorpCard, MatchDateWindow);
             PostedExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";
             PostedExpenseReportLine.Modify(false);
             CorpCardTrans."Posted Expense Report No." := PostedExpenseReportHeader."No.";
@@ -123,6 +184,7 @@ codeunit 7448 "EA Corp Card Expense Match" implements "EA Corp Card Expense Matc
             if ExpenseReportLine.FindSet(true) then
                 repeat
                     ExpenseReportLine.TestField("Corporate Card Id", Expense."Corporate Card Id");
+                    CheckReportLine(ExpenseReportLine, CorpCardTrans, CorpCard, MatchDateWindow);
                     ExpenseReportLine."Corporate Card Id" := CorpCardTrans."Card Id";
                     ExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";
                     ExpenseReportLine.Modify(false);
@@ -138,6 +200,107 @@ codeunit 7448 "EA Corp Card Expense Match" implements "EA Corp Card Expense Matc
         Expense."Credit Card Feed No." := CorpCardTrans."Entry No.";
         Expense.Modify(false);
         CorpCardTrans."Expense No." := ExpenseNo;
+        SetFullMatch(CorpCardTrans);
+    end;
+
+    local procedure RegisterMatch(var MatchedDocumentId: RecordId; CandidateDocumentId: RecordId; TransactionEntryNo: Integer)
+    begin
+        if MatchedDocumentId.TableNo <> 0 then
+            Error(AmbiguousExpenseMatchErr, TransactionEntryNo);
+        MatchedDocumentId := CandidateDocumentId;
+    end;
+
+    local procedure LinkReportLine(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseReportLine: Record "Expense Report Line")
+    var
+        CorpCard: Record "EA Corp Card";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseReportHeader: Record "Expense Report Header";
+        MatchDateWindow: Integer;
+    begin
+        GetTransactionCard(CorpCardTrans, CorpCard);
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        ExpenseReportHeader.TestField("Expense User No.", CorpCard."Expense User No.");
+        ExpenseReportLine.TestField("Expense No.", '');
+        ExpenseReportLine.TestField("Credit Card Feed No.", 0);
+        ExpenseReportLine.TestField("Corporate Card Id", CorpCardTrans."Card Id");
+        if ExpenseAgentSetup.Get() then
+            MatchDateWindow := ExpenseAgentSetup."Corp Card Date Match Window";
+        CheckReportLine(ExpenseReportLine, CorpCardTrans, CorpCard, MatchDateWindow);
+        ExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";
+        ExpenseReportLine.Modify(false);
+        CorpCardTrans.Status := CorpCardTrans.Status::Submitted;
+        SetFullMatch(CorpCardTrans);
+    end;
+
+    local procedure LinkPostedReportLine(var CorpCardTrans: Record "EA Corp Card Trans"; var PostedExpenseReportLine: Record "Posted Expense Report Line")
+    var
+        CorpCard: Record "EA Corp Card";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        MatchDateWindow: Integer;
+    begin
+        GetTransactionCard(CorpCardTrans, CorpCard);
+        PostedExpenseReportHeader.Get(PostedExpenseReportLine."Document No.");
+        PostedExpenseReportHeader.TestField(Canceled, false);
+        PostedExpenseReportHeader.TestField("Expense User No.", CorpCard."Expense User No.");
+        PostedExpenseReportLine.TestField("Expense No.", '');
+        PostedExpenseReportLine.TestField("Credit Card Feed No.", 0);
+        PostedExpenseReportLine.TestField("Is Canceled", false);
+        if ExpenseAgentSetup.Get() then
+            MatchDateWindow := ExpenseAgentSetup."Corp Card Date Match Window";
+        CheckPostedReportLine(PostedExpenseReportLine, CorpCardTrans, CorpCard, MatchDateWindow);
+        PostedExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";
+        PostedExpenseReportLine.Modify(false);
+        CorpCardTrans."Posted Expense Report No." := PostedExpenseReportHeader."No.";
+        CorpCardTrans.Status := CorpCardTrans.Status::Posted;
+        SetFullMatch(CorpCardTrans);
+    end;
+
+    local procedure CheckTransactionNotLinked(CorpCardTrans: Record "EA Corp Card Trans")
+    begin
+        CorpCardTrans.TestField("Expense No.", '');
+        CorpCardTrans.TestField("Posted Expense Report No.", '');
+        if CorpCardTrans.Status in [CorpCardTrans.Status::Submitted, CorpCardTrans.Status::Posted] then
+            Error(TransactionAlreadyLinkedErr, CorpCardTrans."Entry No.");
+    end;
+
+    local procedure GetTransactionCard(CorpCardTrans: Record "EA Corp Card Trans"; var CorpCard: Record "EA Corp Card")
+    begin
+        CorpCard.Get(CorpCardTrans."Card Id");
+        CorpCard.TestField("Expense User No.");
+        CorpCard.TestField(Blocked, false);
+        CorpCard.TestField("Provider Code", CorpCardTrans."Provider Code");
+    end;
+
+    local procedure CheckReportLine(ExpenseReportLine: Record "Expense Report Line"; CorpCardTrans: Record "EA Corp Card Trans"; CorpCard: Record "EA Corp Card"; MatchDateWindow: Integer)
+    begin
+        ExpenseReportLine.TestField("Expense User No.", CorpCard."Expense User No.");
+        ExpenseReportLine.TestField("Reimbursement Type", ExpenseReportLine."Reimbursement Type"::"Credit Card");
+        ExpenseReportLine.TestField("Expense Currency Code", CorpCardTrans."Currency Code");
+        ExpenseReportLine.TestField(Amount, CorpCardTrans.Amount);
+        CheckMatchDate(ExpenseReportLine."Expense Date", ExpenseReportLine."Document No.", CorpCardTrans, MatchDateWindow);
+    end;
+
+    local procedure CheckPostedReportLine(PostedExpenseReportLine: Record "Posted Expense Report Line"; CorpCardTrans: Record "EA Corp Card Trans"; CorpCard: Record "EA Corp Card"; MatchDateWindow: Integer)
+    begin
+        PostedExpenseReportLine.TestField("Corporate Card Id", CorpCardTrans."Card Id");
+        PostedExpenseReportLine.TestField("Expense User No.", CorpCard."Expense User No.");
+        PostedExpenseReportLine.TestField("Reimbursement Type", PostedExpenseReportLine."Reimbursement Type"::"Credit Card");
+        PostedExpenseReportLine.TestField("Expense Currency Code", CorpCardTrans."Currency Code");
+        PostedExpenseReportLine.TestField(Amount, CorpCardTrans.Amount);
+        CheckMatchDate(PostedExpenseReportLine."Expense Date", PostedExpenseReportLine."Document No.", CorpCardTrans, MatchDateWindow);
+    end;
+
+    local procedure CheckMatchDate(ExpenseDate: Date; DocumentNo: Code[20]; CorpCardTrans: Record "EA Corp Card Trans"; MatchDateWindow: Integer)
+    begin
+        if (ExpenseDate < CorpCardTrans."Trans Date" - MatchDateWindow) or
+           (ExpenseDate > CorpCardTrans."Trans Date" + MatchDateWindow)
+        then
+            Error(ExpenseDateOutsideMatchWindowErr, DocumentNo, CorpCardTrans."Entry No.");
+    end;
+
+    local procedure SetFullMatch(var CorpCardTrans: Record "EA Corp Card Trans")
+    begin
         if CorpCardTrans."Match Type" in [CorpCardTrans."Match Type"::None, CorpCardTrans."Match Type"::Employee] then begin
             CorpCardTrans."Match Type" := CorpCardTrans."Match Type"::Full;
             CorpCardTrans."Match Score" := 100;
@@ -145,6 +308,8 @@ codeunit 7448 "EA Corp Card Expense Match" implements "EA Corp Card Expense Matc
     end;
 
     var
+        TransactionAlreadyLinkedErr: Label 'Corporate card transaction %1 is already linked to an expense report.', Comment = '%1 = corporate card transaction entry number';
+        UnsupportedMatchDocumentErr: Label 'Table %1 cannot be linked to a corporate card transaction.', Comment = '%1 = table number';
         AmbiguousExpenseMatchErr: Label 'More than one expense matches corporate card transaction %1. Review the expenses before linking the transaction.', Comment = '%1 = corporate card transaction entry number';
         ExpenseAlreadyLinkedErr: Label 'Expense %1 is already linked to a corporate card transaction.', Comment = '%1 = expense number';
         ExpenseReportLinkNotUniqueErr: Label 'The expense report link for expense %1 is inconsistent. Review the report lines before linking the transaction.', Comment = '%1 = expense number';

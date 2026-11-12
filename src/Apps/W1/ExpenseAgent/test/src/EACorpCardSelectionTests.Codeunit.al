@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.Ledger;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Ledger;
@@ -442,7 +443,7 @@ codeunit 148364 EACorpCardSelectionTests
         Expense: Record Expense;
         OtherExpense: Record Expense;
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
-        ExpenseNo: Code[20];
+        MatchedDocumentId: RecordId;
     begin
         // [SCENARIO] Identical card suffixes do not make expenses paid with different cards interchangeable.
         Initialize();
@@ -455,10 +456,10 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
 
         // [WHEN] The feed is matched to an existing expense.
-        Assert.IsTrue(CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, ExpenseNo), 'The selected card should identify the expense.');
+        Assert.IsTrue(CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, MatchedDocumentId), 'The selected card should identify the expense.');
 
         // [THEN] The expense using the exact card identity is selected.
-        Assert.AreEqual(Expense."No.", ExpenseNo, 'An expense paid with another card must not match, even when both suffixes are identical.');
+        Assert.AreEqual(Expense.RecordId, MatchedDocumentId, 'An expense paid with another card must not match, even when both suffixes are identical.');
     end;
 
     [Test]
@@ -469,7 +470,7 @@ codeunit 148364 EACorpCardSelectionTests
         Expense: Record Expense;
         OtherExpense: Record Expense;
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
-        ExpenseNo: Code[20];
+        MatchedDocumentId: RecordId;
     begin
         // [SCENARIO] Multiple matching expenses require review rather than an arbitrary link.
         Initialize();
@@ -481,7 +482,7 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
 
         // [WHEN] The feed is matched to an existing expense.
-        asserterror CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, ExpenseNo);
+        asserterror CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, MatchedDocumentId);
 
         // [THEN] The ambiguous match is reported.
         Assert.ExpectedError('More than one expense');
@@ -494,7 +495,7 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTrans: Record "EA Corp Card Trans";
         Expense: Record Expense;
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
-        ExpenseNo: Code[20];
+        MatchedDocumentId: RecordId;
     begin
         // [SCENARIO] A near amount match requires review before linking the feed.
         Initialize();
@@ -507,7 +508,7 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
 
         // [WHEN] The feed is matched to an existing expense.
-        asserterror CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, ExpenseNo);
+        asserterror CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, MatchedDocumentId);
 
         // [THEN] The amount difference requires review instead of being treated as no match.
         Assert.ExpectedError('Review the amount before linking');
@@ -966,6 +967,10 @@ codeunit 148364 EACorpCardSelectionTests
         ExpenseReportLine."Line No." := 10000;
         ExpenseReportLine."Expense No." := Expense."No.";
         ExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
+        ExpenseReportLine."Expense User No." := Expense."Expense User No.";
+        ExpenseReportLine."Reimbursement Type" := Expense."Reimbursement Type";
+        ExpenseReportLine."Expense Date" := Expense."Expense Date";
+        ExpenseReportLine."Expense Currency Code" := Expense."Currency Code";
         ExpenseReportLine.Amount := Expense.Amount;
         ExpenseReportLine.Insert();
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
@@ -991,7 +996,7 @@ codeunit 148364 EACorpCardSelectionTests
         GLEntry: Record "G/L Entry";
         VATEntry: Record "VAT Entry";
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
-        ExpenseNo: Code[20];
+        MatchedDocumentId: RecordId;
         GLEntryCount: Integer;
         VATEntryCount: Integer;
         ExpenseCount: Integer;
@@ -1015,8 +1020,8 @@ codeunit 148364 EACorpCardSelectionTests
         VATEntryCount := VATEntry.Count();
 
         // [WHEN] The late feed is matched and linked to the posted expense.
-        Assert.IsTrue(CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, ExpenseNo), 'Matching must include posted expenses.');
-        CorpCardExpenseMatch.LinkExpense(CorpCardTrans, ExpenseNo);
+        Assert.IsTrue(CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, MatchedDocumentId), 'Matching must include posted expenses.');
+        CorpCardExpenseMatch.LinkExpense(CorpCardTrans, MatchedDocumentId);
 
         // [THEN] The existing posted report is linked without reopening the expense or creating expense, G/L, or VAT entries.
         PostedExpenseReportLine.Get(PostedExpenseReportLine."Document No.", PostedExpenseReportLine."Line No.");
@@ -1039,7 +1044,7 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTrans: Record "EA Corp Card Trans";
         Expense: Record Expense;
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
-        ExpenseNo: Code[20];
+        MatchedDocumentId: RecordId;
     begin
         // [SCENARIO] Late feed matching preserves an expense's released status.
         Initialize();
@@ -1052,13 +1057,351 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
 
         // [WHEN] The feed is matched and linked to the released expense.
-        Assert.IsTrue(CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, ExpenseNo), 'Matching must include released expenses.');
-        CorpCardExpenseMatch.LinkExpense(CorpCardTrans, ExpenseNo);
+        Assert.IsTrue(CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, MatchedDocumentId), 'Matching must include released expenses.');
+        CorpCardExpenseMatch.LinkExpense(CorpCardTrans, MatchedDocumentId);
 
         // [THEN] The expense remains released and receives the transaction link.
-        Expense.Get(ExpenseNo);
+        Expense.Get(CorpCardTrans."Expense No.");
         Assert.AreEqual(Expense.Status::Released, Expense.Status, 'Linking provenance must not change document status.');
         Assert.AreEqual(CorpCardTrans."Entry No.", Expense."Credit Card Feed No.", 'The released expense must reference the transaction.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure LateFeedLinksStandaloneReleasedReportLineWithoutAnotherDraft()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        PostImportOrch: Codeunit "EA Corp Card Post Import Orch";
+        ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
+        StatementMgt: Codeunit "EA Corp Card Statement Mgt";
+        ExpenseCount: Integer;
+    begin
+        // [SCENARIO] A late feed links a standalone released report line without creating a source expense.
+        Initialize();
+
+        // [GIVEN] A released manual report line has no source expense and matches an imported transaction.
+        CorpCard.Get('CORPCARD-0001');
+        CreateStandaloneReportLine(ExpenseReportLine, CorpCard);
+        CreateLateFeedStatement(CorpCardStatement, CorpCardTrans, CorpCard);
+        ExpenseCount := Expense.Count();
+
+        // [WHEN] Post-import processing runs twice and the statement is validated.
+        PostImportOrch.ProcessStatementPostImport(CorpCardStatement."Statement Entry No.", ExpenseWriter);
+        PostImportOrch.ProcessStatementPostImport(CorpCardStatement."Statement Entry No.", ExpenseWriter);
+        StatementMgt.ValidateStatement(CorpCardStatement);
+
+        // [THEN] The same line is linked without reopening the report, changing its amount, or creating a draft.
+        CorpCardTrans.Get(CorpCardTrans."Entry No.");
+        CorpCardTrans.TestField(Status, CorpCardTrans.Status::Submitted);
+        CorpCardTrans.TestField("Expense No.", '');
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Expense No.", '');
+        ExpenseReportLine.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        ExpenseReportLine.TestField(Amount, 20);
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Released);
+        CorpCardStatement.TestField(Status, CorpCardStatement.Status::Validated);
+        Assert.AreEqual(ExpenseCount, Expense.Count(), 'Processing and retries must not create another expense.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure LateFeedLinksStandalonePostedLineAndTransfersOnlyLiability()
+    var
+        BankAccount: Record "Bank Account";
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        CorpCard: Record "EA Corp Card";
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        GLEntry: Record "G/L Entry";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        VATEntry: Record "VAT Entry";
+        ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
+        LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
+        LibraryERM: Codeunit "Library - ERM";
+        PostImportOrch: Codeunit "EA Corp Card Post Import Orch";
+        StatementMgt: Codeunit "EA Corp Card Statement Mgt";
+        ExpenseCount: Integer;
+        GLEntryCount: Integer;
+        VATEntryCount: Integer;
+    begin
+        // [SCENARIO] A late feed for a standalone posted line can be validated and transferred without reposting expense or VAT.
+        Initialize();
+
+        // [GIVEN] A standalone manual card line was genuinely posted before its statement arrived.
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.PostManualReportLine(PostedExpenseReportLine, CorpCard);
+        PostedExpenseReportLine.TestField("Expense No.", '');
+        PostedExpenseReportLine.TestField("Credit Card Feed No.", 0);
+        PostedExpenseReportLine.TestField("Card Payable Account No.");
+        LibraryERM.CreateBankAccount(BankAccount);
+        BankAccount.Validate("Currency Code", '');
+        BankAccount.Modify(true);
+        CorpCardTestLib.EnsureBankAccountPostingGroupAccount(BankAccount);
+        CorpCardProvider.Get(CorpCard."Provider Code");
+        CorpCardProvider.Validate("Corp Card Bank Account No.", BankAccount."No.");
+        CorpCardProvider.Modify(true);
+        CreateLateFeedStatement(CorpCardStatement, CorpCardTrans, CorpCard);
+        ExpenseCount := Expense.Count();
+        GLEntryCount := GLEntry.Count();
+        VATEntryCount := VATEntry.Count();
+
+        // [WHEN] The statement is processed twice, validated, and its original card liability is transferred.
+        PostImportOrch.ProcessStatementPostImport(CorpCardStatement."Statement Entry No.", ExpenseWriter);
+        PostImportOrch.ProcessStatementPostImport(CorpCardStatement."Statement Entry No.", ExpenseWriter);
+        StatementMgt.ValidateStatement(CorpCardStatement);
+        CorpCardTrans.Get(CorpCardTrans."Entry No.");
+        LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
+
+        // [THEN] The existing posted line is linked and only the two liability accounts receive new entries.
+        CorpCardTrans.TestField(Status, CorpCardTrans.Status::Posted);
+        CorpCardTrans.TestField("Expense No.", '');
+        CorpCardTrans.TestField("Posted Expense Report No.", PostedExpenseReportLine."Document No.");
+        PostedExpenseReportLine.Get(PostedExpenseReportLine."Document No.", PostedExpenseReportLine."Line No.");
+        PostedExpenseReportLine.TestField("Expense No.", '');
+        PostedExpenseReportLine.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        PostedExpenseReportLine.TestField(Amount, 20);
+        CorpCardStatement.TestField(Status, CorpCardStatement.Status::Validated);
+        BankAccountLedgerEntry.Get(CorpCardTrans."Liability Bank Entry No.");
+        BankAccountLedgerEntry.TestField("Bank Account No.", BankAccount."No.");
+        BankAccountLedgerEntry.TestField(Amount, -20);
+        Assert.AreEqual(ExpenseCount, Expense.Count(), 'Matching must not create a synthetic or duplicate expense.');
+        Assert.AreEqual(GLEntryCount + 2, GLEntry.Count(), 'Only the liability transfer may create G/L entries.');
+        Assert.AreEqual(VATEntryCount, VATEntry.Count(), 'Late matching and liability transfer must not post VAT again.');
+    end;
+
+    [Test]
+    procedure StandaloneReportFeedCannotBeLinkedToAnotherDocument()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        OtherExpenseReportLine: Record "Expense Report Line";
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
+    begin
+        // [SCENARIO] A feed linked to a standalone open report cannot be reused even though its expense number is blank.
+        Initialize();
+
+        // [GIVEN] A transaction already links one standalone report line, and other matching documents exist.
+        CorpCard.Get('CORPCARD-0001');
+        CreateStandaloneReportLine(ExpenseReportLine, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardExpenseMatch.LinkExpense(CorpCardTrans, ExpenseReportLine.RecordId);
+        CorpCardTrans.Modify(true);
+        CreateStandaloneReportLine(OtherExpenseReportLine, CorpCard);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+
+        // [WHEN] The same transaction is linked to another report line or to a source expense.
+        asserterror CorpCardExpenseMatch.LinkExpense(CorpCardTrans, OtherExpenseReportLine.RecordId);
+        Assert.ExpectedError('already linked');
+        asserterror CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
+
+        // [THEN] Both link entry points reject reuse and leave the other documents unlinked.
+        Assert.ExpectedError('already linked');
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        OtherExpenseReportLine.Get(OtherExpenseReportLine."Document No.", OtherExpenseReportLine."Line No.");
+        OtherExpenseReportLine.TestField("Credit Card Feed No.", 0);
+        Expense.Get(Expense."No.");
+        Expense.TestField("Credit Card Feed No.", 0);
+    end;
+
+    [Test]
+    procedure ExpenseAndStandaloneReportLineMatchRequireReview()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
+        MatchedDocumentId: RecordId;
+    begin
+        // [SCENARIO] Matching detects ambiguity across source expenses and standalone report lines.
+        Initialize();
+
+        // [GIVEN] An expense and a separate standalone report line both match the same transaction.
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        CreateStandaloneReportLine(ExpenseReportLine, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+
+        // [WHEN] The transaction is matched.
+        asserterror CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, MatchedDocumentId);
+
+        // [THEN] Neither candidate is chosen arbitrarily.
+        Assert.ExpectedError('More than one expense');
+    end;
+
+    [Test]
+    procedure StandaloneReportLineNearAmountMatchRequiresReview()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        ExpenseReportLine: Record "Expense Report Line";
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
+        MatchedDocumentId: RecordId;
+    begin
+        // [SCENARIO] A near amount on a standalone line prevents automatic creation of another expense.
+        Initialize();
+
+        // [GIVEN] A standalone line matches the card and date but differs in amount within the tolerance.
+        CorpCard.Get('CORPCARD-0001');
+        CreateStandaloneReportLine(ExpenseReportLine, CorpCard);
+        ExpenseReportLine.Amount := 19;
+        ExpenseReportLine.Modify(false);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+
+        // [WHEN] The transaction is matched.
+        asserterror CorpCardExpenseMatch.MatchExistingExpense(CorpCardTrans, MatchedDocumentId);
+
+        // [THEN] The amount difference is reported rather than falling through to draft creation.
+        Assert.ExpectedError('Review the amount before linking');
+    end;
+
+    [Test]
+    procedure LinkingExpenseRejectsChangedOpenReportFinancialValues()
+    begin
+        // [SCENARIO] A matching source expense cannot conceal independently edited financial values on its open report line.
+        // [GIVEN] A source expense matches the feed, but its report line has a different amount, currency, or date.
+        // [WHEN] Linking is attempted for each financial mismatch.
+        // [THEN] Each mismatch is rejected without adding provenance to either record.
+        VerifyOpenReportFinancialMismatchesAreRejected();
+    end;
+
+    [Test]
+    procedure LinkingExpenseRejectsChangedPostedReportAmount()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
+    begin
+        // [SCENARIO] A matching source expense cannot conceal a different amount that was genuinely posted from its report line.
+        Initialize();
+
+        // [GIVEN] A source expense of 20 was added to a report, edited to 30 on the report line, and posted before its feed arrived.
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.PostManualExpense(Expense, PostedExpenseReportLine, CorpCard, 30);
+        Expense.TestField(Amount, 20);
+        PostedExpenseReportLine.TestField(Amount, 30);
+        PostedExpenseReportLine.TestField("Card Liability Amount", -30);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+
+        // [WHEN] The feed of 20 is linked through its unchanged source expense.
+        asserterror CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
+
+        // [THEN] The posted amount mismatch is reported and neither document receives a feed link.
+        Assert.ExpectedError(PostedExpenseReportLine.FieldCaption(Amount));
+        Expense.Get(Expense."No.");
+        Expense.TestField("Credit Card Feed No.", 0);
+        PostedExpenseReportLine.Get(PostedExpenseReportLine."Document No.", PostedExpenseReportLine."Line No.");
+        PostedExpenseReportLine.TestField("Credit Card Feed No.", 0);
+        CorpCardTrans.TestField("Expense No.", '');
+        CorpCardTrans.TestField("Posted Expense Report No.", '');
+    end;
+
+    local procedure VerifyOpenReportFinancialMismatchesAreRejected()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseReportLine: Record "Expense Report Line";
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
+        ExpectedError: Text;
+        MismatchNo: Integer;
+    begin
+        Initialize();
+
+        // [GIVEN] An existing expense is represented by a report line and has a matching late feed.
+        CorpCard.Get('CORPCARD-0001');
+        ExpenseAgentSetup.Get();
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        CreateStandaloneReportLine(ExpenseReportLine, CorpCard);
+        Expense."Expense Report No." := ExpenseReportLine."Document No.";
+        Expense.Status := Expense.Status::Submitted;
+        Expense.Modify(false);
+        ExpenseReportLine."Expense No." := Expense."No.";
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        for MismatchNo := 1 to 3 do begin
+            // [GIVEN] Only the report line differs in one financial value.
+            ExpenseReportLine.Amount := Expense.Amount;
+            ExpenseReportLine."Expense Currency Code" := Expense."Currency Code";
+            ExpenseReportLine."Expense Date" := Expense."Expense Date";
+            case MismatchNo of
+                1:
+                    ExpenseReportLine.Amount += 1;
+                2:
+                    ExpenseReportLine."Expense Currency Code" := 'EUR';
+                3:
+                    ExpenseReportLine."Expense Date" := CorpCardTrans."Trans Date" + ExpenseAgentSetup."Corp Card Date Match Window" + 1;
+            end;
+            ExpenseReportLine.Modify(false);
+            case MismatchNo of
+                1:
+                    ExpectedError := ExpenseReportLine.FieldCaption(Amount);
+                2:
+                    ExpectedError := ExpenseReportLine.FieldCaption("Expense Currency Code");
+                3:
+                    ExpectedError := 'outside the matching date window';
+            end;
+
+            // [WHEN] The transaction is linked through its unchanged source expense.
+            asserterror CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
+
+            // [THEN] The actual report mismatch is reported and neither document receives a feed link.
+            Assert.ExpectedError(ExpectedError);
+            Expense.Get(Expense."No.");
+            Expense.TestField("Credit Card Feed No.", 0);
+            CorpCardTrans.TestField("Expense No.", '');
+            CorpCardTrans.TestField("Posted Expense Report No.", '');
+            ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+            ExpenseReportLine.TestField("Credit Card Feed No.", 0);
+        end;
+    end;
+
+    local procedure CreateStandaloneReportLine(var ExpenseReportLine: Record "Expense Report Line"; CorpCard: Record "EA Corp Card")
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        ExpenseReportHeader."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExpenseReportHeader."No."));
+        ExpenseReportHeader."Expense User No." := CorpCard."Expense User No.";
+        ExpenseReportHeader.Status := ExpenseReportHeader.Status::Released;
+        ExpenseReportHeader.Insert(false);
+        ExpenseReportLine.Init();
+        ExpenseReportLine."Document No." := ExpenseReportHeader."No.";
+        ExpenseReportLine."Line No." := 10000;
+        ExpenseReportLine."Expense No." := '';
+        ExpenseReportLine."Expense User No." := CorpCard."Expense User No.";
+        ExpenseReportLine."Reimbursement Type" := ExpenseReportLine."Reimbursement Type"::"Credit Card";
+        ExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
+        ExpenseReportLine."Expense Date" := WorkDate();
+        ExpenseReportLine.Amount := 20;
+        ExpenseReportLine.Insert(false);
+    end;
+
+    local procedure CreateLateFeedStatement(var CorpCardStatement: Record "EA Corp Card Statement"; var CorpCardTrans: Record "EA Corp Card Trans"; CorpCard: Record "EA Corp Card")
+    begin
+        CorpCardTestLib.CreateStatement(
+            CorpCardStatement, CorpCard."Provider Code",
+            CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardStatement."Statement No.")), 20, CorpCardStatement.Status::Imported);
+        CorpCardStatement."Currency Code" := '';
+        CorpCardStatement."Period Start Date" := WorkDate();
+        CorpCardStatement."Period End Date" := WorkDate();
+        CorpCardStatement.Imported := 1;
+        CorpCardStatement.Modify(true);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTrans."Statement Entry No." := CorpCardStatement."Statement Entry No.";
+        CorpCardTrans.Modify(true);
     end;
 
     [Test]

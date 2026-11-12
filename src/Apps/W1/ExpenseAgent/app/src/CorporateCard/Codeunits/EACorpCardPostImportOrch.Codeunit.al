@@ -105,6 +105,7 @@ codeunit 7423 "EA Corp Card Post Import Orch"
         MerchantNorm: Codeunit "EA Corp Card Merchant Norm";
         EnhancedMatchMgt: Codeunit "EA Corp Card Enh. Match Mgt";
         AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
+        MatchedDocumentId: RecordId;
         MatchedExpenseNo: Code[20];
         DraftExpenseNo: Code[20];
         ValidationReason: Text[250];
@@ -134,8 +135,8 @@ codeunit 7423 "EA Corp Card Post Import Orch"
             CorpCardTrans.TestField("Expense Match No.", MatchedExpenseNo);
             TransactionExpenseMatch.LinkExpense(CorpCardTrans, MatchedExpenseNo);
         end else
-            if TransactionExpenseMatch.MatchExistingExpense(CorpCardTrans, MatchedExpenseNo) then
-                TransactionExpenseMatch.LinkExpense(CorpCardTrans, MatchedExpenseNo)
+            if TransactionExpenseMatch.MatchExistingExpense(CorpCardTrans, MatchedDocumentId) then
+                TransactionExpenseMatch.LinkExpense(CorpCardTrans, MatchedDocumentId)
             else
                 if ExpenseAgentSetup."Corp Card Create Mode" = ExpenseAgentSetup."Corp Card Create Mode"::AutoDraft then begin
                     TransactionExpenseWriter.CreateDraftFromTrans(CorpCardTrans, DraftExpenseNo);

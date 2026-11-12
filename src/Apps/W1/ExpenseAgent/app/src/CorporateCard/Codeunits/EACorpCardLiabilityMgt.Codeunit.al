@@ -132,15 +132,16 @@ codeunit 7449 "EA Corp Card Liability Mgt"
         TransactionNo: Integer;
     begin
         CorpCardTrans.TestField(Status, CorpCardTrans.Status::Posted);
-        CorpCardTrans.TestField("Expense No.");
         CorpCardTrans.TestField("Posted Expense Report No.");
         CorpCardTrans.TestField("Card Id");
         // Keep the financial basis stable without escalating reads on other record instances.
-        Expense.ReadIsolation := IsolationLevel::RepeatableRead;
-        Expense.Get(CorpCardTrans."Expense No.");
-        Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
-        Expense.TestField("Corporate Card Id", CorpCardTrans."Card Id");
-        Expense.TestField("Posted Expense Report No.", CorpCardTrans."Posted Expense Report No.");
+        if CorpCardTrans."Expense No." <> '' then begin
+            Expense.ReadIsolation := IsolationLevel::RepeatableRead;
+            Expense.Get(CorpCardTrans."Expense No.");
+            Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+            Expense.TestField("Corporate Card Id", CorpCardTrans."Card Id");
+            Expense.TestField("Posted Expense Report No.", CorpCardTrans."Posted Expense Report No.");
+        end;
         PostedExpenseReportHeader.ReadIsolation := IsolationLevel::RepeatableRead;
         PostedExpenseReportHeader.Get(CorpCardTrans."Posted Expense Report No.");
         PostedExpenseReportHeader.TestField(Canceled, false);
@@ -152,6 +153,8 @@ codeunit 7449 "EA Corp Card Liability Mgt"
         PostedExpenseReportLine.SetRange("Document No.", CorpCardTrans."Posted Expense Report No.");
         PostedExpenseReportLine.SetRange("Expense No.", CorpCardTrans."Expense No.");
         PostedExpenseReportLine.SetRange("Is Canceled", false);
+        if CorpCardTrans."Expense No." = '' then
+            PostedExpenseReportLine.SetRange("Credit Card Feed No.", CorpCardTrans."Entry No.");
         if PostedExpenseReportLine.Count() <> 1 then
             Error(PostedLineNotUniqueErr, CorpCardTrans."Entry No.");
         PostedExpenseReportLine.FindFirst();

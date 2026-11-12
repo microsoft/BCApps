@@ -16,7 +16,10 @@ codeunit 7441 "EA Corp Card Statement Mgt"
         tabledata "EA Corp Card Settlement" = r,
         tabledata "EA Corp Card Settlement Line" = r,
         tabledata "EA Corp Card Statement" = rimd,
-        tabledata "EA Corp Card Trans" = r;
+        tabledata "EA Corp Card Trans" = r,
+        tabledata "Expense Report Line" = r,
+        tabledata "Posted Expense Report Header" = r,
+        tabledata "Posted Expense Report Line" = r;
 
     internal procedure ValidateStatement(var CorpCardStatement: Record "EA Corp Card Statement")
     var
@@ -50,7 +53,7 @@ codeunit 7441 "EA Corp Card Statement Mgt"
 
         CorpCardTrans.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
         CorpCardTrans.SetRange("Provider Code", CorpCardStatement."Provider Code");
-        CorpCardTrans.SetLoadFields("Provider Trans Id", "Card Id", "Trans Date", "Currency Code", "Expense No.", Amount);
+        CorpCardTrans.SetLoadFields("Provider Trans Id", "Card Id", "Trans Date", "Currency Code", "Expense No.", "Posted Expense Report No.", Status, Amount);
         if not CorpCardTrans.FindSet() then
             Error(NoStatementTransactionsErr, CorpCardStatement."Statement No.");
         repeat
@@ -234,6 +237,9 @@ codeunit 7441 "EA Corp Card Statement Mgt"
     local procedure ValidateTransaction(CorpCardStatement: Record "EA Corp Card Statement"; CorpCardTrans: Record "EA Corp Card Trans"; var ValidatedCardIds: List of [Text])
     var
         CorpCard: Record "EA Corp Card";
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
     begin
         CorpCardTrans.TestField("Provider Trans Id");
         CorpCardTrans.TestField("Card Id");
@@ -249,8 +255,28 @@ codeunit 7441 "EA Corp Card Statement Mgt"
                 (CorpCardTrans."Trans Date" <= CorpCardStatement."Period End Date"))
         then
             Error(TransactionOutsidePeriodErr, CorpCardTrans."Entry No.", CorpCardTrans."Trans Date");
-        if CorpCardTrans."Expense No." = '' then
+        if CorpCardTrans."Expense No." = '' then begin
+            if CorpCardTrans.Status = CorpCardTrans.Status::Submitted then begin
+                ExpenseReportLine.SetRange("Expense No.", '');
+                ExpenseReportLine.SetRange("Credit Card Feed No.", CorpCardTrans."Entry No.");
+                ExpenseReportLine.SetRange("Corporate Card Id", CorpCardTrans."Card Id");
+                if ExpenseReportLine.Count() = 1 then
+                    exit;
+            end;
+            if CorpCardTrans.Status = CorpCardTrans.Status::Posted then begin
+                PostedExpenseReportLine.SetRange("Document No.", CorpCardTrans."Posted Expense Report No.");
+                PostedExpenseReportLine.SetRange("Expense No.", '');
+                PostedExpenseReportLine.SetRange("Credit Card Feed No.", CorpCardTrans."Entry No.");
+                PostedExpenseReportLine.SetRange("Corporate Card Id", CorpCardTrans."Card Id");
+                PostedExpenseReportLine.SetRange("Is Canceled", false);
+                if PostedExpenseReportLine.Count() = 1 then begin
+                    PostedExpenseReportHeader.Get(CorpCardTrans."Posted Expense Report No.");
+                    PostedExpenseReportHeader.TestField(Canceled, false);
+                    exit;
+                end;
+            end;
             Error(TransactionNotMatchedToExpenseErr, CorpCardTrans."Entry No.");
+        end;
     end;
 
     local procedure LoadStatementBankEntries(CorpCardTrans: Record "EA Corp Card Trans"; var TempBankAccountLedgerEntry: Record "Bank Account Ledger Entry" temporary)

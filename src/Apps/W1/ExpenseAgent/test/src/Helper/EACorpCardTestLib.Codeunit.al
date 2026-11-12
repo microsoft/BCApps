@@ -74,6 +74,23 @@ codeunit 148357 EACorpCardTestLib
     end;
 
     internal procedure PostManualExpense(var Expense: Record Expense; var PostedExpenseReportLine: Record "Posted Expense Report Line"; CorpCard: Record "EA Corp Card")
+    begin
+        PostManualExpense(Expense, PostedExpenseReportLine, CorpCard, false, 20);
+    end;
+
+    internal procedure PostManualExpense(var Expense: Record Expense; var PostedExpenseReportLine: Record "Posted Expense Report Line"; CorpCard: Record "EA Corp Card"; ReportAmount: Decimal)
+    begin
+        PostManualExpense(Expense, PostedExpenseReportLine, CorpCard, false, ReportAmount);
+    end;
+
+    internal procedure PostManualReportLine(var PostedExpenseReportLine: Record "Posted Expense Report Line"; CorpCard: Record "EA Corp Card")
+    var
+        Expense: Record Expense;
+    begin
+        PostManualExpense(Expense, PostedExpenseReportLine, CorpCard, true, 20);
+    end;
+
+    local procedure PostManualExpense(var Expense: Record Expense; var PostedExpenseReportLine: Record "Posted Expense Report Line"; CorpCard: Record "EA Corp Card"; StandaloneReportLine: Boolean; ReportAmount: Decimal)
     var
         Employee: Record Employee;
         EmployeePostingGroup: Record "Employee Posting Group";
@@ -111,18 +128,30 @@ codeunit 148357 EACorpCardTestLib
         LibraryExpense.CreateExpensePostingGroup(ExpensePostingGroup);
         ExpenseCategory.Validate("Posting Group", ExpensePostingGroup.Code);
         ExpenseCategory.Modify(true);
-        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, '', 20);
-        Expense.Validate("Corporate Card Id", CorpCard."Card Id");
-        Expense.Modify(true);
-        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
-
-        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
-        ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
+        if StandaloneReportLine then begin
+            LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+            LibraryExpense.CreateExpenseReportLine(
+                ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', 20);
+            ExpenseReportLine.Validate("Corporate Card Id", CorpCard."Card Id");
+            ExpenseReportLine.Modify(true);
+        end else begin
+            LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, '', 20);
+            Expense.Validate("Corporate Card Id", CorpCard."Card Id");
+            Expense.Modify(true);
+            ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+            LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+            ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
+        end;
+        if ExpenseReportLine.Amount <> ReportAmount then begin
+            ExpenseReportLine.Validate(Amount, ReportAmount);
+            ExpenseReportLine.Modify(true);
+        end;
         ReleaseExpenseReportDocument.PerformManualRelease(ExpenseReportHeader);
         ExpenseReportPost.RunWithCheck(ExpenseReportHeader);
 
-        Expense.Get(Expense."No.");
-        PostedExpenseReportLine.Get(Expense."Posted Expense Report No.", ExpenseReportLine."Line No.");
+        if not StandaloneReportLine then
+            Expense.Get(Expense."No.");
+        PostedExpenseReportLine.Get(ExpenseReportHeader."Last Posting No.", ExpenseReportLine."Line No.");
     end;
 
     internal procedure CreateTransaction(var CorpCardTrans: Record "EA Corp Card Trans"; CorpCard: Record "EA Corp Card")

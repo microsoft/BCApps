@@ -8,6 +8,7 @@ interface "EA Corp Card Expense Match"
 {
     Access = Internal;
 
-    procedure MatchExistingExpense(CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]): Boolean;
+    procedure MatchExistingExpense(CorpCardTrans: Record "EA Corp Card Trans"; var MatchedDocumentId: RecordId): Boolean;
+    procedure LinkExpense(var CorpCardTrans: Record "EA Corp Card Trans"; MatchedDocumentId: RecordId);
     procedure LinkExpense(var CorpCardTrans: Record "EA Corp Card Trans"; ExpenseNo: Code[20]);
 }

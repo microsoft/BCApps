@@ -15,12 +15,28 @@ codeunit 148366 EACorpCardExpenseMatchMock implements "EA Corp Card Expense Matc
         MatchCallCount: Integer;
         LinkCallCount: Integer;
 
-    procedure MatchExistingExpense(CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]): Boolean
+    procedure MatchExistingExpense(CorpCardTrans: Record "EA Corp Card Trans"; var MatchedDocumentId: RecordId): Boolean
+    var
+        Expense: Record Expense;
     begin
         CorpCardTrans.TestField("Entry No.");
         MatchCallCount += 1;
-        ExpenseNo := MatchedExpenseNo;
-        exit(ExpenseNo <> '');
+        Clear(MatchedDocumentId);
+        if MatchedExpenseNo = '' then
+            exit(false);
+        Expense."No." := MatchedExpenseNo;
+        MatchedDocumentId := Expense.RecordId;
+        exit(true);
+    end;
+
+    procedure LinkExpense(var CorpCardTrans: Record "EA Corp Card Trans"; MatchedDocumentId: RecordId)
+    var
+        Expense: Record Expense;
+        Assert: Codeunit Assert;
+    begin
+        Expense."No." := MatchedExpenseNo;
+        Assert.AreEqual(Expense.RecordId, MatchedDocumentId, 'Linking must use the document returned by matching.');
+        LinkExpense(CorpCardTrans, MatchedExpenseNo);
     end;
 
     procedure LinkExpense(var CorpCardTrans: Record "EA Corp Card Trans"; ExpenseNo: Code[20])
