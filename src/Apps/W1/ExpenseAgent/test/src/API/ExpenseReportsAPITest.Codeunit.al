@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using System.TestLibraries.Environment;
 
-codeunit 148350 "Expense Reports API Test"
+codeunit 148329 "Expense Reports API Test"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
