@@ -37,6 +37,7 @@ report 30118 "Shpfy Suggest Payments"
             begin
                 SetAutoCalcFields(Used);
                 SetLoadFields(Amount, "Rounding Amount", Type, "Shopify Order Id", "Shopify Transaction Id", Gateway, "Credit Card Company", Shop, "Gift Card Id");
+                AddLoadFields("Presentment Amount", "Presentment Rounding Amount", "Refund Id");
                 if PostingDate = 0D then
                     Error(NoPostingDateErr);
                 if this.Gateway <> '' then

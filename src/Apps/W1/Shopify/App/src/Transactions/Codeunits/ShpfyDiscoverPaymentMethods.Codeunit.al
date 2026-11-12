@@ -49,7 +49,7 @@ codeunit 30432 "Shpfy Discover Payment Methods"
         end;
 
         CreateMissingLookups(GatewayKeys, CreditCardCompanyLookupNames);
-    CreateMissingMappings(ShopCode, GatewayKeys, CreditCardCompanyKeys, ManualPaymentGatewayValues, CreatedMappingCount);
+        CreateMissingMappings(ShopCode, GatewayKeys, CreditCardCompanyKeys, ManualPaymentGatewayValues, CreatedMappingCount);
     end;
 
     local procedure StageTransaction(JTransaction: JsonToken; var GatewayKeys: List of [Text]; var CreditCardCompanyKeys: List of [Text]; var ManualPaymentGatewayValues: List of [Boolean]; var CreditCardCompanyLookupNames: List of [Text])

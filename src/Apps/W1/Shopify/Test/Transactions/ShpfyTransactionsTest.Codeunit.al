@@ -365,6 +365,7 @@ codeunit 139697 "Shpfy Transactions Test"
         FailingGateway: Code[30];
         HasOrders: Boolean;
         CreatedMappingCount: Integer;
+        ErrorText: Text;
     begin
         //[SCENARIO] Discovery rolls back new mappings when a mapping insert fails.
 
@@ -392,9 +393,13 @@ codeunit 139697 "Shpfy Transactions Test"
 
         //[WHEN] Discovery encounters the injected mapping-insert failure.
         asserterror DiscoverPaymentMethods.Discover(Shop.Code, HasOrders, CreatedMappingCount);
+        ErrorText := GetLastErrorText();
 
         UnbindSubscription(ShpfyTransactionsTest);
         ShpfyTransactionsTest.ClearPaymentMethodMappingInsertFailure();
+
+        //[THEN] Discovery reports the injected mapping-insert failure.
+        LibraryAssert.IsTrue(StrPos(ErrorText, 'Injected payment-method mapping insert failure.') > 0, 'Discovery should fail on the selected mapping insert');
 
         //[THEN] Neither new mapping remains after the mapping-insert failure.
         LibraryAssert.IsTrue(PaymentMethodMapping.IsEmpty(), 'All new mappings should roll back after a mapping insert fails');
@@ -445,6 +450,7 @@ codeunit 139697 "Shpfy Transactions Test"
         Gateway: Text[30];
         HasOrders: Boolean;
         CreatedMappingCount: Integer;
+        ErrorText: Text;
     begin
         //[SCENARIO] Discovery does not write lookups or mappings after a Shopify read failure.
 
@@ -468,6 +474,10 @@ codeunit 139697 "Shpfy Transactions Test"
 
         //[WHEN] Discovery reads the failed Shopify response.
         asserterror DiscoverPaymentMethods.Discover(Shop.Code, HasOrders, CreatedMappingCount);
+        ErrorText := GetLastErrorText();
+
+        //[THEN] Discovery surfaces the Shopify error message.
+        LibraryAssert.IsTrue(StrPos(ErrorText, 'discovery read failed') > 0, 'Discovery should report the Shopify read failure');
 
         //[THEN] The failed Shopify read creates neither a gateway lookup nor a mapping.
         LibraryAssert.IsTrue(TransactionGateway.IsEmpty() and PaymentMethodMapping.IsEmpty(), 'A failed Shopify read must not create local gateway lookups or mappings');
