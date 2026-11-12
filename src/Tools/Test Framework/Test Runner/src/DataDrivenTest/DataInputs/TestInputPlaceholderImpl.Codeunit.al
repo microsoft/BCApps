@@ -85,9 +85,9 @@ codeunit 130466 "Test Input Placeholder Impl."
 
         TestInputPlaceholder.SetValue(PlaceholderValue);
         if PlaceholderExists then
-            TestInputPlaceholder.Modify(true)
+            TestInputPlaceholder.Modify(false)
         else
-            TestInputPlaceholder.Insert(true);
+            TestInputPlaceholder.Insert(false);
     end;
 
     /// <summary>
@@ -144,7 +144,7 @@ codeunit 130466 "Test Input Placeholder Impl."
         if not TestInputPlaceholder.Get(NormalizeName(PlaceholderName), NormalizeCompany(PlaceholderCompany)) then
             exit(false);
 
-        TestInputPlaceholder.Delete(true);
+        TestInputPlaceholder.Delete(false);
         exit(true);
     end;
 

@@ -66,15 +66,6 @@ codeunit 131904 "Library - Time Sheet"
         Assert.IsTrue(TimeSheetLine.Posted, StrSubstNo(TimeSheetFieldValueErr, TimeSheetLine.FieldCaption(Posted)));
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Library Service', '27.0')]
-    procedure CheckServiceTimeSheetLine(TimeSheetHeader: Record "Time Sheet Header"; ServiceHeaderNo: Code[20]; ServiceLineNo: Integer; ServiceLineQuantity: Decimal; Chargeable: Boolean)
-    var
-        LibraryService: Codeunit "Library - Service";
-    begin
-        LibraryService.CheckServiceTimeSheetLine(TimeSheetHeader, ServiceHeaderNo, ServiceLineNo, ServiceLineQuantity, Chargeable);
-    end;
-#endif
 
     procedure CreateJobJournalLine(var JobJournalLine: Record "Job Journal Line"; JournalTemplateName: Code[10]; JournalBatchName: Code[10])
     var
@@ -202,15 +193,6 @@ codeunit 131904 "Library - Time Sheet"
         Resource.Modify();
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Library Service', '27.0')]
-    procedure CreateServiceOrder(var ServiceHeader: Record "Service Header"; PostingDate: Date)
-    var
-        LibraryService: Codeunit "Library - Service";
-    begin
-        LibraryService.CreateServiceOrder(ServiceHeader, PostingDate);
-    end;
-#endif
 
     procedure CreateUserSetup(var UserSetup: Record "User Setup"; CurrUserID: Boolean)
     begin
@@ -409,15 +391,6 @@ codeunit 131904 "Library - Time Sheet"
           AssemblyHeader, AssemblyLine, "BOM Component Type"::Resource, Resource."No.", Resource."Base Unit of Measure", 8, 8, 'Working resource');
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Library Service', '27.0')]
-    procedure InitBackwayScenario(var TimeSheetHeader: Record "Time Sheet Header"; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line")
-    var
-        LibraryService: Codeunit "Library - Service";
-    begin
-        LibraryService.InitBackwayScenario(TimeSheetHeader, ServiceHeader, ServiceLine);
-    end;
-#endif
 
     procedure InitJobScenario(var TimeSheetHeader: Record "Time Sheet Header"; var TimeSheetLine: Record "Time Sheet Line")
     var
@@ -501,25 +474,7 @@ codeunit 131904 "Library - Time Sheet"
         end;
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Library Service', '27.0')]
-    procedure InitScenarioWTForServiceOrder(var TimeSheetHeader: Record "Time Sheet Header"; var ServiceHeader: Record "Service Header")
-    var
-        LibraryService: Codeunit "Library - Service";
-    begin
-        LibraryService.InitScenarioWTForServiceOrder(TimeSheetHeader, ServiceHeader);
-    end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Library Service', '27.0')]
-    procedure InitServiceScenario(var TimeSheetHeader: Record "Time Sheet Header"; var TimeSheetLine: Record "Time Sheet Line"; var ServiceHeader: Record "Service Header")
-    var
-        LibraryService: Codeunit "Library - Service";
-    begin
-        LibraryService.InitServiceScenario(TimeSheetHeader, TimeSheetLine, ServiceHeader);
-    end;
-#endif
 
     procedure SubmitTimeSheetLine(var TimeSheetLine: Record "Time Sheet Line")
     begin

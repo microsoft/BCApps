@@ -12,7 +12,7 @@ permissionsetextension 11746 "General Ledger - Admin CZL" extends "General Ledge
                   tabledata "VAT Ctrl. Report Line CZL" = RIMD,
                   tabledata "VAT Ctrl. Report Section CZL" = RIMD,
                   tabledata "VAT Ctrl. Report Ent. Link CZL" = RIMD,
-#if not CLEAN27
+#if not CLEAN28
 #pragma warning disable AL0432
                   tabledata "VAT Period CZL" = RIMD,
 #pragma warning restore AL0432

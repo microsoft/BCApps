@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Finance.Dimension;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Comment;
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Manufacturing.Document;
 #endif
 using Microsoft.Manufacturing.Reports;
@@ -286,7 +286,7 @@ page 99000755 "Work Center List"
         }
         area(processing)
         {
-#if not CLEAN27
+#if not CLEAN28
             action("Subcontr. &Prices")
             {
                 ApplicationArea = LegacySubcontracting;
@@ -334,7 +334,7 @@ page 99000755 "Work Center List"
             {
                 Caption = 'Process', Comment = 'Generated from the PromotedActionCategories property index 1.';
 
-#if not CLEAN27
+#if not CLEAN28
                 actionref("Subcontr. &Prices_Promoted"; "Subcontr. &Prices")
                 {
                     ObsoleteReason = 'Preparation for replacement by Suncontracting app ';
