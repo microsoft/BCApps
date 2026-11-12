@@ -1,3 +1,4 @@
+// [FEATURE] Put-away bin selection 
 codeunit 137933 "SCM Put-away Templ. Empty Bin"
 {
     Subtype = Test;
@@ -224,7 +225,7 @@ codeunit 137933 "SCM Put-away Templ. Empty Bin"
         LibraryWarehouse.PostWhseReceipt(WarehouseReceiptHeader);
     end;
 
-    procedure CreateWarehouseReceiptNo(var PurchaseHeader: Record "Purchase Header"): Code[20]
+    local procedure CreateWarehouseReceiptNo(var PurchaseHeader: Record "Purchase Header"): Code[20]
     var
         WarehouseReceiptLine: Record "Warehouse Receipt Line";
     begin

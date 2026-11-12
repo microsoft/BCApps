@@ -514,7 +514,7 @@ codeunit 7313 "Create Put-away"
             CurrBinContent.SetRange("Unit of Measure Code", PutAwayItemUnitOfMeasure.Code);
         BinCodeFilterText := GetExcludedPutAwayBinFilter();
         if BinCodeFilterText <> '' then
-            CurrBinContent.SetFilter("Bin Code", BinCodeFilterText);
+            CurrBinContent.SetFilter("Bin Code", BinCodeFilterText, CurrLocation."Receipt Bin Code", CurrLocation."Shipment Bin Code", PostedWhseReceiptLine."Bin Code");
 
         IsHandled := false;
         OnFindBinContent(PostedWhseReceiptLine, PutAwayTemplateLine, CurrBinContent, BinContentFound, IsHandled);
@@ -543,7 +543,7 @@ codeunit 7313 "Create Put-away"
             CurrBin.SetRange(CurrBin.Empty, true);
         BinCodeFilterText := GetExcludedPutAwayBinFilter();
         if BinCodeFilterText <> '' then
-            CurrBin.SetFilter(Code, BinCodeFilterText);
+            CurrBin.SetFilter(Code, BinCodeFilterText, CurrLocation."Receipt Bin Code", CurrLocation."Shipment Bin Code", PostedWhseReceiptLine."Bin Code");
 
         IsHandled := false;
         OnFindBin(PostedWhseReceiptLine, PutAwayTemplateLine, CurrBin, BinFound, IsHandled);
@@ -1053,18 +1053,19 @@ codeunit 7313 "Create Put-away"
             exit('');
 
         if CurrLocation."Receipt Bin Code" <> '' then
-            AddToFilterText(BinCodeFilterText, '&', '<>', CurrLocation."Receipt Bin Code");
-        if CurrLocation."Shipment Bin Code" <> '' then
-            AddToFilterText(BinCodeFilterText, '&', '<>', CurrLocation."Shipment Bin Code");
-        if PostedWhseReceiptLine."Bin Code" <> '' then
-            AddToFilterText(BinCodeFilterText, '&', '<>', PostedWhseReceiptLine."Bin Code");
+            BinCodeFilterText := '<>%1';
 
-        OnAfterGetExcludedPutAwayBinFilter(PostedWhseReceiptLine, CurrLocation, BinCodeFilterText);
-    end;
+        if CurrLocation."Shipment Bin Code" <> '' then begin
+            if BinCodeFilterText <> '' then
+                BinCodeFilterText += '&';
+            BinCodeFilterText += '<>%2';
+        end;
 
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterGetExcludedPutAwayBinFilter(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; CurrLocation: Record Location; var BinCodeFilterText: Text[250]);
-    begin
+        if PostedWhseReceiptLine."Bin Code" <> '' then begin
+            if BinCodeFilterText <> '' then
+                BinCodeFilterText += '&';
+            BinCodeFilterText += '<>%3';
+        end;
     end;
 
     [IntegrationEvent(false, false)]
