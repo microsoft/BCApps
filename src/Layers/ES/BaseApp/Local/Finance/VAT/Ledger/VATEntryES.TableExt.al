@@ -8,7 +8,7 @@ using Microsoft.Purchases.History;
 using Microsoft.Sales.History;
 
 #pragma warning disable AS0088
-tableextension 7000110 "VAT Entry ES" extends "VAT Entry"
+tableextension 253 "VAT Entry ES" extends "VAT Entry"
 {
     [Scope('OnPrem')]
     procedure IsCorrectiveCrMemoDiffPeriod(StartDateFormula: DateFormula; EndDateFormula: DateFormula): Boolean

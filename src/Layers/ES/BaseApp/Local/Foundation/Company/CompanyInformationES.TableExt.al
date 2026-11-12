@@ -5,7 +5,7 @@
 namespace Microsoft.Foundation.Company;
 
 #pragma warning disable AS0088
-tableextension 7000139 "Company Information ES" extends "Company Information"
+tableextension 10726 "Company Information ES" extends "Company Information"
 {
     fields
     {

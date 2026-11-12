@@ -5,7 +5,7 @@
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
 #pragma warning disable AS0088
-pageextension 7000111 "Cash Receipt Journal ES" extends "Cash Receipt Journal"
+pageextension 10739 "Cash Receipt Journal ES" extends "Cash Receipt Journal"
 {
     layout
     {

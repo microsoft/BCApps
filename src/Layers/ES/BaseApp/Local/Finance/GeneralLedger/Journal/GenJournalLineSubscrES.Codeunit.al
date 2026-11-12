@@ -5,7 +5,7 @@
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
 #pragma warning disable AS0088
-codeunit 7000127 "Gen. Journal Line Subscr. ES"
+codeunit 7000096 "Gen. Journal Line Subscr. ES"
 {
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterValidateEvent', 'Account Type', true, false)]
     local procedure GenJournalLineOnAfterValidateAccountType(var Rec: Record "Gen. Journal Line")

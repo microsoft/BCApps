@@ -5,7 +5,7 @@
 namespace Microsoft.Purchases.History;
 
 #pragma warning disable AS0088
-reportextension 7000129 "Purchase Credit Memo ES" extends "Purchase - Credit Memo"
+reportextension 7000001 "Purchase Credit Memo ES" extends "Purchase - Credit Memo"
 {
     dataset
     {

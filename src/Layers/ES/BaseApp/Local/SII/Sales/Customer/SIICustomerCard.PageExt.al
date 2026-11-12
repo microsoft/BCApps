@@ -7,7 +7,7 @@ namespace Microsoft.EServices.EDocument;
 using Microsoft.Sales.Customer;
 
 #pragma warning disable AS0088
-pageextension 7000132 "SII Customer Card" extends "Customer Card"
+pageextension 10760 "SII Customer Card" extends "Customer Card"
 {
     layout
     {

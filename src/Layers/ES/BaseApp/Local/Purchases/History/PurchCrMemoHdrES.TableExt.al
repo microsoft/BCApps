@@ -5,7 +5,7 @@
 namespace Microsoft.Purchases.History;
 
 #pragma warning disable AS0088
-tableextension 7000107 "Purch. Cr. Memo Hdr. ES" extends "Purch. Cr. Memo Hdr."
+tableextension 10719 "Purch. Cr. Memo Hdr. ES" extends "Purch. Cr. Memo Hdr."
 {
     fields
     {

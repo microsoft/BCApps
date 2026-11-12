@@ -5,7 +5,7 @@
 namespace Microsoft.Purchases.Vendor;
 
 #pragma warning disable AS0088
-codeunit 7000147 "Vendor Subscr. ES"
+codeunit 7000098 "Vendor Subscr. ES"
 {
     [EventSubscriber(ObjectType::Table, Database::"Vendor", 'OnAfterInitInvoiceDiscCode', '', true, false)]
     local procedure OnAfterInitInvoiceDiscCode(var Vendor: Record Vendor)

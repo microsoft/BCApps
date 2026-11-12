@@ -5,7 +5,7 @@
 namespace Microsoft.Purchases.History;
 
 #pragma warning disable AS0088
-pageextension 7000124 "Posted Purchase Invoice ES" extends "Posted Purchase Invoice"
+pageextension 10752 "Posted Purchase Invoice ES" extends "Posted Purchase Invoice"
 {
     actions
     {

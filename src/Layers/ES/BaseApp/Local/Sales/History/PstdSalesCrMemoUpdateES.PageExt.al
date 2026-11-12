@@ -5,7 +5,7 @@
 namespace Microsoft.Sales.History;
 
 #pragma warning disable AS0088
-pageextension 7000122 "Pstd. Sales Cr. Memo Update ES" extends "Pstd. Sales Cr. Memo - Update"
+pageextension 10750 "Pstd. Sales Cr. Memo Update ES" extends "Pstd. Sales Cr. Memo - Update"
 {
     layout
     {

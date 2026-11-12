@@ -7,7 +7,7 @@ namespace Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 
 #pragma warning disable AS0088
-tableextension 7000105 "Purchase Header ES" extends "Purchase Header"
+tableextension 10717 "Purchase Header ES" extends "Purchase Header"
 {
     fields
     {

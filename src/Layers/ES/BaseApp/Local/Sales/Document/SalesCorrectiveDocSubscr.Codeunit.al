@@ -12,7 +12,7 @@ using Microsoft.Sales.Setup;
 using System.Utilities;
 
 #pragma warning disable AS0088
-codeunit 7000125 "Sales Corrective Doc. Subscr."
+codeunit 7000094 "Sales Corrective Doc. Subscr."
 {
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnValidateBillToCustomerNoOnAfterResetSalesLines', '', true, false)]
     local procedure OnValidateBillToCustomerNoOnAfterResetSalesLines(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header")

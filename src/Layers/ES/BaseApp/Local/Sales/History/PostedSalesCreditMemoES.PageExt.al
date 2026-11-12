@@ -5,7 +5,7 @@
 namespace Microsoft.Sales.History;
 
 #pragma warning disable AS0088
-pageextension 7000120 "Posted Sales Credit Memo ES" extends "Posted Sales Credit Memo"
+pageextension 10748 "Posted Sales Credit Memo ES" extends "Posted Sales Credit Memo"
 {
     layout
     {

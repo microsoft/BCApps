@@ -7,7 +7,7 @@ namespace Microsoft.Sales.Customer;
 using Microsoft.Finance.ReceivablesPayables;
 
 #pragma warning disable AS0088
-pageextension 7000140 "Customer Card ES" extends "Customer Card"
+pageextension 10753 "Customer Card ES" extends "Customer Card"
 {
     layout
     {

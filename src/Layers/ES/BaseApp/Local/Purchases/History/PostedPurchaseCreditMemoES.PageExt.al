@@ -5,7 +5,7 @@
 namespace Microsoft.Purchases.History;
 
 #pragma warning disable AS0088
-pageextension 7000121 "Posted Purch. Credit Memo ES" extends "Posted Purchase Credit Memo"
+pageextension 10749 "Posted Purch. Credit Memo ES" extends "Posted Purchase Credit Memo"
 {
     layout
     {

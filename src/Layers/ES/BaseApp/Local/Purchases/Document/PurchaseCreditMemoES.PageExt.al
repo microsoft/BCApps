@@ -5,7 +5,7 @@
 namespace Microsoft.Purchases.Document;
 
 #pragma warning disable AS0088
-pageextension 7000118 "Purchase Credit Memo ES" extends "Purchase Credit Memo"
+pageextension 10746 "Purchase Credit Memo ES" extends "Purchase Credit Memo"
 {
     layout
     {

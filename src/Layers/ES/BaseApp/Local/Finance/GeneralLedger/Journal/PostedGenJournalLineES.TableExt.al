@@ -5,7 +5,7 @@
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
 #pragma warning disable AS0088
-tableextension 7000101 "Posted Gen. Journal Line ES" extends "Posted Gen. Journal Line"
+tableextension 10713 "Posted Gen. Journal Line ES" extends "Posted Gen. Journal Line"
 {
     fields
     {

@@ -5,7 +5,7 @@
 namespace Microsoft.Foundation.Company;
 
 #pragma warning disable AS0088
-codeunit 7000148 "Company Information Subscr. ES"
+codeunit 7000099 "Company Information Subscr. ES"
 {
     [EventSubscriber(ObjectType::Table, Database::"Company Information", 'OnAfterValidateName', '', true, false)]
     local procedure OnAfterValidateName(var CompanyInformation: Record "Company Information")

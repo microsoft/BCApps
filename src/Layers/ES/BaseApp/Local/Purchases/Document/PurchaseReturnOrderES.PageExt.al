@@ -5,7 +5,7 @@
 namespace Microsoft.Purchases.Document;
 
 #pragma warning disable AS0088
-pageextension 7000119 "Purchase Return Order ES" extends "Purchase Return Order"
+pageextension 10747 "Purchase Return Order ES" extends "Purchase Return Order"
 {
     layout
     {

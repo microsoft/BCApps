@@ -5,7 +5,7 @@
 namespace Microsoft.Sales.Receivables;
 
 #pragma warning disable AS0088
-tableextension 7000102 "Cust. Ledger Entry ES" extends "Cust. Ledger Entry"
+tableextension 10714 "Cust. Ledger Entry ES" extends "Cust. Ledger Entry"
 {
     fields
     {

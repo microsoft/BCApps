@@ -5,7 +5,7 @@
 namespace Microsoft.Sales.Customer;
 
 #pragma warning disable AS0088
-codeunit 7000135 "Customer Subscr. ES"
+codeunit 7000097 "Customer Subscr. ES"
 {
     [EventSubscriber(ObjectType::Table, Database::Customer, 'OnAfterInitInvoiceDiscCode', '', true, false)]
     local procedure OnAfterInitInvoiceDiscCode(var Customer: Record Customer)

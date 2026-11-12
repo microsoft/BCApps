@@ -5,7 +5,7 @@
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
 #pragma warning disable AS0088
-pageextension 7000115 "Sales Journal ES" extends "Sales Journal"
+pageextension 10743 "Sales Journal ES" extends "Sales Journal"
 {
     layout
     {

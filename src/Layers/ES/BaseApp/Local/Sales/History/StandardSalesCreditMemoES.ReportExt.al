@@ -5,7 +5,7 @@
 namespace Microsoft.Sales.History;
 
 #pragma warning disable AS0088
-reportextension 7000128 "Standard Sales Credit Memo ES" extends "Standard Sales - Credit Memo"
+reportextension 7000000 "Standard Sales Credit Memo ES" extends "Standard Sales - Credit Memo"
 {
     dataset
     {

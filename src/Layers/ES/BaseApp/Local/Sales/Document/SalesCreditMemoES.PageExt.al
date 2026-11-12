@@ -5,7 +5,7 @@
 namespace Microsoft.Sales.Document;
 
 #pragma warning disable AS0088
-pageextension 7000116 "Sales Credit Memo ES" extends "Sales Credit Memo"
+pageextension 10744 "Sales Credit Memo ES" extends "Sales Credit Memo"
 {
     layout
     {

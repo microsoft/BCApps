@@ -7,7 +7,7 @@ namespace Microsoft.Foundation.Company;
 using Microsoft.Finance.ReceivablesPayables;
 
 #pragma warning disable AS0088
-pageextension 7000146 "Company Information ES" extends "Company Information"
+pageextension 10759 "Company Information ES" extends "Company Information"
 {
     layout
     {

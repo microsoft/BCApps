@@ -5,7 +5,7 @@
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
 #pragma warning disable AS0088
-pageextension 7000112 "General Journal ES" extends "General Journal"
+pageextension 10740 "General Journal ES" extends "General Journal"
 {
     layout
     {

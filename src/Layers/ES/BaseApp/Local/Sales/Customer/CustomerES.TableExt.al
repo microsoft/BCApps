@@ -5,7 +5,7 @@
 namespace Microsoft.Sales.Customer;
 
 #pragma warning disable AS0088
-tableextension 7000134 "Customer ES" extends Customer
+tableextension 10722 "Customer ES" extends Customer
 {
     fields
     {

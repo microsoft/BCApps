@@ -8,7 +8,7 @@ using Microsoft.Purchases.History;
 using Microsoft.Sales.History;
 
 #pragma warning disable AS0088
-tableextension 7000100 "Gen. Journal Line ES" extends "Gen. Journal Line"
+tableextension 10712 "Gen. Journal Line ES" extends "Gen. Journal Line"
 {
     fields
     {

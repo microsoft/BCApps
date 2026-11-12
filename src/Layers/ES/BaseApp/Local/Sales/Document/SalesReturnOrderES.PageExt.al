@@ -5,7 +5,7 @@
 namespace Microsoft.Sales.Document;
 
 #pragma warning disable AS0088
-pageextension 7000117 "Sales Return Order ES" extends "Sales Return Order"
+pageextension 10745 "Sales Return Order ES" extends "Sales Return Order"
 {
     layout
     {

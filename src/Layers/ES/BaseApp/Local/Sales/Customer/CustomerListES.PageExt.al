@@ -7,7 +7,7 @@ namespace Microsoft.Sales.Customer;
 using Microsoft.Finance.ReceivablesPayables;
 
 #pragma warning disable AS0088
-pageextension 7000141 "Customer List ES" extends "Customer List"
+pageextension 10754 "Customer List ES" extends "Customer List"
 {
     actions
     {

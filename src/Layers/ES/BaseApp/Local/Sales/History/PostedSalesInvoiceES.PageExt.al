@@ -5,7 +5,7 @@
 namespace Microsoft.Sales.History;
 
 #pragma warning disable AS0088
-pageextension 7000123 "Posted Sales Invoice ES" extends "Posted Sales Invoice"
+pageextension 10751 "Posted Sales Invoice ES" extends "Posted Sales Invoice"
 {
     actions
     {

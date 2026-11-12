@@ -5,7 +5,7 @@
 namespace Microsoft.Sales.Customer;
 
 #pragma warning disable AS0088
-pageextension 7000142 "Customer Template Card ES" extends "Customer Templ. Card"
+pageextension 10755 "Customer Template Card ES" extends "Customer Templ. Card"
 {
     layout
     {

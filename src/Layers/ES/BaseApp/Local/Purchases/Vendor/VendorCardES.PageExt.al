@@ -7,7 +7,7 @@ namespace Microsoft.Purchases.Vendor;
 using Microsoft.Finance.ReceivablesPayables;
 
 #pragma warning disable AS0088
-pageextension 7000143 "Vendor Card ES" extends "Vendor Card"
+pageextension 10756 "Vendor Card ES" extends "Vendor Card"
 {
     layout
     {

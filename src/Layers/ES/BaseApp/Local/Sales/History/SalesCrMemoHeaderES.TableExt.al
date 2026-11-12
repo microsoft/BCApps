@@ -5,7 +5,7 @@
 namespace Microsoft.Sales.History;
 
 #pragma warning disable AS0088
-tableextension 7000106 "Sales Cr.Memo Header ES" extends "Sales Cr.Memo Header"
+tableextension 10718 "Sales Cr.Memo Header ES" extends "Sales Cr.Memo Header"
 {
     fields
     {

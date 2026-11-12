@@ -5,7 +5,7 @@
 namespace Microsoft.Sales.Customer;
 
 #pragma warning disable AS0088
-tableextension 7000136 "Customer Template ES" extends "Customer Templ."
+tableextension 10723 "Customer Template ES" extends "Customer Templ."
 {
     fields
     {

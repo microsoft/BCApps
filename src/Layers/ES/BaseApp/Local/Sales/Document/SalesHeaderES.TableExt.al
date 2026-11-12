@@ -7,7 +7,7 @@ namespace Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 
 #pragma warning disable AS0088
-tableextension 7000104 "Sales Header ES" extends "Sales Header"
+tableextension 10716 "Sales Header ES" extends "Sales Header"
 {
     fields
     {

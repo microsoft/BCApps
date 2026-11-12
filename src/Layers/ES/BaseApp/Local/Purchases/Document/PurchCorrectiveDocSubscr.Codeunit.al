@@ -12,7 +12,7 @@ using Microsoft.Purchases.Setup;
 using System.Utilities;
 
 #pragma warning disable AS0088
-codeunit 7000126 "Purch. Corrective Doc. Subscr."
+codeunit 7000095 "Purch. Corrective Doc. Subscr."
 {
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnValidatePayToVendorNoOnAfterResetPurchLines', '', true, false)]
     local procedure OnValidatePayToVendorNoOnAfterResetPurchLines(var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header")

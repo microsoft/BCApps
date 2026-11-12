@@ -7,7 +7,7 @@ namespace Microsoft.EServices.EDocument;
 using Microsoft.Sales.Customer;
 
 #pragma warning disable AS0088
-tableextension 7000130 "SII Customer" extends Customer
+tableextension 10728 "SII Customer" extends Customer
 {
     fields
     {

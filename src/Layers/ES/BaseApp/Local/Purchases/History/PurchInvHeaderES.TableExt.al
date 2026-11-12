@@ -5,7 +5,7 @@
 namespace Microsoft.Purchases.History;
 
 #pragma warning disable AS0088
-tableextension 7000109 "Purch. Inv. Header ES" extends "Purch. Inv. Header"
+tableextension 10721 "Purch. Inv. Header ES" extends "Purch. Inv. Header"
 {
     var
         CorrInvDoesNotExistErr: Label 'The Corrected Invoice No. does not exist. \Identification fields and values:\Corrected Invoice No. = %1.', Comment = '%1 = number of document';

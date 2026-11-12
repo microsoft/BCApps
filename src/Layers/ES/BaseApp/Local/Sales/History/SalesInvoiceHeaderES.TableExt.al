@@ -5,7 +5,7 @@
 namespace Microsoft.Sales.History;
 
 #pragma warning disable AS0088
-tableextension 7000108 "Sales Invoice Header ES" extends "Sales Invoice Header"
+tableextension 10720 "Sales Invoice Header ES" extends "Sales Invoice Header"
 {
     var
         CorrInvDoesNotExistErr: Label 'The Corrected Invoice No. does not exist. \Identification fields and values:\Corrected Invoice No. = %1.', Comment = '%1 = number of document';

@@ -5,7 +5,7 @@
 namespace Microsoft.Purchases.Vendor;
 
 #pragma warning disable AS0088
-pageextension 7000145 "Vendor Template Card ES" extends "Vendor Templ. Card"
+pageextension 10758 "Vendor Template Card ES" extends "Vendor Templ. Card"
 {
     layout
     {

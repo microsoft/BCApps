@@ -7,7 +7,7 @@ namespace Microsoft.EServices.EDocument;
 using Microsoft.Sales.Customer;
 
 #pragma warning disable AS0088
-tableextension 7000131 "SII Customer Template" extends "Customer Templ."
+tableextension 10729 "SII Customer Template" extends "Customer Templ."
 {
     fields
     {

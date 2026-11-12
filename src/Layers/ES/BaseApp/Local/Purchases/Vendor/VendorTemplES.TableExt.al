@@ -5,7 +5,7 @@
 namespace Microsoft.Purchases.Vendor;
 
 #pragma warning disable AS0088
-tableextension 7000138 "Vendor Template ES" extends "Vendor Templ."
+tableextension 10725 "Vendor Template ES" extends "Vendor Templ."
 {
     fields
     {

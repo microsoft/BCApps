@@ -5,7 +5,7 @@
 namespace Microsoft.Purchases.Payables;
 
 #pragma warning disable AS0088
-tableextension 7000103 "Vendor Ledger Entry ES" extends "Vendor Ledger Entry"
+tableextension 10715 "Vendor Ledger Entry ES" extends "Vendor Ledger Entry"
 {
     fields
     {
