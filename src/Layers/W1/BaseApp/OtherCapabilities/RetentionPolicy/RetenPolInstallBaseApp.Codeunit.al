@@ -582,7 +582,6 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
     begin
         PerCompanyUpgradeTags.Add(GetRetenPolFinancialReportExportLogUpgradeTag());
         PerCompanyUpgradeTags.Add(GetRetenPolTruncateAllowedUpgradeTag());
-        PerCompanyUpgradeTags.Add(GetRetenPolPostedInvtHeadersUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reten. Pol. Allowed Tables", 'OnRefreshAllowedTables', '', false, false)]

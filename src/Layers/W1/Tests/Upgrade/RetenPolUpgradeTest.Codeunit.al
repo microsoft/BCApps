@@ -371,6 +371,22 @@ codeunit 135952 "Reten. Pol. Upgrade Test"
         LibraryAssert.IsFalse(PostedInvtPutawayHeader.Get('MPUTNOBIN'), 'Expired posted inventory put-away must be deleted');
     end;
 
+    [Test]
+    procedure TestPostedInvtHeadersUpgradeTagIsNotPreSeededForNewCompanies()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        PerCompanyUpgradeTags: List of [Code[250]];
+    begin
+        // [SCENARIO 592028] New companies must still get the default posted inventory pick/put-away retention policies on Company-Initialize
+        Initialize();
+
+        // [WHEN] The per-company upgrade tags that are set on company creation are collected
+        UpgradeTag.GetPerCompanyUpgradeTags(PerCompanyUpgradeTags);
+
+        // [THEN] The posted inventory headers tag is not among them, so AddAllowedTables treats a new company as initial setup
+        LibraryAssert.IsFalse(PerCompanyUpgradeTags.Contains('MS-592028-RetenPolPostedInvtHeaders-20260929'), 'The posted inventory headers retention policy tag must not be pre-seeded for new companies');
+    end;
+
     local procedure RefreshAllowedTables()
     var
         RetenPolInstallBaseApp: Codeunit "Reten. Pol. Install - BaseApp";
