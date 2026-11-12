@@ -12,9 +12,7 @@ using Microsoft.Sales.Setup;
 
 reportextension 10585 "Finance Charge Memo" extends "Finance Charge Memo"
 {
-#if CLEAN27
     RDLCLayout = './src/ReportExtensions/FinanceChargeMemo.rdlc';
-#endif
     dataset
     {
         add(Integer)
@@ -96,20 +94,6 @@ reportextension 10585 "Finance Charge Memo" extends "Finance Charge Memo"
         }
     }
 
-#if not CLEAN27
-    rendering
-    {
-        layout(GBlocalizationLayout)
-        {
-            Type = RDLC;
-            Caption = 'Finance Charge Memo GB localization';
-            LayoutFile = './src/ReportExtensions/FinanceChargeMemo.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'Feature Reports GB will be enabled by default in version 30.0.';
-            ObsoleteTag = '27.0';
-        }
-    }
-#endif
 
     var
         GLSetup: Record "General Ledger Setup";

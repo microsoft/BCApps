@@ -32,8 +32,11 @@ codeunit 136506 "New Time Sheet Experience"
         navUserEmailTxt: Label 'navuser@email.com', Locked = true;
         TimeSheetCardOwnerUserIDFilter: Text;
         TimeSheetArchiveCardOwnerUserIDFilter: Text;
+        WorkTypeCodeToReplace: Code[10];
+        ReplacementWorkTypeCode: Code[10];
         UnexpectedTxt: Label 'Unexpected message.';
         ReopenDisabledTxt: Label 'Reopen must be disabled';
+        CopiedLinesWithClearedCodesMsg: Label 'The work type or cause of absence on %1 copied line(s) no longer exists and was left blank. Review these lines before you submit the time sheet.', Comment = '%1 - number of lines';
 
     [Test]
     [Scope('OnPrem')]
@@ -441,6 +444,226 @@ codeunit 136506 "New Time Sheet Experience"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('TimeSheetLinesModalHandler,CopiedLinesWithClearedCodesNotificationHandler')]
+    procedure CopyArchivedTimeSheetLineWithDeletedWorkType()
+    var
+        Resource: Record Resource;
+        WorkType: Record "Work Type";
+        TimeSheetHeader: Record "Time Sheet Header";
+        TimeSheetLine: Record "Time Sheet Line";
+        CopiedTimeSheetLine: Record "Time Sheet Line";
+        TimeSheetManagement: Codeunit "Time Sheet Management";
+    begin
+        // [FEATURE] [Time Sheet], [Copy Time Sheet Lines]
+        // [SCENARIO 650730] Copying an archived time sheet line does not retain a deleted work type.
+        Initialize();
+
+        // [GIVEN] An archived time sheet line with a work type that is subsequently deleted
+        CreateMultipleTimeSheet(Resource, TimeSheetHeader, 2);
+        TimeSheetHeader.FindFirst();
+        CreateTimeSheetLineWithTimeAllocaiton(TimeSheetHeader, TimeSheetLine);
+        LibraryTimeSheet.CreateWorkType(WorkType, Resource."Base Unit of Measure");
+        TimeSheetLine.Validate("Work Type Code", WorkType.Code);
+        TimeSheetLine.Validate(Status, TimeSheetLine.Status::Approved);
+        TimeSheetLine.Validate(Posted, true);
+        TimeSheetLine.Modify(true);
+        TimeSheetManagement.MoveTimeSheetToArchive(TimeSheetHeader);
+        WorkType.Delete();
+
+        // [WHEN] Copying the archived line to the subsequent time sheet
+        TimeSheetHeader.FindLast();
+        LibraryVariableStorage.Enqueue('CopyTimeSheetLinesCopyOneLineFromTS');
+        LibraryVariableStorage.Enqueue(1);
+        TimeSheetManagement.SelectAndCopyTimeSheetLines(TimeSheetHeader, false);
+
+        // [THEN] The copied line does not retain the deleted work type
+        CopiedTimeSheetLine.SetRange("Time Sheet No.", TimeSheetHeader."No.");
+        CopiedTimeSheetLine.FindFirst();
+        CopiedTimeSheetLine.TestField("Work Type Code", '');
+
+        // [THEN] A notification about 1 line with cleared values is sent
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('CopiedLinesWithClearedCodesNotificationHandler')]
+    procedure CopyPrevTimeSheetLinesWithDeletedWorkType()
+    var
+        Resource: Record Resource;
+        WorkType: Record "Work Type";
+        DeletedWorkType: Record "Work Type";
+        TimeSheetHeader: Record "Time Sheet Header";
+        TimeSheetLine: Record "Time Sheet Line";
+        CopiedTimeSheetLine: Record "Time Sheet Line";
+        TimeSheetManagement: Codeunit "Time Sheet Management";
+    begin
+        // [FEATURE] [Time Sheet], [Copy Time Sheet Lines]
+        // [SCENARIO 650730] Copying open time sheet lines does not retain a deleted work type and keeps an existing one.
+        Initialize();
+
+        // [GIVEN] Open time sheet line "L1" with work type "WT1" that is subsequently deleted
+        CreateMultipleTimeSheet(Resource, TimeSheetHeader, 2);
+        TimeSheetHeader.FindFirst();
+        CreateTimeSheetLineWithTimeAllocaiton(TimeSheetHeader, TimeSheetLine);
+        LibraryTimeSheet.CreateWorkType(DeletedWorkType, Resource."Base Unit of Measure");
+        TimeSheetLine.Validate("Work Type Code", DeletedWorkType.Code);
+        TimeSheetLine.Modify(true);
+
+        // [GIVEN] Open time sheet line "L2" with existing work type "WT2"
+        CreateTimeSheetLineWithTimeAllocaiton(TimeSheetHeader, TimeSheetLine);
+        LibraryTimeSheet.CreateWorkType(WorkType, Resource."Base Unit of Measure");
+        TimeSheetLine.Validate("Work Type Code", WorkType.Code);
+        TimeSheetLine.Modify(true);
+
+        DeletedWorkType.Delete();
+
+        // [WHEN] Run "Copy lines from previous time sheet" for the subsequent time sheet
+        TimeSheetHeader.FindLast();
+        LibraryVariableStorage.Enqueue(1);
+        TimeSheetManagement.CopyPrevTimeSheetLines(TimeSheetHeader);
+
+        // [THEN] Copy of "L1" has a blank work type, copy of "L2" keeps "WT2"
+        CopiedTimeSheetLine.SetRange("Time Sheet No.", TimeSheetHeader."No.");
+        Assert.RecordCount(CopiedTimeSheetLine, 2);
+        CopiedTimeSheetLine.FindFirst();
+        CopiedTimeSheetLine.TestField("Work Type Code", '');
+        CopiedTimeSheetLine.Next();
+        CopiedTimeSheetLine.TestField("Work Type Code", WorkType.Code);
+
+        // [THEN] A notification about 1 line with cleared values is sent
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('CopiedLinesWithClearedCodesNotificationHandler')]
+    procedure CopyPrevTimeSheetLinesNotificationSkipsWorkTypeSetBySubscriber()
+    var
+        Resource: Record Resource;
+        WorkType: Record "Work Type";
+        DeletedWorkType: array[2] of Record "Work Type";
+        TimeSheetHeader: Record "Time Sheet Header";
+        TimeSheetLine: Record "Time Sheet Line";
+        CopiedTimeSheetLine: Record "Time Sheet Line";
+        TimeSheetManagement: Codeunit "Time Sheet Management";
+        NewTimeSheetExperience: Codeunit "New Time Sheet Experience";
+        i: Integer;
+    begin
+        // [FEATURE] [Time Sheet], [Copy Time Sheet Lines]
+        // [SCENARIO 650730] A copied line is not reported as cleared when a subscriber fills in the work type.
+        Initialize();
+
+        // [GIVEN] Open time sheet lines "L1" and "L2" with work types "WT1" and "WT2" that are subsequently deleted
+        CreateMultipleTimeSheet(Resource, TimeSheetHeader, 2);
+        TimeSheetHeader.FindFirst();
+        for i := 1 to ArrayLen(DeletedWorkType) do begin
+            CreateTimeSheetLineWithTimeAllocaiton(TimeSheetHeader, TimeSheetLine);
+            LibraryTimeSheet.CreateWorkType(DeletedWorkType[i], Resource."Base Unit of Measure");
+            TimeSheetLine.Validate("Work Type Code", DeletedWorkType[i].Code);
+            TimeSheetLine.Modify(true);
+        end;
+        LibraryTimeSheet.CreateWorkType(WorkType, Resource."Base Unit of Measure");
+        for i := 1 to ArrayLen(DeletedWorkType) do
+            DeletedWorkType[i].Delete();
+
+        // [GIVEN] Subscriber to OnBeforeToTimeSheetLineInsert replaces "WT1" with existing work type "WT3"
+        NewTimeSheetExperience.SetWorkTypeReplacement(DeletedWorkType[1].Code, WorkType.Code);
+        BindSubscription(NewTimeSheetExperience);
+
+        // [WHEN] Run "Copy lines from previous time sheet" for the subsequent time sheet
+        TimeSheetHeader.FindLast();
+        LibraryVariableStorage.Enqueue(1);
+        TimeSheetManagement.CopyPrevTimeSheetLines(TimeSheetHeader);
+        UnbindSubscription(NewTimeSheetExperience);
+
+        // [THEN] Copy of "L1" has "WT3", copy of "L2" has a blank work type
+        CopiedTimeSheetLine.SetRange("Time Sheet No.", TimeSheetHeader."No.");
+        Assert.RecordCount(CopiedTimeSheetLine, 2);
+        CopiedTimeSheetLine.FindFirst();
+        CopiedTimeSheetLine.TestField("Work Type Code", WorkType.Code);
+        CopiedTimeSheetLine.Next();
+        CopiedTimeSheetLine.TestField("Work Type Code", '');
+
+        // [THEN] The notification reports only 1 line with cleared values
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('CopiedLinesWithClearedCodesNotificationHandler')]
+    procedure CopyPrevTimeSheetLinesWithDeletedCauseOfAbsence()
+    var
+        CauseOfAbsence: Record "Cause of Absence";
+        Resource: Record Resource;
+        TimeSheetHeader: Record "Time Sheet Header";
+        TimeSheetLine: Record "Time Sheet Line";
+        CopiedTimeSheetLine: Record "Time Sheet Line";
+        TimeSheetManagement: Codeunit "Time Sheet Management";
+    begin
+        // [FEATURE] [Time Sheet], [Copy Time Sheet Lines]
+        // [SCENARIO 650730] Copying an absence time sheet line with a deleted cause of absence copies the line with a blank cause of absence.
+        Initialize();
+
+        // [GIVEN] Absence time sheet line with description "D" and cause of absence "C" that is subsequently deleted
+        CreateMultipleTimeSheet(Resource, TimeSheetHeader, 2);
+        TimeSheetHeader.FindFirst();
+        LibraryTimeSheet.CreateTimeSheetLine(TimeSheetHeader, TimeSheetLine, TimeSheetLine.Type::Absence, '', '', '', '');
+        LibraryTimeSheet.CreateCauseOfAbsence(CauseOfAbsence);
+        TimeSheetLine."Cause of Absence Code" := CauseOfAbsence.Code;
+        TimeSheetLine.Description := CauseOfAbsence.Description;
+        TimeSheetLine.Modify();
+        CauseOfAbsence.Delete();
+
+        // [WHEN] Run "Copy lines from previous time sheet" for the subsequent time sheet
+        TimeSheetHeader.FindLast();
+        LibraryVariableStorage.Enqueue(1);
+        TimeSheetManagement.CopyPrevTimeSheetLines(TimeSheetHeader);
+
+        // [THEN] The line is copied as an absence line with description "D" and a blank cause of absence
+        CopiedTimeSheetLine.SetRange("Time Sheet No.", TimeSheetHeader."No.");
+        Assert.RecordCount(CopiedTimeSheetLine, 1);
+        CopiedTimeSheetLine.FindFirst();
+        CopiedTimeSheetLine.TestField(Type, CopiedTimeSheetLine.Type::Absence);
+        CopiedTimeSheetLine.TestField("Cause of Absence Code", '');
+        CopiedTimeSheetLine.TestField(Description, TimeSheetLine.Description);
+
+        // [THEN] A notification about 1 line with cleared values is sent
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TimeSheetCardFactBoxWithDeletedCauseOfAbsence()
+    var
+        CauseOfAbsence: Record "Cause of Absence";
+        TimeSheetHeader: Record "Time Sheet Header";
+        TimeSheetLine: Record "Time Sheet Line";
+        TimeSheetCard: TestPage "Time Sheet Card";
+    begin
+        // [FEATURE] [UI]
+        // [SCENARIO 650730] Time sheet line details FactBox does not fail for an absence line with a deleted cause of absence.
+        Initialize();
+
+        // [GIVEN] Absence time sheet line with cause of absence "C" that is subsequently deleted
+        CreateTimeSheet(TimeSheetHeader);
+        LibraryTimeSheet.CreateTimeSheetLine(TimeSheetHeader, TimeSheetLine, TimeSheetLine.Type::Absence, '', '', '', '');
+        LibraryTimeSheet.CreateCauseOfAbsence(CauseOfAbsence);
+        TimeSheetLine."Cause of Absence Code" := CauseOfAbsence.Code;
+        TimeSheetLine.Modify();
+        CauseOfAbsence.Delete();
+
+        // [WHEN] Open the time sheet card
+        TimeSheetCard.OpenEdit();
+        TimeSheetCard.Filter.SetFilter("No.", TimeSheetHeader."No.");
+
+        // [THEN] The FactBox opens without error and shows no cause of absence description
+        TimeSheetCard.TimeSheetLineDetailsFactBox.CauseOfAbsenceDescription.AssertEquals('');
+        TimeSheetCard.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     [HandlerFunctions('TimeSheetLinesModalHandler')]
     procedure CopyTimeSheetLinesCopyOneLineFromTS()
     var
@@ -544,6 +767,13 @@ codeunit 136506 "New Time Sheet Experience"
     procedure CopyTSLinesStrMenuHandler(Options: Text[1024]; var Choice: Integer; Instruction: Text[1024])
     begin
         Choice := 1;
+    end;
+
+    [SendNotificationHandler]
+    [Scope('OnPrem')]
+    procedure CopiedLinesWithClearedCodesNotificationHandler(var Notification: Notification): Boolean
+    begin
+        Assert.AreEqual(StrSubstNo(CopiedLinesWithClearedCodesMsg, LibraryVariableStorage.DequeueInteger()), Notification.Message, UnexpectedTxt);
     end;
 
     [Test]
@@ -1917,5 +2147,18 @@ codeunit 136506 "New Time Sheet Experience"
         TimeSheetHeaderArchive.FilterGroup(2);
         TimeSheetArchiveCardOwnerUserIDFilter := TimeSheetHeaderArchive.GetFilter("Owner User ID");
         TimeSheetHeaderArchive.FilterGroup(2);
+    end;
+
+    procedure SetWorkTypeReplacement(NewWorkTypeCodeToReplace: Code[10]; NewReplacementWorkTypeCode: Code[10])
+    begin
+        WorkTypeCodeToReplace := NewWorkTypeCodeToReplace;
+        ReplacementWorkTypeCode := NewReplacementWorkTypeCode;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Time Sheet Management", 'OnBeforeToTimeSheetLineInsert', '', false, false)]
+    local procedure ReplaceWorkTypeOnBeforeToTimeSheetLineInsert(var ToTimeSheetLine: Record "Time Sheet Line"; FromTimeSheetLine: Record "Time Sheet Line")
+    begin
+        if (WorkTypeCodeToReplace <> '') and (FromTimeSheetLine."Work Type Code" = WorkTypeCodeToReplace) then
+            ToTimeSheetLine."Work Type Code" := ReplacementWorkTypeCode;
     end;
 }

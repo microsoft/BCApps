@@ -1,0 +1,5 @@
+[
+  "src/Layers/DE/BaseApp/Finance/VAT/Reporting/VATReportRequestPage.Report.al",
+  "src/Layers/IT/BaseApp/Finance/VAT/Reporting/VATReportRequestPage.Report.al",
+  "src/Layers/RU/Tests/ERM-Finance/ERMSourceCurrency.Codeunit.al"
+]

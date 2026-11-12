@@ -545,6 +545,31 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyLongItemNameIsNotTruncated()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO 13602] Exported XRechnung invoice contains the full item name (BT-153) of a line description with the maximum length
+        Initialize();
+
+        // [GIVEN] A posted sales invoice with an item line whose Description has the maximum length of random characters
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithLongDescription("Sales Document Type"::Invoice));
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.FindFirst();
+        Assert.AreEqual(MaxStrLen(SalesInvoiceLine.Description), StrLen(SalesInvoiceLine.Description), 'The scenario requires a line description with the maximum length.');
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The item name contains the complete Description of the invoice line
+        Path := '/ubl:Invoice/cac:InvoiceLine/cac:Item/cbc:Name';
+        Assert.AreEqual(SalesInvoiceLine.Description, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyInvoiceLineWithLineDiscount();
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -1286,6 +1311,31 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [THEN] Standard item identification does not exist
         Path := '/ns0:CreditNote/cac:CreditNoteLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
         Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatVerifyLongItemNameIsNotTruncated()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO 13602] Exported XRechnung credit memo contains the full item name (BT-153) of a line description with the maximum length
+        Initialize();
+
+        // [GIVEN] A posted sales credit memo with an item line whose Description has the maximum length of random characters
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithLongDescription("Sales Document Type"::"Credit Memo"));
+        SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
+        SalesCrMemoLine.FindFirst();
+        Assert.AreEqual(MaxStrLen(SalesCrMemoLine.Description), StrLen(SalesCrMemoLine.Description), 'The scenario requires a line description with the maximum length.');
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The item name contains the complete Description of the credit memo line
+        Path := '/ns0:CreditNote/cac:CreditNoteLine/cac:Item/cbc:Name';
+        Assert.AreEqual(SalesCrMemoLine.Description, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     [Test]
@@ -2194,6 +2244,28 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [THEN] Supplier tax identifier contains the Registration No. with FC tax scheme
         Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, SupplierTaxSchemeTok + '/cbc:CompanyID'), StrSubstNo(IncorrectValueErr, SupplierTaxSchemeTok));
         Assert.AreEqual('FC', GetNodeByPathWithError(TempXMLBuffer, SupplierTaxSchemeTok + '/cac:TaxScheme/cbc:ID'), StrSubstNo(IncorrectValueErr, SupplierTaxSchemeTok));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyCustomerRegistrationNo()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        RegistrationNo: Text[50];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 652557] Customer Registration No. is exported as the legal entity identifier when GLN and VAT ID are unavailable
+        Initialize();
+
+        // [GIVEN] A customer with a Registration No. longer than 20 characters but no GLN or VAT ID
+        RegistrationNo := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(30, 0), 1, MaxStrLen(RegistrationNo));
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithRegistrationNo(RegistrationNo));
+
+        // [WHEN] Export XRechnung electronic document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Customer legal entity identifier contains the Registration No.
+        Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, CustomerLegalEntityIdTok), StrSubstNo(IncorrectValueErr, CustomerLegalEntityIdTok));
     end;
 
     [Test]
@@ -4039,6 +4111,22 @@ codeunit 13918 "XRechnung XML Document Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateAndPostSalesDocumentWithLongDescription(DocumentType: Enum "Sales Document Type"): Code[20];
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        CreateSalesHeader(SalesHeader, DocumentType);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindFirst();
+        // Assigning Description directly because validating it on an item line would look up another item by description.
+        SalesLine.Description := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(MaxStrLen(SalesLine.Description), 0), 1, MaxStrLen(SalesLine.Description));
+        SalesLine.Modify(true);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
     local procedure CreateAndPostServiceDocument(): Code[20];
     var
         ServiceHeader: Record "Service Header";
@@ -4674,6 +4762,23 @@ codeunit 13918 "XRechnung XML Document Tests"
         CreateSalesHeader(SalesHeader, DocumentType, Customer."No.");
         CreateSalesLine(SalesHeader, LineType, false);
         exit(SalesHeader."No.");
+    end;
+
+    local procedure CreateAndPostSalesInvoiceForCustomerWithRegistrationNo(RegistrationNo: Text[50]): Code[20]
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+    begin
+        Customer.Get(CreateCustomer());
+        Customer.GLN := '';
+        Customer."Use GLN in Electronic Document" := false;
+        Customer."VAT Registration No." := '';
+        Customer."Registration Number" := RegistrationNo;
+        Customer."Use Reg. No. in E-Document" := true;
+        Customer.Modify(true);
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, Customer."No.");
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
     local procedure ExportInvoice(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
