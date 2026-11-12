@@ -23,7 +23,7 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
     var
         PayablesAgentInitialsTok: Label 'PA', Locked = true, Comment = 'Initials for payables agent.', MaxLength = 4;
         AgentDisplayNameLbl: Label 'Payables Agent', Locked = true, Comment = 'Display name of the agent.';
-        AgentSummaryLbl: Label 'Monitors incoming emails for vendor invoices, matches senders to registered vendors, and creates purchase document drafts for review.';
+        AgentSummaryLbl: Label 'Monitors incoming emails for vendor invoices, matches senders to registered vendors, and creates purchase invoices for review.';
 
     #region IAgentMetadata
     procedure GetInitials(AgentUserId: Guid): Text[4]

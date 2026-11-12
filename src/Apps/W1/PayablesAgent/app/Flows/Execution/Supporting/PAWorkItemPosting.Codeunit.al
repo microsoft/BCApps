@@ -23,33 +23,18 @@ codeunit 3331 "PA Work Item Posting"
     end;
 
     internal procedure FollowPostedOutcome(PurchHeader: Record "Purchase Header"; PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; PreviewMode: Boolean)
+    var
+        WorkItem: Codeunit "PA Work Item";
     begin
         if PreviewMode or PurchHeader.IsTemporary() then
             exit;
         case PurchHeader."Document Type" of
             PurchHeader."Document Type"::Invoice:
                 if PurchInvHeader."No." <> '' then
-                    ReplaceReferences(PurchHeader.RecordId(), PurchInvHeader.RecordId());
+                    WorkItem.ReplaceOutcomeReferences(PurchHeader.RecordId(), PurchInvHeader.RecordId());
             PurchHeader."Document Type"::"Credit Memo":
                 if PurchCrMemoHdr."No." <> '' then
-                    ReplaceReferences(PurchHeader.RecordId(), PurchCrMemoHdr.RecordId());
+                    WorkItem.ReplaceOutcomeReferences(PurchHeader.RecordId(), PurchCrMemoHdr.RecordId());
         end;
-    end;
-
-    local procedure ReplaceReferences(PreviousOutcome: RecordId; PostedOutcome: RecordId)
-    var
-        StoredWorkItem: Record "Payables Agent Work Item";
-        DraftBasedWorkItem: Codeunit "PA Draft Based Work Item";
-        PurchaseOutcomes: Codeunit "PA Purchase Outcomes";
-        EmptyPreviousOutcomeErr: Label 'An existing outcome reference is required for replacement.';
-    begin
-        if PreviousOutcome.TableNo = 0 then
-            Error(EmptyPreviousOutcomeErr);
-        PurchaseOutcomes.ValidateForRegistration(PostedOutcome);
-        if PreviousOutcome = PostedOutcome then
-            exit;
-        StoredWorkItem.SetRange(Outcome, PreviousOutcome);
-        StoredWorkItem.ModifyAll(Outcome, PostedOutcome);
-        DraftBasedWorkItem.ReplaceOutcomeReferences(PreviousOutcome, PostedOutcome);
     end;
 }

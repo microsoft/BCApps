@@ -1,6 +1,6 @@
 # Payables Agent's architecture
 
-**Goal**: The aim of this document is to provide a high-level overview of the organizational concepts behind the code in the Payables Agent app application. This should be used to plan contributions to this codebase, and to aid reviewers in assesing whether a contribution is cohesive with the current model.
+The aim of this document is to provide a high-level overview of the organizational concepts behind the code in the Payables Agent AL app application. This should be used to plan contributions to this codebase, and to aid reviewers in assesing whether a contribution is cohesive with the current model.
 
 ## Context: Business Central's Payables Agent
 
@@ -10,10 +10,10 @@ A BC-agent-runtime agent, is an LLM-based agent that operates on a logical clien
 
 The Payables Agent supports the following user-level capabilities:
 - Find an appropriate vendor for the intended invoice
-- Suggest creating a vendor if it can't be found
+- Suggest and create a vendor if it can't be found
 - Filling in all header and line-level properties of the purchase document that can be interpreted from the input, or from history of how the users usually fill in these values.
-- Creates both purchase invoices and purchase credit memos.
-- Match to existing Purchase Orders in order to invoice them when the invoice created by the Payables Agent is posted.
+- Creates both purchase invoices and purchase credit memos applied to applicable invoices.
+- Match to existing purchase orders to invoice such orders when the invoice created by the Payables Agent is posted.
 
 ### Payables Agent V1 and V2
 
@@ -21,15 +21,15 @@ There are two versions of the Payables Agent, distinguished by the entity that t
 
 #### Version 1: Draft-based Payables Agent
 
-An ad-hoc E-Document Service polls via the M365 connector, Outlook emails with PDF attachments, which are then interpreted as artificial E-Documents. When such an E-Document is created, an agent-framework task is created, which then goes and process the e-document into a purchase invoice. For v1, the ingestion responsibilities are split across different AL apps.
+An ad-hoc E-Document Service polls via the M365 connector, Outlook emails with PDF attachments, which are then interpreted as artificial E-Documents. When such an E-Document is created, an agent-framework task is created, which then goes and process the e-document into a purchase invoice. Note that the Payables Agent doesn't process other types of E-Documents (XML based, or sourced by other connectors than the email connector).
 
-A lot of the functionality that the Payables Agent feature provides is really provided by the E-Document import processing pipeline. The agent invokes processing steps which structure the received PDF by sending it to a MLLM, then store it into intermediate tables and run different approaches to fill Business Central values (including LLM approaches).
+A lot of the functionality that the Payables Agent feature provides is really provided by the E-Document import processing pipeline. The responsiblities for the intake is split across different AL apps. The agent invokes processing steps which structure the received PDF by sending it to a MLLM, then store it into intermediate tables and run different approaches to fill Business Central values (including LLM approaches). The agent user doesn't fill in the values directly, but rather invokes the deterministic AL actions that suggest such values. And the AL actions themselves call the LLM for some of the properties.
 
-After the E-Document processing pipeline has done it's best, the BC-agent-framework user defined in this app starts complementing the proposed values in the intermediate tables (known as the draft page).
+After the E-Document processing pipeline has done it's best, the BC-agent-framework user defined in this app starts complementing the proposed values in the intermediate tables (known as the draft page). The PO matching functionality starts looking for open orders at this stage.
 
 Once the user is satisfied with the values in the draft page, the agent proceeds with E-Document finalization; which creates a Purchase Invoice or, for a recognized vendor credit note, a Purchase Credit Memo.
 
-> Note: Within this version, there is an ECS experiment that skips the E-Document-owned logic that fills in values and changes the agent prompt to do this logic itself instead.
+> Note: Within this version, there is an ECS experiment that skips the E-Document-owned logic that fills in values and changes the agent prompt to do this logic itself instead. This experiment hasn't been enabled.
 
 #### Version 2: Payables Agent
 
@@ -37,146 +37,147 @@ In this version, the entity at the center is the Payables Agent Work Item, owned
 
 The agent task is created with direct information about its source, the agent user directly consults it, and creates the appropriate Purchase Invoice directly, without any draft page.
 
+> Note: V2 is under development, not activated for the end-user. Only to be activated after accuracy evidence and missing gaps have been resolved.
+
+#### V1/V2 gaps
+
+Backlog to resolve in dedicated efforts. Currently acknowledged gaps:
+
+- Email sourcing: V1s sourcing of tasks is done via the E-Document framework. The plan is to bring the monitoring to this app for v2, inline with what SOA does (with the behavior that we have in v1). The `KnownSenders` capability should also apply in v2.
+- Purchase credit memos: Recently added functionality for V1. We need to add AI E2E tests (different repository) that measure these scenarios, to have a baseline to compare against with V2. Instructions for creating Purchase Credit Memos will be required.
+- OCV Customer feedback: V1 showed the button for supplying feedback in the draft page, we need to decide a new place for it that doesn't interfere with regular operations.
+- Billing: V1 billing is based on the draft lines extracted. We still need to define the billing model impact for v2.
+- V1 scenario coverage and making V2 match accuracy
+    - PO matching: 
+    - TtA mapping, history
+    - Harms
+- V1/V2 transition
+
 ## Code in this AL app
 
-The code is organized via:
-- Flows: High-level user-facing processes that this app defines for the Payables Agent
-- Entities: Definitions of persisted 
+The code is organized in:
+- `Flows`: High-level user-facing processes that this app defines for the Payables Agent feature.
+- `Entities`: Definitions of persisted state that this app needs, and stateful wrappers when needed.
+- `Capabilities`: Recognizable business scenario concerns that apply cross-flows.
+- `Shared`: Common utilities used across for horizontal concerns. (missing better word)
+- `Operations`: Side-responsibilities, currently only the clean-up tool needed to resolve a storage leak problem.
+- `TestSupport`: Provides fixtures that the unit tests and AI E2E tests need. The tests are on a high level agnostic to the V1/V2 change. If there's something not exposed directly that is needed for a test, it should be here, rather than adding entry points unused in production paths in the other procedures.
+
+Across the app, most things are agnostic to the Payables Agent version. Version-handling behavior is hidden under the implementation details of the `entities` that need them, and provide a common API that is version agnostic. All references to E-Documents and things needed exclusively for v1 are under `Compatibility`. Everything under `DraftBased` replicates the same folder structure, exclusively for v1 concerns only.
+
+A high level picture of how these concepts interact together is that `Flows` orchestrate processes and have knowledge about both `Entities` and `Capabilities`. `Capabilities` may require `Entities`. `Shared` is available to all of the other concepts. Isolated dependencies are the versioning concerns and E-Documents dependency.
+
+Folders depend on each other as follows (an arrow means "uses"):
+
+```mermaid
+flowchart TD
+    Flows --> Capabilities
+    Flows --> Entities
+    Capabilities --> Entities
+    Entities --> Versioning["Shared/Versioning"]
+
+    Flows --> Shared
+    Capabilities --> Shared
+    Entities --> Shared
+
+    Flows -. "V1" .-> DraftBased
+    Capabilities -. "V1" .-> DraftBased
+    Entities -. "V1" .-> DraftBased
+    DraftBased["Compatibility/DraftBased"] --> EDocuments[("E-Document apps")]
+
+    Operations
+    TestSupport
+```
 
 ### Flows
 
-The AL app is organized in 
-These are the high-level flows that can be found in this AL app:
-
 - Registration of the agent: Platform-hooks for registering the BC-agent-runtime agent.
 - Configuring the Payables Agent: Creating, activating, reconfiguring, deactivating the agent, including applying and reconciling its runtime instructions. This can include functionality like sending demo invoices.
-- Task ingestion: Source acquisition, acceptance/rejection policies, deduplication, handoff to the runtime.
+- Task intake: Source acquisition, acceptance/rejection policies, deduplication, handoff to the runtime.
 - Task execution: The behavioral content of the prompt that the agent user follows, the profile, role center it uses and page customizations, outcome registration.
-- Supervision: Human inspection of task progress, sources and outcomes, responding to assistance requests, and reviewing results.
-- Upgrade across versions: Schema data upgrades that have historically been required.
+- Supervision: Human inspection of task progress, sources and outcomes.
+- Upgrade: Schema data upgrades that have historically been required.
 
-#### Patterns followed by flows
+When defining flows, we use these patterns:
 
-- S
-ingle authoritative source: Rather than multiple variants that touch the same parts of the process, a single configurable entry point for the flow (when the initiation is owned by this app) that callers configure
-- Encapsulation of flow parameters: Having a single wrapping object as parameter for the flow.
+- Single authoritative source: Rather than multiple variants that touch the same parts of the process, a single configurable entry point for the flow that callers configure.
+- Encapsulation of flow parameters: To configure the possible variants of a flow, we encapsulate such parameters in a single entity, for example the `PA Setup Update Parameters`. Keeping the procedure signature future-proof.
 
 ### Capabilities
 
-Cohesive product responsibilities whose behavior spans flows or lifecycle stages.
+- Customer feedback: Collects data that users may provide as part of input for next iterations of the Payables Agent.
+- KPI: Collects rough metrics to display the work done by the agent. 
+- Trial: Free-tier invoices the users have to try out the Payables Agent. 
+- Known senders: Keeps track of the senders of tasks received that were previously accepted, to reduce the amount of times that the user is asked for authorization to process.
+- Billing: Deals with emitting billable units for the processes done by the Payables Agent.
 
-| Capability | Registration | Configuration | Task ingestion | Task execution | Upgrade |
-| --- | --- | --- | --- | --- | --- |
-| Customer feedback | - | Ask for feedback on disabling the agent. | - | Handle task thumbs feedback and v1 draft feedback. | - |
-| KPI | - | - | Count tasks handed to the agent. | Count purchase invoices inserted in a Payables Agent session. | Reclassify v1 finalized-e-document history. |
-| Billing | - | Initialize trial eligibility/state. | Exclude trial tasks from billing. | Track v1 e-document draft and line usage; v2 strategy pending. | - |
-| Trial | - | Initializes trial if eligible | Consumes trial | - | Consumes trial if they used it previously |
+### Entities
 
-- Customer feedback: Collects data that users may provide as part of input for next iterations.
-- KPI: Collects rough metrics to display the work done by the agent. The KPI page and purchase-invoice subscriber belong to this capability; the record and scenario enum belong to the KPI entity.
-- Billing: Inserts records that are emitted for billing
-- Trial: Free-tier invoices the users have to try out the Payables Agent. The guide page remains here; eligibility, state and allowance belong to the Trial entity.
+Entities deal with persisting in database the records needed to keep track of the state that the Payables Agent feature needs. And also with providing an interface for the rest of the app to interact with these that preserves the invariants that we want to maintain when a data change is applied. A single table object may be enough for some cases, but for others where the source table may vary across versions, a wrapping codeunit is used, for example the `PASetup` codeunit.
+
+When the entity uses a wrapping codeunit, all the other consumers should refer to such wrapping codeunits instead of directly to the tables that they wrap.
+
+- `Setup`: Entity storing the setup of the Payables Agent, which involve different tables in v1 and v2.
+- `WorkItem`: Entity storing what is considered a work item that may end up as an agent task for the Payables Agent. Also v1/v2 aware.
+- `KnownSender`: Entity to store the data of the known-senders capability.
+- `KPI`: Entity to store the data of the KPI capability.
+- `Trial`: Entity to keep track of the trial.
 
 ### Shared mechanisms
 
-Application-wide mechanisms support several owners without deciding a business scenario:
+Application-wide supporting mechanisms without a specific business scenario:
 
-- Telemetry: Root `PA Telemetry` emits shared flow/capability and operational events and supplies the common category dimensions. Draft-based billing and demo-email events are emitted by `PA Draft Based Telemetry` within Compatibility, reusing those shared dimensions.
-- Security: Declares agent and human permission sets, entitlements and access surfaces. Configuration owns the flow for obtaining consent and assigning access.
-- Outcomes: Stateless purchase-document outcome validation and document/vendor facts, with data-only temporary output. These support entity invariants, execution and presentation without representing Work Item state.
-
-Feature-specific integration, such as a feature's audit event, can remain with its flow, entity or capability owner.
-
-### End-user-facing UX 
-
-Human-facing surfaces for inspecting and reviewing tasks belong to Supervision, separately from the agent workspace; configuration and capability-specific surfaces remain with their respective owners.
-
-### Adjacent functionality owned by the app
-
-Clean-up tool for a livesite problem: Technically not a concern of this AL app, with no better home and real need.
-
-### Patterns for entities
-
-Across the flows and cross-cutting concerns, data persistance may be required. This is done via entities, owning state, invariants independent of their consumers. These materialize in different patterns of AL constructs:
-- Tables: If derived state is required for a specific instance, it can live as part of the state of the record.
-- Wrapping codeunits: Another approach is to wrap the table, and have derived state live also here as getters that read the appropriate state. This pattern is heavier, but aids in treating under the same contract entities stored in different tables as the v1-v2 change requires.
-- Wrapping temporary tables: This approach is used only to supply AL pages that are backed by such table. Useful for pages showing derived values, which we would like sort by.
-
-Entities own persistence access and operations required to prevent invalid stored state, including relationships across their stored records. They may also expose queries and derived facts. They do not own an entire scenario merely because that scenario ultimately writes their records. Intake policy, trial/billing, runtime setup and UI sequencing are orchestrated by flows that depend on entities, never by entities calling back into those flows. Optional entity regions separate stored state, loading/identity, queries and persisted commands. Private helper groups should name their actual responsibility; Work Item uses agent-task validation, email metadata cache, and handle lifecycle guards/reset rather than an opaque implementation bucket.
-
-`PA Work Item` is the single semantic entity for received, rejected and accepted material. It owns its V2 table and delegates V1 E-Document persistence/correlation to `PA Draft Based Work Item`. `PA Work Item List Row` is only a temporary sortable UI projection; `PA Purchase Outcome Facts` is data-only output from stateless purchase-reference queries. Neither is another persisted entity.
-
-The Setup wrapper may hold an invalid editable proposal, but applying it persists settings and configures version-specific mailbox monitoring together: disabling the agent also disables monitoring, and requesting monitoring on v2 fails until its importer exists. The setup page uses a temporary `Payables Agent Setup` record for the platform UI and initializes it from a read-only Setup projection. Before applying changes or opening the sample guide, the page translates only editable fields into semantic setters on `PA Setup Update Parameters`; no stored setup record is transported through that flow. `PA Setup` also owns the company-to-framework-Agent association: `TryFindAgent` is a read-only lookup by stored user ID with a company-name fallback, while `FindAgentAndReconcileSetup` explicitly creates/repairs the persisted association. The latter uses separate stored records so it does not overwrite an editable proposal. Registration metadata owns the agent display name and summary. `PA Setup Update Parameters` initializes the proposal and framework buffer from stored state; initialization reads stored state/defaults without creating the setup singleton or reconciling its agent association. It is a request for the configuration flow, not a persisted entity. `PA Setup Update` owns consent, runtime configuration and operation order; wrappers do not commit.
-
-Work Item identity is the SystemId of its stored record: the existing E-Document GUID in V1 or table 3327's SystemId in V2. `Load(Guid)` is the document-side entry; `LoadByAgentTaskId(BigInteger)` and `LoadCurrentSession` resolve the same entity from a framework association.
-
-The current agent session has one home, `PA Agent Access` (Shared/Security), with two deliberately separate questions:
-
-- `TryGetRuntimeAgentTaskId`: the real Payables Agent runtime only. Billing, KPI, V1 document binding and `PA Work Item.LoadCurrentSession` use it; they must never act on a simulation.
-- `TryGetAgentViewTaskId` / `IsAgentView`: what agent-facing UI behaves as. Runtime association validates company, PA ownership and exactly one stored record. V1 retains its existing numeric external/message correlation; no E-Document copying or identity migration is introduced. V2 keeps its stored association and admission fields. Missing V1 tasks are not reinterpreted as historical policy rejection.
-
-`PA Work Item Intake` coordinates source acquisition, admission policy, runtime instructions, trial/billing and framework task construction. `ReceivePdf` and `Admit` use the same Work Item handle before and after acceptance. V1 import orchestration stays in its compatibility flow; its subscriber invokes authoritative admission. The entity's association/rejection commands preserve stored-record invariants without importing documents, consuming trial, creating runtime tasks or committing.
-
-Work Item mutations reload the current stored record and patch only their intended fields. Registering an outcome validates an existing supported purchase reference; business completeness remains the caller's concern. `PA Purchase Outcomes` under `Shared/Outcomes` is stateless and centralizes that validation and document facts; its temporary facts type belongs to the same supporting mechanism, not the Work Item entity. `PA Work Item Outcome` orchestrates registration, source attachment and framework title synchronization. Its isolated runtime-attachment bridge retains direct access to the V2 entry number solely to preserve the existing attachment naming/idempotency scheme until the framework owns attachments.
-
-The posting flow follows invoice/credit-memo references before commit, ignoring preview/order posting. Its deliberate set-level stored-record write exception updates V2 rows and AGENT-service V1 documents, without per-item attachment, title updates or commits.
-
-Collection owns scoped enumeration/counts and yields loaded Work Items directly to presentation. To preserve existing behavior, supervision still lists accepted framework-backed work and rejected V2 receipts, not every unaccepted V1 E-Document. State mapping and the unfiltered monthly cue remain as acknowledged in `ack-v1-preserved-gaps.md`. Metadata is a lazy snapshot per Work Item handle and is invalidated on load/refresh.
-
-Currently the identified entities are:
-- Setup: Agent's configured state and derived views of that configuration.
-- Work Item: A received document across admission, execution and outcome, with a GUID identity, version-specific storage and optional framework task association.
-- KnownSender: Senders that we have received tasks from in the past and their assigned handling policies.
-- KPI: Aggregate and individual KPI entries, with insertion and aggregate lookup owned by the record itself. Historical KPI migrations remain in Upgrade.
-- Trial: Eligibility and per-company trial state in isolated storage, including starting, consumption, expiration and reset. Telemetry is emitted through Shared/Telemetry rather than through Registration.
-
+- Telemetry: Conventions for emitting telemetry.
+- Security: Who can access the agent and permissionsets.
+- Outcomes: Purchase-document outcome validation and document/vendor facts, with data-only temporary output.
+- Versioning: Central place to define whether the agent uses v1 or v2. It's usages should be restricted and not filter across the code base.
 
 ### File system organization
 
-The application is organized by scenario orchestration, logical entities, product responsibilities and shared mechanisms. Placement identifies the dominant owner; a page or procedure may coordinate other owners without requiring another file.
-
 ```
 Flows/
-    Registration/
-    Configuration/
-        DemoGuide/
-    Intake/
+    Registration/                       Agent metadata, Copilot capability and install hooks
+    Configuration/                      Setup page, setup update and validation, instructions, demo guide page
+    Intake/                             Work item intake and the "New from PDF" upload
     Execution/
-        AgentWorkspace/                 Agent profile, role center and agent-only dialog
-        Supporting/                     Runtime callbacks, extraction, outcome/posting support and agent permissions
-    Supervision/                        Human task monitoring and shared task-list presentation
+        AgentWorkspace/                 V2 agent profile, role center and agent-only dialog
+        Supporting/                     Runtime callbacks, PDF text extraction, outcome/posting support and V2 agent permission sets
+    Supervision/                        Human task monitoring, work item list and role center cues
     Upgrade/
 
 Entities/
-    Setup/
-    WorkItem/                           Entity, table and collection
+    Setup/                              Setup table and its version-aware wrapper
+    WorkItem/                           Work item table, wrapper, collection and enums
     KnownSender/
-    KPI/                                KPI record, scenario enum and record operations
+    KPI/                                KPI record and scenario enum
     Trial/                              Trial state and lifecycle
 
 Capabilities/
-    Trial/                              Trial guide page
-    KPI/                                Page and purchase-invoice event subscriber
     Feedback/
+    KnownSenders/                       Sender policy and review decisions
+    KPI/                                KPI page and purchase-invoice event subscriber
+    Trial/                              Trial guide page
 
 Shared/
     Outcomes/                           Stateless validation and data-only facts for purchase-document outcomes
-    Telemetry/                           Shared emission and dimensions, grouped by flow and capability
-    Security/                           Shared human roles and V2 agent permission sets
+    Security/                           Agent access checks, entitlement, admin and read permission sets
+    Telemetry/                          Shared emission and dimensions
     Versioning/                         Active V1/V2 selection and stored work-item version lookup
 
 Compatibility/
-    DraftBased/                         Irreducibly V1/E-Document behavior and declarative surfaces
+    DraftBased/                         V1-only (E-Document) behavior, mirroring the folders above
         Flows/
-            Configuration/
-                DemoGuide/
-            Intake/                     V1 import operation and its admission subscriber
+            Configuration/              V1 setup and mailbox configuration
+                DemoGuide/              Demo invoice emails
+            Intake/                     V1 import operation and its admission subscribers
             Execution/
-                AgentWorkspace/                 V1 draft, purchase invoice and purchase credit memo customizations
+                AgentWorkspace/         V1 profile, role center and page customizations
         Entities/
+            Setup/                      V1 setup storage (E-Document service and Outlook setup)
             WorkItem/                   V1 E-Document storage and legacy correlation
         Capabilities/
             Billing/
+            Feedback/                   Draft page feedback
         Shared/
             Security/                   V1-only agent permission sets
             Telemetry/                  V1-only billing and demo-email events
@@ -188,28 +189,17 @@ Operations/
 TestSupport/                            App-owned semantic fixture API and version dispatch for test apps
 
 _Obsolete/                              Whole-object obsoletion only; active owners retain obsolete members
+
 .resources/
+    Prompts/                            V2 agent instructions and PDF text extraction prompt
+    DraftBasedPayablesAgent/
+        Prompts/                        V1 agent instructions (default and agent-driven variants)
 ```
 
-Setup and Work Item creation use the shared version selector; existing Work Items resolve the version they are stored in. Keeping that selector under Shared avoids making entities depend on a registration flow; registering the agent still belongs to Flows/Registration.
-
-`Payables Agent Work Items` is one page shared by people and the agent. Its list, sortable temporary list rows and presentation helper are under Supervision by dominant use; the page still hosts intake actions and an agent-only extraction workaround. `PA Register Outcome` stays in the agent workspace. V1-only profile, page customizations and agent permission sets remain in Compatibility, in a structure parallel to the populated root areas; shared human permission sets stay at the root. Setup and Work Item retain table access in Entities; the temporary outcome bridge and posting exceptions are explicitly gated.
-
-Declarative objects directly bound to draft-based surfaces, such as profiles and page customizations, remain draft-based when their definitions cannot be shared; a shared helper does not make the containing object version-neutral.
-
 ## Other code conventions
-- All code is `internal` when possible (pages can't be), the extensibility of the agents is a separate story and not done via traditional AL customizations.
-- AI tests use app-owned semantic fixture entry points. `TestSupport` hides version dispatch, while version-specific fixture implementations stay under the corresponding compatibility boundary; the AI test app does not reference E-Document records directly. Some BCApps non-AI wrapper contract tests still inspect V2 table data directly; treat those as explicit test-boundary review items, not examples for new AI tests.
-- var block location
 
-# Decision guides
-
-## When is a procedure internal, local, or public?
-
-## Comments discipline
-
-## Order of procedures in an object
-
-## Where are the boundaries of the responsibilities of an Entity?
-
-An entity owns procedures needed to prevent invalid state from being persisted in its represented records and relationships, plus practical queries over that state. Cross-owner policy, billing, runtime configuration, navigation and presentation remain scenario orchestration. A Work Item can exist without an Agent Framework task; the association is a lifecycle fact, not its identity.
+- All code is `internal` when possible (pages can't be), the extensibility of the agents is a separate story and not done via traditional AL extensions. Likewise, no events should be emitted.
+- Full object obsoletions are moved to `_Obsolete`.
+- Telemetry is centralized, no independent `Session.LogMessage`.
+- Subscribers to critical business processes shouldn't fail.
+- If an entity has a wrapper codeunit, only the codeunit queries directly the table, other consumers need to go through the entity.

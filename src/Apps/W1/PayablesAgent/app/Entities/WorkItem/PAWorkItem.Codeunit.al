@@ -506,6 +506,21 @@ codeunit 3341 "PA Work Item"
         StoredWorkItem.Modify();
         Refresh();
     end;
+
+    internal procedure ReplaceOutcomeReferences(PreviousOutcome: RecordId; NewOutcome: RecordId)
+    var
+        StoredWorkItem: Record "Payables Agent Work Item";
+        DraftBasedReferences: Codeunit "PA Draft Based Work Item";
+    begin
+        if (PreviousOutcome.TableNo = 0) or (PreviousOutcome = NewOutcome) then
+            exit;
+
+        StoredWorkItem.SetRange(Outcome, PreviousOutcome);
+        if not StoredWorkItem.IsEmpty() then
+            StoredWorkItem.ModifyAll(Outcome, NewOutcome);
+        if DraftBasedReferences.HasOutcomeReferences(PreviousOutcome) then
+            DraftBasedReferences.ReplaceOutcomeReferences(PreviousOutcome, NewOutcome);
+    end;
     #endregion
 
     #region Agent task validation

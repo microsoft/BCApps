@@ -255,18 +255,31 @@ codeunit 3332 "PA Draft Based Work Item"
         exit("PA Work Item State"::"Pending Processing");
     end;
 
-    // Set-level posting bridge only: no per-task registration, attachment, title update or commit.
-    internal procedure ReplaceOutcomeReferences(PreviousOutcome: RecordId; PostedOutcome: RecordId)
+    internal procedure HasOutcomeReferences(Outcome: RecordId): Boolean
     var
         EDocument: Record "E-Document";
     begin
+        if not EDocument.ReadPermission() then
+            exit(false);
+        EDocument.SetRange("Document Record ID", Outcome);
+        exit(not EDocument.IsEmpty());
+    end;
+
+    internal procedure ReplaceOutcomeReferences(PreviousOutcome: RecordId; PostedOutcome: RecordId)
+    var
+        EDocument: Record "E-Document";
+        UpdatedEDocument: Record "E-Document";
+    begin
+        if not (EDocument.ReadPermission() and EDocument.WritePermission()) then
+            exit;
         EDocument.SetRange("Document Record ID", PreviousOutcome);
-        if EDocument.FindSet(true) then
+        if EDocument.FindSet() then
             repeat
-                if EDocument.GetEDocumentService().Code = AgentEDocumentServiceTok then begin
-                    EDocument."Document Record ID" := PostedOutcome;
-                    EDocument.Modify();
-                end;
+                if EDocument.GetEDocumentService().Code = AgentEDocumentServiceTok then
+                    if UpdatedEDocument.Get(EDocument."Entry No") then begin
+                        UpdatedEDocument."Document Record ID" := PostedOutcome;
+                        UpdatedEDocument.Modify();
+                    end;
             until EDocument.Next() = 0;
     end;
 
