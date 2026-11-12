@@ -198,6 +198,7 @@ codeunit 30166 "Shpfy Process Order"
             exit;
 
         ShopifyOrderHeader."Has Error" := false;
+        ShopifyOrderHeader."Has Mapping Error" := false;
         ShopifyOrderHeader."Error Message" := '';
         ShopifyOrderHeader.Modify(true);
     end;
@@ -205,6 +206,7 @@ codeunit 30166 "Shpfy Process Order"
     local procedure SetProcessingError(var ShopifyOrderHeader: Record "Shpfy Order Header"; ProcessingError: Text)
     begin
         ShopifyOrderHeader."Has Error" := true;
+        ShopifyOrderHeader."Has Mapping Error" := false;
         ShopifyOrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + ProcessingError, 1, MaxStrLen(ShopifyOrderHeader."Error Message"));
         ShopifyOrderHeader."Sales Order No." := '';
         ShopifyOrderHeader."Sales Invoice No." := '';

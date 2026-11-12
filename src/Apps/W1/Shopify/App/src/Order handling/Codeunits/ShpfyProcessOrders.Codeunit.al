@@ -60,6 +60,7 @@ codeunit 30167 "Shpfy Process Orders"
                     OrderMapping.PersistMappingErrorMessage(ShopifyOrderHeader, ErrorMessage)
                 else begin
                     ShopifyOrderHeader."Has Error" := true;
+                    ShopifyOrderHeader."Has Mapping Error" := false;
                     ShopifyOrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + ErrorMessage, 1, MaxStrLen(ShopifyOrderHeader."Error Message"));
                 end;
                 ShopifyOrderHeader."Sales Order No." := '';
@@ -70,6 +71,7 @@ codeunit 30167 "Shpfy Process Orders"
                 if ShopifyOrderHeader."Has Error" then
                     exit;
                 ShopifyOrderHeader."Has Error" := false;
+                ShopifyOrderHeader."Has Mapping Error" := false;
                 ShopifyOrderHeader."Error Message" := '';
                 ShopifyOrderHeader.Processed := true;
             end;

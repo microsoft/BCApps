@@ -24,7 +24,7 @@ codeunit 30163 "Shpfy Order Mapping"
         BillToCustomerIssueTok: Label 'BillToCustomer', Locked = true;
         GiftCardAccountIssueTok: Label 'GiftCardAccount', Locked = true;
         ItemLineIssuePrefixTok: Label 'ItemLine:', Locked = true;
-        MappingErr: Label 'Not everything can be mapped.', Locked = true;
+        MappingErr: Label 'Not everything can be mapped.';
         SellToCustomerIssueTok: Label 'SellToCustomer', Locked = true;
         TipAccountIssueTok: Label 'TipAccount', Locked = true;
 
@@ -187,12 +187,15 @@ codeunit 30163 "Shpfy Order Mapping"
 
     internal procedure PersistMappingError(var OrderHeader: Record "Shpfy Order Header"; MissingIssues: List of [Text])
     begin
+        if OrderHeader."Has Order State Error" then
+            exit;
+
         SetMappingError(OrderHeader, MissingIssues);
     end;
 
     internal procedure PersistMappingErrorUnlessUnrelated(var OrderHeader: Record "Shpfy Order Header"; MissingIssues: List of [Text])
     begin
-        if OrderHeader."Has Error" and not IsMappingError(OrderHeader."Error Message") then
+        if OrderHeader."Has Error" and not OrderHeader."Has Mapping Error" then
             exit;
 
         PersistMappingError(OrderHeader, MissingIssues);
@@ -201,6 +204,7 @@ codeunit 30163 "Shpfy Order Mapping"
     internal procedure PersistMappingErrorMessage(var OrderHeader: Record "Shpfy Order Header"; ErrorMessage: Text)
     begin
         OrderHeader."Has Error" := true;
+        OrderHeader."Has Mapping Error" := true;
         OrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + ErrorMessage.Replace('\', GetLineBreak()), 1, MaxStrLen(OrderHeader."Error Message"));
         OrderHeader.Modify(false);
     end;
@@ -211,6 +215,7 @@ codeunit 30163 "Shpfy Order Mapping"
     begin
         ErrorMessage := Format(Time) + ' ' + GetMappingErrorMessage(MissingIssues);
         OrderHeader."Has Error" := true;
+        OrderHeader."Has Mapping Error" := true;
         OrderHeader."Error Message" := CopyStr(ErrorMessage, 1, MaxStrLen(OrderHeader."Error Message"));
         OrderHeader.Modify(false);
     end;
@@ -219,31 +224,18 @@ codeunit 30163 "Shpfy Order Mapping"
     begin
         if OrderHeader."Has Order State Error" then
             exit;
-        if not IsMappingError(OrderHeader."Error Message") then
+        if not OrderHeader."Has Mapping Error" then
             exit;
 
         OrderHeader."Has Error" := false;
+        OrderHeader."Has Mapping Error" := false;
         OrderHeader."Error Message" := '';
         OrderHeader.Modify(false);
     end;
 
     internal procedure IsMappingError(ErrorMessage: Text): Boolean
-    var
-        ErrorTime: Time;
-        MappingErrorPosition: Integer;
-        TimestampText: Text;
     begin
-        if ErrorMessage.StartsWith(MappingErr) then
-            exit(true);
-
-        MappingErrorPosition := StrPos(ErrorMessage, MappingErr);
-        if MappingErrorPosition <= 2 then
-            exit(false);
-        if CopyStr(ErrorMessage, MappingErrorPosition - 1, 1) <> ' ' then
-            exit(false);
-
-        TimestampText := CopyStr(ErrorMessage, 1, MappingErrorPosition - 2);
-        exit(Evaluate(ErrorTime, TimestampText));
+        exit(ErrorMessage.StartsWith(MappingErr));
     end;
 
     local procedure GetLineBreak(): Text

@@ -2130,9 +2130,9 @@ codeunit 139608 "Shpfy Orders API Test"
             this.CreateUnmappedItemLine(OrderHeader."Shopify Order Id", OrderHeader."Shopify Order Id" * 10 + 5, true);
             case CaseName of
                 'Mapping':
-                    this.SetOrderError(OrderHeader, MappingPrefixTok + ' ' + this.LibraryRandom.RandText(30));
+                    this.SetOrderError(OrderHeader, MappingPrefixTok + ' ' + this.LibraryRandom.RandText(30), true);
                 'Unrelated':
-                    this.SetOrderError(OrderHeader, MappingUnrelatedLbl);
+                    this.SetOrderError(OrderHeader, MappingUnrelatedLbl, false);
             end;
             Cases.Add(CaseName, OrderHeader."Shopify Order Id");
         end;
@@ -2245,6 +2245,7 @@ codeunit 139608 "Shpfy Orders API Test"
         OrderHeader.Processed := true;
         OrderHeader."Has Order State Error" := true;
         OrderHeader."Has Error" := true;
+        OrderHeader."Has Mapping Error" := false;
         OrderHeader."Error Message" := MappingConflictLbl;
         OrderHeader.Modify(false);
         exit(OrderId);
@@ -2494,9 +2495,10 @@ codeunit 139608 "Shpfy Orders API Test"
         Reply := true;
     end;
 
-    local procedure SetOrderError(var OrderHeader: Record "Shpfy Order Header"; ErrorMessage: Text)
+    local procedure SetOrderError(var OrderHeader: Record "Shpfy Order Header"; ErrorMessage: Text; MappingOwned: Boolean)
     begin
         OrderHeader."Has Error" := true;
+        OrderHeader."Has Mapping Error" := MappingOwned;
         OrderHeader."Error Message" := CopyStr(ErrorMessage, 1, MaxStrLen(OrderHeader."Error Message"));
         OrderHeader.Modify(false);
     end;

@@ -908,6 +908,12 @@ table 30118 "Shpfy Order Header"
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        field(1025; "Has Mapping Error"; Boolean)
+        {
+            Caption = 'Has Mapping Error';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether the current error message was written by the order mapping check and can be cleared when all mappings are complete.';
+        }
         field(1030; "Payment Terms Type"; Code[20])
         {
             DataClassification = CustomerContent;
