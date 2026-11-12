@@ -15,6 +15,7 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
 using System.TestLibraries.Utilities;
 
@@ -208,12 +209,16 @@ codeunit 139561 "Shpfy Initialize Test"
     end;
 
     local procedure CreateInventoryPostingGroup(Code: Code[20]) InvPostingGroup: Record "Inventory Posting Group"
+    var
+        BlankLocation: Record Location;
+        LibraryInventory: Codeunit "Library - Inventory";
     begin
         InvPostingGroup.SetRange(Code);
         if not InvPostingGroup.Get(Code) then begin
             Clear(InvPostingGroup);
             InvPostingGroup.Code := Code;
             InvPostingGroup.Insert();
+            LibraryInventory.UpdateInventoryPostingSetup(BlankLocation, Code);
         end;
     end;
 
@@ -307,12 +312,14 @@ codeunit 139561 "Shpfy Initialize Test"
     end;
 
     local procedure CreateCustomerPostingGroup(Code: Code[20]) CustPostingGroup: Record "Customer Posting Group"
+    var
+        LibrarySales: Codeunit "Library - Sales";
     begin
         CustPostingGroup.SetRange(Code);
         if not CustPostingGroup.Get(Code) then begin
             Clear(CustPostingGroup);
-            CustPostingGroup.Code := Code;
-            CustPostingGroup.Insert();
+            LibrarySales.CreateCustomerPostingGroup(CustPostingGroup);
+            CustPostingGroup.Rename(Code);
         end;
     end;
 

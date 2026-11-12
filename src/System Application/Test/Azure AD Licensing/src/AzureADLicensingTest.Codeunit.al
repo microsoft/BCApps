@@ -280,6 +280,8 @@ codeunit 138458 "Azure AD Licensing Test"
         // Verify the module highest permission level is sufficient ignore non Tables
         PermissionsMock.Set('AAD Licensing Exec');
 
+        InitializeTestAndData();
+
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
@@ -317,6 +319,8 @@ codeunit 138458 "Azure AD Licensing Test"
 
         // Verify the module highest permission level is sufficient ignore non Tables
         PermissionsMock.Set('AAD Licensing Exec');
+
+        InitializeTestAndData();
 
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
@@ -356,6 +360,8 @@ codeunit 138458 "Azure AD Licensing Test"
         // Verify the module highest permission level is sufficient ignore non Tables
         PermissionsMock.Set('AAD Licensing Exec');
 
+        InitializeTestAndData();
+
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
@@ -393,6 +399,8 @@ codeunit 138458 "Azure AD Licensing Test"
 
         // Verify the module highest permission level is sufficient ignore non Tables
         PermissionsMock.Set('AAD Licensing Exec');
+
+        InitializeTestAndData();
 
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
@@ -432,6 +440,8 @@ codeunit 138458 "Azure AD Licensing Test"
         // Verify the module highest permission level is sufficient ignore non Tables
         PermissionsMock.Set('AAD Licensing Exec');
 
+        InitializeTestAndData();
+
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
@@ -469,6 +479,8 @@ codeunit 138458 "Azure AD Licensing Test"
 
         // Verify the module highest permission level is sufficient ignore non Tables
         PermissionsMock.Set('AAD Licensing Exec');
+
+        InitializeTestAndData();
 
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
@@ -508,6 +520,8 @@ codeunit 138458 "Azure AD Licensing Test"
         // Verify the module highest permission level is sufficient ignore non Tables
         PermissionsMock.Set('AAD Licensing Exec');
 
+        InitializeTestAndData();
+
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
@@ -545,6 +559,8 @@ codeunit 138458 "Azure AD Licensing Test"
 
         // Verify the module highest permission level is sufficient ignore non Tables
         PermissionsMock.Set('AAD Licensing Exec');
+
+        InitializeTestAndData();
 
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
@@ -600,6 +616,8 @@ codeunit 138458 "Azure AD Licensing Test"
         // Verify the module highest permission level is sufficient ignore non Tables
         PermissionsMock.Set('AAD Licensing Exec');
 
+        InitializeTestAndData();
+
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
@@ -653,6 +671,8 @@ codeunit 138458 "Azure AD Licensing Test"
 
         // Verify the module highest permission level is sufficient ignore non Tables
         PermissionsMock.Set('AAD Licensing Exec');
+
+        InitializeTestAndData();
 
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);

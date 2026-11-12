@@ -87,7 +87,7 @@ codeunit 132604 "Checklist Facade Test"
         ObjectIdToRun1: Integer;
         ObjectIdToRun2: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -125,7 +125,7 @@ codeunit 132604 "Checklist Facade Test"
         ObjectTypeToRun: ObjectType;
         ObjectIdToRun: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -164,7 +164,7 @@ codeunit 132604 "Checklist Facade Test"
         ObjectIdToRun: Integer;
         OrderID: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -221,7 +221,7 @@ codeunit 132604 "Checklist Facade Test"
         ObjectIdToRun: Integer;
         OrderID1: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -268,7 +268,7 @@ codeunit 132604 "Checklist Facade Test"
         OrderID1: Integer;
         OrderID2: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -318,7 +318,7 @@ codeunit 132604 "Checklist Facade Test"
         ObjectIdToRun: Integer;
         OrderID: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
         AddRoleToList(TempAllProfile, ProfileID2);
@@ -722,7 +722,7 @@ codeunit 132604 "Checklist Facade Test"
         OrderId: Integer;
     begin
         // [GIVEN] The guided experience item table is empty
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -755,7 +755,7 @@ codeunit 132604 "Checklist Facade Test"
         ObjectIdToRun1: Integer;
         ObjectIdToRun2: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -792,7 +792,7 @@ codeunit 132604 "Checklist Facade Test"
         ObjectTypeToRun: ObjectType;
         ObjectIdToRun: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -830,7 +830,7 @@ codeunit 132604 "Checklist Facade Test"
         ObjectIdToRun: Integer;
         OrderID: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -886,7 +886,7 @@ codeunit 132604 "Checklist Facade Test"
         ObjectIdToRun: Integer;
         OrderID1: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -932,7 +932,7 @@ codeunit 132604 "Checklist Facade Test"
         OrderID1: Integer;
         OrderID2: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -981,7 +981,7 @@ codeunit 132604 "Checklist Facade Test"
         ObjectIdToRun: Integer;
         OrderID: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
         AddRoleToList(TempAllProfile, ProfileID2);
@@ -1376,7 +1376,7 @@ codeunit 132604 "Checklist Facade Test"
         LinkToRun: Text[250];
     begin
         // [GIVEN] The guided experience item table is empty
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -1404,7 +1404,7 @@ codeunit 132604 "Checklist Facade Test"
         LinkToRun1: Text[250];
         LinkToRun2: Text[250];
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -1436,7 +1436,7 @@ codeunit 132604 "Checklist Facade Test"
         GuidedExperienceType: Enum "Guided Experience Type";
         LinkToRun: Text[250];
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -1470,7 +1470,7 @@ codeunit 132604 "Checklist Facade Test"
         LinkToRun: Text[250];
         OrderID: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -1522,7 +1522,7 @@ codeunit 132604 "Checklist Facade Test"
         LinkToRun: Text[250];
         OrderID: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -1564,7 +1564,7 @@ codeunit 132604 "Checklist Facade Test"
         OrderID1: Integer;
         OrderID2: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -1609,7 +1609,7 @@ codeunit 132604 "Checklist Facade Test"
         LinkToRun: Text[250];
         OrderID: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
         AddRoleToList(TempAllProfile, ProfileID2);
@@ -1979,7 +1979,7 @@ codeunit 132604 "Checklist Facade Test"
         ObjectIdToRun: Integer;
         OrderID: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -2094,7 +2094,7 @@ codeunit 132604 "Checklist Facade Test"
         ObjectIdToRun: Integer;
         OrderID: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
 
@@ -2235,7 +2235,7 @@ codeunit 132604 "Checklist Facade Test"
         ObjectIDToRun2: Integer;
         LinkToRun: Text[250];
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
         AddRoleToList(TempAllProfile, ProfileID2);
@@ -2406,7 +2406,7 @@ ObjectIDToRun2, ManualSetupCategory::Uncategorized, '');
         ObjectIDToRun2: Integer;
         LinkToRun: Text[250];
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
         AddRoleToList(TempAllProfile, ProfileID2);
@@ -2578,7 +2578,7 @@ AssistedSetupGroup::Uncategorized, '', VideoCategory::Uncategorized, '');
         ObjectIDToRun1: Integer;
         ObjectIDToRun2: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
         AddRoleToList(TempAllProfile, ProfileID2);
@@ -2737,7 +2737,7 @@ ObjectIDToRun2, ManualSetupCategory::Uncategorized, '');
         ObjectIDToRun1: Integer;
         ObjectIDToRun2: Integer;
     begin
-        Initialize(false);
+        Initialize(true);
 
         AddRoleToList(TempAllProfile, ProfileID1);
         AddRoleToList(TempAllProfile, ProfileID2);
