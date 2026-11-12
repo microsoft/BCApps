@@ -37,7 +37,7 @@ page 31157 "Cash Desk Events CZP"
                 field("Account Type"; Rec."Account Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of account thet the entry will be posted to. To see the options, choose the field.';
+                    ToolTip = 'Specifies the type of account that the entry will be posted to. To see the options, choose the field.';
                 }
                 field("Account No."; Rec."Account No.")
                 {
@@ -53,6 +53,10 @@ page 31157 "Cash Desk Events CZP"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies that the value of Yes will automatically be filled when the row meets the conditions for a recorded sale.';
+                }
+                field("Amount Type"; Rec."Amount Type")
+                {
+                    ApplicationArea = Basic, Suite;
                 }
             }
         }

@@ -554,7 +554,8 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
                         {
                             ApplicationArea = All;
                             Caption = 'Automatically Create Inspection';
-                            ToolTip = 'Specifies whether to automatically create an inspection when product is received via a warehouse receipt.';
+                            ToolTip = 'Specifies whether to automatically create an inspection when product is received via a warehouse receipt. To create inspections when a warehouse receipt is created, set up a generation rule for the Warehouse Receipt Line table on the Quality Inspection Generation Rules page.';
+                            ValuesAllowed = NoTrigger, OnWarehouseReceiptPost;
                         }
                     }
                     group(WrapAutoSalesReturn)
@@ -680,6 +681,7 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
         YouMustChooseATemplateFirstMsg: Label 'Please choose a template before proceeding.';
         FilterLengthErr: Label 'This filter is too long and must be less than %1 characters.', Comment = '%1=filter string maximum length';
         NoIntentSelectedErr: Label 'Select a source type (purchase, sales return, transfer, or warehouse receipt) before finishing the setup.';
+        WhseReceiptCreateTriggerNotSupportedErr: Label 'The setup guide cannot create a rule that uses the trigger %1. To create inspections when a warehouse receipt is created, set up a generation rule for the Warehouse Receipt Line table on the Quality Inspection Generation Rules page.', Comment = '%1=the warehouse receipt trigger';
 
     trigger OnInit();
     begin
@@ -697,6 +699,9 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
         QltyTransferTrigger := QltyManagementSetup."Transfer Order Trigger";
         QltySalesReturnTrigger := QltyManagementSetup."Sales Return Trigger";
         QltyWhseReceiveTrigger := QltyManagementSetup."Warehouse Receipt Trigger";
+        // The guide creates Warehouse Journal Line rules, which are only evaluated when a warehouse receipt is posted.
+        if QltyWhseReceiveTrigger = QltyWhseReceiveTrigger::OnWarehouseReceiptCreate then
+            QltyWhseReceiveTrigger := QltyWhseReceiveTrigger::NoTrigger;
         MaxStep := StepDoneCounter;
     end;
 
@@ -967,6 +972,8 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
                 end;
             IsWarehouseReceipt:
                 begin
+                    if QltyWhseReceiveTrigger = QltyWhseReceiveTrigger::OnWarehouseReceiptCreate then
+                        Error(WhseReceiptCreateTriggerNotSupportedErr, QltyWhseReceiveTrigger);
                     QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
                     QltyInspectionGenRule.Intent := QltyInspectionGenRule.Intent::"Warehouse Receipt";
                     QltyInspectionGenRule."Condition Filter" := WarehouseJournalLineRule;

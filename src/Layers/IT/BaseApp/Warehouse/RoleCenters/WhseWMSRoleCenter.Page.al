@@ -263,7 +263,7 @@ page 9000 "Whse. WMS Role Center"
                 RunObject = Page "Phys. Inventory Recording List";
                 ToolTip = 'Prepare to count inventory by creating a recording document to capture the quantities.';
             }
-#if not CLEAN27
+#if not CLEAN28
             action("Subcontracting Transfers")
             {
                 ApplicationArea = LegacySubcontracting;

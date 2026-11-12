@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.Currency;
+
 table 6911 "Expense Report Line Item"
 {
     Access = Internal;
@@ -102,7 +104,8 @@ table 6911 "Expense Report Line Item"
         }
         field(11; "Daily Rate"; Decimal)
         {
-            AutoFormatType = 0;
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
             Caption = 'Daily Rate';
 
             trigger OnValidate()
@@ -116,18 +119,21 @@ table 6911 "Expense Report Line Item"
                     if not ExpenseReportLine.IsEnforcedItemizationRequired() then
                         Rec.TestField("Expense Subcategory Code");
                 end;
+                Rec."Daily Rate" := RoundAmount(Rec."Daily Rate");
 
                 Rec.Validate("Amount", Quantity * "Daily Rate");
             end;
         }
         field(12; "Amount"; Decimal)
         {
-            AutoFormatType = 0;
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
             Caption = 'Amount';
             Editable = false;
 
             trigger OnValidate()
             begin
+                Rec.Amount := RoundAmount(Rec.Amount);
                 if Rec.Amount <> xRec.Amount then
                     UpdateItemizationInformationOnExpenseReportLine(false);
             end;
@@ -135,6 +141,12 @@ table 6911 "Expense Report Line Item"
         field(13; "Refundable"; Boolean)
         {
             Caption = 'Refundable';
+            Editable = false;
+        }
+        field(14; "Currency Code"; Code[10])
+        {
+            Caption = 'Currency Code';
+            TableRelation = Currency;
             Editable = false;
         }
     }
@@ -185,6 +197,14 @@ table 6911 "Expense Report Line Item"
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportHelper: Codeunit "Expense Report";
 
+    local procedure RoundAmount(CurrAmount: Decimal): Decimal
+    var
+        Currency: Record Currency;
+    begin
+        Currency.Initialize(Rec."Currency Code");
+        exit(Round(CurrAmount, Currency."Amount Rounding Precision"));
+    end;
+
     local procedure InvalidateParentPolicy()
     var
         ParentExpenseReportLine: Record "Expense Report Line";
@@ -198,6 +218,7 @@ table 6911 "Expense Report Line Item"
         ExpenseReportLine := ExpenseReportHelper.GetExpenseReportLine(ExpenseReportNo, ExpenseReportLineNo);
 
         Rec.Validate("Expense No.", ExpenseReportLine."Expense No.");
+        Rec."Currency Code" := ExpenseReportLine."Expense Currency Code";
         Rec.Validate("Expense Category Code", ExpenseReportLine."Expense Category");
 
         if Rec.Description = '' then

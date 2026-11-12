@@ -17,7 +17,7 @@ using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Reports;
 using Microsoft.Inventory.Requisition;
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Manufacturing.Document;
 #endif
 using Microsoft.Purchases.Analysis;
@@ -231,7 +231,7 @@ page 9007 "Purchasing Agent Role Center"
                 RunObject = Page "Purchase Credit Memos";
                 ToolTip = 'Create purchase credit memos to mirror sales credit memos that vendors send to you for incorrect or damaged items that you have paid for and then returned to the vendor. If you need more control of the purchase return process, such as warehouse documents for the physical handling, use purchase return orders, in which purchase credit memos are integrated. Purchase credit memos can be created automatically from PDF or image files from your vendors by using the Incoming Documents feature. Note: If you have not yet paid for an erroneous purchase, you can simply cancel the posted purchase invoice to automatically revert the financial transaction.';
             }
-#if not CLEAN27
+#if not CLEAN28
             action("Subcontracting Orders")
             {
                 ApplicationArea = LegacySubcontracting;

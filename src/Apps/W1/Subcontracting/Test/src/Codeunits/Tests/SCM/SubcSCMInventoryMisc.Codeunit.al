@@ -240,7 +240,7 @@ codeunit 149923 "Subc SCM Inventory Misc."
         Currency: Record Currency;
     begin
         LibraryERM.CreateCurrency(Currency);
-        // Subcontracting order dates can precede the work date.
+        // Backward scheduling can place the subcontracting order before the work date.
         LibraryERM.CreateExchangeRate(Currency.Code, 0D, 100, 120);
         LibraryManufacturing.CreateWorkCenterWithCalendar(WorkCenter);
         SubcManagementLibrary.CreateSubcontractorWithCurrency(Currency.Code);

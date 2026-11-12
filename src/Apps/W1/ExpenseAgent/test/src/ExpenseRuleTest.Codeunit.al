@@ -53,7 +53,9 @@ codeunit 148301 "Expense Rule Test"
         MissingExpenseSubCategoryErr: Label 'Expense Subcategories is required in order to add Itemization detail(s) for expense category code %1.', Comment = '%1 = Expense Category Code';
         SubcategoryBlankedMsg: Label 'The expense category of expense %1 was changed, so the subcategories on its itemizations were cleared. Review the itemizations and select a subcategory that matches the new category.', Comment = '%1 = Expense No.';
         ReportLineSubcategoryBlankedMsg: Label 'The expense category of expense report %1, Line No. %2 was changed, so the subcategories on its itemizations were cleared. Review the itemizations and select a subcategory that matches the new category.', Comment = '%1 = Expense Report No., %2 = Line No.';
-        RequiredSpecificMerchantNotAllowedForMileageErr: Label 'You cannot set %1 because %2 is %3 in %4 %5.', Comment = '%1 = Required Specific Merchant field caption, %2 = Expense Detail Required field caption, %3 = Mileage value, %4 = Expense Category table caption, %5 = Expense Category Code';
+        RequiredSpecificMerchantNotAllowedErr: Label 'You cannot set %1 because %2 is %3 in %4 %5.', Comment = '%1 = Required Specific Merchant field caption, %2 = Expense Detail Required field caption, %3 = Expense Detail Required value, %4 = Expense Category table caption, %5 = Expense Category Code';
+        MerchantNameMandatoryFilterTok: Label 'Merchant Name is mandatory*', Locked = true;
+        ReceiptNoMandatoryFilterTok: Label 'Receipt No. is mandatory*', Locked = true;
         RequiredSpecificMerchantEnabledMsg: Label 'Required Specific Merchant should be enabled for a non-mileage category.';
         ExpenseSubCategoryMustBeRequiredInExpenseErr: Label '%1 must be required in Expense No.=%2, Line No.=%3.', Comment = '%1 = Field Caption, %2 = Expense No., %3 = Line No.';
         ExpenseSubCategoryMustBeRequiredInExpenseReportErr: Label '%1 must be required in Expense Report No.=%2, Expense Report Line No.=%3, Line No.=%4.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Expense Report Line No., %4 = Line No.';
@@ -7971,7 +7973,7 @@ codeunit 148301 "Expense Rule Test"
         ExpensePage."Rule Violations".AssertEquals(true);
         ExpensePage.RuleViolations.Description.AssertEquals(JustificationRequiredErr);
         ExpensePage.RuleViolations.Next();
-        ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, ExpectedAmountFCY - 1));
+        ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, FormatRuleConditionValue(ExpectedAmountFCY - 1)));
         ExpensePage.Close();
 
         // [GIVEN] Create Refundable and Non-Refundable Itemizations for the Expense.
@@ -8038,7 +8040,7 @@ codeunit 148301 "Expense Rule Test"
         ExpensePage."Rule Violations".AssertEquals(true);
         ExpensePage.RuleViolations.Description.AssertEquals(JustificationRequiredErr);
         ExpensePage.RuleViolations.Next();
-        ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, ExpectedAmountFCY - 1));
+        ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, FormatRuleConditionValue(ExpectedAmountFCY - 1)));
         ExpensePage.Close();
     end;
 
@@ -8091,7 +8093,7 @@ codeunit 148301 "Expense Rule Test"
         ExpenseReportPage.GoToRecord(ExpenseReportHeader);
         ExpenseReportPage.RuleViolations.Description.AssertEquals(JustificationRequiredErr);
         ExpenseReportPage.RuleViolations.Next();
-        ExpenseReportPage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, ExpectedAmountFCY - 1));
+        ExpenseReportPage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, FormatRuleConditionValue(ExpectedAmountFCY - 1)));
         ExpenseReportPage.Close();
 
         // [GIVEN] Find expense report line.
@@ -8164,7 +8166,7 @@ codeunit 148301 "Expense Rule Test"
         ExpenseReportPage.GoToRecord(ExpenseReportHeader);
         ExpenseReportPage.RuleViolations.Description.AssertEquals(JustificationRequiredErr);
         ExpenseReportPage.RuleViolations.Next();
-        ExpenseReportPage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, ExpectedAmountFCY - 1));
+        ExpenseReportPage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, FormatRuleConditionValue(ExpectedAmountFCY - 1)));
         ExpenseReportPage.Close();
     end;
 
@@ -8315,12 +8317,84 @@ codeunit 148301 "Expense Rule Test"
         // [THEN] Validation fails because merchant requirements do not apply to mileage.
         Assert.ExpectedError(
             StrSubstNo(
-                RequiredSpecificMerchantNotAllowedForMileageErr,
+                RequiredSpecificMerchantNotAllowedErr,
                 ExpenseRuleHeader.FieldCaption("Required Specific Merchant"),
                 ExpenseCategory.FieldCaption("Expense Detail Required"),
                 ExpenseCategory."Expense Detail Required"::Mileage,
                 ExpenseCategory.TableCaption(),
                 ExpenseCategory.Code));
+    end;
+
+    [Test]
+    procedure RequiredSpecificMerchantFailsForPerDiemCategory()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+    begin
+        // [SCENARIO] Required Specific Merchant cannot be enabled on an expense rule for a per diem category.
+        Initialize();
+
+        // [GIVEN] An expense rule for a per diem category.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Company Paid", ExpenseCategory."Expense Detail Required"::"Per Diem");
+        CreateExpenseRuleHeaderForCategory(ExpenseRuleHeader, ExpenseCategory.Code);
+
+        // [WHEN] Required Specific Merchant is enabled.
+        asserterror ExpenseRuleHeader.Validate("Required Specific Merchant", true);
+
+        // [THEN] Validation fails because merchant requirements do not apply to per diem.
+        Assert.ExpectedError(
+            StrSubstNo(
+                RequiredSpecificMerchantNotAllowedErr,
+                ExpenseRuleHeader.FieldCaption("Required Specific Merchant"),
+                ExpenseCategory.FieldCaption("Expense Detail Required"),
+                ExpenseCategory."Expense Detail Required"::"Per Diem",
+                ExpenseCategory.TableCaption(),
+                ExpenseCategory.Code));
+    end;
+
+    [Test]
+    procedure PerDiemExpenseRequiresNoMerchantOrReceipt()
+    var
+        Expense: Record Expense;
+        PostCode: Record "Post Code";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+        ExpenseRuleViolation: Record "Expense Rule Violation";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+        Amount: Decimal;
+    begin
+        // [SCENARIO] Receipt No. and Merchant Name are not mandatory for a per diem expense when they are mandatory in Expense Agent Setup.
+        Initialize();
+
+        // [GIVEN] Receipt No. and Merchant Name are mandatory in Expense Agent Setup.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Receipt No. Mandatory", true);
+        ExpenseAgentSetup.Validate("Merchant Name Mandatory", true);
+        ExpenseAgentSetup.Modify();
+
+        // [GIVEN] A per diem expense with a Daily Rate rule and without merchant name and receipt no.
+        LibraryERM.FindPostCode(PostCode);
+        Amount := LibraryRandom.RandInt(100);
+        CreateExpenseWithRule(
+            Expense, ExpenseRuleHeader, ExpenseRuleCondition, PostCode."Country/Region Code", PostCode.City, '', Amount, WorkDate(),
+            "Expense Detail Needed"::"Per Diem", ExpenseRuleHeader."Justification Required"::" ", '', ExpenseRuleCondition."Condition Type"::"Daily Rate", true, Amount);
+        Expense.Validate("Merchant Name", '');
+        Expense.Validate("Expense Ext. Doc. No.", '');
+        Expense.Modify();
+
+        // [WHEN] The expense is validated against the rules.
+        ExpenseRuleValidation.ValidateExpenseAgainstRule(Expense);
+
+        // [THEN] No merchant name or receipt no. rule violation is raised for the per diem expense.
+        ExpenseRuleViolation.SetRange("Expense No.", Expense."No.");
+        ExpenseRuleViolation.SetFilter(Description, '%1|%2', MerchantNameMandatoryFilterTok, ReceiptNoMandatoryFilterTok);
+        Assert.RecordIsEmpty(ExpenseRuleViolation);
+
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Receipt No. Mandatory", false);
+        ExpenseAgentSetup.Validate("Merchant Name Mandatory", false);
+        ExpenseAgentSetup.Modify();
     end;
 
     [Test]
@@ -8369,7 +8443,7 @@ codeunit 148301 "Expense Rule Test"
         // [THEN] Validation fails because merchant requirements do not apply to mileage.
         Assert.ExpectedError(
             StrSubstNo(
-                RequiredSpecificMerchantNotAllowedForMileageErr,
+                RequiredSpecificMerchantNotAllowedErr,
                 ExpenseRuleHeader.FieldCaption("Required Specific Merchant"),
                 MileageCategory.FieldCaption("Expense Detail Required"),
                 MileageCategory."Expense Detail Required"::Mileage,
@@ -9932,9 +10006,14 @@ codeunit 148301 "Expense Rule Test"
         ExpenseItemization.SetRange("Expense No.", Expense."No.");
         ExpenseItemization.SetRange("Refundable", true);
         if ExpenseItemization.FindFirst() then begin
-            ExpenseItemization.Amount := Amount;
+            ExpenseItemization.Validate("Daily Rate", Amount / ExpenseItemization.Quantity);
             ExpenseItemization.Modify();
         end;
+    end;
+
+    local procedure FormatRuleConditionValue(Value: Decimal): Text
+    begin
+        exit(Format(Value, 0, '<Precision,2:5><Standard Format,0>'));
     end;
 
     local procedure CreateNonRefundableItemizationForExpenseReportLine(ExpenseReportLine: Record "Expense Report Line"; Amount: Decimal)
@@ -9954,7 +10033,7 @@ codeunit 148301 "Expense Rule Test"
         ExpenseReportLineItemization.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
         ExpenseReportLineItemization.SetRange("Refundable", true);
         if ExpenseReportLineItemization.FindFirst() then begin
-            ExpenseReportLineItemization.Amount := Amount;
+            ExpenseReportLineItemization.Validate("Daily Rate", Amount / ExpenseReportLineItemization.Quantity);
             ExpenseReportLineItemization.Modify();
         end;
     end;
