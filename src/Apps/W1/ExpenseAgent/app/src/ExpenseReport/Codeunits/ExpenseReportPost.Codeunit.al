@@ -46,6 +46,8 @@ codeunit 6987 "Expense Report-Post"
                   TableData "Posted Exp. Policy Evaluation" = i,
                   TableData "Expense Category" = r,
                   TableData "Expense Posting Group" = r,
+                  TableData "EA Corp Card" = r,
+                  TableData "EA Corp Card Trans" = r,
                   TableData "Expense User" = r;
 
     trigger OnRun()

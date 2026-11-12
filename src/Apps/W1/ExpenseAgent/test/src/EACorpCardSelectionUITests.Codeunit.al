@@ -6,6 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 
+// [FEATURE] [Expense Agent] [Corporate Card] [UI]
 codeunit 148365 EACorpCardSelectionUITests
 {
     Subtype = Test;
@@ -29,7 +30,10 @@ codeunit 148365 EACorpCardSelectionUITests
         LibraryExpense: Codeunit "Library - Expense";
         ExpenseCard: TestPage Expense;
     begin
+        // [SCENARIO] Corporate card selection reflects the expense's payment method, release status, and feed link.
         Initialize();
+
+        // [GIVEN] Open manual, released, feed-linked, and employee-paid expenses.
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InsertExpense(ManualExpense, CorpCard);
@@ -44,17 +48,32 @@ codeunit 148365 EACorpCardSelectionUITests
         EmployeePaidExpense."Reimbursement Type" := EmployeePaidExpense."Reimbursement Type"::"Employee Paid";
         EmployeePaidExpense.Insert();
 
+        // [WHEN] An open manual credit-card expense is shown.
         ExpenseCard.OpenEdit();
         ExpenseCard.GoToRecord(ManualExpense);
+
+        // [THEN] Card selection is visible, editable, and mandatory.
         Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'The corporate card must be shown for a credit-card expense.');
         Assert.IsTrue(ExpenseCard.CorporateCard.Editable(), 'An open manual expense must allow card selection.');
         Assert.IsTrue(ExpenseCard.CorporateCard.ShowMandatory(), 'Credit-card expenses must indicate that a corporate card is required.');
+
+        // [WHEN] The released expense is shown.
         ExpenseCard.GoToRecord(ReleasedExpense);
+
+        // [THEN] The selected card remains visible but cannot be changed.
         Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'The selected card must remain visible after release.');
         Assert.IsFalse(ExpenseCard.CorporateCard.Editable(), 'A released expense must not allow card selection.');
+
+        // [WHEN] The feed-linked expense is shown.
         ExpenseCard.GoToRecord(LinkedExpense);
+
+        // [THEN] Card selection is disabled.
         Assert.IsFalse(ExpenseCard.CorporateCard.Editable(), 'A feed-linked expense must not allow card selection.');
+
+        // [WHEN] The employee-paid expense is shown.
         ExpenseCard.GoToRecord(EmployeePaidExpense);
+
+        // [THEN] The selector remains visible but is neither editable nor mandatory.
         Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'The card selector must remain visible so it can be enabled after choosing CARD.');
         Assert.IsFalse(ExpenseCard.CorporateCard.Editable(), 'Employee-paid expenses must not allow corporate card selection.');
         Assert.IsFalse(ExpenseCard.CorporateCard.ShowMandatory(), 'Employee-paid expenses must not require a corporate card.');
@@ -72,7 +91,10 @@ codeunit 148365 EACorpCardSelectionUITests
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         ExpenseCard: TestPage Expense;
     begin
+        // [SCENARIO] Choosing card payment immediately enables corporate card selection on a new expense.
         Initialize();
+
+        // [GIVEN] A newly opened expense uses an employee-paid category and cannot select a card.
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         CorpCard.Get('CORPCARD-0001');
         LibraryExpense.CreateExpenseCategory(
@@ -84,14 +106,20 @@ codeunit 148365 EACorpCardSelectionUITests
         Assert.IsFalse(ExpenseCard.CorporateCard.Editable(), 'A non-credit-card payment method must not allow card selection.');
         Assert.IsFalse(ExpenseCard.CorporateCard.ShowMandatory(), 'A non-credit-card payment method must not require a corporate card.');
 
+        // [WHEN] The payment method changes to CARD without reopening the expense.
         ExpenseCard."Payment Method Code".SetValue('CARD');
 
+        // [THEN] Card selection is immediately visible, editable, and mandatory.
         Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'Choosing CARD must not require reopening the expense to find the selector.');
         Assert.IsTrue(ExpenseCard.CorporateCard.Editable(), 'Choosing CARD must immediately enable card selection.');
         Assert.IsTrue(ExpenseCard.CorporateCard.ShowMandatory(), 'Choosing CARD must immediately indicate that a corporate card is required.');
+
+        // [WHEN] The expense user's card is selected and the expense is saved.
         ExpenseCard.CorporateCard.Lookup();
         ExpenseCard.CorporateCard.AssertEquals(CorpCardSelectionMgt.GetCardDisplay(CorpCard."Card Id"));
         ExpenseCard.Close();
+
+        // [THEN] The saved expense retains that user's card without feed provenance.
         Expense.SetRange("Corporate Card Id", CorpCard."Card Id");
         Assert.RecordCount(Expense, 1);
         Expense.FindFirst();
@@ -108,7 +136,10 @@ codeunit 148365 EACorpCardSelectionUITests
         ExpenseUserCard: TestPage "Expense User";
         CorporateCards: TestPage "EA Corp Card Cards";
     begin
+        // [SCENARIO] The expense user's corporate card list excludes unassigned cards and other users' cards.
         Initialize();
+
+        // [GIVEN] An expense user owns a card and an additional card has no assigned user.
         CorpCard.Get('CORPCARD-0001');
         UnassignedCorpCard := CorpCard;
         UnassignedCorpCard."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(UnassignedCorpCard."Card Id"));
@@ -119,8 +150,10 @@ codeunit 148365 EACorpCardSelectionUITests
         ExpenseUserCard.GoToRecord(ExpenseUser);
         CorporateCards.Trap();
 
+        // [WHEN] The user opens their corporate card list.
         ExpenseUserCard.CorporateCards.Invoke();
 
+        // [THEN] The nonempty list contains only cards assigned to that expense user.
         Assert.IsTrue(CorporateCards.First(), 'The expense user must have corporate cards in the filtered list.');
         repeat
             CorporateCards."Expense User No.".AssertEquals(ExpenseUser."No.");
@@ -138,7 +171,10 @@ codeunit 148365 EACorpCardSelectionUITests
         CorporateCards: TestPage "EA Corp Card Cards";
         NewCardId: Code[50];
     begin
+        // [SCENARIO] A corporate card created from an expense user defaults to that user.
         Initialize();
+
+        // [GIVEN] The corporate card list is opened from an expense user.
         NewCardId := CopyStr(Format(CreateGuid()), 1, MaxStrLen(NewCardId));
         CorpCard.Get('CORPCARD-0001');
         ExpenseUser.Get(CorpCard."Expense User No.");
@@ -147,13 +183,19 @@ codeunit 148365 EACorpCardSelectionUITests
         CorporateCards.Trap();
         ExpenseUserCard.CorporateCards.Invoke();
 
+        // [WHEN] A new card is started in the filtered list.
         CorporateCards.New();
 
+        // [THEN] Its expense user is defaulted from the originating user.
         CorporateCards."Expense User No.".AssertEquals(ExpenseUser."No.");
+
+        // [WHEN] The new card is completed and saved.
         CorporateCards."Card Id".SetValue(NewCardId);
         CorporateCards."Provider Code".SetValue(CorpCard."Provider Code");
         CorporateCards.Close();
         ExpenseUserCard.Close();
+
+        // [THEN] The persisted card belongs to the originating expense user.
         CorpCard.Get(NewCardId);
         CorpCard.TestField("Expense User No.", ExpenseUser."No.");
     end;
@@ -166,14 +208,19 @@ codeunit 148365 EACorpCardSelectionUITests
         ExpenseUserCard: TestPage "Expense User";
         CorporateCards: TestPage "EA Corp Card Cards";
     begin
+        // [SCENARIO] An expense user without cards sees an empty corporate card list.
         Initialize();
+
+        // [GIVEN] A newly created expense user has no cards.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
         ExpenseUserCard.OpenView();
         ExpenseUserCard.GoToRecord(ExpenseUser);
         CorporateCards.Trap();
 
+        // [WHEN] The user opens their corporate card list.
         ExpenseUserCard.CorporateCards.Invoke();
 
+        // [THEN] Other users' cards are not displayed.
         Assert.IsFalse(CorporateCards.First(), 'An expense user without cards must see an empty list, not other users'' cards.');
         CorporateCards.Close();
         ExpenseUserCard.Close();
@@ -187,14 +234,20 @@ codeunit 148365 EACorpCardSelectionUITests
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         CardLookup: TestPage "EA Corp Card Lookup";
     begin
+        // [SCENARIO] Card lookup and expense displays share the provider abbreviation and last four digits.
         Initialize();
+
+        // [GIVEN] A card ends in 0001 and its provider abbreviation is AmEx.
         CorpCard.Get('CORPCARD-0001');
         CorpCardProvider.Get(CorpCard."Provider Code");
         CorpCardProvider."Short Name" := 'AmEx';
         CorpCardProvider.Modify();
 
+        // [WHEN] The card is shown in the lookup.
         CardLookup.OpenView();
         CardLookup.GoToRecord(CorpCard);
+
+        // [THEN] Both the lookup and expense display use the same compact card label.
         CardLookup.CorporateCard.AssertEquals('AmEx 0001');
         CardLookup.Close();
         Assert.AreEqual('AmEx 0001', CorpCardSelectionMgt.GetCardDisplay(CorpCard."Card Id"), 'Expense and report displays must use the same compact label as the lookup.');

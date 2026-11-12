@@ -207,7 +207,7 @@ codeunit 148358 EACorpCardPostTests
         for TransactionIndex := 1 to ArrayLen(CorpCardTrans) do begin
             if TransactionIndex <= 2 then
                 CorpCardTestLib.CreateStatement(
-                    CorpCardStatement, 'TEST', 'STMT-LOCK-' + Format(TransactionIndex), 100, CorpCardStatement.Status::Validated);
+                    CorpCardStatement, 'TEST', CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardStatement."Statement No.")), 100, CorpCardStatement.Status::Validated);
             CorpCardTestLib.CreatePostedTransaction(CorpCardTrans[TransactionIndex], CorpCardStatement, 100);
             if TransactionIndex = 3 then begin
                 CorpCardTrans[TransactionIndex]."Statement Entry No." := 0;

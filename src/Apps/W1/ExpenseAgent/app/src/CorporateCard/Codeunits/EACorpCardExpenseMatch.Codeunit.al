@@ -61,6 +61,8 @@ codeunit 7448 "EA Corp Card Expense Match" implements "EA Corp Card Expense Matc
         ExpenseReportLine: Record "Expense Report Line";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        MatchDateWindow: Integer;
     begin
         CorpCardTrans.TestField("Expense No.", '');
         CorpCardTrans.TestField("Posted Expense Report No.", '');
@@ -73,11 +75,16 @@ codeunit 7448 "EA Corp Card Expense Match" implements "EA Corp Card Expense Matc
         Expense.TestField("Expense User No.", CorpCard."Expense User No.");
         Expense.TestField("Reimbursement Type", Expense."Reimbursement Type"::"Credit Card");
         Expense.TestField("Credit Card Feed No.", 0);
-        if Expense."Corporate Card Id" <> '' then begin
+        if Expense."Corporate Card Id" <> '' then
             Expense.TestField("Corporate Card Id", CorpCardTrans."Card Id");
-            Expense.TestField("Currency Code", CorpCardTrans."Currency Code");
-            Expense.TestField(Amount, CorpCardTrans.Amount);
-        end;
+        Expense.TestField("Currency Code", CorpCardTrans."Currency Code");
+        Expense.TestField(Amount, CorpCardTrans.Amount);
+        if ExpenseAgentSetup.Get() then
+            MatchDateWindow := ExpenseAgentSetup."Corp Card Date Match Window";
+        if (Expense."Expense Date" < CorpCardTrans."Trans Date" - MatchDateWindow) or
+           (Expense."Expense Date" > CorpCardTrans."Trans Date" + MatchDateWindow)
+        then
+            Error(ExpenseDateOutsideMatchWindowErr, ExpenseNo, CorpCardTrans."Entry No.");
 
         ExpenseReportLine.LockTable();
         ExpenseReportLine.SetRange("Expense No.", ExpenseNo);
@@ -143,4 +150,5 @@ codeunit 7448 "EA Corp Card Expense Match" implements "EA Corp Card Expense Matc
         ExpenseReportLinkNotUniqueErr: Label 'The expense report link for expense %1 is inconsistent. Review the report lines before linking the transaction.', Comment = '%1 = expense number';
         PostedExpenseLineNotUniqueErr: Label 'A unique active posted report line could not be found for expense %1.', Comment = '%1 = expense number';
         ExpenseAmountNeedsReviewErr: Label 'A manually entered expense for corporate card transaction %1 has a different amount within the matching tolerance. Review the amount before linking; another expense was not created.', Comment = '%1 = corporate card transaction entry number';
+        ExpenseDateOutsideMatchWindowErr: Label 'The date of expense %1 is outside the matching date window for corporate card transaction %2.', Comment = '%1 = expense number, %2 = corporate card transaction entry number';
 }

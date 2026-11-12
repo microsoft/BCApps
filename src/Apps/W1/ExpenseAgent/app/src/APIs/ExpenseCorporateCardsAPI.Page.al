@@ -22,6 +22,7 @@ page 7451 "Expense Corporate Cards API"
     ModifyAllowed = false;
     DeleteAllowed = false;
     DataAccessIntent = ReadOnly;
+    Permissions = tabledata "EA Corp Card" = r;
 
     layout
     {

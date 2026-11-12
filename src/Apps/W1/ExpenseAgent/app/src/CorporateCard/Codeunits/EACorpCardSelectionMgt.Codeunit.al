@@ -7,6 +7,8 @@ namespace Microsoft.ExpenseAgent;
 codeunit 7447 "EA Corp Card Selection Mgt"
 {
     Access = Internal;
+    Permissions = tabledata "EA Corp Card" = r,
+                  tabledata "EA Corp Card Trans" = r;
 
     internal procedure ValidateExpenseCard(Expense: Record Expense; RequireCard: Boolean)
     var

@@ -43,6 +43,46 @@ codeunit 148338 "Expense Permissions Test"
         CannotDeleteEmployeeWithPostedExpenseReportErr: Label 'You cannot delete Employee %1 because they have posted expense report.', Comment = '%1 = Employee No.';
 
     [Test]
+    procedure ExpenseAgentReadsCorporateCardsOnlyIndirectly()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        CorpCardTestLib: Codeunit EACorpCardTestLib;
+        CorpCardCanRead: Boolean;
+        CorpCardTransCanRead: Boolean;
+    begin
+        Initialize();
+        CorpCardTestLib.InitializeCorpCardData();
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        Expense."Credit Card Feed No." := CorpCardTrans."Entry No.";
+        Expense.Modify();
+        ExpenseReportLine."Expense No." := Expense."No.";
+        ExpenseReportLine."Expense User No." := Expense."Expense User No.";
+        ExpenseReportLine."Reimbursement Type" := Expense."Reimbursement Type";
+        ExpenseReportLine."Expense Date" := Expense."Expense Date";
+        ExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
+        ExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";
+
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.SetExactPermissionSet(ExpenseAgentPermissionSetTok);
+        CorpCardCanRead := CorpCard.ReadPermission();
+        CorpCardTransCanRead := CorpCardTrans.ReadPermission();
+
+        CorpCardSelectionMgt.ValidateExpenseCard(Expense, true);
+        CorpCardSelectionMgt.ValidateReportLine(ExpenseReportLine, true);
+
+        RestoreFullPermissions();
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+        Assert.IsFalse(CorpCardCanRead, 'The agent must not have direct corporate card read permission.');
+        Assert.IsFalse(CorpCardTransCanRead, 'The agent must not have direct corporate card transaction read permission.');
+    end;
+
+    [Test]
     procedure ExpenseMgmtReadRetainsAppPermissions()
     begin
         // [SCENARIO] The read role retains app-owned reads without granting BaseApp request access.

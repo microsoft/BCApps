@@ -649,6 +649,123 @@ codeunit 148364 EACorpCardSelectionTests
     end;
 
     [Test]
+    procedure LinkingBlankCardExpenseRejectsChangedAmount()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
+    begin
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.InitializeExpense(Expense, CorpCard);
+        Expense.Insert();
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        Expense.Amount := CorpCardTrans.Amount + 1;
+        Expense.Modify();
+
+        asserterror CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
+
+        Assert.ExpectedError(Expense.FieldCaption(Amount));
+        Expense.Get(Expense."No.");
+        Expense.TestField("Corporate Card Id", '');
+        Expense.TestField("Credit Card Feed No.", 0);
+    end;
+
+    [Test]
+    procedure LinkingBlankCardExpenseRejectsChangedCurrency()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
+    begin
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.InitializeExpense(Expense, CorpCard);
+        Expense.Insert();
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        Expense."Currency Code" := 'EUR';
+        Expense.Modify();
+
+        asserterror CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
+
+        Assert.ExpectedError(Expense.FieldCaption("Currency Code"));
+        Expense.Get(Expense."No.");
+        Expense.TestField("Corporate Card Id", '');
+        Expense.TestField("Credit Card Feed No.", 0);
+    end;
+
+    [Test]
+    procedure LinkingBlankCardExpenseRejectsDateOutsideWindow()
+    begin
+        VerifyLinkRejectsDateOutsideWindow(false);
+    end;
+
+    [Test]
+    procedure LinkingSelectedCardExpenseRejectsDateOutsideWindow()
+    begin
+        VerifyLinkRejectsDateOutsideWindow(true);
+    end;
+
+    [Test]
+    procedure LinkingBlankCardExpenseAcceptsDateWindowBoundaries()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
+        Boundary: Integer;
+    begin
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        ExpenseAgentSetup.Get();
+        for Boundary := 0 to 1 do begin
+            CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+            CorpCardTestLib.InitializeExpense(Expense, CorpCard);
+            Expense."Expense Date" := CorpCardTrans."Trans Date" + (2 * Boundary - 1) * ExpenseAgentSetup."Corp Card Date Match Window";
+            Expense.Insert();
+
+            CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
+
+            Expense.Get(Expense."No.");
+            Expense.TestField("Corporate Card Id", CorpCard."Card Id");
+            Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        end;
+    end;
+
+    local procedure VerifyLinkRejectsDateOutsideWindow(SelectCard: Boolean)
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
+        Boundary: Integer;
+    begin
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        ExpenseAgentSetup.Get();
+        CorpCardTestLib.InitializeExpense(Expense, CorpCard);
+        if SelectCard then
+            Expense."Corporate Card Id" := CorpCard."Card Id";
+        Expense.Insert();
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        for Boundary := 0 to 1 do begin
+            Expense."Expense Date" := CorpCardTrans."Trans Date" + (2 * Boundary - 1) * (ExpenseAgentSetup."Corp Card Date Match Window" + 1);
+            Expense.Modify();
+
+            asserterror CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
+
+            Assert.ExpectedError('outside the matching date window');
+            Expense.Get(Expense."No.");
+            Expense.TestField("Credit Card Feed No.", 0);
+            CorpCardTrans.TestField("Expense No.", '');
+        end;
+    end;
+
+    [Test]
     procedure MatchedManualExpenseRetainsFinancialEditing()
     var
         CorpCard: Record "EA Corp Card";

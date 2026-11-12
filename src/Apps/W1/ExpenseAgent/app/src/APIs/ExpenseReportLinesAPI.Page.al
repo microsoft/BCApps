@@ -20,6 +20,7 @@ page 6929 "Expense Report Lines API"
     ODataKeyFields = SystemId;
     SourceTable = "Expense Report Line";
     AboutText = 'Provides access to data from the Expense Report Line table';
+    Permissions = tabledata "EA Corp Card" = r;
 
     layout
     {

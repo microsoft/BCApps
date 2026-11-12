@@ -22,6 +22,7 @@ page 6927 "Expenses API"
     ODataKeyFields = SystemId;
     SourceTable = Expense;
     AboutText = 'Provides access to data from the Expense table';
+    Permissions = tabledata "EA Corp Card" = r;
 
     layout
     {
