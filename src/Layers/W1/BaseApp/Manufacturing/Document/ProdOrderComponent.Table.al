@@ -1153,6 +1153,33 @@ table 5407 "Prod. Order Component"
         "Completely Picked" := ("Qty. Picked" >= "Expected Quantity") and ("Expected Quantity" >= 0);
     end;
 
+    procedure IsEligibleForWarehousePick(): Boolean
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        OutputLocation: Record Location;
+    begin
+        if "Planning Level Code" = 0 then
+            exit(true);
+
+        if ("Planning Level Code" < 0) or ("Supplied-by Line No." = 0) then
+            exit(false);
+        if not ProdOrderLine.Get(Status, "Prod. Order No.", "Supplied-by Line No.") then
+            exit(false);
+        if (ProdOrderLine."Item No." <> "Item No.") or
+           (ProdOrderLine."Variant Code" <> "Variant Code") or
+           (ProdOrderLine."Location Code" <> "Location Code") or
+           (ProdOrderLine."Qty. Put Away (Base)" <= 0)
+        then
+            exit(false);
+        if not OutputLocation.Get(ProdOrderLine."Location Code") then
+            exit(false);
+        if OutputLocation."Prod. Output Whse. Handling" <> OutputLocation."Prod. Output Whse. Handling"::"Warehouse Put-away" then
+            exit(false);
+
+        // The warehouse pick engine allocates quantities and excludes outstanding put-away takes.
+        exit(true);
+    end;
+
     procedure ProdOrderNeeds(): Decimal
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -2078,12 +2105,21 @@ table 5407 "Prod. Order Component"
 
     procedure CalcBaseQty(Qty: Decimal; FromFieldName: Text; ToFieldName: Text) Result: Decimal
     var
+        UnroundedBaseQty: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeCalcBaseQty(Rec, CurrFieldNo, Qty, FromFieldName, ToFieldName, Result, IsHandled);
         if IsHandled then
             exit;
+
+        UnroundedBaseQty := Qty * "Qty. per Unit of Measure";
+        if (FromFieldName = FieldCaption(Quantity)) and
+           ("Qty. per Unit of Measure" > 0) and ("Qty. per Unit of Measure" < 1) and
+           (UnroundedBaseQty <> 0) and
+           (UOMMgt.RoundQty(UnroundedBaseQty, "Qty. Rounding Precision (Base)") = 0)
+        then
+            exit(UnroundedBaseQty);
 
         exit(UOMMgt.CalcBaseQty(
             "Item No.", "Variant Code", "Unit of Measure Code", Qty, "Qty. per Unit of Measure", "Qty. Rounding Precision (Base)", FieldCaption("Qty. Rounding Precision"), FromFieldName, ToFieldName));

@@ -516,6 +516,7 @@ table 27 Item
             Caption = 'Reorder Quantity';
             ToolTip = 'Specifies a standard lot size quantity to be used for all order proposals.';
             DecimalPlaces = 0 : 5;
+            MinValue = 0;
             AutoFormatType = 0;
         }
         field(37; "Alternative Item No."; Code[20])
@@ -2252,13 +2253,8 @@ table 27 Item
         {
             Caption = 'Reverse Charge Applies';
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
 #endif
         field(99000752; "Single-Level Material Cost"; Decimal)

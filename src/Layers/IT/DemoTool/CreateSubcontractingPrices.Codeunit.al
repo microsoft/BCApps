@@ -1,4 +1,4 @@
-#if not CLEAN27
+#if not CLEAN28
 codeunit 161352 "Create Subcontracting Prices"
 {
     ObsoleteReason = 'Preparation for replacement by Subcontracting app.';

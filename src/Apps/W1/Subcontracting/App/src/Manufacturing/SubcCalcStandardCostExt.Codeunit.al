@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.StandardCost;
 
 codeunit 20514 "Subc. Calc.StandardCost Ext."
 {
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -22,7 +22,7 @@ codeunit 20514 "Subc. Calc.StandardCost Ext."
     var
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -36,7 +36,7 @@ codeunit 20514 "Subc. Calc.StandardCost Ext."
     var
         SubcSessionState: Codeunit "Subc. Session State";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -50,7 +50,7 @@ codeunit 20514 "Subc. Calc.StandardCost Ext."
     var
         SubcSessionState: Codeunit "Subc. Session State";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

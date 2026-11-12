@@ -208,6 +208,8 @@ page 5600 "Fixed Asset Card"
                     begin
                         LoadFADepreciationBooks();
                         FADepreciationBook.Validate("FA Posting Group");
+                        if FADepreciationBook."Depreciation Book Code" <> '' then
+                            Rec."FA Posting Group" := FADepreciationBook."FA Posting Group";
                         SaveSimpleDepreciationBook(xRec."No.");
                         ShowAcquisitionNotification();
                     end;

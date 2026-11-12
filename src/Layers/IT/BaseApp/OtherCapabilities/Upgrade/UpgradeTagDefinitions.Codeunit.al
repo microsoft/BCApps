@@ -144,6 +144,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetPurchaseCreditMemoUpgradeTag());
         PerCompanyUpgradeTags.Add(GetWorkflowDelegatedAdminSetupTemplateUpgradeTag());
         PerCompanyUpgradeTags.Add(GetPurchasesPayablesAndSalesReceivablesSetupsUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetRestoreOrderQtyOnReturnInSalesAndPurchasesSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetLocationBinPolicySetupsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetAllowInventoryAdjmtUpgradeTag());
 #if not CLEAN29
@@ -1075,6 +1076,11 @@ codeunit 9998 "Upgrade Tag Definitions"
     procedure GetPurchasesPayablesAndSalesReceivablesSetupsUpgradeTag(): Code[250]
     begin
         exit('MS-325010-PurchasesPayablesAndSalesReceivablesSetupsUpgrade-20230414');
+    end;
+
+    internal procedure GetRestoreOrderQtyOnReturnInSalesAndPurchasesSetupUpgradeTag(): Code[250]
+    begin
+        exit('MS-649626-RestoreOrderQtyOnReturnInSalesAndPurchasesSetup-20260929');
     end;
 
     procedure GetRegisterBankAccRecCopilotCapabilityUpgradeTag(): Code[250]
