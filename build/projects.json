@@ -5508,17 +5508,6 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\SCM"
     },
-    "Create Product Information With Copilot": {
-      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\CreateProductInformationWithCopilot\\app",
-      "dvdFolder": "Applications\\CreateProductInformationWithCopilot\\Source",
-      "supportedCountries": "All",
-      "installOnEnvironmentUpdate": true,
-      "runStaticCodeAnalysis": true,
-      "logLevel": "warning",
-      "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
-      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
-    },
     "Automatic Account Codes": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\AutomaticAccountCodes\\app",
       "dvdFolder": "Applications\\AutomaticAccountCodes\\Source",

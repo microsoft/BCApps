@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -11,6 +12,9 @@ using System.Telemetry;
 
 codeunit 7330 "Item Subst. Suggestion Impl."
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Copilot item substitution suggestions are discontinued. Use modern search on the Items list instead.';
+    ObsoleteTag = '30.0';
     Access = Internal;
 
     var
@@ -145,10 +149,5 @@ codeunit 7330 "Item Subst. Suggestion Impl."
 
         exit(CompletionAnswer);
     end;
-
-    [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", 'OnRegisterCopilotCapability', '', false, false)]
-    local procedure OnRegisterCopilotCapability()
-    begin
-        ItemSubstSuggestUtility.RegisterCapability();
-    end;
 }
+#endif
