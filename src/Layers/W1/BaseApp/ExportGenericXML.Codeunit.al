@@ -75,14 +75,17 @@ codeunit 1283 "Export Generic XML"
     var
         DataExchDef: Record "Data Exch. Def";
         DataExchField: Record "Data Exch. Field";
+        TempDataExchField: Record "Data Exch. Field" temporary;
         DataExchColumnDef: Record "Data Exch. Column Def";
         DataExchLineDef: Record "Data Exch. Line Def";
         xmlDocPerLine: XmlDocument;
         xmlElem, xmlElemRoot, xmlElemSubRoot : XmlElement;
         xmlNode: XmlNode;
-        i, LineCount : Integer;
+        Window: Dialog;
+        i, LineCount, Divider : Integer;
         isSubRoot, IsHandled : Boolean;
         xmlNodeFound: Boolean;
+        ShowProgress: Boolean;
     begin
         IsHandled := false;
         OnBeforeExportDetails(DataExch, xmlDoc, IsHandled);
@@ -112,7 +115,18 @@ codeunit 1283 "Export Generic XML"
         else
             LineCount := 1;
 
+        ShowProgress := GuiAllowed();
+        Divider := GetProgressDivider(LineCount);
+
+        LoadDataExchFields(DataExch."Entry No.", LineCount, ShowProgress, Divider, TempDataExchField);
+        if ShowProgress then begin
+            Window.Open(WritingProgressMsg);
+            Window.Update(2, LineCount);
+        end;
         for i := 1 to LineCount do begin
+            if ShowProgress and (i mod Divider = 0) then
+                Window.Update(1, i);
+
             DataExchColumnDef.SetRange("Data Exch. Def Code", DataExch."Data Exch. Def Code");
             DataExchColumnDef.SetRange("Data Exch. Line Def Code", DataExch."Data Exch. Line Def Code");
             if DataExchColumnDef.FindSet() then begin
@@ -122,13 +136,27 @@ codeunit 1283 "Export Generic XML"
                 xmlDocPerLine.Add(xmlElem);
                 isSubRoot := true;
                 repeat
-                    ProcessDataExchColumnDef(DataExchColumnDef, GetDataExchFieldValue(DataExch."Entry No.", i, DataExchColumnDef."Column No."), xmlElem, xmlElemSubRoot, isSubRoot);
+                    ProcessDataExchColumnDef(DataExchColumnDef, GetDataExchFieldValue(TempDataExchField, DataExch."Entry No.", i, DataExchColumnDef."Column No."), xmlElem, xmlElemSubRoot, isSubRoot);
                 until DataExchColumnDef.Next() = 0;
 
                 if xmlElemSubRoot.Name <> uniqueNodeLbl then
                     xmlElemRoot.Add(xmlElemSubRoot);
                 Clear(xmlDocPerLine);
             end;
+        end;
+        if ShowProgress then
+            Window.Close();
+    end;
+
+    local procedure GetProgressDivider(LineCount: Integer): Integer
+    begin
+        case true of
+            LineCount > 1000:
+                exit(100);
+            LineCount > 100:
+                exit(10);
+            else
+                exit(1);
         end;
     end;
 
@@ -220,6 +248,50 @@ codeunit 1283 "Export Generic XML"
             nVal := DataExchField.GetValue()
         else
             nVal := '';
+    end;
+
+    local procedure GetDataExchFieldValue(var TempDataExchField: Record "Data Exch. Field" temporary; DataExchEntryNo: Integer; LineNo: Integer; ColumnNo: Integer): Text
+    begin
+        if TempDataExchField.Get(DataExchEntryNo, LineNo, ColumnNo) then
+            exit(TempDataExchField.GetValue());
+        exit('');
+    end;
+
+    local procedure LoadDataExchFields(DataExchEntryNo: Integer; LineCount: Integer; ShowProgress: Boolean; Divider: Integer; var TempDataExchField: Record "Data Exch. Field" temporary)
+    var
+        DataExchField: Record "Data Exch. Field";
+        Window: Dialog;
+        LastLineNo: Integer;
+    begin
+        if ShowProgress then begin
+            Window.Open(ReadingProgressMsg);
+            Window.Update(2, LineCount);
+        end;
+
+        // Read all values in one query instead of one Get per line and column.
+        DataExchField.SetRange("Data Exch. No.", DataExchEntryNo);
+        DataExchField.SetLoadFields(Value, "Value BLOB");
+        if DataExchField.FindSet() then
+            repeat
+                if ShowProgress and (DataExchField."Line No." <> LastLineNo) then begin
+                    LastLineNo := DataExchField."Line No.";
+                    if LastLineNo mod Divider = 0 then
+                        Window.Update(1, LastLineNo);
+                end;
+
+                TempDataExchField.Init();
+                TempDataExchField."Data Exch. No." := DataExchField."Data Exch. No.";
+                TempDataExchField."Line No." := DataExchField."Line No.";
+                TempDataExchField."Column No." := DataExchField."Column No.";
+                TempDataExchField.Value := DataExchField.Value;
+                if DataExchField."Value BLOB".HasValue() then begin
+                    DataExchField.CalcFields("Value BLOB");
+                    TempDataExchField."Value BLOB" := DataExchField."Value BLOB";
+                end;
+                TempDataExchField.Insert();
+            until DataExchField.Next() = 0;
+        if ShowProgress then
+            Window.Close();
     end;
 
     local procedure ProcessDataExchColumnDef(var DataExchColumnDef: Record "Data Exch. Column Def"; eValue: Text; var xmlElem: XmlElement; var xmlElemSubRoot: XmlElement; var isSubRoot: Boolean)
@@ -333,6 +405,8 @@ codeunit 1283 "Export Generic XML"
         xmlNamespaceManager: XmlNamespaceManager;
         RootHeaderElementNotFoundErr: Label 'Root header element is not found.';
         XPathNotSupportedErr: Label 'xPath is not supported.';
+        ReadingProgressMsg: Label 'Reading line no. #1###### of #2######', Comment = '#1 = current line number, #2 = total number of lines';
+        WritingProgressMsg: Label 'Writing XML line no. #1###### of #2######', Comment = '#1 = current line number, #2 = total number of lines';
         DefNameSpacePrefixLbl: Label 'def', Locked = true;
         xPathLbl: Label '//%1:%2', Locked = true;
         uniqueNodeLbl: Label 'eb25fce3-1cc0-4ed5-b87a-ff9c31a895f5', Locked = true;
