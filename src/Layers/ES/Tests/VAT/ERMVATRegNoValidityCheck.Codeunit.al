@@ -1944,7 +1944,6 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
     begin
         CustConsentConfPage.Accept.Invoke();
     end;
-<<<<<<< src/Layers/ES/Tests/VAT/ERMVATRegNoValidityCheck.Codeunit.al
 
     [ConfirmHandler]
     [Scope('OnPrem')]
@@ -1952,8 +1951,6 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
     begin
         Reply := true;
     end;
-||||||| Base: src/Layers/W1/Tests/VAT/ERMVATRegNoValidityCheck.Codeunit.al
-=======
 
     [Scope('OnPrem')]
     procedure GetCapturedVATRegNo(): Text[20]
@@ -1971,6 +1968,5 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         CapturedVATRegNo := Customer."VAT Registration No.";
         IsHandled := true;
     end;
->>>>>>> src/Layers/W1/Tests/VAT/ERMVATRegNoValidityCheck.Codeunit.al
 }
 
