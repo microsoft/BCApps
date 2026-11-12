@@ -342,7 +342,8 @@ page 7232 "MDM Connection Details"
                     // Minimize the plain-text window: the secret is now encrypted at rest, so drop the wizard copy.
                     Clear(OAuth2ClientSecret);
                     SecretAlreadyStored := true;
-                    CertificateAlreadyStored := false;
+                    // Storing the secret deleted any stored certificate, so the certificate fields no longer describe a credential.
+                    ClearCertificateState();
                 end;
             AuthenticationType::Certificate:
                 if CertificateBase64 <> '' then begin
@@ -350,11 +351,25 @@ page 7232 "MDM Connection Details"
                     // The certificate and its password are now in Isolated Storage, so drop the wizard copies.
                     Clear(CertificateBase64);
                     Clear(CertificatePassword);
+                    // Readiness now comes from the stored certificate, not from the upload that was just saved.
+                    CertificateVerified := false;
                     CertificateAlreadyStored := true;
                     SecretAlreadyStored := false;
                 end;
         end;
         MasterDataManagementSetup.Modify(true);
+    end;
+
+    [NonDebuggable]
+    local procedure ClearCertificateState()
+    begin
+        Clear(CertificateBase64);
+        Clear(CertificatePassword);
+        CertificateAlreadyStored := false;
+        CertificateVerified := false;
+        CertificateFileName := '';
+        CertificateThumbprint := '';
+        CertificateExpirationDate := 0DT;
     end;
 
     [NonDebuggable]
@@ -490,8 +505,12 @@ page 7232 "MDM Connection Details"
             AuthenticationType::"Client Secret":
                 exit((OAuth2ClientSecret <> '') or SecretAlreadyStored);
             AuthenticationType::Certificate:
-                // A newly uploaded certificate must be readable; otherwise the stored one is kept.
-                exit(CertificateVerified or (CertificateAlreadyStored and (CertificateBase64 = '')));
+                begin
+                    // A pending upload must be readable; without one, a certificate must already be stored.
+                    if CertificateBase64 <> '' then
+                        exit(CertificateVerified);
+                    exit(CertificateAlreadyStored);
+                end;
         end;
     end;
 }

@@ -870,6 +870,48 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    [HandlerFunctions('ConnectionTestedMessageHandler')]
+    procedure ConnectionDetailsWizardRequiresNewCertificateAfterSecretReplacesIt()
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] After the wizard saves a client secret in place of a stored certificate, switching back to certificate
+        //            authentication no longer shows the deleted certificate and requires a new one before Next.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        InProcessTransport.Activate();
+        // [GIVEN] a cross-environment connection that authenticates with a certificate
+        SetCrossEnvConnectionDetails();
+        LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), GetTestCertificatePassword());
+
+        // [GIVEN] in the wizard, the user switches to client secret authentication and tests the connection, which saves the secret
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.AuthenticationType.SetValue('Client Secret');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.TestConnection.Invoke();
+        Assert.IsFalse(LibraryMasterDataMgt.UsesSourceClientCertificate(), 'Precondition: the client secret should replace the stored certificate');
+
+        // [WHEN] the user goes back and switches to certificate authentication again
+        ConnectionDetails.ActionBack.Invoke();
+        ConnectionDetails.AuthenticationType.SetValue('Certificate');
+
+        // [THEN] the deleted certificate is no longer shown and Next stays disabled until a new certificate is uploaded
+        Assert.AreEqual('', ConnectionDetails.CertificateThumbprint.Value(), 'The thumbprint of the replaced certificate should no longer be shown');
+        Assert.IsFalse(ConnectionDetails.ActionNext.Enabled(), 'Next should be disabled until a new certificate is uploaded');
+        ConnectionDetails.Close();
+
+        InProcessTransport.Deactivate();
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
     procedure EnvironmentCopyClearsSourceCertificateAndDisablesCrossEnvSync()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
@@ -2040,6 +2082,12 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     procedure ConfirmHandlerNo(Question: Text; var Reply: Boolean)
     begin
         Reply := false;
+    end;
+
+    [MessageHandler]
+    procedure ConnectionTestedMessageHandler(Message: Text[1024])
+    begin
+        Assert.IsTrue(StrPos(Message, 'Successfully connected to the source environment') = 1, 'Unexpected message: ' + Message);
     end;
 
     [PageHandler]
