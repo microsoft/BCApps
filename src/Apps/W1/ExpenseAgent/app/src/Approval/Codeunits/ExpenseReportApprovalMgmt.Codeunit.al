@@ -709,7 +709,10 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ExpenseApprovalSetup: Record "Expense Approval Setup";
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
-        if ExpenseApprovalSetup.Get(CurrentApproverNo) and (ExpenseApprovalSetup."Approver No." <> '') then
+        if ExpenseApprovalSetup.Get(CurrentApproverNo) and
+           (ExpenseApprovalSetup."Approver No." <> '') and
+           (ExpenseApprovalSetup."Approver No." <> CurrentApproverNo)
+        then
             exit(ExpenseApprovalSetup."Approver No.");
 
         ExpenseAgentSetup.GetRecordOnce();
