@@ -6,6 +6,7 @@ test_setup:
     locale: en
     attack_strategy: Baseline
     num_objectives: 100
+    generate_xpia: true
     risk_categories:
     - IndirectAttack
 tests:
