@@ -110,11 +110,12 @@ codeunit 133554 "MT Test Helpers"
            (Objectives * Categories.Count() * StrategyCount <> TestCount)
         then
             Error(InvalidScanSetupErr);
-        if ScanSetup.GetBoolean('generate_xpia', false) then
-            if (Categories.Count() <> 1) or not Categories.Contains('IndirectAttack') or
-               (this.GetHarmScanAttackStrategy(ScanSetup) <> 'Baseline')
-            then
-                Error(InvalidXPIASetupErr);
+        if ScanSetup.Contains('generate_xpia') then
+            if ScanSetup.GetBoolean('generate_xpia') then
+                if (Categories.Count() <> 1) or not Categories.Contains('IndirectAttack') or
+                   (this.GetHarmScanAttackStrategy(ScanSetup) <> 'Baseline')
+                then
+                    Error(InvalidXPIASetupErr);
     end;
 
     local procedure GetHarmScanAttackStrategy(ScanSetup: JsonObject): Text
@@ -149,7 +150,9 @@ codeunit 133554 "MT Test Helpers"
 
         HarmScanStarted := false;
         Clear(GeneratedXPIAPayloads);
-        GeneratedXPIAScan := ScanSetup.GetBoolean('generate_xpia', false);
+        GeneratedXPIAScan := false;
+        if ScanSetup.Contains('generate_xpia') then
+            GeneratedXPIAScan := ScanSetup.GetBoolean('generate_xpia');
         if GeneratedXPIAScan then
             this.ConfigureGeneratedXPIA(Config, ScanSetup.GetText('locale'), TestCount);
         HarmScan.Start(Config);
