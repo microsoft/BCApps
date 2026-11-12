@@ -1,0 +1,30 @@
+{
+  "id": "7899cd5a-e428-4835-a1cc-261472c5dcdf",
+  "name": "Banking and Payments FI",
+  "publisher": "Microsoft",
+  "version": "29.0.0.0",
+  "brief": "Finnish banking, payment references and payment files.",
+  "description": "Finnish banking, payment references and legacy and current SEPA payment files.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2234521",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2234521",
+  "url": "https://go.microsoft.com/fwlink/?linkid=2234521",
+  "logo": "ExtensionLogo.png",
+  "dependencies": [],
+  "application": "29.0.0.0",
+  "platform": "29.0.0.0",
+  "idRanges": [{"from": 13511, "to": 13599}],
+  "target": "OnPrem",
+  "features": ["NoImplicitWith", "TranslationFile"],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "internalsVisibleTo": [{
+    "id": "b5130978-4fda-4928-9cb8-a94d1f7d0ab3",
+    "name": "Banking and Payments FI Tests",
+    "publisher": "Microsoft"
+  }]
+}

@@ -5,6 +5,9 @@
 namespace Microsoft.Service.History;
 
 using Microsoft.Bank.BankAccount;
+#if not CLEAN30
+using Microsoft.Bank.Payment;
+#endif
 using Microsoft.CRM.Team;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
@@ -237,13 +240,7 @@ report 13411 "Service - Invoice (FI)"
                     column(RefNoText; RefNoText)
                     {
                     }
-#if not CLEAN30
-#pragma warning disable AL0432
-                    column(RefernceNo_ServInvHeader; "Service Invoice Header"."Reference No.")
-#pragma warning restore AL0432
-#else
-                    column(RefernceNo_ServInvHeader; '')
-#endif
+                    column(RefernceNo_ServInvHeader; PaymentReference)
                     {
                     }
                     column(CompanyBankBranchNo; CompanyBankAccount."Bank Branch No.")
@@ -761,15 +758,21 @@ report 13411 "Service - Invoice (FI)"
                 if not Cust.Get("Bill-to Customer No.") then
                     Clear(Cust);
 
+                Clear(PaymentReference);
+                Clear(RefNoText);
 #if not CLEAN30
+                if not FIBankingPaymentFeature.IsEnabled() then begin
 #pragma warning disable AL0432
-                if ("Reference No." = '') or (not SalesSetup."Print Reference No.") then begin
-                    RefNoText := '';
-                    "Reference No." := '';
-                end else
-                    RefNoText := FieldCaption("Reference No.");
+                    if ("Reference No." = '') or (not SalesSetup."Print Reference No.") then begin
+                        RefNoText := '';
+                        "Reference No." := '';
+                    end else
+                        RefNoText := FieldCaption("Reference No.");
+                    PaymentReference := "Reference No.";
 #pragma warning restore AL0432
+                end;
 #endif
+                OnAfterGetPaymentReference("Service Invoice Header", PaymentReference, RefNoText);
 
                 GetLineFeeNoteOnReportHist("No.");
             end;
@@ -878,7 +881,11 @@ report 13411 "Service - Invoice (FI)"
         AccNo: Code[20];
         ServiceItemSerialNo: Code[50];
         DisplayAdditionalFeeNote: Boolean;
-        RefNoText: Text[30];
+        RefNoText: Text;
+        PaymentReference: Code[20];
+#if not CLEAN30
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
+#endif
 
 #pragma warning disable AA0074
         Text004: Label 'Service - Invoice %1', Comment = '%1 = Document No.';
@@ -1074,6 +1081,11 @@ report 13411 "Service - Invoice (FI)"
         TempServiceShipmentBuffer."Posting Date" := PostingDate;
         TempServiceShipmentBuffer.Insert();
         NextEntryNo := NextEntryNo + 1
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetPaymentReference(ServiceInvoiceHeader: Record "Service Invoice Header"; var PaymentReference: Code[20]; var PaymentReferenceCaption: Text)
+    begin
     end;
 
     local procedure DocumentCaption(): Text[250]

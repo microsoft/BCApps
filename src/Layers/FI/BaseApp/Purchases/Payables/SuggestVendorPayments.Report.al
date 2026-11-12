@@ -220,12 +220,15 @@ report 393 "Suggest Vendor Payments"
                                     UsePriority := true;
                             end;
                         }
+#if not CLEAN30
                         field(SendToBank; SendToBank)
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Sent to Bank';
+                            Visible = LegacyBankingPaymentsEnabled;
                             ToolTip = 'Specifies if you want the batch job to only include vendor ledger entries for which payments have already been sent to the bank.';
                         }
+#endif
                         field(SkipExportedPayments; SkipExportedPayments)
                         {
                             ApplicationArea = Basic, Suite;
@@ -461,7 +464,13 @@ report 393 "Suggest Vendor Payments"
     trigger OnInitReport()
     var
         EnvironmentInfo: Codeunit "Environment Information";
+#if not CLEAN30
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
+#endif
     begin
+#if not CLEAN30
+        LegacyBankingPaymentsEnabled := not FIBankingPaymentFeature.IsEnabled();
+#endif
         if EnvironmentInfo.IsSaaS() then
             CheckOtherJournalBatches := true;
     end;
@@ -539,7 +548,10 @@ report 393 "Suggest Vendor Payments"
         ShowPostingDateWarning: Boolean;
         VendorBalance: Decimal;
         ServiceFieldsVisibiity: Boolean;
+#if not CLEAN30
         SendToBank: Boolean;
+        LegacyBankingPaymentsEnabled: Boolean;
+#endif
         JnlTemplateName: Code[10];
         JnlBatchName: Code[10];
 
@@ -651,6 +663,8 @@ report 393 "Suggest Vendor Payments"
                 IsHandled := false;
                 OnGetVendLedgEntriesOnBeforeLoop(VendLedgEntry, PostingDate, LastDueDateToPayReq, Future, IsHandled);
                 if not IsHandled then
+                    OnGetVendLedgEntriesOnBeforeSaveAmount(VendLedgEntry, GenJnlLine2, LastDueDateToPayReq, PostingDate, IsHandled);
+                if not IsHandled then
 #if not CLEAN30
                     if (not FIBankingPaymentFeature.IsEnabled()) and SendToBank then begin // + NSFI BANK
 #pragma warning disable AL0432
@@ -748,6 +762,7 @@ report 393 "Suggest Vendor Payments"
         TempPayableVendorLedgerEntry."Vendor No." := VendLedgEntry."Vendor No.";
         TempPayableVendorLedgerEntry."Entry No." := NextEntryNo;
         TempPayableVendorLedgerEntry."Vendor Ledg. Entry No." := VendLedgEntry."Entry No.";
+        OnSaveAmountOnBeforeSetPayableAmounts(GenJnlLine, VendLedgEntry, GenJnlLine2);
         TempPayableVendorLedgerEntry.Amount := GenJnlLine.Amount;
         TempPayableVendorLedgerEntry."Amount (LCY)" := GenJnlLine."Amount (LCY)";
         TempPayableVendorLedgerEntry.Positive := (TempPayableVendorLedgerEntry.Amount > 0);
@@ -981,7 +996,10 @@ report 393 "Suggest Vendor Payments"
 
         GenJnlLine."Account Type" := GenJnlLine."Account Type"::Vendor;
         GenJnlLine.SetHideValidation(true);
-        GenJnlLine."Posting Date" := GetDomesticPaymentDate(TempVendorPaymentBuffer."Vendor Ledg. Entry No.");
+        IsHandled := false;
+        OnInsertGenJournalLineOnBeforeSetPostingDate(GenJnlLine, TempVendorPaymentBuffer, IsHandled);
+        if not IsHandled then
+            GenJnlLine."Posting Date" := GetDomesticPaymentDate(TempVendorPaymentBuffer."Vendor Ledg. Entry No.");
         if GenJnlLine."Posting Date" = 0D then
             ShowPostingDateWarning := ShowPostingDateWarning or
             SetPostingDate(GenJnlLine, GetVendorLedgerEntryDueDate(TempVendorPaymentBuffer."Vendor Ledg. Entry No."), PostingDate);
@@ -1364,6 +1382,21 @@ report 393 "Suggest Vendor Payments"
         end;
 #endif
         exit(0D);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetVendLedgEntriesOnBeforeSaveAmount(VendorLedgerEntry: Record "Vendor Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; LastDueDateToPay: Date; var PostingDate: Date; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSaveAmountOnBeforeSetPayableAmounts(var GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry"; JournalContext: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertGenJournalLineOnBeforeSetPostingDate(var GenJournalLine: Record "Gen. Journal Line"; TempVendorPaymentBuffer: Record "Vendor Payment Buffer" temporary; var IsHandled: Boolean)
+    begin
     end;
 
     [IntegrationEvent(false, false)]

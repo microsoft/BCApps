@@ -648,6 +648,8 @@ report 393 "Suggest Vendor Payments"
             repeat
                 IsHandled := false;
                 OnGetVendLedgEntriesOnBeforeLoop(VendLedgEntry, PostingDate, LastDueDateToPayReq, Future, IsHandled);
+                if not IsHandled then
+                    OnGetVendLedgEntriesOnBeforeSaveAmount(VendLedgEntry, GenJnlLine2, LastDueDateToPayReq, PostingDate, IsHandled);
                 if not IsHandled then begin
                     SaveAmount();
                     if VendLedgEntry."Accepted Pmt. Disc. Tolerance" or (VendLedgEntry."Accepted Payment Tolerance" <> 0) then begin
@@ -703,6 +705,7 @@ report 393 "Suggest Vendor Payments"
         TempPayableVendorLedgerEntry."Vendor No." := VendLedgEntry."Vendor No.";
         TempPayableVendorLedgerEntry."Entry No." := NextEntryNo;
         TempPayableVendorLedgerEntry."Vendor Ledg. Entry No." := VendLedgEntry."Entry No.";
+        OnSaveAmountOnBeforeSetPayableAmounts(GenJnlLine, VendLedgEntry, GenJnlLine2);
         TempPayableVendorLedgerEntry.Amount := GenJnlLine.Amount;
         TempPayableVendorLedgerEntry."Amount (LCY)" := GenJnlLine."Amount (LCY)";
         TempPayableVendorLedgerEntry.Positive := (TempPayableVendorLedgerEntry.Amount > 0);
@@ -899,8 +902,13 @@ report 393 "Suggest Vendor Payments"
 
         GenJnlLine."Account Type" := GenJnlLine."Account Type"::Vendor;
         GenJnlLine.SetHideValidation(true);
-        ShowPostingDateWarning := ShowPostingDateWarning or
-          SetPostingDate(GenJnlLine, GetVendorLedgerEntryDueDate(TempVendorPaymentBuffer."Vendor Ledg. Entry No."), PostingDate);
+        IsHandled := false;
+        OnInsertGenJournalLineOnBeforeSetPostingDate(GenJnlLine, TempVendorPaymentBuffer, IsHandled);
+        if (not IsHandled) or (GenJnlLine."Posting Date" = 0D) then
+            ShowPostingDateWarning := ShowPostingDateWarning or
+              SetPostingDate(GenJnlLine, GetVendorLedgerEntryDueDate(TempVendorPaymentBuffer."Vendor Ledg. Entry No."), PostingDate);
+        if IsHandled then
+            GenJnlLine.Validate("Posting Date");
         GenJnlLine.Validate("Account No.", TempVendorPaymentBuffer."Vendor No.");
         Vendor.Get(TempVendorPaymentBuffer."Vendor No.");
         if (Vendor."Pay-to Vendor No." <> '') and (Vendor."Pay-to Vendor No." <> GenJnlLine."Account No.") then
@@ -1289,6 +1297,21 @@ report 393 "Suggest Vendor Payments"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostDataItem(var GenJournalBatch: Record "Gen. Journal Batch"; GenJournalLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetVendLedgEntriesOnBeforeSaveAmount(VendorLedgerEntry: Record "Vendor Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; LastDueDateToPay: Date; var PostingDate: Date; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSaveAmountOnBeforeSetPayableAmounts(var GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry"; JournalContext: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertGenJournalLineOnBeforeSetPostingDate(var GenJournalLine: Record "Gen. Journal Line"; TempVendorPaymentBuffer: Record "Vendor Payment Buffer" temporary; var IsHandled: Boolean)
     begin
     end;
 
