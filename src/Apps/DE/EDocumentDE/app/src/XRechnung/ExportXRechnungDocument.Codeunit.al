@@ -228,6 +228,7 @@ codeunit 13916 "Export XRechnung Document"
         XMLDoc: XmlDocument;
         XMLDocText: Text;
         CurrencyCode: Code[10];
+        ReferencedInvoiceNo: Code[20];
         LineAmounts: Dictionary of [Text, Decimal];
         LineVATAmount: Dictionary of [Decimal, Decimal];
         LineAmount: Dictionary of [Decimal, Decimal];
@@ -250,6 +251,8 @@ codeunit 13916 "Export XRechnung Document"
 
         InsertHeaderData(RootXMLNode, SalesCrMemoHeader, CurrencyCode);
         InsertOrderReference(RootXMLNode, SalesCrMemoHeader);
+        if EDocumentDEHelper.TryGetReferencedInvoiceNo(SalesCrMemoHeader, ReferencedInvoiceNo) then
+            InsertBillingReference(RootXMLNode, ReferencedInvoiceNo);
         InsertEmbeddedDocument(RootXMLNode, SalesCrMemoHeader);
         InsertAttachment(RootXMLNode, Database::"Sales Cr.Memo Header", SalesCrMemoHeader."No.");
         CalculateLineAmounts(SalesCrMemoHeader, SalesCrMemoLine, Currency, LineAmounts);
@@ -344,6 +347,7 @@ codeunit 13916 "Export XRechnung Document"
         XMLDoc: XmlDocument;
         XMLDocText: Text;
         CurrencyCode: Code[10];
+        ReferencedInvoiceNo: Code[20];
         LineAmounts: Dictionary of [Text, Decimal];
         LineVATAmount: Dictionary of [Decimal, Decimal];
         LineAmount: Dictionary of [Decimal, Decimal];
@@ -375,6 +379,8 @@ codeunit 13916 "Export XRechnung Document"
 
         InsertHeaderData(RootXMLNode, SalesCrMemoHeader, CurrencyCode);
         InsertOrderReference(RootXMLNode, SalesCrMemoHeader);
+        if EDocumentDEHelper.TryGetReferencedInvoiceNo(ServiceCrMemoHeader, ReferencedInvoiceNo) then
+            InsertBillingReference(RootXMLNode, ReferencedInvoiceNo);
         InsertEmbeddedDocument(RootXMLNode, SalesCrMemoHeader);
         InsertAttachment(RootXMLNode, Database::"Service Cr.Memo Header", SalesCrMemoHeader."No.");
         CalculateLineAmounts(SalesCrMemoHeader, TempSalesCrMemoLine, Currency, LineAmounts);
@@ -1747,6 +1753,17 @@ codeunit 13916 "Export XRechnung Document"
             LegalMonetaryTotalElement.Add(XmlElement.Create('ChargeTotalAmount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(ItemChargeTotalAmount, AlwaysIncludeTwoDecimalPlacesForAmountFields)));
         LegalMonetaryTotalElement.Add(XmlElement.Create('PayableAmount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(LineAmounts.Get(SalesCrMemoLine.FieldName("Amount Including VAT")), AlwaysIncludeTwoDecimalPlacesForAmountFields)));
         RootXMLNode.Add(LegalMonetaryTotalElement);
+    end;
+
+    local procedure InsertBillingReference(var RootElement: XmlElement; InvoiceNo: Code[20])
+    var
+        BillingReferenceElement, InvoiceDocumentReferenceElement : XmlElement;
+    begin
+        InvoiceDocumentReferenceElement := XmlElement.Create('InvoiceDocumentReference', XmlNamespaceCAC);
+        InvoiceDocumentReferenceElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, InvoiceNo));
+        BillingReferenceElement := XmlElement.Create('BillingReference', XmlNamespaceCAC);
+        BillingReferenceElement.Add(InvoiceDocumentReferenceElement);
+        RootElement.Add(BillingReferenceElement);
     end;
 
     local procedure InsertOrderLineReference(var InvoiceLineElement: XmlElement; LineNo: Integer);

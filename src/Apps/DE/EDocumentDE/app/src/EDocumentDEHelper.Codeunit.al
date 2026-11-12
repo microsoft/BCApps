@@ -26,6 +26,38 @@ codeunit 11038 "E-Document DE Helper"
 {
     Access = Public;
 
+    internal procedure TryGetReferencedInvoiceNo(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var InvoiceNo: Code[20]): Boolean
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        Clear(InvoiceNo);
+        if (SalesCrMemoHeader."Applies-to Doc. Type" <> SalesCrMemoHeader."Applies-to Doc. Type"::Invoice) or
+           (SalesCrMemoHeader."Applies-to Doc. No." = '')
+        then
+            exit(false);
+        if not SalesInvoiceHeader.Get(SalesCrMemoHeader."Applies-to Doc. No.") then
+            exit(false);
+
+        InvoiceNo := SalesInvoiceHeader."No.";
+        exit(true);
+    end;
+
+    internal procedure TryGetReferencedInvoiceNo(ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var InvoiceNo: Code[20]): Boolean
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+    begin
+        Clear(InvoiceNo);
+        if (ServiceCrMemoHeader."Applies-to Doc. Type" <> ServiceCrMemoHeader."Applies-to Doc. Type"::Invoice) or
+           (ServiceCrMemoHeader."Applies-to Doc. No." = '')
+        then
+            exit(false);
+        if not ServiceInvoiceHeader.Get(ServiceCrMemoHeader."Applies-to Doc. No.") then
+            exit(false);
+
+        InvoiceNo := ServiceInvoiceHeader."No.";
+        exit(true);
+    end;
+
     /// <summary>
     /// Checks whether the given routing number (Leitweg-ID) is structurally valid.
     /// </summary>
