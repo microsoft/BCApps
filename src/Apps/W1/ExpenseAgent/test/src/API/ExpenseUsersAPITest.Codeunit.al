@@ -102,6 +102,7 @@ codeunit 148315 "Expense Users API Test"
         TargetURL := LibraryGraphMgt.CreateTargetURL(
             Format(UnlinkedExpenseUser.SystemId), Page::"Expense Users API", ServiceNameTok);
         asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 404);
+        Assert.ExpectedError('Response code is 404');
 
         // [WHEN] the full collection is fetched through the API
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Users API", ServiceNameTok);

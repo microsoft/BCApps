@@ -14,7 +14,8 @@ codeunit 5619 "G/L Reg.-FALedger"
     begin
         FALedgEntry.SetCurrentKey("G/L Entry No.");
         FALedgEntry.SetRange("G/L Entry No.", Rec."From Entry No.", Rec."To Entry No.");
-        PAGE.Run(PAGE::"FA Ledger Entries", FALedgEntry);
+                FALedgEntry.SetFilter("G/L Register No.", '0|%1', Rec."No.");
+                PAGE.Run(PAGE::"FA Ledger Entries", FALedgEntry);
     end;
 
     var

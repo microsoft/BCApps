@@ -472,17 +472,11 @@ page 118 "General Ledger Setup"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Default View by';
-#if not CLEAN27
-                        Visible = FinancialReportDefaultsEnabled;
-#endif
                     }
                     field("Fin. Rep. Neg. Amount Format"; Rec."Fin. Rep. Neg. Amount Format")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Default Negative Amount Format';
-#if not CLEAN27
-                        Visible = FinancialReportDefaultsEnabled;
-#endif
                     }
                     field("Fin. Rep. Company Logo Pos."; Rec."Fin. Rep. Company Logo Pos.")
                     {
@@ -1045,11 +1039,6 @@ page 118 "General Ledger Setup"
 
     trigger OnOpenPage()
     var
-#if not CLEAN27
-#pragma warning disable AL0432
-        FeatureFinancialReportDef: Codeunit "Feature - Fin. Report Default";
-#pragma warning restore AL0432
-#endif
     begin
         Rec.Reset();
         if not Rec.Get() then begin
@@ -1061,9 +1050,6 @@ page 118 "General Ledger Setup"
         IsJournalTemplatesVisible := Rec."Journal Templ. Name Mandatory";
         UpdateControls();
 
-#if not CLEAN27
-        FinancialReportDefaultsEnabled := FeatureFinancialReportDef.IsDefaultsFeatureEnabled();
-#endif
     end;
 
     var
@@ -1077,9 +1063,6 @@ page 118 "General Ledger Setup"
         BAStobeLodgedasaGroupEnable: Boolean;
         "BAS Group CompanyEnable": Boolean;
         "BAS GST Division FactorEnable": Boolean;
-#if not CLEAN27
-        FinancialReportDefaultsEnabled: Boolean;
-#endif
 #pragma warning disable AA0074
         Text001: Label 'Do you want to change all open entries for every customer and vendor that are not blocked?';
         Text002: Label 'If you delete the additional reporting currency, future general ledger entries are posted in LCY only. Deleting the additional reporting currency does not affect already posted general ledger entries.\\Are you sure that you want to delete the additional reporting currency?';

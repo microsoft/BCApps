@@ -117,7 +117,7 @@ function New-AdditionalTenants {
 
         foreach ($newDatabaseName in $copiedDatabases) {
             Write-Host "Mounting tenant '$newDatabaseName'..."
-            Mount-NAVTenant -ServerInstance $ServerInstance -Id $newDatabaseName -DatabaseServer "." -DatabaseName $newDatabaseName -OverwriteTenantIdInDatabase -Force
+            Mount-NAVTenant -ServerInstance $ServerInstance -Id $newDatabaseName -DatabaseServer "." -DatabaseName $newDatabaseName -OverwriteTenantIdInDatabase -AllowAppDatabaseWrite -Force
         }
 
         Write-Host "All tenants:"

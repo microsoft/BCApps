@@ -11,7 +11,9 @@ using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
+using System.TestLibraries.Upgrade;
 using System.TestLibraries.Utilities;
+using System.Upgrade;
 
 codeunit 139611 "Shpfy Order Refund Test"
 {
@@ -561,6 +563,60 @@ codeunit 139611 "Shpfy Order Refund Test"
         LibraryAssert.AreEqual(Enum::"Sales Document Type"::"Return Order", SalesHeader."Document Type", 'SalesHeader."Document Type" must be a Return Order');
         // Tear down
         ResetProcessOnRefund(RefundId);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure UnitTestUpgradeProcessReturnsAsPreservesValidSettings()
+    var
+        FirstUnconfiguredShop: Record "Shpfy Shop";
+        SecondUnconfiguredShop: Record "Shpfy Shop";
+        CreditMemoShop: Record "Shpfy Shop";
+        ReturnOrderShop: Record "Shpfy Shop";
+        UpgradeMgt: Codeunit "Shpfy Upgrade Mgt.";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        // [SCENARIO] Upgrade all unconfigured shops without changing valid return settings.
+        Any.SetDefaultSeed();
+        DeleteProcessReturnsAsUpgradeTag();
+        FirstUnconfiguredShop := CreateShopForReturnsUpgrade("Sales Document Type"::Quote);
+        SecondUnconfiguredShop := CreateShopForReturnsUpgrade("Sales Document Type"::Quote);
+        CreditMemoShop := CreateShopForReturnsUpgrade("Sales Document Type"::"Credit Memo");
+        ReturnOrderShop := CreateShopForReturnsUpgrade("Sales Document Type"::"Return Order");
+
+        UpgradeMgt.ProcessReturnsAsUpgrade();
+
+        FirstUnconfiguredShop.Get(FirstUnconfiguredShop.Code);
+        SecondUnconfiguredShop.Get(SecondUnconfiguredShop.Code);
+        CreditMemoShop.Get(CreditMemoShop.Code);
+        ReturnOrderShop.Get(ReturnOrderShop.Code);
+        LibraryAssert.AreEqual("Sales Document Type"::"Credit Memo", FirstUnconfiguredShop."Process Returns As", 'The first unconfigured shop must process returns as credit memos.');
+        LibraryAssert.AreEqual("Sales Document Type"::"Credit Memo", SecondUnconfiguredShop."Process Returns As", 'The second unconfigured shop must process returns as credit memos.');
+        LibraryAssert.AreEqual("Sales Document Type"::"Credit Memo", CreditMemoShop."Process Returns As", 'An existing credit memo setting must be preserved.');
+        LibraryAssert.AreEqual("Sales Document Type"::"Return Order", ReturnOrderShop."Process Returns As", 'An existing return order setting must be preserved.');
+        LibraryAssert.IsTrue(UpgradeTag.HasUpgradeTag(UpgradeMgt.GetProcessReturnsAsUpgradeTag()), 'The migration must record its upgrade tag.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure UnitTestUpgradeProcessReturnsAsRunsOnce()
+    var
+        Shop: Record "Shpfy Shop";
+        UpgradeMgt: Codeunit "Shpfy Upgrade Mgt.";
+    begin
+        // [SCENARIO] The return-setting migration does not run again after its tag is set.
+        Any.SetDefaultSeed();
+        DeleteProcessReturnsAsUpgradeTag();
+        Shop := CreateShopForReturnsUpgrade("Sales Document Type"::Quote);
+        UpgradeMgt.ProcessReturnsAsUpgrade();
+
+        Shop.Get(Shop.Code);
+        Shop."Process Returns As" := "Sales Document Type"::Quote;
+        Shop.Modify(false);
+        UpgradeMgt.ProcessReturnsAsUpgrade();
+
+        Shop.Get(Shop.Code);
+        LibraryAssert.AreEqual("Sales Document Type"::Quote, Shop."Process Returns As", 'A completed migration must not run again.');
     end;
 
     [Test]
@@ -1256,6 +1312,24 @@ codeunit 139611 "Shpfy Order Refund Test"
 
         // [THEN] It throws the pending-transactions error
         LibraryAssert.ExpectedError('This refund cannot be used to create a credit memo or return order yet because it has one or more pending transactions. The refunded amount is only final once the related transactions succeed. Retry after the transactions are no longer pending.');
+    end;
+
+    local procedure CreateShopForReturnsUpgrade(SalesDocumentType: Enum "Sales Document Type") Shop: Record "Shpfy Shop"
+    begin
+        Shop.Init();
+        Shop.Code := CopyStr(Any.AlphabeticText(MaxStrLen(Shop.Code)), 1, MaxStrLen(Shop.Code));
+        Shop."Process Returns As" := SalesDocumentType;
+        Shop.Insert(false);
+    end;
+
+    local procedure DeleteProcessReturnsAsUpgradeTag()
+    var
+        UpgradeMgt: Codeunit "Shpfy Upgrade Mgt.";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeMgt.GetProcessReturnsAsUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgradeMgt.GetProcessReturnsAsUpgradeTag(), CopyStr(CompanyName(), 1, 30));
     end;
 
     local procedure Initialize()
