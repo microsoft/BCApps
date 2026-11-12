@@ -316,13 +316,6 @@ page 6928 "Expense Reports API"
         Rec.AddLoadFields("Reimbursement Currency Code", "Expense User No.");
     end;
 
-    trigger OnFindRecord(Which: Text): Boolean
-    begin
-        ProcessPendingApprovalByFilter();
-
-        exit(Rec.Find(Which));
-    end;
-
     trigger OnAfterGetRecord()
     var
         ExpenseUser: Record "Expense User";
@@ -354,24 +347,6 @@ page 6928 "Expense Reports API"
         Rec."Reimbursement Currency Code" := CurrencyHelper.GetCurrencyCodeFromAPI(ReimbursementCurrencyCodeDisplay);
         UpdateExpenseUserNoFromSystemId();
         exit(true);
-    end;
-
-    local procedure ProcessPendingApprovalByFilter()
-    var
-        ApproverCode: Code[20];
-        FilterGroup: Integer;
-    begin
-        FilterGroup := Rec.FilterGroup(4);
-        ApproverCode := CopyStr(Rec.GetFilter("Pending Approval By"), 1, MaxStrLen(ApproverCode));
-        Rec.SetRange("Pending Approval By");
-        Rec.FilterGroup(FilterGroup);
-
-        if ApproverCode = '' then
-            exit;
-
-        // The active approver can be either the interim or final approver.
-        Rec.SetRange("Approver Expense User No.", ApproverCode);
-        Rec.SetFilter(Status, '%1|%2', Rec.Status::"Pending Approval", Rec.Status::"Interim Approved");
     end;
 
     local procedure UpdateExpenseUserNoFromSystemId()

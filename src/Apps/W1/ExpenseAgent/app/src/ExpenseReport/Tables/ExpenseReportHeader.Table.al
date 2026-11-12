@@ -455,12 +455,21 @@ table 6906 "Expense Report Header"
                 end;
             end;
         }
+#if not CLEANSCHEMA30
         field(55; "Pending Approval By"; Code[20])
         {
             Caption = 'Pending Approval By';
             FieldClass = FlowFilter;
             TableRelation = "Expense User"."No.";
+            ObsoleteReason = 'This field is no longer used';
+            ObsoleteTag = '30.0';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
         }
+#endif
         field(56; "Submitter Expense User No."; Code[20])
         {
             Caption = 'Submitter Expense User No.';
