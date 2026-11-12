@@ -1573,7 +1573,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         EnteredVATRegistrationNo: Text[20];
     begin
         // [FEATURE] [Customer] [Sales] [Header]
-        // [SCENARIO 658801] Entering VAT Registration No. on a sales document validates the entered number when the customer has no VAT Registration No.
+        // [SCENARIO 658933] Entering VAT Registration No. on a sales document validates the entered number when the customer has no VAT Registration No.
         Initialize();
 
         // [GIVEN] EU VAT Reg. No. validation service is enabled

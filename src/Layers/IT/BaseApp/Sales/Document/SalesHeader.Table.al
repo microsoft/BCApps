@@ -1477,6 +1477,7 @@ table 36 "Sales Header"
             trigger OnValidate()
             var
                 Customer: Record Customer;
+                CustomerToValidate: Record Customer;
                 VATRegistrationLog: Record "VAT Registration Log";
                 VATRegistrationNoFormat: Record "VAT Registration No. Format";
                 VATRegNoSrvConfig: Record "VAT Reg. No. Srv Config";
@@ -1525,8 +1526,11 @@ table 36 "Sales Header"
                     exit;
                 end;
 
+                // Validate the number entered on the document, not the one stored on the customer card.
+                CustomerToValidate := Customer;
+                CustomerToValidate."VAT Registration No." := "VAT Registration No.";
                 VATRegistrationLogMgt.CheckVIESForVATNo(
-                    ResultRecRef, VATRegistrationLog, Customer, Customer."No.",
+                    ResultRecRef, VATRegistrationLog, CustomerToValidate, Customer."No.",
                     ApplicableCountryCode, VATRegistrationLog."Account Type"::Customer.AsInteger());
 
                 if VATRegistrationLog.Status = VATRegistrationLog.Status::Valid then begin
@@ -14728,9 +14732,15 @@ table 36 "Sales Header"
     local procedure OnBeforeResponsibilityCenterValidate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
+<<<<<<< src/Layers/IT/BaseApp/Sales/Document/SalesHeader.Table.al
 
     [IntegrationEvent(false, false)]
     local procedure OnDeleteOnBeforeCheckPostingNo(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 }
+||||||| Base: src/Layers/W1/BaseApp/Sales/Document/SalesHeader.Table.al
+}
+=======
+}
+>>>>>>> src/Layers/W1/BaseApp/Sales/Document/SalesHeader.Table.al

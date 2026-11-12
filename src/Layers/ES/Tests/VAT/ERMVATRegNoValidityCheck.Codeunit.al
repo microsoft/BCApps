@@ -2,6 +2,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -28,6 +29,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         WrongLogEntryCountErr: Label 'Unexpected entry count in VAT Registration Log table.';
         LibraryApplicationArea: Codeunit "Library - Application Area";
         IsInitialized: Boolean;
+        CapturedVATRegNo: Text[20];
         GetVATRegNoErr: Label 'Unexpected output of GetVATRegNo method';
         GetCountryCodeErr: Label 'Not expected country code.';
         DisclaimerTxt: Label 'You are accessing a third-party website and service. Review the disclaimer before you continue.';
@@ -36,6 +38,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         EmptyCountryCodeErr: Label 'You must specify the country that issued the VAT registration number. Choose the country in the Country/Region Code field.';
         EmptyEUCountryCodeErr: Label 'You must specify the EU Country/Region Code for the country that issued the VAT registration number. You can specify that on the Country/Regions page.';
         CannotInsertMultipleSettingsErr: Label 'You cannot insert multiple settings.';
+        WrongVATRegNoValidatedErr: Label 'The VAT registration check was run for an unexpected VAT Registration No.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1559,6 +1562,51 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Customer.TestField("VAT Registration No.", CustomerVATRegistrationNo);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure ValidateHeaderVATRegistrationNoChecksEnteredNumberWhenCustomerHasNone()
+    var
+        Customer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        VATRegistrationNoFormat: Record "VAT Registration No. Format";
+        SalesHeader: Record "Sales Header";
+        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
+        ERMVATRegNoValidityCheck: Codeunit "ERM VAT Reg. No Validity Check";
+        EnteredVATRegistrationNo: Text[20];
+    begin
+        // [FEATURE] [Customer] [Sales] [Header]
+        // [SCENARIO 658933] Entering VAT Registration No. on a sales document validates the entered number when the customer has no VAT Registration No.
+        Initialize();
+
+        // [GIVEN] EU VAT Reg. No. validation service is enabled
+        SetVATRegSrvStatus(true, VATLookupExtDataHndl.GetVATRegNrValidationWebServiceURL());
+        BindSubscription(ERMVATRegNoValidityCheck);
+
+        // [GIVEN] Customer in an EU country without VAT Registration No.
+        LibrarySales.CreateCustomer(Customer);
+        CountryRegion.Get(CreateCountryCodeWithEUCode());
+        LibraryERM.CreateVATRegistrationNoFormat(VATRegistrationNoFormat, CountryRegion.Code);
+        VATRegistrationNoFormat.Validate(Format, '123######');
+        VATRegistrationNoFormat.Modify();
+        Customer.Validate("Country/Region Code", CountryRegion.Code);
+        Customer.Modify(true);
+        Customer.TestField("VAT Registration No.", '');
+
+        // [GIVEN] Sales invoice for the customer
+        LibrarySales.CreateSalesInvoiceForCustomerNo(SalesHeader, Customer."No.");
+
+        // [WHEN] VAT Registration No. "X" is entered on the sales invoice
+        EnteredVATRegistrationNo := LibraryERM.GenerateVATRegistrationNo(CountryRegion.Code);
+        SalesHeader.Validate("VAT Registration No.", EnteredVATRegistrationNo);
+
+        // [THEN] The VAT registration check was run for "X", not for the blank number on the customer
+        Assert.AreEqual(EnteredVATRegistrationNo, ERMVATRegNoValidityCheck.GetCapturedVATRegNo(), WrongVATRegNoValidatedErr);
+
+        // Tear Down
+        Customer.Delete();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM VAT Reg. No Validity Check");
@@ -1896,6 +1944,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
     begin
         CustConsentConfPage.Accept.Invoke();
     end;
+<<<<<<< src/Layers/ES/Tests/VAT/ERMVATRegNoValidityCheck.Codeunit.al
 
     [ConfirmHandler]
     [Scope('OnPrem')]
@@ -1903,5 +1952,25 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
     begin
         Reply := true;
     end;
+||||||| Base: src/Layers/W1/Tests/VAT/ERMVATRegNoValidityCheck.Codeunit.al
+=======
+
+    [Scope('OnPrem')]
+    procedure GetCapturedVATRegNo(): Text[20]
+    begin
+        exit(CapturedVATRegNo);
+    end;
+
+    // Captures the number sent for VIES validation and skips the call to the external service.
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Registration Log Mgt.", 'OnBeforeCheckVIESForVATNoField', '', false, false)]
+    local procedure CaptureVATRegNoOnBeforeCheckVIESForVATNoField(RecordVariant: Variant; var IsHandled: Boolean)
+    var
+        Customer: Record Customer;
+    begin
+        Customer := RecordVariant;
+        CapturedVATRegNo := Customer."VAT Registration No.";
+        IsHandled := true;
+    end;
+>>>>>>> src/Layers/W1/Tests/VAT/ERMVATRegNoValidityCheck.Codeunit.al
 }
 

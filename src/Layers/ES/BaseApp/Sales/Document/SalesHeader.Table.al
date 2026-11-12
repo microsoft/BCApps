@@ -1456,6 +1456,7 @@ table 36 "Sales Header"
             trigger OnValidate()
             var
                 Customer: Record Customer;
+                CustomerToValidate: Record Customer;
                 VATRegistrationLog: Record "VAT Registration Log";
                 VATRegistrationNoFormat: Record "VAT Registration No. Format";
                 VATRegNoSrvConfig: Record "VAT Reg. No. Srv Config";
@@ -1504,8 +1505,11 @@ table 36 "Sales Header"
                     exit;
                 end;
 
+                // Validate the number entered on the document, not the one stored on the customer card.
+                CustomerToValidate := Customer;
+                CustomerToValidate."VAT Registration No." := "VAT Registration No.";
                 VATRegistrationLogMgt.CheckVIESForVATNo(
-                    ResultRecRef, VATRegistrationLog, Customer, Customer."No.",
+                    ResultRecRef, VATRegistrationLog, CustomerToValidate, Customer."No.",
                     ApplicableCountryCode, VATRegistrationLog."Account Type"::Customer.AsInteger());
 
                 if VATRegistrationLog.Status = VATRegistrationLog.Status::Valid then begin
