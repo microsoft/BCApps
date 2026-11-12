@@ -1556,6 +1556,13 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Assert.AreEqual(ExpectedCount, VATRegistrationLog.Count, WrongLogEntryCountErr);
     end;
 
+    [MessageHandler]
+    [Scope('OnPrem')]
+    procedure MessageHandler(Message: Text[1024])
+    begin
+        // Dummy message handler.
+    end;
+
     local procedure SetVATRegSrvStatus(Status: Boolean; EndpointURL: Text[250])
     var
         VATRegNoSrvConfig: Record "VAT Reg. No. Srv Config";
@@ -1609,4 +1616,3 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         IsHandled := true;
     end;
 }
-
