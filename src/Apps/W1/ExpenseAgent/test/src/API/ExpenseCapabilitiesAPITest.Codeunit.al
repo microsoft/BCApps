@@ -77,6 +77,9 @@ codeunit 148318 "Expense Capabilities API Test"
         Assert.IsTrue(
             ResponseContainsCapabilityState(ResponseText, ActivityLogCapabilityNameTok, true),
             'Response must contain an enabled activityLog capability row.');
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, 'advancedApprovals', true),
+            'Response must contain an enabled advancedApprovals capability row.');
     end;
 
     [Test]
