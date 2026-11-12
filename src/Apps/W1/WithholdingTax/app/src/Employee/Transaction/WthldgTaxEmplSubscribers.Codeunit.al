@@ -145,9 +145,9 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
         if WHTEmployeeCalc.IsNetCalculationBase(GenJnlLine) then
             exit;
 
-        WHTEmployeeCalc.IsThresholdIncludeded(true);
-        WHTEmployeeCalc.CalcEmployeeWHT(GenJnlLine, TaxAmount, TaxAmountLCY);
-        WHTEmployeeCalc.IsThresholdIncludeded(false);
+        // When the employee side was posted first, reuse its result; its base is already in the period accumulator.
+        if not FindEmployeeWHTPostedInTransaction(GenJnlLine, sender.GetNextTransactionNo(), TaxAmount, TaxAmountLCY) then
+            WHTEmployeeCalc.CalcEmployeeWHT(GenJnlLine, TaxAmount, TaxAmountLCY);
 
         sender.InitGLEntry(
                 GenJnlLine, GLEntry, GenJnlLine."Account No.", GenJnlLine."Amount (LCY)" + TaxAmount,
@@ -177,6 +177,24 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
             TempDtldCVLedgEntryBuf."Additional-Currency Amount" := GenJnlLine."WHT Amount Including VAT (ACY)" - GenJnlLine."WHT Interest Amount"
         else
             TempDtldCVLedgEntryBuf."Additional-Currency Amount" := GenJnlLine.Amount;
+    end;
+
+    local procedure FindEmployeeWHTPostedInTransaction(GenJnlLine: Record "Gen. Journal Line"; TransactionNo: Integer; var WHTAmount: Decimal; var WHTBaseAmount: Decimal): Boolean
+    var
+        EmployeeLedgerEntry: Record "Employee Ledger Entry";
+        WHTEmployeeCalc: Codeunit "WHT Employee Calculation";
+    begin
+        EmployeeLedgerEntry.SetRange("Employee No.", WHTEmployeeCalc.GetEmployeeNoFromJnlLine(GenJnlLine));
+        EmployeeLedgerEntry.SetRange("Transaction No.", TransactionNo);
+        EmployeeLedgerEntry.SetRange("Document No.", GenJnlLine."Document No.");
+        EmployeeLedgerEntry.SetRange("Posting Date", GenJnlLine."Posting Date");
+        EmployeeLedgerEntry.SetLoadFields("Withholding Tax Amount", "Withholding Tax Base Amount");
+        if not EmployeeLedgerEntry.FindLast() then
+            exit(false);
+
+        WHTAmount := -EmployeeLedgerEntry."Withholding Tax Amount";
+        WHTBaseAmount := EmployeeLedgerEntry."Withholding Tax Base Amount";
+        exit(true);
     end;
 
     local procedure CalcSourceCurrVATBaseAmount(var GenJnlLine: Record "Gen. Journal Line"; WithholdingAmountLCY: Decimal; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"): Decimal
