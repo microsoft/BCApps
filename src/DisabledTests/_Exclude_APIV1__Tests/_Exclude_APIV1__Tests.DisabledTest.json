@@ -18,10 +18,5 @@
     "codeunitId": 139728,
     "codeunitName": "APIV1 - Sales Credit Memos E2E",
     "method": "TestCreateCreditMemoThroughPageAndAPI"
-  },
-  {
-    "codeunitId": 139729,
-    "codeunitName": "APIV1 - Purchase Invoices E2E",
-    "method": "TestPurchaseInvoiceWithPaymentDiscount"
   }
 ]

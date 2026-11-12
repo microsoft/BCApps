@@ -15,7 +15,7 @@ using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.SyncEngine;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Tracking;
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Manufacturing.Document;
 #endif
 using Microsoft.Pricing.Calculation;
@@ -555,7 +555,7 @@ page 27 "Vendor List"
                     RunPageLink = "Vendor No." = field("No.");
                     ToolTip = 'View or edit recurring purchase lines for the vendor.';
                 }
-#if not CLEAN27
+#if not CLEAN28
                 action("Subcontracting Prices")
                 {
                     ApplicationArea = LegacySubcontracting;
