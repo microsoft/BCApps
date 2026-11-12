@@ -1858,6 +1858,196 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
     #endregion
 
+    [Test]
+    procedure FacturXSalesInvoiceXMLHasBuyerSIRENWithScheme()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Buyer SIREN retains leading zeroes independently of seller and routing identifiers.
+        Initialize();
+
+        // [GIVEN] Invoice "SI" for customer "C" with a SIREN different from the seller.
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Customer.Validate("Registration Number", '012345678');
+        Customer.Modify(true);
+
+        // [WHEN] Generate the invoice XML.
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Buyer BT-47 has scheme 0002 while routing and VAT identifiers are preserved.
+        VerifyBuyerLegalOrganization(TempBlob, Customer."Registration Number");
+        VerifyBuyerRoutingAndVAT(TempBlob, Customer."Registration Number", SalesInvoiceHeader."VAT Registration No.");
+    end;
+
+    [Test]
+    procedure FacturXSalesCreditMemoXMLHasBuyerSIRENWithScheme()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        Customer: Record Customer;
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A credit memo contains the buyer SIREN and its qualifier.
+        Initialize();
+
+        // [GIVEN] Credit memo "CM" for customer "C" with a SIREN different from the seller.
+        SalesCrMemoHeader.Get(CreateAndPostSalesCreditMemo());
+        Customer.Get(SalesCrMemoHeader."Sell-to Customer No.");
+        Customer.Validate("Registration Number", '987654321');
+        Customer.Modify(true);
+
+        // [WHEN] Generate the credit memo XML.
+        CreateSalesCreditMemoCIIXML(SalesCrMemoHeader, TempBlob);
+
+        // [THEN] The buyer legal identifier is independent of the seller identifier.
+        VerifyBuyerLegalOrganization(TempBlob, Customer."Registration Number");
+    end;
+
+    [Test]
+    procedure FacturXBuyerSIRENPreservesExplicitRoutingAndVAT()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] An explicit electronic address does not suppress the buyer SIREN or change VAT.
+        Initialize();
+
+        // [GIVEN] Invoice "SI" for customer "C" with separate legal and routing identifiers.
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithElecAddress('987654321_001'));
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Customer.Validate("Registration Number", '987654321');
+        Customer.Modify(true);
+
+        // [WHEN] Generate the invoice XML.
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Buyer SIREN, explicit routing address and posted VAT coexist unchanged.
+        VerifyBuyerLegalOrganization(TempBlob, Customer."Registration Number");
+        VerifyBuyerRoutingAndVAT(TempBlob, Customer."FR Electronic Address", SalesInvoiceHeader."VAT Registration No.");
+    end;
+
+    [Test]
+    procedure FacturXBuyerWithBlankSIRENHasNoLegalOrganization()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Blank registration creates no empty legal organization and preserves VAT routing fallback.
+        Initialize();
+
+        // [GIVEN] Invoice "SI" for customer "C" with French VAT but no registration or electronic address.
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Customer.Validate("Registration Number", '');
+        Customer.Validate("FR Electronic Address", '');
+        Customer.Modify(true);
+
+        // [WHEN] Generate the invoice XML.
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] No buyer legal organization is emitted and French VAT still supplies routing.
+        Assert.AreEqual(0,
+            GetCIINodeCount(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedLegalOrganization'),
+            'A blank registration number must not create an empty buyer legal organization.');
+        VerifyBuyerRoutingAndVAT(TempBlob, CopyStr(Customer."VAT Registration No.", 5, 9), SalesInvoiceHeader."VAT Registration No.");
+    end;
+
+    [Test]
+    procedure FacturXBuyerWithShortSIRENIsRejected()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A registration number shorter than nine digits cannot be exported as a buyer SIREN.
+        Initialize();
+
+        VerifyInvalidBuyerSIREN('12345678');
+    end;
+
+    [Test]
+    procedure FacturXBuyerWithSIRETInsteadOfSIRENIsRejected()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A fourteen-digit SIRET is not silently truncated to a buyer SIREN.
+        Initialize();
+
+        VerifyInvalidBuyerSIREN('98765432101234');
+    end;
+
+    [Test]
+    procedure FacturXBuyerWithNonNumericSIRENIsRejected()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A nine-character registration number containing letters is not a buyer SIREN.
+        Initialize();
+
+        VerifyInvalidBuyerSIREN('12345678A');
+    end;
+
+    local procedure VerifyBuyerLegalOrganization(var TempBlob: Codeunit "Temp Blob"; ExpectedSIREN: Text)
+    begin
+        Assert.AreEqual(1,
+            GetCIINodeCount(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedLegalOrganization'),
+            'Exactly one buyer legal organization must be emitted.');
+        Assert.AreEqual(ExpectedSIREN,
+            GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedLegalOrganization/ram:ID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer SIREN'));
+        Assert.AreEqual('0002',
+            GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedLegalOrganization/ram:ID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer SIREN scheme'));
+        Assert.AreEqual(CompanyInformation."Registration No.",
+            GetCIINodeValue(TempBlob, '//ram:SellerTradeParty/ram:SpecifiedLegalOrganization/ram:ID'),
+            StrSubstNo(IncorrectValueErr, 'Seller SIREN'));
+        Assert.AreEqual('0002',
+            GetCIIAttributeValue(TempBlob, '//ram:SellerTradeParty/ram:SpecifiedLegalOrganization/ram:ID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Seller SIREN scheme'));
+        Assert.AreEqual(1,
+            GetCIINodeCount(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedLegalOrganization/following-sibling::*[1]/self::ram:PostalTradeAddress'),
+            'The buyer legal organization must precede the postal address.');
+    end;
+
+    local procedure VerifyBuyerRoutingAndVAT(var TempBlob: Codeunit "Temp Blob"; ExpectedElectronicAddress: Text; ExpectedVATRegistrationNo: Text)
+    begin
+        Assert.AreEqual(ExpectedElectronicAddress,
+            GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer electronic address'));
+        Assert.AreEqual('0225',
+            GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer electronic address scheme'));
+        Assert.AreEqual(ExpectedVATRegistrationNo,
+            GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer VAT registration'));
+        Assert.AreEqual('VA',
+            GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer VAT registration scheme'));
+    end;
+
+    local procedure VerifyInvalidBuyerSIREN(RegistrationNumber: Text[50])
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [GIVEN] Invoice "SI" for customer "C" with an invalid SIREN and an explicit electronic address.
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithElecAddress('987654321_001'));
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        Customer.Validate("Registration Number", RegistrationNumber);
+        Customer.Modify(true);
+
+        // [WHEN] Generate the invoice XML.
+        asserterror CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Generation fails explicitly instead of emitting a malformed legal identifier.
+        AssertExpectedDialogError(StrSubstNo(
+            'Registration No. must contain exactly nine digits for Customer %1 for French e-invoicing.', Customer."No."));
+    end;
+
     local procedure AssertExpectedDialogError(ExpectedErrorText: Text)
     begin
         Assert.ExpectedError(ExpectedErrorText);
