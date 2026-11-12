@@ -13,6 +13,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Activity;
@@ -61,6 +62,11 @@ codeunit 137926 "SCM Assembly Item Tracking"
         MessageInvtMvmtCreatedMsg: Label 'Number of Invt. Movement activities created: 1 out of a total of 1.';
         WrongNoOfT337RecordsErr: Label 'Wrong no of T337 records';
         MessageWhsePickCreatedMsg: Label 'has been created';
+        SerialNoTok: Label '%1%2', Locked = true, Comment = '%1 - Serial No. prefix, %2 - Sequence No.';
+        ReduceAssemblyOrderErr: Label 'Planning must suggest reducing the existing assembly order.';
+        TrackingEntryCountErr: Label 'Planning must preserve every component tracking entry.';
+        SerialNoAssignedOnceErr: Label 'Each selected serial number must remain assigned exactly once.';
+        TrackingQtyChangedErr: Label 'Component tracking quantity must remain unchanged.';
 
     [Test]
     [Scope('OnPrem')]
@@ -136,6 +142,195 @@ codeunit 137926 "SCM Assembly Item Tracking"
         Initialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Assembly Item Tracking");
+    end;
+
+    [Test]
+    procedure SerialTrackingRemainsAfterPlanningAssemblyCancellation()
+    begin
+        VerifyComponentTrackingAfterPlanning(true, true, false);
+    end;
+
+    [Test]
+    procedure LotTrackingRemainsAfterPlanningAssemblyCancellation()
+    begin
+        VerifyComponentTrackingAfterPlanning(false, true, false);
+    end;
+
+    [Test]
+    procedure SerialTrackingRemainsAfterPlanningAssemblyQuantityReduction()
+    begin
+        VerifyComponentTrackingAfterPlanning(true, false, false);
+    end;
+
+    [Test]
+    procedure LotTrackingRemainsAfterPlanningAssemblyQuantityReduction()
+    begin
+        VerifyComponentTrackingAfterPlanning(false, false, false);
+    end;
+
+    [Test]
+    procedure SerialOrderTrackingRemainsAfterPlanningAssemblyCancellation()
+    begin
+        VerifyComponentTrackingAfterPlanning(true, true, true);
+    end;
+
+    [Test]
+    procedure LotOrderTrackingRemainsAfterPlanningAssemblyCancellation()
+    begin
+        VerifyComponentTrackingAfterPlanning(false, true, true);
+    end;
+
+    [Test]
+    procedure SerialOrderTrackingRemainsAfterPlanningAssemblyQuantityReduction()
+    begin
+        VerifyComponentTrackingAfterPlanning(true, false, true);
+    end;
+
+    [Test]
+    procedure LotOrderTrackingRemainsAfterPlanningAssemblyQuantityReduction()
+    begin
+        VerifyComponentTrackingAfterPlanning(false, false, true);
+    end;
+
+    local procedure VerifyComponentTrackingAfterPlanning(SerialTracking: Boolean; CancelAssembly: Boolean; OrderTracking: Boolean)
+    var
+        ParentItem: Record Item;
+        ComponentItem: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        BOMComponent: Record "BOM Component";
+        AssemblyHeader: Record "Assembly Header";
+        AssemblyLine: Record "Assembly Line";
+        ReservationEntry: Record "Reservation Entry";
+        RequisitionLine: Record "Requisition Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PlanningItem: Record Item;
+        LibrarySales: Codeunit "Library - Sales";
+        SerialNoPrefix: Code[10];
+        SerialNo: Code[20];
+        LotNo: Code[20];
+        AssemblyQty: Integer;
+        DemandQty: Integer;
+        i: Integer;
+    begin
+        // [SCENARIO 657274] Planning suggestions do not remove tracking from existing assembly components.
+        Initialize();
+        AssemblyQty := LibraryRandom.RandIntInRange(5, 10);
+        DemandQty := LibraryRandom.RandInt(AssemblyQty - 1);
+
+        // [GIVEN] A lot-for-lot assembly item with a specifically tracked purchase component.
+        LibraryInventory.CreateItem(ParentItem);
+        ParentItem.Validate("Replenishment System", ParentItem."Replenishment System"::Assembly);
+        ParentItem.Validate("Assembly Policy", ParentItem."Assembly Policy"::"Assemble-to-Stock");
+        ParentItem.Validate("Reordering Policy", ParentItem."Reordering Policy"::"Lot-for-Lot");
+        ParentItem.Modify(true);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, SerialTracking, not SerialTracking);
+        LibraryInventory.CreateItem(ComponentItem);
+        ComponentItem.Validate("Reordering Policy", ComponentItem."Reordering Policy"::"Lot-for-Lot");
+        ComponentItem.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        ComponentItem.Modify(true);
+        LibraryInventory.CreateBOMComponent(
+            BOMComponent, ParentItem."No.", BOMComponent.Type::Item, ComponentItem."No.", 1, ComponentItem."Base Unit of Measure");
+        if SerialTracking then
+            SerialNoPrefix := LibraryUtility.GenerateGUID()
+        else
+            LotNo := LibraryUtility.GenerateGUID();
+        for i := 1 to AssemblyQty do begin
+            if SerialTracking then
+                SerialNo := StrSubstNo(SerialNoTok, SerialNoPrefix, i);
+            AddItemToInventory(ComponentItem, 1, SerialNo, LotNo);
+        end;
+
+        // [GIVEN] Sales demand for the assembly item and a tracked assembly order exceeding that demand.
+        if CancelAssembly then
+            AddItemToInventory(ParentItem, LibraryRandom.RandIntInRange(DemandQty, DemandQty + 100), '', '');
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ParentItem."No.", DemandQty);
+        SalesLine.Validate("Shipment Date", WorkDate2);
+        SalesLine.Modify(true);
+        LibraryAssembly.CreateAssemblyHeader(AssemblyHeader, WorkDate2, ParentItem."No.", '', AssemblyQty, '');
+        AssemblyLine.SetRange("Document Type", AssemblyHeader."Document Type");
+        AssemblyLine.SetRange("Document No.", AssemblyHeader."No.");
+        AssemblyLine.SetRange("No.", ComponentItem."No.");
+        AssemblyLine.FindFirst();
+        for i := 1 to AssemblyQty do begin
+            if SerialTracking then
+                SerialNo := StrSubstNo(SerialNoTok, SerialNoPrefix, i);
+            LibraryItemTracking.CreateAssemblyLineItemTracking(ReservationEntry, AssemblyLine, SerialNo, LotNo, 1);
+        end;
+        if OrderTracking then begin
+            EnableComponentOrderTracking(ComponentItem);
+            ReservationEntry.Reset();
+            AssemblyLine.SetReservationFilters(ReservationEntry);
+            ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Tracking);
+            Assert.AreEqual(AssemblyQty, ReservationEntry.Count(), TrackingEntryCountErr);
+        end;
+
+        // [WHEN] Regenerative planning runs without carrying out its suggestions.
+        PlanningItem.SetFilter("No.", '%1|%2', ParentItem."No.", ComponentItem."No.");
+        LibraryPlanning.CalcRegenPlanForPlanWksh(PlanningItem, WorkDate(), CalcDate('<1M>', WorkDate()));
+
+        // [THEN] A cancellation or quantity reduction is suggested for the existing order.
+        RequisitionLine.SetRefOrderFilters(
+            RequisitionLine."Ref. Order Type"::Assembly, AssemblyHeader."Document Type".AsInteger(), AssemblyHeader."No.", 0);
+        RequisitionLine.FindFirst();
+        if CancelAssembly then
+            RequisitionLine.TestField("Action Message", RequisitionLine."Action Message"::Cancel)
+        else begin
+            Assert.IsTrue(
+                RequisitionLine."Action Message" in
+                [RequisitionLine."Action Message"::"Change Qty.", RequisitionLine."Action Message"::"Resched. & Chg. Qty."],
+                ReduceAssemblyOrderErr);
+            RequisitionLine.TestField(Quantity, DemandQty);
+        end;
+
+        // [THEN] All originally assigned tracking and the actual order quantity remain unchanged.
+        AssemblyHeader.Get(AssemblyHeader."Document Type", AssemblyHeader."No.");
+        AssemblyHeader.TestField(Quantity, AssemblyQty);
+        ReservationEntry.Reset();
+        AssemblyLine.SetReservationFilters(ReservationEntry);
+        Assert.AreEqual(AssemblyQty, ReservationEntry.Count(), TrackingEntryCountErr);
+        if SerialTracking then
+            for i := 1 to AssemblyQty do begin
+                ReservationEntry.SetRange("Serial No.", StrSubstNo(SerialNoTok, SerialNoPrefix, i));
+                Assert.AreEqual(1, ReservationEntry.Count(), SerialNoAssignedOnceErr);
+            end
+        else begin
+            ReservationEntry.SetRange("Lot No.", LotNo);
+            Assert.AreEqual(AssemblyQty, ReservationEntry.Count(), TrackingEntryCountErr);
+        end;
+        ReservationEntry.SetRange("Serial No.");
+        ReservationEntry.SetRange("Lot No.");
+        ReservationEntry.FindSet();
+        repeat
+            if OrderTracking then begin
+                ReservationEntry.TestField("Reservation Status", ReservationEntry."Reservation Status"::Surplus);
+                ReservationEntry.TestField(Binding, ReservationEntry.Binding::" ");
+                ReservationEntry.TestField("Expected Receipt Date", 0D);
+            end;
+            ReservationEntry.TestField("Quantity (Base)", -1);
+            ReservationEntry.TestField("Qty. to Handle (Base)", -1);
+            ReservationEntry.TestField("Qty. to Invoice (Base)", -1);
+        until ReservationEntry.Next() = 0;
+        ReservationEntry.CalcSums("Quantity (Base)");
+        Assert.AreEqual(-AssemblyQty, ReservationEntry."Quantity (Base)", TrackingQtyChangedErr);
+    end;
+
+    local procedure EnableComponentOrderTracking(var ComponentItem: Record Item)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ReservationManagement: Codeunit "Reservation Management";
+    begin
+        ComponentItem.Get(ComponentItem."No.");
+        ComponentItem."Order Tracking Policy" := ComponentItem."Order Tracking Policy"::"Tracking Only";
+        ComponentItem.Modify(true);
+        ItemLedgerEntry.SetRange("Item No.", ComponentItem."No.");
+        ItemLedgerEntry.SetRange(Open, true);
+        ItemLedgerEntry.FindSet();
+        repeat
+            ReservationManagement.SetReservSource(ItemLedgerEntry);
+            ReservationManagement.AutoTrack(ItemLedgerEntry."Remaining Quantity");
+        until ItemLedgerEntry.Next() = 0;
     end;
 
     [Test]
@@ -1182,4 +1377,3 @@ codeunit 137926 "SCM Assembly Item Tracking"
         ItemTrackingLines.OK().Invoke();
     end;
 }
-

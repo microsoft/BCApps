@@ -38,7 +38,8 @@ tableextension 11721 "Vendor Ledger Entry CZL" extends "Vendor Ledger Entry"
         field(11720; "Bank Account Code CZL"; Code[20])
         {
             Caption = 'Bank Account Code';
-            TableRelation = if ("Document Type" = filter(Invoice | Refund | Reminder | "Finance Charge Memo")) "Vendor Bank Account".Code where("Vendor No." = field("Vendor No.")) else
+            TableRelation =
+            if ("Document Type" = filter(Invoice | Refund | Reminder | "Finance Charge Memo")) "Vendor Bank Account".Code where("Vendor No." = field("Vendor No.")) else
             if ("Document Type" = filter("Credit Memo" | Payment)) "Bank Account";
             DataClassification = CustomerContent;
 
@@ -101,6 +102,7 @@ tableextension 11721 "Vendor Ledger Entry CZL" extends "Vendor Ledger Entry"
             Editable = false;
             TableRelation = "SWIFT Code";
             DataClassification = CustomerContent;
+            ValidateTableRelation = false;
         }
         field(11780; "VAT Date CZL"; Date)
         {
