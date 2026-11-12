@@ -15,10 +15,14 @@ codeunit 148329 "Expense Reports API Test"
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
+    trigger OnRun()
+    begin
+        // [FEATURE] [Expense Report] [API]
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryExpense: Codeunit "Library - Expense";
-        LibraryExpenseAgent: Codeunit "Library - Expense Agent";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
@@ -39,6 +43,8 @@ codeunit 148329 "Expense Reports API Test"
     begin
         // [SCENARIO] Report navigation uses the active approver, not the submitter's configured approver.
         Initialize();
+
+        // [GIVEN] The submitter's configured approver differs from the active approver on reports in every status.
         LibraryExpense.CreateExpenseUser(Submitter);
         CreateApprover(Approver);
         CreateApprover(OtherApprover);
@@ -55,6 +61,8 @@ codeunit 148329 "Expense Reports API Test"
         CreateReport(ExpenseReportHeader, Submitter."No.", '', ReportStatus::"Pending Approval");
         Commit();
 
+        // [WHEN] The active approver's reports are expanded through the API.
+        // [THEN] Only its Pending Approval and Interim Approved reports are returned.
         AssertExpandedReports(Approver, ExpectedReportIds);
     end;
 
@@ -69,12 +77,16 @@ codeunit 148329 "Expense Reports API Test"
     begin
         // [SCENARIO] An approver without assigned reports receives an empty collection.
         Initialize();
+
+        // [GIVEN] A pending report is assigned to another approver.
         LibraryExpense.CreateExpenseUser(Submitter);
         CreateApprover(Approver);
         CreateApprover(OtherApprover);
         CreateReport(ExpenseReportHeader, Submitter."No.", OtherApprover."No.", ExpenseReportHeader.Status::"Pending Approval");
         Commit();
 
+        // [WHEN] The unassigned approver's reports are expanded through the API.
+        // [THEN] The expanded report collection is empty.
         AssertExpandedReports(Approver, ExpectedReportIds);
     end;
 
@@ -92,6 +104,8 @@ codeunit 148329 "Expense Reports API Test"
     begin
         // [SCENARIO] Interim approval moves the report from the interim approver's API view to the final approver's.
         Initialize();
+
+        // [GIVEN] A pending report has an interim approver and a different final approver.
         LibraryExpense.CreateExpenseUser(Submitter);
         CreateApprover(InterimApprover);
         CreateApprover(FinalApprover);
@@ -103,14 +117,19 @@ codeunit 148329 "Expense Reports API Test"
         ExpectedReportIds.Add(ExpenseReportHeader.SystemId);
         Commit();
 
+        // [GIVEN] The report is visible only in the interim approver's expanded report collection.
         AssertExpandedReports(InterimApprover, ExpectedReportIds);
         AssertExpandedReports(FinalApprover, EmptyReportIds);
 
+        // [WHEN] The interim approver approves the report.
         ExpenseReportApprovalMgmt.Approve(ExpenseReportHeader, InterimApprover."No.");
+
+        // [THEN] The report is Interim Approved and assigned to the final approver.
         ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::"Interim Approved");
         ExpenseReportHeader.TestField("Approver Expense User No.", FinalApprover."No.");
         Commit();
 
+        // [THEN] API expansion returns the report only for the final approver.
         AssertExpandedReports(InterimApprover, EmptyReportIds);
         AssertExpandedReports(FinalApprover, ExpectedReportIds);
     end;
@@ -131,6 +150,8 @@ codeunit 148329 "Expense Reports API Test"
     begin
         // [SCENARIO] A direct active-approver filter exposes the API property without the navigation's status restriction.
         Initialize();
+
+        // [GIVEN] Open and pending reports share an active approver who differs from the configured approver.
         LibraryExpense.CreateExpenseUser(Submitter);
         CreateApprover(Approver);
         CreateApprover(OtherApprover);
@@ -142,11 +163,13 @@ codeunit 148329 "Expense Reports API Test"
         CreateReport(ExpenseReportHeader, Submitter."No.", OtherApprover."No.", ExpenseReportHeader.Status::"Pending Approval");
         Commit();
 
+        // [WHEN] The report collection is filtered directly by activeApproverExpenseUserNo.
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Reports API", ExpenseReportsServiceNameTok);
         TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
             TargetURL, StrSubstNo('$filter=activeApproverExpenseUserNo eq ''%1''', Approver."No."));
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
 
+        // [THEN] Both matching reports expose the active approver, regardless of report status.
         Assert.IsTrue(Response.ReadFrom(ResponseText), 'The report response must be valid JSON.');
         Assert.IsTrue(Response.Get('value', Reports), 'The report response must contain a collection.');
         AssertReports(Reports.AsArray(), ExpectedReportIds, Approver."No.");
@@ -158,54 +181,27 @@ codeunit 148329 "Expense Reports API Test"
         EAHttpClient: Codeunit "EA Http Client";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         ReportSystemId: Guid;
+        ExpenseAppBaseUrl: Text;
+        ExpenseReportUrl: Text;
     begin
         // [SCENARIO] On-premises report links use a lowercase GUID without braces.
         Initialize();
+
+        // [GIVEN] An on-premises environment and a report identity containing uppercase letters.
         EnvironmentInfoTestLibrary.SetAppId('NAV');
         BindSubscription(EnvironmentInfoTestLibrary);
         Evaluate(ReportSystemId, '{ABCDEF01-2345-6789-ABCD-EF0123456789}');
 
-        Assert.AreEqual('http://localhost:5173/', EAHttpClient.GetExpenseAppBaseUrl(), 'The on-premises dashboard URL must be preserved.');
+        // [WHEN] Dashboard and report URLs are generated.
+        ExpenseAppBaseUrl := EAHttpClient.GetExpenseAppBaseUrl();
+        ExpenseReportUrl := EAHttpClient.GetExpenseReportUrl(ReportSystemId);
+
+        // [THEN] The dashboard URL is preserved and the report URL uses a lowercase GUID without braces.
+        Assert.AreEqual('http://localhost:5173/', ExpenseAppBaseUrl, 'The on-premises dashboard URL must be preserved.');
         Assert.AreEqual(
             'http://localhost:5173/reports/abcdef01-2345-6789-abcd-ef0123456789',
-            EAHttpClient.GetExpenseReportUrl(ReportSystemId),
+            ExpenseReportUrl,
             'The report URL must contain the reports path and the canonical GUID.');
-        UnbindSubscription(EnvironmentInfoTestLibrary);
-    end;
-
-    [Test]
-    procedure ViewInExpenseAppVisibilityFollowsAgentSetup()
-    var
-        Submitter: Record "Expense User";
-        ExpenseReportHeader: Record "Expense Report Header";
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
-        ExpenseReportPage: TestPage "Expense Report";
-    begin
-        // [SCENARIO] View in Expense App is available only while the agent is enabled.
-        Initialize();
-        EnvironmentInfoTestLibrary.SetAppId('NAV');
-        BindSubscription(EnvironmentInfoTestLibrary);
-        LibraryExpenseAgent.BackupExpenseAgentSetup();
-        ExpenseAgentSetup.Get();
-        ExpenseAgentSetup."Enable Approval Workflow" := false;
-        ExpenseAgentSetup."Enable Agent" := true;
-        ExpenseAgentSetup.Modify();
-        LibraryExpense.CreateExpenseUser(Submitter);
-        CreateReport(ExpenseReportHeader, Submitter."No.", '', ExpenseReportHeader.Status::Open);
-
-        ExpenseReportPage.OpenView();
-        ExpenseReportPage.GotoRecord(ExpenseReportHeader);
-        Assert.IsTrue(ExpenseReportPage.ViewInExpenseApp.Visible(), 'The report link must be visible when the agent is enabled.');
-        ExpenseReportPage.Close();
-
-        ExpenseAgentSetup."Enable Agent" := false;
-        ExpenseAgentSetup.Modify();
-        ExpenseReportPage.OpenView();
-        ExpenseReportPage.GotoRecord(ExpenseReportHeader);
-        Assert.IsFalse(ExpenseReportPage.ViewInExpenseApp.Visible(), 'The report link must be hidden when the agent is disabled.');
-        ExpenseReportPage.Close();
-        LibraryExpenseAgent.RestoreExpenseAgentSetup();
         UnbindSubscription(EnvironmentInfoTestLibrary);
     end;
 
@@ -272,7 +268,6 @@ codeunit 148329 "Expense Reports API Test"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Reports API Test");
-        LibraryExpenseAgent.RestoreExpenseAgentSetup();
         if IsInitialized then
             exit;
 

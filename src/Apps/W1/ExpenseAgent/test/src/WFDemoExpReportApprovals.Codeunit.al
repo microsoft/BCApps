@@ -1185,13 +1185,62 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         Assert.IsFalse(ExpenseReportPage.Approve.Visible(), ApproveActionMustNotBeVisibleErr);
     end;
 
+    [Test]
+    procedure ViewInExpenseAppVisibilityFollowsAgentSetup()
+    var
+        Submitter: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        LibraryExpenseAgent: Codeunit "Library - Expense Agent";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [SCENARIO] View in Expense App is available only while the agent is enabled.
+        Initialize();
+
+        // [GIVEN] An on-premises report with the agent enabled and approval workflow disabled.
+        EnvironmentInfoTestLibrary.SetAppId('NAV');
+        BindSubscription(EnvironmentInfoTestLibrary);
+        LibraryExpenseAgent.BackupExpenseAgentSetup();
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Enable Approval Workflow" := false;
+        ExpenseAgentSetup."Enable Agent" := true;
+        ExpenseAgentSetup.Modify();
+        LibraryExpense.CreateExpenseUser(Submitter);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Submitter."No.", '', '');
+
+        // [WHEN] The report card is opened.
+        ExpenseReportPage.OpenView();
+        ExpenseReportPage.GotoRecord(ExpenseReportHeader);
+
+        // [THEN] View in Expense App is visible.
+        Assert.IsTrue(ExpenseReportPage.ViewInExpenseApp.Visible(), 'The report link must be visible when the agent is enabled.');
+        ExpenseReportPage.Close();
+
+        // [GIVEN] The agent is disabled.
+        ExpenseAgentSetup."Enable Agent" := false;
+        ExpenseAgentSetup.Modify();
+
+        // [WHEN] The report card is reopened.
+        ExpenseReportPage.OpenView();
+        ExpenseReportPage.GotoRecord(ExpenseReportHeader);
+
+        // [THEN] View in Expense App is hidden.
+        Assert.IsFalse(ExpenseReportPage.ViewInExpenseApp.Visible(), 'The report link must be hidden when the agent is disabled.');
+        ExpenseReportPage.Close();
+        LibraryExpenseAgent.RestoreExpenseAgentSetup();
+        UnbindSubscription(EnvironmentInfoTestLibrary);
+    end;
+
     local procedure Initialize()
     var
         UserSetup: Record "User Setup";
         User: Record User;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryExpenseAgent: Codeunit "Library - Expense Agent";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"WF Demo Exp. Report Approvals");
+        LibraryExpenseAgent.RestoreExpenseAgentSetup();
         LibraryVariableStorage.Clear();
         EnableSaaS(false);
         LibraryERMCountryData.CreateVATData();
