@@ -2,7 +2,6 @@ namespace Microsoft.FabricExport;
 
 using System.Fabric;
 using System.Reflection;
-using System.Reflection;
 using System.Utilities;
 
 codeunit 140011 "Test FAB Config Package"
@@ -781,11 +780,33 @@ codeunit 140011 "Test FAB Config Package"
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
-        //[WHEN] The built-in package is (re)registered, as happens on install/upgrade
-        FabricInstall.EnsureMsStdPackage();
+        //[WHEN] Register built-in domain packages
+        FabricInstall.EnsureMicrosoftPackages();
 
-        //[THEN] The package header and its full curated table set are registered
-        VerifyMsStdPackageRegistered();
+        //[THEN] Nine inactive domain packages are registered without selecting tables
+        VerifyMicrosoftPackagesRegistered();
+    end;
+
+    local procedure VerifyMicrosoftPackagesRegistered()
+    var
+        Pkg: Record "Fabric Config Package";
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricTableClaim: Record "Fabric Table Claim";
+    begin
+        Assert.AreEqual(9, Pkg.Count(), 'Expected nine built-in domain packages.');
+        Assert.IsFalse(Pkg.Get('MS-STD'), 'Expected no legacy MS-STD package on fresh registration.');
+        Assert.IsTrue(TenantFabricTables.IsEmpty(), 'Expected registration not to select tables.');
+        Assert.IsTrue(FabricTableClaim.IsEmpty(), 'Expected registration not to add table claims.');
+
+        VerifyMicrosoftPackageRegistered('MS-FIN', 'Microsoft Finance', 15);
+        VerifyMicrosoftPackageRegistered('MS-INV', 'Microsoft Inventory', 27);
+        VerifyMicrosoftPackageRegistered('MS-INV-VAL', 'Microsoft Inventory Valuation', 5802);
+        VerifyMicrosoftPackageRegistered('MS-MFG', 'Microsoft Manufacturing', 5405);
+        VerifyMicrosoftPackageRegistered('MS-PROJ', 'Microsoft Projects', 167);
+        VerifyMicrosoftPackageRegistered('MS-PUR', 'Microsoft Purchase', 38);
+        VerifyMicrosoftPackageRegistered('MS-SALES', 'Microsoft Sales', 36);
+        VerifyMicrosoftPackageRegistered('MS-SUB-BILL', 'Microsoft Subscription Billing', 8052);
+        VerifyMicrosoftPackageRegistered('MS-SUST', 'Microsoft Sustainability', 6210);
     end;
 
     local procedure VerifyMicrosoftPackageRegistered(PackageCode: Code[20]; ExpectedDescription: Text[100]; TableId: Integer)
