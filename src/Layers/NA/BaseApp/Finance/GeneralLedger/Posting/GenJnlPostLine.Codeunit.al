@@ -4577,6 +4577,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary;
+        CreditMemoVATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]];
+        CreditMemoTotalAmount: Decimal;
+        CreditMemoAmountsLoaded: Boolean;
         InvoiceVATGroupsLoaded: Boolean;
         IsHandled: Boolean;
         ShouldConsiderVATPostingGrouping: Boolean;
@@ -4629,7 +4632,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         else
             if TempVATPostingSetup.FindSet() then
                 repeat
-                    CustUnrealizedVAT(true, TempVATPostingSetup, GenJnlLine, CustLedgEntry2, SettledAmount, GainLossLCY, AppliedCurrencyFactor, PostingDate, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded);
+                    CustUnrealizedVAT(true, TempVATPostingSetup, GenJnlLine, CustLedgEntry2, SettledAmount, GainLossLCY, AppliedCurrencyFactor, PostingDate, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded, CreditMemoVATGroupAmounts, CreditMemoTotalAmount, CreditMemoAmountsLoaded);
                 until TempVATPostingSetup.Next() = 0;
 
         InsertSummarizedVAT(GenJnlLine);
@@ -4638,14 +4641,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
     internal procedure CustUnrealizedVAT(ShouldConsiderVATPostingGrouping: Boolean; TempVATPostingSetup: Record "VAT Posting Setup" temporary; GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; GainLossLCY: Decimal; CurrencyFactor: Decimal; PostingDate: Date)
     var
         TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary;
+        CreditMemoVATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]];
+        CreditMemoTotalAmount: Decimal;
+        CreditMemoAmountsLoaded: Boolean;
         InvoiceVATGroupsLoaded: Boolean;
     begin
         CustUnrealizedVAT(
           ShouldConsiderVATPostingGrouping, TempVATPostingSetup, GenJnlLine, CustLedgEntry2, SettledAmount,
-          GainLossLCY, CurrencyFactor, PostingDate, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded);
+          GainLossLCY, CurrencyFactor, PostingDate, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded,
+          CreditMemoVATGroupAmounts, CreditMemoTotalAmount, CreditMemoAmountsLoaded);
     end;
 
-    local procedure CustUnrealizedVAT(ShouldConsiderVATPostingGrouping: Boolean; TempAppliedVATPostingSetup: Record "VAT Posting Setup" temporary; GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; GainLossLCY: Decimal; AppliedCurrencyFactor: Decimal; PostingDate: Date; var TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary; var InvoiceVATGroupsLoaded: Boolean)
+    local procedure CustUnrealizedVAT(ShouldConsiderVATPostingGrouping: Boolean; TempAppliedVATPostingSetup: Record "VAT Posting Setup" temporary; GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; GainLossLCY: Decimal; AppliedCurrencyFactor: Decimal; PostingDate: Date; var TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary; var InvoiceVATGroupsLoaded: Boolean; var CreditMemoVATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]]; var CreditMemoTotalAmount: Decimal; var CreditMemoAmountsLoaded: Boolean)
     var
         VATEntry2: Record "VAT Entry";
         TaxJurisdiction: Record "Tax Jurisdiction";
@@ -4728,7 +4735,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 SettledAmountByVAT :=
                     CustLedgEntry2.GetCreditMemoPartAmountByVAT(
                         CreditMemoDocumentNo, TempAppliedVATPostingSetup."VAT Bus. Posting Group", TempAppliedVATPostingSetup."VAT Prod. Posting Group", SettledAmount,
-                        CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup);
+                        CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup,
+                        CreditMemoVATGroupAmounts, CreditMemoTotalAmount, CreditMemoAmountsLoaded);
             end;
             LastConnectionNo := 0;
             repeat
