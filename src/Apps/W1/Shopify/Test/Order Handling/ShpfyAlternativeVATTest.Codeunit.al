@@ -389,6 +389,53 @@ codeunit 139614 "Shpfy Alternative VAT Test"
         this.VerifyNoAlternativeCreated(OrderHeader, SellToCustomer, BillToCustomer, VATCustomer, DestinationCountry, false);
     end;
 
+    [Test]
+    [HandlerFunctions('FulfillmentOrdersHttpHandler')]
+    procedure ExistingAlternative_BlankCustomerVATRegNo_DoesNotUpdateCustomer()
+    var
+        BillToCustomer: Record Customer;
+        InterimShipToAddress: Record "Ship-to Address";
+        OrderHeader: Record "Shpfy Order Header";
+        SellToCustomer: Record Customer;
+        Shop: Record "Shpfy Shop";
+        VATCustomer: Record Customer;
+        DestinationCountry: Code[10];
+    begin
+        // [Scenario #15] Applying an alternative VAT registration number must not write it back to a customer with a blank VAT registration number.
+        this.Initialize();
+
+        // [Given] A B2C order whose sell-to customer has a blank VAT registration number and an alternative with a VAT registration number for the destination.
+        this.CreateBlankCustomerVATRegNoScenario(Shop, OrderHeader, VATCustomer, SellToCustomer, BillToCustomer, DestinationCountry, InterimShipToAddress);
+
+        // [When] The order is processed.
+        this.ProcessOrderManually(OrderHeader);
+
+        // [Then] The document carries the alternative VAT registration number while the customer's VAT registration number stays blank.
+        this.VerifyScenario(OrderHeader, SellToCustomer, BillToCustomer, false, false);
+        this.VerifyCustomerVATRegistrationNoUnchanged(VATCustomer."No.", '');
+    end;
+
+    local procedure CreateBlankCustomerVATRegNoScenario(var Shop: Record "Shpfy Shop"; var OrderHeader: Record "Shpfy Order Header"; var VATCustomer: Record Customer; var SellToCustomer: Record Customer; var BillToCustomer: Record Customer; var DestinationCountry: Code[10]; var InterimShipToAddress: Record "Ship-to Address")
+    var
+        VATRegNoSrvConfig: Record "VAT Reg. No. Srv Config";
+    begin
+        this.CreateScenario(Shop, OrderHeader, VATCustomer, SellToCustomer, BillToCustomer, DestinationCountry, InterimShipToAddress, false, false, false, false);
+        VATRegNoSrvConfig.ModifyAll(Enabled, false);
+        VATCustomer."VAT Registration No." := '';
+        VATCustomer.Modify();
+        SellToCustomer.Get(SellToCustomer."No.");
+        BillToCustomer.Get(BillToCustomer."No.");
+    end;
+
+    local procedure VerifyCustomerVATRegistrationNoUnchanged(CustomerNo: Code[20]; ExpectedVATRegistrationNoLcl: Text[20])
+    var
+        Customer: Record Customer;
+        CustomerVATRegNoChangedErr: Label 'Applying an alternative VAT registration must not change the customer''s own VAT Registration No.';
+    begin
+        Customer.Get(CustomerNo);
+        this.LibraryAssert.AreEqual(ExpectedVATRegistrationNoLcl, Customer."VAT Registration No.", CustomerVATRegNoChangedErr);
+    end;
+
     local procedure CreateExistingDistinctAlternativeScenario(var OrderHeader: Record "Shpfy Order Header"; var VATCustomer: Record Customer; var SellToCustomer: Record Customer; var BillToCustomer: Record Customer; var AltCustVATRegBefore: Record "Alt. Cust. VAT Reg."; var AlternativeCountBefore: Integer; IsB2B: Boolean; SetGenBusPostingGroup: Boolean)
     var
         InterimShipToAddress: Record "Ship-to Address";

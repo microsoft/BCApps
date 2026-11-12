@@ -219,22 +219,22 @@ codeunit 30166 "Shpfy Process Order"
         SalesHeader.Validate("Alt. VAT Registration No.", false);
         SalesHeader.Validate("VAT Registration No.", VATCustomer."VAT Registration No.");
         if AltCustVATReg."VAT Registration No." <> '' then begin
-            SalesHeader.Validate("VAT Registration No.", AltCustVATReg."VAT Registration No.");
             SalesHeader.Validate("Alt. VAT Registration No.", true);
+            SalesHeader.Validate("VAT Registration No.", AltCustVATReg."VAT Registration No.");
         end;
 
         SalesHeader.Validate("Alt. Gen. Bus Posting Group", false);
         SalesHeader.Validate("Gen. Bus. Posting Group", VATCustomer."Gen. Bus. Posting Group");
         if AltCustVATReg."Gen. Bus. Posting Group" <> '' then begin
-            SalesHeader.Validate("Gen. Bus. Posting Group", AltCustVATReg."Gen. Bus. Posting Group");
             SalesHeader.Validate("Alt. Gen. Bus Posting Group", true);
+            SalesHeader.Validate("Gen. Bus. Posting Group", AltCustVATReg."Gen. Bus. Posting Group");
         end;
 
         SalesHeader.Validate("Alt. VAT Bus Posting Group", false);
         SalesHeader.Validate("VAT Bus. Posting Group", VATCustomer."VAT Bus. Posting Group");
         if AltCustVATReg."VAT Bus. Posting Group" <> '' then begin
-            SalesHeader.Validate("VAT Bus. Posting Group", AltCustVATReg."VAT Bus. Posting Group");
             SalesHeader.Validate("Alt. VAT Bus Posting Group", true);
+            SalesHeader.Validate("VAT Bus. Posting Group", AltCustVATReg."VAT Bus. Posting Group");
         end;
     end;
 
