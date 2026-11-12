@@ -170,6 +170,31 @@
     "method": "ValidSetup_Successful"
   },
   {
+    "codeunitId": 135547,
+    "codeunitName": "Webhook Logs E2E",
+    "method": "TestDeleteWebhookLogsNotAllowed"
+  },
+  {
+    "codeunitId": 135547,
+    "codeunitName": "Webhook Logs E2E",
+    "method": "TestGetWebhookLogsMany"
+  },
+  {
+    "codeunitId": 135547,
+    "codeunitName": "Webhook Logs E2E",
+    "method": "TestGetWebhookLogsSingle"
+  },
+  {
+    "codeunitId": 135547,
+    "codeunitName": "Webhook Logs E2E",
+    "method": "TestPatchWebhookLogsNotAllowed"
+  },
+  {
+    "codeunitId": 135547,
+    "codeunitName": "Webhook Logs E2E",
+    "method": "TestPostWebhookLogsNotAllowed"
+  },
+  {
     "codeunitId": 136580,
     "codeunitName": "Email Address Selection",
     "method": "VerifyEmailFromOnSalesHeaderFromCustomer"
