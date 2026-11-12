@@ -7,6 +7,7 @@ codeunit 139656 "Hybrid Cloud Management Tests"
     var
         Assert: Codeunit Assert;
         LibraryHybridManagement: Codeunit "Library - Hybrid Management";
+        LibraryUtility: Codeunit "Library - Utility";
         Initialized: Boolean;
         ExtensionRefreshFailureErr: Label 'Some extensions could not be updated and may need to be reinstalled to refresh their data.';
         ExtensionRefreshUnexpectedFailureErr: Label 'Failed to update extensions. You may need to verify and reinstall any missing extensions if needed.';
@@ -17,6 +18,8 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         CustomerId2Tok: Label 'TEST-2', Locked = true;
         SourceTableMetadataNotFoundErr: Label 'Source table metadata not found for table ID %1.', Comment = '%1 - Table ID';
         DestinationTableMetadataNotFoundErr: Label 'Destination table metadata not found for table ID %1.', Comment = '%1 - Table ID';
+        SubscriptionIdFormatTok: Label '%1_IntelligentCloud', Comment = '%1 - Product ID', Locked = true;
+        HybridCompanyMissingErr: Label 'The hybrid company %1 should not be removed when another company is deleted.', Comment = '%1 - Company name';
 
     local procedure Initialize()
     var
@@ -831,6 +834,88 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         Assert.IsFalse(GetDidValiationErrorFailTheMigration(), 'The migration should NOT be in a failed state.');
     end;
 
+    [Test]
+    procedure TestTenantMediaWarningChecksReadableCount()
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        TenantMedia: Record "Tenant Media";
+        TenantMediaWarning: Codeunit "Tenant Media Warning";
+        TenantMediaCount: Integer;
+    begin
+        Initialize();
+        TenantMediaCount := TenantMedia.Count();
+        if not HybridCompanyStatus.Get() then
+            HybridCompanyStatus.Insert();
+
+        HybridCompanyStatus."Tenant Media Count" := TenantMediaCount + 1;
+        HybridCompanyStatus.Modify();
+        Assert.IsTrue(TenantMediaWarning.CheckWarning(), 'A decreased media count should produce a warning.');
+
+        HybridCompanyStatus."Tenant Media Count" := TenantMediaCount;
+        HybridCompanyStatus.Modify();
+        Assert.IsFalse(TenantMediaWarning.CheckWarning(), 'An unchanged media count should not produce a warning.');
+    end;
+
+    [Test]
+    procedure TestTenantMediaWarningSkipsUnreadableCount()
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        TenantMedia: Record "Tenant Media";
+        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
+        TenantMediaWarning: Codeunit "Tenant Media Warning";
+        WarningDetected: Boolean;
+    begin
+        // [SCENARIO 657194] An unavailable media count does not fail the warning check.
+        Initialize();
+        if not HybridCompanyStatus.Get() then
+            HybridCompanyStatus.Insert();
+        HybridCompanyStatus."Tenant Media Count" := 1;
+        HybridCompanyStatus.Modify();
+
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.PushPermissionSetWithoutDefaults('HBD - Read');
+        Assert.IsFalse(TenantMedia.ReadPermission(), 'Tenant Media must be unreadable for this test.');
+
+        WarningDetected := TenantMediaWarning.CheckWarning();
+
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+        Assert.IsFalse(WarningDetected, 'An unavailable media count should not produce a media-loss warning.');
+    end;
+
+    [Test]
+    procedure TestRunReplicationPreservesUnreadableMediaCount()
+    var
+        HybridCompanyStatus: Record "Hybrid Company Status";
+        HybridReplicationSummary: Record "Hybrid Replication Summary";
+        TenantMedia: Record "Tenant Media";
+        HybridDeployment: Codeunit "Hybrid Deployment";
+        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
+        ExpectedRunId: Text;
+        RunId: Text;
+        ExpectedTenantMediaCount: Integer;
+    begin
+        // [SCENARIO 657194] Replication can be retried without overwriting an unreadable media count.
+        Initialize();
+        LibraryHybridManagement.SetExpectedRunId(ExpectedRunId);
+        ExpectedTenantMediaCount := TenantMedia.Count() + 1;
+
+        HybridDeployment.RunReplication(RunId, HybridReplicationSummary.ReplicationType::Normal);
+        HybridCompanyStatus.Get();
+        Assert.AreEqual(ExpectedTenantMediaCount, HybridCompanyStatus."Tenant Media Count", 'A readable media count should be saved before replication.');
+
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.PushPermissionSetWithoutDefaults('HBD Media Count Test');
+        Assert.IsFalse(TenantMedia.ReadPermission(), 'Tenant Media must be unreadable for this test.');
+
+        Clear(RunId);
+        HybridDeployment.RunReplication(RunId, HybridReplicationSummary.ReplicationType::Normal);
+
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+        Assert.AreEqual(ExpectedRunId, RunId, 'Replication should start when the media count is unavailable.');
+        HybridCompanyStatus.Get();
+        Assert.AreEqual(ExpectedTenantMediaCount, HybridCompanyStatus."Tenant Media Count", 'An unavailable media count should not overwrite the saved count.');
+    end;
+
     local procedure GetDidValiationErrorFailTheMigration(): Boolean
     var
         IntelligentCloudSetup: Record "Intelligent Cloud Setup";
@@ -1498,5 +1583,181 @@ codeunit 139656 "Hybrid Cloud Management Tests"
         ReplicationMapping.SetRange("Company Name", CompanyName);
         ReplicationMapping.SetFilter("Table Name", 'Vendor Ledger Entry');
         Assert.IsTrue(ReplicationMapping.FindFirst(), 'Replication mapping should be created for Vendor Ledger Entry');
+    end;
+
+    [Test]
+    procedure TestDeleteCompanyRemovesOnlyItsCloudMigrationRecords()
+    var
+        Company: Record Company;
+        HybridCompany: Record "Hybrid Company";
+        IntelligentCloudStatus: Record "Intelligent Cloud Status";
+        DeletedCompanyName: Text[30];
+        TableName: Text[30];
+    begin
+        // [SCENARIO] Deleting a company removes only the cloud migration records of the deleted company
+        Initialize();
+
+        // [GIVEN] All existing companies are hybrid companies
+        InsertHybridCompaniesForExistingCompanies();
+
+        // [GIVEN] A per-database table and a table of the current company are included in the cloud migration
+        TableName := LibraryUtility.GenerateGUID();
+        InsertIntelligentCloudStatus(TableName, '');
+        InsertIntelligentCloudStatus(TableName, CompanyName());
+
+        // [GIVEN] A new hybrid company with a table included in the cloud migration
+        DeletedCompanyName := CreateHybridCompany();
+        InsertIntelligentCloudStatus(TableName, DeletedCompanyName);
+
+        // [WHEN] The new company is deleted
+        Company.Get(DeletedCompanyName);
+        Company.Delete();
+
+        // [THEN] The cloud migration records of the deleted company are removed
+        Assert.IsFalse(HybridCompany.Get(DeletedCompanyName), 'The hybrid company of the deleted company should be removed.');
+        Assert.IsFalse(IntelligentCloudStatus.Get(TableName, DeletedCompanyName), 'The intelligent cloud status of the deleted company should be removed.');
+
+        // [THEN] The cloud migration records of the other companies are kept
+        VerifyHybridCompaniesExistForAllCompanies();
+        Assert.IsTrue(IntelligentCloudStatus.Get(TableName, ''), 'The per-database intelligent cloud status should be kept.');
+        Assert.IsTrue(IntelligentCloudStatus.Get(TableName, CompanyName()), 'The intelligent cloud status of the current company should be kept.');
+    end;
+
+    [Test]
+    procedure TestDeleteCompanyWithMigrationWebhookKeepsOtherHybridCompanies()
+    var
+        Company: Record Company;
+        HybridCompany: Record "Hybrid Company";
+        WebhookSubscription: Record "Webhook Subscription";
+        DeletedCompanyName: Text[30];
+        SubscriptionId: Text[150];
+    begin
+        // [SCENARIO] Deleting the company that holds the cloud migration webhook subscription keeps the hybrid companies of the other companies
+        Initialize();
+
+        // [GIVEN] All existing companies are hybrid companies
+        InsertHybridCompaniesForExistingCompanies();
+
+        // [GIVEN] A new hybrid company holds the cloud migration webhook subscription
+        DeletedCompanyName := CreateHybridCompany();
+        SubscriptionId := InsertWebhookSubscription(DeletedCompanyName);
+
+        // [WHEN] The new company is deleted
+        Company.Get(DeletedCompanyName);
+        Company.Delete();
+
+        // [THEN] Only the hybrid company of the deleted company is removed
+        Assert.IsFalse(HybridCompany.Get(DeletedCompanyName), 'The hybrid company of the deleted company should be removed.');
+        VerifyHybridCompaniesExistForAllCompanies();
+
+        // [THEN] The webhook subscription is moved to an existing company
+        WebhookSubscription.Get(SubscriptionId, '');
+        Assert.IsTrue(Company.Get(WebhookSubscription."Company Name"), 'The webhook subscription should be moved to an existing company.');
+    end;
+
+    [Test]
+    procedure TestDeleteCompanyMovesWebhookToFirstRemainingCompany()
+    var
+        Company: Record Company;
+        HybridCompany: Record "Hybrid Company";
+        WebhookSubscription: Record "Webhook Subscription";
+        DeletedCompanyName: Text[30];
+        ReplacementCompanyName: Text[30];
+        SubscriptionId: Text[150];
+    begin
+        // [SCENARIO] The first remaining company receives the webhook even when a later company is not a hybrid company
+        Initialize();
+        InsertHybridCompaniesForExistingCompanies();
+        DeletedCompanyName := CreateHybridCompany();
+        CreateHybridCompany();
+
+        // [GIVEN] The first remaining company is hybrid and the last remaining company is not
+        Company.SetFilter(Name, '<>%1', DeletedCompanyName);
+        Company.FindLast();
+        HybridCompany.Get(Company.Name);
+        HybridCompany.Delete();
+        Company.FindFirst();
+        ReplacementCompanyName := Company.Name;
+        Assert.IsTrue(HybridCompany.Get(ReplacementCompanyName), 'The first remaining company should be a hybrid company.');
+        SubscriptionId := InsertWebhookSubscription(DeletedCompanyName);
+
+        // [WHEN] The company holding the webhook is deleted
+        Company.Reset();
+        Company.Get(DeletedCompanyName);
+        Company.Delete();
+
+        // [THEN] The webhook is moved to the first remaining company, regardless of hybrid status
+        WebhookSubscription.Get(SubscriptionId, '');
+        Assert.AreEqual(ReplacementCompanyName, WebhookSubscription."Company Name", 'The webhook should be moved to the first remaining company.');
+        Assert.IsTrue(HybridCompany.Get(ReplacementCompanyName), 'The replacement hybrid company should not be removed.');
+    end;
+
+    local procedure InsertHybridCompaniesForExistingCompanies()
+    var
+        Company: Record Company;
+        HybridCompany: Record "Hybrid Company";
+    begin
+        Company.FindSet();
+        repeat
+            if not HybridCompany.Get(Company.Name) then
+                InsertHybridCompany(Company.Name);
+        until Company.Next() = 0;
+    end;
+
+    local procedure CreateHybridCompany(): Text[30]
+    var
+        Company: Record Company;
+    begin
+        Company.Init();
+        Company.Name := LibraryUtility.GenerateGUID();
+        Company.Insert();
+        InsertHybridCompany(Company.Name);
+        exit(Company.Name);
+    end;
+
+    local procedure InsertHybridCompany(HybridCompanyName: Text[50])
+    var
+        HybridCompany: Record "Hybrid Company";
+    begin
+        HybridCompany.Init();
+        HybridCompany.Name := HybridCompanyName;
+        HybridCompany."Display Name" := HybridCompanyName;
+        HybridCompany.Replicate := true;
+        HybridCompany.Insert();
+    end;
+
+    local procedure InsertIntelligentCloudStatus(TableName: Text; StatusCompanyName: Text)
+    var
+        IntelligentCloudStatus: Record "Intelligent Cloud Status";
+    begin
+        IntelligentCloudStatus.Init();
+        IntelligentCloudStatus."Table Name" := CopyStr(TableName, 1, MaxStrLen(IntelligentCloudStatus."Table Name"));
+        IntelligentCloudStatus."Company Name" := CopyStr(StatusCompanyName, 1, MaxStrLen(IntelligentCloudStatus."Company Name"));
+        IntelligentCloudStatus."Table Id" := Database::Customer;
+        IntelligentCloudStatus."Replicate Data" := true;
+        IntelligentCloudStatus.Insert();
+    end;
+
+    local procedure InsertWebhookSubscription(SubscriptionCompanyName: Text[30]): Text[150]
+    var
+        WebhookSubscription: Record "Webhook Subscription";
+    begin
+        WebhookSubscription.Init();
+        WebhookSubscription."Subscription ID" := CopyStr(StrSubstNo(SubscriptionIdFormatTok, LibraryUtility.GenerateGUID()), 1, MaxStrLen(WebhookSubscription."Subscription ID"));
+        WebhookSubscription.Endpoint := '';
+        WebhookSubscription."Company Name" := SubscriptionCompanyName;
+        WebhookSubscription.Insert();
+        exit(WebhookSubscription."Subscription ID");
+    end;
+
+    local procedure VerifyHybridCompaniesExistForAllCompanies()
+    var
+        Company: Record Company;
+        HybridCompany: Record "Hybrid Company";
+    begin
+        Company.FindSet();
+        repeat
+            Assert.IsTrue(HybridCompany.Get(Company.Name), StrSubstNo(HybridCompanyMissingErr, Company.Name));
+        until Company.Next() = 0;
     end;
 }

@@ -1639,6 +1639,7 @@ codeunit 134051 "ERM VAT Tool - Sales Doc"
     local procedure VATToolSalesLineAmount(DocumentType: Enum "Sales Document Type"; PartialShip: Boolean)
     var
         SalesHeader: Record "Sales Header";
+        TempSalesLine: Record "Sales Line" temporary;
     begin
         // Sales Order with one partially shipped and released line, update VAT group and ignore header status. Verify Amount.
         Initialize();
@@ -1657,6 +1658,7 @@ codeunit 134051 "ERM VAT Tool - Sales Doc"
             ERMVATToolHelper.UpdateQtyToShip(SalesHeader);
             LibrarySales.PostSalesDocument(SalesHeader, true, false);
         end;
+        SaveExpectedSalesLines(SalesHeader, TempSalesLine);
 
         // SETUP: Update VAT Change Tool Setup table.
         SetupToolSales(VATRateChangeSetup2."Update Sales Documents"::"VAT Prod. Posting Group", true, true);
@@ -1665,7 +1667,7 @@ codeunit 134051 "ERM VAT Tool - Sales Doc"
         ERMVATToolHelper.RunVATRateChangeTool();
 
         // Verify: Check VAT%, Unit Price and Line Amount Including VAT.
-        VerifySalesDocAmount(SalesHeader);
+        VerifySalesDocAmount(SalesHeader, TempSalesLine);
 
         // Cleanup: Delete Groups.
         ERMVATToolHelper.DeleteGroups();
@@ -2448,27 +2450,56 @@ codeunit 134051 "ERM VAT Tool - Sales Doc"
         SalesLine.TestField("Qty. to Ship", ExpectedQuantityToShip);
     end;
 
-    local procedure VerifySalesDocAmount(SalesHeader: Record "Sales Header")
+    local procedure SaveExpectedSalesLines(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
+    var
+        SalesLine: Record "Sales Line";
+        VATRateChangeConversion: Codeunit "VAT Rate Change Conversion";
+        NextLineNo: Integer;
+    begin
+        GetSalesLine(SalesHeader, SalesLine);
+        repeat
+            TempSalesLine := SalesLine;
+            if (SalesLine."Quantity Shipped" <> 0) and (SalesLine."Outstanding Quantity" <> 0) then begin
+                TempSalesLine.Quantity := SalesLine."Quantity Shipped";
+                TempSalesLine."Line Amount" := Round(TempSalesLine.Quantity * TempSalesLine."Unit Price");
+                TempSalesLine.Insert();
+
+                NextLineNo := 0;
+                Assert.IsTrue(
+                    VATRateChangeConversion.GetNextSalesLineNo(SalesLine, NextLineNo),
+                    ERMVATToolHelper.GetConversionErrorSplitLines());
+                TempSalesLine."Line No." := NextLineNo;
+                TempSalesLine.Quantity := SalesLine."Outstanding Quantity";
+                TempSalesLine."Line Amount" := Round(TempSalesLine.Quantity * TempSalesLine."Unit Price");
+            end;
+            TempSalesLine.Insert();
+        until SalesLine.Next() = 0;
+    end;
+
+    local procedure VerifySalesDocAmount(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     var
         SalesHeader3: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SalesLine3: Record "Sales Line";
     begin
         GetSalesLine(SalesHeader, SalesLine);
+        Assert.AreEqual(TempSalesLine.Count, SalesLine.Count, ERMVATToolHelper.GetConversionErrorSplitLines());
         LibrarySales.CreateSalesHeader(SalesHeader3, SalesHeader3."Document Type"::Order, SalesHeader."Sell-to Customer No.");
         SalesHeader3.Validate("Prices Including VAT", true);
         SalesHeader3.Modify(true);
         repeat
             CopySalesLine(SalesHeader3, SalesLine3, SalesLine);
-            VerifySalesLineAmount(SalesLine, SalesLine3);
+            TempSalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+            VerifySalesLineAmount(SalesLine, SalesLine3, TempSalesLine);
         until SalesLine.Next() = 0;
     end;
 
-    local procedure VerifySalesLineAmount(SalesLine: Record "Sales Line"; SalesLine3: Record "Sales Line")
+    local procedure VerifySalesLineAmount(SalesLine: Record "Sales Line"; SalesLine3: Record "Sales Line"; ExpectedSalesLine: Record "Sales Line")
     begin
+        SalesLine.TestField(Quantity, ExpectedSalesLine.Quantity);
         SalesLine.TestField("VAT %", SalesLine3."VAT %");
-        SalesLine.TestField("Unit Price", SalesLine3."Unit Price");
-        SalesLine.TestField("Line Amount", SalesLine3."Line Amount");
+        SalesLine.TestField("Unit Price", ExpectedSalesLine."Unit Price");
+        SalesLine.TestField("Line Amount", ExpectedSalesLine."Line Amount");
     end;
 
     local procedure VerifyItemChrgAssignmentSales(TempRecRef: RecordRef)
@@ -2647,4 +2678,3 @@ codeunit 134051 "ERM VAT Tool - Sales Doc"
         EnterQuantityToCreate.OK().Invoke();
     end;
 }
-

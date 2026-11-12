@@ -183,7 +183,7 @@ page 6949 "Expense User"
             action(CreateEmployee)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Create Employee';
+                Caption = 'Create employee';
                 Image = Create;
                 ToolTip = 'Checks for an existing employee by email and creates an employee if no match exists.';
                 Visible = IsCreateEmployeeVisible;
@@ -195,7 +195,7 @@ page 6949 "Expense User"
             }
             action("Send Welcome Email")
             {
-                Caption = 'Send Welcome Email';
+                Caption = 'Send welcome email';
                 ApplicationArea = Basic, Suite;
                 Image = Email;
                 ToolTip = 'Sends a welcome email to the expense user.';
@@ -238,6 +238,21 @@ page 6949 "Expense User"
                 RunPageMode = Edit;
                 Visible = Rec."Can Approve";
                 ToolTip = 'Configure planned alternate approvers and their coverage dates.';
+            }
+            action(CorporateCards)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Corporate Cards';
+                Image = Card;
+                ToolTip = 'Opens the Corporate Cards page filtered to this expense user.';
+
+                trigger OnAction()
+                var
+                    EACorpCard: Record "EA Corp Card";
+                begin
+                    EACorpCard.SetRange("Expense User No.", Rec."No.");
+                    Page.Run(Page::"EA Corp Card Cards", EACorpCard);
+                end;
             }
         }
 
