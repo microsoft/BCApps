@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <Root>
-  <AITSuite Code="MT_ACCUR" Description="Marketing Text - Accuracy Tests " Dataset="MT_ACCURACY.YAML" TestRunnerId="130450">
-    <Line CodeunitID="133551" Description="Accuracy Tests" Dataset="MT_ACCURACY.YAML" />
+  <AITSuite Code="MT_ACCUR" Description="Marketing Text - Accuracy Tests " Dataset="MT_Acc_Inspiring_Tagline" TestRunnerId="130450">
+    <Line CodeunitID="133551" Description="Tagline - Inspiring" Dataset="MT_Acc_Inspiring_Tagline" />
+    <Line CodeunitID="133551" Description="Tagline - Formal" Dataset="MT_Acc_Formal_Tagline" />
+    <Line CodeunitID="133551" Description="Tagline - Creative" Dataset="MT_Acc_Creative_Tagline" />
+    <Line CodeunitID="133551" Description="Tagline + paragraph - Inspiring" Dataset="MT_Acc_Inspiring_TaglineParagraph" />
+    <Line CodeunitID="133551" Description="Tagline + paragraph - Formal" Dataset="MT_Acc_Formal_TaglineParagraph" />
+    <Line CodeunitID="133551" Description="Tagline + paragraph - Creative" Dataset="MT_Acc_Creative_TaglineParagraph" />
+    <Line CodeunitID="133551" Description="Brief - Inspiring" Dataset="MT_Acc_Inspiring_Brief" />
+    <Line CodeunitID="133551" Description="Brief - Formal" Dataset="MT_Acc_Formal_Brief" />
+    <Line CodeunitID="133551" Description="Brief - Creative" Dataset="MT_Acc_Creative_Brief" />
   </AITSuite>
 </Root>

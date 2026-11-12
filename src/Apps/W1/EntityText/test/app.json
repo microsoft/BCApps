@@ -2,7 +2,7 @@
   "id": "e2c47942-6fe0-4ae2-9666-76844a79f567",
   "name": "Entity Text Tests",
   "publisher": "Microsoft",
-  "version": "30.0.0.0",
+  "version": "30.1.0.0",
   "brief": "Entity Text Tests",
   "description": "Entity Text Tests",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
@@ -29,8 +29,20 @@
       "version": "30.0.0.0"
     },
     {
-      "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
-      "name": "Library Assert",
+      "id": "4f820121-b9a0-4b0a-ade8-a4fc5ee2fde1",
+      "name": "AI Evaluate Tool",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "5afe217e-507a-40b4-9aa5-f4325b6e8230",
+      "name": "Agent Test Library",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "525d63b2-73bd-4b6f-8256-f88f7252980e",
+      "name": "Red Team Scan Test Library",
       "publisher": "Microsoft",
       "version": "30.0.0.0"
     }
@@ -38,7 +50,7 @@
   "idRanges": [
     {
       "from": 133551,
-      "to": 133555
+      "to": 133556
     }
   ],
   "resourceExposurePolicy": {
