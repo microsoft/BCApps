@@ -89,6 +89,12 @@ codeunit 3702 "Environment Information Impl."
         EnvironmentInformation.Modify();
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetEnvironmentDescription', '', false, false)]
+    local procedure OnGetEnvironmentDescription(var Description: Text)
+    begin
+        Description := GetEnvironmentDescription();
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Cleanup", OnClearDatabaseConfig, '', false, false)]
     local procedure ClearEnvironmentDescriptionOnEnvironmentCopy(SourceEnv: Enum "Environment Type"; DestinationEnv: Enum "Environment Type")
     var
