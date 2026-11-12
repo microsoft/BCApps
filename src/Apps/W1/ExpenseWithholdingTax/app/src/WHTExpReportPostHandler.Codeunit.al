@@ -118,6 +118,7 @@ codeunit 7057 "WHT Exp. Report Post Handler"
         if not WHTEmployeeCalc.IsEmployeeWHTApplicable(TempGenJnlLine) then
             exit;
 
+        AddBufferedThresholdBases(WHTEmployeeCalc, TempGenJnlLine, DocumentNo);
         WHTEmployeeCalc.CalcEmployeeWHT(TempGenJnlLine, WHTAmount, WHTBaseAmount);
         if WHTBaseAmount = 0 then
             exit;
@@ -130,7 +131,23 @@ codeunit 7057 "WHT Exp. Report Post Handler"
         WHTExpReportBuffer."Expense Category" := ExpenseReportLine."Expense Category";
         WHTExpReportBuffer."WHT Base Amount (LCY)" := WHTBaseAmount;
         WHTExpReportBuffer."WHT Amount (LCY)" := WHTAmount;
+        WHTExpReportBuffer."Threshold Base Amount (LCY)" := Abs(TempGenJnlLine.Amount);
         WHTExpReportBuffer.Insert();
+    end;
+
+    local procedure AddBufferedThresholdBases(var WHTEmployeeCalc: Codeunit "WHT Employee Calculation"; EmployeeGenJnlLine: Record "Gen. Journal Line"; DocumentNo: Code[20])
+    var
+        WHTExpReportBuffer: Record "WHT Exp. Report Buffer";
+        BufferedGenJnlLine: Record "Gen. Journal Line";
+    begin
+        WHTExpReportBuffer.SetRange("Document No.", DocumentNo);
+        if WHTExpReportBuffer.FindSet() then
+            repeat
+                BufferedGenJnlLine := EmployeeGenJnlLine;
+                BufferedGenJnlLine."Wthldg. Tax Bus. Post. Group" := WHTExpReportBuffer."Wthldg. Tax Bus. Post. Group";
+                BufferedGenJnlLine."Wthldg. Tax Prod. Post. Group" := WHTExpReportBuffer."Wthldg. Tax Prod. Post. Group";
+                WHTEmployeeCalc.AddPendingThresholdBase(BufferedGenJnlLine, WHTExpReportBuffer."Threshold Base Amount (LCY)");
+            until WHTExpReportBuffer.Next() = 0;
     end;
 
     local procedure NextBufferLineNo(DocumentNo: Code[20]): Integer
@@ -177,16 +194,16 @@ codeunit 7057 "WHT Exp. Report Post Handler"
                 WorkGenJnlLine."Expense Category" := WHTExpReportBuffer."Expense Category";
 
                 if WHTEmployeeCalc.ResolveWHTGroupComponents(WorkGenJnlLine, WHTGroupCode) then
-                    PostWHTGroup(WorkGenJnlLine, WHTGroupCode, WHTExpReportBuffer."WHT Base Amount (LCY)", NextTransactionNo, NextTaxEntryNo, GenJnlPostLine)
+                    PostWHTGroup(WorkGenJnlLine, WHTGroupCode, WHTExpReportBuffer."WHT Base Amount (LCY)", WHTExpReportBuffer."Threshold Base Amount (LCY)", NextTransactionNo, NextTaxEntryNo, GenJnlPostLine)
                 else
-                    PostWHTSingle(WorkGenJnlLine, WHTExpReportBuffer."WHT Amount (LCY)", WHTExpReportBuffer."WHT Base Amount (LCY)", NextTransactionNo, NextTaxEntryNo, GenJnlPostLine);
+                    PostWHTSingle(WorkGenJnlLine, WHTExpReportBuffer."WHT Amount (LCY)", WHTExpReportBuffer."WHT Base Amount (LCY)", WHTExpReportBuffer."Threshold Base Amount (LCY)", NextTransactionNo, NextTaxEntryNo, GenJnlPostLine);
             until WHTExpReportBuffer.Next() = 0;
 
         WHTExpReportBuffer.SetRange("Document No.", EmployeeGenJnlLine."Document No.");
         WHTExpReportBuffer.DeleteAll();
     end;
 
-    local procedure PostWHTSingle(GenJnlLine: Record "Gen. Journal Line"; WHTAmount: Decimal; WHTBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
+    local procedure PostWHTSingle(GenJnlLine: Record "Gen. Journal Line"; WHTAmount: Decimal; WHTBaseAmount: Decimal; ThresholdBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     var
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
         GLEntry: Record "G/L Entry";
@@ -194,7 +211,7 @@ codeunit 7057 "WHT Exp. Report Post Handler"
     begin
         if not WHTPostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Prod. Post. Group") then begin
             if (WHTAmount = 0) and (WHTBaseAmount <> 0) then
-                WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(GenJnlLine, WHTBaseAmount);
+                WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(GenJnlLine, ThresholdBaseAmount);
             exit;
         end;
 
@@ -205,13 +222,13 @@ codeunit 7057 "WHT Exp. Report Post Handler"
             GenJnlPostLine.InsertGLEntry(GenJnlLine, GLEntry, true);
         end;
 
-        WHTEmployeeCalc.InsertEmployeeWithholdingTaxEntry(GenJnlLine, WHTAmount, WHTBaseAmount, NextTransactionNo, NextTaxEntryNo);
+        WHTEmployeeCalc.InsertEmployeeWithholdingTaxEntry(GenJnlLine, WHTAmount, WHTBaseAmount, ThresholdBaseAmount, NextTransactionNo, NextTaxEntryNo);
 
         if (WHTAmount = 0) and (WHTBaseAmount <> 0) then
-            WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(GenJnlLine, WHTBaseAmount);
+            WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(GenJnlLine, ThresholdBaseAmount);
     end;
 
-    local procedure PostWHTGroup(GenJnlLine: Record "Gen. Journal Line"; WHTGroupCode: Code[20]; WHTBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
+    local procedure PostWHTGroup(GenJnlLine: Record "Gen. Journal Line"; WHTGroupCode: Code[20]; WHTBaseAmount: Decimal; ThresholdBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     var
         WHTGroupLine: Record "Withholding Tax Group Line";
         ComponentSetup: Record "Withholding Tax Posting Setup";
@@ -240,7 +257,7 @@ codeunit 7057 "WHT Exp. Report Post Handler"
                     end;
 
                     WHTEmployeeCalc.InsertEmployeeWHTComponentEntry(
-                        GenJnlLine, WHTGroupLine, ComponentWHT, WHTBaseAmount, NextTransactionNo, NextTaxEntryNo);
+                        GenJnlLine, WHTGroupLine, ComponentWHT, WHTBaseAmount, ThresholdBaseAmount, NextTransactionNo, NextTaxEntryNo);
                 end;
 
                 if ParentSetup."Calculation Method" = ParentSetup."Calculation Method"::Compound then
