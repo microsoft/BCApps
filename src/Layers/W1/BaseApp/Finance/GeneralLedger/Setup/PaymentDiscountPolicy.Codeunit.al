@@ -6,7 +6,7 @@ namespace Microsoft.Finance.GeneralLedger.Setup;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 
-codeunit 324 "Payment Discount Policy" implements "Payment Discount Policy"
+codeunit 352 "Payment Discount Policy" implements "Payment Discount Policy"
 {
     procedure CheckVATPaymentDiscountAdjustment(GLSetup: Record "General Ledger Setup")
     begin

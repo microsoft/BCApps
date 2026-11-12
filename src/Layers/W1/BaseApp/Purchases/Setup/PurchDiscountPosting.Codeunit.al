@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Setup;
 
-codeunit 310 "Purch. Discount Posting" implements "Purchase Discount Posting"
+codeunit 350 "Purch. Discount Posting" implements "Purchase Discount Posting"
 {
     procedure ShouldPostInvoiceDiscount(PurchSetup: Record "Purchases & Payables Setup"): Boolean
     begin

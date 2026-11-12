@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Setup;
 
-codeunit 323 "Sales Discount Posting" implements "Sales Discount Posting"
+codeunit 351 "Sales Discount Posting" implements "Sales Discount Posting"
 {
     procedure ShouldPostInvoiceDiscount(SalesSetup: Record "Sales & Receivables Setup"): Boolean
     begin
