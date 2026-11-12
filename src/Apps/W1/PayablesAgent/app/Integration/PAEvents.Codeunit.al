@@ -91,7 +91,24 @@ codeunit 3316 "PA Events"
         if not TryFindAgentTaskID(EDocument, AgentTaskID) then
             exit;
 
-        PayablesAgent.SetAgentTaskTitle(AgentTaskID, CopyStr(EDocumentPurchaseHeader."Sales Invoice No.", 1, 50), CopyStr(EDocumentPurchaseHeader."Vendor Company Name", 1, 100));
+        PayablesAgent.SetAgentTaskTitle(AgentTaskID, IsCreditNote(EDocument), CopyStr(EDocumentPurchaseHeader."Sales Invoice No.", 1, 50), CopyStr(EDocumentPurchaseHeader."Vendor Company Name", 1, 100));
+    end;
+
+    local procedure IsCreditNote(EDocument: Record "E-Document"): Boolean
+    var
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
+        InStream: InStream;
+        StructuredData: Text;
+        SourceJsonObject: JsonObject;
+    begin
+        if not EDocDataStorage.Get(EDocument."Structured Data Entry No.") then
+            exit(false);
+        EDocDataStorage.GetTempBlob().CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.Read(StructuredData);
+        if not SourceJsonObject.ReadFrom(StructuredData) then
+            exit(false);
+        exit(EDocMLLMSchemaHelper.IsCreditNote(SourceJsonObject));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. M365 Conn. Events", OnGetOutlookCategoryDescription, '', false, false)]
