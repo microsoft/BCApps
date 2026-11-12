@@ -261,6 +261,7 @@ codeunit 133772 "Remittance Purch & Sales UT"
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         InvoiceNo: Code[20];
         PaymentNo: Code[20];
         VendorNo: Code[20];
@@ -270,6 +271,7 @@ codeunit 133772 "Remittance Purch & Sales UT"
     begin
         // [SCENARIO 423527] Applied Amount in report "Remittance Advice - Entries" results when Payment Vendor Ledger Entry is applied, then unapplied, then applied again.
         Initialize();
+        LibraryERMCountryData.UpdateGeneralLedgerSetup();
 
         // [GIVEN] Posted Purchase Invoice and posted Payment. Both have Vendor "V" and Amount 1000.
         VendorNo := LibraryPurchase.CreateVendorNo();
