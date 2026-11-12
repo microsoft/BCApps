@@ -6462,7 +6462,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
           RealizedVATAmount, RealizedVATBase, RealizedVATAmountAddCurr, RealizedVATBaseAddCurr, '', '');
     end;
 
-    local procedure PostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; GLRegisterEntryNo: Integer; RealizedVATAmount: Decimal; RealizedVATBase: Decimal; RealizedVATAmountAddCurr: Decimal; RealizedVATBaseAddCurr: Decimal; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
+    local procedure PostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; VATGLEntryNo: Integer; RealizedVATAmount: Decimal; RealizedVATBase: Decimal; RealizedVATAmountAddCurr: Decimal; RealizedVATBaseAddCurr: Decimal; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
     begin
         OnBeforePostUnrealVATEntry(GenJnlLine, VATEntry);
         if not GLSetup.UseConcurrentPosting() then
@@ -6496,12 +6496,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATEntry.TestField("G/L Register No.");
         OnBeforeInsertPostUnrealVATEntry(VATEntry, GenJnlLine, VATEntry2);
         VATEntry.Insert(true);
-       OnPostUnrealVATEntryOnBeforeInsertLinkSelf(TempGLEntryVATEntryLink, VATEntry, GLRegisterEntryNo, NextVATEntryNo);
-        if GLRegisterEntryNo <> 0 then
+        OnPostUnrealVATEntryOnBeforeInsertLinkSelf(TempGLEntryVATEntryLink, VATEntry, VATGLEntryNo, NextVATEntryNo);
+        if VATGLEntryNo <> 0 then
             if GLSetup.UseConcurrentPosting() then
-                TempSummarizedVATEntryLink.InsertLinkSelf(GLRegisterEntryNo, NextVATEntryNo)
+                TempSummarizedVATEntryLink.InsertLinkSelf(VATGLEntryNo, NextVATEntryNo)
             else
-                TempGLEntryVATEntryLink.InsertLinkSelf(GLRegisterEntryNo + 1, NextVATEntryNo);
+                TempGLEntryVATEntryLink.InsertLinkSelf(VATGLEntryNo + 1, NextVATEntryNo);
         NextVATEntryNo := GetNextVATEntryNoForPosting(NextVATEntryNo);
         VATEntry2."Remaining Unrealized Amount" :=
           VATEntry2."Remaining Unrealized Amount" - VATAmount;
@@ -6516,7 +6516,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATEntry2."Add.-Curr. Realized Amount" -= RealizedVATAmountAddCurr;
         VATEntry2."Add.-Curr. Realized Base" -= RealizedVATBaseAddCurr;
         VATEntry2.Modify();
-        OnAfterPostUnrealVATEntry(GenJnlLine, VATEntry2, VATAmount, VATBase, GLRegisterEntryNo, NextEntryNo, NextVATEntryNo);
+        OnAfterPostUnrealVATEntry(GenJnlLine, VATEntry2, VATAmount, VATBase, VATGLEntryNo, NextEntryNo, NextVATEntryNo);
     end;
 
     /// <summary>
