@@ -4645,7 +4645,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
           GainLossLCY, CurrencyFactor, PostingDate, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded);
     end;
 
-    local procedure CustUnrealizedVAT(ShouldConsiderVATPostingGrouping: Boolean; TempVATPostingSetup: Record "VAT Posting Setup" temporary; GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; GainLossLCY: Decimal; AppliedCurrencyFactor: Decimal; PostingDate: Date; var TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary; var InvoiceVATGroupsLoaded: Boolean)
+    local procedure CustUnrealizedVAT(ShouldConsiderVATPostingGrouping: Boolean; TempAppliedVATPostingSetup: Record "VAT Posting Setup" temporary; GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; GainLossLCY: Decimal; AppliedCurrencyFactor: Decimal; PostingDate: Date; var TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary; var InvoiceVATGroupsLoaded: Boolean)
     var
         VATEntry2: Record "VAT Entry";
         TaxJurisdiction: Record "Tax Jurisdiction";
@@ -4687,8 +4687,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
             (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") and
             (((CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::Invoice) and ShouldConsiderVATPostingGrouping) or
              (CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::"Credit Memo")));
-        InvoiceVATBusPostingGroup := TempVATPostingSetup."VAT Bus. Posting Group";
-        InvoiceVATProdPostingGroup := TempVATPostingSetup."VAT Prod. Posting Group";
+        InvoiceVATBusPostingGroup := TempAppliedVATPostingSetup."VAT Bus. Posting Group";
+        InvoiceVATProdPostingGroup := TempAppliedVATPostingSetup."VAT Prod. Posting Group";
         CreditMemoDocumentNo := GenJnlLine."Document No.";
         if CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::"Credit Memo" then
             CreditMemoDocumentNo := CustLedgEntry2."Document No.";
@@ -4697,7 +4697,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
            (CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::Invoice)
         then
             if not CustLedgEntry2.GetInvoiceVATPostingGroupForCreditMemoVATGroup(
-                 CreditMemoDocumentNo, TempVATPostingSetup."VAT Bus. Posting Group", TempVATPostingSetup."VAT Prod. Posting Group",
+                 CreditMemoDocumentNo, TempAppliedVATPostingSetup."VAT Bus. Posting Group", TempAppliedVATPostingSetup."VAT Prod. Posting Group",
                  InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded)
             then
                 exit;
@@ -4727,7 +4727,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 InvoicePartAmountByVAT := CustLedgEntry2.GetInvoicePartAmountByVAT(CustLedgEntry2."Document Type", GenJnlLine, InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup);
                 SettledAmountByVAT :=
                     CustLedgEntry2.GetCreditMemoPartAmountByVAT(
-                        CreditMemoDocumentNo, TempVATPostingSetup."VAT Bus. Posting Group", TempVATPostingSetup."VAT Prod. Posting Group", SettledAmount,
+                        CreditMemoDocumentNo, TempAppliedVATPostingSetup."VAT Bus. Posting Group", TempAppliedVATPostingSetup."VAT Prod. Posting Group", SettledAmount,
                         CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup);
             end;
             LastConnectionNo := 0;
