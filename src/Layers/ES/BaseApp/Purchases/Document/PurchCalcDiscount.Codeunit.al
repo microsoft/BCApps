@@ -280,6 +280,9 @@ codeunit 70 "Purch.-Calc.Discount"
             if UpdateHeader then
                 PurchHeader.Modify();
 
+            if GLSetup."Payment Discount Type" = GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines" then
+                PurchLine2.CalcVATAmountLines(0, PurchHeader, PurchLine2, TempVATAmountLine);
+
             TempVATAmountLine.SetInvoiceDiscountPercent(
               VendInvDisc."Discount %", PurchHeader."Currency Code",
               PurchHeader."Prices Including VAT", PurchSetup."Calc. Inv. Disc. per VAT ID",
