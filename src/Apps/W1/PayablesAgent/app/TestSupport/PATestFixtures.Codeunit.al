@@ -208,9 +208,9 @@ codeunit 3326 "PA Test Fixtures"
     begin
         Setup.GetOrCreateSetup();
         if Selected then
-            Setup.Validate("Preview Version", Setup."Preview Version"::"V2 Preview")
+            Setup."Preview Version" := Setup."Preview Version"::"V2 Preview"
         else
-            Setup.Validate("Preview Version", Setup."Preview Version"::" ");
+            Setup."Preview Version" := Setup."Preview Version"::" ";
         Setup.Modify();
     end;
 

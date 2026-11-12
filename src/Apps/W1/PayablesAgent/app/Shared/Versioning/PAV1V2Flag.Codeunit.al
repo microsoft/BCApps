@@ -39,7 +39,7 @@ codeunit 3339 "PA V1V2 Flag"
         TenantId: Text;
     begin
         TenantId := LowerCase(DelChr(AzureADTenant.GetAadTenantId(), '=', '{}'));
-        if not (TenantId in [PreviewTenantIdTok, 'common', '']) then
+        if (TenantId <> PreviewTenantIdTok) and (TenantId <> 'common') then
             Error(V2PreviewNotAllowedErr);
     end;
 #endif
