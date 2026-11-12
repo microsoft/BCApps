@@ -2033,6 +2033,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
         TempBlob: Codeunit "Temp Blob";
+        BuyerSIRENInvalidErr: Label 'Registration No. must contain exactly nine digits for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.', Locked = true;
     begin
         // [GIVEN] Invoice "SI" for customer "C" with an invalid SIREN and an explicit electronic address.
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithElecAddress('987654321_001'));
@@ -2044,8 +2045,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         asserterror CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
 
         // [THEN] Generation fails explicitly instead of emitting a malformed legal identifier.
-        AssertExpectedDialogError(StrSubstNo(
-            'Registration No. must contain exactly nine digits for Customer %1 for French e-invoicing.', Customer."No."));
+        AssertExpectedDialogError(StrSubstNo(BuyerSIRENInvalidErr, Customer."No."));
     end;
 
     local procedure AssertExpectedDialogError(ExpectedErrorText: Text)
