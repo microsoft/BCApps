@@ -1,4 +1,6 @@
+#pragma warning disable AA0247
 codeunit 139514 "Xml Data Handling SAF-T Test" implements XmlDataHandlingSAFT
+#pragma warning restore AA0247
 {
     var
         NamespacePrefixTxt: label 'n1', Locked = true;
@@ -40,7 +42,9 @@ codeunit 139514 "Xml Data Handling SAF-T Test" implements XmlDataHandlingSAFT
     begin
     end;
 
+#pragma warning disable AA0150
     procedure SetCurrXmlElementNameValue(var Name: Text; var Content: Text; var EmptyContentAllowed: Boolean; RecRef: RecordRef; XPath: Text; var Params: Dictionary of [Text, Text])
+#pragma warning restore AA0150
     begin
     end;
 
