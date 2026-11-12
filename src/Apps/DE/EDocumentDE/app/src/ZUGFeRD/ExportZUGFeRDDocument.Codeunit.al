@@ -50,6 +50,9 @@ codeunit 13917 "Export ZUGFeRD Document"
         StartEventNameTok: Label 'E-document ZUGFeRD export started', Locked = true;
         EndEventNameTok: Label 'E-document ZUGFeRD export completed', Locked = true;
         GLNSchemeIDTok: Label '0088', Locked = true;
+        // The platform writes ConformanceLevel EXTENDED into the PDF/A-3 XMP metadata, so the embedded XML must declare the same ZUGFeRD profile.
+        ZUGFeRDExtendedGuidelineIdTok: Label 'urn:cen.eu:en16931:2017#conformant#urn:factur-x.eu:1p0:extended', Locked = true;
+        ZUGFeRDXmlFileNameTok: Label 'factur-x.xml', Locked = true;
         XmlNamespaceRSM: Text;
         XmlNamespaceRAM: Text;
         XmlNamespaceUDT: Text;
@@ -162,7 +165,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         DescriptionLbl: Label 'This is the e-invoicing xml document';
     begin
         PDFDocument.Initialize();
-        Name := 'xrechnung.xml';
+        Name := ZUGFeRDXmlFileNameTok;
         DataType := Enum::"PDF Attach. Data Relationship"::Alternative;
         MimeType := 'text/xml';
         Description := DescriptionLbl;
@@ -525,7 +528,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         ExchangedDocumentContextElement.Add(BusinessProcessContextElement);
 
         GuidelineSpecifiedDocumentContextParameterElement := XmlElement.Create('GuidelineSpecifiedDocumentContextParameter', XmlNamespaceRAM);
-        GuidelineSpecifiedDocumentContextParameterElement.Add(XmlElement.Create('ID', XmlNamespaceRAM, 'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0'));
+        GuidelineSpecifiedDocumentContextParameterElement.Add(XmlElement.Create('ID', XmlNamespaceRAM, ZUGFeRDExtendedGuidelineIdTok));
         ExchangedDocumentContextElement.Add(GuidelineSpecifiedDocumentContextParameterElement);
         RootXMLNode.Add(ExchangedDocumentContextElement);
         ExchangedDocumentElement := XmlElement.Create('ExchangedDocument', XmlNamespaceRSM);
@@ -549,7 +552,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         ExchangedDocumentContextElement.Add(BusinessProcessContextElement);
 
         GuidelineSpecifiedDocumentContextParameterElement := XmlElement.Create('GuidelineSpecifiedDocumentContextParameter', XmlNamespaceRAM);
-        GuidelineSpecifiedDocumentContextParameterElement.Add(XmlElement.Create('ID', XmlNamespaceRAM, 'urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0'));
+        GuidelineSpecifiedDocumentContextParameterElement.Add(XmlElement.Create('ID', XmlNamespaceRAM, ZUGFeRDExtendedGuidelineIdTok));
         ExchangedDocumentContextElement.Add(GuidelineSpecifiedDocumentContextParameterElement);
         RootXMLNode.Add(ExchangedDocumentContextElement);
         ExchangedDocumentElement := XmlElement.Create('ExchangedDocument', XmlNamespaceRSM);
