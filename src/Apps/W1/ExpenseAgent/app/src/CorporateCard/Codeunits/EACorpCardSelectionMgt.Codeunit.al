@@ -152,6 +152,58 @@ codeunit 7447 "EA Corp Card Selection Mgt"
         exit(GetCardDisplay(CorpCard, CorpCard."Provider Short Name"));
     end;
 
+    internal procedure GetCardDisplay(CardId: Code[50]; var CardDisplays: Dictionary of [Code[50], Text[150]]): Text[150]
+    var
+        CardDisplay: Text[150];
+    begin
+        if CardId = '' then
+            exit('');
+        if not CardDisplays.Get(CardId, CardDisplay) then begin
+            // A card selected on an unsaved line is not in the report query yet.
+            CardDisplay := GetCardDisplay(CardId);
+            CardDisplays.Add(CardId, CardDisplay);
+        end;
+        exit(CardDisplay);
+    end;
+
+    internal procedure LoadReportCardDisplays(ReportNo: Code[20]; var CardDisplays: Dictionary of [Code[50], Text[150]])
+    var
+        ReportCardDisplays: Query "EA Report Card Displays";
+    begin
+        Clear(CardDisplays);
+        ReportCardDisplays.SetRange(DocumentNo, ReportNo);
+        ReportCardDisplays.Open();
+        while ReportCardDisplays.Read() do
+            AddCardDisplay(
+                ReportCardDisplays.CardId, ReportCardDisplays.ProviderCode, ReportCardDisplays.MaskedCardNo,
+                ReportCardDisplays.ProviderShortName, CardDisplays);
+        ReportCardDisplays.Close();
+    end;
+
+    internal procedure LoadPostedReportCardDisplays(ReportNo: Code[20]; var CardDisplays: Dictionary of [Code[50], Text[150]])
+    var
+        PostedReportCardDisplays: Query "EA Posted Report Card Displays";
+    begin
+        Clear(CardDisplays);
+        PostedReportCardDisplays.SetRange(DocumentNo, ReportNo);
+        PostedReportCardDisplays.Open();
+        while PostedReportCardDisplays.Read() do
+            AddCardDisplay(
+                PostedReportCardDisplays.CardId, PostedReportCardDisplays.ProviderCode, PostedReportCardDisplays.MaskedCardNo,
+                PostedReportCardDisplays.ProviderShortName, CardDisplays);
+        PostedReportCardDisplays.Close();
+    end;
+
+    local procedure AddCardDisplay(CardId: Code[50]; ProviderCode: Code[20]; MaskedCardNo: Text[30]; ProviderShortName: Text[4]; var CardDisplays: Dictionary of [Code[50], Text[150]])
+    var
+        CorpCard: Record "EA Corp Card";
+    begin
+        CorpCard."Card Id" := CardId;
+        CorpCard."Provider Code" := ProviderCode;
+        CorpCard."Masked Card No." := MaskedCardNo;
+        CardDisplays.Set(CardId, GetCardDisplay(CorpCard, ProviderShortName));
+    end;
+
     internal procedure GetCardDisplay(CorpCard: Record "EA Corp Card"; ProviderShortName: Text[4]): Text[150]
     begin
         if CorpCard."Provider Code" = '' then

@@ -666,12 +666,21 @@ page 6999 "Expense Report SubPage"
         UpdateControls();
     end;
 
+    trigger OnFindRecord(Which: Text): Boolean
+    begin
+        Clear(CardDisplayDocumentNo);
+        Clear(CardDisplays);
+        exit(Rec.Find(Which));
+    end;
+
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
         ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        CardDisplays: Dictionary of [Code[50], Text[150]];
+        CardDisplayDocumentNo: Code[20];
         CorporateCardDisplay: Text[150];
         CorporateCardMandatory: Boolean;
         TotalAmountLCY: Decimal;
@@ -692,7 +701,11 @@ page 6999 "Expense Report SubPage"
 
     local procedure UpdateControls()
     begin
-        CorporateCardDisplay := CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id");
+        if CardDisplayDocumentNo <> Rec."Document No." then begin
+            CorpCardSelectionMgt.LoadReportCardDisplays(Rec."Document No.", CardDisplays);
+            CardDisplayDocumentNo := Rec."Document No.";
+        end;
+        CorporateCardDisplay := CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id", CardDisplays);
         CorporateCardMandatory := Rec."Reimbursement Type" = Rec."Reimbursement Type"::"Credit Card";
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;

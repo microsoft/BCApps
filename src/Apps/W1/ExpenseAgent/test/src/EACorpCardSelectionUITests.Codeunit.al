@@ -19,36 +19,22 @@ codeunit 148365 EACorpCardSelectionUITests
         CorpCardTestLib: Codeunit EACorpCardTestLib;
 
     [Test]
-    procedure ExpenseCardCorporateCardFieldOpensAndReflectsDocumentState()
+    procedure OpenManualExpenseAllowsCorporateCardSelection()
     var
         CorpCard: Record "EA Corp Card";
-        CorpCardTrans: Record "EA Corp Card Trans";
         ManualExpense: Record Expense;
-        ReleasedExpense: Record Expense;
-        LinkedExpense: Record Expense;
-        EmployeePaidExpense: Record Expense;
         LibraryExpense: Codeunit "Library - Expense";
         ExpenseCard: TestPage Expense;
     begin
-        // [SCENARIO] Corporate card selection reflects the expense's payment method, release status, and feed link.
+        // [SCENARIO] An open manual credit-card expense allows and requires corporate card selection.
         Initialize();
 
-        // [GIVEN] Open manual, released, feed-linked, and employee-paid expenses.
+        // [GIVEN] An open manual expense is paid by credit card.
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InsertExpense(ManualExpense, CorpCard);
-        CorpCardTestLib.InsertExpense(ReleasedExpense, CorpCard);
-        ReleasedExpense.Status := ReleasedExpense.Status::Released;
-        ReleasedExpense.Modify();
-        CorpCardTestLib.InsertExpense(LinkedExpense, CorpCard);
-        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
-        LinkedExpense."Credit Card Feed No." := CorpCardTrans."Entry No.";
-        LinkedExpense.Modify();
-        CorpCardTestLib.InitializeExpense(EmployeePaidExpense, CorpCard);
-        EmployeePaidExpense."Reimbursement Type" := EmployeePaidExpense."Reimbursement Type"::"Employee Paid";
-        EmployeePaidExpense.Insert();
 
-        // [WHEN] An open manual credit-card expense is shown.
+        // [WHEN] The expense is shown.
         ExpenseCard.OpenEdit();
         ExpenseCard.GoToRecord(ManualExpense);
 
@@ -56,21 +42,86 @@ codeunit 148365 EACorpCardSelectionUITests
         Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'The corporate card must be shown for a credit-card expense.');
         Assert.IsTrue(ExpenseCard.CorporateCard.Editable(), 'An open manual expense must allow card selection.');
         Assert.IsTrue(ExpenseCard.CorporateCard.ShowMandatory(), 'Credit-card expenses must indicate that a corporate card is required.');
+        ExpenseCard.Close();
+    end;
 
-        // [WHEN] The released expense is shown.
+    [Test]
+    procedure ReleasedExpenseDisablesCorporateCardSelection()
+    var
+        CorpCard: Record "EA Corp Card";
+        ReleasedExpense: Record Expense;
+        LibraryExpense: Codeunit "Library - Expense";
+        ExpenseCard: TestPage Expense;
+    begin
+        // [SCENARIO] A released expense shows its corporate card without allowing selection changes.
+        Initialize();
+
+        // [GIVEN] A released expense has a selected corporate card.
+        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.InsertExpense(ReleasedExpense, CorpCard);
+        ReleasedExpense.Status := ReleasedExpense.Status::Released;
+        ReleasedExpense.Modify();
+
+        // [WHEN] The expense is shown.
+        ExpenseCard.OpenEdit();
         ExpenseCard.GoToRecord(ReleasedExpense);
 
         // [THEN] The selected card remains visible but cannot be changed.
         Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'The selected card must remain visible after release.');
         Assert.IsFalse(ExpenseCard.CorporateCard.Editable(), 'A released expense must not allow card selection.');
+        ExpenseCard.Close();
+    end;
 
-        // [WHEN] The feed-linked expense is shown.
+    [Test]
+    procedure FeedLinkedExpenseDisablesCorporateCardSelection()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        LinkedExpense: Record Expense;
+        LibraryExpense: Codeunit "Library - Expense";
+        ExpenseCard: TestPage Expense;
+    begin
+        // [SCENARIO] A feed-linked expense cannot change its corporate card selection.
+        Initialize();
+
+        // [GIVEN] An expense is linked to a transaction for its selected card.
+        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.InsertExpense(LinkedExpense, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        LinkedExpense."Credit Card Feed No." := CorpCardTrans."Entry No.";
+        LinkedExpense.Modify();
+
+        // [WHEN] The expense is shown.
+        ExpenseCard.OpenEdit();
         ExpenseCard.GoToRecord(LinkedExpense);
 
         // [THEN] Card selection is disabled.
         Assert.IsFalse(ExpenseCard.CorporateCard.Editable(), 'A feed-linked expense must not allow card selection.');
+        ExpenseCard.Close();
+    end;
 
-        // [WHEN] The employee-paid expense is shown.
+    [Test]
+    procedure EmployeePaidExpenseDoesNotRequireCorporateCard()
+    var
+        CorpCard: Record "EA Corp Card";
+        EmployeePaidExpense: Record Expense;
+        LibraryExpense: Codeunit "Library - Expense";
+        ExpenseCard: TestPage Expense;
+    begin
+        // [SCENARIO] An employee-paid expense shows the card selector without allowing or requiring selection.
+        Initialize();
+
+        // [GIVEN] An expense is paid by the employee rather than by corporate card.
+        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.InitializeExpense(EmployeePaidExpense, CorpCard);
+        EmployeePaidExpense."Reimbursement Type" := EmployeePaidExpense."Reimbursement Type"::"Employee Paid";
+        EmployeePaidExpense.Insert();
+
+        // [WHEN] The expense is shown.
+        ExpenseCard.OpenEdit();
         ExpenseCard.GoToRecord(EmployeePaidExpense);
 
         // [THEN] The selector remains visible but is neither editable nor mandatory.
@@ -384,17 +435,66 @@ codeunit 148365 EACorpCardSelectionUITests
         EmployeePaidReportLine: Record "Expense Report Line";
         ExpenseReportSubPage: TestPage "Expense Report SubPage";
     begin
+        // [SCENARIO] Navigating between report lines updates whether a corporate card is mandatory.
         Initialize();
+
+        // [GIVEN] A credit-card report line and an employee-paid report line.
         CreateManualReportLine(CreditCardReportLine);
         CreateManualReportLine(EmployeePaidReportLine);
         EmployeePaidReportLine."Reimbursement Type" := EmployeePaidReportLine."Reimbursement Type"::"Employee Paid";
         EmployeePaidReportLine.Modify();
 
+        // [WHEN] The user opens the list and navigates between the two lines.
         ExpenseReportSubPage.OpenEdit();
         ExpenseReportSubPage.GoToRecord(CreditCardReportLine);
+
+        // [THEN] The credit-card line indicates that a corporate card is required.
         Assert.IsTrue(ExpenseReportSubPage.CorporateCard.ShowMandatory(), 'Credit-card report lines must indicate that a corporate card is required.');
+
         ExpenseReportSubPage.GoToRecord(EmployeePaidReportLine);
+
+        // [THEN] The employee-paid line does not require a corporate card.
         Assert.IsFalse(ExpenseReportSubPage.CorporateCard.ShowMandatory(), 'Employee-paid report lines must not require a corporate card.');
+        ExpenseReportSubPage.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('SelectExpenseUsersCardHandler')]
+    procedure ReportCardDisplayUpdatesAfterSelectionAndListRefresh()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardProvider: Record "EA Corp Card Provider";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportSubPage: TestPage "Expense Report SubPage";
+    begin
+        // [SCENARIO] A selected card is shown immediately and a refreshed list reloads provider edits.
+        Initialize();
+
+        // [GIVEN] A saved report line has no selected card.
+        CreateManualReportLine(ExpenseReportLine);
+        ExpenseReportLine.Description := 'Card display refresh';
+        ExpenseReportLine.Modify();
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardProvider.Get(CorpCard."Provider Code");
+        CorpCardProvider."Short Name" := 'VISA';
+        CorpCardProvider.Modify();
+        ExpenseReportSubPage.OpenEdit();
+        ExpenseReportSubPage.GoToRecord(ExpenseReportLine);
+        ExpenseReportSubPage.CorporateCard.AssertEquals('');
+
+        // [WHEN] A card not yet in the report's batch is selected.
+        ExpenseReportSubPage.CorporateCard.Lookup();
+
+        // [THEN] The selected card is displayed immediately.
+        ExpenseReportSubPage.CorporateCard.AssertEquals('VISA 0001');
+
+        // [WHEN] The provider changes and a new list read is requested.
+        CorpCardProvider."Short Name" := 'AMEX';
+        CorpCardProvider.Modify();
+        ExpenseReportSubPage.Filter.SetFilter(Description, ExpenseReportLine.Description);
+
+        // [THEN] The batch does not retain the old provider display.
+        ExpenseReportSubPage.CorporateCard.AssertEquals('AMEX 0001');
         ExpenseReportSubPage.Close();
     end;
 

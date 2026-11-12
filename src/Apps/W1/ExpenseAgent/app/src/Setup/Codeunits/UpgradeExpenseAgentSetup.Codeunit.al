@@ -246,47 +246,38 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
-        CorpCardTrans: Record "EA Corp Card Trans";
         UpgradeTag: Codeunit "Upgrade Tag";
+        ExpenseCardIdentity: Query "EA Expense Card Identity";
+        ReportCardIdentity: Query "EA Report Card Identity";
+        PostedReportCardIdentity: Query "EA Posted Report Card Identity";
     begin
         if UpgradeTag.HasUpgradeTag(GetCorporateCardIdentityUpgradeTag()) then
             exit;
 
-        CorpCardTrans.SetLoadFields("Card Id");
-
         // Legacy feed links do not distinguish imported drafts from manually linked expenses.
         Expense.SetRange("Corporate Card Id", '');
-        Expense.SetFilter("Credit Card Feed No.", '<>%1', 0);
-        Expense.SetLoadFields("Credit Card Feed No.", "Corporate Card Id");
-        if Expense.FindSet(true) then
-            repeat
-                if CorpCardTrans.Get(Expense."Credit Card Feed No.") then begin
-                    Expense."Corporate Card Id" := CorpCardTrans."Card Id";
-                    Expense.Modify(false);
-                end;
-            until Expense.Next() = 0;
+        ExpenseCardIdentity.Open();
+        while ExpenseCardIdentity.Read() do begin
+            Expense.SetRange("Credit Card Feed No.", ExpenseCardIdentity.FeedEntryNo);
+            Expense.ModifyAll("Corporate Card Id", ExpenseCardIdentity.CardId, false);
+        end;
+        ExpenseCardIdentity.Close();
 
         ExpenseReportLine.SetRange("Corporate Card Id", '');
-        ExpenseReportLine.SetFilter("Credit Card Feed No.", '<>%1', 0);
-        ExpenseReportLine.SetLoadFields("Credit Card Feed No.", "Corporate Card Id");
-        if ExpenseReportLine.FindSet(true) then
-            repeat
-                if CorpCardTrans.Get(ExpenseReportLine."Credit Card Feed No.") then begin
-                    ExpenseReportLine."Corporate Card Id" := CorpCardTrans."Card Id";
-                    ExpenseReportLine.Modify(false);
-                end;
-            until ExpenseReportLine.Next() = 0;
+        ReportCardIdentity.Open();
+        while ReportCardIdentity.Read() do begin
+            ExpenseReportLine.SetRange("Credit Card Feed No.", ReportCardIdentity.FeedEntryNo);
+            ExpenseReportLine.ModifyAll("Corporate Card Id", ReportCardIdentity.CardId, false);
+        end;
+        ReportCardIdentity.Close();
 
         PostedExpenseReportLine.SetRange("Corporate Card Id", '');
-        PostedExpenseReportLine.SetFilter("Credit Card Feed No.", '<>%1', 0);
-        PostedExpenseReportLine.SetLoadFields("Credit Card Feed No.", "Corporate Card Id");
-        if PostedExpenseReportLine.FindSet(true) then
-            repeat
-                if CorpCardTrans.Get(PostedExpenseReportLine."Credit Card Feed No.") then begin
-                    PostedExpenseReportLine."Corporate Card Id" := CorpCardTrans."Card Id";
-                    PostedExpenseReportLine.Modify(false);
-                end;
-            until PostedExpenseReportLine.Next() = 0;
+        PostedReportCardIdentity.Open();
+        while PostedReportCardIdentity.Read() do begin
+            PostedExpenseReportLine.SetRange("Credit Card Feed No.", PostedReportCardIdentity.FeedEntryNo);
+            PostedExpenseReportLine.ModifyAll("Corporate Card Id", PostedReportCardIdentity.CardId, false);
+        end;
+        PostedReportCardIdentity.Close();
 
         UpgradeTag.SetUpgradeTag(GetCorporateCardIdentityUpgradeTag());
     end;
