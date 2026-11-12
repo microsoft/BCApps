@@ -13,7 +13,6 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
