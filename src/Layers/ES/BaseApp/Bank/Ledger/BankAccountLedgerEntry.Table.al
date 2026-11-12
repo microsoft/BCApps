@@ -501,10 +501,6 @@ table 271 "Bank Account Ledger Entry"
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
-        field(7000000; "Bill No."; Code[20])
-        {
-            Caption = 'Bill No.';
-        }
     }
 
     keys

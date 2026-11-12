@@ -10,7 +10,6 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
@@ -20,7 +19,7 @@ using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
-using Microsoft.Sales.Receivables;
+using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Automation;
@@ -346,11 +345,6 @@ page 44 "Sales Credit Memo"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                }
-                field("Applies-to Bill No."; Rec."Applies-to Bill No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if you want to apply an open receivable bill with a credit memo from a customer.';
                 }
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
@@ -767,18 +761,6 @@ page 44 "Sales Credit Memo"
                 SubPageLink = "No." = field("Sell-to Customer No."),
                               "Date Filter" = field("Date Filter");
             }
-            part(Control1903433807; "Cartera Receiv. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Bill-to Customer No.");
-                Visible = true;
-            }
-            part(Control1903433607; "Cartera Fact. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Bill-to Customer No.");
-                Visible = true;
-            }
             part(Control1906127307; "Sales Line FactBox")
             {
                 ApplicationArea = Basic, Suite;
@@ -1054,19 +1036,6 @@ page 44 "Sales Credit Memo"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
-                action(CalculateInvoiceDiscount)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Calculate &Inv. and Pmt. Discounts';
-                    Image = CalculateDiscount;
-                    ToolTip = 'Update the lines with any payment discount that is specified in the related payment terms.';
-
-                    trigger OnAction()
-                    begin
-                        ApproveCalcInvDisc();
-                        SalesCalcDiscByType.ResetRecalculateInvoiceDisc(Rec);
-                    end;
-                }
                 action(GetPostedDocumentLinesToReverse)
                 {
                     ApplicationArea = Basic, Suite;
@@ -1080,6 +1049,20 @@ page 44 "Sales Credit Memo"
                         Rec.GetPstdDocLinesToReverse();
                         CurrPage.SalesLines.Page.ForceTotalsCalculation();
                         CurrPage.Update();
+                    end;
+                }
+                action(CalculateInvoiceDiscount)
+                {
+                    AccessByPermission = TableData "Cust. Invoice Disc." = R;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Calculate &Inv. and Pmt. Discounts';
+                    Image = CalculateDiscount;
+                    ToolTip = 'Update the lines with any payment discount that is specified in the related payment terms.';
+
+                    trigger OnAction()
+                    begin
+                        ApproveCalcInvDisc();
+                        SalesCalcDiscByType.ResetRecalculateInvoiceDisc(Rec);
                     end;
                 }
                 action(ApplyEntries)
@@ -1497,6 +1480,7 @@ page 44 "Sales Credit Memo"
         WorkDescription := Rec.GetWorkDescription();
         SellToContact.GetOrClear(Rec."Sell-to Contact No.");
         BillToContact.GetOrClear(Rec."Bill-to Contact No.");
+
         OnAfterOnAfterGetRecord(Rec);
     end;
 

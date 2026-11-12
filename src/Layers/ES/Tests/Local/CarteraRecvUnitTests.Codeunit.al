@@ -17,6 +17,9 @@ codeunit 147542 "Cartera Recv. Unit Tests"
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         LibraryERM: Codeunit "Library - ERM";
         LocalTxt: Label 'LOCAL', Locked = true;
+        BankAccountWithBillGroupsErr: Label 'You cannot delete a bank account with bill groups in preparation.';
+        CannotChangeDueToPostedBillGroupsErr: Label 'You cannot change %1 because there are one or more posted bill groups for this bank account.', Comment = '%1 = Field caption';
+        CannotChangeDueToPostedPmtOrdersErr: Label 'You cannot change %1 because there are one or more posted payment orders for this bank account.', Comment = '%1 = Field caption';
 
     [Test]
     [Scope('OnPrem')]
@@ -119,6 +122,69 @@ codeunit 147542 "Cartera Recv. Unit Tests"
         Assert.IsFalse(BillGroup.Get(BillGroupNo), '');
         BGCommentLine.SetRange("BG/PO No.", BillGroupNo);
         Assert.IsTrue(BGCommentLine.IsEmpty, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeleteBankAccountWithBillGroupWithoutTriggers()
+    var
+        BankAccount: Record "Bank Account";
+        BillGroup: Record "Bill Group";
+    begin
+        // [SCENARIO] Deleting a bank account without triggers bypasses Cartera bill group validation.
+        Initialize();
+
+        // [GIVEN] A bank account with a bill group in preparation.
+        CreateBillGroupWithBankAccount(BillGroup);
+        BankAccount.Get(BillGroup."Bank Account No.");
+
+        // [WHEN] Delete the bank account without running the delete trigger.
+        BankAccount.Delete(false);
+
+        // [THEN] The bank account is deleted.
+        Assert.IsFalse(BankAccount.Get(BillGroup."Bank Account No."), 'The bank account must be deleted when triggers are disabled.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeleteAllBankAccountsWithBillGroupWithoutTriggers()
+    var
+        BankAccount: Record "Bank Account";
+        BillGroup: Record "Bill Group";
+    begin
+        // [SCENARIO] Bulk deletion without triggers bypasses Cartera bill group validation.
+        Initialize();
+
+        // [GIVEN] A bank account with a bill group in preparation.
+        CreateBillGroupWithBankAccount(BillGroup);
+        BankAccount.SetRange("No.", BillGroup."Bank Account No.");
+
+        // [WHEN] Delete the filtered bank account without running the delete trigger.
+        BankAccount.DeleteAll(false);
+
+        // [THEN] The bank account is deleted.
+        Assert.RecordIsEmpty(BankAccount);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeleteBankAccountWithBillGroupWithTriggersIsBlocked()
+    var
+        BankAccount: Record "Bank Account";
+        BillGroup: Record "Bill Group";
+    begin
+        // [SCENARIO] Deleting a bank account with triggers retains Cartera bill group validation.
+        Initialize();
+
+        // [GIVEN] A bank account with a bill group in preparation.
+        CreateBillGroupWithBankAccount(BillGroup);
+        BankAccount.Get(BillGroup."Bank Account No.");
+
+        // [WHEN] Delete the bank account with the delete trigger enabled.
+        asserterror BankAccount.Delete(true);
+
+        // [THEN] The bill group prevents deletion of the bank account.
+        Assert.ExpectedError(BankAccountWithBillGroupsErr);
     end;
 
     [Test]
@@ -399,9 +465,75 @@ codeunit 147542 "Cartera Recv. Unit Tests"
         ReceivablesCarteraDocs.Close();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ValidateBankCurrencyWithPostedBillGroup()
+    begin
+        VerifyBankCurrencyValidationWithPostedCarteraDocuments(true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ValidateBankCurrencyWithPostedPaymentOrder()
+    begin
+        VerifyBankCurrencyValidationWithPostedCarteraDocuments(false);
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
+    end;
+
+    local procedure VerifyBankCurrencyValidationWithPostedCarteraDocuments(CreateBillGroup: Boolean)
+    var
+        BankAccount: Record "Bank Account";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        LocalCurrency: Record Currency;
+        ForeignCurrency: Record Currency;
+        PostedBillGroup: Record "Posted Bill Group";
+        PostedPaymentOrder: Record "Posted Payment Order";
+        ExpectedError: Text;
+    begin
+        Initialize();
+        LibraryERM.CreateCurrency(LocalCurrency);
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."LCY Code" := LocalCurrency.Code;
+        GeneralLedgerSetup.Modify();
+        LibraryERM.CreateBankAccount(BankAccount);
+
+        if CreateBillGroup then begin
+            MockPostedBillGroup(PostedBillGroup);
+            PostedBillGroup."Bank Account No." := BankAccount."No.";
+            PostedBillGroup.Modify();
+            ExpectedError := CannotChangeDueToPostedBillGroupsErr;
+        end else begin
+            PostedPaymentOrder.Init();
+            PostedPaymentOrder."No." :=
+              LibraryUtility.GenerateRandomCode(PostedPaymentOrder.FieldNo("No."), DATABASE::"Posted Payment Order");
+            PostedPaymentOrder."Bank Account No." := BankAccount."No.";
+            PostedPaymentOrder.Insert();
+            ExpectedError := CannotChangeDueToPostedPmtOrdersErr;
+        end;
+
+        BankAccount.Validate("Currency Code", BankAccount."Currency Code");
+        BankAccount.Validate("Currency Code", LocalCurrency.Code);
+        BankAccount.Modify(true);
+        BankAccount.Get(BankAccount."No.");
+        BankAccount.Validate("Currency Code", BankAccount."Currency Code");
+        BankAccount.Validate("Currency Code", '');
+        BankAccount.Modify(true);
+        BankAccount.Get(BankAccount."No.");
+
+        LibraryERM.CreateCurrency(ForeignCurrency);
+        asserterror BankAccount.Validate("Currency Code", ForeignCurrency.Code);
+        Assert.ExpectedError(StrSubstNo(ExpectedError, BankAccount.FieldCaption("Currency Code")));
+
+        // Mock an existing foreign-currency bank account with posted documents.
+        BankAccount.Get(BankAccount."No.");
+        BankAccount."Currency Code" := ForeignCurrency.Code;
+        BankAccount.Modify();
+        BankAccount.Get(BankAccount."No.");
+        BankAccount.Validate("Currency Code", ForeignCurrency.Code);
     end;
 
     local procedure CreateBillGroupWithBankAccount(var BillGroup: Record "Bill Group")
@@ -499,4 +631,3 @@ codeunit 147542 "Cartera Recv. Unit Tests"
         BGCommentSheet.OK().Invoke();
     end;
 }
-
