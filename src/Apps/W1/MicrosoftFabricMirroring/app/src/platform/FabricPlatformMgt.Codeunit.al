@@ -62,9 +62,14 @@ codeunit 48520 "Fabric Platform Mgt"
 
         TenantFabricSetup.Init();
         TenantFabricSetup.Validate("Max Consecutive Failed Runs", 2);
-        TenantFabricSetup.Validate("Fabric Data Namespace", 'BusinessCentral');
-        TenantFabricSetup.Validate("Fabric Logging Namespace", 'BusinessCentral_log');
+        TenantFabricSetup.Validate("Fabric Data Namespace", 'businesscentral');
+        TenantFabricSetup.Validate("Fabric Logging Namespace", 'businesscentral_log');
         TenantFabricSetup.Insert(true);
+    end;
+
+    internal procedure NormalizeNamespace(var Namespace: Text[250])
+    begin
+        Namespace := LowerCase(Namespace);
     end;
 
     internal procedure ClearCopiedEnvironmentConfiguration()
