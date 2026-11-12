@@ -65,7 +65,7 @@ page 30132 "Shpfy Payment Methods Mapping"
             action(DiscoverPaymentMethods)
             {
                 ApplicationArea = All;
-                Caption = 'Discover Payment Methods';
+Caption = 'Discover payment methods';
                 Image = Refresh;
                 ToolTip = 'Find payment methods used on recent Shopify orders and add new entries to Payment Method Mapping. Existing entries aren''t changed.';
 
