@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.HumanResources.Employee;
 using System.Security.AccessControl;
 using System.Security.User;
@@ -1367,10 +1368,10 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseReportHeader: Record "Expense Report Header";
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO 640938] Submission fails when escalation resolves back to the current approver.
+        // [SCENARIO 640938] Submission fails when the current approver is configured as their own next approver and no unlimited default approver exists.
         Initialize();
 
-        // [GIVEN] Submitter "S" has approver "A1" with a limit of 100, "A1" is configured as their own next approver, and the released report amount is 200.
+        // [GIVEN] Submitter "S" has approver "A1" with a limit of 100, "A1" is configured as their own next approver, no default approver is configured, and the released report amount is 200.
         CreateApprovalLimitScenario(Submitter, Approver, ExpenseReportHeader, 200, 100);
         LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, Approver."No.", Approver."No.");
 
@@ -2128,6 +2129,187 @@ codeunit 148346 "Expense Interim Approval Test"
         Assert.ExpectedError(StrSubstNo(CannotRemovePendingApproverErr, FinalApprover."No.", ExpenseReportHeader."No."));
     end;
 
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ApproveConfirmHandler')]
+    procedure OwnerCanSelfApproveReportBelowOwnApprovalLimit()
+    var
+        Owner: Record "Expense User";
+        DefaultApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] An owner configured as their own approver can approve a report below their approval limit.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is their own approver, "B" is the unlimited default approver, and "A" has a released report for 49.99.
+        CreateSelfApprovalScenario(Owner, DefaultApprover, 50);
+        CreateAndReleaseExpenseReportWithAmount(Owner, ExpenseReportHeader, 49.99);
+
+        // [WHEN] "A" submits the expense report.
+        ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report is pending approval with "A" as both the active and final approver.
+        VerifyApprovalRouting(ExpenseReportHeader, Owner, Owner);
+
+        // [WHEN] "A" approves the expense report from the card.
+        ExpenseReportPage.OpenView();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsTrue(ExpenseReportPage.Approve.Visible(), 'The owner must see Approve below their approval limit.');
+        Assert.IsTrue(ExpenseReportPage.Approve.Enabled(), 'The owner must be able to approve below their approval limit.');
+        ExpenseReportPage.Approve.Invoke();
+        ExpenseReportPage.Close();
+
+        // [THEN] The report is approved.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        ExpenseReportHeader.TestField("Approved/Rejected Exp.User No.", Owner."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ApproveConfirmHandler')]
+    procedure OwnerCanSelfApproveReportEqualToOwnApprovalLimit()
+    var
+        Owner: Record "Expense User";
+        DefaultApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] An owner configured as their own approver can approve a report equal to their approval limit.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is their own approver, "B" is the unlimited default approver, and "A" has a released report for 50.
+        CreateSelfApprovalScenario(Owner, DefaultApprover, 50);
+        CreateAndReleaseExpenseReportWithAmount(Owner, ExpenseReportHeader, 50);
+
+        // [WHEN] "A" submits the expense report.
+        ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report is pending approval with "A" as both the active and final approver.
+        VerifyApprovalRouting(ExpenseReportHeader, Owner, Owner);
+
+        // [WHEN] "A" approves the expense report from the card.
+        ExpenseReportPage.OpenView();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsTrue(ExpenseReportPage.Approve.Visible(), 'The owner must see Approve at their approval limit.');
+        Assert.IsTrue(ExpenseReportPage.Approve.Enabled(), 'The owner must be able to approve at their approval limit.');
+        ExpenseReportPage.Approve.Invoke();
+        ExpenseReportPage.Close();
+
+        // [THEN] The report is approved.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        ExpenseReportHeader.TestField("Approved/Rejected Exp.User No.", Owner."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure OwnerReportAboveOwnApprovalLimitRoutesToUnlimitedDefaultApprover()
+    var
+        Owner: Record "Expense User";
+        DefaultApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] A report above the self-approving owner's limit is handed off to the unlimited default approver.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is their own approver, "B" is the unlimited default approver, and "A" has a released report for 50.01.
+        CreateSelfApprovalScenario(Owner, DefaultApprover, 50);
+        CreateAndReleaseExpenseReportWithAmount(Owner, ExpenseReportHeader, 50.01);
+
+        // [WHEN] "A" submits the expense report.
+        ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report is pending approval with "B" as both the active and final approver.
+        VerifyApprovalRouting(ExpenseReportHeader, DefaultApprover, DefaultApprover);
+        ExpenseReportPage.OpenView();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsFalse(ExpenseReportPage.Approve.Visible(), 'The owner must not see Approve above their approval limit.');
+        ExpenseReportPage.Close();
+
+        // Preserve the report when the expected validation error rolls back its transaction.
+        Commit();
+
+        // [WHEN] "A" tries to approve the expense report.
+        asserterror ExpenseReportHeader.PerformManualApproved(Owner."No.");
+
+        // [THEN] An error explains that the report exceeds "A"'s approval limit.
+        Assert.ExpectedError(StrSubstNo(ApproverApprovalLimitErr, ExpenseReportHeader."No.", Owner.FieldCaption("Approval Limit (LCY)"), Owner."No."));
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyApprovalRouting(ExpenseReportHeader, DefaultApprover, DefaultApprover);
+
+        // [WHEN] "B" approves the expense report.
+        ExpenseReportHeader.PerformManualApproved(DefaultApprover."No.");
+
+        // [THEN] The report is approved.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        ExpenseReportHeader.TestField("Approved/Rejected Exp.User No.", DefaultApprover."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SelfApprovalSetupRoutesOwnerReportsByAmountWithoutSetupChanges()
+    var
+        Owner: Record "Expense User";
+        DefaultApprover: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        WithinLimitExpenseReportHeader: Record "Expense Report Header";
+        AboveLimitExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] One self-approval setup routes reports within the owner's limit to the owner and reports above it to the unlimited default approver.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is their own approver and "B" is the unlimited default approver.
+        CreateSelfApprovalScenario(Owner, DefaultApprover, 50);
+
+        // [WHEN] "A" submits a report for 50 and then a report for 50.01 without changing the approval setup.
+        CreateAndReleaseExpenseReportWithAmount(Owner, WithinLimitExpenseReportHeader, 50);
+        ExpenseReportApprovalMgmt.Submit(WithinLimitExpenseReportHeader, Owner."No.");
+        CreateAndReleaseExpenseReportWithAmount(Owner, AboveLimitExpenseReportHeader, 50.01);
+        ExpenseReportApprovalMgmt.Submit(AboveLimitExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report for 50 is assigned to "A", the report for 50.01 is assigned to "B", and "A" remains their own approver.
+        VerifyApprovalRouting(WithinLimitExpenseReportHeader, Owner, Owner);
+        VerifyApprovalRouting(AboveLimitExpenseReportHeader, DefaultApprover, DefaultApprover);
+        ExpenseApprovalSetup.Get(Owner."No.");
+        ExpenseApprovalSetup.TestField("Approver No.", Owner."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SubmissionExceedingLimitWithCircularApproverChainFails()
+    var
+        Submitter: Record "Expense User";
+        Approver: Record "Expense User";
+        NextApprover: Record "Expense User";
+        DefaultApprover: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] Submission still fails when escalation between different approvers loops back, even with an unlimited default approver.
+        Initialize();
+        EnableAgent(true);
+
+        // [GIVEN] Submitter "S" has approver "A1" with a limit of 100, "A1" escalates to "A2" with a limit of 100, "A2" escalates back to "A1", "B" is the unlimited default approver, and the released report amount is 200.
+        CreateApprovalLimitScenario(Submitter, Approver, ExpenseReportHeader, 200, 100);
+        CreateApproverExpenseUser(NextApprover);
+        SetApprovalLimit(NextApprover, 100);
+        LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, Approver."No.", NextApprover."No.");
+        LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, NextApprover."No.", Approver."No.");
+        CreateApproverExpenseUser(DefaultApprover);
+        SetDefaultApprover(DefaultApprover."No.");
+
+        // [WHEN] "S" submits the expense report.
+        asserterror ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Submitter."No.");
+
+        // [THEN] An error explains that a next approver must be configured for "A2".
+        Assert.ExpectedError(StrSubstNo(ApproverRequiredErr, ExpenseReportHeader."No.", NextApprover.FieldCaption("Approval Limit (LCY)"), NextApprover."No."));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
     local procedure Initialize()
     var
         UserSetup: Record "User Setup";
@@ -2423,9 +2605,34 @@ codeunit 148346 "Expense Interim Approval Test"
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(IsSaaS);
     end;
 
+    local procedure CreateSelfApprovalScenario(var Owner: Record "Expense User"; var DefaultApprover: Record "Expense User"; ApprovalLimit: Decimal)
+    var
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        EnableAgent(true);
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."LCY Code" := 'DKK';
+        GeneralLedgerSetup.Modify(true);
+
+        CreateApproverExpenseUser(Owner);
+        SetApprovalLimit(Owner, ApprovalLimit);
+        SetCurrentUser(Owner);
+        LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, Owner."No.", Owner."No.");
+        CreateApproverExpenseUser(DefaultApprover);
+        SetDefaultApprover(DefaultApprover."No.");
+    end;
+
     [ModalPageHandler]
     procedure ExpensesModalPageHandler(var Expenses: TestPage Expenses)
     begin
         Expenses.OK().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure ApproveConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedMessage('Do you want to approve submitted Expense Report?', Question);
+        Reply := true;
     end;
 }
