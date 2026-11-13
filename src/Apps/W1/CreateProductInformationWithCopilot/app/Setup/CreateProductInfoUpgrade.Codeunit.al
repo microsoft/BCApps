@@ -24,13 +24,12 @@ codeunit 7332 "Create Product Info. Upgrade"
         CopilotCapability: Codeunit "Copilot Capability";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        if UpgradeTag.HasUpgradeTag(GetUnregisterCreateProductInfoCapabilityTag()) then
+        if UpgradeTag.HasDatabaseUpgradeTag(GetUnregisterCreateProductInfoCapabilityTag()) then
             exit;
-
         if CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Create Product Information") then
             CopilotCapability.UnregisterCapability(Enum::"Copilot Capability"::"Create Product Information");
 
-        UpgradeTag.SetUpgradeTag(GetUnregisterCreateProductInfoCapabilityTag());
+        UpgradeTag.SetDatabaseUpgradeTag(GetUnregisterCreateProductInfoCapabilityTag());
     end;
 
     local procedure GetUnregisterCreateProductInfoCapabilityTag(): Code[250]
