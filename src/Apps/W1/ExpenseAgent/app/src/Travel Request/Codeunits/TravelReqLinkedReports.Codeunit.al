@@ -53,6 +53,7 @@ codeunit 6914 "Travel Req. Linked Reports"
         ExpenseReportLine: Record "Expense Report Line";
         LastDocumentNo: Code[20];
     begin
+        ExpenseReportHeader.SetLoadFields("No.");
         ExpenseReportHeader.SetRange("Spend Request No.", TravelRequestNo);
         if ExpenseReportHeader.FindSet() then
             repeat
@@ -61,6 +62,7 @@ codeunit 6914 "Travel Req. Linked Reports"
         ExpenseReportHeader.SetRange("Spend Request No.");
 
         // Lines come in document order, so each linked report header is read only once.
+        LastDocumentNo := '';
         ExpenseReportLine.SetLoadFields("Document No.");
         ExpenseReportLine.SetRange("Spend Request No.", TravelRequestNo);
         if ExpenseReportLine.FindSet() then
@@ -72,6 +74,8 @@ codeunit 6914 "Travel Req. Linked Reports"
                 end;
             until ExpenseReportLine.Next() = 0;
 
+        // The page shows the marked reports with all their fields.
+        ExpenseReportHeader.SetLoadFields();
         ExpenseReportHeader.MarkedOnly(true);
     end;
 
@@ -81,6 +85,7 @@ codeunit 6914 "Travel Req. Linked Reports"
         LastDocumentNo: Code[20];
     begin
         // Canceled reports no longer use the travel request, so they are left out.
+        PostedExpenseReportHeader.SetLoadFields("No.", Canceled);
         PostedExpenseReportHeader.SetRange("Spend Request No.", TravelRequestNo);
         PostedExpenseReportHeader.SetRange(Canceled, false);
         if PostedExpenseReportHeader.FindSet() then
@@ -90,6 +95,7 @@ codeunit 6914 "Travel Req. Linked Reports"
         PostedExpenseReportHeader.SetRange("Spend Request No.");
 
         // Lines come in document order, so each linked report header is read only once.
+        LastDocumentNo := '';
         PostedExpenseReportLine.SetLoadFields("Document No.");
         PostedExpenseReportLine.SetRange("Spend Request No.", TravelRequestNo);
         PostedExpenseReportLine.SetRange("Is Canceled", false);
@@ -103,6 +109,8 @@ codeunit 6914 "Travel Req. Linked Reports"
                 end;
             until PostedExpenseReportLine.Next() = 0;
 
+        // The page shows the marked reports with all their fields.
+        PostedExpenseReportHeader.SetLoadFields();
         PostedExpenseReportHeader.MarkedOnly(true);
     end;
 }

@@ -212,9 +212,6 @@ codeunit 7133 "Travel Request Approval"
             exit;
         if SpendRequest.Status <> SpendRequest.Status::Closed then
             exit;
-        // Posting and the close event can both report the same closure, so log it only when the history doesn't already end with it.
-        if ExpenseActivityLogMgt.IsLatestEventForSource(Database::"Spend Request", SpendRequest.SystemId, Enum::"Expense Activity Event Type"::Closed) then
-            exit;
 
         LogTravelRequestCreatedIfMissing(SpendRequest);
         ExpenseActivityLogMgt.LogTravelRequestEvent(

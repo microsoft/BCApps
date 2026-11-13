@@ -3696,6 +3696,39 @@ codeunit 148339 "Spend Request Test"
 
     [Test]
     [HandlerFunctions('SpendReqConfirmHandler')]
+    procedure CloseReleaseCloseWithAgentEnabledLogsEachClosure()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+    begin
+        // [SCENARIO 656402] With the agent enabled, releasing a closed travel request logs nothing, and closing it again still logs the new closure.
+        Initialize();
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+
+        // [GIVEN] An approved travel request that is closed and then released again.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        CloseConfirmReply := true;
+        ReleaseSpendRequest.PerformManualClose(SpendRequest);
+        ReleaseSpendRequest.PerformManualRelease(SpendRequest);
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreNotEqual(SpendRequest.Status::Closed, SpendRequest.Status, SpendReqReleasedFromClosedMsg);
+
+        // [WHEN] The travel request is closed again.
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        ReleaseSpendRequest.PerformManualClose(SpendRequest);
+
+        // [THEN] Both closures are logged.
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
+        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::Closed);
+        Assert.RecordCount(ExpenseActivityLogEntry, 2);
+    end;
+
+    [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
     procedure CloseNonTravelSpendRequestLogsNoActivity()
     var
         SpendRequest: Record "Spend Request";
