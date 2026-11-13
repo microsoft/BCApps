@@ -885,6 +885,8 @@ codeunit 8062 "Billing Proposal"
 
         PurchaseLine."Recurring Billing from" := BillingLine."Billing from";
         PurchaseLine."Recurring Billing to" := BillingLine."Billing to";
+        PurchaseLine."Subscription Contract No." := BillingLine."Subscription Contract No.";
+        PurchaseLine."Subscription Contract Line No." := BillingLine."Subscription Contract Line No.";
         PurchaseLine.Modify(false);
     end;
 
