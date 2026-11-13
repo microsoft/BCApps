@@ -246,6 +246,8 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
     end;
 
     local procedure CreateLines(var AllocationPurchaseLine: Record "Purchase Line")
+    var
+        AllocationSourceLineFilter: Text;
     begin
         AllocationPurchaseLine.ReadIsolation := IsolationLevel::ReadCommitted;
         if AllocationPurchaseLine.IsEmpty() then
@@ -254,7 +256,14 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
         AllocationPurchaseLine.ReadIsolation := IsolationLevel::UpdLock;
         AllocationPurchaseLine.FindSet();
         repeat
-            CreateLinesFromAllocationAccountLine(AllocationPurchaseLine);
+            if AllocationSourceLineFilter <> '' then
+                AllocationSourceLineFilter += '&';
+            AllocationSourceLineFilter += StrSubstNo('<>%1', AllocationPurchaseLine."Line No.");
+        until AllocationPurchaseLine.Next() = 0;
+
+        AllocationPurchaseLine.FindSet();
+        repeat
+            CreateLinesFromAllocationAccountLine(AllocationPurchaseLine, AllocationSourceLineFilter);
         until AllocationPurchaseLine.Next() = 0;
     end;
 
@@ -264,6 +273,11 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
     /// </summary>
     /// <param name="AllocationAccountPurchaseLine">Source purchase line containing allocation account to be distributed</param>
     procedure CreateLinesFromAllocationAccountLine(var AllocationAccountPurchaseLine: Record "Purchase Line")
+    begin
+        CreateLinesFromAllocationAccountLine(AllocationAccountPurchaseLine, StrSubstNo('<>%1', AllocationAccountPurchaseLine."Line No."));
+    end;
+
+    local procedure CreateLinesFromAllocationAccountLine(var AllocationAccountPurchaseLine: Record "Purchase Line"; AllocationSourceLineFilter: Text)
     var
         ExistingAccountPurchaseLine: Record "Purchase Line";
         AllocationLine: Record "Allocation Line";
@@ -308,7 +322,7 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
         DescriptionChanged := GetDescriptionChanged(ExistingAccountPurchaseLine.Description, ExistingAccountPurchaseLine.Type, ExistingAccountPurchaseLine."No.");
 
         repeat
-            CreatedLines.Add(CreatePurchaseLine(ExistingAccountPurchaseLine, AllocationLine, LastLineNo, Increment, AllocationAccount, DescriptionChanged));
+            CreatedLines.Add(CreatePurchaseLine(ExistingAccountPurchaseLine, AllocationLine, LastLineNo, Increment, AllocationAccount, DescriptionChanged, AllocationSourceLineFilter));
         until AllocationLine.Next() = 0;
 
         FixQuantityRounding(CreatedLines, ExistingAccountPurchaseLine, AllocationAccount);
@@ -354,11 +368,12 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
         end;
     end;
 
-    local procedure CreatePurchaseLine(var AllocationPurchaseLine: Record "Purchase Line"; var AllocationLine: Record "Allocation Line"; var LastLineNo: Integer; Increment: Integer; var AllocationAccount: Record "Allocation Account"; var DescriptionChanged: Boolean): Guid
+    local procedure CreatePurchaseLine(var AllocationPurchaseLine: Record "Purchase Line"; var AllocationLine: Record "Allocation Line"; var LastLineNo: Integer; Increment: Integer; var AllocationAccount: Record "Allocation Account"; var DescriptionChanged: Boolean; AllocationSourceLineFilter: Text): Guid
     var
         PurchaseLine: Record "Purchase Line";
         AllocAccHandleDocPost: Codeunit "Alloc. Acc. Handle Doc. Post";
     begin
+        AllocAccHandleDocPost.SetPurchaseAllocationSourceLineFilter(AllocationSourceLineFilter);
         PurchaseLine.TransferFields(AllocationPurchaseLine, true);
         PurchaseLine."Line No." := LastLineNo + Increment;
         PurchaseLine."Type" := PurchaseLine."Type"::"G/L Account";

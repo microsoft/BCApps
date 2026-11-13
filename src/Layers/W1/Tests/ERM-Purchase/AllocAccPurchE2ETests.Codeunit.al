@@ -179,6 +179,110 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
     end;
 
     [Test]
+    procedure GenerateSingleAllocationKeepsOtherSelectedAllocationInVATTotals()
+    begin
+        VerifyGenerateSingleAllocationKeepsOtherAllocationInVATTotals(false);
+    end;
+
+    [Test]
+    procedure GenerateSingleAllocationKeepsOtherAllocationAccountInVATTotals()
+    begin
+        VerifyGenerateSingleAllocationKeepsOtherAllocationInVATTotals(true);
+    end;
+
+    local procedure VerifyGenerateSingleAllocationKeepsOtherAllocationInVATTotals(UseAllocationAccountType: Boolean)
+    var
+        AllocationAccount: Record "Allocation Account";
+        OtherAllocationAccount: Record "Allocation Account";
+        AllocAccountDistribution: Record "Alloc. Account Distribution";
+        VATPostingSetup: Record "VAT Posting Setup";
+        GeneralPostingSetup: Record "General Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        OtherAllocationPurchaseLine: Record "Purchase Line";
+        OrdinaryPurchaseLine: Record "Purchase Line";
+        GLAccountNo: Code[20];
+        SourceSystemId: Guid;
+        OtherAllocationAmount: Decimal;
+        OrdinaryAmount: Decimal;
+        i: Integer;
+    begin
+        // [SCENARIO 655888] Generating only the last allocation line retains other allocation and ordinary lines in VAT totals.
+        Initialize();
+
+        // [GIVEN] 19% Normal VAT and Inherit from Parent allocation shares 33.3, 33.3 and 33.4
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 19);
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Purchase);
+        LibraryERM.FindGeneralPostingSetup(GeneralPostingSetup);
+        CreateFixedAllocationAccountWithInheritFromParentShares(AllocationAccount, 33.3, 33.3, 33.4);
+        if UseAllocationAccountType then begin
+            CreateFixedAllocationAccountWithInheritFromParentShares(OtherAllocationAccount, 33.3, 33.3, 33.4);
+            AllocAccountDistribution.SetRange("Allocation Account No.", OtherAllocationAccount."No.");
+            AllocAccountDistribution.ModifyAll("Destination Account Type", AllocAccountDistribution."Destination Account Type"::"G/L Account");
+            AllocAccountDistribution.ModifyAll("Destination Account Number", GLAccountNo);
+        end;
+
+        // [GIVEN] VAT-inclusive allocation/ordinary/allocation lines of 100, 100 and 119 gross
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithBusPostingGroups(GeneralPostingSetup."Gen. Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group"));
+        PurchaseHeader.Validate("Prices Including VAT", true);
+        PurchaseHeader.Modify(true);
+        for i := 1 to 3 do begin
+            if (i = 1) and UseAllocationAccountType then
+                LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"Allocation Account", OtherAllocationAccount."No.", 1)
+            else
+                LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
+            PurchaseLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+            if i = 3 then
+                PurchaseLine.Validate("Direct Unit Cost", 119)
+            else
+                PurchaseLine.Validate("Direct Unit Cost", 100);
+            if (i <> 2) and (PurchaseLine.Type = PurchaseLine.Type::"G/L Account") then
+                PurchaseLine.Validate("Selected Alloc. Account No.", AllocationAccount."No.");
+            PurchaseLine.Modify(true);
+            case i of
+                1:
+                    OtherAllocationPurchaseLine := PurchaseLine;
+                2:
+                    OrdinaryPurchaseLine := PurchaseLine;
+            end;
+        end;
+        SourceSystemId := PurchaseLine.SystemId;
+        OtherAllocationAmount := OtherAllocationPurchaseLine.Amount;
+        OrdinaryAmount := OrdinaryPurchaseLine.Amount;
+        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
+        Assert.AreEqual(268.07, PurchaseHeader.Amount, PurchaseHeader.FieldCaption(Amount));
+        Assert.AreEqual(319, PurchaseHeader."Amount Including VAT", PurchaseHeader.FieldCaption("Amount Including VAT"));
+
+        // [WHEN] Only the last allocation source is generated and deleted
+        CreateLinesFromAllocationAccountLine(PurchaseLine);
+        PurchaseLine.Delete();
+
+        // [THEN] The ungenerated allocation and ordinary line are unchanged
+        OtherAllocationPurchaseLine.Find();
+        OrdinaryPurchaseLine.Find();
+        Assert.AreEqual(OtherAllocationAmount, OtherAllocationPurchaseLine.Amount, OtherAllocationPurchaseLine.FieldCaption(Amount));
+        Assert.AreEqual(OrdinaryAmount, OrdinaryPurchaseLine.Amount, OrdinaryPurchaseLine.FieldCaption(Amount));
+        Assert.AreEqual(100, OtherAllocationPurchaseLine."Amount Including VAT", OtherAllocationPurchaseLine.FieldCaption("Amount Including VAT"));
+        Assert.AreEqual(100, OrdinaryPurchaseLine."Amount Including VAT", OrdinaryPurchaseLine.FieldCaption("Amount Including VAT"));
+
+        // [THEN] Three generated lines total 100 net and 119 gross; document totals remain 268.07 net and 319 gross
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        Assert.RecordCount(PurchaseLine, 5);
+        PurchaseLine.SetRange("Alloc. Purch. Line SystemId", SourceSystemId);
+        Assert.RecordCount(PurchaseLine, 3);
+        PurchaseLine.CalcSums(Amount, "VAT Base Amount", "Amount Including VAT");
+        Assert.AreEqual(100, PurchaseLine.Amount, PurchaseLine.FieldCaption(Amount));
+        Assert.AreEqual(100, PurchaseLine."VAT Base Amount", PurchaseLine.FieldCaption("VAT Base Amount"));
+        Assert.AreEqual(119, PurchaseLine."Amount Including VAT", PurchaseLine.FieldCaption("Amount Including VAT"));
+        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
+        Assert.AreEqual(268.07, PurchaseHeader.Amount, PurchaseHeader.FieldCaption(Amount));
+        Assert.AreEqual(319, PurchaseHeader."Amount Including VAT", PurchaseHeader.FieldCaption("Amount Including VAT"));
+    end;
+
+    [Test]
     procedure PostInvoiceAfterGenerateLinesFromInheritFromParentAllocationWithPricesInclVAT()
     var
         AllocationAccount: Record "Allocation Account";
