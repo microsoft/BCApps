@@ -140,6 +140,7 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"SAF-T XML Tests 1.4");
+        LibraryVariableStorage.Clear();
         if IsInitialized then
             exit;
 
