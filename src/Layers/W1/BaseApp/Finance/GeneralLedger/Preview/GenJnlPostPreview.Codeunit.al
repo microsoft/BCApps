@@ -222,7 +222,7 @@ codeunit 19 "Gen. Jnl.-Post Preview"
     /// <param name="TableID">Table identifier for the entry type</param>
     /// <param name="EntryNo">Entry number for caption display</param>
     /// <param name="DimensionSetID">Dimension set identifier to display</param>
-    procedure ShowDimensions(TableID: Integer; EntryNo: Integer; DimensionSetID: Integer)
+    procedure ShowDimensions(TableID: Integer; EntryNo: BigInteger; DimensionSetID: Integer)
     var
         DimMgt: Codeunit DimensionManagement;
         RecRef: RecordRef;

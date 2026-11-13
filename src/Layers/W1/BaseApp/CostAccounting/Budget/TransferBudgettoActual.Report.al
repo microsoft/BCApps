@@ -101,7 +101,7 @@ report 1137 "Transfer Budget to Actual"
     var
         TempCostJnlLine: Record "Cost Journal Line" temporary;
         Window: Dialog;
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
         NoInserted: Integer;
 #pragma warning disable AA0074
         Text000: Label 'Define the name of the source budget.';

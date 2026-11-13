@@ -479,7 +479,7 @@ page 522 "View Applied Entries"
             until ItemLedgerEntry2.Next() = 0;
     end;
 
-    local procedure InsertTempEntry(EntryNo: Integer; AppliedQty: Decimal; ShowQuantity2: Boolean)
+    local procedure InsertTempEntry(EntryNo: BigInteger; AppliedQty: Decimal; ShowQuantity2: Boolean)
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
         IsHandled: Boolean;
@@ -573,7 +573,7 @@ page 522 "View Applied Entries"
         Show();
     end;
 
-    local procedure RemoveDuplicateApplication(ItemLedgerEntryNo: Integer)
+    local procedure RemoveDuplicateApplication(ItemLedgerEntryNo: BigInteger)
     var
         ItemApplicationEntry: Record "Item Application Entry";
     begin

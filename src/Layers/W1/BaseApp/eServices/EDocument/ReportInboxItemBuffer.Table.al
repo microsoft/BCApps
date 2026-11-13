@@ -23,7 +23,7 @@ table 473 "Report Inbox Item Buffer"
             Caption = 'Company Name';
             DataClassification = OrganizationIdentifiableInformation;
         }
-        field(3; "Entry No."; Integer)
+        field(3; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;

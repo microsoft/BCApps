@@ -350,7 +350,7 @@ codeunit 99000845 "Reservation Management"
     procedure UpdateStatistics(var TempEntrySummary: Record "Entry Summary" temporary; AvailabilityDate: Date; HandleItemTracking2: Boolean)
     var
         i: Integer;
-        CurrentEntryNo: Integer;
+        CurrentEntryNo: BigInteger;
         ValueArrayNo: Integer;
         TotalQuantity: Decimal;
     begin
@@ -557,7 +557,7 @@ codeunit 99000845 "Reservation Management"
         OnAfterAutoReserve(CalcReservEntry, FullAutoReservation);
     end;
 
-    procedure AutoReserveOneLine(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date)
+    procedure AutoReserveOneLine(ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date)
     var
         Item: Record Item;
         ReservSummaryType: Enum "Reservation Summary Type";
@@ -612,7 +612,7 @@ codeunit 99000845 "Reservation Management"
         OnAfterFinishedAutoReserveOneLine(ReservSummEntryNo, RemainingQtyToReserve, RemainingQtyToReserveBase, Description, AvailabilityDate);
     end;
 
-    local procedure AutoReserveItemLedgEntry(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date)
+    local procedure AutoReserveItemLedgEntry(ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date)
     var
         Location: Record Location;
         AllocationsChanged: Boolean;
@@ -1451,7 +1451,7 @@ codeunit 99000845 "Reservation Management"
         ActionMessageEntry2: Record "Action Message Entry";
         DateFormula: DateFormula;
         DampenerPeriod: DateFormula;
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         FirstDate: Date;
         Found: Boolean;
         FreeBinding: Boolean;
@@ -1592,7 +1592,7 @@ codeunit 99000845 "Reservation Management"
             ActionMessageEntry."Entry No." += 1;
     end;
 
-    procedure ModifyActionMessage(RelatedToEntryNo: Integer; Quantity: Decimal; DoDelete: Boolean)
+    procedure ModifyActionMessage(RelatedToEntryNo: BigInteger; Quantity: Decimal; DoDelete: Boolean)
     var
         ActionMessageEntry: Record "Action Message Entry";
     begin
@@ -2132,7 +2132,7 @@ codeunit 99000845 "Reservation Management"
     end;
 
     [Scope('OnPrem')]
-    procedure ReservEntryPositiveTypeIsItemLedgerEntry(ReservationEntryNo: Integer): Boolean
+    procedure ReservEntryPositiveTypeIsItemLedgerEntry(ReservationEntryNo: BigInteger): Boolean
     var
         ReservationEntryPositive: Record "Reservation Entry";
     begin
@@ -2332,7 +2332,7 @@ codeunit 99000845 "Reservation Management"
         OnTestItemType(SourceRecRef);
     end;
 
-    local procedure AutoManageReservationItemLedgerEntry(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date)
+    local procedure AutoManageReservationItemLedgerEntry(ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date)
     begin
         if not HandleItemTracking then
             AutoReserveItemLedgerEntryFromSurplus(ReservSummEntryNo, RemainingQtyToReserve, RemainingQtyToReserveBase, Description, AvailabilityDate);
@@ -2340,7 +2340,7 @@ codeunit 99000845 "Reservation Management"
             AutoReserveItemLedgEntry(ReservSummEntryNo, RemainingQtyToReserve, RemainingQtyToReserveBase, Description, AvailabilityDate);
     end;
 
-    local procedure AutoReserveItemLedgerEntryFromSurplus(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date)
+    local procedure AutoReserveItemLedgerEntryFromSurplus(ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date)
     var
         ReservationEntry: Record "Reservation Entry";
     begin
@@ -2355,7 +2355,7 @@ codeunit 99000845 "Reservation Management"
             until ReservationEntry.Next() = 0;
     end;
 
-    local procedure AutoReserveFromSpecificReservEntry(ReservationEntry: Record "Reservation Entry"; ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date)
+    local procedure AutoReserveFromSpecificReservEntry(ReservationEntry: Record "Reservation Entry"; ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date)
     var
         QtyToReserve: Decimal;
         QtyToReserveBase: Decimal;
@@ -2381,13 +2381,13 @@ codeunit 99000845 "Reservation Management"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterAutoReserveOneLine(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry"; CalcReservEntry2: Record "Reservation Entry"; Positive: Boolean)
+    local procedure OnAfterAutoReserveOneLine(ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; Search: Text[1]; NextStep: Integer; CalcReservEntry: Record "Reservation Entry"; CalcReservEntry2: Record "Reservation Entry"; Positive: Boolean)
     begin
     end;
 
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCalcReservation(var ReservEntry: Record "Reservation Entry"; var ItemLedgEntry: Record "Item Ledger Entry"; var ResSummEntryNo: Integer; var QtyThisLine: Decimal; var QtyThisLineBase: Decimal; TotalAvailQty: Decimal)
+    local procedure OnAfterCalcReservation(var ReservEntry: Record "Reservation Entry"; var ItemLedgEntry: Record "Item Ledger Entry"; var ResSummEntryNo: BigInteger; var QtyThisLine: Decimal; var QtyThisLineBase: Decimal; TotalAvailQty: Decimal)
     begin
     end;
 
@@ -2497,7 +2497,7 @@ codeunit 99000845 "Reservation Management"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeAutoReserveItemLedgEntry(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; var IsReserved: Boolean; CalcReservEntry: Record "Reservation Entry"; var CalcItemLedgerEntry: Record "Item Ledger Entry"; var ItemTrackingCode: Record "Item Tracking Code"; Positive: Boolean)
+    local procedure OnBeforeAutoReserveItemLedgEntry(ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date; var IsReserved: Boolean; CalcReservEntry: Record "Reservation Entry"; var CalcItemLedgerEntry: Record "Item Ledger Entry"; var ItemTrackingCode: Record "Item Tracking Code"; Positive: Boolean)
     begin
     end;
 
@@ -2735,7 +2735,7 @@ codeunit 99000845 "Reservation Management"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterFinishedAutoReserveOneLine(ReservSummEntryNo: Integer; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date)
+    local procedure OnAfterFinishedAutoReserveOneLine(ReservSummEntryNo: BigInteger; var RemainingQtyToReserve: Decimal; var RemainingQtyToReserveBase: Decimal; Description: Text[100]; AvailabilityDate: Date)
     begin
     end;
 

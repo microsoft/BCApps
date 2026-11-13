@@ -262,7 +262,7 @@ codeunit 1020 JobJnlManagement
         end;
     end;
 
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         JobEntryNo: Record "Job Entry No.";
     begin

@@ -30,7 +30,7 @@ table 1020 "Job Usage Link"
             TableRelation = "Job Planning Line"."Line No." where("Job No." = field("Job No."),
                                                                   "Job Task No." = field("Job Task No."));
         }
-        field(4; "Entry No."; Integer)
+        field(4; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

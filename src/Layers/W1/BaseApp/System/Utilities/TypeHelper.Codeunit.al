@@ -1,4 +1,8 @@
-﻿namespace System.Reflection;
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace System.Reflection;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using System;
@@ -47,6 +51,8 @@ codeunit 10 "Type Helper"
                 exit(TryEvaluateDecimal(String, CultureName, Variable));
             Variable.IsInteger:
                 exit(TryEvaluateInteger(String, CultureName, Variable));
+            Variable.IsBigInteger:
+                exit(TryEvaluateBigInteger(String, Variable));
             else
                 Error(UnsupportedTypeErr);
         end;
@@ -100,7 +106,6 @@ codeunit 10 "Type Helper"
                 if not DotNet_DateTime.TryParseExact(DateTimeText, Format, DotNet_CultureInfo, DotNet_DateTimeStyles) then
                     exit(false);
         end;
-
         if not SYSTEM.Evaluate(
              EvaluatedTime,
              StrSubstNo(
@@ -142,13 +147,20 @@ codeunit 10 "Type Helper"
         exit(false)
     end;
 
+    local procedure TryEvaluateBigInteger(BigIntegerText: Text; var EvaluatedBigInteger: BigInteger): Boolean
+    var
+        TypeHelperEvaluate: Codeunit "Type Helper Evaluate"; // Necessary because this codeunit hijacks the Evaluate command.
+    begin
+        EvaluatedBigInteger := 0;
+        exit(TypeHelperEvaluate.EvaluateBigInteger(EvaluatedBigInteger, DelChr(BigIntegerText, '=', '., ')));
+    end;
+
     procedure GetLocalizedMonthToInt(Month: Text): Integer
     var
         TestMonth: Text;
         Result: Integer;
     begin
         Month := LowerCase(Month);
-
         for Result := 1 to 12 do begin
             TestMonth := LowerCase(Format(CalcDate(StrSubstNo('<CY+%1M>', Result)), 0, '<Month Text>'));
             if Month = TestMonth then
@@ -247,7 +259,6 @@ codeunit 10 "Type Helper"
     begin
         Value := UpperCase(Value);
         OptionString := UpperCase(OptionString);
-
         if (Value = '') and (StrPos(OptionString, ' ') = 1) then
             exit(0);
         if (Value <> '') and (StrPos(OptionString, Value) = 0) then
@@ -262,7 +273,6 @@ codeunit 10 "Type Helper"
             end;
             OptionNo += 1;
         end;
-
         if OptionsAreEqual(Value, OptionString) then
             exit(OptionNo);
 
@@ -317,7 +327,6 @@ codeunit 10 "Type Helper"
         OnBeforeGetFieldLength(Field, FieldLength, IsHandled);
         if IsHandled then
             exit(FieldLength);
-
         if GetField(TableNo, FieldNo, Field) then
             exit(Field.Len);
 
@@ -351,7 +360,6 @@ codeunit 10 "Type Helper"
             exit(false);
 
         TimeZone := UserPersonalization."Time Zone";
-
         if TimeZone = '' then
             exit(false);
 
@@ -553,12 +561,10 @@ codeunit 10 "Type Helper"
         Separator: Text;
     begin
         DataTypeManagement.GetRecordRef(RecordVariant, RecRef);
-
         if RecRef.KeyCount < KeyIndex then
             Error(KeyDoesNotExistErr);
 
         SelectedKeyRef := RecRef.KeyIndex(KeyIndex);
-
         for I := 1 to SelectedKeyRef.FieldCount do begin
             KeyFieldRef := SelectedKeyRef.FieldIndex(I);
             KeyString += Separator + KeyFieldRef.Name;
@@ -646,15 +652,12 @@ codeunit 10 "Type Helper"
             exit(StrLen(Text2));
         if Text2 = '' then
             exit(StrLen(Text1));
-
         if StrLen(Text1) >= StrLen(Text2) then
             MaxLen := StrLen(Text1)
         else
             MaxLen := StrLen(Text2);
-
         for i := 0 to MaxLen + 1 do
             Array1[i + 1] := i;
-
         for i := 0 to StrLen(Text1) - 1 do begin
             Array2[1] := i + 1;
             for j := 0 to StrLen(Text2) - 1 do begin
@@ -876,7 +879,6 @@ codeunit 10 "Type Helper"
         TempFieldBuffer.Reset();
         if not TempFieldBuffer.FindFirst() then
             exit;
-
         repeat
             if TargetTableRecRef.FieldExist(TempFieldBuffer."Field ID") then begin
                 SourceFieldRef := SourceRecRef.Field(TempFieldBuffer."Field ID");
@@ -943,10 +945,8 @@ codeunit 10 "Type Helper"
         // set position of currency symbol based on the locale
         if LocaleId <= 0 then
             exit(GetDefaultAmountFormat(DecimalPlaces));
-
         if not GetCurrencyStyle(LocaleId, CurrencyPositivePattern) then
             exit(GetDefaultAmountFormat(DecimalPlaces));
-
         case CurrencyPositivePattern of
             0: // $n
                 exit(CurrencySymbol + GetDefaultAmountFormat(DecimalPlaces));

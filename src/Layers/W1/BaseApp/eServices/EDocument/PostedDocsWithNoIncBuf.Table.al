@@ -39,7 +39,7 @@ table 134 "Posted Docs. With No Inc. Buf."
             ToolTip = 'Specifies the description of the first posting transaction on the posted purchase and sales document that does not have an incoming document record.';
             DataClassification = SystemMetadata;
         }
-        field(5; "Incoming Document No."; Integer)
+        field(5; "Incoming Document No."; BigInteger)
         {
             CalcFormula = lookup("Incoming Document"."Entry No." where("Document No." = field("Document No."),
                                                                         "Posting Date" = field("Posting Date")));
@@ -174,7 +174,7 @@ table 134 "Posted Docs. With No Inc. Buf."
         exit('');
     end;
 
-    local procedure CheckIfAssignedToUnpostedDoc(IncomingDocEntryNo: Integer)
+    local procedure CheckIfAssignedToUnpostedDoc(IncomingDocEntryNo: BigInteger)
     var
         SalesHeader: Record "Sales Header";
         PurchaseHeader: Record "Purchase Header";

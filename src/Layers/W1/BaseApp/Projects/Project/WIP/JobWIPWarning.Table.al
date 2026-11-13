@@ -15,7 +15,7 @@ table 1007 "Job WIP Warning"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             Editable = false;
@@ -32,7 +32,7 @@ table 1007 "Job WIP Warning"
             ToolTip = 'Specifies the number of the related project task.';
             TableRelation = "Job Task"."Job Task No.";
         }
-        field(4; "Job WIP Total Entry No."; Integer)
+        field(4; "Job WIP Total Entry No."; BigInteger)
         {
             Caption = 'Project WIP Total Entry No.';
             ToolTip = 'Specifies the entry number from the associated project WIP total.';

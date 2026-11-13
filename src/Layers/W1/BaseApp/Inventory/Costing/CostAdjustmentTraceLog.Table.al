@@ -18,7 +18,7 @@ table 5816 "Cost Adjustment Trace Log"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the entry number of the cost adjustment trace log entry.';
@@ -38,7 +38,7 @@ table 5816 "Cost Adjustment Trace Log"
             Caption = 'Traced Table ID';
             ToolTip = 'Specifies the table ID of the traced entry.';
         }
-        field(5; "Traced Entry No."; Integer)
+        field(5; "Traced Entry No."; BigInteger)
         {
             Caption = 'Traced Entry No.';
             ToolTip = 'Specifies the traced entry number.';

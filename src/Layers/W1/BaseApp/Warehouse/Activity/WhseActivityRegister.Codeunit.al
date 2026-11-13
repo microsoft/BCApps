@@ -1095,7 +1095,7 @@ codeunit 7307 "Whse.-Activity-Register"
         WhseShptLine: Record "Warehouse Shipment Line";
         QtyToRegisterBase: Decimal;
         DueDate: Date;
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         WhseDocType2: Enum "Warehouse Activity Document Type";
         NeedRegisterWhseItemTrkgLine: Boolean;
         WhseItemTrkgSetupExists: Boolean;
@@ -1722,7 +1722,7 @@ codeunit 7307 "Whse.-Activity-Register"
 
     local procedure UpdateTempTracking(WhseActivLine2: Record "Warehouse Activity Line"; QtyToHandleBase: Decimal; var TempTrackingSpecification: Record "Tracking Specification" temporary): Boolean
     var
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         Inserted: Boolean;
     begin
         NextEntryNo := TempTrackingSpecification.GetLastEntryNo() + 1;

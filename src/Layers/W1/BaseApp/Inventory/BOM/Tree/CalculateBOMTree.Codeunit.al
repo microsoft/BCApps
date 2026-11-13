@@ -29,7 +29,7 @@ codeunit 5870 "Calculate BOM Tree"
         WindowUpdateDateTime: DateTime;
         LocationSpecific: Boolean;
         HideDialog: Boolean;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         AvailToUse: Option UpdatedQtyOnItemAvail,QtyOnItemAvail,QtyAvail;
         MarkBottleneck: Boolean;
         ShowTotalAvailability: Boolean;
@@ -52,7 +52,6 @@ codeunit 5870 "Calculate BOM Tree"
     begin
         if HideDialog or not GuiAllowed() then
             exit;
-
         if CurrentDateTime - WindowUpdateDateTime >= 300 then begin
             WindowUpdateDateTime := CurrentDateTime;
             Window.Update(1, ProgressValue);
@@ -102,7 +101,6 @@ codeunit 5870 "Calculate BOM Tree"
             InitBOMBuffer(BOMBuffer);
         InitTreeType(TreeType);
         ItemFilter.Copy(ParentItem);
-
         if ParentItem.GetFilter(ParentItem."Date Filter") <> '' then
             DemandDate := ParentItem.GetRangeMax(ParentItem."Date Filter")
         else
@@ -116,7 +114,6 @@ codeunit 5870 "Calculate BOM Tree"
             until ParentItem.Next() = 0;
 
         ParentItem.Copy(ItemFilter);
-
         if not HideDialog and GuiAllowed() then
             Window.Close();
     end;
@@ -143,7 +140,6 @@ codeunit 5870 "Calculate BOM Tree"
             exit;
 
         InitVars();
-
         if ParentItem.HasBOM() or (ParentItem.HasRoutingNo()) then begin
             IsHandled := false;
             OnBeforeFilterBOMBuffer(ParentItem, BOMBuffer, DemandDate, TreeType.AsInteger(), IsHandled);
@@ -188,7 +184,6 @@ codeunit 5870 "Calculate BOM Tree"
         end;
         TempItem := ParentItem;
         TempItem.Insert();
-
         if ParentItem.IsMfgItem() then begin
             OnGenerateItemSubTreeOnSetIsLeaf(ParentItem, BOMBuffer, ItemFilter, EntryNo);
             if BOMBuffer."Is Leaf" then
@@ -253,7 +248,6 @@ codeunit 5870 "Calculate BOM Tree"
             TempItemAvailByDate.SetRange("Location Code", BOMBuffer."Location Code");
         TempItemAvailByDate.SetRange(Date, BOMBuffer."Needed by Date");
         TempItemAvailByDate.FindFirst();
-
         case AvailToUse2 of
             AvailToUse2::UpdatedQtyOnItemAvail:
                 AvailQty := TempItemAvailByDate."Updated Available Qty";
@@ -262,7 +256,6 @@ codeunit 5870 "Calculate BOM Tree"
             AvailToUse2::QtyAvail:
                 AvailQty := BOMBuffer."Available Quantity";
         end;
-
         if BOMBuffer."Calculation Formula" = BOMBuffer."Calculation Formula"::"Fixed Quantity" then
             exit(MinAbleToMakeWithFixedQuantity(BOMBuffer, AvailQty))
         else begin
@@ -312,7 +305,6 @@ codeunit 5870 "Calculate BOM Tree"
         TempItemAvailByDate.Reset();
         TempItemAvailByDate.DeleteAll();
         Evaluate(ZeroDF, '<0D>');
-
         repeat
             if not AvailByDateExists(BOMBuffer) then begin
                 BOMItem.CopyFilters(ItemFilter);
@@ -445,7 +437,6 @@ codeunit 5870 "Calculate BOM Tree"
                         UpdateNodeCosts(BOMBuffer, ParentBOMBuffer."Lot Size" / ParentBOMBuffer."Qty. per Top Item")
                     else
                         UpdateNodeCosts(BOMBuffer, 1);
-
                 if BOMBuffer."Is Leaf" then begin
                     ParentBOMBuffer.AddMaterialCost(BOMBuffer."Single-Level Material Cost", BOMBuffer."Rolled-up Material Cost");
                     ParentBOMBuffer.AddNonInvMaterialCost(BOMBuffer."Single-Lvl Mat. Non-Invt. Cost", BOMBuffer."Rolled-up Mat. Non-Invt. Cost");
@@ -484,7 +475,6 @@ codeunit 5870 "Calculate BOM Tree"
         if LotSize = 0 then
             LotSize := 1;
         BOMBuffer.RoundCosts(LotSize);
-
         if BOMBuffer."Is Leaf" then begin
             case BOMBuffer.Type of
                 BOMBuffer.Type::Item:
@@ -720,12 +710,10 @@ codeunit 5870 "Calculate BOM Tree"
         else
             if InventorySetup.Get() and (Format(InventorySetup."Default Safety Lead Time") <> '') then
                 EndDate := DemandDate - (CalcDate(InventorySetup."Default Safety Lead Time", DemandDate) - DemandDate);
-
         if Format(ParentItem."Lead Time Calculation") = '' then
             StartDate := EndDate
         else
             StartDate := EndDate - (CalcDate(ParentItem."Lead Time Calculation", EndDate) - EndDate);
-
         if Format(LeadTimeOffset) = '' then
             DueDate := StartDate
         else
@@ -842,7 +830,7 @@ codeunit 5870 "Calculate BOM Tree"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGenerateTreeForItemLocalOnBeforeCalculateTreeType(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; var TreeType: Option; var EntryNo: Integer)
+    local procedure OnGenerateTreeForItemLocalOnBeforeCalculateTreeType(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; var TreeType: Option; var EntryNo: BigInteger)
     begin
     end;
 
@@ -867,12 +855,12 @@ codeunit 5870 "Calculate BOM Tree"
     end;
 
     [IntegrationEvent(true, false)]
-    procedure OnGenerateTreeForSource(SourceRecordVar: Variant; var BOMBuffer: Record "BOM Buffer"; BOMTreeType: Enum "BOM Tree Type"; ShowBy: Enum "BOM Structure Show By"; DemandDate: Date; var ItemFilter: Record Item; var EntryNo: Integer)
+    procedure OnGenerateTreeForSource(SourceRecordVar: Variant; var BOMBuffer: Record "BOM Buffer"; BOMTreeType: Enum "BOM Tree Type"; ShowBy: Enum "BOM Structure Show By"; DemandDate: Date; var ItemFilter: Record Item; var EntryNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnGenerateItemSubTreeOnSetIsLeaf(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; var ItemFilter: Record Item; var EntryNo: Integer)
+    local procedure OnGenerateItemSubTreeOnSetIsLeaf(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; var ItemFilter: Record Item; var EntryNo: BigInteger)
     begin
     end;
 

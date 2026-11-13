@@ -35,7 +35,7 @@ codeunit 5821 "Cost Adjustment Subscribers"
         LastError: Text[2048];
         LastErrorCallStack: Text[2048];
         FailedItemNo: Code[20];
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         Trace: Boolean;
         CostAdjustmentRunnerFeatureTok: Label 'Cost adjustment batch runner', Locked = true;
         ItemCostAdjustedTok: Label 'Item cost was adjusted with the batch runner.', Locked = true;
@@ -550,7 +550,7 @@ codeunit 5821 "Cost Adjustment Subscribers"
     end;
 
     local procedure LogAppend(EventName: Text[250]; SourceRecipient: Enum "Item Cost Source/Recipient";
-                              TracedTableId: Integer; TracedEntryNo: Integer; ItemNo: Code[20]; LocationCode: Code[10]; VariantCode: Code[10];
+                              TracedTableId: Integer; TracedEntryNo: BigInteger; ItemNo: Code[20]; LocationCode: Code[10]; VariantCode: Code[10];
                               ValuationDate: Date; PostingDate: Date; CustomDimensions: Dictionary of [Text, Text])
     begin
         EntryNo += 1;

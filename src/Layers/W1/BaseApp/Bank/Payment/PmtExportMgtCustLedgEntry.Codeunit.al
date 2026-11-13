@@ -143,7 +143,7 @@ codeunit 1208 "Pmt Export Mgt Cust Ledg Entry"
             PaymentExportMgt.ExportToFile(DataExch."Entry No.")
     end;
 
-    local procedure CreateCustLedgerDataExchLine(DataExchEntryNo: Integer; CustLedgerEntry: Record "Cust. Ledger Entry"; LineNo: Integer)
+    local procedure CreateCustLedgerDataExchLine(DataExchEntryNo: BigInteger; CustLedgerEntry: Record "Cust. Ledger Entry"; LineNo: Integer)
     var
         PaymentExportData: Record "Payment Export Data";
     begin
@@ -159,7 +159,7 @@ codeunit 1208 "Pmt Export Mgt Cust Ledg Entry"
     /// <param name="CustLedgerEntry">Source customer ledger entry containing payment information.</param>
     /// <param name="DataExchEntryNo">Data exchange entry number for linking.</param>
     /// <param name="LineNo">Line number for the payment export data entry.</param>
-    procedure PreparePaymentExportDataCLE(var TempPaymentExportData: Record "Payment Export Data" temporary; CustLedgerEntry: Record "Cust. Ledger Entry"; DataExchEntryNo: Integer; LineNo: Integer)
+    procedure PreparePaymentExportDataCLE(var TempPaymentExportData: Record "Payment Export Data" temporary; CustLedgerEntry: Record "Cust. Ledger Entry"; DataExchEntryNo: BigInteger; LineNo: Integer)
     var
         Customer: Record Customer;
         CustomerBankAccount: Record "Customer Bank Account";
@@ -264,7 +264,7 @@ codeunit 1208 "Pmt Export Mgt Cust Ledg Entry"
     /// <param name="Handled">Set to true if the export processing has been handled by an external extension.</param>
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
-    procedure OnBeforePaymentExportCustLedgerEntry(BalAccountNo: Code[20]; DataExchEntryNo: Integer; LineCount: Integer; TotalAmount: Decimal; TransferDate: Date; var Handled: Boolean)
+    procedure OnBeforePaymentExportCustLedgerEntry(BalAccountNo: Code[20]; DataExchEntryNo: BigInteger; LineCount: Integer; TotalAmount: Decimal; TransferDate: Date; var Handled: Boolean)
     begin
     end;
 

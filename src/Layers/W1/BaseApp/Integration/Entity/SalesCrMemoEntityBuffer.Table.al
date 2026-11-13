@@ -287,7 +287,7 @@ table 5507 "Sales Cr. Memo Entity Buffer"
             DataClassification = CustomerContent;
             ExtendedDatatype = EMail;
         }
-        field(1304; "Cust. Ledger Entry No."; Integer)
+        field(1304; "Cust. Ledger Entry No."; BigInteger)
         {
             Caption = 'Cust. Ledger Entry No.';
             DataClassification = CustomerContent;

@@ -15,7 +15,7 @@ table 5395 "Dataverse Entity Change"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             AutoIncrement = true;
             DataClassification = SystemMetadata;

@@ -108,7 +108,7 @@ page 5809 "Cost Adjustment Detailed Logs"
     var
         Status: Enum "Cost Adjustment Run Status";
         StatusStyleExpr: Text;
-        ItemRegisterNo: Integer;
+        ItemRegisterNo: BigInteger;
         ValueEntriesCreated: Integer;
         AdjustedCostAmount: Decimal;
 

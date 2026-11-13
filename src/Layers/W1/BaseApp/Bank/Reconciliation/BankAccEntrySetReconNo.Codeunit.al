@@ -175,7 +175,7 @@ codeunit 375 "Bank Acc. Entry Set Recon.-No."
         AppliedAmount := NewAppliedAmount;
     end;
 
-    local procedure GetNextMatchID(BankAccReconLine: Record "Bank Acc. Reconciliation Line"; BankAccLedgEntry: Record "Bank Account Ledger Entry"): Integer
+    local procedure GetNextMatchID(BankAccReconLine: Record "Bank Acc. Reconciliation Line"; BankAccLedgEntry: Record "Bank Account Ledger Entry"): BigInteger
     var
         BankAccRecMatchBuffer: Record "Bank Acc. Rec. Match Buffer";
     begin

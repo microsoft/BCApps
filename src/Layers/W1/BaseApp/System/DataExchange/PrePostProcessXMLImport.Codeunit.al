@@ -177,7 +177,7 @@ codeunit 1262 "Pre & Post Process XML Import"
             Error(MultipleStmtErr);
     end;
 
-    procedure HasDataExchFieldValue(var DataExchFieldDetails: Query "Data Exch. Field Details"; DataExchEntryNo: Integer; PathFilter: Text): Boolean
+    procedure HasDataExchFieldValue(var DataExchFieldDetails: Query "Data Exch. Field Details"; DataExchEntryNo: BigInteger; PathFilter: Text): Boolean
     begin
         DataExchFieldDetails.SetRange(Data_Exch_No, DataExchEntryNo);
         DataExchFieldDetails.SetFilter(Path, PathFilter);

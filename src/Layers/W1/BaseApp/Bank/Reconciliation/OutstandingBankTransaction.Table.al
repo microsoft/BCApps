@@ -31,7 +31,7 @@ table 1284 "Outstanding Bank Transaction"
         /// Unique entry number for the outstanding bank transaction.
         /// Provides identification and linking to source ledger entries.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -233,7 +233,7 @@ table 1284 "Outstanding Bank Transaction"
         Insert();
     end;
 
-    procedure GetAppliedAmount(EntryNo: Integer) AppliedAmt: Decimal
+    procedure GetAppliedAmount(EntryNo: BigInteger) AppliedAmt: Decimal
     var
         AppliedPaymentEntry: Record "Applied Payment Entry";
     begin
@@ -246,7 +246,7 @@ table 1284 "Outstanding Bank Transaction"
         exit(AppliedAmt);
     end;
 
-    procedure GetRemainingAmount(EntryNo: Integer) RemainingAmt: Decimal
+    procedure GetRemainingAmount(EntryNo: BigInteger) RemainingAmt: Decimal
     var
         AppliedPaymentEntry: Record "Applied Payment Entry";
     begin

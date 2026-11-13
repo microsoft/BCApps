@@ -261,7 +261,7 @@ table 6661 "Return Receipt Line"
         /// <summary>
         /// Specifies the item receipt entry number created by posting.
         /// </summary>
-        field(39; "Item Rcpt. Entry No."; Integer)
+        field(39; "Item Rcpt. Entry No."; BigInteger)
         {
             Caption = 'Item Rcpt. Entry No.';
         }

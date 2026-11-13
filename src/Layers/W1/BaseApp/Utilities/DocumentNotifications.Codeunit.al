@@ -224,7 +224,7 @@ codeunit 1390 "Document Notifications"
     procedure ShowVendorLedgerEntry(Notification: Notification)
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         if not Notification.HasData(VendorLedgerEntry.FieldName("Entry No.")) then
             exit;

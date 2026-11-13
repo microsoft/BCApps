@@ -18,7 +18,7 @@ table 2581 "Dim Correction Change"
         /// <summary>
         /// Reference to the parent dimension correction entry.
         /// </summary>
-        field(1; "Dimension Correction Entry No."; Integer)
+        field(1; "Dimension Correction Entry No."; BigInteger)
         {
             DataClassification = CustomerContent;
             TableRelation = "Dimension Correction"."Entry No.";

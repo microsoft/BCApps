@@ -53,9 +53,9 @@ codeunit 5940 ServContractManagement
         PostingDate: Date;
         WDate: Date;
         ServLineNo: Integer;
-        NextEntryNo: Integer;
-        PrevEntryNo: Integer;
-        AppliedEntryNo: Integer;
+        NextEntryNo: BigInteger;
+        PrevEntryNo: BigInteger;
+        AppliedEntryNo: BigInteger;
         AmountType: Option ,Amount,DiscAmount,UnitPrice,UnitCost;
         TempServLedgEntriesIsSet: Boolean;
 
@@ -135,13 +135,13 @@ codeunit 5940 ServContractManagement
         OnAfterCreateInvoiceSetPostingDate(ServiceContractHeader, InvoiceFromDate, InvoiceToDate, PostingDate);
     end;
 
-    procedure CreateServiceLedgEntry(ServHeader2: Record "Service Header"; ContractType: Enum "Service Contract Type"; ContractNo: Code[20]; InvFromDate: Date; InvToDate: Date; SigningContract: Boolean; AddingNewLines: Boolean; LineNo: Integer) ReturnLedgerEntry: Integer
+    procedure CreateServiceLedgEntry(ServHeader2: Record "Service Header"; ContractType: Enum "Service Contract Type"; ContractNo: Code[20]; InvFromDate: Date; InvToDate: Date; SigningContract: Boolean; AddingNewLines: Boolean; LineNo: Integer) ReturnLedgerEntry: BigInteger
     var
         ServContractLine: Record "Service Contract Line";
         ServContractHeader: Record "Service Contract Header";
         Currency: Record Currency;
-        LastEntry: Integer;
-        FirstLineEntry: Integer;
+        LastEntry: BigInteger;
+        FirstLineEntry: BigInteger;
         NoOfPayments: Integer;
         DueDate: Date;
         Days: Integer;
@@ -545,7 +545,7 @@ codeunit 5940 ServContractManagement
         OnAfterInsertServiceHeader(ServiceHeader, ServiceContractHeader);
     end;
 
-    procedure CreateServiceLine(ServHeader: Record "Service Header"; ContractType: Enum "Service Contract Type"; ContractNo: Code[20]; InvFromDate: Date; InvToDate: Date; ServiceApplyEntry: Integer; SignningContract: Boolean)
+    procedure CreateServiceLine(ServHeader: Record "Service Header"; ContractType: Enum "Service Contract Type"; ContractNo: Code[20]; InvFromDate: Date; InvToDate: Date; ServiceApplyEntry: BigInteger; SignningContract: Boolean)
     var
         ServContractHeader: Record "Service Contract Header";
         ServDocReg: Record "Service Document Register";
@@ -884,7 +884,7 @@ codeunit 5940 ServContractManagement
         OnAfterCreateOrGetCreditHeader(ServHeader2, ServContract);
     end;
 
-    local procedure CreateCreditLine(CreditNo: Code[20]; AccountNo: Code[20]; CreditAmount: Decimal; PeriodStarts: Date; PeriodEnds: Date; LineDescription: Text[100]; ServItemNo: Code[20]; ServContract: Record "Service Contract Header"; CreditCost: Decimal; CreditUnitPrice: Decimal; DiscAmount: Decimal; ApplyDiscAmt: Boolean; ServLedgEntryNo: Integer)
+    local procedure CreateCreditLine(CreditNo: Code[20]; AccountNo: Code[20]; CreditAmount: Decimal; PeriodStarts: Date; PeriodEnds: Date; LineDescription: Text[100]; ServItemNo: Code[20]; ServContract: Record "Service Contract Header"; CreditCost: Decimal; CreditUnitPrice: Decimal; DiscAmount: Decimal; ApplyDiscAmt: Boolean; ServLedgEntryNo: BigInteger)
     var
         ServHeader2: Record "Service Header";
         ServLine2: Record "Service Line";
@@ -1086,7 +1086,7 @@ codeunit 5940 ServContractManagement
         AppliedCreditLineUnitCost: Decimal;
         AppliedCreditLineDiscAmount: Decimal;
         ApplyServiceLedgerEntryAmounts: Boolean;
-        ServLedgEntryNo: Integer;
+        ServLedgEntryNo: BigInteger;
     begin
         Days := Date2DMY(ContractLineStartingDate, 1);
         Currency.InitRoundingPrecision();
@@ -1481,8 +1481,8 @@ codeunit 5940 ServContractManagement
         ServiceLedgEntry: Record "Service Ledger Entry";
         SourceCodeSetup: Record "Source Code Setup";
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
-        KeepFromWarrEntryNo: Integer;
-        KeepToWarrEntryNo: Integer;
+        KeepFromWarrEntryNo: BigInteger;
+        KeepToWarrEntryNo: BigInteger;
     begin
         if ServiceRegister."No." = 0 then
             SequenceNoMgt.ClearSequenceNoCheck();
@@ -1578,7 +1578,7 @@ codeunit 5940 ServContractManagement
         InvoiceTo: Date;
         PartInvoiceFrom: Date;
         PartInvoiceTo: Date;
-        ServiceApplyEntry: Integer;
+        ServiceApplyEntry: BigInteger;
         ShouldCraeteServiceApplyEntry: Boolean;
     begin
         GetNextInvoicePeriod(ServContractToInvoice, InvoiceFrom, InvoiceTo);
@@ -1959,7 +1959,7 @@ codeunit 5940 ServContractManagement
         TempServLedgEntriesIsSet := true;
     end;
 
-    local procedure LookUpAmountToCredit(ServItemNo: Code[20]; ItemNo: Code[20]; PostingDate: Date; var LineAmount: Decimal; var CostAmount: Decimal; var UnitPrice: Decimal; var DiscountAmt: Decimal; var ServLedgEntryNo: Integer): Boolean
+    local procedure LookUpAmountToCredit(ServItemNo: Code[20]; ItemNo: Code[20]; PostingDate: Date; var LineAmount: Decimal; var CostAmount: Decimal; var UnitPrice: Decimal; var DiscountAmt: Decimal; var ServLedgEntryNo: BigInteger): Boolean
     begin
         LineAmount := 0;
         CostAmount := 0;
@@ -2321,7 +2321,7 @@ codeunit 5940 ServContractManagement
         ServLine.Insert();
     end;
 
-    local procedure UpdateApplyUntilEntryNoInServLedgEntry(ServContractHeader: Record "Service Contract Header"; SigningContract: Boolean; ReturnLedgerEntry: Integer; FirstLineEntry: Integer; LastEntry: Integer)
+    local procedure UpdateApplyUntilEntryNoInServLedgEntry(ServContractHeader: Record "Service Contract Header"; SigningContract: Boolean; ReturnLedgerEntry: BigInteger; FirstLineEntry: BigInteger; LastEntry: BigInteger)
     var
         ServLedgEntry: Record "Service Ledger Entry";
         IsHandled: Boolean;
@@ -2518,7 +2518,7 @@ codeunit 5940 ServContractManagement
         var PartInvoiceFrom: Date;
         var PartInvoiceTo: Date)
     var
-        ServiceApplyEntryNo: Integer;
+        ServiceApplyEntryNo: BigInteger;
     begin
         if (ServiceContractLine."Starting Date" < ServiceContractHeader."Next Invoice Date") and
            (ServiceContractLine."Invoiced to Date" = 0D) and (WorkDate() < ServiceContractHeader."Next Invoice Date")
@@ -2726,7 +2726,7 @@ codeunit 5940 ServContractManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateServiceLine(ServiceHeader: Record "Service Header"; ContractType: Enum "Service Contract Type"; ContractNo: Code[20]; InvFromDate: Date; InvToDate: Date; ServiceApplyEntry: Integer; SigningContract: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeCreateServiceLine(ServiceHeader: Record "Service Header"; ContractType: Enum "Service Contract Type"; ContractNo: Code[20]; InvFromDate: Date; InvToDate: Date; ServiceApplyEntry: BigInteger; SigningContract: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -2926,7 +2926,7 @@ codeunit 5940 ServContractManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateRemainingPeriodInvoiceServiceLines(var CurrServContract: Record "Service Contract Header"; var ServHeader: Record "Service Header"; InvFrom: Date; InvTo: Date; var AppliedEntry: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeCreateRemainingPeriodInvoiceServiceLines(var CurrServContract: Record "Service Contract Header"; var ServHeader: Record "Service Header"; InvFrom: Date; InvTo: Date; var AppliedEntry: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -2981,7 +2981,7 @@ codeunit 5940 ServContractManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCreateAllServLinesOnAfterCalcShouldCraeteServiceApplyEntry(var ServHeader: Record "Service Header"; ServContractToInvoice: Record "Service Contract Header"; var ServContractLine: Record "Service Contract Line"; var PartInvoiceFrom: Date; var PartInvoiceTo: Date; var ServiceApplyEntry: Integer; var ShouldCraeteServiceApplyEntry: Boolean)
+    local procedure OnCreateAllServLinesOnAfterCalcShouldCraeteServiceApplyEntry(var ServHeader: Record "Service Header"; ServContractToInvoice: Record "Service Contract Header"; var ServContractLine: Record "Service Contract Line"; var PartInvoiceFrom: Date; var PartInvoiceTo: Date; var ServiceApplyEntry: BigInteger; var ShouldCraeteServiceApplyEntry: Boolean)
     begin
     end;
 
@@ -3041,7 +3041,7 @@ codeunit 5940 ServContractManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateApplyUntilEntryNoInServLedgEntry(ServContractHeader: Record "Service Contract Header"; SigningContract: Boolean; ReturnLedgerEntry: Integer; FirstLineEntry: Integer; LastEntry: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeUpdateApplyUntilEntryNoInServLedgEntry(ServContractHeader: Record "Service Contract Header"; SigningContract: Boolean; ReturnLedgerEntry: BigInteger; FirstLineEntry: BigInteger; LastEntry: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

@@ -1902,7 +1902,7 @@ codeunit 8614 "Config. XML Exchange"
         TypeHelper: Codeunit "Type Helper";
         Date: Date;
     begin
-        if not ((FieldRef.Type in [FieldType::Integer, FieldType::BLOB]) and
+        if not ((FieldRef.Type in [FieldType::Integer, FieldType::BigInteger, FieldType::BLOB]) and
                 (FieldRef.Relation <> 0) and (Format(FieldRef.Value) = '0'))
         then
             InnerText := Format(FieldRef.Value, 0, ConfigValidateMgt.XMLFormat());

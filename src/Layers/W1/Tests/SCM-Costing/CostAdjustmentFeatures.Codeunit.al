@@ -28,7 +28,6 @@ codeunit 137085 "Cost Adjustment Features"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Cost Adjustment Features");
         LibrarySetupStorage.Restore();
         LibraryVariableStorage.Clear();
-
         if Initialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Cost Adjustment Features");
@@ -1813,10 +1812,10 @@ codeunit 137085 "Cost Adjustment Features"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Adjustment", OnBeforeUpdateItemUnitCost2, '', false, false)]
-    local procedure AddRoundOfAdjustment(var Item: Record Item; var ItemLedgEntryToAdjust: Dictionary of [Code[20], List of [Integer]])
+    local procedure AddRoundOfAdjustment(var Item: Record Item; var ItemLedgEntryToAdjust: Dictionary of [Code[20], List of [BigInteger]])
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
-        ItemLedgerEntryList: List of [Integer];
+        ItemLedgerEntryList: List of [BigInteger];
         TestFunctionName: Text;
     begin
         TestFunctionName := LibraryVariableStorage.PeekText(1);

@@ -113,7 +113,7 @@ table 5880 "Pstd. Phys. Invt. Order Line"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(55; "Last Item Ledger Entry No."; Integer)
+        field(55; "Last Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Last Item Ledger Entry No.';
             Editable = false;

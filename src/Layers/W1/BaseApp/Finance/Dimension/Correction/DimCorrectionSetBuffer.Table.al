@@ -19,7 +19,7 @@ table 2584 "Dim Correction Set Buffer"
         /// <summary>
         /// Reference to the parent dimension correction entry.
         /// </summary>
-        field(1; "Dimension Correction Entry No."; Integer)
+        field(1; "Dimension Correction Entry No."; BigInteger)
         {
             DataClassification = CustomerContent;
             TableRelation = "Dimension Correction"."Entry No.";
@@ -28,7 +28,7 @@ table 2584 "Dim Correction Set Buffer"
         /// <summary>
         /// Original dimension set ID to be corrected.
         /// </summary>
-        field(2; "Dimension Set ID"; Integer)
+        field(2; "Dimension Set ID"; BigInteger)
         {
             DataClassification = CustomerContent;
             TableRelation = "Dimension Set Entry"."Dimension Set ID";
@@ -79,7 +79,7 @@ table 2584 "Dim Correction Set Buffer"
     /// Adds a ledger entry number to the list of entries affected by this dimension set correction.
     /// </summary>
     /// <param name="EntryNo">Ledger entry number to add to the affected entries list</param>
-    procedure AddLedgerEntry(EntryNo: Integer)
+    procedure AddLedgerEntry(EntryNo: BigInteger)
     var
         LedgerEntries: Text;
     begin
@@ -93,7 +93,7 @@ table 2584 "Dim Correction Set Buffer"
     /// </summary>
     /// <param name="EntryNo">Ledger entry number to check for inclusion</param>
     /// <returns>True if the entry number is in the affected entries list, false otherwise</returns>
-    procedure ContainsLedgerEntry(EntryNo: Integer): Boolean
+    procedure ContainsLedgerEntry(EntryNo: BigInteger): Boolean
     var
         LedgerEntries: Text;
     begin

@@ -83,7 +83,7 @@ table 48 "Invt. Posting Buffer"
             Caption = 'Negative';
             DataClassification = SystemMetadata;
         }
-        field(13; "Entry No."; Integer)
+        field(13; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;

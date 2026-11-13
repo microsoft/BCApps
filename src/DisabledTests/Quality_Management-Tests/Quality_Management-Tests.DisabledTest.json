@@ -1,5 +1,41 @@
 [
   {
+    "bug": "617432",
+    "codeunitId": 139958,
+    "codeunitName": "Qlty. Tests - Receiving Integ.",
+    "method": "AttemptCreateInspectionWithPurchaseLineAndTracking_LotTracked"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139958,
+    "codeunitName": "Qlty. Tests - Receiving Integ.",
+    "method": "AttemptCreateInspectionWithPurchaseLineAndTracking_OnPurchPost"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139958,
+    "codeunitName": "Qlty. Tests - Receiving Integ.",
+    "method": "AttemptCreateInspectionOnSalesReturnPost_LotTracked"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139958,
+    "codeunitName": "Qlty. Tests - Receiving Integ.",
+    "method": "AttemptCreateInspectionOnSalesReturnPost"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139960,
+    "codeunitName": "Qlty. Tests - Dispositions",
+    "method": "PostItemJournalForNegativeAdjustmentCreatedFromTest"
+  },
+  {
+    "bug": "617432",
+    "codeunitId": 139971,
+    "codeunitName": "Qlty. Tests - Item Tracking",
+    "method": "ItemTrackingDetailsAreNotPopulatedOnTestForNonTrackingItem"
+  },
+  {
     "codeunitId": 139960,
     "codeunitName": "Qlty. Tests - Dispositions",
     "method": "PurchaseReturnFullPackageAdvLocation"

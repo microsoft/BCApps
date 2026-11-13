@@ -328,7 +328,7 @@ table 5495 "Sales Order Entity Buffer"
             Caption = 'Ship-to Phone No.';
             ExtendedDatatype = PhoneNo;
         }
-        field(1304; "Cust. Ledger Entry No."; Integer)
+        field(1304; "Cust. Ledger Entry No."; BigInteger)
         {
             Caption = 'Cust. Ledger Entry No.';
             DataClassification = CustomerContent;

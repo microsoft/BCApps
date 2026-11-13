@@ -661,7 +661,7 @@ codeunit 147531 "Cartera Recv. Installments"
         SalesLine.Modify(true);
     end;
 
-    local procedure ApplyCreditMemoToFirstInstallment(EntryNo: Integer)
+    local procedure ApplyCreditMemoToFirstInstallment(EntryNo: BigInteger)
     var
         CustomerLedgerEntries: TestPage "Customer Ledger Entries";
     begin
@@ -800,7 +800,6 @@ codeunit 147531 "Cartera Recv. Installments"
           StrSubstNo(CountMismatchErr, CarteraDoc.TableCaption(), PaymentTerms.FieldCaption("No. of Installments")));
 
         CarteraDocsTotalAmount := 0;
-
         repeat
             Index += 1;
             CarteraDoc.TestField("No.", Format(Index));
@@ -825,7 +824,6 @@ codeunit 147531 "Cartera Recv. Installments"
           StrSubstNo(CountMismatchErr, CustLedgerEntry.TableCaption(), PaymentTerms.FieldCaption("No. of Installments")));
 
         CustomerLedgerTotalAmount := 0;
-
         repeat
             Index += 1;
             CustLedgerEntry.TestField("Bill No.", Format(Index));

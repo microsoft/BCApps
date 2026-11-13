@@ -73,7 +73,6 @@ codeunit 133504 "SCM Costing Performance"
         SmallNoOfSales := LibraryRandom.RandIntInRange(2, 3);
         DurationSmallNo := PurchaseOnceManySales(SmallNoOfSales);
         DurationLargeNo := PurchaseOnceManySales(SmallNoOfSales * 4);
-
         if CodeCoverageMgt.Running() then
             CodeCoverageMgt.StopApplicationCoverage();
 
@@ -165,7 +164,6 @@ codeunit 133504 "SCM Costing Performance"
         LinesWithOneSKU := PostItemJournalLineWithSKU(Item);
         LinesWithTwoSKU := PostItemJournalLineWithSKU(Item);
         LinesWithThreeSKU := PostItemJournalLineWithSKU(Item);
-
         if CodeCoverageMgt.Running() then
             CodeCoverageMgt.StopApplicationCoverage();
 
@@ -194,7 +192,6 @@ codeunit 133504 "SCM Costing Performance"
         NoOfConsumtionsLarge := 50;
 
         CreateProductionOrder(ProdOrderLine, ItemQty);
-
         if not CodeCoverageMgt.Running() then
             CodeCoverageMgt.StartApplicationCoverage();
         NoOfHitsSmall := PostPurchWithConsumptionAndAdjust(ProdOrderLine, ItemQty, NoOfConsumtionsSmall);
@@ -285,7 +282,6 @@ codeunit 133504 "SCM Costing Performance"
         RunObservedReceiptAdjustment(Item."No.", ReceiptEntryNos, ProcessingCounts[1], BufferedCount);
         VerifyReceiptBacklog(Item."No.", ReceiptEntryNos, true);
         Assert.AreEqual(100, BufferedCount, 'All receipts awaiting sales invoicing must remain buffered.');
-
         for RunNo := 1 to ArrayLen(ProcessingCounts) do begin
             // New posting selects the item naturally; no existing entry or item flags are edited.
             PostFreshEntryToTriggerAdjustment(Item);
@@ -323,7 +319,6 @@ codeunit 133504 "SCM Costing Performance"
         BatchSizes[1] := 25;
         BatchSizes[2] := 25;
         BatchSizes[3] := 50;
-
         for Stage := 1 to ArrayLen(BatchSizes) do begin
             PostReceiptAndShipmentBatch(Item, BatchSizes[Stage], SalesHeader, ReceiptEntryNos);
             RunObservedReceiptAdjustment(Item."No.", ReceiptEntryNos, ProcessingCounts[Stage], BufferedCount);
@@ -381,7 +376,6 @@ codeunit 133504 "SCM Costing Performance"
         VerifyEveryReceiptVisited(ReceiptEntryNos);
         VerifyReceiptBacklog(Item."No.", ReceiptEntryNos, false);
         Assert.AreEqual(0, BufferedCount, 'Invoicing must resolve all tracked receipt deferrals.');
-
         for RunNo := 1 to 3 do begin
             PostFreshEntryToTriggerAdjustment(Item);
             ValueEntryCount := CountItemValueEntries(Item."No.");
@@ -540,9 +534,9 @@ codeunit 133504 "SCM Costing Performance"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Adjustment", OnBeforeUpdateItemUnitCost2, '', false, false)]
-    local procedure CountTrackedBufferedReceipts(var Item: Record Item; var ItemLedgEntryToAdjust: Dictionary of [Code[20], List of [Integer]])
+    local procedure CountTrackedBufferedReceipts(var Item: Record Item; var ItemLedgEntryToAdjust: Dictionary of [Code[20], List of [BigInteger]])
     var
-        BufferedEntries: List of [Integer];
+        BufferedEntries: List of [BigInteger];
         EntryNo: Integer;
     begin
         if Item."No." <> ObservedItemNo then
@@ -583,7 +577,6 @@ codeunit 133504 "SCM Costing Performance"
           ItemJournalBatch."Template Type"::Item, ItemJournalLine."Entry Type"::Purchase, Item, '', '', '', PurchaseQty, Day1, 2);
 
         ItemLedgEntry.FindLast();
-
         for jj := 1 to PurchaseQty - 1 do begin
             LibraryInventory.CreateItemJournalBatchByType(ItemJournalBatch, ItemJournalBatch."Template Type"::Item);
 
@@ -592,7 +585,6 @@ codeunit 133504 "SCM Costing Performance"
             ItemJournalLine.Modify(true);
 
             LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
-
             if jj = PurchaseQty - 1 then
                 NoOfLinesHIt := CodeCoverageMgt.ApplicationHits();
             LibraryCosting.AdjustCostItemEntries(Item."No.", '');

@@ -519,7 +519,7 @@ table 483 "Change Global Dim. Log Entry"
     begin
         if RecRef.FieldExist(2) then begin // typical for Detailed Ledger Entry tables
             ParentKeyFieldRef := RecRef.Field(2);
-            if ParentKeyFieldRef.Type = FieldType::Integer then
+            if ParentKeyFieldRef.Type in [FieldType::Integer, FieldType::BigInteger] then
                 exit(ParentKeyFieldRef.Relation);
         end;
     end;

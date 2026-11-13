@@ -520,7 +520,7 @@ page 116 "G/L Registers"
     /// <param name="ReverseEnabled">Boolean indicating if reverse functionality should be enabled.</param>
     /// <param name="IsHandled">Boolean indicating if the check has been handled by the subscriber.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetReverseRegisterEnabled(RegisterNo: Integer; var ReverseEnabled: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeGetReverseRegisterEnabled(RegisterNo: BigInteger; var ReverseEnabled: Boolean; var IsHandled: Boolean)
     begin
     end;
 }

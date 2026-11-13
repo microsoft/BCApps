@@ -24,7 +24,7 @@ table 5093 "Opportunity Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -337,7 +337,7 @@ table 5093 "Opportunity Entry"
         TempSalesCycleStageUpdate: Record "Sales Cycle Stage" temporary;
         TempSalesCycleStageJump: Record "Sales Cycle Stage" temporary;
 
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -347,7 +347,7 @@ table 5093 "Opportunity Entry"
     procedure InsertEntry(var OpportunityEntryToInsert: Record "Opportunity Entry"; CancelOldTask: Boolean; CreateNewTask: Boolean)
     var
         OpportunityEntryInserted: Record "Opportunity Entry";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         EntryNo := OpportunityEntryInserted.GetLastEntryNo();
         OpportunityEntryInserted.SetCurrentKey(Active, "Opportunity No.");

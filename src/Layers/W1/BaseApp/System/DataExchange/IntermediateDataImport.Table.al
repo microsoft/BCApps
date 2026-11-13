@@ -71,7 +71,7 @@ table 1214 "Intermediate Data Import"
     {
     }
 
-    procedure InsertOrUpdateEntry(EntryNo: Integer; TableID: Integer; FieldID: Integer; ParentRecordNo: Integer; RecordNo: Integer; NewValue: Text[250])
+    procedure InsertOrUpdateEntry(EntryNo: BigInteger; TableID: Integer; FieldID: Integer; ParentRecordNo: Integer; RecordNo: Integer; NewValue: Text[250])
     begin
         if FindEntry(EntryNo, TableID, FieldID, ParentRecordNo, RecordNo) then
             SetValue(NewValue)
@@ -88,7 +88,7 @@ table 1214 "Intermediate Data Import"
         end;
     end;
 
-    procedure FindEntry(EntryNo: Integer; TableID: Integer; FieldID: Integer; ParentRecordNo: Integer; RecordNo: Integer): Boolean
+    procedure FindEntry(EntryNo: BigInteger; TableID: Integer; FieldID: Integer; ParentRecordNo: Integer; RecordNo: Integer): Boolean
     begin
         Reset();
 
@@ -101,7 +101,7 @@ table 1214 "Intermediate Data Import"
         exit(FindFirst());
     end;
 
-    procedure GetEntryValue(EntryNo: Integer; TableID: Integer; FieldID: Integer; ParentRecordNo: Integer; RecordNo: Integer): Text[250]
+    procedure GetEntryValue(EntryNo: BigInteger; TableID: Integer; FieldID: Integer; ParentRecordNo: Integer; RecordNo: Integer): Text[250]
     begin
         if FindEntry(EntryNo, TableID, FieldID, ParentRecordNo, RecordNo) then
             exit(GetValue());
