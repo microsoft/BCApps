@@ -2800,7 +2800,7 @@
 
         // [THEN] Error 'Root element is missing' confirms process passed CFDI validation
         Assert.ExpectedError('Root element is missing');
-        Assert.ExpectedErrorCode('DotNetInvoke:Xml');
+        Assert.ExpectedErrorCode('Xml:Xml');
     end;
 
     [Test]
@@ -2835,7 +2835,7 @@
 
         // [THEN] Error 'Root element is missing' confirms process passed CFDI validation
         Assert.ExpectedError('Root element is missing');
-        Assert.ExpectedErrorCode('DotNetInvoke:Xml');
+        Assert.ExpectedErrorCode('Xml:Xml');
     end;
 
     [Test]
@@ -2916,7 +2916,7 @@
 
         // [THEN] Error 'Root element is missing' confirms process passed CFDI validation
         Assert.ExpectedError('Root element is missing');
-        Assert.ExpectedErrorCode('DotNetInvoke:Xml');
+        Assert.ExpectedErrorCode('Xml:Xml');
     end;
 
     [Test]
