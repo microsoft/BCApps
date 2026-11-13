@@ -142,65 +142,45 @@ codeunit 3305 "Payables Agent Upgrade"
 #if not CLEAN30
     local procedure MigrateFinalizedEDocumentKPI()
     var
+        LegacyKPI: Record "Payables Agent KPI";
         NewAggregate: Record "Payables Agent KPI";
-        OtherAggregate: Record "Payables Agent KPI";
+        LegacyKPIDataTransfer: DataTransfer;
+        LegacyScenarioFilterTxt: Label '%1|%2', Locked = true;
         MigratedCount: Integer;
     begin
         if UpgradeTag.HasUpgradeTag(GetMigrateFinalizedEDocumentKPITag()) then
             exit;
 
-        NewAggregate.LockTable();
-        MigratedCount := MigrateLegacyKPIScenario("PA KPI Scenario"::"Agent E-Docs Finalized by Agent");
-        MigratedCount += MigrateLegacyKPIScenario("PA KPI Scenario"::"Agent E-Docs Finalized by User");
+        LegacyKPI.SetFilter("KPI Scenario", LegacyScenarioFilterTxt, "PA KPI Scenario"::"Agent E-Docs Finalized by Agent", "PA KPI Scenario"::"Agent E-Docs Finalized by User");
+        LegacyKPI.SetRange("Is Aggregate", false);
+        MigratedCount := LegacyKPI.Count();
 
-        NewAggregate.SetRange("Is Aggregate", true);
-        NewAggregate.SetRange("KPI Scenario", "PA KPI Scenario"::"Purchase Invoices created by Agent");
-        if not NewAggregate.FindFirst() then begin
+        // Reclassifying the existing entries preserves their SystemCreatedAt for feedback thresholds.
+        LegacyKPIDataTransfer.SetTables(Database::"Payables Agent KPI", Database::"Payables Agent KPI");
+        LegacyKPIDataTransfer.AddSourceFilter(LegacyKPI.FieldNo("KPI Scenario"), LegacyScenarioFilterTxt, "PA KPI Scenario"::"Agent E-Docs Finalized by Agent", "PA KPI Scenario"::"Agent E-Docs Finalized by User");
+        LegacyKPIDataTransfer.AddSourceFilter(LegacyKPI.FieldNo("Is Aggregate"), '=%1', false);
+        LegacyKPIDataTransfer.AddConstantValue("PA KPI Scenario"::"Purchase Invoices created by Agent", LegacyKPI.FieldNo("KPI Scenario"));
+        LegacyKPIDataTransfer.UpdateAuditFields(false);
+        LegacyKPIDataTransfer.CopyFields();
+
+        LegacyKPI.SetRange("Is Aggregate", true);
+        LegacyKPI.DeleteAll();
+
+        NewAggregate := NewAggregate.GetAggregateKPI("PA KPI Scenario"::"Purchase Invoices created by Agent");
+        if NewAggregate.Id = 0 then begin
             NewAggregate."Is Aggregate" := true;
             NewAggregate."KPI Scenario" := "PA KPI Scenario"::"Purchase Invoices created by Agent";
             NewAggregate.Insert();
         end;
-
-        // There is exactly one aggregate for the new scenario after migration, even if one was already created.
-        OtherAggregate.SetRange("Is Aggregate", true);
-        OtherAggregate.SetRange("KPI Scenario", "PA KPI Scenario"::"Purchase Invoices created by Agent");
-        OtherAggregate.SetFilter(Id, '<>%1', NewAggregate.Id);
-        while OtherAggregate.FindFirst() do begin
-            MigratedCount += OtherAggregate.Count;
-            OtherAggregate.Delete();
-        end;
         NewAggregate.Count += MigratedCount;
         NewAggregate.Modify();
+
         UpgradeTag.SetUpgradeTag(GetMigrateFinalizedEDocumentKPITag());
-    end;
-
-    local procedure MigrateLegacyKPIScenario(LegacyScenario: Enum "PA KPI Scenario") MigratedCount: Integer
-    var
-        LegacyKPI: Record "Payables Agent KPI";
-        GranularCount: Integer;
-    begin
-        LegacyKPI.SetRange("KPI Scenario", LegacyScenario);
-        LegacyKPI.SetRange("Is Aggregate", false);
-        if LegacyKPI.FindSet() then
-            repeat
-                GranularCount += LegacyKPI.Count;
-            until LegacyKPI.Next() = 0;
-        // Reclassifying the existing entries preserves their SystemCreatedAt for feedback thresholds.
-        LegacyKPI.ModifyAll("KPI Scenario", "PA KPI Scenario"::"Purchase Invoices created by Agent");
-
-        LegacyKPI.SetRange("Is Aggregate", true);
-        if LegacyKPI.FindSet() then
-            repeat
-                MigratedCount += LegacyKPI.Count;
-            until LegacyKPI.Next() = 0;
-        LegacyKPI.DeleteAll();
-        if MigratedCount = 0 then
-            MigratedCount := GranularCount;
     end;
 
     local procedure GetMigrateFinalizedEDocumentKPITag(): Code[250]
     begin
-        exit('MS-PayablesAgent-MigrateInvoiceKPI-V2');
+        exit('MS-658271-MigrateFinalizedEDocumentKPI-20261113');
     end;
 #endif
 
