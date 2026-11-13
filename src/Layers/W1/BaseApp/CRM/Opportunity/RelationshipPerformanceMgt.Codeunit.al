@@ -6,9 +6,7 @@ namespace Microsoft.CRM.Opportunity;
 
 using Microsoft.CRM.Interaction;
 using Microsoft.CRM.Segment;
-using System;
 using System.Visualization;
-using System.Xml;
 
 codeunit 783 "Relationship Performance Mgt."
 {
@@ -118,78 +116,84 @@ codeunit 783 "Relationship Performance Mgt."
 
     local procedure RecordsToXml(SegmentLine: Record "Segment Line"; InteractionLogEntry: Record "Interaction Log Entry"): Text
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         RecRef: RecordRef;
-        DotNetXmlDocument: DotNet XmlDocument;
-        XmlRootNode: DotNet XmlNode;
-        XmlNode: DotNet XmlNode;
+        RootXmlElement: XmlElement;
+        TableXmlElement: XmlElement;
+        UnformattedXmlWriteOptions: XmlWriteOptions;
+        NotificationXml: Text;
     begin
-        DotNetXmlDocument := DotNetXmlDocument.XmlDocument();
-
-        XMLDOMManagement.AddRootElement(DotNetXmlDocument, 'Notification', XmlRootNode);
+        RootXmlElement := XmlElement.Create('Notification');
 
         RecRef.GetTable(SegmentLine);
-        XMLDOMManagement.AddElement(XmlRootNode, GetXmlTableName(RecRef), '', '', XmlNode);
-        AddFieldToXml(XmlNode, RecRef.Field(SegmentLine.FieldNo("Segment No.")));
-        AddFieldToXml(XmlNode, RecRef.Field(SegmentLine.FieldNo(Description)));
-        AddFieldToXml(XmlNode, RecRef.Field(SegmentLine.FieldNo("Campaign No.")));
-        AddFieldToXml(XmlNode, RecRef.Field(SegmentLine.FieldNo("Salesperson Code")));
-        AddFieldToXml(XmlNode, RecRef.Field(SegmentLine.FieldNo("Contact No.")));
-        AddFieldToXml(XmlNode, RecRef.Field(SegmentLine.FieldNo("Contact Company No.")));
+        TableXmlElement := XmlElement.Create(GetXmlTableName(RecRef));
+        RootXmlElement.Add(TableXmlElement);
+        AddFieldToXml(TableXmlElement, RecRef.Field(SegmentLine.FieldNo("Segment No.")));
+        AddFieldToXml(TableXmlElement, RecRef.Field(SegmentLine.FieldNo(Description)));
+        AddFieldToXml(TableXmlElement, RecRef.Field(SegmentLine.FieldNo("Campaign No.")));
+        AddFieldToXml(TableXmlElement, RecRef.Field(SegmentLine.FieldNo("Salesperson Code")));
+        AddFieldToXml(TableXmlElement, RecRef.Field(SegmentLine.FieldNo("Contact No.")));
+        AddFieldToXml(TableXmlElement, RecRef.Field(SegmentLine.FieldNo("Contact Company No.")));
         RecRef.Close();
 
         RecRef.GetTable(InteractionLogEntry);
-        XMLDOMManagement.AddElement(XmlRootNode, GetXmlTableName(RecRef), '', '', XmlNode);
-        AddFieldToXml(XmlNode, RecRef.Field(InteractionLogEntry.FieldNo("Entry No.")));
+        TableXmlElement := XmlElement.Create(GetXmlTableName(RecRef));
+        RootXmlElement.Add(TableXmlElement);
+        AddFieldToXml(TableXmlElement, RecRef.Field(InteractionLogEntry.FieldNo("Entry No.")));
         RecRef.Close();
 
-        exit(DotNetXmlDocument.OuterXml);
+        UnformattedXmlWriteOptions.PreserveWhitespace := true;
+        RootXmlElement.WriteTo(UnformattedXmlWriteOptions, NotificationXml);
+        exit(NotificationXml);
     end;
 
     local procedure XmlToRecords(InText: Text; var SegmentLine: Record "Segment Line"; var InteractionLogEntry: Record "Interaction Log Entry")
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         RecRef: RecordRef;
-        DotNetXmlDocument: DotNet XmlDocument;
-        XmlRootNode: DotNet XmlNode;
+        NotificationXmlDocument: XmlDocument;
+        RootXmlElement: XmlElement;
     begin
-        XMLDOMManagement.LoadXMLDocumentFromText(InText, DotNetXmlDocument);
+        XmlDocument.ReadFrom(InText, NotificationXmlDocument);
+        NotificationXmlDocument.GetRoot(RootXmlElement);
 
         RecRef.GetTable(SegmentLine);
-        XMLDOMManagement.FindNode(DotNetXmlDocument.DocumentElement, GetXmlTableName(RecRef), XmlRootNode);
-        SetFieldFromXml(RecRef, SegmentLine.FieldNo("Segment No."), XmlRootNode);
-        SetFieldFromXml(RecRef, SegmentLine.FieldNo(Description), XmlRootNode);
-        SetFieldFromXml(RecRef, SegmentLine.FieldNo("Campaign No."), XmlRootNode);
-        SetFieldFromXml(RecRef, SegmentLine.FieldNo("Salesperson Code"), XmlRootNode);
-        SetFieldFromXml(RecRef, SegmentLine.FieldNo("Contact No."), XmlRootNode);
-        SetFieldFromXml(RecRef, SegmentLine.FieldNo("Contact Company No."), XmlRootNode);
+        SetFieldFromXml(RecRef, SegmentLine.FieldNo("Segment No."), RootXmlElement);
+        SetFieldFromXml(RecRef, SegmentLine.FieldNo(Description), RootXmlElement);
+        SetFieldFromXml(RecRef, SegmentLine.FieldNo("Campaign No."), RootXmlElement);
+        SetFieldFromXml(RecRef, SegmentLine.FieldNo("Salesperson Code"), RootXmlElement);
+        SetFieldFromXml(RecRef, SegmentLine.FieldNo("Contact No."), RootXmlElement);
+        SetFieldFromXml(RecRef, SegmentLine.FieldNo("Contact Company No."), RootXmlElement);
         RecRef.Modify();
         RecRef.SetTable(SegmentLine);
         RecRef.Close();
 
         RecRef.Open(DATABASE::"Interaction Log Entry");
-        XMLDOMManagement.FindNode(DotNetXmlDocument.DocumentElement, GetXmlTableName(RecRef), XmlRootNode);
-        SetFieldFromXml(RecRef, InteractionLogEntry.FieldNo("Entry No."), XmlRootNode);
+        SetFieldFromXml(RecRef, InteractionLogEntry.FieldNo("Entry No."), RootXmlElement);
         RecRef.Find();
         RecRef.SetTable(InteractionLogEntry);
     end;
 
-    local procedure AddFieldToXml(var XmlNode: DotNet XmlNode; FieldRef: FieldRef)
+    local procedure AddFieldToXml(var TableXmlElement: XmlElement; FieldRef: FieldRef)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XmlNodeChild: DotNet XmlNode;
+        FieldXmlElement: XmlElement;
+        FieldValue: Text;
     begin
-        XMLDOMManagement.AddElement(XmlNode, GetXmlNodeName(FieldRef.Number), Format(FieldRef.Value), '', XmlNodeChild);
+        FieldXmlElement := XmlElement.Create(GetXmlNodeName(FieldRef.Number));
+        FieldValue := Format(FieldRef.Value);
+        if FieldValue <> '' then
+            FieldXmlElement.Add(XmlText.Create(FieldValue));
+        TableXmlElement.Add(FieldXmlElement);
     end;
 
-    local procedure SetFieldFromXml(RecRef: RecordRef; FieldNo: Integer; XmlRootNode: DotNet XmlNode)
+    local procedure SetFieldFromXml(RecRef: RecordRef; FieldNo: Integer; RootXmlElement: XmlElement)
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         FieldRef: FieldRef;
+        FieldXmlNode: XmlNode;
+        FieldValue: Text;
     begin
         FieldRef := RecRef.Field(FieldNo);
-        FieldRef.Value :=
-          XMLDOMManagement.FindNodeText(XmlRootNode, GetXmlNodeName(FieldNo));
+        if RootXmlElement.SelectSingleNode(GetXmlTableName(RecRef) + '/' + GetXmlNodeName(FieldNo), FieldXmlNode) then
+            FieldValue := FieldXmlNode.AsXmlElement().InnerText();
+        FieldRef.Value := FieldValue;
     end;
 
     local procedure GetXmlNodeName(FieldNo: Integer): Text

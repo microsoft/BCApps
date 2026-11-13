@@ -1,8 +1,6 @@
 ﻿namespace System.Automation;
 
-using System;
 using System.Utilities;
-using System.Xml;
 
 codeunit 1560 "Workflow Imp. / Exp. Mgt"
 {
@@ -16,21 +14,27 @@ codeunit 1560 "Workflow Imp. / Exp. Mgt"
 
     procedure GetWorkflowCodeListFromXml(TempBlob: Codeunit "Temp Blob") WorkflowCodes: Text
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XmlNodeList: DotNet XmlNodeList;
-        XmlNode: DotNet XmlNode;
+        WorkflowXmlDocument: XmlDocument;
+        WorkflowXmlNodeList: XmlNodeList;
+        WorkflowXmlNode: XmlNode;
+        CodeXmlAttribute: XmlAttribute;
+        WorkflowCode: Text;
         InStream: InStream;
     begin
         TempBlob.CreateInStream(InStream);
-        XMLDOMManagement.LoadXMLNodeFromInStream(InStream, XmlNode);
+        XmlDocument.ReadFrom(InStream, WorkflowXmlDocument);
 
-        XMLDOMManagement.FindNodes(XmlNode, '/Root/Workflow', XmlNodeList);
+        WorkflowXmlDocument.SelectNodes('/Root/Workflow', WorkflowXmlNodeList);
 
-        foreach XmlNode in XmlNodeList do
+        foreach WorkflowXmlNode in WorkflowXmlNodeList do begin
+            WorkflowCode := '';
+            if WorkflowXmlNode.AsXmlElement().Attributes().Get('Code', CodeXmlAttribute) then
+                WorkflowCode := CodeXmlAttribute.Value();
             if WorkflowCodes = '' then
-                WorkflowCodes := XMLDOMManagement.GetAttributeValue(XmlNode, 'Code')
+                WorkflowCodes := WorkflowCode
             else
-                WorkflowCodes := WorkflowCodes + ',' + XMLDOMManagement.GetAttributeValue(XmlNode, 'Code');
+                WorkflowCodes := WorkflowCodes + ',' + WorkflowCode;
+        end;
     end;
 
     [Scope('OnPrem')]

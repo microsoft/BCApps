@@ -452,10 +452,13 @@ codeunit 134304 "Workflow Event Arguments Test"
     var
         WorkflowStep: Record "Workflow Step";
         WorkflowStepArgument: Record "Workflow Step Argument";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         RecRef: RecordRef;
-        ParametersXmlDoc: DotNet XmlDocument;
-        RootXmlNode: DotNet XmlNode;
+        ParametersXmlDoc: XmlDocument;
+        RootXmlElement: XmlElement;
+        ChildXmlNode: XmlNode;
+        UnformattedXmlWriteOptions: XmlWriteOptions;
+        ChildXml: Text;
+        ExpectedInnerXml: Text;
     begin
         Initialize();
 
@@ -468,10 +471,15 @@ codeunit 134304 "Workflow Event Arguments Test"
         asserterror WorkflowStep.ConvertEventConditionsToFilters(RecRef);
 
         // Verify
-        XMLDOMManagement.LoadXMLNodeFromText(ParametersWithoutDataItemsTxt, RootXmlNode);
-        ParametersXmlDoc := RootXmlNode.OwnerDocument;
+        XmlDocument.ReadFrom(ParametersWithoutDataItemsTxt, ParametersXmlDoc);
+        ParametersXmlDoc.GetRoot(RootXmlElement);
+        UnformattedXmlWriteOptions.PreserveWhitespace := true;
+        foreach ChildXmlNode in RootXmlElement.GetChildNodes() do begin
+            ChildXmlNode.WriteTo(UnformattedXmlWriteOptions, ChildXml);
+            ExpectedInnerXml += ChildXml;
+        end;
 
-        Assert.ExpectedError(StrSubstNo(XmlNodesNotFoundErr, DataItemPathTxt, ParametersXmlDoc.DocumentElement.InnerXml));
+        Assert.ExpectedError(StrSubstNo(XmlNodesNotFoundErr, DataItemPathTxt, ExpectedInnerXml));
     end;
 
     [Test]
