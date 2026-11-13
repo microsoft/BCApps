@@ -95,7 +95,6 @@ codeunit 10695 "Generate SAF-T 1.4 File"
         GeneralLedgerSetup: Record "General Ledger Setup";
         CompanyInformation: Record "Company Information";
         CountryRegion: Record "Country/Region";
-    //        ApplicationSystemConstants: Codeunit "Application System Constants";
     begin
         SAFTXMLHelper.Initialize();
         if GuiAllowed() then
@@ -1268,8 +1267,8 @@ codeunit 10695 "Generate SAF-T 1.4 File"
         VersionString: Text;
     begin
         VersionString := ApplicationSystemConstants.ApplicationVersion();
-        if  StrLen(VersionString) > 4 then
-            VersionString := CopyStr(VersionString,  StrLen(VersionString) - 3, 4);
+        if StrLen(VersionString) > 4 then
+            VersionString := CopyStr(VersionString, StrLen(VersionString) - 3, 4);
         exit(VersionString);
     end;
 
