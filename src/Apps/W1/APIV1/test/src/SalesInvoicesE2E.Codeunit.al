@@ -564,6 +564,7 @@ codeunit 139709 "Sales Invoices E2E"
         Initialize();
 
         // [GIVEN] An unposted invoice
+        LibraryGraphMgt.AlignWorkDateWithApiSession();
         LibraryGraphDocumentTools.InitializeUIPage();
         LibraryApplicationArea.DisableApplicationAreaSetup();
 

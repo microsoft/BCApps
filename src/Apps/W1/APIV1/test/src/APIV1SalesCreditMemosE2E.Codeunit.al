@@ -320,6 +320,7 @@ codeunit 139728 "APIV1 - Sales Credit Memos E2E"
         Initialize();
 
         // [GIVEN] An unposted credit memo
+        LibraryGraphMgt.AlignWorkDateWithApiSession();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         LibrarySales.CreateCustomer(SellToCustomer);
