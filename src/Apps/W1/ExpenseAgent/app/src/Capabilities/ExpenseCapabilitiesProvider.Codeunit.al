@@ -38,7 +38,7 @@ codeunit 6906 "Expense Capabilities Provider"
             Capability::MileageRateSetup,
             Capability::ApprovalConversation,
             Capability::TravelRequest,
-            Capability::AdvancedApprovals:
+            Capability::ActiveApproverRouting:
                 exit(true);
         end;
         exit(false);

@@ -74,17 +74,6 @@ codeunit 6941 "EA Http Client"
         exit(ExpenseAppBaseUrlProdTxt);
     end;
 
-    internal procedure GetExpenseReportUrl(ExpenseReportSystemId: Guid): Text
-    var
-        ExpenseAppBaseUrl: Text;
-    begin
-        ExpenseAppBaseUrl := GetExpenseAppBaseUrl();
-        if ExpenseAppBaseUrl = '' then
-            exit('');
-
-        exit(ExpenseAppBaseUrl + 'reports/' + LowerCase(DelChr(Format(ExpenseReportSystemId), '=', '{}')));
-    end;
-
     [NonDebuggable]
     procedure SubmitExpenseWithAttachments(ConversationId: Text; Context: Text; OnBehalfUser: Text; var TempAttachment: Record "EA Email Attachment" temporary): Boolean
     var

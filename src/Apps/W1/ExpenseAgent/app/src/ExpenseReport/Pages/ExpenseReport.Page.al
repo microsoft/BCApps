@@ -430,19 +430,6 @@ page 6910 "Expense Report"
                         ProcessApprovalAction(RefActionType::Approve);
                     end;
                 }
-                action(ViewInExpenseApp)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'View in Expense App';
-                    Image = LinkWeb;
-                    Visible = AgentEnabled and (ExpenseReportUrl <> '');
-                    ToolTip = 'Opens the expense report in the Expense App.';
-
-                    trigger OnAction()
-                    begin
-                        Hyperlink(ExpenseReportUrl);
-                    end;
-                }
                 action(Reject)
                 {
                     ApplicationArea = Basic, Suite;
@@ -508,6 +495,19 @@ page 6910 "Expense Report"
         }
         area(Navigation)
         {
+            action(OpenExpenseApp)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Open Expense App';
+                Image = LinkWeb;
+                Visible = AgentEnabled and (ExpenseAppUrl <> '');
+                ToolTip = 'Opens the Expense App dashboard.';
+
+                trigger OnAction()
+                begin
+                    Hyperlink(ExpenseAppUrl);
+                end;
+            }
             group("Expense")
             {
                 Caption = 'Expense';
@@ -675,9 +675,6 @@ page 6910 "Expense Report"
                 actionref(Approve_Promoted; Approve)
                 {
                 }
-                actionref(ViewInExpenseApp_Promoted; ViewInExpenseApp)
-                {
-                }
                 actionref(Reject_Promoted; Reject)
                 {
                 }
@@ -693,6 +690,14 @@ page 6910 "Expense Report"
                 {
                 }
                 actionref(AssignInterimApprover_Promoted; "Assign Interim Approver")
+                {
+                }
+            }
+            group(Category_Navigate)
+            {
+                Caption = 'Navigate';
+
+                actionref(OpenExpenseApp_Promoted; OpenExpenseApp)
                 {
                 }
             }
@@ -727,9 +732,11 @@ page 6910 "Expense Report"
     trigger OnOpenPage()
     var
         ExpenseUser: Record "Expense User";
+        EAHttpClient: Codeunit "EA Http Client";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
+        ExpenseAppUrl := EAHttpClient.GetExpenseAppBaseUrl();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
             ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
@@ -777,7 +784,7 @@ page 6910 "Expense Report"
         SubmitterComment: Text;
         ApprovalActionsEnabled: Boolean;
         AgentEnabled: Boolean;
-        ExpenseReportUrl: Text;
+        ExpenseAppUrl: Text;
         AssignInterimApproverEnabled: Boolean;
 
     protected var
@@ -788,10 +795,8 @@ page 6910 "Expense Report"
 
     local procedure UpdateControls()
     var
-        EAHttpClient: Codeunit "EA Http Client";
         ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
     begin
-        ExpenseReportUrl := EAHttpClient.GetExpenseReportUrl(Rec.SystemId);
         SubmitEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::Submit);
         ReopenSubmittedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Submitted");
         ApproveEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::Approve);

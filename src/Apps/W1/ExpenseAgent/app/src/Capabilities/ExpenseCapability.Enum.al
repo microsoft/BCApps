@@ -99,10 +99,10 @@ enum 6984 "Expense Capability"
     }
 
     /// <summary>
-    /// Advanced approval features and the current approver number are available in the Expense Report API.
+    /// Expense reports expose their active approver and can be filtered by that approver.
     /// </summary>
-    value(9; AdvancedApprovals)
+    value(9; ActiveApproverRouting)
     {
-        Caption = 'Advanced Approvals', Locked = true;
+        Caption = 'Active Approver Routing', Locked = true;
     }
 }

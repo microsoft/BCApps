@@ -26,13 +26,13 @@ codeunit 148363 "Expense Report UI Test"
         IsInitialized: Boolean;
 
     [Test]
-    procedure ViewInExpenseAppVisibleWhenAgentEnabled()
+    procedure OpenExpenseAppOnCardVisibleWhenAgentEnabled()
     var
         ExpenseReportHeader: Record "Expense Report Header";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         ExpenseReportPage: TestPage "Expense Report";
     begin
-        // [SCENARIO] The expense app link is visible when the agent is enabled.
+        // [SCENARIO] App navigation is visible on the report card when the agent is enabled.
         Initialize();
 
         // [GIVEN] An on-premises report with the agent enabled and approval workflow disabled.
@@ -44,21 +44,21 @@ codeunit 148363 "Expense Report UI Test"
         ExpenseReportPage.OpenView();
         ExpenseReportPage.GotoRecord(ExpenseReportHeader);
 
-        // [THEN] View in Expense App is visible.
-        Assert.IsTrue(ExpenseReportPage.ViewInExpenseApp.Visible(), 'The report link must be visible when the agent is enabled.');
+        // [THEN] Open Expense App is visible.
+        Assert.IsTrue(ExpenseReportPage.OpenExpenseApp.Visible(), 'App navigation must be visible when the agent is enabled.');
         ExpenseReportPage.Close();
         LibraryExpenseAgent.RestoreExpenseAgentSetup();
         UnbindSubscription(EnvironmentInfoTestLibrary);
     end;
 
     [Test]
-    procedure ViewInExpenseAppHiddenWhenAgentDisabled()
+    procedure OpenExpenseAppOnCardHiddenWhenAgentDisabled()
     var
         ExpenseReportHeader: Record "Expense Report Header";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         ExpenseReportPage: TestPage "Expense Report";
     begin
-        // [SCENARIO] The expense app link is hidden when the agent is disabled.
+        // [SCENARIO] App navigation is hidden on the report card when the agent is disabled.
         Initialize();
 
         // [GIVEN] An on-premises report with the agent and approval workflow disabled.
@@ -70,9 +70,57 @@ codeunit 148363 "Expense Report UI Test"
         ExpenseReportPage.OpenView();
         ExpenseReportPage.GotoRecord(ExpenseReportHeader);
 
-        // [THEN] View in Expense App is hidden.
-        Assert.IsFalse(ExpenseReportPage.ViewInExpenseApp.Visible(), 'The report link must be hidden when the agent is disabled.');
+        // [THEN] Open Expense App is hidden.
+        Assert.IsFalse(ExpenseReportPage.OpenExpenseApp.Visible(), 'App navigation must be hidden when the agent is disabled.');
         ExpenseReportPage.Close();
+        LibraryExpenseAgent.RestoreExpenseAgentSetup();
+        UnbindSubscription(EnvironmentInfoTestLibrary);
+    end;
+
+    [Test]
+    procedure OpenExpenseAppOnListVisibleWhenAgentEnabled()
+    var
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        ExpenseReports: TestPage "Expense Reports";
+    begin
+        // [SCENARIO] App navigation is available on the report list without selecting a report.
+        Initialize();
+
+        // [GIVEN] An on-premises environment with the agent enabled and approval workflow disabled.
+        EnvironmentInfoTestLibrary.SetAppId('NAV');
+        BindSubscription(EnvironmentInfoTestLibrary);
+        SetAgentEnabled(true);
+
+        // [WHEN] The report list is opened.
+        ExpenseReports.OpenView();
+
+        // [THEN] Open Expense App is visible without selecting a report.
+        Assert.IsTrue(ExpenseReports.OpenExpenseApp.Visible(), 'App navigation must be visible on the report list when the agent is enabled.');
+        ExpenseReports.Close();
+        LibraryExpenseAgent.RestoreExpenseAgentSetup();
+        UnbindSubscription(EnvironmentInfoTestLibrary);
+    end;
+
+    [Test]
+    procedure OpenExpenseAppOnListHiddenWhenAgentDisabled()
+    var
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        ExpenseReports: TestPage "Expense Reports";
+    begin
+        // [SCENARIO] App navigation is hidden on the report list when the agent is disabled.
+        Initialize();
+
+        // [GIVEN] An on-premises environment with the agent and approval workflow disabled.
+        EnvironmentInfoTestLibrary.SetAppId('NAV');
+        BindSubscription(EnvironmentInfoTestLibrary);
+        SetAgentEnabled(false);
+
+        // [WHEN] The report list is opened.
+        ExpenseReports.OpenView();
+
+        // [THEN] Open Expense App is hidden.
+        Assert.IsFalse(ExpenseReports.OpenExpenseApp.Visible(), 'App navigation must be hidden on the report list when the agent is disabled.');
+        ExpenseReports.Close();
         LibraryExpenseAgent.RestoreExpenseAgentSetup();
         UnbindSubscription(EnvironmentInfoTestLibrary);
     end;
@@ -80,6 +128,14 @@ codeunit 148363 "Expense Report UI Test"
     local procedure CreateReport(var ExpenseReportHeader: Record "Expense Report Header"; AgentEnabled: Boolean)
     var
         Submitter: Record "Expense User";
+    begin
+        SetAgentEnabled(AgentEnabled);
+        LibraryExpense.CreateExpenseUser(Submitter);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Submitter."No.", '', '');
+    end;
+
+    local procedure SetAgentEnabled(AgentEnabled: Boolean)
+    var
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
         LibraryExpenseAgent.BackupExpenseAgentSetup();
@@ -87,8 +143,6 @@ codeunit 148363 "Expense Report UI Test"
         ExpenseAgentSetup."Enable Approval Workflow" := false;
         ExpenseAgentSetup."Enable Agent" := AgentEnabled;
         ExpenseAgentSetup.Modify();
-        LibraryExpense.CreateExpenseUser(Submitter);
-        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Submitter."No.", '', '');
     end;
 
     local procedure Initialize()

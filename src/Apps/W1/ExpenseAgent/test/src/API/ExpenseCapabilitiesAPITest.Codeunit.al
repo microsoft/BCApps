@@ -83,8 +83,8 @@ codeunit 148318 "Expense Capabilities API Test"
             ResponseContainsCapabilityState(ResponseText, ActivityLogCapabilityNameTok, true),
             'Response must contain an enabled activityLog capability row.');
         Assert.IsTrue(
-            ResponseContainsCapabilityState(ResponseText, 'advancedApprovals', true),
-            'Response must contain an enabled advancedApprovals capability row.');
+            ResponseContainsCapabilityState(ResponseText, 'activeApproverRouting', true),
+            'Response must contain an enabled activeApproverRouting capability row.');
     end;
 
     [Test]
@@ -247,21 +247,21 @@ codeunit 148318 "Expense Capabilities API Test"
     end;
 
     [Test]
-    procedure CapabilitiesAdvancedApprovalsEnabled()
+    procedure CapabilitiesActiveApproverRoutingEnabled()
     var
         ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
         IsEnabled: Boolean;
     begin
-        // [SCENARIO] Advanced approvals are always supported.
+        // [SCENARIO] Active approver routing is always supported.
 
         // [GIVEN] The test environment is initialized.
         Initialize();
 
-        // [WHEN] Advanced approval support is queried.
-        IsEnabled := ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AdvancedApprovals);
+        // [WHEN] Active approver routing support is queried.
+        IsEnabled := ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::ActiveApproverRouting);
 
-        // [THEN] The provider reports advancedApprovals as enabled.
-        Assert.IsTrue(IsEnabled, 'advancedApprovals must always be enabled.');
+        // [THEN] The provider reports activeApproverRouting as enabled.
+        Assert.IsTrue(IsEnabled, 'activeApproverRouting must always be enabled.');
     end;
 
     local procedure Initialize()

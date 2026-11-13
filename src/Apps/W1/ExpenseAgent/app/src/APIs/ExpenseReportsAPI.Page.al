@@ -338,7 +338,7 @@ page 6928 "Expense Reports API"
             Rec.SetCalledFromExpenseAgent(true);
 
         // Do NOT remove, used for usage reporting
-        Session.LogMessage('0000UBQ', ExpenseReportCreatedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
+        Session.LogMessage('0000WOF', ExpenseReportCreatedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
         exit(true);
     end;
 

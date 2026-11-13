@@ -125,6 +125,19 @@ page 6997 "Expense Reports"
     {
         area(Navigation)
         {
+            action(OpenExpenseApp)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Open Expense App';
+                Image = LinkWeb;
+                Visible = AgentEnabled and (ExpenseAppUrl <> '');
+                ToolTip = 'Opens the Expense App dashboard.';
+
+                trigger OnAction()
+                begin
+                    Hyperlink(ExpenseAppUrl);
+                end;
+            }
             group("Expense")
             {
                 Caption = 'Expense';
@@ -292,6 +305,14 @@ page 6997 "Expense Reports"
                 {
                 }
             }
+            group(Category_Navigate)
+            {
+                Caption = 'Navigate';
+
+                actionref(OpenExpenseApp_Promoted; OpenExpenseApp)
+                {
+                }
+            }
         }
     }
 
@@ -299,9 +320,12 @@ page 6997 "Expense Reports"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpenseUser: Record "Expense User";
+        EAHttpClient: Codeunit "EA Http Client";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
+        AgentEnabled := ExpenseAgentSetup."Enable Agent";
+        ExpenseAppUrl := EAHttpClient.GetExpenseAppBaseUrl();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
             ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
@@ -311,6 +335,8 @@ page 6997 "Expense Reports"
     end;
 
     var
+        AgentEnabled: Boolean;
+        ExpenseAppUrl: Text;
         ReadyToPostQst: Label 'The number of expense reports that will be posted is %1. \Do you want to continue?', Comment = '%1 - selected count';
 
     local procedure PostDocument()

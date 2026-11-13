@@ -177,32 +177,24 @@ codeunit 148329 "Expense Reports API Test"
     end;
 
     [Test]
-    procedure OnPremisesExpenseReportUrlUsesCanonicalGuid()
+    procedure OnPremisesExpenseAppUrlUsesDashboard()
     var
         EAHttpClient: Codeunit "EA Http Client";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
-        ReportSystemId: Guid;
         ExpenseAppBaseUrl: Text;
-        ExpenseReportUrl: Text;
     begin
-        // [SCENARIO] On-premises report links use a lowercase GUID without braces.
+        // [SCENARIO] On-premises app navigation opens the dashboard without a report-specific path.
         Initialize();
 
-        // [GIVEN] An on-premises environment and a report identity containing uppercase letters.
+        // [GIVEN] An on-premises environment.
         EnvironmentInfoTestLibrary.SetAppId('NAV');
         BindSubscription(EnvironmentInfoTestLibrary);
-        Evaluate(ReportSystemId, '{ABCDEF01-2345-6789-ABCD-EF0123456789}');
 
-        // [WHEN] Dashboard and report URLs are generated.
+        // [WHEN] The dashboard URL is generated.
         ExpenseAppBaseUrl := EAHttpClient.GetExpenseAppBaseUrl();
-        ExpenseReportUrl := EAHttpClient.GetExpenseReportUrl(ReportSystemId);
 
-        // [THEN] The dashboard URL is preserved and the report URL uses a lowercase GUID without braces.
+        // [THEN] The URL opens the app dashboard, not an individual report.
         Assert.AreEqual('http://localhost:5173/', ExpenseAppBaseUrl, 'The on-premises dashboard URL must be preserved.');
-        Assert.AreEqual(
-            'http://localhost:5173/reports/abcdef01-2345-6789-abcd-ef0123456789',
-            ExpenseReportUrl,
-            'The report URL must contain the reports path and the canonical GUID.');
         UnbindSubscription(EnvironmentInfoTestLibrary);
     end;
 
