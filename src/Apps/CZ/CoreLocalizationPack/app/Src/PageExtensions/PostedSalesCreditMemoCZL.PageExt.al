@@ -55,18 +55,6 @@ pageextension 11735 "Posted Sales Credit Memo CZL" extends "Posted Sales Credit 
         }
         addlast("Invoice Details")
         {
-#if not CLEAN27
-            field("VAT Registration No. CZL"; Rec."VAT Registration No.")
-            {
-                ApplicationArea = Basic, Suite;
-                Editable = false;
-                ToolTip = 'Specifies the VAT registration number. The field will be used when you do business with partners from EU countries/regions.';
-                Visible = false;
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-                ObsoleteReason = 'Replaced by standard "VAT Registration No." field.';
-            }
-#endif
             field("Registration No. CZL"; Rec."Registration Number")
             {
                 ApplicationArea = Basic, Suite;
