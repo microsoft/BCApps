@@ -968,7 +968,6 @@ codeunit 12184 "Fattura Doc. Helper"
 
     local procedure CollectShipmentInfo(var TempShptFatturaLine: Record "Fattura Line" temporary; var LineRecRef: RecordRef; TempFatturaHeader: Record "Fattura Header" temporary)
     var
-        SalesShipmentHeader: Record "Sales Shipment Header";
         TempLineNumberBuffer: Record "Line Number Buffer" temporary;
         SalesLine: Record "Sales Line";
         ShptNo: Code[20];
@@ -1010,10 +1009,8 @@ codeunit 12184 "Fattura Doc. Helper"
                         if ShptNo <> '' then begin
                             case TempFatturaHeader."Entry Type" of
                                 TempFatturaHeader."Entry Type"::Sales:
-                                    begin
-                                        InsertSalesShipmentReference(
-                                            TempShptFatturaLine, ShptNo, DocumentLineNo, IsSplitPaymentLine(LineRecRef));
-                                    end;
+                                    InsertSalesShipmentReference(
+                                        TempShptFatturaLine, ShptNo, DocumentLineNo, IsSplitPaymentLine(LineRecRef));
                                 else
                                     OnCollectShipmentInfo(
                                         TempFatturaHeader, ShptNo, ShipmentDate, FatturaProjectCode, FatturaTenderCode, CustomerPurchOrderNo);
@@ -1448,8 +1445,6 @@ codeunit 12184 "Fattura Doc. Helper"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         EffectiveQuantity: Decimal): Boolean
-    var
-        LineRecRef: RecordRef;
     begin
         if SalesLine.Type = SalesLine.Type::" " then
             exit(false);
