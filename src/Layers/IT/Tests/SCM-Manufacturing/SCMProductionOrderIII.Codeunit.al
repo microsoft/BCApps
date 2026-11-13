@@ -5746,6 +5746,93 @@ codeunit 137079 "SCM Production Order III"
     end;
 
     [Test]
+    procedure EmptyReleasedProdOrderActionsDisabled()
+    var
+        ProductionOrder: Record "Production Order";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
+        ReleasedProductionOrdersPage: Page "Released Production Orders";
+        ReleasedProductionOrders: TestPage "Released Production Orders";
+    begin
+        // [SCENARIO 648872] Record-dependent actions are disabled on an empty released production orders list.
+        Initialize();
+
+        // [WHEN] Opening the released production orders list with a view containing no records.
+        LibraryApplicationArea.EnablePremiumSetup();
+        ProductionOrder.SetRange(Status, ProductionOrder.Status::Released);
+        ProductionOrder.SetRange("No.", '');
+        Assert.RecordIsEmpty(ProductionOrder);
+        ReleasedProductionOrdersPage.SetTableView(ProductionOrder);
+        ReleasedProductionOrders.Trap();
+        ReleasedProductionOrdersPage.Run();
+        Assert.IsFalse(ReleasedProductionOrders.First(), 'The released production orders list must be empty.');
+
+        // [THEN] Record-dependent actions are disabled, but reports with request pages remain available.
+        VerifyReleasedProdOrderActionsEnabled(ReleasedProductionOrders, false);
+        Assert.IsTrue(ReleasedProductionOrders."Production Order List".Enabled(), 'The production order list report must remain available.');
+        Assert.IsTrue(ReleasedProductionOrders."Production Order Statistics".Enabled(), 'The production order statistics report must remain available.');
+        ReleasedProductionOrders.Close();
+    end;
+
+    [Test]
+    procedure ReleasedProdOrderActionsReenableAfterFilter()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
+        ReleasedProductionOrders: TestPage "Released Production Orders";
+    begin
+        // [SCENARIO 648872] Record-dependent actions follow the current selection when filters are changed.
+        Initialize();
+
+        // [GIVEN] A selected released production order.
+        LibraryApplicationArea.EnablePremiumSetup();
+        LibraryInventory.CreateItem(Item);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 1);
+        ReleasedProductionOrders.OpenView();
+        ReleasedProductionOrders.GoToRecord(ProductionOrder);
+        VerifyReleasedProdOrderActionsEnabled(ReleasedProductionOrders, true);
+
+        // [WHEN] Filtering the selected order out of the list.
+        ReleasedProductionOrders.Filter.SetFilter("No.", '__NO_MATCH__');
+        Assert.IsFalse(ReleasedProductionOrders.First(), 'The released production orders list must be empty.');
+
+        // [THEN] Record-dependent actions are disabled.
+        VerifyReleasedProdOrderActionsEnabled(ReleasedProductionOrders, false);
+
+        // [WHEN] Restoring the selected order.
+        ReleasedProductionOrders.Filter.SetFilter("No.", ProductionOrder."No.");
+        Assert.IsTrue(ReleasedProductionOrders.First(), 'The released production order must be available.');
+
+        // [THEN] Record-dependent actions are enabled again.
+        VerifyReleasedProdOrderActionsEnabled(ReleasedProductionOrders, true);
+        ReleasedProductionOrders.Close();
+    end;
+
+    local procedure VerifyReleasedProdOrderActionsEnabled(ReleasedProductionOrders: TestPage "Released Production Orders"; ExpectedEnabled: Boolean)
+    begin
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Change &Status".Enabled(), 'Change Status must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."&Update Unit Cost".Enabled(), 'Update Unit Cost must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Create Inventor&y Put-away/Pick/Movement".Enabled(), 'Create Inventory Put-away/Pick/Movement must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Create Warehouse Pick".Enabled(), 'Create Warehouse Pick must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders.PrintLabel.Enabled(), 'Print Label must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders.Dimensions.Enabled(), 'Dimensions must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders.Statistics.Enabled(), 'Statistics must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Co&mments".Enabled(), 'Comments must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Item Ledger E&ntries".Enabled(), 'Item Ledger Entries must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Capacity Ledger Entries".Enabled(), 'Capacity Ledger Entries must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Value Entries".Enabled(), 'Value Entries must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."&Warehouse Entries".Enabled(), 'Warehouse Entries must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Change &Status_Promoted".Enabled(), 'Promoted Change Status must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."&Update Unit Cost_Promoted".Enabled(), 'Promoted Update Unit Cost must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Create Inventor&y Put-away/Pick/Movement_Promoted".Enabled(), 'Promoted Create Inventory Put-away/Pick/Movement must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Create Warehouse Pick_Promoted".Enabled(), 'Promoted Create Warehouse Pick must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders.Dimensions_Promoted.Enabled(), 'Promoted Dimensions must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders.Statistics_Promoted.Enabled(), 'Promoted Statistics must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Co&mments_Promoted".Enabled(), 'Promoted Comments must follow the current production order selection.');
+    end;
+
+    [Test]
     procedure VerifyReverseProductionOrderActionShouldBeVisibleOnReleasedProductionOrder()
     var
         ProductionOrder: Record "Production Order";
