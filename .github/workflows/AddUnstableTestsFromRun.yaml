@@ -44,9 +44,12 @@ jobs:
           Write-Host "Branch filter: $json"
           Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "includeJson=$json"
 
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Get Official Branches
         id: getOfficialBranches
-        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        uses: ./.github/actions/GetGitBranches
         with:
           include: ${{ steps.filter.outputs.includeJson }}
 
@@ -73,8 +76,11 @@ jobs:
         branch: ${{ fromJson(needs.GetBranches.outputs.updateBranches) }}
       fail-fast: false
     steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Add unstable tests from run
-        uses: microsoft/BCApps/.github/actions/UpdateUnstableTests@main
+        uses: ./.github/actions/UpdateUnstableTests
         with:
           branch: ${{ matrix.branch }}
           run-id: ${{ inputs.runId }}
