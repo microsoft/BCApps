@@ -24,9 +24,12 @@ jobs:
         with:
           egress-policy: audit
 
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Get Official Branches
         id: getOfficialBranches
-        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        uses: ./.github/actions/GetGitBranches
         with:
           include: "['main', 'releases/*']"
 
@@ -54,10 +57,18 @@ jobs:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.PRIVATE_KEY }}
 
+      - name: Checkout actions
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: _actions
+          sparse-checkout: |
+            .github/actions
+            build/scripts
+
       - name: Update BC Artifact Version
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        uses: microsoft/BCApps/.github/actions/RunAutomation@main
+        uses: ./_actions/.github/actions/RunAutomation
 
         with:
           automations: UpdateBCArtifact,UpdatePlatformVersion
