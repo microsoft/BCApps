@@ -1662,6 +1662,9 @@ codeunit 18430 "GST Application Handler"
                 end;
             until DetailedGSTLedgerEntry.Next() = 0;
 
+            if GSTPostingBuffer[1].IsEmpty() then
+                exit;
+
             AccountNo := GSTApplicationLibrary.GetGSTGLAccountNo(
                 GSTGLAccountType::"Payable Account",
                 ApplyDetailedGSTLedgerEntryInfo."Location State Code",
