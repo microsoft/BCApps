@@ -28,22 +28,31 @@
         FromEmailBodyTemplateTxt: Text;
         Initialized: Boolean;
         TemplateIdentificationTxt: Label 'a';
+#if not CLEAN30
         CustomerEmailTxt: Label 'Customer@contoso.com';
         CustomLayoutEmailTxt: Label 'CustomLayout@contoso.com';
+#endif
         WrongEmailAddressErr: Label 'Email Address is wrong on Send Email Dialog';
+#if not CLEAN30
         DocumentNoTok: Label 'DocumentNo';
+#endif
         ReportIDMustHaveValueErr: Label 'Report ID must have a value';
+#if not CLEAN30
         EmailAddressErr: Label 'Destination email address does not match expected address.';
+#endif
         StatementTitlePdfTxt: Label 'Statement';
         ReportTitleTemplatePdfTxt: Label '%1 for %2 as of %3.pdf';
 #if not CLEAN28
         LayoutCodeShouldNotChangedErr: Label 'Layout code should not change.';
 #endif
         SendToEmailTxt: Label 'test@test.com';
+#if not CLEAN30
         MSXLbl: Label 'MS-X%1', Comment = '%1 = Random Value';
         DocxLbl: Label 'docx';
         MustSelectAndEmailBodyOrAttahmentErr: Label 'You must select an email body or attachment in report selection for %1.', Comment = '%1 = Usage, for example Sales Invoice';
+#endif
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
     [Scope('OnPrem')]
@@ -87,7 +96,9 @@
         // Verify
         Assert.ExpectedError('email body or attachment');
     end;
+#endif
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('EmailEditorHandlerCustomMessage,CloseEmailEditorHandler')]
     [Scope('OnPrem')]
@@ -290,8 +301,10 @@
 
         // Verify is within handler
     end;
+#endif
 
 
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure TestHTMLEmailBodyLoadFromBlob()
@@ -431,6 +444,7 @@
 
         LibraryVariableStorage.AssertEmpty();
     end;
+#endif
 
     [Test]
     [HandlerFunctions('EmailEditorHandler,CloseEmailEditorHandler')]
@@ -713,6 +727,7 @@
         LibraryVariableStorage.AssertEmpty();
     end;
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('StatementOKRequestPageHandler,DownloadAttachmentNoConfirmHandler')]
     [Scope('OnPrem')]
@@ -765,6 +780,7 @@
         FindInteractionLogEntriesByCustomerNo(InteractionLogEntry, CustomerNo, InteractionLogEntry."Document Type"::"Sales Stmnt.");
         Assert.RecordCount(InteractionLogEntry, 1);
     end;
+#endif
 
 
     [Test]
@@ -1140,6 +1156,7 @@
         Assert.IsTrue(StrPos(CustomerReportSelections.SendToEmail.Value, 'testcase@testcase.com') <> 0, 'Wrong email after contact update.');
     end;
 
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure PostedSalesInvoiceEmailHasMorePriorityThanCustomerEmail()
@@ -1175,6 +1192,7 @@
         // [THEN] The "a@a.com; b@b.com; c@c.com" address is used as target email address.
         Assert.AreEqual(SalesHeader."Sell-to E-Mail", EmailAddress, EmailAddressErr);
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -1340,6 +1358,7 @@
         LibraryTempNVBufferHandler.AssertQueueEmpty();
     end;
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('TestAddressEmailEditorHandler,CloseEmailEditorHandler')]
     [Scope('OnPrem')]
@@ -1436,6 +1455,7 @@
 
         LibraryVariableStorage.AssertEmpty();
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -1855,6 +1875,7 @@
         // No assertion needed - if we reach this point, the fix is working
     end;
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('SelectSendingOptionHandler,EmailEditorHandler,CloseEmailEditorHandler')]
     procedure TestSendPostedSalesShipmentToEMailAndPDF()
@@ -2429,6 +2450,7 @@
 
         // [THEN] Verify message type with Email Handler.
     end;
+#endif
 
     local procedure Initialize()
     var
@@ -2606,6 +2628,7 @@
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+#if not CLEAN30
     local procedure OpenNewPostedSalesInvoice(var PostedSalesInvoice: TestPage "Posted Sales Invoice")
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -2630,11 +2653,11 @@
           OldReportSelections.Usage::"S.Invoice", CustomReportLayout."Report ID", UseForEmailAttachment, UseForEmailBody,
           CustomReportLayout.Code);
     end;
+#endif
 
     local procedure SetupReportSelectionsVendor(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
         OldReportSelections: Record "Report Selections";
-        DummyCustomReportLayout: Record "Custom Report Layout";
     begin
         OldReportSelections.Reset();
         OldReportSelections.SetRange(Usage, OldReportSelections.Usage::"P.Order");
@@ -2642,8 +2665,7 @@
             CreateReportSelection(OldReportSelections.Usage::"P.Order", '2', REPORT::Order);
 
         UpdateReportSelections(
-          OldReportSelections.Usage::"P.Order", GetReportIDForPurchaseOrder(), UseForEmailAttachment, UseForEmailBody,
-          DummyCustomReportLayout.Code);
+          OldReportSelections.Usage::"P.Order", GetReportIDForPurchaseOrder(), UseForEmailAttachment, UseForEmailBody, '');
     end;
 
     local procedure SetupInvoiceReportLayoutSelection()
@@ -2699,6 +2721,7 @@
         ReportSelections.Modify(true);
     end;
 
+#if not CLEAN30
     local procedure UpdateCustomReportSelections(NewCustNo: Code[20]; UseForEmailAttachment: Boolean; UseForEmailBody: Boolean; SendToAddress: Text[200])
     var
         CustomReportSelection: Record "Custom Report Selection";
@@ -2717,16 +2740,19 @@
 
         CustomReportSelection.Modify(true);
     end;
+#endif
 
     local procedure GenerateGUIDWithSpecialSymbol(): Code[20]
     begin
         exit(LibraryUtility.GenerateGUID() + '&');
     end;
 
+#if not CLEAN30
     local procedure GetStandardSalesInvoiceReportID(): Integer
     begin
         exit(REPORT::"Standard Sales - Invoice");
     end;
+#endif
 
     local procedure GetReportIDForPurchaseOrder(): Integer
     begin
@@ -2743,6 +2769,7 @@
         exit(REPORT::Statement);
     end;
 
+#if not CLEAN30
     local procedure GetCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout")
     var
         ReportLayoutList: Record "Report Layout List";
@@ -2774,14 +2801,18 @@
             CustomReportLayout.Insert();
         end;
     end;
+#endif
 
 
+#if not CLEAN30
     local procedure GetEmailItem(var EmailItem: Record "Email Item"; MessageType: Option "Custom Message","From Email Body Template"; var EmailBody: Codeunit "Temp Blob")
     begin
         EmailItem.Validate("Message Type", MessageType);
         EmailItem.SetBody(EmailBody);
     end;
+#endif
 
+#if not CLEAN30
     local procedure SetUpCustomEmail(var SalesInvoiceHeader: Record "Sales Invoice Header"; EmailAddress: Text[80]; UseCustomForEmailBody: Boolean)
     var
         Customer: Record Customer;
@@ -2794,6 +2825,7 @@
 
         UpdateCustomReportSelections(SalesInvoiceHeader."Bill-to Customer No.", true, UseCustomForEmailBody, EmailAddress);
     end;
+#endif
 
     local procedure GenerateRandomPackageTrackingNo(): Text[50]
     var
@@ -2963,6 +2995,7 @@
         CustomReportSelection.GetSendToEmailFromContacts(Contact);
     end;
 
+#if not CLEAN30
     local procedure UpdateContactEmail(var Contact: Record Contact; Email: Text[45])
     begin
         Contact.Validate("E-Mail", Email);
@@ -2978,6 +3011,7 @@
         Customer.Validate("Primary Contact No.", Contact."No.");
         Customer.Modify();
     end;
+#endif
 
 #if not CLEAN28
     local procedure StandardSalesInvoiceReportID(): Integer
@@ -2986,6 +3020,7 @@
     end;
 #endif
 
+#if not CLEAN30
     local procedure SetupSalesShipmentReportSelections(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
         OldReportSelections: Record "Report Selections";
@@ -3056,7 +3091,9 @@
 
         CustomReportSelection.Modify(true);
     end;
+#endif
 
+#if not CLEAN30
     local procedure GetStandardSalesShipmentReportID(): Integer
     begin
         exit(Report::"Standard Sales - Shipment");
@@ -3078,7 +3115,9 @@
         LibrarySales.PostSalesDocument(SalesHeader, true, false);
         SalesPost.GetPostedDocumentRecord(SalesHeader, PostedDocumentVariant);
     end;
+#endif
 
+#if not CLEAN30
     local procedure SetupSalesReturnReceiptReportSelections(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
         OldReportSelections: Record "Report Selections";
@@ -3149,7 +3188,9 @@
 
         CustomReportSelection.Modify(true);
     end;
+#endif
 
+#if not CLEAN30
     local procedure GetStandardSalesReturnReceiptReportID(): Integer
     begin
         exit(Report::"Standard Sales - Return Rcpt.");
@@ -3171,12 +3212,15 @@
         LibrarySales.PostSalesDocument(SalesHeader, true, false);
         SalesPost.GetPostedDocumentRecord(SalesHeader, PostedDocumentVariant);
     end;
+#endif
 
+#if not CLEAN30
     local procedure UpdateYourReferenceSalesHeader(var SalesHeader: Record "Sales Header"; YourReference: Text[35])
     begin
         SalesHeader."Your Reference" := YourReference;
         SalesHeader.Modify();
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]
@@ -3356,6 +3400,7 @@
         VendorReportSelections.CopyFromReportSelectionsAction.Invoke();
     end;
 
+#if not CLEAN30
     [ModalPageHandler]
     procedure VendorReportSelectionsHandler(var VendorReportSelections: TestPage "Vendor Report Selections")
     begin
@@ -3363,6 +3408,7 @@
         VendorReportSelections."Custom Report Description".Drilldown();
         VendorReportSelections."Custom Report Description".AssertEquals(LibraryVariableStorage.DequeueText());
     end;
+#endif
 
     [ModalPageHandler]
     procedure ProFormInvoiceCustomerReportSelectionsHandler(var CustomerReportSelections: TestPage "Customer Report Selections")

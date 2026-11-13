@@ -65,7 +65,11 @@ table 77 "Report Selections"
         {
             Caption = 'Custom Report Layout Code';
             Editable = false;
+#if not CLEAN30
+#pragma warning disable AL0432
             TableRelation = "Custom Report Layout".Code where(Code = field("Custom Report Layout Code"), "Built-In" = const(false));
+#pragma warning restore AL0432
+#endif
         }
         field(19; "Use for Email Attachment"; Boolean)
         {
@@ -99,9 +103,15 @@ table 77 "Report Selections"
         field(21; "Email Body Layout Code"; Code[20])
         {
             Caption = 'Email Body Custom Layout Code';
+#if not CLEAN30
+#pragma warning disable AL0432
             TableRelation = if ("Email Body Layout Type" = const("Custom Report Layout")) "Custom Report Layout".Code where(Code = field("Email Body Layout Code"), "Report ID" = field("Report ID"), "Built-In" = const(false))
             else
             if ("Email Body Layout Type" = const("HTML Layout")) "O365 HTML Template".Code;
+#pragma warning restore AL0432
+#else
+            TableRelation = if ("Email Body Layout Type" = const("HTML Layout")) "O365 HTML Template".Code;
+#endif
             ToolTip = 'Specifies the ID of the custom email body layout that is used.';
 
             trigger OnValidate()
@@ -110,21 +120,37 @@ table 77 "Report Selections"
                     Testfield("Use for Email Body", true);
                     "Email Body Layout Name" := '';
                 end;
+#if not CLEAN30
+#pragma warning disable AL0432
                 Calcfields("Email Body Layout Description");
+#pragma warning restore AL0432
+#endif
             end;
         }
         field(22; "Email Body Layout Description"; Text[250])
         {
-            CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Email Body Layout Code")));
             Caption = 'Email Body Custom Layout Description';
             Editable = false;
-            FieldClass = Flowfield;
+            ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
             ToolTip = 'Specifies a description of the custom email body layout that is used.';
+#if not CLEAN30
+#pragma warning disable AL0432
+            CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Email Body Layout Code")));
+#pragma warning restore AL0432
+            FieldClass = Flowfield;
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
 
 #if not CLEAN28
             trigger OnLookup()
             var
+#pragma warning disable AL0432
                 CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
             begin              
                 if "Email Body Layout Type" = "Email Body Layout Type"::"Custom Report Layout" then
 #pragma warning disable AL0432  
@@ -166,7 +192,11 @@ table 77 "Report Selections"
                 if "Email Body Layout Name" <> '' then begin
                     "Use for Email Body" := true;
                     "Email Body Layout Code" := '';
+#if not CLEAN30
+#pragma warning disable AL0432
                     "Email Body Layout Description" := '';
+#pragma warning restore AL0432
+#endif
                     ReportLayoutList.SetRange(Name, "Email Body Layout Name");
                     ReportLayoutList.SetRange("Report ID", Rec."Report ID");
                     if not IsNullGuid("Email Body Layout AppID") then
@@ -830,7 +860,8 @@ table 77 "Report Selections"
     begin
         FindReportUsageForTable(ReportUsage, TempBodyReportSelections, TableNo);
 
-        SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
+        // Run on the found selection so its report layout name and App ID are used, not only the legacy layout code
+        TempBodyReportSelections.SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
     end;
 
     [Scope('OnPrem')]
@@ -852,7 +883,8 @@ table 77 "Report Selections"
     begin
         FindReportUsageForCust(ReportUsage, CustNo, TempBodyReportSelections);
 
-        SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
+        // Run on the found selection so its report layout name and App ID are used, not only the legacy layout code
+        TempBodyReportSelections.SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
     end;
 
     /// <summary>
@@ -888,7 +920,8 @@ table 77 "Report Selections"
     begin
         FindReportUsageForVend(ReportUsage, VendNo, TempBodyReportSelections);
 
-        SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
+        // Run on the found selection so its report layout name and App ID are used, not only the legacy layout code
+        TempBodyReportSelections.SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
     end;
 
 
@@ -2264,13 +2297,17 @@ table 77 "Report Selections"
         exit((ReportUsage = "Report Selection Usage"::"V.Remittance".AsInteger()) and (TableId = Database::"Gen. Journal Line"));
     end;
 
+#if not CLEAN30
     internal procedure DoesAnyCustomLayotExist(): Boolean
     var
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
     begin
         CustomReportLayout.SetRange("Built-In", false);
         exit(not CustomReportLayout.IsEmpty());
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCustomReportSelectionForTable(var CustomReportSelection: Record "Custom Report Selection"; TableNo: Integer)

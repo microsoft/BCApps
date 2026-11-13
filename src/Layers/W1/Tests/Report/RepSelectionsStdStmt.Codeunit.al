@@ -42,6 +42,7 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         RequestParametersErr: Label 'Request parameters for the Standard Statement report have not been set up.';
         EscapeTok: Label '''%1''', Locked = true;
         StatementCountErr: Label 'Customer Statement are not Sent.';
+        WrongLayoutErr: Label 'The statement was not printed with the report layout selected on the document layout.';
 
     [Test]
     [HandlerFunctions('StandardStatementOKRequestPageHandler')]
@@ -2151,7 +2152,6 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     [Scope('OnPrem')]
     procedure UT_CustomReportSelection_CheckSendToEmail()
     var
-        CustomReportLayout: Record "Custom Report Layout";
         CustomReportSelection: Record "Custom Report Selection";
         Customer: Record Customer;
         DataRecRef: RecordRef;
@@ -2163,9 +2163,9 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         CreateCustomer(Customer);
 
         InsertCustomReportSelectionCustomer(
-          CustomReportSelection, Customer."No.", GetStandardStatementReportID(), true, true,
-          CustomReportLayout.InitBuiltInLayout(GetStandardStatementReportID(), CustomReportLayout.Type::Word.AsInteger()),
+          CustomReportSelection, Customer."No.", GetStandardStatementReportID(), true, true, '',
           '', CustomReportSelection.Usage::"C.Statement");
+        SetBuiltInEmailBodyLayout(CustomReportSelection, GetStandardStatementReportID());
 
         DataRecRef.GETTABLE(Customer);
         asserterror CustomReportSelection.CheckEmailSendTo(DataRecRef);
@@ -2346,11 +2346,14 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     var
         Customer: array[2] of Record Customer;
         SalesHeader: Record "Sales Header";
-        CustomReportLayout: Record "Custom Report Layout";
+        ReportLayoutList: Record "Report Layout List";
+        LayoutSelectionSpy: Codeunit "Document Layout Test Helper";
         SendingProfileCode: Code[20];
-        CustomReportLayoutCode: Code[20];
     begin
         // [SCENARIO 546893] Run Customer Statement report when some customers have custom Document Layouts for Customer Statement and they are NOT included in report filter.
+
+        Initialize();
+        CreateStandardStatementReportSelection();
 
         // [GIVEN] Document Sending Profile P1.
         SendingProfileCode := CreateDocumentSendingProfile();
@@ -2362,23 +2365,28 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         CreateSalesInvoice(SalesHeader, Customer[1]);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
-        // [GIVEN] Custom Report Layout RL1 with Report ID 1316 and Type RDLC.
-        CustomReportLayoutCode := CustomReportLayout.InitBuiltInLayout(1316, CustomReportLayout.Type::RDLC.AsInteger());
+        // [GIVEN] Report layout RL1 with Report ID 1316 and Type RDLC.
+        LayoutSelectionSpy.CreateRDLCLayout(Report::"Standard Statement", ReportLayoutList);
 
-        // [GIVEN] Customer C2 with Customer Report Selections for Customer Statement with Report ID 1316 and Custom Layout Description RL1.
+        // [GIVEN] Customer C2 with Customer Report Selections for Customer Statement with Report ID 1316 and report layout RL1.
         LibrarySales.CreateCustomer(Customer[2]);
-        LibrarySales.CreateCustomerDocumentLayout(Customer[2]."No.", Enum::"Report Selection Usage"::"C.Statement", 1316, CustomReportLayoutCode, '');
+        CreateCustomerDocumentLayoutWithReportLayout(Customer[2]."No.", Report::"Standard Statement", ReportLayoutList);
         CreateSalesInvoice(SalesHeader, Customer[2]);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // [WHEN] Run Standard Statement report with filter by Customer's Document Sending Profile P1 and Report Output Print.
+        BindSubscription(LayoutSelectionSpy);
         RunReportWithCustomerFieldsFilter(Customer[1].FieldNo("Document Sending Profile"), SendingProfileCode, StandardStatementReportOutputType::Print, false);
+        UnbindSubscription(LayoutSelectionSpy);
 
-        // [THEN] Customer Statement is printed only for Customer C1 with default report layout. No errors are thrown.
+        // [THEN] Customer Statement is printed only for Customer C1 with DEFAULT report layout. No errors are thrown.
         Customer[1].Find();
         Customer[1].TestField("Last Statement No.", 1);
         Customer[2].Find();
         Customer[2].TestField("Last Statement No.", 0);
+        Assert.AreEqual(1, LayoutSelectionSpy.GetReportRunCount(Customer[1]."No."), WrongLayoutErr);
+        Assert.IsTrue(LayoutSelectionSpy.IsLayoutUsedFor(Customer[1]."No.", ''), WrongLayoutErr);
+        Assert.AreEqual(0, LayoutSelectionSpy.GetReportRunCount(Customer[2]."No."), WrongLayoutErr);
     end;
 
     [Test]
@@ -2386,11 +2394,14 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     var
         Customer: array[2] of Record Customer;
         SalesHeader: Record "Sales Header";
-        CustomReportLayout: Record "Custom Report Layout";
+        ReportLayoutList: Record "Report Layout List";
+        LayoutSelectionSpy: Codeunit "Document Layout Test Helper";
         SendingProfileCode: Code[20];
-        CustomReportLayoutCode: Code[20];
     begin
         // [SCENARIO 546893] Run Customer Statement report when some customers have custom Document Layouts for Customer Statement and they are included in report filter.
+
+        Initialize();
+        CreateStandardStatementReportSelection();
 
         // [GIVEN] Document Sending Profile P1.
         SendingProfileCode := CreateDocumentSendingProfile();
@@ -2402,27 +2413,33 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         CreateSalesInvoice(SalesHeader, Customer[1]);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
-        // [GIVEN] Custom Report Layout RL1 with Report ID 1316 and Type RDLC.
-        CustomReportLayoutCode := CustomReportLayout.InitBuiltInLayout(1316, CustomReportLayout.Type::RDLC.AsInteger());
+        // [GIVEN] Report layout RL1 with Report ID 1316 and Type RDLC.
+        LayoutSelectionSpy.CreateRDLCLayout(Report::"Standard Statement", ReportLayoutList);
 
-        // [GIVEN] Customer C2 with Customer Report Selections for Customer Statement with Report ID 1316 and Custom Layout Description RL1.
+        // [GIVEN] Customer C2 with Customer Report Selections for Customer Statement with Report ID 1316 and report layout RL1.
         // [GIVEN] Customer C2 has Document Sending Profile P1 and posted Sales Invoice.
         LibrarySales.CreateCustomer(Customer[2]);
-        LibrarySales.CreateCustomerDocumentLayout(Customer[2]."No.", Enum::"Report Selection Usage"::"C.Statement", 1316, CustomReportLayoutCode, '');
+        CreateCustomerDocumentLayoutWithReportLayout(Customer[2]."No.", Report::"Standard Statement", ReportLayoutList);
         Customer[2].Validate("Document Sending Profile", SendingProfileCode);
         Customer[2].Modify(true);
         CreateSalesInvoice(SalesHeader, Customer[2]);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // [WHEN] Run Standard Statement report with filter by Customer's Document Sending Profile P1 and Report Output Print.
+        BindSubscription(LayoutSelectionSpy);
         RunReportWithCustomerFieldsFilter(Customer[1].FieldNo("Document Sending Profile"), SendingProfileCode, StandardStatementReportOutputType::Print, false);
+        UnbindSubscription(LayoutSelectionSpy);
 
         // [THEN] Customer Statement is printed for Customer C1 with DEFAULT report layout. No errors are thrown.
-        // [THEN] Customer Statement is printed for Customer C2 with CUSTOM report layout.
+        // [THEN] Customer Statement is printed for Customer C2 with report layout RL1.
         Customer[1].Find();
         Customer[1].TestField("Last Statement No.", 1);
         Customer[2].Find();
         Customer[2].TestField("Last Statement No.", 1);
+        Assert.AreEqual(1, LayoutSelectionSpy.GetReportRunCount(Customer[1]."No."), WrongLayoutErr);
+        Assert.IsTrue(LayoutSelectionSpy.IsLayoutUsedFor(Customer[1]."No.", ''), WrongLayoutErr);
+        Assert.AreEqual(1, LayoutSelectionSpy.GetReportRunCount(Customer[2]."No."), WrongLayoutErr);
+        Assert.IsTrue(LayoutSelectionSpy.IsLayoutUsedFor(Customer[2]."No.", ReportLayoutList.Name), WrongLayoutErr);
     end;
 
     [Test]
@@ -2692,6 +2709,41 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         CustomReportSelection.Insert(true);
     end;
 
+    local procedure CreateStandardStatementReportSelection()
+    var
+        ReportSelections: Record "Report Selections";
+    begin
+        InsertReportSelections(
+          ReportSelections, GetStandardStatementReportID(), false, false, '', ReportSelections.Usage::"C.Statement");
+        Commit();
+    end;
+    local procedure SetBuiltInEmailBodyLayout(var CustomReportSelection: Record "Custom Report Selection"; ReportID: Integer)
+    var
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        // The email body uses the report's built-in Word layout
+        ReportLayoutList.SetRange("Report ID", ReportID);
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+        ReportLayoutList.SetRange("User Defined", false);
+        ReportLayoutList.FindFirst();
+        CustomReportSelection."Email Body Layout Name" := ReportLayoutList.Name;
+        CustomReportSelection."Email Body Layout AppID" := ReportLayoutList."Application ID";
+        CustomReportSelection.Modify(true);
+    end;
+
+    local procedure CreateCustomerDocumentLayoutWithReportLayout(CustomerNo: Code[20]; ReportID: Integer; ReportLayoutList: Record "Report Layout List")
+    var
+        CustomReportSelection: Record "Custom Report Selection";
+        DocumentLayoutTestHelper: Codeunit "Document Layout Test Helper";
+    begin
+        LibrarySales.CreateCustomerDocumentLayout(CustomerNo, Enum::"Report Selection Usage"::"C.Statement", ReportID, '', '');
+        CustomReportSelection.SetRange("Source Type", Database::Customer);
+        CustomReportSelection.SetRange("Source No.", CustomerNo);
+        CustomReportSelection.FindFirst();
+        DocumentLayoutTestHelper.SetDocumentLayout(CustomReportSelection, ReportLayoutList);
+        CustomReportSelection.Modify(true);
+    end;
+
     local procedure InsertReportSelections(var ReportSelections: Record "Report Selections"; ReportID: Integer; UseForEmailAttachment: Boolean; UseForEmailBody: Boolean; EmailBodyLayoutCode: Code[20]; ReportUsage: Enum "Report Selection Usage")
     begin
         ReportSelections.SetRange(Usage, ReportUsage);
@@ -2715,8 +2767,6 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         SalesHeader: Record "Sales Header";
         ReportSelections: Record "Report Selections";
         CustomReportSelection: Record "Custom Report Selection";
-        CustomReportLayout: Record "Custom Report Layout";
-        CustomReportLayoutCode: Code[20];
     begin
         CreateCustomer(Customer);
         CreateSalesInvoice(SalesHeader, Customer);
@@ -2725,40 +2775,26 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         InsertReportSelections(
           ReportSelections, GetStandardStatementReportID(), false, false, '', ReportSelections.Usage::"C.Statement");
 
-        CustomReportLayout.SetRange("Report ID", ReportId);
-        CustomReportLayout.SetRange(Type, CustomReportLayout.Type::Word);
-        if CustomReportLayout.FindFirst() then
-            CustomReportLayoutCode := CustomReportLayout.Code
-        else
-            CustomReportLayoutCode := CustomReportLayout.InitBuiltInLayout(ReportId, CustomReportLayout.Type::Word.AsInteger());
-
         InsertCustomReportSelectionCustomer(
           CustomReportSelection, Customer."No.", ReportId, true, true,
-          CustomReportLayoutCode, CopyStr(EmailAddress, 1, 200), CustomReportSelection.Usage::"C.Statement");
+          '', CopyStr(EmailAddress, 1, 200), CustomReportSelection.Usage::"C.Statement");
+        SetBuiltInEmailBodyLayout(CustomReportSelection, ReportId);
     end;
 
     local procedure PrepareCustomerWithoutEntries(var Customer: Record Customer; EmailAddress: Text; ReportId: Integer)
     var
         ReportSelections: Record "Report Selections";
         CustomReportSelection: Record "Custom Report Selection";
-        CustomReportLayout: Record "Custom Report Layout";
-        CustomReportLayoutCode: Code[20];
     begin
         CreateCustomer(Customer);
 
         InsertReportSelections(
           ReportSelections, GetStandardStatementReportID(), false, false, '', ReportSelections.Usage::"C.Statement");
 
-        CustomReportLayout.SetRange("Report ID", ReportId);
-        CustomReportLayout.SetRange(Type, CustomReportLayout.Type::Word);
-        if CustomReportLayout.FindFirst() then
-            CustomReportLayoutCode := CustomReportLayout.Code
-        else
-            CustomReportLayoutCode := CustomReportLayout.InitBuiltInLayout(ReportId, CustomReportLayout.Type::Word.AsInteger());
-
         InsertCustomReportSelectionCustomer(
           CustomReportSelection, Customer."No.", ReportId, true, true,
-          CustomReportLayoutCode, CopyStr(EmailAddress, 1, 200), CustomReportSelection.Usage::"C.Statement");
+          '', CopyStr(EmailAddress, 1, 200), CustomReportSelection.Usage::"C.Statement");
+        SetBuiltInEmailBodyLayout(CustomReportSelection, ReportId);
     end;
 
     local procedure RunReportFromCard(Customer: Record Customer; ReportOutputType: Option; PrintIfEmailIsMissing: Boolean)
