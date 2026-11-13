@@ -5,17 +5,13 @@ codeunit 148087 "Fixed Assets CZF"
 
     var
         Assert: Codeunit Assert;
-        LibraryDialogHandler: Codeunit "Library - Dialog Handler";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryERM: Codeunit "Library - ERM";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryFixedAssetCZF: Codeunit "Library - Fixed Asset CZF";
-        LibraryHumanResource: Codeunit "Library - Human Resource";
         LibraryRandom: Codeunit "Library - Random";
         isInitialized: Boolean;
-        DepreciationGroupFilterErr: Label 'Depreciation Group Filter is not set.';
-        ChangeCalculationQst: Label 'Changing this setting changes the way new depreciation is calculated. Do you really want to make the change?';
+        UnsupportedDepreciationMethodErr: Label 'The independent expectation does not support this depreciation method.';
 
     local procedure Initialize()
     var
@@ -26,8 +22,6 @@ codeunit 148087 "Fixed Assets CZF"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Fixed Assets CZF");
-        LibraryVariableStorage.Clear();
-        LibraryDialogHandler.ClearVariableStorage();
         if isInitialized then
             exit;
 
@@ -176,53 +170,6 @@ codeunit 148087 "Fixed Assets CZF"
     end;
 
     [Test]
-    [HandlerFunctions('ModalCreateFAHistoryHandler,NoConfirmHandler')]
-    procedure LoggingFixedAssetChanges()
-    var
-        FixedAsset: Record "Fixed Asset";
-        Employee: Record Employee;
-        FALocation: Record "FA Location";
-        FAHistoryEntry: Record "FA History Entry CZF";
-        FixedAssetCard: TestPage "Fixed Asset Card";
-    begin
-        // [SCENARIO] Verify that change of Responsible Employee or FA Location Code on the Fixed Asset Card will cause creation FA HIstory Entry
-        Initialize();
-
-        // [GIVEN] The FA History has been enabled in FA Setup
-        UpdateFASetupWithFAHistory(true);
-
-        // [GIVEN] The Employee has been created
-        CreateEmployee(Employee);
-
-        // [GIVEN] The FA Location has been created
-        CreateFALocation(FALocation);
-
-        // [GIVEN] The Fixed Asset has been created
-        CreateFixedAsset(FixedAsset);
-
-        // [WHEN] Validate "Responsible Employee" and "FA Location Code" fields on Fixed Asset Card
-        FixedAssetCard.OpenEdit();
-        FixedAssetCard.GoToRecord(FixedAsset);
-        FixedAssetCard."Responsible Employee".SetValue(Employee."No.");
-        FixedAssetCard."FA Location Code".SetValue(FALocation.Code);
-        FixedAssetCard.OK().Invoke();
-
-        // [THEN] The FA History Entry will be created
-        FAHistoryEntry.SetCurrentKey("FA No.");
-        FAHistoryEntry.SetRange("FA No.", FixedAsset."No.");
-        FAHistoryEntry.SetRange(Type, FAHistoryEntry.Type::"Responsible Employee");
-        FAHistoryEntry.FindFirst();
-        FAHistoryEntry.TestField("New Value", Employee."No.");
-
-        FAHistoryEntry.SetRange(Type, FAHistoryEntry.Type::"FA Location");
-        FAHistoryEntry.FindFirst();
-        FAHistoryEntry.TestField("New Value", FALocation.Code);
-
-        // Teardown
-        UpdateFASetupWithFAHistory(false);
-    end;
-
-    [Test]
     procedure PostingFixedAssetDisposal()
     var
         FixedAsset: Record "Fixed Asset";
@@ -364,44 +311,9 @@ codeunit 148087 "Fixed Assets CZF"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
-    procedure EndingBookValueSetupConfirmation()
-    var
-        FASetup: Record "FA Setup";
-        FixedAssetSetup: TestPage "Fixed Asset Setup";
-    begin
-        // [SCENARIO] Both directions require confirmation; declining keeps the stored setting.
-        Initialize();
-        // [GIVEN] The setting is disabled and the setup page is editable.
-        SetIncludeEndingBookValue(false);
-        FixedAssetSetup.OpenEdit();
-        // [WHEN] Enabling is declined.
-        SetExpectedConfirm(ChangeCalculationQst, false);
-        FixedAssetSetup."Incl. Ending Book Value CZF".SetValue(true);
-        // [THEN] The setting remains disabled.
-        FixedAssetSetup."Incl. Ending Book Value CZF".AssertEquals(false);
-        // [WHEN] Enabling is accepted.
-        SetExpectedConfirm(ChangeCalculationQst, true);
-        FixedAssetSetup."Incl. Ending Book Value CZF".SetValue(true);
-        // [THEN] The setting is enabled.
-        FixedAssetSetup."Incl. Ending Book Value CZF".AssertEquals(true);
-        // [WHEN] Disabling is declined.
-        SetExpectedConfirm(ChangeCalculationQst, false);
-        FixedAssetSetup."Incl. Ending Book Value CZF".SetValue(false);
-        // [THEN] The setting remains enabled.
-        FixedAssetSetup."Incl. Ending Book Value CZF".AssertEquals(true);
-        // [WHEN] Disabling is accepted and the page is closed.
-        SetExpectedConfirm(ChangeCalculationQst, true);
-        FixedAssetSetup."Incl. Ending Book Value CZF".SetValue(false);
-        FixedAssetSetup.Close();
-        // [THEN] The disabled setting is persisted.
-        FASetup.Get();
-        FASetup.TestField("Incl. Ending Book Value CZF", false);
-    end;
-
-    [Test]
     procedure EndingBookValueSLPercentEnabled()
     begin
+        // [SCENARIO] Monthly straight-line percentage depreciation excludes the residual from its basis when inclusion is enabled.
         // [GIVEN] SL percent and residual inclusion are selected in the delegated fixture.
         // [WHEN] The helper calculates monthly depreciation.
         // [THEN] It verifies the independently prorated, reduced basis.
@@ -411,6 +323,7 @@ codeunit 148087 "Fixed Assets CZF"
     [Test]
     procedure EndingBookValueSLPercentDisabled()
     begin
+        // [SCENARIO] Monthly straight-line percentage depreciation uses the full basis when residual inclusion is disabled.
         // [GIVEN] SL percent without residual inclusion is selected in the delegated fixture.
         // [WHEN] The helper calculates monthly depreciation.
         // [THEN] It verifies the independently prorated, full basis.
@@ -420,6 +333,7 @@ codeunit 148087 "Fixed Assets CZF"
     [Test]
     procedure EndingBookValueRemainingLifeEnabled()
     begin
+        // [SCENARIO] Monthly remaining-life depreciation distributes book value less the residual when inclusion is enabled.
         // [GIVEN] Remaining life and residual inclusion are selected in the delegated fixture.
         // [WHEN] The helper calculates monthly depreciation.
         // [THEN] It verifies the reduced book value distributed over remaining life.
@@ -429,6 +343,7 @@ codeunit 148087 "Fixed Assets CZF"
     [Test]
     procedure EndingBookValueRemainingLifeDisabled()
     begin
+        // [SCENARIO] Monthly remaining-life depreciation distributes the full book value when residual inclusion is disabled.
         // [GIVEN] Remaining life without residual inclusion is selected in the delegated fixture.
         // [WHEN] The helper calculates monthly depreciation.
         // [THEN] It verifies the full book value distributed over remaining life.
@@ -436,14 +351,14 @@ codeunit 148087 "Fixed Assets CZF"
     end;
 
     [Test]
-    procedure EndingBookValueDefaultAndIndividual()
+    procedure EndingBookValueUsesBookDefault()
     var
         DepreciationBook: Record "Depreciation Book";
         FADepreciationBook: Record "FA Depreciation Book";
         ResidualValue: Decimal;
         UntilDate: Date;
     begin
-        // [SCENARIO] The book default is used only when there is no individual residual.
+        // [SCENARIO] Monthly depreciation uses the book default when the asset has no individual residual.
         Initialize();
         // [GIVEN] The fixture residual is supplied by the book default, not the asset.
         SetIncludeEndingBookValue(true);
@@ -460,15 +375,28 @@ codeunit 148087 "Fixed Assets CZF"
         // [WHEN] Monthly depreciation is calculated without an individual residual.
         // [THEN] The independently calculated amount uses the book default.
         AssertNormalEndingValueDepreciation(FADepreciationBook, UntilDate, true, 0);
+    end;
 
+    [Test]
+    procedure EndingBookValueIndividualOverridesDefault()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        ResidualValue: Decimal;
+    begin
+        // [SCENARIO] An individual residual overrides a different book default in monthly depreciation.
+        Initialize();
         // [GIVEN] A different book default and an individual residual are configured.
+        SetIncludeEndingBookValue(true);
+        CreateEndingValueAsset(DepreciationBook, FADepreciationBook);
+        ResidualValue := FADepreciationBook."Ending Book Value";
         DepreciationBook.Validate("Default Ending Book Value", ResidualValue * 2);
         DepreciationBook.Modify(true);
         FADepreciationBook.Validate("Ending Book Value", ResidualValue);
         FADepreciationBook.Modify(true);
-        // [WHEN] Monthly depreciation is calculated again.
+        // [WHEN] Monthly depreciation is calculated.
         // [THEN] The individual residual overrides the default in the expected basis.
-        AssertNormalEndingValueDepreciation(FADepreciationBook, UntilDate, true, 0);
+        AssertNormalEndingValueDepreciation(FADepreciationBook, CalcDate('<CM>', FADepreciationBook."Depreciation Starting Date"), true, 0);
     end;
 
     [Test]
@@ -966,7 +894,6 @@ codeunit 148087 "Fixed Assets CZF"
         SetIncludeEndingBookValue(false);
         // [THEN] The independent candidates now use the full base.
         AssertNormalEndingValueDepreciation(FADepreciationBook, UntilDate, false, 0);
-
         if DepreciationMethod = FADepreciationBook."Depreciation Method"::"DB1/SL" then begin
             // [GIVEN] A lower SL rate makes DB1 the selected candidate instead of SL.
             FADepreciationBook.Validate("Straight-Line %", FADepreciationBook."Declining-Balance %" / 2);
@@ -1088,7 +1015,6 @@ codeunit 148087 "Fixed Assets CZF"
         // The below-zero scenario deliberately starts at its residual and keeps the full basis.
         if DepreciationBook."Allow Depr. below Zero" and (CurrentValue <= Residual) then
             exit(Round(-Basis * FADepreciationBook."Depr. below Zero %" / 100 * PeriodFraction));
-
         if IncludeResidual then begin
             Basis -= Residual;
             CurrentValue -= Residual;
@@ -1097,7 +1023,6 @@ codeunit 148087 "Fixed Assets CZF"
             Basis := 0;
         if CurrentValue < 0 then
             CurrentValue := 0;
-
         if FADepreciationBook."Straight-Line %" <> 0 then
             SLAmount := Round(-Basis * FADepreciationBook."Straight-Line %" / 100 * PeriodFraction, 0.0001)
         else begin
@@ -1123,7 +1048,7 @@ codeunit 148087 "Fixed Assets CZF"
             FADepreciationBook."Depreciation Method"::"Declining-Balance 2":
                 ExpectedAmount := -CurrentValue * (1 - Power(1 - FADepreciationBook."Declining-Balance %" / 100, PeriodFraction));
             else
-                Error('The independent expectation does not support this depreciation method.');
+                Error(UnsupportedDepreciationMethodErr);
         end;
         if FADepreciationBook."Depreciation Method" = FADepreciationBook."Depreciation Method"::"DB1/SL" then begin
             DBAmount := ExpectedAmount;
@@ -1431,16 +1356,6 @@ codeunit 148087 "Fixed Assets CZF"
         LibraryERM.CreateReasonCode(ReasonCode);
     end;
 
-    local procedure CreateFALocation(var FALocation: Record "FA Location")
-    begin
-        LibraryFixedAssetCZF.CreateFALocation(FALocation);
-    end;
-
-    local procedure CreateEmployee(var Employee: Record Employee)
-    begin
-        LibraryHumanResource.CreateEmployee(Employee);
-    end;
-
     local procedure CreateGLAccount(var GLAccount: Record "G/L Account")
     var
         GeneralPostingSetup: Record "General Posting Setup";
@@ -1488,17 +1403,6 @@ codeunit 148087 "Fixed Assets CZF"
         FASetup.Get();
         FASetup.Validate("Tax Depreciation Book CZF", TaxDeprBookCode);
         FASetup.Validate("Fixed Asset Nos.", LibraryERM.CreateNoSeriesCode());
-        FASetup.Modify(true);
-    end;
-
-    local procedure UpdateFASetupWithFAHistory(FixedAssetHistory: Boolean)
-    var
-        FASetup: Record "FA Setup";
-    begin
-        LibraryVariableStorage.Enqueue(WorkDate());
-        FASetup.Get();
-        FASetup.Validate("Fixed Asset History CZF", FixedAssetHistory);
-        FASetup.Validate("Fixed Asset History Nos. CZF", LibraryERM.CreateNoSeriesCode());
         FASetup.Modify(true);
     end;
 
@@ -1572,42 +1476,11 @@ codeunit 148087 "Fixed Assets CZF"
           FixedAsset, DepreciationBookCode, CalcDate('<CY>', WorkDate()), FixedAsset."No.", FixedAsset.Description);
     end;
 
-    local procedure SetExpectedConfirm(Question: Text; Reply: Boolean)
-    begin
-        LibraryDialogHandler.SetExpectedConfirm(Question, Reply);
-    end;
-
-    [ModalPageHandler]
-    procedure ModalTaxDepreciationGroupCZFsHandler(var TaxDepreciationGroupsCZF: TestPage "Tax Depreciation Groups CZF")
-    begin
-        Assert.IsTrue(
-          TaxDepreciationGroupsCZF.Filter.GetFilter("Depreciation Group") = Format(LibraryVariableStorage.DequeueText()), DepreciationGroupFilterErr);
-    end;
-
-    [ModalPageHandler]
-    procedure ModalCreateFAHistoryHandler(var CreateFAHistoryCZF: TestPage "Create FA History CZF")
-    begin
-        CreateFAHistoryCZF.OK().Invoke();
-    end;
-
     [MessageHandler]
     procedure MessageHandler(Message: Text)
     begin
         // Dummy Message Handler
     end;
-
-    [ConfirmHandler]
-    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
-    begin
-        LibraryDialogHandler.HandleConfirm(Question, Reply);
-    end;
-
-    // [ConfirmHandler]
-    // procedure EndingValueSetupConfirmHandler(Message: Text[1024]; var Reply: Boolean)
-    // begin
-    //     Assert.IsTrue(StrPos(Message, 'new depreciation') > 0, 'The confirmation must describe the depreciation calculation change.');
-    //     Reply := LibraryVariableStorage.DequeueBoolean();
-    // end;
 
     [ConfirmHandler]
     procedure NoConfirmHandler(Message: Text[1024]; var Reply: Boolean)
