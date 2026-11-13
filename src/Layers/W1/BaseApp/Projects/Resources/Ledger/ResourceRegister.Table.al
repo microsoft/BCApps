@@ -83,6 +83,7 @@ table 240 "Resource Register"
     {
     }
 
+#Pragma warning disable AS0024
     procedure GetNextEntryNo(UseLegacyPosting: Boolean): BigInteger
     begin
         if not UseLegacyPosting then
@@ -98,6 +99,7 @@ table 240 "Resource Register"
     begin
         exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Resource Register"));
     end;
+#Pragma warning restore AS0024
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Resource Register", 'r')]
     procedure GetLastEntryNo(): BigInteger;

@@ -83,7 +83,8 @@ table 241 "Job Register"
     {
     }
 
-    procedure GetNextEntryNo(UseLegacyPosting: Boolean): Integer
+#pragma warning disable AS0024
+    procedure GetNextEntryNo(UseLegacyPosting: Boolean): BigInteger
     begin
         if not UseLegacyPosting then
             exit(GetNextEntryNo());
@@ -98,6 +99,7 @@ table 241 "Job Register"
     begin
         exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Job Register"));
     end;
+#pragma warning restore AS0024
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Job Register", 'r')]
     procedure GetLastEntryNo(): BigInteger;
