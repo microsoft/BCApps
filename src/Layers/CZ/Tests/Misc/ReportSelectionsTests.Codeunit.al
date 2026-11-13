@@ -376,7 +376,6 @@ codeunit 134421 "Report Selections Tests"
 #endif
 
 #if not CLEAN27
-#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure TestHTMLEmailBodyLoad()
@@ -498,7 +497,7 @@ codeunit 134421 "Report Selections Tests"
           StrSubstNo('Destination email address does not match expected address %1', CustomLayoutEmailTxt));
     end;
 #endif
-#endif
+
 
 #if not CLEAN30
     [Test]
@@ -3074,16 +3073,8 @@ codeunit 134421 "Report Selections Tests"
             CustomReportLayout.Insert();
         end;
     end;
-#endif
+    #endif
 
-#if not CLEAN27
-    local procedure GetEmailItem(var EmailItem: Record "Email Item"; MessageType: Integer; BodyFilePath: Text[250]; Plaintext: Boolean)
-    begin
-        EmailItem.Validate("Plaintext Formatted", Plaintext);
-        EmailItem.Validate("Message Type", MessageType);
-        EmailItem.Validate("Body File Path", BodyFilePath);
-    end;
-#endif
 
 #if not CLEAN30
     local procedure GetEmailItem(var EmailItem: Record "Email Item"; MessageType: Option "Custom Message","From Email Body Template"; var EmailBody: Codeunit "Temp Blob")

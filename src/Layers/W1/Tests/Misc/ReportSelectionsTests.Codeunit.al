@@ -375,7 +375,6 @@ codeunit 134421 "Report Selections Tests"
 #endif
 
 #if not CLEAN27
-#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure TestHTMLEmailBodyLoad()
@@ -504,7 +503,6 @@ codeunit 134421 "Report Selections Tests"
           EmailAddress = CustomLayoutEmailTxt,
           StrSubstNo('Destination email address does not match expected address %1', CustomLayoutEmailTxt));
     end;
-#endif
 #endif
 
 #if not CLEAN30

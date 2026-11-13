@@ -58,6 +58,7 @@ codeunit 137280 "SCM Inventory Basic"
         IsNotFoundOnThePageTxt: Label 'is not found on the page';
         UnexpectedValueErr: Label 'Unexpected value of field %1 in table %2', Comment = '%1: Field name, %2: Table name';
         CurrentWorkDate: Date;
+        DirectTransferTxt: Label 'Direct';
 
     [Test]
     [HandlerFunctions('ItemCreationMessageHandler')]
@@ -658,6 +659,97 @@ codeunit 137280 "SCM Inventory Basic"
 
         // Verify
         VerifyTransferRoutesMatrixCellValue(ShowOption::"In-Transit Code", LocationCode, MatrixCellValue);
+    end;
+
+    [Test]
+    procedure TransferRoutesMatrixForDirectTransfer()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferRoutesMatrix: TestPage "Transfer Routes Matrix";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 648938] A direct route without an in-transit location is distinguishable from an undefined route.
+        Initialize();
+
+        // [GIVEN] Non-transit locations "L1" and "L2" with a direct route and no in-transit code.
+        CreateMatrixTransferRoute(TransferRoute, true, '');
+
+        // [WHEN] The actual matrix displays "L1" to the explicitly loaded "L2" column in the in-transit view.
+        OpenControlledTransferRoutesMatrix(
+          TransferRoutesMatrix, TransferRoute."Transfer-from Code", TransferRoute."Transfer-to Code",
+          "Transfer Routes Show"::"In-Transit Code");
+
+        // [THEN] The cell identifies the existing direct route.
+        TransferRoutesMatrix.Field1.AssertEquals(DirectTransferTxt);
+        TransferRoutesMatrix.Close();
+    end;
+
+    [Test]
+    procedure TransferRoutesMatrixDirectPrecedence()
+    var
+        TransferRoute: Record "Transfer Route";
+        InTransitLocation: Record Location;
+        TransferRoutesMatrix: TestPage "Transfer Routes Matrix";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 648938] Direct transfer takes precedence over a populated in-transit code.
+        Initialize();
+
+        // [GIVEN] A direct route from "L1" to "L2" also has in-transit location "I".
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        CreateMatrixTransferRoute(TransferRoute, true, InTransitLocation.Code);
+
+        // [WHEN] The actual matrix displays that off-diagonal route in the in-transit view.
+        OpenControlledTransferRoutesMatrix(
+          TransferRoutesMatrix, TransferRoute."Transfer-from Code", TransferRoute."Transfer-to Code",
+          "Transfer Routes Show"::"In-Transit Code");
+
+        // [THEN] Direct transfer, rather than the in-transit code, is displayed.
+        TransferRoutesMatrix.Field1.AssertEquals(DirectTransferTxt);
+        TransferRoutesMatrix.Close();
+    end;
+
+    [Test]
+    procedure TransferRoutesMatrixDirectCompatibility()
+    var
+        TransferRoute: Record "Transfer Route";
+        DirectTransferRoute: Record "Transfer Route";
+        DiagonalTransferRoute: Record "Transfer Route";
+        InTransitLocation: Record Location;
+        UndefinedLocation: Record Location;
+        ShippingAgent: Record "Shipping Agent";
+        ShippingAgentServices: Record "Shipping Agent Services";
+        ShippingTime: DateFormula;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 648938] Direct route display preserves non-direct, undefined, diagonal and shipping specifications.
+        Initialize();
+
+        // [GIVEN] Non-direct "L1" to "L2", direct "L2" to "L1", and direct diagonal routes with shipping specifications.
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        CreateMatrixTransferRoute(TransferRoute, false, InTransitLocation.Code);
+        LibraryWarehouse.CreateLocation(UndefinedLocation);
+        LibraryInventory.CreateShippingAgent(ShippingAgent);
+        Evaluate(ShippingTime, '<1D>');
+        LibraryInventory.CreateShippingAgentService(ShippingAgentServices, ShippingAgent.Code, ShippingTime);
+        TransferRoute.Validate("Shipping Agent Code", ShippingAgent.Code);
+        TransferRoute.Validate("Shipping Agent Service Code", ShippingAgentServices.Code);
+        TransferRoute.Modify(true);
+        LibraryWarehouse.CreateAndUpdateTransferRoute(
+          DirectTransferRoute, TransferRoute."Transfer-to Code", TransferRoute."Transfer-from Code", '',
+          ShippingAgent.Code, ShippingAgentServices.Code);
+        DirectTransferRoute.Validate("Direct Transfer", true);
+        DirectTransferRoute.Modify(true);
+        LibraryWarehouse.CreateAndUpdateTransferRoute(
+          DiagonalTransferRoute, TransferRoute."Transfer-from Code", TransferRoute."Transfer-from Code",
+          InTransitLocation.Code, ShippingAgent.Code, ShippingAgentServices.Code);
+        DiagonalTransferRoute.Validate("Direct Transfer", true);
+        DiagonalTransferRoute.Modify(true);
+
+        // [WHEN] The actual matrix is opened for each explicitly selected route and specification.
+
+        // [THEN] Existing non-direct, undefined, diagonal and shipping values are unchanged.
+        VerifyTransferRoutesMatrixCompatibility(TransferRoute, DirectTransferRoute, DiagonalTransferRoute, UndefinedLocation.Code);
     end;
 
     [Test]
@@ -3481,6 +3573,19 @@ codeunit 137280 "SCM Inventory Basic"
           TransferRoute, Location.Code, GetFirstLocation(false), InTransitLocation.Code, ShippingAgent.Code, ShippingAgentServices.Code);
     end;
 
+    local procedure CreateMatrixTransferRoute(var TransferRoute: Record "Transfer Route"; DirectTransfer: Boolean; InTransitCode: Code[10])
+    var
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+    begin
+        LibraryWarehouse.CreateLocation(FromLocation);
+        LibraryWarehouse.CreateLocation(ToLocation);
+        LibraryWarehouse.CreateAndUpdateTransferRoute(
+          TransferRoute, FromLocation.Code, ToLocation.Code, InTransitCode, '', '');
+        TransferRoute.Validate("Direct Transfer", DirectTransfer);
+        TransferRoute.Modify(true);
+    end;
+
     local procedure CreateAndPostItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal)
     var
         ItemJournalBatch: Record "Item Journal Batch";
@@ -3877,6 +3982,22 @@ codeunit 137280 "SCM Inventory Basic"
         ItemJournalLine.Modify(true);
     end;
 
+    local procedure OpenControlledTransferRoutesMatrix(var TransferRoutesMatrix: TestPage "Transfer Routes Matrix"; FromLocationCode: Code[10]; ToLocationCode: Code[10]; Show: Enum "Transfer Routes Show")
+    var
+        FromLocation: Record Location;
+        MatrixLocations: array[32] of Record Location;
+        TransferRoutesMatrixPage: Page "Transfer Routes Matrix";
+        MatrixColumns: array[32] of Text[1024];
+    begin
+        FromLocation.SetRange(Code, FromLocationCode);
+        MatrixLocations[1].Get(ToLocationCode);
+        MatrixColumns[1] := ToLocationCode;
+        TransferRoutesMatrixPage.LoadMatrix(MatrixColumns, MatrixLocations, 1, Show);
+        TransferRoutesMatrixPage.SetTableView(FromLocation);
+        TransferRoutesMatrix.Trap();
+        TransferRoutesMatrixPage.Run();
+    end;
+
     local procedure OpenItemStatisticsPage(No: Code[20])
     var
         ItemCard: TestPage "Item Card";
@@ -3894,6 +4015,41 @@ codeunit 137280 "SCM Inventory Basic"
         TransferRoutes.Show.SetValue(Show);
         TransferRoutes.MatrixForm.FILTER.SetFilter(Code, LocationCode);
         TransferRoutes.MatrixForm.Field1.AssertEquals(MatrixCellValue);
+    end;
+
+    local procedure VerifyControlledTransferRoutesMatrixCellValue(FromLocationCode: Code[10]; ToLocationCode: Code[10]; Show: Enum "Transfer Routes Show"; ExpectedValue: Text)
+    var
+        TransferRoutesMatrix: TestPage "Transfer Routes Matrix";
+    begin
+        OpenControlledTransferRoutesMatrix(TransferRoutesMatrix, FromLocationCode, ToLocationCode, Show);
+        TransferRoutesMatrix.Field1.AssertEquals(ExpectedValue);
+        TransferRoutesMatrix.Close();
+    end;
+
+    local procedure VerifyTransferRoutesMatrixCompatibility(TransferRoute: Record "Transfer Route"; DirectTransferRoute: Record "Transfer Route"; DiagonalTransferRoute: Record "Transfer Route"; UndefinedLocationCode: Code[10])
+    begin
+        VerifyControlledTransferRoutesMatrixCellValue(
+          TransferRoute."Transfer-from Code", TransferRoute."Transfer-to Code",
+          "Transfer Routes Show"::"In-Transit Code", TransferRoute."In-Transit Code");
+        VerifyControlledTransferRoutesMatrixCellValue(
+          TransferRoute."Transfer-from Code", UndefinedLocationCode, "Transfer Routes Show"::"In-Transit Code", '...');
+        VerifyControlledTransferRoutesMatrixCellValue(
+          DiagonalTransferRoute."Transfer-from Code", DiagonalTransferRoute."Transfer-to Code",
+          "Transfer Routes Show"::"In-Transit Code", DiagonalTransferRoute."In-Transit Code");
+        VerifyControlledTransferRoutesMatrixCellValue(
+          UndefinedLocationCode, UndefinedLocationCode, "Transfer Routes Show"::"In-Transit Code", '');
+        VerifyControlledTransferRoutesMatrixCellValue(
+          TransferRoute."Transfer-from Code", TransferRoute."Transfer-to Code",
+          "Transfer Routes Show"::"Shipping Agent Code", TransferRoute."Shipping Agent Code");
+        VerifyControlledTransferRoutesMatrixCellValue(
+          TransferRoute."Transfer-from Code", TransferRoute."Transfer-to Code",
+          "Transfer Routes Show"::"Shipping Agent Service Code", TransferRoute."Shipping Agent Service Code");
+        VerifyControlledTransferRoutesMatrixCellValue(
+          DirectTransferRoute."Transfer-from Code", DirectTransferRoute."Transfer-to Code",
+          "Transfer Routes Show"::"Shipping Agent Code", DirectTransferRoute."Shipping Agent Code");
+        VerifyControlledTransferRoutesMatrixCellValue(
+          DirectTransferRoute."Transfer-from Code", DirectTransferRoute."Transfer-to Code",
+          "Transfer Routes Show"::"Shipping Agent Service Code", DirectTransferRoute."Shipping Agent Service Code");
     end;
 
     local procedure PostPurchaseOrder(DocumentType: Enum "Purchase Document Type"; No: Code[20]; Invoice: Boolean): Code[20]

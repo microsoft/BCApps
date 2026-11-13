@@ -536,27 +536,6 @@ codeunit 14099 "Create MX GL Accounts"
         end;
     end;
 
-#if not CLEAN27
-    [Obsolete('This procedure is obsolete and no longer needed', '27.0')]
-    procedure UpdateVATProdPostingGroupOnGL()
-    var
-        GLAccount: Record "G/L Account";
-        CreateVATPostingGroupsMX: Codeunit "Create VAT Posting Groups MX";
-        CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
-    begin
-        GLAccount.SetFilter("VAT Prod. Posting Group", '<>%1', '');
-        if GLAccount.FindSet() then
-            repeat
-                if GLAccount."VAT Prod. Posting Group" = CreateVATPostingGroups.Reduced() then
-                    GLAccount.Validate("VAT Prod. Posting Group", CreateVATPostingGroupsMX.VAT8());
-                if GLAccount."VAT Prod. Posting Group" = CreateVATPostingGroups.Standard() then
-                    GLAccount.Validate("VAT Prod. Posting Group", CreateVATPostingGroupsMX.VAT16());
-                if GLAccount."VAT Prod. Posting Group" = CreateVATPostingGroups.Zero() then
-                    GLAccount.Validate("VAT Prod. Posting Group", CreateVATPostingGroupsMX.NOVAT());
-                GLAccount.Modify(true);
-            until GLAccount.Next() = 0;
-    end;
-#endif
 
     local procedure UpdateGLAccounts(GLAccountCategory: Record "G/L Account Category"; FromGLAccountNo: Code[20]; ToGLAccountNo: Code[20])
     var
