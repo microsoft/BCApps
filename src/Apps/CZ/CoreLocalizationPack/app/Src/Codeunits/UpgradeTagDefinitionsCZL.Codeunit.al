@@ -51,6 +51,7 @@ codeunit 31016 "Upgrade Tag Definitions CZL"
         PerCompanyUpgradeTags.Add(GetStatutoryReportingSetupOfficialFullNameUpgradeTag());
         PerCompanyUpgradeTags.Add(GetEETTaxpayerCertificateCodeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetEETBusinessPremisesExtendedDescriptionUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetUnreliablePayerEntryEnumsUpgradeTag());
     end;
 
     procedure GetDataVersion174PerDatabaseUpgradeTag(): Code[250]
@@ -236,5 +237,10 @@ codeunit 31016 "Upgrade Tag Definitions CZL"
     procedure GetEETBusinessPremisesExtendedDescriptionUpgradeTag(): Code[250]
     begin
         exit('CZL-624913-EETBusinessPremisesExtendedDescriptionTag-20261013');
+    end;
+
+    internal procedure GetUnreliablePayerEntryEnumsUpgradeTag(): Code[250]
+    begin
+        exit('CZL-658687-UnreliablePayerEntryEnums-20261110');
     end;
 }
