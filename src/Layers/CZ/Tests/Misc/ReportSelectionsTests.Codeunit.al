@@ -3073,7 +3073,16 @@ codeunit 134421 "Report Selections Tests"
             CustomReportLayout.Insert();
         end;
     end;
-    #endif
+
+#if not CLEAN27
+    local procedure GetEmailItem(var EmailItem: Record "Email Item"; MessageType: Integer; BodyFilePath: Text[250]; Plaintext: Boolean)
+    begin
+        EmailItem.Validate("Plaintext Formatted", Plaintext);
+        EmailItem.Validate("Message Type", MessageType);
+        EmailItem.Validate("Body File Path", BodyFilePath);
+    end;
+#endif
+
 
 
 #if not CLEAN30
