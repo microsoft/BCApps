@@ -22,7 +22,7 @@ codeunit 30103 "Shpfy Communication Mgt."
         CommunicationEvents: Codeunit "Shpfy Communication Events";
         GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
         NextExecutionTime: DateTime;
-        VersionTok: Label '2026-01', Locked = true;
+        VersionTok: Label '2026-07', Locked = true;
         OutgoingRequestsNotEnabledConfirmLbl: Label 'Importing data to your Shopify shop is not enabled, do you want to go to shop card to enable?';
         OutgoingRequestsNotEnabledErr: Label 'Importing data to your Shopify shop is not enabled, navigate to shop card to enable.';
         IsTestInProgress: Boolean;
@@ -121,7 +121,7 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <returns>Return value of type JsonToken.</returns>
     internal procedure ExecuteGraphQL(GraphQLQuery: Text): JsonToken
     begin
-        exit(ExecuteGraphQL(GraphQLQuery, 0));
+        exit(ExecuteGraphQL(GraphQLQuery, 10));
     end;
 
     /// <summary> 
@@ -214,6 +214,7 @@ codeunit 30103 "Shpfy Communication Mgt."
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
         RetryCounter: Integer;
+        Sent: Boolean;
     begin
         FeatureTelemetry.LogUptake('0000HUV', 'Shopify', Enum::"Feature Uptake Status"::Used);
         if CheckOutgoingRequest then
@@ -234,10 +235,18 @@ codeunit 30103 "Shpfy Communication Mgt."
 
         if IsTestInProgress then
             CommunicationEvents.OnClientSend(HttpRequestMessage, HttpResponseMessage)
-        else
-            if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+        else begin
+            Sent := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+            if Sent then begin
+                if HandleUnauthorizedResponse(HttpResponseMessage) then begin
+                    Clear(HttpClient);
+                    Clear(HttpRequestMessage);
+                    Clear(HttpResponseMessage);
+                    CreateHttpRequestMessage(Url, Method, Request, HttpRequestMessage);
+                    Sent := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+                end;
                 Clear(RetryCounter);
-                while (not HttpResponseMessage.IsBlockedByEnvironment) and (EvaluateResponse(HttpResponseMessage)) and (RetryCounter < MaxRetries) do begin
+                while Sent and (not HttpResponseMessage.IsBlockedByEnvironment) and (EvaluateResponse(HttpResponseMessage)) and (RetryCounter < MaxRetries) do begin
                     RetryCounter += 1;
                     Sleep(1000);
                     LogShopifyRequest(Url, Method, Request, HttpResponseMessage, Response, RetryCounter);
@@ -245,13 +254,27 @@ codeunit 30103 "Shpfy Communication Mgt."
                     Clear(HttpRequestMessage);
                     Clear(HttpResponseMessage);
                     CreateHttpRequestMessage(Url, Method, Request, HttpRequestMessage);
-                    HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+                    Sent := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
                 end;
             end;
+        end;
         if GetContent(HttpResponseMessage, Response) then;
         ResponseHeaders := HttpResponseMessage.Headers();
         LogShopifyRequest(Url, Method, Request, HttpResponseMessage, Response, RetryCounter);
         Commit();
+    end;
+
+    local procedure HandleUnauthorizedResponse(HttpResponseMessage: HttpResponseMessage): Boolean
+    var
+        AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
+        Store: Text;
+    begin
+        if HttpResponseMessage.HttpStatusCode() <> 401 then
+            exit(false);
+        Store := Shop.GetStoreName();
+        if Store = '' then
+            exit(false);
+        exit(AuthenticationMgt.ForceTokenRefresh(Store));
     end;
 
     [NonDebuggable]
@@ -395,6 +418,7 @@ codeunit 30103 "Shpfy Communication Mgt."
         NoAccessTokenErr: label 'No Access token for the store "%1".\Please request an access token for this store.', Comment = '%1 = Store';
         ChangedScopeErr: Label 'The application scope is changed, please request a new access token for the store "%1".', Comment = '%1 = Store';
     begin
+        AuthenticationMgt.EnsureValidAccessToken(Store);
         if RegisteredStoreNew.Get(Store) then
             if RegisteredStoreNew."Requested Scope" = AuthenticationMgt.GetScope() then begin
                 AccessToken := RegisteredStoreNew.GetAccessToken();

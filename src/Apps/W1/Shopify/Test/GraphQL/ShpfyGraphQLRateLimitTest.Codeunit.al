@@ -52,4 +52,27 @@ codeunit 139571 "Shpfy GraphQL Rate Limit Test"
         // [THEN] Waittime is about 2 sec.
         LibraryAssert.AreNearlyEqual(2000, WaitTime, 200, 'currentlyAvailable = 50, WaitForRequestAvailable(150)');
     end;
+
+    [Test]
+    procedure UnitTestWaitForRequestAvailableAfterElapsedTime()
+    var
+        GraphQLRateLimit: Codeunit "Shpfy GraphQL Rate Limit";
+        EndTime: DateTime;
+        StartTime: DateTime;
+        WaitTime: Duration;
+        JThrottleStatus: JsonObject;
+        JThrottleStatusTxt: Label '{"maximumAvailable": 1000, "restoreRate": 50, "currentlyAvailable": %1}', Comment = '%1 = currentAvailable', Locked = true;
+    begin
+        // [SCENARIO] Elapsed restore time must be counted only once.
+        JThrottleStatus.ReadFrom(StrSubstNo(JThrottleStatusTxt, 50));
+        GraphQLRateLimit.SetQueryCost(JThrottleStatus.AsToken());
+        Sleep(2000);
+
+        StartTime := CurrentDateTime;
+        GraphQLRateLimit.WaitForRequestAvailable(200);
+        EndTime := CurrentDateTime;
+        WaitTime := EndTime - StartTime;
+
+        LibraryAssert.AreNearlyEqual(1000, WaitTime, 400, 'currentlyAvailable = 50, WaitForRequestAvailable(200) after 2 sec. elapsed');
+    end;
 }

@@ -20,6 +20,7 @@ codeunit 139606 "Shpfy Shipping Test"
         Shop: Record "Shpfy Shop";
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
 
@@ -257,6 +258,28 @@ codeunit 139606 "Shpfy Shipping Test"
         LibraryAssert.IsFalse(FulfillmentRequest.Contains(Format(FulfillmentOrderHeaderA."Shopify Fulfillment Order Id")), 'Second request should not contain Location A fulfillment order');
     end;
 
+    [Test]
+    [HandlerFunctions('MarketDrivenShippingHttpHandler')]
+    procedure UnitTestGetMarketDrivenShippingMethods()
+    var
+        ShipmentMethodMapping: Record "Shpfy Shipment Method Mapping";
+        ShippingMethods: Codeunit "Shpfy Shipping Methods";
+    begin
+        // [SCENARIO] Market-driven shipping imports active option names from Markets.
+        Initialize();
+        ShipmentMethodMapping.SetRange("Shop Code", Shop.Code);
+        ShipmentMethodMapping.DeleteAll();
+        OutboundHttpRequests.Enqueue('GQL Get Market Driven Shipping Feature');
+        OutboundHttpRequests.Enqueue('GQL Get Market Shipping Methods');
+
+        ShippingMethods.GetShippingMethods(Shop);
+
+        LibraryAssert.IsTrue(ShipmentMethodMapping.Get(Shop.Code, 'Standard Shipping'), 'Standard Shipping mapping should be created');
+        LibraryAssert.IsTrue(ShipmentMethodMapping.Get(Shop.Code, 'Express Shipping'), 'Express Shipping mapping should be created');
+        LibraryAssert.IsFalse(ShipmentMethodMapping.Get(Shop.Code, 'Inactive Method'), 'Inactive shipping option should not be created');
+        OutboundHttpRequests.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
@@ -310,5 +333,33 @@ codeunit 139606 "Shpfy Shipping Test"
 
         Response.Content.WriteFrom(NavApp.GetResourceAsText('Shipping/FulfillmentOrderAcceptResponse.txt', TextEncoding::UTF8));
         exit(false); // Prevents actual HTTP call
+    end;
+
+    [HttpClientHandler]
+    internal procedure MarketDrivenShippingHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        FeatureResponseTok: Label 'Shipping/MarketDrivenShippingFeatureResponse.txt', Locked = true;
+        MarketShippingResponseTok: Label 'Shipping/MarketShippingMethodsResponse.txt', Locked = true;
+        UnexpectedApiCallErr: Label 'Unexpected number of API calls.', Locked = true;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        // Return feature detection first, then market options.
+        case OutboundHttpRequests.Length() of
+            2:
+                LoadResourceIntoHttpResponse(FeatureResponseTok, Response);
+            1:
+                LoadResourceIntoHttpResponse(MarketShippingResponseTok, Response);
+            0:
+                Error(UnexpectedApiCallErr);
+        end;
+        exit(false);
+    end;
+
+    local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
+    begin
+        Response.Content.WriteFrom(NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8));
+        OutboundHttpRequests.DequeueText();
     end;
 }
