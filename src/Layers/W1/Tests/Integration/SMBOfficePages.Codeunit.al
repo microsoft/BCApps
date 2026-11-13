@@ -2228,3 +2228,4 @@ codeunit 139048 "SMB Office Pages"
         ActiveDirectoryMockEvents.Enable();
     end;
 }
+

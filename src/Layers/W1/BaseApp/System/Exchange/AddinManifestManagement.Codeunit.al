@@ -46,6 +46,7 @@ codeunit 1652 "Add-in Manifest Management"
             exit(false);
 
         ServerLocation := SaveManifestToServer(NewOfficeAddin);
+
         if TestMode then begin
             FileManagement.CopyServerFile(ServerLocation, FileName, true);
             exit(true);
@@ -199,6 +200,7 @@ codeunit 1652 "Add-in Manifest Management"
     begin
         XMLDomManagement.LoadXMLNodeFromText(ManifestText, XMLRootNode);
         GetManifestNamespaceManager(XMLRootNode, XMLNamespaceMgr);
+
         case Node of
             NodeType::DefaultLocale:
                 begin
@@ -340,6 +342,7 @@ codeunit 1652 "Add-in Manifest Management"
           XMLRootNode,
           RuleXPathTxt,
           XMLNamespaceMgr, XMLFoundNodes);
+
         foreach XMLNode in XMLFoundNodes do
             XMLNode.ParentNode.RemoveChild(XMLNode);
 
@@ -369,6 +372,7 @@ codeunit 1652 "Add-in Manifest Management"
         BaseURL := BaseURL + 'OfficeContext=' + HostType;
         if Command <> '' then
             BaseURL := BaseURL + '&Command=' + Command;
+
         if Version <> '' then
             BaseURL := BaseURL + '&Version=' + Version;
     end;
@@ -474,6 +478,7 @@ codeunit 1652 "Add-in Manifest Management"
     begin
         XMLDomManagement.LoadXMLNodeFromText(ManifestText, XMLRootNode);
         GetManifestNamespaceManager(XMLRootNode, XMLNamespaceMgr);
+
         if not XMLDomManagement.FindNodesWithNamespaceManager(XMLRootNode, NodeName, XMLNamespaceMgr, XMLFoundNodes) then
             Error(MissingNodeErr, NodeName);
     end;
@@ -506,6 +511,7 @@ codeunit 1652 "Add-in Manifest Management"
             else
                 Error(UnsupportedNodeTypeErr, Type);
         end;
+
         if XMLDomManagement.FindNodesWithNamespaceManager(XMLRootNode, NodeLocation, XMLNamespaceMgr, FoundXMLNodeList) then
             exit(true);
 
@@ -593,3 +599,4 @@ codeunit 1652 "Add-in Manifest Management"
     begin
     end;
 }
+

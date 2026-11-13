@@ -946,6 +946,7 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
     begin
         OfficeAdminCredentialsDlg.UseO365.SetValue(false);
         OfficeAdminCredentialsDlg.ActionNext.Invoke();
+
         if CloseReopenHandlerAction = CloseReopenHandlerAction::EnterCredentials then begin
             OfficeAdminCredentialsDlg.OnPremUsername.SetValue(LibraryUtility.GenerateRandomAlphabeticText(10, 0));
             OfficeAdminCredentialsDlg.OnPremPassword.SetValue(LibraryUtility.GenerateRandomText(10));
@@ -1432,3 +1433,4 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
         PrivacyNotice.Accept.Invoke();
     end;
 }
+
