@@ -277,6 +277,11 @@ page 99000817 "Prod. Order Routing"
                 {
                     ApplicationArea = Manufacturing;
                     Visible = false;
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update(true);
+                    end;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
@@ -348,6 +353,11 @@ page 99000817 "Prod. Order Routing"
                     ObsoleteTag = '27.0';
                 }
 #endif
+                field("Quantity Ready to Start"; Rec."Quantity Ready to Start")
+                {
+                    ApplicationArea = Manufacturing;
+                    Visible = false;
+                }
                 field("Standard Task Code"; Rec."Standard Task Code")
                 {
                     ApplicationArea = Manufacturing;

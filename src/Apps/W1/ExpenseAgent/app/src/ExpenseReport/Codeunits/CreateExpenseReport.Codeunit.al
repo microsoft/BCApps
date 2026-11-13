@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using System.Utilities;
 
@@ -169,6 +170,8 @@ codeunit 6983 "Create Expense Report"
     /// <param name="Expense">Source expense</param>
     /// <param name="ExpenseReportLine">Target expense report line</param>
     local procedure CopyExpenseFieldsToReportLine(Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line")
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
     begin
         ExpenseReportLine.Validate("Expense No.", Expense."No.");
         ExpenseReportLine.Validate("Expense Date", Expense."Expense Date");
@@ -182,8 +185,13 @@ codeunit 6983 "Create Expense Report"
         if ExpenseReportLine."Expense Subcategory Code" <> '' then
             ExpenseReportLine.Validate(Description, ExpenseReportLine.UpdatePostingDescription());
         ExpenseReportLine.Validate("Receipt Entry", Expense."Receipt Entry");
-        ExpenseReportLine.Validate("VAT Bus. Posting Group", Expense."VAT Bus. Posting Group");
-        ExpenseReportLine.Validate("VAT Prod. Posting Group", Expense."VAT Prod. Posting Group");
+        // Unresolved VAT mappings must not prevent submission; posting validates the accounting setup.
+        ExpenseReportLine."VAT Bus. Posting Group" := Expense."VAT Bus. Posting Group";
+        ExpenseReportLine."VAT Prod. Posting Group" := Expense."VAT Prod. Posting Group";
+        if ExpenseReportLine."VAT Prod. Posting Group" <> '' then
+            if VATPostingSetup.Get(ExpenseReportLine."VAT Bus. Posting Group", ExpenseReportLine."VAT Prod. Posting Group") then
+                if VATPostingSetup."VAT Calculation Type" = VATPostingSetup."VAT Calculation Type"::"Normal VAT" then
+                    ExpenseReportLine.CopyFromVATPostingSetup(VATPostingSetup);
         ExpenseReportLine.Validate("Unit of Measure Code", Expense."Unit of Measure Code");
         ExpenseReportLine.Validate(Justification, Expense.Justification);
         ExpenseReportLine.Validate("Merchant Name", Expense."Merchant Name");
@@ -288,7 +296,6 @@ codeunit 6983 "Create Expense Report"
         Expense.TestField("Expense User No.", ExpenseReportHeader."Expense User No.");
         Expense.TestField(Status, Expense.Status::Released);
         Expense.TestField("Expense Report No.", '');
-        Expense.TestField("VAT Bus. Posting Group", ExpenseReportHeader."VAT Bus. Posting Group");
     end;
 
     local procedure CopyAttachments(Expense: Record Expense; ExpenseReportLine: Record "Expense Report Line")
@@ -319,9 +326,6 @@ codeunit 6983 "Create Expense Report"
         ExpenseReportLineVATSpec.DeleteAll();
 
         repeat
-            ExpenseVATSpec.TestField("VAT Bus. Posting Group");
-            ExpenseVATSpec.TestField("VAT Prod. Posting Group");
-
             ExpenseReportLineVATSpec.Init();
             ExpenseReportLineVATSpec."Document No." := ExpenseReportLine."Document No.";
             ExpenseReportLineVATSpec."Document Line No." := ExpenseReportLine."Line No.";
