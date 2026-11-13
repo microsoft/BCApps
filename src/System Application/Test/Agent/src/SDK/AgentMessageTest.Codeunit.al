@@ -1334,10 +1334,18 @@ codeunit 133963 "Agent Message Test"
     var
         AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
         Body: Text;
+        SanitizedBody: Text;
     begin
+        // [SCENARIO] Agent message sanitization preserves readable formatting and encoded text without active content.
+
+        // [GIVEN] An HTML message body containing formatting, styling, and an event handler.
         Body := '<p style="color:red" onclick="alert()">Hello <b>world</b><br>4 &lt; 5</p>';
 
-        Assert.AreEqual('<p>Hello <b>world</b><br>4 &lt; 5</p>', AgentTaskMsgBuilderImpl.SanitizeMessage(Body), 'Agent messages must retain basic formatting and encoded text without styling or event handlers.');
+        // [WHEN] The agent message body is sanitized.
+        SanitizedBody := AgentTaskMsgBuilderImpl.SanitizeMessage(Body);
+
+        // [THEN] Formatting and encoded text survive, while styling and the event handler are removed.
+        Assert.AreEqual('<p>Hello <b>world</b><br>4 &lt; 5</p>', SanitizedBody, 'Agent messages must retain basic formatting and encoded text without styling or event handlers.');
     end;
 
     [Test]
@@ -1345,11 +1353,27 @@ codeunit 133963 "Agent Message Test"
     var
         AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
         Body: Text;
+        SanitizedBody: Text;
     begin
+        // [SCENARIO] Sanitized agent messages exclude foreign integration-point content for both HTML encodings.
+
+        // [GIVEN] A safe paragraph followed by a MathML HTML integration-point payload.
         Body := '<p>Safe</p><math><annotation-xml encoding="text/html"><title><a encoding="</title><img src=x onerror=alert()>"></annotation-xml></math>';
 
-        Assert.AreEqual('<p>Safe</p>', AgentTaskMsgBuilderImpl.SanitizeMessage(Body), 'Foreign HTML integration points and their contents must not survive agent message sanitization.');
-        Assert.AreEqual('<p>Safe</p>', AgentTaskMsgBuilderImpl.SanitizeMessage(Body.Replace('text/html', 'application/xhtml+xml')), 'The XHTML encoding must receive the same sanitization policy.');
+        // [WHEN] The agent message body is sanitized.
+        SanitizedBody := AgentTaskMsgBuilderImpl.SanitizeMessage(Body);
+
+        // [THEN] Only the safe paragraph remains.
+        Assert.AreEqual('<p>Safe</p>', SanitizedBody, 'Foreign HTML integration points and their contents must not survive agent message sanitization.');
+
+        // [GIVEN] The same payload uses the XHTML integration-point encoding.
+        Body := Body.Replace('text/html', 'application/xhtml+xml');
+
+        // [WHEN] The XHTML-encoded payload is sanitized.
+        SanitizedBody := AgentTaskMsgBuilderImpl.SanitizeMessage(Body);
+
+        // [THEN] The encoding does not change the removal of foreign content.
+        Assert.AreEqual('<p>Safe</p>', SanitizedBody, 'The XHTML encoding must receive the same sanitization policy.');
     end;
 
     [Test]

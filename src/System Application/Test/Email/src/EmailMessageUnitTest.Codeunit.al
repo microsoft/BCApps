@@ -83,10 +83,15 @@ codeunit 134689 "Email Message Unit Test"
     var
         Message: Codeunit "Email Message";
     begin
+        // [SCENARIO] Sanitized HTML email retains readable formatting and encoded text without active content.
+
+        // [GIVEN] An email editor and HTML containing formatting, styling, and an event handler.
         PermissionsMock.Set('Email Edit');
 
+        // [WHEN] The HTML message is created with sanitization enabled.
         Message.Create('recipient@test.com', 'Test subject', '<p style="color:red" onclick="alert()">Hello <b>world</b><br>4 &lt; 5</p>', true, true);
 
+        // [THEN] Formatting and encoded text survive, while styling and the event handler are removed.
         Assert.AreEqual('<p>Hello <b>world</b><br>4 &lt; 5</p>', Message.GetBody(), 'Sanitization must preserve basic formatting and encoded text but remove styling and event handlers.');
     end;
 
@@ -97,14 +102,25 @@ codeunit 134689 "Email Message Unit Test"
         Message: Codeunit "Email Message";
         Body: Text;
     begin
+        // [SCENARIO] Sanitized email excludes foreign integration-point content for both HTML encodings.
+
+        // [GIVEN] An email editor and a safe paragraph followed by a MathML HTML integration-point payload.
         PermissionsMock.Set('Email Edit');
         Body := '<p>Safe</p><math><annotation-xml encoding="text/html"><title><a encoding="</title><img src=x onerror=alert()>"></annotation-xml></math>';
 
+        // [WHEN] The HTML message is created with sanitization enabled.
         Message.Create('recipient@test.com', 'Test subject', Body, true, true);
+
+        // [THEN] Only the safe paragraph remains.
         Assert.AreEqual('<p>Safe</p>', Message.GetBody(), 'Foreign HTML integration points and their contents must not survive email sanitization.');
 
+        // [GIVEN] The same payload uses the XHTML integration-point encoding.
         Body := Body.Replace('text/html', 'application/xhtml+xml');
+
+        // [WHEN] The XHTML-encoded payload is sanitized during message creation.
         Message.Create('recipient@test.com', 'Test subject', Body, true, true);
+
+        // [THEN] The encoding does not change the removal of foreign content.
         Assert.AreEqual('<p>Safe</p>', Message.GetBody(), 'The XHTML encoding must receive the same sanitization policy.');
     end;
 
@@ -115,11 +131,16 @@ codeunit 134689 "Email Message Unit Test"
         Message: Codeunit "Email Message";
         Body: Text;
     begin
+        // [SCENARIO] Plain-text email treats markup as literal content even when sanitization is requested.
+
+        // [GIVEN] An email editor and literal text containing markup and an ampersand.
         PermissionsMock.Set('Email Edit');
         Body := '<p>Literal text</p> & <b>more text</b>';
 
+        // [WHEN] A plain-text message is created with the sanitization option enabled.
         Message.Create('recipient@test.com', 'Test subject', Body, false, true);
 
+        // [THEN] The body is unchanged and the message remains plain text.
         Assert.AreEqual(Body, Message.GetBody(), 'The sanitization option must not alter a plain-text message.');
         Assert.IsFalse(Message.IsBodyHTMLFormatted(), 'The message must remain plain text.');
     end;
@@ -131,11 +152,16 @@ codeunit 134689 "Email Message Unit Test"
         Message: Codeunit "Email Message";
         Body: Text;
     begin
+        // [SCENARIO] Email callers can retain HTML styling by explicitly disabling sanitization.
+
+        // [GIVEN] An email editor and an HTML body with styling.
         PermissionsMock.Set('Email Edit');
         Body := '<p style="color:red">Formatted text</p>';
 
+        // [WHEN] The HTML message is created with sanitization disabled.
         Message.Create('recipient@test.com', 'Test subject', Body, true, false);
 
+        // [THEN] The HTML body, including its styling, is preserved.
         Assert.AreEqual(Body, Message.GetBody(), 'The dependency upgrade must not implicitly enable the optional sanitizer.');
     end;
 
