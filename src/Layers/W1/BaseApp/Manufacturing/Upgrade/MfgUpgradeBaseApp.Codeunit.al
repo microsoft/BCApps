@@ -33,6 +33,7 @@ codeunit 104062 "Mfg. Upgrade BaseApp"
 #endif
 
         UpgradeProdDefinitionDisplaySetup();
+        UpgradeQtyReadyToStart();
     end;
 
 #if not CLEANSCHEMA29
@@ -87,6 +88,20 @@ codeunit 104062 "Mfg. Upgrade BaseApp"
         end;
 
         UpgradeTagLocal.SetUpgradeTag(UpgradeTagDefinitionsLocal.GetProdDefinitionDisplaySetupUpgradeTag());
+    end;
+
+    local procedure UpgradeQtyReadyToStart()
+    var
+        QtyReadyToStartMgt: Codeunit Microsoft.Manufacturing.Document."Qty. Ready to Start Mgt.";
+        UpgradeTagLocal: Codeunit System.Upgrade."Upgrade Tag";
+        UpgradeTagDefinitionsLocal: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTagLocal.HasUpgradeTag(UpgradeTagDefinitionsLocal.GetQtyReadyToStartUpgradeTag()) then
+            exit;
+
+        QtyReadyToStartMgt.UpdateQtyReadyToStartForOpenProdOrders();
+
+        UpgradeTagLocal.SetUpgradeTag(UpgradeTagDefinitionsLocal.GetQtyReadyToStartUpgradeTag());
     end;
 
 #if not CLEANSCHEMA29
