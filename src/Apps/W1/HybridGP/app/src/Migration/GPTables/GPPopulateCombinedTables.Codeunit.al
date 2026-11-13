@@ -865,6 +865,7 @@ codeunit 40125 "GP Populate Combined Tables"
         ITEMNMBR: Code[75];
         TRXLOCTN: Text[11];
         Quantity: Decimal;
+        NewQuantity: Decimal;
     begin
         if not GPIV00101.Get(GPPopulateItemTransactions.ITEMNMBR) then
             exit;
@@ -909,8 +910,17 @@ codeunit 40125 "GP Populate Combined Tables"
             GPItemTransactions.Quantity := Quantity;
             GPItemTransactions.Insert();
         end else begin
-            GPItemTransactions.Quantity := GPItemTransactions.Quantity + Quantity;
-            GPItemTransactions.Modify();
+            NewQuantity := GPItemTransactions.Quantity + Quantity;
+
+            GPItemTransactions.Rename(
+                GPItemTransactions.No,
+                GPItemTransactions.Location,
+                GPItemTransactions.DateReceived,
+                NewQuantity,
+                GPItemTransactions.ReceiptNumber,
+                GPItemTransactions.SerialNumber,
+                GPItemTransactions.LotNumber,
+                GPItemTransactions.ReceiptSEQNumber);
         end;
     end;
 
