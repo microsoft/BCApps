@@ -142,6 +142,11 @@ page 30134 "Shpfy Transactions"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Posted Invoice number to which the transaction relates.';
                 }
+                field("Auto-Post Enabled"; Rec."Auto-Post Enabled")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether the transaction is automatically posted when the related invoice or credit memo is posted.';
+                }
             }
         }
     }
@@ -199,12 +204,39 @@ page 30134 "Shpfy Transactions"
                     SuggestPayments.Run();
                 end;
             }
+            action(ShowPostableTransactions)
+            {
+                ApplicationArea = All;
+                Caption = 'Filter Postable Transactions';
+                Image = FilterLines;
+                ToolTip = 'Show transactions that are ready to be posted: auto-post enabled, successful, not yet posted, and linked to a posted invoice or credit memo. Optionally filter by gateway and date range.';
+
+                trigger OnAction()
+                begin
+                    FilterPostableTransactions();
+                end;
+            }
+            action(ClearFilter)
+            {
+                ApplicationArea = All;
+                Caption = 'Clear Filter';
+                Image = ClearFilter;
+                ToolTip = 'Remove the postable transactions filter and show all transactions.';
+
+                trigger OnAction()
+                begin
+                    Rec.ClearMarks();
+                    Rec.MarkedOnly(false);
+                end;
+            }
         }
         area(Promoted)
         {
             group(Category_Process)
             {
                 actionref(SuggestShopifyPayments_Promoted; SuggestShopifyPayments) { }
+                actionref(ShowPostableTransactions_Promoted; ShowPostableTransactions) { }
+                actionref(ClearFilter_Promoted; ClearFilter) { }
             }
             group(Category_Inspect)
             {
@@ -236,5 +268,67 @@ page 30134 "Shpfy Transactions"
             exit;
 
         PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+    end;
+
+    local procedure FilterPostableTransactions()
+    var
+        FilterTransactions: Page "Shpfy Filter Transactions";
+        FilterShopCode: Code[20];
+        FilterGateway: Text[30];
+        FilterCreditCardCompany: Text[50];
+        FilterStartDate: DateTime;
+        FilterEndDate: DateTime;
+    begin
+        if FilterTransactions.RunModal() <> Action::OK then
+            exit;
+
+        FilterTransactions.GetParameters(FilterShopCode, FilterGateway, FilterCreditCardCompany, FilterStartDate, FilterEndDate);
+
+        // Apply the same eligibility predicates the posting routine uses.
+        Rec.SetRange(Used, false);
+        Rec.SetRange(Status, Rec.Status::Success);
+        Rec.SetFilter(Type, '%1|%2|%3', Rec.Type::Capture, Rec.Type::Sale, Rec.Type::Refund);
+        if (FilterStartDate <> 0DT) or (FilterEndDate <> 0DT) then
+            Rec.SetRange("Created At", FilterStartDate, GetEndDateFilter(FilterEndDate));
+        if FilterGateway <> '' then begin
+            Rec.SetRange(Shop, FilterShopCode);
+            Rec.SetRange(Gateway, FilterGateway);
+            Rec.SetRange("Credit Card Company", FilterCreditCardCompany);
+        end;
+
+        Rec.ClearMarks();
+        Rec.MarkedOnly(false);
+        MarkPostableTransactions();
+
+        Rec.MarkedOnly(true);
+        Rec.SetRange(Shop);
+        Rec.SetRange(Gateway);
+        Rec.SetRange("Credit Card Company");
+        Rec.SetRange("Created At");
+        Rec.SetRange(Used);
+        Rec.SetRange(Status);
+        Rec.SetRange(Type);
+    end;
+
+    local procedure GetEndDateFilter(FilterEndDate: DateTime): DateTime
+    begin
+        if FilterEndDate <> 0DT then
+            exit(FilterEndDate);
+        exit(CreateDateTime(DMY2Date(31, 12, 9999), 0T));
+    end;
+
+    local procedure MarkPostableTransactions()
+    var
+        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        AutoPostEligibility: Codeunit "Shpfy Auto Post Eligibility";
+    begin
+        Rec.SetLoadFields("Shopify Order Id", Shop, Gateway, "Credit Card Company", Type, Status, "Refund Id");
+        Rec.SetAutoCalcFields(Used);
+        if not Rec.FindSet() then
+            exit;
+        repeat
+            if AutoPostEligibility.IsReadyToPost(Rec, PaymentMethodMapping) then
+                Rec.Mark(true);
+        until Rec.Next() = 0;
     end;
 }

@@ -1040,7 +1040,7 @@ table 290 "VAT Amount Line"
                                 if (VATBaseDiscountPerc <> 0) or ("EC Amount" <> 0) then
                                     "VAT Base" := Round("VAT Base", Currency."Amount Rounding Precision")
                                 else
-                                    "VAT Base" := CalcLineAmount() - "VAT Amount";
+                                    "VAT Base" := CalcLineAmount() - "Pmt. Discount Amount" - "VAT Amount";
                                 OnUpdateLinesOnAfterCalcVATAmount(Rec, PrevVATAmountLine, Currency, VATBaseDiscountPerc, PricesIncludingVAT);
                                 "Amount Including VAT" := "VAT Base" + "VAT Amount" + "EC Amount";
                                 OnUpdateLinesOnAfterCalcAmountIncludingVATNormalVAT(Rec, PrevVATAmountLine, Currency, VATBaseDiscountPerc, PricesIncludingVAT);
@@ -1076,6 +1076,7 @@ table 290 "VAT Amount Line"
                                 "VAT Base" := 0;
                                 "VAT Amount" := "VAT Difference" + CalcLineAmount();
                                 "Amount Including VAT" := "VAT Amount";
+                                NonDeductibleVAT.UpdateNonDeductibleAmountsWithDiffInVATAmountLine(Rec, Currency);
                             end;
                         "VAT Calculation Type"::"Sales Tax":
                             begin
@@ -1152,6 +1153,7 @@ table 290 "VAT Amount Line"
                                 "VAT Base" := 0;
                                 "VAT Amount" := "VAT Difference" + CalcLineAmount();
                                 "Amount Including VAT" := "VAT Amount";
+                                NonDeductibleVAT.UpdateNonDeductibleAmountsWithDiffInVATAmountLine(Rec, Currency);
                             end;
                         "VAT Calculation Type"::"Sales Tax":
                             begin

@@ -21,6 +21,7 @@ codeunit 134803 "Test RED Setup Gen. Jnl."
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTimeSheet: Codeunit "Library - Time Sheet";
         LibraryJournals: Codeunit "Library - Journals";
+        LibraryDimension: Codeunit "Library - Dimension";
         DeferralUtilities: Codeunit "Deferral Utilities";
         CalcMethod: Enum "Deferral Calculation Method";
         DeferralDocType: Option Purchase,Sales,"G/L";
@@ -2263,6 +2264,22 @@ codeunit 134803 "Test RED Setup Gen. Jnl."
         VerifyDeferralSchedule("Deferral Document Type"::Purchase, PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Line No.");
     end;
 
+    [Test]
+    [HandlerFunctions('GLDeferralSummaryReportHandler')]
+    procedure GLDeferralSummaryReportFiltersByGlobalDimension1()
+    begin
+        // [SCENARIO 647585] Deferral Summary - G/L respects the Global Dimension 1 filter
+        VerifyGLDeferralSummaryReportFiltersByGlobalDimension(1);
+    end;
+
+    [Test]
+    [HandlerFunctions('GLDeferralSummaryReportHandler')]
+    procedure GLDeferralSummaryReportFiltersByGlobalDimension2()
+    begin
+        // [SCENARIO 647585] Deferral Summary - G/L respects the Global Dimension 2 filter
+        VerifyGLDeferralSummaryReportFiltersByGlobalDimension(2);
+    end;
+
     local procedure Initialize()
     var
         AccountingPeriod: Record "Accounting Period";
@@ -2882,6 +2899,80 @@ codeunit 134803 "Test RED Setup Gen. Jnl."
                 DeferralHeader."Document Type", DeferralHeader."Document No.", DeferralHeader."Line No.");
         DeferralLine.SetFilter(Amount, '<>%1', 0);
         Assert.RecordIsEmpty(DeferralLine);
+    end;
+
+    local procedure VerifyGLDeferralSummaryReportFiltersByGlobalDimension(GlobalDimensionNo: Integer)
+    var
+        DimensionValue: array[2] of Record "Dimension Value";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: array[2] of Record "Gen. Journal Line";
+        GLAccount: Record "G/L Account";
+        PostedDeferralHeader: Record "Posted Deferral Header";
+        DeferralSummaryGL: Report "Deferral Summary - G/L";
+        DimensionCode: Code[20];
+    begin
+        Initialize();
+
+        // [GIVEN] Two posted deferrals with different values for the selected global dimension
+        GeneralLedgerSetup.Get();
+        case GlobalDimensionNo of
+            1:
+                DimensionCode := GeneralLedgerSetup."Global Dimension 1 Code";
+            2:
+                DimensionCode := GeneralLedgerSetup."Global Dimension 2 Code";
+        end;
+        LibraryDimension.CreateDimensionValue(DimensionValue[1], DimensionCode);
+        LibraryDimension.CreateDimensionValue(DimensionValue[2], DimensionCode);
+
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Default Deferral Template Code", CreateEqual5Periods());
+        GLAccount.Modify(true);
+        CreateGeneralJournalBatch(GenJournalBatch);
+        UpdateSourceCodeInGenJournalTemplate(GenJournalBatch);
+        CreateAndPostGenJournalLineWithDeferralAndGlobalDimension(
+            GenJournalLine[1], GenJournalBatch, GLAccount."No.", GlobalDimensionNo, DimensionValue[1].Code);
+        CreateAndPostGenJournalLineWithDeferralAndGlobalDimension(
+            GenJournalLine[2], GenJournalBatch, GLAccount."No.", GlobalDimensionNo, DimensionValue[2].Code);
+
+        // [WHEN] Run Deferral Summary - G/L filtered by the first dimension value
+        GLAccount.SetRecFilter();
+        case GlobalDimensionNo of
+            1:
+                GLAccount.SetRange("Global Dimension 1 Filter", DimensionValue[1].Code);
+            2:
+                GLAccount.SetRange("Global Dimension 2 Filter", DimensionValue[1].Code);
+        end;
+        PostedDeferralHeader.SetRange("Deferral Doc. Type", PostedDeferralHeader."Deferral Doc. Type"::"G/L");
+        PostedDeferralHeader.SetRange("Account No.", GLAccount."No.");
+        Clear(DeferralSummaryGL);
+        DeferralSummaryGL.SetTableView(GLAccount);
+        DeferralSummaryGL.SetTableView(PostedDeferralHeader);
+        DeferralSummaryGL.Run();
+
+        // [THEN] The report includes the matching deferral and excludes the other deferral
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists('GenJnlDocNo', GenJournalLine[1]."Document No.");
+        LibraryReportDataset.AssertElementWithValueNotExist('GenJnlDocNo', GenJournalLine[2]."Document No.");
+    end;
+
+    local procedure CreateAndPostGenJournalLineWithDeferralAndGlobalDimension(var GenJournalLine: Record "Gen. Journal Line"; GenJournalBatch: Record "Gen. Journal Batch"; GLAccountNo: Code[20]; GlobalDimensionNo: Integer; DimensionValueCode: Code[20])
+    begin
+        CreateGenJournalLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account", GLAccountNo,
+            GenJournalBatch."Bal. Account Type", GenJournalBatch."Bal. Account No.", LibraryRandom.RandDec(1000, 2));
+        case GlobalDimensionNo of
+            1:
+                GenJournalLine.Validate("Shortcut Dimension 1 Code", DimensionValueCode);
+            2:
+                GenJournalLine.Validate("Shortcut Dimension 2 Code", DimensionValueCode);
+        end;
+        GenJournalLine.Validate("Deferral Code");
+        GenJournalLine.Modify(true);
+        Commit();
+
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
     [ModalPageHandler]

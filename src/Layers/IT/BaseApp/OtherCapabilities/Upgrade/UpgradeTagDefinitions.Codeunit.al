@@ -144,6 +144,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetPurchaseCreditMemoUpgradeTag());
         PerCompanyUpgradeTags.Add(GetWorkflowDelegatedAdminSetupTemplateUpgradeTag());
         PerCompanyUpgradeTags.Add(GetPurchasesPayablesAndSalesReceivablesSetupsUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetRestoreOrderQtyOnReturnInSalesAndPurchasesSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetLocationBinPolicySetupsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetAllowInventoryAdjmtUpgradeTag());
 #if not CLEAN29
@@ -174,6 +175,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetInventoryPlanningSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetICTransactionSourceTypeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetFinancialReportDefaultsUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetShowCurrencySymbolPositionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetInitializeABCAnalysisSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetPurchRcptLineFieldsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetSalesShptLineFieldsUpgradeTag());
@@ -181,6 +183,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetZeroClosedBankAccountLedgerEntriesUpgradeTag());
         PerCompanyUpgradeTags.Add(GetDepreciationBooksGLIntegrationUpgradeTag());
         PerCompanyUpgradeTags.Add(GetLegacySubcontractingUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetPurchLineReceiptOnInvoiceUpgradeTag());
         PerCompanyUpgradeTags.Add(GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag());
         PerCompanyUpgradeTags.Add(GetRemittanceAdviceReportSelectionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetProdDefinitionDisplaySetupUpgradeTag());
@@ -1075,6 +1078,11 @@ codeunit 9998 "Upgrade Tag Definitions"
         exit('MS-325010-PurchasesPayablesAndSalesReceivablesSetupsUpgrade-20230414');
     end;
 
+    internal procedure GetRestoreOrderQtyOnReturnInSalesAndPurchasesSetupUpgradeTag(): Code[250]
+    begin
+        exit('MS-649626-RestoreOrderQtyOnReturnInSalesAndPurchasesSetup-20260929');
+    end;
+
     procedure GetRegisterBankAccRecCopilotCapabilityUpgradeTag(): Code[250]
     begin
         exit('MS-491277-RegisterBankAccRecCopilotCapability-20231113');
@@ -1236,6 +1244,11 @@ codeunit 9998 "Upgrade Tag Definitions"
         exit('GIT-1494-FinancialReportDefaultsUpgradeTag-20250801');
     end;
 
+    internal procedure GetShowCurrencySymbolPositionUpgradeTag(): Code[250]
+    begin
+        exit('MS-578641-SetShowCurrencySymbolUpgradeTag-20251014');
+    end;
+
     internal procedure GetCreateExpenseAgentAADApplicationsTag(): Code[250]
     begin
         exit('MS-580734-CreateExpenseAgentAADApplication-20260115');
@@ -1274,6 +1287,11 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetLegacySubcontractingUpgradeTag(): Code[250]
     begin
         exit('MS-406123-LegacySubcontracting-20260507');
+    end;
+
+    internal procedure GetPurchLineReceiptOnInvoiceUpgradeTag(): Code[250]
+    begin
+        exit('MS-625392-PurchLineReceiptOnInvoiceUpgradeTag-20260703');
     end;
 
     internal procedure GetRemittanceAdviceReportSelectionUpgradeTag(): Code[250]

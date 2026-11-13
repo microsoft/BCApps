@@ -199,8 +199,8 @@ codeunit 11747 "Guided Experience Handler CZL"
 
     local procedure RegisterEETBusinessPremises()
     var
-        EETBusinessPremisesNameTxt: Label 'EET Business Premises';
-        EETBusinessPremisesDescriptionTxt: Label 'Set up the Business Premises of Electronic registration of sales (EET).';
+        EETBusinessPremisesNameTxt: Label 'EET Registrating Unit';
+        EETBusinessPremisesDescriptionTxt: Label 'Set up the Registrating Unit of Electronic registration of sales (EET).';
         EETBusinessPremisesKeywordsTxt: Label 'EET';
     begin
         GuidedExperience.InsertManualSetup(EETBusinessPremisesNameTxt, EETBusinessPremisesNameTxt, EETBusinessPremisesDescriptionTxt,

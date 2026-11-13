@@ -151,6 +151,9 @@ page 4315 "Agent Card"
                     Agent: Codeunit Agent;
                     ArchiveConfirmation: Page "Agent Archive Confirmation";
                 begin
+                    if not Agent.IsArchivingSupported(Rec."User Security ID") then
+                        Error(ArchivingNotSupportedErr, Rec."Agent Metadata Provider");
+
                     if Rec.State <> Rec.State::Disabled then
                         Error(DeactivateBeforeArchivingErr);
 
@@ -324,6 +327,7 @@ page 4315 "Agent Card"
         YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to configure and activate the agent.';
         YouDoNotHavePermissionToModifyThisAgentErr: Label 'You do not have permission to modify this agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
         DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.';
+        ArchivingNotSupportedErr: Label 'Archiving agents of type ''%1'' is not supported.', Comment = '%1 = the type of the agent.';
         AgentArchivedMsg: Label 'The agent has been archived.';
         AgentArchivedNotificationMsg: Label 'This agent is archived and can no longer be modified. Its tasks and logs remain available for auditing.';
 }

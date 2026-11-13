@@ -24,6 +24,7 @@ using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.Utilities;
 
 table 6907 "Expense Report Line"
@@ -444,12 +445,8 @@ table 6907 "Expense Report Line"
                     Rec."Spend Request Close" := false;
                 end;
 
-                if Rec.Refundable and (Rec."Expense User No." <> '') then begin
-                    Rec.SetSkipSpendRequestClose(true);
-                    Rec.Validate("Spend Request No.", ExpenseReportHeader."Spend Request No.");
-                    Rec."Spend Request Close" := ExpenseReportHeader."Spend Request Close";
-                    Rec.SetSkipSpendRequestClose(false);
-                end;
+                if Rec.Refundable and (Rec."Expense User No." <> '') then
+                    InheritSpendRequestFromHeader();
 
                 UpdateAmounts();
             end;
@@ -838,6 +835,19 @@ table 6907 "Expense Report Line"
                 ApplyRule();
             end;
         }
+        field(68; "Vehicle Type"; Code[20])
+        {
+            Caption = 'Vehicle Type';
+            TableRelation = "Expense Vehicle Type";
+            ToolTip = 'Specifies the vehicle type used for this mileage expense. The mileage rate matching this vehicle type is applied, or the generic rate when no vehicle-specific rate exists.';
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+
+                ApplyRule();
+            end;
+        }
         field(51; "Credit Card Feed No."; Integer)
         {
             Caption = 'Credit Card Feed No.';
@@ -1040,19 +1050,25 @@ table 6907 "Expense Report Line"
         }
         field(100; "Spend Request No."; Code[20])
         {
-            Caption = 'Spend Request No.';
-            ToolTip = 'Specifies the spend request number that is associated with this expense report line.The spend request must be approved and released before it can be selected.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            Caption = 'Travel Request No.';
+            ToolTip = 'Specifies the travel request number that is associated with this expense report line. The travel request must be approved and released before it can be selected.';
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const("Travel Request"));
 
             trigger OnValidate()
             var
                 SpendRequest: Record "Spend Request";
+                Traveler: Record Traveler;
+                HasMultipleTravelers: Boolean;
                 DimensionSetIDArr: array[10] of Integer;
             begin
                 if Rec."Spend Request No." <> '' then begin
                     Rec.TestField(Refundable, true);
                     CheckTraveler();
-                    SpendRequest.SetSkipSpendRequestClose(SkipSpendRequestClose);
+                    // Closing a shared travel request would block the expense reports of the other travelers, so do not offer it.
+                    HasMultipleTravelers := Traveler.HasMultipleTravelers(Rec."Spend Request No.");
+                    if HasMultipleTravelers then
+                        Rec."Spend Request Close" := false;
+                    SpendRequest.SetSkipSpendRequestClose(SkipSpendRequestClose or HasMultipleTravelers);
                     SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Refundable Amount (LCY)");
 
                     if SpendRequest."Dimension Set ID" <> 0 then begin
@@ -1066,8 +1082,8 @@ table 6907 "Expense Report Line"
         }
         field(101; "Spend Request Close"; Boolean)
         {
-            Caption = 'Spend Request Close';
-            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            Caption = 'Travel Request Close';
+            ToolTip = 'Specifies that the travel request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
         }
         field(102; "Policies Evaluated At"; DateTime)
@@ -1102,6 +1118,12 @@ table 6907 "Expense Report Line"
         {
             Clustered = true;
         }
+        key(CreditCardFeedNo; "Credit Card Feed No.")
+        {
+        }
+        key(SpendRequestNo; "Spend Request No.")
+        {
+        }
     }
 
     trigger OnInsert()
@@ -1111,6 +1133,9 @@ table 6907 "Expense Report Line"
         ValidateDate();
         SetExpenseUserOnCreate();
         ApplyRule();
+        if PolicyInvalidationPending then
+            "Policy Eval Version" += 1;
+        PolicyInvalidationPending := false;
     end;
 
     trigger OnModify()
@@ -1125,8 +1150,9 @@ table 6907 "Expense Report Line"
             "Evaluated Policy Version" := StoredExpenseReportLine."Evaluated Policy Version";
             "Policies Evaluated At" := StoredExpenseReportLine."Policies Evaluated At";
         end;
-        if RelevantFieldChanged then
+        if RelevantFieldChanged or PolicyInvalidationPending then
             "Policy Eval Version" += 1;
+        PolicyInvalidationPending := false;
     end;
 
     trigger OnDelete()
@@ -1166,11 +1192,13 @@ table 6907 "Expense Report Line"
         SkipRuleApplication: Boolean;
         HideValidationDialog: Boolean;
         SkipSpendRequestClose: Boolean;
+        PolicyInvalidationPending: Boolean;
         EmptyGuid: Guid;
         InvalidEndingDateErr: Label 'Ending Date and Time cannot be earlier than Starting Date and Time.';
         CannotModifyWithParticipantsErr: Label 'You cannot modify %1 field of expense report %2, Line No. %3 because it has associated participants.', Comment = '%1 = Field Name, %2 = Expense No., %3 = Line No.';
         CannotModifyWithItemizationErr: Label 'You cannot modify %1 field of expense report %2, Line No. %3 because it has associated itemizations.', Comment = '%1 = Field Name, %2 = Expense No., %3 = Line No.';
         DeleteAssociatedRecordsQst: Label 'If you change %1, the existing %2 details will be deleted.\\Do you want to continue?', Comment = '%1 = Field Name, %2 = Expense Detail Required';
+        SubcategoryBlankedMsg: Label 'The expense category of expense report %1, Line No. %2 was changed, so the subcategories on its itemizations were cleared. Review the itemizations and select a subcategory that matches the new category.', Comment = '%1 = Expense Report No., %2 = Line No.';
         OnlyUseExpenseLocationWithPerDiemErr: Label 'The selected Expense Location %1 and Expense Category %2 can only be used with per diem expenses on Expense No. %3.', Comment = '%1 = Expense Location, %2 = Expense Category, %3 = Expense No.';
         NonRefundableGreaterThanAmountErr: Label '%1 cannot be greater than Amount.', Comment = '%1 = Field Caption';
         NonRefundableCannotBeNegativeErr: Label '%1 cannot be in negative on Expense Report No. %2, Line No. %3.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Line No.';
@@ -1182,8 +1210,9 @@ table 6907 "Expense Report Line"
         CannotExceedErr: Label '%1 must not exceed %2 = %3.', Comment = '%1 = Field Name, %2 = Limit Field Name, %3 = Limit Value';
         ExpenseReportNotFoundErr: Label 'Expense Report %1 does not exist.', Comment = '%1 = Expense Report No.';
         OnlyRelinkToAnotherReportErr: Label 'You can only relink an expense report line to another expense report.';
-        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Spend Request %2.', Comment = '%1 = Expense User No., %2 = Spend Request No.';
+        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
+        ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
 
     internal procedure CopyFromVATPostingSetup(var VATPostingSetupFrom: Record "VAT Posting Setup")
     begin
@@ -1201,6 +1230,11 @@ table 6907 "Expense Report Line"
     end;
 
     procedure DeleteAssociatedRecords()
+    begin
+        DeleteAssociatedRecords(false);
+    end;
+
+    local procedure DeleteAssociatedRecords(KeepItemization: Boolean)
     var
         ExpenseReportLineParticip: Record "Expense Report Line Particip.";
         ExpenseReportLineItemization: Record "Expense Report Line Item";
@@ -1211,15 +1245,50 @@ table 6907 "Expense Report Line"
         if not ExpenseReportLineParticip.IsEmpty() then
             ExpenseReportLineParticip.DeleteAll();
 
-        ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
-        ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
-        if not ExpenseReportLineItemization.IsEmpty() then
-            ExpenseReportLineItemization.DeleteAll();
+        if KeepItemization then
+            ClearItemizationSubcategory()
+        else begin
+            ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
+            ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
+            if not ExpenseReportLineItemization.IsEmpty() then
+                ExpenseReportLineItemization.DeleteAll();
+        end;
 
         ExpenseReportLinePerDiem.SetRange("Expense Report No.", Rec."Document No.");
         ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", Rec."Line No.");
         if not ExpenseReportLinePerDiem.IsEmpty() then
             ExpenseReportLinePerDiem.DeleteAll();
+    end;
+
+    local procedure ClearItemizationSubcategory()
+    var
+        ExpenseReportLineItemization: Record "Expense Report Line Item";
+    begin
+        ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
+        ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
+        ExpenseReportLineItemization.SetFilter("Expense Subcategory Code", '<>%1', '');
+        if not ExpenseReportLineItemization.IsEmpty() and not HideValidationDialog then
+            SendSubcategoryBlankedNotification();
+
+        ExpenseReportLineItemization.SetRange("Expense Subcategory Code");
+        ExpenseReportLineItemization.ModifyAll("Expense Category Code", Rec."Expense Category", false);
+        ExpenseReportLineItemization.ModifyAll("Expense Subcategory Code", '', false);
+    end;
+
+    local procedure SendSubcategoryBlankedNotification()
+    var
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        NotificationToSend: Notification;
+    begin
+        NotificationToSend.Id := GetSubcategoryBlankedNotificationId();
+        NotificationToSend.Recall();
+        NotificationToSend.Message(StrSubstNo(SubcategoryBlankedMsg, Rec."Document No.", Rec."Line No."));
+        NotificationLifecycleMgt.SendNotification(NotificationToSend, Rec.RecordId);
+    end;
+
+    local procedure GetSubcategoryBlankedNotificationId(): Guid
+    begin
+        exit('8e4a2b97-1d63-4c5a-b0f8-6a9d3e7c2f15');
     end;
 
     procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
@@ -1241,8 +1310,9 @@ table 6907 "Expense Report Line"
         // A change made after the line was evaluated always needs a recheck - even a change that
         // removed the last applicable policy. Evaluate subject staleness before policy-set currency
         // so that a changed line still requires evaluation against whatever policies apply now.
-        if (Rec."Policies Evaluated At" <> 0DT) and (Rec."Evaluated Policy Version" < Rec."Policy Eval Version") then
-            exit("Expense Policy Status"::Stale);
+        if Rec."Policies Evaluated At" <> 0DT then
+            if PolicyInvalidationPending or (Rec."Evaluated Policy Version" < Rec."Policy Eval Version") then
+                exit("Expense Policy Status"::Stale);
 
         // Policy changes do not rewrite every affected line. Currency is derived lazily by comparing
         // the currently applicable policy versions with the evaluations recorded for this subject version.
@@ -1261,6 +1331,61 @@ table 6907 "Expense Report Line"
             exit("Expense Policy Status"::Flagged);
 
         exit("Expense Policy Status"::Cleared);
+    end;
+
+    /// <summary>
+    /// Returns counts only for a complete current policy set. Uses the caller's line read isolation
+    /// for policy and evaluation reads, preserving stable snapshots without strengthening ordinary reads.
+    /// Completion requires confirmation at or after every result; a never-confirmed empty policy set is complete.
+    /// </summary>
+    internal procedure IsPolicyEvaluationComplete(var PolicyStatus: Enum "Expense Policy Status"; var FailedCount: Integer; var PassedCount: Integer): Boolean
+    var
+        TempMatchedEvaluations: Record "Expense Policy Evaluation" temporary;
+        PoliciesToEvalBuilder: Codeunit "Exp. Policies To Eval Builder";
+        HasApplicablePolicies: Boolean;
+        HasOutstandingPolicies: Boolean;
+        CurrentFailedCount: Integer;
+        CurrentPassedCount: Integer;
+    begin
+        FailedCount := 0;
+        PassedCount := 0;
+        PolicyStatus := PolicyStatus::"Not Evaluated";
+        if Rec."Policies Evaluated At" <> 0DT then begin
+            PolicyStatus := PolicyStatus::Stale;
+            if Rec."Evaluated Policy Version" <> Rec."Policy Eval Version" then
+                exit(false);
+        end;
+        if PolicyInvalidationPending then
+            exit(false);
+
+        PoliciesToEvalBuilder.GetEvaluationState(Rec, HasApplicablePolicies, HasOutstandingPolicies, TempMatchedEvaluations, Rec.ReadIsolation);
+        if HasOutstandingPolicies then
+            exit(false);
+        if not HasApplicablePolicies then begin
+            PolicyStatus := PolicyStatus::"No Policies";
+            exit(true);
+        end;
+        if Rec."Policies Evaluated At" = 0DT then
+            exit(false);
+
+        if TempMatchedEvaluations.FindSet() then
+            repeat
+                if (TempMatchedEvaluations."Evaluated At" = 0DT) or
+                   (TempMatchedEvaluations."Evaluated At" > Rec."Policies Evaluated At")
+                then
+                    exit(false);
+                if TempMatchedEvaluations.Compliant then
+                    CurrentPassedCount += 1
+                else
+                    CurrentFailedCount += 1;
+            until TempMatchedEvaluations.Next() = 0;
+
+        FailedCount := CurrentFailedCount;
+        PassedCount := CurrentPassedCount;
+        PolicyStatus := PolicyStatus::Cleared;
+        if FailedCount > 0 then
+            PolicyStatus := PolicyStatus::Flagged;
+        exit(true);
     end;
 
     internal procedure HasCurrentPolicyViolation(): Boolean
@@ -1291,12 +1416,20 @@ table 6907 "Expense Report Line"
 
     internal procedure MarkPoliciesEvaluated(EvaluatedSubjectVersion: Integer)
     var
+        ParentExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
         PoliciesToEvalBuilder: Codeunit "Exp. Policies To Eval Builder";
         DocumentNo: Code[20];
         LineNo: Integer;
     begin
+        if PolicyInvalidationPending then
+            Error(EvaluationSubjectVersionChangedErr);
+
         DocumentNo := Rec."Document No.";
         LineNo := Rec."Line No.";
+        // Serialize report snapshots before locking a line, matching the submission lock order.
+        ParentExpenseReportHeader.ReadIsolation := IsolationLevel::UpdLock;
+        ParentExpenseReportHeader.Get(DocumentNo);
         Rec.LockTable();
         Rec.Get(DocumentNo, LineNo);
         if EvaluatedSubjectVersion <> Rec."Policy Eval Version" then
@@ -1308,6 +1441,7 @@ table 6907 "Expense Report Line"
         Rec."Policies Evaluated At" := CurrentDateTime();
         // Bypass OnModify because it restores policy fields from the stored row for normal, potentially stale callers.
         Rec.Modify(false);
+        ExpenseActivityLogMgt.LogPolicyEvaluationIfReady(ParentExpenseReportHeader);
     end;
 
     internal procedure InvalidatePolicyEvaluation()
@@ -1318,6 +1452,13 @@ table 6907 "Expense Report Line"
         Rec."Policy Eval Version" += 1;
         // Bypass OnModify because it restores policy fields from the stored row for normal, potentially stale callers.
         Rec.Modify(false);
+        PolicyInvalidationPending := false;
+    end;
+
+    internal procedure InvalidatePolicyEvaluationOnSave()
+    begin
+        // Defer the policy version bump to the parent line's OnInsert/OnModify to avoid a separate parent write while regenerating per-diem lines.
+        PolicyInvalidationPending := true;
     end;
 
     local procedure PolicyRelevantFieldChanged(var StoredExpenseReportLine: Record "Expense Report Line"): Boolean
@@ -1371,31 +1512,37 @@ table 6907 "Expense Report Line"
 
     local procedure ConfirmAndDeleteAssociatedRecords(FieldCaption: Text)
     var
+        ExpenseCategory: Record "Expense Category";
         ConfirmManagement: Codeunit "Confirm Management";
+        KeepItemization: Boolean;
     begin
-        if not HasAssociatedRecords() then
-            exit;
+        if Rec."Expense Category" <> '' then
+            if ExpenseCategory.Get(Rec."Expense Category") then
+                KeepItemization := ExpenseCategory.IsItemizationRequired();
 
-        if not HideValidationDialog then
+        if HasAssociatedRecords(KeepItemization) and not HideValidationDialog then
             if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(DeleteAssociatedRecordsQst, FieldCaption, Rec."Expense Detail Required"), true) then
                 Error('');
 
-        DeleteAssociatedRecords();
+        DeleteAssociatedRecords(KeepItemization);
     end;
 
-    local procedure HasAssociatedRecords(): Boolean
+    local procedure HasAssociatedRecords(KeepItemization: Boolean): Boolean
     var
         ExpenseReportLineParticip: Record "Expense Report Line Particip.";
         ExpenseReportLineItemization: Record "Expense Report Line Item";
         ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
     begin
+        if not KeepItemization then begin
+            ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
+            ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
+            if not ExpenseReportLineItemization.IsEmpty() then
+                exit(true);
+        end;
+
         case Rec."Expense Detail Required" of
             Rec."Expense Detail Required"::Itemize:
-                begin
-                    ExpenseReportLineItemization.SetRange("Expense Report No.", Rec."Document No.");
-                    ExpenseReportLineItemization.SetRange("Expense Report Line No.", Rec."Line No.");
-                    exit(not ExpenseReportLineItemization.IsEmpty());
-                end;
+                exit(false);
             Rec."Expense Detail Required"::Participants:
                 begin
                     ExpenseReportLineParticip.SetRange("Expense Report No.", Rec."Document No.");
@@ -1571,14 +1718,44 @@ table 6907 "Expense Report Line"
     end;
 
     procedure UpdatePostingDescription(): Text[100]
+    begin
+        exit(UpdatePostingDescription("Expense Category", "Expense Subcategory Code"));
+    end;
+
+    internal procedure UpdatePostingDescription(ExpenseCategoryCode: Code[20]; ExpenseSubcategoryCode: Code[20]): Text[100]
     var
         ExpenseSubcategory: Record "Expense Subcategory";
+        BaseDescription: Text[100];
+        PostingDescriptionSuffix: Text;
+        StoredSuffixLength: Integer;
     begin
-        if "Expense Subcategory Code" <> '' then begin
-            ExpenseSubcategory.Get("Expense Category", "Expense Subcategory Code");
-            exit(CopyStr(Description + ' - ' + ExpenseSubcategory."Posting Description", 1, 100));
+        BaseDescription := Description;
+        if ("Expense Subcategory Code" <> '') and
+           ExpenseSubcategory.Get("Expense Category", "Expense Subcategory Code") and
+           (ExpenseSubcategory."Posting Description" <> '')
+        then begin
+            PostingDescriptionSuffix := ' / ' + ExpenseSubcategory."Posting Description";
+            StoredSuffixLength := StrLen(PostingDescriptionSuffix);
+            if StoredSuffixLength > MaxStrLen(BaseDescription) then
+                StoredSuffixLength := MaxStrLen(BaseDescription);
+            while (StoredSuffixLength >= StrLen(' / ')) and
+                  (not BaseDescription.EndsWith(CopyStr(PostingDescriptionSuffix, 1, StoredSuffixLength)))
+            do
+                StoredSuffixLength -= 1;
+            if (StoredSuffixLength = StrLen(PostingDescriptionSuffix)) or
+               ((StrLen(BaseDescription) = MaxStrLen(BaseDescription)) and (StoredSuffixLength >= StrLen(' / ')))
+            then
+                BaseDescription := CopyStr(
+                    DelStr(BaseDescription, StrLen(BaseDescription) - StoredSuffixLength + 1), 1, MaxStrLen(BaseDescription));
         end;
-        exit(CopyStr(Description, 1, 100));
+
+        if (ExpenseSubcategoryCode = '') or
+           (not ExpenseSubcategory.Get(ExpenseCategoryCode, ExpenseSubcategoryCode)) or
+           (ExpenseSubcategory."Posting Description" = '')
+        then
+            exit(BaseDescription);
+
+        exit(CopyStr(BaseDescription + ' / ' + ExpenseSubcategory."Posting Description", 1, 100));
     end;
 
     local procedure InitDefaultDimensionSources(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
@@ -1715,7 +1892,46 @@ table 6907 "Expense Report Line"
     var
         SpendRequest: Record "Spend Request";
     begin
+        // A closed travel request has no remaining budget to check.
+        if IsSpendRequestClosed(Rec."Spend Request No.") then
+            exit;
+
         SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Refundable Amount (LCY)");
+    end;
+
+    /// <summary>
+    /// Links a line that becomes refundable to the travel request of its expense report header,
+    /// with the same close setting as the header.
+    /// </summary>
+    local procedure InheritSpendRequestFromHeader()
+    begin
+        if IsSpendRequestClosed(ExpenseReportHeader."Spend Request No.") then begin
+            // The shared travel request was closed. Keep the line linked so the report can still be edited;
+            // posting requires an approved travel request, so the link must be removed before the report is posted.
+            Rec."Spend Request No." := ExpenseReportHeader."Spend Request No.";
+            Rec."Spend Request Close" := false;
+            exit;
+        end;
+
+        // Only the header decides whether the travel request is closed, so do not ask again for the line.
+        Rec.SetSkipSpendRequestClose(true);
+        Rec.Validate("Spend Request No.", ExpenseReportHeader."Spend Request No.");
+        Rec."Spend Request Close" := ExpenseReportHeader."Spend Request Close";
+        Rec.SetSkipSpendRequestClose(false);
+    end;
+
+    local procedure IsSpendRequestClosed(SpendRequestNo: Code[20]): Boolean
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        if SpendRequestNo = '' then
+            exit(false);
+
+        SpendRequest.SetLoadFields(Status);
+        if not SpendRequest.Get(SpendRequestNo) then
+            exit(false);
+
+        exit(SpendRequest.Status = SpendRequest.Status::Closed);
     end;
 
     local procedure UpdateVATAmount()
@@ -1910,7 +2126,7 @@ table 6907 "Expense Report Line"
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, Rec."Expense Currency Code") then
                 Rec."Expense Currency Factor" := CurrencyExchangeRate.ExchangeRate(CurrencyDate, Rec."Expense Currency Code")
             else
-                UpdateCurrencyExchangeRates.ShowMissingExchangeRatesNotification("Expense Currency Code");
+                Error(ReceiptDatedBeforeExchRateErr, CurrencyDate, Rec."Expense Currency Code");
         end else
             Rec."Expense Currency Factor" := 0;
     end;
@@ -2097,6 +2313,8 @@ table 6907 "Expense Report Line"
             exit;
         end;
 
+        Rec.Validate("Expense Detail Required", ExpenseCategory."Expense Detail Required");
+
         if ExpenseCategory."Expense Detail Required" <> ExpenseCategory."Expense Detail Required"::"Per Diem" then
             Rec.Validate("Expense Location", '');
 
@@ -2105,8 +2323,6 @@ table 6907 "Expense Report Line"
         Rec.Validate("Reimbursement Type", ExpenseCategory."Reimbursement Type");
         if ExpenseCategory."Default Payment Method" <> '' then
             Rec.Validate("Payment Method Code", ExpenseCategory."Default Payment Method");
-
-        Rec.Validate("Expense Detail Required", ExpenseCategory."Expense Detail Required");
 
         ExpenseAgentSetup.GetRecordOnce();
         if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage then begin
@@ -2214,11 +2430,11 @@ table 6907 "Expense Report Line"
         ExpenseReport.CopyReportLineComments(SourceDocNo, SourceLineNo, NewLine."Document No.", NewLine."Line No.");
         ExpenseReport.CopyReportLineAttachments(SourceDocNo, SourceLineNo, NewLine."Document No.", NewLine."Line No.");
 
+        Rec.Delete(true);
+
         NewLine.UpdateAmounts();
         NewLine.ApplyRule(false, true);
         NewLine.Modify();
-
-        Rec.Delete(true);
 
         if NewLine."Expense No." <> '' then
             if Expense.Get(NewLine."Expense No.") then begin
@@ -2228,6 +2444,31 @@ table 6907 "Expense Report Line"
             end;
 
         Rec := NewLine;
+    end;
+
+    internal procedure IsItemizationRequired(): Boolean
+    begin
+        if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize then
+            exit(true);
+
+        exit(Rec.IsEnforcedItemizationRequired());
+    end;
+
+    internal procedure IsEnforcedItemizationRequired(): Boolean
+    var
+        ExpensePolicy: Record "Expense Policy";
+    begin
+        if (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or
+           (Rec."Expense Category" = '')
+        then
+            exit(false);
+
+        ExpensePolicy.SetRange("Expense Category Code", Rec."Expense Category");
+        ExpensePolicy.SetRange(Enabled, true);
+        ExpensePolicy.SetFilter("Policy Text", '<>%1', '');
+        exit(not ExpensePolicy.IsEmpty());
     end;
 
     internal procedure GetNextExpenseReportLineNo(ExpenseReportNo: Code[20]): Integer

@@ -5562,6 +5562,79 @@ codeunit 134902 "ERM Account Schedule"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('DtldMessageHandler')]
+    procedure ImportRowDefinitionWithStatusMissingInDestinationCompany()
+    var
+        FinancialReportStatus: Record "Financial Report Status";
+        AccScheduleLine: Record "Acc. Schedule Line";
+        AccScheduleName: Record "Acc. Schedule Name";
+        ColumnLayoutName: Record "Column Layout Name";
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageRecord: Record "Config. Package Record";
+        ConfigPackageData: Record "Config. Package Data";
+        AccountScheduleNames: TestPage "Account Schedule Names";
+        PackageCode: Code[20];
+        StatusCode: Code[10];
+        NoOfLines: Integer;
+    begin
+        // [SCENARIO] Importing a row definition does not fail when its status does not exist in the destination company.
+        Initialize();
+
+        // [GIVEN] Financial Report Status 'S'
+        StatusCode := CreateFinancialReportStatus(FinancialReportStatus);
+
+        // [GIVEN] Row definition 'X' with a line, where Status is 'S'
+        CreateAccountScheduleNameAndColumn(AccScheduleName, ColumnLayoutName);
+        AccScheduleName.Validate(Status, StatusCode);
+        AccScheduleName.Modify(true);
+        AccScheduleLine.SetRange("Schedule Name", AccScheduleName.Name);
+        NoOfLines := AccScheduleLine.Count();
+
+        // [GIVEN] Row definition 'X' is exported as a rapidstart package
+        AccountScheduleNames.OpenView();
+        AccountScheduleNames.Filter.SetFilter(Name, AccScheduleName.Name);
+        AccountScheduleNames.ExportAccountSchedule.Invoke();
+        PackageCode := StrSubstNo(TwoPosTxt, AccSchedPrefixTxt, AccScheduleName.Name);
+
+        // [GIVEN] Row definition 'X' is removed, simulating a destination company that does not have it yet
+        ExportToXMLImport(PackageCode, AccScheduleName.Name);
+
+        // [GIVEN] Status 'S' does not exist in the destination company
+        FinancialReportStatus.Delete(true);
+
+        // [WHEN] Import (apply) the row definition
+        AccScheduleName.ApplyPackage(PackageCode);
+
+        // [THEN] The import succeeds without errors: '2 tables are processed.\0 errors found.\2 records inserted.\0 records modified.'
+        Assert.ExpectedMessage(
+            StrSubstNo(NoTablesAndErrorsMsg, 2, 0, 2, 0), LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.AssertEmpty();
+
+        // [THEN] Config Package is imported
+        Assert.IsTrue(ConfigPackage.Get(PackageCode), 'Package must be imported');
+
+        // [THEN] Row definition 'X' with its line is imported
+        Assert.IsTrue(AccScheduleName.Get(AccScheduleName.Name), 'Row definition must be imported');
+        AccScheduleLine.SetRange("Schedule Name", AccScheduleName.Name);
+        Assert.RecordCount(AccScheduleLine, NoOfLines);
+
+        // [THEN] The non-existent status is cleared on the imported row definition
+        AccScheduleName.TestField(Status, '');
+
+        // [THEN] The package record of the row definition is restored, so the package data is not orphaned
+        ConfigPackageRecord.SetRange("Package Code", PackageCode);
+        ConfigPackageRecord.SetRange("Table ID", Database::"Acc. Schedule Name");
+        Assert.RecordCount(ConfigPackageRecord, 1);
+        ConfigPackageRecord.FindFirst();
+
+        // [THEN] The status value is preserved in the package, so that it can be applied again
+        ConfigPackageData.Get(
+            PackageCode, Database::"Acc. Schedule Name", ConfigPackageRecord."No.", AccScheduleName.FieldNo(Status));
+        ConfigPackageData.TestField(Value, StatusCode);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure NewAccScheduleNamePage()
     var
         AccScheduleLine: Record "Acc. Schedule Line";
@@ -5881,7 +5954,7 @@ codeunit 134902 "ERM Account Schedule"
         // [GIVEN] An account schedule line with negative value
         Amount := -LibraryRandom.RandDec(100, 2);
         SetupForAccountScheduleOverviewPage(
-          AccScheduleLine, Enum::"Column Layout Show"::Always, Amount, Enum::"Analysis Rounding Factor"::None, '');
+          AccScheduleLine, Enum::"Column Layout Show"::Always, Amount, Enum::"Analysis Rounding Factor"::"1", '');
         FinancialReport.Get(AccScheduleLine."Schedule Name");
         FinancialReport."Financial Report Column Group" := LibraryVariableStorage.DequeueText();
         FinancialReport.Modify();
@@ -5895,7 +5968,8 @@ codeunit 134902 "ERM Account Schedule"
 
         // [THEN] Negative amount is displayed with a minus sign
         AccScheduleOverview.GoToRecord(AccScheduleLine);
-        AccScheduleOverview.ColumnValues1.AssertEquals(Format(Amount, 0, RoundingFormatTxt));
+        AccScheduleOverview.ColumnValues1.AssertEquals(
+          Format(Round(Amount, 1), 0, LibraryAccSchedule.GetCustomFormatString('0')));
     end;
 
     [Test]
@@ -5914,7 +5988,7 @@ codeunit 134902 "ERM Account Schedule"
         // [GIVEN] An account schedule line with negative value
         Amount := -LibraryRandom.RandDec(100, 2);
         SetupForAccountScheduleOverviewPage(
-          AccScheduleLine, Enum::"Column Layout Show"::Always, Amount, Enum::"Analysis Rounding Factor"::None, '');
+          AccScheduleLine, Enum::"Column Layout Show"::Always, Amount, Enum::"Analysis Rounding Factor"::"1", '');
         FinancialReport.Get(AccScheduleLine."Schedule Name");
         FinancialReport."Financial Report Column Group" := LibraryVariableStorage.DequeueText();
         FinancialReport.Modify();
@@ -5928,7 +6002,8 @@ codeunit 134902 "ERM Account Schedule"
 
         // [THEN] Negative amount is displayed with parentheses
         AccScheduleOverview.GoToRecord(AccScheduleLine);
-        AccScheduleOverview.ColumnValues1.AssertEquals('(' + Format(Abs(Amount), 0, RoundingFormatTxt) + ')');
+        AccScheduleOverview.ColumnValues1.AssertEquals(
+          '(' + Format(Round(Abs(Amount), 1), 0, LibraryAccSchedule.GetCustomFormatString('0')) + ')');
     end;
 
     [Test]
@@ -6016,9 +6091,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // [SCENARIO] When using parentheses as negative format, a negative amount should be displayed with parentheses on the page
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
         GLSetup.Get();
 
         // [GIVEN] An account schedule line with negative value
@@ -6110,9 +6182,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // [SCENARIO] Account Schedule defaults negative format option from GL Setup
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
 
         // [GIVEN] GL Setup negative amount format is set minus sign
         GLSetup.Get();
@@ -6151,9 +6220,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // [SCENARIO] Account Schedule defaults negative format option from GL Setup
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
 
         // [GIVEN] GL Setup negative amount format is set parentheses
         GLSetup.Get();
@@ -6185,9 +6251,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // Check that correct values updated in the newly created column on Account Schedule Overview Page when the default View by is set to Day.
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
         LibraryLowerPermissions.SetFinancialReporting();
         LibraryLowerPermissions.AddO365Setup();
         AccountScheduleOverviewByPeriod(ViewByRef::Day);
@@ -6200,9 +6263,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // Check that correct values updated in the newly created column on Account Schedule Overview Page when the default View by is set to Week.
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
         LibraryLowerPermissions.SetFinancialReporting();
         LibraryLowerPermissions.AddO365Setup();
         AccountScheduleOverviewByPeriod(ViewByRef::Week);
@@ -6215,9 +6275,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // Check that correct values updated in the newly created column on Account Schedule Overview Page when the default View by is set to Month.
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
         LibraryLowerPermissions.SetFinancialReporting();
         LibraryLowerPermissions.AddO365Setup();
         AccountScheduleOverviewByPeriod(ViewByRef::Month);
@@ -6230,9 +6287,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // Check that correct values updated in the newly created column on Account Schedule Overview Page when the default View by is set to Quarter.
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
         LibraryLowerPermissions.SetFinancialReporting();
         LibraryLowerPermissions.AddO365Setup();
         AccountScheduleOverviewByPeriod(ViewByRef::Quarter);
@@ -6245,9 +6299,6 @@ codeunit 134902 "ERM Account Schedule"
     begin
         // Check that correct values updated in the newly created column on Account Schedule Overview Page when the default View by is set to Year.
         Initialize();
-#if not CLEAN27
-        EnabledFinancialReportDefaultsFeature();
-#endif
         LibraryLowerPermissions.SetFinancialReporting();
         LibraryLowerPermissions.AddO365Setup();
         AccountScheduleOverviewByPeriod(ViewByRef::Year);
@@ -6277,18 +6328,6 @@ codeunit 134902 "ERM Account Schedule"
         AccScheduleOverview.OK().Invoke();
     end;
 
-#if not CLEAN27
-    local procedure EnabledFinancialReportDefaultsFeature()
-    var
-        FeatureKey: Record "Feature Key";
-        FeatureFinancialReportDef: Codeunit "Feature - Fin. Report Default";
-    begin
-        if FeatureKey.Get(FeatureFinancialReportDef.GetFinancialReportDefaultsFeatureKey()) then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
-            FeatureKey.Modify();
-        end;
-    end;
-#endif
 
     [Test]
     procedure ColumnLayoutGLAccountTotaling()
@@ -6820,6 +6859,15 @@ codeunit 134902 "ERM Account Schedule"
         LibraryERM.CreateAccScheduleName(AccScheduleName);
         LibraryERM.CreateAccScheduleLine(AccScheduleLine, AccScheduleName.Name);
         UpdateDefaultColumnLayoutOnAccSchNameRec(AccScheduleName, ColumnLayoutName.Name);
+    end;
+
+    local procedure CreateFinancialReportStatus(var FinancialReportStatus: Record "Financial Report Status") StatusCode: Code[10]
+    begin
+        FinancialReportStatus.Init();
+        FinancialReportStatus.Code := LibraryUtility.GenerateGUID();
+        FinancialReportStatus.Name := FinancialReportStatus.Code;
+        FinancialReportStatus.Insert(true);
+        StatusCode := FinancialReportStatus.Code;
     end;
 
     local procedure CreateCashFlowAccount(AccountType: Enum "Cash Flow Account Type") AccountNo: Code[10]
@@ -7658,7 +7706,7 @@ codeunit 134902 "ERM Account Schedule"
                 ColumnLayoutName.Delete(true);
         end;
 
-        ConfigXMLExchange.ImportPackageXML(FilePath);
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
     end;
 
     local procedure UpdateGLAccountWithDefaultDimension(GLAccountNo: Code[20]): Code[20]

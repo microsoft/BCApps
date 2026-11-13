@@ -38,18 +38,12 @@ codeunit 265 "Feature Key Management"
         exit(FeatureManagementFacade.IsEnabled(GetSIEAuditFileExportFeatureKeyId()));
     end;
 
+
     procedure IsDocumentReportExperienceEnabled(): Boolean
     begin
         exit(FeatureManagementFacade.IsEnabled(DocumentReportExperienceTxt));
     end;
 
-#if not CLEAN27
-    [Obsolete('This function is deprecated. Concurrent warehouse posting is always on.', '27.0')]
-    procedure IsConcurrentWarehousingPostingEnabled(): Boolean
-    begin
-        exit(true);
-    end;
-#endif
 
     procedure IsConcurrentInventoryPostingEnabled(): Boolean
     begin

@@ -15,17 +15,22 @@ using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Peppol;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Receivables;
+using Microsoft.Sales.Setup;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Setup;
@@ -38,13 +43,17 @@ codeunit 139235 "PEPPOL30 Management Tests"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
+    EventSubscriberInstance = Manual;
 
     var
         CompanyInformation: Record "Company Information";
+        GenJournalBatch: Record "Gen. Journal Batch";
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInvt: Codeunit "Library - Inventory";
+        LibraryJournals: Codeunit "Library - Journals";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibraryResource: Codeunit "Library - Resource";
         LibrarySales: Codeunit "Library - Sales";
@@ -53,6 +62,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryXMLRead: Codeunit "Library - XPath XML Reader";
+        RemitAdviceBufferMgt: Codeunit "Remit. Advice Buffer Mgt.";
         IsInitialized: Boolean;
         FieldMustHaveValueErr: Label '%1 must have a value', Comment = '%1 - Field caption';
         InvoiceDiscAmtTxt: Label 'Line Discount Amount';
@@ -3213,6 +3223,475 @@ codeunit 139235 "PEPPOL30 Management Tests"
     end;
 
     [Test]
+    procedure PEPPOL_XMLExport_DeliveryInfo_SalesCrMemo_NoDeliveryInfo()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [FEATURE] [Credit Memo]
+        // [SCENARIO 9815] Header-level Delivery is not exported when there is no delivery information at all
+        Initialize();
+
+        // [GIVEN] Posted Sales Credit Memo without Ship-to address, "Shipment Date" and GLN
+        SalesCrMemoHeader.Get(CreatePostSalesDoc(CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::"Credit Memo"));
+        ClearShipToAddress(SalesCrMemoHeader);
+        SalesCrMemoHeader."Shipment Date" := 0D;
+        SalesCrMemoHeader.Modify(false);
+
+        // [WHEN] Export PEPPOL format
+        InitLibraryXML(ExportSalesCrMemoXML(SalesCrMemoHeader), 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2');
+
+        // [THEN] No "Delivery" tag is exported, the rest of the document is
+        LibraryXMLRead.VerifyNodeAbsence('cac:Delivery');
+        LibraryXMLRead.VerifyNodeValue('cbc:ID', SalesCrMemoHeader."No.");
+    end;
+
+    [Test]
+    procedure PEPPOL_XMLExport_DeliveryInfo_SalesCrMemo_DeliveryDateOnly()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [FEATURE] [Credit Memo]
+        // [SCENARIO 9815] Delivery with only a delivery date exports no empty DeliveryLocation/Address
+        Initialize();
+
+        // [GIVEN] Posted Sales Credit Memo with "Shipment Date" but without Ship-to address and GLN
+        SalesCrMemoHeader.Get(CreatePostSalesDoc(CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::"Credit Memo"));
+        ClearShipToAddress(SalesCrMemoHeader);
+        SalesCrMemoHeader.Modify(false);
+
+        // [WHEN] Export PEPPOL format
+        InitLibraryXML(ExportSalesCrMemoXML(SalesCrMemoHeader), 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2');
+
+        // [THEN] "Delivery" holds the "ActualDeliveryDate" and no "DeliveryLocation"
+        LibraryXMLRead.VerifyNodeValue('cac:Delivery/cbc:ActualDeliveryDate', Format(SalesCrMemoHeader."Shipment Date", 0, 9));
+        LibraryXMLRead.VerifyNodeAbsence('cac:Delivery/cac:DeliveryLocation');
+    end;
+
+    [Test]
+    procedure PEPPOL_XMLExport_DeliveryInfo_SalesInvoice_GLNOnly()
+    var
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        // [FEATURE] [Invoice]
+        // [SCENARIO 9815] Delivery location with only a GLN exports the ID and no empty Address
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice for a Customer with GLN, without Ship-to address and "Shipment Date"
+        SalesInvoiceHeader.Get(CreatePostSalesInvoice());
+        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
+        ClearShipToAddress(SalesInvoiceHeader);
+        SalesInvoiceHeader."Shipment Date" := 0D;
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export PEPPOL format
+        InitLibraryXML(ExportSalesInvoiceXML(SalesInvoiceHeader), 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2');
+
+        // [THEN] "DeliveryLocation" holds the GLN and no "Address"
+        LibraryXMLRead.VerifyNodeValue('cac:Delivery/cac:DeliveryLocation/cbc:ID', Customer.GLN);
+        LibraryXMLRead.VerifyNodeAbsence('cac:Delivery/cac:DeliveryLocation/cac:Address');
+    end;
+
+    [Test]
+    procedure PEPPOL_XMLExport_DeliveryInfo_SalesInvoice_PartialShipToAddress()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        // [FEATURE] [Invoice]
+        // [SCENARIO 9815] A partially filled delivery address exports no empty StreetName, and the company country when the ship-to country is blank (BR-57)
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice where only "Ship-to City" is filled
+        SalesInvoiceHeader.Get(CreatePostSalesDoc(CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::Invoice));
+        ClearShipToAddress(SalesInvoiceHeader);
+        SalesInvoiceHeader."Ship-to City" := LibraryUtility.GenerateGUID();
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export PEPPOL format
+        InitLibraryXML(ExportSalesInvoiceXML(SalesInvoiceHeader), 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2');
+
+        // [THEN] "Address" holds the "CityName", no "StreetName", and the ISO code of the company's country
+        LibraryXMLRead.VerifyNodeValue('cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:CityName', SalesInvoiceHeader."Ship-to City");
+        LibraryXMLRead.VerifyNodeAbsence('cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:StreetName');
+        LibraryXMLRead.VerifyNodeValue('cac:Delivery/cac:DeliveryLocation/cac:Address/cac:Country/cbc:IdentificationCode', GetCompanyCountryISOCode());
+    end;
+
+    [Test]
+    procedure PEPPOL_XMLExport_DeliveryInfo_SalesInvoice_NoDeliveryInfo()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        // [FEATURE] [Invoice]
+        // [SCENARIO 9815] Header-level Delivery is not exported when there is no delivery information at all
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice without Ship-to address, "Shipment Date" and GLN
+        SalesInvoiceHeader.Get(CreatePostSalesDoc(CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::Invoice));
+        ClearShipToAddress(SalesInvoiceHeader);
+        SalesInvoiceHeader."Shipment Date" := 0D;
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export PEPPOL format
+        InitLibraryXML(ExportSalesInvoiceXML(SalesInvoiceHeader), 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2');
+
+        // [THEN] No "Delivery" tag is exported, the rest of the document is
+        LibraryXMLRead.VerifyNodeAbsence('cac:Delivery');
+        LibraryXMLRead.VerifyNodeValue('cbc:ID', SalesInvoiceHeader."No.");
+    end;
+
+    [Test]
+    procedure PEPPOL_XMLExport_DeliveryInfo_SalesInvoice_DeliveryDateOnly()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        // [FEATURE] [Invoice]
+        // [SCENARIO 9815] Delivery with only a delivery date exports no empty DeliveryLocation/Address
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with "Shipment Date" but without Ship-to address and GLN
+        SalesInvoiceHeader.Get(CreatePostSalesDoc(CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::Invoice));
+        ClearShipToAddress(SalesInvoiceHeader);
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export PEPPOL format
+        InitLibraryXML(ExportSalesInvoiceXML(SalesInvoiceHeader), 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2');
+
+        // [THEN] "Delivery" holds the "ActualDeliveryDate" and no "DeliveryLocation"
+        LibraryXMLRead.VerifyNodeValue('cac:Delivery/cbc:ActualDeliveryDate', Format(SalesInvoiceHeader."Shipment Date", 0, 9));
+        LibraryXMLRead.VerifyNodeAbsence('cac:Delivery/cac:DeliveryLocation');
+    end;
+
+    [Test]
+    procedure PEPPOL_XMLExport_DeliveryInfo_SalesInvoice_AnyShipToFieldExportsAddress()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ShipToFieldNo: Integer;
+    begin
+        // [FEATURE] [Invoice]
+        // [SCENARIO 9815] Each Ship-to address field on its own makes the delivery Address exported
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice for a Customer without GLN, without "Shipment Date"
+        SalesInvoiceHeader.Get(CreatePostSalesDoc(CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::Invoice));
+        SalesInvoiceHeader."Shipment Date" := 0D;
+        SalesInvoiceHeader.Modify(false);
+
+        foreach ShipToFieldNo in GetShipToAddressFieldNos() do begin
+            // [GIVEN] Only one Ship-to address field is filled
+            SetSingleShipToAddressField(SalesInvoiceHeader, ShipToFieldNo);
+
+            // [WHEN] Export PEPPOL format
+            InitLibraryXML(ExportSalesInvoiceXML(SalesInvoiceHeader), 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2');
+
+            // [THEN] "DeliveryLocation" holds an "Address" with a "Country"
+            LibraryXMLRead.VerifyNodeCountByXPath('cac:Delivery/cac:DeliveryLocation/cac:Address', 1);
+            LibraryXMLRead.VerifyNodeCountByXPath('cac:Delivery/cac:DeliveryLocation/cac:Address/cac:Country/cbc:IdentificationCode', 1);
+        end;
+    end;
+
+    [Test]
+    procedure PEPPOL_XMLExport_DeliveryInfo_SalesCrMemo_GLNOnly()
+    var
+        Customer: Record Customer;
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+    begin
+        // [FEATURE] [Credit Memo]
+        // [SCENARIO 9815] Delivery location with only a GLN exports the ID and no empty Address
+        Initialize();
+
+        // [GIVEN] Posted Sales Credit Memo for a Customer with GLN, without Ship-to address and "Shipment Date"
+        SalesCrMemoHeader.Get(CreatePostSalesCrMemo());
+        Customer.Get(SalesCrMemoHeader."Sell-to Customer No.");
+        ClearShipToAddress(SalesCrMemoHeader);
+        SalesCrMemoHeader."Shipment Date" := 0D;
+        SalesCrMemoHeader.Modify(false);
+
+        // [WHEN] Export PEPPOL format
+        InitLibraryXML(ExportSalesCrMemoXML(SalesCrMemoHeader), 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2');
+
+        // [THEN] "DeliveryLocation" holds the GLN and no "Address"
+        LibraryXMLRead.VerifyNodeValue('cac:Delivery/cac:DeliveryLocation/cbc:ID', Customer.GLN);
+        LibraryXMLRead.VerifyNodeAbsence('cac:Delivery/cac:DeliveryLocation/cac:Address');
+    end;
+
+    [Test]
+    procedure PEPPOL_XMLExport_DeliveryInfo_SalesCrMemo_PartialShipToAddress()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [FEATURE] [Credit Memo]
+        // [SCENARIO 9815] A partially filled delivery address exports no empty StreetName, and the company country when the ship-to country is blank (BR-57)
+        Initialize();
+
+        // [GIVEN] Posted Sales Credit Memo where only "Ship-to City" is filled
+        SalesCrMemoHeader.Get(CreatePostSalesDoc(CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::"Credit Memo"));
+        ClearShipToAddress(SalesCrMemoHeader);
+        SalesCrMemoHeader."Ship-to City" := LibraryUtility.GenerateGUID();
+        SalesCrMemoHeader.Modify(false);
+
+        // [WHEN] Export PEPPOL format
+        InitLibraryXML(ExportSalesCrMemoXML(SalesCrMemoHeader), 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2');
+
+        // [THEN] "Address" holds the "CityName", no "StreetName", and the ISO code of the company's country
+        LibraryXMLRead.VerifyNodeValue('cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:CityName', SalesCrMemoHeader."Ship-to City");
+        LibraryXMLRead.VerifyNodeAbsence('cac:Delivery/cac:DeliveryLocation/cac:Address/cbc:StreetName');
+        LibraryXMLRead.VerifyNodeValue('cac:Delivery/cac:DeliveryLocation/cac:Address/cac:Country/cbc:IdentificationCode', GetCompanyCountryISOCode());
+    end;
+
+    [Test]
+    procedure PEPPOL_XMLExport_DeliveryInfo_SalesCrMemo_AnyShipToFieldExportsAddress()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
+        ShipToFieldNo: Integer;
+    begin
+        // [FEATURE] [Credit Memo]
+        // [SCENARIO 9815] Each Ship-to address field on its own makes the delivery Address exported
+        Initialize();
+
+        // [GIVEN] Posted Sales Credit Memo for a Customer without GLN, without "Shipment Date"
+        SalesCrMemoHeader.Get(CreatePostSalesDoc(CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::"Credit Memo"));
+        SalesCrMemoHeader."Shipment Date" := 0D;
+        SalesCrMemoHeader.Modify(false);
+
+        foreach ShipToFieldNo in GetShipToAddressFieldNos() do begin
+            // [GIVEN] Only one Ship-to address field is filled
+            SetSingleShipToAddressField(SalesCrMemoHeader, ShipToFieldNo);
+
+            // [WHEN] Export PEPPOL format
+            InitLibraryXML(ExportSalesCrMemoXML(SalesCrMemoHeader), 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2');
+
+            // [THEN] "DeliveryLocation" holds an "Address" with a "Country"
+            LibraryXMLRead.VerifyNodeCountByXPath('cac:Delivery/cac:DeliveryLocation/cac:Address', 1);
+            LibraryXMLRead.VerifyNodeCountByXPath('cac:Delivery/cac:DeliveryLocation/cac:Address/cac:Country/cbc:IdentificationCode', 1);
+        end;
+    end;
+
+    [Test]
+    procedure PEPPOL_XMLExport_DeliveryInfo_ServiceInvoice_NoDeliveryInfo()
+    var
+        Customer: Record Customer;
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+    begin
+        // [FEATURE] [Service] [Invoice]
+        // [SCENARIO 9815] Header-level Delivery is not exported for a service document without delivery information
+        Initialize();
+
+        // [GIVEN] Posted Service Invoice without Ship-to address, for a Customer without GLN
+        CreatePostServiceInvoice(ServiceInvoiceHeader);
+        Customer.Get(ServiceInvoiceHeader."Customer No.");
+        Customer.GLN := '';
+        Customer.Modify(false);
+        ServiceInvoiceHeader."Ship-to Code" := '';
+        ServiceInvoiceHeader."Ship-to Address" := '';
+        ServiceInvoiceHeader."Ship-to Address 2" := '';
+        ServiceInvoiceHeader."Ship-to City" := '';
+        ServiceInvoiceHeader."Ship-to Post Code" := '';
+        ServiceInvoiceHeader."Ship-to County" := '';
+        ServiceInvoiceHeader."Ship-to Country/Region Code" := '';
+        ServiceInvoiceHeader.Modify(false);
+
+        // [WHEN] Export PEPPOL format
+        InitLibraryXML(ExportServiceInvoiceXML(ServiceInvoiceHeader), 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2');
+
+        // [THEN] No "Delivery" tag is exported, the rest of the document is
+        LibraryXMLRead.VerifyNodeAbsence('cac:Delivery');
+        LibraryXMLRead.VerifyNodeValue('cbc:ID', ServiceInvoiceHeader."No.");
+    end;
+
+    [Test]
+    procedure PEPPOL_XMLExport_DeliveryInfo_ServiceCrMemo_NoDeliveryInfo()
+    var
+        Customer: Record Customer;
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+    begin
+        // [FEATURE] [Service] [Credit Memo]
+        // [SCENARIO 9815] Header-level Delivery is not exported for a service document without delivery information
+        Initialize();
+
+        // [GIVEN] Posted Service Credit Memo without Ship-to address, for a Customer without GLN
+        CreatePostServiceCrMemo(ServiceCrMemoHeader);
+        Customer.Get(ServiceCrMemoHeader."Customer No.");
+        Customer.GLN := '';
+        Customer.Modify(false);
+        ServiceCrMemoHeader."Ship-to Code" := '';
+        ServiceCrMemoHeader."Ship-to Address" := '';
+        ServiceCrMemoHeader."Ship-to Address 2" := '';
+        ServiceCrMemoHeader."Ship-to City" := '';
+        ServiceCrMemoHeader."Ship-to Post Code" := '';
+        ServiceCrMemoHeader."Ship-to County" := '';
+        ServiceCrMemoHeader."Ship-to Country/Region Code" := '';
+        ServiceCrMemoHeader.Modify(false);
+
+        // [WHEN] Export PEPPOL format
+        InitLibraryXML(ExportServiceCrMemoXML(ServiceCrMemoHeader), 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2');
+
+        // [THEN] No "Delivery" tag is exported, the rest of the document is
+        LibraryXMLRead.VerifyNodeAbsence('cac:Delivery');
+        LibraryXMLRead.VerifyNodeValue('cbc:ID', ServiceCrMemoHeader."No.");
+    end;
+
+    [Test]
+    procedure PEPPOLValidation_SalesCrMemo_BlankShipToAddress()
+    var
+        SalesHeader: Record "Sales Header";
+        PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 9815] The ship-to address is not validated when no delivery address will be exported
+        Initialize();
+
+        // [GIVEN] Sales Credit Memo with all Ship-to address fields empty
+        CreateSalesHeaderWithBlankShipToAddress(SalesHeader, SalesHeader."Document Type"::"Credit Memo");
+
+        // [WHEN] Run PEPPOL validation for the Sales Credit Memo
+        PEPPOL30SalesValidation.ValidateDocument(SalesHeader);
+
+        // [THEN] No error
+    end;
+
+    [Test]
+    procedure PEPPOLValidation_ShipToAddress_OnlyAddressFilled()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 9815] A partially filled ship-to address must still be complete: City is missing
+        Initialize();
+        CreateSalesHeaderWithBlankShipToAddress(SalesHeader, SalesHeader."Document Type"::"Credit Memo");
+        SalesHeader."Ship-to Address" := LibraryUtility.GenerateGUID();
+        VerifyShipToAddressValidationError(SalesHeader, SalesHeader.FieldCaption("Ship-to City"));
+    end;
+
+    [Test]
+    procedure PEPPOLValidation_ShipToAddress_OnlyAddress2Filled()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 9815] A filled "Ship-to Address 2" alone makes the ship-to address subject to validation
+        Initialize();
+        CreateSalesHeaderWithBlankShipToAddress(SalesHeader, SalesHeader."Document Type"::"Credit Memo");
+        SalesHeader."Ship-to Address 2" := LibraryUtility.GenerateGUID();
+        VerifyShipToAddressValidationError(SalesHeader, SalesHeader.FieldCaption("Ship-to Address"));
+    end;
+
+    [Test]
+    procedure PEPPOLValidation_ShipToAddress_OnlyCityFilled()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 9815] A filled "Ship-to City" alone makes the ship-to address subject to validation
+        Initialize();
+        CreateSalesHeaderWithBlankShipToAddress(SalesHeader, SalesHeader."Document Type"::"Credit Memo");
+        SalesHeader."Ship-to City" := LibraryUtility.GenerateGUID();
+        VerifyShipToAddressValidationError(SalesHeader, SalesHeader.FieldCaption("Ship-to Address"));
+    end;
+
+    [Test]
+    procedure PEPPOLValidation_ShipToAddress_OnlyPostCodeFilled()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 9815] A filled "Ship-to Post Code" alone makes the ship-to address subject to validation
+        Initialize();
+        CreateSalesHeaderWithBlankShipToAddress(SalesHeader, SalesHeader."Document Type"::"Credit Memo");
+        SalesHeader."Ship-to Post Code" := LibraryUtility.GenerateGUID();
+        VerifyShipToAddressValidationError(SalesHeader, SalesHeader.FieldCaption("Ship-to Address"));
+    end;
+
+    [Test]
+    procedure PEPPOLValidation_ShipToAddress_OnlyCountyFilled()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 9815] A filled "Ship-to County" alone makes the ship-to address subject to validation
+        Initialize();
+        CreateSalesHeaderWithBlankShipToAddress(SalesHeader, SalesHeader."Document Type"::"Credit Memo");
+        SalesHeader."Ship-to County" := LibraryUtility.GenerateGUID();
+        VerifyShipToAddressValidationError(SalesHeader, SalesHeader.FieldCaption("Ship-to Address"));
+    end;
+
+    [Test]
+    procedure PEPPOLValidation_ShipToAddress_OnlyCountryFilled()
+    var
+        CountryRegion: Record "Country/Region";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 9815] A filled "Ship-to Country/Region Code" alone makes the ship-to address subject to validation
+        Initialize();
+        CreateSalesHeaderWithBlankShipToAddress(SalesHeader, SalesHeader."Document Type"::"Credit Memo");
+        LibraryERM.FindCountryRegion(CountryRegion);
+        SalesHeader."Ship-to Country/Region Code" := CountryRegion.Code;
+        VerifyShipToAddressValidationError(SalesHeader, SalesHeader.FieldCaption("Ship-to Address"));
+    end;
+
+    [Test]
+    procedure PEPPOLValidation_ShipToAddress_PostCodeMissing()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 9815] A partially filled ship-to address must still be complete: Post Code is missing (BR-DE-11)
+        Initialize();
+        CreateSalesHeaderWithBlankShipToAddress(SalesHeader, SalesHeader."Document Type"::"Credit Memo");
+        SalesHeader."Ship-to Address" := LibraryUtility.GenerateGUID();
+        SalesHeader."Ship-to City" := LibraryUtility.GenerateGUID();
+        VerifyShipToAddressValidationError(SalesHeader, SalesHeader.FieldCaption("Ship-to Post Code"));
+    end;
+
+    [Test]
+    procedure PEPPOLValidation_ShipToAddress_CountryMissing()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 9815] A partially filled ship-to address must still be complete: Country/Region Code is missing (BR-57)
+        Initialize();
+        CreateSalesHeaderWithBlankShipToAddress(SalesHeader, SalesHeader."Document Type"::"Credit Memo");
+        SalesHeader."Ship-to Address" := LibraryUtility.GenerateGUID();
+        SalesHeader."Ship-to City" := LibraryUtility.GenerateGUID();
+        SalesHeader."Ship-to Post Code" := LibraryUtility.GenerateGUID();
+        VerifyShipToAddressValidationError(SalesHeader, SalesHeader.FieldCaption("Ship-to Country/Region Code"));
+    end;
+
+    [Test]
+    procedure PEPPOLValidation_ShipToAddress_CheckHandledBySubscriber()
+    var
+        SalesHeader: Record "Sales Header";
+        PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 9815] A subscriber to OnBeforeCheckShipToAddress can skip the ship-to address validation
+        Initialize();
+
+        // [GIVEN] Sales Credit Memo where only "Ship-to City" is filled
+        CreateSalesHeaderWithBlankShipToAddress(SalesHeader, SalesHeader."Document Type"::"Credit Memo");
+        SalesHeader."Ship-to City" := LibraryUtility.GenerateGUID();
+        SalesHeader.Modify(false);
+
+        // [GIVEN] A subscriber to OnBeforeCheckShipToAddress sets IsHandled
+        BindSubscription(this);
+
+        // [WHEN] Run PEPPOL validation for the Sales Credit Memo
+        PEPPOL30SalesValidation.ValidateDocument(SalesHeader);
+
+        // [THEN] No error
+        UnbindSubscription(this);
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandlerFalseOnUnitPrice')]
     procedure TestPeppolValidationSalesLineWithNegativeUnitPriceConfirmFalse()
     var
@@ -3548,6 +4027,318 @@ codeunit 139235 "PEPPOL30 Management Tests"
           'LineExtensionAmount must equal PriceAmount * Quantity per PEPPOL BIS 3.0');
     end;
 
+    [Test]
+    procedure ElectronicAddressSchemeMustBeEASCode()
+    var
+        PEPPOLElectronicAddress: Codeunit "PEPPOL Electronic Address";
+    begin
+        // [SCENARIO] Only codes of the Peppol Electronic Address Scheme (EAS) code list are valid endpoint schemes.
+
+        // [THEN] EAS codes are valid
+        Assert.IsTrue(PEPPOLElectronicAddress.IsValidScheme('0088'), 'The GLN scheme must be valid.');
+        Assert.IsTrue(PEPPOLElectronicAddress.IsValidScheme('0002'), 'The first code of the list must be valid.');
+        Assert.IsTrue(PEPPOLElectronicAddress.IsValidScheme('9959'), 'The last code of the list must be valid.');
+
+        // [THEN] Values that are not exactly an EAS code are invalid, also when they only look like one
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme(''), 'A blank scheme must be invalid.');
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme('MY-SCHEME'), 'A custom scheme must be invalid.');
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme('88'), 'A code without leading zeros must be invalid.');
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme('0089'), 'A four digit value outside the list must be invalid.');
+        Assert.IsFalse(PEPPOLElectronicAddress.IsValidScheme(' 0088'), 'A code with spaces must be invalid.');
+    end;
+
+    [Test]
+    procedure PostedPaymentWithSameDocumentRefundBuildsRemittanceAdvice()
+    var
+        Vendor: Record Vendor;
+        PaymentVendLedgEntry: Record "Vendor Ledger Entry";
+        RefundVendLedgEntry: Record "Vendor Ledger Entry";
+        TempRemitAdviceBuffer: Record "Remit. Advice Buffer" temporary;
+        ExportRemitAdvicePEPPOL30: Codeunit "Export Remit. Advice PEPPOL30";
+        TempBlob: Codeunit "Temp Blob";
+        RefundAmount: Decimal;
+        ExpectedTotalPaid: Decimal;
+    begin
+        // [SCENARIO] A posted vendor payment with a same-document refund
+        // produces a remittance advice with the refund as a credit line.
+        Initialize();
+        CreateVendorForRemittanceAdvice(Vendor);
+        CreatePaymentJournalBatch();
+
+        // [GIVEN] A posted vendor payment applied to an invoice.
+        PostAppliedPayment(Vendor."No.", PaymentVendLedgEntry);
+
+        // [GIVEN] A refund for the same vendor sharing the payment document number.
+        CreateRefundWithPaymentDocumentNo(RefundVendLedgEntry, Vendor."No.", PaymentVendLedgEntry."Document No.");
+
+        // [GIVEN] The refund has an application detailed ledger entry.
+        RefundAmount := CreateRefundDetailedVendorLedgerEntry(RefundVendLedgEntry, PaymentVendLedgEntry."Entry No.");
+
+        // [WHEN] The remittance advice buffer is built from the posted payment.
+        RemitAdviceBufferMgt.BuildFromPostedPayment(PaymentVendLedgEntry, TempRemitAdviceBuffer);
+
+        // [THEN] The refund is present in the buffer with the expected amount.
+        TempRemitAdviceBuffer.Reset();
+        TempRemitAdviceBuffer.SetRange("Applied Doc. Type", TempRemitAdviceBuffer."Applied Doc. Type"::Refund);
+
+        Assert.IsTrue(TempRemitAdviceBuffer.FindFirst(), 'The remittance advice buffer should contain the refund line.');
+        Assert.AreEqual(RefundVendLedgEntry."Document No.", TempRemitAdviceBuffer."Our Document No.", 'The refund line should contain the refund document number.');
+        Assert.AreEqual(Abs(RefundAmount), TempRemitAdviceBuffer."Paid Amount", 'The refund line should contain the refund amount.');
+
+        // [THEN] Total Paid equals the signed total of the generated remittance lines.
+        ExpectedTotalPaid := 0;
+
+        TempRemitAdviceBuffer.Reset();
+        TempRemitAdviceBuffer.SetFilter("Line No.", '>%1', 0);
+
+        Assert.IsTrue(TempRemitAdviceBuffer.FindSet(), 'The remittance advice buffer should contain remittance lines.');
+
+        repeat
+            if TempRemitAdviceBuffer."Applied Doc. Type" = TempRemitAdviceBuffer."Applied Doc. Type"::Refund then
+                ExpectedTotalPaid -= TempRemitAdviceBuffer."Paid Amount"
+            else
+                ExpectedTotalPaid += TempRemitAdviceBuffer."Paid Amount";
+        until TempRemitAdviceBuffer.Next() = 0;
+
+        TempRemitAdviceBuffer.Reset();
+        TempRemitAdviceBuffer.SetRange("Line No.", 0);
+
+        Assert.IsTrue(TempRemitAdviceBuffer.FindFirst(), 'The remittance advice buffer should contain a header.');
+        Assert.AreEqual(ExpectedTotalPaid, TempRemitAdviceBuffer."Total Paid Amount", 'Total Paid should equal the signed total of the remittance lines.');
+
+        // [WHEN] The PEPPOL remittance advice XML is generated.
+        ExportRemitAdvicePEPPOL30.GenerateXml(TempRemitAdviceBuffer, TempBlob);
+
+        // [THEN] TotalPaymentAmount, CreditLineAmount and the credit document reference are exported.
+        AssertRemittanceAdviceRefundXml(TempBlob, ExpectedTotalPaid, RefundAmount, RefundVendLedgEntry."Document No.");
+    end;
+
+    [Test]
+    procedure RemittanceAdviceXmlHasLineCountNoteOrderAndVendorInvoiceReference()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        TempRemitAdviceBuffer: Record "Remit. Advice Buffer" temporary;
+        Vendor: Record Vendor;
+        InvoiceVendLedgEntry: Record "Vendor Ledger Entry";
+        PaymentVendLedgEntry: Record "Vendor Ledger Entry";
+        ExportRemitAdvicePEPPOL30: Codeunit "Export Remit. Advice PEPPOL30";
+        TempBlob: Codeunit "Temp Blob";
+        DocInStream: InStream;
+        ExpectedLineCount: Integer;
+        XmlDoc: XmlDocument;
+        XmlNsManager: XmlNamespaceManager;
+        XmlNode: XmlNode;
+        XmlNodes: XmlNodeList;
+    begin
+        // [SCENARIO 648724] The remittance advice XML carries the actual line count, emits the line Note right after the line ID
+        // and references the applied invoice by the vendor's invoice number.
+        Initialize();
+        CreateVendorForRemittanceAdvice(Vendor);
+        CreatePaymentJournalBatch();
+
+        // [GIVEN] A posted purchase invoice with a vendor invoice number, and a posted payment applied to it.
+        PostPurchaseInvoice(Vendor."No.", InvoiceVendLedgEntry);
+        Assert.AreNotEqual('', InvoiceVendLedgEntry."External Document No.", 'The posted invoice should have a vendor invoice number.');
+        CreatePaymentLineAppliedToInvoice(GenJournalLine, Vendor."No.", InvoiceVendLedgEntry);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        PaymentVendLedgEntry.SetRange("Document Type", PaymentVendLedgEntry."Document Type"::Payment);
+        PaymentVendLedgEntry.SetRange("Vendor No.", Vendor."No.");
+        PaymentVendLedgEntry.FindFirst();
+
+        // [GIVEN] The remittance advice buffer built from the posted payment, with a payment discount on the line.
+        RemitAdviceBufferMgt.BuildFromPostedPayment(PaymentVendLedgEntry, TempRemitAdviceBuffer);
+        TempRemitAdviceBuffer.SetFilter("Line No.", '>%1', 0);
+        ExpectedLineCount := TempRemitAdviceBuffer.Count();
+        TempRemitAdviceBuffer.FindFirst();
+        TempRemitAdviceBuffer."Pmt. Discount Amount" := LibraryRandom.RandDec(10, 2);
+        TempRemitAdviceBuffer.Modify();
+
+        // [WHEN] The PEPPOL remittance advice XML is generated.
+        ExportRemitAdvicePEPPOL30.GenerateXml(TempRemitAdviceBuffer, TempBlob);
+
+        TempBlob.CreateInStream(DocInStream, TextEncoding::UTF8);
+        XmlDocument.ReadFrom(DocInStream, XmlDoc);
+        XmlNsManager.NameTable(XmlDoc.NameTable());
+        XmlNsManager.AddNamespace('ra', 'urn:oasis:names:specification:ubl:schema:xsd:RemittanceAdvice-2');
+        XmlNsManager.AddNamespace('cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        XmlNsManager.AddNamespace('cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+
+        // [THEN] LineCountNumeric equals the number of RemittanceAdviceLine elements.
+        XmlDoc.SelectNodes('/ra:RemittanceAdvice/cac:RemittanceAdviceLine', XmlNsManager, XmlNodes);
+        Assert.AreEqual(ExpectedLineCount, XmlNodes.Count(), 'Each buffer line should be exported as a RemittanceAdviceLine.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/ra:RemittanceAdvice/cbc:LineCountNumeric', XmlNsManager, XmlNode), 'The remittance advice should contain LineCountNumeric.');
+        Assert.AreEqual(Format(ExpectedLineCount), XmlNode.AsXmlElement().InnerText(), 'LineCountNumeric should equal the number of RemittanceAdviceLine elements.');
+
+        // [THEN] The line Note immediately follows the line ID.
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/ra:RemittanceAdvice/cac:RemittanceAdviceLine[1]/cbc:ID/following-sibling::*[1]', XmlNsManager, XmlNode), 'The line ID should be followed by another element.');
+        Assert.AreEqual('Note', XmlNode.AsXmlElement().LocalName(), 'The line Note should immediately follow the line ID.');
+
+        // [THEN] The invoice document reference carries the vendor invoice number and InvoicingPartyReference is not used for it.
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/ra:RemittanceAdvice/cac:RemittanceAdviceLine[1]/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', XmlNsManager, XmlNode), 'The line should contain an InvoiceDocumentReference.');
+        Assert.AreEqual(InvoiceVendLedgEntry."External Document No.", XmlNode.AsXmlElement().InnerText(), 'The invoice document reference should contain the vendor invoice number.');
+        Assert.IsFalse(XmlDoc.SelectSingleNode('/ra:RemittanceAdvice/cac:RemittanceAdviceLine/cbc:InvoicingPartyReference', XmlNsManager, XmlNode), 'InvoicingPartyReference should not carry the vendor invoice number.');
+    end;
+
+    local procedure CreateVendorForRemittanceAdvice(var Vendor: Record Vendor)
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+
+        if Vendor."VAT Registration No." = '' then
+            Vendor."VAT Registration No." := '987654321';
+
+        if Vendor."Country/Region Code" = '' then begin
+            CompanyInformation.Get();
+            Vendor."Country/Region Code" := CompanyInformation."Country/Region Code";
+        end;
+
+        Vendor.Modify(true);
+    end;
+
+    local procedure CreateRefundDetailedVendorLedgerEntry(RefundVendLedgEntry: Record "Vendor Ledger Entry"; AppliedVendorLedgerEntryNo: Integer): Decimal
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        ExistingDetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        if ExistingDetailedVendorLedgEntry.FindLast() then
+            DetailedVendorLedgEntry."Entry No." := ExistingDetailedVendorLedgEntry."Entry No." + 1
+        else
+            DetailedVendorLedgEntry."Entry No." := 1;
+
+        DetailedVendorLedgEntry."Vendor Ledger Entry No." := RefundVendLedgEntry."Entry No.";
+        DetailedVendorLedgEntry."Document Type" := DetailedVendorLedgEntry."Document Type"::Refund;
+        DetailedVendorLedgEntry."Document No." := RefundVendLedgEntry."Document No.";
+        DetailedVendorLedgEntry."Entry Type" := DetailedVendorLedgEntry."Entry Type"::Application;
+        DetailedVendorLedgEntry.Amount := LibraryRandom.RandDec(10, 2);
+        DetailedVendorLedgEntry."Amount (LCY)" := DetailedVendorLedgEntry.Amount;
+        DetailedVendorLedgEntry."Applied Vend. Ledger Entry No." := AppliedVendorLedgerEntryNo;
+        DetailedVendorLedgEntry."Initial Document Type" := RefundVendLedgEntry."Document Type";
+        DetailedVendorLedgEntry.Unapplied := false;
+        DetailedVendorLedgEntry.Insert(true);
+
+        exit(DetailedVendorLedgEntry.Amount);
+    end;
+
+    local procedure CreatePaymentJournalBatch()
+    var
+        TemplateName: Code[10];
+    begin
+        TemplateName := LibraryJournals.SelectGenJournalTemplate(Enum::"Gen. Journal Template Type"::Payments, Page::"Payment Journal");
+        LibraryJournals.SelectGenJournalBatch(GenJournalBatch, TemplateName);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+    end;
+
+    local procedure PostPurchaseInvoice(VendorNo: Code[20]; var InvoiceVendLedgEntry: Record "Vendor Ledger Entry")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        InvoiceNo: Code[20];
+    begin
+        LibraryInvt.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandInt(100));
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(1, 100, 2));
+        PurchaseLine.Modify(true);
+
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+
+        InvoiceVendLedgEntry.Reset();
+        InvoiceVendLedgEntry.SetRange("Document Type", InvoiceVendLedgEntry."Document Type"::Invoice);
+        InvoiceVendLedgEntry.SetRange("Document No.", InvoiceNo);
+        InvoiceVendLedgEntry.SetRange("Vendor No.", VendorNo);
+        InvoiceVendLedgEntry.FindFirst();
+
+        InvoiceVendLedgEntry.CalcFields("Remaining Amount");
+        InvoiceVendLedgEntry."Amount to Apply" := InvoiceVendLedgEntry."Remaining Amount";
+        InvoiceVendLedgEntry.Modify();
+    end;
+
+    local procedure CreatePaymentLine(var GenJournalLine: Record "Gen. Journal Line"; VendorNo: Code[20]; LineAmount: Decimal)
+    begin
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Vendor, VendorNo, GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), LineAmount);
+    end;
+
+    local procedure CreatePaymentLineAppliedToInvoice(var GenJournalLine: Record "Gen. Journal Line"; VendorNo: Code[20]; InvoiceVendLedgEntry: Record "Vendor Ledger Entry")
+    begin
+        CreatePaymentLine(GenJournalLine, VendorNo, -InvoiceVendLedgEntry."Remaining Amount");
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceVendLedgEntry."Document No.");
+        GenJournalLine.Modify(true);
+    end;
+
+    local procedure PostAppliedPayment(VendorNo: Code[20]; var PaymentVendLedgEntry: Record "Vendor Ledger Entry")
+    var
+        InvoiceVendLedgEntry: Record "Vendor Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentDocNo: Code[20];
+    begin
+        PostPurchaseInvoice(VendorNo, InvoiceVendLedgEntry);
+        CreatePaymentLineAppliedToInvoice(GenJournalLine, VendorNo, InvoiceVendLedgEntry);
+        PaymentDocNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        PaymentVendLedgEntry.Reset();
+        PaymentVendLedgEntry.SetRange("Document Type", PaymentVendLedgEntry."Document Type"::Payment);
+        PaymentVendLedgEntry.SetRange("Vendor No.", VendorNo);
+        PaymentVendLedgEntry.SetRange("Document No.", PaymentDocNo);
+        PaymentVendLedgEntry.FindFirst();
+    end;
+
+    local procedure CreateRefundWithPaymentDocumentNo(var RefundVendLedgEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; DocumentNo: Code[20])
+    begin
+        CreateVendorLedgerEntry(RefundVendLedgEntry, VendorNo, RefundVendLedgEntry."Document Type"::Refund);
+        RefundVendLedgEntry."Document No." := DocumentNo;
+        RefundVendLedgEntry.Modify();
+    end;
+
+    local procedure CreateVendorLedgerEntry(var VendorLedgEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
+    var
+        ExistingVendorLedgEntry: Record "Vendor Ledger Entry";
+    begin
+        if ExistingVendorLedgEntry.FindLast() then
+            VendorLedgEntry."Entry No." := ExistingVendorLedgEntry."Entry No." + 1
+        else
+            VendorLedgEntry."Entry No." := 1;
+
+        VendorLedgEntry."Vendor No." := VendorNo;
+        VendorLedgEntry."Document Type" := DocumentType;
+        VendorLedgEntry.Open := true;
+        VendorLedgEntry.Insert();
+    end;
+
+    local procedure AssertRemittanceAdviceRefundXml(
+    var TempBlob: Codeunit "Temp Blob";
+    ExpectedTotalPaid: Decimal;
+    ExpectedRefundAmount: Decimal;
+    ExpectedRefundDocNo: Code[20])
+    var
+        DocInStream: InStream;
+        XmlDoc: XmlDocument;
+        XmlNsManager: XmlNamespaceManager;
+        XmlNode: XmlNode;
+        ExpectedAmountText: Text;
+    begin
+        TempBlob.CreateInStream(DocInStream, TextEncoding::UTF8);
+        XmlDocument.ReadFrom(DocInStream, XmlDoc);
+        XmlNsManager.NameTable(XmlDoc.NameTable());
+        XmlNsManager.AddNamespace('ra', 'urn:oasis:names:specification:ubl:schema:xsd:RemittanceAdvice-2');
+        XmlNsManager.AddNamespace('cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        XmlNsManager.AddNamespace('cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+
+        // [THEN] Total Paid is exported as TotalPaymentAmount.
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/ra:RemittanceAdvice/cbc:TotalPaymentAmount', XmlNsManager, XmlNode), 'The remittance advice should contain TotalPaymentAmount.');
+        ExpectedAmountText := Format(Round(ExpectedTotalPaid, 0.01), 0, 9);
+        Assert.AreEqual(ExpectedAmountText, XmlNode.AsXmlElement().InnerText(), 'TotalPaymentAmount should equal Total Paid from the remittance buffer.');
+
+        // [THEN] The refund is exported as CreditLineAmount.
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/ra:RemittanceAdvice/cac:RemittanceAdviceLine/cbc:CreditLineAmount', XmlNsManager, XmlNode), 'The refund should be exported as CreditLineAmount.');
+        ExpectedAmountText := Format(Round(Abs(ExpectedRefundAmount), 0.01), 0, 9);
+        Assert.AreEqual(ExpectedAmountText, XmlNode.AsXmlElement().InnerText(), 'CreditLineAmount should equal the refund amount.');
+
+        // [THEN] The refund document is exported as CreditNoteDocumentReference.
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/ra:RemittanceAdvice/cac:RemittanceAdviceLine/cac:BillingReference/cac:CreditNoteDocumentReference/cbc:ID', XmlNsManager, XmlNode), 'The refund should contain a CreditNoteDocumentReference.');
+        Assert.AreEqual(ExpectedRefundDocNo, XmlNode.AsXmlElement().InnerText(), 'The credit document reference should contain the refund document number.');
+    end;
+
     var
     local procedure Initialize()
     var
@@ -3556,6 +4347,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
         GLSetup: Record "General Ledger Setup";
     begin
         LibrarySetupStorage.Restore();
+        // A test that failed while bound must not leave the OnBeforeCheckShipToAddress subscriber active for later tests.
+        if UnbindSubscription(this) then;
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"PEPPOL30 Management Tests");
         if IsInitialized then
             exit;
@@ -3595,8 +4388,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
 
         ConfigureVATPostingSetup();
 
-        GenPostingSetup.ModifyAll("Sales Inv. Disc. Account", LibraryERM.CreateGLAccountNo());
-        GenPostingSetup.ModifyAll("Sales Line Disc. Account", LibraryERM.CreateGLAccountNo());
+        GenPostingSetup.ModifyAll("Sales Inv. Disc. Account", LibraryERM.CreateGLAccountNo(), "Sales Line Disc. Account", LibraryERM.CreateGLAccountNo());
 
         IsInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"PEPPOL30 Management Tests");
@@ -3608,6 +4400,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
     begin
         Cust.Get(CustNo);
         Cust.Validate(GLN, '1234567891231');
+        Cust.Validate("Use GLN in Electronic Document", true);
         Cust.Modify(true);
     end;
 
@@ -3827,7 +4620,19 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.Validate("Unit Price", LibraryRandom.RandDec(1000, 2));
         SalesLine.Modify(true);
 
+        ResetSalesPostingNoSeriesDateUsage();
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure GetCompanyCountryISOCode(): Code[2]
+    var
+        CompanyInformationLocal: Record "Company Information";
+        CountryRegion: Record "Country/Region";
+    begin
+        CompanyInformationLocal.Get();
+        CountryRegion.Get(CompanyInformationLocal."Country/Region Code");
+        CountryRegion.TestField("ISO Code");
+        exit(CountryRegion."ISO Code");
     end;
 
     local procedure CreatePostSalesDocWithShipToAddress(CustomerNo: Code[20]; DocumentType: Enum "Sales Document Type"): Code[20]
@@ -3934,8 +4739,35 @@ codeunit 139235 "PEPPOL30 Management Tests"
           ServiceLine, ServiceHeader, ServiceLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 1);
         ServiceLine.Validate("Unit Price", LibraryRandom.RandDecInRange(1000, 2000, 2));
         ServiceLine.Modify(true);
+        ResetServicePostingNoSeriesDateUsage();
         LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
         exit(ServiceHeader."No.");
+    end;
+
+    local procedure ResetSalesPostingNoSeriesDateUsage()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        NoSeriesLine.SetFilter(
+          "Series Code", '%1|%2|%3|%4',
+          SalesReceivablesSetup."Posted Shipment Nos.", SalesReceivablesSetup."Posted Invoice Nos.",
+          SalesReceivablesSetup."Posted Credit Memo Nos.", SalesReceivablesSetup."Posted Return Receipt Nos.");
+        NoSeriesLine.ModifyAll("Last Date Used", 0D);
+    end;
+
+    local procedure ResetServicePostingNoSeriesDateUsage()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        ServiceMgtSetup: Record "Service Mgt. Setup";
+    begin
+        ServiceMgtSetup.Get();
+        NoSeriesLine.SetFilter(
+          "Series Code", '%1|%2|%3',
+          ServiceMgtSetup."Posted Service Shipment Nos.", ServiceMgtSetup."Posted Service Invoice Nos.",
+          ServiceMgtSetup."Posted Serv. Credit Memo Nos.");
+        NoSeriesLine.ModifyAll("Last Date Used", 0D);
     end;
 
     local procedure CreateShipToAddressWithGLNForCustomer(var ShipToAddress: Record "Ship-to Address"; CustomerNo: Code[20])
@@ -3952,6 +4784,74 @@ codeunit 139235 "PEPPOL30 Management Tests"
         ShipToAddress.Validate("Post Code", Customer."Post Code");
         ShipToAddress.Validate(County, Customer.County);
         ShipToAddress.Modify(false);
+    end;
+
+    local procedure CreateSalesHeaderWithBlankShipToAddress(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type")
+    begin
+        CreateGenericSalesHeader(SalesHeader, DocumentType);
+        SalesHeader."Ship-to Code" := '';
+        SalesHeader."Ship-to Address" := '';
+        SalesHeader."Ship-to Address 2" := '';
+        SalesHeader."Ship-to City" := '';
+        SalesHeader."Ship-to Post Code" := '';
+        SalesHeader."Ship-to County" := '';
+        SalesHeader."Ship-to Country/Region Code" := '';
+        SalesHeader.Modify(false);
+    end;
+
+    local procedure GetShipToAddressFieldNos() ShipToFieldNos: List of [Integer]
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        ShipToFieldNos.Add(SalesHeader.FieldNo("Ship-to Address"));
+        ShipToFieldNos.Add(SalesHeader.FieldNo("Ship-to Address 2"));
+        ShipToFieldNos.Add(SalesHeader.FieldNo("Ship-to City"));
+        ShipToFieldNos.Add(SalesHeader.FieldNo("Ship-to Post Code"));
+        ShipToFieldNos.Add(SalesHeader.FieldNo("Ship-to County"));
+        ShipToFieldNos.Add(SalesHeader.FieldNo("Ship-to Country/Region Code"));
+    end;
+
+    local procedure SetSingleShipToAddressField(PostedHeaderVariant: Variant; ShipToFieldNo: Integer)
+    var
+        CountryRegion: Record "Country/Region";
+        SalesHeader: Record "Sales Header";
+        PostedHeaderRecRef: RecordRef;
+        FieldNo: Integer;
+    begin
+        PostedHeaderRecRef.GetTable(PostedHeaderVariant);
+        PostedHeaderRecRef.Find();
+        PostedHeaderRecRef.Field(SalesHeader.FieldNo("Ship-to Code")).Value := '';
+        foreach FieldNo in GetShipToAddressFieldNos() do
+            PostedHeaderRecRef.Field(FieldNo).Value := '';
+        if ShipToFieldNo = SalesHeader.FieldNo("Ship-to Country/Region Code") then begin
+            CountryRegion.SetFilter("ISO Code", '<>%1', '');
+            CountryRegion.FindFirst();
+            PostedHeaderRecRef.Field(ShipToFieldNo).Value := CountryRegion.Code;
+        end else
+            PostedHeaderRecRef.Field(ShipToFieldNo).Value := LibraryUtility.GenerateGUID();
+        PostedHeaderRecRef.Modify(false);
+    end;
+
+    local procedure ClearShipToAddress(var SalesInvoiceHeader: Record "Sales Invoice Header")
+    begin
+        SalesInvoiceHeader."Ship-to Code" := '';
+        SalesInvoiceHeader."Ship-to Address" := '';
+        SalesInvoiceHeader."Ship-to Address 2" := '';
+        SalesInvoiceHeader."Ship-to City" := '';
+        SalesInvoiceHeader."Ship-to Post Code" := '';
+        SalesInvoiceHeader."Ship-to County" := '';
+        SalesInvoiceHeader."Ship-to Country/Region Code" := '';
+    end;
+
+    local procedure ClearShipToAddress(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
+    begin
+        SalesCrMemoHeader."Ship-to Code" := '';
+        SalesCrMemoHeader."Ship-to Address" := '';
+        SalesCrMemoHeader."Ship-to Address 2" := '';
+        SalesCrMemoHeader."Ship-to City" := '';
+        SalesCrMemoHeader."Ship-to Post Code" := '';
+        SalesCrMemoHeader."Ship-to County" := '';
+        SalesCrMemoHeader."Ship-to Country/Region Code" := '';
     end;
 
     local procedure CreateCustomerWithAddressAndGLN(): Code[20]
@@ -4004,6 +4904,62 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Instream.Read(Data);
     end;
 
+    local procedure ExportSalesInvoiceXML(SalesInvoiceHeader: Record "Sales Invoice Header") Data: Text
+    var
+        ExpSalesInvPEPPOL30: Codeunit "Exp. Sales Inv. PEPPOL30";
+        TempBlob: Codeunit "Temp Blob";
+        Instream: InStream;
+        OutStream: OutStream;
+    begin
+        SalesInvoiceHeader.SetRecFilter();
+        TempBlob.CreateOutStream(OutStream);
+        ExpSalesInvPEPPOL30.GenerateXMLFile(SalesInvoiceHeader, OutStream, "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
+        TempBlob.CreateInStream(Instream);
+        Instream.Read(Data);
+    end;
+
+    local procedure ExportSalesCrMemoXML(SalesCrMemoHeader: Record "Sales Cr.Memo Header") Data: Text
+    var
+        ExpSalesCrMPEPPOL30: Codeunit "Exp. Sales CrM. PEPPOL30";
+        TempBlob: Codeunit "Temp Blob";
+        Instream: InStream;
+        OutStream: OutStream;
+    begin
+        SalesCrMemoHeader.SetRecFilter();
+        TempBlob.CreateOutStream(OutStream);
+        ExpSalesCrMPEPPOL30.GenerateXMLFile(SalesCrMemoHeader, OutStream, "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
+        TempBlob.CreateInStream(Instream);
+        Instream.Read(Data);
+    end;
+
+    local procedure ExportServiceInvoiceXML(ServiceInvoiceHeader: Record "Service Invoice Header") Data: Text
+    var
+        ExpServInvPEPPOL30: Codeunit "Exp. Serv.Inv. PEPPOL30";
+        TempBlob: Codeunit "Temp Blob";
+        Instream: InStream;
+        OutStream: OutStream;
+    begin
+        ServiceInvoiceHeader.SetRecFilter();
+        TempBlob.CreateOutStream(OutStream);
+        ExpServInvPEPPOL30.GenerateXMLFile(ServiceInvoiceHeader, OutStream, "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Service");
+        TempBlob.CreateInStream(Instream);
+        Instream.Read(Data);
+    end;
+
+    local procedure ExportServiceCrMemoXML(ServiceCrMemoHeader: Record "Service Cr.Memo Header") Data: Text
+    var
+        ExpServCrMPEPPOL30: Codeunit "Exp. Serv.CrM. PEPPOL30";
+        TempBlob: Codeunit "Temp Blob";
+        Instream: InStream;
+        OutStream: OutStream;
+    begin
+        ServiceCrMemoHeader.SetRecFilter();
+        TempBlob.CreateOutStream(OutStream);
+        ExpServCrMPEPPOL30.GenerateXMLFile(ServiceCrMemoHeader, OutStream, "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Service");
+        TempBlob.CreateInStream(Instream);
+        Instream.Read(Data);
+    end;
+
     local procedure UpdateCompanySwiftCode()
     var
         CompanyInformationLocal: Record "Company Information";
@@ -4049,6 +5005,14 @@ codeunit 139235 "PEPPOL30 Management Tests"
         PEPPOLDeliveryInfoProvider := GetFormat();
         ActualGLN := PEPPOLDeliveryInfoProvider.GetGLNForHeader(SalesHeader);
         Assert.AreEqual(ExpectedGLN, ActualGLN, 'Incorrect GLN');
+    end;
+
+    local procedure VerifyShipToAddressValidationError(SalesHeader: Record "Sales Header"; MissingFieldCaption: Text)
+    var
+        PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
+    begin
+        asserterror PEPPOL30SalesValidation.ValidateDocument(SalesHeader);
+        Assert.ExpectedTestFieldError(MissingFieldCaption, '');
     end;
 
     local procedure VerifyGetLegalMonetaryInfo(PostedInvoiceNo: Code[20])
@@ -4237,6 +5201,12 @@ codeunit 139235 "PEPPOL30 Management Tests"
     begin
         Assert.ExpectedMessage(NegativeUnitPriceErr, Question);
         Reply := false;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"PEPPOL30 Sales Validation", OnBeforeCheckShipToAddress, '', false, false)]
+    local procedure HandleOnBeforeCheckShipToAddress(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+        IsHandled := true;
     end;
 }
 

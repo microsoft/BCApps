@@ -174,7 +174,9 @@ table 18475 "Sub. Comp. Rcpt. Line"
             DataClassification = EndUserIdentifiableInformation;
         }
 #pragma warning disable AS0013 // The ID should have been within the range [1..49999]
+#pragma warning disable AS0099 // Accepted: Renumbering this existing published ID would be a breaking change.
         field(99000754; "Prod. Order Line No."; Integer)
+#pragma warning restore AS0099
         {
             Caption = 'Prod. Order Line No.';
             Description = '1';

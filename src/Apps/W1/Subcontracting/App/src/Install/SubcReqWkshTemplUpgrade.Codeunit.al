@@ -14,6 +14,7 @@ codeunit 20572 "Subc. Req Wksh Templ Upgrade"
     trigger OnUpgradePerCompany()
     begin
         UpgradeReqWkshTemplateType();
+        UpgradeReqWkshTemplatePage();
     end;
 
     internal procedure UpgradeReqWkshTemplateType()
@@ -52,6 +53,27 @@ codeunit 20572 "Subc. Req Wksh Templ Upgrade"
                 ReqWkshTemplateRecordRef.Modify();
             until ReqWkshTemplateRecordRef.Next() = 0;
         ReqWkshTemplateRecordRef.Close();
+    end;
+
+    internal procedure UpgradeReqWkshTemplatePage()
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        SubcUpgradeTagDefExt: Codeunit "Subc. Upgrade Tag Def. Ext.";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(SubcUpgradeTagDefExt.GetReqWkshTemplatePageUpgradeTag()) then
+            exit;
+
+        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Subcontracting);
+        // The obsolete Subcontracting Worksheet page may no longer be available in symbols.
+        ReqWkshTemplate.SetRange("Page ID", 99000886);
+        if ReqWkshTemplate.FindSet(true) then
+            repeat
+                ReqWkshTemplate.Validate("Page ID", Page::"Subc. Subcontracting Worksheet");
+                ReqWkshTemplate.Modify(true);
+            until ReqWkshTemplate.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(SubcUpgradeTagDefExt.GetReqWkshTemplatePageUpgradeTag());
     end;
 
     local procedure LegacySubcontractingTypeValue(): Integer

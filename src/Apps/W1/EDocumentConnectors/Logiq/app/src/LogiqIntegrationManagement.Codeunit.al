@@ -137,7 +137,7 @@ codeunit 6432 "Logiq Integration Management"
         LogiqAuth.CheckUserSetup(ConnectionUserSetup);
         LogiqAuth.CheckUpdateTokens();
 
-        HttpRequest.SetRequestUri(this.JoinUrlParts(ConnectionSetup."Base URL", ConnectionSetup."File List Endpoint"));
+        HttpRequest.SetRequestUri(this.JoinUrlParts(ConnectionSetup.GetValidatedBaseUrl(), ConnectionSetup."File List Endpoint"));
         HttpRequest.GetHeaders(Headers);
         SetAuthorizationHeader(Headers, LogiqAuth, ConnectionUserSetup);
 
@@ -248,7 +248,7 @@ codeunit 6432 "Logiq Integration Management"
     begin
         LogiqAuth.CheckSetup(LogiqConnectionSetup);
 
-        FullUrl := this.JoinUrlParts(LogiqConnectionSetup."Base URL", Endpoint);
+        FullUrl := this.JoinUrlParts(LogiqConnectionSetup.GetValidatedBaseUrl(), Endpoint);
     end;
 
     local procedure JoinUrlParts(Part1: Text; Part2: Text) JoinedUrl: Text

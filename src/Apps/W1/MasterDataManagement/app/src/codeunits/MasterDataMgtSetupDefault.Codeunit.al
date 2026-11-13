@@ -49,6 +49,7 @@ codeunit 7230 "Master Data Mgt. Setup Default"
         JobQueueEntryNameTok: Label ' %1 - %2 synchronization job.', Comment = '%1 = The Integration Table Name to synchronized (ex. CUSTOMER), %2 = Business Central product name';
         UncoupleJobQueueEntryNameTok: Label ' %1 uncouple job.', Comment = '%1 = Integration mapping description, for example, CUSTOMER <-> CUSTOMER';
         CoupleJobQueueEntryNameTok: Label ' %1 coupling job.', Comment = '%1 = Integration mapping description, for example, CUSTOMER <-> CUSTOMER';
+        ChangeDetectorJobDescriptionTxt: Label 'Master Data Management cross-environment change detection.';
         IntegrationTablePrefixTok: Label 'Business Central', Comment = 'Product name', Locked = true;
         CustomerConfigTemplateCodeTok: Label 'MDMCUST', Comment = 'Customer template code for new customers created from source company data. Max length 10.', Locked = true;
         VendorConfigTemplateCodeTok: Label 'MDMVEND', Comment = 'Vendor template code for new vendors created from source company data. Max length 10.', Locked = true;
@@ -97,6 +98,8 @@ codeunit 7230 "Master Data Mgt. Setup Default"
         ResetDimensionValueMapping('MDM_DIMENSIONVALUE', (not MasterDataManagementSetup."Delay Job Scheduling"));
 
         SetCustomIntegrationsTableMappings(MasterDataManagementSetup);
+
+        UpdateChangeDetectorJob(MasterDataManagementSetup);
     end;
 
     internal procedure ResetSalesPeopleSystemUserMapping(IntegrationTableMappingName: Code[20]; ShouldRecreateJobQueueEntry: Boolean)
@@ -1435,6 +1438,50 @@ codeunit 7230 "Master Data Mgt. Setup Default"
         exit(Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry))
     end;
 
+    // One recurring detector job per subsidiary; the cross-environment analog of same-env's event-driven reschedule.
+    internal procedure UpdateChangeDetectorJob(MasterDataManagementSetup: Record "Master Data Management Setup")
+    begin
+        if MasterDataManagementSetup."Is Enabled" and (MasterDataManagementSetup."Source Environment Name" <> '') then
+            EnsureChangeDetectorJob()
+        else
+            RemoveChangeDetectorJob();
+    end;
+
+    local procedure EnsureChangeDetectorJob()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"MDM Cross-Env Change Detector");
+        if not JobQueueEntry.IsEmpty() then
+            exit;
+
+        JobQueueEntry.InitRecurringJob(ChangeDetectorIntervalInMinutes());
+        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
+        JobQueueEntry."Object ID to Run" := Codeunit::"MDM Cross-Env Change Detector";
+        JobQueueEntry."Run in User Session" := false;
+        JobQueueEntry.Description := CopyStr(ChangeDetectorJobDescriptionTxt, 1, MaxStrLen(JobQueueEntry.Description));
+        JobQueueEntry."Maximum No. of Attempts to Run" := 10;
+        JobQueueEntry.Status := JobQueueEntry.Status::Ready;
+        JobQueueEntry."Rerun Delay (sec.)" := 30;
+        JobQueueEntry."Job Queue Category Code" := JobQueueCategoryLbl;
+        Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry);
+    end;
+
+    local procedure RemoveChangeDetectorJob()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"MDM Cross-Env Change Detector");
+        JobQueueEntry.DeleteTasks();
+    end;
+
+    local procedure ChangeDetectorIntervalInMinutes(): Integer
+    begin
+        exit(1);
+    end;
+
     internal procedure RecreateJobQueueEntryFromIntTableMapping(IntegrationTableMapping: Record "Integration Table Mapping"; IntervalInMinutes: Integer; ShouldRecreateJobQueueEntry: Boolean; InactivityTimeoutPeriod: Integer)
     begin
         RecreateJobQueueEntryFromIntTableMapping(IntegrationTableMapping, IntervalInMinutes, ShouldRecreateJobQueueEntry, InactivityTimeoutPeriod, ProductName.Short(), false);
@@ -1527,37 +1574,33 @@ codeunit 7230 "Master Data Mgt. Setup Default"
         "Field": Record "Field";
         IntegrationTableMapping: Record "Integration Table Mapping";
     begin
-        with IntegrationTableMapping do begin
-            Reset();
-            SetRange("Delete After Synchronization", false);
-            if TableID > 0 then
-                SetRange("Table ID", TableID);
-            if IntegrationTableID > 0 then
-                SetRange("Integration Table ID", IntegrationTableID);
-            SetRange("Int. Table UID Field Type", Field.Type::GUID);
-            if FindSet() then
-                repeat
-                    AddPrioritizedMappingToList(NameValueBuffer, Priority, Name);
-                until Next() = 0;
-        end;
+        IntegrationTableMapping.Reset();
+        IntegrationTableMapping.SetRange("Delete After Synchronization", false);
+        if TableID > 0 then
+            IntegrationTableMapping.SetRange("Table ID", TableID);
+        if IntegrationTableID > 0 then
+            IntegrationTableMapping.SetRange("Integration Table ID", IntegrationTableID);
+        IntegrationTableMapping.SetRange("Int. Table UID Field Type", Field.Type::GUID);
+        if IntegrationTableMapping.FindSet() then
+            repeat
+                AddPrioritizedMappingToList(NameValueBuffer, Priority, IntegrationTableMapping.Name);
+            until IntegrationTableMapping.Next() = 0;
     end;
 
     local procedure AddPrioritizedMappingToList(var NameValueBuffer: Record "Name/Value Buffer"; var Priority: Integer; MappingName: Code[20])
     begin
-        with NameValueBuffer do begin
-            SetRange(Value, MappingName);
+        NameValueBuffer.SetRange(Value, MappingName);
 
-            if not FindFirst() then begin
-                Init();
-                ID := Priority;
-                Name := Format(Priority);
-                Value := MappingName;
-                Insert();
-                Priority := Priority + 1;
-            end;
-
-            Reset();
+        if not NameValueBuffer.FindFirst() then begin
+            NameValueBuffer.Init();
+            NameValueBuffer.ID := Priority;
+            NameValueBuffer.Name := Format(Priority);
+            NameValueBuffer.Value := MappingName;
+            NameValueBuffer.Insert();
+            Priority := Priority + 1;
         end;
+
+        NameValueBuffer.Reset();
     end;
 
     local procedure ResetBCAccountConfigTemplate(TableNo: Integer): Code[10]

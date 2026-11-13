@@ -61,6 +61,14 @@ pageextension 11700 "Company Information CZL" extends "Company Information"
         {
             Visible = true;
         }
+        addlast(Communication)
+        {
+            field("Report Address Source CZL"; Rec."Report Address Source CZL")
+            {
+                ApplicationArea = Basic, Suite;
+                Importance = Additional;
+            }
+        }
     }
     actions
     {

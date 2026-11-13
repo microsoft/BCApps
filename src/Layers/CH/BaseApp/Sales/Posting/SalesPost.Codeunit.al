@@ -634,7 +634,7 @@ codeunit 80 "Sales-Post"
         TempSalesLineLocal.Modify();
         SalesLine.Get(TempSalesLineLocal.RecordId);
         OnModifyTempLineOnBeforeTransferFields(SalesLine, TempSalesLineLocal);
-        SalesLine.TransferFields(TempSalesLineLocal, false);
+        SalesLine.TransferFields(TempSalesLineLocal, false, true);
         OnModifyTempLineOnBeforeSalesLineModify(SalesLine);
         SalesLine.Modify();
         OnModifyTempLineOnAfterSalesLineModify(SalesLine);
@@ -6184,7 +6184,7 @@ codeunit 80 "Sales-Post"
         PurchOrderLine.LockTable();
         PurchOrderHeader.LockTable();
         GetGLSetup();
-        if InventorySetup.UseLegacyPosting() and not InventorySetup.OptimGLEntLockForMultiuserEnv() then begin
+        if InventorySetup.UseLegacyPosting() and not InventorySetup.OptimGLEntLockForMultiuserEnv() and not GLSetup.UseConcurrentPosting() then begin
             GLEntry.LockTable();
             GLEntry.GetLastEntryNo();
         end;
@@ -6574,7 +6574,7 @@ codeunit 80 "Sales-Post"
             repeat
                 if TempSalesLine.AsmToOrderExists(AsmHeader) then
                     if AsmHeader.Status = AsmHeader.Status::Open then begin
-                        TempAsmHeader.TransferFields(AsmHeader);
+                        TempAsmHeader.TransferFields(AsmHeader, true, true);
                         TempAsmHeader.Insert();
                     end;
             until TempSalesLine.Next() = 0;
@@ -7136,7 +7136,7 @@ codeunit 80 "Sales-Post"
         SalesShptHeader.Init();
         SalesHeader.CalcFields("Work Description");
         OnInsertShipmentHeaderOnBeforeTransferfieldsToSalesShptHeader(SalesHeader);
-        SalesShptHeader.TransferFields(SalesHeader);
+        SalesShptHeader.TransferFields(SalesHeader, true, true);
         OnInsertShipmentHeaderOnAfterTransferfieldsToSalesShptHeader(SalesHeader, SalesShptHeader);
 
         AssignPostedDocumentNo(SalesShptHeader."No.", SalesHeader."Shipping No.");
@@ -7198,7 +7198,7 @@ codeunit 80 "Sales-Post"
         if not IsHandled then begin
             ReturnRcptHeader.Init();
             OnInsertReturnReceiptHeaderOnBeforeReturnReceiptHeaderTransferFields(SalesHeader);
-            ReturnRcptHeader.TransferFields(SalesHeader);
+            ReturnRcptHeader.TransferFields(SalesHeader, true, true);
             AssignPostedDocumentNo(ReturnRcptHeader."No.", SalesHeader."Return Receipt No.");
             if SalesHeader."Document Type" = SalesHeader."Document Type"::"Return Order" then begin
                 ReturnRcptHeader."Return Order No. Series" := SalesHeader."No. Series";
@@ -7252,7 +7252,7 @@ codeunit 80 "Sales-Post"
         SalesInvHeader.Init();
         SalesHeader.CalcFields("Work Description");
         OnInsertInvoiceHeaderOnBeforeSalesInvHeaderTransferFields(SalesHeader);
-        SalesInvHeader.TransferFields(SalesHeader);
+        SalesInvHeader.TransferFields(SalesHeader, true, true);
         OnInsertInvoiceHeaderOnAfterSalesInvHeaderTransferFields(SalesHeader, SalesInvHeader);
 
         AssignPostedDocumentNo(SalesInvHeader."No.", SalesHeader."Posting No.");
@@ -7307,7 +7307,7 @@ codeunit 80 "Sales-Post"
         SalesCrMemoHeader.Init();
         SalesHeader.CalcFields("Work Description");
         OnInsertCrMemoHeaderOnBeforeSalesCrMemoHeaderTransferFields(SalesHeader);
-        SalesCrMemoHeader.TransferFields(SalesHeader);
+        SalesCrMemoHeader.TransferFields(SalesHeader, true, true);
         AssignPostedDocumentNo(SalesCrMemoHeader."No.", SalesHeader."No.");
         OnInsertCrMemoHeaderOnAfterSalesCrMemoHeaderTransferFields(SalesHeader, SalesCrMemoHeader);
 
@@ -7353,7 +7353,7 @@ codeunit 80 "Sales-Post"
         RunOnInsert: Boolean;
     begin
         PurchRcptHeader.Init();
-        PurchRcptHeader.TransferFields(PurchaseHeader);
+        PurchRcptHeader.TransferFields(PurchaseHeader, true, true);
         AssignPostedDocumentNo(PurchRcptHeader."No.", PurchaseHeader."Receiving No.");
         PurchRcptHeader."Order No." := PurchaseHeader."No.";
         PurchRcptHeader."Posting Date" := SalesHeader."Posting Date";
@@ -7370,7 +7370,7 @@ codeunit 80 "Sales-Post"
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
         PurchRcptLine.Init();
-        PurchRcptLine.TransferFields(PurchOrderLine);
+        PurchRcptLine.TransferFields(PurchOrderLine, true, true);
         PurchRcptLine."Posting Date" := PurchRcptHeader."Posting Date";
         PurchRcptLine."Document No." := PurchRcptHeader."No.";
         PurchRcptLine.Quantity := DropShptPostBuffer.Quantity;
@@ -7379,6 +7379,9 @@ codeunit 80 "Sales-Post"
         PurchRcptLine."Qty. Invoiced (Base)" := 0;
         PurchRcptLine."Order No." := PurchOrderLine."Document No.";
         PurchRcptLine."Order Line No." := PurchOrderLine."Line No.";
+        PurchRcptLine."Vendor Order No." := PurchRcptHeader."Vendor Order No.";
+        PurchRcptLine."Vendor Shipment No." := PurchRcptHeader."Vendor Shipment No.";
+        PurchRcptLine."Your Reference" := PurchRcptHeader."Your Reference";
         PurchRcptLine."Qty. Rcd. Not Invoiced" := PurchRcptLine.Quantity - PurchRcptLine."Quantity Invoiced";
         if PurchRcptLine.Quantity <> 0 then begin
             PurchRcptLine."Item Rcpt. Entry No." := DropShptPostBuffer."Item Shpt. Entry No.";
@@ -9058,11 +9061,27 @@ codeunit 80 "Sales-Post"
     var
         SalesCreditMemoHeader: Record "Sales Cr.Memo Header";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeUpdateSalesOrderLineIfExist(DocumentNo, IsHandled);
+        if IsHandled then
+            exit;
+
         SalesCreditMemoHeader.SetLoadFields("Return Order No.", "No.");
         SalesCreditMemoHeader.SetRange("Return Order No.", DocumentNo);
         if SalesCreditMemoHeader.FindFirst() then
             CorrectPostedSalesInvoice.UpdateSalesOrderLineIfExist(SalesCreditMemoHeader."No.");
+    end;
+
+    /// <summary>
+    /// Raised before updating a sales order line from a posted sales return order.
+    /// </summary>
+    /// <param name="DocumentNo">The number of the sales return order.</param>
+    /// <param name="IsHandled">Set to true to skip the default sales order line update.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateSalesOrderLineIfExist(DocumentNo: Code[20]; var IsHandled: Boolean)
+    begin
     end;
 
     /// <summary>
@@ -12104,8 +12123,7 @@ codeunit 80 "Sales-Post"
         if IsHandled then
             exit;
 
-        ReservEntry.ModifyAll("Qty. to Handle (Base)", 0);
-        ReservEntry.ModifyAll("Qty. to Invoice (Base)", 0);
+        ReservEntry.ModifyAll("Qty. to Handle (Base)", 0, "Qty. to Invoice (Base)", 0);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnBeforePostValueEntryToGL', '', false, false)]
@@ -13529,13 +13547,6 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterGetAmountsForDeferral(SalesLine: Record "Sales Line"; var AmtToDefer: Decimal; var AmtToDeferACY: Decimal; var DeferralAccount: Code[20])
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnPostJobContractLineBeforeTestFields(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -13741,19 +13752,6 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
-#if not CLEAN27
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer used.', '27.0')]
-    local procedure OnSetPostingPreviewDocumentNo(var PreviewDocumentNo: Code[20]; var SalesHeader: Record "Sales Header")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer used.', '27.0')]
-    local procedure OnGetPostingPreviewDocumentNos(var PreviewDocumentNos: List of [Code[20]])
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnPostInvoiceOnAfterPostLines(var SalesHeader: Record "Sales Header"; SrcCode: Code[10]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin

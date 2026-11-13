@@ -68,6 +68,7 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Processing Status';
             Editable = false;
+            ToolTip = 'Specifies whether the row has been processed. In case of an error during processing, it is displayed in the "Reason (Preview)" field.';
             trigger OnValidate()
             begin
                 if "Processing Status" in ["Processing Status"::None, "Processing Status"::Ok] then
@@ -114,7 +115,9 @@ table 8006 "Usage Data Billing"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }
@@ -132,7 +135,9 @@ table 8006 "Usage Data Billing"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }
@@ -152,7 +157,9 @@ table 8006 "Usage Data Billing"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }
@@ -363,7 +370,7 @@ table 8006 "Usage Data Billing"
         ServiceCommitment.Modify();
     end;
 
-    internal procedure SetReason(ReasonText: Text)
+    procedure SetReason(ReasonText: Text)
     var
         TextManagement: Codeunit "Text Management";
         RRef: RecordRef;
@@ -379,7 +386,7 @@ table 8006 "Usage Data Billing"
         end;
     end;
 
-    internal procedure InitFrom(UsageDataImportEntryNo: Integer; SubscriptionHeaderNo: Code[20]; ProductID: Text[80]; ProductName: Text[100];
+    procedure InitFrom(UsageDataImportEntryNo: Integer; SubscriptionHeaderNo: Code[20]; ProductID: Text[80]; ProductName: Text[100];
         BillingPeriodStartDate: Date; BillingPeriodEndDate: Date; NewQuantity: Decimal)
     begin
         Rec.Init();
@@ -394,7 +401,7 @@ table 8006 "Usage Data Billing"
         Rec.UpdateChargedPeriod();
     end;
 
-    internal procedure AlignContractCurrency(TempSubscriptionLine: Record "Subscription Line"; ImportCurrencyCode: Code[10])
+    procedure AlignContractCurrency(TempSubscriptionLine: Record "Subscription Line"; ImportCurrencyCode: Code[10])
     var
         AllowDiffCurrency: Boolean;
         CurrencyMismatchErr: Text;
@@ -437,7 +444,7 @@ table 8006 "Usage Data Billing"
         CurrencyMismatchErr := StrSubstNo(CustomerContractCurrencyMismatchErr, ContractNo, CustomerContract."Currency Code", ImportCurrencyCode);
     end;
 
-    internal procedure CalculateAmounts(UsageDataSupplier: Record "Usage Data Supplier"; ImportCurrencyCode: Code[10]; NewUnitCost: Decimal; NewCostAmount: Decimal; NewUnitPrice: Decimal; NewAmount: Decimal)
+    procedure CalculateAmounts(UsageDataSupplier: Record "Usage Data Supplier"; ImportCurrencyCode: Code[10]; NewUnitCost: Decimal; NewCostAmount: Decimal; NewUnitPrice: Decimal; NewAmount: Decimal)
     var
         Currency: Record Currency;
         NeedsCurrencyConversion: Boolean;
@@ -478,6 +485,11 @@ table 8006 "Usage Data Billing"
     begin
         Rec.SetRange("Usage Data Import Entry No.", UsageDataImportEntryNo);
         Rec.FilterOnServiceCommitment(ServiceCommitment);
+    end;
+
+    internal procedure ExcludeProcessingStatusError()
+    begin
+        Rec.SetFilter("Processing Status", '<>%1', Rec."Processing Status"::Error);
     end;
 
     internal procedure FilterOnServiceCommitment(ServiceCommitment: Record "Subscription Line")
@@ -769,7 +781,7 @@ table 8006 "Usage Data Billing"
         exit(not Rec.IsEmpty());
     end;
 
-    internal procedure UpdateRebilling()
+    procedure UpdateRebilling()
     var
         UsageDataBillingMetadata: Record "Usage Data Billing Metadata";
     begin
@@ -781,7 +793,7 @@ table 8006 "Usage Data Billing"
         Rec.Rebilling := not UsageDataBillingMetadata.IsEmpty;
     end;
 
-    internal procedure InsertMetadata()
+    procedure InsertMetadata()
     var
         UsageDataBillingMetadata: Record "Usage Data Billing Metadata";
     begin

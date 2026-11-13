@@ -9,11 +9,13 @@ permissionset 6906 "Expense Mgmt. Edit"
     Assignable = true;
     Caption = 'Expense Management - Edit';
 
-    IncludedPermissionSets = "Expense Mgmt. Read";
+    IncludedPermissionSets = "Expense Mgmt. Read",
+                             EACorpCardEdit;
 
     Permissions =
         tabledata Expense = IMD,
-        tabledata "Expense User" = IMD,
+        tabledata "Expense Vehicle Type" = IMD,
+        tabledata "Mileage Rate Setup" = IMD,
         tabledata "Expense Report Comment Line" = IMD,
         tabledata "Expense Itemization" = IMD,
         tabledata "Expense Participant" = IMD,
@@ -24,8 +26,7 @@ permissionset 6906 "Expense Mgmt. Edit"
         tabledata "Expense Report Line Per Diem" = IMD,
         tabledata "Expense Per Diem" = IMD,
         tabledata "Expense Activity Log Entry" = imd,
-        tabledata "Expense Team" = IMD,
-        tabledata "Expense Approval Setup" = IMD,
+        tabledata "Expense Alternate Approver" = IMD,
         tabledata "Posted Expense Report Header" = im,
         tabledata "Posted Expense Report Line" = im,
         tabledata "Posted Exp. Rep. Line Item" = im,
@@ -44,5 +45,6 @@ permissionset 6906 "Expense Mgmt. Edit"
         tabledata Traveler = IMD,
         tabledata "Expense VAT Specification" = IMD,
         tabledata "Expense Report Line VAT Spec." = IMD,
+        tabledata "Expense Activities Cue" = IMD,
         tabledata "Expense Vendor" = RIMD;
 }

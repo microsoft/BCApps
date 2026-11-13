@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Intrastat;
 
+using Microsoft.Foundation.Address;
 using Microsoft.Inventory.Journal;
 
 tableextension 31302 "Item Journal Line CZ" extends "Item Journal Line"
@@ -19,6 +20,12 @@ tableextension 31302 "Item Journal Line CZ" extends "Item Journal Line"
         {
             Caption = 'Physical Transfer';
             DataClassification = CustomerContent;
+        }
+        field(31310; "Country/Reg. of Orig. Code CZ"; Code[10])
+        {
+            Caption = 'Country/Region of Origin Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Country/Region";
         }
     }
 }

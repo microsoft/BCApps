@@ -58,6 +58,11 @@ page 459 "Sales & Receivables Setup"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+                field("Restore Order Qty. on Return"; Rec."Restore Order Qty. on Return")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                }
                 field("Invoice Rounding"; Rec."Invoice Rounding")
                 {
                     ApplicationArea = Basic, Suite;
@@ -70,16 +75,6 @@ page 459 "Sales & Receivables Setup"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-#if not CLEAN27                
-                field("Create Item from Item No."; Rec."Create Item from Item No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                    ObsoleteReason = 'Discontinued functionality';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#endif                
                 field("Create Item from Description"; Rec."Create Item from Description")
                 {
                     ApplicationArea = Basic, Suite;
@@ -539,7 +534,7 @@ page 459 "Sales & Receivables Setup"
                     ApplicationArea = Suite;
                     Caption = 'Reminder Terms';
                     Image = ReminderTerms;
-                    RunObject = Page "Reminder Terms";
+                    RunObject = Page "Reminder Terms List";
                     ToolTip = 'Set up reminder terms that you select from on customer cards to define when and how to remind the customer of late payments.';
                 }
                 action("Rounding Methods")
@@ -622,4 +617,3 @@ page 459 "Sales & Receivables Setup"
         CRMIntegrationEnabled: Boolean;
         JnlTemplateNameVisible: Boolean;
 }
-

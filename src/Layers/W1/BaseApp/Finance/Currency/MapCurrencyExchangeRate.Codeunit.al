@@ -256,7 +256,7 @@ codeunit 1280 "Map Currency Exchange Rate"
             DataExchFieldMapping.SetRange("Data Exch. Def Code", DataExch."Data Exch. Def Code");
             DataExchFieldMapping.SetRange("Field ID", TempField."No.");
             if DataExchFieldMapping.IsEmpty() then
-                Error(FieldNotMappedErr, TempField.FieldName);
+                Error(FieldNotMappedErr, TempField."Field Caption");
         until TempField.Next() = 0;
     end;
 

@@ -7,6 +7,7 @@ namespace Microsoft.Inventory.Transfer;
 using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
@@ -116,7 +117,7 @@ codeunit 5856 "TransferOrder-Post Transfer"
         InventorySetup.Get();
         InventorySetup.TestField("Posted Direct Trans. Nos.");
 
-        if InventorySetup.UseLegacyPosting() and InventorySetup."Automatic Cost Posting" then begin
+        if InventorySetup.UseLegacyPosting() and InventorySetup."Automatic Cost Posting" and not GLSetup.UseConcurrentPosting() then begin
             GLEntry.LockTable();
             GLEntry.GetLastEntryNo();
         end;
@@ -220,6 +221,7 @@ codeunit 5856 "TransferOrder-Post Transfer"
         TempHandlingSpecification: Record "Tracking Specification" temporary;
         TempWhseShptHeader: Record "Warehouse Shipment Header" temporary;
         GLEntry: Record "G/L Entry";
+        GLSetup: Record "General Ledger Setup";
         WhseShptHeader: Record "Warehouse Shipment Header";
         WhseShptLine: Record "Warehouse Shipment Line";
         DocSign: Record "Document Signature";
@@ -275,6 +277,29 @@ codeunit 5856 "TransferOrder-Post Transfer"
         ItemJnlPostLine.RunWithCheck(ItemJnlLine);
 
         OnAfterPostItemJnlLine(TransLine3, DirectTransHeader2, DirectTransLine2, ItemJnlLine, ItemJnlPostLine);
+    end;
+
+    local procedure DeleteInboundSurplusTracking(TransferLine: Record "Transfer Line")
+    var
+        ReservationEntry: Record "Reservation Entry";
+        SurplusReservationEntry: Record "Reservation Entry";
+        ReservationManagement: Codeunit "Reservation Management";
+    begin
+        ReservationEntry.SetSourceFilter(
+            Database::"Transfer Line", Enum::"Transfer Direction"::Inbound.AsInteger(),
+            TransferLine."Document No.", TransferLine."Line No.", true);
+        ReservationEntry.SetSourceFilter('', TransferLine."Derived From Line No.");
+        ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Surplus);
+        if ReservationEntry.FindSet() then begin
+            ReservationManagement.SetReservSource(TransferLine, Enum::"Transfer Direction"::Inbound);
+            ReservationManagement.SetItemTrackingHandling(1);
+            repeat
+                SurplusReservationEntry := ReservationEntry;
+                // Deletion resets the status filter, so restrict it to this surplus entry.
+                SurplusReservationEntry.SetRecFilter();
+                ReservationManagement.DeleteReservEntries(true, 0, SurplusReservationEntry);
+            until ReservationEntry.Next() = 0;
+        end;
     end;
 
     local procedure CreateItemJnlLine(TransLine3: Record "Transfer Line"; DirectTransHeader2: Record "Direct Trans. Header"; DirectTransLine2: Record "Direct Trans. Line")
@@ -393,7 +418,8 @@ codeunit 5856 "TransferOrder-Post Transfer"
         OnInsertDirectTransLineOnBeforeDirectTransHeaderInsert(DirectTransHeader, TransLine, IsHandled);
         if not IsHandled then
             DirectTransLine.Insert();
-        OnAfterInsertDirectTransLine(DirectTransLine, DirectTransHeader, TransLine)
+        OnAfterInsertDirectTransLine(DirectTransLine, DirectTransHeader, TransLine);
+        DeleteInboundSurplusTracking(TransLine);
     end;
 
     local procedure CreatePostedShptLineFromWhseShptLine(var TransferLine: Record "Transfer Line")

@@ -120,10 +120,8 @@ codeunit 10991 "EDoc. Helpers"
         IsHandled: Boolean;
     begin
         OnBeforeCheckBuyerElectronicAddress(SourceDocumentHeader, EDocumentServiceCode, IsHandled);
-        if IsHandled then
-            exit;
-
-        CheckBuyerElectronicAddressCore(SourceDocumentHeader, EDocumentServiceCode);
+        if not IsHandled then
+            CheckBuyerElectronicAddressCore(SourceDocumentHeader, EDocumentServiceCode);
 
         OnAfterCheckBuyerElectronicAddress(SourceDocumentHeader, EDocumentServiceCode);
     end;
@@ -145,7 +143,7 @@ codeunit 10991 "EDoc. Helpers"
             exit;
 
         if HasServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Customer, CustomerNo, ServiceParticipant) then begin
-            CheckBuyerElectronicAddressValue(ServiceParticipant."Participant Identifier", ServiceParticipant.FieldCaption("Participant Identifier"), CustomerNo);
+            CheckServiceParticipantElectronicAddressValue(ServiceParticipant, CustomerNo);
             exit;
         end;
 
@@ -168,18 +166,17 @@ codeunit 10991 "EDoc. Helpers"
         IsHandled: Boolean;
     begin
         OnBeforeGetBuyerElectronicAddress(Customer, BuyerElectronicAddress, Result, IsHandled);
-        if IsHandled then
-            exit(Result);
-
-        BuyerElectronicAddress := Customer."FR Electronic Address";
-        if BuyerElectronicAddress <> '' then
-            Result := true
-        else begin
-            BuyerElectronicAddress := CopyStr(Customer."Registration Number", 1, 9);
+        if not IsHandled then begin
+            BuyerElectronicAddress := Customer."FR Electronic Address";
             if BuyerElectronicAddress <> '' then
                 Result := true
-            else
-                Result := GetSIRENFromFrenchVATRegistrationNo(Customer."VAT Registration No.", BuyerElectronicAddress);
+            else begin
+                BuyerElectronicAddress := CopyStr(Customer."Registration Number", 1, 9);
+                if BuyerElectronicAddress <> '' then
+                    Result := true
+                else
+                    Result := GetSIRENFromFrenchVATRegistrationNo(Customer."VAT Registration No.", BuyerElectronicAddress);
+            end;
         end;
 
         OnAfterGetBuyerElectronicAddress(Customer, BuyerElectronicAddress, Result);
@@ -209,6 +206,16 @@ codeunit 10991 "EDoc. Helpers"
 
         Customer.Get(CustomerNo);
         RaiseCustomerError(StrSubstNo(BuyerElectronicAddressInvalidErr, FieldCaption, CustomerNo), Customer);
+    end;
+
+    local procedure CheckServiceParticipantElectronicAddressValue(ServiceParticipant: Record "Service Participant"; CustomerNo: Code[20])
+    begin
+        if IsValidBuyerElectronicAddress(ServiceParticipant."Participant Identifier") then
+            exit;
+
+        RaiseServiceParticipantError(
+            StrSubstNo(BuyerElectronicAddressInvalidErr, ServiceParticipant.FieldCaption("Participant Identifier"), CustomerNo),
+            ServiceParticipant);
     end;
 
     local procedure IsValidBuyerElectronicAddress(ElectronicAddress: Text): Boolean
@@ -248,6 +255,7 @@ codeunit 10991 "EDoc. Helpers"
         HasScheme := ServiceParticipant."FR Identifier Scheme" <> ServiceParticipant."FR Identifier Scheme"::" ";
         if HasIdentifier <> HasScheme then begin
             ParticipantAddressErrorInfo.Message(GetServiceParticipantAddressIncompleteError());
+            ParticipantAddressErrorInfo.DataClassification := DataClassification::SystemMetadata;
             ParticipantAddressErrorInfo.RecordId(ServiceParticipant.RecordId());
             ParticipantAddressErrorInfo.PageNo(Page::"Service Participants");
             ParticipantAddressErrorInfo.AddNavigationAction(ShowServiceParticipantLbl);
@@ -262,6 +270,7 @@ codeunit 10991 "EDoc. Helpers"
         SetupErrorInfo: ErrorInfo;
     begin
         SetupErrorInfo.Message(ErrorMessage);
+        SetupErrorInfo.DataClassification := DataClassification::SystemMetadata;
         SetupErrorInfo.RecordId(CompanyInformation.RecordId());
         SetupErrorInfo.PageNo(Page::"Company Information");
         SetupErrorInfo.AddNavigationAction(ShowCompanyInformationLbl);
@@ -273,9 +282,22 @@ codeunit 10991 "EDoc. Helpers"
         SetupErrorInfo: ErrorInfo;
     begin
         SetupErrorInfo.Message(ErrorMessage);
+        SetupErrorInfo.DataClassification := DataClassification::CustomerContent;
         SetupErrorInfo.RecordId(Customer.RecordId());
         SetupErrorInfo.PageNo(Page::"Customer Card");
         SetupErrorInfo.AddNavigationAction(ShowCustomerLbl);
+        Error(SetupErrorInfo);
+    end;
+
+    local procedure RaiseServiceParticipantError(ErrorMessage: Text; ServiceParticipant: Record "Service Participant")
+    var
+        SetupErrorInfo: ErrorInfo;
+    begin
+        SetupErrorInfo.Message(ErrorMessage);
+        SetupErrorInfo.DataClassification := DataClassification::CustomerContent;
+        SetupErrorInfo.RecordId(ServiceParticipant.RecordId());
+        SetupErrorInfo.PageNo(Page::"Service Participants");
+        SetupErrorInfo.AddNavigationAction(ShowServiceParticipantLbl);
         Error(SetupErrorInfo);
     end;
 

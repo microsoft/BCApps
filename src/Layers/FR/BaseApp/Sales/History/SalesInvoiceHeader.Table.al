@@ -771,13 +771,7 @@ table 112 "Sales Invoice Header"
         /// <summary>
         /// Specifies the tracking number for tracking shipped packages.
         /// </summary>
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(106; "Package Tracking No."; Text[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Package Tracking No.';
             ToolTip = 'Specifies the shipping agent''s package number.';
@@ -1283,10 +1277,20 @@ table 112 "Sales Invoice Header"
                 UpdateDisputeStatus();
             end;
         }
+#if not CLEANSCHEMA33
         field(10801; "VAT Paid on Debits"; Boolean)
         {
             Caption = 'VAT Paid on Debits';
+            ObsoleteReason = 'Moved to Sales FR app.';
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#endif
         }
+#endif
     }
 
     keys

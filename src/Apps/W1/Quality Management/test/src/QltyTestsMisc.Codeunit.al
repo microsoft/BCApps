@@ -36,6 +36,7 @@ using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Tracking;
 using Microsoft.Warehouse.Worksheet;
+using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Security.User;
 using System.TestLibraries.Utilities;
@@ -57,6 +58,8 @@ codeunit 139964 "Qlty. Tests - Misc."
         DocumentNo: Text;
         FlagTestNavigateToSourceDocument: Text;
         NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
+        AssignToYourselfNotificationIdTok: Label 'de535e9b-2727-4d23-8be4-e2ff33a2c586', Locked = true;
+        AssignToYourselfNotificationNameTok: Label 'Assign to yourself', Locked = true;
         Bin1Tok: Label 'Bin1';
         Bin2Tok: Label 'Bin2';
         WarehouseEntryTypeBlockedErr: Label '"%1" warehouse transaction is not allowed for item %2 with tracking %3 because quality inspection %4 has result %5, which is configured to block this transaction.', Comment = '%1=entry type being blocked, %2=item, %3=combined package tracking details of Lot No., Serial No. and Package No., %4=quality inspection, %5=result';
@@ -68,6 +71,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         LotSerialTrackingDetailsTok: Label '%1 %2', Comment = '%1=lot no,%2=serial no', Locked = true;
         LockedYesLbl: Label 'Yes', Locked = true;
         LockedNoLbl: Label 'No', Locked = true;
+        QualityInspectorTitleTok: Label 'Quality Inspector', Locked = true;
         IsInitialized: Boolean;
 
     [Test]
@@ -453,6 +457,175 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryAssert.AreEqual(SalespersonPurchaser."Phone No.", OutPhone, 'OutPhone should have been set');
         LibraryAssert.AreEqual(Database::"Salesperson/Purchaser", OutSourceRecord.TableNo(), 'OutSourceRecord should have been a Salesperson/Purchaser record');
         LibraryAssert.AreEqual(SalespersonPurchaser.RecordId(), OutSourceRecord, 'OutSourceRecord should have been a specific Salesperson/Purchaser record');
+    end;
+
+    [Test]
+    procedure ResolveFinishedByPerson_UserWithFullName()
+    var
+        User: Record User;
+        FinishedByUserName: Text;
+        FinishedByTitle: Text;
+        FinishedByEmail: Text;
+        FinishedByPhone: Text;
+    begin
+        // [SCENARIO] The finishing user's friendly full name is shown on reports instead of the user ID
+
+        Initialize();
+
+        // [GIVEN] The current user has a full name that differs from the user name
+        PrepareCurrentUserAsFinishingUser(User, CopyStr(Any.AlphanumericText(MaxStrLen(User."Full Name")), 1, MaxStrLen(User."Full Name")));
+
+        // [WHEN] ResolveFinishedByPerson is called with the User name
+        QltyInspectionUtility.ResolveFinishedByPerson(User."User Name", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
+
+        // [THEN] The full name is returned together with the default quality inspector title
+        LibraryAssert.AreEqual(User."Full Name", FinishedByUserName, 'The finished by name should be the user full name.');
+        LibraryAssert.AreEqual(QualityInspectorTitleTok, FinishedByTitle, 'The finished by title should be the default quality inspector title.');
+    end;
+
+    [Test]
+    procedure ResolveFinishedByPerson_UserWithBlankFullName()
+    var
+        User: Record User;
+        FinishedByUserName: Text;
+        FinishedByTitle: Text;
+        FinishedByEmail: Text;
+        FinishedByPhone: Text;
+    begin
+        // [SCENARIO] The user ID is shown on reports when the finishing user has no full name
+
+        Initialize();
+
+        // [GIVEN] The current user has a blank full name
+        PrepareCurrentUserAsFinishingUser(User, '');
+
+        // [WHEN] ResolveFinishedByPerson is called with the User name
+        QltyInspectionUtility.ResolveFinishedByPerson(User."User Name", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
+
+        // [THEN] The user ID is returned instead of a blank name
+        LibraryAssert.AreEqual(User."User Name", FinishedByUserName, 'The finished by name should fall back to the user ID.');
+        LibraryAssert.AreEqual(QualityInspectorTitleTok, FinishedByTitle, 'The finished by title should be the default quality inspector title.');
+    end;
+
+    [Test]
+    procedure ResolveFinishedByPerson_UserIdMatchesEmployee()
+    var
+        User: Record User;
+        Employee: Record Employee;
+        LibraryHumanResource: Codeunit "Library - Human Resource";
+        FinishedByUserName: Text;
+        FinishedByTitle: Text;
+        FinishedByEmail: Text;
+        FinishedByPhone: Text;
+    begin
+        // [SCENARIO] The saved user ID is shown on reports when no User exists for it, even if an Employee has the same number
+
+        Initialize();
+
+        // [GIVEN] An Employee with a name and job title
+        LibraryHumanResource.CreateEmployee(Employee);
+        Employee.Validate("First Name", 'Other');
+        Employee.Validate("Last Name", 'Employee');
+        Employee."Job Title" := 'Employee job title';
+        Employee.Modify(false);
+
+        // [GIVEN] No User exists with the Employee number as user name
+        User.SetRange("User Name", Employee."No.");
+        LibraryAssert.RecordIsEmpty(User);
+
+        // [WHEN] ResolveFinishedByPerson is called with the Employee number as the saved user ID
+        QltyInspectionUtility.ResolveFinishedByPerson(Employee."No.", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
+
+        // [THEN] The saved user ID is returned instead of the Employee name
+        LibraryAssert.AreEqual(Employee."No.", FinishedByUserName, 'The finished by name should fall back to the saved user ID, not the employee name.');
+        LibraryAssert.AreEqual(QualityInspectorTitleTok, FinishedByTitle, 'The finished by title should be the default quality inspector title.');
+    end;
+
+    [Test]
+    procedure ResolveFinishedByPerson_UserIdMatchesSalesperson()
+    var
+        User: Record User;
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        LibrarySales: Codeunit "Library - Sales";
+        FinishedByUserName: Text;
+        FinishedByTitle: Text;
+        FinishedByEmail: Text;
+        FinishedByPhone: Text;
+    begin
+        // [SCENARIO] The saved user ID is shown on reports when no User exists for it, even if a Salesperson/Purchaser has the same code
+
+        Initialize();
+
+        // [GIVEN] A Salesperson/Purchaser with a name and job title
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+        SalespersonPurchaser.Name := 'Other Salesperson';
+        SalespersonPurchaser."Job Title" := 'Salesperson job title';
+        SalespersonPurchaser.Modify(false);
+
+        // [GIVEN] No User exists with the Salesperson/Purchaser code as user name
+        User.SetRange("User Name", SalespersonPurchaser.Code);
+        LibraryAssert.RecordIsEmpty(User);
+
+        // [WHEN] ResolveFinishedByPerson is called with the Salesperson/Purchaser code as the saved user ID
+        QltyInspectionUtility.ResolveFinishedByPerson(SalespersonPurchaser.Code, FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
+
+        // [THEN] The saved user ID is returned instead of the Salesperson/Purchaser name
+        LibraryAssert.AreEqual(SalespersonPurchaser.Code, FinishedByUserName, 'The finished by name should fall back to the saved user ID, not the salesperson name.');
+        LibraryAssert.AreEqual(QualityInspectorTitleTok, FinishedByTitle, 'The finished by title should be the default quality inspector title.');
+    end;
+
+    [Test]
+    procedure ResolveFinishedByPerson_UserWithLinkedSalesperson()
+    var
+        User: Record User;
+        UserSetup: Record "User Setup";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
+        LibrarySales: Codeunit "Library - Sales";
+        FinishedByUserName: Text;
+        FinishedByTitle: Text;
+        FinishedByEmail: Text;
+        FinishedByPhone: Text;
+        CreatedUserSetup: Boolean;
+    begin
+        // [SCENARIO] The finishing user's full name is kept when the user is linked to a Salesperson/Purchaser with a different name
+
+        Initialize();
+
+        // [GIVEN] The current user has a full name
+        PrepareCurrentUserAsFinishingUser(User, CopyStr(Any.AlphanumericText(MaxStrLen(User."Full Name")), 1, MaxStrLen(User."Full Name")));
+
+        // [GIVEN] The current user is linked in User Setup to a Salesperson/Purchaser
+        if UserSetup.Get(User."User Name") then begin
+            LibrarySales.CreateSalesperson(SalespersonPurchaser);
+            UserSetup."Salespers./Purch. Code" := SalespersonPurchaser.Code;
+            UserSetup.Modify(false);
+        end else begin
+            LibraryDocumentApprovals.CreateUserSetup(UserSetup, User."User Name", '');
+            CreatedUserSetup := true;
+        end;
+
+        // [GIVEN] The linked Salesperson/Purchaser has a different name, a job title and an email address
+        SalespersonPurchaser.Get(UserSetup."Salespers./Purch. Code");
+        SalespersonPurchaser.Name := 'Linked Salesperson';
+        SalespersonPurchaser."Job Title" := 'Quality Lead';
+        SalespersonPurchaser."E-Mail" := CopyStr(Any.Email(), 1, MaxStrLen(SalespersonPurchaser."E-Mail"));
+        SalespersonPurchaser.Modify(false);
+
+        // [WHEN] ResolveFinishedByPerson is called with the User name
+        QltyInspectionUtility.ResolveFinishedByPerson(User."User Name", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
+
+        // [THEN] The user full name is returned, with the job title and email address of the linked Salesperson/Purchaser
+        LibraryAssert.AreEqual(User."Full Name", FinishedByUserName, 'The finished by name should be the user full name, not the salesperson name.');
+        LibraryAssert.AreEqual(SalespersonPurchaser."Job Title", FinishedByTitle, 'The finished by title should be the linked salesperson job title.');
+        LibraryAssert.AreEqual(SalespersonPurchaser."E-Mail", FinishedByEmail, 'The finished by email should be the linked salesperson email.');
+
+        if CreatedUserSetup then
+            UserSetup.Delete(false)
+        else begin
+            UserSetup."Salespers./Purch. Code" := '';
+            UserSetup.Modify(false);
+        end;
     end;
 
     [Test]
@@ -2834,43 +3007,30 @@ codeunit 139964 "Qlty. Tests - Misc."
     end;
 
     [Test]
-    procedure HandleNotificationActionIgnore()
+    procedure OptOutOfAssignToYourselfNotificationDisablesMyNotifications()
     var
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        Location: Record Location;
-        Item: Record Item;
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-        LibraryInventory: Codeunit "Library - Inventory";
+        MyNotifications: Record "My Notifications";
         MockNotification: Notification;
+        AssignToYourselfNotificationId: Guid;
     begin
-        // [SCENARIO] Notification action handler successfully sets quality inspection to prevent auto assignment when ignored
-
-        // [GIVEN] Quality management setup with location, item, and inspection template are configured
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 647649] Opting out of the "assign to yourself" inspection notification disables it in My Notifications, matching the standard "Don't show again" opt-out pattern.
         Initialize();
 
-        QltyInspectionUtility.EnsureSetupExists();
-        LibraryWarehouse.CreateLocation(Location);
-        LibraryInventory.CreateItem(Item);
-        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        // [GIVEN] The assign-to-yourself notification "N" is enabled for the current user
+        Evaluate(AssignToYourselfNotificationId, AssignToYourselfNotificationIdTok);
+        MyNotifications.InsertDefault(AssignToYourselfNotificationId, AssignToYourselfNotificationNameTok, AssignToYourselfNotificationNameTok, true);
+        MyNotifications.SetStatus(AssignToYourselfNotificationId, true);
+        LibraryAssert.IsTrue(MyNotifications.IsEnabled(AssignToYourselfNotificationId), 'N should start enabled for the current user');
 
-        // [GIVEN] A quality inspection is created from a purchase line for an untracked item
-        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
-        QltyInspectionGenRule.Delete();
+        // [WHEN] The user chooses the opt-out action on the assign-to-yourself notification
+        QltyInspectionUtility.HandleDontShowAssignToYourself(MockNotification);
 
-        // [GIVEN] A mock notification with the inspection record ID is prepared
-        MockNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));
+        // [THEN] N is disabled in My Notifications so the assign-to-yourself prompt no longer appears
+        LibraryAssert.IsFalse(MyNotifications.IsEnabled(AssignToYourselfNotificationId), 'N should be disabled in My Notifications after the user opts out');
 
-        // [WHEN] The ignore notification action is handled
-        QltyInspectionUtility.HandleNotificationActionIgnore(MockNotification);
-
-        // [THEN] The quality inspection is marked to prevent auto assignment
-        LibraryAssert.IsTrue(QltyInspectionHeader.GetPreventAutoAssignment(), 'Inspection should be ignored');
+        // Restore the default enabled state so this test does not leak My Notifications state into other tests
+        MyNotifications.SetStatus(AssignToYourselfNotificationId, true);
     end;
 
     [Test]
@@ -2964,6 +3124,22 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         IsInitialized := true;
+    end;
+
+    local procedure PrepareCurrentUserAsFinishingUser(var User: Record User; FullName: Text[80])
+    var
+        UserSetup: Record "User Setup";
+    begin
+        // Reuses the current user instead of creating a new one, because the test license limits the number of users.
+        User.SetRange("User Name", UserId());
+        LibraryAssert.IsTrue(User.FindFirst(), 'The current user should exist.');
+        User."Full Name" := FullName;
+        User.Modify(false);
+
+        if UserSetup.Get(User."User Name") then begin
+            UserSetup."Salespers./Purch. Code" := '';
+            UserSetup.Modify(false);
+        end;
     end;
 
     local procedure EnsureGenPostingSetupForAssemblyExists(AssemblyHeader: Record "Assembly Header")

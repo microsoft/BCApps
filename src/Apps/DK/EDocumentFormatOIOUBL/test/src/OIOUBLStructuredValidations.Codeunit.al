@@ -111,7 +111,7 @@ codeunit 148062 "OIOUBL Structured Validations"
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
     begin
         EDocumentPurchaseHeader.Get(EDocumentEntryNo);
-        Assert.AreEqual(SalesInvoiceNoTok, EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", StrSubstNo(MockDataMismatchErr, EDocumentPurchaseHeader.FieldCaption("Applies-to Ext. Invoice No."), EDocumentPurchaseHeader.TableCaption(), SalesInvoiceNoTok, EDocumentPurchaseHeader."Applies-to Ext. Invoice No."));
+        Assert.AreEqual(SalesInvoiceNoTok, EDocumentPurchaseHeader."Vendor Invoice No.", StrSubstNo(MockDataMismatchErr, EDocumentPurchaseHeader.FieldCaption("Vendor Invoice No."), EDocumentPurchaseHeader.TableCaption(), SalesInvoiceNoTok, EDocumentPurchaseHeader."Vendor Invoice No."));
         Assert.AreEqual('', EDocumentPurchaseHeader."Applies-to Doc. No.", StrSubstNo(MockDataMismatchErr, EDocumentPurchaseHeader.FieldCaption("Applies-to Doc. No."), EDocumentPurchaseHeader.TableCaption(), '', EDocumentPurchaseHeader."Applies-to Doc. No."));
     end;
 

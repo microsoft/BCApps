@@ -42,6 +42,11 @@ codeunit 13923 "PEPPOL BIS XML Document Tests"
         ExportPeppolBISFormat: Codeunit "EDoc PEPPOL BIS 3.0 DE";
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = Field or element name';
         IsInitialized: Boolean;
+        OriginalCompanyGLN: Code[13];
+        OriginalCompanyUsesGLN: Boolean;
+        OriginalCompanyUsesRegistrationNo: Boolean;
+        OriginalCompanyVATRegistrationNo: Text[20];
+        OriginalCompanyRegistrationNo: Text[20];
 
     #region SalesInvoice
     [Test]
@@ -129,6 +134,61 @@ codeunit 13923 "PEPPOL BIS XML Document Tests"
 
         // [THEN] Buyer endpoint (BT-49) retains schemeID attribute
         Assert.AreNotEqual('', GetNodeByPath(TempXMLBuffer, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'), StrSubstNo(IncorrectValueErr, 'BT-49 schemeID'));
+    end;
+
+    [Test]
+    procedure ExportSalesInvSupplierRegistrationNoAsFiscalCode()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        RegistrationNo: Text[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 646793] PEPPOL exports Registration No. as the supplier fiscal code when GLN and VAT ID are unavailable
+        Initialize();
+
+        // [GIVEN] A valid buyer and a company configured to use only Registration No.
+        Customer.Get(CreateCustomer());
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        SetCompanyRegistrationNo(RegistrationNo);
+        SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLineForCustomer("Sales Document Type"::Invoice, Customer."No."));
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Export PEPPOL BIS 3.0 DE Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Supplier tax and legal identifiers use the Registration No. and FC tax scheme
+        Assert.AreEqual(RegistrationNo, GetNodeByPath(TempXMLBuffer, '/Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID'), StrSubstNo(IncorrectValueErr, 'BT-32'));
+        Assert.AreEqual('FC', GetNodeByPath(TempXMLBuffer, '/Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cac:TaxScheme/cbc:ID'), StrSubstNo(IncorrectValueErr, 'BT-32 scheme'));
+        Assert.AreEqual(RegistrationNo, GetNodeByPath(TempXMLBuffer, '/Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID'), StrSubstNo(IncorrectValueErr, 'BT-30'));
+    end;
+
+    [Test]
+    procedure ExportSalesInvCustomerRegistrationNoAsLegalEntity()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        RegistrationNo: Text[50];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 652557] PEPPOL exports the customer Registration No. as the buyer legal entity identifier when GLN and VAT ID are unavailable
+        Initialize();
+
+        // [GIVEN] A customer configured to use only a Registration No. longer than 20 characters
+        RegistrationNo := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(30, 0), 1, MaxStrLen(RegistrationNo));
+        Customer.Get(CreateCustomerWithRegistrationNo(RegistrationNo));
+        SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLineForCustomer("Sales Document Type"::Invoice, Customer."No."));
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Export PEPPOL BIS 3.0 DE Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Customer legal entity identifier uses the Registration No.
+        Assert.AreEqual(RegistrationNo, GetNodeByPath(TempXMLBuffer, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID'), StrSubstNo(IncorrectValueErr, 'BT-47'));
     end;
 
     [Test]
@@ -354,12 +414,19 @@ codeunit 13923 "PEPPOL BIS XML Document Tests"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS XML Document Tests");
-        if IsInitialized then
+        if IsInitialized then begin
+            RestoreCompanyIdentifiers();
             exit;
+        end;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"PEPPOL BIS XML Document Tests");
         IsInitialized := true;
 
         CompanyInformation.Get();
+        OriginalCompanyGLN := CompanyInformation.GLN;
+        OriginalCompanyUsesGLN := CompanyInformation."Use GLN in Electronic Document";
+        OriginalCompanyUsesRegistrationNo := CompanyInformation."Use Reg. No. in E-Document";
+        OriginalCompanyVATRegistrationNo := CompanyInformation."VAT Registration No.";
+        OriginalCompanyRegistrationNo := CompanyInformation."Registration No.";
         CompanyInformation.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
         CompanyInformation."SWIFT Code" := LibraryUtility.GenerateGUID();
         CompanyInformation."E-Mail" := LibraryUtility.GenerateRandomEmail();
@@ -372,6 +439,28 @@ codeunit 13923 "PEPPOL BIS XML Document Tests"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"PEPPOL BIS XML Document Tests");
+    end;
+
+    local procedure RestoreCompanyIdentifiers()
+    begin
+        CompanyInformation.Get();
+        CompanyInformation.GLN := OriginalCompanyGLN;
+        CompanyInformation."Use GLN in Electronic Document" := OriginalCompanyUsesGLN;
+        CompanyInformation."Use Reg. No. in E-Document" := OriginalCompanyUsesRegistrationNo;
+        CompanyInformation."VAT Registration No." := OriginalCompanyVATRegistrationNo;
+        CompanyInformation."Registration No." := OriginalCompanyRegistrationNo;
+        CompanyInformation.Modify();
+    end;
+
+    local procedure SetCompanyRegistrationNo(RegistrationNo: Text[20])
+    begin
+        CompanyInformation.Get();
+        CompanyInformation.GLN := '';
+        CompanyInformation."Use GLN in Electronic Document" := false;
+        CompanyInformation."VAT Registration No." := '';
+        CompanyInformation."Registration No." := RegistrationNo;
+        CompanyInformation."Use Reg. No. in E-Document" := true;
+        CompanyInformation.Modify();
     end;
 
     local procedure CreateAndPostSalesDocument(DocumentType: Enum "Sales Document Type"): Code[20]
@@ -443,7 +532,7 @@ codeunit 13923 "PEPPOL BIS XML Document Tests"
         Customer.DeleteAll();
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
-        Customer.Validate("VAT Registration No.", CompanyInformation."VAT Registration No.");
+        Customer.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code"));
         Customer.Validate("E-Invoice Routing No.", LibraryEDocDE.CreateValidRoutingNo());
         Customer.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
         Customer.Modify(true);
@@ -456,6 +545,20 @@ codeunit 13923 "PEPPOL BIS XML Document Tests"
     begin
         Customer.Get(CreateCustomer());
         Customer."E-Invoice Routing No." := '';
+        Customer.Modify(true);
+        exit(Customer."No.");
+    end;
+
+    local procedure CreateCustomerWithRegistrationNo(RegistrationNo: Text[50]): Code[20]
+    var
+        Customer: Record Customer;
+    begin
+        Customer.Get(CreateCustomer());
+        Customer.GLN := '';
+        Customer."Use GLN in Electronic Document" := false;
+        Customer."VAT Registration No." := '';
+        Customer."Registration Number" := RegistrationNo;
+        Customer."Use Reg. No. in E-Document" := true;
         Customer.Modify(true);
         exit(Customer."No.");
     end;
