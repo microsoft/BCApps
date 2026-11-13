@@ -1762,6 +1762,62 @@ codeunit 144040 "UT TAB Payment Management"
 #endif
 #endif
 
+#if not CLEAN28
+#pragma warning disable AL0432
+    [Test]
+    [HandlerFunctions('PaymentSlipListFRPageHandler,PaymentReportFRPageHandler,ViewEditPaymentLineFRPageHandler')]
+    procedure LegacyPaymentPagesRedirectWhenFeatureEnabled()
+    begin
+        Initialize();
+
+        VerifyPaymentPageNavigation(Page::"Payment Slip List", Page::"Payment Slip List FR", true);
+        VerifyPaymentPageNavigation(Page::"Payment Report", Page::"Payment Report FR", true);
+        VerifyPaymentPageNavigation(Page::"View/Edit Payment Line", Page::"View/Edit Payment Line FR", true);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('PaymentSlipListPageHandler,PaymentReportPageHandler,ViewEditPaymentLinePageHandler')]
+    procedure FRPaymentPagesRedirectWhenFeatureDisabled()
+    begin
+        Initialize();
+
+        VerifyPaymentPageNavigation(Page::"Payment Slip List FR", Page::"Payment Slip List", false);
+        VerifyPaymentPageNavigation(Page::"Payment Report FR", Page::"Payment Report", false);
+        VerifyPaymentPageNavigation(Page::"View/Edit Payment Line FR", Page::"View/Edit Payment Line", false);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('PaymentSlipListFRPageHandler,PaymentReportFRPageHandler,ViewEditPaymentLineFRPageHandler')]
+    procedure FRPaymentPagesOpenWhenFeatureEnabled()
+    begin
+        Initialize();
+
+        VerifyPaymentPageNavigation(Page::"Payment Slip List FR", Page::"Payment Slip List FR", true);
+        VerifyPaymentPageNavigation(Page::"Payment Report FR", Page::"Payment Report FR", true);
+        VerifyPaymentPageNavigation(Page::"View/Edit Payment Line FR", Page::"View/Edit Payment Line FR", true);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('PaymentSlipListPageHandler,PaymentReportPageHandler,ViewEditPaymentLinePageHandler')]
+    procedure LegacyPaymentPagesOpenWhenFeatureDisabled()
+    begin
+        Initialize();
+
+        VerifyPaymentPageNavigation(Page::"Payment Slip List", Page::"Payment Slip List", false);
+        VerifyPaymentPageNavigation(Page::"Payment Report", Page::"Payment Report", false);
+        VerifyPaymentPageNavigation(Page::"View/Edit Payment Line", Page::"View/Edit Payment Line", false);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+#pragma warning restore AL0432
+#endif
+
     local procedure CreateDirectDebitTestCollection(var DirectDebitCollection: Record "Direct Debit Collection"; SourceTableId: Integer)
     begin
         DirectDebitCollection.CreateRecord(
@@ -1976,6 +2032,49 @@ codeunit 144040 "UT TAB Payment Management"
         VATEntry.Get(VATEntry."Entry No.");
         Assert.AreEqual(ExpectedAmount, VATEntry."Remaining Unrealized Amount", 'The active payment feature must choose the delayed-VAT flag.');
     end;
+#if not CLEAN28
+    local procedure VerifyPaymentPageNavigation(PageId: Integer; ExpectedPageId: Integer; FeatureEnabled: Boolean)
+    begin
+        SetPaymentFeatureEnabled(FeatureEnabled);
+        if PageId <> ExpectedPageId then begin
+            ClearLastError();
+            asserterror OpenPaymentPageForRedirect(PageId);
+            Assert.AreEqual('', GetLastErrorText(), 'Redirecting must close the original page without a visible error.');
+        end else
+            Page.Run(PageId);
+
+        Assert.AreEqual(ExpectedPageId, LibraryVariableStorage.DequeueInteger(), 'The page must match the current payment feature state.');
+        RestorePaymentFeatureStatus();
+    end;
+
+#pragma warning disable AL0432
+    local procedure OpenPaymentPageForRedirect(PageId: Integer)
+    var
+        PaymentSlipList: TestPage "Payment Slip List";
+        PaymentReport: TestPage "Payment Report";
+        ViewEditPaymentLine: TestPage "View/Edit Payment Line";
+        PaymentSlipListFR: TestPage "Payment Slip List FR";
+        PaymentReportFR: TestPage "Payment Report FR";
+        ViewEditPaymentLineFR: TestPage "View/Edit Payment Line FR";
+    begin
+        case PageId of
+            Page::"Payment Slip List":
+                PaymentSlipList.OpenView();
+            Page::"Payment Report":
+                PaymentReport.OpenView();
+            Page::"View/Edit Payment Line":
+                ViewEditPaymentLine.OpenView();
+            Page::"Payment Slip List FR":
+                PaymentSlipListFR.OpenView();
+            Page::"Payment Report FR":
+                PaymentReportFR.OpenView();
+            Page::"View/Edit Payment Line FR":
+                ViewEditPaymentLineFR.OpenView();
+        end;
+    end;
+#pragma warning restore AL0432
+#endif
+
     local procedure SetPaymentFeatureEnabled(FeatureEnabled: Boolean)
 #if not CLEAN28
     var
@@ -2393,6 +2492,50 @@ codeunit 144040 "UT TAB Payment Management"
     end;
 
 #if not CLEAN28
+    [PageHandler]
+    procedure PaymentSlipListFRPageHandler(var PaymentSlipList: TestPage "Payment Slip List FR")
+    begin
+        LibraryVariableStorage.Enqueue(Page::"Payment Slip List FR");
+        PaymentSlipList.Close();
+    end;
+
+    [PageHandler]
+    procedure PaymentReportFRPageHandler(var PaymentReport: TestPage "Payment Report FR")
+    begin
+        LibraryVariableStorage.Enqueue(Page::"Payment Report FR");
+        PaymentReport.Close();
+    end;
+
+    [PageHandler]
+    procedure ViewEditPaymentLineFRPageHandler(var ViewEditPaymentLine: TestPage "View/Edit Payment Line FR")
+    begin
+        LibraryVariableStorage.Enqueue(Page::"View/Edit Payment Line FR");
+        ViewEditPaymentLine.Close();
+    end;
+
+#pragma warning disable AL0432
+    [PageHandler]
+    procedure PaymentSlipListPageHandler(var PaymentSlipList: TestPage "Payment Slip List")
+    begin
+        LibraryVariableStorage.Enqueue(Page::"Payment Slip List");
+        PaymentSlipList.Close();
+    end;
+
+    [PageHandler]
+    procedure PaymentReportPageHandler(var PaymentReport: TestPage "Payment Report")
+    begin
+        LibraryVariableStorage.Enqueue(Page::"Payment Report");
+        PaymentReport.Close();
+    end;
+
+    [PageHandler]
+    procedure ViewEditPaymentLinePageHandler(var ViewEditPaymentLine: TestPage "View/Edit Payment Line")
+    begin
+        LibraryVariableStorage.Enqueue(Page::"View/Edit Payment Line");
+        ViewEditPaymentLine.Close();
+    end;
+#pragma warning restore AL0432
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Payment Management Feature FR", OnAfterCheckFeatureEnabled, '', false, false)]
     local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
     begin
