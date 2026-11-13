@@ -1,0 +1,9 @@
+[
+  "src/Layers/RU/BaseApp/Inventory/Location/ResponsibilityCenter.Table.al",
+  "src/Layers/APAC/BaseApp/Sales/Reports/CustomerItemSales.Report.al",
+  "src/Layers/APAC/BaseApp/Sales/Reports/SalespersonSalesStatistics.Report.al",
+  "src/Layers/ES/BaseApp/Purchases/Posting/PurchPost.Codeunit.al",
+  "src/Layers/ES/Tests/ApplicationTestLibrary/LibraryCashFlowHelper.Codeunit.al",
+  "src/Layers/ES/Tests/ERM-Finance/ERMAccountSchedule.Codeunit.al",
+  "src/Layers/FI/BaseApp/Purchases/Posting/PurchPost.Codeunit.al"
+]
