@@ -1,5 +1,14 @@
 namespace Microsoft.Warehouse.Tests;
 
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Location;
+using Microsoft.Purchases.Document;
+using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Document;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
+
 // [FEATURE] Put-away bin selection 
 codeunit 137933 "SCM Put-away Templ. Empty Bin"
 {
