@@ -8,7 +8,6 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.EServices.OnlineMap;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.FixedAssets.Setup;
 using Microsoft.Foundation.Address;
