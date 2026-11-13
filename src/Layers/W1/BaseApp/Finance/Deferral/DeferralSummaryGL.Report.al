@@ -290,18 +290,7 @@ report 1700 "Deferral Summary - G/L"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
-#if not CLEAN27
-        layout(RDLC)
-        {
-            Caption = 'Deferral Summary G/L RDLC';
-            Type = RDLC;
-            LayoutFile = './Finance/Deferral/DeferralSummaryGL.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
-            ObsoleteTag = '27.0';
-            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
-        }
-#endif
+
         layout(WordBody)
         {
             Type = Word;
