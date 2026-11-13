@@ -1364,7 +1364,7 @@ codeunit 8060 "Create Billing Documents"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeTempBillingLineToDeleteCopy(TempBillingLine, ContractNo , IsHandled);
+        OnBeforeTempBillingLineToDeleteCopy(ContractNo , IsHandled);
         if IsHandled then
             exit;
         // Release a processed contract's aggregated temp lines so the temporary table stays small; otherwise it
@@ -1525,7 +1525,7 @@ codeunit 8060 "Create Billing Documents"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeTempBillingLineToDeleteCopy(TempBillingLine: Record "Billing Line" temporary; ContractNo: Code[20]; var IsHandled: Boolean)
+    local procedure OnBeforeTempBillingLineToDeleteCopy(ContractNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
