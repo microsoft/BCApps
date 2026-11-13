@@ -6,8 +6,8 @@ codeunit 101017 "Demo Data Importer"
         DemoDataSetup: Record "Demo Data Setup";
         DemoDataFile: Record "Demo Data File";
         CreateGettingStartedData: Codeunit "Create Getting Started Data";
-        TblsArray: DotNet JArray;
-        TblObj: DotNet JObject;
+        TablesArray: JsonArray;
+        TableToken: JsonToken;
     begin
         CreateGettingStartedData.ImportDemoDataFiles();
 
@@ -19,29 +19,31 @@ codeunit 101017 "Demo Data Importer"
         if not DemoDataFile.FindSet() then
             exit;
 
-        CachedRefrencesTable := CachedRefrencesTable.Hashtable();
+        Clear(CachedReferencesTable);
 
         repeat
             ReadDemoDataFile(DemoDataFile);
 
-            JSONManagement.InitializeObject(JsonTxt);
-            JSONManagement.GetJSONObject(JsonObject);
-            TblsArray := JsonObject.Item('tables');
-            OptionsTable := OptionsTable.Hashtable();
-            RefrencesTable := RefrencesTable.Hashtable();
-            foreach TblObj in TblsArray do
-                ImportTable(TblObj);
+            JsonObject.ReadFrom(JsonTxt);
+            TablesArray := JsonObject.GetArray('tables');
+            Clear(OptionsTable);
+            Clear(ReferencesTable);
+            Clear(IndexedReferenceAddresses);
+            foreach TableToken in TablesArray do
+                ImportTable(TableToken.AsObject());
         until DemoDataFile.Next() = 0;
     end;
 
     var
-        JSONManagement: Codeunit "JSON Management";
-        OptionsTable: DotNet Hashtable;
-        RefrencesTable: DotNet Hashtable;
-        CachedRefrencesTable: DotNet Hashtable;
-        JsonObject: DotNet JObject;
+        Json: Codeunit Json;
+        OptionsTable: Dictionary of [Text, Integer];
+        ReferencesTable: Dictionary of [Text, Text];
+        CachedReferencesTable: Dictionary of [Text, Text];
+        IndexedReferenceAddresses: List of [Text];
+        JsonObject: JsonObject;
         JsonTxt: Text;
         LanguageCode: Code[10];
+        OptionValueNotFoundErr: Label 'The option value mapping %1 was not found.', Comment = '%1 = Option value mapping key';
 
     local procedure ReadDemoDataFile(DemoDataFile: Record "Demo Data File")
     var
@@ -52,36 +54,36 @@ codeunit 101017 "Demo Data Importer"
         InStrm.Read(JsonTxt);
     end;
 
-    local procedure InsertEntry(RowObj: DotNet JObject; TableId: Integer)
+    local procedure InsertEntry(RowObj: JsonObject; TableId: Integer)
     var
         "Field": Record "Field";
-        IEnumerable: DotNet GenericIEnumerable1;
-        IEnumerator: DotNet GenericIEnumerator1;
-        JProp: DotNet JProperty;
         FRef: FieldRef;
         RecRef: RecordRef;
         TempVar: Variant;
-        ValToken: DotNet JToken;
+        ValueToken: JsonToken;
+        LocalizedValueToken: JsonToken;
+        LocalizedValues: JsonObject;
+        FieldName: Text;
         TempInt: Integer;
         TempBool: Boolean;
     begin
         RecRef.Open(TableId);
 
-        IEnumerable := RowObj.Properties();
-        IEnumerator := IEnumerable.GetEnumerator();
-
-        while IEnumerator.MoveNext() do begin
-            JProp := IEnumerator.Current;
-            if not IsNull(JProp.SelectToken('$..@')) then begin
-                ValToken := JProp.SelectToken('$..' + LanguageCode);
-                TempVar := ValToken.ToString();
+        foreach FieldName in RowObj.Keys() do begin
+            RowObj.Get(FieldName, ValueToken);
+            if ValueToken.IsObject() then begin
+                LocalizedValues := ValueToken.AsObject();
+                if LocalizedValues.Get(LanguageCode, LocalizedValueToken) then
+                    TempVar := Json.GetTokenAsText(LocalizedValueToken)
+                else
+                    Clear(TempVar);
             end else
-                TempVar := JProp.Value();
+                TempVar := Json.GetTokenAsText(ValueToken);
 
-            if RefrencesTable.Contains(Format(TableId) + '/' + Format(JProp.Name)) then
-                TempVar := GetRefrencedValue(Format(TableId) + '/' + Format(JProp.Name), Format(TempVar));
+            if ReferencesTable.ContainsKey(Format(TableId) + '/' + FieldName) then
+                TempVar := GetReferencedValue(Format(TableId) + '/' + FieldName, Format(TempVar));
 
-            FRef := RecRef.Field(GetFieldNo(TableId, JProp.Name, Field));
+            FRef := RecRef.Field(GetFieldNo(TableId, FieldName, Field));
             case Field.Type of
                 Field.Type::Option:
                     FRef.Validate(GetVal(Format(TableId) + '.' + Format(Field.FieldName) + '.' + Format(TempVar)));
@@ -118,94 +120,75 @@ codeunit 101017 "Demo Data Importer"
         exit(Field."No.");
     end;
 
-    local procedure ImportTable(TblJObj: DotNet JObject)
+    local procedure ImportTable(TableJson: JsonObject)
     var
-        RowsArray: DotNet JArray;
-        MetadataJTok: DotNet JToken;
-        JTok: DotNet JToken;
-        RowObj: DotNet JObject;
-        TempVar: Variant;
+        RowsArray: JsonArray;
+        MetadataToken: JsonToken;
+        JsonToken: JsonToken;
+        RowToken: JsonToken;
         TblID: Integer;
     begin
-        JSONManagement.GetPropertyValueFromJObjectByName(TblJObj, 'table', TempVar);
-        Evaluate(TblID, Format(TempVar));
+        TblID := TableJson.GetInteger('table');
 
-        if TblJObj.TryGetValue('FieldMetaData', MetadataJTok) then begin
-            JSONManagement.GetObjectPropertyValueFromJObjectByName(MetadataJTok, 'Options', JTok);
-            if not IsNull(JTok) then
-                InitOptionsTable(OptionsTable, JTok, TblID);
+        if TableJson.Get('FieldMetaData', MetadataToken) and MetadataToken.IsObject() then begin
+            if MetadataToken.AsObject().Get('Options', JsonToken) and JsonToken.IsObject() then
+                InitOptionsTable(JsonToken.AsObject(), TblID);
 
-            JSONManagement.GetObjectPropertyValueFromJObjectByName(MetadataJTok, 'Refrences', JTok);
-            if not IsNull(JTok) then
-                InitRefrencesTable(JTok, TblID);
+            if MetadataToken.AsObject().Get('Refrences', JsonToken) and JsonToken.IsObject() then
+                InitReferencesTable(JsonToken.AsObject(), TblID);
         end;
 
-        JSONManagement.GetArrayPropertyValueFromJObjectByName(TblJObj, 'rows', RowsArray);
-        foreach RowObj in RowsArray do
-            InsertEntry(RowObj, TblID);
+        RowsArray := TableJson.GetArray('rows');
+        foreach RowToken in RowsArray do
+            InsertEntry(RowToken.AsObject(), TblID);
     end;
 
-    local procedure InitOptionsTable(OptionsTable: DotNet Hashtable; OptionsJObj: DotNet JObject; TableId: Integer)
+    local procedure InitOptionsTable(OptionsJson: JsonObject; TableId: Integer)
     var
-        IEnumerable: DotNet GenericIEnumerable1;
-        IEnumerator: DotNet GenericIEnumerator1;
-        OptJObj: DotNet JProperty;
+        OptionName: Text;
     begin
-        IEnumerable := OptionsJObj.Properties();
-        IEnumerator := IEnumerable.GetEnumerator();
-
-        while IEnumerator.MoveNext() do begin
-            OptJObj := IEnumerator.Current;
-            PopulateOptionsTbl(OptionsTable, OptJObj, TableId);
-        end;
+        foreach OptionName in OptionsJson.Keys() do
+            PopulateOptionsTbl(OptionsJson, OptionName, TableId);
     end;
 
-    local procedure PopulateOptionsTbl(OptionsTable: DotNet Hashtable; OptionsJProperty: DotNet JProperty; TableID: Integer)
+    local procedure PopulateOptionsTbl(OptionsJson: JsonObject; OptionName: Text; TableID: Integer)
     var
-        JTok: DotNet JToken;
-        LocJTok: DotNet JToken;
-        TempVar: Variant;
+        LanguagesToken: JsonToken;
+        LanguageToken: JsonToken;
+        LanguagesJson: JsonObject;
     begin
-        TempVar := OptionsJProperty.Name;
-        JTok := OptionsJProperty.SelectToken('$..ENU');
-        if not IsNull(JTok) then
-            AddOptionsToDic(OptionsTable, JTok.ToString(), TableID, Format(TempVar));
+        if not OptionsJson.Get(OptionName, LanguagesToken) or not LanguagesToken.IsObject() then
+            exit;
+        LanguagesJson := LanguagesToken.AsObject();
+        if LanguagesJson.Get('ENU', LanguageToken) then
+            AddOptionsToDic(Json.GetTokenAsText(LanguageToken), TableID, OptionName);
 
-        LocJTok := OptionsJProperty.SelectToken('$..' + LanguageCode);
-        if not IsNull(LocJTok) then
-            AddOptionsToDic(OptionsTable, LocJTok.ToString(), TableID, Format(TempVar));
+        if LanguagesJson.Get(LanguageCode, LanguageToken) then
+            AddOptionsToDic(Json.GetTokenAsText(LanguageToken), TableID, OptionName);
     end;
 
-    local procedure InitRefrencesTable(RefJObj: DotNet JObject; TableId: Integer)
+    local procedure InitReferencesTable(ReferencesJson: JsonObject; TableId: Integer)
     var
-        IEnumerable: DotNet GenericIEnumerable1;
-        IEnumerator: DotNet GenericIEnumerator1;
-        JProp: DotNet JProperty;
+        ReferenceToken: JsonToken;
+        FieldName: Text;
         KeyStr: Text;
     begin
-        IEnumerable := RefJObj.Properties();
-        IEnumerator := IEnumerable.GetEnumerator();
-
-        while IEnumerator.MoveNext() do begin
-            JProp := IEnumerator.Current;
-            KeyStr := Format(TableId) + '/' + Format(JProp.Name);
-            if not RefrencesTable.ContainsKey(KeyStr) then
-                RefrencesTable.Add(KeyStr, Format(JProp.Value));
+        foreach FieldName in ReferencesJson.Keys() do begin
+            ReferencesJson.Get(FieldName, ReferenceToken);
+            KeyStr := Format(TableId) + '/' + FieldName;
+            if not ReferencesTable.ContainsKey(KeyStr) then
+                ReferencesTable.Add(KeyStr, Json.GetTokenAsText(ReferenceToken));
         end;
     end;
 
-    local procedure AddOptionsToDic(OptionsTable: DotNet Hashtable; OptionString: DotNet String; TableID: Integer; OptionName: Text)
+    local procedure AddOptionsToDic(OptionString: Text; TableID: Integer; OptionName: Text)
     var
-        CommaChar: DotNet String;
-        Arr: DotNet Array;
         KeyStr: Text;
         I: Integer;
         OptText: Text;
     begin
-        CommaChar := ',';
-        Arr := OptionString.Split(CommaChar.ToCharArray());
         I := 0;
-        foreach OptText in Arr do begin
+        foreach OptText in OptionString.Split(',') do begin
             KeyStr := Format(TableID) + '.' + Format(OptionName) + '.' + OptText;
             if not OptionsTable.ContainsKey(KeyStr) then
                 OptionsTable.Add(KeyStr, I);
@@ -215,21 +198,18 @@ codeunit 101017 "Demo Data Importer"
 
     local procedure GetVal(KeyTxt: Text): Integer
     var
-        ValVar: Variant;
         ValInt: Integer;
     begin
-        ValVar := OptionsTable.Item(KeyTxt);
-        Evaluate(ValInt, Format(ValVar));
+        if not OptionsTable.Get(KeyTxt, ValInt) then
+            Error(OptionValueNotFoundErr, KeyTxt);
         exit(ValInt);
     end;
 
-    local procedure GetRefrencedValue("Key": Text; RefValue: Text): Text
+    local procedure GetReferencedValue("Key": Text; RefValue: Text): Text
     var
-        CommaChar: DotNet String;
-        Arr: DotNet Array;
-        RefAdd: DotNet String;
-        TempVar: Variant;
-        JsonPath: Text;
+        ReferenceAddress: Text;
+        CacheKey: Text;
+        Result: Text;
     begin
         if RefValue = '' then
             exit('');
@@ -237,19 +217,78 @@ codeunit 101017 "Demo Data Importer"
         if LanguageCode = 'ENU' then
             exit(RefValue);
 
-        RefAdd := RefrencesTable.Item(Key);
-        if CachedRefrencesTable.Contains(RefAdd.ToString() + '/' + RefValue) then
-            exit(Format(CachedRefrencesTable.Item(RefAdd.ToString() + '/' + RefValue)));
+        ReferencesTable.Get(Key, ReferenceAddress);
+        CacheKey := ReferenceAddress + '/' + RefValue;
+        if CachedReferencesTable.Get(CacheKey, Result) then
+            exit(Result);
 
-        CommaChar := '/';
-        Arr := RefAdd.Split(CommaChar.ToCharArray());
-        JsonPath := StrSubstNo('$..tables[?(@.table == %1)].rows[?(@.%2.ENU == ''%3'')].%2.%4',
-            Arr.GetValue(0), Arr.GetValue(1), RefValue, LanguageCode);
-        TempVar := JsonObject.SelectToken(JsonPath);
-        if not IsNull(TempVar) then
-            CachedRefrencesTable.Add(RefAdd.ToString() + '/' + RefValue, Format(TempVar));
+        // Index each referenced table/field once per document instead of scanning it for every value.
+        if IndexedReferenceAddresses.Contains(ReferenceAddress) then
+            exit('');
+        IndexReferenceAddress(ReferenceAddress);
 
-        exit(Format(TempVar));
+        if CachedReferencesTable.Get(CacheKey, Result) then
+            exit(Result);
+        exit('');
     end;
-}
 
+    local procedure IndexReferenceAddress(ReferenceAddress: Text)
+    var
+        TablesToken: JsonToken;
+        TableToken: JsonToken;
+        ReferenceParts: List of [Text];
+        ReferenceTableId: Integer;
+    begin
+        IndexedReferenceAddresses.Add(ReferenceAddress);
+
+        ReferenceParts := ReferenceAddress.Split('/');
+        Evaluate(ReferenceTableId, ReferenceParts.Get(1));
+
+        if not JsonObject.Get('tables', TablesToken) or not TablesToken.IsArray() then
+            exit;
+
+        foreach TableToken in TablesToken.AsArray() do
+            if TableToken.IsObject() then
+                if TableToken.AsObject().GetInteger('table') = ReferenceTableId then
+                    IndexReferenceRows(TableToken.AsObject(), ReferenceAddress, ReferenceParts.Get(2));
+    end;
+
+    local procedure IndexReferenceRows(TableObject: JsonObject; ReferenceAddress: Text; ReferenceFieldName: Text)
+    var
+        RowsToken: JsonToken;
+        RowToken: JsonToken;
+        FieldToken: JsonToken;
+        CacheKey: Text;
+        EnuValue: Text;
+        LocalizedValue: Text;
+    begin
+        if not TableObject.Get('rows', RowsToken) or not RowsToken.IsArray() then
+            exit;
+
+        foreach RowToken in RowsToken.AsArray() do
+            if RowToken.IsObject() then
+                if RowToken.AsObject().Get(ReferenceFieldName, FieldToken) then
+                    if FieldToken.IsObject() then
+                        if TryGetLanguageValue(FieldToken.AsObject(), 'ENU', EnuValue) and
+                           TryGetLanguageValue(FieldToken.AsObject(), LanguageCode, LocalizedValue)
+                        then begin
+                            CacheKey := ReferenceAddress + '/' + EnuValue;
+                            if not CachedReferencesTable.ContainsKey(CacheKey) then
+                                CachedReferencesTable.Add(CacheKey, LocalizedValue);
+                        end;
+    end;
+
+    local procedure TryGetLanguageValue(FieldObject: JsonObject; Language: Text; var Value: Text): Boolean
+    var
+        LanguageToken: JsonToken;
+    begin
+        Clear(Value);
+        if not FieldObject.Get(Language, LanguageToken) or not LanguageToken.IsValue() then
+            exit(false);
+        if LanguageToken.AsValue().IsNull() or LanguageToken.AsValue().IsUndefined() then
+            exit(false);
+        Value := LanguageToken.AsValue().AsText();
+        exit(true);
+    end;
+
+}

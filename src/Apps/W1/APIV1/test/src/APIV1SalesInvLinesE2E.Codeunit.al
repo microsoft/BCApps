@@ -243,7 +243,7 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
         Assert.IsTrue(
           LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'sequence', LineNoFromJSON), 'Could not find sequence');
 
-        EVALUATE(LineNo, LineNoFromJSON);
+        EVALUATE(LineNo, LineNoFromJSON, 9);
         SalesLine.SetRange("Document Type", SalesHeader."Document Type"::Invoice);
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         SalesLine.SetRange("Line No.", LineNo);
@@ -626,7 +626,7 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
         Assert.IsTrue(
           LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'sequence', LineNoFromJSON), 'Could not find sequence');
 
-        EVALUATE(LineNo, LineNoFromJSON);
+        EVALUATE(LineNo, LineNoFromJSON, 9);
         ApiSalesLine.SETRANGE("Document Type", SalesHeader."Document Type"::Invoice);
         ApiSalesLine.SETRANGE("Document No.", SalesHeader."No.");
         ApiSalesLine.SETRANGE("Line No.", LineNo);
@@ -1177,7 +1177,7 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
         Assert.IsTrue(
           LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'sequence', LineNoFromJSON), 'Could not find sequence');
 
-        Evaluate(LineNo, LineNoFromJSON);
+        Evaluate(LineNo, LineNoFromJSON, 9);
         SalesLine.SetRange("Document Type", SalesHeader."Document Type"::Invoice);
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         SalesLine.SetRange("Line No.", LineNo);
@@ -1387,7 +1387,8 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
     local procedure VerifySalesInvoiceLinesForSalesHeader(var SalesHeader: Record "Sales Header"; ObjectTxt: Text)
     var
         SalesLine: Record "Sales Line";
-        JSONManagement: Codeunit "JSON Management";
+        JsonArray: JsonArray;
+        JsonToken: JsonToken;
         CurrentIndex: Integer;
         LineJsonTxt: Text;
     begin
@@ -1396,10 +1397,11 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
         SalesLine.FINDSET();
         CurrentIndex := 0;
 
-        JSONManagement.InitializeCollection(ObjectTxt);
+        JsonArray.ReadFrom(ObjectTxt);
         REPEAT
-            Assert.IsTrue(JSONManagement.GetObjectFromCollectionByIndex(LineJsonTxt, CurrentIndex),
+            Assert.IsTrue(JsonArray.Get(CurrentIndex, JsonToken),
               STRSUBSTNO('Could not find line %1.', SalesLine."Line No."));
+            JsonToken.WriteTo(LineJsonTxt);
             VerifySalesLineResponseWithSalesLine(SalesLine, LineJsonTxt);
             CurrentIndex += 1;
         UNTIL SalesLine.NEXT() = 0;
