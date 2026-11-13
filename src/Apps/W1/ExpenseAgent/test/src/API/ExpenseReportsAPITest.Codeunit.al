@@ -28,6 +28,7 @@ codeunit 148329 "Expense Reports API Test"
         IsInitialized: Boolean;
         ApproverViewsServiceNameTok: Label 'approverViews', Locked = true;
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
+        ActiveApproverFilterLbl: Label '$filter=activeApproverExpenseUserNo eq ''%1''', Comment = '%1 = Expense User No.', Locked = true;
 
     [Test]
     procedure ApproverViewReturnsOnlyActivePendingReports()
@@ -166,7 +167,7 @@ codeunit 148329 "Expense Reports API Test"
         // [WHEN] The report collection is filtered directly by activeApproverExpenseUserNo.
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Reports API", ExpenseReportsServiceNameTok);
         TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
-            TargetURL, StrSubstNo('$filter=activeApproverExpenseUserNo eq ''%1''', Approver."No."));
+            TargetURL, StrSubstNo(ActiveApproverFilterLbl, Approver."No."));
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
 
         // [THEN] Both matching reports expose the active approver, regardless of report status.

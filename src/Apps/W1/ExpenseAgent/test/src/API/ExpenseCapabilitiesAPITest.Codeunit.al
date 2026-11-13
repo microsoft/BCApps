@@ -14,6 +14,11 @@ codeunit 148318 "Expense Capabilities API Test"
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
+    trigger OnRun()
+    begin
+        // [FEATURE] [Expense Agent] [Capabilities] [API]
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryExpenseAgent: Codeunit "Library - Expense Agent";
@@ -245,13 +250,18 @@ codeunit 148318 "Expense Capabilities API Test"
     procedure CapabilitiesAdvancedApprovalsEnabled()
     var
         ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
+        IsEnabled: Boolean;
     begin
         // [SCENARIO] Advanced approvals are always supported.
+
+        // [GIVEN] The test environment is initialized.
         Initialize();
 
+        // [WHEN] Advanced approval support is queried.
+        IsEnabled := ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AdvancedApprovals);
+
         // [THEN] The provider reports advancedApprovals as enabled.
-        Assert.IsTrue(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AdvancedApprovals),
-            'advancedApprovals must always be enabled.');
+        Assert.IsTrue(IsEnabled, 'advancedApprovals must always be enabled.');
     end;
 
     local procedure Initialize()
