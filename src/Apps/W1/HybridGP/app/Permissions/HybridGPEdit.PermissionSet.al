@@ -118,5 +118,6 @@ permissionset 4031 "HybridGP - Edit"
                     tabledata "GP PM00203" = IMD,
                     tabledata "GP PO Validation Buffer" = IMD,
                     tabledata "GP GL00103" = IMD,
-                    tabledata "GP GL00104" = IMD;
+                    tabledata "GP GL00104" = IMD,
+                    tabledata "GP Item Transactions Buffer" = IMD;
 }
