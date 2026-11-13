@@ -818,12 +818,12 @@ codeunit 23 "Item Jnl.-Post Batch"
         OnAfterGetLocation(Location, ItemJnlLine);
     end;
 
-    procedure GetWhseRegNo(): Integer
+    procedure GetWhseRegNo(): BigInteger
     begin
         exit(WhseRegNo);
     end;
 
-    procedure GetItemRegNo(): Integer
+    procedure GetItemRegNo(): BigInteger
     begin
         exit(ItemRegNo);
     end;

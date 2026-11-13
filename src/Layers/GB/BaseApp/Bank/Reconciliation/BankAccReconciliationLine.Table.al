@@ -784,7 +784,6 @@ table 274 "Bank Acc. Reconciliation Line"
             end;
         end;
 
-
         BankAccRecMatchBuffer.Reset();
         BankAccRecMatchBuffer.SetRange("Ledger Entry No.", BankAccLedgEntry."Entry No.");
         BankAccRecMatchBuffer.SetRange("Statement No.", Rec."Statement No.");
@@ -1215,7 +1214,7 @@ table 274 "Bank Acc. Reconciliation Line"
         exit(GetAppliedNo(ApplyType::"Entry No.", '|'));
     end;
 
-    local procedure GetFirstAppliedToEntryNo(): Integer
+    local procedure GetFirstAppliedToEntryNo(): BigInteger
     var
         AppliedEntryNumbers: Text;
         AppliedToEntryNo: BigInteger;

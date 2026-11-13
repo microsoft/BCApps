@@ -344,7 +344,7 @@ codeunit 5857 "Copy Invt. Document Mgt."
         ItemCheckAvail.InvtDocCheckLine(ToInvtDocLine);
     end;
 
-    procedure GetItemDocLedgerEntryNo(DocNo: Code[20]; DocType: Integer; DocLineNo: Integer): Integer
+    procedure GetItemDocLedgerEntryNo(DocNo: Code[20]; DocType: Integer; DocLineNo: Integer): BigInteger
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
     begin

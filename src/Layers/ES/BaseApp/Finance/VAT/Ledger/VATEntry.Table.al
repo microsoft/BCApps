@@ -1047,7 +1047,7 @@ table 254 "VAT Entry"
     /// Retrieves the next entry number from the VAT Entry table.
     /// </summary>
     /// <returns>Next VAT entry number to be used in the system</returns>
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

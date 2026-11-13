@@ -83,7 +83,7 @@ table 240 "Resource Register"
     {
     }
 
-    procedure GetNextEntryNo(UseLegacyPosting: Boolean): Integer
+    procedure GetNextEntryNo(UseLegacyPosting: Boolean): BigInteger
     begin
         if not UseLegacyPosting then
             exit(GetNextEntryNo());

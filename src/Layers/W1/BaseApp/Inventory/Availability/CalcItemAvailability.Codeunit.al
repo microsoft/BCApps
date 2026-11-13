@@ -554,7 +554,7 @@ codeunit 5530 "Calc. Item Availability"
         NewInvtEventBuffer.Insert();
     end;
 
-    procedure NextEntryNo(): Integer
+    procedure NextEntryNo(): BigInteger
     begin
         EntryNo += 1;
         exit(EntryNo);

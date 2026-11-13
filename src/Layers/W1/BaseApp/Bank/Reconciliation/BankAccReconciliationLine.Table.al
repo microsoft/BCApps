@@ -1200,7 +1200,7 @@ table 274 "Bank Acc. Reconciliation Line"
         exit(GetAppliedNo(ApplyType::"Entry No.", '|'));
     end;
 
-    local procedure GetFirstAppliedToEntryNo(): Integer
+    local procedure GetFirstAppliedToEntryNo(): BigInteger
     var
         AppliedEntryNumbers: Text;
         AppliedToEntryNo: BigInteger;

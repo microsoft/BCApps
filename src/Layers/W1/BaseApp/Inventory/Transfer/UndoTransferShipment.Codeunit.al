@@ -194,7 +194,7 @@ codeunit 9030 "Undo Transfer Shipment"
         OnAfterGetCorrectionLineNo(TransferShptLine, Result);
     end;
 
-    local procedure PostItemJnlLine(TransShptLine: Record "Transfer Shipment Line"; var DocLineNo: Integer): Integer
+    local procedure PostItemJnlLine(TransShptLine: Record "Transfer Shipment Line"; var DocLineNo: Integer): BigInteger
     var
         ItemJnlLine: Record "Item Journal Line";
         TransShptHeader: Record "Transfer Shipment Header";

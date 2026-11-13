@@ -494,7 +494,7 @@ table 379 "Detailed Cust. Ledg. Entry"
     /// Retrieves the next entry number from the Detailed Cust. Ledg. Entry table.
     /// </summary>
     /// <returns>Next Detailed Cust. Ledg. Entry number to be used in the system</returns>
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
