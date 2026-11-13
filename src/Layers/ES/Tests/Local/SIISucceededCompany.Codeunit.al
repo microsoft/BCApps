@@ -77,7 +77,7 @@ codeunit 147556 "SII Succeeded Company"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [XML]
         // [SCENARIO 263648] Purchase invoice with Succeeded Company has nodes in XML file
@@ -106,7 +106,7 @@ codeunit 147556 "SII Succeeded Company"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [XML]
         // [SCENARIO 263648] Sales invoice with Succeeded Company has nodes in XML file
@@ -135,7 +135,7 @@ codeunit 147556 "SII Succeeded Company"
         GenJournalLine: Record "Gen. Journal Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [XML]
         // [SCENARIO 263648] Purchase invoice with Succeeded Company posted from journal has nodes in XML file
@@ -167,7 +167,7 @@ codeunit 147556 "SII Succeeded Company"
         GenJournalLine: Record "Gen. Journal Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [XML]
         // [SCENARIO 263648] Sales invoice with Succeeded Company posted from journal has nodes in XML file
@@ -199,7 +199,7 @@ codeunit 147556 "SII Succeeded Company"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [XML]
         // [SCENARIO 263648] Purchase credit memo with Succeeded Company has nodes in XML file
@@ -228,7 +228,7 @@ codeunit 147556 "SII Succeeded Company"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [XML]
         // [SCENARIO 263648] Sales credit memo with Succeeded Company has nodes in XML file
@@ -257,7 +257,7 @@ codeunit 147556 "SII Succeeded Company"
         GenJournalLine: Record "Gen. Journal Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [XML]
         // [SCENARIO 263648] Purchase credit memo with Succeeded Company posted from journal has nodes in XML file
@@ -290,7 +290,7 @@ codeunit 147556 "SII Succeeded Company"
         GenJournalLine: Record "Gen. Journal Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [XML]
         // [SCENARIO 263648] Sales credit memo with Succeeded Company posted from journal has nodes in XML file
@@ -322,7 +322,7 @@ codeunit 147556 "SII Succeeded Company"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [XML]
         // [SCENARIO 263648] Service invoice with Succeeded Company has nodes in XML file
@@ -352,7 +352,7 @@ codeunit 147556 "SII Succeeded Company"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [XML]
         // [SCENARIO 263648] Sales invoice with Succeeded Company has nodes in XML file

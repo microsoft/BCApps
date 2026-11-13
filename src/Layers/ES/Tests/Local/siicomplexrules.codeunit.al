@@ -29,7 +29,7 @@ codeunit 147559 "SII Complex Rules"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 316808] XML has value "0" in node "TipoImpositivo" when post Sales Invoice with zero VAT Base and "Special Scheme Code" = "03"
@@ -55,7 +55,7 @@ codeunit 147559 "SII Complex Rules"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] ]Sales] [Credit Memo]
         // [SCENARIO 316808] XML has value "0" in node "TipoImpositivo" when post Sales Credit Memo with zero VAT Base and "Special Scheme Code" = "03"
@@ -81,7 +81,7 @@ codeunit 147559 "SII Complex Rules"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 316808] XML has value "0" in node "TipoImpositivo" when post Replacement Sales Credit Memo with zero VAT Base and "Special Scheme Code" = "03"
@@ -108,7 +108,7 @@ codeunit 147559 "SII Complex Rules"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 316808] XML has value "0" in node "TipoImpositivo" when post Sales Invoice with zero VAT Base and "Special Scheme Code" = "05"
@@ -134,7 +134,7 @@ codeunit 147559 "SII Complex Rules"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 316808] XML has value "0" in node "TipoImpositivo" when post Sales Credit Memo with zero VAT Base and "Special Scheme Code" = "05"
@@ -160,7 +160,7 @@ codeunit 147559 "SII Complex Rules"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 316808] XML has value "0" in node "TipoImpositivo" when post Replacement Sales Credit Memo with zero VAT Base and "Special Scheme Code" = "05"
@@ -187,7 +187,7 @@ codeunit 147559 "SII Complex Rules"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 316808] XML has value "0" in node "TipoImpositivo" when post Sales Invoice with zero VAT Base and "Special Scheme Code" = "09"
@@ -213,7 +213,7 @@ codeunit 147559 "SII Complex Rules"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 316808] XML has value "0" in node "TipoImpositivo" when post Sales Credit Memo with zero VAT Base and "Special Scheme Code" = "09"
@@ -239,7 +239,7 @@ codeunit 147559 "SII Complex Rules"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 316808] XML has value "0" in node "TipoImpositivo" when post Replacement Sales Credit Memo with zero VAT Base and "Special Scheme Code" = "09"
@@ -266,7 +266,7 @@ codeunit 147559 "SII Complex Rules"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 316808] XML has value "0" in node "CuotaDeducible" when post Purchase Invoice with "Special Scheme Code" = "13"
@@ -291,7 +291,7 @@ codeunit 147559 "SII Complex Rules"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 316808] XML has value "0" in node "CuotaDeducible" when post Purchase Credit Memo with "Special Scheme Code" = "13"
@@ -316,7 +316,7 @@ codeunit 147559 "SII Complex Rules"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 316808] XML has value "0" in node "CuotaDeducible" when post ReplacementPurchase Credit Memo with "Special Scheme Code" = "13"
@@ -343,7 +343,7 @@ codeunit 147559 "SII Complex Rules"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         VATEntry: Record "VAT Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 330227] Sales invoice with "Sales Special Scheme Code" has BaseImponibleACost XML node with the total VAT Base value
@@ -373,7 +373,7 @@ codeunit 147559 "SII Complex Rules"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         VATEntry: Record "VAT Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 330227] Sales credit memo with "Sales Special Scheme Code" has BaseImponibleACost XML node with the total VAT Base value
@@ -403,7 +403,7 @@ codeunit 147559 "SII Complex Rules"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         VATEntry: Record "VAT Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 330227] Sales replacement credit memo with "Sales Special Scheme Code" has BaseImponibleACost XML node with the total VAT Base value
@@ -434,7 +434,7 @@ codeunit 147559 "SII Complex Rules"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VATEntry: Record "VAT Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 330227] Purchase invoice with "Sales Special Scheme Code" has BaseImponibleACost XML node with the total VAT Base value
@@ -464,7 +464,7 @@ codeunit 147559 "SII Complex Rules"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VATEntry: Record "VAT Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 330227] Purchase credit memo with "Sales Special Scheme Code" has BaseImponibleACost XML node with the total VAT Base value
@@ -495,7 +495,7 @@ codeunit 147559 "SII Complex Rules"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VATEntry: Record "VAT Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 330227] Purchase replacement credit memo with "Sales Special Scheme Code" has BaseImponibleACost XML node with the total VAT Base value
@@ -525,7 +525,7 @@ codeunit 147559 "SII Complex Rules"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 332475] Sales invoice with "Sales Special Scheme Code" and zero "VAT %" has BaseImponibleACost XML node with the zero value
@@ -549,7 +549,7 @@ codeunit 147559 "SII Complex Rules"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 332475] Sales credit memo with "Sales Special Scheme Code" and zero "VAT %" has BaseImponibleACost XML node with the zero value
@@ -573,7 +573,7 @@ codeunit 147559 "SII Complex Rules"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 332475] Sales replacement credit memo with "Sales Special Scheme Code" and zero "VAT %" has BaseImponibleACost XML node with the zero value
@@ -598,7 +598,7 @@ codeunit 147559 "SII Complex Rules"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 332475] Purchase invoice with "Purchase Special Scheme Code" and zero "VAT %" has BaseImponibleACost XML node with the zero value
@@ -622,7 +622,7 @@ codeunit 147559 "SII Complex Rules"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 332475] Purchase credit memo with "Purchase Special Scheme Code" and zero "VAT %" has BaseImponibleACost XML node with the zero value
@@ -646,7 +646,7 @@ codeunit 147559 "SII Complex Rules"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 332475] Purchase replacement credit memo with "Purchase Special Scheme Code" and zero "VAT %" has BaseImponibleACost XML node with the zero value
@@ -672,7 +672,7 @@ codeunit 147559 "SII Complex Rules"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VATEntry: Record "VAT Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 355791] An xml file of purchase invoice with the special scheme code "02" contains nodes PorcentCompensacionREAGYP and ImporteCompensacionREAGYP
@@ -705,7 +705,7 @@ codeunit 147559 "SII Complex Rules"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VATEntry: Record "VAT Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 355791] An xml file of purchase credit memo with the special scheme code "02" contains nodes PorcentCompensacionREAGYP and ImporteCompensacionREAGYP
@@ -738,7 +738,7 @@ codeunit 147559 "SII Complex Rules"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIDocUploadState: Record "SII Doc. Upload State";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 375398] XML has value "0" in node "CuotaDeducible" for the Purchase Invoice with "Invoice Type" = "F2" and version 1.1bis
@@ -767,7 +767,7 @@ codeunit 147559 "SII Complex Rules"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIDocUploadState: Record "SII Doc. Upload State";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 375398] XML has value "0" in node "CuotaDeducible" for the Purchase Invoice with "ID Type" = "03" and version 1.1bis
@@ -799,7 +799,7 @@ codeunit 147559 "SII Complex Rules"
         SIISetup: Record "SII Setup";
         SIIDocUploadState: Record "SII Doc. Upload State";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 380629] The "ImporteTotal" xml node exists in the sales invoice xml file if "Include ImporteTotal" option is enabled in the SII Setup and version is 1.1bis
@@ -834,7 +834,7 @@ codeunit 147559 "SII Complex Rules"
         SIISetup: Record "SII Setup";
         SIIDocUploadState: Record "SII Doc. Upload State";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 380629] The "ImporteTotal" xml node exists in the sales invoice xml file if "Include ImporteTotal" option is enabled in the SII Setup and version is 1.1bis
@@ -868,7 +868,7 @@ codeunit 147559 "SII Complex Rules"
         SIISetup: Record "SII Setup";
         SIIDocUploadState: Record "SII Doc. Upload State";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 380629] The "ImporteTotal" xml node exists in the purchase invoice xml file if "Include ImporteTotal" option is enabled in the SII Setup and version is 1.1bis
@@ -904,7 +904,7 @@ codeunit 147559 "SII Complex Rules"
         SIISetup: Record "SII Setup";
         SIIDocUploadState: Record "SII Doc. Upload State";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 380629] The "ImporteTotal" xml node exists in the purchase invoice xml file if "Include ImporteTotal" option is enabled in the SII Setup and version is 1.1bis
@@ -939,7 +939,7 @@ codeunit 147559 "SII Complex Rules"
         SIISetup: Record "SII Setup";
         SIIDocUploadState: Record "SII Doc. Upload State";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [AI TEST]
         // [FEATURE] [Sales]
@@ -975,7 +975,7 @@ codeunit 147559 "SII Complex Rules"
         SIISetup: Record "SII Setup";
         SIIDocUploadState: Record "SII Doc. Upload State";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [AI TEST]
         // [FEATURE] [Purchase]

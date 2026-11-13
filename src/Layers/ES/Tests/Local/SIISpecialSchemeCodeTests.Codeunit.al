@@ -1006,7 +1006,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Export] [Sales] [Invoice]
         // [SCENARIO 385942] Multiple xml nodes generate per each regime code of the posted sales invoice
@@ -1037,7 +1037,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Export] [Sales] [Credit Memo]
         // [SCENARIO 385942] Multiple xml nodes generate per each regime code of the posted sales credit memo
@@ -1068,7 +1068,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Export] [Sales] [Credit Memo]
         // [SCENARIO 385942] Multiple xml nodes generate per each regime code of the posted sales replacement credit memo
@@ -1100,7 +1100,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Export] [Service] [Invoice]
         // [SCENARIO 385942] Multiple xml nodes generate per each regime code of the posted sales invoice
@@ -1131,7 +1131,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Export] [Service] [Credit Memo]
         // [SCENARIO 385942] Multiple xml nodes generate per each regime code of the posted sales credit memo
@@ -1162,7 +1162,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Export] [Service] [Credit Memo]
         // [SCENARIO 385942] Multiple xml nodes generate per each regime code of the posted sales replacement credit memo
@@ -1194,7 +1194,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Export] [Purchase] [Invoice]
         // [SCENARIO 385942] Multiple xml nodes generate per each regime code of the posted purchase invoice
@@ -1225,7 +1225,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Export] [Purchase] [Credit Memo]
         // [SCENARIO 385942] Multiple xml nodes generate per each regime code of the posted purchase credit memo
@@ -1256,7 +1256,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Export] [Purchase] [Credit Memo]
         // [SCENARIO 385942] Multiple xml nodes generate per each regime code of the posted purchase replacement credit memo
@@ -1605,7 +1605,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         SalesHeader: Record "Sales Header";
         SalesInvLine: Record "Sales Invoice Line";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 433362] Sales invoice with "Special Scheme Code" equals "17 Operations Under The One-Stop-Shop Regime" exports with ClaveRegimenEspecialOTrascendencia equals "17"
@@ -1641,7 +1641,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         SalesHeader: Record "Sales Header";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 433362] Sales credit memo with "Special Scheme Code" equals "17 Operations Under The One-Stop-Shop Regime" exports with ClaveRegimenEspecialOTrascendencia equals "17"
@@ -1677,7 +1677,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         SalesHeader: Record "Sales Header";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 433362] Sales replacement  credit memo with "Special Scheme Code" equals "17 Operations Under The One-Stop-Shop Regime" exports with ClaveRegimenEspecialOTrascendencia equals "17"
@@ -1713,7 +1713,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         ServiceHeader: Record "Service Header";
         ServInvLine: Record "Service Invoice Line";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Invoice]
         // [SCENARIO 433362] Service invoice with "Special Scheme Code" equals "17 Operations Under The One-Stop-Shop Regime" exports with ClaveRegimenEspecialOTrascendencia equals "17"
@@ -1749,7 +1749,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         ServiceHeader: Record "Service Header";
         ServCrMemoLine: Record "Service Cr.Memo Line";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Credit Memo]
         // [SCENARIO 433362] Service credit memo with "Special Scheme Code" equals "17 Operations Under The One-Stop-Shop Regime" exports with ClaveRegimenEspecialOTrascendencia equals "17"
@@ -1785,7 +1785,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         ServiceHeader: Record "Service Header";
         ServCrMemoLine: Record "Service Cr.Memo Line";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Credit Memo]
         // [SCENARIO 433362] Service replacement credit memo with "Special Scheme Code" equals "17 Operations Under The One-Stop-Shop Regime" exports with ClaveRegimenEspecialOTrascendencia equals "17"
@@ -2066,7 +2066,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         PurchaseHeader: Record "Purchase Header";
         VendLedgEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 561053] Special scheme code is "01" for purchase invoice with VAT Cash Regime in General Ledger Setup
 
@@ -2099,7 +2099,7 @@ codeunit 147562 "SII Special Scheme Code Tests"
         PurchaseHeader: Record "Purchase Header";
         VendLedgEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 561053] Special scheme code is "07" for purchase invoice with VAT Cash Regime in VAT Posting Setup
 
