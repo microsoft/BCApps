@@ -4,15 +4,48 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Dimension;
 
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 
 /// <summary>
 /// Manages dimension functionality specific to manufacturing objects including work center dimension integration.
 /// Handles global dimension updates for manufacturing master data and supports dimension validation for manufacturing-related transactions.
+/// Applies production-order dimension priorities to components in Order Planning.
 /// </summary>
 codeunit 99000780 "Mfg. Dimension Management"
 {
+    [EventSubscriber(ObjectType::Table, Database::"Planning Component", 'OnAfterCreateDim', '', true, false)]
+    local procedure PlanningComponentOnAfterCreateDim(var PlanningComponent: Record "Planning Component"; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
+    var
+        RequisitionLine: Record "Requisition Line";
+        SourceCodeSetup: Record "Source Code Setup";
+        DimensionManagement: Codeunit DimensionManagement;
+    begin
+        // Order Planning has no worksheet template; keep Planning Worksheet dimension precedence unchanged.
+        if PlanningComponent."Worksheet Template Name" <> '' then
+            exit;
+
+        RequisitionLine := PlanningComponent.GetRequisitionLine();
+        if RequisitionLine."Replenishment System" <> RequisitionLine."Replenishment System"::"Prod. Order" then
+            exit;
+
+        SourceCodeSetup.Get();
+        PlanningComponent."Shortcut Dimension 1 Code" := '';
+        PlanningComponent."Shortcut Dimension 2 Code" := '';
+        PlanningComponent."Dimension Set ID" :=
+            DimensionManagement.GetRecDefaultDimID(
+                PlanningComponent, 0, DefaultDimSource, SourceCodeSetup."Production Order",
+                PlanningComponent."Shortcut Dimension 1 Code", PlanningComponent."Shortcut Dimension 2 Code",
+                RequisitionLine."Dimension Set ID", Database::"Prod. Order Line");
+        DimensionManagement.UpdateGlobalDimFromDimSetID(
+            PlanningComponent."Dimension Set ID",
+            PlanningComponent."Shortcut Dimension 1 Code", PlanningComponent."Shortcut Dimension 2 Code");
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterUpdateGlobalDimCode', '', true, false)]
     local procedure OnAfterUpdateGlobalDimCode(GlobalDimCodeNo: Integer; TableID: Integer; AccNo: Code[20]; NewDimValue: Code[20])
     begin

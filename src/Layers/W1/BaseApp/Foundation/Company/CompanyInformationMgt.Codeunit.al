@@ -123,6 +123,18 @@ codeunit 1306 "Company Information Mgt."
         exit(CompanyInformation."Demo Company");
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetCompanyDescription', '', false, false)]
+    local procedure OnGetCompanyDescription(CompanyName: Text; var Description: Text)
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        Clear(Description);
+        if not CompanyInformation.ChangeCompany(CompanyName) then
+            exit;
+        if CompanyInformation.Get() then
+            Description := CompanyInformation.GetCompanyDescription();
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Company Information", 'OnAfterModifyEvent', '', false, false)]
     procedure SetCompanyDisplayNameOnCompanyInformationModify(var Rec: Record "Company Information"; var xRec: Record "Company Information"; RunTrigger: Boolean)
     var

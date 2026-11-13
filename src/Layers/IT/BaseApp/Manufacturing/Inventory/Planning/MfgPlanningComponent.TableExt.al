@@ -114,6 +114,12 @@ tableextension 99000829 "Mfg. Planning Component" extends "Planning Component"
         }
     }
 
+    internal procedure GetRequisitionLine(): Record "Requisition Line"
+    begin
+        GetReqLine();
+        exit(ReqLine);
+    end;
+
     procedure PlanningNeeds(): Decimal
     var
         PlanningRtngLine: Record "Planning Routing Line";

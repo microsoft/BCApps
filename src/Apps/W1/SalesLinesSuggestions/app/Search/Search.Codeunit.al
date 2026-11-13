@@ -201,7 +201,7 @@ codeunit 7282 "Search"
                     QueryResults := ALSearchResult.GetResultsForQuery(Format(i));
 
                     foreach ALSearchQueryResult in QueryResults do
-                        if ALSearchQueryResult.ContextAwareRankingScore > 0.70 then begin
+                        if ALSearchQueryResult.ContextAwareRankingScore >= 0.25 then begin
                             TempSearchResponse.SysId := ALSearchQueryResult.SystemId;
                             TempSearchResponse.Score := ALSearchQueryResult.ContextAwareRankingScore;
                             TempSearchResponse.Insert();
@@ -341,11 +341,11 @@ codeunit 7282 "Search"
 
     local procedure GetConfidence(Score: Decimal): Enum "Search Confidence"
     begin
-        if Score > 0.81 then
+        if Score >= 0.55 then
             exit("Search Confidence"::High);
-        if Score > 0.75 then
+        if Score >= 0.45 then
             exit("Search Confidence"::Medium);
-        if Score > 0.70 then
+        if Score >= 0.25 then
             exit("Search Confidence"::Low);
 
         exit("Search Confidence"::None);
