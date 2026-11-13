@@ -375,12 +375,12 @@ codeunit 1643 "Hyperlink Manifest"
         OfficeHostType: DotNet OfficeHostType;
         HyperlinkHostType: Text;
     begin
-        Session.LogMessage('OfficeManifestHyperlinkStarted', StrSubstNo(ManifestSubscriberStartedTelemetryTxt, HostType, StrLen(HostType), CodeunitID),
+        Session.LogMessage('0000WO8', StrSubstNo(ManifestSubscriberStartedTelemetryTxt, HostType, StrLen(HostType), CodeunitID),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
         HyperlinkHostType := AddInManifestManagement.GetOfficeHostTypeOrDefault(OfficeHostType.OutlookHyperlink, OutlookHyperlinkHostTypeTxt);
         if HostType in [HyperlinkHostType] then
             CodeunitID := CODEUNIT::"Hyperlink Manifest";
-        Session.LogMessage('OfficeManifestHyperlinkCompleted', StrSubstNo(ManifestSubscriberCompletedTelemetryTxt, HostType, CodeunitID, HyperlinkHostType),
+        Session.LogMessage('0000WO9', StrSubstNo(ManifestSubscriberCompletedTelemetryTxt, HostType, CodeunitID, HyperlinkHostType),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
     end;
 

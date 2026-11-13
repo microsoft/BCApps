@@ -1,4 +1,4 @@
-﻿namespace System.Integration;
+namespace System.Integration;
 
 using Microsoft.CRM.Outlook;
 using System;
@@ -536,13 +536,13 @@ codeunit 1652 "Add-in Manifest Management"
         ManifestCodeunit: Integer;
         LookupVerbosity: Verbosity;
     begin
-        Session.LogMessage('OfficeManifestLookupStarted', StrSubstNo(ManifestLookupStartedTelemetryTxt, HostType, StrLen(HostType)),
+        Session.LogMessage('0000WO5', StrSubstNo(ManifestLookupStartedTelemetryTxt, HostType, StrLen(HostType)),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
         GetManifestCodeunit(ManifestCodeunit, HostType);
         LookupVerbosity := Verbosity::Normal;
         if ManifestCodeunit = 0 then
             LookupVerbosity := Verbosity::Warning;
-        Session.LogMessage('OfficeManifestLookupCompleted', StrSubstNo(ManifestLookupCompletedTelemetryTxt, HostType, StrLen(HostType), ManifestCodeunit),
+        Session.LogMessage('0000WO6', StrSubstNo(ManifestLookupCompletedTelemetryTxt, HostType, StrLen(HostType), ManifestCodeunit),
             LookupVerbosity, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
         GetAddin(OfficeAddin, ManifestCodeunit);
     end;
@@ -553,7 +553,7 @@ codeunit 1652 "Add-in Manifest Management"
         if OfficeHostType <> '' then
             exit(OfficeHostType);
 
-        Session.LogMessage('OfficeHostTypeFallback', StrSubstNo(EmptyOfficeHostTypeTelemetryTxt, DefaultHostType),
+        Session.LogMessage('0000WO7', StrSubstNo(EmptyOfficeHostTypeTelemetryTxt, DefaultHostType),
             Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
         exit(DefaultHostType);
     end;

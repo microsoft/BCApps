@@ -1182,11 +1182,11 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
     var
         ActualCodeunit: Integer;
     begin
-        Session.LogMessage('OfficeManifestTestLookupStarted',
+        Session.LogMessage('0000WOC',
             StrSubstNo(ManifestLookupStartedTelemetryTxt, HostType, StrLen(HostType), ExpectedCodeunit),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
         AddinManifestManagement.GetManifestCodeunit(ActualCodeunit, HostType);
-        Session.LogMessage('OfficeManifestTestLookupCompleted',
+        Session.LogMessage('0000WOD',
             StrSubstNo(ManifestLookupCompletedTelemetryTxt,
                 HostType, StrLen(HostType), ExpectedCodeunit, ActualCodeunit),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');

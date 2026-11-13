@@ -257,7 +257,7 @@ codeunit 1642 "Intelligent Info Manifest"
         MobileAppHostType: Text;
         PopOutHostType: Text;
     begin
-        Session.LogMessage('OfficeManifestIntelligentStarted', StrSubstNo(ManifestSubscriberStartedTelemetryTxt, HostType, StrLen(HostType), CodeunitID),
+        Session.LogMessage('0000WOA', StrSubstNo(ManifestSubscriberStartedTelemetryTxt, HostType, StrLen(HostType), CodeunitID),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
         // Compare and log the same getter results rather than reading them again after resolution.
         ItemReadHostType := AddinManifestManagement.GetOfficeHostTypeOrDefault(OfficeHostType.OutlookItemRead, OutlookItemReadHostTypeTxt);
@@ -267,7 +267,7 @@ codeunit 1642 "Intelligent Info Manifest"
         PopOutHostType := AddinManifestManagement.GetOfficeHostTypeOrDefault(OfficeHostType.OutlookPopOut, OutlookPopOutHostTypeTxt);
         if HostType in [ItemReadHostType, ItemEditHostType, TaskPaneHostType, MobileAppHostType, PopOutHostType] then
             CodeunitID := CODEUNIT::"Intelligent Info Manifest";
-        Session.LogMessage('OfficeManifestIntelligentCompleted',
+        Session.LogMessage('0000WOB',
             StrSubstNo(ManifestSubscriberCompletedTelemetryTxt, HostType, CodeunitID, ItemReadHostType, ItemEditHostType, TaskPaneHostType, MobileAppHostType, PopOutHostType),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
     end;
