@@ -1067,13 +1067,14 @@
         CreditMemoCustLedgerEntry: Record "Cust. Ledger Entry";
         VATEntry: Record "VAT Entry";
         GLEntry: Record "G/L Entry";
-        GLRegister: Record "G/L Register";
         CustomerNo: Code[20];
         ItemNo: array[2] of Code[20];
         InvoiceNo: Code[20];
         CreditMemoNo: Code[20];
         UnitPrice: array[2] of Decimal;
         GroupIndex: Integer;
+        LastVATEntryNo: Integer;
+        LastGLEntryNo: Integer;
     begin
         // [SCENARIO 648925] Applying a posted sales credit memo preserves VAT groups when journal templates are mandatory.
         Initialize();
@@ -1107,6 +1108,10 @@
         LibraryERM.SetApplyCustomerEntry(CreditMemoCustLedgerEntry, CreditMemoCustLedgerEntry."Remaining Amount");
         LibraryERM.FindCustomerLedgerEntry(InvoiceCustLedgerEntry, InvoiceCustLedgerEntry."Document Type"::Invoice, InvoiceNo);
         LibraryERM.SetAppliestoIdCustomer(InvoiceCustLedgerEntry);
+        VATEntry.FindLast();
+        LastVATEntryNo := VATEntry."Entry No.";
+        GLEntry.FindLast();
+        LastGLEntryNo := GLEntry."Entry No.";
         LibraryERM.PostCustLedgerApplication(CreditMemoCustLedgerEntry);
 
         // [THEN] Half of the 10% invoice group's VAT and base remain, and the 21% group is unchanged.
@@ -1125,9 +1130,8 @@
         end;
 
         // [THEN] The application creates two offsetting realizations of 50 VAT on a base of 500.
-        GLRegister.FindLast();
         VATEntry.Reset();
-        VATEntry.SetRange("Entry No.", GLRegister."From VAT Entry No.", GLRegister."To VAT Entry No.");
+        VATEntry.SetFilter("Entry No.", '>%1', LastVATEntryNo);
         Assert.RecordCount(VATEntry, 2);
         VATEntry.FindSet();
         repeat
@@ -1139,7 +1143,7 @@
         Assert.AreEqual(0, VATEntry.Base, 'Application VAT bases must offset');
 
         // [THEN] No VAT G/L transfers are created for either invoice group.
-        GLEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
         for GroupIndex := 1 to ArrayLen(VATPostingSetup) do begin
             GLEntry.SetRange("G/L Account No.", VATPostingSetup[GroupIndex]."Sales VAT Account");
             Assert.IsTrue(GLEntry.IsEmpty(), 'Posted sales application must not transfer realized VAT to G/L');
