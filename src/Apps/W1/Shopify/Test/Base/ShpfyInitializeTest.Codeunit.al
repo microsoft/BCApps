@@ -424,7 +424,7 @@ codeunit 139561 "Shpfy Initialize Test"
         OneDay := 24 * 60 * 60 * 1000;
         RegisteredStoreNew."Requested Scope" := ScopeTxt;
         RegisteredStoreNew."Actual Scope" := ScopeTxt;
-        // Keep API tests out of token refresh and migration.
+        // Seed a healthy expiring token so EnsureValidAccessToken performs no refresh/migration.
         RegisteredStoreNew."Token Expires At" := CurrentDateTime() + OneDay;
         RegisteredStoreNew."Refresh Token Expires At" := CurrentDateTime() + OneDay;
         RegisteredStoreNew.Modify(false);

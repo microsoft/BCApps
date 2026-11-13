@@ -262,6 +262,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
             RegisteredStoreNew."Refresh Token Expires At" := 0DT;
 
         RegisteredStoreNew.Modify();
+
         RegisteredStoreNew.SetAccessToken(AccessToken);
 
         if JObject.Get('refresh_token', JToken) and JToken.IsValue then begin
@@ -276,7 +277,10 @@ codeunit 30199 "Shpfy Authentication Mgt."
     end;
 
     /// <summary>
-    /// Migrates legacy tokens or refreshes expiring tokens while holding a per-company row lock.
+    /// Ensures the store has a valid, non-expired offline access token before use: legacy
+    /// non-expiring tokens are migrated on first use, expiring tokens refreshed near expiry.
+    /// Uses double-checked locking; the row lock is held across the token request so concurrent
+    /// sessions cannot retire each other's refresh token. The lock is per-company.
     /// </summary>
     /// <param name="Store">The store URL.</param>
     internal procedure EnsureValidAccessToken(Store: Text)
@@ -308,7 +312,8 @@ codeunit 30199 "Shpfy Authentication Mgt."
     end;
 
     /// <summary>
-    /// Attempts a reactive refresh on a 401, at most once per minute per store.
+    /// Forces a token refresh (or migration) on an unexpected 401, throttled to at most once per
+    /// minute per store. Returns true if a refresh was attempted (caller may retry), false if throttled.
     /// </summary>
     /// <param name="Store">The store URL.</param>
     internal procedure ForceTokenRefresh(Store: Text): Boolean
@@ -330,7 +335,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
         RegisteredStoreNew."Last Force Refresh At" := CurrentDateTime();
         RegisteredStoreNew.Modify();
-        // Keep the cooldown even if a terminal refresh error rolls back.
+        // Persist the cooldown before the refresh so a terminal-failure rollback can't discard it.
         Commit();
 
         if RegisteredStoreNew.HasRefreshToken() then
@@ -351,11 +356,13 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
     local procedure GetForceRefreshCooldown(): Duration
     begin
-        exit(60 * 1000);
+        exit(60 * 1000); // Force a reactive refresh for a store at most once per minute.
     end;
 
     local procedure TryMigrate(Store: Text; var RegisteredStoreNew: Record "Shpfy Registered Store New")
     begin
+        // Throttle migration attempts: a legacy store has no refresh token, so without this guard
+        // every API call in a sync loop would re-attempt a failing migration (lock + HTTP + commit).
         if not ShouldAttemptMigration(RegisteredStoreNew) then
             exit;
         RegisteredStoreNew."Last Migration Attempt" := CurrentDateTime();
@@ -373,7 +380,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
     local procedure GetMigrationCooldown(): Duration
     begin
-        exit(60 * 60 * 1000);
+        exit(60 * 60 * 1000); // Retry a failed migration at most once per hour.
     end;
 
     [NonDebuggable]
@@ -396,7 +403,8 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
         StatusCode := ExecuteTokenRequest(Store, RequestBody, Credentials, ResponseBody);
 
-        // Migration revokes the old token on success; failures keep it until the next attempt.
+        // Migration is best-effort: the non-expiring token still works until January 1, 2027,
+        // so a transient failure must not break the connector. On success the old token is revoked.
         if IsSuccessStatusCode(StatusCode) and ResponseHasAccessToken(ResponseBody) then begin
             SaveTokenResponse(RegisteredStoreNew, ResponseBody);
             Session.LogMessage('0000UIW', TokenMigratedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
@@ -426,7 +434,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
             RequestBody.Add('grant_type', RefreshTokenGrantTypeTok);
             RequestBody.Add('refresh_token', '');
             Credentials.Add('$.client_secret', GetClientSecret());
-            // Shopify permits retrying the same refresh token for up to one hour.
+            // Retry reuses the SAME refresh token: Shopify returns the same response for up to 1 hour.
             Credentials.Add('$.refresh_token', RegisteredStoreNew.GetRefreshToken());
 
             StatusCode := ExecuteTokenRequest(Store, RequestBody, Credentials, ResponseBody);
@@ -437,6 +445,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
                 exit;
             end;
 
+            // A 401 with an inactive refresh token is terminal: the merchant must reconnect.
             if StatusCode = 401 then begin
                 Session.LogMessage('0000UJ0', TokenRefreshExpiredTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
                 Error(CreateReconnectErrorInfo(Store));
@@ -446,6 +455,8 @@ codeunit 30199 "Shpfy Authentication Mgt."
                 Sleep(1000 * Attempt);
         end;
 
+        // Transient failures only (refresh token still valid, no 401): temporary Shopify/network
+        // problem, not a reconnect. Error only if the current token is already expired.
         if TokenExpired(RegisteredStoreNew) then
             Error(TokenRefreshTransientErr, Store);
         Session.LogMessage('0000UJ1', TokenRefreshTransientTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
@@ -453,6 +464,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
     local procedure TokenNeedsRefresh(RegisteredStoreNew: Record "Shpfy Registered Store New"): Boolean
     begin
+        // A non-expiring token (no expiry recorded) never needs refreshing.
         if RegisteredStoreNew."Token Expires At" = 0DT then
             exit(false);
         exit(CurrentDateTime() + GetRefreshBufferMs() >= RegisteredStoreNew."Token Expires At");
@@ -470,7 +482,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
     local procedure GetRefreshBufferMs(): Duration
     begin
-        exit(5 * 60 * 1000);
+        exit(5 * 60 * 1000); // Refresh 5 minutes before the access token expires.
     end;
 
     local procedure AddSeconds(StartDateTime: DateTime; Seconds: BigInteger): DateTime
@@ -513,6 +525,11 @@ codeunit 30199 "Shpfy Authentication Mgt."
                 exit(not RegisteredStoreNew.GetAccessToken().IsEmpty());
     end;
 
+    /// <summary>
+    /// Returns whether the store uses an expiring offline token whose refresh token has expired,
+    /// meaning the merchant must reconnect the store before the connector can be used again.
+    /// </summary>
+    /// <param name="Store">The store URL.</param>
     internal procedure IsRefreshTokenExpired(Store: Text): Boolean
     var
         RegisteredStoreNew: Record "Shpfy Registered Store New";

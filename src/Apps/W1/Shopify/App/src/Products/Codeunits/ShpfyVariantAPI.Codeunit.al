@@ -533,8 +533,10 @@ codeunit 30189 "Shpfy Variant API"
     begin
         Parameters.Add('VariantId', Format(ShopifyVariant.Id));
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::GetVariantById, Parameters);
+        // When the productVariant node is present, the variant still exists on Shopify, so report it as existing.
+        // UpdateShopifyVariantFields internally skips the field update when the local record is already up to date.
+        // Only a missing node (variant genuinely deleted on Shopify) returns false so the caller can delete the record.
         if JsonHelper.GetJsonObject(JResponse.AsObject(), JData, 'data.productVariant') then begin
-            // A newer local timestamp does not mean the variant was deleted.
             UpdateShopifyVariantFields(ShopifyProduct, ShopifyVariant, ShopifyInventoryItem, JData);
             exit(true);
         end;

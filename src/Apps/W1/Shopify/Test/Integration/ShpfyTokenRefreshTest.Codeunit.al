@@ -25,9 +25,11 @@ codeunit 139537 "Shpfy Token Refresh Test"
     var
         RegisteredStoreNew: Record "Shpfy Registered Store New";
     begin
-        // [SCENARIO] A stored refresh token can be retrieved.
+        // [SCENARIO] A refresh token stored for a registered store can be retrieved.
+        // [GIVEN] A registered store with a stored refresh token.
         SetupStore(RegisteredStoreNew, true, DaysFromNow(1));
 
+        // [THEN] The refresh token is present.
         LibraryAssert.IsTrue(RegisteredStoreNew.HasRefreshToken(), 'Refresh token should be stored.');
         LibraryAssert.IsFalse(RegisteredStoreNew.GetRefreshToken().IsEmpty(), 'Refresh token should not be empty.');
     end;
@@ -38,9 +40,11 @@ codeunit 139537 "Shpfy Token Refresh Test"
         RegisteredStoreNew: Record "Shpfy Registered Store New";
         AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
     begin
-        // [SCENARIO] A legacy token is not expired even with a past refresh expiry.
+        // [SCENARIO] A legacy non-expiring token (no refresh token) is never reported as expired.
+        // [GIVEN] A registered store without a refresh token, even with a past refresh expiry.
         SetupStore(RegisteredStoreNew, false, DaysFromNow(-1));
 
+        // [THEN] The refresh token is not considered expired.
         LibraryAssert.IsFalse(AuthenticationMgt.IsRefreshTokenExpired(StoreTok), 'A store without a refresh token must not be reported as expired.');
     end;
 
@@ -50,9 +54,11 @@ codeunit 139537 "Shpfy Token Refresh Test"
         RegisteredStoreNew: Record "Shpfy Registered Store New";
         AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
     begin
-        // [SCENARIO] A refresh token past its lifetime is expired.
+        // [SCENARIO] An expiring token whose refresh token lifetime has passed is reported as expired.
+        // [GIVEN] A registered store with a refresh token and a refresh expiry in the past.
         SetupStore(RegisteredStoreNew, true, DaysFromNow(-1));
 
+        // [THEN] The refresh token is considered expired.
         LibraryAssert.IsTrue(AuthenticationMgt.IsRefreshTokenExpired(StoreTok), 'An expired refresh token must be reported as expired.');
     end;
 
@@ -62,9 +68,11 @@ codeunit 139537 "Shpfy Token Refresh Test"
         RegisteredStoreNew: Record "Shpfy Registered Store New";
         AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
     begin
-        // [SCENARIO] A refresh token within its lifetime is not expired.
+        // [SCENARIO] An expiring token whose refresh token is still within its lifetime is not expired.
+        // [GIVEN] A registered store with a refresh token and a refresh expiry in the future.
         SetupStore(RegisteredStoreNew, true, DaysFromNow(30));
 
+        // [THEN] The refresh token is not considered expired.
         LibraryAssert.IsFalse(AuthenticationMgt.IsRefreshTokenExpired(StoreTok), 'A valid refresh token must not be reported as expired.');
     end;
 
@@ -74,9 +82,11 @@ codeunit 139537 "Shpfy Token Refresh Test"
         RegisteredStoreNew: Record "Shpfy Registered Store New";
         AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
     begin
-        // [SCENARIO] A refresh token with no recorded expiry is not expired.
+        // [SCENARIO] A refresh token with no recorded expiry is not reported as expired.
+        // [GIVEN] A registered store with a refresh token but a blank refresh expiry.
         SetupStore(RegisteredStoreNew, true, 0DT);
 
+        // [THEN] The refresh token is not considered expired.
         LibraryAssert.IsFalse(AuthenticationMgt.IsRefreshTokenExpired(StoreTok), 'A refresh token with no recorded expiry must not be reported as expired.');
     end;
 

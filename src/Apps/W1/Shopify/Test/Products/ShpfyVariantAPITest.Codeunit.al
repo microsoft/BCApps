@@ -25,6 +25,7 @@ codeunit 139614 "Shpfy Variant API Test"
         ProductId: BigInteger;
         VariantId: BigInteger;
         VariantResponseMode: Option Existing,Missing;
+        FutureUpdatedAt: DateTime;
 
     [Test]
     [HandlerFunctions('GetVariantHttpHandler')]
@@ -35,26 +36,34 @@ codeunit 139614 "Shpfy Variant API Test"
         ShopifyInventoryItem: Record "Shpfy Inventory Item";
         ProductInitTest: Codeunit "Shpfy Product Init Test";
         VariantApi: Codeunit "Shpfy Variant API";
-        FutureUpdatedAt: DateTime;
         Result: Boolean;
     begin
-        // [SCENARIO] A stale Shopify timestamp must not signal that a variant was deleted.
         Initialize();
+
+        // [SCENARIO] When a variant's local "Updated At" is ahead of Shopify's updatedAt (e.g. after a bulk price
+        // [SCENARIO] export stamps CurrentDateTime), RetrieveShopifyVariant must still report the variant as existing
+        // [SCENARIO] so the caller does not delete it. The timestamp guard only skips the field update.
+
+        // [GIVEN] A standard Shopify product with a variant whose local "Updated At" is set into the future.
         VariantResponseMode := VariantResponseMode::Existing;
         ShopifyVariant := ProductInitTest.CreateStandardProduct(Shop);
         ProductId := ShopifyVariant."Product Id";
         VariantId := ShopifyVariant.Id;
-        FutureUpdatedAt := CreateDateTime(Today() + 1, 0T);
+        FutureUpdatedAt := CurrentDateTime() + 86400000; // one day ahead of any Shopify updatedAt
         ShopifyVariant."Updated At" := FutureUpdatedAt;
         ShopifyVariant.Modify();
         ShopifyProduct.Get(ProductId);
 
+        // [WHEN] Retrieve the variant while Shopify returns an older updatedAt.
         VariantApi.SetShop(Shop);
         Result := VariantApi.RetrieveShopifyVariant(ShopifyProduct, ShopifyVariant, ShopifyInventoryItem);
 
+        // [THEN] The variant is reported as existing (the caller must not delete it).
         LibraryAssert.IsTrue(Result, 'RetrieveShopifyVariant should return true when the variant still exists on Shopify.');
+
+        // [THEN] The timestamp guard skipped the field update, so the local "Updated At" is untouched.
         ShopifyVariant.Get(VariantId);
-        LibraryAssert.AreEqualDateTime(FutureUpdatedAt, ShopifyVariant."Updated At", 'The local "Updated At" should be preserved when the guard skips the update.');
+        LibraryAssert.AreEqual(FutureUpdatedAt, ShopifyVariant."Updated At", 'The local "Updated At" should be preserved when the guard skips the update.');
     end;
 
     [Test]
@@ -68,17 +77,23 @@ codeunit 139614 "Shpfy Variant API Test"
         VariantApi: Codeunit "Shpfy Variant API";
         Result: Boolean;
     begin
-        // [SCENARIO] A missing Shopify variant is still reported as deleted.
         Initialize();
+
+        // [SCENARIO] When Shopify no longer returns the productVariant node, the variant is genuinely deleted and
+        // [SCENARIO] RetrieveShopifyVariant must return false so the caller can delete the local record.
+
+        // [GIVEN] A standard Shopify product with a variant.
         VariantResponseMode := VariantResponseMode::Missing;
         ShopifyVariant := ProductInitTest.CreateStandardProduct(Shop);
         ProductId := ShopifyVariant."Product Id";
         VariantId := ShopifyVariant.Id;
         ShopifyProduct.Get(ProductId);
 
+        // [WHEN] Retrieve the variant while Shopify returns an empty productVariant node.
         VariantApi.SetShop(Shop);
         Result := VariantApi.RetrieveShopifyVariant(ShopifyProduct, ShopifyVariant, ShopifyInventoryItem);
 
+        // [THEN] The variant is reported as missing (the caller may delete it).
         LibraryAssert.IsFalse(Result, 'RetrieveShopifyVariant should return false when the variant no longer exists on Shopify.');
     end;
 

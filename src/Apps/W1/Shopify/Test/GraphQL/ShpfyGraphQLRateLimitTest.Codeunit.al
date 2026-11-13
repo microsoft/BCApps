@@ -63,16 +63,19 @@ codeunit 139571 "Shpfy GraphQL Rate Limit Test"
         JThrottleStatus: JsonObject;
         JThrottleStatusTxt: Label '{"maximumAvailable": 1000, "restoreRate": 50, "currentlyAvailable": %1}', Comment = '%1 = currentAvailable', Locked = true;
     begin
-        // [SCENARIO] Elapsed restore time must be counted only once.
+        // [SCENARIO] Part of the required restore time elapses between the throttle response and the next request.
+        // WaitForRequestAvailable must wait only the remaining time - not skip the wait, and not restart the full wait.
+        // [GIVEN] currentAvailable = 50, restoreRate = 50 (an expected cost of 200 needs 3 sec. to restore)
         JThrottleStatus.ReadFrom(StrSubstNo(JThrottleStatusTxt, 50));
         GraphQLRateLimit.SetQueryCost(JThrottleStatus.AsToken());
+        // [GIVEN] 2 sec. elapse before the next request is issued
         Sleep(2000);
-
+        // [WHEN] Invoke WaitForRequestAvailable(200)
         StartTime := CurrentDateTime;
         GraphQLRateLimit.WaitForRequestAvailable(200);
         EndTime := CurrentDateTime;
         WaitTime := EndTime - StartTime;
-
+        // [THEN] It waits about the remaining 1 sec. (3 sec. total - 2 sec. already elapsed), not zero and not the full 3 sec.
         LibraryAssert.AreNearlyEqual(1000, WaitTime, 400, 'currentlyAvailable = 50, WaitForRequestAvailable(200) after 2 sec. elapsed');
     end;
 }

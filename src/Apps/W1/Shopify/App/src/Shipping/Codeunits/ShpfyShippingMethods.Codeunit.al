@@ -56,6 +56,9 @@ codeunit 30193 "Shpfy Shipping Methods"
         end;
     end;
 
+    // Market-driven shipping moves merchant shipping configuration from delivery profiles to Markets.
+    // For shops on that model the legacy deliveryProfiles query returns stale/incomplete data, so the
+    // shipping methods are read from the Markets API instead. Shopify.dev upgrade guide, readers Option B.
     local procedure IsMarketDrivenShipping(): Boolean
     var
         JResponse: JsonToken;
@@ -75,9 +78,10 @@ codeunit 30193 "Shpfy Shipping Methods"
         GraphQLType := GraphQLType::GetMarketShippingMethods;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
+            // Stop when there are no edges: there is no cursor to advance, so continuing would re-issue
+            // the same query and loop forever if Shopify ever returns hasNextPage=true with an empty page.
             if not JsonHelper.GetJsonArray(JResponse, JMarkets, 'data.markets.edges') then
                 exit;
-            // An empty page has no cursor to advance.
             if JMarkets.Count() = 0 then
                 exit;
             foreach JMarket in JMarkets do
@@ -98,7 +102,10 @@ codeunit 30193 "Shpfy Shipping Methods"
         JOptionDefinition: JsonToken;
         Name: Text;
     begin
-        // Inheriting markets and carrier-calculated options have no local option names.
+        // A null shipping configuration means the market inherits shipping from its parent; the parent
+        // market carries the same option names, so nothing is lost by skipping the inheriting market.
+        // Carrier-calculated options have no static 'name' (rates are named by the carrier at checkout),
+        // so they are not queried and simply yield an empty name that is skipped below.
         if not JsonHelper.GetValueAsBoolean(JMarket, 'node.delivery.shipping.isEnabled') then
             exit;
         if JsonHelper.GetJsonArray(JMarket, JOptionDefinitions, 'node.delivery.shipping.optionDefinitions.edges') then

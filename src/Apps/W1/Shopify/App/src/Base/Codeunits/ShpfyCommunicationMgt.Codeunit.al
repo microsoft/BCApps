@@ -264,19 +264,6 @@ codeunit 30103 "Shpfy Communication Mgt."
         Commit();
     end;
 
-    local procedure HandleUnauthorizedResponse(HttpResponseMessage: HttpResponseMessage): Boolean
-    var
-        AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
-        Store: Text;
-    begin
-        if HttpResponseMessage.HttpStatusCode() <> 401 then
-            exit(false);
-        Store := Shop.GetStoreName();
-        if Store = '' then
-            exit(false);
-        exit(AuthenticationMgt.ForceTokenRefresh(Store));
-    end;
-
     [NonDebuggable]
     internal procedure Post(var Client: HttpClient; Url: Text; Content: HttpContent; var Response: HttpResponseMessage)
     begin
@@ -571,6 +558,21 @@ codeunit 30103 "Shpfy Communication Mgt."
                     Retry := true;
                 end;
         end;
+    end;
+
+    local procedure HandleUnauthorizedResponse(HttpResponseMessage: HttpResponseMessage): Boolean
+    var
+        AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
+        Store: Text;
+    begin
+        // An expiring offline token may have been retired unexpectedly. Force a single refresh
+        // (or migration) so the request can be retried with a fresh token.
+        if HttpResponseMessage.HttpStatusCode() <> 401 then
+            exit(false);
+        Store := Shop.GetStoreName();
+        if Store = '' then
+            exit(false);
+        exit(AuthenticationMgt.ForceTokenRefresh(Store));
     end;
 
     /// <summary> 
