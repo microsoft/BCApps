@@ -388,7 +388,7 @@ page 8704 "Indexes List Part"
                         InsertDisabledIndex(KeyRec, false);
                 end;
 
-                if KeyRec.MaintainSIFTIndex then begin
+                if KeyRec.MaintainSIFTIndex or (not KeyRec.Enabled and (KeyRec.SumIndexFields <> '')) then begin
                     IndexName := GetKeyIndexName(KeyRec, true);
                     if not Rec.Get(LinkTableId, IndexName, SetCompanyName, KeyRec."Source App ID", Rec."Index Type"::SIFT) then
                         InsertDisabledIndex(KeyRec, true);

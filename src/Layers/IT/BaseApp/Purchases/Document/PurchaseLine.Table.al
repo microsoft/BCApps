@@ -690,7 +690,7 @@ table 39 "Purchase Line"
                     UpdateJobPrices();
                 end;
 
-#if not CLEAN27
+#if not CLEAN28
                 if IsProdOrder() and (Type = Type::Item) and ("No." <> '') then
                     "Pricelist UM Qty/Base UM Qty" := GetQtyBase() / "Base UM Qty/Pricelist UM Qty";
 #endif
@@ -823,7 +823,7 @@ table 39 "Purchase Line"
                 if not IsHandled then
                     Validate("Line Discount %");
 
-#if not CLEAN27
+#if not CLEAN28
                 if IsProdOrder() and (Type = Type::Item) and ("No." <> '') then
                     "Pricelist Cost" := "Direct Unit Cost" / GetQtyPerUOM() * "Base UM Qty/Pricelist UM Qty";
 #endif
@@ -4059,21 +4059,21 @@ table 39 "Purchase Line"
                         Error(Text12106, FieldCaption("Prepmt. CM Refers to Period"), FieldCaption("Prepmt. Line Amount"));
             end;
         }
-#if not CLEANSCHEMA30
+#if not CLEANSCHEMA31
         field(12180; "WIP Item"; Boolean)
         {
             Caption = 'WIP Item';
             Editable = false;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
-#if not CLEAN27
+#if not CLEAN28
         field(12182; "WIP Qty at Subc.Loc. (Base)"; Decimal)
         {
             AutoFormatType = 0;
@@ -4094,14 +4094,14 @@ table 39 "Purchase Line"
             Caption = 'Not Proc. WIP Qty to Receive';
             DecimalPlaces = 0 : 5;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
-#if not CLEAN27
+#if not CLEAN28
             trigger OnValidate()
             var
                 LegacySubcFeatureHandler: codeunit "Legacy Subc. Feature Handler";
@@ -4123,12 +4123,12 @@ table 39 "Purchase Line"
             Editable = false;
             InitValue = 1;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
         field(12185; "UoM for Pricelist"; Code[10])
@@ -4137,12 +4137,12 @@ table 39 "Purchase Line"
             Editable = false;
             TableRelation = "Unit of Measure";
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
         field(12186; "Pricelist UM Qty/Base UM Qty"; Decimal)
@@ -4152,12 +4152,12 @@ table 39 "Purchase Line"
             DecimalPlaces = 0 : 5;
             Editable = false;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
         field(12187; "Pricelist Cost"; Decimal)
@@ -4167,12 +4167,12 @@ table 39 "Purchase Line"
             Caption = 'Pricelist Cost';
             Editable = false;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
+#if not CLEAN28
             ObsoleteState = Pending;
             ObsoleteTag = '27.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
+            ObsoleteTag = '31.0';
 #endif
         }
 #endif

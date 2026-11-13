@@ -724,13 +724,6 @@ codeunit 99000778 OrderTrackingManagement
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetSourceLine(SourceRecRef: RecordRef; var ReservEntry: Record "Reservation Entry"; var ItemLedgerEntry: Record "Item Ledger Entry")
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnDerivePlanningFilterOnSetToReservationFilter(var ToReservEntry: Record "Reservation Entry"; FilterPlanningComponent: Record "Planning Component")
     begin
