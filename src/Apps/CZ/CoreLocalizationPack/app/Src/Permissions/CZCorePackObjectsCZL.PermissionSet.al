@@ -46,6 +46,7 @@ permissionset 11732 "CZ Core Pack - Objects CZL"
                   codeunit "Format Document Mgt. CZL" = X,
                   codeunit "Gen.Jnl.Check Line Handler CZL" = X,
                   codeunit "Gen.Jnl. - Post Acc. Group CZL" = X,
+                  codeunit "Gen. Jnl.-Post Line Mgt. CZL" = X,
                   codeunit "Gen.Jnl. Post Line Handler CZL" = X,
                   codeunit "Gen. Jnl. Template Handler CZL" = X,
                   codeunit "Gen. Journal Line Handler CZL" = X,

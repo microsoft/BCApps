@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Posting;
 
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 
 codeunit 11703 "Gen. Jnl.-Post Line Mgt. CZL"
@@ -16,7 +17,8 @@ codeunit 11703 "Gen. Jnl.-Post Line Mgt. CZL"
         OnBeforeCalcAppliedAmountLCY(NewCVLedgEntryBuf, OldCVLedgEntryBuf, OldCVLedgEntryBuf2, OldAppliedAmount, AppliedAmount, AppliedAmountLCY, IsHandled);
         if IsHandled then
             exit;
-
+        if IsIncrementalExchangePostingDisabled() then
+            exit;
         if NewCVLedgEntryBuf."Currency Code" = OldCVLedgEntryBuf2."Currency Code" then
             AppliedAmountLCY := Round(AppliedAmount / OldCVLedgEntryBuf."Adjusted Currency Factor")
         else
@@ -34,14 +36,24 @@ codeunit 11703 "Gen. Jnl.-Post Line Mgt. CZL"
         OnBeforeCalcRealizedGainLossLCY(CVLedgEntryBuf, AppliedAmount, AppliedAmountLCY, RealizedGainLossLCY, IsHandled);
         if IsHandled then
             exit;
+        if IsIncrementalExchangePostingDisabled() then
+            exit;
 
         RealizedGainLossLCY := AppliedAmountLCY - Round(AppliedAmount / CVLedgEntryBuf."Adjusted Currency Factor");
     end;
 
     internal procedure IsCalcCurrencyUnrealizedGainLossSuppressed() IsSuppressed: Boolean
     begin
-        IsSuppressed := true;
+        IsSuppressed := not IsIncrementalExchangePostingDisabled();
         OnIsCalcCurrencyUnrealizedGainLossSuppressed(IsSuppressed);
+    end;
+
+    local procedure IsIncrementalExchangePostingDisabled(): Boolean
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.GetRecordOnce();
+        exit(GeneralLedgerSetup."Disable Incr. Exch. Post. CZL");
     end;
 
     [IntegrationEvent(false, false)]
