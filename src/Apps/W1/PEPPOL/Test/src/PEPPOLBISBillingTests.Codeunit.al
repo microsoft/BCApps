@@ -44,6 +44,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
     var
         LibraryService: Codeunit "Library - Service";
+        LibraryAltCustVATReg: Codeunit "Library - Alt. Cust. VAT Reg.";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
@@ -100,6 +101,114 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         VerifyCustomerEndpoint(Customer."VAT Registration No.", GetVATSchemaID(Customer."Country/Region Code"));
         // [THEN] <TaxCurrencyCode> is not exported, one <TaxTotal> node in XML (TFS 389982)
         VerifyTaxTotalNode('Invoice', 1);
+    end;
+
+    [Test]
+    procedure ExportSalesInvoiceWithAlternativeVATCountry()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        TempBlob: Codeunit "Temp Blob";
+        FormatCode: Code[20];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A posted invoice retains its German VAT identity and Italian address after alternative setup changes.
+        Initialize();
+
+        // [GIVEN] Invoice "SI" selects the German alternative VAT registration of Italian customer "C" before posting.
+        SalesInvoiceHeader.Get(CreatePostSalesDocWithAlternativeVAT("Sales Document Type"::Invoice, AltCustVATReg));
+        SalesInvoiceHeader.SetRecFilter();
+        FormatCode := CreateBISElectronicDocumentFormatSalesInvoice();
+
+        // [WHEN] The invoice is exported as PEPPOL BIS.
+        PEPPOLXMLExportToBlob(SalesInvoiceHeader, FormatCode, TempBlob);
+
+        // [THEN] The buyer endpoint and tax identifier are German while its postal country remains Italian.
+        InitXPathXMLReaderForInvoice(TempBlob);
+        VerifyGermanBuyerVATWithItalianAddress();
+
+        // [GIVEN] The alternative VAT number changes after the invoice was posted.
+        AltCustVATReg.Validate("VAT Registration No.", 'DE987654321');
+        AltCustVATReg.Modify(true);
+
+        // [WHEN] The posted invoice is exported again.
+        Clear(TempBlob);
+        PEPPOLXMLExportToBlob(SalesInvoiceHeader, FormatCode, TempBlob);
+
+        // [THEN] The original posted fiscal identifier and country are retained.
+        InitXPathXMLReaderForInvoice(TempBlob);
+        VerifyGermanBuyerVATWithItalianAddress();
+    end;
+
+    [Test]
+    procedure ExportSalesCreditMemoWithAlternativeVATCountry()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        AltCustVATReg: Record "Alt. Cust. VAT Reg.";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A sales credit memo exports its alternative VAT country independently of the buyer postal country.
+        Initialize();
+
+        // [GIVEN] Credit memo "SC" selects a German alternative registration for Italian customer "C" before posting.
+        SalesCrMemoHeader.Get(CreatePostSalesDocWithAlternativeVAT("Sales Document Type"::"Credit Memo", AltCustVATReg));
+        SalesCrMemoHeader.SetRecFilter();
+
+        // [WHEN] The credit memo is exported as PEPPOL BIS.
+        PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
+
+        // [THEN] The buyer endpoint and tax identifier are German while its postal country remains Italian.
+        InitXPathXMLReaderForCreditNote(TempBlob);
+        VerifyGermanBuyerVATWithItalianAddress();
+    end;
+
+    [Test]
+    procedure ExportServiceInvoiceWithDifferentVATCountry()
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Service invoice conversion preserves the document VAT country for PEPPOL buyer identification.
+        Initialize();
+
+        // [GIVEN] Service invoice "SI" is posted for Italian customer "C" with a German VAT country and number.
+        ServiceInvoiceHeader.SetRange(
+            "Pre-Assigned No.", CreatePostServiceDocWithDifferentVATCountry("Service Document Type"::Invoice));
+        ServiceInvoiceHeader.FindFirst();
+        ServiceInvoiceHeader.SetRecFilter();
+
+        // [WHEN] The service invoice is exported as PEPPOL BIS.
+        PEPPOLXMLExportToBlob(ServiceInvoiceHeader, CreateBISElectronicDocumentFormatServiceInvoice(), TempBlob);
+
+        // [THEN] The buyer endpoint and tax identifier are German while its postal country remains Italian.
+        InitXPathXMLReaderForInvoice(TempBlob);
+        VerifyGermanBuyerVATWithItalianAddress();
+    end;
+
+    [Test]
+    procedure ExportServiceCreditMemoWithDifferentVATCountry()
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Service credit memo conversion preserves the document VAT country for PEPPOL buyer identification.
+        Initialize();
+
+        // [GIVEN] Service credit memo "SC" is posted for Italian customer "C" with a German VAT country and number.
+        ServiceCrMemoHeader.SetRange(
+            "Pre-Assigned No.", CreatePostServiceDocWithDifferentVATCountry("Service Document Type"::"Credit Memo"));
+        ServiceCrMemoHeader.FindFirst();
+        ServiceCrMemoHeader.SetRecFilter();
+
+        // [WHEN] The service credit memo is exported as PEPPOL BIS.
+        PEPPOLXMLExportToBlob(ServiceCrMemoHeader, CreateBISElectronicDocumentFormatServiceCrMemo(), TempBlob);
+
+        // [THEN] The buyer endpoint and tax identifier are German while its postal country remains Italian.
+        InitXPathXMLReaderForCreditNote(TempBlob);
+        VerifyGermanBuyerVATWithItalianAddress();
     end;
 
     [Test]
@@ -1935,6 +2044,84 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         CompanyInfo.Get();
         CompanyInfo.Validate(GLN, '1234567891231');
         CompanyInfo.Modify(true);
+    end;
+
+    local procedure CreatePostSalesDocWithAlternativeVAT(DocumentType: Enum "Sales Document Type"; var AltCustVATReg: Record "Alt. Cust. VAT Reg."): Code[20]
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATCountryCode: Code[10];
+    begin
+        CreateItalianCustomerWithGermanVATCountry(Customer, VATCountryCode);
+        LibraryAltCustVATReg.CreateAlternativeCustVATReg(
+            AltCustVATReg, Customer."No.", VATCountryCode, 'DE123456789',
+            Customer."Gen. Bus. Posting Group", Customer."VAT Bus. Posting Group");
+        CreateSalesDoc(SalesHeader, SalesLine, Customer."No.", DocumentType, '');
+        SalesHeader.SetHideValidationDialog(true);
+        SalesHeader.Validate("VAT Country/Region Code", VATCountryCode);
+        SalesHeader.Modify(true);
+        Assert.IsTrue(SalesHeader."Alt. VAT Registration No.", 'The alternative registration must be selected before posting.');
+        Assert.AreEqual('DE123456789', SalesHeader."VAT Registration No.", 'The selected alternative VAT number must be copied to the document.');
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreatePostServiceDocWithDifferentVATCountry(DocumentType: Enum "Service Document Type"): Code[20]
+    var
+        Customer: Record Customer;
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        VATCountryCode: Code[10];
+    begin
+        SetupServiceMgtSetupTemplates();
+        CreateItalianCustomerWithGermanVATCountry(Customer, VATCountryCode);
+        LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, Customer."No.");
+        ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
+        ServiceHeader.Validate("E-Mail", 'sellto@example.com');
+        ServiceHeader.Validate("VAT Country/Region Code", VATCountryCode);
+        ServiceHeader."VAT Registration No." := 'DE123456789';
+        ServiceHeader.Modify(true);
+        LibraryService.CreateServiceLineWithQuantity(
+            ServiceLine, ServiceHeader, ServiceLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 1);
+        ServiceLine.Validate("Unit Price", 1000);
+        ServiceLine.Modify(true);
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+        exit(ServiceHeader."No.");
+    end;
+
+    local procedure CreateItalianCustomerWithGermanVATCountry(var Customer: Record Customer; var VATCountryCode: Code[10])
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        LibrarySales.CreateCustomerWithAddress(Customer);
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'IT';
+        CountryRegion."VAT Scheme" := '0097';
+        CountryRegion.Modify(true);
+        Customer."Country/Region Code" := CountryRegion.Code;
+        Customer."VAT Registration No." := 'IT12345678901';
+        Customer.GLN := '';
+        Customer."Use GLN in Electronic Document" := false;
+        Customer.Modify(true);
+
+        Clear(CountryRegion);
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'DE';
+        CountryRegion."VAT Scheme" := '9930';
+        CountryRegion.Modify(true);
+        VATCountryCode := CountryRegion.Code;
+    end;
+
+    local procedure VerifyGermanBuyerVATWithItalianAddress()
+    begin
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+            'cac:AccountingCustomerParty/cac:Party/cbc:EndpointID', 'DE123456789');
+        LibraryXPathXMLReader.VerifyAttributeValue(
+            'cac:AccountingCustomerParty/cac:Party/cbc:EndpointID', 'schemeID', '9930');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+            'cac:AccountingCustomerParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', 'DE123456789');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+            'cac:AccountingCustomerParty/cac:Party/cac:PostalAddress/cac:Country/cbc:IdentificationCode', 'IT');
     end;
 
     local procedure CreatePostSalesDoc(CustomerNo: Code[20]; DocumentType: Enum "Sales Document Type"): Code[20]
