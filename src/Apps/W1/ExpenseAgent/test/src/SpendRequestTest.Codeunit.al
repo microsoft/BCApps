@@ -105,7 +105,7 @@ codeunit 148339 "Spend Request Test"
         ApproverUserIdRecordedMsg: Label 'The approving or rejecting user ID should be recorded on the travel request.';
         ApproverUserNameRecordedMsg: Label 'The approving or rejecting user name should be recorded on the travel request.';
         ApproverUserDiffersMsg: Label 'The approver user must differ from the session user.';
-        ApproverUserNotFoundTok: Label 'the user ID for approvals, %1, does not match a Business Central user', Comment = '%1 = User ID for approvals';
+        ApproverUserNotFoundTok: Label 'the user ID for approvals, %1, does not match a Business Central user', Comment = '%1 = User ID for approvals', Locked = true;
         ApproverUserNotFoundStatusMsg: Label 'The travel request must stay released when the approver user does not exist.';
         TravelRequestCreatedLoggedMsg: Label 'The travel request history must start with its creation.';
         TravelRequestClosedLoggedMsg: Label 'The closure of the travel request must be logged once.';

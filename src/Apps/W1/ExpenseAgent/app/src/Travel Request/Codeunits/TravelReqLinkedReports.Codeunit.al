@@ -14,6 +14,7 @@ codeunit 6914 "Travel Req. Linked Reports"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata "Spend Request" = r;
 
     procedure ShowExpenseReports(TravelRequestNo: Code[20])
     var
