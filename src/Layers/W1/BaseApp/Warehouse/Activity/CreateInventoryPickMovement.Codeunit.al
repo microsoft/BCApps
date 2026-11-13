@@ -833,7 +833,8 @@ codeunit 7322 "Create Inventory Pick/Movement"
              NewWarehouseActivityLine."Source Type", NewWarehouseActivityLine."Source Subtype", NewWarehouseActivityLine."Source No.",
              NewWarehouseActivityLine."Source Line No.", ATOSalesLine)
         then
-            QtyAvailToPickBase += ATOSalesLine.QtyToAsmBaseOnATO();
+            QtyAvailToPickBase +=
+                ATOSalesLine.QtyToAsmBaseOnATO() - WMSManagement.CalcQtyBaseOnATOInvtPick(ATOSalesLine, WhseItemTrackingSetup);
 
         if WMSManagement.GetATOJobPlanningLine(
             NewWarehouseActivityLine."Source Type", NewWarehouseActivityLine."Source No.", NewWarehouseActivityLine."Source Line No.",

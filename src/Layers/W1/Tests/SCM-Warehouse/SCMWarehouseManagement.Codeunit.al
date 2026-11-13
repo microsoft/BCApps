@@ -1899,6 +1899,98 @@ codeunit 137064 "SCM Warehouse Management"
     end;
 
     [Test]
+    [HandlerFunctions('DummyMessageHandler')]
+    [Scope('OnPrem')]
+    procedure InventoryPickDoesNotAddExistingAssemblyQuantity()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        ComponentItem: Record Item;
+        BOMComponent: Record "BOM Component";
+        AssemblySetup: Record "Assembly Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        UpdateNo: Integer;
+    begin
+        // [SCENARIO 651545] Existing assembly picks do not make additional stock available on a location without bins.
+        Initialize();
+
+        // [GIVEN] Two units in stock and a sales order for ten units, including two units to assemble.
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, true, true, false);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::Assembly);
+        Item.Modify(true);
+        LibraryInventory.CreateItem(ComponentItem);
+        LibraryInventory.CreateBOMComponent(
+            BOMComponent, Item."No.", BOMComponent.Type::Item, ComponentItem."No.", 1, ComponentItem."Base Unit of Measure");
+        LibraryInventory.PostPositiveAdjustment(Item, Location.Code, '', '', 2, WorkDate(), 0);
+        LibraryInventory.PostPositiveAdjustment(ComponentItem, Location.Code, '', '', 2, WorkDate(), 0);
+        AssemblySetup.Get();
+        AssemblySetup.Validate("Create Movements Automatically", false);
+        AssemblySetup.Modify(true);
+        CreateSalesHeader(SalesHeader, '', Location.Code, SalesHeader."Shipping Advice"::Partial);
+        CreateSalesLine(SalesHeader, SalesLine, Item."No.", Location.Code, 10);
+        SalesLine.Validate("Qty. to Assemble to Order", 2);
+        SalesLine.Modify(true);
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+        LibraryWarehouse.CreateInvtPutPickSalesOrder(SalesHeader);
+        FindWarehouseActivityHeader(WarehouseActivityHeader, Location.Code, WarehouseActivityHeader.Type::"Invt. Pick");
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.SetRange("Source No.", SalesHeader."No.");
+        Assert.RecordCount(WarehouseActivityLine, 2);
+
+        // [WHEN] Get Source Document is run repeatedly without receiving more stock.
+        for UpdateNo := 1 to 2 do begin
+            UpdateInventoryPick(WarehouseActivityHeader, SalesHeader);
+
+            // [THEN] Only the original two assembly units and two stock units remain on the pick.
+            WarehouseActivityLine.SetRange("Assemble to Order", true);
+            Assert.RecordCount(WarehouseActivityLine, 1);
+            WarehouseActivityLine.FindFirst();
+            WarehouseActivityLine.TestField(Quantity, 2);
+            WarehouseActivityLine.TestField("Qty. (Base)", 2);
+            WarehouseActivityLine.SetRange("Assemble to Order", false);
+            Assert.RecordCount(WarehouseActivityLine, 1);
+            WarehouseActivityLine.FindFirst();
+            WarehouseActivityLine.TestField(Quantity, 2);
+            WarehouseActivityLine.TestField("Qty. (Base)", 2);
+            WarehouseActivityLine.SetRange("Assemble to Order");
+        end;
+    end;
+
+    [Test]
+    [HandlerFunctions('DummyMessageHandler')]
+    [Scope('OnPrem')]
+    procedure InventoryPickAddsNewlyReceivedLotQuantity()
+    begin
+        InventoryPickAddsNewlyReceivedTrackedQuantity(false);
+    end;
+
+    [Test]
+    [HandlerFunctions('DummyMessageHandler')]
+    [Scope('OnPrem')]
+    procedure InventoryPickAddsNewlyReceivedSerialQuantity()
+    begin
+        InventoryPickAddsNewlyReceivedTrackedQuantity(true);
+    end;
+
+    local procedure UpdateInventoryPick(var WarehouseActivityHeader: Record "Warehouse Activity Header"; SalesHeader: Record "Sales Header")
+    var
+        WarehouseRequest: Record "Warehouse Request";
+        CreateInventoryPickMovement: Codeunit "Create Inventory Pick/Movement";
+    begin
+        WarehouseRequest.SetRange(Type, WarehouseRequest.Type::Outbound);
+        WarehouseRequest.SetRange("Source Type", Database::"Sales Line");
+        WarehouseRequest.SetRange("Source No.", SalesHeader."No.");
+        WarehouseRequest.FindFirst();
+        CreateInventoryPickMovement.SetWhseRequest(WarehouseRequest, true);
+        CreateInventoryPickMovement.Run(WarehouseActivityHeader);
+    end;
+
+    [Test]
     [HandlerFunctions('SourceDocPageHandler')]
     [Scope('OnPrem')]
     procedure BlockedLotAffectsAvailabilityForPick_BW_SalesWithNoLot()
@@ -2845,6 +2937,127 @@ codeunit 137064 "SCM Warehouse Management"
         FindWarehouseShipmentHeader(WarehouseShipmentHeader, LocationWhite.Code);
         FindWarehouseShipmentLine(WarehouseShipmentLine, WarehouseShipmentHeader, Item."No.");
         Assert.AreEqual(SalesLine.Quantity, WarehouseShipmentLine.Quantity, QtyErr);
+    end;
+
+    local procedure InventoryPickAddsNewlyReceivedTrackedQuantity(SerialTracking: Boolean)
+    var
+        Location: Record Location;
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ReservationEntry: Record "Reservation Entry";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WarehouseReceiptHeader: Record "Warehouse Receipt Header";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        OriginalWarehouseActivityLine: Record "Warehouse Activity Line";
+        ItemTrackingSetup: array[10] of Record "Item Tracking Setup";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        TrackingQuantity: array[10] of Decimal;
+        InitialQuantity: array[10] of Decimal;
+        TrackingCount: Integer;
+        ExpectedLineCount: Integer;
+        TrackingIndex: Integer;
+        UpdateNo: Integer;
+    begin
+        // [SCENARIO 651545] Updating a tracked inventory pick adds only the newly received quantity for each lot or serial.
+        Initialize();
+
+        // [GIVEN] Two units in stock, with lot or serial tracking required.
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, true, true, false);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, SerialTracking, not SerialTracking);
+        ItemTrackingCode.Validate("SN Warehouse Tracking", SerialTracking);
+        ItemTrackingCode.Validate("Lot Warehouse Tracking", not SerialTracking);
+        ItemTrackingCode.Modify(true);
+        LibraryItemTracking.CreateItemWithItemTrackingCode(Item, ItemTrackingCode);
+        if SerialTracking then begin
+            TrackingCount := 10;
+            ExpectedLineCount := 10;
+            for TrackingIndex := 1 to TrackingCount do begin
+                ItemTrackingSetup[TrackingIndex]."Serial No." := LibraryUtility.GenerateGUID();
+                TrackingQuantity[TrackingIndex] := 1;
+                if TrackingIndex <= 2 then
+                    InitialQuantity[TrackingIndex] := 1;
+            end;
+        end else begin
+            TrackingCount := 2;
+            ExpectedLineCount := 3;
+            ItemTrackingSetup[1]."Lot No." := LibraryUtility.GenerateGUID();
+            ItemTrackingSetup[2]."Lot No." := LibraryUtility.GenerateGUID();
+            TrackingQuantity[1] := 4;
+            TrackingQuantity[2] := 6;
+            InitialQuantity[1] := 2;
+        end;
+        for TrackingIndex := 1 to TrackingCount do
+            if InitialQuantity[TrackingIndex] > 0 then
+                LibraryItemTracking.PostPositiveAdjustmentWithItemTracking(
+                    Item, Location.Code, '', InitialQuantity[TrackingIndex], WorkDate(),
+                    ItemTrackingSetup[TrackingIndex]."Serial No.", ItemTrackingSetup[TrackingIndex]."Lot No.");
+
+        // [GIVEN] A tracked sales order for ten units and an inventory pick for the two units in stock.
+        CreateSalesHeader(SalesHeader, '', Location.Code, SalesHeader."Shipping Advice"::Partial);
+        CreateSalesLine(SalesHeader, SalesLine, Item."No.", Location.Code, 10);
+        for TrackingIndex := 1 to TrackingCount do
+            LibraryItemTracking.CreateSalesOrderItemTracking(
+                ReservationEntry, SalesLine, ItemTrackingSetup[TrackingIndex], TrackingQuantity[TrackingIndex]);
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+        LibraryWarehouse.CreateInvtPutPickSalesOrder(SalesHeader);
+        FindWarehouseActivityHeader(WarehouseActivityHeader, Location.Code, WarehouseActivityHeader.Type::"Invt. Pick");
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityLine.Validate("Qty. to Handle", 1);
+        WarehouseActivityLine.Modify(true);
+        OriginalWarehouseActivityLine := WarehouseActivityLine;
+
+        // [WHEN] The existing pick is updated without a receipt.
+        UpdateInventoryPick(WarehouseActivityHeader, SalesHeader);
+
+        // [THEN] The pick still contains only the initial stock.
+        if SerialTracking then
+            Assert.RecordCount(WarehouseActivityLine, 2)
+        else
+            Assert.RecordCount(WarehouseActivityLine, 1);
+        WarehouseActivityLine.CalcSums(Quantity, "Qty. (Base)");
+        WarehouseActivityLine.TestField(Quantity, 2);
+        WarehouseActivityLine.TestField("Qty. (Base)", 2);
+
+        // [GIVEN] Eight more tracked units are received, including the remainder of the first lot or new serials.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        CreatePurchaseLine(PurchaseHeader, PurchaseLine, Item."No.", Location.Code, 8);
+        for TrackingIndex := 1 to TrackingCount do
+            if TrackingQuantity[TrackingIndex] > InitialQuantity[TrackingIndex] then
+                LibraryItemTracking.CreatePurchOrderItemTracking(
+                    ReservationEntry, PurchaseLine, ItemTrackingSetup[TrackingIndex],
+                    TrackingQuantity[TrackingIndex] - InitialQuantity[TrackingIndex]);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        LibraryWarehouse.CreateWhseReceiptFromPO(PurchaseHeader);
+        FindWarehouseReceiptHeader(WarehouseReceiptHeader, Location.Code);
+        LibraryWarehouse.PostWhseReceipt(WarehouseReceiptHeader);
+
+        // [WHEN] Get Source Document is run twice on the existing pick.
+        for UpdateNo := 1 to 2 do begin
+            UpdateInventoryPick(WarehouseActivityHeader, SalesHeader);
+
+            // [THEN] Each lot or serial has exactly its sales quantity, without duplicate lines on the second run.
+            Assert.RecordCount(WarehouseActivityLine, ExpectedLineCount);
+            for TrackingIndex := 1 to TrackingCount do begin
+                WarehouseActivityLine.SetTrackingFilterFromItemTrackingSetup(ItemTrackingSetup[TrackingIndex]);
+                if SerialTracking then
+                    Assert.RecordCount(WarehouseActivityLine, 1);
+                WarehouseActivityLine.CalcSums(Quantity, "Qty. (Base)");
+                WarehouseActivityLine.TestField(Quantity, TrackingQuantity[TrackingIndex]);
+                WarehouseActivityLine.TestField("Qty. (Base)", TrackingQuantity[TrackingIndex]);
+            end;
+            WarehouseActivityLine.SetRange("Lot No.");
+            WarehouseActivityLine.SetRange("Serial No.");
+            WarehouseActivityLine.SetRange("Package No.");
+            OriginalWarehouseActivityLine.Find();
+            OriginalWarehouseActivityLine.TestField(Quantity, InitialQuantity[1]);
+            OriginalWarehouseActivityLine.TestField("Qty. to Handle", 1);
+        end;
     end;
 
     [Normal]
