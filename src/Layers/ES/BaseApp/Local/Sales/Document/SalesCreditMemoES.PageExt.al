@@ -9,6 +9,25 @@ pageextension 10744 "Sales Credit Memo ES" extends "Sales Credit Memo"
 {
     layout
     {
+        addafter("Credit Memo Details")
+        {
+            group(Payment)
+            {
+                Caption = 'Payment';
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Standard fields are in Credit Memo Details. The customer bank account field is added by the Sales Credit Memo ES page extension.';
+                ObsoleteTag = '30.0';
+            }
+        }
+        addafter("Shipment Date")
+        {
+            field("Cust. Bank Acc. Code"; Rec."Cust. Bank Acc. Code")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the customer bank code to assign to the sales header in this field.';
+            }
+        }
         addafter(Status)
         {
             field("Correction Type"; Rec."Correction Type")
@@ -21,6 +40,17 @@ pageextension 10744 "Sales Credit Memo ES" extends "Sales Credit Memo"
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the number of the posted invoice that you need to correct.';
             }
+        }
+
+    }
+
+    actions
+    {
+        modify(CalculateInvoiceDiscount)
+        {
+            Caption = 'Calculate &Inv. and Pmt. Discounts';
+            Image = CalculateDiscount;
+            ToolTip = 'Update the lines with any payment discount that is specified in the related payment terms.';
         }
     }
 }

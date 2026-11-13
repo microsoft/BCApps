@@ -22,5 +22,15 @@ pageextension 10747 "Purchase Return Order ES" extends "Purchase Return Order"
                 ToolTip = 'Specifies the number of the posted invoice that you have corrected.';
             }
         }
+
+    }
+
+    actions
+    {
+        modify(CalculateInvoiceDiscount)
+        {
+            Caption = 'Calculate &Inv. and Pmt. Discounts';
+            Image = CalculateDiscount;
+        }
     }
 }

@@ -1058,6 +1058,7 @@ table 113 "Sales Invoice Line"
             repeat
                 TempVATAmountLine.Init();
                 TempVATAmountLine.CopyFromSalesInvLine(Rec);
+                OnCalcVATAmountLinesOnBeforeInsertLine(SalesInvHeader, TempVATAmountLine);
                 TempVATAmountLine.InsertLine();
             until Next() = 0;
     end;
@@ -1535,6 +1536,11 @@ table 113 "Sales Invoice Line"
     /// <param name="VATPct">The VAT percentage value.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetVATPct(var SalesInvoiceLine: Record "Sales Invoice Line"; var VATPct: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcVATAmountLinesOnBeforeInsertLine(SalesInvHeader: Record "Sales Invoice Header"; var TempVATAmountLine: Record "VAT Amount Line" temporary)
     begin
     end;
 

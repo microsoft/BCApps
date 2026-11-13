@@ -7,6 +7,34 @@ namespace Microsoft.Sales.History;
 #pragma warning disable AS0088
 pageextension 10751 "Posted Sales Invoice ES" extends "Posted Sales Invoice"
 {
+    layout
+    {
+        addafter("Payment Terms Code")
+        {
+            field("Cust. Bank Acc. Code"; Rec."Cust. Bank Acc. Code")
+            {
+                ApplicationArea = Basic, Suite;
+                Editable = false;
+                ToolTip = 'Specifies the client''s bank code that was on the sales header when the invoice was created.';
+            }
+        }
+        addafter("Invoice Details")
+        {
+            group(Payment)
+            {
+                Caption = 'Payment';
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Standard fields are in Invoice Details. The customer bank account field is added by the Posted Sales Invoice ES page extension.';
+                ObsoleteTag = '30.0';
+            }
+        }
+        modify("Payment Method Code")
+        {
+            Importance = Promoted;
+        }
+    }
+
     actions
     {
         addafter("&Track Package")

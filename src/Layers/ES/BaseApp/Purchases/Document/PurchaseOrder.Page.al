@@ -455,13 +455,11 @@ page 50 "Purchase Order"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ShowMandatory = true;
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ShowMandatory = true;
                     Visible = IsPaymentMethodCodeVisible;
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
@@ -1482,10 +1480,10 @@ page 50 "Purchase Order"
                 action(CalculateInvoiceDiscount)
                 {
                     AccessByPermission = TableData "Vendor Invoice Disc." = R;
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Calculate &Inv. and Pmt. Discounts';
-                    Image = CalculateDiscount;
-                    ToolTip = 'Update the lines with any payment discount that is specified in the related payment terms.';
+                    ApplicationArea = Suite;
+                    Caption = 'Calculate &Invoice Discount';
+                    Image = CalculateInvoiceDiscount;
+                    ToolTip = 'Calculate the discount that can be granted based on all lines in the purchase document.';
 
                     trigger OnAction()
                     begin
@@ -2585,7 +2583,7 @@ page 50 "Purchase Order"
     var
         DocumentNoVisibility: Codeunit DocumentNoVisibility;
     begin
-        DocNoVisible := DocumentNoVisibility.PurchaseDocumentNoIsVisible("Purchase Document Type"::Order.AsInteger(), Rec."No.");
+        DocNoVisible := DocumentNoVisibility.PurchaseDocumentNoIsVisible(Enum::"Purchase Document Type"::Order.AsInteger(), Rec."No.");
     end;
 
     local procedure SetExtDocNoMandatoryCondition()

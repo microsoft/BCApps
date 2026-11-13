@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Reports;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reports;
@@ -17,6 +18,17 @@ pageextension 7000070 "CRT Small Business Owner RC" extends "Small Business Owne
 {
     actions
     {
+        addafter("Customer - Due Payments")
+        {
+            action("Vendor - Due Payments")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Vendor - Due Payments';
+                Image = "Report";
+                RunObject = Report "Vendor - Due Payments";
+                ToolTip = 'View a list of payments to be made to a particular vendor sorted by due date.';
+            }
+        }
         addlast(reporting)
         {
             group("Cartera Bill Groups")

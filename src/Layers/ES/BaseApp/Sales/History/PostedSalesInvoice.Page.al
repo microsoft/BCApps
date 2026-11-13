@@ -365,21 +365,11 @@ page 132 "Posted Sales Invoice"
                     Editable = false;
                     Importance = Promoted;
                 }
-            }
-            group(Payment)
-            {
-                Caption = 'Payment';
-                field("Cust. Bank Acc. Code"; Rec."Cust. Bank Acc. Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the client''s bank code that was on the sales header when the invoice was created.';
-                }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    Importance = Promoted;
+                    Importance = Additional;
                 }
                 group(Control15)
                 {
@@ -998,7 +988,7 @@ page 132 "Posted Sales Invoice"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Update Document';
                 Image = Edit;
-                ToolTip = 'Add new information that is relevant to the document. You can only edit a few fields because the document has already been posted.';
+                ToolTip = 'Add new information that is relevant to the document, such as a payment reference. You can only edit a few fields because the document has already been posted.';
 
                 trigger OnAction()
                 var
@@ -1285,6 +1275,7 @@ page 132 "Posted Sales Invoice"
         OnBeforeOnAfterGetCurrRecord(Rec, IsHandled, CRMIsCoupledToRecord, CRMIntegrationEnabled);
         if IsHandled then
             exit;
+
         if GuiAllowed() then begin
             HasIncomingDocument := IncomingDocument.PostedDocExists(Rec."No.", Rec."Posting Date");
             DocExchStatusStyle := Rec.GetDocExchStatusStyle();

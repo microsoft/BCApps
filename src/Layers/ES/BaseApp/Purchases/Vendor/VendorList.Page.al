@@ -9,7 +9,6 @@ using Microsoft.CRM.Contact;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Comment;
 using Microsoft.Integration.Dataverse;
@@ -1211,14 +1210,6 @@ page 27 "Vendor List"
                     Image = "Report";
                     RunObject = Report "Vendor - Trial Balance";
                 }
-                action("Vendor - Due Payments")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Vendor - Due Payments';
-                    Image = "Report";
-                    RunObject = Report "Vendor - Due Payments";
-                    ToolTip = 'View a list of payments to be made to a particular vendor sorted by due date.';
-                }
                 action("Vendor - Detail Trial Balance")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1343,10 +1334,6 @@ page 27 "Vendor List"
             group(Category_Report)
             {
                 Caption = 'Report', Comment = 'Generated from the PromotedActionCategories property index 2.';
-
-                actionref("Vendor - Due Payments_Promoted"; "Vendor - Due Payments")
-                {
-                }
             }
             group(Category_Synchronize)
             {
@@ -1458,5 +1445,3 @@ page 27 "Vendor List"
         CurrPage.SetSelectionFilter(Vendor);
     end;
 }
-
-

@@ -35,15 +35,15 @@ codeunit 7000094 "Sales Corrective Doc. Subscr."
         GenJnlLine."Corrected Invoice No." := SalesHeader."Corrected Invoice No.";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Credit Memo Hdr. - Edit", 'OnRunOnAfterCopyHeaderFields', '', true, false)]
-    local procedure OnRunOnAfterCopyHeaderFields(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; FromSalesCrMemoHeader: Record "Sales Cr.Memo Header")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Credit Memo Hdr. - Edit", 'OnBeforeSalesCrMemoHeaderModify', '', true, false)]
+    local procedure OnBeforeSalesCrMemoHeaderModify(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; FromSalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
         SalesCrMemoHeader."Correction Type" := FromSalesCrMemoHeader."Correction Type";
         SalesCrMemoHeader."Corrected Invoice No." := FromSalesCrMemoHeader."Corrected Invoice No.";
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Pstd. Sales Cr. Memo - Update", 'OnRecordChangedOnAfterCompareFields', '', true, false)]
-    local procedure OnRecordChangedOnAfterCompareFields(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; xSalesCrMemoHeader: Record "Sales Cr.Memo Header"; var IsChanged: Boolean)
+    [EventSubscriber(ObjectType::Page, Page::"Pstd. Sales Cr. Memo - Update", 'OnAfterRecordChanged', '', true, false)]
+    local procedure OnAfterRecordChanged(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; xSalesCrMemoHeader: Record "Sales Cr.Memo Header"; var IsChanged: Boolean)
     begin
         IsChanged := IsChanged or
           (SalesCrMemoHeader."Correction Type" <> xSalesCrMemoHeader."Correction Type") or

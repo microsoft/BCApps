@@ -334,16 +334,6 @@ page 134 "Posted Sales Credit Memo"
                     Editable = false;
                     Visible = false;
                 }
-            }
-            group(Payment)
-            {
-                Caption = 'Payment';
-                field("Cust. Bank Acc. Code"; Rec."Cust. Bank Acc. Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the customer''s bank code that was on the sales header when this credit memo was issued.';
-                }
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1072,5 +1062,4 @@ page 134 "Posted Sales Credit Memo"
         IsSellToCountyVisible := FormatAddress.UseCounty(Rec."Sell-to Country/Region Code");
         IsShipToCountyVisible := FormatAddress.UseCounty(Rec."Ship-to Country/Region Code");
     end;
-
 }

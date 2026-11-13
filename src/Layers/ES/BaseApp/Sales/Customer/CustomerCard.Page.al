@@ -11,7 +11,6 @@ using Microsoft.CRM.Duplicates;
 using Microsoft.CRM.Outlook;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;

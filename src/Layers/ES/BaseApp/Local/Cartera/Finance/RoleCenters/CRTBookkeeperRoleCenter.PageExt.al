@@ -7,6 +7,7 @@ namespace Microsoft.Finance.RoleCenters;
 using Microsoft.Bank.Reports;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Reports;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reports;
@@ -69,9 +70,17 @@ pageextension 7000029 "CRT Bookkeeper Role Center" extends "Bookkeeper Role Cent
                     ToolTip = 'Define how your company decides to administer its billing using a factoring (factor) entity. You send your customers a notification letter, telling them that it is going to assign its billing to another entity. As of that moment, the client will no longer have to pay the company, they will pay the factoring entity instead.';
                 }
             }
-        }
-        addafter("Vendor - Due Payments")
-        {
+            separator(Action1100024)
+            {
+            }
+            action("Vendor - Due Payments")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Vendor - Due Payments';
+                Image = "Report";
+                RunObject = Report "Vendor - Due Payments";
+                ToolTip = 'View a list of payments to be made to a particular vendor sorted by due date.';
+            }
             group("Cartera Payment Orders")
             {
                 Caption = 'Cartera Payment Orders';

@@ -1090,6 +1090,7 @@ table 115 "Sales Cr.Memo Line"
                 TempVATAmountLine."VAT Difference (ACY)" := "VAT Difference (ACY)";
                 TempVATAmountLine."Calculated VAT Amount (ACY)" :=
                   "Amount Including VAT (ACY)" - "Amount (ACY)" - "VAT Difference (ACY)";
+                OnCalcVATAmountLinesOnBeforeInsertLine(SalesCrMemoHeader, TempVATAmountLine);
                 TempVATAmountLine.InsertLine();
             until Next() = 0;
     end;
@@ -1545,6 +1546,11 @@ table 115 "Sales Cr.Memo Line"
     /// <param name="VATPct">The VAT percentage value.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetVATPct(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var VATPct: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcVATAmountLinesOnBeforeInsertLine(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TempVATAmountLine: Record "VAT Amount Line" temporary)
     begin
     end;
 }

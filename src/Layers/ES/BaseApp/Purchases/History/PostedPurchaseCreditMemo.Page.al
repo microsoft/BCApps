@@ -264,11 +264,6 @@ page 140 "Posted Purchase Credit Memo"
                         Clear(ChangeExchangeRate);
                     end;
                 }
-                field("Autocredit Memo No."; Rec."Autocredit Memo No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number series that is used to generate autocredit memos for purchases.';
-                }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
@@ -297,16 +292,6 @@ page 140 "Posted Purchase Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Visible = false;
-                }
-            }
-            group(Payment)
-            {
-                Caption = 'Payment';
-                field("Vendor Bank Acc. Code"; Rec."Vendor Bank Acc. Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the vendor''s bank code that was on the purchase header when this credit memo was created.';
                 }
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
@@ -648,24 +633,6 @@ page 140 "Posted Purchase Credit Memo"
                     Rec.PrintToDocumentAttachment(PurchCrMemoHeader);
                 end;
             }
-            group("&Functions")
-            {
-                Caption = '&Functions';
-                Image = "Action";
-                action("Print &Autocredit Memo")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Print &Autocredit Memo';
-                    Image = CreateDocument;
-                    ToolTip = 'Print the automatically created credit memo.';
-
-                    trigger OnAction()
-                    begin
-                        CurrPage.SetSelectionFilter(PurchCrMemoHeader);
-                        PurchCrMemoHeader.PrintRecordsAutoCrMemo(true);
-                    end;
-                }
-            }
             action("&Navigate")
             {
                 ApplicationArea = Basic, Suite;
@@ -678,6 +645,22 @@ page 140 "Posted Purchase Credit Memo"
                 trigger OnAction()
                 begin
                     Rec.Navigate();
+                end;
+            }
+            action("Update Document")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Update Document';
+                Image = Edit;
+                ToolTip = 'Add new information that is relevant to the document. You can only edit a few fields because the document has already been posted.';
+
+                trigger OnAction()
+                var
+                    PostedPurchCrMemoUpdate: Page "Posted Purch. Cr.Memo - Update";
+                begin
+                    PostedPurchCrMemoUpdate.LookupMode := true;
+                    PostedPurchCrMemoUpdate.SetRec(Rec);
+                    PostedPurchCrMemoUpdate.RunModal();
                 end;
             }
             group(Cancel)
@@ -763,22 +746,6 @@ page 140 "Posted Purchase Credit Memo"
                         IncomingDocumentAttachment.NewAttachmentFromPostedDocument(Rec."No.", Rec."Posting Date");
                     end;
                 }
-            }
-            action("Update Document")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Update Document';
-                Image = Edit;
-                ToolTip = 'Add new information that is relevant to the document. You can only edit a few fields because the document has already been posted.';
-
-                trigger OnAction()
-                var
-                    PostedPurchCrMemoUpdate: Page "Posted Purch. Cr.Memo - Update";
-                begin
-                    PostedPurchCrMemoUpdate.LookupMode := true;
-                    PostedPurchCrMemoUpdate.SetRec(Rec);
-                    PostedPurchCrMemoUpdate.RunModal();
-                end;
             }
         }
         area(Promoted)
@@ -910,5 +877,4 @@ page 140 "Posted Purchase Credit Memo"
         IsPayToCountyVisible := FormatAddress.UseCounty(Rec."Pay-to Country/Region Code");
         IsShipToCountyVisible := FormatAddress.UseCounty(Rec."Ship-to Country/Region Code");
     end;
-
 }

@@ -40,7 +40,6 @@ using Microsoft.Utilities;
 
 page 8905 "Purchasing Manager Role Center"
 {
-    // CP0529-331 (move report action tooltips to report): no duplicate page-action tooltip to remove in this fork; present in the changelist only to satisfy the MiSnapApp integration gate.
     Caption = 'Purchasing Manager Role Center';
     PageType = RoleCenter;
     actions
@@ -324,12 +323,6 @@ page 8905 "Purchasing Manager Role Center"
                         Caption = 'Purchasing Deferral Summary';
                         RunObject = report "Deferral Summary - Purchasing";
                     }
-                    action("Long Term Purchase Invoices")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Long Term Purchase Invoices';
-                        RunObject = report "Long Term Purchase Invoices";
-                    }
                 }
             }
             group("Group4")
@@ -534,7 +527,6 @@ page 8905 "Purchasing Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Inventory - Availability Plan (Excel)';
                             RunObject = report "Inv. Availability Plan";
-                            ToolTip = 'View a list of the quantity of each item in customer, purchase, and transfer orders and the quantity available in inventory. The list is divided into columns that cover six periods with starting and ending dates as well as the periods before and after those periods. The list is useful when you are planning your inventory purchases.';
                         }
                         action("Inventory Purchase Orders1")
                         {

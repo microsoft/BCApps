@@ -433,15 +433,6 @@ page 43 "Sales Invoice"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
-                group(Payment)
-                {
-                    Caption = 'Payment';
-                    field("Cust. Bank Acc. Code"; Rec."Cust. Bank Acc. Code")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the customer bank code to assign to the sales header in this field.';
-                    }
-                }
                 group(Control58)
                 {
                     ShowCaption = false;

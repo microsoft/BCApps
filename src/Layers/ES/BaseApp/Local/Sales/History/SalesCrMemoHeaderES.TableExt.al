@@ -4,11 +4,29 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+using Microsoft.Sales.Customer;
+
 #pragma warning disable AS0088
 tableextension 10718 "Sales Cr.Memo Header ES" extends "Sales Cr.Memo Header"
 {
     fields
     {
+        field(7000001; "Cust. Bank Acc. Code"; Code[20])
+        {
+            Caption = 'Cust. Bank Acc. Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Customer Bank Account".Code where("Customer No." = field("Bill-to Customer No."));
+        }
+#if not CLEANSCHEMA25
+        field(7000003; "Pay-at Code"; Code[10])
+        {
+            Caption = 'Pay-at Code';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Address is taken from the fields Bill-to Address, Bill-to City, etc.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '25.0';
+        }
+#endif
         field(10705; "Corrected Invoice No."; Code[20])
         {
             Caption = 'Corrected Invoice No.';

@@ -926,6 +926,7 @@ table 123 "Purch. Inv. Line"
             repeat
                 TempVATAmountLine.Init();
                 TempVATAmountLine.CopyFromPurchInvLine(Rec);
+                OnCalcVATAmountLinesOnBeforeInsertLine(PurchInvHeader, TempVATAmountLine);
                 TempVATAmountLine.InsertLine();
             until Next() = 0;
     end;
@@ -1228,6 +1229,11 @@ table 123 "Purch. Inv. Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetVATPct(var PurchInvLine: Record "Purch. Inv. Line"; var VATPct: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcVATAmountLinesOnBeforeInsertLine(PurchInvHeader: Record "Purch. Inv. Header"; var TempVATAmountLine: Record "VAT Amount Line" temporary)
     begin
     end;
 

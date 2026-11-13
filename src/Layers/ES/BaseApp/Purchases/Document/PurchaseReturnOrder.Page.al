@@ -1273,8 +1273,8 @@ page 6640 "Purchase Return Order"
                 {
                     AccessByPermission = TableData "Vendor Invoice Disc." = R;
                     ApplicationArea = PurchReturnOrder;
-                    Caption = 'Calculate &Inv. and Pmt. Discounts';
-                    Image = CalculateDiscount;
+                    Caption = 'Calculate &Invoice Discount';
+                    Image = CalculateInvoiceDiscount;
                     ToolTip = 'Calculate the discount that can be granted based on all lines in the purchase document.';
 
                     trigger OnAction()

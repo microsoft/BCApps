@@ -290,17 +290,6 @@ page 9004 "Bookkeeper Role Center"
                 RunObject = Report "Customer - Due Payments";
                 ToolTip = 'View a list of payments due from a particular customer sorted by due date.';
             }
-            separator(Action1100024)
-            {
-            }
-            action("Vendor - Due Payments")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Vendor - Due Payments';
-                Image = "Report";
-                RunObject = Report "Vendor - Due Payments";
-                ToolTip = 'View a list of payments to be made to a particular vendor sorted by due date.';
-            }
         }
         area(embedding)
         {

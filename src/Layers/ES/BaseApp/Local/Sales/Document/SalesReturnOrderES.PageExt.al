@@ -22,5 +22,15 @@ pageextension 10745 "Sales Return Order ES" extends "Sales Return Order"
                 ToolTip = 'Specifies the number of the posted invoice that you need to correct.';
             }
         }
+
+    }
+
+    actions
+    {
+        modify(CalculateInvoiceDiscount)
+        {
+            Caption = 'Calculate &Inv. and Pmt. Discounts';
+            Image = CalculateDiscount;
+        }
     }
 }

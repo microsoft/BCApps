@@ -10,7 +10,6 @@ using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Comment;

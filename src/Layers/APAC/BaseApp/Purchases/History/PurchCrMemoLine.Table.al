@@ -865,6 +865,7 @@ table 125 "Purch. Cr. Memo Line"
             repeat
                 TempVATAmountLine.Init();
                 TempVATAmountLine.CopyFromPurchCrMemoLine(Rec);
+                OnCalcVATAmountLinesOnBeforeInsertLine(PurchCrMemoHdr, TempVATAmountLine);
                 TempVATAmountLine."VAT Base (ACY)" := "VAT Base (ACY)";
                 TempVATAmountLine."VAT Amount (ACY)" := "Amount Including VAT (ACY)" - "Amount (ACY)";
                 TempVATAmountLine."Amount Including VAT (ACY)" := "Amount Including VAT (ACY)";
@@ -1190,6 +1191,11 @@ table 125 "Purch. Cr. Memo Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetVATPct(var PurchCrMemoLine: Record "Purch. Cr. Memo Line"; var VATPct: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcVATAmountLinesOnBeforeInsertLine(PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var TempVATAmountLine: Record "VAT Amount Line" temporary)
     begin
     end;
 }

@@ -1179,8 +1179,8 @@ page 6630 "Sales Return Order"
                 {
                     AccessByPermission = TableData "Cust. Invoice Disc." = R;
                     ApplicationArea = SalesReturnOrder;
-                    Caption = 'Calculate &Inv. and Pmt. Discounts';
-                    Image = CalculateDiscount;
+                    Caption = 'Calculate &Invoice Discount';
+                    Image = CalculateInvoiceDiscount;
                     ToolTip = 'Calculate the invoice discount that applies to the sales return order.';
 
                     trigger OnAction()
