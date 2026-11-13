@@ -19,6 +19,7 @@ codeunit 141027 "ERM GST On Prepayments II"
         NoSeriesBatch: Codeunit "No. Series - Batch";
         LibraryRandom: Codeunit "Library - Random";
         AmountMustMatchMsg: Label 'Amount must match.';
+        PrepaymentLineMustExistMsg: Label 'The posted Sales Invoice must contain a prepayment line.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1609,16 +1610,20 @@ codeunit 141027 "ERM GST On Prepayments II"
     local procedure GetPrepmtDeductedVATOnSalesInvoice(DocumentNo: Code[20]; var DeductedVATAmount: Decimal; var DeductedVATBase: Decimal)
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
+        PrepaymentLineFound: Boolean;
     begin
         DeductedVATAmount := 0;
         DeductedVATBase := 0;
         SalesInvoiceLine.SetRange("Document No.", DocumentNo);
-        SalesInvoiceLine.SetRange("Prepayment Line", true);
         SalesInvoiceLine.FindSet();
         repeat
-            DeductedVATAmount += SalesInvoiceLine.Amount - SalesInvoiceLine."Amount Including VAT";  // Deduction lines are negative, so this yields the reversed GST as a positive amount.
-            DeductedVATBase -= SalesInvoiceLine."VAT Base Amount";
+            if SalesInvoiceLine."Prepayment Line" then begin
+                PrepaymentLineFound := true;
+                DeductedVATAmount += SalesInvoiceLine.Amount - SalesInvoiceLine."Amount Including VAT";  // Deduction lines are negative, so this yields the reversed GST as a positive amount.
+                DeductedVATBase -= SalesInvoiceLine."VAT Base Amount";
+            end;
         until SalesInvoiceLine.Next() = 0;
+        Assert.IsTrue(PrepaymentLineFound, PrepaymentLineMustExistMsg);
     end;
 
     local procedure GetPayableAccount(No: Code[20]): Code[20]
