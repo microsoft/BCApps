@@ -14,6 +14,11 @@ codeunit 148318 "Expense Capabilities API Test"
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
+    trigger OnRun()
+    begin
+        // [FEATURE] [Expense Agent] [Capabilities] [API]
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryExpenseAgent: Codeunit "Library - Expense Agent";
@@ -77,6 +82,9 @@ codeunit 148318 "Expense Capabilities API Test"
         Assert.IsTrue(
             ResponseContainsCapabilityState(ResponseText, ActivityLogCapabilityNameTok, true),
             'Response must contain an enabled activityLog capability row.');
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, 'activeApproverRouting', true),
+            'Response must contain an enabled activeApproverRouting capability row.');
     end;
 
     [Test]
@@ -236,6 +244,24 @@ codeunit 148318 "Expense Capabilities API Test"
         // [THEN] The provider reports aiAssistedPolicyEvaluation as disabled.
         Assert.IsFalse(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AiAssistedPolicyEvaluation),
             'aiAssistedPolicyEvaluation must be disabled when Evaluate Policies is false.');
+    end;
+
+    [Test]
+    procedure CapabilitiesActiveApproverRoutingEnabled()
+    var
+        ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
+        IsEnabled: Boolean;
+    begin
+        // [SCENARIO] Active approver routing is always supported.
+
+        // [GIVEN] The test environment is initialized.
+        Initialize();
+
+        // [WHEN] Active approver routing support is queried.
+        IsEnabled := ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::ActiveApproverRouting);
+
+        // [THEN] The provider reports activeApproverRouting as enabled.
+        Assert.IsTrue(IsEnabled, 'activeApproverRouting must always be enabled.');
     end;
 
     local procedure Initialize()

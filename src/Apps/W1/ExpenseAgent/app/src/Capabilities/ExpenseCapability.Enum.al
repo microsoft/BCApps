@@ -97,4 +97,12 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Travel Request', Locked = true;
     }
+
+    /// <summary>
+    /// Expense reports expose their active approver and can be filtered by that approver.
+    /// </summary>
+    value(9; ActiveApproverRouting)
+    {
+        Caption = 'Active Approver Routing', Locked = true;
+    }
 }
