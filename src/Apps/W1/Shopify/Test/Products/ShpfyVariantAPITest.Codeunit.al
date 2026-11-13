@@ -44,7 +44,7 @@ codeunit 139614 "Shpfy Variant API Test"
         ShopifyVariant := ProductInitTest.CreateStandardProduct(Shop);
         ProductId := ShopifyVariant."Product Id";
         VariantId := ShopifyVariant.Id;
-        FutureUpdatedAt := CurrentDateTime() + 86400000;
+        FutureUpdatedAt := CreateDateTime(Today() + 1, 0T);
         ShopifyVariant."Updated At" := FutureUpdatedAt;
         ShopifyVariant.Modify();
         ShopifyProduct.Get(ProductId);
