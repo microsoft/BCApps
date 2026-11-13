@@ -536,6 +536,10 @@ page 30101 "Shpfy Shop Card"
                     {
                         ApplicationArea = All;
                     }
+                    field("Move Negative Lines To"; Rec."Move Negative Lines To")
+                    {
+                        ApplicationArea = All;
+                    }
                     field("Location Code of Returns"; Rec."Return Location")
                     {
                         ApplicationArea = All;

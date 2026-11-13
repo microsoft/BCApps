@@ -10,6 +10,7 @@ using Microsoft.Finance.SalesTax;
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.TestLibraries.Upgrade;
 using System.TestLibraries.Utilities;
@@ -1158,6 +1159,155 @@ codeunit 139611 "Shpfy Order Refund Test"
     end;
 
     [Test]
+    procedure UnitTestAutoMoveExchangeToInvoiceBeforeRelease()
+    begin
+        VerifyAutomaticExchangeMovement("Shpfy Move Negative Lines To"::"Sales Invoice", true);
+    end;
+
+    [Test]
+    procedure UnitTestAutoMoveExchangeToInvoiceWithoutRelease()
+    begin
+        VerifyAutomaticExchangeMovement("Shpfy Move Negative Lines To"::"Sales Invoice", false);
+    end;
+
+    [Test]
+    procedure UnitTestAutoMoveExchangeToOrderBeforeRelease()
+    begin
+        VerifyAutomaticExchangeMovement("Shpfy Move Negative Lines To"::"Sales Order", true);
+    end;
+
+    [Test]
+    procedure UnitTestAutoMoveExchangeToOrderWithoutRelease()
+    begin
+        VerifyAutomaticExchangeMovement("Shpfy Move Negative Lines To"::"Sales Order", false);
+    end;
+
+    [Test]
+    procedure UnitTestReturnExchangeIsNotMovedByDefault()
+    begin
+        VerifyExchangeRemainsOnRefundDocument("Sales Document Type"::"Return Order", "Shpfy Move Negative Lines To"::"Do Not Move", true);
+    end;
+
+    [Test]
+    procedure UnitTestCreditMemoExchangeIsNotAutomaticallyMoved()
+    begin
+        VerifyExchangeRemainsOnRefundDocument("Sales Document Type"::"Credit Memo", "Shpfy Move Negative Lines To"::"Sales Invoice", true);
+    end;
+
+    [Test]
+    procedure UnitTestReturnOrderCanRemainOpen()
+    begin
+        VerifyExchangeRemainsOnRefundDocument("Sales Document Type"::"Return Order", "Shpfy Move Negative Lines To"::"Do Not Move", false);
+    end;
+
+    [Test]
+    procedure UnitTestCreditMemoCanRemainOpen()
+    begin
+        VerifyExchangeRemainsOnRefundDocument("Sales Document Type"::"Credit Memo", "Shpfy Move Negative Lines To"::"Sales Invoice", false);
+    end;
+
+    [Test]
+    procedure UnitTestReturnWithoutNegativeLinesCreatesNoReplacement()
+    var
+        Shop: Record "Shpfy Shop";
+        OriginalShop: Record "Shpfy Shop";
+        RefundHeader: Record "Shpfy Refund Header";
+        RefundLine: Record "Shpfy Refund Line";
+        SalesHeader: Record "Sales Header";
+        SalesHeaders: Record "Sales Header";
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        RefundId: BigInteger;
+        ExchangeOrderLineId: BigInteger;
+    begin
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+        OriginalShop := Shop;
+        Shop."Process Returns As" := "Sales Document Type"::"Return Order";
+        Shop."Move Negative Lines To" := "Shpfy Move Negative Lines To"::"Sales Invoice";
+        Shop."Auto Release Sales Orders" := true;
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+        RefundId := CreateHigherPriceExchangeRefund(Shop, ExchangeOrderLineId);
+        RefundLine.SetRange("Refund Id", RefundId);
+        RefundLine.SetRange("Is Exchange Item", true);
+        RefundLine.DeleteAll();
+        RefundHeader.Get(RefundId);
+        RefundHeader."Total Refunded Amount" := 10;
+        RefundHeader.Modify(false);
+
+        IReturnRefundProcess := "Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument("Shpfy Source Document Type"::Refund, RefundId);
+        RestoreExchangeShopSettings(OriginalShop);
+        Commit();
+
+        LibraryAssert.AreNotEqual('', SalesHeader."No.", 'The return order must be created without negative lines.');
+        SalesHeaders.SetRange("Shpfy Refund Id", RefundId);
+        LibraryAssert.AreEqual(1, SalesHeaders.Count(), 'No empty replacement document may be created.');
+        SalesHeader.CalcFields("Amount Including VAT");
+        LibraryAssert.AreNearlyEqual(10, SalesHeader."Amount Including VAT", 0.01, 'The return amount must remain unchanged.');
+    end;
+
+    [Test]
+    procedure UnitTestAutoMoveExchangeFailureRollsBackAndCanRetry()
+    var
+        Shop: Record "Shpfy Shop";
+        OriginalShop: Record "Shpfy Shop";
+        RefundHeader: Record "Shpfy Refund Header";
+        SalesHeader: Record "Sales Header";
+        FailedSalesHeader: Record "Sales Header";
+        SalesHeaders: Record "Sales Header";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        RefundId: BigInteger;
+        ExchangeOrderLineId: BigInteger;
+        InvoiceNos: Code[20];
+        ProcessingError: Boolean;
+        ErrorDescription: Text;
+        FailedDocumentCount: Integer;
+        FailedLinkCount: Integer;
+    begin
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+        OriginalShop := Shop;
+        Shop."Process Returns As" := "Sales Document Type"::"Return Order";
+        Shop."Move Negative Lines To" := "Shpfy Move Negative Lines To"::"Sales Invoice";
+        Shop."Auto Release Sales Orders" := true;
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+        RefundId := CreateHigherPriceExchangeRefund(Shop, ExchangeOrderLineId);
+        SalesReceivablesSetup.Get();
+        InvoiceNos := SalesReceivablesSetup."Invoice Nos.";
+        SalesReceivablesSetup."Invoice Nos." := '';
+        SalesReceivablesSetup.Modify(false);
+
+        IReturnRefundProcess := "Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        FailedSalesHeader := IReturnRefundProcess.CreateSalesDocument("Shpfy Source Document Type"::Refund, RefundId);
+        RefundHeader.Get(RefundId);
+        ProcessingError := RefundHeader."Has Processing Error";
+        ErrorDescription := RefundHeader.GetLastErrorDescription();
+        SalesHeaders.SetRange("Shpfy Refund Id", RefundId);
+        FailedDocumentCount := SalesHeaders.Count();
+        DocLinkToBCDoc.SetRange("Shopify Document Type", "Shpfy Shop Document Type"::"Shopify Shop Refund");
+        DocLinkToBCDoc.SetRange("Shopify Document Id", RefundId);
+        FailedLinkCount := DocLinkToBCDoc.Count();
+
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup."Invoice Nos." := InvoiceNos;
+        SalesReceivablesSetup.Modify(false);
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument("Shpfy Source Document Type"::Refund, RefundId);
+        RestoreExchangeShopSettings(OriginalShop);
+        Commit();
+
+        LibraryAssert.AreEqual('', FailedSalesHeader."No.", 'Failed movement must not return a partial return order.');
+        LibraryAssert.IsTrue(ProcessingError, 'The refund must expose the movement error.');
+        LibraryAssert.IsTrue(StrPos(ErrorDescription, SalesReceivablesSetup.FieldCaption("Invoice Nos.")) > 0, 'The standard missing invoice number series error must be preserved.');
+        LibraryAssert.AreEqual(0, FailedDocumentCount, 'Failed movement must roll back both sales documents.');
+        LibraryAssert.AreEqual(0, FailedLinkCount, 'Failed movement must not mark the refund as processed.');
+        VerifyMovedExchangeDocuments(SalesHeader, RefundId, ExchangeOrderLineId, "Sales Document Type"::Invoice, true);
+    end;
+
+    [Test]
     procedure UnitTestExchangeLineDoesNotFlagProcessedOrderAsConflicting()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -1330,6 +1480,201 @@ codeunit 139611 "Shpfy Order Refund Test"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeMgt.GetProcessReturnsAsUpgradeTag()) then
             UpgradeTagLibrary.DeleteUpgradeTag(UpgradeMgt.GetProcessReturnsAsUpgradeTag(), CopyStr(CompanyName(), 1, 30));
+    end;
+
+    local procedure VerifyAutomaticExchangeMovement(MoveNegativeLinesTo: Enum "Shpfy Move Negative Lines To"; AutoRelease: Boolean)
+    var
+        Shop: Record "Shpfy Shop";
+        OriginalShop: Record "Shpfy Shop";
+        SalesHeader: Record "Sales Header";
+        ReplacementDocumentType: Enum "Sales Document Type";
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        RefundId: BigInteger;
+        ExchangeOrderLineId: BigInteger;
+    begin
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+        OriginalShop := Shop;
+        Shop."Process Returns As" := "Sales Document Type"::"Return Order";
+        Shop."Move Negative Lines To" := MoveNegativeLinesTo;
+        Shop."Auto Release Sales Orders" := AutoRelease;
+        Shop."Create Invoices From Orders" := MoveNegativeLinesTo = "Shpfy Move Negative Lines To"::"Sales Order";
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+        RefundId := CreateHigherPriceExchangeRefund(Shop, ExchangeOrderLineId);
+
+        IReturnRefundProcess := "Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument("Shpfy Source Document Type"::Refund, RefundId);
+        IReturnRefundProcess.CreateSalesDocument("Shpfy Source Document Type"::Refund, RefundId);
+        RestoreExchangeShopSettings(OriginalShop);
+        Commit();
+
+        if MoveNegativeLinesTo = "Shpfy Move Negative Lines To"::"Sales Order" then
+            ReplacementDocumentType := "Sales Document Type"::Order
+        else
+            ReplacementDocumentType := "Sales Document Type"::Invoice;
+        VerifyMovedExchangeDocuments(SalesHeader, RefundId, ExchangeOrderLineId, ReplacementDocumentType, AutoRelease);
+    end;
+
+    local procedure VerifyMovedExchangeDocuments(SalesHeader: Record "Sales Header"; RefundId: BigInteger; ExchangeOrderLineId: BigInteger; ReplacementDocumentType: Enum "Sales Document Type"; AutoRelease: Boolean)
+    var
+        ReplacementSalesHeader: Record "Sales Header";
+        SalesHeaders: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        RefundHeader: Record "Shpfy Refund Header";
+        OrderHeader: Record "Shpfy Order Header";
+        DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
+        DocumentTypeConvert: Codeunit "Shpfy BC Document Type Convert";
+    begin
+        LibraryAssert.AreNotEqual('', SalesHeader."No.", 'The return order must be created.');
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        LibraryAssert.AreEqual("Sales Document Type"::"Return Order", SalesHeader."Document Type", 'The returned item must remain on a return order.');
+        RefundHeader.Get(RefundId);
+        LibraryAssert.IsFalse(RefundHeader."Has Processing Error", RefundHeader.GetLastErrorDescription());
+        OrderHeader.Get(RefundHeader."Order Id");
+
+        SalesHeaders.SetRange("Shpfy Refund Id", RefundId);
+        LibraryAssert.AreEqual(2, SalesHeaders.Count(), 'Processing and retrying must create exactly one return and one replacement.');
+        ReplacementSalesHeader.SetRange("Shpfy Refund Id", RefundId);
+        ReplacementSalesHeader.SetRange("Document Type", ReplacementDocumentType);
+        LibraryAssert.AreEqual(1, ReplacementSalesHeader.Count(), 'Exactly one replacement document of the configured type must exist.');
+        ReplacementSalesHeader.FindFirst();
+        LibraryAssert.AreEqual(OrderHeader."Shopify Order Id", ReplacementSalesHeader."Shpfy Order Id", 'The replacement must retain the Shopify order ID.');
+        LibraryAssert.AreEqual(OrderHeader."Shopify Order No.", ReplacementSalesHeader."Shpfy Order No.", 'The replacement must retain the Shopify order number.');
+
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        LibraryAssert.AreEqual(1, SalesLine.Count(), 'Only the returned item must remain on the return order.');
+        SalesLine.FindFirst();
+        LibraryAssert.AreEqual(1, SalesLine.Quantity, 'The returned quantity must remain positive.');
+        SalesLine.SetRange(Type);
+        SalesLine.SetFilter(Quantity, '<0');
+        LibraryAssert.RecordIsEmpty(SalesLine);
+
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", ReplacementSalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", ReplacementSalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        LibraryAssert.AreEqual(1, SalesLine.Count(), 'The replacement item must appear exactly once.');
+        SalesLine.FindFirst();
+        LibraryAssert.AreEqual(1, SalesLine.Quantity, 'The moved replacement quantity must be positive.');
+        LibraryAssert.AreEqual(ExchangeOrderLineId, SalesLine."Shpfy Order Line Id", 'The replacement must retain its Shopify line ID for fulfillment.');
+        LibraryAssert.AreEqual(OrderHeader."Shopify Order No.", SalesLine."Shpfy Order No.", 'The replacement line must retain the Shopify order number.');
+
+        SalesHeader.CalcFields("Amount Including VAT");
+        ReplacementSalesHeader.CalcFields("Amount Including VAT");
+        LibraryAssert.AreNearlyEqual(10, SalesHeader."Amount Including VAT", 0.01, 'The return must retain its original amount.');
+        LibraryAssert.AreNearlyEqual(29, ReplacementSalesHeader."Amount Including VAT", 0.01, 'The replacement must retain its original amount.');
+        LibraryAssert.AreNearlyEqual(19, ReplacementSalesHeader."Amount Including VAT" - SalesHeader."Amount Including VAT", 0.01, 'The exchange must retain the net additional consideration.');
+
+        DocLinkToBCDoc.SetRange("Shopify Document Type", "Shpfy Shop Document Type"::"Shopify Shop Order");
+        DocLinkToBCDoc.SetRange("Shopify Document Id", OrderHeader."Shopify Order Id");
+        DocLinkToBCDoc.SetRange("Document Type", DocumentTypeConvert.Convert(ReplacementDocumentType));
+        DocLinkToBCDoc.SetRange("Document No.", ReplacementSalesHeader."No.");
+        LibraryAssert.AreEqual(1, DocLinkToBCDoc.Count(), 'The replacement must appear once in the order linked documents.');
+        DocLinkToBCDoc.SetRange("Shopify Document Type", "Shpfy Shop Document Type"::"Shopify Shop Refund");
+        DocLinkToBCDoc.SetRange("Shopify Document Id", RefundId);
+        DocLinkToBCDoc.SetRange("Document Type", "Shpfy Document Type"::"Sales Return Order");
+        DocLinkToBCDoc.SetRange("Document No.", SalesHeader."No.");
+        LibraryAssert.AreEqual(1, DocLinkToBCDoc.Count(), 'The return order must remain linked to the refund.');
+
+        if AutoRelease then begin
+            LibraryAssert.AreEqual(SalesHeader.Status::Released, SalesHeader.Status, 'The return order must be released after movement.');
+            LibraryAssert.AreEqual(ReplacementSalesHeader.Status::Released, ReplacementSalesHeader.Status, 'The replacement must be released after movement.');
+        end else begin
+            LibraryAssert.AreEqual(SalesHeader.Status::Open, SalesHeader.Status, 'Auto Release off must leave the return order open.');
+            LibraryAssert.AreEqual(ReplacementSalesHeader.Status::Open, ReplacementSalesHeader.Status, 'Auto Release off must leave the replacement open.');
+        end;
+    end;
+
+    local procedure VerifyExchangeRemainsOnRefundDocument(DocumentType: Enum "Sales Document Type"; MoveNegativeLinesTo: Enum "Shpfy Move Negative Lines To"; AutoRelease: Boolean)
+    var
+        Shop: Record "Shpfy Shop";
+        OriginalShop: Record "Shpfy Shop";
+        SalesHeader: Record "Sales Header";
+        SalesHeaders: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        RefundId: BigInteger;
+        ExchangeOrderLineId: BigInteger;
+    begin
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+        OriginalShop := Shop;
+        Shop."Process Returns As" := DocumentType;
+        Shop."Move Negative Lines To" := MoveNegativeLinesTo;
+        Shop."Auto Release Sales Orders" := AutoRelease;
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+        RefundId := CreateHigherPriceExchangeRefund(Shop, ExchangeOrderLineId);
+
+        IReturnRefundProcess := "Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument("Shpfy Source Document Type"::Refund, RefundId);
+        RestoreExchangeShopSettings(OriginalShop);
+        Commit();
+
+        LibraryAssert.AreNotEqual('', SalesHeader."No.", 'The refund document must be created.');
+        LibraryAssert.AreEqual(DocumentType, SalesHeader."Document Type", 'The existing refund document type must be preserved.');
+        if AutoRelease then
+            LibraryAssert.AreEqual(SalesHeader.Status::Released, SalesHeader.Status, 'The refund document must be released when Auto Release is on.')
+        else
+            LibraryAssert.AreEqual(SalesHeader.Status::Open, SalesHeader.Status, 'The refund document must remain open when Auto Release is off.');
+        SalesHeaders.SetRange("Shpfy Refund Id", RefundId);
+        LibraryAssert.AreEqual(1, SalesHeaders.Count(), 'No replacement document may be created.');
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        LibraryAssert.AreEqual(2, SalesLine.Count(), 'Both exchange items must remain on the original document.');
+        SalesLine.SetFilter(Quantity, '<0');
+        LibraryAssert.IsTrue(SalesLine.FindFirst(), 'The replacement must remain as a negative line.');
+        LibraryAssert.AreEqual(ExchangeOrderLineId, SalesLine."Shpfy Order Line Id", 'The negative line must still identify the replacement item.');
+    end;
+
+    local procedure RestoreExchangeShopSettings(OriginalShop: Record "Shpfy Shop")
+    var
+        Shop: Record "Shpfy Shop";
+    begin
+        Shop.Get(OriginalShop.Code);
+        Shop."Process Returns As" := OriginalShop."Process Returns As";
+        Shop."Move Negative Lines To" := OriginalShop."Move Negative Lines To";
+        Shop."Auto Release Sales Orders" := OriginalShop."Auto Release Sales Orders";
+        Shop."Create Invoices From Orders" := OriginalShop."Create Invoices From Orders";
+        Shop."Currency Handling" := OriginalShop."Currency Handling";
+        Shop.Modify(false);
+    end;
+
+    local procedure CreateHigherPriceExchangeRefund(Shop: Record "Shpfy Shop"; var ExchangeOrderLineId: BigInteger) RefundId: BigInteger
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        OrderId: BigInteger;
+        OriginalOrderLineId: BigInteger;
+        ReturnId: BigInteger;
+    begin
+        OrderRefundsHelper.SetDefaultSeed();
+        OrderId := OrderRefundsHelper.CreateShopifyOrder();
+        OrderHeader.Get(OrderId);
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Shopify Order No." := CopyStr(Any.AlphabeticText(10), 1, MaxStrLen(OrderHeader."Shopify Order No."));
+        OrderHeader."Total Amount" := 10;
+        OrderHeader."Subtotal Amount" := 10;
+        OrderHeader."VAT Amount" := 0;
+        OrderHeader."Presentment Total Amount" := 10;
+        OrderHeader."Presentment Subtotal Amount" := 10;
+        OrderHeader."Shipping Charges Amount" := 0;
+        OrderHeader.Processed := true;
+        OrderHeader."Processed Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        OrderHeader.Modify(false);
+        OriginalOrderLineId := OrderRefundsHelper.CreateOrderLineWithUnitPrice(OrderId, 10000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), 10);
+        ExchangeOrderLineId := OrderRefundsHelper.CreateOrderLineWithUnitPrice(OrderId, 20000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), 29);
+        OrderRefundsHelper.MarkOrderLineAsExchangeItem(OrderId, ExchangeOrderLineId);
+        OrderRefundsHelper.ProcessShopifyOrder(OrderId);
+        ReturnId := OrderRefundsHelper.CreateReturn(OrderId);
+        OrderRefundsHelper.CreateReturnLine(ReturnId, OriginalOrderLineId, 'DEFECTIVE');
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, 0, Shop.Code);
+        OrderRefundsHelper.CreateRefundLineForReturnedItem(RefundId, OriginalOrderLineId, 1, 10);
+        OrderRefundsHelper.CreateExchangeRefundLine(RefundId, ExchangeOrderLineId, 1, 29);
     end;
 
     local procedure Initialize()
