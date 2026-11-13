@@ -12,6 +12,7 @@
   "artifact": "bcinsider/Sandbox/30.0.57903.0//latest",
   "country": "base",
   "useProjectDependencies": true,
+  "skipDraftPullRequests": true,
   "repoVersion": "30.0",
   "memoryLimit": "16G",
   "numberOfTenantsForTesting": 4,
