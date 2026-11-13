@@ -119,11 +119,11 @@
     <comment>table [Vendors] column [City]</comment>
   </data>
   <data name="408107af-c25d-4948-8717-8ea446127d2e.column.1be292f2-477d-4724-b01a-a86dd32e2c90.caption" xml:space="preserve">
-    <value>Postal/ZIP Code</value>
+    <value>Post Code</value>
     <comment>table [Vendors] column [Post Code]</comment>
   </data>
   <data name="408107af-c25d-4948-8717-8ea446127d2e.column.9dcd3364-6145-4c4d-b7d7-9890f4559f9b.caption" xml:space="preserve">
-    <value>Province/State</value>
+    <value>State</value>
     <comment>table [Vendors] column [State]</comment>
   </data>
   <data name="408107af-c25d-4948-8717-8ea446127d2e.column.0f16ebc0-f487-460e-9f2f-a46086915f2c.caption" xml:space="preserve">
@@ -163,11 +163,11 @@
     <comment>table [Customers] column [City]</comment>
   </data>
   <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.7ec4924a-cfaf-480a-8995-8907f85c1cc5.caption" xml:space="preserve">
-    <value>Postal/ZIP Code</value>
+    <value>Post Code</value>
     <comment>table [Customers] column [Post Code]</comment>
   </data>
   <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.b92000a3-0df4-436d-8e63-712bd0812091.caption" xml:space="preserve">
-    <value>Province/State</value>
+    <value>State</value>
     <comment>table [Customers] column [State]</comment>
   </data>
   <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.09becb91-bbb5-4a78-b570-7cb46a4e79fe.caption" xml:space="preserve">
