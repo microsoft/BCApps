@@ -1,3 +1,5 @@
+namespace Microsoft.Warehouse.Tests;
+
 // [FEATURE] Put-away bin selection 
 codeunit 137933 "SCM Put-away Templ. Empty Bin"
 {
