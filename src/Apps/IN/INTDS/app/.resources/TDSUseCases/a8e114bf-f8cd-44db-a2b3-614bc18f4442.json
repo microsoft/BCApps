@@ -2,7 +2,7 @@
   {
     "CaseID": "{A8E114BF-F8CD-44DB-A2B3-614BC18F4442}",
     "Description": "Calculation of Tax Deduction at Source on Vendor Invoice where  PAN No. is specified without Concessional Codes.\n",
-    "Version": 35,
+    "Version": 36,
     "MinorVersion": 0,
     "TaxType": "TDS",
     "ChangedBy": "Microsoft",
@@ -6814,7 +6814,7 @@
                                         {
                                           "ActivityType": "SETVARIABLE",
                                           "Activity": {
-                                            "OutputVariableName": "TDSTaxableAmount",
+                                            "OutputVariableName": "TDSBaseAmt",
                                             "OutputValue": {
                                               "Type": "Lookup",
                                               "Lookup": {
@@ -6826,16 +6826,50 @@
                                           }
                                         },
                                         {
-                                          "ActivityType": "SETVARIABLE",
+                                          "ActivityType": "COMMENT",
                                           "Activity": {
-                                            "OutputVariableName": "TDSBaseAmt",
-                                            "OutputValue": {
-                                              "Type": "Lookup",
-                                              "Lookup": {
-                                                "SourceType": "Variable",
-                                                "VariableName": "TDSTaxableAmount"
+                                            "Comment": "Retain earlier untaxed lines in the taxable amount when the annual threshold is reached."
+                                          }
+                                        },
+                                        {
+                                          "ActivityType": "IFSTATEMENT",
+                                          "Activity": {
+                                            "Condition": {
+                                              "Body": [
+                                                {
+                                                  "Operator": " ",
+                                                  "ConditionType": "Is Greater Than",
+                                                  "LHS": {
+                                                    "Lookup": {
+                                                      "SourceType": "Variable",
+                                                      "VariableName": "PositiveAmountExclThisLine"
+                                                    }
+                                                  },
+                                                  "RHS": {
+                                                    "Type": "Lookup",
+                                                    "Lookup": {
+                                                      "SourceType": "Column",
+                                                      "RateColumnName": "Per Contract Value"
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            "Body": [
+                                              {
+                                                "ActivityType": "SETVARIABLE",
+                                                "Activity": {
+                                                  "OutputVariableName": "TDSTaxableAmount",
+                                                  "OutputValue": {
+                                                    "Type": "Lookup",
+                                                    "Lookup": {
+                                                      "SourceType": "Variable",
+                                                      "VariableName": "TDSBaseAmt"
+                                                    }
+                                                  }
+                                                }
                                               }
-                                            }
+                                            ]
                                           }
                                         }
                                       ]
