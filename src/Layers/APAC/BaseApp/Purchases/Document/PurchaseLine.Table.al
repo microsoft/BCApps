@@ -8611,7 +8611,7 @@ table 39 "Purchase Line"
     /// </summary>
     /// <param name="GetPrices">
     /// If true, it recalculates amounts from unit cost of the purchase line,
-    /// otherwise it sets the amounts directly from the purchase line.
+    /// otherwise it restores the purchase line's project prices and initializes costs from LCY in project currency.
     /// </param>
     procedure CreateTempJobJnlLine(GetPrices: Boolean)
     var
@@ -8641,15 +8641,13 @@ table 39 "Purchase Line"
 
         if not GetPrices then begin
             if xRec."Line No." <> 0 then begin
-                TempJobJnlLine."Unit Cost" := xRec."Unit Cost";
-                TempJobJnlLine."Unit Cost (LCY)" := xRec."Unit Cost (LCY)";
+                TempJobJnlLine.Validate("Unit Cost (LCY)", xRec."Unit Cost (LCY)");
                 TempJobJnlLine."Unit Price" := xRec."Job Unit Price";
                 TempJobJnlLine."Line Amount" := xRec."Job Line Amount";
                 TempJobJnlLine."Line Discount %" := xRec."Job Line Discount %";
                 TempJobJnlLine."Line Discount Amount" := xRec."Job Line Discount Amount";
             end else begin
-                TempJobJnlLine."Unit Cost" := "Unit Cost";
-                TempJobJnlLine."Unit Cost (LCY)" := "Unit Cost (LCY)";
+                TempJobJnlLine.Validate("Unit Cost (LCY)", "Unit Cost (LCY)");
                 TempJobJnlLine."Unit Price" := "Job Unit Price";
                 TempJobJnlLine."Line Amount" := "Job Line Amount";
                 TempJobJnlLine."Line Discount %" := "Job Line Discount %";
