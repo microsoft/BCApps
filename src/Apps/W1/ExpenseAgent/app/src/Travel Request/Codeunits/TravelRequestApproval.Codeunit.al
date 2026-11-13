@@ -5,12 +5,14 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.SpendRequest;
+using System.Security.AccessControl;
 using System.Telemetry;
 
 codeunit 7133 "Travel Request Approval"
 {
     Access = Internal;
-    Permissions = tabledata "Spend Request" = rm,
+    Permissions = tabledata User = r,
+                  tabledata "Spend Request" = rm,
                   tabledata Traveler = r,
                   tabledata "Expense Report Header" = ri,
                   tabledata "Posted Expense Report Header" = r,
@@ -85,6 +87,7 @@ codeunit 7133 "Travel Request Approval"
         CheckTravelRequest(SpendRequest);
         SpendRequest.TestStatus(SpendRequest.Status::Released);
         CheckApprover(SpendRequest, ApproverExpenseUserNo, Approver);
+        SetDecisionUser(SpendRequest, Approver);
         ApproveInternal(SpendRequest, ApproverExpenseUserNo);
         FeatureTelemetry.LogUsage('0000VEZ', ExpenseAgentSetup.GetFeatureName(), TravelRequestApprovedLbl);
     end;
@@ -100,6 +103,9 @@ codeunit 7133 "Travel Request Approval"
         if ExpenseAgentSetup."Enable Agent" then
             Error(AutomaticApprovalNotAllowedErr);
 
+        // Without the agent there is no approver, so the user who released the request is recorded.
+        SpendRequest."Approved/Rejected by User ID" := UserSecurityId();
+        SpendRequest."Approved/Rejected by User Name" := CopyStr(UserId(), 1, MaxStrLen(SpendRequest."Approved/Rejected by User Name"));
         ApproveInternal(SpendRequest, '');
         FeatureTelemetry.LogUsage('0000VF0', ExpenseAgentSetup.GetFeatureName(), TravelRequestAutoApprovedLbl);
     end;
@@ -109,8 +115,6 @@ codeunit 7133 "Travel Request Approval"
         SpendRequest.TestField("Requested For");
         SpendRequest.Status := SpendRequest.Status::Approved;
         SpendRequest."Approved/Rejected At" := CurrentDateTime();
-        SpendRequest."Approved/Rejected by User ID" := UserSecurityId();
-        SpendRequest."Approved/Rejected by User Name" := CopyStr(UserId(), 1, MaxStrLen(SpendRequest."Approved/Rejected by User Name"));
         SpendRequest."Approval Expense User No." := ApproverExpenseUserNo;
         Clear(SpendRequest."Rejection Reason");
         SpendRequest.Modify();
@@ -167,8 +171,7 @@ codeunit 7133 "Travel Request Approval"
         CheckApprover(SpendRequest, ApproverExpenseUserNo, Approver);
         SpendRequest.Status := SpendRequest.Status::Rejected;
         SpendRequest."Approved/Rejected At" := CurrentDateTime();
-        SpendRequest."Approved/Rejected by User ID" := UserSecurityId();
-        SpendRequest."Approved/Rejected by User Name" := CopyStr(UserId(), 1, MaxStrLen(SpendRequest."Approved/Rejected by User Name"));
+        SetDecisionUser(SpendRequest, Approver);
         SpendRequest."Approval Expense User No." := ApproverExpenseUserNo;
         SpendRequest."Rejection Reason" := CopyStr(RejectReason, 1, MaxStrLen(SpendRequest."Rejection Reason"));
         SpendRequest.Modify();
@@ -197,6 +200,22 @@ codeunit 7133 "Travel Request Approval"
 
         ExpenseActivityLogMgt.LogTravelRequestEvent(
             SpendRequest, EventType, Enum::"Expense Activity Actor Role"::Submitter, SubmitterExpenseUserNo, SubmissionComment);
+    end;
+
+    /// <summary>
+    /// Records the closure of a travel request as its final state in the activity history.
+    /// The current Business Central user is logged as the actor.
+    /// </summary>
+    internal procedure LogTravelRequestClosed(SpendRequest: Record "Spend Request"; EventComment: Text)
+    begin
+        if SpendRequest."Document Type" <> SpendRequest."Document Type"::"Travel Request" then
+            exit;
+        if SpendRequest.Status <> SpendRequest.Status::Closed then
+            exit;
+
+        LogTravelRequestCreatedIfMissing(SpendRequest);
+        ExpenseActivityLogMgt.LogTravelRequestEvent(
+            SpendRequest, Enum::"Expense Activity Event Type"::Closed, Enum::"Expense Activity Actor Role"::" ", '', EventComment);
     end;
 
     local procedure LogTravelRequestCreatedIfMissing(SpendRequest: Record "Spend Request")
@@ -300,6 +319,19 @@ codeunit 7133 "Travel Request Approval"
         Approver.TestField("User Id For Approvals");
     end;
 
+    local procedure SetDecisionUser(var SpendRequest: Record "Spend Request"; Approver: Record "Expense User")
+    var
+        User: Record User;
+    begin
+        // The decision belongs to the approver, not to the session that called the API on the approver's behalf.
+        User.SetRange("User Name", Approver."User Id For Approvals");
+        User.SetLoadFields("User Security ID", "User Name");
+        if not User.FindFirst() then
+            Error(ApproverUserNotFoundErr, Approver."No.", Approver."User Id For Approvals");
+        SpendRequest."Approved/Rejected by User ID" := User."User Security ID";
+        SpendRequest."Approved/Rejected by User Name" := CopyStr(User."User Name", 1, MaxStrLen(SpendRequest."Approved/Rejected by User Name"));
+    end;
+
     local procedure GetApproverExpenseUserNo(RequestedForExpenseUserNo: Code[20]): Code[20]
     var
         ExpenseApprovalSetup: Record "Expense Approval Setup";
@@ -377,6 +409,7 @@ codeunit 7133 "Travel Request Approval"
         TravelRequestAutoApprovedLbl: Label 'Travel request automatically approved.', Locked = true;
         TravelRequestRejectedLbl: Label 'Travel request rejected.', Locked = true;
         NotTravelRequestOwnerErr: Label 'Expense user %1 cannot submit travel request %2 because the user did not create it.', Comment = '%1 = Expense user number, %2 = Travel request number';
+        ApproverUserNotFoundErr: Label 'Expense user %1 cannot approve or reject travel requests because the user ID for approvals, %2, does not match a Business Central user.', Comment = '%1 = Expense user number, %2 = User ID for approvals';
         NotTravelRequestApproverErr: Label 'Expense user %1 is not authorized to approve or reject travel request %2.', Comment = '%1 = Expense user number, %2 = Travel request number';
         TooManyTravelRequestSubmittersErr: Label 'Expense user %1 is configured to approve too many travel request submitters. Refine the approval setup before listing pending travel requests.', Comment = '%1 = Expense user number';
         ExpenseReportWasNotCreatedErr: Label 'An expense report was not created after approving travel request %1 for expense user %2.', Comment = '%1 = Travel Request No., %2 = Expense User No.';

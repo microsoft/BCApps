@@ -255,20 +255,23 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             exit;
 
         ExpenseReportHeader.SetRange("Spend Request No.", Rec."No.");
-        if ExpenseReportHeader.FindFirst() then
-            Error(GetLinkedExpenseReportError(ExpenseReportHeader.RecordId, Page::"Expense Report"));
+        if not ExpenseReportHeader.IsEmpty() then
+            Error(GetLinkedExpenseReportError(false));
 
         ExpenseReportLine.SetRange("Spend Request No.", Rec."No.");
-        if ExpenseReportLine.FindFirst() then
-            Error(GetLinkedExpenseReportError(ExpenseReportLine.RecordId, Page::"Expense Report Lines"));
+        if not ExpenseReportLine.IsEmpty() then
+            Error(GetLinkedExpenseReportError(false));
 
+        // Canceled posted reports keep their link as history, but no longer block deleting the travel request.
         PostedExpenseReportHeader.SetRange("Spend Request No.", Rec."No.");
-        if PostedExpenseReportHeader.FindFirst() then
-            Error(GetLinkedExpenseReportError(PostedExpenseReportHeader.RecordId, Page::"Posted Expense Report"));
+        PostedExpenseReportHeader.SetRange(Canceled, false);
+        if not PostedExpenseReportHeader.IsEmpty() then
+            Error(GetLinkedExpenseReportError(true));
 
         PostedExpenseReportLine.SetRange("Spend Request No.", Rec."No.");
-        if PostedExpenseReportLine.FindFirst() then
-            Error(GetLinkedExpenseReportError(PostedExpenseReportLine.RecordId, Page::"Posted Expense Report Lines"));
+        PostedExpenseReportLine.SetRange("Is Canceled", false);
+        if not PostedExpenseReportLine.IsEmpty() then
+            Error(GetLinkedExpenseReportError(true));
     end;
 
     trigger OnDelete()
@@ -335,22 +338,25 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             Error(ActualEndBeforeStartErr, Rec.FieldCaption("Actual End Date and Time"), Rec.FieldCaption("Actual Start Date and Time"));
     end;
 
-    local procedure GetLinkedExpenseReportError(ReportRecordId: RecordId; ReportPageNo: Integer): ErrorInfo
+    local procedure GetLinkedExpenseReportError(Posted: Boolean): ErrorInfo
     var
         LinkedReportError: ErrorInfo;
         LinkedExpenseReportExistsErr: Label 'You cannot delete travel request %1 because it is linked to an expense report.', Comment = '%1 = Travel request number';
         LinkedExpenseReportTitleErr: Label 'Travel request is linked to an expense report';
-        LinkedExpenseReportDetailsErr: Label 'Open the related report to see where this travel request is used. Posted history cannot be removed by deleting the travel request.';
-        ShowItLbl: Label 'Show it';
+        LinkedExpenseReportDetailsErr: Label 'Open the related reports to see where this travel request is used. Posted history cannot be removed by deleting the travel request.';
+        ShowExpenseReportsLbl: Label 'Show expense reports';
+        ShowPostedExpenseReportsLbl: Label 'Show posted expense reports';
     begin
         LinkedReportError.Message := StrSubstNo(LinkedExpenseReportExistsErr, Rec."No.");
         LinkedReportError.Title := LinkedExpenseReportTitleErr;
         LinkedReportError.DetailedMessage := LinkedExpenseReportDetailsErr;
         LinkedReportError.DataClassification := DataClassification::CustomerContent;
         LinkedReportError.ErrorType := ErrorType::Client;
-        LinkedReportError.RecordId := ReportRecordId;
-        LinkedReportError.PageNo := ReportPageNo;
-        LinkedReportError.AddNavigationAction(ShowItLbl);
+        LinkedReportError.RecordId := Rec.RecordId;
+        if Posted then
+            LinkedReportError.AddAction(ShowPostedExpenseReportsLbl, Codeunit::"Travel Req. Linked Reports", 'ShowPostedExpenseReportsFromError')
+        else
+            LinkedReportError.AddAction(ShowExpenseReportsLbl, Codeunit::"Travel Req. Linked Reports", 'ShowExpenseReportsFromError');
         exit(LinkedReportError);
     end;
 
