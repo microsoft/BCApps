@@ -798,7 +798,8 @@ codeunit 140011 "Test FAB Config Package"
     begin
         Assert.AreEqual(9, Pkg.Count(), 'Expected nine built-in domain packages.');
         Assert.IsFalse(Pkg.Get('MS-STD'), 'Expected no legacy MS-STD package on fresh registration.');
-        Assert.IsTrue(TenantFabricTables.IsEmpty(), 'Expected registration not to select tables.');
+        TenantFabricTables.SetFilter("Table ID", '<>%1&<>%2', Database::"Tenant Fabric Export Details", Database::"Tenant Fabric Export Summary");
+        Assert.IsTrue(TenantFabricTables.IsEmpty(), 'Expected registration not to select non-required tables.');
         Assert.IsTrue(FabricTableClaim.IsEmpty(), 'Expected registration not to add table claims.');
 
         VerifyMicrosoftPackageRegistered('MS-FIN', 'Microsoft Finance', 15);
