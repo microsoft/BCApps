@@ -444,12 +444,10 @@ table 246 "Requisition Line"
 
             trigger OnValidate()
             begin
-                "Starting Date" := "Order Date";
-
                 GetDirectCost(FieldNo("Order Date"));
 
                 if CurrFieldNo = FieldNo("Order Date") then
-                    Validate("Starting Date");
+                    Validate("Starting Date", "Order Date");
             end;
         }
         field(22; "Vendor Item No."; Text[50])
@@ -2748,7 +2746,7 @@ table 246 "Requisition Line"
     /// </summary>
     /// <param name="LeadTime">Provided lead time formula.</param>
     /// <remarks>In case 'LeadTime' is empty, lead time code will be defined according to the reference order type. 
-    /// 'Order Date' of the current requisition line will be set to newly calculated 'Starting Date'. </remarks>
+    /// 'Order Date' of the current requisition line will be updated. </remarks>
     procedure CalcStartingDate(LeadTime: Code[20])
     var
         IsHandled: Boolean;
@@ -2791,7 +2789,11 @@ table 246 "Requisition Line"
         IsHandled := false;
         OnCalcStartingDateOnBeforeValidateOrderDate(Rec, LeadTime, IsHandled);
         if not IsHandled then
-            Validate("Order Date", "Starting Date");
+            // Don't use order date in the past for price calculation
+            if "Starting Date" >= WorkDate() then
+                Validate("Order Date", "Starting Date")
+            else
+                Validate("Order Date", WorkDate());
 
         if "Ref. Order Type" = "Ref. Order Type"::Transfer then
             CalcTransferShipmentDate();
@@ -2931,7 +2933,11 @@ table 246 "Requisition Line"
     begin
         "Demand Date" := DemandDate;
         "Starting Date" := "Demand Date";
-        "Order Date" := "Demand Date";
+        // Don't use order date in the past for price calculation
+        if DemandDate >= WorkDate() then
+            "Order Date" := "Demand Date"
+        else
+            "Order Date" := WorkDate();
         Validate("Due Date", "Demand Date");
 
         if "Planning Level" = 0 then begin
