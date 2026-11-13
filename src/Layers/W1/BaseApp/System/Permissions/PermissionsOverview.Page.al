@@ -6,6 +6,7 @@ namespace System.Security.AccessControl;
 
 using System.Apps;
 using System.Reflection;
+using System.Text;
 
 page 9883 "Permissions Overview"
 {
@@ -56,15 +57,25 @@ page 9883 "Permissions Overview"
                         TableRelation = AllObjWithCaption."Object ID";
                         ToolTip = 'Specifies the object ID filter.';
 
+                        trigger OnAssistEdit()
+                        var
+                            AllObjWithCaption: Record AllObjWithCaption;
+                            SelectionFilterMgt: Codeunit SelectionFilterManagement;
+                            AllObjectsWithCaption: Page "All Objects with Caption";
+                            RecRef: RecordRef;
+                        begin
+                            AllObjectsWithCaption.LookupMode(true);
+                            if AllObjectsWithCaption.RunModal() = Action::LookupOK then begin
+                                AllObjectsWithCaption.GetSelectionFilter(AllObjWithCaption);
+                                RecRef.GetTable(AllObjWithCaption);
+                                ObjIDFilter := SelectionFilterMgt.GetSelectionFilter(RecRef, AllObjWithCaption.FieldNo("Object ID"));
+                                ApplyObjectIdFilter();
+                            end;
+                        end;
+
                         trigger OnValidate()
                         begin
-                            Rec.FilterGroup(2);
-                            if ObjIDFilter = '' then
-                                Rec.SetRange("Object ID")
-                            else
-                                Rec.SetFilter("Object ID", ObjIDFilter);
-                            Rec.FilterGroup(0);
-                            CurrPage.Update(false);
+                            ApplyObjectIdFilter();
                         end;
                     }
                 }
@@ -600,6 +611,17 @@ page 9883 "Permissions Overview"
             Rec.SetFilter("Object ID", ObjIDFilter);
             Rec.FilterGroup(0);
         end;
+    end;
+
+    local procedure ApplyObjectIdFilter()
+    begin
+        Rec.FilterGroup(2);
+        if ObjIDFilter = '' then
+            Rec.SetRange("Object ID")
+        else
+            Rec.SetFilter("Object ID", ObjIDFilter);
+        Rec.FilterGroup(0);
+        CurrPage.Update(false);
     end;
 
     local procedure SetScope()
