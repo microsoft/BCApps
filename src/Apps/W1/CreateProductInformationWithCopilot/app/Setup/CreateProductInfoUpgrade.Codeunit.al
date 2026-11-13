@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Item.Substitution;
 
+using System.AI;
 using System.Upgrade;
 
 codeunit 7332 "Create Product Info. Upgrade"
@@ -15,22 +16,30 @@ codeunit 7332 "Create Product Info. Upgrade"
 
     trigger OnUpgradePerDatabase()
     begin
-        RegisterCapability();
+        UnregisterCapability();
     end;
 
-    local procedure RegisterCapability()
+    local procedure UnregisterCapability()
     var
-        ItemSubstSuggestUtility: Codeunit "Create Product Info. Utility";
+        CopilotCapability: Codeunit "Copilot Capability";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        if not UpgradeTag.HasUpgradeTag(GetRegisterCreateProductInfoCapabilityTag()) then begin
-            ItemSubstSuggestUtility.RegisterCapability();
-            UpgradeTag.SetUpgradeTag(GetRegisterCreateProductInfoCapabilityTag());
-        end;
+        if UpgradeTag.HasUpgradeTag(GetUnregisterCreateProductInfoCapabilityTag()) then
+            exit;
+        if CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Create Product Information") then
+            CopilotCapability.UnregisterCapability(Enum::"Copilot Capability"::"Create Product Information");
+
+        UpgradeTag.SetUpgradeTag(GetUnregisterCreateProductInfoCapabilityTag());
     end;
 
-    internal procedure GetRegisterCreateProductInfoCapabilityTag(): Code[250]
+    local procedure GetUnregisterCreateProductInfoCapabilityTag(): Code[250]
     begin
-        exit('MS-485571-RegisterCreateProductInfoCapability-20240319');
+        exit('MS-659006-UnregisterCreateProductInfoCapability-20261112');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
+    local procedure RegisterPerDatabaseUpgradeTags(var PerDatabaseUpgradeTags: List of [Code[250]])
+    begin
+        PerDatabaseUpgradeTags.Add(GetUnregisterCreateProductInfoCapabilityTag());
     end;
 }
