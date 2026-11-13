@@ -1241,7 +1241,9 @@ codeunit 139611 "Shpfy Order Refund Test"
         Commit();
 
         LibraryAssert.AreNotEqual('', SalesHeader."No.", 'The return order must be created without negative lines.');
+#pragma warning disable AA0210
         SalesHeaders.SetRange("Shpfy Refund Id", RefundId);
+#pragma warning restore AA0210
         LibraryAssert.AreEqual(1, SalesHeaders.Count(), 'No empty replacement document may be created.');
         SalesHeader.CalcFields("Amount Including VAT");
         LibraryAssert.AreNearlyEqual(10, SalesHeader."Amount Including VAT", 0.01, 'The return amount must remain unchanged.');
@@ -1286,7 +1288,9 @@ codeunit 139611 "Shpfy Order Refund Test"
         RefundHeader.Get(RefundId);
         ProcessingError := RefundHeader."Has Processing Error";
         ErrorDescription := RefundHeader.GetLastErrorDescription();
+#pragma warning disable AA0210
         SalesHeaders.SetRange("Shpfy Refund Id", RefundId);
+#pragma warning restore AA0210
         FailedDocumentCount := SalesHeaders.Count();
         DocLinkToBCDoc.SetRange("Shopify Document Type", "Shpfy Shop Document Type"::"Shopify Shop Refund");
         DocLinkToBCDoc.SetRange("Shopify Document Id", RefundId);
@@ -1533,9 +1537,13 @@ codeunit 139611 "Shpfy Order Refund Test"
         LibraryAssert.IsFalse(RefundHeader."Has Processing Error", RefundHeader.GetLastErrorDescription());
         OrderHeader.Get(RefundHeader."Order Id");
 
+#pragma warning disable AA0210
         SalesHeaders.SetRange("Shpfy Refund Id", RefundId);
+#pragma warning restore AA0210
         LibraryAssert.AreEqual(2, SalesHeaders.Count(), 'Processing and retrying must create exactly one return and one replacement.');
+#pragma warning disable AA0210
         ReplacementSalesHeader.SetRange("Shpfy Refund Id", RefundId);
+#pragma warning restore AA0210
         ReplacementSalesHeader.SetRange("Document Type", ReplacementDocumentType);
         LibraryAssert.AreEqual(1, ReplacementSalesHeader.Count(), 'Exactly one replacement document of the configured type must exist.');
         ReplacementSalesHeader.FindFirst();
@@ -1549,7 +1557,9 @@ codeunit 139611 "Shpfy Order Refund Test"
         SalesLine.FindFirst();
         LibraryAssert.AreEqual(1, SalesLine.Quantity, 'The returned quantity must remain positive.');
         SalesLine.SetRange(Type);
+#pragma warning disable AA0210
         SalesLine.SetFilter(Quantity, '<0');
+#pragma warning restore AA0210
         LibraryAssert.RecordIsEmpty(SalesLine);
 
         SalesLine.Reset();
@@ -1620,13 +1630,17 @@ codeunit 139611 "Shpfy Order Refund Test"
             LibraryAssert.AreEqual(SalesHeader.Status::Released, SalesHeader.Status, 'The refund document must be released when Auto Release is on.')
         else
             LibraryAssert.AreEqual(SalesHeader.Status::Open, SalesHeader.Status, 'The refund document must remain open when Auto Release is off.');
+#pragma warning disable AA0210
         SalesHeaders.SetRange("Shpfy Refund Id", RefundId);
+#pragma warning restore AA0210
         LibraryAssert.AreEqual(1, SalesHeaders.Count(), 'No replacement document may be created.');
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         SalesLine.SetRange(Type, SalesLine.Type::Item);
         LibraryAssert.AreEqual(2, SalesLine.Count(), 'Both exchange items must remain on the original document.');
+#pragma warning disable AA0210
         SalesLine.SetFilter(Quantity, '<0');
+#pragma warning restore AA0210
         LibraryAssert.IsTrue(SalesLine.FindFirst(), 'The replacement must remain as a negative line.');
         LibraryAssert.AreEqual(ExchangeOrderLineId, SalesLine."Shpfy Order Line Id", 'The negative line must still identify the replacement item.');
     end;
