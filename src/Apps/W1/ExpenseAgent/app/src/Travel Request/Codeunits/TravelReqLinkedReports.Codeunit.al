@@ -50,6 +50,7 @@ codeunit 6914 "Travel Req. Linked Reports"
     procedure MarkLinkedExpenseReports(var ExpenseReportHeader: Record "Expense Report Header"; TravelRequestNo: Code[20])
     var
         ExpenseReportLine: Record "Expense Report Line";
+        LastDocumentNo: Code[20];
     begin
         ExpenseReportHeader.SetRange("Spend Request No.", TravelRequestNo);
         if ExpenseReportHeader.FindSet() then
@@ -58,12 +59,16 @@ codeunit 6914 "Travel Req. Linked Reports"
             until ExpenseReportHeader.Next() = 0;
         ExpenseReportHeader.SetRange("Spend Request No.");
 
+        // Lines come in document order, so each linked report header is read only once.
         ExpenseReportLine.SetLoadFields("Document No.");
         ExpenseReportLine.SetRange("Spend Request No.", TravelRequestNo);
         if ExpenseReportLine.FindSet() then
             repeat
-                if ExpenseReportHeader.Get(ExpenseReportLine."Document No.") then
-                    ExpenseReportHeader.Mark(true);
+                if ExpenseReportLine."Document No." <> LastDocumentNo then begin
+                    LastDocumentNo := ExpenseReportLine."Document No.";
+                    if ExpenseReportHeader.Get(LastDocumentNo) then
+                        ExpenseReportHeader.Mark(true);
+                end;
             until ExpenseReportLine.Next() = 0;
 
         ExpenseReportHeader.MarkedOnly(true);
@@ -72,6 +77,7 @@ codeunit 6914 "Travel Req. Linked Reports"
     procedure MarkLinkedPostedExpenseReports(var PostedExpenseReportHeader: Record "Posted Expense Report Header"; TravelRequestNo: Code[20])
     var
         PostedExpenseReportLine: Record "Posted Expense Report Line";
+        LastDocumentNo: Code[20];
     begin
         // Canceled reports no longer use the travel request, so they are left out.
         PostedExpenseReportHeader.SetRange("Spend Request No.", TravelRequestNo);
@@ -82,14 +88,18 @@ codeunit 6914 "Travel Req. Linked Reports"
             until PostedExpenseReportHeader.Next() = 0;
         PostedExpenseReportHeader.SetRange("Spend Request No.");
 
+        // Lines come in document order, so each linked report header is read only once.
         PostedExpenseReportLine.SetLoadFields("Document No.");
         PostedExpenseReportLine.SetRange("Spend Request No.", TravelRequestNo);
         PostedExpenseReportLine.SetRange("Is Canceled", false);
         if PostedExpenseReportLine.FindSet() then
             repeat
-                if PostedExpenseReportHeader.Get(PostedExpenseReportLine."Document No.") then
-                    if not PostedExpenseReportHeader.Canceled then
-                        PostedExpenseReportHeader.Mark(true);
+                if PostedExpenseReportLine."Document No." <> LastDocumentNo then begin
+                    LastDocumentNo := PostedExpenseReportLine."Document No.";
+                    if PostedExpenseReportHeader.Get(LastDocumentNo) then
+                        if not PostedExpenseReportHeader.Canceled then
+                            PostedExpenseReportHeader.Mark(true);
+                end;
             until PostedExpenseReportLine.Next() = 0;
 
         PostedExpenseReportHeader.MarkedOnly(true);

@@ -222,6 +222,16 @@ codeunit 6926 "Expense Activity Log Mgt."
         exit(not ExpenseActivityLogEntry.IsEmpty());
     end;
 
+    internal procedure HasEventForSource(SourceTableID: Integer; SourceRecordSystemID: Guid; EventType: Enum "Expense Activity Event Type"): Boolean
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        ExpenseActivityLogEntry.SetRange("Source Table ID", SourceTableID);
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", SourceRecordSystemID);
+        ExpenseActivityLogEntry.SetRange("Event Type", EventType);
+        exit(not ExpenseActivityLogEntry.IsEmpty());
+    end;
+
     internal procedure HasSubmissionForSource(SourceTableID: Integer; SourceRecordSystemID: Guid): Boolean
     var
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
