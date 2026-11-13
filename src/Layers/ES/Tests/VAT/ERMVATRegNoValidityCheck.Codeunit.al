@@ -319,7 +319,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Customer: Record Customer;
         VATRegistrationLog: Record "VAT Registration Log";
         VATRegistrationLogMgt: Codeunit "VAT Registration Log Mgt.";
-        ValidVATResponseDoc: DotNet XmlDocument;
+        ValidVATResponseDoc: XmlDocument;
         ValidatedName: Text;
         ValidatedAddress: Text;
         VATRegistrationLogCount: Integer;
@@ -353,7 +353,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Customer: Record Customer;
         VATRegistrationLog: Record "VAT Registration Log";
         VATRegistrationLogMgt: Codeunit "VAT Registration Log Mgt.";
-        InvalidVATResponseDoc: DotNet XmlDocument;
+        InvalidVATResponseDoc: XmlDocument;
         VATRegistrationLogCount: Integer;
     begin
         // When you invoke "Verify Registration No." on VAT Registration Log line, and the VAT Registration No. happens to be invalid
@@ -383,7 +383,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Customer: Record Customer;
         VATRegistrationLog: Record "VAT Registration Log";
         VATRegistrationLogMgt: Codeunit "VAT Registration Log Mgt.";
-        ValidVATResponseDoc: DotNet XmlDocument;
+        ValidVATResponseDoc: XmlDocument;
         ValidatedName: Text;
         ValidatedAddress: Text;
         VATRegistrationLogCount: Integer;
@@ -417,7 +417,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Customer: Record Customer;
         VATRegistrationLog: Record "VAT Registration Log";
         VATRegistrationLogMgt: Codeunit "VAT Registration Log Mgt.";
-        EmptyVATResponseDoc: DotNet XmlDocument;
+        EmptyVATResponseDoc: XmlDocument;
         VATRegistrationLogCount: Integer;
     begin
         // [SCENARIO 330015] VAT Registrion No. verification throws when it receives Xml Document with unexpected content or blank document.
@@ -427,7 +427,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         VATRegistrationLogCount := VATRegistrationLog.Count();
         VATRegistrationLog.Ascending(false);
         VATRegistrationLog.FindFirst();
-        EmptyVATResponseDoc := EmptyVATResponseDoc.XmlDocument();
+        EmptyVATResponseDoc := XmlDocument.Create();
         Commit();
 
         asserterror VATRegistrationLogMgt.LogVerification(VATRegistrationLog, EmptyVATResponseDoc, NamespaceTxt);
@@ -454,7 +454,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Customer: Record Customer;
         VATRegistrationLog: Record "VAT Registration Log";
         VATRegistrationLogMgt: Codeunit "VAT Registration Log Mgt.";
-        ValidVATResponseDoc: DotNet XmlDocument;
+        ValidVATResponseDoc: XmlDocument;
         ValidatedName: Text;
         ValidatedAddress: Text;
         VATRegistrationLogCount: Integer;
@@ -491,7 +491,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Customer: Record Customer;
         VATRegistrationLog: Record "VAT Registration Log";
         VATRegistrationLogMgt: Codeunit "VAT Registration Log Mgt.";
-        ResponseDoc: DotNet XmlDocument;
+        ResponseDoc: XmlDocument;
         ValidatedName: Text;
         ValidatedAddress: Text;
     begin
@@ -521,7 +521,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Customer: Record Customer;
         VATRegistrationLog: Record "VAT Registration Log";
         VATRegistrationLogMgt: Codeunit "VAT Registration Log Mgt.";
-        ResponseDoc: DotNet XmlDocument;
+        ResponseDoc: XmlDocument;
     begin
         // [SCENARIO] A VIES response echoing a different VAT number than requested is rejected
         Initialize();
@@ -548,7 +548,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Customer: Record Customer;
         VATRegistrationLog: Record "VAT Registration Log";
         VATRegistrationLogMgt: Codeunit "VAT Registration Log Mgt.";
-        ResponseDoc: DotNet XmlDocument;
+        ResponseDoc: XmlDocument;
     begin
         // [SCENARIO] A VIES response echoing a different country code than requested is rejected
         Initialize();
@@ -575,7 +575,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Customer: Record Customer;
         VATRegistrationLog: Record "VAT Registration Log";
         VATRegistrationLogMgt: Codeunit "VAT Registration Log Mgt.";
-        ResponseDoc: DotNet XmlDocument;
+        ResponseDoc: XmlDocument;
         ValidatedName: Text;
         ValidatedAddress: Text;
     begin
@@ -1588,17 +1588,14 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Assert.RecordIsEmpty(VATRegistrationLog);
     end;
 
-    local procedure CreateInvalidVATCheckResponse(var XMLDoc: DotNet XmlDocument; CountryCode: Text; VatNumber: Text)
+    local procedure CreateInvalidVATCheckResponse(var XMLDoc: XmlDocument; CountryCode: Text; VatNumber: Text)
     var
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        VATNode: DotNet XmlNode;
-        InvalidNode: DotNet XmlNode;
+        VATElement: XmlElement;
     begin
-        XMLDoc := XMLDoc.XmlDocument();
-        XMLDOMMgt.AddRootElementWithPrefix(XMLDoc, VATTxt, '', NamespaceTxt, VATNode);
-        XMLDOMMgt.AddElement(VATNode, 'countryCode', CountryCode, NamespaceTxt, InvalidNode);
-        XMLDOMMgt.AddElement(VATNode, 'vatNumber', VatNumber, NamespaceTxt, InvalidNode);
-        XMLDOMMgt.AddElement(VATNode, ValidTxt, 'false', NamespaceTxt, InvalidNode);
+        CreateVATCheckResponseRoot(XMLDoc, VATElement);
+        AddVATCheckResponseElement(VATElement, 'countryCode', CountryCode);
+        AddVATCheckResponseElement(VATElement, 'vatNumber', VatNumber);
+        AddVATCheckResponseElement(VATElement, ValidTxt, 'false');
     end;
 
     local procedure WriteRawResponseToTempBlob(var TempBlob: Codeunit "Temp Blob"; ByteCount: Integer)
@@ -1610,67 +1607,69 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         OutStream.WriteText(PadStr('', ByteCount, 'A'));
     end;
 
-    local procedure CreateValidVATCheckResponse(var XMLDoc: DotNet XmlDocument; ValidatedName: Text; ValidatedAddress: Text)
+    local procedure CreateValidVATCheckResponse(var XMLDoc: XmlDocument; ValidatedName: Text; ValidatedAddress: Text)
     var
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        VATNode: DotNet XmlNode;
-        InvalidNode: DotNet XmlNode;
+        VATElement: XmlElement;
     begin
-        XMLDoc := XMLDoc.XmlDocument();
-        XMLDOMMgt.AddRootElementWithPrefix(XMLDoc, VATTxt, '', NamespaceTxt, VATNode);
-        XMLDOMMgt.AddElement(VATNode, ValidTxt, 'true', NamespaceTxt, InvalidNode);
-        XMLDOMMgt.AddElement(VATNode, NameTxt, ValidatedName, NamespaceTxt, InvalidNode);
-        XMLDOMMgt.AddElement(VATNode, AddressTxt, ValidatedAddress, NamespaceTxt, InvalidNode);
+        CreateVATCheckResponseRoot(XMLDoc, VATElement);
+        AddVATCheckResponseElement(VATElement, ValidTxt, 'true');
+        AddVATCheckResponseElement(VATElement, NameTxt, ValidatedName);
+        AddVATCheckResponseElement(VATElement, AddressTxt, ValidatedAddress);
     end;
 
-    local procedure CreateValidVATCheckResponseWithIdentifiers(var XMLDoc: DotNet XmlDocument; CountryCode: Text; VatNumber: Text; ValidatedName: Text; ValidatedAddress: Text)
+    local procedure CreateValidVATCheckResponseWithIdentifiers(var XMLDoc: XmlDocument; CountryCode: Text; VatNumber: Text; ValidatedName: Text; ValidatedAddress: Text)
     var
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        VATNode: DotNet XmlNode;
-        ChildNode: DotNet XmlNode;
+        VATElement: XmlElement;
     begin
-        XMLDoc := XMLDoc.XmlDocument();
-        XMLDOMMgt.AddRootElementWithPrefix(XMLDoc, VATTxt, '', NamespaceTxt, VATNode);
-        XMLDOMMgt.AddElement(VATNode, 'countryCode', CountryCode, NamespaceTxt, ChildNode);
-        XMLDOMMgt.AddElement(VATNode, 'vatNumber', VatNumber, NamespaceTxt, ChildNode);
-        XMLDOMMgt.AddElement(VATNode, ValidTxt, 'true', NamespaceTxt, ChildNode);
-        XMLDOMMgt.AddElement(VATNode, NameTxt, ValidatedName, NamespaceTxt, ChildNode);
-        XMLDOMMgt.AddElement(VATNode, AddressTxt, ValidatedAddress, NamespaceTxt, ChildNode);
+        CreateVATCheckResponseRoot(XMLDoc, VATElement);
+        AddVATCheckResponseElement(VATElement, 'countryCode', CountryCode);
+        AddVATCheckResponseElement(VATElement, 'vatNumber', VatNumber);
+        AddVATCheckResponseElement(VATElement, ValidTxt, 'true');
+        AddVATCheckResponseElement(VATElement, NameTxt, ValidatedName);
+        AddVATCheckResponseElement(VATElement, AddressTxt, ValidatedAddress);
     end;
 
-    local procedure CreateVATCheckResponseWithManyTags(var XMLDoc: DotNet XmlDocument; CountryCode: Text; VatNumber: Text; ValidatedName: Text; ValidatedAddress: Text)
+    local procedure CreateVATCheckResponseWithManyTags(var XMLDoc: XmlDocument; CountryCode: Text; VatNumber: Text; ValidatedName: Text; ValidatedAddress: Text)
     var
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        VATNode: DotNet XmlNode;
-        InvalidNode: DotNet XmlNode;
+        VATElement: XmlElement;
         I: Integer;
     begin
-        XMLDoc := XMLDoc.XmlDocument();
-        XMLDOMMgt.AddRootElementWithPrefix(XMLDoc, VATTxt, '', NamespaceTxt, VATNode);
-        XMLDOMMgt.AddElement(VATNode, 'countryCode', CountryCode, NamespaceTxt, InvalidNode);
-        XMLDOMMgt.AddElement(VATNode, 'vatNumber', VatNumber, NamespaceTxt, InvalidNode);
+        CreateVATCheckResponseRoot(XMLDoc, VATElement);
+        AddVATCheckResponseElement(VATElement, 'countryCode', CountryCode);
+        AddVATCheckResponseElement(VATElement, 'vatNumber', VatNumber);
         for I := 1 to 500 do begin
-            XMLDOMMgt.AddElement(VATNode, ValidTxt, 'true', NamespaceTxt, InvalidNode);
-            XMLDOMMgt.AddElement(VATNode, NameTxt, ValidatedName, NamespaceTxt, InvalidNode);
-            XMLDOMMgt.AddElement(VATNode, AddressTxt, ValidatedAddress, NamespaceTxt, InvalidNode);
+            AddVATCheckResponseElement(VATElement, ValidTxt, 'true');
+            AddVATCheckResponseElement(VATElement, NameTxt, ValidatedName);
+            AddVATCheckResponseElement(VATElement, AddressTxt, ValidatedAddress);
         end;
     end;
 
-    local procedure CreateVATCheckResponseWithIdentifiers(var XMLDoc: DotNet XmlDocument; CountryCode: Text; VatNumber: Text)
+    local procedure CreateVATCheckResponseWithIdentifiers(var XMLDoc: XmlDocument; CountryCode: Text; VatNumber: Text)
     var
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        VATNode: DotNet XmlNode;
-        ChildNode: DotNet XmlNode;
+        VATElement: XmlElement;
     begin
-        XMLDoc := XMLDoc.XmlDocument();
-        XMLDOMMgt.AddRootElementWithPrefix(XMLDoc, VATTxt, '', NamespaceTxt, VATNode);
-        XMLDOMMgt.AddElement(VATNode, 'countryCode', CountryCode, NamespaceTxt, ChildNode);
-        XMLDOMMgt.AddElement(VATNode, 'vatNumber', VatNumber, NamespaceTxt, ChildNode);
-        XMLDOMMgt.AddElement(VATNode, ValidTxt, 'true', NamespaceTxt, ChildNode);
+        CreateVATCheckResponseRoot(XMLDoc, VATElement);
+        AddVATCheckResponseElement(VATElement, 'countryCode', CountryCode);
+        AddVATCheckResponseElement(VATElement, 'vatNumber', VatNumber);
+        AddVATCheckResponseElement(VATElement, ValidTxt, 'true');
     end;
 
-    local procedure CreateCountryCodeWithEUCode(): Code[10]
-    var
+    local procedure CreateVATCheckResponseRoot(var XMLDoc: XmlDocument; var VATElement: XmlElement)
+    begin
+        XMLDoc := XmlDocument.Create();
+        VATElement := XmlElement.Create(VATTxt, NamespaceTxt);
+        XMLDoc.Add(VATElement);
+    end;
+
+    local procedure AddVATCheckResponseElement(var VATElement: XmlElement; Name: Text; Content: Text)
+    begin
+        if Content = '' then
+            VATElement.Add(XmlElement.Create(Name, NamespaceTxt))
+        else
+            VATElement.Add(XmlElement.Create(Name, NamespaceTxt, Content));
+    end;
+
+    local procedure CreateCountryCodeWithEUCode(): Code[10]    var
         CountryRegion: Record "Country/Region";
     begin
         LibraryERM.CreateCountryRegion(CountryRegion);
