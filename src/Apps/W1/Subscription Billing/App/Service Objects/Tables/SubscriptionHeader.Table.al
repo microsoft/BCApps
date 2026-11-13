@@ -2240,6 +2240,8 @@ table 8057 "Subscription Header"
             ServiceObject.TestField("Variant Code");
         ServiceObject.Description := ContractsItemManagement.GetItemTranslation(ItemNo, VariantCode, CustomerContract."Sell-to Customer No.");
         ServiceObject."Unit of Measure" := Item."Base Unit of Measure";
+        if SourceQuantity < 0 then
+            Error(QtyNegativeErr);
         ServiceObject.Quantity := SourceQuantity;
         ServiceObject.Validate("End-User Customer No.", CustomerContract."Sell-to Customer No.");
         ServiceObject.Validate("Bill-to Customer No.", CustomerContract."Bill-to Customer No.");

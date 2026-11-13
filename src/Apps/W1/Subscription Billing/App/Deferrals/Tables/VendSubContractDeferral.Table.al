@@ -185,7 +185,7 @@ table 8072 "Vend. Sub. Contract Deferral"
             Enum::"Purchase Document Type"::"Credit Memo":
                 begin
                     "Document Type" := "Document Type"::"Credit Memo";
-                    Sign := -1;
+                    Sign := 1;
                 end;
             Enum::"Purchase Document Type"::Invoice:
                 begin
@@ -193,12 +193,6 @@ table 8072 "Vend. Sub. Contract Deferral"
                     Sign := 1;
                 end;
         end;
-
-        if (PurchaseLine."Document Type" = Enum::"Purchase Document Type"::"Credit Memo") and (PurchaseLine.Quantity < 0) then
-            Sign := Sign * -1
-        else
-            if (PurchaseLine.Quantity < 0) and (not PurchaseLine."Discount") then
-                Sign := Sign * -1;
         Rec."Vendor No." := PurchaseLine."Pay-to Vendor No.";
         Rec."Dimension Set ID" := PurchaseLine."Dimension Set ID";
         Rec."Discount %" := PurchaseLine."Line Discount %";

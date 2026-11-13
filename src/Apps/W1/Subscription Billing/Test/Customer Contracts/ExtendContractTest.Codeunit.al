@@ -405,6 +405,117 @@ codeunit 148152 "Extend Contract Test"
         until ServiceCommitment.Next() = 0;
     end;
 
+    [Test]
+    procedure UT_ExtendContractDoesNotAllowNegativeQuantity()
+    var
+        ExtendContract: TestPage "Extend Contract";
+    begin
+        // [SCENARIO] It should not be possible to enter a Quantity smaller than 0 on the Extend Contract page
+
+        // [GIVEN] Subscription Item with a package assigned and a Customer Subscription Contract
+        Initialize();
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, ServiceCommitmentPackage, ServiceCommPackageLine);
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, ServiceCommitmentPackage.Code);
+        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+
+        // [GIVEN] Extend Contract page opened with Item set
+        ExtendContract.OpenEdit();
+        ExtendContract.ExtendCustomerContract.SetValue(true);
+        ExtendContract.CustomerContractNo.SetValue(CustomerContract."No.");
+        ExtendContract.ItemNo.SetValue(Item."No.");
+
+        // [WHEN] A negative Quantity is entered
+        asserterror ExtendContract.Quantity.SetValue(-LibraryRandom.RandDecInRange(1, 100, 2));
+
+        // [THEN] An error is raised and the negative value is rejected
+        Assert.ExpectedError('The value must be greater than or equal to 0.');
+        Assert.ExpectedErrorCode('TestValidation');
+        ExtendContract.Close();
+    end;
+
+    [Test]
+    procedure UT_ExtendContractAllowsNonNegativeQuantity()
+    var
+        ExtendContract: TestPage "Extend Contract";
+        Qty: Decimal;
+    begin
+        // [SCENARIO] A Quantity of 0 or greater can be entered on the Extend Contract page
+
+        // [GIVEN] Subscription Item with a package assigned and a Customer Subscription Contract
+        Initialize();
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, ServiceCommitmentPackage, ServiceCommPackageLine);
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, ServiceCommitmentPackage.Code);
+        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+
+        // [GIVEN] Extend Contract page opened with Item set
+        ExtendContract.OpenEdit();
+        ExtendContract.ExtendCustomerContract.SetValue(true);
+        ExtendContract.CustomerContractNo.SetValue(CustomerContract."No.");
+        ExtendContract.ItemNo.SetValue(Item."No.");
+
+        // [WHEN] A Quantity of 0 is entered
+        ExtendContract.Quantity.SetValue(0);
+
+        // [THEN] The value is accepted
+        ExtendContract.Quantity.AssertEquals(0);
+
+        // [WHEN] A positive Quantity is entered
+        Qty := LibraryRandom.RandDecInRange(1, 100, 2);
+        ExtendContract.Quantity.SetValue(Qty);
+
+        // [THEN] The value is accepted
+        ExtendContract.Quantity.AssertEquals(Qty);
+        ExtendContract.Close();
+    end;
+
+    [Test]
+    procedure UT_InsertFromItemNoAndCustomerContractDoesNotAllowNegativeQuantity()
+    begin
+        // [SCENARIO] Creating a Subscription from an Item for a Customer Subscription Contract rejects a negative Quantity, independent of the Extend Contract page
+
+        // [GIVEN] Subscription Item with a package assigned and a Customer Subscription Contract
+        Initialize();
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, ServiceCommitmentPackage, ServiceCommPackageLine);
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, ServiceCommitmentPackage.Code);
+        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+
+        // [WHEN] A Subscription is created from the Item with a negative Quantity
+        asserterror ServiceObject.InsertFromItemNoAndCustomerContract(ServiceObject, Item."No.", '', -LibraryRandom.RandDecInRange(1, 100, 2), WorkDate(), CustomerContract);
+
+        // [THEN] The negative quantity error is raised and no Subscription is created
+        Assert.ExpectedError('The quantity cannot be negative.');
+        ServiceObject.Reset();
+        ServiceObject.SetRange("Source No.", Item."No.");
+        Assert.RecordIsEmpty(ServiceObject);
+    end;
+
+    [Test]
+    procedure UT_InsertFromItemNoAndCustomerContractAllowsZeroQuantity()
+    begin
+        // [SCENARIO] Creating a Subscription from an Item for a Customer Subscription Contract accepts a Quantity of 0
+
+        // [GIVEN] Subscription Item with a package assigned and a Customer Subscription Contract
+        Initialize();
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, ServiceCommitmentPackage, ServiceCommPackageLine);
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, ServiceCommitmentPackage.Code);
+        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+
+        // [WHEN] A Subscription is created from the Item with a Quantity of 0
+        ServiceObject.InsertFromItemNoAndCustomerContract(ServiceObject, Item."No.", '', 0, WorkDate(), CustomerContract);
+
+        // [THEN] The Subscription is created with a Quantity of 0
+        ServiceObject.Get(ServiceObject."No.");
+        ServiceObject.TestField(Quantity, 0);
+    end;
+
     #endregion Tests
 
     #region Procedures

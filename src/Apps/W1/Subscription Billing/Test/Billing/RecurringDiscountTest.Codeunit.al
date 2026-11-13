@@ -405,24 +405,13 @@ codeunit 139689 "Recurring Discount Test"
     [Test]
     [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure TestVendorContractDeferralsDiscountLines()
-    var
-        VendorContractDeferral: Record "Vend. Sub. Contract Deferral";
     begin
         Initialize();
         CreateBillingProposalForVendorContract();
         CreateBillingDocuments();
         BillingLine.FindLast();
         PostedDocumentNo := UpdateAndPostPurchaseHeader(Enum::"Purchase Document Type"::Invoice, BillingLine."Document No.");
-        VendorContractDeferral.SetRange("Document Type", VendorContractDeferral."Document Type"::Invoice);
-        VendorContractDeferral.SetRange("Document No.", PostedDocumentNo);
-        VendorContractDeferral.SetRange(Discount, true);
-        VendorContractDeferral.FindSet();
-        repeat
-            if VendorContractDeferral.Amount > 0 then
-                Error(DiscountDeferralAmountSignErr, 'negative');
-            if VendorContractDeferral."Deferral Base Amount" > 0 then
-                Error(DiscountDeferralDeferralBaseAmountSignErr, 'negative');
-        until VendorContractDeferral.Next() = 0;
+        VerifyVendorContractDeferralLines(VendorContract."No.", PostedDocumentNo, Enum::"Rec. Billing Document Type"::Invoice, true);
     end;
 
     [Test]
@@ -605,7 +594,7 @@ codeunit 139689 "Recurring Discount Test"
         PostedDocumentNo := UpdateAndPostPurchaseHeader(Enum::"Purchase Document Type"::"Credit Memo", BillingLine."Document No.");
 
         // [THEN] Deferrals are created for Discount Billing Lines
-        VerifyVendorContractDeferralLinesCreated(VendorContract."No.", PostedDocumentNo, Enum::"Rec. Billing Document Type"::"Credit Memo", true);
+        VerifyVendorContractDeferralLines(VendorContract."No.", PostedDocumentNo, Enum::"Rec. Billing Document Type"::"Credit Memo", true);
     end;
 
     #endregion Tests
@@ -730,7 +719,7 @@ codeunit 139689 "Recurring Discount Test"
         CustomerContractDeferral.SetRange("Deferral Base Amount");
     end;
 
-    local procedure VerifyVendorContractDeferralLinesCreated(ContractNo: Code[20]; DocumentNo: Code[20]; DocumentType: Enum "Rec. Billing Document Type"; Discount: Boolean)
+    local procedure VerifyVendorContractDeferralLines(ContractNo: Code[20]; DocumentNo: Code[20]; DocumentType: Enum "Rec. Billing Document Type"; Discount: Boolean)
     var
         VendorContractDeferral: Record "Vend. Sub. Contract Deferral";
     begin
@@ -738,8 +727,19 @@ codeunit 139689 "Recurring Discount Test"
         VendorContractDeferral.SetRange("Document Type", DocumentType);
         VendorContractDeferral.SetRange("Document No.", DocumentNo);
         VendorContractDeferral.SetRange(Discount, Discount);
+
         if VendorContractDeferral.IsEmpty() then
             Error(NoDeferralLinesErr);
+
+        VendorContractDeferral.SetFilter(Amount, '>0');
+        if not VendorContractDeferral.IsEmpty() then
+            Error(DiscountDeferralAmountSignErr, 'negative');
+        VendorContractDeferral.SetRange(Amount);
+
+        VendorContractDeferral.SetFilter("Deferral Base Amount", '>0');
+        if not VendorContractDeferral.IsEmpty() then
+            Error(DiscountDeferralDeferralBaseAmountSignErr, 'negative');
+        VendorContractDeferral.SetRange("Deferral Base Amount");
     end;
 
     #endregion Procedures
