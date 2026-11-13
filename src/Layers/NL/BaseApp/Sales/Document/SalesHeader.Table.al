@@ -1471,7 +1471,6 @@ table 36 "Sales Header"
                 if not VATRegistrationNoFormat.Test("VAT Registration No.", ApplicableCountryCode, Customer."No.", DATABASE::Customer) then
                     exit;
 
-                ApplicableCountryCode := Customer."Country/Region Code";
                 if ApplicableCountryCode = '' then
                     ApplicableCountryCode := VATRegistrationNoFormat."Country/Region Code";
 
