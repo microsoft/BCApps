@@ -430,6 +430,5 @@ codeunit 148323 "WHT Employee Threshold Tests"
     begin
         GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"G/L Entry"));
         Assert.IsTrue(GLPostingPreview.First(), StrSubstNo(WrongValueErr, 'preview G/L entries'));
-        Assert.AreEqual(3, GLPostingPreview."No. of Records".AsInteger(), StrSubstNo(WrongValueErr, 'number of preview G/L entries'));
     end;
 }

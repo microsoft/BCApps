@@ -53,7 +53,7 @@ table 7059 "WHT Exp. Report Buffer"
         field(22; "Threshold Base Amount (LCY)"; Decimal)
         {
             Caption = 'Threshold Base Amount (LCY)';
-            DataClassification = SystemMetadata;
+            DataClassification = CustomerContent;
         }
     }
 
