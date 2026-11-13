@@ -278,7 +278,6 @@ codeunit 139651 "HybridBC Wizard Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestNoProductSelectedError()
     var
         HybridCloudSetupWizard: TestPage "Hybrid Cloud Setup Wizard";

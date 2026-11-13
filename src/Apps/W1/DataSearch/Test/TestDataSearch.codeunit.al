@@ -379,6 +379,7 @@ codeunit 139507 "Test Data Search"
         jArray: JsonArray;
         jObject: JsonObject;
         jToken: JsonToken;
+        TableNo: Integer;
         i: Integer;
     begin
         DataSearchObjectMapping.GetDataSearchSetup(jArray);
@@ -387,14 +388,15 @@ codeunit 139507 "Test Data Search"
         jArray.Get(1, jToken);
         jObject := jToken.AsObject();
         jObject.Get('tableNo', jToken);
-        LibraryAssert.IsTrue(jToken.AsValue().AsInteger() > 0, 'No tableNo provided.');
+        TableNo := jToken.AsValue().AsInteger();
+        LibraryAssert.IsTrue(TableNo > 0, 'No tableNo provided.');
         jObject.Get('tableSubtype', jToken);
         i := jToken.AsValue().AsInteger(); // to verify that it can be read as an integer
         jObject.Get('tableSubtypeFieldNo', jToken);
         i := jToken.AsValue().AsInteger(); // to verify that it can be read as an integer
+        LibraryAssert.AreEqual(DataSearchObjectMapping.GetTypeNoField(TableNo), i, 'Incorrect subtype field number.');
         jObject.Get('tableSearchFieldNos', jToken);
         jArray := jToken.AsArray();
-        LibraryAssert.IsTrue(i <> 0, 'No integer was read.');
         LibraryAssert.IsTrue(jArray.Count() > 0, 'tableSearchFieldNos not provided.');
     end;
 

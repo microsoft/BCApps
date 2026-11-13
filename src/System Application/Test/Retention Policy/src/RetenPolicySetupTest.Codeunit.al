@@ -250,11 +250,9 @@ codeunit 138701 "Reten. Policy Setup Test"
         RetentionPolicySetup: Record "Retention Policy Setup";
     begin
         PermissionsMock.Set('Retention Pol. Admin');
-        RetentionPeriod.SetRange(Code, Format(RetentionPeriod."Retention Period"::"1 Week"));
-        RetentionPeriod.DeleteAll();
 
         // setup
-        RetentionPeriod.Validate(Code, Format(RetentionPeriod."Retention Period"::"1 Week"));
+        RetentionPeriod.Validate(Code, CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(RetentionPeriod.Code))), 1, MaxStrLen(RetentionPeriod.Code)));
         RetentionPeriod.Validate("Retention Period", RetentionPeriod."Retention Period"::"1 Week");
         RetentionPeriod.Insert();
         RetentionPolicySetup.Validate("Table Id", Database::"Retention Policy Test Data");
@@ -301,11 +299,9 @@ codeunit 138701 "Reten. Policy Setup Test"
         RetentionPolicySetupLine: Record "Retention Policy Setup Line";
     begin
         PermissionsMock.Set('Retention Pol. Admin');
-        RetentionPeriod.SetRange(Code, Format(RetentionPeriod."Retention Period"::"1 Week"));
-        RetentionPeriod.DeleteAll();
 
         // setup
-        RetentionPeriod.Validate(Code, Format(RetentionPeriod."Retention Period"::"1 Week"));
+        RetentionPeriod.Validate(Code, CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(RetentionPeriod.Code))), 1, MaxStrLen(RetentionPeriod.Code)));
         RetentionPeriod.Validate("Retention Period", RetentionPeriod."Retention Period"::"1 Week");
         RetentionPeriod.Insert();
         RetentionPolicySetupLine.Validate("Table Id", Database::"Retention Policy Test Data");

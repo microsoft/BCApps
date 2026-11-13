@@ -245,6 +245,7 @@ codeunit 148213 "Sust. ESG Integration Test"
     begin
         // [SCENARIO 546883] Verify Reporting Unit should be created from Dataverse Unit.
         Initialize();
+        LibrarySustainability.UpdateESGStandardReportingNoInSustainabilitySetup();
 
         // [GIVEN] Enable the connection.
         LibrarySustainability.UpdateDataverseIntegrationInSustainabilitySetup(true);

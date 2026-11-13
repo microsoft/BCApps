@@ -1710,8 +1710,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         InProcessTransport.Deactivate();
         PagingConfig.Deactivate(); // a paging test that failed before its CleanUp must not leak its forced page cap into later tests
         LibraryMasterDataMgt.ApproveCrossEnvPrivacyNotice(); // the source API is consent-gated; approve for the gated paths
-        // SetSourceEnvironmentName validates the setup, which schedules the detector job and commits, so a mapping
-        // created earlier in a test survives AutoRollback; clear leftovers to keep tests independent.
+        // Clear artifacts from earlier tests, including changes that survived a commit.
         DeleteTestArtifacts();
         if not MasterDataManagementSetup.Get() then begin
             MasterDataManagementSetup.Init();
@@ -1744,13 +1743,15 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
 
     local procedure CleanUp()
     var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
         InProcessTransport: Codeunit "MDM In-Process Transport";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
         PagingConfig: Codeunit "MDM Test Paging Config";
     begin
         InProcessTransport.Deactivate();
         PagingConfig.Deactivate();
-        LibraryMasterDataMgt.SetSourceEnvironmentName('');
+        if MasterDataManagementSetup.Get() then
+            LibraryMasterDataMgt.SetSourceEnvironmentName('');
         DeleteTestArtifacts();
     end;
 

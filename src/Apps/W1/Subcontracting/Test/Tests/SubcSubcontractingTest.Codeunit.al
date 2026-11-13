@@ -3970,6 +3970,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
         ComponentItem1: Record Item;
         ComponentItem2: Record Item;
+        InventoryPostingSetup: Record "Inventory Posting Setup";
         ProductionBOMHeader: Record "Production BOM Header";
         RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
@@ -3998,6 +3999,13 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryManufacturing.CreateCertifProdBOMWithTwoComp(ProductionBOMHeader, ComponentItem1."No.", ComponentItem2."No.", 1);
 
         CreateItem(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", RoutingHeader."No.", ProductionBOMHeader."No.");
+
+        if not InventoryPostingSetup.Get('', Item."Inventory Posting Group") then
+            LibraryInventory.CreateInventoryPostingSetup(InventoryPostingSetup, '', Item."Inventory Posting Group");
+        if InventoryPostingSetup."WIP Account" = '' then begin
+            InventoryPostingSetup.Validate("WIP Account", LibraryERM.CreateGLAccountNo());
+            InventoryPostingSetup.Modify(true);
+        end;
     end;
 
     procedure CreateWorkCenter(var WorkCenterNo: Code[20]; ShopCalendarCode: Code[10]; FlushingMethod: Enum "Flushing Method"; Subcontract: Boolean;

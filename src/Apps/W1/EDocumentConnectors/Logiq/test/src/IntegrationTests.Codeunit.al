@@ -394,6 +394,7 @@ codeunit 139780 "Integration Tests"
         Currency: Record Currency;
         CurrencyExchangeRate: Record "Currency Exchange Rate";
         GeneralLedgerSetup: Record "General Ledger Setup";
+        LibraryERM: Codeunit "Library - ERM";
     begin
         this.LibraryPermission.SetOutsideO365Scope();
 
@@ -424,9 +425,16 @@ codeunit 139780 "Integration Tests"
         this.Vendor.Modify();
 
         Currency.Get(this.CurrencyTok);
-        CurrencyExchangeRate.SetCurrentCurrencyFactor(Currency.Code, 1.0);
-        if CurrencyExchangeRate.Get(Currency.Code, Today()) then
-            CurrencyExchangeRate.Rename(Currency.Code, 0D);
+        if not CurrencyExchangeRate.Get(Currency.Code, 0D) then
+            LibraryERM.CreateExchangeRate(Currency.Code, 0D, 1, 1)
+        else begin
+            CurrencyExchangeRate.Validate("Relational Currency Code", '');
+            CurrencyExchangeRate.Validate("Exchange Rate Amount", 1);
+            CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", 1);
+            CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", 1);
+            CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", 1);
+            CurrencyExchangeRate.Modify(true);
+        end;
 
         this.IsInitialized := true;
     end;

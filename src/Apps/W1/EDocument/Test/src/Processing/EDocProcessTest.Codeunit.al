@@ -2476,6 +2476,8 @@ codeunit 139883 "E-Doc Process Test"
     begin
         // [SCENARIO] A PEPPOL Order XML with OrderTypeCode=221 is imported. FinishDraft always produces a Sales Order regardless of OrderTypeCode.
         Initialize(Enum::"Service Integration"::"Mock");
+        EDocumentService.Validate("Document Format", Enum::"E-Document Format"::"PEPPOL BIS 3.0");
+        EDocumentService.Modify(true);
         WorkDate(DMY2Date(1, 1, 2027));
 
         // [GIVEN] The XML is parsed into staging records (ReadIntoDraft sets OrderTypeCode = '221' from the XML)

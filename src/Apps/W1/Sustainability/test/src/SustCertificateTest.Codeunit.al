@@ -3707,6 +3707,7 @@ codeunit 148187 "Sust. Certificate Test"
         // [GIVEN] Update "Work/Machine Centers Emissions" in Sustainability Setup.
         SustainabilitySetup.Get();
         SustainabilitySetup.Validate("Work/Machine Center Emissions", true);
+        SustainabilitySetup.Validate("Use All Gases As CO2e", false);
         SustainabilitySetup.Modify(true);
 
         // [GIVEN] Create a Sustainability Account.

@@ -252,6 +252,7 @@ codeunit 139646 "Shpfy Catalog Prices Test"
     begin
         // Creating test data.
         LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
         Shop := InitializeTest.CreateShop();
         Shop."Allow Line Disc." := false;
         Shop.Modify();
@@ -318,6 +319,7 @@ codeunit 139646 "Shpfy Catalog Prices Test"
     begin
         // [GIVEN] Setting up the test environment: Shop, Catalog, Item, and Customer with specific pricing and discount.
         LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
         Shop := InitializeTest.CreateShop();
         Shop."Allow Line Disc." := false;
         Shop.Modify();
@@ -376,6 +378,7 @@ codeunit 139646 "Shpfy Catalog Prices Test"
     begin
         // [GIVEN] Setting up shop, catalog, item, and customer-specific pricing.
         LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
         Shop := InitializeTest.CreateShop();
         Shop."Allow Line Disc." := false;
         Shop.Modify();
@@ -440,6 +443,7 @@ codeunit 139646 "Shpfy Catalog Prices Test"
     begin
         // [GIVEN] Creating shop, catalog, item, and setting customer discount details.
         LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
         Shop := InitializeTest.CreateShop();
         Shop."Allow Line Disc." := false;
         Shop.Modify();

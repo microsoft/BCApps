@@ -852,7 +852,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
 
         // [GIVEN] Insert a WIP Ledger Entry at Subcontractor 1's location, simulating that
         // the production item has been processed and is physically at Subcontractor 1
-        WIPQty := LibraryRandom.RandInt(10) + 1;
+        WIPQty := ProdOrderLine.Quantity;
         SubcontractingMgmtLibrary.CreateWIPLedgerEntry(
             WIPLedgerEntry, Item."No.", Subc1LocationCode,
             ProductionOrder, ProdOrderLine, ProdOrderRoutingLine,

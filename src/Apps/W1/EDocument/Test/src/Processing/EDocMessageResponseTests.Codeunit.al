@@ -1255,6 +1255,7 @@ codeunit 139864 "E-Doc. Message Response Tests"
         EDocumentService.DeleteAll();
         LibraryEDoc.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"Mock");
 
+        Commit();
         IsInitialized := true;
     end;
 }

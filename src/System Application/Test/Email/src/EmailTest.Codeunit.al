@@ -1033,25 +1033,19 @@ codeunit 134685 "Email Test"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('RelatedAttachmentsHandler,CloseEmailEditorHandler')]
+    [HandlerFunctions('NoRelatedAttachmentsHandler,NoRelatedAttachmentsMessageHandler,CloseEmailEditorHandler')]
     procedure FailedAttachFromRelatedRecords()
     var
         EmailMessage: Codeunit "Email Message";
-        EmailTest: Codeunit "Email Test";
         EmailEditorPage: TestPage "Email Editor";
     begin
-        BindSubscription(EmailTest);
-
         // [Given] A created email without source record
         CreateEmail(EmailMessage);
 
         // [When] Opening the Email Related Attachments page and getting related attachments 
         EmailEditorPage.Trap();
         Email.OpenInEditor(EmailMessage);
-        asserterror EmailEditorPage.Attachments.SourceAttachments.Invoke();
-
-        // [Then] An error message is displayed 
-        Assert.ExpectedError(NoRelatedAttachmentsErr);
+        EmailEditorPage.Attachments.SourceAttachments.Invoke();
     end;
 
     [Test]
@@ -2241,6 +2235,18 @@ codeunit 134685 "Email Test"
         EmailRelationPickerTestPage."Source Name".Lookup();
 
         Assert.AreEqual('', GetLastErrorText, 'An error occurred - opening email relation from picker');
+    end;
+
+    [ModalPageHandler]
+    procedure NoRelatedAttachmentsHandler(var RelatedAttachmentsPage: TestPage "Email Related Attachments")
+    begin
+        Assert.IsFalse(RelatedAttachmentsPage.First(), 'No related attachments were expected.');
+    end;
+
+    [MessageHandler]
+    procedure NoRelatedAttachmentsMessageHandler(Message: Text[1024])
+    begin
+        Assert.ExpectedMessage(NoRelatedAttachmentsErr, Message);
     end;
 
     [ModalPageHandler]

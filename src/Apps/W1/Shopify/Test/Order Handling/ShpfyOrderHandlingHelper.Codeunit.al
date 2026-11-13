@@ -250,7 +250,7 @@ codeunit 139607 "Shpfy Order Handling Helper"
         JLocation: JsonObject;
         GidLbl: Label 'gid://shopify/LineItem/%1', Locked = true, Comment = '%1 = Line Id';
     begin
-        Item := ProductInitTest.CreateItem();
+        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 500, 2));
         Item.SetRecFilter();
         CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
         ShopifyVariant := TempShopifyVariant;

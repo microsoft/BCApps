@@ -405,6 +405,7 @@ codeunit 148342 "Expense Activity Log Test"
     var
         SubmitterExpenseUser: Record "Expense User";
         ApproverExpenseUser: Record "Expense User";
+        CurrentExpenseUser: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
@@ -415,6 +416,10 @@ codeunit 148342 "Expense Activity Log Test"
         Initialize();
         CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
         SetSubmitterToDifferentUser(SubmitterExpenseUser);
+        RemoveCurrentExpenseUserMappings();
+        LibraryExpense.CreateExpenseUser(CurrentExpenseUser);
+        CurrentExpenseUser."User Id For Approvals" := CopyStr(UserId(), 1, MaxStrLen(CurrentExpenseUser."User Id For Approvals"));
+        CurrentExpenseUser.Modify();
         SetCurrentUserUnlimitedApproval(false);
         ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
         ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);

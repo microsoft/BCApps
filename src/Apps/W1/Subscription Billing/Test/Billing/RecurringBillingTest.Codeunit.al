@@ -1937,6 +1937,7 @@ codeunit 139688 "Recurring Billing Test"
 
     local procedure CreateBillingProposalForVendorContractUsingTempTemplate(PeriodCalculation: Enum "Period Calculation"; BillingPeriod: Text; BillingBasePeriod: Text; BillFromDate: Date; BillToDate: Date)
     begin
+        SetGLSetupUnitAmountRoundingPrecision();
         CreateVendorContract(PeriodCalculation, BillingPeriod, BillingBasePeriod, BillFromDate, 200, 100);
         BillingProposal.CreateBillingProposalForContract("Service Partner"::Vendor, VendorContract."No.", '', VendorContract.GetFilter("Billing Rhythm Filter"), BillToDate, BillToDate);
         Currency.InitRoundingPrecision();

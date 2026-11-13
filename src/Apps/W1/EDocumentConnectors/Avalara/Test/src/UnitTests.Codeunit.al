@@ -1133,9 +1133,10 @@ codeunit 133624 "Unit Tests"
         Assert.ExpectedError('Unsupported');
 
         // [CLEANUP] Restore to Production
-        ConnectionSetup.Get();
-        ConnectionSetup."Avalara Send Mode" := "Avalara Send Mode"::Production;
-        ConnectionSetup.Modify();
+        if ConnectionSetup.Get() then begin
+            ConnectionSetup."Avalara Send Mode" := "Avalara Send Mode"::Production;
+            ConnectionSetup.Modify();
+        end;
     end;
 
     // ========================================================================

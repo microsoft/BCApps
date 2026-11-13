@@ -1165,10 +1165,14 @@ codeunit 139692 "Contract Renewal Test"
     local procedure CreateFakeContractRenewalQuote(var SalesHeader: Record "Sales Header")
     var
         SalesLine: Record "Sales Line";
+        SalesServiceCommitment: Record "Sales Subscription Line";
         LibrarySales: Codeunit "Library - Sales";
     begin
         LibrarySales.CreateSalesQuoteForCustomerNo(SalesHeader, '');
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"Service Object", '', 1);
+        SalesServiceCommitment.InitRecord(SalesLine);
+        SalesServiceCommitment.Process := Enum::Process::"Contract Renewal";
+        SalesServiceCommitment.Insert(false);
     end;
 
     local procedure DeleteAllContracts()

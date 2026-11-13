@@ -34,6 +34,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [SCENARIO] A quality inspector can select destination bins with the additional bin lookup role.
         LibraryLowerPermissions.AddPermissionSet(InspectorRoleIDTok);
         LibraryLowerPermissions.AddPermissionSet(BinLookupRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet('Qlty. Test Assert');
 
         VerifyCanSelectDestinationBin();
     end;
@@ -44,6 +45,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         // [SCENARIO] A quality supervisor can select destination bins with the additional bin lookup role.
         LibraryLowerPermissions.AddPermissionSet(AdminSupervisorRoleIDTok);
         LibraryLowerPermissions.AddPermissionSet(BinLookupRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet('Qlty. Test Assert');
 
         VerifyCanSelectDestinationBin();
     end;

@@ -11,6 +11,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Period;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
@@ -46,6 +47,23 @@ codeunit 139685 "Contract Test Library"
         PrefixTok: Label 'ZZZ', Locked = true;
 
     #region General
+    procedure CreateDeferralAccountingPeriods(PostingDate: Date; NoOfPeriods: Integer)
+    var
+        AccountingPeriod: Record "Accounting Period";
+        AccountingPeriodMgt: Codeunit "Accounting Period Mgt.";
+        PeriodStartingDate: Date;
+        PeriodIndex: Integer;
+    begin
+        PeriodStartingDate := CalcDate('<-CM-1M>', PostingDate);
+        for PeriodIndex := 0 to NoOfPeriods + 1 do begin
+            if not AccountingPeriod.Get(PeriodStartingDate) then begin
+                AccountingPeriodMgt.InitDefaultAccountingPeriod(AccountingPeriod, PeriodStartingDate);
+                AccountingPeriod.Insert(true);
+            end;
+            PeriodStartingDate := CalcDate('<1M>', PeriodStartingDate);
+        end;
+    end;
+
     procedure EnableNewPricingExperience()
     var
         FeatureDataUpdateStatus: Record "Feature Data Update Status";

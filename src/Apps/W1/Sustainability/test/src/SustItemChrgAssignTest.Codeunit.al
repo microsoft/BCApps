@@ -3133,6 +3133,10 @@ codeunit 148210 "Sust. Item Chrg Assign. Test"
         CreatePurchaseDocumentWithChargeItemAndItem(PurchaseLine2, DocumentType, PurchaseLine."Buy-from Vendor No.", Quantity, AccountCode, EmissionCO2, EmissionCH4, EmissionN2O, QuantitySignFactor, CostSignFactor);
         LibraryInventory.CreateItemChargeAssignPurchase(ItemChargeAssignmentPurch, PurchaseLine2, ItemChargeAssignmentPurch."Applies-to Doc. Type"::"Return Shipment", ReturnShipmentLine."Document No.", ReturnShipmentLine."Line No.", ReturnShipmentLine."No.");
         PurchaseHeader.Get(PurchaseLine2."Document Type", PurchaseLine2."Document No.");
+        if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::"Credit Memo" then begin
+            PurchaseHeader.Validate("Vendor Cr. Memo No.", CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchaseHeader."Vendor Cr. Memo No.")));
+            PurchaseHeader.Modify(true);
+        end;
 
         exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
     end;

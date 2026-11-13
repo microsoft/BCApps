@@ -66,47 +66,45 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
 
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 
-        if not TempQuantityToActQltyDispositionBuffer.FindSet() then
-            QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
+        if TempQuantityToActQltyDispositionBuffer.FindSet() then
+            repeat
+                Clear(Location);
+                LoopSuccess := false;
+                if TempQuantityToActQltyDispositionBuffer."Location Filter" <> '' then
+                    Location.Get(TempQuantityToActQltyDispositionBuffer.GetFromLocationCode());
+                if Location."Directed Put-away and Pick" then begin
+                    if QltyManagementSetup."Whse. Reclass. Batch Name" = '' then
+                        Error(MissingBatchErr);
 
-        repeat
-            Clear(Location);
-            LoopSuccess := false;
-            if TempQuantityToActQltyDispositionBuffer."Location Filter" <> '' then
-                Location.Get(TempQuantityToActQltyDispositionBuffer.GetFromLocationCode());
-            if Location."Directed Put-away and Pick" then begin
-                if QltyManagementSetup."Whse. Reclass. Batch Name" = '' then
-                    Error(MissingBatchErr);
+                    DocumentOrBatch := QltyManagementSetup."Whse. Reclass. Batch Name";
+                    Clear(WarehouseJournalLine);
+                    CreateTrackingWarehouseReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Whse. Reclass. Batch Name", WarehouseJournalLine, WhseItemTrackingLine);
+                    LineCreated := WarehouseJournalLine."Line No." <> 0;
+                    if TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only" then
+                        Changed := LineCreated;
+                    if LineCreated and (TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::Post) then
+                        Changed := QltyItemJournalManagement.PostWarehouseJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, WarehouseJournalLine);
+                    LoopSuccess := true;
+                end else begin
+                    if QltyManagementSetup."Item Reclass. Batch Name" = '' then
+                        Error(MissingBatchErr);
+                    DocumentOrBatch := QltyManagementSetup."Item Reclass. Batch Name";
+                    Clear(ItemJournalLine);
+                    CreateTrackingItemReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Item Reclass. Batch Name", ItemJournalLine, ItemReservationEntry);
+                    LineCreated := ItemJournalLine."Line No." <> 0;
+                    if TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only" then
+                        Changed := LineCreated;
+                    if LineCreated and (TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::Post) then
+                        Changed := QltyItemJournalManagement.PostItemJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, ItemJournalLine);
+                    LoopSuccess := true;
+                end;
 
-                DocumentOrBatch := QltyManagementSetup."Whse. Reclass. Batch Name";
-                Clear(WarehouseJournalLine);
-                CreateTrackingWarehouseReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Whse. Reclass. Batch Name", WarehouseJournalLine, WhseItemTrackingLine);
-                LineCreated := WarehouseJournalLine."Line No." <> 0;
-                if TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only" then
-                    Changed := LineCreated;
-                if LineCreated and (TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::Post) then
-                    Changed := QltyItemJournalManagement.PostWarehouseJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, WarehouseJournalLine);
-                LoopSuccess := true;
-            end else begin
-                if QltyManagementSetup."Item Reclass. Batch Name" = '' then
-                    Error(MissingBatchErr);
-                DocumentOrBatch := QltyManagementSetup."Item Reclass. Batch Name";
-                Clear(ItemJournalLine);
-                CreateTrackingItemReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, QltyManagementSetup."Item Reclass. Batch Name", ItemJournalLine, ItemReservationEntry);
-                LineCreated := ItemJournalLine."Line No." <> 0;
-                if TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only" then
-                    Changed := LineCreated;
-                if LineCreated and (TempInstructionQltyDispositionBuffer."Entry Behavior" = TempInstructionQltyDispositionBuffer."Entry Behavior"::Post) then
-                    Changed := QltyItemJournalManagement.PostItemJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, ItemJournalLine);
-                LoopSuccess := true;
-            end;
-
-            if LoopSuccess then
-                if Location."Directed Put-away and Pick" then
-                    QltyNotificationMgmt.NotifyItemTrackingChanged(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, LineCreated, Changed, TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)", DocumentOrBatch, WhseItemTrackingLine."Expiration Date")
-                else
-                    QltyNotificationMgmt.NotifyItemTrackingChanged(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, LineCreated, Changed, TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)", DocumentOrBatch, ItemReservationEntry."Expiration Date")
-        until TempQuantityToActQltyDispositionBuffer.Next() = 0;
+                if LoopSuccess then
+                    if Location."Directed Put-away and Pick" then
+                        QltyNotificationMgmt.NotifyItemTrackingChanged(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, LineCreated, Changed, TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)", DocumentOrBatch, WhseItemTrackingLine."Expiration Date")
+                    else
+                        QltyNotificationMgmt.NotifyItemTrackingChanged(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, LineCreated, Changed, TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)", DocumentOrBatch, ItemReservationEntry."Expiration Date")
+            until TempQuantityToActQltyDispositionBuffer.Next() = 0;
 
         OnAfterProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, Changed);
 

@@ -1014,6 +1014,7 @@ codeunit 148214 "Sustainability Excise Test"
     begin
         // [SCENARIO 537459] Verify that the posted sales document is inserted When Calculate action is invoked in "Sustainability Excise Journal".
         Initialize();
+        PrepareEPRSalesCalculation();
 
         // [GIVEN] Create a Sustainability Account.
         CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
@@ -1099,6 +1100,7 @@ codeunit 148214 "Sustainability Excise Test"
     begin
         // [SCENARIO 537459] Verify that the "Excise Taxes Transaction Log" is created with "Document Type" Credit Memo.
         Initialize();
+        PrepareEPRSalesCalculation();
 
         // [GIVEN] Create a Sustainability Account.
         CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
@@ -1184,6 +1186,7 @@ codeunit 148214 "Sustainability Excise Test"
     begin
         // [SCENARIO 537459] Verify that the "Excise Taxes Transaction Log" must not be created with "Document Type" Journal.
         Initialize();
+        PrepareEPRSalesCalculation();
 
         // [GIVEN] Create a Sustainability Account.
         CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
@@ -1417,7 +1420,6 @@ codeunit 148214 "Sustainability Excise Test"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
         SustainabilityAccount: Record "Sustainability Account";
-        ItemLedgerEntry: Record "Item Ledger Entry";
         SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
         SustExciseJournalLine: Record "Sust. Excise Jnl. Line";
         SustainabilityExciseJournalMgt: Codeunit "Sust. Excise Journal Mgt.";
@@ -1430,6 +1432,7 @@ codeunit 148214 "Sustainability Excise Test"
     begin
         // [SCENARIO 614178] Verify that the Description field is populated from the posted sales invoice line when Calculate action is invoked for EPR in Excise Jnl.
         Initialize();
+        PrepareEPRSalesCalculation();
 
         // [GIVEN] Create a Sustainability Account.
         CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
@@ -1442,11 +1445,6 @@ codeunit 148214 "Sustainability Excise Test"
 
         // [GIVEN] Generate "Total EPR Fee".
         TotalEPRFee := LibraryRandom.RandInt(20);
-
-        // [GIVEN] Modify all the Previous Record as EPR Reported True.
-        ItemLedgerEntry.SetRange("EPR Reported", false);
-        ItemLedgerEntry.SetFilter("Sust. Account No.", '<>%1', '');
-        ItemLedgerEntry.ModifyAll("EPR Reported", true);
 
         // [GIVEN] Create a Sales Header.
         LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Order, LibrarySales.CreateCustomerNo());
@@ -1515,6 +1513,17 @@ codeunit 148214 "Sustainability Excise Test"
         IsInitialized := true;
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Sustainability Excise Test");
+    end;
+
+    local procedure PrepareEPRSalesCalculation()
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+        ItemLedgerEntry.SetFilter("Document Type", '%1|%2', ItemLedgerEntry."Document Type"::"Sales Invoice", ItemLedgerEntry."Document Type"::"Sales Shipment");
+        ItemLedgerEntry.SetRange("EPR Reported", false);
+        ItemLedgerEntry.SetFilter("Sust. Account No.", '<>%1', '');
+        ItemLedgerEntry.ModifyAll("EPR Reported", true);
     end;
 
     local procedure CreateSustainabilityAccount(var AccountCode: Code[20]; var CategoryCode: Code[20]; var SubcategoryCode: Code[20]; i: Integer): Record "Sustainability Account"

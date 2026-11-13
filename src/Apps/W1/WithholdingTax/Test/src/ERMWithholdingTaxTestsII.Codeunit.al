@@ -642,6 +642,7 @@ codeunit 148322 "ERM Withholding Tax Tests II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure CalculationBaseNetBlockedForNonEmployeeParty()
     var
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
@@ -661,6 +662,7 @@ codeunit 148322 "ERM Withholding Tax Tests II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure CalculationMethodCompoundBlockedForNonEmployeeParty()
     var
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
@@ -680,6 +682,7 @@ codeunit 148322 "ERM Withholding Tax Tests II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure ThresholdBaseNonRecordBlockedForNonEmployeeParty()
     var
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
@@ -699,6 +702,7 @@ codeunit 148322 "ERM Withholding Tax Tests II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure EmployeeOnlyOptionsAllowedForEmployeeParty()
     var
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
@@ -723,6 +727,7 @@ codeunit 148322 "ERM Withholding Tax Tests II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure ThresholdPeriodBlockedWhenBaseIsNotPeriod()
     var
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
@@ -745,6 +750,7 @@ codeunit 148322 "ERM Withholding Tax Tests II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure ThresholdPeriodAllowedWhenBaseIsCategoryPeriod()
     var
         WHTPostingSetup: Record "Withholding Tax Posting Setup";

@@ -766,10 +766,6 @@ codeunit 139540 "Sales Forecast Tests"
         Initialize();
         SalesForecastLib.Setup();
         LibraryVariableStorage.Enqueue(true);
-        MyNotifications.Init();
-        MyNotifications.Get(UserId(), SalesForecastNotifier.GetNotificationGuid());
-        MyNotifications."Apply to Table Id" := Database::Vendor;
-        MyNotifications.Modify(true);
         // [Given] Two vendors
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreateVendor(Vendor2);
@@ -780,6 +776,8 @@ codeunit 139540 "Sales Forecast Tests"
         // [Given] Opened page "User Settings" and enabled the notification for Vendor2."No."
         UserSettings.OpenEdit();
         UserSettings.MyNotificationsLbl.Drilldown();
+        MyNotifications.Get(UserId(), SalesForecastNotifier.GetNotificationGuid());
+        MyNotifications.TestField("Apply to Table Id", Database::Vendor);
 
         // [Given] Purchase invoice page is opened with the purchase header
         PurchaseInvoice.Trap();

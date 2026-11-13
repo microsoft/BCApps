@@ -296,14 +296,15 @@ codeunit 148353 EACorpCardPhase3Tests
         CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
         JobCount := JobQueueEntry.Count();
 
-        asserterror CorpCardJQMgt.ScheduleProviderImport(CorpCardProvider.Code, 1440, 080000T, Today());
-
-        Assert.ExpectedError('Only automated feeds can be scheduled.');
-        Assert.AreEqual(JobCount, JobQueueEntry.Count(), 'Rejecting a file-based schedule must not create a job.');
         ProvidersPage.OpenView();
         ProvidersPage.GoToRecord(CorpCardProvider);
         Assert.IsFalse(ProvidersPage.ScheduleImport.Enabled(), 'The schedule action must be disabled for file-based feeds.');
         ProvidersPage.Close();
+
+        asserterror CorpCardJQMgt.ScheduleProviderImport(CorpCardProvider.Code, 1440, 080000T, Today());
+
+        Assert.ExpectedError('Only automated feeds can be scheduled.');
+        Assert.AreEqual(JobCount, JobQueueEntry.Count(), 'Rejecting a file-based schedule must not create a job.');
     end;
 
     [Test]

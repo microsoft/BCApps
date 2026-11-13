@@ -1009,6 +1009,8 @@ codeunit 139653 "Replication Mgt Page Tests"
         IntelligentCloudStatus: Record "Intelligent Cloud Status";
     begin
         // [SCENARIO] Calling the GetCopiedRecords procedure returns the correct value.
+        Initialize(true);
+
         // [GIVEN] A table is migrating
         IntelligentCloudStatus.SetRange("Company Name", CompanyName());
 #pragma warning disable AA0210

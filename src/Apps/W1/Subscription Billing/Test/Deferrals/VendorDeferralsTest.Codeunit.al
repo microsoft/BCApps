@@ -1048,6 +1048,7 @@ codeunit 139913 "Vendor Deferrals Test"
         // [GIVEN] A standard BC deferral template
         LibraryERM.CreateDeferralTemplate(DeferralTemplate, Enum::"Deferral Calculation Method"::"Straight-Line",
             Enum::"Deferral Calculation Start Date"::"Posting Date", 3);
+        ContractTestLibrary.CreateDeferralAccountingPeriods(PurchaseHeader."Posting Date", DeferralTemplate."No. of Periods");
 
         // [WHEN] Assigning the Deferral Code to the purchase line that has contract deferrals
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");

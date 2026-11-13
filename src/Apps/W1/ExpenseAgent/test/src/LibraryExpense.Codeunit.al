@@ -156,6 +156,11 @@ codeunit 148300 "Library - Expense"
 
     internal procedure CreateExpenseCategory(var ExpenseCategory: Record "Expense Category"; ReimbursementType: Enum "Expense Reimbursement Type"; ExpenseDetailRequired: Enum "Expense Detail Needed"; PaymentMethodCode: Code[10])
     begin
+        CreateExpenseCategory(ExpenseCategory, ReimbursementType, ExpenseDetailRequired, PaymentMethodCode, "Expense Attachment Enforcement"::" ");
+    end;
+
+    internal procedure CreateExpenseCategory(var ExpenseCategory: Record "Expense Category"; ReimbursementType: Enum "Expense Reimbursement Type"; ExpenseDetailRequired: Enum "Expense Detail Needed"; PaymentMethodCode: Code[10]; AttachmentEnforcement: Enum "Expense Attachment Enforcement")
+    begin
         ExpenseCategory.Init();
         ExpenseCategory.Validate(Code, LibraryUtility.GenerateRandomCode(ExpenseCategory.FieldNo(Code), Database::"Expense Category"));
         ExpenseCategory.Validate(Description, LibraryUtility.GenerateRandomCode(ExpenseCategory.FieldNo(Description), Database::"Expense Category"));
@@ -168,6 +173,7 @@ codeunit 148300 "Library - Expense"
         if PaymentMethodCode <> '' then
             ExpenseCategory.Validate("Default Payment Method", PaymentMethodCode);
 
+        ExpenseCategory.Validate("Attachment Enforcement", AttachmentEnforcement);
         ExpenseCategory.Insert(true);
     end;
 

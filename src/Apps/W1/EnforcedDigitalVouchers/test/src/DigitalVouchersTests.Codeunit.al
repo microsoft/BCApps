@@ -437,6 +437,7 @@ codeunit 139515 "Digital Vouchers Tests"
     procedure PostSalesJournalLineWithRequiredAttachmentAndNoDigitalVoucher()
     var
         GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
         DigVouchersDisableEnforce: Codeunit "Dig. Vouchers Disable Enforce";
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
     begin
@@ -454,10 +455,13 @@ codeunit 139515 "Digital Vouchers Tests"
         LibraryVariableStorage.Enqueue(true);
         LibraryVariableStorage.Enqueue(NotPossibleToPostWithoutVoucherErr);
         // [WHEN] Post sales journal
-        asserterror BatchProcessingMgt.BatchProcessGenJournalLine(GenJournalLine, Codeunit::"Gen. Jnl.-Post");
+        BatchProcessingMgt.BatchProcessGenJournalLine(GenJournalLine, Codeunit::"Gen. Jnl.-Post");
 
         // [THEN] Error "Not possible to post without the voucher" is shown in the error message page
         // Verified in the ErrorMessagePageHandler
+        GenJournalLine.Get(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", GenJournalLine."Line No.");
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        Assert.RecordIsEmpty(GLEntry);
 
         LibraryVariableStorage.AssertEmpty();
         UnbindSubscription(DigVouchersDisableEnforce);

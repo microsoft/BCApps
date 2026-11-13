@@ -1104,18 +1104,26 @@ codeunit 148157 "Service Object Test"
     var
         Customer: Record Customer;
         Customer2: Record Customer;
+        CustomerContract: Record "Customer Subscription Contract";
+        CustomerPriceGroup: Record "Customer Price Group";
         Item: Record Item;
         ServiceObject: Record "Subscription Header";
     begin
         Initialize();
 
         SetupServiceObjectWithServiceCommitment(Item, ServiceObject, false, false);
-        ServiceObject.SetHideValidationDialog(false);
+        ServiceObject.SetHideValidationDialog(true);
         ContractTestLibrary.CreateCustomer(Customer);
         ServiceObject."End-User Customer No." := Customer."No.";
         ServiceObject.Modify(false);
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+        ContractTestLibrary.AssignServiceObjectForItemToCustomerContract(CustomerContract, ServiceObject, false);
         ContractTestLibrary.CreateCustomer(Customer2);
+        LibrarySales.CreateCustomerPriceGroup(CustomerPriceGroup);
+        Customer2.Validate("Customer Price Group", CustomerPriceGroup.Code);
+        Customer2.Modify(true);
         asserterror ServiceObject.Validate("End-User Customer No.", Customer2."No.");
+        Assert.ExpectedError('The End-User cannot be changed because at least one Subscription Line is already linked to a contract.');
     end;
 
     [Test]

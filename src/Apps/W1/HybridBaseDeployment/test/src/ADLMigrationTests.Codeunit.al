@@ -115,6 +115,8 @@ codeunit 139657 "ADL Migration Tests"
 
     [Test]
     procedure AdlMigrationPageFailsIfNotSupported()
+    var
+        CloudMigrationAdlSetup: TestPage "Cloud Migration ADL Setup";
     begin
         // [SCENARIO 345772] ADL Migration page fails to oppen if not supported
         Initialize();
@@ -124,7 +126,8 @@ codeunit 139657 "ADL Migration Tests"
 
         // [WHEN] User launches the ADL setup page
         Commit();
-        asserterror Page.Run(Page::"Cloud Migration ADL Setup");
+        asserterror CloudMigrationAdlSetup.OpenEdit();
+        Assert.ExpectedError('Azure Data Lake migration is not available.');
 
         // [THEN] The page fails to open
     end;

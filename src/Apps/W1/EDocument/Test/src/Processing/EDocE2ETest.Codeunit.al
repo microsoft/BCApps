@@ -1535,7 +1535,7 @@ codeunit 139624 "E-Doc E2E Test"
     // UI Tests
 
     [Test]
-    [HandlerFunctions('EDocServicesPageHandler')]
+    [HandlerFunctions('EDocServicesPageHandler,PendingResponseSendMessageHandler')]
     procedure UIClickSendInWhenPendingResponseSuccess()
     var
         EDocument: Record "E-Document";
@@ -1563,8 +1563,9 @@ codeunit 139624 "E-Doc E2E Test"
         LibraryVariableStorage.Enqueue(EDocumentService);
         EDocumentPage.OpenView();
         EDocumentPage.GoToRecord(EDocument);
-        asserterror EDocumentPage.Send.Invoke();
-        Assert.ExpectedError(SendingErrStateErr);
+        EDocumentPage.Send.Invoke();
+        VerifyStatusOnDocumentAndService(EDocument, Enum::"E-Document Status"::"In Progress", EDocumentService, EDocumentServiceStatus, Enum::"E-Document Service Status"::"Pending Response");
+        EDocumentPage.Close();
 
         // Clean up
         LibraryLowerPermission.SetOutsideO365Scope();
@@ -2295,6 +2296,12 @@ codeunit 139624 "E-Doc E2E Test"
     internal procedure DeleteDocumentOk(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [MessageHandler]
+    internal procedure PendingResponseSendMessageHandler(MessageText: Text[1024])
+    begin
+        Assert.AreEqual(SendingErrStateErr, MessageText, 'Sending a pending-response document must explain why it is rejected.');
     end;
 
     local procedure Initialize(Integration: Enum "Service Integration")

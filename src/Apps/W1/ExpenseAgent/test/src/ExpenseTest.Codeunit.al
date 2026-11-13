@@ -2959,8 +2959,10 @@ codeunit 148305 "Expense Test"
         ExpenseRuleCondition: Record "Expense Rule Condition";
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
         CreateExpenseReport: Codeunit "Create Expense Report";
+        ExpenseAutoPopulation: Codeunit "Expense Auto Population";
         ExpensePage: TestPage Expense;
         Amount: Decimal;
+        EffectiveMileageRate: Decimal;
         CurrencyCode: Code[10];
     begin
         // [SCENARIO 613292] Verify that Expenses are added in Existing Expense Report.
@@ -2992,7 +2994,11 @@ codeunit 148305 "Expense Test"
             "Expense Detail Needed"::Mileage, ExpenseRuleHeader."Justification Required"::" ", '', ExpenseRuleCondition."Condition Type"::"Max Amount", true, Amount);
 
         // [WHEN] Update Mileage in Expense.
-        Expense1.Validate(Mileage, LibraryRandom.RandDec(100, 2));
+        EffectiveMileageRate := ExpenseAutoPopulation.GetStandardRateOfMileage(
+            Expense1."Expense Date", Expense1."Currency Code", Expense1."Currency Factor",
+            ExpenseAgentSetup."Standard Rate of Mileage", Expense1."Vehicle Type");
+        Assert.IsTrue(EffectiveMileageRate > 0, 'The mileage fixture requires a positive effective rate.');
+        Expense1.Validate(Mileage, Round((Amount + 1) / EffectiveMileageRate, 0.00001, '>'));
         Expense1.Modify();
 
         // [THEN] Verify that Rule Violation is true when Mileage is updated.
@@ -3002,7 +3008,7 @@ codeunit 148305 "Expense Test"
         ExpensePage.RuleViolations.Description.AssertEquals(StrSubstNo(MaxAmountErr, ExpenseRuleCondition.Value));
 
         // [GIVEN] Update Mileage in Expense less than Rule Amount.
-        Expense1.Validate(Mileage, LibraryRandom.RandDec(10, 2));
+        Expense1.Validate(Mileage, Round((Amount / 2) / EffectiveMileageRate, 0.00001, '<'));
         Expense1.Modify();
 
         // [GIVEN] Release Expense.
@@ -5016,7 +5022,6 @@ codeunit 148305 "Expense Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
     procedure RuleViolationIsShownWhenAttachmentIsMandatory()
     var
         Expense: Record Expense;
@@ -5085,7 +5090,6 @@ codeunit 148305 "Expense Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
     procedure RuleViolationIsShownWhenAttachmentIsMandatoryWithNoRule()
     var
         Expense: Record Expense;
@@ -5153,7 +5157,7 @@ codeunit 148305 "Expense Test"
     end;
 
     [Test]
-    [HandlerFunctions('SentNotificationHandler,ConfirmHandler')]
+    [HandlerFunctions('SentNotificationHandler')]
     procedure WarningIsShownWhenAttachmentEnforcementIsWarning()
     var
         Expense: Record Expense;
@@ -5198,7 +5202,7 @@ codeunit 148305 "Expense Test"
     end;
 
     [Test]
-    [HandlerFunctions('SentNotificationHandler,ConfirmHandler')]
+    [HandlerFunctions('SentNotificationHandler')]
     procedure WarningIsShownWhenAttachmentEnforcementIsWarningWithNoRule()
     var
         Expense: Record Expense;
@@ -5253,7 +5257,6 @@ codeunit 148305 "Expense Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
     procedure ReceiptAttachedIsUpdatedWhenAttachmentIsDeletedFromExpense()
     var
         Expense: Record Expense;
@@ -5305,7 +5308,6 @@ codeunit 148305 "Expense Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
     procedure ReceiptAttachedIsUpdatedWhenAttachmentIsDeletedFromExpenseWithNoRule()
     var
         Expense: Record Expense;
@@ -5869,9 +5871,7 @@ codeunit 148305 "Expense Test"
     begin
         LibraryERM.CreatePostCode(PostCode);
         LibraryExpense.CreateExpenseUser(ExpenseUser);
-        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseDetailRequired);
-
-        UpdateAttachmentEnforcementInExpenseCategory(ExpenseCategory.Code, AttachmentEnforcement);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseDetailRequired, '', AttachmentEnforcement);
 
         LibraryExpense.CreateExpenseLocation(ExpenseLocation, PostCode."Country/Region Code", PostCode.City);
         LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', ExpenseLocation."No.", Refundable, CurrencyCode, Amount);
@@ -5921,10 +5921,9 @@ codeunit 148305 "Expense Test"
         ExpenseSubCategory: Record "Expense Subcategory";
     begin
         LibraryExpense.CreateExpenseUser(ExpenseUser);
-        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseDetailRequired);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseDetailRequired, '', AttachmentEnforcement);
         LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
 
-        UpdateAttachmentEnforcementInExpenseCategory(ExpenseCategory.Code, AttachmentEnforcement);
         if ExpenseDetailRequired = "Expense Detail Needed"::"Per Diem" then begin
             LibraryExpense.CreateExpenseLocation(ExpenseLocation, CountryRegionCode, City);
             LibraryExpense.CreateExpenseRuleWithCondition(
@@ -5942,15 +5941,6 @@ codeunit 148305 "Expense Test"
 
             LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', Refundable, CurrencyCode, Amount);
         end;
-    end;
-
-    local procedure UpdateAttachmentEnforcementInExpenseCategory(CategoryCode: Code[20]; AttachmentEnforcement: Enum "Expense Attachment Enforcement")
-    var
-        ExpenseCategory: Record "Expense Category";
-    begin
-        ExpenseCategory.Get(CategoryCode);
-        ExpenseCategory.Validate("Attachment Enforcement", AttachmentEnforcement);
-        ExpenseCategory.Modify(true);
     end;
 
     local procedure CreateDimSetIDFromDimValue(var DimSetID: Integer; DimensionValue: Record "Dimension Value")
