@@ -6,7 +6,7 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 
-codeunit 139649 "E-Doc. Import Publisher Mock"
+codeunit 133721 "E-Doc. Import Publisher Mock"
 {
     EventSubscriberInstance = Manual;
 
