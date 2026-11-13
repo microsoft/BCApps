@@ -222,14 +222,17 @@ codeunit 6926 "Expense Activity Log Mgt."
         exit(not ExpenseActivityLogEntry.IsEmpty());
     end;
 
-    internal procedure HasEventForSource(SourceTableID: Integer; SourceRecordSystemID: Guid; EventType: Enum "Expense Activity Event Type"): Boolean
+    internal procedure IsLatestEventForSource(SourceTableID: Integer; SourceRecordSystemID: Guid; EventType: Enum "Expense Activity Event Type"): Boolean
     var
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
     begin
+        ExpenseActivityLogEntry.SetCurrentKey("Source Table ID", "Source Record System ID", "Occurred At", "Entry No.");
         ExpenseActivityLogEntry.SetRange("Source Table ID", SourceTableID);
         ExpenseActivityLogEntry.SetRange("Source Record System ID", SourceRecordSystemID);
-        ExpenseActivityLogEntry.SetRange("Event Type", EventType);
-        exit(not ExpenseActivityLogEntry.IsEmpty());
+        ExpenseActivityLogEntry.SetLoadFields("Event Type");
+        if not ExpenseActivityLogEntry.FindLast() then
+            exit(false);
+        exit(ExpenseActivityLogEntry."Event Type" = EventType);
     end;
 
     internal procedure HasSubmissionForSource(SourceTableID: Integer; SourceRecordSystemID: Guid): Boolean

@@ -47,7 +47,7 @@ codeunit 6914 "Travel Req. Linked Reports"
         ShowPostedExpenseReports(SpendRequest."No.");
     end;
 
-    procedure MarkLinkedExpenseReports(var ExpenseReportHeader: Record "Expense Report Header"; TravelRequestNo: Code[20])
+    local procedure MarkLinkedExpenseReports(var ExpenseReportHeader: Record "Expense Report Header"; TravelRequestNo: Code[20])
     var
         ExpenseReportLine: Record "Expense Report Line";
         LastDocumentNo: Code[20];
@@ -74,7 +74,7 @@ codeunit 6914 "Travel Req. Linked Reports"
         ExpenseReportHeader.MarkedOnly(true);
     end;
 
-    procedure MarkLinkedPostedExpenseReports(var PostedExpenseReportHeader: Record "Posted Expense Report Header"; TravelRequestNo: Code[20])
+    local procedure MarkLinkedPostedExpenseReports(var PostedExpenseReportHeader: Record "Posted Expense Report Header"; TravelRequestNo: Code[20])
     var
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         LastDocumentNo: Code[20];

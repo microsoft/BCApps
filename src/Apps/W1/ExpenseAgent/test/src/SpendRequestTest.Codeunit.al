@@ -112,6 +112,7 @@ codeunit 148339 "Spend Request Test"
         TravelRequestNotClosedLoggedMsg: Label 'No closure must be logged for a travel request that stays open.';
         ActivePostedReportBlocksDeleteMsg: Label 'An active posted report must keep blocking deletion of the travel request.';
         NonTravelCloseNotLoggedMsg: Label 'Closing a spend request that is not a travel request must not be logged.';
+        SpendReqReleasedFromClosedMsg: Label 'The closed travel request should be released again.';
         ClosedByPostedReportCommentTok: Label 'Closed by posted expense report %1.', Locked = true;
         ApproverDateTimeRecordedMsg: Label 'The approval or rejection date and time should be recorded on the travel request.';
         AutoApprovedStatusMsg: Label 'A released travel request should be approved automatically when the agent is disabled.';
@@ -3654,6 +3655,41 @@ codeunit 148339 "Spend Request Test"
         Assert.RecordCount(ExpenseActivityLogEntry, 2);
         ExpenseActivityLogEntry.FindFirst();
         Assert.AreEqual(Enum::"Expense Activity Event Type"::Created, ExpenseActivityLogEntry."Event Type", TravelRequestCreatedLoggedMsg);
+        ExpenseActivityLogEntry.FindLast();
+        AssertTravelRequestClosedActivity(ExpenseActivityLogEntry, SpendRequest, '');
+    end;
+
+    [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
+    procedure CloseReleaseCloseLogsEachClosure()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+    begin
+        // [SCENARIO 656402] Closing a travel request again after it was released from Closed logs the new closure as the final state.
+        Initialize();
+
+        // [GIVEN] An approved travel request that is closed and then released again.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        CloseConfirmReply := true;
+        ReleaseSpendRequest.PerformManualClose(SpendRequest);
+        ReleaseSpendRequest.PerformManualRelease(SpendRequest);
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreNotEqual(SpendRequest.Status::Closed, SpendRequest.Status, SpendReqReleasedFromClosedMsg);
+
+        // [WHEN] The travel request is closed again.
+        ReleaseSpendRequest.PerformManualClose(SpendRequest);
+
+        // [THEN] Both closures are logged and the history ends with the latest one.
+        ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
+        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::Closed);
+        Assert.RecordCount(ExpenseActivityLogEntry, 2);
+        ExpenseActivityLogEntry.SetRange("Event Type");
         ExpenseActivityLogEntry.FindLast();
         AssertTravelRequestClosedActivity(ExpenseActivityLogEntry, SpendRequest, '');
     end;

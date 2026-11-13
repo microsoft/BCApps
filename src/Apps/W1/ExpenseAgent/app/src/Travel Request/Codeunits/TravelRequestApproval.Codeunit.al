@@ -212,8 +212,8 @@ codeunit 7133 "Travel Request Approval"
             exit;
         if SpendRequest.Status <> SpendRequest.Status::Closed then
             exit;
-        // A closed travel request cannot be reopened, so its closure is logged only once whichever path closed it.
-        if ExpenseActivityLogMgt.HasEventForSource(Database::"Spend Request", SpendRequest.SystemId, Enum::"Expense Activity Event Type"::Closed) then
+        // Posting and the close event can both report the same closure, so log it only when the history doesn't already end with it.
+        if ExpenseActivityLogMgt.IsLatestEventForSource(Database::"Spend Request", SpendRequest.SystemId, Enum::"Expense Activity Event Type"::Closed) then
             exit;
 
         LogTravelRequestCreatedIfMissing(SpendRequest);
