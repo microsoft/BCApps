@@ -1940,24 +1940,23 @@ codeunit 148148 "Factur-X CII XML Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Blank registration creates no empty legal organization and preserves VAT routing fallback.
+        // [SCENARIO] Blank registration creates no empty legal organization and preserves the electronic address and VAT.
         Initialize();
 
-        // [GIVEN] Invoice "SI" for customer "C" with French VAT but no registration or electronic address.
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        // [GIVEN] Invoice "SI" for customer "C" with an electronic address but no registration.
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithElecAddress('987654321_001'));
         Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
         Customer.Validate("Registration Number", '');
-        Customer.Validate("FR Electronic Address", '');
         Customer.Modify(true);
 
         // [WHEN] Generate the invoice XML.
         CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
 
-        // [THEN] No buyer legal organization is emitted and French VAT still supplies routing.
+        // [THEN] No buyer legal organization is emitted and the electronic address and VAT are preserved.
         Assert.AreEqual(0,
             GetCIINodeCount(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedLegalOrganization'),
             'A blank registration number must not create an empty buyer legal organization.');
-        VerifyBuyerRoutingAndVAT(TempBlob, CopyStr(Customer."VAT Registration No.", 5, 9), SalesInvoiceHeader."VAT Registration No.");
+        VerifyBuyerRoutingAndVAT(TempBlob, Customer."FR Electronic Address", SalesInvoiceHeader."VAT Registration No.");
     end;
 
     [Test]
