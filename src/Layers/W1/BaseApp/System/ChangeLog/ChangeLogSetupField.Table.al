@@ -102,5 +102,16 @@ table 404 "Change Log Setup (Field)"
     var
         MonitorSensitiveField: Codeunit "Monitor Sensitive Field";
 
-}
+    internal procedure ClearOrphanedFieldMonitoring()
+    var
+        ChangeLogSetupTable: Record "Change Log Setup (Table)";
+    begin
+        ChangeLogSetupTable.Get("Table No.");
+        ChangeLogSetupTable.TestField("Monitor Sensitive Field", false);
+        if "Monitor Sensitive Field" then begin
+            Validate("Monitor Sensitive Field", false);
+            Validate(Notify, false);
+        end;
+    end;
 
+}
