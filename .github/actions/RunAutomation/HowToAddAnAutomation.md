@@ -12,6 +12,7 @@
      - `Files`: Files changed by the automation that will be included in the pull request.
      - `Message`: Message to display as an automaton result and use as commit message and pull request description.
 3. Create a new workflow in `.github\workflows` to run your new automation.
+    - Reference the actions in this repository locally (`./...`) rather than as `microsoft/BCApps/...@main`, so the action code always matches the workflow's commit. Local actions require the repository to be checked out first. When the job checks out another branch (e.g. `${{ matrix.branch }}`), check out the workflow's own commit into `_actions` and reference the action from there.
     - Add a job to run the script:
     ```yaml
     AutomationJob:
@@ -26,12 +27,20 @@
         fail-fast: false
         steps:
         - name: Checkout
-            uses: actions/checkout@v4
+            uses: actions/checkout@<pinned SHA> # <version>
             with:
             ref: ${{ matrix.branch }}
 
+        - name: Checkout actions
+            uses: actions/checkout@<pinned SHA> # <version>
+            with:
+            path: _actions
+            sparse-checkout: |
+                .github/actions
+                build/scripts
+
         - name:<automation name>
-            uses: microsoft/BCApps/.github/actions/RunAutomation@main
+            uses: ./_actions/.github/actions/RunAutomation
             with:
                 automations: <automation name>
                 targetBranch: ${{ matrix.branch }}
@@ -44,9 +53,12 @@
         outputs:
           updateBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
         steps:
+        - name: Checkout
+            uses: actions/checkout@<pinned SHA> # <version>
+
         - name: Get Official Branches
             id: getOfficialBranches
-            uses: mazhelez/BCApps/.github/actions/GetGitBranches@main
+            uses: ./.github/actions/GetGitBranches
             with:
               include: "['main', 'releases/*']"
     ```
