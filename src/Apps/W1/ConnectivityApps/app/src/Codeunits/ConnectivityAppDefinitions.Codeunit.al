@@ -18,6 +18,7 @@ codeunit 20352 "Connectivity App Definitions"
 
     local procedure LoadBankingAppsData()
     begin
+        RegisterAppBankingForFinance();
         RegisterAppBankingNL();
         RegisterAppSwissSalaryBanking();
         RegisterContiniaPaymentManagementNL();
@@ -30,6 +31,36 @@ codeunit 20352 "Connectivity App Definitions"
         RegisterSUManGOAutoBank();
         RegisterYavrioOpenBanking();
         RegisterEOSOpenBanking();
+    end;
+
+    local procedure RegisterAppBankingForFinance()
+    var
+        AppId: Text[250];
+        AppName: Text[1024];
+        AppPublisher: Text[250];
+        AppDescription: Text[2048];
+        AppProviderSupportURL: Text[250];
+        AppSourceURL: Text[250];
+        AppWorksOn: Text;
+        AppApprovedFor: Text;
+    begin
+        /***************************************************
+            Add app 'Banking for Finance' to CH
+        ***************************************************/
+
+        AppId := '012a317a-4c2d-45c3-946c-32b3abc3e7a5';
+        AppName := 'Banking for Finance';
+        AppPublisher := 'SwissSalary Ltd.';
+        AppDescription := 'This app allows you to create payments for purchase invoices and reconcile your bank accounts without opening your e-banking. Grant the app access to one or several of your bank accounts of a supported financial institution and pay the payroll with just a few clicks.';
+        AppProviderSupportURL := 'https://www.swisssalary.com/en-ch/solutions/swisssalary-apps/banking?banking-for-finance';
+        AppSourceUrl := 'https://marketplace.microsoft.com/en-us/product/dynamics-365-business-central/PUBID.swisssalary%7CAID.banking-for-finance%7CPAPPID.012a317a-4c2d-45c3-946c-32b3abc3e7a5';
+        AppApprovedFor := 'CH';
+        AppWorksOn := 'CH';
+
+        AddDescriptionTranslation(AppId, 'Mit dieser App können Sie Zahlungen für Einkaufsrechnungen erstellen und Ihre Bankkonten abgleichen, ohne Ihr E-Banking öffnen zu müssen. Gewähren Sie der App Zugriff auf ein oder mehrere Ihrer Bankkonten bei einem unterstützten Finanzinstitut und begleichen Sie die Gehaltsabrechnungen mit nur wenigen Klicks.', 1031);
+        AddDescriptionTranslation(AppId, 'Cette application vous permet d''effectuer des paiements correspondant à des factures d''achat et de rapprocher vos comptes bancaires sans avoir à vous connecter à votre service de banque en ligne. Autorisez l''application à accéder à un ou plusieurs de vos comptes bancaires auprès d''un établissement financier pris en charge et réglez les salaires en quelques clics seulement.', 1036);
+        AddDescriptionTranslation(AppId, 'Questa app ti permette di effettuare pagamenti relativi alle fatture di acquisto e di riconciliare i tuoi conti bancari senza dover accedere al tuo servizio di e-banking. Concedi all''app l''accesso a uno o più dei tuoi conti bancari presso un istituto finanziario supportato e paga gli stipendi con pochi clic.', 1040);
+        RegisterApp(AppId, AppName, AppPublisher, AppDescription, AppProviderSupportURL, AppSourceURL, AppApprovedFor, AppWorksOn, "Connectivity Apps Category"::Banking);
     end;
 
     local procedure RegisterAppBankingNL()
