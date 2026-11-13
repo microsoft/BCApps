@@ -366,6 +366,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
         SalesLine: Record "Sales Line";
         NewWarehouseActivityLine: Record "Warehouse Activity Line";
         RemQtyToPickBase: Decimal;
+        QtyOnInvtPickBase: Decimal;
         IsHandled: Boolean;
     begin
         SalesHeader := SalesHeaderVar;
@@ -383,7 +384,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
             IsHandled := false;
             OnBeforeCreatePickOrMoveLineFromSalesLoop(CurrWarehouseActivityHeader, SalesHeader, IsHandled, SalesLine, CurrLocation, NextLineNo, LineCreated, CompleteShipment, AutoCreation, ShowError);
             if not IsHandled and CanPickSalesLine(SalesLine) then
-                if not NewWarehouseActivityLine.ActivityExists(Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.", 0, 0) then begin
+                if CanCreateSalesActivityLine(SalesLine) then begin
                     NewWarehouseActivityLine.Init();
                     NewWarehouseActivityLine."Activity Type" := CurrWarehouseActivityHeader.Type;
                     NewWarehouseActivityLine."No." := CurrWarehouseActivityHeader."No.";
@@ -416,9 +417,13 @@ codeunit 7322 "Create Inventory Pick/Movement"
                         RemQtyToPickBase := -SalesLine."Return Qty. to Receive (Base)";
                     end;
                     OnBeforeNewWhseActivLineInsertFromSales(NewWarehouseActivityLine, SalesLine, CurrWarehouseActivityHeader, RemQtyToPickBase);
+                    QtyOnInvtPickBase := CalcOutstandingQtyOnInvtPick(NewWarehouseActivityLine, false);
+                    RemQtyToPickBase -= QtyOnInvtPickBase;
+                    if (QtyOnInvtPickBase > 0) and (RemQtyToPickBase < 0) then
+                        RemQtyToPickBase := 0;
                     SalesLine.CalcFields(SalesLine."Reserved Quantity");
                     CreatePickOrMoveLine(
-                      NewWarehouseActivityLine, RemQtyToPickBase, SalesLine."Outstanding Qty. (Base)", SalesLine."Reserved Quantity" <> 0);
+                      NewWarehouseActivityLine, RemQtyToPickBase, SalesLine."Outstanding Qty. (Base)" - QtyOnInvtPickBase, SalesLine."Reserved Quantity" <> 0);
                     OnCreatePickOrMoveFromSalesOnAfterCreatePickOrMoveLine(NewWarehouseActivityLine, SalesLine, CurrWarehouseActivityHeader, ShowError, AutoCreation, LineCreated);
                     CorrectQtyRounding(SalesLine, CurrWarehouseActivityHeader);
                     if SalesHeader."Shipping Advice" = SalesHeader."Shipping Advice"::Complete then begin
@@ -441,6 +446,61 @@ codeunit 7322 "Create Inventory Pick/Movement"
                 end;
         until SalesLine.Next() = 0;
         OnAfterCreatePickOrMoveFromSales(CurrWarehouseActivityHeader, AutoCreation, HideDialog, LineCreated, IsInvtMovement, IsBlankInvtMovement);
+    end;
+
+    local procedure CanCreateSalesActivityLine(SalesLine: Record "Sales Line"): Boolean
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        if not WarehouseActivityLine.ActivityExists(Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.", 0, 0) then
+            exit(true);
+
+        if AutoCreation or (CurrWarehouseActivityHeader.Type <> CurrWarehouseActivityHeader.Type::"Invt. Pick") then
+            exit(false);
+
+        WarehouseActivityLine.SetFilter("Activity Type", '<>%1', WarehouseActivityLine."Activity Type"::"Invt. Pick");
+        if not WarehouseActivityLine.IsEmpty() then
+            exit(false);
+
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Invt. Pick");
+        WarehouseActivityLine.SetFilter("No.", '<>%1', CurrWarehouseActivityHeader."No.");
+        exit(WarehouseActivityLine.IsEmpty());
+    end;
+
+    local procedure CalcOutstandingQtyOnInvtPick(NewWarehouseActivityLine: Record "Warehouse Activity Line"; UseTrackingFilter: Boolean): Decimal
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        if AutoCreation or (CurrWarehouseActivityHeader.Type <> CurrWarehouseActivityHeader.Type::"Invt. Pick") or
+           (NewWarehouseActivityLine."Source Type" <> Database::"Sales Line")
+        then
+            exit(0);
+
+        WarehouseActivityLine.SetSourceFilter(
+            NewWarehouseActivityLine."Source Type", NewWarehouseActivityLine."Source Subtype", NewWarehouseActivityLine."Source No.",
+            NewWarehouseActivityLine."Source Line No.", NewWarehouseActivityLine."Source Subline No.", true);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Invt. Pick");
+        WarehouseActivityLine.SetRange("No.", CurrWarehouseActivityHeader."No.");
+        WarehouseActivityLine.SetFilter("Action Type", '<>%1', WarehouseActivityLine."Action Type"::Place);
+        if UseTrackingFilter then
+            WarehouseActivityLine.SetTrackingFilterFromWhseActivityLine(NewWarehouseActivityLine);
+        WarehouseActivityLine.CalcSums("Qty. Outstanding (Base)");
+        exit(WarehouseActivityLine."Qty. Outstanding (Base)");
+    end;
+
+    local procedure AdjustItemTrackingForExistingInvtPick(NewWarehouseActivityLine: Record "Warehouse Activity Line")
+    begin
+        if CalcOutstandingQtyOnInvtPick(NewWarehouseActivityLine, false) = 0 then
+            exit;
+
+        TempTrackingSpecification.Reset();
+        if TempTrackingSpecification.FindSet() then
+            repeat
+                NewWarehouseActivityLine.CopyTrackingFromSpec(TempTrackingSpecification);
+                TempTrackingSpecification."Qty. to Handle (Base)" :=
+                    Minimum(0, TempTrackingSpecification."Qty. to Handle (Base)" + CalcOutstandingQtyOnInvtPick(NewWarehouseActivityLine, true));
+                TempTrackingSpecification.Modify();
+            until TempTrackingSpecification.Next() = 0;
     end;
 
     local procedure CanPickSalesLine(var SalesLine: Record "Sales Line"): Boolean
@@ -773,7 +833,8 @@ codeunit 7322 "Create Inventory Pick/Movement"
              NewWarehouseActivityLine."Source Type", NewWarehouseActivityLine."Source Subtype", NewWarehouseActivityLine."Source No.",
              NewWarehouseActivityLine."Source Line No.", ATOSalesLine)
         then
-            QtyAvailToPickBase += ATOSalesLine.QtyToAsmBaseOnATO();
+            QtyAvailToPickBase +=
+                ATOSalesLine.QtyToAsmBaseOnATO() - WMSManagement.CalcQtyBaseOnATOInvtPick(ATOSalesLine, WhseItemTrackingSetup);
 
         if WMSManagement.GetATOJobPlanningLine(
             NewWarehouseActivityLine."Source Type", NewWarehouseActivityLine."Source No.", NewWarehouseActivityLine."Source Line No.",
@@ -813,6 +874,8 @@ codeunit 7322 "Create Inventory Pick/Movement"
                               '', 0, NewWarehouseActivityLine."Source Line No.", 1, false);
                     ItemTrackingManagement.SumUpItemTrackingOnlyInventoryOrATO(TempReservationEntry, TempTrackingSpecification, true, true);
                 end;
+
+                AdjustItemTrackingForExistingInvtPick(NewWarehouseActivityLine);
 
                 if PickOrMoveAccordingToFEFO(NewWarehouseActivityLine."Location Code", WhseItemTrackingSetup) or
                    PickStrictExpirationPosting(NewWarehouseActivityLine."Item No.", WhseItemTrackingSetup)
