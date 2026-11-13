@@ -28,6 +28,7 @@ codeunit 6984 "Release Exp. Report Document"
         PolicyEvaluationNotCurrentErr: Label 'One or more expense lines have a policy evaluation that is not up to date. Re-run policy evaluation and approve again.';
         PolicyEvaluationNotCurrentCodeTok: Label ' (PolicyEvaluationNotCurrent)', Locked = true;
         ReimbursementErr: Label 'Reimbursement type must be set to a value in expense report %1, line %2 with description %3.', Comment = '%1 - Expense No. , %2 - Line No., %3 - description';
+        NoReceiptDeclarationNotCurrentErr: Label 'The no receipt declaration for expense %1 is missing or no longer current.', Comment = '%1 = Expense No.';
 
     local procedure ReleaseExpenseReport()
     var
@@ -38,12 +39,6 @@ codeunit 6984 "Release Exp. Report Document"
 
         ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Open);
         ExpenseReportHeader.TestField("Expense User No.");
-
-        if HasNoReceiptLines(ExpenseReportHeader) then begin
-            ExpenseAgentSetup.GetRecordOnce();
-            if not (ExpenseAgentSetup."Enable Approval Workflow" or ExpenseAgentSetup."Enable Agent") then
-                Error(NoReceiptApprovalRequiredErr);
-        end;
 
         CheckExpenseReportLines(ExpenseReportLine, ExpenseReportHeader);
 
@@ -274,21 +269,8 @@ codeunit 6984 "Release Exp. Report Document"
         ExpReportHeader.TestField("Expense User No.");
     end;
 
-    local procedure HasNoReceiptLines(ExpReportHeader: Record "Expense Report Header"): Boolean
-    var
-        ExpenseReportLine: Record "Expense Report Line";
-    begin
-        ExpenseReportLine.SetRange("Document No.", ExpReportHeader."No.");
-        ExpenseReportLine.SetRange("No Receipt Type", ExpenseReportLine."No Receipt Type"::"Lost Receipt");
-        exit(not ExpenseReportLine.IsEmpty());
-    end;
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterReleaseExpenseReport(var ExpenseReportHeader: Record "Expense Report Header")
     begin
     end;
-
-    var
-        NoReceiptApprovalRequiredErr: Label 'Expense reports containing a no receipt declaration require an enabled approval process.';
-        NoReceiptDeclarationNotCurrentErr: Label 'The no receipt declaration for expense %1 is missing or no longer current.', Comment = '%1 = Expense No.';
 }
