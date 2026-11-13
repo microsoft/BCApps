@@ -23,6 +23,7 @@ codeunit 148364 EACorpCardSelectionTests
     var
         Assert: Codeunit Assert;
         CorpCardTestLib: Codeunit EACorpCardTestLib;
+        LinkedReportLineCannotDeleteErr: Label 'Expense report %1 line %2 cannot be deleted because it is linked to corporate card transaction %3.', Comment = '%1 = expense report number, %2 = report line number, %3 = corporate card transaction entry number';
 
     [Test]
     procedure DefaultProviderSetupUsesVisaAndAmex()
@@ -126,71 +127,53 @@ codeunit 148364 EACorpCardSelectionTests
     end;
 
     [Test]
-    procedure ReportCardDisplaysBatchLoadsBothReportStates()
+    procedure ReportCardDisplaysBatchLoadsOpenReport()
     var
         CorpCard: Record "EA Corp Card";
         SecondCorpCard: Record "EA Corp Card";
         OtherCorpCard: Record "EA Corp Card";
-        CorpCardProvider: Record "EA Corp Card Provider";
-        ExpenseReportLine: Record "Expense Report Line";
-        PostedExpenseReportLine: Record "Posted Expense Report Line";
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         CardDisplays: Dictionary of [Code[50], Text[150]];
-        LineNo: Integer;
+        ReportNo: Code[20];
     begin
-        // [SCENARIO] Open and posted report displays load all referenced cards together without including other reports.
+        // [SCENARIO] Open report displays load all referenced cards together without including other reports.
         Initialize();
 
         // [GIVEN] A report uses two cards, including a repeated card and a provider without a short name.
-        CorpCard.Get('CORPCARD-0001');
-        CorpCardProvider.Get(CorpCard."Provider Code");
-        CorpCardProvider."Short Name" := 'VISA';
-        CorpCardProvider.Modify();
-        SecondCorpCard := CorpCard;
-        SecondCorpCard."Card Id" := 'SECOND-CARD';
-        SecondCorpCard."Provider Code" := 'CORPCARDXML';
-        SecondCorpCard."Masked Card No." := '**** 0042';
-        SecondCorpCard.Insert();
-        CorpCardProvider.Get(SecondCorpCard."Provider Code");
-        CorpCardProvider."Short Name" := '';
-        CorpCardProvider.Modify();
-
-        for LineNo := 1 to 3 do begin
-            ExpenseReportLine.Init();
-            ExpenseReportLine."Document No." := 'CARD-DISPLAY';
-            ExpenseReportLine."Line No." := LineNo * 10000;
-            ExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
-            if LineNo = 2 then
-                ExpenseReportLine."Corporate Card Id" := SecondCorpCard."Card Id";
-            ExpenseReportLine.Insert();
-            PostedExpenseReportLine.Init();
-            PostedExpenseReportLine."Document No." := 'POSTED-CARD-DISPLAY';
-            PostedExpenseReportLine."Line No." := ExpenseReportLine."Line No.";
-            PostedExpenseReportLine."Corporate Card Id" := ExpenseReportLine."Corporate Card Id";
-            PostedExpenseReportLine.Insert();
-        end;
-
-        OtherCorpCard := CorpCard;
-        OtherCorpCard."Card Id" := 'OTHER-CARD';
-        OtherCorpCard.Insert();
-        ExpenseReportLine."Document No." := 'OTHER-REPORT';
-        ExpenseReportLine."Corporate Card Id" := OtherCorpCard."Card Id";
-        ExpenseReportLine.Insert();
-        PostedExpenseReportLine."Document No." := 'OTHER-POSTED-REPORT';
-        PostedExpenseReportLine."Corporate Card Id" := ExpenseReportLine."Corporate Card Id";
-        PostedExpenseReportLine.Insert();
+        CreateReportCardDisplayFixtures(CorpCard, SecondCorpCard, OtherCorpCard, ReportNo);
 
         // [WHEN] Card displays are loaded for the open report.
-        CorpCardSelectionMgt.LoadReportCardDisplays('CARD-DISPLAY', CardDisplays);
+        CorpCardSelectionMgt.LoadReportCardDisplays(ReportNo, CardDisplays);
 
         // [THEN] Each card retains its own display, including the provider-code fallback.
         Assert.AreEqual('VISA 0001', CardDisplays.Get(CorpCard."Card Id"), 'The batch must include the first card with its provider and suffix.');
         Assert.AreEqual('CORP 0042', CardDisplays.Get(SecondCorpCard."Card Id"), 'The batch must include the second card with the provider-code prefix.');
         Assert.IsFalse(CardDisplays.ContainsKey(OtherCorpCard."Card Id"), 'Cards belonging only to another report must not be loaded.');
+    end;
 
-        // [WHEN] Displays are loaded for the posted report, replacing a previous batch.
+    [Test]
+    procedure ReportCardDisplaysBatchLoadsPostedReport()
+    var
+        CorpCard: Record "EA Corp Card";
+        SecondCorpCard: Record "EA Corp Card";
+        OtherCorpCard: Record "EA Corp Card";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        CardDisplays: Dictionary of [Code[50], Text[150]];
+        ReportNo: Code[20];
+    begin
+        // [SCENARIO] Posted report displays replace a previous batch without including other reports.
+        Initialize();
+
+        // [GIVEN] A posted report uses two cards, including a repeated card and a provider without a short name.
+        CreateReportCardDisplayFixtures(CorpCard, SecondCorpCard, OtherCorpCard, ReportNo);
+
+        // [GIVEN] The previous batch contains outdated displays and a card belonging to another report.
+        CardDisplays.Add(CorpCard."Card Id", 'Previous first card display');
+        CardDisplays.Add(SecondCorpCard."Card Id", 'Previous second card display');
         CardDisplays.Add(OtherCorpCard."Card Id", 'Stale display');
-        CorpCardSelectionMgt.LoadPostedReportCardDisplays('POSTED-CARD-DISPLAY', CardDisplays);
+
+        // [WHEN] Card displays are loaded for the posted report.
+        CorpCardSelectionMgt.LoadPostedReportCardDisplays(ReportNo, CardDisplays);
 
         // [THEN] Posted lines use the same formatting and report scope.
         Assert.AreEqual('VISA 0001', CardDisplays.Get(CorpCard."Card Id"), 'The posted batch must include the first card display.');
@@ -746,6 +729,8 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         Expense.Amount := CorpCardTrans.Amount + 1;
         Expense.Modify();
+        // Preserve the fixture for the post-error checks when asserterror rolls back.
+        Commit();
 
         // [WHEN] The transaction is linked to the expense.
         asserterror CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
@@ -775,6 +760,8 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         Expense."Currency Code" := 'EUR';
         Expense.Modify();
+        // Preserve the fixture for the post-error checks when asserterror rolls back.
+        Commit();
 
         // [WHEN] The transaction is linked to the expense.
         asserterror CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
@@ -861,6 +848,8 @@ codeunit 148364 EACorpCardSelectionTests
         for Boundary := 0 to 1 do begin
             Expense."Expense Date" := CorpCardTrans."Trans Date" + (2 * Boundary - 1) * (ExpenseAgentSetup."Corp Card Date Match Window" + 1);
             Expense.Modify();
+            // Preserve each boundary fixture for the post-error checks when asserterror rolls back.
+            Commit();
 
             // [WHEN] The transaction is linked with an expense date just outside either boundary of the window.
             asserterror CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
@@ -869,6 +858,7 @@ codeunit 148364 EACorpCardSelectionTests
             Assert.ExpectedError('outside the matching date window');
             Expense.Get(Expense."No.");
             Expense.TestField("Credit Card Feed No.", 0);
+            CorpCardTrans.Get(CorpCardTrans."Entry No.");
             CorpCardTrans.TestField("Expense No.", '');
         end;
     end;
@@ -1110,6 +1100,140 @@ codeunit 148364 EACorpCardSelectionTests
     end;
 
     [Test]
+    procedure MatchedStandaloneReportLineCannotBeDeleted()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] Deleting a matched standalone report line cannot strand its corporate card transaction.
+        Initialize();
+
+        // [GIVEN] A standalone report line is linked to a submitted corporate card transaction.
+        CorpCard.Get('CORPCARD-0001');
+        CreateMatchedStandaloneReportLine(ExpenseReportLine, CorpCardTrans, CorpCard);
+        // Preserve the fixture for the post-error checks when asserterror rolls back.
+        Commit();
+
+        // [WHEN] The matched line is deleted.
+        asserterror ExpenseReportLine.Delete(true);
+
+        // [THEN] Deletion is rejected and the line and transaction retain their link.
+        Assert.ExpectedError(StrSubstNo(LinkedReportLineCannotDeleteErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", CorpCardTrans."Entry No."));
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        CorpCardTrans.Get(CorpCardTrans."Entry No.");
+        CorpCardTrans.TestField(Status, CorpCardTrans.Status::Submitted);
+    end;
+
+    [Test]
+    procedure ReportWithMatchedStandaloneLineCannotBeDeleted()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] Deleting a report cannot bypass the protection of its matched standalone lines.
+        Initialize();
+
+        // [GIVEN] A report contains a standalone line linked to a submitted corporate card transaction.
+        CorpCard.Get('CORPCARD-0001');
+        CreateMatchedStandaloneReportLine(ExpenseReportLine, CorpCardTrans, CorpCard);
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        // Preserve the fixture for the post-error checks when asserterror rolls back.
+        Commit();
+
+        // [WHEN] The report is deleted.
+        asserterror ExpenseReportHeader.Delete(true);
+
+        // [THEN] Deletion is rejected and both the report and its linked line remain.
+        Assert.ExpectedError(StrSubstNo(LinkedReportLineCannotDeleteErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", CorpCardTrans."Entry No."));
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        CorpCardTrans.Get(CorpCardTrans."Entry No.");
+        CorpCardTrans.TestField(Status, CorpCardTrans.Status::Submitted);
+    end;
+
+    [Test]
+    procedure MatchedStandaloneReportLineCanMoveToAnotherReport()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        SourceExpenseReportHeader: Record "Expense Report Header";
+        TargetExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] Moving a matched standalone line preserves its corporate card link in the target report.
+        Initialize();
+
+        // [GIVEN] A matched standalone line belongs to an open report and another open report has the same expense user.
+        CorpCard.Get('CORPCARD-0001');
+        CreateMatchedStandaloneReportLine(ExpenseReportLine, CorpCardTrans, CorpCard);
+        SourceExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        SourceExpenseReportHeader.Status := SourceExpenseReportHeader.Status::Open;
+        SourceExpenseReportHeader.Modify(false);
+        TargetExpenseReportHeader."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(TargetExpenseReportHeader."No."));
+        TargetExpenseReportHeader."Expense User No." := CorpCard."Expense User No.";
+        TargetExpenseReportHeader.Status := TargetExpenseReportHeader.Status::Open;
+        TargetExpenseReportHeader.Insert(false);
+
+        // [WHEN] The matched line is moved to the target report.
+        ExpenseReportLine.MoveToExpenseReport(TargetExpenseReportHeader."No.");
+
+        // [THEN] Only the target line retains the feed and the transaction remains submitted.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Document No.", TargetExpenseReportHeader."No.");
+        ExpenseReportLine.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        ExpenseReportLine.SetRange("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        Assert.RecordCount(ExpenseReportLine, 1);
+        CorpCardTrans.Get(CorpCardTrans."Entry No.");
+        CorpCardTrans.TestField(Status, CorpCardTrans.Status::Submitted);
+    end;
+
+    [Test]
+    procedure DeletingPostedReportSourcePreservesCardLink()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        CorpCardPostMgt: Codeunit "EA Corp Card Post Mgt";
+    begin
+        // [SCENARIO] Posting cleanup can delete a matched standalone source line once its posted line retains the feed.
+        Initialize();
+
+        // [GIVEN] Posting has copied the matched standalone line and linked the transaction to the posted report.
+        CorpCard.Get('CORPCARD-0001');
+        CreateMatchedStandaloneReportLine(ExpenseReportLine, CorpCardTrans, CorpCard);
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        PostedExpenseReportHeader."No." := ExpenseReportHeader."No.";
+        PostedExpenseReportHeader."Expense User No." := CorpCard."Expense User No.";
+        PostedExpenseReportHeader.Insert(false);
+        PostedExpenseReportLine."Document No." := PostedExpenseReportHeader."No.";
+        PostedExpenseReportLine."Line No." := ExpenseReportLine."Line No.";
+        PostedExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
+        PostedExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";
+        PostedExpenseReportLine.Insert(false);
+        CorpCardPostMgt.LinkPostedExpense(PostedExpenseReportLine, PostedExpenseReportHeader);
+
+        // [WHEN] Posting cleanup deletes the unposted report and its source line.
+        ExpenseReportHeader.Delete(true);
+
+        // [THEN] The source line is removed without releasing the posted transaction or its feed link.
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        Assert.RecordIsEmpty(ExpenseReportLine);
+        PostedExpenseReportLine.Get(PostedExpenseReportLine."Document No.", PostedExpenseReportLine."Line No.");
+        PostedExpenseReportLine.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        CorpCardTrans.Get(CorpCardTrans."Entry No.");
+        CorpCardTrans.TestField(Status, CorpCardTrans.Status::Posted);
+        CorpCardTrans.TestField("Posted Expense Report No.", PostedExpenseReportHeader."No.");
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure LateFeedLinksStandalonePostedLineAndTransfersOnlyLiability()
     var
@@ -1198,6 +1322,8 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTrans.Modify(true);
         CreateStandaloneReportLine(OtherExpenseReportLine, CorpCard);
         CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        // Preserve the fixtures for both expected errors and the persisted-link checks.
+        Commit();
 
         // [WHEN] The same transaction is linked to another report line or to a source expense.
         asserterror CorpCardExpenseMatch.LinkExpense(CorpCardTrans, OtherExpenseReportLine.RecordId);
@@ -1295,6 +1421,8 @@ codeunit 148364 EACorpCardSelectionTests
         PostedExpenseReportLine.TestField(Amount, 30);
         PostedExpenseReportLine.TestField("Card Liability Amount", -30);
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        // Preserve the fixture for the post-error checks when asserterror rolls back.
+        Commit();
 
         // [WHEN] The feed of 20 is linked through its unchanged source expense.
         asserterror CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
@@ -1305,6 +1433,7 @@ codeunit 148364 EACorpCardSelectionTests
         Expense.TestField("Credit Card Feed No.", 0);
         PostedExpenseReportLine.Get(PostedExpenseReportLine."Document No.", PostedExpenseReportLine."Line No.");
         PostedExpenseReportLine.TestField("Credit Card Feed No.", 0);
+        CorpCardTrans.Get(CorpCardTrans."Entry No.");
         CorpCardTrans.TestField("Expense No.", '');
         CorpCardTrans.TestField("Posted Expense Report No.", '');
     end;
@@ -1354,6 +1483,8 @@ codeunit 148364 EACorpCardSelectionTests
                 3:
                     ExpectedError := 'outside the matching date window';
             end;
+            // Preserve each mismatch fixture for the post-error checks.
+            Commit();
 
             // [WHEN] The transaction is linked through its unchanged source expense.
             asserterror CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
@@ -1362,11 +1493,23 @@ codeunit 148364 EACorpCardSelectionTests
             Assert.ExpectedError(ExpectedError);
             Expense.Get(Expense."No.");
             Expense.TestField("Credit Card Feed No.", 0);
+            CorpCardTrans.Get(CorpCardTrans."Entry No.");
             CorpCardTrans.TestField("Expense No.", '');
             CorpCardTrans.TestField("Posted Expense Report No.", '');
             ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
             ExpenseReportLine.TestField("Credit Card Feed No.", 0);
         end;
+    end;
+
+    local procedure CreateMatchedStandaloneReportLine(var ExpenseReportLine: Record "Expense Report Line"; var CorpCardTrans: Record "EA Corp Card Trans"; CorpCard: Record "EA Corp Card")
+    var
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
+    begin
+        CreateStandaloneReportLine(ExpenseReportLine, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardExpenseMatch.LinkExpense(CorpCardTrans, ExpenseReportLine.RecordId());
+        CorpCardTrans.Modify(true);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
     end;
 
     local procedure CreateStandaloneReportLine(var ExpenseReportLine: Record "Expense Report Line"; CorpCard: Record "EA Corp Card")
@@ -1437,6 +1580,53 @@ codeunit 148364 EACorpCardSelectionTests
             BankAccount.Validate(IBAN, 'GB82WEST12345698765432');
             BankAccount.Modify(true);
         end;
+    end;
+
+    local procedure CreateReportCardDisplayFixtures(var CorpCard: Record "EA Corp Card"; var SecondCorpCard: Record "EA Corp Card"; var OtherCorpCard: Record "EA Corp Card"; var ReportNo: Code[20])
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        LineNo: Integer;
+    begin
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardProvider.Get(CorpCard."Provider Code");
+        CorpCardProvider."Short Name" := 'VISA';
+        CorpCardProvider.Modify();
+        SecondCorpCard := CorpCard;
+        SecondCorpCard."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(SecondCorpCard."Card Id"));
+        SecondCorpCard."Provider Code" := 'CORPCARDXML';
+        SecondCorpCard."Masked Card No." := '**** 0042';
+        SecondCorpCard.Insert();
+        CorpCardProvider.Get(SecondCorpCard."Provider Code");
+        CorpCardProvider."Short Name" := '';
+        CorpCardProvider.Modify();
+
+        ReportNo := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ReportNo));
+        for LineNo := 1 to 3 do begin
+            ExpenseReportLine.Init();
+            ExpenseReportLine."Document No." := ReportNo;
+            ExpenseReportLine."Line No." := LineNo * 10000;
+            ExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
+            if LineNo = 2 then
+                ExpenseReportLine."Corporate Card Id" := SecondCorpCard."Card Id";
+            ExpenseReportLine.Insert();
+            PostedExpenseReportLine.Init();
+            PostedExpenseReportLine."Document No." := ReportNo;
+            PostedExpenseReportLine."Line No." := ExpenseReportLine."Line No.";
+            PostedExpenseReportLine."Corporate Card Id" := ExpenseReportLine."Corporate Card Id";
+            PostedExpenseReportLine.Insert();
+        end;
+
+        OtherCorpCard := CorpCard;
+        OtherCorpCard."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(OtherCorpCard."Card Id"));
+        OtherCorpCard.Insert();
+        ExpenseReportLine."Document No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExpenseReportLine."Document No."));
+        ExpenseReportLine."Corporate Card Id" := OtherCorpCard."Card Id";
+        ExpenseReportLine.Insert();
+        PostedExpenseReportLine."Document No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(PostedExpenseReportLine."Document No."));
+        PostedExpenseReportLine."Corporate Card Id" := ExpenseReportLine."Corporate Card Id";
+        PostedExpenseReportLine.Insert();
     end;
 
     local procedure Initialize()

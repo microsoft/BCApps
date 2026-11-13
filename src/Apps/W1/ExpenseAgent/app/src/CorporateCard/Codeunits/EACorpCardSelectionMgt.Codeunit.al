@@ -108,6 +108,32 @@ codeunit 7447 "EA Corp Card Selection Mgt"
         exit(true);
     end;
 
+    internal procedure CheckReportLineCanBeDeleted(ExpenseReportLine: Record "Expense Report Line")
+    var
+        OtherExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+    begin
+        if ExpenseReportLine.IsTemporary() or (ExpenseReportLine."Expense No." <> '') or
+           (ExpenseReportLine."Credit Card Feed No." = 0)
+        then
+            exit;
+
+        // Moving a line inserts its replacement in the target report before deleting the source.
+        OtherExpenseReportLine.ReadIsolation := IsolationLevel::UpdLock;
+        OtherExpenseReportLine.SetRange("Credit Card Feed No.", ExpenseReportLine."Credit Card Feed No.");
+        OtherExpenseReportLine.SetFilter("Document No.", '<>%1', ExpenseReportLine."Document No.");
+        if not OtherExpenseReportLine.IsEmpty() then
+            exit;
+
+        PostedExpenseReportLine.ReadIsolation := IsolationLevel::UpdLock;
+        PostedExpenseReportLine.SetRange("Credit Card Feed No.", ExpenseReportLine."Credit Card Feed No.");
+        PostedExpenseReportLine.SetRange("Is Canceled", false);
+        if not PostedExpenseReportLine.IsEmpty() then
+            exit;
+
+        Error(LinkedReportLineCannotDeleteErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", ExpenseReportLine."Credit Card Feed No.");
+    end;
+
     // Pass by reference to preserve the caller's temporary-table identity.
 #pragma warning disable AA0150
     internal procedure GetReportLineCardLookupError(var ExpenseReportLine: Record "Expense Report Line"): ErrorInfo
@@ -260,5 +286,6 @@ codeunit 7447 "EA Corp Card Selection Mgt"
         OpenExpenseLbl: Label 'Open expense';
         OpenExpenseReportLbl: Label 'Open expense report';
         CardNotValidOnDateErr: Label 'Corporate card %1 is not valid on expense date %2.', Comment = '%1 = corporate card identifier, %2 = expense date';
+        LinkedReportLineCannotDeleteErr: Label 'Expense report %1 line %2 cannot be deleted because it is linked to corporate card transaction %3.', Comment = '%1 = expense report number, %2 = report line number, %3 = corporate card transaction entry number';
         CardDisplayLbl: Label '%1 %2', Locked = true, Comment = '%1 = card provider short name, %2 = card last four digits';
 }

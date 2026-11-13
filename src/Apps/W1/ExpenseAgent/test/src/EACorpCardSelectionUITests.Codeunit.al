@@ -132,27 +132,16 @@ codeunit 148365 EACorpCardSelectionUITests
     end;
 
     [Test]
-    [HandlerFunctions('SelectExpenseUsersCardHandler')]
     procedure ManuallyCreatedExpenseAllowsCardSelectionAfterChoosingCardPayment()
     var
         CorpCard: Record "EA Corp Card";
-        Expense: Record Expense;
-        ExpenseCategory: Record "Expense Category";
-        LibraryExpense: Codeunit "Library - Expense";
-        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         ExpenseCard: TestPage Expense;
     begin
         // [SCENARIO] Choosing card payment immediately enables corporate card selection on a new expense.
         Initialize();
 
         // [GIVEN] A newly opened expense uses an employee-paid category and cannot select a card.
-        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
-        CorpCard.Get('CORPCARD-0001');
-        LibraryExpense.CreateExpenseCategory(
-            ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
-        ExpenseCard.OpenNew();
-        ExpenseCard."Expense User No.".SetValue(CorpCard."Expense User No.");
-        ExpenseCard."Expense Category".SetValue(ExpenseCategory.Code);
+        OpenNewEmployeePaidExpense(ExpenseCard, CorpCard);
         Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'The card selector must be present on a newly created expense.');
         Assert.IsFalse(ExpenseCard.CorporateCard.Editable(), 'A non-credit-card payment method must not allow card selection.');
         Assert.IsFalse(ExpenseCard.CorporateCard.ShowMandatory(), 'A non-credit-card payment method must not require a corporate card.');
@@ -164,13 +153,31 @@ codeunit 148365 EACorpCardSelectionUITests
         Assert.IsTrue(ExpenseCard.CorporateCard.Visible(), 'Choosing CARD must not require reopening the expense to find the selector.');
         Assert.IsTrue(ExpenseCard.CorporateCard.Editable(), 'Choosing CARD must immediately enable card selection.');
         Assert.IsTrue(ExpenseCard.CorporateCard.ShowMandatory(), 'Choosing CARD must immediately indicate that a corporate card is required.');
+        ExpenseCard.Close();
+    end;
 
-        // [WHEN] The expense user's card is selected and the expense is saved.
+    [Test]
+    [HandlerFunctions('SelectExpenseUsersCardHandler')]
+    procedure ManuallyCreatedExpenseCardSelectionIsDisplayedAndSaved()
+    var
+        CorpCard: Record "EA Corp Card";
+        Expense: Record Expense;
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        ExpenseCard: TestPage Expense;
+    begin
+        // [SCENARIO] Selecting a card on a new manual expense displays and saves the expense user's card.
+        Initialize();
+
+        // [GIVEN] A new manual expense already uses card payment.
+        OpenNewEmployeePaidExpense(ExpenseCard, CorpCard);
+        ExpenseCard."Payment Method Code".SetValue('CARD');
+
+        // [WHEN] The expense user's card is selected.
         ExpenseCard.CorporateCard.Lookup();
+
+        // [THEN] The selected card is displayed and retained when the expense is saved, without feed provenance.
         ExpenseCard.CorporateCard.AssertEquals(CorpCardSelectionMgt.GetCardDisplay(CorpCard."Card Id"));
         ExpenseCard.Close();
-
-        // [THEN] The saved expense retains that user's card without feed provenance.
         Expense.SetRange("Corporate Card Id", CorpCard."Card Id");
         Assert.RecordCount(Expense, 1);
         Expense.FindFirst();
@@ -496,6 +503,20 @@ codeunit 148365 EACorpCardSelectionUITests
         // [THEN] The batch does not retain the old provider display.
         ExpenseReportSubPage.CorporateCard.AssertEquals('AMEX 0001');
         ExpenseReportSubPage.Close();
+    end;
+
+    local procedure OpenNewEmployeePaidExpense(var ExpenseCard: TestPage Expense; var CorpCard: Record "EA Corp Card")
+    var
+        ExpenseCategory: Record "Expense Category";
+        LibraryExpense: Codeunit "Library - Expense";
+    begin
+        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        CorpCard.Get('CORPCARD-0001');
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        ExpenseCard.OpenNew();
+        ExpenseCard."Expense User No.".SetValue(CorpCard."Expense User No.");
+        ExpenseCard."Expense Category".SetValue(ExpenseCategory.Code);
     end;
 
     local procedure CreateManualReportLine(var ExpenseReportLine: Record "Expense Report Line")

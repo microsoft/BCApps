@@ -157,6 +157,7 @@ codeunit 148357 EACorpCardTestLib
     internal procedure CreateTransaction(var CorpCardTrans: Record "EA Corp Card Trans"; CorpCard: Record "EA Corp Card")
     begin
         CorpCardTrans.Init();
+        CorpCardTrans."Entry No." := 0;
         CorpCardTrans."Provider Code" := CorpCard."Provider Code";
         CorpCardTrans."Card Id" := CorpCard."Card Id";
         CorpCardTrans."Provider Trans Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));

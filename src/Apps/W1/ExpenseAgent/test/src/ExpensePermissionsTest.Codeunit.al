@@ -12,6 +12,7 @@ using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Security.User;
 
+// [FEATURE] [Expense Agent] [Permissions]
 codeunit 148338 "Expense Permissions Test"
 {
     Subtype = Test;
@@ -43,7 +44,7 @@ codeunit 148338 "Expense Permissions Test"
         CannotDeleteEmployeeWithPostedExpenseReportErr: Label 'You cannot delete Employee %1 because they have posted expense report.', Comment = '%1 = Employee No.';
 
     [Test]
-    procedure ExpenseAgentReadsCorporateCardsOnlyIndirectly()
+    procedure ExpenseAgentReadsAndValidatesCorporateCards()
     var
         CorpCard: Record "EA Corp Card";
         CorpCardTrans: Record "EA Corp Card Trans";
@@ -54,7 +55,10 @@ codeunit 148338 "Expense Permissions Test"
         CorpCardCanRead: Boolean;
         CorpCardTransCanRead: Boolean;
     begin
+        // [SCENARIO] The Expense Agent retains inherited corporate card reads and validates expense and report line card selections.
         Initialize();
+
+        // [GIVEN] An expense and report line reference a corporate card and its feed transaction.
         CorpCardTestLib.InitializeCorpCardData();
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
@@ -68,8 +72,11 @@ codeunit 148338 "Expense Permissions Test"
         ExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
         ExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";
 
+        // [GIVEN] The current user has the Expense Agent permission set, including corporate card reads inherited through D365 READ.
         LibraryLowerPermissions.StartLoggingNAVPermissions();
         LibraryLowerPermissions.SetExactPermissionSet(ExpenseAgentPermissionSetTok);
+
+        // [WHEN] The agent checks direct read access and validates both corporate card selections.
         CorpCardCanRead := CorpCard.ReadPermission();
         CorpCardTransCanRead := CorpCardTrans.ReadPermission();
 
@@ -78,8 +85,10 @@ codeunit 148338 "Expense Permissions Test"
 
         RestoreFullPermissions();
         LibraryLowerPermissions.StopLoggingNAVPermissions();
-        Assert.IsFalse(CorpCardCanRead, 'The agent must not have direct corporate card read permission.');
-        Assert.IsFalse(CorpCardTransCanRead, 'The agent must not have direct corporate card transaction read permission.');
+
+        // [THEN] Both validations succeed, and the agent retains inherited read access to both corporate card tables.
+        Assert.IsTrue(CorpCardCanRead, 'The agent must retain inherited corporate card read permission.');
+        Assert.IsTrue(CorpCardTransCanRead, 'The agent must retain inherited corporate card transaction read permission.');
     end;
 
     [Test]

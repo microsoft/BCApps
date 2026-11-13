@@ -1201,7 +1201,9 @@ table 6907 "Expense Report Line"
         ExpenseReportCommentLine: Record "Expense Report Comment Line";
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
         ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
+        CorpCardSelectionMgt.CheckReportLineCanBeDeleted(Rec);
         DeleteAssociatedRecords();
 
         RemoveExpenseReportNoInExpense();
