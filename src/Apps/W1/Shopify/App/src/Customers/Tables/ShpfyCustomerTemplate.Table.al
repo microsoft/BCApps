@@ -58,6 +58,13 @@ table 30107 "Shpfy Customer Template"
             TableRelation = "Customer Templ.".Code;
             ValidateTableRelation = true;
         }
+        field(6; "Company Templ. Code"; Code[20])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Company Template Code';
+            TableRelation = "Customer Templ.".Code;
+            ValidateTableRelation = true;
+        }
     }
 
     keys
