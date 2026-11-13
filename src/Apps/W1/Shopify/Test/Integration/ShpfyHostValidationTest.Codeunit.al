@@ -8,9 +8,10 @@ namespace Microsoft.Integration.Shopify.Test;
 using Microsoft.Integration.Shopify;
 using System.TestLibraries.Utilities;
 
-codeunit 139618 "Shpfy Host Validation Test"
+codeunit 139540 "Shpfy Host Validation Test"
 {
     Subtype = Test;
+    TestType = UnitTest;
     TestPermissions = Disabled;
     TestHttpRequestPolicy = BlockOutboundRequests;
 

@@ -534,7 +534,10 @@ codeunit 30199 "Shpfy Authentication Mgt."
             if Shop.Get(ShopCode) then begin
                 Shop.RequestAccessToken();
                 Shop.GetShopSettings();
+                // GetShopSettings changes fields through the table procedure.
+#pragma warning disable AA0214
                 Shop.Modify();
+#pragma warning restore AA0214
             end;
     end;
 
@@ -564,7 +567,10 @@ codeunit 30199 "Shpfy Authentication Mgt."
                 if Shop.GetStoreName() = Store then begin
                     Shop.RequestAccessToken();
                     Shop.GetShopSettings();
+                    // GetShopSettings changes fields through the table procedure.
+#pragma warning disable AA0214
                     Shop.Modify();
+#pragma warning restore AA0214
                     exit;
                 end;
             until Shop.Next() = 0;

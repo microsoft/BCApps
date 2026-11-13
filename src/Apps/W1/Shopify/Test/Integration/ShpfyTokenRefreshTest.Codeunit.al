@@ -8,7 +8,7 @@ namespace Microsoft.Integration.Shopify.Test;
 using Microsoft.Integration.Shopify;
 using System.TestLibraries.Utilities;
 
-codeunit 139617 "Shpfy Token Refresh Test"
+codeunit 139537 "Shpfy Token Refresh Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
