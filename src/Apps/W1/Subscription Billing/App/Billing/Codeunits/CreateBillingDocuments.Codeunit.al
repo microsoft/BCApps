@@ -1363,7 +1363,7 @@ codeunit 8060 "Create Billing Documents"
         TempBillingLineToDelete: Record "Billing Line" temporary;
         IsHandled: Boolean;
     begin
-        IsHandled:= false;
+        IsHandled := false;
         OnBeforeTempBillingLineToDeleteCopy(TempBillingLine, IsHandled);
         if IsHandled then
             exit;
