@@ -91,6 +91,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         FirstCorpCardStatement: Record "EA Corp Card Statement";
         SecondCorpCardStatement: Record "EA Corp Card Statement";
         CorpCardTrans: Record "EA Corp Card Trans";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
         CorpCardStatementMgt: Codeunit "EA Corp Card Statement Mgt";
         TempBlob: Codeunit "Temp Blob";
@@ -105,6 +106,10 @@ codeunit 7442 "EA Create Corp Card Setup"
         CorpCardTrans.SetRange("Provider Trans Id", CorpCardSampleFirstTransIdTok);
         if not CorpCardTrans.IsEmpty() then
             Error(CsvSampleScenarioAlreadyExistsErr);
+
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Require Corporate Card", true);
+        ExpenseAgentSetup.Modify(true);
 
         CorpCardProvider.Get(CorpCardCsvProviderCodeTok);
         GetCsvSampleExchangeRatePeriod(PeriodStartDate, PeriodEndDate);
@@ -298,15 +303,18 @@ codeunit 7442 "EA Create Corp Card Setup"
         repeat
             SequenceNo += 1;
             EnsureDemoCorpCard(
-                CorpCard, BuildProviderSampleCardId(SequenceNo),
+                CorpCard, SequenceNo,
                 CorpCardCsvProviderCodeTok, ExpenseUser."No.");
         until (ExpenseUser.Next() = 0) or (SequenceNo = 8);
 
         RemoveUnusedManagedProviderCards();
     end;
 
-    local procedure EnsureDemoCorpCard(var CorpCard: Record "EA Corp Card"; CardId: Code[50]; ProviderCode: Code[20]; ExpenseUserNo: Code[20])
+    local procedure EnsureDemoCorpCard(var CorpCard: Record "EA Corp Card"; CardSequenceNo: Integer; ProviderCode: Code[20]; ExpenseUserNo: Code[20])
+    var
+        CardId: Code[50];
     begin
+        CardId := BuildProviderSampleCardId(CardSequenceNo);
         if not CorpCard.Get(CardId) then begin
             CorpCard.Init();
             CorpCard."Card Id" := CardId;
@@ -317,7 +325,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         CorpCard."Provider Code" := ProviderCode;
         CorpCard."Expense User No." := ExpenseUserNo;
         CorpCard."External Card Ref" := CopyStr(ExpenseUserNo, 1, MaxStrLen(CorpCard."External Card Ref"));
-        CorpCard."Masked Card No." := BuildMaskedCardNo(CorpCard."Card Id");
+        CorpCard."Masked Card No." := CopyStr('****' + GetCorpCardSampleLastFour(CardSequenceNo), 1, MaxStrLen(CorpCard."Masked Card No."));
         CorpCard."Valid From" := 0D;
         CorpCard.Modify(true);
     end;
@@ -361,17 +369,9 @@ codeunit 7442 "EA Create Corp Card Setup"
         exit(ValueTxt);
     end;
 
-    local procedure BuildMaskedCardNo(CardId: Code[50]): Text[30]
-    var
-        StartPos: Integer;
-        Last4: Text;
+    local procedure GetCorpCardSampleLastFour(SequenceNo: Integer): Text[4]
     begin
-        StartPos := StrLen(CardId) - 3;
-        if StartPos < 1 then
-            StartPos := 1;
-
-        Last4 := CopyStr(CardId, StartPos, 4);
-        exit(CopyStr(StrSubstNo('****%1', Last4), 1, 30));
+        exit(CopyStr(SelectStr(SequenceNo, CorpCardSampleLastFourTok), 1, 4));
     end;
 
     local procedure EnsureCorpCardProviders()
@@ -465,7 +465,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         CsvPayloadBuilder.AppendLine(
             StrSubstNo(
                 CorpCardSampleCsvLineTok,
-                PadNumberLeft(TransactionNo, 5), PadNumberLeft(CardSequenceNo, 4), FormatDateForSamplePayload(TransactionDate),
+                PadNumberLeft(TransactionNo, 5), GetCorpCardSampleLastFour(CardSequenceNo), FormatDateForSamplePayload(TransactionDate),
                 FormatAmountInCents(AmountInCents), MerchantName, MCC, TransactionNo));
     end;
 
@@ -1243,8 +1243,8 @@ codeunit 7442 "EA Create Corp Card Setup"
     var
         CorpCardCsvProviderCodeTok: Label 'CORPCARDCSV', MaxLength = 20, Locked = true;
         CorpCardXmlProviderCodeTok: Label 'CORPCARDXML', MaxLength = 20, Locked = true;
-        CorpCardCsvProviderShortNameTok: Label 'VISA', MaxLength = 4, Locked = true;
-        CorpCardXmlProviderShortNameTok: Label 'AMEX', MaxLength = 4, Locked = true;
+        CorpCardCsvProviderShortNameTok: Label 'CSV', MaxLength = 4, Locked = true;
+        CorpCardXmlProviderShortNameTok: Label 'XML', MaxLength = 4, Locked = true;
         CorpCardCsvDataExchDefCodeTok: Label 'EACCARDCSV', MaxLength = 20, Locked = true;
         CorpCardCsvDataExchLineCodeTok: Label 'TRANS', MaxLength = 20, Locked = true;
         CorpCardXmlDataExchDefCodeTok: Label 'EACCARDXML', MaxLength = 20, Locked = true;
@@ -1262,6 +1262,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         CorpCardSampleSettlementNoTok: Label 'CSV-SAMPLE-SETTLEMENT-%1', Comment = '%1 = settlement sequence number', MaxLength = 50, Locked = true;
         CorpCardSampleStatementNoTok: Label 'CSV-SAMPLE-STATEMENT-%1', Comment = '%1 = statement sequence number', MaxLength = 50, Locked = true;
         CorpCardSampleCardIdTok: Label 'CORPCARD-%1', Comment = '%1 = card sequence number', MaxLength = 50, Locked = true;
+        CorpCardSampleLastFourTok: Label '4827,1936,7504,2681,9043,6178,0359,8260', Locked = true;
         CorpCardSampleCurrencyCodeTok: Label 'USD', MaxLength = 10, Locked = true;
         CorpCardSampleCsvLineTok: Label 'TXN%1,%2,%3,%3,%4,USD,%5,%6,US,Sample transaction %7', Comment = '%1 = transaction sequence number, %2 = card last four digits, %3 = transaction and posting date, %4 = amount, %5 = merchant name, %6 = merchant category code, %7 = sample transaction number', Locked = true;
         CorpCardBankAccountTok: Label 'CORPCARD', Locked = true;

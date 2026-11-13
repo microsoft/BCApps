@@ -1175,6 +1175,7 @@ table 6907 "Expense Report Line"
         RelevantFieldChanged: Boolean;
     begin
         StoredExpenseReportLine := xRec;
+        // Read the persisted before-image once; xRec can already contain the new values.
         if not Rec.IsTemporary() then
             StoredExpenseReportLine.Get("Document No.", "Line No.");
         if ("Corporate Card Id" <> StoredExpenseReportLine."Corporate Card Id") or
@@ -1504,7 +1505,7 @@ table 6907 "Expense Report Line"
         PolicyInvalidationPending := true;
     end;
 
-    local procedure PolicyRelevantFieldChanged(var StoredExpenseReportLine: Record "Expense Report Line"): Boolean
+    local procedure PolicyRelevantFieldChanged(StoredExpenseReportLine: Record "Expense Report Line"): Boolean
     var
         RecRef: RecordRef;
         xRecRef: RecordRef;
@@ -1512,13 +1513,6 @@ table 6907 "Expense Report Line"
         xFieldRef: FieldRef;
         Index: Integer;
     begin
-        // Compare against the committed pre-modify image read straight from the database.
-        // xRec is unreliable here - even passed explicitly from the trigger it has been
-        // observed to compare equal to Rec at runtime - so the before-image is fetched by
-        // primary key instead (OnModify runs before the row is written, so this Get returns
-        // the old values). If no stored row is found, conservatively treat it as changed.
-        if not StoredExpenseReportLine.Get(Rec."Document No.", Rec."Line No.") then
-            exit(true);
         RecRef.GetTable(Rec);
         xRecRef.GetTable(StoredExpenseReportLine);
         for Index := 1 to RecRef.FieldCount() do begin

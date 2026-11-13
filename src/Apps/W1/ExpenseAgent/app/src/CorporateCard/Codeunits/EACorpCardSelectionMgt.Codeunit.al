@@ -15,13 +15,18 @@ codeunit 7447 "EA Corp Card Selection Mgt"
         CorpCardTrans: Record "EA Corp Card Trans";
         SourceRecord: RecordRef;
     begin
-        if RequireCard and (Expense."Reimbursement Type" = Expense."Reimbursement Type"::"Credit Card") then begin
-            Expense.TestField("Corporate Card Id");
-            Expense.TestField("Expense Date");
-        end;
+        if RequireCard and (Expense."Reimbursement Type" = Expense."Reimbursement Type"::"Credit Card") then
+            if IsCorporateCardRequired() then begin
+                Expense.TestField("Corporate Card Id");
+                Expense.TestField("Expense Date");
+            end;
         if Expense."Credit Card Feed No." <> 0 then begin
             CorpCardTrans.Get(Expense."Credit Card Feed No.");
             Expense.TestField("Corporate Card Id", CorpCardTrans."Card Id");
+            if RequireCard then begin
+                Expense.TestField("Currency Code", CorpCardTrans."Currency Code");
+                Expense.TestField(Amount, CorpCardTrans.Amount);
+            end;
         end;
         SourceRecord.GetTable(Expense);
         ValidateCard(Expense."Corporate Card Id", Expense."Expense User No.", Expense."Expense Date", Expense."Reimbursement Type", SourceRecord);
@@ -77,13 +82,18 @@ codeunit 7447 "EA Corp Card Selection Mgt"
         CorpCardTrans: Record "EA Corp Card Trans";
         SourceRecord: RecordRef;
     begin
-        if RequireCard and (ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Credit Card") then begin
-            ExpenseReportLine.TestField("Corporate Card Id");
-            ExpenseReportLine.TestField("Expense Date");
-        end;
+        if RequireCard and (ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Credit Card") then
+            if IsCorporateCardRequired() then begin
+                ExpenseReportLine.TestField("Corporate Card Id");
+                ExpenseReportLine.TestField("Expense Date");
+            end;
         if ExpenseReportLine."Credit Card Feed No." <> 0 then begin
             CorpCardTrans.Get(ExpenseReportLine."Credit Card Feed No.");
             ExpenseReportLine.TestField("Corporate Card Id", CorpCardTrans."Card Id");
+            if RequireCard then begin
+                ExpenseReportLine.TestField("Expense Currency Code", CorpCardTrans."Currency Code");
+                ExpenseReportLine.TestField(Amount, CorpCardTrans.Amount);
+            end;
         end;
         if ExpenseReportLine."Expense No." <> '' then begin
             Expense.Get(ExpenseReportLine."Expense No.");
@@ -91,6 +101,14 @@ codeunit 7447 "EA Corp Card Selection Mgt"
         end;
         SourceRecord.GetTable(ExpenseReportLine);
         ValidateCard(ExpenseReportLine."Corporate Card Id", ExpenseReportLine."Expense User No.", ExpenseReportLine."Expense Date", ExpenseReportLine."Reimbursement Type", SourceRecord);
+    end;
+
+    local procedure IsCorporateCardRequired(): Boolean
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.Get();
+        exit(ExpenseAgentSetup."Require Corporate Card");
     end;
 
     internal procedure LookupReportLineCard(var ExpenseReportLine: Record "Expense Report Line"): Boolean

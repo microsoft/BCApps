@@ -9,8 +9,6 @@ using Microsoft.Bank.Ledger;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Ledger;
-using System.TestLibraries.Upgrade;
-using System.Upgrade;
 
 // [FEATURE] [Expense Agent] [Corporate Card]
 codeunit 148364 EACorpCardSelectionTests
@@ -26,13 +24,13 @@ codeunit 148364 EACorpCardSelectionTests
         LinkedReportLineCannotDeleteErr: Label 'Expense report %1 line %2 cannot be deleted because it is linked to corporate card transaction %3.', Comment = '%1 = expense report number, %2 = report line number, %3 = corporate card transaction entry number';
 
     [Test]
-    procedure DefaultProviderSetupUsesVisaAndAmex()
+    procedure DefaultProviderSetupUsesNeutralShortNames()
     var
         CsvProvider: Record "EA Corp Card Provider";
         XmlProvider: Record "EA Corp Card Provider";
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
     begin
-        // [SCENARIO] Default setup initializes provider abbreviations with provider names.
+        // [SCENARIO] Generic providers do not imply a particular card network.
         Initialize();
 
         // [GIVEN] Default providers have a generated CSV abbreviation and no XML abbreviation.
@@ -47,11 +45,11 @@ codeunit 148364 EACorpCardSelectionTests
         // [WHEN] Corporate card defaults are created.
         CreateCorpCardSetup.CreateDefaults();
 
-        // [THEN] The generated and missing abbreviations are replaced with provider names.
+        // [THEN] The generated and missing abbreviations identify the feed formats, not card networks.
         CsvProvider.Get(CsvProvider.Code);
         XmlProvider.Get(XmlProvider.Code);
-        Assert.AreEqual('VISA', CsvProvider."Short Name", 'Setup must replace the generated CSV provider abbreviation.');
-        Assert.AreEqual('AMEX', XmlProvider."Short Name", 'Setup must initialize the XML provider abbreviation.');
+        Assert.AreEqual('CSV', CsvProvider."Short Name", 'Setup must replace the generated CSV provider abbreviation with a neutral name.');
+        Assert.AreEqual('XML', XmlProvider."Short Name", 'Setup must initialize the XML provider abbreviation with a neutral name.');
     end;
 
     [Test]
@@ -76,6 +74,44 @@ codeunit 148364 EACorpCardSelectionTests
         // [THEN] The custom abbreviation is retained.
         CsvProvider.Get(CsvProvider.Code);
         Assert.AreEqual('BANK', CsvProvider."Short Name", 'Repeating setup must preserve a custom provider short name.');
+    end;
+
+    [Test]
+    procedure DefaultCardSuffixesAreDistinctAndStable()
+    var
+        CorpCard: Record "EA Corp Card";
+        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+        CardIds: List of [Code[50]];
+        LastFourDigits: List of [Text[4]];
+        CardSequenceNo: Integer;
+        CardSuffix: Text[4];
+    begin
+        // [SCENARIO] Demo cards have distinct realistic suffixes that remain stable when setup is repeated.
+        Initialize();
+        InitializeDefaultBankAccount();
+        CreateCorpCardSetup.CreateDefaults();
+
+        CorpCard.SetRange("Provider Code", 'CORPCARDCSV');
+        CorpCard.FindSet();
+        repeat
+            CardSuffix := CorpCard.GetLastFourDigits();
+            Assert.AreEqual(4, StrLen(CardSuffix), 'Every demo card must have a four-digit suffix.');
+            Assert.AreNotEqual(
+                CopyStr(CorpCard."Card Id", StrLen(CorpCard."Card Id") - 3), CardSuffix,
+                'Demo card suffixes must not be derived from sequential internal identifiers.');
+            Assert.IsFalse(LastFourDigits.Contains(CardSuffix), 'Demo card suffixes must identify distinct cards within the provider.');
+            CardIds.Add(CorpCard."Card Id");
+            LastFourDigits.Add(CardSuffix);
+        until CorpCard.Next() = 0;
+
+        CreateCorpCardSetup.CreateDefaults();
+
+        for CardSequenceNo := 1 to CardIds.Count() do begin
+            CorpCard.Get(CardIds.Get(CardSequenceNo));
+            Assert.AreEqual(
+                LastFourDigits.Get(CardSequenceNo), CorpCard.GetLastFourDigits(),
+                'Repeating demo setup must preserve card suffixes.');
+        end;
     end;
 
     [Test]
@@ -275,14 +311,18 @@ codeunit 148364 EACorpCardSelectionTests
     var
         CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpensePaymentMethod: Record "Expense Payment Method";
         LibraryExpense: Codeunit "Library - Expense";
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
-        // [SCENARIO] A manual card expense can be drafted without a card, but release requires an owned card.
+        // [SCENARIO] With mandatory selection enabled, a manual card expense can be drafted without a card, but release requires an owned card.
         Initialize();
 
-        // [GIVEN] A saved corporate card expense draft has no selected card.
+        // [GIVEN] Mandatory card selection is enabled and a saved corporate card expense draft has no selected card.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Require Corporate Card", true);
+        ExpenseAgentSetup.Modify(true);
         CorpCard.Get('CORPCARD-0001');
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         LibraryExpense.CreateExpense(Expense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, '', 20);
@@ -307,6 +347,79 @@ codeunit 148364 EACorpCardSelectionTests
 
         // [THEN] Release succeeds.
         Assert.AreEqual(Expense.Status::Released, Expense.Status, 'Selecting an owned card must allow release.');
+    end;
+
+    [Test]
+    procedure OptionalCardSelectionStillValidatesSelectedCardOnRelease()
+    var
+        CorpCard: Record "EA Corp Card";
+        Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        LibraryExpense: Codeunit "Library - Expense";
+    begin
+        // [SCENARIO] Optional card selection does not allow an expense to be released with a blocked selected card.
+        Initialize();
+
+        // [GIVEN] Mandatory selection is disabled and the card selected on an expense is subsequently blocked.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Require Corporate Card", false);
+        ExpenseAgentSetup.Modify(true);
+        CorpCard.Get('CORPCARD-0001');
+        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        LibraryExpense.CreateExpense(Expense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, '', 20);
+        Expense.Validate("Corporate Card Id", CorpCard."Card Id");
+        Expense.Modify(true);
+        CorpCard.Blocked := true;
+        CorpCard.Modify(true);
+        Commit();
+
+        // [WHEN] The expense is released.
+        asserterror Expense.PerformManualRelease();
+
+        // [THEN] The selected card is still validated.
+        Assert.ExpectedError(CorpCard.FieldCaption(Blocked));
+    end;
+
+    [Test]
+    procedure LinkedManualExpenseCannotReleaseWithChangedAmount()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] A manual expense must still match its linked feed amount when released, even when card selection is optional.
+        Initialize();
+
+        // [GIVEN] A manually entered expense has been linked and then its amount is changed.
+        CreateLinkedManualExpense(Expense);
+        Expense.Validate(Amount, Expense.Amount + 10);
+        Expense.Modify(true);
+        Commit();
+
+        // [WHEN] The expense is released.
+        asserterror Expense.PerformManualRelease();
+
+        // [THEN] Release reports the feed amount mismatch.
+        Assert.ExpectedError(Expense.FieldCaption(Amount));
+    end;
+
+    [Test]
+    procedure LinkedManualExpenseCannotReleaseWithChangedCurrency()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] A manual expense must still match its linked feed currency when released, even when card selection is optional.
+        Initialize();
+
+        // [GIVEN] A manually entered expense has been linked and then its currency is changed.
+        CreateLinkedManualExpense(Expense);
+        Expense.Validate("Currency Code", 'EUR');
+        Expense.Modify(true);
+        Commit();
+
+        // [WHEN] The expense is released.
+        asserterror Expense.PerformManualRelease();
+
+        // [THEN] Release reports the feed currency mismatch.
+        Assert.ExpectedError(Expense.FieldCaption("Currency Code"));
     end;
 
     [Test]
@@ -495,129 +608,6 @@ codeunit 148364 EACorpCardSelectionTests
 
         // [THEN] The amount difference requires review instead of being treated as no match.
         Assert.ExpectedError('Review the amount before linking');
-    end;
-
-    [Test]
-    procedure UpgradePreservesLegacyManualSource()
-    var
-        CorpCard: Record "EA Corp Card";
-        CorpCardTrans: Record "EA Corp Card Trans";
-        LegacyExpense: Record Expense;
-        ManualExpense: Record Expense;
-        UpgradeExpenseAgentSetup: Codeunit "Upgrade Expense Agent Setup";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
-    begin
-        // [SCENARIO] Legacy feed links backfill card identity without changing manual provenance.
-        Initialize();
-
-        // [GIVEN] A legacy manual expense is linked to a feed, and another manual expense has no feed link.
-        if UpgradeTag.HasUpgradeTag(UpgradeExpenseAgentSetup.GetCorporateCardIdentityUpgradeTag()) then
-            UpgradeTagLibrary.DeleteUpgradeTag(
-                UpgradeExpenseAgentSetup.GetCorporateCardIdentityUpgradeTag(), CopyStr(CompanyName(), 1, 30));
-        CorpCard.Get('CORPCARD-0001');
-        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
-        CorpCardTestLib.InitializeExpense(LegacyExpense, CorpCard);
-        LegacyExpense."Credit Card Feed No." := CorpCardTrans."Entry No.";
-        LegacyExpense.Insert(false);
-        CorpCardTrans."Expense No." := LegacyExpense."No.";
-        CorpCardTrans.Status := CorpCardTrans.Status::Matched;
-        CorpCardTrans.Modify(false);
-        CorpCardTestLib.InitializeExpense(ManualExpense, CorpCard);
-        ManualExpense.Insert(false);
-
-        // [WHEN] The corporate card identity upgrade runs.
-        UpgradeExpenseAgentSetup.UpgradeCorporateCardIdentity();
-
-        // [THEN] Card identity is backfilled and the upgrade is marked complete, while both expenses remain manual.
-        LegacyExpense.Get(LegacyExpense."No.");
-        LegacyExpense.TestField("Corporate Card Id", CorpCard."Card Id");
-        LegacyExpense.TestField(Source, LegacyExpense.Source::Manual);
-        ManualExpense.Get(ManualExpense."No.");
-        ManualExpense.TestField("Corporate Card Id", '');
-        ManualExpense.TestField(Source, ManualExpense.Source::Manual);
-        Assert.IsTrue(
-            UpgradeTag.HasUpgradeTag(UpgradeExpenseAgentSetup.GetCorporateCardIdentityUpgradeTag()),
-            'The corporate card identity upgrade must be marked complete.');
-    end;
-
-    [Test]
-    procedure UpgradeCorporateCardIdentityPreservesMigrationBoundaries()
-    var
-        CorpCard: Record "EA Corp Card";
-        OtherCorpCard: Record "EA Corp Card";
-        CorpCardTrans: Record "EA Corp Card Trans";
-        OtherCorpCardTrans: Record "EA Corp Card Trans";
-        MissingCorpCardTrans: Record "EA Corp Card Trans";
-        Expenses: array[6] of Record Expense;
-        ExpenseReportLines: array[6] of Record "Expense Report Line";
-        PostedExpenseReportLines: array[6] of Record "Posted Expense Report Line";
-        UpgradeExpenseAgentSetup: Codeunit "Upgrade Expense Agent Setup";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
-        ExpectedCardIds: array[6] of Code[50];
-        FeedEntryNos: array[6] of Integer;
-        ScenarioNo: Integer;
-    begin
-        // [SCENARIO] Bulk identity migration updates matching legacy rows without overwriting assigned cards or unmatched rows.
-        Initialize();
-
-        // [GIVEN] Two valid feeds and a deleted feed, with the identity upgrade not yet completed.
-        if UpgradeTag.HasUpgradeTag(UpgradeExpenseAgentSetup.GetCorporateCardIdentityUpgradeTag()) then
-            UpgradeTagLibrary.DeleteUpgradeTag(
-                UpgradeExpenseAgentSetup.GetCorporateCardIdentityUpgradeTag(), CopyStr(CompanyName(), 1, 30));
-        CorpCard.Get('CORPCARD-0001');
-        OtherCorpCard.Get('CORPCARD-0002');
-        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
-        CorpCardTestLib.CreateTransaction(OtherCorpCardTrans, OtherCorpCard);
-        CorpCardTestLib.CreateTransaction(MissingCorpCardTrans, OtherCorpCard);
-        MissingCorpCardTrans.Delete(false);
-        FeedEntryNos[1] := CorpCardTrans."Entry No.";
-        FeedEntryNos[2] := CorpCardTrans."Entry No.";
-        FeedEntryNos[3] := MissingCorpCardTrans."Entry No.";
-        FeedEntryNos[5] := CorpCardTrans."Entry No.";
-        FeedEntryNos[6] := OtherCorpCardTrans."Entry No.";
-        ExpectedCardIds[1] := CorpCard."Card Id";
-        ExpectedCardIds[2] := OtherCorpCard."Card Id";
-        ExpectedCardIds[5] := CorpCard."Card Id";
-        ExpectedCardIds[6] := OtherCorpCard."Card Id";
-
-        // [GIVEN] Each table has legacy, assigned, dangling, unlinked, repeated-feed, and second-card rows.
-        for ScenarioNo := 1 to ArrayLen(Expenses) do begin
-            CorpCardTestLib.InitializeExpense(Expenses[ScenarioNo], CorpCard);
-            Expenses[ScenarioNo]."Credit Card Feed No." := FeedEntryNos[ScenarioNo];
-            if ScenarioNo = 2 then
-                Expenses[ScenarioNo]."Corporate Card Id" := OtherCorpCard."Card Id";
-            Expenses[ScenarioNo].Insert(false);
-
-            ExpenseReportLines[ScenarioNo].Init();
-            ExpenseReportLines[ScenarioNo]."Document No." := Expenses[ScenarioNo]."No.";
-            ExpenseReportLines[ScenarioNo]."Line No." := 10000;
-            ExpenseReportLines[ScenarioNo]."Credit Card Feed No." := FeedEntryNos[ScenarioNo];
-            ExpenseReportLines[ScenarioNo]."Corporate Card Id" := Expenses[ScenarioNo]."Corporate Card Id";
-            ExpenseReportLines[ScenarioNo].Insert(false);
-
-            PostedExpenseReportLines[ScenarioNo].Init();
-            PostedExpenseReportLines[ScenarioNo]."Document No." := Expenses[ScenarioNo]."No.";
-            PostedExpenseReportLines[ScenarioNo]."Line No." := 10000;
-            PostedExpenseReportLines[ScenarioNo]."Credit Card Feed No." := FeedEntryNos[ScenarioNo];
-            PostedExpenseReportLines[ScenarioNo]."Corporate Card Id" := Expenses[ScenarioNo]."Corporate Card Id";
-            PostedExpenseReportLines[ScenarioNo].Insert(false);
-        end;
-
-        // [WHEN] The corporate card identity upgrade runs.
-        UpgradeExpenseAgentSetup.UpgradeCorporateCardIdentity();
-
-        // [THEN] Only matching legacy rows receive the feed card, and all existing sources are preserved.
-        for ScenarioNo := 1 to ArrayLen(Expenses) do begin
-            Expenses[ScenarioNo].Get(Expenses[ScenarioNo]."No.");
-            Expenses[ScenarioNo].TestField("Corporate Card Id", ExpectedCardIds[ScenarioNo]);
-            Expenses[ScenarioNo].TestField(Source, Expenses[ScenarioNo].Source::Manual);
-            ExpenseReportLines[ScenarioNo].Get(ExpenseReportLines[ScenarioNo]."Document No.", ExpenseReportLines[ScenarioNo]."Line No.");
-            ExpenseReportLines[ScenarioNo].TestField("Corporate Card Id", ExpectedCardIds[ScenarioNo]);
-            PostedExpenseReportLines[ScenarioNo].Get(PostedExpenseReportLines[ScenarioNo]."Document No.", PostedExpenseReportLines[ScenarioNo]."Line No.");
-            PostedExpenseReportLines[ScenarioNo].TestField("Corporate Card Id", ExpectedCardIds[ScenarioNo]);
-        end;
     end;
 
     [Test]
@@ -1632,6 +1622,30 @@ codeunit 148364 EACorpCardSelectionTests
     local procedure Initialize()
     begin
         CorpCardTestLib.InitializeCorpCardData();
+    end;
+
+    local procedure CreateLinkedManualExpense(var Expense: Record Expense)
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
+        LibraryExpense: Codeunit "Library - Expense";
+    begin
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Require Corporate Card", false);
+        ExpenseAgentSetup.Modify(true);
+        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        CorpCard.Get('CORPCARD-0001');
+        LibraryExpense.CreateExpense(Expense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, '', 20);
+        Expense.Validate("Corporate Card Id", CorpCard."Card Id");
+        Expense.Modify(true);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
+        CorpCardTrans.Modify(true);
+        Expense.Get(Expense."No.");
+        Expense.TestField(Source, Expense.Source::Manual);
+        Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
     end;
 
     local procedure CreateCorporateCardDraft(var Expense: Record Expense)
