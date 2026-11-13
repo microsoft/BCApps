@@ -1364,7 +1364,7 @@ codeunit 8060 "Create Billing Documents"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeTempBillingLineToDeleteCopy(TempBillingLine, IsHandled);
+        OnBeforeTempBillingLineToDeleteCopy(TempBillingLine, ContractNo , IsHandled);
         if IsHandled then
             exit;
         // Release a processed contract's aggregated temp lines so the temporary table stays small; otherwise it
