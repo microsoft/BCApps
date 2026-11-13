@@ -237,7 +237,9 @@ page 593 "Change Log Setup (Table) List"
         if ChangeLogSetupField.FindSet(true) then
             repeat
                 ChangeLogSetupField.ClearOrphanedFieldMonitoring();
+#pragma warning disable AA0214 // Fields are modified by ClearOrphanedFieldMonitoring.
                 ChangeLogSetupField.Modify();
+#pragma warning restore AA0214
             until ChangeLogSetupField.Next() = 0;
     end;
 
