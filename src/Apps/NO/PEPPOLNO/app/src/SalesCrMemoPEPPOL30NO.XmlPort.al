@@ -1086,6 +1086,12 @@ xmlport 37356 "Sales Cr.Memo - PEPPOL30 NO"
                         {
                             NamespacePrefix = 'cbc';
                             XmlName = 'StreetName';
+
+                            trigger OnBeforePassVariable()
+                            begin
+                                if DeliveryStreetName = '' then
+                                    currXMLport.Skip();
+                            end;
                         }
                         textelement(deliveryadditionalstreetname)
                         {
@@ -1140,8 +1146,26 @@ xmlport 37356 "Sales Cr.Memo - PEPPOL30 NO"
                                 NamespacePrefix = 'cbc';
                                 XmlName = 'IdentificationCode';
                             }
+
+                            trigger OnBeforePassVariable()
+                            begin
+                                if DeliveryCountryIdCode = '' then
+                                    currXMLport.Skip();
+                            end;
                         }
+
+                        trigger OnBeforePassVariable()
+                        begin
+                            if not HasDeliveryAddress() then
+                                currXMLport.Skip();
+                        end;
                     }
+
+                    trigger OnBeforePassVariable()
+                    begin
+                        if (DeliveryID = '') and not HasDeliveryAddress() then
+                            currXMLport.Skip();
+                    end;
                 }
                 textelement(DeliveryParty)
                 {
@@ -1186,6 +1210,9 @@ xmlport 37356 "Sales Cr.Memo - PEPPOL30 NO"
                      DummyVar);
 
                     PEPPOLDeliveryInfoProvider.GetDeliveryPartyName(SalesHeader, DeliveryPartyNameValue);
+
+                    if (ActualDeliveryDate = '') and (DeliveryID = '') and (DeliveryPartyNameValue = '') and not HasDeliveryAddress() then
+                        currXMLport.Skip();
                 end;
             }
             textelement(PaymentMeans)
@@ -2411,6 +2438,13 @@ xmlport 37356 "Sales Cr.Memo - PEPPOL30 NO"
         if Position = 1 then
             exit(VATAmtLine.Find('-'));
         exit(VATAmtLine.Next() <> 0);
+    end;
+
+    local procedure HasDeliveryAddress(): Boolean
+    begin
+        exit(
+          (DeliveryStreetName <> '') or (DeliveryAdditionalStreetName <> '') or (DeliveryCityName <> '') or
+          (DeliveryPostalZone <> '') or (DeliveryCountrySubentity <> '') or (DeliveryCountryIdCode <> ''));
     end;
 
     procedure Initialize(DocVariant: Variant; Format: Enum "PEPPOL 3.0 Format")
