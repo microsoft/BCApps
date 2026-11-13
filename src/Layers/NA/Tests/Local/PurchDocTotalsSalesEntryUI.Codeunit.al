@@ -2555,7 +2555,7 @@ codeunit 142085 PurchDocTotalsSalesEntryUI
     begin
         VATEntry.DeleteAll();
         LibrarySetupStorage.Restore();
-        LibraryApplicationArea.ClearApplicationAreaCache();
+        LibraryApplicationArea.DisableApplicationAreaSetup();
         if isInitialized then
             exit;
 
