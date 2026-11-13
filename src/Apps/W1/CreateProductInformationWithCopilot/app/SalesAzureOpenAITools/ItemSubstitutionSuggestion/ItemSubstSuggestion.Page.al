@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9,6 +10,9 @@ using System.Telemetry;
 
 page 7410 "Item Subst. Suggestion"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Copilot item substitution suggestions are discontinued. Use modern search on the Items list instead.';
+    ObsoleteTag = '30.0';
     Caption = 'Item Substitution Suggestion';
     DataCaptionExpression = PageCaptionTxt;
     PageType = PromptDialog;
@@ -217,3 +221,4 @@ page 7410 "Item Subst. Suggestion"
         TotalCopiedLines: Integer; // Lines can be inserted once
         IsInsertEnabled: Boolean;
 }
+#endif

@@ -7303,13 +7303,16 @@
     "name": "Create Product Information With Copilot",
     "groups": [
       {
-        "name": "AllExtensions"
+        "name": "AllExtensions",
+        "doNotInstall": true
       },
       {
-        "name": "Financials"
+        "name": "Financials",
+        "doNotInstall": true
       },
       {
-        "name": "FinancialsExtensions"
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
       },
       {
         "name": "OnPrem",
