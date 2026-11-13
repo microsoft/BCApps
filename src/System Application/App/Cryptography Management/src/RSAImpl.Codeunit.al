@@ -163,6 +163,22 @@ codeunit 1476 "RSA Impl." implements "Signature Algorithm v2"
     #endregion
 
 
+    #region PEM
+    [NonDebuggable]
+    procedure ImportFromPem(PemKey: SecretText)
+    var
+        RSAEncryptionHelper: DotNet RSAEncryptionHelper;
+    begin
+        RSA();
+        RSAEncryptionHelper.ImportFromPem(DotNetRSA, PemKey.Unwrap());
+    end;
+
+    procedure ExportRSAPublicKeyPem(): Text
+    begin
+        exit(DotNetRSA.ExportRSAPublicKeyPem());
+    end;
+    #endregion
+
     #region XmlString
     [NonDebuggable]
     procedure ToSecretXmlString(PrivateKey: SecretText; IncludePrivateParameters: Boolean): SecretText
