@@ -23,7 +23,7 @@ using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Manufacturing.Document;
 #endif
 using Microsoft.Projects.Resources.Resource;
@@ -108,7 +108,7 @@ page 8909 "Warehouse Manager Role Center"
                     Caption = 'Assembly Orders';
                     RunObject = page "Assembly Orders";
                 }
-#if not CLEAN27
+#if not CLEAN28
                 action("Subcontracting Orders")
                 {
                     ApplicationArea = LegacySubcontracting;

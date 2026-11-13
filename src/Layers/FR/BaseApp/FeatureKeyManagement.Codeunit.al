@@ -67,13 +67,6 @@ codeunit 265 "Feature Key Management"
     end;
 #endif
 
-#if not CLEAN27
-    [Obsolete('This function is deprecated. Concurrent warehouse posting is always on.', '27.0')]
-    procedure IsConcurrentWarehousingPostingEnabled(): Boolean
-    begin
-        exit(true);
-    end;
-#endif
 
     procedure IsConcurrentInventoryPostingEnabled(): Boolean
     begin

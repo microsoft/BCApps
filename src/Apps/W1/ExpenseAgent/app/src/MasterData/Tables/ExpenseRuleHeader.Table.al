@@ -117,7 +117,7 @@ table 6927 "Expense Rule Header"
         ExpenseDetailRequiredMustBePerDiemErr: Label '%1 must be set to %2 in %3 %4 to create an Expense Rule for %5 %6.',
                                                      Comment = '%1 = Field Caption, %2 = Field Value, %3 = Table Caption, %4 = Expense Category Code, %5 = Field Caption, %6 = Expense Location';
         ExpenseRuleAppliedErr: Label 'You cannot delete or rename this %1 because it has been applied to at least one %2 or %3.', Comment = '%1 = Expense Rule Header table caption, %2 = Expense table caption, %3 = Expense Report Line table caption';
-        RequiredSpecificMerchantNotAllowedForMileageErr: Label 'You cannot set %1 because %2 is %3 in %4 %5.', Comment = '%1 = Required Specific Merchant field caption, %2 = Expense Detail Required field caption, %3 = Mileage value, %4 = Expense Category table caption, %5 = Expense Category Code';
+        RequiredSpecificMerchantNotAllowedErr: Label 'You cannot set %1 because %2 is %3 in %4 %5.', Comment = '%1 = Required Specific Merchant field caption, %2 = Expense Detail Required field caption, %3 = Expense Detail Required value (Mileage or Per Diem), %4 = Expense Category table caption, %5 = Expense Category Code';
 
     procedure FindApplicableRule(ExpenseReportLine: Record "Expense Report Line"): Boolean
     begin
@@ -141,9 +141,41 @@ table 6927 "Expense Rule Header"
         exit(false);
     end;
 
+    /// <summary>
+    /// Finds the first active per diem expense category, in key order, that has a rule for the expense location.
+    /// </summary>
+    /// <param name="ExpenseLocationCode">The expense location that the rule must be for.</param>
+    /// <param name="EffectiveOnDate">Only rules in effect on this date are used. Use 0D to accept rules with any effective date.</param>
+    /// <returns>The expense category code, or an empty code if no rule matches.</returns>
+    internal procedure FindPerDiemCategory(ExpenseLocationCode: Code[20]; EffectiveOnDate: Date): Code[20]
+    var
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseCategory: Record "Expense Category";
+    begin
+        if ExpenseLocationCode = '' then
+            exit('');
+
+        ExpenseRuleHeader.SetRange("Expense Location", ExpenseLocationCode);
+        if EffectiveOnDate <> 0D then
+            ExpenseRuleHeader.SetFilter("Effective Date", '<=%1|%2', EffectiveOnDate, 0D);
+        ExpenseRuleHeader.SetLoadFields("Expense Category Code");
+        ExpenseCategory.SetLoadFields(Inactive, "Expense Detail Required");
+        if ExpenseRuleHeader.FindSet() then
+            repeat
+                if ExpenseCategory.Get(ExpenseRuleHeader."Expense Category Code") then
+                    if (not ExpenseCategory.Inactive) and
+                       (ExpenseCategory."Expense Detail Required" = ExpenseCategory."Expense Detail Required"::"Per Diem")
+                    then
+                        exit(ExpenseCategory.Code);
+            until ExpenseRuleHeader.Next() = 0;
+
+        exit('');
+    end;
+
     local procedure CheckSpecificMerchantAllowedForCategory()
     var
         ExpenseCategory: Record "Expense Category";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
     begin
         if not Rec."Required Specific Merchant" then
             exit;
@@ -151,12 +183,12 @@ table 6927 "Expense Rule Header"
         if not ExpenseCategory.Get(Rec."Expense Category Code") then
             exit;
 
-        if ExpenseCategory."Expense Detail Required" = ExpenseCategory."Expense Detail Required"::Mileage then
+        if not ExpenseRuleValidation.IsMerchantReceiptRequirementApplicable(ExpenseCategory."Expense Detail Required") then
             Error(
-                RequiredSpecificMerchantNotAllowedForMileageErr,
+                RequiredSpecificMerchantNotAllowedErr,
                 Rec.FieldCaption("Required Specific Merchant"),
                 ExpenseCategory.FieldCaption("Expense Detail Required"),
-                ExpenseCategory."Expense Detail Required"::Mileage,
+                ExpenseCategory."Expense Detail Required",
                 ExpenseCategory.TableCaption(),
                 Rec."Expense Category Code");
     end;

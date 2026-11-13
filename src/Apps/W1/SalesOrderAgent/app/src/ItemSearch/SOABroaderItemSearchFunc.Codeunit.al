@@ -45,7 +45,7 @@ codeunit 4597 "SOA Broader Item Search Func" implements "AOAI Function"
     begin
         if Arguments.Get('results', ItemsResults) then begin
             ItemResultsArray := ItemsResults.AsArray();
-            Top := 10;
+            Top := 5;
             MaximumQueryResultsToRank := 25;
             IncludeSynonyms := false;
             UseContextAwareRanking := true;

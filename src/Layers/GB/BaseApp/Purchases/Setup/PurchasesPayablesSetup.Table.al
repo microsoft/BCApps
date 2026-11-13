@@ -368,6 +368,16 @@ table 312 "Purchases & Payables Setup"
             Caption = 'Copy Invoice No. To Payment Reference';
             ToolTip = 'Specifies if the value of the Vendor Invoice No. field must be copied to the Payment Reference field during posting unless the Payment Reference field is not blank.';
         }
+        /// <summary>
+        /// Indicates whether posting a purchase credit memo or return order restores the reversed quantities on the related purchase order.
+        /// </summary>
+        field(70; "Restore Order Qty. on Return"; Boolean)
+        {
+            Caption = 'Restore Order quantities on Credit Memo posting';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether posting a purchase credit memo restores quantities on the related purchase order. When enabled, Qty. to Receive, Qty. to Invoice, and the received and invoiced quantities on the original purchase order are updated based on the reversed quantity.';
+            InitValue = true;
+        }
         field(160; "Disable Search by Name"; Boolean)
         {
             Caption = 'Disable Search by Name';
@@ -542,9 +552,6 @@ table 312 "Purchases & Payables Setup"
         {
             Caption = 'Posting Date Check on Posting';
             ToolTip = 'Specifies if you want to see a warning when you post a purchase document with a posting date that is different from the Work Date.';
-#if not CLEAN27
-            InitValue = true;
-#endif
         }
 #if not CLEANSCHEMA30
         field(10501; "Reverse Charge VAT Posting Gr."; Code[20])
@@ -552,26 +559,16 @@ table 312 "Purchases & Payables Setup"
             Caption = 'Reverse Charge VAT Posting Gr.';
             TableRelation = "VAT Business Posting Group";
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
         field(10502; "Domestic Vendors"; Code[20])
         {
             Caption = 'Domestic Vendors';
             TableRelation = "VAT Business Posting Group";
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
 #endif
         field(11320; "Check Doc. Total Amounts"; Boolean)
