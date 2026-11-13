@@ -420,6 +420,8 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage.ReplaceLayout.Invoke();
         ReportLayoutsPage.Close();
 
+        UnbindSubscription(ReportLayoutsTest);
+
         AssertLayoutUnchanged(TenantReportLayout, OriginalBlob);
         Assert.AreEqual(0, ReportLayoutsTest.GetUploadCount(), 'Declining replacement must not upload a file.');
     end;
@@ -441,6 +443,7 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage.OpenView();
         ReportLayoutsPage.GoToRecord(ReportLayoutList);
         asserterror ReportLayoutsPage.ReplaceLayout.Invoke();
+        UnbindSubscription(ReportLayoutsTest);
         Assert.ExpectedError('Only user-defined layouts can be modified or removed.');
         ReportLayoutsPage.Close();
 
@@ -454,6 +457,11 @@ codeunit 139595 "Report Layouts Test"
     procedure TestExportWordLayout()
     begin
         ExportLayoutTestCore('Word', NewLayoutNameTxt, '', 'NewLayout.docx', false);
+    end;
+
+    [Test]
+    procedure TestExportWordLayoutWithExtension()
+    begin
         ExportLayoutTestCore('Word', 'NewLayout.docx', '', 'NewLayout.docx', false);
     end;
 
@@ -461,6 +469,11 @@ codeunit 139595 "Report Layouts Test"
     procedure TestExportRDLCLayout()
     begin
         ExportLayoutTestCore('RDLC', NewLayoutNameTxt, '', 'NewLayout.rdl', false);
+    end;
+
+    [Test]
+    procedure TestExportRDLCLayoutWithExtension()
+    begin
         ExportLayoutTestCore('RDLC', 'NewLayout.rdl', '', 'NewLayout.rdl', false);
     end;
 
@@ -468,6 +481,11 @@ codeunit 139595 "Report Layouts Test"
     procedure TestExportExcelLayout()
     begin
         ExportLayoutTestCore('Excel', NewLayoutNameTxt, '', 'NewLayout.xlsx', false);
+    end;
+
+    [Test]
+    procedure TestExportExcelLayoutWithExtension()
+    begin
         ExportLayoutTestCore('Excel', 'NewLayout.xlsx', '', 'NewLayout.xlsx', false);
     end;
 
@@ -475,7 +493,17 @@ codeunit 139595 "Report Layouts Test"
     procedure TestExportExternalLayout()
     begin
         ExportLayoutTestCore('External', NewLayoutNameTxt, 'reportlayout/xml', 'NewLayout.xml', false);
+    end;
+
+    [Test]
+    procedure TestExportExternalLayoutWithExtension()
+    begin
         ExportLayoutTestCore('External', 'NewLayout.json', 'reportlayout/json', 'NewLayout.json', false);
+    end;
+
+    [Test]
+    procedure TestExportExternalLayoutWithEmptyMimeExtension()
+    begin
         ExportLayoutTestCore('External', NewLayoutNameTxt, 'reportlayout/', 'NewLayout.', false);
     end;
 
@@ -514,6 +542,8 @@ codeunit 139595 "Report Layouts Test"
         else
             ReportLayoutsPage.ExportLayout.Invoke();
         ReportLayoutsPage.Close();
+
+        UnbindSubscription(ReportLayoutsTest);
 
         ReportLayoutsTest.GetExportedLayout(ExportedBlob, ExportedFileName, WithEncoding);
         Assert.AreEqual(ReportLayoutList.Name + '.rdl', ExportedFileName, 'Incorrect extension layout export file name.');
@@ -563,6 +593,8 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutsPage.ExportReportSchema.Invoke();
         ReportLayoutsPage.Close();
 
+        UnbindSubscription(ReportLayoutsTest);
+
         ReportLayoutsTest.GetExportedLayout(ExportedBlob, ExportedFileName, WithEncoding);
         Assert.AreEqual('*.xml', ExportedFileName, 'Incorrect report schema export file filter.');
         Assert.IsFalse(WithEncoding, 'The schema must be exported without changing its UTF16 encoding.');
@@ -590,6 +622,8 @@ codeunit 139595 "Report Layouts Test"
         OpenImportLayoutPage(ReportLayoutsPage, LayoutFormat, CreateBlankLayout, AvailableInAllCompanies);
         ReportLayoutsPage.NewLayout.Invoke();
         ReportLayoutsPage.Close();
+
+        UnbindSubscription(ReportLayoutsTest);
 
         Assert.IsTrue(TenantReportLayout.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid), 'The imported layout must exist.');
         Assert.AreEqual(LayoutFormat, GetLayoutFormatCaption(TenantReportLayout), 'Incorrect imported layout format.');
@@ -624,6 +658,7 @@ codeunit 139595 "Report Layouts Test"
 
         OpenImportLayoutPage(ReportLayoutsPage, LayoutFormat, false, true);
         asserterror ReportLayoutsPage.NewLayout.Invoke();
+        UnbindSubscription(ReportLayoutsTest);
         Assert.ExpectedError(ExpectedError);
         ReportLayoutsPage.Close();
     end;
@@ -655,6 +690,8 @@ codeunit 139595 "Report Layouts Test"
         OpenFileTestLayout(ReportLayoutsPage, ReportLayoutList);
         ReportLayoutsPage.ReplaceLayout.Invoke();
         ReportLayoutsPage.Close();
+
+        UnbindSubscription(ReportLayoutsTest);
 
         TenantReportLayout.Get(TenantReportLayout."Report ID", TenantReportLayout.Name, TenantReportLayout."App ID");
         Assert.AreEqual(NewLayoutNameTxt, TenantReportLayout.Name, 'Replacement must preserve the layout name.');
@@ -694,10 +731,9 @@ codeunit 139595 "Report Layouts Test"
 
         OpenFileTestLayout(ReportLayoutsPage, ReportLayoutList);
         asserterror ReportLayoutsPage.ReplaceLayout.Invoke();
+        UnbindSubscription(ReportLayoutsTest);
         Assert.ExpectedError(ExpectedError);
         ReportLayoutsPage.Close();
-
-        UnbindSubscription(ReportLayoutsTest);
     end;
 
     local procedure ExportLayoutTestCore(LayoutFormat: Text; LayoutName: Text[250]; MimeType: Text[255]; ExpectedFileName: Text; UpdateLayout: Boolean)
@@ -726,6 +762,8 @@ codeunit 139595 "Report Layouts Test"
             ReportLayoutsPage.ExportLayout.Invoke();
         ReportLayoutsPage.Close();
 
+        UnbindSubscription(ReportLayoutsTest);
+
         ReportLayoutsTest.GetExportedLayout(ExportedBlob, ExportedFileName, WithEncoding);
         Assert.AreEqual(ExpectedFileName, ExportedFileName, 'Incorrect exported file name or extension.');
         Assert.AreEqual(UpdateLayout, WithEncoding, 'Only a successful update must use the UTF8 export path.');
@@ -734,8 +772,6 @@ codeunit 139595 "Report Layouts Test"
             AssertLayoutCanBePrepared(LayoutFormat, ExportedBlob);
         end else
             AssertBlobEquals(OriginalBlob, ExportedBlob);
-
-        UnbindSubscription(ReportLayoutsTest);
     end;
 
     local procedure OpenImportLayoutPage(var ReportLayoutsPage: TestPage "Report Layouts"; LayoutFormat: Text; CreateBlankLayout: Boolean; AvailableInAllCompanies: Boolean)
