@@ -426,8 +426,7 @@ codeunit 136600 "ERM RS Questionnaire"
     var
         ConfigQuestionnaire: Record "Config. Questionnaire";
         QuestionnaireManagement: Codeunit "Questionnaire Management";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        RootXmlNode: DotNet XmlNode;
+        QuestionnaireXML: XmlDocument;
         QuestionnaireCode: Code[10];
         XMLText: Text[1024];
     begin
@@ -438,13 +437,81 @@ codeunit 136600 "ERM RS Questionnaire"
 
         CreateQuestionnaireXML(XMLText, ConfigQuestionnaire);
 
-        XMLDOMManagement.LoadXMLNodeFromText(
-          '<?xml version="1.0" encoding="UTF-16" standalone="yes"?>' + XMLText, RootXmlNode);
+        XmlDocument.ReadFrom(
+          '<?xml version="1.0" encoding="UTF-16" standalone="yes"?>' + XMLText, QuestionnaireXML);
 
         ConfigQuestionnaire.Delete();
-        QuestionnaireManagement.ImportQuestionnaireXMLDocument(RootXmlNode.OwnerDocument);
+        QuestionnaireManagement.ImportQuestionnaireXMLDocument(QuestionnaireXML);
 
         Assert.IsTrue(ConfigQuestionnaire.Get(QuestionnaireCode), SimpleXMLNotImportedError);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure XMLImport_UTF8FileDeclaringUTF16_Ok()
+    var
+        ConfigQuestionnaire: Record "Config. Questionnaire";
+        QuestionnaireCode: Code[10];
+        XMLText: Text[1024];
+        FilePath: Text;
+        CRLF: Text[2];
+    begin
+        // [SCENARIO] A questionnaire file saved as UTF-8 without a byte order mark is imported even though its XML declaration says UTF-16.
+        Initialize();
+
+        // [GIVEN] A questionnaire XML file written as UTF-8 without a BOM, whose declaration says encoding="UTF-16"
+        LibraryRapidStart.CreateQuestionnaire(ConfigQuestionnaire);
+        QuestionnaireCode := ConfigQuestionnaire.Code;
+        CreateQuestionnaireXML(XMLText, ConfigQuestionnaire);
+        CRLF[1] := 13;
+        CRLF[2] := 10;
+        FilePath := FileMgt.ServerTempFileName('xml');
+        WriteBytesToFile(FilePath, '<?xml version="1.0" encoding="UTF-16" standalone="yes"?>' + CRLF + XMLText + CRLF);
+        ConfigQuestionnaire.Delete();
+
+        // [WHEN] The file is imported
+        QuestionnaireManagement.ImportQuestionnaireAsXML(FilePath);
+
+        // [THEN] The questionnaire is imported
+        Assert.IsTrue(ConfigQuestionnaire.Get(QuestionnaireCode), SimpleXMLNotImportedError);
+
+        Erase(FilePath);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure XMLImport_UTF16BigEndianFile_Ok()
+    var
+        ConfigQuestionnaire: Record "Config. Questionnaire";
+        QuestionnaireCode: Code[10];
+        QuestionnaireDescription: Text[100];
+        XMLText: Text[1024];
+        FilePath: Text;
+        NonAsciiChar: Char;
+    begin
+        // [SCENARIO] A questionnaire file saved as UTF-16 big-endian with a byte order mark is imported.
+        Initialize();
+
+        // [GIVEN] A questionnaire whose description contains a non-ASCII character, written to a UTF-16 big-endian file
+        LibraryRapidStart.CreateQuestionnaire(ConfigQuestionnaire);
+        NonAsciiChar := 248;
+        ConfigQuestionnaire.Description := 'Pr' + Format(NonAsciiChar) + 've';
+        ConfigQuestionnaire.Modify();
+        QuestionnaireCode := ConfigQuestionnaire.Code;
+        QuestionnaireDescription := ConfigQuestionnaire.Description;
+        CreateQuestionnaireXML(XMLText, ConfigQuestionnaire);
+        FilePath := FileMgt.ServerTempFileName('xml');
+        WriteUTF16BigEndianFile(FilePath, '<?xml version="1.0" encoding="UTF-16" standalone="yes"?>' + XMLText);
+        ConfigQuestionnaire.Delete();
+
+        // [WHEN] The file is imported
+        QuestionnaireManagement.ImportQuestionnaireAsXML(FilePath);
+
+        // [THEN] The questionnaire is imported with the non-ASCII description intact
+        ConfigQuestionnaire.Get(QuestionnaireCode);
+        Assert.AreEqual(QuestionnaireDescription, ConfigQuestionnaire.Description, ConfigQuestionnaire.FieldCaption(Description));
+
+        Erase(FilePath);
     end;
 
     [Test]
@@ -455,8 +522,7 @@ codeunit 136600 "ERM RS Questionnaire"
         ConfigQuestionnaire: Record "Config. Questionnaire";
         ConfigQuestion: Record "Config. Question";
         QuestionnaireManagement: Codeunit "Questionnaire Management";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        RootXmlNode: DotNet XmlNode;
+        QuestionnaireXML: XmlDocument;
         QuestionnaireCode: Code[10];
         QuestionAreaCode: Code[10];
         QuestionNo: Integer;
@@ -476,13 +542,13 @@ codeunit 136600 "ERM RS Questionnaire"
         CreateQuestionAreaXML(XMLText, ConfigQuestionArea, true);
         CreateQuestionnaireXML(XMLText, ConfigQuestionnaire);
 
-        XMLDOMManagement.LoadXMLNodeFromText(
-          '<?xml version="1.0" encoding="UTF-16" standalone="yes"?>' + XMLText, RootXmlNode);
+        XmlDocument.ReadFrom(
+          '<?xml version="1.0" encoding="UTF-16" standalone="yes"?>' + XMLText, QuestionnaireXML);
 
         ConfigQuestionnaire.Delete(true);
 
         ConfigQuestion.Reset();
-        QuestionnaireManagement.ImportQuestionnaireXMLDocument(RootXmlNode.OwnerDocument);
+        QuestionnaireManagement.ImportQuestionnaireXMLDocument(QuestionnaireXML);
 
         Assert.IsTrue(
           ConfigQuestion.Get(QuestionnaireCode, QuestionAreaCode, QuestionNo), StrSubstNo(RecordNotImportedError, ConfigQuestion.TableCaption()));
@@ -497,7 +563,7 @@ codeunit 136600 "ERM RS Questionnaire"
         ConfigQuestion: Record "Config. Question";
         Customer: Record Customer;
         QuestionnaireManagement: Codeunit "Questionnaire Management";
-        QuestionnaireXML: DotNet XmlDocument;
+        QuestionnaireXML: XmlDocument;
         QuestionnaireCode: Code[10];
         QuestionAreaCode: Code[10];
         QuestionNo: Integer;
@@ -511,7 +577,6 @@ codeunit 136600 "ERM RS Questionnaire"
         QuestionAreaCode := ConfigQuestionArea.Code;
         QuestionNo := ConfigQuestion."No.";
 
-        QuestionnaireXML := QuestionnaireXML.XmlDocument();
         QuestionnaireManagement.GenerateQuestionnaireXMLDocument(QuestionnaireXML, ConfigQuestionnaire);
 
         ConfigQuestion.Reset();
@@ -528,17 +593,16 @@ codeunit 136600 "ERM RS Questionnaire"
     var
         ConfigQuestionnaire: Record "Config. Questionnaire";
         QuestionnaireManagement: Codeunit "Questionnaire Management";
-        XMLDocument: DotNet XmlDocument;
+        QuestionnaireXML: XmlDocument;
         XMLQuestionnaireCode: Code[20];
     begin
         Initialize();
 
         LibraryRapidStart.CreateQuestionnaire(ConfigQuestionnaire);
 
-        XMLDocument := XMLDocument.XmlDocument();
-        QuestionnaireManagement.GenerateQuestionnaireXMLDocument(XMLDocument, ConfigQuestionnaire);
+        QuestionnaireManagement.GenerateQuestionnaireXMLDocument(QuestionnaireXML, ConfigQuestionnaire);
 
-        XMLQuestionnaireCode := GetXMLNodeText(XMLDocument, ConfigQuestionnaire.FieldName(Code));
+        XMLQuestionnaireCode := GetXMLNodeText(QuestionnaireXML, ConfigQuestionnaire.FieldName(Code));
 
         Assert.AreEqual(
           XMLQuestionnaireCode, ConfigQuestionnaire.Code, StrSubstNo(XMLCodeNotGeneratedError, ConfigQuestionnaire.TableCaption()));
@@ -551,7 +615,7 @@ codeunit 136600 "ERM RS Questionnaire"
         ConfigQuestionnaire: Record "Config. Questionnaire";
         ConfigQuestionArea: Record "Config. Question Area";
         QuestionnaireManagement: Codeunit "Questionnaire Management";
-        XMLDocument: DotNet XmlDocument;
+        QuestionnaireXML: XmlDocument;
         XMLQuestionAreaCode: Code[20];
     begin
         Initialize();
@@ -559,11 +623,10 @@ codeunit 136600 "ERM RS Questionnaire"
         LibraryRapidStart.CreateQuestionnaire(ConfigQuestionnaire);
         CreateQuestionAreaWithTableID(ConfigQuestionArea, ConfigQuestionnaire.Code, FindTable());
 
-        XMLDocument := XMLDocument.XmlDocument();
-        QuestionnaireManagement.GenerateQuestionnaireXMLDocument(XMLDocument, ConfigQuestionnaire);
+        QuestionnaireManagement.GenerateQuestionnaireXMLDocument(QuestionnaireXML, ConfigQuestionnaire);
 
         XMLQuestionAreaCode :=
-          GetXMLQuestionnaireChildNodeText(XMLDocument, QuestionnaireManagement.GetElementName(ConfigQuestionArea.FieldName(Code)));
+          GetXMLQuestionnaireChildNodeText(QuestionnaireXML, QuestionnaireManagement.GetElementName(ConfigQuestionArea.FieldName(Code)));
 
         Assert.AreEqual(
           XMLQuestionAreaCode, ConfigQuestionArea.Code, StrSubstNo(XMLCodeNotGeneratedError, ConfigQuestionArea.TableCaption()));
@@ -577,32 +640,31 @@ codeunit 136600 "ERM RS Questionnaire"
         ConfigQuestionArea: Record "Config. Question Area";
         ConfigQuestion: Record "Config. Question";
         QuestionnaireManagement: Codeunit "Questionnaire Management";
-        XMLDocument: DotNet XmlDocument;
-        XMLNodes: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
+        QuestionnaireXML: XmlDocument;
+        XMLNodes: XmlNodeList;
+        XMLNode: XmlNode;
         QuestionnaireCode: Code[10];
         QuestionAreaCode: Code[10];
         InnerText: Text;
     begin
         SetupQuestionnaireTestScenario(ConfigQuestionnaire, ConfigQuestionArea, FindTable());
 
-        XMLDocument := XMLDocument.XmlDocument();
-        QuestionnaireManagement.GenerateQuestionnaireXMLDocument(XMLDocument, ConfigQuestionnaire);
+        QuestionnaireManagement.GenerateQuestionnaireXMLDocument(QuestionnaireXML, ConfigQuestionnaire);
 
-        QuestionnaireCode := CopyStr(GetXMLNodeText(XMLDocument, ConfigQuestionnaire.FieldName(Code)), 1, MaxStrLen(QuestionnaireCode));
+        QuestionnaireCode := CopyStr(GetXMLNodeText(QuestionnaireXML, ConfigQuestionnaire.FieldName(Code)), 1, MaxStrLen(QuestionnaireCode));
 
-        GetXMLQuestionnaireChildNodes(XMLDocument, XMLNodes);
+        GetXMLQuestionnaireChildNodes(QuestionnaireXML, XMLNodes);
         QuestionAreaCode :=
           CopyStr(
             GetXMLChildNodeText(XMLNodes, QuestionnaireManagement.GetElementName(ConfigQuestionArea.FieldName(Code))), 1,
             MaxStrLen(QuestionAreaCode));
 
-        XMLNode := XMLNodes.Item(0);
-        XMLNodes := XMLNode.SelectNodes('ConfigQuestion');
-        XMLNode := XMLNodes.Item(0);
-        XMLNode := XMLNode.SelectSingleNode(QuestionnaireManagement.GetElementName(ConfigQuestion.FieldName("No.")));
+        XMLNodes.Get(1, XMLNode);
+        XMLNode.SelectNodes('ConfigQuestion', XMLNodes);
+        XMLNodes.Get(1, XMLNode);
+        XMLNode.SelectSingleNode(QuestionnaireManagement.GetElementName(ConfigQuestion.FieldName("No.")), XMLNode);
 
-        InnerText := XMLNode.InnerText;
+        InnerText := XMLNode.AsXmlElement().InnerText;
         Assert.IsTrue(
           ConfigQuestion.Get(QuestionnaireCode, QuestionAreaCode, InnerText),
           StrSubstNo(XMLCodeNotGeneratedError, ConfigQuestion.TableCaption()));
@@ -865,6 +927,46 @@ codeunit 136600 "ERM RS Questionnaire"
         CreateXMLNode(XMLText, 'Questionnaire', XMLNodeText, true);
     end;
 
+    local procedure WriteUTF16BigEndianFile(FilePath: Text; Content: Text)
+    var
+        TargetFile: File;
+        FileOutStream: OutStream;
+        ContentByte: Byte;
+        CharCode: Integer;
+        i: Integer;
+    begin
+        TargetFile.Create(FilePath);
+        TargetFile.CreateOutStream(FileOutStream);
+        ContentByte := 254;
+        FileOutStream.Write(ContentByte);
+        ContentByte := 255;
+        FileOutStream.Write(ContentByte);
+        for i := 1 to StrLen(Content) do begin
+            CharCode := Content[i];
+            ContentByte := CharCode div 256;
+            FileOutStream.Write(ContentByte);
+            ContentByte := CharCode mod 256;
+            FileOutStream.Write(ContentByte);
+        end;
+        TargetFile.Close();
+    end;
+
+    local procedure WriteBytesToFile(FilePath: Text; Content: Text)
+    var
+        TargetFile: File;
+        FileOutStream: OutStream;
+        ContentByte: Byte;
+        i: Integer;
+    begin
+        TargetFile.Create(FilePath);
+        TargetFile.CreateOutStream(FileOutStream);
+        for i := 1 to StrLen(Content) do begin
+            ContentByte := Content[i];
+            FileOutStream.Write(ContentByte);
+        end;
+        TargetFile.Close();
+    end;
+
     local procedure CreateXMLNode(var XMLText: Text[1024]; XMLNodeName: Text[50]; XMLNodeText: Text[1024]; InsertXMLText: Boolean)
     begin
         if InsertXMLText then
@@ -873,37 +975,37 @@ codeunit 136600 "ERM RS Questionnaire"
             XMLText += CopyStr('<' + XMLNodeName + '>' + XMLNodeText + '</' + XMLNodeName + '>', 1, 1024);
     end;
 
-    local procedure GetXMLNodeText(var XMLDocument: DotNet XmlDocument; XMLNodeName: Text): Text[20]
+    local procedure GetXMLNodeText(var QuestionnaireXML: XmlDocument; XMLNodeName: Text): Text[20]
     var
-        XMLNode: DotNet XmlNode;
+        XMLNode: XmlNode;
     begin
-        XMLNode := XMLDocument.SelectSingleNode('//Questionnaire');
-        XMLNode := XMLNode.SelectSingleNode(XMLNodeName);
-        exit(XMLNode.InnerText);
+        QuestionnaireXML.SelectSingleNode('//Questionnaire', XMLNode);
+        XMLNode.SelectSingleNode(XMLNodeName, XMLNode);
+        exit(CopyStr(XMLNode.AsXmlElement().InnerText, 1, 20));
     end;
 
-    local procedure GetXMLChildNodeText(var XMLNodes: DotNet XmlNodeList; XMLNodeName: Text): Text[20]
+    local procedure GetXMLChildNodeText(var XMLNodes: XmlNodeList; XMLNodeName: Text): Text[20]
     var
-        XMLNode: DotNet XmlNode;
+        XMLNode: XmlNode;
     begin
-        XMLNode := XMLNodes.Item(0);
-        XMLNode := XMLNode.SelectSingleNode(XMLNodeName);
-        exit(XMLNode.InnerText);
+        XMLNodes.Get(1, XMLNode);
+        XMLNode.SelectSingleNode(XMLNodeName, XMLNode);
+        exit(CopyStr(XMLNode.AsXmlElement().InnerText, 1, 20));
     end;
 
-    local procedure GetXMLQuestionnaireChildNodes(var XMLDocument: DotNet XmlDocument; var XMLNodes: DotNet XmlNodeList)
+    local procedure GetXMLQuestionnaireChildNodes(var QuestionnaireXML: XmlDocument; var XMLNodes: XmlNodeList)
     var
-        XMLNode: DotNet XmlNode;
+        XMLNode: XmlNode;
     begin
-        XMLNode := XMLDocument.SelectSingleNode('//Questionnaire');
-        XMLNodes := XMLNode.SelectNodes('child::*[position() >= 3]');
+        QuestionnaireXML.SelectSingleNode('//Questionnaire', XMLNode);
+        XMLNode.SelectNodes('child::*[position() >= 3]', XMLNodes);
     end;
 
-    local procedure GetXMLQuestionnaireChildNodeText(var XMLDocument: DotNet XmlDocument; XMLNodeName: Text): Text[20]
+    local procedure GetXMLQuestionnaireChildNodeText(var QuestionnaireXML: XmlDocument; XMLNodeName: Text): Text[20]
     var
-        XMLNodes: DotNet XmlNodeList;
+        XMLNodes: XmlNodeList;
     begin
-        GetXMLQuestionnaireChildNodes(XMLDocument, XMLNodes);
+        GetXMLQuestionnaireChildNodes(QuestionnaireXML, XMLNodes);
         exit(GetXMLChildNodeText(XMLNodes, XMLNodeName));
     end;
 
