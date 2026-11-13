@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -58,14 +58,21 @@ table 257 "VAT Statement Name"
             FieldClass = FlowFilter;
             TableRelation = "Business Activity".Code;
         }
-#if not CLEAN29
+#if not CLEANSCHEMA33
         field(12125; "Activity Code Filter"; Code[6])
         {
             FieldClass = FlowFilter;
+#if not CLEAN30
             TableRelation = "Activity Code".Code;
+#endif
             ObsoleteReason = 'Replaced by the Business Activity Code Filter field.';
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
 #endif
     }

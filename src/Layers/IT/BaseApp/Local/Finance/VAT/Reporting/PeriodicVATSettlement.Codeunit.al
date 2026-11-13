@@ -28,27 +28,12 @@ codeunit 12195 "Periodic VAT Settlement"
     internal procedure CreateSeparateEntries(Period: Code[10])
     var
         BusinessActivity: Record "Business Activity";
-#if not CLEAN29
-        ActivityCode: Record "Activity Code";
-#endif
         PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
-        VATSetup: Record "VAT Setup";
     begin
-        VATSetup.Get();
-        if VATSetup."Per Activity Code Settl. Entry" then begin
-            if BusinessActivity.FindSet() then
-                repeat
-                    InsertPeriodicVATSettlementEntry(PeriodicVATSettlementEntry, Period, BusinessActivity.Code);
-                until BusinessActivity.Next() = 0;
-            exit;
-        end;
-
-#if not CLEAN29
-        if ActivityCode.FindSet() then
+        if BusinessActivity.FindSet() then
             repeat
-                InsertPeriodicVATSettlementEntry(PeriodicVATSettlementEntry, Period, ActivityCode.Code);
-            until ActivityCode.Next() = 0;
-#endif
+                InsertPeriodicVATSettlementEntry(PeriodicVATSettlementEntry, Period, BusinessActivity.Code);
+            until BusinessActivity.Next() = 0;
     end;
 
 
@@ -88,18 +73,8 @@ codeunit 12195 "Periodic VAT Settlement"
     begin
         PeriodicVATSettlementEntry.Init();
         PeriodicVATSettlementEntry."VAT Period" := Period;
-#if not CLEAN29
         PeriodicVATSettlementEntry."Activity Code" := CopyStr(BusinessActivityCode, 1, MaxStrLen(PeriodicVATSettlementEntry."Activity Code"));
-#endif
-        PeriodicVATSettlementEntry."Business Activity Code" := BusinessActivityCode;
         if PeriodicVATSettlementEntry.Insert() then;
     end;
 
-#if not CLEAN28
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is used only during data upgrade of the VAT Settlement Account Code feature, which will become mandatory one major version earlier.', '28.0')]
-    internal procedure OnAfterTransferfieldsToPeriodicSettlVATEntry(PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry"; var PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry")
-    begin
-    end;
-#endif
 }

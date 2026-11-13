@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -442,7 +442,7 @@ codeunit 12132 "Withholding Tax Export"
           'DA001008', ConstFormat::AN, FlatFileManagement.CleanPhoneNumber(CompanyInformation."Phone No."));
         FlatFileManagement.WriteBlockValue('DA001009', ConstFormat::AN, CompanyInformation."E-Mail");
         GeneralLedgerSetup.GetRecordOnce();
-#if not CLEAN29
+#if not CLEAN30
         if GeneralLedgerSetup."Use Activity Code" then begin
             TempErrorMessage.LogIfEmpty(
               CompanyInformation, CompanyInformation.FieldNo("Activity Code"), TempErrorMessage."Message Type"::Error);

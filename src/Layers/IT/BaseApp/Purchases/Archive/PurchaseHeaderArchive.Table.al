@@ -745,6 +745,7 @@ table 5109 "Purchase Header Archive"
         field(395; "Business Activity Code"; Code[10])
         {
             Caption = 'Business Activity Code';
+            DataClassification = CustomerContent;
             TableRelation = "Business Activity".Code;
         }
         field(480; "Dimension Set ID"; Integer)
@@ -942,14 +943,21 @@ table 5109 "Purchase Header Archive"
             Caption = 'Shipping Agent Code';
             TableRelation = "Shipping Agent";
         }
-#if not CLEAN29
+#if not CLEANSCHEMA33
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
+#if not CLEAN30
             TableRelation = Microsoft.Utilities."Activity Code".Code;
+#endif
             ObsoleteReason = 'Replaced by the Business Activity Code field.';
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
 #endif
         field(12125; "Service Tariff No."; Code[10])

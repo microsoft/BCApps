@@ -147,8 +147,10 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetRestoreOrderQtyOnReturnInSalesAndPurchasesSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetLocationBinPolicySetupsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetAllowInventoryAdjmtUpgradeTag());
+#if not CLEAN30
+        PerCompanyUpgradeTags.Add(GetBusinessActivityCodeUpgradeTag());
+#endif
 #if not CLEAN29
-    PerCompanyUpgradeTags.Add(GetBusinessActivityCodeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetDirectTransferPostingToEnumUpgradeTag());
 #endif
         PerCompanyUpgradeTags.Add(GetDirectTransferOnTransferRouteUpgradeTag());
@@ -1275,7 +1277,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         exit('MS-579699-ServiceShptLineFieldsUpgradeTag-20250926');
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure GetBusinessActivityCodeUpgradeTag(): Code[250]
     begin
         exit('MS-BusinessActivityCode-20260729');

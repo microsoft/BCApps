@@ -785,6 +785,7 @@ table 254 "VAT Entry"
         field(395; "Business Activity Code"; Code[10])
         {
             Caption = 'Business Activity Code';
+            DataClassification = CustomerContent;
             TableRelation = "Business Activity".Code;
         }
         /// <summary>
@@ -916,14 +917,21 @@ table 254 "VAT Entry"
         {
             Caption = 'Include in VAT Transac. Rep.';
         }
-#if not CLEAN29
+#if not CLEANSCHEMA33
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
+#if not CLEAN30
             TableRelation = "Activity Code".Code;
+#endif
             ObsoleteReason = 'Replaced by the Business Activity Code field.';
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
 #endif
         field(12124; "Reverse Sales VAT"; Boolean)
@@ -1060,7 +1068,7 @@ table 254 "VAT Entry"
         {
             Clustered = true;
         }
-#if not CLEAN29
+#if not CLEAN30
         key(Key2; Type, Closed, "VAT Bus. Posting Group", "VAT Prod. Posting Group", "Posting Date", "VAT Period", "Operation Occurred Date", "Activity Code", "Document Type", "VAT Registration No.")
         {
             SumIndexFields = Base, Amount, "Additional-Currency Base", "Additional-Currency Amount", "Remaining Unrealized Amount", "Remaining Unrealized Base", "Add.-Curr. Rem. Unreal. Amount", "Add.-Curr. Rem. Unreal. Base", "Nondeductible Amount", "Nondeductible Base", "Add. Curr. Nondeductible Amt.", "Add. Curr. Nondeductible Base";

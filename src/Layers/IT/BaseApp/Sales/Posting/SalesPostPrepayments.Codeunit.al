@@ -470,7 +470,7 @@ codeunit 442 "Sales-Post Prepayments"
         GLSetup.GetRecordOnce();
         if GLSetup."Journal Templ. Name Mandatory" then
             SalesHeader.TestField("Journal Templ. Name");
-#if not CLEAN29
+#if not CLEAN30
         if GLSetup."Use Activity Code" then
             SalesHeader.TestField("Activity Code");
 #endif

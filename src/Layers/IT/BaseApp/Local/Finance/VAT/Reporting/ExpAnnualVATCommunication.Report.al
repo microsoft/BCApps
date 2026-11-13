@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -267,7 +267,7 @@ report 12125 "Exp. Annual VAT Communication"
                             if ACTION::LookupOK = PAGE.RunModal(0, VATStatementName, VATStatementName.Name) then;
                         end;
                     }
-#if not CLEAN29
+#if not CLEAN30
                     field("ActivityCode.Code"; ActivityCode.Code)
                     {
                         ApplicationArea = Basic, Suite;
@@ -276,7 +276,7 @@ report 12125 "Exp. Annual VAT Communication"
                         ToolTip = 'Specifies a code that describes a primary activity for the company.';
                         ObsoleteReason = 'Replaced by the Business Activity Code field.';
                         ObsoleteState = Pending;
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '30.0';
                     }
 #endif
                     field("BusinessActivityCode.Code"; BusinessActivity.Code)
@@ -394,7 +394,7 @@ report 12125 "Exp. Annual VAT Communication"
         VATStatementLine.SetRange("Statement Name", VATStatementName.Name);
         VATStatementLine.SetFilter("Annual VAT Comm. Field", '<>%1', VATStatementLine."Annual VAT Comm. Field"::" ");
         VATStatementLine.FilterGroup := 0;
-#if not CLEAN29
+#if not CLEAN30
         if GeneralLedgerSetup."Use Activity Code" then
             VATStatementLine.SetRange("Activity Code Filter", ActivityCode.Code);
 #endif
@@ -413,7 +413,7 @@ report 12125 "Exp. Annual VAT Communication"
         Vendor: Record Vendor;
         CompanyInfo: Record "Company Information";
         BusinessActivity: Record "Business Activity";
-#if not CLEAN29
+#if not CLEAN30
         ActivityCode: Record "Activity Code";
 #endif
         AppointmentCode: Record "Appointment Code";
@@ -430,7 +430,10 @@ report 12125 "Exp. Annual VAT Communication"
         SeparateLedger: Boolean;
         GroupSettlement: Boolean;
         ExceptionalEvent: Boolean;
-        InvalidActivityCodeFilterErr: Label 'The Business Activity Code Filter should contain exactly one Business Activity Code.';
+#if not CLEAN30
+        InvalidActivityCodeFilterErr: Label 'The Activity Code Filter should contain exactly one Activity Code.';
+#endif
+        InvalidBusinessActivityCodeFilterErr: Label 'The Business Activity Code Filter should contain exactly one Business Activity Code.';
         Text003: Label 'IVC Files (*.ivc)|*.ivc|Text Files (*.txt)|*.txt|All Files (*.*)|*.*';
         Text004: Label 'default.ivc';
         Text005: Label 'Export';
@@ -478,7 +481,7 @@ report 12125 "Exp. Annual VAT Communication"
             EndDate := VATStatementName.GetRangeMax("Date Filter");
         end;
 
-#if not CLEAN29
+#if not CLEAN30
         if GeneralLedgerSetup."Use Activity Code" then begin
             if VATStatementName.GetFilter("Activity Code Filter") <> '' then begin
                 ActivityCode.SetFilter(Code, VATStatementName.GetFilter("Activity Code Filter"));
@@ -496,11 +499,11 @@ report 12125 "Exp. Annual VAT Communication"
             if VATStatementName.GetFilter("Business Activity Code Filter") <> '' then begin
                 BusinessActivity.SetFilter(Code, VATStatementName.GetFilter("Business Activity Code Filter"));
                 if BusinessActivity.Count() <> 1 then
-                    Error(InvalidActivityCodeFilterErr);
+                    Error(InvalidBusinessActivityCodeFilterErr);
 
                 BusinessActivity.FindFirst();
             end else
-                Error(InvalidActivityCodeFilterErr);
+                Error(InvalidBusinessActivityCodeFilterErr);
 
             VATStatementName.CopyFilter("Business Activity Code Filter", VATStatementLine."Business Activity Code Filter");
         end;

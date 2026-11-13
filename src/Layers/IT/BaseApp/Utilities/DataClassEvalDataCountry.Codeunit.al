@@ -73,7 +73,7 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Customs Office");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Customs Authority Vendor");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Check Fiscal Code Setup");
-#if not CLEAN29
+#if not CLEAN30
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Activity Code");
 #endif
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Business Activity");

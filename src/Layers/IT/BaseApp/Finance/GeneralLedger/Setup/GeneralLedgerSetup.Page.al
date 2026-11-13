@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -168,14 +168,15 @@ page 118 "General Ledger Setup"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if the VAT registration numbers for domestic customers, vendors, and contacts must be validated against the Italian regulations.';
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("Use Activity Code"; Rec."Use Activity Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Use activity code in purchase/sales headers';
+                    Visible = false;
                     ObsoleteReason = 'Replaced by the Business Activity Code field.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
 #endif
                 field("Use Business Activity Code"; Rec."Use Business Activity Code")

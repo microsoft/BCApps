@@ -15,6 +15,7 @@ table 395 "Business Activity"
         field(1; Code; Code[10])
         {
             Caption = 'Code';
+            DataClassification = CustomerContent;
             NotBlank = true;
 
             trigger OnValidate()
@@ -27,6 +28,7 @@ table 395 "Business Activity"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            DataClassification = CustomerContent;
         }
     }
 

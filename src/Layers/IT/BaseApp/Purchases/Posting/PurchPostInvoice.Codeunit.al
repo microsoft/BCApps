@@ -594,7 +594,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
             InvoicePostingParameters."External Document No.", InvoicePostingParameters."Source Code", '');
 
         GenJnlLine.CopyFromPurchHeader(PurchHeader);
-#if not CLEAN29
+#if not CLEAN30
         if GLSetup."Use Activity Code" then
             GenJnlLine."Activity Code" := PurchHeader."Activity Code";
 #endif

@@ -35,7 +35,7 @@ permissionset 1001 "LOCAL"
     Caption = 'Country/region-specific func.';
 
     Permissions = tabledata "ABI/CAB Codes" = RIMD,
-#if not CLEAN29
+#if not CLEAN30
                   tabledata "Activity Code" = RIMD,
 #endif
                   tabledata "Business Activity" = RIMD,

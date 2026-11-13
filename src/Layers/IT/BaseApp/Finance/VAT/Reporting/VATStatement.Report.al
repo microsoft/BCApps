@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -205,8 +205,7 @@ report 12 "VAT Statement"
                             end;
                         end;
                     }
-#endif
-#if not CLEAN29
+#if not CLEAN30
                     field(ActivityCode; ActivityCode)
                     {
                         ApplicationArea = Basic, Suite;
@@ -216,7 +215,7 @@ report 12 "VAT Statement"
                         ToolTip = 'Specifies the activity code that is assigned to the VAT settlement transaction.';
                         ObsoleteReason = 'Replaced by the Business Activity Code field.';
                         ObsoleteState = Pending;
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '30.0';
                     }
 #endif
                     field("Business Activity Code"; ActivityCode)
@@ -395,7 +394,7 @@ report 12 "VAT Statement"
                     VATEntry.SetRange(Type, VATStmtLine2."Gen. Posting Type");
                     if GLSetup."Use Business Activity Code" then
                         VATEntry.SetFilter("Business Activity Code", "VAT Statement Line".GetFilter("Business Activity Code Filter"));
-#if not CLEAN29
+#if not CLEAN30
                     if GLSetup."Use Activity Code" and not GLSetup."Use Business Activity Code" then
                         VATEntry.SetFilter("Activity Code", "VAT Statement Line".GetFilter("Activity Code Filter"));
 #endif
@@ -518,24 +517,6 @@ report 12 "VAT Statement"
                     case Selection of
                         Selection::Open:
 
-#if not CLEAN27
-                            if VATSettlementByActivityCodeIsEnabled then begin
-                                PeriodVATSettlEntry.Reset();
-                                PeriodVATSettlEntry.SetCurrentKey("VAT Period Closed");
-                                PeriodVATSettlEntry.SetRange("VAT Period Closed", false);
-                                if GLSetup."Use Business Activity Code" then
-                                    PeriodVATSettlEntry.SetRange("Business Activity Code", ActivityCode)
-#if not CLEAN29
-                                else
-                                    PeriodVATSettlEntry.SetRange("Activity Code", ActivityCode)
-#endif
-                                ;
-                            end else begin
-                                PeriodicSettlVATEntry.Reset();
-                                PeriodicSettlVATEntry.SetCurrentKey("VAT Period Closed");
-                                PeriodicSettlVATEntry.SetRange("VAT Period Closed", false);
-                            end;
-#else
                             begin
                                 PeriodVATSettlEntry.Reset();
                                 PeriodVATSettlEntry.SetCurrentKey("VAT Period Closed");
@@ -544,22 +525,6 @@ report 12 "VAT Statement"
                             end;
 
                         Selection::Closed:
-#if not CLEAN27
-                            if VATSettlementByActivityCodeIsEnabled then begin
-                                PeriodVATSettlEntry.Reset();
-                                PeriodVATSettlEntry.SetRange("VAT Period", VATPeriod);
-                                if GLSetup."Use Business Activity Code" then
-                                    PeriodVATSettlEntry.SetRange("Business Activity Code", ActivityCode)
-#if not CLEAN29
-                                else
-                                    PeriodVATSettlEntry.SetRange("Activity Code", ActivityCode)
-#endif
-                                ;
-                            end else begin
-                                PeriodicSettlVATEntry.Reset();
-                                PeriodicSettlVATEntry.SetRange("VAT Period", VATPeriod);
-                            end;
-#else
                             begin
                                 PeriodVATSettlEntry.Reset();
                                 PeriodVATSettlEntry.SetRange("VAT Period", VATPeriod);

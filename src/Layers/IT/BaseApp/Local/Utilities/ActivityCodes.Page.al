@@ -1,8 +1,8 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-#if not CLEAN29
+#if not CLEAN30
 namespace Microsoft.Utilities;
 
 page 12124 "Activity Codes"
@@ -13,7 +13,7 @@ page 12124 "Activity Codes"
     UsageCategory = Lists;
     ObsoleteReason = 'Replaced by the Business Activity Codes page.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
 
     layout
     {

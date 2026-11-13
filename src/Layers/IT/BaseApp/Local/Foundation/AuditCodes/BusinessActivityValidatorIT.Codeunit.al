@@ -12,7 +12,7 @@ codeunit 12105 "Business Activity Validator IT" implements "Business Activity Va
             Error(InvalidBusinessActivityCodeLengthErr, Code);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Business Activity Code Mgt.", OnGetValidator, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Business Activity Code Mgt.", OnBeforeValidate, '', false, false)]
     local procedure SetItalianValidator(CountryRegionCode: Code[10]; var BusinessActivityValidator: Interface "Business Activity Validator"; var IsHandled: Boolean)
     begin
         if not (CountryRegionCode in ['', 'IT']) then

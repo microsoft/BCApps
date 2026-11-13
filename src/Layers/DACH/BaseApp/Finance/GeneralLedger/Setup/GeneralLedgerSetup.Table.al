@@ -1442,6 +1442,7 @@ table 98 "General Ledger Setup"
         field(395; "Use Business Activity Code"; Boolean)
         {
             Caption = 'Use Business Activity Code';
+            DataClassification = CustomerContent;
         }
         field(11003; "Currency Code For EURO"; Code[10])
         {

@@ -937,6 +937,7 @@ table 114 "Sales Cr.Memo Header"
         field(395; "Business Activity Code"; Code[10])
         {
             Caption = 'Business Activity Code';
+            DataClassification = CustomerContent;
             Editable = false;
             TableRelation = "Business Activity".Code;
         }

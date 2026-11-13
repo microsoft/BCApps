@@ -27,14 +27,15 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
                 ApplicationArea = Service;
                 ToolTip = 'Specifies the operation type that is assigned to the posted service shipment.';
             }
-#if not CLEAN29
+#if not CLEAN30
             field("Activity Code"; Rec."Activity Code")
             {
                 ApplicationArea = Service;
                 ToolTip = 'Specifies the code for the company''s primary activity.';
+                Visible = false;
                 ObsoleteReason = 'Replaced by the Business Activity Code field.';
                 ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '30.0';
             }
 #endif
         }

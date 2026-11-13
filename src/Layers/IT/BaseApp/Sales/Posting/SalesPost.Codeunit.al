@@ -544,7 +544,7 @@ codeunit 80 "Sales-Post"
 
         if ICGenJnlLineNo > 0 then
             PostICGenJnl(
-#if not CLEAN29
+#if not CLEAN30
                  SalesHeader."Activity Code",
 #endif
                  SalesHeader."Business Activity Code");
@@ -5966,7 +5966,7 @@ codeunit 80 "Sales-Post"
     end;
 
     local procedure PostICGenJnl(
-#if not CLEAN29
+#if not CLEAN30
         ActivityCode: Code[6];
 #endif
         BusinessActivityCode: Code[10])
@@ -5982,7 +5982,7 @@ codeunit 80 "Sales-Post"
                 ICTransactionNo := ICInOutBoxMgt.CreateOutboxJnlTransaction(TempICGenJnlLine, false);
                 ICInOutBoxMgt.CreateOutboxJnlLine(ICTransactionNo, 1, TempICGenJnlLine);
                 ICOutboxExport.ProcessAutoSendOutboxTransactionNo(ICTransactionNo);
-#if not CLEAN29
+#if not CLEAN30
                 TempICGenJnlLine."Activity Code" := ActivityCode;
 #endif
                 TempICGenJnlLine."Business Activity Code" := BusinessActivityCode;

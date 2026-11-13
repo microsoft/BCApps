@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+ï»¿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1264,7 +1264,7 @@ table 98 "General Ledger Setup"
         field(188; "Control VAT Period"; Enum "VAT Period Control")
         {
             Caption = 'Control VAT Period';
-            ToolTip = 'Specifies a way of using VAT Date against VAT Return Periods. If you choose Block posting within closed and warn for released period, system will not allow postings in closed VAT Return Period, but if the period is not closed, but VAT returns are released or submitted, user will be warned what try to post an entry with VAT Date in this period. If you choose Block posting within closed period, system will still not allow postings in closed VAT Return Period, but there will be no warnings for release or submitted VAT returns. If you choose ˜Warn when posting in closed period, system will not block posting entry with VAT Date in the closed VAT return period, but it will show warning message before posting. And if you choose ˜Disabled options, system will allow you to post without any control regardless of VAT return or period status.';
+            ToolTip = 'Specifies a way of using VAT Date against VAT Return Periods. If you choose Block posting within closed and warn for released period, system will not allow postings in closed VAT Return Period, but if the period is not closed, but VAT returns are released or submitted, user will be warned what try to post an entry with VAT Date in this period. If you choose Block posting within closed period, system will still not allow postings in closed VAT Return Period, but there will be no warnings for release or submitted VAT returns. If you choose ËœWarn when posting in closed period, system will not block posting entry with VAT Date in the closed VAT return period, but it will show warning message before posting. And if you choose ËœDisabled options, system will allow you to post without any control regardless of VAT return or period status.';
 
             trigger OnValidate()
             begin
@@ -1442,6 +1442,7 @@ table 98 "General Ledger Setup"
         field(395; "Use Business Activity Code"; Boolean)
         {
             Caption = 'Use Business Activity Code';
+            DataClassification = CustomerContent;
         }
         field(12100; "Use Document Date in Currency"; Boolean)
         {
@@ -1515,13 +1516,18 @@ table 98 "General Ledger Setup"
         {
             Caption = 'Validate loc.VAT Reg. No.';
         }
-#if not CLEAN29
+#if not CLEANSCHEMA33
         field(12131; "Use Activity Code"; Boolean)
         {
             Caption = 'Use Activity Code';
             ObsoleteReason = 'Replaced by the Use Business Activity Code field.';
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
 #endif
     }

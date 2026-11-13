@@ -241,8 +241,10 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeLocationBinPolicySetups();
         UpgradeInventorySetupAllowInvtAdjmt();
         UpgradeNoSeriesIT();
-#if not CLEAN29
+#if not CLEAN30
         UpgradeBusinessActivityCodes();
+#endif
+#if not CLEAN29
         UpgradeDirectTransferPostingToEnum();
 #endif
         UpgradeDirectTransferOnTransferRoute();
@@ -3849,16 +3851,21 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetInitShipToPhoneNoUpgradeTag());
     end;
 
-#if not CLEAN29
-    local procedure UpgradeBusinessActivityCodes()
+#if not CLEAN30
+    internal procedure UpgradeBusinessActivityCodes()
     var
         ActivityCode: Record "Activity Code";
         BusinessActivity: Record "Business Activity";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        CreatedBusinessActivityCount: Integer;
     begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetBusinessActivityCodeUpgradeTag()) then
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetBusinessActivityCodeUpgradeTag()) then begin
+            LogBusinessActivityCodeUpgrade('Skipped', 0);
             exit;
+        end;
+
+        LogBusinessActivityCodeUpgrade('Started', 0);
 
         if ActivityCode.FindSet() then
             repeat
@@ -3867,44 +3874,55 @@ codeunit 104000 "Upgrade - BaseApp"
                     BusinessActivity.Code := ActivityCode.Code;
                     BusinessActivity.Description := ActivityCode.Description;
                     BusinessActivity.Insert();
+                    CreatedBusinessActivityCount += 1;
                 end;
             until ActivityCode.Next() = 0;
 
-        CopyBusinessActivityCodeField(Database::"Gen. Journal Line", 12123);
-        CopyBusinessActivityCodeField(Database::"Posted Gen. Journal Line", 12123);
-        CopyBusinessActivityCodeField(Database::"General Ledger Setup", 12131);
-        CopyBusinessActivityCodeField(Database::"VAT Entry", 12123);
-        CopyBusinessActivityCodeField(Database::"VAT Statement Line", 12125);
-        CopyBusinessActivityCodeField(Database::"VAT Statement Name", 12125);
-        CopyBusinessActivityCodeField(Database::"VAT Setup", 24);
-        CopyBusinessActivityCodeField(Database::"Company Information", 12124);
-        CopyBusinessActivityCodeField(Database::"Periodic VAT Settlement Entry", 1);
-        CopyBusinessActivityCodeField(Database::"Purchase Header Archive", 12123);
-        CopyBusinessActivityCodeField(Database::"Purchase Header", 12123);
-        CopyBusinessActivityCodeField(Database::"Purch. Cr. Memo Hdr.", 12123);
-        CopyBusinessActivityCodeField(Database::"Purch. Inv. Header", 12123);
-        CopyBusinessActivityCodeField(Database::"Sales Header Archive", 12123);
-        CopyBusinessActivityCodeField(Database::"Sales Header", 12123);
-        CopyBusinessActivityCodeField(Database::"Finance Charge Memo Header", 12123);
-        CopyBusinessActivityCodeField(Database::"Issued Fin. Charge Memo Header", 12123);
-        CopyBusinessActivityCodeField(Database::"Sales Cr.Memo Header", 12123);
-        CopyBusinessActivityCodeField(Database::"Sales Invoice Header", 12123);
-        CopyBusinessActivityCodeField(Database::"Service Header Archive", 12123);
-        CopyBusinessActivityCodeField(Database::"Filed Service Contract Header", 12123);
-        CopyBusinessActivityCodeField(Database::"Service Contract Header", 12123);
-        CopyBusinessActivityCodeField(Database::"Service Header", 12123);
-        CopyBusinessActivityCodeField(Database::"Service Cr.Memo Header", 12123);
-        CopyBusinessActivityCodeField(Database::"Service Invoice Header", 12123);
+        CopyBusinessActivityCodeField(Database::"Gen. Journal Line", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Posted Gen. Journal Line", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"General Ledger Setup", 12131, 395);
+        CopyBusinessActivityCodeField(Database::"VAT Entry", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Company Information", 12124, 395);
+        CopyBusinessActivityCodeField(Database::"Purchase Header Archive", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Purchase Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Purch. Cr. Memo Hdr.", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Purch. Inv. Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Sales Header Archive", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Sales Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Finance Charge Memo Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Issued Fin. Charge Memo Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Sales Cr.Memo Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Sales Invoice Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Service Header Archive", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Filed Service Contract Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Service Contract Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Service Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Service Cr.Memo Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Service Invoice Header", 12123, 395);
 
+        LogBusinessActivityCodeUpgrade('Completed', CreatedBusinessActivityCount);
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetBusinessActivityCodeUpgradeTag());
     end;
 
-    local procedure CopyBusinessActivityCodeField(TableId: Integer; ActivityCodeFieldId: Integer)
+    local procedure LogBusinessActivityCodeUpgrade(Status: Text; CreatedBusinessActivityCount: Integer)
+    var
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        TelemetryDimensions: Dictionary of [Text, Text];
+        BusinessActivityCodeUpgradeTelemetryTxt: Label 'Business Activity Code upgrade status.', Locked = true;
+    begin
+        TelemetryDimensions.Add('Category', 'AL SaaS Upgrade');
+        TelemetryDimensions.Add('UpgradeTag', UpgradeTagDefinitions.GetBusinessActivityCodeUpgradeTag());
+        TelemetryDimensions.Add('Status', Status);
+        TelemetryDimensions.Add('CreatedBusinessActivityCount', Format(CreatedBusinessActivityCount, 0, 9));
+        Session.LogMessage('0000RQ1', BusinessActivityCodeUpgradeTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+    end;
+
+    local procedure CopyBusinessActivityCodeField(TableId: Integer; ActivityCodeFieldId: Integer; BusinessActivityCodeFieldId: Integer)
     var
         DataTransfer: DataTransfer;
     begin
         DataTransfer.SetTables(TableId, TableId);
-        DataTransfer.AddFieldValue(ActivityCodeFieldId, 12189);
+        DataTransfer.AddFieldValue(ActivityCodeFieldId, BusinessActivityCodeFieldId);
         DataTransfer.UpdateAuditFields := false;
         DataTransfer.CopyFields();
     end;

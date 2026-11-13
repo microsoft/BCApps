@@ -467,7 +467,7 @@ report 295 "Combine Shipments"
             ValidateCustomerNo(SalesHeader, SalesOrderHeader);
             SalesHeader.Validate("Bank Account", SalesOrderHeader."Bank Account");
             SalesHeader.Validate("Operation Type", OperationType.Code);
-#if not CLEAN29
+#if not CLEAN30
             SalesHeader.Validate("Activity Code", SalesOrderHeader."Activity Code");
 #endif
             SalesHeader.Validate("Business Activity Code", SalesOrderHeader."Business Activity Code");
@@ -603,7 +603,7 @@ report 295 "Combine Shipments"
           (SalesOrderHeader."Salesperson Code" <> SalesHeader."Salesperson Code") or
           (SalesOrderHeader."Payment Terms Code" <> SalesHeader."Payment Terms Code") or
           (SalesOrderHeader."Payment Method Code" <> SalesHeader."Payment Method Code") or
-#if not CLEAN29
+#if not CLEAN30
           (SalesOrderHeader."Activity Code" <> SalesHeader."Activity Code") or
 #endif
           (SalesOrderHeader."Business Activity Code" <> SalesHeader."Business Activity Code") or

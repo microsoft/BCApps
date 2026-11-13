@@ -7,6 +7,7 @@ namespace Microsoft.Service.Test;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Customer;
 using Microsoft.Service.Contract;
@@ -66,6 +67,7 @@ codeunit 136145 "Service Contracts II"
         ItemAInvoicedToDateErr: Label 'Item A "Invoiced to Date" must retain the posted invoice period end date after deleting the retrospective invoice.';
         ItemBInvoicedToDateErr: Label 'Item B "Invoiced to Date" must be 0D after deleting the retrospective invoice.';
         ItemCInvoicedToDateErr: Label 'Item C "Invoiced to Date" must be 0D after deleting the retrospective invoice.';
+        InvalidTableRelationErr: Label 'The field %1 of table %2 contains a value (%3) that cannot be found in the related table (%4).', Comment = '%1 - Validating Field Caption, %2 - Validating Table Caption, %3 - Validating Value, %4 - Related Table Caption';
 
     [Test]
     [HandlerFunctions('ServiceContractTemplateListHandler,CreateContractServiceOrdersRequestPageHandler,CreateContractInvoicesRequestPageHandler,YesConfirmHandler,MessageHandler')]
@@ -1063,6 +1065,136 @@ codeunit 136145 "Service Contracts II"
         // [THEN] Service contract is signed
         VerifyServiceContractStatus(
           ServiceContractHeader."Contract Type", ServiceContractHeader."Contract No.", ServiceContractHeader.Status::Signed);
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotCreateContrUsingTemplateConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure ServiceInvoiceFromContractPreservesBusinessActivityCode()
+    var
+        BusinessActivity: Record "Business Activity";
+        ServiceContractHeader: Record "Service Contract Header";
+        ServiceHeader: Record "Service Header";
+        ServContractManagement: Codeunit ServContractManagement;
+    begin
+        // [SCENARIO] A service invoice created from a service contract preserves its Business Activity Code.
+        Initialize();
+
+        LibraryService.CreateServiceContractHeader(
+            ServiceContractHeader, ServiceContractHeader."Contract Type"::Contract, CreateCustomer(false));
+        BusinessActivity.Code := LibraryUtility.GenerateRandomCode(BusinessActivity.FieldNo(Code), Database::"Business Activity");
+        BusinessActivity.Insert(true);
+        ServiceContractHeader.Validate("Business Activity Code", BusinessActivity.Code);
+        ServiceContractHeader.Modify(true);
+
+        ServiceHeader.Get(
+            ServiceHeader."Document Type"::Invoice,
+            ServContractManagement.CreateServHeader(ServiceContractHeader, WorkDate(), true));
+
+        Assert.AreEqual(
+            BusinessActivity.Code, ServiceHeader."Business Activity Code", ServiceHeader.FieldCaption("Business Activity Code"));
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotCreateContrUsingTemplateConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure ServiceInvoiceFromContractRejectsDeletedBusinessActivityCode()
+    var
+        BusinessActivity: Record "Business Activity";
+        ServiceContractHeader: Record "Service Contract Header";
+        ServiceHeader: Record "Service Header";
+        ServContractManagement: Codeunit ServContractManagement;
+    begin
+        // [SCENARIO] A service invoice cannot be created from a contract referencing a deleted Business Activity.
+        Initialize();
+
+        // [GIVEN] A service contract whose Business Activity has been deleted.
+        LibraryService.CreateServiceContractHeader(
+            ServiceContractHeader, ServiceContractHeader."Contract Type"::Contract, CreateCustomer(false));
+        BusinessActivity.Code := LibraryUtility.GenerateRandomCode(BusinessActivity.FieldNo(Code), Database::"Business Activity");
+        BusinessActivity.Insert(true);
+        ServiceContractHeader.Validate("Business Activity Code", BusinessActivity.Code);
+        ServiceContractHeader.Modify(true);
+        BusinessActivity.Delete(true);
+
+        // [WHEN] A service invoice is created from the contract.
+        asserterror ServContractManagement.CreateServHeader(ServiceContractHeader, WorkDate(), true);
+
+        // [THEN] The missing Business Activity is reported by field validation.
+        Assert.ExpectedError(
+            StrSubstNo(
+                InvalidTableRelationErr, ServiceHeader.FieldCaption("Business Activity Code"),
+                ServiceHeader.TableCaption(), BusinessActivity.Code, BusinessActivity.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('ServiceContractTemplateListHandler,YesConfirmHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure ServiceCreditMemoFromContractPreservesBusinessActivityCode()
+    var
+        BusinessActivity: Record "Business Activity";
+        ServiceContractAccountGroup: Record "Service Contract Account Group";
+        ServiceContractHeader: Record "Service Contract Header";
+        ServiceHeader: Record "Service Header";
+    begin
+        // [SCENARIO] A service credit memo created from a service contract preserves its Business Activity Code.
+        Initialize();
+
+        LibraryService.CreateServiceContractAcctGrp(ServiceContractAccountGroup);
+        LibraryService.CreateServiceContractHeader(
+            ServiceContractHeader, ServiceContractHeader."Contract Type"::Contract, CreateCustomer(false));
+        Evaluate(ServiceContractHeader."Service Period", '<1Y>');
+        CreateContractLineAndUpdateContract(
+            ServiceContractHeader, ServiceContractAccountGroup.Code, WorkDate(), ServiceContractHeader."Service Period");
+        BusinessActivity.Code := LibraryUtility.GenerateRandomCode(BusinessActivity.FieldNo(Code), Database::"Business Activity");
+        BusinessActivity.Insert(true);
+        ServiceContractHeader.Validate("Business Activity Code", BusinessActivity.Code);
+        ServiceContractHeader.Modify(true);
+        SignContract(ServiceContractHeader);
+        FindAndPostServiceInvoice(ServiceContractHeader."Contract No.");
+
+        CreateServiceCreditMemo(ServiceHeader, ServiceContractHeader);
+
+        Assert.AreEqual(
+            BusinessActivity.Code, ServiceHeader."Business Activity Code", ServiceHeader.FieldCaption("Business Activity Code"));
+    end;
+
+    [Test]
+    [HandlerFunctions('ServiceContractTemplateListHandler,YesConfirmHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure ServiceCreditMemoFromContractRejectsDeletedBusinessActivityCode()
+    var
+        BusinessActivity: Record "Business Activity";
+        ServiceContractAccountGroup: Record "Service Contract Account Group";
+        ServiceContractHeader: Record "Service Contract Header";
+        ServiceHeader: Record "Service Header";
+    begin
+        // [SCENARIO] A service credit memo cannot be created from a contract referencing a deleted Business Activity.
+        Initialize();
+
+        // [GIVEN] An invoiced service contract whose Business Activity has been deleted.
+        LibraryService.CreateServiceContractAcctGrp(ServiceContractAccountGroup);
+        LibraryService.CreateServiceContractHeader(
+            ServiceContractHeader, ServiceContractHeader."Contract Type"::Contract, CreateCustomer(false));
+        Evaluate(ServiceContractHeader."Service Period", '<1Y>');
+        CreateContractLineAndUpdateContract(
+            ServiceContractHeader, ServiceContractAccountGroup.Code, WorkDate(), ServiceContractHeader."Service Period");
+        BusinessActivity.Code := LibraryUtility.GenerateRandomCode(BusinessActivity.FieldNo(Code), Database::"Business Activity");
+        BusinessActivity.Insert(true);
+        ServiceContractHeader.Validate("Business Activity Code", BusinessActivity.Code);
+        ServiceContractHeader.Modify(true);
+        SignContract(ServiceContractHeader);
+        FindAndPostServiceInvoice(ServiceContractHeader."Contract No.");
+        BusinessActivity.Delete(true);
+
+        // [WHEN] A service credit memo is created from the contract.
+        asserterror CreateServiceCreditMemo(ServiceHeader, ServiceContractHeader);
+
+        // [THEN] The missing Business Activity is reported by field validation.
+        Assert.ExpectedError(
+            StrSubstNo(
+                InvalidTableRelationErr, ServiceHeader.FieldCaption("Business Activity Code"),
+                ServiceHeader.TableCaption(), BusinessActivity.Code, BusinessActivity.TableCaption()));
     end;
 
     [Test]

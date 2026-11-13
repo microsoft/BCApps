@@ -331,7 +331,7 @@ codeunit 90 "Purch.-Post"
 
         if ICGenJnlLineNo > 0 then
             PostICGenJnl(
-#if not CLEAN29
+#if not CLEAN30
                  PurchHeader."Activity Code",
 #endif
                  PurchHeader."Business Activity Code");
@@ -6006,7 +6006,7 @@ codeunit 90 "Purch.-Post"
     end;
 
     local procedure PostICGenJnl(
-#if not CLEAN29
+#if not CLEAN30
         ActivityCode: Code[6];
 #endif
         BusinessActivityCode: Code[10])
@@ -6022,7 +6022,7 @@ codeunit 90 "Purch.-Post"
                 ICInboxOutboxMgt.CreateOutboxJnlLine(ICTransactionNo, 1, TempICGenJnlLine);
                 ICOutboxExport.ProcessAutoSendOutboxTransactionNo(ICTransactionNo);
                 if TempICGenJnlLine.Amount <> 0 then begin
-#if not CLEAN29
+#if not CLEAN30
                     TempICGenJnlLine."Activity Code" := ActivityCode;
 #endif
                     TempICGenJnlLine."Business Activity Code" := BusinessActivityCode;

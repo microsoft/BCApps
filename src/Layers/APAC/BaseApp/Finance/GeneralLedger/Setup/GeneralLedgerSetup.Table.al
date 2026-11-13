@@ -1445,6 +1445,7 @@ table 98 "General Ledger Setup"
         field(395; "Use Business Activity Code"; Boolean)
         {
             Caption = 'Use Business Activity Code';
+            DataClassification = CustomerContent;
         }
         field(11600; "BAS to be Lodged as a Group"; Boolean)
         {

@@ -666,7 +666,7 @@ codeunit 144015 "IT - Calc. And Post VAT Settl."
         VATSetup: Record "VAT Setup";
     begin
         VATSetup.Get();
-        VATSetup.Validate("Per Business Activity Code Settl. Entry", NewValue);
+        VATSetup.Validate("Per Activity Code Settl. Entry", NewValue);
         VATSetup.Modify();
     end;
 
@@ -684,7 +684,7 @@ codeunit 144015 "IT - Calc. And Post VAT Settl."
 
     local procedure ClearEverything()
     var
-        ActivityCode: Record "Business Activity Code";
+        ActivityCode: Record "Business Activity";
         AccountingPeriod: Record "Accounting Period";
         PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
         VATEntry: Record "VAT Entry";
@@ -884,7 +884,7 @@ codeunit 144015 "IT - Calc. And Post VAT Settl."
     begin
         PeriodicVATSettlementEntry.Init();
         VATPeriod := Format(Date2DMY(PeriodDate, 3)) + '/' + ConvertStr(Format(Date2DMY(PeriodDate, 2), 2), ' ', '0');
-        PeriodicVATSettlementEntry.Validate("Business Activity Code", ActivityCode);
+        PeriodicVATSettlementEntry.Validate("Activity Code", ActivityCode);
         PeriodicVATSettlementEntry.Validate("VAT Period", VATPeriod);
         PeriodicVATSettlementEntry.Validate("Prior Period Input VAT", InputAmount);
         PeriodicVATSettlementEntry.Validate("Prior Period Output VAT", OutputAmount);
@@ -893,12 +893,12 @@ codeunit 144015 "IT - Calc. And Post VAT Settl."
 
     local procedure CreateActivityCode(): Code[10]
     var
-        ActivityCode: Record "Business Activity Code";
+        ActivityCode: Record "Business Activity";
     begin
         ActivityCode.Init();
         ActivityCode.Validate(
           Code,
-                    CopyStr(LibraryUtility.GenerateRandomCode(ActivityCode.FieldNo(Code), DATABASE::"Business Activity Code"), 1, 6));
+          CopyStr(LibraryUtility.GenerateRandomCode(ActivityCode.FieldNo(Code), DATABASE::"Business Activity"), 1, 6));
         ActivityCode.Insert(true);
         ActivityCode.Validate(Description, ActivityCode.Code); // Validating description with code as value is not important.
         ActivityCode.Modify(true);

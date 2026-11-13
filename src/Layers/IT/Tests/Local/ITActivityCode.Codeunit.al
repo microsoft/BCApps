@@ -20,6 +20,7 @@ codeunit 144003 "IT - Business Activity Code"
         Assert: Codeunit Assert;
         IsInitialized: Boolean;
         IncorrectFieldLengthErr: Label '%1 should be of length %2 only';
+        InvalidBusinessActivityCodeLengthErr: Label 'The business activity code %1 cannot be longer than 6 characters in Italy.', Comment = '%1 = Business activity code';
         MissingActivityCodeErr: Label '%1 must have a value in %2: %3=%4, %5=%6. It cannot be zero or empty.';
         MissingActivityCodeOnJournalErr: Label '%1 must have a value in %2: %3=%4, %5=%6, %7=%8. It cannot be zero or empty.';
 
@@ -27,56 +28,203 @@ codeunit 144003 "IT - Business Activity Code"
     [Scope('OnPrem')]
     procedure MaximumLengthOfBusinessActivityCodeField()
     var
-        BusinessActivityCode: Record "Business Activity Code";
+        BusinessActivity: Record "Business Activity";
     begin
         // [SCENARIO 338450] Business Activity Code table stores codes of length 10
         Initialize();
 
         // [THEN] Verify the length of the Code field on Business Activity Code table.
         Assert.AreEqual(
-          10, LibraryUtility.GetFieldLength(Database::"Business Activity Code", 1), StrSubstNo(IncorrectFieldLengthErr, BusinessActivityCode.FieldCaption(Code), 10));
+          10, LibraryUtility.GetFieldLength(Database::"Business Activity", 1), StrSubstNo(IncorrectFieldLengthErr, BusinessActivity.FieldCaption(Code), 10));
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure LegacyActivityCodeFieldKeepsMaximumLength()
     var
         ActivityCode: Record "Activity Code";
+        FieldLength: Integer;
     begin
+        // [SCENARIO] The retained legacy Activity Code field keeps its six-character length.
+        // [GIVEN] The legacy schema is available.
         Initialize();
 
+        // [WHEN] The maximum length of the legacy Code field is inspected.
+        FieldLength := LibraryUtility.GetFieldLength(Database::"Activity Code", 1);
+
+        // [THEN] The maximum length remains six characters.
         Assert.AreEqual(
-          6, LibraryUtility.GetFieldLength(Database::"Activity Code", 1), StrSubstNo(IncorrectFieldLengthErr, ActivityCode.FieldCaption(Code), 6));
+          6, FieldLength, StrSubstNo(IncorrectFieldLengthErr, ActivityCode.FieldCaption(Code), 6));
     end;
+
+#pragma warning disable AL0432
+    [Test]
+    [Scope('OnPrem')]
+    procedure UpgradeMigratesLegacyBusinessActivityData()
+    var
+        ActivityCode: Record "Activity Code";
+        BusinessActivity: Record "Business Activity";
+        GenJournalLine: Record "Gen. Journal Line";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
+        VATSetup: Record "VAT Setup";
+        UpgradeBaseApp: Codeunit "Upgrade - BaseApp";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        // [SCENARIO] Upgrade migrates activity data while preserving the existing IT settlement activity code.
+        Initialize();
+        RemoveBusinessActivityUpgradeTag();
+        CreateLegacyActivityCode(ActivityCode);
+        CreateGenJournalLine(GenJournalLine);
+        GenJournalLine."Activity Code" := ActivityCode.Code;
+        GenJournalLine."Business Activity Code" := '';
+        GenJournalLine.Modify();
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Use Activity Code" := true;
+        GeneralLedgerSetup."Use Business Activity Code" := false;
+        GeneralLedgerSetup.Modify();
+        PeriodicVATSettlementEntry.Init();
+        PeriodicVATSettlementEntry."VAT Period" := Format(WorkDate(), 0, '<Year4>-<Month,2>');
+        PeriodicVATSettlementEntry."Activity Code" := ActivityCode.Code;
+        PeriodicVATSettlementEntry.Insert();
+        if not VATSetup.Get() then
+            VATSetup.Insert();
+        VATSetup."Per Activity Code Settl. Entry" := true;
+        VATSetup.Modify();
+
+        UpgradeBaseApp.UpgradeBusinessActivityCodes();
+
+        BusinessActivity.Get(ActivityCode.Code);
+        Assert.AreEqual(ActivityCode.Description, BusinessActivity.Description, BusinessActivity.FieldCaption(Description));
+        GenJournalLine.Find();
+        GenJournalLine.TestField("Business Activity Code", ActivityCode.Code);
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.TestField("Use Business Activity Code", true);
+        PeriodicVATSettlementEntry.Get(PeriodicVATSettlementEntry."VAT Period", ActivityCode.Code);
+        PeriodicVATSettlementEntry.TestField("Activity Code", ActivityCode.Code);
+        VATSetup.Get();
+        VATSetup.TestField("Per Activity Code Settl. Entry", true);
+        Assert.IsTrue(
+            UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetBusinessActivityCodeUpgradeTag()), 'Business activity upgrade must be tagged.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BusinessActivityUpgradePreservesExistingDataAndRunsOnce()
+    var
+        ActivityCode: Record "Activity Code";
+        BusinessActivity: Record "Business Activity";
+        GenJournalLine: Record "Gen. Journal Line";
+        UpgradeBaseApp: Codeunit "Upgrade - BaseApp";
+        NewBusinessActivityCode: Code[10];
+    begin
+        // [SCENARIO] Existing business activities are preserved and a tagged upgrade does not overwrite subsequent changes.
+        Initialize();
+        RemoveBusinessActivityUpgradeTag();
+        CreateLegacyActivityCode(ActivityCode);
+        BusinessActivity.Code := ActivityCode.Code;
+        BusinessActivity.Description := 'Existing business activity';
+        BusinessActivity.Insert();
+        CreateGenJournalLine(GenJournalLine);
+        GenJournalLine."Activity Code" := ActivityCode.Code;
+        GenJournalLine."Business Activity Code" := '';
+        GenJournalLine.Modify();
+        UpgradeBaseApp.UpgradeBusinessActivityCodes();
+        BusinessActivity.Get(ActivityCode.Code);
+        BusinessActivity.TestField(Description, 'Existing business activity');
+        GenJournalLine.Find();
+        GenJournalLine.TestField("Business Activity Code", ActivityCode.Code);
+        NewBusinessActivityCode := CreateBusinessActivityCode();
+        GenJournalLine."Business Activity Code" := NewBusinessActivityCode;
+        GenJournalLine.Modify();
+
+        UpgradeBaseApp.UpgradeBusinessActivityCodes();
+
+        GenJournalLine.Find();
+        GenJournalLine.TestField("Business Activity Code", NewBusinessActivityCode);
+    end;
+
+    local procedure CreateLegacyActivityCode(var ActivityCode: Record "Activity Code")
+    begin
+        ActivityCode.Init();
+        ActivityCode.Code :=
+            CopyStr(LibraryUtility.GenerateRandomCode(ActivityCode.FieldNo(Code), Database::"Activity Code"), 1, MaxStrLen(ActivityCode.Code));
+        ActivityCode.Description := ActivityCode.Code;
+        ActivityCode.Insert();
+    end;
+
+    local procedure RemoveBusinessActivityUpgradeTag()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetBusinessActivityCodeUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgradeTagDefinitions.GetBusinessActivityCodeUpgradeTag(), CompanyName());
+    end;
+#pragma warning restore AL0432
 #endif
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PeriodicVATSettlementUsesBusinessActivityWithExistingKey()
+    var
+        PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
+        VATSetup: Record "VAT Setup";
+        PeriodicVATSettlement: Codeunit "Periodic VAT Settlement";
+        BusinessActivityCode: Code[10];
+        VATPeriod: Code[10];
+    begin
+        // [SCENARIO] Splitting uses Business Activity master data and the unchanged Activity Code primary key.
+        Initialize();
+        BusinessActivityCode := CreateBusinessActivityCode();
+        VATPeriod := Format(WorkDate(), 0, '<Year4>-<Month,2>');
+        if not VATSetup.Get() then
+            VATSetup.Insert();
+        VATSetup."Per Activity Code Settl. Entry" := false;
+        VATSetup.Modify();
+
+        PeriodicVATSettlement.CreateSeparateEntries(VATPeriod);
+
+        PeriodicVATSettlementEntry.Get(VATPeriod, BusinessActivityCode);
+        PeriodicVATSettlementEntry.TestField("Activity Code", BusinessActivityCode);
+    end;
 
     [Test]
     [Scope('OnPrem')]
     procedure BusinessActivityCodeLongerThanSixCharactersIsNotValidInItaly()
     var
-        BusinessActivityCode: Record "Business Activity Code";
+        BusinessActivity: Record "Business Activity";
+        InvalidCode: Code[10];
     begin
         Initialize();
+        InvalidCode := '1234567';
 
-        asserterror BusinessActivityCode.Validate(Code, '1234567');
+        asserterror BusinessActivity.Validate(Code, InvalidCode);
 
-        Assert.ExpectedError('cannot be longer than 6 characters in Italy');
+        Assert.ExpectedError(StrSubstNo(InvalidBusinessActivityCodeLengthErr, InvalidCode));
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure BusinessActivityCodeCanHaveTenCharactersOutsideItaly()
     var
-        BusinessActivityCode: Record "Business Activity Code";
+        BusinessActivity: Record "Business Activity";
         CompanyInformation: Record "Company Information";
+        OriginalCountryRegionCode: Code[10];
     begin
         Initialize();
         CompanyInformation.Get();
+        OriginalCountryRegionCode := CompanyInformation."Country/Region Code";
         CompanyInformation."Country/Region Code" := 'DE';
         CompanyInformation.Modify();
 
-        BusinessActivityCode.Validate(Code, '1234567890');
+        BusinessActivity.Validate(Code, '1234567890');
+
+        CompanyInformation."Country/Region Code" := OriginalCountryRegionCode;
+        CompanyInformation.Modify();
     end;
 
     [Test]
@@ -442,18 +590,18 @@ codeunit 144003 "IT - Business Activity Code"
           PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandInt(10));
     end;
 
-        local procedure CreateBusinessActivityCode(): Code[10]
+    local procedure CreateBusinessActivityCode(): Code[10]
     var
-                BusinessActivityCode: Record "Business Activity Code";
+        BusinessActivity: Record "Business Activity";
     begin
-                BusinessActivityCode.Init();
-                BusinessActivityCode.Validate(
+        BusinessActivity.Init();
+        BusinessActivity.Validate(
           Code,
-                    CopyStr(LibraryUtility.GenerateRandomCode(BusinessActivityCode.FieldNo(Code), DATABASE::"Business Activity Code"), 1, 6));
-                BusinessActivityCode.Insert(true);
-                BusinessActivityCode.Validate(Description, BusinessActivityCode.Code);
-                BusinessActivityCode.Modify(true);
-                exit(BusinessActivityCode.Code);
+          CopyStr(LibraryUtility.GenerateRandomCode(BusinessActivity.FieldNo(Code), DATABASE::"Business Activity"), 1, 6));
+        BusinessActivity.Insert(true);
+        BusinessActivity.Validate(Description, BusinessActivity.Code);
+        BusinessActivity.Modify(true);
+        exit(BusinessActivity.Code);
     end;
 
     local procedure CreateRecurringGenJournalLine(var GenJournalLine: Record "Gen. Journal Line")

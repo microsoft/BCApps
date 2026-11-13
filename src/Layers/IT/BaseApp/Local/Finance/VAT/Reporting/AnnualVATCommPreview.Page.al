@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,16 +33,17 @@ page 12127 "Annual VAT Comm. Preview"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the name.';
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("Activity Code"; ActivityCode)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Activity Code';
                     TableRelation = "Activity Code".Code;
                     ToolTip = 'Specifies a code that describes a primary activity for the company.';
+                    Visible = false;
                     ObsoleteReason = 'Replaced by the Business Activity Code field.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
 
                     trigger OnValidate()
                     begin

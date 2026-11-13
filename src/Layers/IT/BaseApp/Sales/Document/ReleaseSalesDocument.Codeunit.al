@@ -139,7 +139,7 @@ codeunit 414 "Release Sales Document"
         ReleaseATOs(SalesHeader);
         OnAfterReleaseATOs(SalesHeader, SalesLine, PreviewMode);
         GeneralLedgerSetup.GetRecordOnce();
-#if not CLEAN29
+#if not CLEAN30
         if GeneralLedgerSetup."Use Activity Code" then
             SalesHeader.TestField("Activity Code");
 #endif

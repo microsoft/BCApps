@@ -1460,6 +1460,7 @@ table 98 "General Ledger Setup"
         field(395; "Use Business Activity Code"; Boolean)
         {
             Caption = 'Use Business Activity Code';
+            DataClassification = CustomerContent;
         }
 #if not CLEANSCHEMA30
         field(10800; "Posting Allowed From"; Date)

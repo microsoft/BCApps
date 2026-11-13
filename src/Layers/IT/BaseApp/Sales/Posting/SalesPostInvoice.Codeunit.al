@@ -529,7 +529,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
             InvoicePostingParameters."External Document No.", InvoicePostingParameters."Source Code", '');
 
         GenJnlLine.CopyFromSalesHeader(SalesHeader);
-#if not CLEAN29
+#if not CLEAN30
         if GLSetup."Use Activity Code" then
             GenJnlLine."Activity Code" := SalesHeader."Activity Code";
 #endif

@@ -256,14 +256,21 @@ table 256 "VAT Statement Line"
                     Print := true;
             end;
         }
-#if not CLEAN29
+#if not CLEANSCHEMA33
         field(12125; "Activity Code Filter"; Code[6])
         {
             FieldClass = FlowFilter;
+#if not CLEAN30
             TableRelation = "Activity Code".Code;
+#endif
             ObsoleteReason = 'Replaced by the Business Activity Code Filter field.';
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
 #endif
         field(12126; "Document Type"; Enum "Gen. Journal Document Type")

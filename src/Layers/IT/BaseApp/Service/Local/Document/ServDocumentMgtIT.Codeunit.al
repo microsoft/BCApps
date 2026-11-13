@@ -385,7 +385,7 @@ codeunit 12140 "Serv. Document Mgt. IT"
     end;
 
 
-#if not CLEAN29
+#if not CLEAN30
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"ServContractManagement", 'OnBeforeServHeaderModify', '', false, false)]
     local procedure ServiceContract_OnBeforeServHeaderModify(var ServiceHeader: Record "Service Header"; ServiceContractHeader: Record "Service Contract Header")
     var

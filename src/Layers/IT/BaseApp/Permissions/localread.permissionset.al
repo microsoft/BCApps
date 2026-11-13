@@ -32,7 +32,7 @@ permissionset 1002 "LOCAL READ"
     Caption = 'Country/region-specific read only access.';
 
     Permissions = tabledata "ABI/CAB Codes" = R,
-#if not CLEAN29
+#if not CLEAN30
                   tabledata "Activity Code" = R,
 #endif
                   tabledata "Business Activity" = R,

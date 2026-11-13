@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -102,7 +102,7 @@ page 475 "VAT Statement Preview Line"
                                     VATEntry.SetRange("Use Tax", Rec."Use Tax");
                                     VATEntry.SetRange("Operation Occurred Date");
                                     GeneralLedgerSetup.GetRecordOnce();
-#if not CLEAN29
+#if not CLEAN30
                                     if GeneralLedgerSetup."Use Activity Code" and not GeneralLedgerSetup."Use Business Activity Code" then
                                         VATEntry.SetFilter("Activity Code", Rec.GetFilter("Activity Code Filter"));
 #endif
@@ -211,7 +211,7 @@ page 475 "VAT Statement Preview Line"
         Rec.SetRange("Statement Name", VATStmtName.Name);
         VATStmtName.CopyFilter("Date Filter", Rec."Date Filter");
         GeneralLedgerSetup.GetRecordOnce();
-#if not CLEAN29
+#if not CLEAN30
         if GeneralLedgerSetup."Use Activity Code" then
             VATStmtName.CopyFilter("Activity Code Filter", Rec."Activity Code Filter");
 #endif

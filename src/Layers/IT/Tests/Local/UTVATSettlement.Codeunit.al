@@ -238,12 +238,12 @@ codeunit 144186 "UT VAT Settlement"
 
     local procedure CreateActivityCode(): Code[10]
     var
-        ActivityCode: Record "Business Activity Code";
+        ActivityCode: Record "Business Activity";
     begin
         ActivityCode.Init();
         ActivityCode.Validate(
           Code,
-                    CopyStr(LibraryUtility.GenerateRandomCode(ActivityCode.FieldNo(Code), DATABASE::"Business Activity Code"), 1, 6));
+          CopyStr(LibraryUtility.GenerateRandomCode(ActivityCode.FieldNo(Code), DATABASE::"Business Activity"), 1, 6));
         ActivityCode.Insert(true);
         ActivityCode.Validate(Description, ActivityCode.Code); // Validating description with code as value is not important.
         ActivityCode.Modify(true);

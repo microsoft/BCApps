@@ -418,7 +418,7 @@ codeunit 444 "Purchase-Post Prepayments"
         GLSetup.GetRecordOnce();
         if GLSetup."Journal Templ. Name Mandatory" then
             PurchHeader.TestField("Journal Templ. Name");
-#if not CLEAN29
+#if not CLEAN30
         if GLSetup."Use Activity Code" then
             PurchHeader.TestField("Activity Code");
 #endif

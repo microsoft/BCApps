@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -382,7 +382,7 @@ report 12126 "Annual VAT Comm. - 2010"
                             if ACTION::LookupOK = PAGE.RunModal(0, "VAT Statement Name", "VAT Statement Name".Name) then;
                         end;
                     }
-#if not CLEAN29
+#if not CLEAN30
                     field(ActivityCode; ActivityCode2.Code)
                     {
                         ApplicationArea = Basic, Suite;
@@ -391,7 +391,7 @@ report 12126 "Annual VAT Comm. - 2010"
                         ToolTip = 'Specifies a code that describes a primary activity for the company.';
                         ObsoleteReason = 'Replaced by the Business Activity Code field.';
                         ObsoleteState = Pending;
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '30.0';
                     }
 #endif
                     field(BusinessActivityCode; BusinessActivity.Code)
@@ -481,7 +481,7 @@ report 12126 "Annual VAT Comm. - 2010"
             Clear(AppointmentCode);
 
         "VAT Statement Name".SetRange("Statement Template Name", "VAT Statement Name"."Statement Template Name");
-#if not CLEAN29
+#if not CLEAN30
         if GeneralLedgerSetup."Use Activity Code" then
             "VAT Statement Line".SetFilter("Activity Code Filter", '%1', ActivityCode2.Code);
 #endif
@@ -501,7 +501,7 @@ report 12126 "Annual VAT Comm. - 2010"
         Vendor: Record Vendor;
         AppointmentCode: Record "Appointment Code";
         BusinessActivity: Record "Business Activity";
-#if not CLEAN29
+#if not CLEAN30
         ActivityCode2: Record "Activity Code";
 #endif
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -599,7 +599,7 @@ report 12126 "Annual VAT Comm. - 2010"
         InitializeRequestWithBusinessActivityCode(NewStatementTemplateName, NewStatementName, '', NewAppointmentCode, NewStartDate, NewEndDate);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Scope('OnPrem')]
     procedure InitializeRequestWithActivityCode(NewStatementTemplateName: Code[20]; NewStatementName: Code[20]; NewActivityCode: Code[6]; NewAppointmentCode: Code[2]; NewStartDate: Date; NewEndDate: Date)
     begin

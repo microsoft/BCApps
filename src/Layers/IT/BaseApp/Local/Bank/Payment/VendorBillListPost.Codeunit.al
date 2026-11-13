@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -273,7 +273,7 @@ codeunit 12173 "Vendor Bill List - Post"
         GenJnlLine.Validate(Amount, VendorBillHeader."Bank Expense");
         if PurchInvHeader.GET(VendLedgEntry."Document No.") then begin
             GeneralLedgerSetup.GetRecordOnce();
-#if not CLEAN29
+#if not CLEAN30
             if GeneralLedgerSetup."Use Activity Code" then
                 GenJnlLine.Validate("Activity Code", PurchInvHeader."Activity Code");
 #endif

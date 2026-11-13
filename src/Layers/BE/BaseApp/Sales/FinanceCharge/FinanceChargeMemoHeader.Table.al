@@ -586,6 +586,7 @@ table 302 "Finance Charge Memo Header"
         field(395; "Business Activity Code"; Code[10])
         {
             Caption = 'Business Activity Code';
+            DataClassification = CustomerContent;
             TableRelation = "Business Activity".Code;
         }
         /// <summary>
@@ -664,9 +665,9 @@ table 302 "Finance Charge Memo Header"
         if "No." = '' then begin
             TestNoSeries();
             "No. Series" := GetNoSeriesCode();
-            if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                "No. Series" := xRec."No. Series";
-            "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
+                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                    "No. Series" := xRec."No. Series";
+                "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
 
         end;
         "Posting Description" := StrSubstNo(Text000, "No.");
@@ -679,8 +680,8 @@ table 302 "Finance Charge Memo Header"
             then
                 "Issuing No. Series" := "No. Series"
             else
-                if NoSeries.IsAutomatic(GetIssuingNoSeriesCode()) then
-                    "Issuing No. Series" := GetIssuingNoSeriesCode();
+            if NoSeries.IsAutomatic(GetIssuingNoSeriesCode()) then
+                "Issuing No. Series" := GetIssuingNoSeriesCode();
 
         if "Posting Date" = 0D then
             "Posting Date" := WorkDate();

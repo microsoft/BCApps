@@ -274,15 +274,16 @@ page 509 "Blanket Purchase Order"
                     ApplicationArea = Suite;
                     ToolTip = 'Specifies the operation type that is assigned to the purchase invoice.';
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("Activity Code"; Rec."Activity Code")
                 {
                     ApplicationArea = Suite;
                     ShowMandatory = IsActivityCodeMandatory;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
+                    Visible = false;
                     ObsoleteReason = 'Replaced by the Business Activity Code field.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
 #endif
                 field("Business Activity Code"; Rec."Business Activity Code")
@@ -1298,7 +1299,7 @@ page 509 "Blanket Purchase Order"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
-    #if not CLEAN29
+    #if not CLEAN30
         IsActivityCodeMandatory := GeneralLedgerSetup."Use Activity Code";
     #endif
         IsActivityCodeMandatory := IsActivityCodeMandatory or GeneralLedgerSetup."Use Business Activity Code";

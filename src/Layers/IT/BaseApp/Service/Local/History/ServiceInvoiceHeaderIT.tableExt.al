@@ -24,7 +24,7 @@ tableextension 12456 "Service Invoice Header IT" extends "Service Invoice Header
             Caption = 'Operation Occurred Date';
             DataClassification = CustomerContent;
         }
-#if not CLEAN29
+#if not CLEAN30
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
@@ -33,7 +33,7 @@ tableextension 12456 "Service Invoice Header IT" extends "Service Invoice Header
             TableRelation = "Activity Code".Code;
             ObsoleteReason = 'Replaced by the Business Activity Code field.';
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
 #endif
         field(12125; "Service Tariff No."; Code[10])
