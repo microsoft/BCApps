@@ -99,40 +99,6 @@ page 99001020 "Temp Prod. Ord. Rtng List"
                     Visible = false;
                     ToolTip = 'Specifies how consumption is flushed for this operation.';
                 }
-                field("Starting Date-Time"; Rec."Starting Date-Time")
-                {
-                    ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the starting date and time of the operation.';
-                }
-                field("Starting Time"; Rec."Starting Time")
-                {
-                    ApplicationArea = Manufacturing;
-                    Visible = false;
-                    ToolTip = 'Specifies the starting time of the operation.';
-                }
-                field("Starting Date"; Rec."Starting Date")
-                {
-                    ApplicationArea = Manufacturing;
-                    Visible = false;
-                    ToolTip = 'Specifies the starting date of the operation.';
-                }
-                field("Ending Date-Time"; Rec."Ending Date-Time")
-                {
-                    ApplicationArea = Manufacturing;
-                    ToolTip = 'Specifies the ending date and time of the operation.';
-                }
-                field("Ending Time"; Rec."Ending Time")
-                {
-                    ApplicationArea = Manufacturing;
-                    Visible = false;
-                    ToolTip = 'Specifies the ending time of the operation.';
-                }
-                field("Ending Date"; Rec."Ending Date")
-                {
-                    ApplicationArea = Manufacturing;
-                    Visible = false;
-                    ToolTip = 'Specifies the ending date of the operation.';
-                }
                 field("Setup Time"; Rec."Setup Time")
                 {
                     ApplicationArea = Manufacturing;
