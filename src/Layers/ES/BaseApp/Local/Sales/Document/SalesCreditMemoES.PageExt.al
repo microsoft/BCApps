@@ -9,6 +9,7 @@ pageextension 10744 "Sales Credit Memo ES" extends "Sales Credit Memo"
 {
     layout
     {
+#if not CLEAN30
         addafter("Credit Memo Details")
         {
             group(Payment)
@@ -20,6 +21,7 @@ pageextension 10744 "Sales Credit Memo ES" extends "Sales Credit Memo"
                 ObsoleteTag = '30.0';
             }
         }
+#endif
         addafter("Shipment Date")
         {
             field("Cust. Bank Acc. Code"; Rec."Cust. Bank Acc. Code")

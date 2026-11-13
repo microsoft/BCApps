@@ -17,6 +17,7 @@ pageextension 7000093 "Posted Purchase Receipt ES" extends "Posted Purchase Rece
                 ToolTip = 'Specifies the customer''s bank code that is in the header on the order from which this purchase receipt was created.';
             }
         }
+#if not CLEAN30
         addafter(Shipping)
         {
             group(Payment)
@@ -28,5 +29,6 @@ pageextension 7000093 "Posted Purchase Receipt ES" extends "Posted Purchase Rece
                 ObsoleteTag = '30.0';
             }
         }
+#endif
     }
 }

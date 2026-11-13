@@ -26,6 +26,7 @@ pageextension 10749 "Posted Purch. Credit Memo ES" extends "Posted Purchase Cred
                 ToolTip = 'Specifies the vendor''s bank code that was on the purchase header when this credit memo was created.';
             }
         }
+#if not CLEAN30
         addafter("Invoice Details")
         {
             group(Payment)
@@ -37,6 +38,7 @@ pageextension 10749 "Posted Purch. Credit Memo ES" extends "Posted Purchase Cred
                 ObsoleteTag = '30.0';
             }
         }
+#endif
         addafter("No. Printed")
         {
             field("Correction Type"; Rec."Correction Type")

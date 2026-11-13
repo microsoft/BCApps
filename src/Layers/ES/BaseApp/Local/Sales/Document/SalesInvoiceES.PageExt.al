@@ -15,6 +15,7 @@ pageextension 7000092 "Sales Invoice ES" extends "Sales Invoice"
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the customer bank code to assign to the sales header in this field.';
             }
+#if not CLEAN30
             group(Payment)
             {
                 Caption = 'Payment';
@@ -23,6 +24,7 @@ pageextension 7000092 "Sales Invoice ES" extends "Sales Invoice"
                 ObsoleteReason = 'The customer bank account field is added by the Sales Invoice ES page extension.';
                 ObsoleteTag = '30.0';
             }
+#endif
         }
     }
 }

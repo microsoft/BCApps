@@ -18,6 +18,7 @@ pageextension 10748 "Posted Sales Credit Memo ES" extends "Posted Sales Credit M
                 ToolTip = 'Specifies the customer''s bank code that was on the sales header when this credit memo was issued.';
             }
         }
+#if not CLEAN30
         addafter("Invoice Details")
         {
             group(Payment)
@@ -29,6 +30,7 @@ pageextension 10748 "Posted Sales Credit Memo ES" extends "Posted Sales Credit M
                 ObsoleteTag = '30.0';
             }
         }
+#endif
         addafter("Work Description")
         {
             field("Correction Type"; Rec."Correction Type")

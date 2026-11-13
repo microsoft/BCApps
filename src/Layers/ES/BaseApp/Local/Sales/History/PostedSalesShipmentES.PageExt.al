@@ -17,6 +17,7 @@ pageextension 7000094 "Posted Sales Shipment ES" extends "Posted Sales Shipment"
                 ToolTip = 'Specifies the client''s bank code that was in the header, on the order from which this sales receipt was created.';
             }
         }
+#if not CLEAN30
         addafter(Shipping)
         {
             group(Payment)
@@ -28,5 +29,6 @@ pageextension 7000094 "Posted Sales Shipment ES" extends "Posted Sales Shipment"
                 ObsoleteTag = '30.0';
             }
         }
+#endif
     }
 }

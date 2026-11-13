@@ -9,6 +9,7 @@ pageextension 10746 "Purchase Credit Memo ES" extends "Purchase Credit Memo"
 {
     layout
     {
+#if not CLEAN30
         addafter(General)
         {
             group(Payment)
@@ -20,6 +21,7 @@ pageextension 10746 "Purchase Credit Memo ES" extends "Purchase Credit Memo"
                 ObsoleteTag = '30.0';
             }
         }
+#endif
         addafter("Expected Receipt Date")
         {
             field("Vendor Bank Acc. Code"; Rec."Vendor Bank Acc. Code")

@@ -8,6 +8,7 @@ pageextension 7000088 "Purchase Quote ES" extends "Purchase Quote"
 {
     layout
     {
+#if not CLEAN30
         addafter("Invoice Details")
         {
             group(Payment)
@@ -19,6 +20,7 @@ pageextension 7000088 "Purchase Quote ES" extends "Purchase Quote"
                 ObsoleteTag = '30.0';
             }
         }
+#endif
         addafter("Expected Receipt Date")
         {
             field("Vendor Bank Acc. Code"; Rec."Vendor Bank Acc. Code")

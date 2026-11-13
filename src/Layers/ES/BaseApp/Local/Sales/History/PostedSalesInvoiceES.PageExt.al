@@ -18,6 +18,7 @@ pageextension 10751 "Posted Sales Invoice ES" extends "Posted Sales Invoice"
                 ToolTip = 'Specifies the client''s bank code that was on the sales header when the invoice was created.';
             }
         }
+#if not CLEAN30
         addafter("Invoice Details")
         {
             group(Payment)
@@ -29,6 +30,7 @@ pageextension 10751 "Posted Sales Invoice ES" extends "Posted Sales Invoice"
                 ObsoleteTag = '30.0';
             }
         }
+#endif
         modify("Payment Method Code")
         {
             Importance = Promoted;

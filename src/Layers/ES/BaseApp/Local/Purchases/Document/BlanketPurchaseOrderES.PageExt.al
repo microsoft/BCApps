@@ -8,6 +8,7 @@ pageextension 7000087 "Blanket Purchase Order ES" extends "Blanket Purchase Orde
 {
     layout
     {
+#if not CLEAN30
         addafter("Invoice Details")
         {
             group(Payment)
@@ -19,6 +20,7 @@ pageextension 7000087 "Blanket Purchase Order ES" extends "Blanket Purchase Orde
                 ObsoleteTag = '30.0';
             }
         }
+#endif
         addafter("Expected Receipt Date")
         {
             field("Vendor Bank Acc. Code"; Rec."Vendor Bank Acc. Code")

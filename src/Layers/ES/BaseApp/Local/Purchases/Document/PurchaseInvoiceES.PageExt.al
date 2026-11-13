@@ -15,6 +15,7 @@ pageextension 7000078 "Purchase Invoice ES" extends "Purchase Invoice"
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the vendor bank code to assign to the purchase header in this field.';
             }
+#if not CLEAN30
             group(Payment)
             {
                 Caption = 'Payment';
@@ -23,6 +24,7 @@ pageextension 7000078 "Purchase Invoice ES" extends "Purchase Invoice"
                 ObsoleteReason = 'The vendor bank account field is added by the Purchase Invoice ES page extension.';
                 ObsoleteTag = '30.0';
             }
+#endif
         }
         modify("Payment Terms Code")
         {

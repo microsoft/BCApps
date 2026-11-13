@@ -8,6 +8,7 @@ pageextension 7000089 "Blanket Sales Order ES" extends "Blanket Sales Order"
 {
     layout
     {
+#if not CLEAN30
         addafter("Invoice Details")
         {
             group(Payment)
@@ -19,6 +20,7 @@ pageextension 7000089 "Blanket Sales Order ES" extends "Blanket Sales Order"
                 ObsoleteTag = '30.0';
             }
         }
+#endif
         addafter("Shipment Date")
         {
             field("Cust. Bank Acc. Code"; Rec."Cust. Bank Acc. Code")

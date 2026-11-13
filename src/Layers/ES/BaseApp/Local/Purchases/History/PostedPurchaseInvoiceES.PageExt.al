@@ -26,6 +26,7 @@ pageextension 10752 "Posted Purchase Invoice ES" extends "Posted Purchase Invoic
                 ToolTip = 'Specifies the vendor''s bank code that was on the purchase header when this invoice was created.';
             }
         }
+#if not CLEAN30
         addafter("Invoice Details")
         {
             group(Payment)
@@ -37,6 +38,7 @@ pageextension 10752 "Posted Purchase Invoice ES" extends "Posted Purchase Invoic
                 ObsoleteTag = '30.0';
             }
         }
+#endif
     }
 
     actions

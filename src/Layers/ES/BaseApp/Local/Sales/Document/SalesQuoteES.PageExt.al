@@ -8,6 +8,7 @@ pageextension 7000091 "Sales Quote ES" extends "Sales Quote"
 {
     layout
     {
+#if not CLEAN30
         addafter("Invoice Details")
         {
             group(Payment)
@@ -19,6 +20,7 @@ pageextension 7000091 "Sales Quote ES" extends "Sales Quote"
                 ObsoleteTag = '30.0';
             }
         }
+#endif
         addafter("Company Bank Account Code")
         {
             field("Cust. Bank Acc. Code"; Rec."Cust. Bank Acc. Code")

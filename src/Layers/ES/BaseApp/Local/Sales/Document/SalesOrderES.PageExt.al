@@ -8,6 +8,7 @@ pageextension 7000090 "Sales Order ES" extends "Sales Order"
 {
     layout
     {
+#if not CLEAN30
         addafter("Invoice Details")
         {
             group(Payment)
@@ -19,6 +20,7 @@ pageextension 7000090 "Sales Order ES" extends "Sales Order"
                 ObsoleteTag = '30.0';
             }
         }
+#endif
         addafter("Direct Debit Mandate ID")
         {
             field("Cust. Bank Acc. Code"; Rec."Cust. Bank Acc. Code")
