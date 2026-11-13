@@ -2,6 +2,7 @@ namespace Microsoft.DataMigration.GP;
 
 table 41011 "GP Item Transactions Buffer"
 {
+    Access = Internal;
     Caption = 'GP Item Transactions Buffer';
     DataClassification = CustomerContent;
     TableType = Temporary;

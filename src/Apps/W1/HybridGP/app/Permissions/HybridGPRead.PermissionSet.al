@@ -118,6 +118,5 @@ permissionset 4032 "HybridGP - Read"
                     tabledata "GP PM00203" = R,
                     tabledata "GP PO Validation Buffer" = R,
                     tabledata "GP GL00103" = R,
-                    tabledata "GP GL00104" = R,
-                    tabledata "GP Item Transactions Buffer" = R;
+                    tabledata "GP GL00104" = R;
 }
