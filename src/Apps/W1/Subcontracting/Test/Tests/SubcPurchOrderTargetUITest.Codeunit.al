@@ -111,7 +111,8 @@ codeunit 140000 "Subc. PurchOrderTarget UI Test"
         SubcontractingMgmtLibrary.CreateTargetedPurchaseSuggestion(RequisitionLine, PurchaseHeader);
         RequisitionLine."Ref. Order Status" := RequisitionLine."Ref. Order Status"::Released;
         RequisitionLine.Modify(true);
-        Assert.IsTrue(RequisitionLine.HasPurchaseOrderTarget(), 'The line must count as a target.');
+        Assert.AreEqual(PurchaseHeader."No.", RequisitionLine."Ref. Order No.", 'The line must reference the target order.');
+        Assert.AreEqual(0, RequisitionLine."Ref. Line No.", 'A target must not reference a purchase line.');
         OpenWorksheetAtLine(Worksheet, RequisitionLine);
 
         // [WHEN] Clearing the selected order on the worksheet line.
@@ -121,7 +122,6 @@ codeunit 140000 "Subc. PurchOrderTarget UI Test"
         RequisitionLine.Get(RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name", RequisitionLine."Line No.");
         Assert.AreEqual('', RequisitionLine."Ref. Order No.", 'The assigned order should be cleared.');
         Assert.AreEqual(RequisitionLine."Ref. Order Status"::Simulated, RequisitionLine."Ref. Order Status", 'Ref. Order Status');
-        Assert.IsFalse(RequisitionLine.HasPurchaseOrderTarget(), 'The line must no longer count as a target.');
         Worksheet.Close();
     end;
 

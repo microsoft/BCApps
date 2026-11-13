@@ -1536,7 +1536,7 @@ table 246 "Requisition Line"
         exit("Ref. Order Type");
     end;
 
-    procedure HasPurchaseOrderTarget(): Boolean
+    internal procedure HasPurchaseOrderTarget(): Boolean
     begin
         exit(("Action Message" = "Action Message"::New) and
              ("Ref. Order Type" = "Ref. Order Type"::Purchase) and
@@ -1544,7 +1544,7 @@ table 246 "Requisition Line"
              ("Ref. Line No." = 0));
     end;
 
-    procedure ClearPurchaseOrderTarget()
+    internal procedure ClearPurchaseOrderTarget()
     begin
         if ("Ref. Order Type" <> "Ref. Order Type"::Purchase) or
            ("Ref. Order No." = '') or
@@ -1563,7 +1563,7 @@ table 246 "Requisition Line"
         Error(Text004, TableCaption);
     end;
 
-    procedure SetCompatiblePurchaseOrderFilters(var PurchaseHeader: Record "Purchase Header")
+    internal procedure SetCompatiblePurchaseOrderFilters(var PurchaseHeader: Record "Purchase Header")
     begin
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
         PurchaseHeader.SetRange(Status, PurchaseHeader.Status::Open);
@@ -1574,7 +1574,7 @@ table 246 "Requisition Line"
         PurchaseHeader.SetRange("Currency Code", "Currency Code");
     end;
 
-    procedure CheckPurchaseOrderTarget()
+    internal procedure CheckPurchaseOrderTarget()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";

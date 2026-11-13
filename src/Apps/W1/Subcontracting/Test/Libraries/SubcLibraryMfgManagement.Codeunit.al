@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Requisition;
@@ -80,6 +81,27 @@ codeunit 139984 "Subc. Library Mfg. Management"
         ShopCalendarCode := LibraryManufacturing.UpdateShopCalendarFullWorkingWeekCustomTime(080000T, 160000T);
         CreateWorkCenterWithFixedCost(WorkCenter, ShopCalendarCode, DirectUnitCost);
         LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter, CalcDate('<-1W>', WorkDate()), WorkDate());
+    end;
+
+    /// <summary>
+    /// Creates a work center with a new subcontractor, a direct unit cost and a calculated calendar, so that Calculate Subcontracts can propose its operations.
+    /// </summary>
+    /// <param name="WorkCenter">The created subcontracting work center.</param>
+    procedure CreateSubcontractingWorkCenterWithCalendar(var WorkCenter: Record "Work Center")
+    var
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        CreateWorkCenterWithFixedCost(WorkCenter, LibraryManufacturing.UpdateShopCalendarWorkingDays(), 0);
+        WorkCenter.Validate("Direct Unit Cost", LibraryRandom.RandDec(10, 2));
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        GenProductPostingGroup.SetLoadFields("Def. VAT Prod. Posting Group");
+        GenProductPostingGroup.Get(WorkCenter."Gen. Prod. Posting Group");
+        GenProductPostingGroup.Validate("Def. VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GenProductPostingGroup.Modify(true);
+        WorkCenter.Validate("Subcontractor No.", CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+        LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter, CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
     end;
 
     procedure CreateSubcontractorWithCurrency(CurrencyCode: Code[10]): Code[20]
@@ -222,6 +244,25 @@ codeunit 139984 "Subc. Library Mfg. Management"
     begin
         CreateReqWkshTemplate(ReqWkshTemplate, false);
         CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
+        ManufacturingSetup."Subcontracting Batch Name" := RequisitionWkshName.Name;
+        ManufacturingSetup.Modify();
+    end;
+
+    /// <summary>
+    /// Creates a subcontracting worksheet name in the first existing non-recurring subcontracting worksheet template, or in a new one when none exists, and sets both in the Manufacturing Setup.
+    /// Reusing the template keeps a single subcontracting worksheet template, because Calculate Subcontracts asks the user to pick one when several exist.
+    /// </summary>
+    procedure CreateSubcontractingReqWkshNameAndUpdateSetup()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcManagementLibrary: Codeunit "Subc. Management Library";
+    begin
+        SubcManagementLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        ManufacturingSetup.SetLoadFields("Subcontracting Template Name", "Subcontracting Batch Name");
         ManufacturingSetup.Get();
         ManufacturingSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
         ManufacturingSetup."Subcontracting Batch Name" := RequisitionWkshName.Name;

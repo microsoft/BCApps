@@ -29,6 +29,13 @@ codeunit 133504 "SCM Costing Performance"
         ReceiptProcessing25To50Err: Label 'Receipt processing must increase from 25 to 50 pending entries. Visits: %1, %2.', Comment = '%1 = receipt processing count for 25 entries, %2 = receipt processing count for 50 entries';
         ReceiptProcessing50To100Err: Label 'Receipt processing must increase from 50 to 100 pending entries. Visits: %1, %2.', Comment = '%1 = receipt processing count for 50 entries, %2 = receipt processing count for 100 entries';
         ReceiptNotRevisitedErr: Label 'Old receipt %1 must be revisited.', Comment = '%1 = item ledger entry number';
+        AvgCostExceptionCheckLineTxt: Label 'IsAvgCostException?ValueEntry', Locked = true;
+        ExclusionCheckLineTxt: Label 'IsExcludeILEFromAvgCostCalc?ExcludedValueEntry', Locked = true;
+        ItemLedgEntryGetByValueEntryLineTxt: Label 'Entry.Get?ValueEntry.?Item Ledger Entry No.??', Locked = true;
+        ItemLedgEntryGetByEntryNoLineTxt: Label 'Entry.Get?ItemLedgerEntryNo?', Locked = true;
+        ExclusionRescansNotRepeatedErr: Label 'Each sale must trigger an exclusion rescan over the valuation period. Exclusion checks: %1.', Comment = '%1 = number of exclusion checks';
+        ItemLedgEntrySignRereadErr: Label 'Item ledger entry sign must not be re-read on each exclusion rescan. Sign reads: %1, average cost exception checks: %2, exclusion checks: %3.', Comment = '%1 = item ledger entry reads, %2 = average cost exception checks, %3 = exclusion checks';
+        SaleCostAmountErr: Label 'Sale cost amount (actual) must be the average cost of the valuation date.';
         ObservedItemNo: Code[20];
         ReceiptVisits: Dictionary of [Integer, Integer];
         ReceiptProcessingCount: Integer;
@@ -394,6 +401,47 @@ codeunit 133504 "SCM Costing Performance"
         end;
     end;
 
+    [Test]
+    procedure AvgCostExclusionRescansDoNotRereadItemLedgerEntrySign()
+    var
+        Item: Record Item;
+        NoOfIterations: Integer;
+        ExclusionChecks: Integer;
+        AvgCostExceptionChecks: Integer;
+        ItemLedgEntrySignReads: Integer;
+    begin
+        // [FEATURE] [AI test 1.0] [Average Cost] [Item Charge]
+        // [SCENARIO] Average cost adjustment reads the item ledger entry sign once per buffer build, not again on every exclusion rescan
+        Initialize();
+
+        // [GIVEN] Average cost is calculated per item and day, cost adjustment is run manually
+        LibraryInventory.SetAverageCostSetup("Average Cost Calculation Type"::Item, "Average Cost Period Type"::Day);
+        LibraryInventory.SetAutomaticCostAdjmtNever();
+
+        // [GIVEN] Average cost item "I"
+        LibraryInventory.CreateItemSimple(Item, Item."Costing Method"::Average, 10);
+
+        // [GIVEN] On the same day, 10 times: purchase "P" of 10 pcs at 10, item charge 10 assigned to "P" (average cost exception), sale "S" of 1 pc
+        NoOfIterations := 10;
+        PostPurchasesWithItemChargeAndSales(Item, NoOfIterations);
+
+        // [WHEN] Adjust cost of "I" with code coverage on
+        RunAdjustmentWithCoverage(Item."No.", ExclusionChecks, AvgCostExceptionChecks, ItemLedgEntrySignReads);
+
+        // [THEN] Each sale "S" triggers an exclusion rescan over the item ledger entries of the valuation date
+        Assert.IsTrue(
+          ExclusionChecks >= NoOfIterations * NoOfIterations, StrSubstNo(ExclusionRescansNotRepeatedErr, ExclusionChecks));
+
+        // [THEN] Item ledger entries are read for their sign at most once per average cost exception check, regardless of the number of rescans
+        Assert.IsTrue(
+          ItemLedgEntrySignReads <= AvgCostExceptionChecks,
+          StrSubstNo(ItemLedgEntrySignRereadErr, ItemLedgEntrySignReads, AvgCostExceptionChecks, ExclusionChecks));
+
+        // [THEN] Each sale "S" is adjusted to the average cost of the day: -(10 * 10 * 10 + 10 * 10) / (10 * 10) = -11
+        VerifySalesCostAmountActual(Item."No.", NoOfIterations, -11);
+        LibraryCosting.CheckAdjustment(Item);
+    end;
+
     local procedure InitializePendingReceiptScenario(var Item: Record Item)
     begin
         Initialize();
@@ -524,6 +572,72 @@ codeunit 133504 "SCM Costing Performance"
     begin
         ValueEntry.SetRange("Item No.", ItemNo);
         exit(ValueEntry.Count());
+    end;
+
+    local procedure GetInventoryAdjustmentLineHits(LinePattern: Text): Integer
+    var
+        CodeCoverage: Record "Code Coverage";
+    begin
+        exit(GetCodeCoverageForObject(CodeCoverage."Object Type"::Codeunit, Codeunit::"Inventory Adjustment", LinePattern));
+    end;
+
+    local procedure GetItemLedgEntrySignReads(): Integer
+    begin
+        exit(
+          GetInventoryAdjustmentLineHits(ItemLedgEntryGetByValueEntryLineTxt) +
+          GetInventoryAdjustmentLineHits(ItemLedgEntryGetByEntryNoLineTxt));
+    end;
+
+    local procedure PostPurchasesWithItemChargeAndSales(Item: Record Item; NoOfIterations: Integer)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        ItemChargePurchaseHeader: Record "Purchase Header";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        SalesHeader: Record "Sales Header";
+        Iteration: Integer;
+    begin
+        PurchRcptLine.SetRange(Type, PurchRcptLine.Type::Item);
+        PurchRcptLine.SetRange("No.", Item."No.");
+        for Iteration := 1 to NoOfIterations do begin
+            LibraryPurchase.PostPurchaseOrder(PurchaseHeader, Item, '', '', 10, WorkDate(), 10, true, true);
+            PurchRcptLine.FindLast();
+
+            LibraryPurchase.CreatePurchHeader(
+              ItemChargePurchaseHeader, ItemChargePurchaseHeader."Document Type"::Invoice, PurchRcptLine."Buy-from Vendor No.");
+            LibraryPurchase.AssignPurchChargeToPurchRcptLine(ItemChargePurchaseHeader, PurchRcptLine, 1, 10);
+            LibraryPurchase.PostPurchaseDocument(ItemChargePurchaseHeader, true, true);
+
+            LibrarySales.PostSalesOrder(SalesHeader, Item, '', '', 1, WorkDate(), 20, true, true);
+        end;
+    end;
+
+    local procedure RunAdjustmentWithCoverage(ItemNo: Code[20]; var ExclusionChecks: Integer; var AvgCostExceptionChecks: Integer; var ItemLedgEntrySignReads: Integer)
+    begin
+        CodeCoverageMgt.StartApplicationCoverage();
+        ExclusionChecks := GetInventoryAdjustmentLineHits(ExclusionCheckLineTxt);
+        AvgCostExceptionChecks := GetInventoryAdjustmentLineHits(AvgCostExceptionCheckLineTxt);
+        ItemLedgEntrySignReads := GetItemLedgEntrySignReads();
+
+        LibraryCosting.AdjustCostItemEntries(ItemNo, '');
+
+        ExclusionChecks := GetInventoryAdjustmentLineHits(ExclusionCheckLineTxt) - ExclusionChecks;
+        AvgCostExceptionChecks := GetInventoryAdjustmentLineHits(AvgCostExceptionCheckLineTxt) - AvgCostExceptionChecks;
+        ItemLedgEntrySignReads := GetItemLedgEntrySignReads() - ItemLedgEntrySignReads;
+        CodeCoverageMgt.StopApplicationCoverage();
+    end;
+
+    local procedure VerifySalesCostAmountActual(ItemNo: Code[20]; ExpectedCount: Integer; ExpectedCostAmount: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        Assert.RecordCount(ItemLedgerEntry, ExpectedCount);
+        ItemLedgerEntry.SetAutoCalcFields("Cost Amount (Actual)");
+        ItemLedgerEntry.FindSet();
+        repeat
+            Assert.AreEqual(ExpectedCostAmount, ItemLedgerEntry."Cost Amount (Actual)", SaleCostAmountErr);
+        until ItemLedgerEntry.Next() = 0;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Adjustment", OnAdjustItemAppliedCostForItemLedgerEntry, '', false, false)]

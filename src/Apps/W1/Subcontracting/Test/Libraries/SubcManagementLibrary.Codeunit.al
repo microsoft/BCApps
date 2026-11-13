@@ -11,6 +11,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
@@ -360,6 +361,16 @@ codeunit 139983 "Subc. Management Library"
     end;
 
     procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center")
+    begin
+        CalculateSubcontractOrder(WorkCenter, false);
+    end;
+
+    /// <summary>
+    /// Runs Calculate Subcontracts for the filtered work centers without a request page.
+    /// </summary>
+    /// <param name="WorkCenter">The work centers to calculate, with their filters.</param>
+    /// <param name="OnlyOperationsReadyToStart">Specifies whether the readiness gate is switched on for the run.</param>
+    procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center"; OnlyOperationsReadyToStart: Boolean)
     var
         ManufacturingSetup: Record "Manufacturing Setup";
         RequisitionLine: Record "Requisition Line";
@@ -371,6 +382,7 @@ codeunit 139983 "Subc. Management Library"
 
         RequisitionLineForSubcontractOrder(RequisitionLine);
         SubcCalculateSubcontracts.SetWkShLine(RequisitionLine);
+        SubcCalculateSubcontracts.SetOnlyOperationsReadyToStart(OnlyOperationsReadyToStart);
         SubcCalculateSubcontracts.SetTableView(WorkCenter);
         SubcCalculateSubcontracts.UseRequestPage(false);
         SubcCalculateSubcontracts.RunModal();
@@ -711,5 +723,39 @@ codeunit 139983 "Subc. Management Library"
         RequisitionLine."Prod. Order Line No." := 10000;
         RequisitionLine."Operation No." := '10';
         RequisitionLine.Modify();
+    end;
+
+    /// <summary>
+    /// Simulates posted output on an operation of a production order line and recalculates the Quantity Ready to Start of the next operations.
+    /// </summary>
+    /// <param name="ProdOrderLine">The production order line whose routing operation receives the output.</param>
+    /// <param name="OperationNo">The operation number that receives the output.</param>
+    /// <param name="OutputQty">The output quantity in the base unit of measure.</param>
+    procedure MockOutputForOperation(ProdOrderLine: Record "Prod. Order Line"; OperationNo: Code[10]; OutputQty: Decimal)
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        LibraryUtility: Codeunit "Library - Utility";
+        QtyReadyToStartMgt: Codeunit "Qty. Ready to Start Mgt.";
+    begin
+        ProdOrderRoutingLine.SetLoadFields("Next Operation No.", "Routing Status", "Work Center No.");
+        ProdOrderRoutingLine.Get(
+            ProdOrderLine.Status, ProdOrderLine."Prod. Order No.", ProdOrderLine."Routing Reference No.", ProdOrderLine."Routing No.", OperationNo);
+
+        CapacityLedgerEntry.Init();
+        CapacityLedgerEntry."Entry No." := LibraryUtility.GetNewRecNo(CapacityLedgerEntry, CapacityLedgerEntry.FieldNo("Entry No."));
+        CapacityLedgerEntry."Order Type" := CapacityLedgerEntry."Order Type"::Production;
+        CapacityLedgerEntry."Order No." := ProdOrderLine."Prod. Order No.";
+        CapacityLedgerEntry."Order Line No." := ProdOrderLine."Line No.";
+        CapacityLedgerEntry."Routing No." := ProdOrderLine."Routing No.";
+        CapacityLedgerEntry."Routing Reference No." := ProdOrderLine."Routing Reference No.";
+        CapacityLedgerEntry."Operation No." := OperationNo;
+        CapacityLedgerEntry."Work Center No." := ProdOrderRoutingLine."Work Center No.";
+        CapacityLedgerEntry."Item No." := ProdOrderLine."Item No.";
+        CapacityLedgerEntry."Posting Date" := WorkDate();
+        CapacityLedgerEntry."Output Quantity" := OutputQty;
+        CapacityLedgerEntry.Insert();
+
+        QtyReadyToStartMgt.UpdateSuccessorsQtyReadyToStart(ProdOrderRoutingLine);
     end;
 }
