@@ -51,7 +51,6 @@ pageextension 10746 "Purchase Credit Memo ES" extends "Purchase Credit Memo"
         modify(CalculateInvoiceDiscount)
         {
             Caption = 'Calculate &Inv. and Pmt. Discounts';
-            Image = CalculateDiscount;
             ToolTip = 'Update the lines with any payment discount that is specified in the related payment terms.';
         }
     }

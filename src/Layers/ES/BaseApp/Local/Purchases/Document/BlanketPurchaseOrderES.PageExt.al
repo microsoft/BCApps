@@ -36,7 +36,6 @@ pageextension 7000087 "Blanket Purchase Order ES" extends "Blanket Purchase Orde
         modify(CalculateInvoiceDiscount)
         {
             Caption = 'Calculate &Inv. and Pmt. Discounts';
-            Image = CalculateDiscount;
             ToolTip = 'Update the lines with any payment discount that is specified in the related payment terms.';
         }
     }

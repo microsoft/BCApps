@@ -41,7 +41,6 @@ pageextension 7000078 "Purchase Invoice ES" extends "Purchase Invoice"
         modify(CalculateInvoiceDiscount)
         {
             Caption = 'Calculate &Inv. and Pmt. Discounts';
-            Image = CalculateDiscount;
             ToolTip = 'Update the lines with any payment discount that is specified in the related payment terms.';
         }
     }

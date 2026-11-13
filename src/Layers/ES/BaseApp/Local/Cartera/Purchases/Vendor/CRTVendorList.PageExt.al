@@ -20,25 +20,25 @@ pageextension 7000074 "CRT Vendor List" extends "Vendor List"
                 Visible = true;
             }
         }
+    }
 
-        actions
+    actions
+    {
+        addafter("Vendor - Trial Balance")
         {
-            addafter("Vendor - Trial Balance")
+            action("Vendor - Due Payments")
             {
-                action("Vendor - Due Payments")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Vendor - Due Payments';
-                    Image = "Report";
-                    RunObject = Report "Vendor - Due Payments";
-                    ToolTip = 'View a list of payments to be made to a particular vendor sorted by due date.';
-                }
+                ApplicationArea = Basic, Suite;
+                Caption = 'Vendor - Due Payments';
+                Image = "Report";
+                RunObject = Report "Vendor - Due Payments";
+                ToolTip = 'View a list of payments to be made to a particular vendor sorted by due date.';
             }
-            addfirst(Category_Report)
+        }
+        addfirst(Category_Report)
+        {
+            actionref("Vendor - Due Payments_Promoted"; "Vendor - Due Payments")
             {
-                actionref("Vendor - Due Payments_Promoted"; "Vendor - Due Payments")
-                {
-                }
             }
         }
     }

@@ -51,7 +51,6 @@ pageextension 10744 "Sales Credit Memo ES" extends "Sales Credit Memo"
         modify(CalculateInvoiceDiscount)
         {
             Caption = 'Calculate &Inv. and Pmt. Discounts';
-            Image = CalculateDiscount;
             ToolTip = 'Update the lines with any payment discount that is specified in the related payment terms.';
         }
     }

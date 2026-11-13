@@ -30,7 +30,6 @@ pageextension 10745 "Sales Return Order ES" extends "Sales Return Order"
         modify(CalculateInvoiceDiscount)
         {
             Caption = 'Calculate &Inv. and Pmt. Discounts';
-            Image = CalculateDiscount;
         }
     }
 }

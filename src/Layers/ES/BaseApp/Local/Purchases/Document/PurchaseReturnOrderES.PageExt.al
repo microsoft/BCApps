@@ -30,7 +30,6 @@ pageextension 10747 "Purchase Return Order ES" extends "Purchase Return Order"
         modify(CalculateInvoiceDiscount)
         {
             Caption = 'Calculate &Inv. and Pmt. Discounts';
-            Image = CalculateDiscount;
         }
     }
 }
