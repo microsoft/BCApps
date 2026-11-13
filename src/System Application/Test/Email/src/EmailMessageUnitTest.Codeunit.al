@@ -102,7 +102,7 @@ codeunit 134689 "Email Message Unit Test"
         Message: Codeunit "Email Message";
         Body: Text;
     begin
-        // [SCENARIO] Sanitized email excludes foreign integration-point content for both HTML encodings.
+        // [SCENARIO] Sanitized email excludes foreign integration-point content using the HTML encoding.
 
         // [GIVEN] An email editor and a safe paragraph followed by a MathML HTML integration-point payload.
         PermissionsMock.Set('Email Edit');
@@ -113,14 +113,25 @@ codeunit 134689 "Email Message Unit Test"
 
         // [THEN] Only the safe paragraph remains.
         Assert.AreEqual('<p>Safe</p>', Message.GetBody(), 'Foreign HTML integration points and their contents must not survive email sanitization.');
+    end;
 
-        // [GIVEN] The same payload uses the XHTML integration-point encoding.
-        Body := Body.Replace('text/html', 'application/xhtml+xml');
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CreateMessageWithSanitizationRemovesXhtmlMathmlIntegrationPoints()
+    var
+        Message: Codeunit "Email Message";
+        Body: Text;
+    begin
+        // [SCENARIO] Sanitized email excludes foreign integration-point content using the XHTML encoding.
+
+        // [GIVEN] An email editor and a safe paragraph followed by a MathML XHTML integration-point payload.
+        PermissionsMock.Set('Email Edit');
+        Body := '<p>Safe</p><math><annotation-xml encoding="application/xhtml+xml"><title><a encoding="</title><img src=x onerror=alert()>"></annotation-xml></math>';
 
         // [WHEN] The XHTML-encoded payload is sanitized during message creation.
         Message.Create('recipient@test.com', 'Test subject', Body, true, true);
 
-        // [THEN] The encoding does not change the removal of foreign content.
+        // [THEN] Only the safe paragraph remains.
         Assert.AreEqual('<p>Safe</p>', Message.GetBody(), 'The XHTML encoding must receive the same sanitization policy.');
     end;
 
