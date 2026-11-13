@@ -7,9 +7,10 @@ namespace Microsoft.Bank.DirectDebit;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Purchases.Payables;
+#if not CLEAN30
 using System;
+#endif
 using System.IO;
-using System.Xml;
 
 codeunit 10637 "Import CAMT054"
 {
@@ -26,10 +27,9 @@ codeunit 10637 "Import CAMT054"
         LatestRemittanceAccount: Record "Remittance Account";
         LatestRemittanceAgreement: Record "Remittance Agreement";
         GLSetup: Record "General Ledger Setup";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         ImportSEPACommon: Codeunit "Import SEPA Common";
-        XmlDocumentCAMT054: DotNet XmlDocument;
-        XmlNamespaceManagerCAMT054: DotNet XmlNamespaceManager;
+        XmlDocumentCAMT054: XmlDocument;
+        XmlNamespaceManagerCAMT054: XmlNamespaceManager;
         NumberApproved: Integer;
         NumberRejected: Integer;
         NumberSettled: Integer;
@@ -52,9 +52,8 @@ codeunit 10637 "Import CAMT054"
     var
         RemittanceAccount: Record "Remittance Account";
         RemittanceAgreement: Record "Remittance Agreement";
-        XmlNodeListTransactionEntries: DotNet XmlNodeList;
-        NodeListEnumTransactionEntries: DotNet IEnumerator;
-        XmlNodeTransactionEntry: DotNet XmlNode;
+        XmlNodeListTransactionEntries: XmlNodeList;
+        XmlNodeTransactionEntry: XmlNode;
     begin
         GLSetup.Get();
         GLSetup.TestField("LCY Code");
@@ -75,16 +74,11 @@ codeunit 10637 "Import CAMT054"
         ImportSEPACommon.CreatePaymOrder(Note, RemittancePaymentOrder);
 
         // prepare to loop on entries (transactions)
-        if XMLDOMManagement.FindNodesWithNamespaceManager(
-             XmlDocumentCAMT054, '//n:BkToCstmrDbtCdtNtfctn/n:Ntfctn/n:Ntry', XmlNamespaceManagerCAMT054, XmlNodeListTransactionEntries)
-        then begin
-            NodeListEnumTransactionEntries := XmlNodeListTransactionEntries.GetEnumerator();
-            NodeListEnumTransactionEntries.MoveNext();
-            repeat
-                XmlNodeTransactionEntry := NodeListEnumTransactionEntries.Current;
+        if XmlDocumentCAMT054.SelectNodes(
+             '//n:BkToCstmrDbtCdtNtfctn/n:Ntfctn/n:Ntry', XmlNamespaceManagerCAMT054, XmlNodeListTransactionEntries)
+        then
+            foreach XmlNodeTransactionEntry in XmlNodeListTransactionEntries do
                 HandleTransaction(XmlNodeTransactionEntry);
-            until not NodeListEnumTransactionEntries.MoveNext();
-        end;
 
         // Closing transaction.
         if NumberSettled > 0 then  // Check whether payments are created
@@ -99,8 +93,22 @@ codeunit 10637 "Import CAMT054"
         ImportSEPACommon.ConfirmImportDialog(FileName, NumberApproved, NumberRejected, NumberSettled);
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use the HandleTransaction overload with a native XmlNode parameter instead.', '30.0')]
     procedure HandleTransaction(XmlNodeTransactionEntry: DotNet XmlNode)
+    var
+        TransactionEntryXmlDocument: XmlDocument;
+        TransactionEntryXmlElement: XmlElement;
+    begin
+        XmlDocument.ReadFrom(XmlNodeTransactionEntry.OuterXml, TransactionEntryXmlDocument);
+        TransactionEntryXmlDocument.GetRoot(TransactionEntryXmlElement);
+        HandleTransaction(TransactionEntryXmlElement.AsXmlNode());
+    end;
+#endif
+
+    [Scope('OnPrem')]
+    procedure HandleTransaction(XmlNodeTransactionEntry: XmlNode)
     var
         WaitingJournal: Record "Waiting Journal";
         AmtDtlsGenJournalLine: Record "Gen. Journal Line";
@@ -135,20 +143,20 @@ codeunit 10637 "Import CAMT054"
 
     local procedure OpenCAMT054Document()
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         FileManagement: Codeunit "File Management";
         ServerFile: Text;
     begin
         ServerFile := FileManagement.UploadFile(ChooseFileTitleMsg, '');
 
-        XMLDOMManagement.LoadXMLDocumentFromFile(ServerFile, XmlDocumentCAMT054);
-        XMLDOMManagement.AddNamespaces(XmlNamespaceManagerCAMT054, XmlDocumentCAMT054);
+        ImportSEPACommon.LoadXmlDocumentFromServerFile(ServerFile, XmlDocumentCAMT054);
+        Clear(XmlNamespaceManagerCAMT054);
+        XmlNamespaceManagerCAMT054.NameTable(XmlDocumentCAMT054.NameTable());
         XmlNamespaceManagerCAMT054.AddNamespace('n', CAMT054NamespaceTxt);
     end;
 
-    local procedure GetTransactionInfo(TransactionEntryXmlNode: DotNet XmlNode; var OriginalMsgId: Text; var OriginalPmtInfId: Text; var OriginalEndToEndId: Text; var TransactionStatus: Text)
+    local procedure GetTransactionInfo(TransactionEntryXmlNode: XmlNode; var OriginalMsgId: Text; var OriginalPmtInfId: Text; var OriginalEndToEndId: Text; var TransactionStatus: Text)
     var
-        RefsNode: DotNet XmlNode;
+        RefsNode: XmlNode;
     begin
         ImportSEPACommon.FindFirstNode(TransactionEntryXmlNode, XmlNamespaceManagerCAMT054, RefsNode, './n:NtryDtls/n:TxDtls/n:Refs', true);
         OriginalMsgId := ImportSEPACommon.FindFirstNodeTxt(RefsNode, XmlNamespaceManagerCAMT054, './n:MsgId', true);
@@ -157,10 +165,10 @@ codeunit 10637 "Import CAMT054"
         TransactionStatus := ImportSEPACommon.FindFirstNodeTxt(TransactionEntryXmlNode, XmlNamespaceManagerCAMT054, './n:Sts', true);
     end;
 
-    local procedure GetAmountDetails(var AmtDtlsGenJournalLine: Record "Gen. Journal Line"; TransactionEntryXmlNode: DotNet XmlNode): Boolean
+    local procedure GetAmountDetails(var AmtDtlsGenJournalLine: Record "Gen. Journal Line"; TransactionEntryXmlNode: XmlNode): Boolean
     var
-        AmtDtlsNode: DotNet XmlNode;
-        CcyXchgNode: DotNet XmlNode;
+        AmtDtlsNode: XmlNode;
+        CcyXchgNode: XmlNode;
     begin
         Clear(AmtDtlsGenJournalLine);
 
@@ -232,7 +240,7 @@ codeunit 10637 "Import CAMT054"
         ReturnRemittancePaymentOrder := RemittancePaymentOrder;
     end;
 
-    local procedure GetMsgCreationDate(XmlNodeTransactionEntry: DotNet XmlNode): Date
+    local procedure GetMsgCreationDate(XmlNodeTransactionEntry: XmlNode): Date
     var
         Day: Integer;
         Month: Integer;
