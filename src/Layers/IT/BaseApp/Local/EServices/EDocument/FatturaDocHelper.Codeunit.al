@@ -67,6 +67,7 @@ codeunit 12184 "Fattura Doc. Helper"
         FatturaStampFieldNo: Integer;
         FatturaStampAmountFieldNo: Integer;
         MissingLinesErr: Label 'The document must contain lines in order to be sent through FatturaPA.';
+        MissingShipmentReferenceErr: Label 'Sales shipment %1 referenced by the invoice cannot be found.', Comment = '%1 = sales shipment number';
         TxtTok: Label 'TXT%1', Locked = true;
         ExemptionDataMsg: Label '%1 del %2.', Locked = true;
         VATExemptionPrefixTok: Label 'Dich.Intento n.', Locked = true;
@@ -1053,10 +1054,10 @@ codeunit 12184 "Fattura Doc. Helper"
         SalesInvoiceLine: Record "Sales Invoice Line";
         TempSalesShipmentBuffer: Record "Sales Shipment Buffer" temporary;
     begin
-        if not SalesInvoiceHeader.Get(SalesInvoiceNo) then
-            exit;
-        if not SalesInvoiceLine.Get(SalesInvoiceNo, SalesInvoiceLineNo) then
-            exit;
+        // These records were just referenced by the posted export. Missing records
+        // indicate inconsistent fiscal source data and must not silently omit DDTs.
+        SalesInvoiceHeader.Get(SalesInvoiceNo);
+        SalesInvoiceLine.Get(SalesInvoiceNo, SalesInvoiceLineNo);
 
         // The posted value entries preserve the actual shipment linked to the
         // invoiced quantity. Historical FIFO reconstruction can associate the
@@ -1067,6 +1068,8 @@ codeunit 12184 "Fattura Doc. Helper"
         TempSalesShipmentBuffer.Reset();
         if TempSalesShipmentBuffer.FindSet() then
             repeat
+                if TempSalesShipmentBuffer."Document No." = '' then
+                    Error(MissingShipmentReferenceErr, TempSalesShipmentBuffer."Document No.");
                 InsertSalesShipmentReference(
                     TempShptFatturaLine, TempSalesShipmentBuffer."Document No.", FatturaLineNo, false);
             until TempSalesShipmentBuffer.Next() = 0;
@@ -1090,8 +1093,13 @@ codeunit 12184 "Fattura Doc. Helper"
         SalesShipmentHeader: Record "Sales Shipment Header";
         SalesLine: Record "Sales Line";
     begin
-        if (ShipmentNo = '') or not SalesShipmentHeader.Get(ShipmentNo) then
+        if ShipmentNo = '' then
             exit(false);
+        // Loading only the fiscal header fields avoids transferring unrelated
+        // shipment-header data on each referenced DDT.
+        SalesShipmentHeader.SetLoadFields("Shipment Date", "Fattura Project Code", "Fattura Tender Code", "Customer Purchase Order No.");
+        if not SalesShipmentHeader.Get(ShipmentNo) then
+            Error(MissingShipmentReferenceErr, ShipmentNo);
 
         InsertShipmentBuffer(
             TempShptFatturaLine, GetOptionCaptionValue(SalesLine.Type::Item.AsInteger()),
@@ -1124,6 +1132,7 @@ codeunit 12184 "Fattura Doc. Helper"
         SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
         SalesShipmentLine.SetRange(Correction, false);
         SalesShipmentLine.SetFilter(Quantity, '>0');
+        SalesShipmentLine.SetLoadFields("Document No.", "Qty. Shipped Not Invoiced");
         if SalesShipmentLine.FindSet() then
             repeat
                 AvailableQty := SalesShipmentLine."Qty. Shipped Not Invoiced";
@@ -1146,7 +1155,7 @@ codeunit 12184 "Fattura Doc. Helper"
         TempFatturaHeader: Record "Fattura Header" temporary)
     var
         VATEntry: Record "VAT Entry";
-        SourceVATEntries: Record "VAT Entry" temporary;
+        TempSourceVATEntries: Record "VAT Entry" temporary;
     begin
         VATEntry.SetRange("Document Type", TempFatturaHeader."Document Type");
         VATEntry.SetRange("Document No.", TempFatturaHeader."Document No.");
@@ -1154,10 +1163,10 @@ codeunit 12184 "Fattura Doc. Helper"
         if VATEntry.FindSet() then
             repeat
                 CollectVATPostingSetup(TempVATPostingSetup, VATEntry);
-                SourceVATEntries := VATEntry;
-                SourceVATEntries.Insert();
+                TempSourceVATEntries := VATEntry;
+                TempSourceVATEntries.Insert();
             until VATEntry.Next() = 0;
-        AggregateFatturaVATEntries(SourceVATEntries, TempVATEntry);
+        AggregateFatturaVATEntries(TempSourceVATEntries, TempVATEntry);
     end;
 
     /// <summary>
@@ -1165,33 +1174,33 @@ codeunit 12184 "Fattura Doc. Helper"
     /// The caller supplies either posted entries or entries captured by posting preview.
     /// </summary>
     internal procedure AggregateFatturaVATEntries(
-        var SourceVATEntries: Record "VAT Entry" temporary;
+        var TempSourceVATEntries: Record "VAT Entry" temporary;
         var AggregatedVATEntries: Record "VAT Entry" temporary)
     var
         TempVATPostingSetup: Record "VAT Posting Setup" temporary;
     begin
         AggregatedVATEntries.Reset();
         AggregatedVATEntries.DeleteAll();
-        if SourceVATEntries.FindSet() then
+        if TempSourceVATEntries.FindSet() then
             repeat
-                CollectVATPostingSetup(TempVATPostingSetup, SourceVATEntries);
+                CollectVATPostingSetup(TempVATPostingSetup, TempSourceVATEntries);
                 if not IsSplitVATSetup(TempVATPostingSetup) then begin
                     AggregatedVATEntries.Reset();
-                    AggregatedVATEntries.SetRange("VAT %", SourceVATEntries."VAT %");
+                    AggregatedVATEntries.SetRange("VAT %", TempSourceVATEntries."VAT %");
                     AggregatedVATEntries.SetRange("VAT Transaction Nature", TempVATPostingSetup."VAT Transaction Nature");
                     if AggregatedVATEntries.FindFirst() then begin
-                        AggregatedVATEntries.Base += SourceVATEntries.Base + SourceVATEntries."Unrealized Base";
-                        AggregatedVATEntries.Amount += SourceVATEntries.Amount + SourceVATEntries."Unrealized Amount";
+                        AggregatedVATEntries.Base += TempSourceVATEntries.Base + TempSourceVATEntries."Unrealized Base";
+                        AggregatedVATEntries.Amount += TempSourceVATEntries.Amount + TempSourceVATEntries."Unrealized Amount";
                         AggregatedVATEntries.Modify();
                     end else begin
                         AggregatedVATEntries.Init();
-                        AggregatedVATEntries := SourceVATEntries;
+                        AggregatedVATEntries := TempSourceVATEntries;
                         AggregatedVATEntries.Base += AggregatedVATEntries."Unrealized Base";
                         AggregatedVATEntries.Amount += AggregatedVATEntries."Unrealized Amount";
                         AggregatedVATEntries.Insert();
                     end;
                 end;
-            until SourceVATEntries.Next() = 0;
+            until TempSourceVATEntries.Next() = 0;
         AggregatedVATEntries.Reset();
     end;
 

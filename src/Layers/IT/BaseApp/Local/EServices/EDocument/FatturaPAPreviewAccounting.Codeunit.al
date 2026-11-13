@@ -8,6 +8,9 @@ codeunit 12281 "FatturaPA Preview Accounting"
 {
     Access = Internal;
 
+    var
+        MissingInitialEntryErr: Label 'The initial detailed customer ledger entry for customer ledger entry %1 was not found.', Comment = '%1 = customer ledger entry number';
+
     procedure AddVATRows(
         var TempFatturaLine: Record "Fattura Line" temporary;
         var TempVATEntry: Record "VAT Entry" temporary;
@@ -15,7 +18,7 @@ codeunit 12281 "FatturaPA Preview Accounting"
         IsInvoice: Boolean)
     var
         FatturaDocHelper: Codeunit "Fattura Doc. Helper";
-        AggregatedVATEntries: Record "VAT Entry" temporary;
+        TempAggregatedVATEntries: Record "VAT Entry" temporary;
         VATPostingSetup: Record "VAT Posting Setup";
         TempVATPostingSetup: Record "VAT Posting Setup" temporary;
         IsSplitPayment: Boolean;
@@ -34,15 +37,15 @@ codeunit 12281 "FatturaPA Preview Accounting"
                     IsSplitPayment := true;
             until TempVATEntry.Next() = 0;
 
-        FatturaDocHelper.AggregateFatturaVATEntries(TempVATEntry, AggregatedVATEntries);
-        VATEntryCount := AggregatedVATEntries.Count();
-        if AggregatedVATEntries.FindSet() then
+        FatturaDocHelper.AggregateFatturaVATEntries(TempVATEntry, TempAggregatedVATEntries);
+        VATEntryCount := TempAggregatedVATEntries.Count();
+        if TempAggregatedVATEntries.FindSet() then
             repeat
                 // Preserve unrealized VAT metadata for the standard VAT-type logic.
                 FatturaDocHelper.InsertPreviewVATFatturaLine(
-                    TempFatturaLine, AggregatedVATEntries, CustomerNo,
+                    TempFatturaLine, TempAggregatedVATEntries, CustomerNo,
                     IsInvoice, IsSplitPayment, VATEntryCount);
-            until AggregatedVATEntries.Next() = 0;
+            until TempAggregatedVATEntries.Next() = 0;
     end;
 
     procedure AddPaymentRows(
@@ -73,7 +76,7 @@ codeunit 12281 "FatturaPA Preview Accounting"
         if TempCustLedgEntry.FindSet() then
             repeat
                 if not InitialEntryAmounts.Get(TempCustLedgEntry."Entry No.", Amount) then
-                    Amount := 0;
+                    Error(MissingInitialEntryErr, TempCustLedgEntry."Entry No.");
                 FatturaDocHelper.InsertPaymentFatturaLine(
                     TempFatturaLine, TempCustLedgEntry."Due Date", Amount);
             until TempCustLedgEntry.Next() = 0;
