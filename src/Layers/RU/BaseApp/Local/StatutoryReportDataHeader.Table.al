@@ -252,7 +252,6 @@ table 26563 "Statutory Report Data Header"
         StatReportDataChangeLog: Record "Stat. Report Data Change Log";
         WorkbookSheetBuffer: Record "Statutory Report Buffer" temporary;
         FormatVersion: Record "Format Version";
-        TempNameValueBuffer: Record "Name/Value Buffer" temporary;
         TempBlob: Codeunit "Temp Blob";
         FileMgt: Codeunit "File Management";
 #pragma warning disable AA0074
@@ -289,14 +288,13 @@ table 26563 "Statutory Report Data Header"
 #pragma warning disable AA0074
         Text009: Label 'All Files (*.*)|*.*';
 #pragma warning restore AA0074
-        [WithEvents]
-        XmlReaderSettings: DotNet XmlReaderSettings;
         XlWrkBkWriter: DotNet WorkbookWriter;
         XlWrkBkReader: DotNet WorkbookReader;
         XlWrkShtReader: DotNet WorksheetReader;
         ServerFileName: Text;
         TestMode: Boolean;
         ExcelFilesFilterTxt: Label 'Excel Files (*.xlsx;)|*.xlsx;', Comment = '{Split=r''\|''}{Locked=s''1''}';
+        ValidationErrorSeverityTxt: Label 'Error', Locked = true;
 
     [Scope('OnPrem')]
     procedure CreateReportHeader(StatutoryReport: Record "Statutory Report"; CreationDate: Date; StartDate: Date; EndDate: Date; DocumentType: Option Primary,Correction; OKEIType: Option "383","384","385"; CorrNumber: Integer; DataDescription: Text[250]; PeriodNo: Integer; PeriodType: Code[2]; PeriodName: Text[30])
@@ -674,13 +672,12 @@ table 26563 "Statutory Report Data Header"
     local procedure ValidateXMLFile(var XmlRequestDoc: DotNet XmlDocument; var TempNameValueBufferValidation: Record "Name/Value Buffer" temporary): Boolean
     var
         FormatVersion: Record "Format Version";
-        TempBlob: Codeunit "Temp Blob";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        XmlValidationDoc: DotNet XmlDocument;
-        XmlSchemaValidationFlags: DotNet XmlSchemaValidationFlags;
-        ValidationType: DotNet ValidationType;
-        FileName: Text;
-        SchemaFileName: Text;
+        XmlTempBlob: Codeunit "Temp Blob";
+        SchemaTempBlob: Codeunit "Temp Blob";
+        XmlValidation: Codeunit "Xml Validation";
+        XmlOutStream: OutStream;
+        XmlInStream: InStream;
+        SchemaInStream: InStream;
     begin
         TempNameValueBufferValidation.DeleteAll();
 
@@ -691,32 +688,22 @@ table 26563 "Statutory Report Data Header"
         if not FormatVersion."XML Schema".HasValue() then
             exit(true);
 
-        FileName := FileMgt.ServerTempFileName('xml');
-        XmlRequestDoc.Save(FileName);
+        XmlTempBlob.CreateOutStream(XmlOutStream);
+        XmlRequestDoc.Save(XmlOutStream);
+        XmlTempBlob.CreateInStream(XmlInStream);
 
-        TempBlob.FromRecord(FormatVersion, FormatVersion.FieldNo("XML Schema"));
-        SchemaFileName := FileMgt.ServerTempFileName('xsd');
-        FileMgt.BLOBExportToServerFile(TempBlob, SchemaFileName);
+        SchemaTempBlob.FromRecord(FormatVersion, FormatVersion.FieldNo("XML Schema"));
+        SchemaTempBlob.CreateInStream(SchemaInStream);
 
-        XmlReaderSettings := XmlReaderSettings.XmlReaderSettings();
-        XmlReaderSettings.Schemas.Add('', SchemaFileName);
-        XmlReaderSettings.ValidationFlags := XmlSchemaValidationFlags.ReportValidationWarnings;
-        XmlReaderSettings.ValidationType := ValidationType.Schema;
+        if XmlValidation.TryValidateAgainstSchema(XmlInStream, SchemaInStream, '') then
+            exit(true);
 
-        TempNameValueBuffer.DeleteAll();
-
-        // The XmlDocument validates the XML document contained
-        // in the XmlReader as it is loaded into the DOM.
-        XMLDOMManagement.LoadXMLDocumentFromFileWithXmlReaderSettings(FileName, XmlValidationDoc, XmlReaderSettings);
-        if TempNameValueBuffer.FindSet() then
-            repeat
-                TempNameValueBufferValidation := TempNameValueBuffer;
-                TempNameValueBufferValidation.Insert();
-            until TempNameValueBuffer.Next() = 0;
-
-        FileMgt.DeleteServerFile(FileName);
-
-        exit(TempNameValueBuffer.Count = 0);
+        TempNameValueBufferValidation.Init();
+        TempNameValueBufferValidation.ID := 1;
+        TempNameValueBufferValidation.Name := ValidationErrorSeverityTxt;
+        TempNameValueBufferValidation.Value := CopyStr(GetLastErrorText(), 1, MaxStrLen(TempNameValueBufferValidation.Value));
+        TempNameValueBufferValidation.Insert();
+        exit(false);
     end;
 
     [Scope('OnPrem')]
@@ -756,13 +743,5 @@ table 26563 "Statutory Report Data Header"
         ReportFile.Write(LineText);
     end;
 
-    trigger XmlReaderSettings::ValidationEventHandler(sender: Variant; e: DotNet ValidationEventArgs)
-    begin
-        TempNameValueBuffer.Init();
-        TempNameValueBuffer.ID := TempNameValueBuffer.Count + 1;
-        TempNameValueBuffer.Name := e.Severity.ToString();
-        TempNameValueBuffer.Value := e.Message;
-        TempNameValueBuffer.Insert();
-    end;
 }
 
