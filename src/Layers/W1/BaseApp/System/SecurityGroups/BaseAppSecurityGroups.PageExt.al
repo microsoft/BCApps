@@ -45,5 +45,34 @@ pageextension 9871 "BaseApp Security Groups" extends "Security Groups"
                 BaseAppSecurityGroupImpl.SendLicenseConfigurationNotificationOnFirstRecord(Rec);
             end;
         }
+
+        addafter(SecurityGroupMembersWindows)
+        {
+            action(UserBySecurityGroup)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'User by Security Group';
+                Image = Users;
+                RunObject = Page "User by Security Group";
+                ToolTip = 'View how users across your organization are assigned to your security groups.';
+                Enabled = AreRecordsPresent;
+            }
+        }
+        addafter(SecurityGroupMembersWindows_Promoted)
+        {
+            group(Category_Members)
+            {
+                Caption = 'Members';
+                ShowAs = SplitButton;
+                actionref(UserBySecurityGroup_Promoted; UserBySecurityGroup) { }
+            }
+        }
+        movefirst(Category_Members; SecurityGroupMembersWindows_Promoted)
+        movefirst(Category_Members; SecurityGroupMembersAad_Promoted)
     }
+
+    internal procedure GetSelectionFilter(var SecurityGroupBuffer: Record "Security Group Buffer")
+    begin
+        CurrPage.SetSelectionFilter(SecurityGroupBuffer);
+    end;
 }

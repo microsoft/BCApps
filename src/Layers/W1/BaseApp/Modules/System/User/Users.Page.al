@@ -180,6 +180,14 @@ page 9800 Users
                     RunObject = Page "Security Groups";
                     ToolTip = 'Specify security groups as a fast way of giving users access to the functionality that is relevant to their work.';
                 }
+                action("User by Security Group")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'User by Security Group';
+                    Image = Users;
+                    RunObject = Page "User by Security Group";
+                    ToolTip = 'View how users across your organization are assigned to your security groups.';
+                }
             }
             group(History)
             {
@@ -287,6 +295,7 @@ page 9800 Users
                 actionref("Security Groups_Promoted"; "Security Groups")
                 {
                 }
+                actionref("User by Security Group_Promoted"; "User by Security Group") { }
                 actionref("User Email Policies_Promoted"; "User Email Policies")
                 {
                 }
@@ -396,7 +405,6 @@ page 9800 Users
     begin
         if Rec."Windows Security ID" = '' then
             Error(Text001Err, Rec."User Name");
-
         if (Rec."Windows Security ID" = 'S-1-1-0') or (Rec."Windows Security ID" = 'S-1-5-7') then
             Error(Text003Err, Rec."User Name");
 
