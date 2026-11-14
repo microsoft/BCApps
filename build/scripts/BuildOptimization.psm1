@@ -7,13 +7,29 @@
 #>
 
 $ErrorActionPreference = "Stop"
+Import-Module (Join-Path $PSScriptRoot 'EnlistmentHelperFunctions.psm1')
 
+# ALAppBuild requires the repository root and a logger, including for standalone callers.
+if ([string]::IsNullOrEmpty($env:INETROOT)) {
+    $env:INETROOT = Get-BaseFolder
+}
+if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
+    function global:Write-Log {
+        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidGlobalFunctions', '', Justification = 'ALAppBuild class methods resolve Write-Log from global scope.')]
+        param([Parameter(Position = 0)][string]$Message, [string]$ForegroundColor)
+        $null = $ForegroundColor
+        Write-Host $Message
+    }
+}
+Import-Module (Join-Path $PSScriptRoot 'ALAppBuild.psm1')
 
 <#
 .SYNOPSIS
-    Builds a dependency graph from all app.json files under the given base folder.
+    Builds a dependency graph from compiled roots, or all manifests when roots are omitted.
 .PARAMETER BaseFolder
     Root of the repository.
+.PARAMETER AppJsonPaths
+    Registered source manifests, including overrides; when omitted, discover manifests under BaseFolder.
 .OUTPUTS
     Hashtable keyed by lowercase app ID. Each value is a PSCustomObject with
     Id, Name, AppFolder, Dependencies (string[]), Dependents (List[string]).
@@ -23,18 +39,26 @@ function Get-AppDependencyGraph {
     [OutputType([hashtable])]
     param(
         [Parameter(Mandatory)]
-        [string] $BaseFolder
+        [string] $BaseFolder,
+        [string[]] $AppJsonPaths
     )
 
     $graph = @{}
-    $appJsonFiles = Get-ChildItem -Path $BaseFolder -Recurse -Filter 'app.json' -File |
-        Where-Object { $_.FullName -notmatch '[\\/]\.buildartifacts[\\/]' }
+    $appJsonFiles = if ($PSBoundParameters.ContainsKey('AppJsonPaths')) {
+        $AppJsonPaths | ForEach-Object { Get-Item -LiteralPath $_ }
+    } else {
+        Get-ChildItem -Path $BaseFolder -Recurse -Filter 'app.json' -File |
+            Where-Object { $_.FullName -notmatch '[\\/]\.buildartifacts[\\/]' }
+    }
 
     foreach ($file in $appJsonFiles) {
         $json = Get-Content -Path $file.FullName -Raw | ConvertFrom-Json
         if (-not $json.id) { continue }
 
         $appId = $json.id.ToLowerInvariant()
+        if ($PSBoundParameters.ContainsKey('AppJsonPaths') -and $graph.ContainsKey($appId)) {
+            throw "Compiled app ID '$appId' occurs in both '$($graph[$appId].AppFolder)' and '$($file.DirectoryName)'."
+        }
         $depIds = @()
         if ($json.dependencies) {
             $depIds = @($json.dependencies | ForEach-Object { $_.id.ToLowerInvariant() })
@@ -62,11 +86,13 @@ function Get-AppDependencyGraph {
 
 <#
 .SYNOPSIS
-    Determines which app (if any) a file belongs to by walking up to the nearest app.json.
+    Maps a file to its deepest compiled root, or nearest manifest when no graph is supplied.
 .PARAMETER FilePath
     Path to the changed file (absolute or relative to BaseFolder).
 .PARAMETER BaseFolder
     Root of the repository.
+.PARAMETER Graph
+    When supplied, map to the deepest compiled root in this graph instead of a nested manifest.
 .OUTPUTS
     The app ID (lowercase GUID) or $null if the file is not inside any app folder.
 #>
@@ -77,13 +103,27 @@ function Get-AppForFile {
         [Parameter(Mandatory)]
         [string] $FilePath,
         [Parameter(Mandatory)]
-        [string] $BaseFolder
+        [string] $BaseFolder,
+        [hashtable] $Graph
     )
 
     if (-not [System.IO.Path]::IsPathRooted($FilePath)) {
         $FilePath = Join-Path $BaseFolder $FilePath
     }
     $FilePath = [System.IO.Path]::GetFullPath($FilePath)
+
+    if ($PSBoundParameters.ContainsKey('Graph')) {
+        $owner = $null
+        foreach ($node in $Graph.Values) {
+            $root = $node.AppFolder.TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+            if ($FilePath.StartsWith($root, [StringComparison]::OrdinalIgnoreCase) -and
+                ($null -eq $owner -or $node.AppFolder.Length -gt $owner.AppFolder.Length)) {
+                $owner = $node
+            }
+        }
+        if ($owner) { return $owner.Id }
+        return $null
+    }
 
     $dir = [System.IO.Path]::GetDirectoryName($FilePath)
     $baseFolderNorm = [System.IO.Path]::GetFullPath($BaseFolder).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
@@ -137,7 +177,7 @@ function Get-AffectedApps {
     # Map changed files to apps
     $directlyChanged = [System.Collections.Generic.HashSet[string]]::new()
     foreach ($file in $ChangedFiles) {
-        $appId = Get-AppForFile -FilePath $file -BaseFolder $BaseFolder
+        $appId = Get-AppForFile -FilePath $file -BaseFolder $BaseFolder -Graph $Graph
         if ($appId) {
             [void]$directlyChanged.Add($appId)
         } elseif ($file.Replace('\', '/') -match '(^|/)src/') {
@@ -204,6 +244,67 @@ function Resolve-MergeBaseForCI {
 
 <#
 .SYNOPSIS
+    Returns the verified tested PR merge and its base, or null when verification fails.
+.PARAMETER ExpectedHeadSha
+    PR head commit from the event payload, expected as the merge's second parent.
+#>
+function Get-VerifiedPullRequestMerge {
+    param([string] $ExpectedHeadSha)
+
+    $testedSha = & git rev-parse HEAD 2>$null
+    if ($LASTEXITCODE -ne 0 -or -not $env:GITHUB_SHA -or $testedSha -ne $env:GITHUB_SHA) {
+        return $null
+    }
+
+    # Read raw headers: revision traversal hides parents at a shallow boundary.
+    $commit = @(& git cat-file -p $testedSha 2>$null)
+    if ($LASTEXITCODE -ne 0) { return $null }
+
+    $parents = @()
+    foreach ($line in $commit) {
+        if ($line -eq '') { break }
+        if ($line -match '^parent ([0-9a-f]{40,64})$') { $parents += $Matches[1] }
+    }
+    if ($parents.Count -ne 2 -or $parents[1] -ne $ExpectedHeadSha) { return $null }
+
+    return [PSCustomObject]@{ BaseSha = $parents[0]; MergeSha = $testedSha }
+}
+
+<#
+.SYNOPSIS
+    Makes a commit available locally, fetching it from origin if missing.
+.PARAMETER CommitSha
+    Commit required for change detection.
+.PARAMETER FetchHistory
+    Fetch without a depth limit when merge-base comparison requires history.
+.PARAMETER RequireChangeDetection
+    Throw on fetch failure instead of logging and returning false.
+#>
+function Initialize-GitCommit {
+    [OutputType([bool])]
+    param(
+        [string] $CommitSha,
+        [switch] $FetchHistory,
+        [switch] $RequireChangeDetection
+    )
+
+    $null = & git cat-file -e "$CommitSha^{commit}" 2>$null
+    if ($LASTEXITCODE -eq 0) { return $true }
+
+    Write-Host "BUILD OPTIMIZATION: Fetching missing commit $CommitSha"
+    $fetchArguments = @('fetch', 'origin', $CommitSha)
+    if (-not $FetchHistory) { $fetchArguments += '--depth=1' }
+    $null = & git @fetchArguments 2>$null
+    if ($LASTEXITCODE -eq 0) { return $true }
+
+    $message = "Could not fetch commit '$CommitSha' from origin (exitCode=$LASTEXITCODE, directory='$PWD')."
+    if ($RequireChangeDetection) { throw $message }
+    Write-Host "BUILD OPTIMIZATION: $message"
+    return $false
+}
+
+<#
+.SYNOPSIS
     Detects changed files from the GitHub Actions CI environment.
 .DESCRIPTION
     Reads the GitHub event payload ($GITHUB_EVENT_PATH) to extract base/head commit
@@ -215,6 +316,8 @@ function Resolve-MergeBaseForCI {
     Optional git diff-filter value, for example 'A' to return only newly added files.
     .PARAMETER CompareFromMergeBase
     Compare the head against the merge base instead of the current base-branch tip.
+    .PARAMETER CompareWithPullRequestMerge
+    For impact analysis, include both rename paths and compare normal PRs to the tested merge's first parent.
     .PARAMETER RequireChangeDetection
     Throw instead of returning null when the change set cannot be determined.
 .OUTPUTS
@@ -226,8 +329,13 @@ function Get-ChangedFilesForCI {
     param(
         [string] $DiffFilter,
         [switch] $CompareFromMergeBase,
+        [switch] $CompareWithPullRequestMerge,
         [switch] $RequireChangeDetection
     )
+
+    if ($CompareWithPullRequestMerge -and $CompareFromMergeBase) {
+        throw "CompareWithPullRequestMerge and CompareFromMergeBase cannot be combined."
+    }
 
     if (-not $env:GITHUB_ACTIONS) {
         if ($RequireChangeDetection) {
@@ -280,19 +388,27 @@ function Get-ChangedFilesForCI {
         return $null
     }
 
-    Write-Host "BUILD OPTIMIZATION: Comparing $($baseSha.Substring(0, 8))...$($headSha.Substring(0, 8))"
-
     $prevErrorAction = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        # Fetch only when the event's base commit is not already available locally.
-        & git cat-file -e "$baseSha^{commit}" 2>$null
-        if ($LASTEXITCODE -ne 0) {
-            if ($CompareFromMergeBase) {
-                & git fetch origin $baseSha 2>$null
+        if ($CompareWithPullRequestMerge -and $env:GITHUB_EVENT_NAME -eq 'pull_request') {
+            $merge = Get-VerifiedPullRequestMerge -ExpectedHeadSha $headSha
+            if ($null -eq $merge) {
+                $message = "Could not verify the checked-out PR merge against GITHUB_SHA and event head '$headSha'."
+                if ($RequireChangeDetection) { throw $message }
+                Write-Host "BUILD OPTIMIZATION: $message"
+                return $null
             }
-            else {
-                & git fetch origin $baseSha --depth=1 2>$null
+            $baseSha = $merge.BaseSha
+            $headSha = $merge.MergeSha
+        }
+
+        Write-Host "BUILD OPTIMIZATION: Comparing $($baseSha.Substring(0, 8))...$($headSha.Substring(0, 8))"
+
+        # A depth-one PR merge checkout can be missing both event endpoints.
+        foreach ($sha in @($baseSha, $headSha)) {
+            if (-not (Initialize-GitCommit -CommitSha $sha -FetchHistory:$CompareFromMergeBase -RequireChangeDetection:$RequireChangeDetection)) {
+                return $null
             }
         }
 
@@ -309,17 +425,26 @@ function Get-ChangedFilesForCI {
         }
 
         $diffArguments = @('-c', 'core.quotePath=false', 'diff', '--name-only')
+        if ($CompareWithPullRequestMerge) { $diffArguments += '--no-renames' }
         if (-not [string]::IsNullOrWhiteSpace($DiffFilter)) {
             $diffArguments += "--diff-filter=$DiffFilter"
         }
         $diffArguments += @($diffBase, $headSha, '--')
 
-        $files = @(& git @diffArguments 2>$null)
-        if ($LASTEXITCODE -ne 0) {
+        $stderrFile = [System.IO.Path]::GetTempFileName()
+        try {
+            $files = @(& git @diffArguments 2> $stderrFile)
+            $diffExitCode = $LASTEXITCODE
+            $diagnostic = Get-Content -Path $stderrFile -Raw
+        } finally {
+            Remove-Item -LiteralPath $stderrFile
+        }
+        if ($diffExitCode -ne 0) {
+            $message = "Git diff failed (exitCode=$diffExitCode, directory='$PWD'): $diagnostic"
             if ($RequireChangeDetection) {
-                throw "Git diff failed with exit code $LASTEXITCODE."
+                throw $message
             }
-            Write-Host "BUILD OPTIMIZATION: git diff failed (exitCode=$LASTEXITCODE)"
+            Write-Host "BUILD OPTIMIZATION: $message"
             return $null
         }
 
@@ -387,6 +512,7 @@ function Test-FullBuildPatternsMatch {
     Pure computation — no caching or side effects. Returns a PSCustomObject with
     two properties: RunAll (bool) and AppNames (string[]). The caller is responsible
     for persisting/reading the result to avoid recomputing across process invocations.
+    Selective results also retain Tests-NewObjects-Internal regardless of dependency changes.
 .PARAMETER BaseFolder
     Root of the repository.
 .OUTPUTS
@@ -413,7 +539,7 @@ function Get-AffectedAppNames {
         return [PSCustomObject]$runAll
     }
 
-    $changedFiles = Get-ChangedFilesForCI
+    $changedFiles = Get-ChangedFilesForCI -CompareWithPullRequestMerge
     if (-not $changedFiles) {
         Write-Host "BUILD OPTIMIZATION: Running all tests - could not determine changed files"
         return [PSCustomObject]$runAll
@@ -429,7 +555,9 @@ function Get-AffectedAppNames {
         return [PSCustomObject]$runAll
     }
 
-    $graph = Get-AppDependencyGraph -BaseFolder $BaseFolder
+    $appJsonPaths = @(Get-ApplicationGroup -GroupName 'All' -SkipCountryCheck -SkipLanguagePacks |
+        Select-Object -ExpandProperty AppJsonPath -Unique)
+    $graph = Get-AppDependencyGraph -BaseFolder $BaseFolder -AppJsonPaths $appJsonPaths
     $affectedIds = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $BaseFolder -Graph $graph
 
     # Full build triggered (unmapped src file or all apps affected)
@@ -446,6 +574,11 @@ function Get-AffectedAppNames {
     $sortedNames = $affectedNames | Sort-Object
     Write-Host "BUILD OPTIMIZATION: Affected apps ($($affectedNames.Count)):"
     foreach ($name in $sortedNames) { Write-Host "  - $name" }
+
+    # These tests validate objects and permissions across installed apps, regardless of changed dependencies.
+    if ($affectedNames -notcontains 'Tests-NewObjects-Internal') {
+        $affectedNames += 'Tests-NewObjects-Internal'
+    }
 
     return [PSCustomObject]@{ RunAll = $false; AppNames = $affectedNames }
 }
@@ -500,4 +633,60 @@ function Test-ShouldSkipTestApp {
     return $false
 }
 
-Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Test-FullBuildPatternsMatch, Get-AffectedAppNames, Test-ShouldSkipTestApp
+<#
+.SYNOPSIS
+    Logs the churn-based test proposal and returns all candidate apps unchanged.
+.PARAMETER AppNamesToTest
+    Candidate test app names in dispatch order; returned unchanged in logging-only mode.
+.PARAMETER BaseFolder
+    Repository root used to determine affected apps.
+.PARAMETER ChurnEnabled
+    Enables impact analysis for the logged proposal; false bypasses analysis without skipping tests.
+.PARAMETER Country
+    Project country shown in the selection log.
+.PARAMETER TestType
+    Project test type shown in the selection log.
+.PARAMETER BucketNumber
+    Legacy test bucket shown in the log; ignored for other test types.
+#>
+function Get-SelectedTestApps {
+    [OutputType([string[]])]
+    param(
+        [string[]] $AppNamesToTest,
+        [string] $BaseFolder,
+        [bool] $ChurnEnabled,
+        [string] $Country,
+        [string] $TestType,
+        [int] $BucketNumber
+    )
+
+    $candidateCount = $AppNamesToTest.Count
+    $proposedAppNames = @($AppNamesToTest)
+    $selectionMode = if ($ChurnEnabled) { 'Enabled; no candidate test apps' } else { 'Disabled; full bucket' }
+    if ($AppNamesToTest.Count -gt 0 -and $ChurnEnabled) {
+        $affected = Get-AffectedAppNames -BaseFolder $BaseFolder
+        $selectionMode = 'Enabled; full bucket (RunAll)'
+        if (-not $affected.RunAll) {
+            $selectionMode = 'Enabled; affected-app proposal'
+            $proposedAppNames = @($AppNamesToTest | Where-Object { $_ -in $affected.AppNames })
+        }
+    }
+
+    $bucketLabel = if ($TestType -eq 'Legacy') { $BucketNumber } else { 'n/a' }
+    Write-Host "Test app selection"
+    Write-Host "Country: $Country | Test type: $TestType | Bucket: $bucketLabel"
+    Write-Host "Churn-based testing: $selectionMode"
+    Write-Host "Logging only: full bucket will run ($candidateCount test apps)."
+    Write-Host "Candidates: $candidateCount | Would run: $($proposedAppNames.Count) | Would skip: $($candidateCount - $proposedAppNames.Count)"
+    Write-Host "Proposed test apps (candidate order):"
+    foreach ($appName in $proposedAppNames) {
+        Write-Host "  - $appName"
+    }
+    if ($proposedAppNames.Count -eq 0) {
+        Write-Host "  No test apps proposed."
+    }
+
+    return $AppNamesToTest
+}
+
+Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Test-FullBuildPatternsMatch, Get-AffectedAppNames, Test-ShouldSkipTestApp, Get-SelectedTestApps
