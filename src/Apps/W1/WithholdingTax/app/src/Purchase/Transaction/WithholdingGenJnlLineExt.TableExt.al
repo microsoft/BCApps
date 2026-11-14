@@ -157,6 +157,13 @@ tableextension 6793 "Withholding Gen. Jnl. Line Ext" extends "Gen. Journal Line"
             TableRelation = Vendor;
             DataClassification = CustomerContent;
         }
+        field(6804; "WHT Empl. Base Posted"; Boolean)
+        {
+            Caption = 'Withholding Tax Employee Base Posted';
+            ToolTip = 'Specifies whether the employee side of the line has already been posted, so its base is already included in the withholding tax period threshold. Used internally during posting.';
+            Editable = false;
+            DataClassification = SystemMetadata;
+        }
     }
 
     var

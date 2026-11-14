@@ -50,6 +50,11 @@ table 7059 "WHT Exp. Report Buffer"
             Caption = 'Withholding Tax Amount (LCY)';
             DataClassification = SystemMetadata;
         }
+        field(22; "Threshold Base Amount (LCY)"; Decimal)
+        {
+            Caption = 'Threshold Base Amount (LCY)';
+            DataClassification = CustomerContent;
+        }
     }
 
     keys
