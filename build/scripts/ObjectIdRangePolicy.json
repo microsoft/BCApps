@@ -1,0 +1,109 @@
+{
+  "AllowedRanges": [
+    { "From": 1, "To": 49999 },
+    { "From": 2000000, "To": 2000059 },
+    { "From": 3005000, "To": 3011499 },
+    { "From": 5000000, "To": 5000099 },
+    { "From": 5000250, "To": 5055999 },
+    { "From": 5001900, "To": 5001999 },
+    { "From": 5005100, "To": 5005399 },
+    { "From": 7000000, "To": 7000099 },
+    { "From": 11000000, "To": 11000499 },
+    { "From": 15000000, "To": 15000499 },
+    { "From": 31000000, "To": 31000099 },
+    { "From": 32000000, "To": 32000199 },
+    { "From": 99000750, "To": 99001048 }
+  ],
+  "ManifestRangeExceptions": [
+    {
+      "Path": "Apps/IT/IntrastatIT/app/app.json",
+      "Reason": "Existing published localization allocation.",
+      "Ranges": [ { "From": 148121, "To": 148140 } ]
+    },
+    {
+      "Path": "Apps/IT/SubcontractingMigrationIT/App/app.json",
+      "Reason": "Existing published migration allocation.",
+      "Ranges": [ { "From": 149951, "To": 149955 } ]
+    },
+    {
+      "Path": "Apps/W1/Email - SMTP Connector/app/app.json",
+      "Reason": "Existing published SMTP and permission-set IDs.",
+      "Ranges": [
+        { "From": 104066, "To": 104066 },
+        { "From": 2147483647, "To": 2147483647 }
+      ]
+    },
+    {
+      "Path": "DemoTool/app.json",
+      "Reason": "Existing internal demo-tool allocation.",
+      "Ranges": [ { "From": 50100, "To": 50149 } ]
+    },
+    {
+      "Path": "Layers/W1/BaseApp/app.json",
+      "Reason": "Preserve exact existing Base Application declarations without granting these ranges to other apps.",
+      "Ranges": [
+        { "From": 104000, "To": 104999 },
+        { "From": 130400, "To": 130419 },
+        { "From": 99000700, "To": 99000701 },
+        { "From": 99000750, "To": 99001049 },
+        { "From": 99003500, "To": 99004399 },
+        { "From": 99004600, "To": 99005899 },
+        { "From": 99008500, "To": 99009699 },
+        { "From": 5000000, "To": 5005399 },
+        { "From": 7000000, "To": 7000199 }
+      ]
+    },
+    {
+      "Path": "Layers/W1/BaseApp/Modules/System/DotNetAliases/app.json",
+      "Reason": "Existing internal module allocation.",
+      "Ranges": [ { "From": 99008535, "To": 99008535 } ]
+    },
+    {
+      "Path": "Layers/W1/BaseApp/Modules/System/DotNetWrappers/app.json",
+      "Reason": "Existing internal module allocation.",
+      "Ranges": [ { "From": 99008535, "To": 99008535 } ]
+    },
+    {
+      "Path": "Layers/W1/BaseApp/Modules/System/Email/app.json",
+      "Reason": "Existing internal module allocation.",
+      "Ranges": [ { "From": 99008535, "To": 99008535 } ]
+    },
+    {
+      "Path": "Layers/W1/BaseApp/Modules/System/ErrorMessage/app.json",
+      "Reason": "Existing internal module allocation.",
+      "Ranges": [ { "From": 99008535, "To": 99008535 } ]
+    }
+  ],
+  "LegacyObjectIdRanges": [
+    {
+      "Path": "Apps/CZ/AdvancePaymentsLocalization/app/app.json",
+      "Reason": "Existing legacy handler in an app without declared ranges.",
+      "Ranges": [ { "From": 148111, "To": 148111 } ]
+    },
+    {
+      "Path": "Apps/CZ/CoreLocalizationPack/app/app.json",
+      "Reason": "Existing legacy handler in an app without declared ranges.",
+      "Ranges": [ { "From": 148120, "To": 148120 } ]
+    },
+    {
+      "Path": "Layers/CZ/DemoTool/app.json",
+      "Reason": "Existing internal demo-data ID span; not a production allocation.",
+      "Ranges": [ { "From": 101004, "To": 163557 } ]
+    },
+    {
+      "Path": "Layers/IN/DemoTool/app.json",
+      "Reason": "Existing internal demo-data ID span; not a production allocation.",
+      "Ranges": [ { "From": 101014, "To": 122001 } ]
+    },
+    {
+      "Path": "Layers/SE/DemoTool/app.json",
+      "Reason": "Existing internal demo-data ID span; not a production allocation.",
+      "Ranges": [ { "From": 101003, "To": 160702 } ]
+    },
+    {
+      "Path": "Layers/W1/DemoTool/app.json",
+      "Reason": "Existing internal demo-data ID span; not a production allocation.",
+      "Ranges": [ { "From": 101003, "To": 124000 } ]
+    }
+  ]
+}
