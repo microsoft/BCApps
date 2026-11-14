@@ -1381,7 +1381,12 @@ codeunit 8060 "Create Billing Documents"
     local procedure TrimTempBillingLinesForContract(ContractNo: Code[20])
     var
         TempBillingLineToDelete: Record "Billing Line" temporary;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeTempBillingLineToDeleteCopy(ContractNo , IsHandled);
+        if IsHandled then
+            exit;
         // Release a processed contract's aggregated temp lines so the temporary table stays small; otherwise it
         // spills to a per-session SQL temp table and every Get/Modify becomes a round-trip. The delete runs on a
         // shared-table copy, so the caller's iteration cursor (position, key, filters) is left untouched - only
@@ -1566,6 +1571,11 @@ codeunit 8060 "Create Billing Documents"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetAdditionalLineText(SubscriptionContractSetupFieldNo: Integer; ParentSalesLine: Record "Sales Line"; SubscriptionHeader: Record "Subscription Header"; ServiceCommitment: Record "Subscription Line"; var DescriptionText: Text)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeTempBillingLineToDeleteCopy(ContractNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
