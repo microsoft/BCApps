@@ -6574,6 +6574,29 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Integrations"
     },
+    "E-Document for Mexico (Preview)": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\MX\\EDocumentMX\\app",
+      "dvdFolder": "Applications\\EDocumentMX\\Source",
+      "hasTranslations": true,
+      "installOnEnvironmentUpdate": true,
+      "supportedCountries": "MX",
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Integrations"
+    },
+    "E-Document for Mexico Tests": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\MX\\EDocumentMX\\test",
+      "dvdFolder": "Applications\\EDocumentMX\\Test",
+      "supportedCountries": "MX",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Integrations"
+    },
     "Field Service Integration": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\FieldServiceIntegration\\app",
       "dvdFolder": "Applications\\FieldServiceIntegration\\Source",
