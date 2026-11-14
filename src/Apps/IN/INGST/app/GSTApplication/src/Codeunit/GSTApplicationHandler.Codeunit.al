@@ -1386,7 +1386,6 @@ codeunit 18430 "GST Application Handler"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         ApplyingCustLedgEntry: Record "Cust. Ledger Entry";
-        GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         GSTGroupRemAmount: Decimal;
         InvoiceGSTAmount: Decimal;
         AppliedGSTAmount: Decimal;
@@ -1483,8 +1482,6 @@ codeunit 18430 "GST Application Handler"
                         ApplyingCustLedgEntry."Entry No.",
                         ApplyingCustLedgEntry."GST Group Code");
                 end;
-
-            GSTApplSessionMgt.PostApplicationGenJournalLine(GenJnlPostLine);
         end else begin
             if not ApplyingCustLedgEntry.Get(OldCVLedgerEntryBuffer."Entry No.") then
                 exit;
@@ -2611,6 +2608,13 @@ codeunit 18430 "GST Application Handler"
     local procedure OnGenJnlPostLineOnAfterRunWithOutCheck(sender: Codeunit "Gen. Jnl.-Post Line")
     begin
         GSTApplSessionMgt.PostApplicationGenJournalLine(sender);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CustEntry-Apply Posted Entries", 'OnAfterPostApplyCustLedgEntry', '', false, false)]
+    local procedure OnAfterPostApplyCustLedgEntry(GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
+    begin
+        if GenJournalLine."Offline Application" then
+            GSTApplSessionMgt.PostApplicationGenJournalLine(GenJnlPostLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"VendEntry-Apply Posted Entries", 'OnBeforePostUnapplyVendLedgEntry', '', false, false)]
