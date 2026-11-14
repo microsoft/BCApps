@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
-using Microsoft.Finance.FinancialReports;
 #if not CLEAN30
+using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.ReceivablesPayables;
 #endif
 using Microsoft.Sales.Document;
@@ -15,8 +15,12 @@ codeunit 144005 "Cloud Mig Country Tables"
     procedure GetTablesThatShouldBeCloudMigrated(var ListOfTablesToMigrate: List of [Integer])
     begin
         ListOfTablesToMigrate.Add(Database::"Bank Account Buffer FR");
+#if not CLEAN30
+#pragma warning disable AL0432
         ListOfTablesToMigrate.Add(Database::"FR Acc. Schedule Line");
         ListOfTablesToMigrate.Add(Database::"FR Acc. Schedule Name");
+#pragma warning restore AL0432
+#endif
         ListOfTablesToMigrate.Add(Database::"Payment Address FR");
         ListOfTablesToMigrate.Add(Database::"Payment Class FR");
         ListOfTablesToMigrate.Add(Database::"Payment Header Archive FR");

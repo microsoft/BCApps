@@ -19,6 +19,9 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using System.Automation;
+#if not CLEAN30
+using System.Environment.Configuration;
+#endif
 using System.Utilities;
 
 /// <summary>
@@ -72,10 +75,24 @@ report 1401 Check
         dataitem(GenJnlLine; "Gen. Journal Line")
         {
             DataItemTableView = sorting("Journal Template Name", "Journal Batch Name", "Posting Date", "Document No.");
+#if not CLEAN30
             column(JnlTemplName_GenJnlLine; "Journal Template Name")
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Use JournalTempName_GenJnlLine instead.';
+                ObsoleteTag = '30.0';
             }
             column(JnlBatchName_GenJnlLine; "Journal Batch Name")
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Use JournalBatchName_GenJnlLine instead.';
+                ObsoleteTag = '30.0';
+            }
+#endif
+            column(JournalTempName_GenJnlLine; "Journal Template Name")
+            {
+            }
+            column(JournalBatchName_GenJnlLine; "Journal Batch Name")
             {
             }
             column(LineNo_GenJnlLine; "Line No.")
@@ -111,7 +128,17 @@ report 1401 Check
                         AutoFormatExpression = GenJnlLine."Currency Code";
                         AutoFormatType = 1;
                     }
+#if not CLEAN30
                     column(TotalLineDiscountLineDisc; TotalLineDiscount - LineDiscount)
+                    {
+                        AutoFormatExpression = GenJnlLine."Currency Code";
+                        AutoFormatType = 1;
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'Use TotalLineDiscountLineDiscount instead.';
+                        ObsoleteTag = '30.0';
+                    }
+#endif
+                    column(TotalLineDiscountLineDiscount; TotalLineDiscount - LineDiscount)
                     {
                         AutoFormatExpression = GenJnlLine."Currency Code";
                         AutoFormatType = 1;
@@ -225,7 +252,6 @@ report 1401 Check
                                                     begin
                                                         CustUpdateAmounts(CustLedgEntry, RemainingAmount);
                                                         FoundLast := (CustLedgEntry.Next() = 0) or (RemainingAmount <= 0);
-                                                        AddedRemainingAmount := not (FoundLast and (RemainingAmount > 0));
                                                         if FoundLast and not FoundNegative then begin
                                                             CustLedgEntry.SetRange(Positive, false);
                                                             FoundLast := not CustLedgEntry.Find('-');
@@ -236,7 +262,6 @@ report 1401 Check
                                                     begin
                                                         VendUpdateAmounts(VendLedgEntry, RemainingAmount);
                                                         FoundLast := (VendLedgEntry.Next() = 0) or (RemainingAmount <= 0);
-                                                        AddedRemainingAmount := not (FoundLast and (RemainingAmount > 0));
                                                         if FoundLast and not FoundNegative then begin
                                                             VendLedgEntry.SetRange(Positive, false);
                                                             FoundLast := not VendLedgEntry.Find('-');
@@ -413,7 +438,15 @@ report 1401 Check
                     column(CheckAmountText; CheckAmountText)
                     {
                     }
+#if not CLEAN30
                     column(CheckDateText2; CheckDateText)
+                    {
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'Use CheckDateTextControl2 instead.';
+                        ObsoleteTag = '30.0';
+                    }
+#endif
+                    column(CheckDateTextControl2; CheckDateText)
                     {
                     }
                     column(DescriptionLine2; DescriptionLine[2])
@@ -422,7 +455,15 @@ report 1401 Check
                     column(DescriptionLine1; DescriptionLine[1])
                     {
                     }
+#if not CLEAN30
                     column(CheckToAddr17; CheckToAddr[1])
+                    {
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'Use CheckToAddr1Control7 instead.';
+                        ObsoleteTag = '30.0';
+                    }
+#endif
+                    column(CheckToAddr1Control7; CheckToAddr[1])
                     {
                     }
                     column(CheckToAddr2; CheckToAddr[2])
@@ -455,7 +496,15 @@ report 1401 Check
                     column(CompanyAddr3; CompanyAddr[3])
                     {
                     }
+#if not CLEAN30
                     column(CheckNoText2; CheckNoText)
+                    {
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'Use CheckNoTextControl21 instead.';
+                        ObsoleteTag = '30.0';
+                    }
+#endif
+                    column(CheckNoTextControl21; CheckNoText)
                     {
                     }
                     column(CompanyAddr2; CompanyAddr[2])
@@ -916,7 +965,14 @@ report 1401 Check
         layout(RDLCLayout)
         {
             Type = RDLC;
+#if not CLEAN30
+            LayoutFile = './Bank/Check/CheckFR.rdlc';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'Moved to the Reports FR extension.';
+            ObsoleteTag = '30.0';
+#else
             LayoutFile = './Bank/Check/Check.rdlc';
+#endif
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
@@ -1059,8 +1115,10 @@ report 1401 Check
         Text064: Label '%1 must not be %2 for %3 %4.';
 #pragma warning restore AA0470
         Text065: Label 'Subtotal';
+#if not CLEAN30
         Text10800: Label 'EUROS';
         Text10801: Label 'CENT';
+#endif
 #pragma warning restore AA0074
         CheckNoTextCaptionLbl: Label 'Check No.';
         LineAmountCaptionLbl: Label 'Net Amount';
@@ -1069,7 +1127,11 @@ report 1401 Check
         DocNoCaptionLbl: Label 'Document No.';
         DocDateCaptionLbl: Label 'Document Date';
         CurrencyCodeCaptionLbl: Label 'Currency Code';
+#if not CLEAN30
         YourDocNoCaptionLbl: Label 'Your Document No.';
+#else
+        YourDocNoCaptionLbl: Label 'Your Doc. No.';
+#endif
         TransportCaptionLbl: Label 'Transport';
         BlockedEmplForCheckErr: Label 'You cannot print check because employee %1 is blocked due to privacy.', Comment = '%1 - Employee no.';
         AlreadyAppliedToEmployeeErr: Label ' is already applied to %1 %2 for employee %3.', Comment = '%1 = Document type, %2 = Document No., %3 = Employee No.';
@@ -1081,11 +1143,74 @@ report 1401 Check
     /// <param name="No">Decimal amount to convert to text</param>
     /// <param name="CurrencyCode">Currency code for proper text formatting</param>
     procedure FormatNoText(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
+    var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
+        PrintExponent: Boolean;
+        Ones: Integer;
+        Tens: Integer;
+        Hundreds: Integer;
+        Exponent: Integer;
+        NoTextIndex: Integer;
+        DecimalPosition: Decimal;
+        IsHandled: Boolean;
     begin
-        if GlobalLanguage in [1036, 2060, 3084, 4108] then
-            FormatNoTextFR(NoText, No, CurrencyCode)
+        OnBeforeFormatNoText(NoText, No, CurrencyCode, IsHandled);
+        if IsHandled then begin
+            OnAfterFormatNoText(NoText, No, CurrencyCode);
+            exit;
+        end;
+
+#if not CLEAN30
+        if not FeatureKeyManagement.IsReportsFREnabled() then begin
+#pragma warning disable AL0432
+            if GlobalLanguage in [1036, 2060, 3084, 4108] then
+                FormatNoTextFR(NoText, No, CurrencyCode)
+            else
+                FormatNoTextINTL(NoText, No, CurrencyCode);
+#pragma warning restore AL0432
+            OnAfterFormatNoText(NoText, No, CurrencyCode);
+            exit;
+        end;
+#endif
+
+        Clear(NoText);
+        NoTextIndex := 1;
+        NoText[1] := '****';
+        GLSetup.Get();
+
+        if No < 1 then
+            AddToNoText(NoText, NoTextIndex, PrintExponent, Text026)
         else
-            FormatNoTextINTL(NoText, No, CurrencyCode);
+            for Exponent := 4 downto 1 do begin
+                PrintExponent := false;
+                Ones := No div Power(1000, Exponent - 1);
+                Hundreds := Ones div 100;
+                Tens := (Ones mod 100) div 10;
+                Ones := Ones mod 10;
+                if Hundreds > 0 then begin
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Hundreds]);
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, Text027);
+                end;
+                if Tens >= 2 then begin
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, TensText[Tens]);
+                    if Ones > 0 then
+                        AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Ones]);
+                end else
+                    if (Tens * 10 + Ones) > 0 then
+                        AddToNoText(NoText, NoTextIndex, PrintExponent, OnesText[Tens * 10 + Ones]);
+                if PrintExponent and (Exponent > 1) then
+                    AddToNoText(NoText, NoTextIndex, PrintExponent, ExponentText[Exponent]);
+                No := No - (Hundreds * 100 + Tens * 10 + Ones) * Power(1000, Exponent - 1);
+            end;
+
+        AddToNoText(NoText, NoTextIndex, PrintExponent, Text028);
+        DecimalPosition := GetAmtDecimalPosition();
+        AddToNoText(NoText, NoTextIndex, PrintExponent, (Format(No * DecimalPosition) + '/' + Format(DecimalPosition)));
+
+        if CurrencyCode <> '' then
+            AddToNoText(NoText, NoTextIndex, PrintExponent, CurrencyCode);
 
         OnAfterFormatNoText(NoText, No, CurrencyCode);
     end;
@@ -1342,6 +1467,8 @@ report 1401 Check
         end;
     end;
 
+#if not CLEAN30
+    [Obsolete('Use FormatNoTextFR on codeunit Microsoft.Bank.Reports."Check Amount Wording FR" in the Reports FR extension.', '30.0')]
     [Scope('OnPrem')]
     procedure FormatNoTextFR(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
     var
@@ -1377,7 +1504,9 @@ report 1401 Check
                             AddToNoText(NoText, NoTextIndex, PrintExponent, Text027);
                     end;
 
+#pragma warning disable AL0432
                 FormatTens(NoText, NoTextIndex, PrintExponent, Exponent, Hundreds, Tens, Ones);
+#pragma warning restore AL0432
 
                 if PrintExponent and (Exponent > 1) then
                     if ((Hundreds * 100 + Tens * 10 + Ones) > 1) and (Exponent <> 2) then
@@ -1398,7 +1527,9 @@ report 1401 Check
         No := No * 100;
         Ones := No mod 10;
         Tens := No div 10;
+#pragma warning disable AL0432
         FormatTens(NoText, NoTextIndex, PrintExponent, Exponent, Hundreds, Tens, Ones);
+#pragma warning restore AL0432
 
         if (CurrencyCode = '') or (CurrencyCode = 'FRF') then
             case true of
@@ -1409,6 +1540,7 @@ report 1401 Check
             end;
     end;
 
+    [Obsolete('Use FormatTens on codeunit Microsoft.Bank.Reports."Check Amount Wording FR" in the Reports FR extension.', '30.0')]
     [Scope('OnPrem')]
     procedure FormatTens(var NoText: array[2] of Text[80]; var NoTextIndex: Integer; var PrintExponent: Boolean; Exponent: Integer; Hundreds: Integer; Tens: Integer; Ones: Integer)
     begin
@@ -1460,6 +1592,7 @@ report 1401 Check
         end;
     end;
 
+    [Obsolete('Use FormatNoTextINTL on codeunit Microsoft.Bank.Reports."Check Amount Wording FR" in the Reports FR extension.', '30.0')]
     [Scope('OnPrem')]
     procedure FormatNoTextINTL(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10])
     var
@@ -1504,6 +1637,19 @@ report 1401 Check
 
         if CurrencyCode <> '' then
             AddToNoText(NoText, NoTextIndex, PrintExponent, CurrencyCode);
+    end;
+#endif
+    local procedure GetAmtDecimalPosition(): Decimal
+    var
+        CheckCurrency: Record Currency;
+    begin
+        if GenJnlLine."Currency Code" = '' then
+            CheckCurrency.InitRoundingPrecision()
+        else begin
+            CheckCurrency.Get(GenJnlLine."Currency Code");
+            CheckCurrency.TestField("Amount Rounding Precision");
+        end;
+        exit(1 / CheckCurrency."Amount Rounding Precision");
     end;
 
     local procedure CheckGenJournalBatchAndLineIsApproved(GenJournalLine: Record "Gen. Journal Line"): Boolean
@@ -1623,6 +1769,23 @@ report 1401 Check
     end;
 
     /// <summary>
+    /// Integration event raised before formatting numeric amount to text for check printing.
+    /// Enables localizations to replace the standard amount wording.
+    /// </summary>
+    /// <param name="NoText">Array receiving the formatted text representation of the amount</param>
+    /// <param name="No">Numeric amount to format</param>
+    /// <param name="CurrencyCode">Currency code for the amount</param>
+    /// <param name="IsHandled">Set to true to skip the standard formatting</param>
+    /// <remarks>
+    /// Raised from FormatNoText procedure before converting numeric amount to written text format.
+    /// OnAfterFormatNoText is still raised when the event is handled.
+    /// </remarks>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeFormatNoText(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10]; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
     /// Integration event raised after formatting numeric amount to text for check printing.
     /// Enables custom formatting or modification of the text representation of check amounts.
     /// </summary>
@@ -1694,4 +1857,3 @@ report 1401 Check
     begin
     end;
 }
-

@@ -114,16 +114,44 @@ codeunit 101084 "Create Acc. Schedule Name"
 
     procedure InsertDataFR(VarName: Code[10]; Description: Text[80]; "Net Change Title": Text[30]; "Net Change Title 2": Text[30]; "Net Changes Title": Text[30]; "Last Year Title": Text[30])
     var
-        "Account Schedule Name": Record "FR Acc. Schedule Name";
+        ScheduleName: RecordRef;
     begin
-        "Account Schedule Name".Init();
-        "Account Schedule Name".Validate(Name, VarName);
-        "Account Schedule Name".Validate(Description, Description);
-        "Account Schedule Name".Validate("Caption Column 1", "Net Change Title");
-        "Account Schedule Name".Validate("Caption Column 2", "Net Change Title 2");
-        "Account Schedule Name".Validate("Caption Column 3", "Net Changes Title");
-        "Account Schedule Name".Validate("Caption Column Previous Year", "Last Year Title");
-        "Account Schedule Name".Insert();
+        ScheduleName.Open(GetFinancialScheduleNameTableID());
+        ScheduleName.Init();
+        ScheduleName.Field(1).Validate(VarName);                  // Name
+        ScheduleName.Field(2).Validate(Description);              // Description
+        ScheduleName.Field(10800).Validate("Net Change Title");   // Caption Column 1
+        ScheduleName.Field(10801).Validate("Net Change Title 2"); // Caption Column 2
+        ScheduleName.Field(10802).Validate("Net Changes Title");  // Caption Column 3
+        ScheduleName.Field(10803).Validate("Last Year Title");    // Caption Column Previous Year
+        ScheduleName.Insert();
+        ScheduleName.Close();
+    end;
+
+    procedure GetFinancialScheduleNameTableID(): Integer
+#if not CLEAN30
+    var
+        FinancialScheduleMgt: Codeunit "FR AccSchedManagement";
+#endif
+    begin
+#if not CLEAN30
+        if not FinancialScheduleMgt.IsReportsFREnabled() then
+            exit(10800);
+#endif
+        exit(10826);
+    end;
+
+    procedure GetFinancialScheduleLineTableID(): Integer
+#if not CLEAN30
+    var
+        FinancialScheduleMgt: Codeunit "FR AccSchedManagement";
+#endif
+    begin
+#if not CLEAN30
+        if not FinancialScheduleMgt.IsReportsFREnabled() then
+            exit(10801);
+#endif
+        exit(10827);
     end;
 
     internal procedure GetBSDETAccountScheduleName(): Code[10]

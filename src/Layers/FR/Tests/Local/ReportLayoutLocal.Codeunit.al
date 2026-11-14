@@ -1,3 +1,4 @@
+#if not CLEAN30
 codeunit 144001 "Report Layout - Local"
 {
     Subtype = Test;
@@ -12,6 +13,7 @@ codeunit 144001 "Report Layout - Local"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         isInitialized: Boolean;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('RHGLDetailTrialBalance')]
     [Scope('OnPrem')]
@@ -20,6 +22,7 @@ codeunit 144001 "Report Layout - Local"
         Initialize();
         REPORT.Run(REPORT::"G/L Detail Trial Balance");
     end;
+#endif
 
     [Test]
     [HandlerFunctions('RHFRAccountSchedule')]
@@ -41,6 +44,7 @@ codeunit 144001 "Report Layout - Local"
     end;
 #endif
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('RHGLJournal')]
     [Scope('OnPrem')]
@@ -49,7 +53,9 @@ codeunit 144001 "Report Layout - Local"
         Initialize();
         REPORT.Run(REPORT::"G/L Journal");
     end;
+#endif
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('RHGLTrialBalance')]
     [Scope('OnPrem')]
@@ -58,6 +64,7 @@ codeunit 144001 "Report Layout - Local"
         Initialize();
         REPORT.Run(REPORT::"G/L Trial Balance");
     end;
+#endif    
 
 #if not CLEAN28
     [Test]
@@ -70,6 +77,7 @@ codeunit 144001 "Report Layout - Local"
     end;
 #endif
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('RHVendorJournal')]
     [Scope('OnPrem')]
@@ -96,6 +104,7 @@ codeunit 144001 "Report Layout - Local"
         Initialize();
         REPORT.Run(REPORT::"Customer Journal");
     end;
+#endif
 
     local procedure Initialize()
     var
@@ -126,6 +135,7 @@ codeunit 144001 "Report Layout - Local"
         exit(CalcDate('<-1D>', DMY2Date(1, Date2DMY(LastDay, 2) + 1, Date2DMY(LastDay, 3))))
     end;
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure RHGLDetailTrialBalance(var GLDetailTrialBalance: TestRequestPage "G/L Detail Trial Balance")
@@ -137,6 +147,7 @@ codeunit 144001 "Report Layout - Local"
             GetLastDayOftheMonth(LibraryFiscalYear.GetFirstPostingDate(false))));
         GLDetailTrialBalance.SaveAsPdf(FomatFileName(GLDetailTrialBalance.Caption));
     end;
+#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]
@@ -157,6 +168,7 @@ codeunit 144001 "Report Layout - Local"
     end;
 #endif    
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure RHGLJournal(var GLJournal: TestRequestPage "G/L Journal")
@@ -175,6 +187,7 @@ codeunit 144001 "Report Layout - Local"
         GLTrialBalance."G/L Account".SetFilter("Date Filter", Format(WorkDate()));
         GLTrialBalance.SaveAsPdf(FomatFileName(GLTrialBalance.Caption));
     end;
+#endif
 
 #if not CLEAN28
     [RequestPageHandler]
@@ -187,6 +200,7 @@ codeunit 144001 "Report Layout - Local"
     end;
 #endif
 
+#if not CLEAN28
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure RHVendorJournal(var VendorJournal: TestRequestPage "Vendor Journal")
@@ -221,5 +235,6 @@ codeunit 144001 "Report Layout - Local"
         CustomerJournal.Date.SetFilter("Period Start", Format(WorkDate()));
         CustomerJournal.SaveAsPdf(FomatFileName(CustomerJournal.Caption));
     end;
+#endif
 }
-
+#endif

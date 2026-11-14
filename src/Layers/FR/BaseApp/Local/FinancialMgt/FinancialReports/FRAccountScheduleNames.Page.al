@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+#if not CLEAN30
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -6,6 +7,9 @@ namespace Microsoft.Finance.FinancialReports;
 
 page 10800 "FR Account Schedule Names"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
     ApplicationArea = Basic, Suite;
     Caption = 'Balance Sheet & Income Statement';
     PageType = List;
@@ -86,5 +90,19 @@ page 10800 "FR Account Schedule Names"
             }
         }
     }
-}
 
+    trigger OnOpenPage()
+    var
+        Handled: Boolean;
+    begin
+        OnBeforeOpenFinancialScheduleNames(Rec, Handled);
+        if Handled then
+            CurrPage.Close();
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOpenFinancialScheduleNames(ScheduleName: Record "FR Acc. Schedule Name"; var Handled: Boolean)
+    begin
+    end;
+}
+#endif

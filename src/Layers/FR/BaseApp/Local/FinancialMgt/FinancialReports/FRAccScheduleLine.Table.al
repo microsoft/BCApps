@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA33
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -11,6 +12,17 @@ using Microsoft.Finance.GeneralLedger.Budget;
 
 table 10801 "FR Acc. Schedule Line"
 {
+    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
+#if CLEAN30
+    ReplicateData = false;
+#endif
+#if not CLEAN30
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '33.0';
+#endif
     Caption = 'FR Acc. Schedule Line';
     DataClassification = CustomerContent;
 
@@ -19,7 +31,9 @@ table 10801 "FR Acc. Schedule Line"
         field(1; "Schedule Name"; Code[10])
         {
             Caption = 'Schedule Name';
+#pragma warning disable AS0105
             TableRelation = "FR Acc. Schedule Name";
+#pragma warning restore AS0105
         }
         field(2; "Line No."; Integer)
         {
@@ -168,22 +182,21 @@ table 10801 "FR Acc. Schedule Line"
 
     var
         Text10800: Label 'Default Schedule';
+#pragma warning disable AS0105
         AccSchedName: Record "FR Acc. Schedule Name";
+#pragma warning restore AS0105
         DimManagement: Codeunit DimensionManagement;
 
-    [Scope('OnPrem')]
     procedure LookupShortcutDimCode(FieldNo: Integer; var ShortcutDimCode: Code[20])
     begin
         DimManagement.LookupDimValueCode(FieldNo, ShortcutDimCode);
     end;
 
-    [Scope('OnPrem')]
     procedure ValidateShortcutDimCode(FieldNo: Integer; var ShortcutDimCode: Code[20])
     begin
         DimManagement.ValidateShortcutDimValues(FieldNo, ShortcutDimCode, "Dimension Set ID");
     end;
 
-    [Scope('OnPrem')]
     procedure ShowDimensions()
     begin
         "Dimension Set ID" :=
@@ -191,3 +204,4 @@ table 10801 "FR Acc. Schedule Line"
     end;
 }
 
+#endif

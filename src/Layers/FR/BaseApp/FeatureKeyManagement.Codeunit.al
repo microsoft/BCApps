@@ -5,17 +5,28 @@
 namespace System.Environment.Configuration;
 
 using Microsoft.Pricing.Calculation;
+#if not CLEAN30
+using System.Apps;
+#endif
 
 codeunit 265 "Feature Key Management"
 {
     Access = Internal;
     SingleInstance = true;
+#if not CLEAN30
+    Permissions = tabledata "NAV App Installed App" = r;
+#endif
 
     var
         FeatureManagementFacade: Codeunit "Feature Management Facade";
         FeatureTelemetry: Codeunit System.Telemetry."Feature Telemetry";
         AutomaticAccountCodesTxt: Label 'AutomaticAccountCodes', Locked = true;
         SIEAuditFileExportTxt: Label 'SIEAuditFileExport', Locked = true;
+#if not CLEAN30
+        ReportsFRTok: Label 'FRReports', Locked = true;
+        ReportsFRAppIdTok: Label '6f93dbc5-c674-430e-b5f4-232449d55c20', Locked = true;
+        ReportsFRAppNotInstalledErr: Label 'The Reports FR feature requires the Reports FR app. Install the app on the Extension Management page before enabling or using the feature.';
+#endif
 #if not CLEAN28
         PaymentTok: Label 'Payment', Locked = true;
 #endif
@@ -56,6 +67,28 @@ codeunit 265 "Feature Key Management"
     begin
         exit(FeatureManagementFacade.IsEnabled(DocumentReportExperienceTxt));
     end;
+
+#if not CLEAN30
+    procedure IsReportsFREnabled(): Boolean
+    begin
+        if not FeatureManagementFacade.IsEnabled(ReportsFRTok, false) then
+            exit(false);
+
+        VerifyReportsFRAppInstalled();
+        exit(true);
+    end;
+
+    local procedure VerifyReportsFRAppInstalled()
+    var
+        [SecurityFiltering(SecurityFilter::Ignored)]
+        NAVAppInstalledApp: Record "NAV App Installed App";
+        ReportsFRAppId: Guid;
+    begin
+        ReportsFRAppId := ReportsFRAppIdTok;
+        if not NAVAppInstalledApp.Get(ReportsFRAppId) then
+            Error(ReportsFRAppNotInstalledErr);
+    end;
+#endif
 
 #if not CLEAN27
     [Obsolete('This function is deprecated. Concurrent warehouse posting is always on.', '27.0')]
@@ -103,6 +136,11 @@ codeunit 265 "Feature Key Management"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Feature Management Facade", 'OnAfterFeatureEnableConfirmed', '', false, false)]
     local procedure HandleOnAfterFeatureEnableConfirmed(var FeatureKey: Record "Feature Key")
     begin
+#if not CLEAN30
+        if FeatureKey.ID = ReportsFRTok then
+            VerifyReportsFRAppInstalled();
+#endif
+
         // Log feature uptake
         case FeatureKey.ID of
             ConcurrentInventoryPostingLbl:
