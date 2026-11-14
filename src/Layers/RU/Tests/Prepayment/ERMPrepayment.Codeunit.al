@@ -4625,6 +4625,62 @@
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Prepayment");
     end;
 
+    [Test]
+    procedure SalesPrepmtDeductionLineUsesPrepmtAccountGenProdPostingGroup()
+    var
+        LineGLAccount: Record "G/L Account";
+        GenPostingSetup: Record "General Posting Setup";
+        GenProdPostingGroup: Record "Gen. Product Posting Group";
+        PrepmtGLAccount: Record "G/L Account";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesLine: Record "Sales Line";
+        FinalInvNo: Code[20];
+        PrepmtAccountNo: Code[20];
+        PrepmtInvNo: Code[20];
+    begin
+        // [SCENARIO 657966] Prepayment deduction line uses the prepayment account Gen. Prod. Posting Group
+        Initialize();
+
+        // [GIVEN] A prepayment account with a different Gen. Prod. Posting Group
+        PrepmtAccountNo := CreatePrepmtVATSetup(LineGLAccount, LineGLAccount."Gen. Posting Type"::Sale);
+        PrepmtGLAccount.Get(PrepmtAccountNo);
+        LibraryERM.CreateGenProdPostingGroup(GenProdPostingGroup);
+        GenProdPostingGroup."Def. VAT Prod. Posting Group" := PrepmtGLAccount."VAT Prod. Posting Group";
+        GenProdPostingGroup.Modify();
+        PrepmtGLAccount.Validate("Gen. Prod. Posting Group", GenProdPostingGroup.Code);
+        PrepmtGLAccount.Modify(true);
+
+        // [GIVEN] Sales Order with 100% prepayment and an item posting group
+        CustomerNo := CreateCustomerWithPostingSetup(LineGLAccount);
+        CreateSalesHeaderWithPrepaymentPercentage(SalesHeader, CustomerNo);
+        SalesHeader.Validate("Prepayment %", 100);
+        SalesHeader.Modify(true);
+        CreateSalesLinesWithQtyToShip(SalesLine, SalesHeader, LineGLAccount);
+
+        // [WHEN] Post the prepayment invoice and the final sales invoice
+        PrepmtInvNo := LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+        LibraryERM.CreateGeneralPostingSetup(GenPostingSetup, SalesHeader."Gen. Bus. Posting Group", GenProdPostingGroup.Code);
+        FinalInvNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The prepayment invoice line uses the prepayment account Gen. Prod. Posting Group
+        SalesInvoiceLine.SetRange("Document No.", PrepmtInvNo);
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::"G/L Account");
+        SalesInvoiceLine.SetRange("No.", PrepmtAccountNo);
+        SalesInvoiceLine.FindFirst();
+        SalesInvoiceLine.TestField("Gen. Prod. Posting Group", GenProdPostingGroup.Code);
+
+        // [THEN] The prepayment deduction line retains the same Gen. Prod. Posting Group
+        SalesInvoiceLine.Reset();
+        SalesInvoiceLine.SetRange("Document No.", FinalInvNo);
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::"G/L Account");
+        SalesInvoiceLine.SetRange("No.", PrepmtAccountNo);
+        SalesInvoiceLine.FindFirst();
+        SalesInvoiceLine.TestField("Gen. Prod. Posting Group", GenProdPostingGroup.Code);
+
+        TearDownVATPostingSetup(SalesHeader."VAT Bus. Posting Group");
+    end;
+
     local procedure InitSalesPrepaymentScenario(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; PriceIncludingVAT: Boolean; PrepaymentPercent: Decimal; CurrencyCode: Code[10])
     var
         LineGLAccount: Record "G/L Account";
