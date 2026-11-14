@@ -1381,6 +1381,7 @@ codeunit 135000 "Error Message Tests"
         // [FEATURE] [UT]
         // [SCENARIO 10082] LogTestField names the expected enum value when its ordinal exceeds the number of enum values
         Initialize();
+        HighestOrdinal := 0;
 
         // [GIVEN] The highest "Sales Line Type" ordinal, which is past the value count because the enum has a gap
         Ordinals := Enum::"Sales Line Type".Ordinals();
