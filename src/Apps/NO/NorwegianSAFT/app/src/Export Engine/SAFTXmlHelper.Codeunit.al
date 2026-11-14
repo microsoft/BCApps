@@ -127,7 +127,7 @@ codeunit 10674 "SAF-T XML Helper"
 
     local procedure DateTimeOfFileCreation(CreatedDateTime: DateTime): Text
     begin
-        exit(format(CreatedDateTime, 0, '<Year4><Month,2><Day,2><Hours24><Minutes,2><Seconds,2>'));
+        exit(Format(CreatedDateTime, 0, '<Year4><Month,2><Day,2><Hours24><Minutes,2><Seconds,2>'));
     end;
 
     local procedure PrepareNodeTextForXML(var RawXmlText: Text)

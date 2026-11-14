@@ -419,7 +419,7 @@ codeunit 10679 "SAF-T Data Check"
             exit;
         TempSAFTMissingField."Record ID" := RecRef.RecordId();
         FldRef := RecRef.Field(FieldNo);
-        TempSAFTMissingField."Field Caption" := copystr(FldRef.Caption(), 1, MaxStrLen(TempSAFTMissingField."Field Caption"));
+        TempSAFTMissingField."Field Caption" := CopyStr(FldRef.Caption(), 1, MaxStrLen(TempSAFTMissingField."Field Caption"));
         TempSAFTMissingField."Group No." := GroupNo;
         TempSAFTMissingField.Insert();
     end;
