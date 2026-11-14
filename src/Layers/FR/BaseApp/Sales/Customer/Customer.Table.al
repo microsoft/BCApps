@@ -2509,6 +2509,7 @@ table 18 Customer
         UpdateReferencedIds();
         SetLastModifiedDateTime();
         if IsContactUpdateNeeded() then begin
+            OnBeforeModifyContactUpdate(Rec);
             Modify();
             UpdateContFromCust.OnModify(Rec);
             if not Find() then begin
@@ -2516,6 +2517,11 @@ table 18 Customer
                 if Find() then;
             end;
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeModifyContactUpdate(var Customer: Record Customer)
+    begin
     end;
 
     trigger OnRename()

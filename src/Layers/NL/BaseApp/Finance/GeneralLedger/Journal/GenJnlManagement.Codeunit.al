@@ -5,8 +5,9 @@
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Bank.BankAccount;
-using Microsoft.Bank.Journal;
+#if not CLEAN30
 using Microsoft.Bank.Statement;
+#endif
 using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
@@ -135,17 +136,13 @@ codeunit 230 GenJnlManagement
         if IsHandled then
             exit;
 
-        if (GenJnlTemplate."Page ID" = 11400) or (GenJnlTemplate."Page ID" = 11403) then
-            EditCBGStatementPage(GenJnlTemplate)
-        else begin
-            GenJnlLine.FilterGroup := 2;
-            GenJnlLine.SetRange("Journal Template Name", GenJnlTemplate.Name);
-            GenJnlLine.FilterGroup := 0;
+        GenJnlLine.FilterGroup := 2;
+        GenJnlLine.SetRange("Journal Template Name", GenJnlTemplate.Name);
+        GenJnlLine.FilterGroup := 0;
 
-            GenJnlLine."Journal Template Name" := '';
-            GenJnlLine."Journal Batch Name" := GenJnlBatch.Name;
-            PAGE.Run(GenJnlTemplate."Page ID", GenJnlLine);
-        end;
+        GenJnlLine."Journal Template Name" := '';
+        GenJnlLine."Journal Batch Name" := GenJnlBatch.Name;
+        PAGE.Run(GenJnlTemplate."Page ID", GenJnlLine);
     end;
 
     /// <summary>
@@ -623,94 +620,43 @@ codeunit 230 GenJnlManagement
         OnAfterCalcBalance(GenJnlLine);
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use "Gen. Jnl. Management NL".TemplateSelectionCBG instead.', '30.0')]
     procedure TemplateSelectionCBG(PageID: Integer; PageTemplate: Option General,Sales,Purchases,"Cash Receipts",Payments,Assets,Intercompany,,,,,Cash,Bank; var CBGStatement: Record "CBG Statement"; var JnlSelected: Boolean)
     var
-        GenJnlTemplate: Record "Gen. Journal Template";
+        GenJnlManagementNL: Codeunit "Gen. Jnl. Management NL";
     begin
-        JnlSelected := true;
-
-        GenJnlTemplate.Reset();
-        GenJnlTemplate.SetRange("Page ID", PageID);
-        GenJnlTemplate.SetRange(Type, PageTemplate);
-
-        case GenJnlTemplate.Count of
-            0:
-                begin
-                    GenJnlTemplate.Init();
-                    GenJnlTemplate.Type := "Gen. Journal Template Type".FromInteger(PageTemplate);
-                    GenJnlTemplate.Name := Format(GenJnlTemplate.Type, MaxStrLen(GenJnlTemplate.Name));
-                    GenJnlTemplate.Description := StrSubstNo(Text001, GenJnlTemplate.Type);
-                    GenJnlTemplate.Validate(Type);
-                    GenJnlTemplate.Insert();
-                    Commit();
-                end;
-            1:
-                GenJnlTemplate.Find('-');
-            else
-                if PageTemplate in [PageTemplate::Bank, PageTemplate::Cash] then
-                    JnlSelected := PAGE.RunModal(PAGE::"Gen. Journal Templ. List (CBG)", GenJnlTemplate) = ACTION::LookupOK
-                else
-                    JnlSelected := PAGE.RunModal(0, GenJnlTemplate) = ACTION::LookupOK;
-        end;
-
-        if JnlSelected then begin
-            CBGStatement.FilterGroup(2);
-            CBGStatement.SetRange("Journal Template Name", GenJnlTemplate.Name);
-            CBGStatement.FilterGroup(0);
-        end;
+        GenJnlManagementNL.TemplateSelectionCBG(PageID, PageTemplate, CBGStatement, JnlSelected);
     end;
 
     [Scope('OnPrem')]
+    [Obsolete('Use "Gen. Jnl. Management NL".CheckTemplateNameCBG instead.', '30.0')]
     procedure CheckTemplateNameCBG(CurrentJnlTemplateName: Code[10])
     var
-        GenJnlBatch: Record "Gen. Journal Batch";
+        GenJnlManagementNL: Codeunit "Gen. Jnl. Management NL";
     begin
-        if not GenJnlBatch.Get(CurrentJnlTemplateName, Text004) then begin
-            GenJnlBatch.Init();
-            GenJnlBatch."Journal Template Name" := CurrentJnlTemplateName;
-            GenJnlBatch.SetupNewBatch();
-            GenJnlBatch.Name := Text004;
-            GenJnlBatch.Description := Text005;
-            GenJnlBatch.Insert(true);
-            Commit();
-        end;
+        GenJnlManagementNL.CheckTemplateNameCBG(CurrentJnlTemplateName);
     end;
 
     [Scope('OnPrem')]
+    [Obsolete('Use "Gen. Jnl. Management NL".InsertCBGStatement instead.', '30.0')]
     procedure InsertCBGStatement(GenJnlTemplate: Record "Gen. Journal Template")
     var
-        CBGStatement: Record "CBG Statement";
+        GenJnlManagementNL: Codeunit "Gen. Jnl. Management NL";
     begin
-        CBGStatement.Init();
-        CBGStatement."Journal Template Name" := GenJnlTemplate.Name;
-        CBGStatement.Insert(true);
-        if GenJnlTemplate."Page ID" = PAGE::"Bank/Giro Journal" then
-            CBGStatement.Type := CBGStatement.Type::"Bank/Giro"
-        else
-            CBGStatement.Type := CBGStatement.Type::Cash;
-        CBGStatement.Modify();
-        PAGE.Run(GenJnlTemplate."Page ID", CBGStatement);
+        GenJnlManagementNL.InsertCBGStatement(GenJnlTemplate);
     end;
 
     [Scope('OnPrem')]
+    [Obsolete('Use "Gen. Jnl. Management NL".EditCBGStatementPage instead.', '30.0')]
     procedure EditCBGStatementPage(GenJnlTemplate: Record "Gen. Journal Template")
     var
-        CBGStatement: Record "CBG Statement";
+        GenJnlManagementNL: Codeunit "Gen. Jnl. Management NL";
     begin
-        CBGStatement.FilterGroup := 2;
-        CBGStatement.SetRange("Journal Template Name", GenJnlTemplate.Name);
-        if (GenJnlTemplate."Page ID" = PAGE::"Bank/Giro Journal") then
-            CBGStatement.SetFilter(CBGStatement.Type, '=%1', CBGStatement.Type::"Bank/Giro")
-        else
-            CBGStatement.SetFilter(CBGStatement.Type, '=%1', CBGStatement.Type::Cash);
-        if CBGStatement.Count > 0 then begin
-            CBGStatement.FilterGroup := 0;
-            CBGStatement."Journal Template Name" := '';
-            PAGE.Run(GenJnlTemplate."Page ID", CBGStatement);
-        end else
-            InsertCBGStatement(GenJnlTemplate);
+        GenJnlManagementNL.EditCBGStatementPage(GenJnlTemplate);
     end;
+#endif
 
     procedure CalcBatchTotal(var GenJnlLine: Record "Gen. Journal Line"; var BatchTotal: Decimal; var ShowBatchTotal: Boolean)
     var
@@ -1043,4 +989,3 @@ codeunit 230 GenJnlManagement
     begin
     end;
 }
-

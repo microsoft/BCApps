@@ -1858,6 +1858,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         LibrarySetupStorage.Restore();
 
         if Initialized then begin
+            GenJournalBatch.Get(GenJournalBatch."Journal Template Name", GenJournalBatch.Name);
             GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
             GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
             GenJournalLine.DeleteAll();

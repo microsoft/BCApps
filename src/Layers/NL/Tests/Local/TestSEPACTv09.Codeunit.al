@@ -627,7 +627,6 @@ codeunit 144103 "Test SEPA CT v09"
         // [SCENARIO 363009] COD 11400 "Local Functionality Mgt.".GetPmtHistLineCountAndAmtForSEPAISO20022Pain() in case of several lines
         // [SCENARIO 363009] with only foreign amounts
         MockPaymentHistory(PaymentHistory);
-
         for ForeignCount := 1 to LibraryRandom.RandIntInRange(10, 20) do begin
             Amount := LibraryRandom.RandDec(1000, 2);
             TotalForeign += Amount;
@@ -659,13 +658,11 @@ codeunit 144103 "Test SEPA CT v09"
         // [SCENARIO 363009] COD 11400 "Local Functionality Mgt.".GetPmtHistLineCountAndAmtForSEPAISO20022Pain() in case of several lines
         // [SCENARIO 363009] with local and foreign amounts
         MockPaymentHistory(PaymentHistory);
-
         for LocalCount := 1 to LibraryRandom.RandIntInRange(10, 20) do begin
             Amount := LibraryRandom.RandDec(1000, 2);
             TotalLocal += Amount;
             MockPaymentHistoryLineWithAmounts(PaymentHistoryLine, PaymentHistory, Amount, 0);
         end;
-
         for ForeignCount := 1 to LibraryRandom.RandIntInRange(10, 20) do begin
             Amount := LibraryRandom.RandDec(1000, 2);
             TotalForeign += Amount;
@@ -1588,6 +1585,51 @@ codeunit 144103 "Test SEPA CT v09"
         UnbindSubscription(TestSepaCtV03);
     end;
 
+#if not CLEAN30
+    [Test]
+    [HandlerFunctions('ProposalLineConfirmHandler,ProposalProcessedMsgHandler')]
+    procedure LegacyPriorityEventForcesNormalPriority()
+    var
+        BankAccount: Record "Bank Account";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        Vendor: Record Vendor;
+        TestSEPACTv09: Codeunit "Test SEPA CT v09";
+        ExportProtocolCode: Code[20];
+        FileName: Text;
+        i: Integer;
+    begin
+        // [SCENARIO] A legacy subscriber forces NORMAL priority and initializes InstrPrty to NORM.
+        Initialize();
+
+        // [GIVEN] Five payment documents with local SEPA instruction priority enabled.
+        UpdateGLSetupCurrency(GeneralLedgerSetup."Local Currency"::Euro, '', 'EUR');
+        UpdateLocalInstrPrtyInGenLedgSetup(true);
+        ExportProtocolCode := FindXMLPortEuroSEPAExportProtocol();
+        SetUpTransactionMode(CreateSEPABankAccount(BankAccount, ''), ExportProtocolCode);
+
+        // [GIVEN] Truncating five full-length creditor names shortens the rewritten XML.
+        for i := 1 to 5 do begin
+            CreateVendorWithBankAccount(Vendor, BankAccount, '');
+            CreateAndPostPurchInvoice(Vendor."No.", false);
+            Vendor.Name := PadStr(Vendor."No.", MaxStrLen(Vendor.Name), 'X');
+            Vendor.Modify();
+        end;
+
+        // [GIVEN] A legacy subscriber that forces NORMAL priority.
+        BindSubscription(TestSEPACTv09);
+
+        // [WHEN] Export the payments to XML.
+        GetEntriesAndExportSEPAReport(BankAccount."No.", ExportProtocolCode);
+
+        UnbindSubscription(TestSEPACTv09);
+
+        // [THEN] Both payment information groups have InstrPrty = NORM.
+        FileName := CreateXMLFileFromCreditTransferRegisterExportedFile(BankAccount."No.");
+        XMLReadHelper.Initialize(FileName, GetSEPACTNameSpace());
+        XMLReadHelper.VerifyNodeCountWithValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:PmtTpInf/ns:InstrPrty', 'NORM', 2);
+    end;
+#endif
+
     local procedure CheckSEPAISO20022_Scenario(GLSetupLocalCurrency: Option; CurrencyEuro: Code[10]; ProposalLineCurrency: Code[10])
     var
         DummyProposalLine: Record "Proposal Line";
@@ -2484,7 +2526,6 @@ codeunit 144103 "Test SEPA CT v09"
           '//ns:Document/ns:CstmrCdtTrfInitn/ns:GrpHdr/ns:CtrlSum',
           FormatCtrlSumValue(TotalAmount));
         XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:BtchBookg', 'false');
-
         if GeneratedByReport then begin
             XMLReadHelper.GetNodeByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:PmtTpInf/ns:CtgyPurp', Node);
             XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:PmtTpInf/ns:CtgyPurp/ns:Cd', 'SUPP');
@@ -2525,7 +2566,6 @@ codeunit 144103 "Test SEPA CT v09"
           '//ns:Document/ns:CstmrCdtTrfInitn/ns:GrpHdr/ns:CtrlSum',
           FormatCtrlSumValue(TotalAmount));
         XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:BtchBookg', 'false');
-
         if GeneratedByReport then begin
             XMLReadHelper.GetNodeByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:PmtTpInf/ns:CtgyPurp', Node);
             XMLReadHelper.VerifyNodeValueByXPath('//ns:Document/ns:CstmrCdtTrfInitn/ns:PmtInf/ns:PmtTpInf/ns:CtgyPurp/ns:Cd', 'SUPP');
@@ -2722,10 +2762,23 @@ codeunit 144103 "Test SEPA CT v09"
         ExportBTL91ABNAMRO.OK().Invoke();
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"SEPA CT-Fill Export Buffer", 'OnBeforeSetSEPAInstructionPriority', '', false, false)]
+    local procedure OnBeforeSetSEPAInstructionPriority(var PaymentExportData: Record "Payment Export Data"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; var IsHandled: Boolean)
+    begin
+        if IsHandled then
+            exit;
+
+        PaymentExportData.Validate("SEPA Instruction Priority", PaymentExportData."SEPA Instruction Priority"::NORMAL);
+        IsHandled := true;
+    end;
+
+#if not CLEAN30
+#pragma warning disable AL0432
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SEPA CT-Fill Export Buffer", 'OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority', '', false, false)]
-    local procedure OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority(var IsHandled: Boolean)
+#pragma warning restore AL0432
+    local procedure ForceNormalPriorityFromLegacyEvent(var IsHandled: Boolean)
     begin
         IsHandled := true;
     end;
+#endif
 }
-
