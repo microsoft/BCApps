@@ -364,8 +364,9 @@ table 740 "VAT Report Header"
         }
         field(33; "Total Number of Supplies"; Decimal)
         {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
+            AutoFormatType = 0;
+            BlankNumbers = DontBlank;
+            DecimalPlaces = 0 : 0;
             CalcFormula = sum("VAT Report Line"."Number of Supplies" where("VAT Report No." = field("No."),
                                                                             "Line Type" = filter(New | Correction)));
             Caption = 'Total Number of Supplies';
