@@ -3301,7 +3301,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         Item: Record Item;
-        EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
+        EDocPurchaseDraftWriter: Codeunit "E-Doc. Purchase Draft Writer";
         PreviousLineSystemId: Guid;
     begin
         Initialize();
@@ -3325,7 +3325,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         TempEDocumentPurchaseLine.Insert();
 
         // [WHEN] The draft is re-persisted
-        EDocPurchaseDraftUtility.PersistDraft(EDocument, TempEDocumentPurchaseHeader, TempEDocumentPurchaseLine);
+        EDocPurchaseDraftWriter.PersistDraft(EDocument, TempEDocumentPurchaseHeader, TempEDocumentPurchaseLine);
 
         // [THEN] The matches of the replaced line are cleaned up by the line's OnDelete trigger
         Assert.AreEqual(0, LiveMatchCountForLineSystemId(PreviousLineSystemId), 'Expected the replaced line''s matches to be removed when re-persisting the draft');
