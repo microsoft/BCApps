@@ -50,13 +50,14 @@ codeunit 8134 "Report Filename Report Plh." implements "Report Filename Placehol
         LanguageMgt: Codeunit Language;
         PreviousGlobalLanguage: Integer;
     begin
-        // Read in the document's language so the name does not depend on who ran the report.
-        // Matching the rendered report where that language's translation is not installed is the
-        // subject of ask 1.
+        Clear(PlaceholderValue);
+
+        // Read installed caption resources in the requested language. Renderer fallback equivalence
+        // and the report's effective rendering language are separate from this metadata lookup.
         PreviousGlobalLanguage := GlobalLanguage();
         GlobalLanguage(LanguageMgt.GetLanguageIdOrDefault(LanguageCode));
 
-        // Isolated in a try function so the session language is restored on every path.
+        // Restore the caller's language even if reading the metadata raises an error.
         if not TryReadCaption(ReportId, PlaceholderValue) then
             Clear(PlaceholderValue);
 
