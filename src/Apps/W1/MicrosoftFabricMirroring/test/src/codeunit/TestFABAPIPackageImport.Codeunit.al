@@ -89,6 +89,7 @@ codeunit 140013 "Test FAB API Package Import"
         FabricConfigPackageLine: Record "Fabric Config Package Line";
         FabricTableClaim: Record "Fabric Table Claim";
     begin
+        TenantFabricTables.SetFilter("Table ID", '<>%1&<>%2', Database::"Tenant Fabric Export Details", Database::"Tenant Fabric Export Summary");
         TenantFabricTables.DeleteAll(false);
         FabricConfigPackageLine.DeleteAll(false);
         FabricConfigPackage.DeleteAll(false);

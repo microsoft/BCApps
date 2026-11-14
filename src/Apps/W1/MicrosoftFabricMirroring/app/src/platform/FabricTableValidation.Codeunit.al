@@ -33,11 +33,28 @@ codeunit 48535 "Fabric Table Validation"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Tenant Fabric Tables", OnBeforeRenameEvent, '', false, false)]
-    local procedure ValidateOnBeforeRename(var Rec: Record "Tenant Fabric Tables")
+    local procedure ValidateOnBeforeRename(var Rec: Record "Tenant Fabric Tables"; var xRec: Record "Tenant Fabric Tables")
     begin
         if Rec.IsTemporary() then
             exit;
+        if Rec."Table ID" <> xRec."Table ID" then
+            CheckCanRemoveTable(xRec."Table ID");
         ValidateTable(Rec."Table ID");
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Tenant Fabric Tables", OnBeforeDeleteEvent, '', false, false)]
+    local procedure ValidateOnBeforeDelete(var Rec: Record "Tenant Fabric Tables")
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        CheckCanRemoveTable(Rec."Table ID");
+    end;
+
+    local procedure CheckCanRemoveTable(TableId: Integer)
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        FabricPlatformMgt.CheckCanRemoveTable(TableId);
     end;
 
     /// <summary>Returns an Object ID filter that leaves out every table that cannot be exported to Microsoft Fabric.</summary>

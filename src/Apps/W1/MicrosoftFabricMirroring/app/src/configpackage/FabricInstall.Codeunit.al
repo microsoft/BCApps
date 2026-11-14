@@ -9,6 +9,14 @@ codeunit 48522 "Fabric Install"
 {
     Subtype = Install;
     Access = Internal;
+
+    trigger OnInstallAppPerDatabase()
+    var
+        FabricUpgrade: Codeunit "Fabric Upgrade";
+    begin
+        FabricUpgrade.InitializeRequiredLogTables();
+    end;
+
     trigger OnInstallAppPerCompany()
     var
         FabricUpgrade: Codeunit "Fabric Upgrade";

@@ -41,6 +41,8 @@ codeunit 140012 "Test FAB Platform"
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         PlatformTestSub: Codeunit "Fabric Platform Test Sub";
     begin
+        // Required selections persist across cleanup.
+        TenantFabricTables.SetFilter("Table ID", '<>%1&<>%2', Database::"Tenant Fabric Export Details", Database::"Tenant Fabric Export Summary");
         TenantFabricTables.DeleteAll(false);
         TenantFabricTableFields.DeleteAll(false);
         TenantFabricSetup.DeleteAll(false);
@@ -168,7 +170,7 @@ codeunit 140012 "Test FAB Platform"
         Initialize();
         //[GIVEN] 1000 table rows already exist
         // IDs beyond any real table are not validated, so existing virtual or external tables cannot reject the insert.
-        for i := 1 to FabricPlatformMgt.MaxTableCount() do begin
+        for i := 1 to FabricPlatformMgt.MaxTableCount() - FabricPlatformMgt.SelectedTableCount() do begin
             TenantFabricTables.Init();
             TenantFabricTables."Table ID" := 900000000 + i;
             TenantFabricTables.Insert(false);
