@@ -5,6 +5,7 @@
 
 namespace Microsoft.FixedAssets.Depreciation;
 
+#if not CLEAN30
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -12,7 +13,9 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.AuditCodes;
+using System.Environment.Configuration;
 
+#pragma warning disable AL0432
 report 13402 "Calc. and Post Depr. Diff."
 {
     DefaultLayout = RDLC;
@@ -21,6 +24,9 @@ report 13402 "Calc. and Post Depr. Diff."
     Caption = 'Calculate and Post Deprication Difference';
     Permissions = TableData "FA Ledger Entry" = rimd;
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
 
     dataset
     {
@@ -250,7 +256,12 @@ report 13402 "Calc. and Post Depr. Diff."
     }
 
     trigger OnPreReport()
+    var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
+        if FeatureKeyManagement.IsDepreciationDifferencesFIEnabled() then
+            Error(FeatureEnabledErr);
+
         if (DeprBookCode1 = '') or (DeprBookCode2 = '') then
             Error(Text13405);
         if StartDate = 0D then
@@ -317,6 +328,7 @@ report 13402 "Calc. and Post Depr. Diff."
         Text13410: Label 'The Depreciation Book Code 1 must be integrated with G/L.';
         Text13411: Label 'The Depreciation Book Code 2 must not be integrated with G/L.';
         Text13412: Label 'There is no Depreciation Difference posted for the specified period.';
+        FeatureEnabledErr: Label 'The Depreciation Differences FI feature is enabled. Run the Calculate and Post Depreciation Difference report from the Depreciation Differences FI app instead.';
         StartDate: Date;
         EndDate: Date;
         PostingDate: Date;
@@ -378,4 +390,5 @@ report 13402 "Calc. and Post Depr. Diff."
         DeprDiffPostingBuffer.Insert();
     end;
 }
-
+#pragma warning restore AL0432
+#endif

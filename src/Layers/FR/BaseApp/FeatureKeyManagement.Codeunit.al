@@ -16,6 +16,9 @@ codeunit 265 "Feature Key Management"
         FeatureTelemetry: Codeunit System.Telemetry."Feature Telemetry";
         AutomaticAccountCodesTxt: Label 'AutomaticAccountCodes', Locked = true;
         SIEAuditFileExportTxt: Label 'SIEAuditFileExport', Locked = true;
+#if not CLEAN30
+        DepreciationDifferencesFITok: Label 'DepreciationDifferencesFI', Locked = true, MaxLength = 50;
+#endif
 #if not CLEAN28
         PaymentTok: Label 'Payment', Locked = true;
 #endif
@@ -56,6 +59,13 @@ codeunit 265 "Feature Key Management"
     begin
         exit(FeatureManagementFacade.IsEnabled(DocumentReportExperienceTxt));
     end;
+
+#if not CLEAN30
+    procedure IsDepreciationDifferencesFIEnabled(): Boolean
+    begin
+        exit(FeatureManagementFacade.IsEnabled(DepreciationDifferencesFITok, false));
+    end;
+#endif
 
 
     procedure IsConcurrentInventoryPostingEnabled(): Boolean
