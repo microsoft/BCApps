@@ -2,6 +2,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -28,6 +29,8 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         WrongLogEntryCountErr: Label 'Unexpected entry count in VAT Registration Log table.';
         LibraryApplicationArea: Codeunit "Library - Application Area";
         IsInitialized: Boolean;
+        CapturedVATRegNo: Text[20];
+        CapturedCountryCode: Code[10];
         GetVATRegNoErr: Label 'Unexpected output of GetVATRegNo method';
         GetCountryCodeErr: Label 'Not expected country code.';
         DisclaimerTxt: Label 'You are accessing a third-party website and service. Review the disclaimer before you continue.';
@@ -36,6 +39,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         EmptyCountryCodeErr: Label 'You must specify the country that issued the VAT registration number. Choose the country in the Country/Region Code field.';
         EmptyEUCountryCodeErr: Label 'You must specify the EU Country/Region Code for the country that issued the VAT registration number. You can specify that on the Country/Regions page.';
         CannotInsertMultipleSettingsErr: Label 'You cannot insert multiple settings.';
+        WrongVATRegNoValidatedErr: Label 'The VAT registration check was run for an unexpected VAT Registration No.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1409,6 +1413,88 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Customer.TestField("VAT Registration No.", CustomerVATRegistrationNo);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure ValidateHeaderVATRegistrationNoChecksEnteredNumberWhenCustomerHasNone()
+    begin
+        // [SCENARIO 658801] The document VAT number and country are used when the customer has a different country and no VAT number.
+        ValidateHeaderVATRegistrationNoCountry(true, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure ValidateHeaderVATRegistrationNoUsesCustomerCountryWhenDocumentCountryIsBlank()
+    begin
+        // [SCENARIO 658801] A blank document VAT country falls back to the customer country.
+        ValidateHeaderVATRegistrationNoCountry(false, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure ValidateHeaderVATRegistrationNoUsesCompanyCountryWhenDocumentAndCustomerCountriesAreBlank()
+    begin
+        // [SCENARIO 658801] Blank document and customer countries fall back to the company VAT format country.
+        ValidateHeaderVATRegistrationNoCountry(false, false);
+    end;
+
+    local procedure ValidateHeaderVATRegistrationNoCountry(UseDocumentCountry: Boolean; UseCustomerCountry: Boolean)
+    var
+        Customer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        VATRegistrationNoFormat: Record "VAT Registration No. Format";
+        SalesHeader: Record "Sales Header";
+        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
+        ERMVATRegNoValidityCheck: Codeunit "ERM VAT Reg. No Validity Check";
+        EnteredVATRegistrationNo: Text[20];
+    begin
+        // [FEATURE] [Customer] [Sales] [Header]
+        // [SCENARIO 658801] Entering VAT Registration No. on a sales document validates the entered number when the customer has no VAT Registration No.
+        Initialize();
+
+        // [GIVEN] EU VAT Reg. No. validation service is enabled
+        SetVATRegSrvStatus(true, VATLookupExtDataHndl.GetVATRegNrValidationWebServiceURL());
+        BindSubscription(ERMVATRegNoValidityCheck);
+
+        // [GIVEN] A VAT format for the expected country and a customer without VAT Registration No.
+        LibrarySales.CreateCustomer(Customer);
+        CountryRegion.Get(CreateCountryCodeWithEUCode());
+        LibraryERM.CreateVATRegistrationNoFormat(VATRegistrationNoFormat, CountryRegion.Code);
+        VATRegistrationNoFormat.Validate(Format, '123######');
+        VATRegistrationNoFormat.Modify();
+        if UseDocumentCountry then
+            Customer.Validate("Country/Region Code", CreateCountryCodeWithEUCode())
+        else
+            if UseCustomerCountry then
+                Customer.Validate("Country/Region Code", CountryRegion.Code)
+            else begin
+                Customer.Validate("Country/Region Code", '');
+                UpdateCountryRegionInCompanyInformation(CountryRegion.Code);
+            end;
+        Customer.Modify(true);
+        Customer.TestField("VAT Registration No.", '');
+
+        // [GIVEN] Sales invoice for the customer
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        if UseDocumentCountry then
+            SalesHeader."VAT Country/Region Code" := CountryRegion.Code
+        else
+            SalesHeader."VAT Country/Region Code" := '';
+
+        // [WHEN] VAT Registration No. "X" is entered on the sales invoice
+        EnteredVATRegistrationNo := LibraryERM.GenerateVATRegistrationNo(CountryRegion.Code);
+        SalesHeader.Validate("VAT Registration No.", EnteredVATRegistrationNo);
+
+        // [THEN] The VAT registration check was run for "X", not for the blank number on the customer
+        Assert.AreEqual(EnteredVATRegistrationNo, ERMVATRegNoValidityCheck.GetCapturedVATRegNo(), WrongVATRegNoValidatedErr);
+        Assert.AreEqual(CountryRegion.Code, ERMVATRegNoValidityCheck.GetCapturedCountryCode(), GetCountryCodeErr);
+
+        // Tear Down
+        Customer.Delete();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM VAT Reg. No Validity Check");
@@ -1712,5 +1798,28 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
     begin
         Reply := true;
     end;
-}
 
+    [Scope('OnPrem')]
+    procedure GetCapturedVATRegNo(): Text[20]
+    begin
+        exit(CapturedVATRegNo);
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetCapturedCountryCode(): Code[10]
+    begin
+        exit(CapturedCountryCode);
+    end;
+
+    // Captures the number and country sent for VIES validation and skips the external service call.
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Registration Log Mgt.", 'OnBeforeCheckVIESForVATNoField', '', false, false)]
+    local procedure CaptureVATRegNoOnBeforeCheckVIESForVATNoField(RecordVariant: Variant; CountryCode: Code[10]; var IsHandled: Boolean)
+    var
+        Customer: Record Customer;
+    begin
+        Customer := RecordVariant;
+        CapturedVATRegNo := Customer."VAT Registration No.";
+        CapturedCountryCode := CountryCode;
+        IsHandled := true;
+    end;
+}
