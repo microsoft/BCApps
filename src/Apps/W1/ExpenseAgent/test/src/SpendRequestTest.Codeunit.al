@@ -996,7 +996,6 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
-    [HandlerFunctions('SpendReqConfirmHandler,SpendReqMessageHandler')]
     procedure DeleteTravelRequestAfterPostedReportIsCanceled()
     var
         SpendRequest: Record "Spend Request";
@@ -1006,12 +1005,12 @@ codeunit 148339 "Spend Request Test"
         // [SCENARIO 656387] A travel request can be deleted once its linked posted expense report is canceled.
         Initialize();
 
-        // [GIVEN] A posted report linked to the travel request on the header, which is then canceled.
-        CreateCanceledPostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, true);
+        // [GIVEN] A canceled posted report linked to the travel request on the header.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
         TravelRequestNo := SpendRequest."No.";
+        PostedExpenseReportHeader.Get(InsertPostedExpenseReport(TravelRequestNo, '', true));
 
         // [WHEN] The request is deleted.
-        SpendRequest.Get(TravelRequestNo);
         SpendRequest.Delete(true);
 
         // [THEN] The request is deleted and the canceled posted history is kept.
@@ -1022,28 +1021,27 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
-    [HandlerFunctions('SpendReqConfirmHandler,SpendReqMessageHandler')]
     procedure DeleteTravelRequestAfterPostedLineReportIsCanceled()
     var
         SpendRequest: Record "Spend Request";
-        PostedExpenseReportHeader: Record "Posted Expense Report Header";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
+        PostedReportNo: Code[20];
         TravelRequestNo: Code[20];
     begin
         // [SCENARIO 656387] Canceled posted lines no longer block deleting the travel request they reference.
         Initialize();
 
-        // [GIVEN] A posted report linked to the travel request only through its lines, which is then canceled.
-        CreateCanceledPostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, false);
+        // [GIVEN] A canceled posted report linked to the travel request only through its line.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
         TravelRequestNo := SpendRequest."No.";
+        PostedReportNo := InsertPostedExpenseReport('', TravelRequestNo, true);
 
         // [WHEN] The request is deleted.
-        SpendRequest.Get(TravelRequestNo);
         SpendRequest.Delete(true);
 
         // [THEN] The request is deleted and the canceled posted lines are kept.
         Assert.IsFalse(SpendRequest.Get(TravelRequestNo), 'The travel request linked only to canceled posted lines must be deleted.');
-        PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportHeader."No.");
+        PostedExpenseReportLine.SetRange("Document No.", PostedReportNo);
         PostedExpenseReportLine.SetRange("Spend Request No.", TravelRequestNo);
         PostedExpenseReportLine.SetRange("Is Canceled", true);
         Assert.RecordIsNotEmpty(PostedExpenseReportLine);
@@ -1382,6 +1380,41 @@ codeunit 148339 "Spend Request Test"
         Assert.AreEqual(ExpectedDescription, ExpenseReportHeader.Description, ExpenseReportDescriptionMsg);
         ExpenseReportHeader.CalcFields("Travel Request SystemId");
         Assert.AreEqual(SpendRequest.SystemId, ExpenseReportHeader."Travel Request SystemId", TravelRequestSystemIdMsg);
+    end;
+
+    [Test]
+    procedure ApproveTravelRequestIgnoresCanceledPostedReportWithSameNo()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [SCENARIO 656387] A canceled posted report left behind by a deleted travel request doesn't stop a new request with the same number from getting its expense report.
+        Initialize();
+
+        // [GIVEN] A released travel request whose number is still on a canceled posted report for the same traveler.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        PostedExpenseReportHeader.Get(InsertPostedExpenseReport(SpendRequest."No.", SpendRequest."No.", true));
+        PostedExpenseReportHeader."Expense User No." := ExpenseUser."No.";
+        PostedExpenseReportHeader.Modify();
+        PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportHeader."No.");
+        PostedExpenseReportLine.ModifyAll("Expense User No.", ExpenseUser."No.");
+        ReleaseSpendRequest.Release(SpendRequest);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+
+        // [WHEN] The assigned approver approves the request.
+        TravelRequestApproval.Approve(SpendRequest, ApproverExpenseUser."No.");
+
+        // [THEN] A new expense report is created for the traveler.
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.SetRange("Expense User No.", ExpenseUser."No.");
+        Assert.RecordCount(ExpenseReportHeader, 1);
     end;
 
     [Test]
@@ -4719,26 +4752,6 @@ codeunit 148339 "Spend Request Test"
         PostedExpenseReportLine."Is Canceled" := Canceled;
         PostedExpenseReportLine.Insert();
         exit(PostedExpenseReportHeader."No.");
-    end;
-
-    local procedure CreateCanceledPostedTravelRequestReport(var SpendRequest: Record "Spend Request"; var PostedExpenseReportHeader: Record "Posted Expense Report Header"; AssignOnHeader: Boolean)
-    var
-        ExpenseReportHeader: Record "Expense Report Header";
-        ExpenseReportPost: Codeunit "Expense Report-Post";
-        CancelPostedExpenseReport: Codeunit "Cancel Posted Expense Report";
-    begin
-        if AssignOnHeader then
-            CreateAndPostExpenseReportWithSpendRequestAssignedOnHeader(ExpenseReportHeader, SpendRequest, 1)
-        else
-            CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
-
-        ExpenseReportHeader.PerformManualRelease();
-        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
-        PostedExpenseReportHeader.Get(ExpenseReportHeader."Last Posting No.");
-        CancelPostedExpenseReport.CancelPostedExpenseReport(PostedExpenseReportHeader);
-        PostedExpenseReportHeader.Get(PostedExpenseReportHeader."No.");
-        PostedExpenseReportHeader.TestField(Canceled, true);
-        SpendRequest.Get(SpendRequest."No.");
     end;
 
     local procedure CreatePostedTravelRequestReport(var SpendRequest: Record "Spend Request"; var PostedExpenseReportHeader: Record "Posted Expense Report Header"; AssignOnHeader: Boolean)
