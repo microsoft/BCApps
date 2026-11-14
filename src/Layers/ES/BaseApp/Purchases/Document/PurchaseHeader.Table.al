@@ -664,7 +664,7 @@ table 38 "Purchase Header"
                         if not IsHandled then
                             "Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
                         GLSetup.Get();
-                        if GLSetup."Payment Discount Type" = GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines" then
+                        if GLSetup.ShouldCalculatePaymentDiscountOnLines() then
                             Validate("Prepmt. Payment Discount %", 0)
                         else
                             if not UpdateDocumentDate then
@@ -2179,7 +2179,7 @@ table 38 "Purchase Header"
                         if not IsHandled then
                             "Prepmt. Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
                         GLSetup.Get();
-                        if GLSetup."Payment Discount Type" = GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines" then
+                        if GLSetup.ShouldCalculatePaymentDiscountOnLines() then
                             Validate("Prepmt. Payment Discount %", 0)
                         else
                             if not UpdateDocumentDate then
@@ -2219,7 +2219,7 @@ table 38 "Purchase Header"
                     TestStatusOpen();
                 GLSetup.Get();
                 if not ("Prepmt. Payment Discount %" = 0) and
-                   (GLSetup."Payment Discount Type" = GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines")
+                   GLSetup.ShouldCalculatePaymentDiscountOnLines()
                 then
                     Error(Text10700, FieldCaption("Prepmt. Payment Discount %"), GLSetup.FieldCaption("Payment Discount Type"),
                       GLSetup."Payment Discount Type");

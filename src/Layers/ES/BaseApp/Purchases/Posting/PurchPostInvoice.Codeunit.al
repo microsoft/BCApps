@@ -153,7 +153,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         if PurchLine."Deferral Code" <> '' then
             GetAmountsForDeferral(PurchLine, AmtToDefer, AmtToDeferACY, DeferralAccount);
 
-        InvoiceDiscountPosting := PurchSetup."Post Invoice Discount";
+        InvoiceDiscountPosting := PurchSetup.ShouldPostInvoiceDiscount();
         PurchPostInvoiceEvents.RunOnPrepareLineOnAfterSetInvoiceDiscountPosting(PurchHeader, PurchLine, InvoiceDiscountPosting);
         if InvoiceDiscountPosting then begin
             IsHandled := false;
@@ -195,7 +195,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
             end;
         end;
 
-        LineDiscountPosting := PurchSetup."Post Line Discount";
+        LineDiscountPosting := PurchSetup.ShouldPostLineDiscount();
         PurchPostInvoiceEvents.RunOnPrepareLineOnAfterSetLineDiscountPosting(PurchHeader, PurchLine, LineDiscountPosting);
         if LineDiscountPosting then begin
             IsHandled := false;
@@ -235,7 +235,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
             end;
         end;
 
-        if PurchSetup."Post Payment Discount" then begin
+        if PurchSetup.ShouldPostPaymentDiscount() then begin
             CalcPaymentDiscountPosting(PurchHeader, PurchLine, PurchLineACY, InvoicePostingBuffer);
 
             if PurchLine."VAT Calculation Type" = PurchLine."VAT Calculation Type"::"Sales Tax" then

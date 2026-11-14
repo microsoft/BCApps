@@ -7251,7 +7251,7 @@ table 39 "Purchase Line"
                                     Currency."Amount Rounding Precision");
                             end else begin
                                 if PurchLine."VAT Calculation Type" = PurchLine."VAT Calculation Type"::"Full VAT" then begin
-                                    VATAmount := PurchLine.CalcLineAmount() - PurchLine."Pmt. Discount Amount";
+                                    VATAmount := GLSetup.CalculateLineAmountForVAT(PurchLine.CalcLineAmount(), PurchLine."Pmt. Discount Amount");
                                     NewAmount := 0;
                                     NewVATBaseAmount := 0;
                                     if VATAmountLine.CalcLineAmount() = 0 then
@@ -7261,7 +7261,7 @@ table 39 "Purchase Line"
                                             NonDeductibleVAT.GetNonDedVATAmountFromVATAmountLine(
                                                 TempVATAmountLineRemainder, VATAmountLine, Currency, VATAmount, VATAmountLine.CalcLineAmount());
                                 end else begin
-                                    NewAmount := PurchLine.CalcLineAmount() - PurchLine."Pmt. Discount Amount";
+                                    NewAmount := GLSetup.CalculateLineAmountForVAT(PurchLine.CalcLineAmount(), PurchLine."Pmt. Discount Amount");
                                     NewVATBaseAmount :=
                                       Round(
                                         NewAmount * (1 - GetVatBaseDiscountPct(PurchHeader) / 100),
