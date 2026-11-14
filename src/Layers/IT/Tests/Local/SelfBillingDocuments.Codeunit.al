@@ -700,6 +700,8 @@ codeunit 144206 "Self-Billing Documents"
     begin
         LibraryPurchase.CreateVendor(Vendor);
         LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion.Validate("ISO Code", 'DE');
+        CountryRegion.Modify(true);
         Vendor."Country/Region Code" := CountryRegion.Code;
         Vendor."VAT Registration No." := LibraryUtility.GenerateGUID();
         Vendor.Address := LibraryUtility.GenerateGUID();
@@ -837,7 +839,7 @@ codeunit 144206 "Self-Billing Documents"
     begin
         TempXMLBuffer.FindNodesByXPath(TempXMLBuffer, '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/IdTrasmittente');
         CompanyInformation.Get();
-        AssertElementValue(TempXMLBuffer, 'IdPaese', CompanyInformation."Country/Region Code");
+        AssertElementValue(TempXMLBuffer, 'IdPaese', GetCountryRegionISOCode(CompanyInformation."Country/Region Code"));
         AssertElementValue(TempXMLBuffer, 'IdCodice', CompanyInformation."Fiscal Code");
         TempXMLBuffer.Reset();
         AssertElementValue(TempXMLBuffer, 'ProgressivoInvio', ProgressiveNo);
@@ -847,7 +849,7 @@ codeunit 144206 "Self-Billing Documents"
 
         TempXMLBuffer.FindNodesByXPath(
           TempXMLBuffer, '/p:FatturaElettronica/FatturaElettronicaHeader/CedentePrestatore/DatiAnagrafici/IdFiscaleIVA');
-        AssertElementValue(TempXMLBuffer, 'IdPaese', CompanyInformation."Country/Region Code");
+        AssertElementValue(TempXMLBuffer, 'IdPaese', GetCountryRegionISOCode(CompanyInformation."Country/Region Code"));
         AssertElementValue(TempXMLBuffer, 'IdCodice', CompanyInformation."VAT Registration No.");
         TempXMLBuffer.Reset();
         AssertElementValue(TempXMLBuffer, 'CodiceFiscale', CompanyInformation."Fiscal Code");
@@ -875,7 +877,7 @@ codeunit 144206 "Self-Billing Documents"
 
         TempXMLBuffer.FindNodesByXPath(
           TempXMLBuffer, '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/DatiAnagrafici/IdFiscaleIVA');
-        AssertElementValue(TempXMLBuffer, 'IdPaese', CompanyInformation."Country/Region Code");
+        AssertElementValue(TempXMLBuffer, 'IdPaese', GetCountryRegionISOCode(CompanyInformation."Country/Region Code"));
         AssertElementValue(TempXMLBuffer, 'IdCodice', CompanyInformation."VAT Registration No.");
         TempXMLBuffer.Reset();
         TempXMLBuffer.Next(); // skip CodiceFiscale
@@ -927,7 +929,15 @@ codeunit 144206 "Self-Billing Documents"
         AssertElementValue(TempXMLBuffer, 'CAP', CompanyInformation."Post Code");
         AssertElementValue(TempXMLBuffer, 'Comune', CompanyInformation.City);
         AssertElementValue(TempXMLBuffer, 'Provincia', CompanyInformation.County);
-        AssertElementValue(TempXMLBuffer, 'Nazione', CompanyInformation."Country/Region Code");
+        AssertElementValue(TempXMLBuffer, 'Nazione', GetCountryRegionISOCode(CompanyInformation."Country/Region Code"));
+    end;
+
+    local procedure GetCountryRegionISOCode(CountryRegionCode: Code[10]): Code[2]
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        CountryRegion.Get(CountryRegionCode);
+        exit(CountryRegion."ISO Code");
     end;
 
     local procedure VerifyFileName(ActualFileName: Text)
@@ -950,7 +960,7 @@ codeunit 144206 "Self-Billing Documents"
         TempXMLBuffer.Reset();
         TempXMLBuffer.Next(); // <DatiAnagrafici
         TempXMLBuffer.Next(); // IdFiscaleIVA
-        AssertElementValue(TempXMLBuffer, 'IdPaese', Vendor."Country/Region Code");
+        AssertElementValue(TempXMLBuffer, 'IdPaese', GetCountryRegionISOCode(Vendor."Country/Region Code"));
         AssertElementValue(TempXMLBuffer, 'IdCodice', Vendor."VAT Registration No.");
         TempXMLBuffer.Reset();
         TempXMLBuffer.Next(); // Anagrafica
@@ -960,7 +970,7 @@ codeunit 144206 "Self-Billing Documents"
         AssertElementValue(TempXMLBuffer, 'Indirizzo', Vendor.Address);
         AssertElementValue(TempXMLBuffer, 'CAP', '00000');
         AssertElementValue(TempXMLBuffer, 'Comune', Vendor.City);
-        AssertElementValue(TempXMLBuffer, 'Nazione', Vendor."Country/Region Code");
+        AssertElementValue(TempXMLBuffer, 'Nazione', GetCountryRegionISOCode(Vendor."Country/Region Code"));
     end;
 
     local procedure VerifyCorrectCedenteAndCessionarioInformation(TempBlob: Codeunit "Temp Blob"; Vendor: Record Vendor)
@@ -974,7 +984,7 @@ codeunit 144206 "Self-Billing Documents"
         // Verify CedentePrestatore contains vendor information
         TempXMLBuffer.FindNodesByXPath(
           TempXMLBuffer, '/p:FatturaElettronica/FatturaElettronicaHeader/CedentePrestatore/DatiAnagrafici/IdFiscaleIVA');
-        AssertElementValue(TempXMLBuffer, 'IdPaese', Vendor."Country/Region Code");
+        AssertElementValue(TempXMLBuffer, 'IdPaese', GetCountryRegionISOCode(Vendor."Country/Region Code"));
         AssertElementValue(TempXMLBuffer, 'IdCodice', Vendor."VAT Registration No.");
         TempXMLBuffer.Reset();
         TempXMLBuffer.Next(); // Anagrafica
