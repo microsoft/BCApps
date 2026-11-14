@@ -88,7 +88,6 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if "Expense Category" <> xRec."Expense Category" then begin
                     ConfirmAndDeleteAssociatedRecords(Rec.FieldCaption("Expense Category"));
 
@@ -163,7 +162,6 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if "Expense Date" <> xRec."Expense Date" then begin
                     ClearRuleId();
                     ApplyRule();
@@ -242,7 +240,6 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if (Rec."Receipt Entry" <> 0) then
                     Rec.Validate("Receipt Attached", true)
                 else
@@ -289,10 +286,8 @@ table 6900 Expense
                 ExpensePaymentMethod: Record "Expense Payment Method";
             begin
                 TestStatusOpen();
-
                 if xRec."Payment Method Code" <> Rec."Payment Method Code" then begin
                     Rec.Validate("Reimbursement Type", Rec."Reimbursement Type"::" ");
-
                     if ExpensePaymentMethod.Get(Rec."Payment Method Code") then
                         Rec.Validate("Reimbursement Type", ExpensePaymentMethod."Reimbursement Type");
                 end;
@@ -305,7 +300,6 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if not Rec.Refundable then
                     Rec.TestField("Non-Refundable Amount", 0);
 
@@ -329,7 +323,6 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if (Rec."Billable to Customer" <> '') and (Rec."Job No." <> '') then
                     Error(BillableCustomerAndProjectErr, Rec.FieldCaption("Billable to Customer"), Rec.FieldCaption("Job No."));
 
@@ -352,10 +345,8 @@ table 6900 Expense
                     if Rec."Expense Location" <> '' then
                         if not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") then
                             Error(OnlyUseExpenseLocationWithPerDiemErr, Rec."Expense Location", Rec."Expense Category", Rec."No.");
-
                     if Rec."Starting Date and Time" = 0DT then
                         Rec."Starting Date and Time" := CurrentDateTime;
-
                     if Rec."Ending Date and Time" = 0DT then
                         Rec."Ending Date and Time" := CurrentDateTime;
 
@@ -372,10 +363,8 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if Rec."Starting Date and Time" = 0DT then
                     Rec."Ending Date and Time" := 0DT;
-
                 if Rec."Starting Date and Time" > Rec."Ending Date and Time" then
                     Rec."Ending Date and Time" := Rec."Starting Date and Time";
 
@@ -389,7 +378,6 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if (Rec."Ending Date and Time" <> 0DT) and (Rec."Ending Date and Time" < Rec."Starting Date and Time") then
                     Error(InvalidEndingDateErr);
 
@@ -405,10 +393,8 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if Rec."Non-Refundable Amount" < 0 then
                     Error(NonRefundableAmountCannotBeNegativeErr, Rec.FieldCaption("Non-Refundable Amount"), Rec."No.");
-
                 if Amount < "Non-Refundable Amount" then
                     Error(NonRefundableAmountGreaterThanAmountErr, Rec.FieldCaption("Non-Refundable Amount"));
 
@@ -614,10 +600,8 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
-
                 if (Rec."Job No." <> '') and (Rec."Billable to Customer" <> '') then
                     Error(BillableCustomerAndProjectErr, Rec.FieldCaption("Billable to Customer"), Rec.FieldCaption("Job No."));
-
                 if xRec."Job No." <> Rec."Job No." then
                     Rec.Validate("Job Task No.", '');
 
@@ -721,6 +705,28 @@ table 6900 Expense
             TableRelation = "Expense Vendor";
             Editable = false;
         }
+        field(70; "Split from Exp. Report No."; Code[20])
+        {
+            Caption = 'Split from Expense Report No.';
+            ToolTip = 'Specifies the expense report that this expense was split from when another user shared the expense with you.';
+            Editable = false;
+        }
+        field(71; "Split from Exp. Rep. Line No."; Integer)
+        {
+            BlankZero = true;
+            Caption = 'Split from Expense Report Line No.';
+            ToolTip = 'Specifies the expense report line that this expense was split from.';
+            Editable = false;
+        }
+        field(72; "Original Amount"; Decimal)
+        {
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
+            BlankZero = true;
+            Caption = 'Original Amount';
+            ToolTip = 'Specifies the amount of the expense before it was split between several users.';
+            Editable = false;
+        }
     }
     keys
     {
@@ -749,12 +755,10 @@ table 6900 Expense
             Rec."No." := NoSeriesManagement.GetNextNo(ExpenseAgentSetup."Expense Nos.", WorkDate(), true);
             "No. Series" := ExpenseAgentSetup."Expense Nos.";
         end;
-
         if Rec."Created Date-Time" = 0DT then
             Rec."Created Date-Time" := CurrentDateTime;
 
         SetExpenseUserOnCreate();
-
         if CalledFromExpenseAgent then
             EAKPITrack.UpdateExpenseEntry(Rec);
     end;
@@ -826,10 +830,8 @@ table 6900 Expense
         // Only update the Created By and Modified By Expense User Id when the change is made through Expense Agent, otherwise leave them unchanged as the change is made by other Business Central user.
         if not ExpenseAgentAPIValidation.IsCurrentUserExpenseAgent() then
             exit;
-
         if Rec."Expense User No." = '' then
             exit;
-
         if not ExpenseUser.Get(Rec."Expense User No.") then
             exit;
 
@@ -846,10 +848,8 @@ table 6900 Expense
             Rec."Modified By Exp. User Id" := EmptyGuid;
             exit;
         end;
-
         if Rec."Expense User No." = '' then
             exit;
-
         if not ExpenseUser.Get(Rec."Expense User No.") then
             exit;
 
@@ -885,7 +885,6 @@ table 6900 Expense
           DimMgt.EditDimensionSet(
             Rec, "Dimension Set ID", StrSubstNo('%1', "No."),
             "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
-
         if OldDimSetID <> "Dimension Set ID" then
             Modify();
     end;
@@ -1024,7 +1023,6 @@ table 6900 Expense
         if Rec."Expense Category" <> '' then
             if ExpenseCategory.Get(Rec."Expense Category") then
                 KeepItemization := ExpenseCategory.IsItemizationRequired();
-
         if HasAssociatedRecords(KeepItemization) and not HideValidationDialog then
             if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(DeleteAssociatedRecordsQst, FieldCaption, Rec."Expense Detail Required"), true) then
                 Error('');
@@ -1043,7 +1041,6 @@ table 6900 Expense
             if not ExpenseItemization.IsEmpty() then
                 exit(true);
         end;
-
         case Rec."Expense Detail Required" of
             Rec."Expense Detail Required"::Itemize:
                 exit(false);
@@ -1064,7 +1061,6 @@ table 6900 Expense
     begin
         DeleteExpenseParticipant();
         DeleteExpensePerDiem();
-
         if KeepItemization then
             ClearItemizationSubcategory()
         else
@@ -1109,7 +1105,6 @@ table 6900 Expense
             ApplyRule();
             exit;
         end;
-
         if ValidateRuleOnly then begin
             TestStatusOpen();
             ExpenseRuleValidation.ValidateExpenseAgainstRule(Rec);
@@ -1210,13 +1205,11 @@ table 6900 Expense
         ExpenseCurrency.Initialize(Rec."Currency Code");
         GeneralLedgerSetup.GetRecordOnce();
         UpdateCurrencyFactor();
-
         if Rec."Non-Refundable Amount" <> 0 then
             Rec.TestField(Refundable, true);
 
         Rec."Reimbursable Amount" := 0;
         Rec."Refundable Amount" := 0;
-
         if Rec.Refundable then begin
             if Rec."Reimbursement Type" = Rec."Reimbursement Type"::"Employee Paid" then
                 Rec."Reimbursable Amount" := Rec.Amount - Rec."Non-Refundable Amount"
@@ -1273,7 +1266,6 @@ table 6900 Expense
                 CurrencyDate := "Expense Date"
             else
                 CurrencyDate := WorkDate();
-
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, Rec."Currency Code") then
                 Rec."Currency Factor" := CurrExchRate.ExchangeRate(CurrencyDate, Rec."Currency Code")
             else
@@ -1288,7 +1280,6 @@ table 6900 Expense
     begin
         Rec.Description := '';
         Rec."Expense Detail Required" := Rec."Expense Detail Required"::" ";
-
         if Rec."Expense Category" = '' then begin
             Rec.Validate("Expense Location", '');
             Rec."Unit of Measure Code" := '';
@@ -1296,14 +1287,12 @@ table 6900 Expense
             Rec.UpdateAmount();
             exit;
         end;
-
         if not ExpenseCategory.Get(Rec."Expense Category") then begin
             Rec.Validate("Expense Location", '');
             exit;
         end;
 
         Rec.Validate("Expense Detail Required", ExpenseCategory."Expense Detail Required");
-
         if ExpenseCategory."Expense Detail Required" <> ExpenseCategory."Expense Detail Required"::"Per Diem" then
             Rec.Validate("Expense Location", '');
 
