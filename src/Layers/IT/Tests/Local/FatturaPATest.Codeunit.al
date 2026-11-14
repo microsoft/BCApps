@@ -67,6 +67,1635 @@ codeunit 144200 "FatturaPA Test"
         DescriptionTxt: Label 'Description Text';
 
     [Test]
+    procedure PreviewPaymentRowsAggregateInitialEntries()
+    var
+        TempCustLedgEntry: Record "Cust. Ledger Entry" temporary;
+        TempDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        PreviewAccounting: Codeunit "FatturaPA Preview Accounting";
+    begin
+        // [SCENARIO] Multiple installments aggregate initial entries per ledger entry only.
+        // [GIVEN] several ledger installments with initial and application details
+        // [WHEN] payment rows are aggregated
+        // [THEN] only initial amounts contribute to each installment
+        TempCustLedgEntry.Init();
+        TempCustLedgEntry."Entry No." := 101;
+        TempCustLedgEntry."Due Date" := DMY2Date(15, 1, 2026);
+        TempCustLedgEntry.Insert();
+        TempCustLedgEntry.Init();
+        TempCustLedgEntry."Entry No." := 102;
+        TempCustLedgEntry."Due Date" := DMY2Date(15, 2, 2026);
+        TempCustLedgEntry.Insert();
+
+        TempDtldCustLedgEntry.Init();
+        TempDtldCustLedgEntry."Entry No." := 1;
+        TempDtldCustLedgEntry."Cust. Ledger Entry No." := 101;
+        TempDtldCustLedgEntry."Entry Type" := TempDtldCustLedgEntry."Entry Type"::"Initial Entry";
+        TempDtldCustLedgEntry.Amount := 50;
+        TempDtldCustLedgEntry.Insert();
+        TempDtldCustLedgEntry.Init();
+        TempDtldCustLedgEntry."Entry No." := 2;
+        TempDtldCustLedgEntry."Cust. Ledger Entry No." := 101;
+        TempDtldCustLedgEntry."Entry Type" := TempDtldCustLedgEntry."Entry Type"::"Initial Entry";
+        TempDtldCustLedgEntry.Amount := 25;
+        TempDtldCustLedgEntry.Insert();
+        TempDtldCustLedgEntry.Init();
+        TempDtldCustLedgEntry."Entry No." := 3;
+        TempDtldCustLedgEntry."Cust. Ledger Entry No." := 102;
+        TempDtldCustLedgEntry."Entry Type" := TempDtldCustLedgEntry."Entry Type"::"Initial Entry";
+        TempDtldCustLedgEntry.Amount := 40;
+        TempDtldCustLedgEntry.Insert();
+        TempDtldCustLedgEntry.Init();
+        TempDtldCustLedgEntry."Entry No." := 4;
+        TempDtldCustLedgEntry."Cust. Ledger Entry No." := 102;
+        TempDtldCustLedgEntry."Entry Type" := TempDtldCustLedgEntry."Entry Type"::Application;
+        TempDtldCustLedgEntry.Amount := -5;
+        TempDtldCustLedgEntry.Insert();
+
+        PreviewAccounting.AddPaymentRows(TempFatturaLine, TempCustLedgEntry, TempDtldCustLedgEntry);
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Payment);
+        Assert.AreEqual(2, TempFatturaLine.Count(), 'Expected one payment row per ledger entry.');
+        TempFatturaLine.SetRange("Line No.", 1);
+        Assert.IsTrue(TempFatturaLine.FindFirst(), 'First payment row missing.');
+        Assert.AreEqual(DMY2Date(15, 1, 2026), TempFatturaLine."Due Date", 'First due date differs.');
+        Assert.AreEqual(75, TempFatturaLine.Amount, 'Both initial entries must contribute.');
+        TempFatturaLine.SetRange("Line No.", 2);
+        Assert.IsTrue(TempFatturaLine.FindFirst(), 'Second payment row missing.');
+        Assert.AreEqual(DMY2Date(15, 2, 2026), TempFatturaLine."Due Date", 'Second due date differs.');
+        Assert.AreEqual(40, TempFatturaLine.Amount, 'Applications must not change initial payment amount.');
+    end;
+
+    [Test]
+    procedure PreviewPaymentRowsRejectMissingInitialEntry()
+    var
+        TempCustLedgEntry: Record "Cust. Ledger Entry" temporary;
+        TempDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        PreviewAccounting: Codeunit "FatturaPA Preview Accounting";
+    begin
+        // [SCENARIO] Preview must not invent a zero payment when initial ledger data is absent.
+        // [GIVEN] A customer ledger entry without a matching initial detailed ledger entry
+        TempCustLedgEntry.Init();
+        TempCustLedgEntry."Entry No." := 101;
+        TempCustLedgEntry.Insert();
+
+        // [WHEN] Payment rows are prepared from incomplete posting-preview buffers
+        asserterror PreviewAccounting.AddPaymentRows(TempFatturaLine, TempCustLedgEntry, TempDtldCustLedgEntry);
+
+        // [THEN] The missing source is reported and no zero-valued payment is emitted
+        Assert.ExpectedError('initial detailed customer ledger entry');
+        Assert.IsTrue(TempFatturaLine.IsEmpty(), 'Missing source entry must not produce payment rows.');
+    end;
+
+    [Test]
+    procedure PreviewPaymentRowsPreserveActualZeroInitialEntry()
+    var
+        TempCustLedgEntry: Record "Cust. Ledger Entry" temporary;
+        TempDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        PreviewAccounting: Codeunit "FatturaPA Preview Accounting";
+    begin
+        // [SCENARIO] An actual zero-valued initial entry is not confused with a missing entry.
+        // [GIVEN] A customer ledger entry with an existing zero-valued initial detailed entry
+        TempCustLedgEntry.Init();
+        TempCustLedgEntry."Entry No." := 101;
+        TempCustLedgEntry.Insert();
+        TempDtldCustLedgEntry.Init();
+        TempDtldCustLedgEntry."Entry No." := 1;
+        TempDtldCustLedgEntry."Cust. Ledger Entry No." := 101;
+        TempDtldCustLedgEntry."Entry Type" := TempDtldCustLedgEntry."Entry Type"::"Initial Entry";
+        TempDtldCustLedgEntry.Amount := 0;
+        TempDtldCustLedgEntry.Insert();
+
+        // [WHEN] Payment rows are prepared
+        PreviewAccounting.AddPaymentRows(TempFatturaLine, TempCustLedgEntry, TempDtldCustLedgEntry);
+
+        // [THEN] The existing zero amount is faithfully preserved
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Payment);
+        Assert.AreEqual(1, TempFatturaLine.Count(), 'Expected the zero-valued initial entry to produce its payment row.');
+        Assert.IsTrue(TempFatturaLine.FindFirst(), 'Payment row was not created.');
+        Assert.AreEqual(0, TempFatturaLine.Amount, 'Actual zero initial entry amount was changed.');
+    end;
+
+    [Test]
+    procedure PreviewRejectsMissingReferencedSalesShipment()
+    var
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        // [SCENARIO] A nonblank DDT reference must resolve to a real shipment header.
+        // [GIVEN] A shipment number that does not exist
+        // [WHEN] The FatturaPA preparation tries to add that shipment reference
+        asserterror FatturaDocHelper.InsertSalesShipmentReference(
+            TempFatturaLine, 'NO-SHIPMENT-TEST', 1, false);
+
+        // [THEN] The missing fiscal source cannot be silently ignored
+        Assert.ExpectedError('Sales shipment');
+        Assert.IsTrue(TempFatturaLine.IsEmpty(), 'Missing shipment must not generate a DDT reference.');
+    end;
+
+    [Test]
+    procedure PreviewRejectsBlankProgressiveNo()
+    var
+        SalesHeader: Record "Sales Header";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+    begin
+        // [SCENARIO] Missing preview number is rejected before posting preview or buffer changes.
+        // [GIVEN] an existing invoice and a blank preview transmission number
+        // [WHEN] preview preparation is requested
+        // [THEN] validation rejects the missing progressive number
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Invoice);
+
+        asserterror FatturaPAPreviewMgt.PreparePreview(
+            SalesHeader, '', TempFatturaHeader, TempFatturaLine);
+        Assert.ExpectedError('A preview progressive number must be supplied.');
+        Assert.IsTrue(TempFatturaHeader.IsEmpty(), 'Blank progressive must not prepare a header.');
+        Assert.IsTrue(TempFatturaLine.IsEmpty(), 'Blank progressive must not prepare lines.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewReloadsPersistedSalesHeaderInsteadOfUnsavedFields()
+    var
+        SalesHeader: Record "Sales Header";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] Caller-only changes to a sales header must not affect the preview.
+        // [GIVEN] an altered in-memory Sales Header with unsaved changes
+        // [WHEN] preview preparation reloads the persisted document
+        // [THEN] unsaved caller fields do not enter the XML
+        Initialize();
+        CustomerNo := CreateCustomer();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CustomerNo, SalesHeader."Document Type"::Invoice);
+        SalesHeader."Customer Purchase Order No." := 'STORED-PO';
+        SalesHeader.Modify(true);
+        Commit(); // Posting preview reads the committed document.
+
+        SalesHeader."Bill-to Customer No." := 'NOT-A-CUSTOMER';
+        SalesHeader."Customer Purchase Order No." := 'CALLER-ONLY';
+        FatturaPAPreviewMgt.PreparePreview(
+            SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+
+        TempFatturaHeader.Reset();
+        Assert.IsTrue(TempFatturaHeader.FindFirst(), 'Persisted-source preview header missing.');
+        Assert.AreEqual(CustomerNo, TempFatturaHeader."Customer No",
+            'Preview trusted the caller-only bill-to customer.');
+        Assert.AreEqual('STORED-PO', TempFatturaHeader."Customer Purchase Order No.",
+            'Preview trusted the caller-only purchase order reference.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewReloadsPersistedSalesHeaderWhenCallerIsTemporary()
+    var
+        SalesHeader: Record "Sales Header";
+        TempSalesHeader: Record "Sales Header" temporary;
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO] A temporary record with a real document key cannot override stored fields.
+        // [GIVEN] a temporary caller Sales Header with a persisted document identity
+        // [WHEN] preview preparation resolves the stored source
+        // [THEN] temporary caller values do not override persisted values
+        Initialize();
+        CustomerNo := CreateCustomer();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CustomerNo, SalesHeader."Document Type"::Invoice);
+        SalesHeader."Customer Purchase Order No." := 'STORED-PO';
+        SalesHeader.Modify(true);
+        Commit(); // Posting preview reads the committed document.
+
+        TempSalesHeader := SalesHeader;
+        TempSalesHeader.Insert();
+        TempSalesHeader."Bill-to Customer No." := 'NOT-A-CUSTOMER';
+        TempSalesHeader."Customer Purchase Order No." := 'TEMP-ONLY';
+        TempSalesHeader.Modify();
+
+        FatturaPAPreviewMgt.PreparePreview(
+            TempSalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+
+        TempFatturaHeader.Reset();
+        Assert.IsTrue(TempFatturaHeader.FindFirst(), 'Persisted-source preview header missing.');
+        Assert.AreEqual(CustomerNo, TempFatturaHeader."Customer No",
+            'Temporary caller record replaced the stored bill-to customer.');
+        Assert.AreEqual('STORED-PO', TempFatturaHeader."Customer Purchase Order No.",
+            'Temporary caller record replaced the stored purchase order reference.');
+    end;
+
+    [Test]
+    procedure PreviewRejectsSalesHeaderWithoutPersistedDocument()
+    var
+        SalesHeader: Record "Sales Header";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+    begin
+        // [SCENARIO] Caller-provided fields cannot create a preview for a nonexistent document.
+        // [GIVEN] a caller document that does not exist in storage
+        // [WHEN] preview preparation is invoked
+        // [THEN] no document or fiscal data is invented
+        SalesHeader.Init();
+        SalesHeader."Document Type" := SalesHeader."Document Type"::Invoice;
+        SalesHeader."No." := '!MISSING-BCAPPS13014';
+
+        asserterror FatturaPAPreviewMgt.PreparePreview(
+            SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        Assert.ExpectedError('Sales Header');
+        Assert.IsTrue(TempFatturaHeader.IsEmpty(), 'Missing document unexpectedly generated a header.');
+        Assert.IsTrue(TempFatturaLine.IsEmpty(), 'Missing document unexpectedly generated lines.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewXMLDoesNotAdvanceFatturaPANumberSeries()
+    var
+        SalesHeader: Record "Sales Header";
+        FatturaPANoSeries: Record "No. Series Line";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        PreviewBlob: Codeunit "Temp Blob";
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        ExportFatturaPADocument: Codeunit "Export FatturaPA Document";
+        LastNoUsed: Code[20];
+        ClientFileName: Text[250];
+    begin
+        // [SCENARIO] The genuine number series remains unchanged.
+        // [GIVEN] a valid document and a configured transmission series
+        // [WHEN] preview XML is generated repeatedly
+        // [THEN] the genuine number series remains unchanged
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Invoice);
+
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.TestField("Fattura PA Nos.");
+        FatturaPANoSeries.SetRange("Series Code", SalesReceivablesSetup."Fattura PA Nos.");
+        Assert.IsTrue(FatturaPANoSeries.FindFirst(), 'FatturaPA number series not found.');
+        LastNoUsed := FatturaPANoSeries."Last No. Used";
+
+        Commit(); // Make test document visible to posting preview.
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        ExportFatturaPADocument.GenerateXMLFile(
+            PreviewBlob, TempFatturaLine, TempFatturaHeader, ClientFileName);
+
+        FatturaPANoSeries.FindFirst();
+        Assert.AreEqual(LastNoUsed, FatturaPANoSeries."Last No. Used",
+            'XML preview advanced the real FatturaPA number series.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewMatchesPostedInvoiceFatturaPAValues()
+    var
+        SalesHeader: Record "Sales Header";
+        Customer: Record Customer;
+    begin
+        // [SCENARIO] Their significant fiscal values match.
+        // [GIVEN] an invoice that can be previewed and posted
+        // [WHEN] both preview and posted FatturaPA payloads are prepared
+        // [THEN] their significant fiscal values match
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Invoice);
+        // Posted FatturaPA export requires the recipient identifier.
+        Customer.Get(SalesHeader."Bill-to Customer No.");
+        Customer.Validate("PA Code", '123456');
+        Customer.Modify(true);
+        Customer.Get(Customer."No.");
+        Customer.TestField("PA Code");
+        if SalesHeader."Sell-to Customer No." <> SalesHeader."Bill-to Customer No." then begin
+            Customer.Get(SalesHeader."Sell-to Customer No.");
+            Customer.Validate("PA Code", '123456');
+            Customer.Modify(true);
+        end;
+        Commit(); // Posting preview runs in a separate transaction.
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewMatchesPostedCreditMemoFatturaPAValues()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] Their significant fiscal values match.
+        // [GIVEN] a credit memo that can be previewed and posted
+        // [WHEN] both preview and posted payloads are prepared
+        // [THEN] their significant fiscal values match
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::"Credit Memo");
+        Commit(); // Posting preview runs in a separate transaction.
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewMatchesPostedInvoiceWithExtendedText()
+    var
+        SalesHeader: Record "Sales Header";
+        ItemLine: Record "Sales Line";
+        CommentLine: Record "Sales Line";
+    begin
+        // [SCENARIO] The invoice content and line treatment remain equivalent.
+        // [GIVEN] an invoice with commercial and extended-text lines
+        // [WHEN] preview and posted XML are compared
+        // [THEN] the invoice content and line treatment remain equivalent
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Invoice);
+        ItemLine.SetRange("Document Type", SalesHeader."Document Type");
+        ItemLine.SetRange("Document No.", SalesHeader."No.");
+        ItemLine.SetRange(Type, ItemLine.Type::Item);
+        ItemLine.FindFirst();
+
+        LibrarySales.CreateSalesLine(
+            CommentLine, SalesHeader, CommentLine.Type::" ", '', 0);
+        CommentLine.Validate(Description, 'FatturaPA preview attached extended text');
+        CommentLine.Validate("Attached to Line No.", ItemLine."Line No.");
+        CommentLine.Modify(true);
+
+        Commit();
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    procedure PreviewDocumentTypeEmptyCatalogDoesNotInitializeSetup()
+    var
+        Customer: Record Customer;
+        FatturaDocumentType: Record "Fattura Document Type";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        // [SCENARIO] The catalog remains unchanged.
+        // [GIVEN] missing FatturaPA document-type catalog records
+        // [WHEN] the read-only preview document-type resolver runs
+        // [THEN] the catalog remains unchanged
+        Initialize();
+        Customer.Get(CreateCustomer());
+        FatturaDocumentType.DeleteAll(false);
+        Assert.IsTrue(FatturaDocumentType.IsEmpty(), 'Document type catalog must start empty.');
+
+        TempFatturaHeader."Document Type" := TempFatturaHeader."Document Type"::Invoice;
+        FatturaDocHelper.PopulatePreviewHeaderFiscalIdentity(TempFatturaHeader, Customer, '');
+        Assert.AreEqual('TD01', TempFatturaHeader."Fattura Document Type", 'Empty-catalog invoice default differs.');
+        Assert.IsTrue(FatturaDocumentType.IsEmpty(), 'Preview initialized document type setup.');
+
+        TempFatturaHeader."Document Type" := TempFatturaHeader."Document Type"::"Credit Memo";
+        FatturaDocHelper.PopulatePreviewHeaderFiscalIdentity(TempFatturaHeader, Customer, '');
+        Assert.AreEqual('TD04', TempFatturaHeader."Fattura Document Type", 'Empty-catalog credit memo default differs.');
+        Assert.IsTrue(FatturaDocumentType.IsEmpty(), 'Credit memo preview initialized document type setup.');
+    end;
+
+    [Test]
+    procedure PreviewDocumentTypeReadsConfiguredDefaultWithoutWrites()
+    var
+        Customer: Record Customer;
+        FatturaDocumentType: Record "Fattura Document Type";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        // [SCENARIO] The correct type is returned without modifying setup.
+        // [GIVEN] a configured document-type default
+        // [WHEN] the preview resolver reads the configuration
+        // [THEN] the correct type is returned without modifying setup
+        Initialize();
+        Customer.Get(CreateCustomer());
+        FatturaDocumentType.DeleteAll(false);
+        FatturaDocumentType.Init();
+        FatturaDocumentType."No." := 'TD24';
+        FatturaDocumentType.Invoice := true;
+        FatturaDocumentType.Insert(false);
+
+        TempFatturaHeader."Document Type" := TempFatturaHeader."Document Type"::Invoice;
+        FatturaDocHelper.PopulatePreviewHeaderFiscalIdentity(TempFatturaHeader, Customer, '');
+        Assert.AreEqual('TD24', TempFatturaHeader."Fattura Document Type", 'Configured invoice default was ignored.');
+        Assert.AreEqual(1, FatturaDocumentType.Count(), 'Preview modified the configured catalog.');
+
+        TempFatturaHeader."Document Type" := TempFatturaHeader."Document Type"::"Credit Memo";
+        FatturaDocHelper.PopulatePreviewHeaderFiscalIdentity(TempFatturaHeader, Customer, '');
+        Assert.AreEqual('', TempFatturaHeader."Fattura Document Type", 'Incomplete catalog must not be defaulted.');
+        Assert.AreEqual(1, FatturaDocumentType.Count(), 'Preview populated incomplete catalog.');
+    end;
+
+    [Test]
+    procedure PreviewDocumentTypeHonorsExplicitCodeAndSelfBilling()
+    var
+        CompanyInformation: Record "Company Information";
+        Customer: Record Customer;
+        FatturaDocumentType: Record "Fattura Document Type";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        // [SCENARIO] Explicit and self-billing rules are honored.
+        // [GIVEN] explicit document-type and self-billing configuration
+        // [WHEN] the preview resolver selects a document type
+        // [THEN] explicit and self-billing rules are honored
+        Initialize();
+        Customer.Get(CreateCustomer());
+        CompanyInformation.Get();
+        FatturaDocumentType.DeleteAll(false);
+
+        TempFatturaHeader."Document Type" := TempFatturaHeader."Document Type"::Invoice;
+        FatturaDocHelper.PopulatePreviewHeaderFiscalIdentity(TempFatturaHeader, Customer, 'TD24');
+        Assert.AreEqual('TD24', TempFatturaHeader."Fattura Document Type", 'Explicit type should be preserved.');
+
+        Customer."VAT Registration No." := CompanyInformation."VAT Registration No.";
+        FatturaDocHelper.PopulatePreviewHeaderFiscalIdentity(TempFatturaHeader, Customer, '');
+        Assert.AreEqual('TD20', TempFatturaHeader."Fattura Document Type", 'Empty-catalog self-billing default differs.');
+        Assert.IsTrue(FatturaDocumentType.IsEmpty(), 'Self-billing preview initialized setup.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewMatchesPostedInvoiceWithMultipleVATRates()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        OriginalVATPostingSetup: Record "VAT Posting Setup";
+        AdditionalVATPostingSetup: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+    begin
+        // [SCENARIO] VAT summary and line amounts remain equivalent.
+        // [GIVEN] an invoice using multiple VAT rates
+        // [WHEN] preview and posted XML are compared
+        // [THEN] VAT summary and line amounts remain equivalent
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Invoice);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        SalesLine.FindFirst();
+        OriginalVATPostingSetup.Get(SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group");
+
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(
+            AdditionalVATPostingSetup, OriginalVATPostingSetup."VAT Bus. Posting Group",
+            VATProductPostingGroup.Code);
+        AdditionalVATPostingSetup.Validate(
+            "VAT Calculation Type", AdditionalVATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        if OriginalVATPostingSetup."VAT %" = 7 then
+            AdditionalVATPostingSetup.Validate("VAT %", 11)
+        else
+            AdditionalVATPostingSetup.Validate("VAT %", 7);
+        AdditionalVATPostingSetup.Validate("Sales VAT Account", OriginalVATPostingSetup."Sales VAT Account");
+        AdditionalVATPostingSetup.Validate("Purchase VAT Account", OriginalVATPostingSetup."Purchase VAT Account");
+        AdditionalVATPostingSetup.Modify(true);
+        CreateSalesLineWithVATPostingGroup(
+            SalesLine, SalesHeader, SalesLine.Type::Item, VATProductPostingGroup.Code);
+
+        Commit();
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewMatchesPostedInvoiceWithSplitPayment()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] Split-payment fiscal data remains equivalent.
+        // [GIVEN] an invoice using split payment
+        // [WHEN] preview and posted XML are compared
+        // [THEN] split-payment fiscal data remains equivalent
+        Initialize();
+        CreateInvoiceWithSplitPayment(SalesHeader);
+        Commit();
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewMatchesPostedInvoiceWithUnrealizedVAT()
+    var
+        SalesHeader: Record "Sales Header";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO] Unrealized-VAT treatment remains equivalent.
+        // [GIVEN] an invoice using unrealized VAT
+        // [WHEN] preview and posted XML are compared
+        // [THEN] unrealized-VAT treatment remains equivalent
+        Initialize();
+        CreateUnrealizedVATPostingSetup(VATPostingSetup);
+        CreateInvoiceWithVATPostingSetup(SalesHeader, VATPostingSetup);
+        Commit();
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewMatchesPostedPartiallyInvoicedSalesOrder()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [SCENARIO] Only the invoiced amounts and lines are represented.
+        // [GIVEN] a partially invoiceable sales order
+        // [WHEN] preview and posted XML are compared
+        // [THEN] only the invoiced amounts and lines are represented
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Order);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        SalesLine.FindFirst();
+        SalesLine.TestField(Quantity, 5);
+        SalesLine.Validate("Qty. to Ship", 2);
+        SalesLine.Validate("Qty. to Invoice", 2);
+        SalesLine.Modify(true);
+        SalesHeader.Validate(Ship, true);
+        SalesHeader.Validate(Invoice, true);
+        SalesHeader.Modify(true);
+
+        Commit();
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewMatchesPostedPartiallyInvoicedOrderWithInvoiceDiscount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+    begin
+        // [SCENARIO] Prorated discount amounts and totals match.
+        // [GIVEN] a partial sales-order invoice with discounts
+        // [WHEN] preview and posted XML are compared
+        // [THEN] prorated discount amounts and totals match
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Order);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        SalesLine.FindFirst();
+        SalesLine.TestField(Quantity, 5);
+        SalesLine.Validate("Inv. Discount Amount", 5);
+        SalesLine.Validate("Qty. to Ship", 2);
+        SalesLine.Validate("Qty. to Invoice", 2);
+        SalesLine.Modify(true);
+        SalesHeader.Validate(Ship, true);
+        SalesHeader.Validate(Invoice, true);
+        SalesHeader.Modify(true);
+        Commit();
+
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        TempFatturaHeader.FindFirst();
+        Assert.AreEqual(2, TempFatturaHeader."Total Inv. Discount",
+            'Partial order preview must prorate the invoice discount to quantity 2 of 5.');
+
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    procedure FatturaPartialDiscountUsesCurrencyPrecision()
+    var
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        // [SCENARIO] Per-line rounding produces the expected total.
+        // [GIVEN] a non-divisible prorated invoice discount
+        // [WHEN] the currency-rounded allocation is calculated
+        // [THEN] per-line rounding produces the expected total
+        Initialize();
+        Assert.AreEqual(0.33, FatturaDocHelper.ProrateFatturaInvoiceDiscount(1, 3, 1, 0.01),
+            'A one-of-three partial discount must use currency amount rounding.');
+        Assert.AreEqual(0.66,
+            FatturaDocHelper.ProrateFatturaInvoiceDiscount(1, 3, 1, 0.01) +
+            FatturaDocHelper.ProrateFatturaInvoiceDiscount(1, 3, 1, 0.01),
+            'Each line must be rounded before summing the header discount.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewIncludesCalculatedInvoiceDiscount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+    begin
+        // [SCENARIO] The calculated invoice discount is retained.
+        // [GIVEN] a sales invoice with an invoice-discount FlowField
+        // [WHEN] the preview header is built
+        // [THEN] the calculated invoice discount is retained
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Invoice);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        SalesLine.FindFirst();
+        SalesLine.Validate("Inv. Discount Amount", 1);
+        SalesLine.Modify(true);
+        SalesHeader.CalcFields("Invoice Discount Amount");
+        Assert.AreEqual(1, SalesHeader."Invoice Discount Amount", 'Discount test fixture did not populate source FlowField.');
+
+        Commit();
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        TempFatturaHeader.FindFirst();
+        Assert.AreEqual(1, TempFatturaHeader."Total Inv. Discount", 'Preview invoice discount does not match calculated source.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewIncludesKnownCustomerOrderMetadata()
+    var
+        SalesHeader: Record "Sales Header";
+        FatturaProjectCode: Code[15];
+        FatturaTenderCode: Code[15];
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+    begin
+        // [SCENARIO] The expected metadata appears without invented shipment references.
+        // [GIVEN] an order with customer PO and CUP/CIG references
+        // [WHEN] the preview lines are generated
+        // [THEN] the expected metadata appears without invented shipment references
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Order);
+        FatturaProjectCode := LibraryITLocalization.CreateFatturaProjectCode();
+        FatturaTenderCode := LibraryITLocalization.CreateFatturaTenderCode();
+
+        SalesHeader.Validate("Customer Purchase Order No.", 'CUSTOMER-PO-TEST');
+        SalesHeader.Validate("Fattura Project Code", FatturaProjectCode);
+        SalesHeader.Validate("Fattura Tender Code", FatturaTenderCode);
+        SalesHeader.Modify(true);
+
+        Commit();
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Order);
+        Assert.IsTrue(TempFatturaLine.FindFirst(), 'Preview is missing source purchase-order metadata.');
+        Assert.AreEqual('CUSTOMER-PO-TEST', TempFatturaLine."Customer Purchase Order No.", 'Customer PO differs.');
+        Assert.AreEqual(FatturaProjectCode, TempFatturaLine."Fattura Project Code", 'CUP differs.');
+        Assert.AreEqual(FatturaTenderCode, TempFatturaLine."Fattura Tender Code", 'CIG differs.');
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Shipment);
+        Assert.IsTrue(TempFatturaLine.IsEmpty(), 'Preview invented a shipment before posting.');
+    end;
+
+    [Test]
+    procedure PreviewTaxRepresentativeUsesTemporaryVATEntry()
+    var
+        TempVATEntry: Record "VAT Entry" temporary;
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        // [SCENARIO] The VAT-entry representative information is preserved.
+        // [GIVEN] tax representative information on a temporary VAT entry
+        // [WHEN] preview tax representative fields are populated
+        // [THEN] the VAT-entry representative information is preserved
+        Initialize();
+        TempVATEntry.Init();
+        TempVATEntry."Entry No." := 1;
+        TempVATEntry."Tax Representative Type" := TempVATEntry."Tax Representative Type"::Vendor;
+        TempVATEntry."Tax Representative No." := 'TAX-REP-TEST';
+        TempVATEntry.Insert();
+
+        FatturaDocHelper.PopulatePreviewTaxRepresentative(TempFatturaHeader, TempVATEntry);
+        Assert.AreEqual(
+            TempVATEntry."Tax Representative Type", TempFatturaHeader."Tax Representative Type",
+            'Preview did not use the VAT-entry tax representative type.');
+        Assert.AreEqual('TAX-REP-TEST', TempFatturaHeader."Tax Representative No.",
+            'Preview did not use the VAT-entry tax representative number.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewMatchesPostedInvoiceFromGetShipmentLines()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        SalesGetShipment: Codeunit "Sales-Get Shipment";
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        CustomerNo: Code[20];
+        CommercialLineCount: Integer;
+        ReferenceCount: Integer;
+    begin
+        // [SCENARIO] DDT references and commercial lines agree.
+        // [GIVEN] a direct invoice populated using Get Shipment Lines
+        // [WHEN] preview and posted exports are generated
+        // [THEN] DDT references and commercial lines agree
+        Initialize();
+        CustomerNo := CreateCustomer();
+        CreateAndPostSalesOrderAsShipment(CustomerNo, 1);
+        CreateAndPostSalesOrderAsShipment(CustomerNo, 2);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Payment Method Code", CreatePaymentMethod());
+        SalesHeader.Validate("Payment Terms Code", CreatePaymentTerms());
+        SalesHeader.Validate("Customer Purchase Order No.", 'PO-GET-SHIPMENT');
+        SalesHeader.Modify(true);
+
+        SalesShipmentLine.SetRange("Sell-to Customer No.", CustomerNo);
+        SalesGetShipment.SetSalesHeader(SalesHeader);
+        SalesGetShipment.CreateInvLines(SalesShipmentLine);
+        Commit();
+
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Document);
+        CommercialLineCount := TempFatturaLine.Count();
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Shipment);
+        if TempFatturaLine.FindSet() then
+            repeat
+                ReferenceCount += 1;
+                Assert.IsTrue(
+                    (TempFatturaLine."Related Line No." > 0) and
+                    (TempFatturaLine."Related Line No." <= CommercialLineCount),
+                    'A DDT reference points outside the commercial line range.');
+            until TempFatturaLine.Next() = 0;
+        Assert.IsTrue(ReferenceCount > 0, 'Expected known DDT references.');
+
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewMatchesPostedInvoiceCustomerOrderReferences()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] Purchase-order references match.
+        // [GIVEN] an invoice with a customer purchase-order reference
+        // [WHEN] preview and posted exports are compared
+        // [THEN] purchase-order references match
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Invoice);
+        SalesHeader.Validate("Customer Purchase Order No.", 'PO-PARITY-TEST');
+        SalesHeader.Modify(true);
+
+        Commit();
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewMatchesPostedOrderWithExistingShipmentReferences()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesShipmentLine: Record "Sales Shipment Line";
+    begin
+        // [SCENARIO] Existing shipment references remain consistent.
+        // [GIVEN] an order with previously posted shipments
+        // [WHEN] preview and posted XML are generated
+        // [THEN] existing shipment references remain consistent
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Order);
+        SalesHeader.Validate("Customer Purchase Order No.", 'PO-SHPT-PARITY');
+        SalesHeader.Modify(true);
+
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 2);
+        SalesLine.Validate("Qty. to Invoice", 0);
+        SalesLine.Modify(true);
+        Commit();
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        SalesShipmentLine.SetRange("Order No.", SalesHeader."No.");
+        Assert.IsTrue(SalesShipmentLine.FindFirst(), 'Fixture did not post a shipment.');
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 0);
+        SalesLine.Validate("Qty. to Invoice", 2);
+        SalesLine.Modify(true);
+        SalesHeader.Validate(Ship, false);
+        SalesHeader.Validate(Invoice, true);
+        SalesHeader.Modify(true);
+
+        Commit();
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewUsesRemainingShipmentAfterOtherShipmentInvoicedFirst()
+    var
+        SalesHeader: Record "Sales Header";
+        DirectInvoice: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        FirstShipmentNo: Code[20];
+        SecondShipmentNo: Code[20];
+    begin
+        // [SCENARIO] The correct uninvoiced shipment is selected.
+        // [GIVEN] multiple shipments where a later shipment was invoiced first
+        // [WHEN] the remaining sales-order quantity is previewed
+        // [THEN] the correct uninvoiced shipment is selected
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Order);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 2);
+        SalesLine.Validate("Qty. to Invoice", 0);
+        SalesLine.Modify(true);
+        Commit();
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        SalesShipmentLine.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        Assert.IsTrue(SalesShipmentLine.FindFirst(), 'First shipment missing.');
+        FirstShipmentNo := SalesShipmentLine."Document No.";
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 3);
+        SalesLine.Validate("Qty. to Invoice", 0);
+        SalesLine.Modify(true);
+        Commit();
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        SalesShipmentLine.SetFilter("Document No.", '<>%1', FirstShipmentNo);
+        Assert.IsTrue(SalesShipmentLine.FindFirst(), 'Second shipment missing.');
+        SecondShipmentNo := SalesShipmentLine."Document No.";
+
+        // Get Shipment Lines allows a subsequent shipment to be invoiced first.
+        LibrarySales.CreateSalesHeader(
+            DirectInvoice, DirectInvoice."Document Type"::Invoice, SalesHeader."Bill-to Customer No.");
+        DirectInvoice.Validate("Payment Method Code", CreatePaymentMethod());
+        DirectInvoice.Validate("Payment Terms Code", CreatePaymentTerms());
+        DirectInvoice.Modify(true);
+        SalesShipmentLine.Reset();
+        SalesShipmentLine.SetRange("Document No.", SecondShipmentNo);
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        SalesShipmentLine.SetFilter("Qty. Shipped Not Invoiced", '>0');
+        Assert.IsTrue(SalesShipmentLine.FindFirst(), 'Shipment B is not invoiceable.');
+        SalesShipmentHeader.Get(SecondShipmentNo);
+        Assert.AreEqual(SalesShipmentHeader."Bill-to Customer No.", DirectInvoice."Bill-to Customer No.",
+            'Direct invoice and shipment B must have the same bill-to customer.');
+        Assert.AreEqual(SalesShipmentHeader."Currency Code", DirectInvoice."Currency Code",
+            'Direct invoice and shipment B must have the same currency.');
+        // Construct the actual Get Shipment Lines item row directly from shipment B.
+        // The standard helper skips a subsequent isolated shipment if its
+        // internal transfer state has not been initialized for this filtered set.
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", DirectInvoice."Document Type");
+        SalesLine.SetRange("Document No.", DirectInvoice."No.");
+        SalesLine.Init();
+        SalesLine."Document Type" := DirectInvoice."Document Type";
+        SalesLine."Document No." := DirectInvoice."No.";
+        SalesShipmentLine.InsertInvLineFromShptLine(SalesLine);
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", DirectInvoice."Document Type");
+        SalesLine.SetRange("Document No.", DirectInvoice."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        Assert.IsTrue(SalesLine.FindFirst(), 'Get Shipment Lines did not insert the B invoice line.');
+        Assert.AreEqual(SecondShipmentNo, SalesLine."Shipment No.",
+            'The intermediate invoice must consume shipment B, not A.');
+        Commit();
+        LibrarySales.PostSalesDocument(DirectInvoice, false, true);
+
+        SalesShipmentLine.Reset();
+        SalesShipmentLine.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        SalesShipmentLine.SetRange("Document No.", FirstShipmentNo);
+        Assert.IsTrue(SalesShipmentLine.FindFirst(), 'Shipment A line missing.');
+        Assert.AreEqual(2, SalesShipmentLine."Qty. Shipped Not Invoiced",
+            'Shipment A must remain entirely available after B was invoiced.');
+        SalesShipmentLine.SetRange("Document No.", SecondShipmentNo);
+        Assert.IsTrue(SalesShipmentLine.FindFirst(), 'Shipment B line missing.');
+        Assert.AreEqual(0, SalesShipmentLine."Qty. Shipped Not Invoiced",
+            'Shipment B must be fully invoiced before testing the later order invoice.');
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        Assert.IsTrue(SalesLine.FindFirst(), 'Original order line missing after B invoice.');
+        SalesLine.Validate("Qty. to Ship", 0);
+        SalesLine.Validate("Qty. to Invoice", 2);
+        SalesLine.Modify(true);
+        SalesHeader.Validate(Ship, false);
+        SalesHeader.Validate(Invoice, true);
+        SalesHeader.Modify(true);
+        Commit();
+
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Shipment);
+        Assert.AreEqual(1, TempFatturaLine.Count(), 'Exactly one active DDT must be invoiced.');
+        TempFatturaLine.SetRange("Document No.", FirstShipmentNo);
+        Assert.IsFalse(TempFatturaLine.IsEmpty(), 'Preview omitted still-uninvoiced shipment A.');
+        TempFatturaLine.SetRange("Document No.", SecondShipmentNo);
+        Assert.IsTrue(TempFatturaLine.IsEmpty(), 'Preview reused already-invoiced shipment B.');
+
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewOmitsUndoneShipmentAndUsesReplacement()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        UndoSalesShipmentLine: Codeunit "Undo Sales Shipment Line";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        UndoneShipmentNo: Code[20];
+        ReplacementShipmentNo: Code[20];
+    begin
+        // [SCENARIO] The original corrected shipment is excluded.
+        // [GIVEN] a shipment undone and replaced
+        // [WHEN] the order preview is prepared
+        // [THEN] the original corrected shipment is excluded
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Order);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 2);
+        SalesLine.Validate("Qty. to Invoice", 0);
+        SalesLine.Modify(true);
+        Commit();
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        SalesShipmentLine.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        Assert.IsTrue(SalesShipmentLine.FindFirst(), 'Shipment to undo was not posted.');
+        UndoneShipmentNo := SalesShipmentLine."Document No.";
+
+        SalesShipmentLine.SetRange("Document No.", UndoneShipmentNo);
+        UndoSalesShipmentLine.SetHideDialog(true);
+        UndoSalesShipmentLine.Run(SalesShipmentLine);
+
+        SalesShipmentLine.Reset();
+        SalesShipmentLine.SetRange("Document No.", UndoneShipmentNo);
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        Assert.IsTrue(SalesShipmentLine.FindFirst(), 'Original shipment line missing after undo.');
+        Assert.IsTrue(SalesShipmentLine.Correction, 'W1 undo must mark the original line corrected.');
+        Assert.AreEqual(0, SalesShipmentLine."Qty. Shipped Not Invoiced",
+            'An undone shipment must no longer be invoiceable.');
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 2);
+        SalesLine.Validate("Qty. to Invoice", 0);
+        SalesLine.Modify(true);
+        Commit();
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        SalesShipmentLine.Reset();
+        SalesShipmentLine.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        SalesShipmentLine.SetRange(Correction, false);
+        SalesShipmentLine.SetFilter("Document No.", '<>%1', UndoneShipmentNo);
+        Assert.IsTrue(SalesShipmentLine.FindFirst(), 'Replacement shipment missing.');
+        ReplacementShipmentNo := SalesShipmentLine."Document No.";
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 0);
+        SalesLine.Validate("Qty. to Invoice", 2);
+        SalesLine.Modify(true);
+        SalesHeader.Validate(Ship, false);
+        SalesHeader.Validate(Invoice, true);
+        SalesHeader.Modify(true);
+        Commit();
+
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Shipment);
+        Assert.AreEqual(1, TempFatturaLine.Count(), 'Expected only the replacement DDT.');
+        TempFatturaLine.SetRange("Document No.", UndoneShipmentNo);
+        Assert.IsTrue(TempFatturaLine.IsEmpty(), 'Preview included an undone DDT.');
+        TempFatturaLine.SetRange("Document No.", ReplacementShipmentNo);
+        Assert.IsFalse(TempFatturaLine.IsEmpty(), 'Preview omitted replacement DDT.');
+
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewMatchesPostedTwoShipmentsForOneInvoiceLine()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        FirstShipmentNo: Code[20];
+    begin
+        // [SCENARIO] Both DDT references map to the correct commercial line.
+        // [GIVEN] an invoice line sourced from two shipments
+        // [WHEN] preview and posted XML are compared
+        // [THEN] both DDT references map to the correct commercial line
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Order);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        SalesLine.FindFirst();
+
+        SalesLine.Validate("Qty. to Ship", 2);
+        SalesLine.Validate("Qty. to Invoice", 0);
+        SalesLine.Modify(true);
+        Commit();
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+        SalesShipmentLine.SetRange("Order No.", SalesHeader."No.");
+        Assert.IsTrue(SalesShipmentLine.FindFirst(), 'First shipment was not posted.');
+        FirstShipmentNo := SalesShipmentLine."Document No.";
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 3);
+        SalesLine.Validate("Qty. to Invoice", 0);
+        SalesLine.Modify(true);
+        Commit();
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // Change the line date only to verify that XML uses the authoritative
+        // shipment-header date rather than incidental per-line date values.
+        SalesShipmentLine.SetRange("Document No.", FirstShipmentNo);
+        SalesShipmentLine.FindFirst();
+        SalesShipmentHeader.Get(FirstShipmentNo);
+        if SalesShipmentLine."Shipment Date" = SalesShipmentHeader."Shipment Date" then begin
+            SalesShipmentLine."Shipment Date" := CalcDate('<+1D>', SalesShipmentHeader."Shipment Date");
+            SalesShipmentLine.Modify();
+        end;
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 0);
+        SalesLine.Validate("Qty. to Invoice", 5);
+        SalesLine.Modify(true);
+        SalesHeader.Validate(Ship, false);
+        SalesHeader.Validate(Invoice, true);
+        SalesHeader.Modify(true);
+        Commit();
+
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Shipment);
+        Assert.AreEqual(2, TempFatturaLine.Count(), 'Expected both DDTs for one invoice line.');
+        if TempFatturaLine.FindSet() then
+            repeat
+                Assert.AreEqual(1, TempFatturaLine."Related Line No.",
+                    'Both DDTs must reference the same commercial line.');
+            until TempFatturaLine.Next() = 0;
+
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewMatchesPostedShipmentsAcrossTwoInvoiceLines()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        // [SCENARIO] Shipment references retain their line associations.
+        // [GIVEN] an invoice containing two separate shipment-linked lines
+        // [WHEN] preview and posted XML are compared
+        // [THEN] shipment references retain their line associations
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Order);
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), 2);
+        SalesLine.Validate("Unit Price", 10);
+        SalesLine.Modify(true);
+
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        SalesLine.FindSet();
+        repeat
+            SalesLine.Validate("Qty. to Ship", SalesLine.Quantity);
+            SalesLine.Validate("Qty. to Invoice", 0);
+            SalesLine.Modify(true);
+        until SalesLine.Next() = 0;
+        Commit();
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesLine.FindSet();
+        repeat
+            SalesLine.Validate("Qty. to Ship", 0);
+            SalesLine.Validate("Qty. to Invoice", SalesLine.Quantity);
+            SalesLine.Modify(true);
+        until SalesLine.Next() = 0;
+        SalesHeader.Validate(Ship, false);
+        SalesHeader.Validate(Invoice, true);
+        SalesHeader.Modify(true);
+        Commit();
+
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Shipment);
+        Assert.AreEqual(2, TempFatturaLine.Count(), 'Expected one shipment reference per invoice line.');
+        Assert.IsTrue(TempFatturaLine.FindFirst(), 'First shipment reference is missing.');
+        Assert.AreEqual(1, TempFatturaLine."Related Line No.", 'First shipment references the wrong invoice line.');
+        Assert.IsTrue(TempFatturaLine.Next() <> 0, 'Second shipment reference is missing.');
+        Assert.AreEqual(2, TempFatturaLine."Related Line No.", 'Second shipment references the wrong invoice line.');
+
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewCreditMemoIncludesKnownAppliedInvoice()
+    var
+        SalesHeader: Record "Sales Header";
+        AppliedInvoice: Record "Sales Invoice Header";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        ExportFatturaPADocument: Codeunit "Export FatturaPA Document";
+        TempBlob: Codeunit "Temp Blob";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ClientFileName: Text[250];
+        PostedInvoiceNo: Code[20];
+    begin
+        // [SCENARIO] The known invoice application is emitted.
+        // [GIVEN] a credit memo with an applied posted invoice
+        // [WHEN] preview fiscal references are populated
+        // [THEN] the known invoice application is emitted
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Invoice);
+        Commit();
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        AppliedInvoice.Get(PostedInvoiceNo);
+
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            AppliedInvoice."Bill-to Customer No.", SalesHeader."Document Type"::"Credit Memo");
+        SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
+        SalesHeader.Validate("Applies-to Doc. No.", PostedInvoiceNo);
+        // The Italian posting logic requires an installment selection for direct
+        // application. Library - Sales normally defaults this to occurrence 1
+        // when posting, but posting preview uses the source Sales Header as-is.
+        SalesHeader.Validate("Applies-to Occurrence No.", 1);
+        SalesHeader.Modify(true);
+        Commit();
+
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        TempFatturaHeader.FindFirst();
+        Assert.AreEqual(PostedInvoiceNo, TempFatturaHeader."Applied Doc. No.",
+            'Preview omitted a known invoice application.');
+        Assert.AreEqual(AppliedInvoice."Posting Date", TempFatturaHeader."Applied Posting Date",
+            'Preview did not resolve the applied invoice posting date.');
+
+        ExportFatturaPADocument.GenerateXMLFile(TempBlob, TempFatturaLine, TempFatturaHeader, ClientFileName);
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiGenerali/DatiFattureCollegate/IdDocumento',
+            PostedInvoiceNo);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewCreditMemoWithoutApplicationDoesNotInventInvoice()
+    var
+        SalesHeader: Record "Sales Header";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+    begin
+        // [SCENARIO] No invented applied-invoice reference appears.
+        // [GIVEN] a credit memo without an applied invoice
+        // [WHEN] preview fiscal references are populated
+        // [THEN] no invented applied-invoice reference appears
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::"Credit Memo");
+        Commit();
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        TempFatturaHeader.FindFirst();
+        Assert.AreEqual('', TempFatturaHeader."Applied Doc. No.",
+            'Preview invented an invoice application.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreviewOmitsFullyInvoicedHistoricalShipment()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        OldShipmentNo: Code[20];
+        PendingShipmentNo: Code[20];
+    begin
+        // [SCENARIO] Fully invoiced historical DDTs are omitted.
+        // [GIVEN] an order with both invoiced and uninvoiced shipments
+        // [WHEN] the next invoice is previewed
+        // [THEN] fully invoiced historical DDTs are omitted
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(),
+            CreateCustomer(), SalesHeader."Document Type"::Order);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 2);
+        SalesLine.Validate("Qty. to Invoice", 2);
+        SalesLine.Modify(true);
+        Commit();
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        SalesShipmentLine.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentLine.FindFirst();
+        OldShipmentNo := SalesShipmentLine."Document No.";
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 2);
+        SalesLine.Validate("Qty. to Invoice", 0);
+        SalesLine.Modify(true);
+        Commit();
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        SalesShipmentLine.SetFilter("Document No.", '<>%1', OldShipmentNo);
+        Assert.IsTrue(SalesShipmentLine.FindFirst(), 'Fixture did not create the second shipment.');
+        PendingShipmentNo := SalesShipmentLine."Document No.";
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 0);
+        SalesLine.Validate("Qty. to Invoice", 2);
+        SalesLine.Modify(true);
+        Commit();
+
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Shipment);
+        TempFatturaLine.SetRange("Document No.", OldShipmentNo);
+        Assert.IsTrue(TempFatturaLine.IsEmpty(), 'Preview included an already invoiced DDT.');
+        TempFatturaLine.SetRange("Document No.", PendingShipmentNo);
+        Assert.IsFalse(TempFatturaLine.IsEmpty(), 'Preview omitted the DDT being invoiced.');
+
+        // S4: the posted XML must also exclude the earlier, already-invoiced
+        // shipment; buffer-only checks do not establish preview/posting parity.
+        SalesHeader.Validate(Ship, false);
+        SalesHeader.Validate(Invoice, true);
+        SalesHeader.Modify(true);
+        Commit();
+        ComparePreviewAndPostedFatturaPA(SalesHeader);
+    end;
+
+    local procedure ComparePreviewAndPostedFatturaPA(var SalesHeader: Record "Sales Header")
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        RecipientCustomer: Record Customer;
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        TempPreviewXML: Record "XML Buffer" temporary;
+        PostedXML: Record "XML Buffer" temporary;
+        PreviewBlob: Codeunit "Temp Blob";
+        PostedBlob: Codeunit "Temp Blob";
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        ExportFatturaPADocument: Codeunit "Export FatturaPA Document";
+        DocumentNo: Code[20];
+        ClientFileName: Text[250];
+    begin
+        // Prepare and serialize before posting. Posting may assign the final document
+        // number and the real transmission progressive number, which are excluded.
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        ExportFatturaPADocument.GenerateXMLFile(
+            PreviewBlob, TempFatturaLine, TempFatturaHeader, ClientFileName);
+
+        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        if SalesHeader."Document Type" in [SalesHeader."Document Type"::Invoice, SalesHeader."Document Type"::Order] then begin
+            SalesInvoiceHeader.Get(DocumentNo);
+            SalesInvoiceHeader.SetRange("No.", DocumentNo);
+            // The standard helper resolves customer number from field 4 of
+            // the posted header. Check the exact persisted record immediately
+            // before export rather than relying on the source document.
+            Assert.IsTrue(RecipientCustomer.Get(SalesInvoiceHeader."Bill-to Customer No."),
+                'Posted invoice bill-to customer is missing.');
+            Assert.IsTrue(RecipientCustomer."PA Code" <> '',
+                StrSubstNo('Posted invoice %1 references customer %2 with blank PA Code (source sell-to %3, bill-to %4).',
+                    DocumentNo, RecipientCustomer."No.", SalesHeader."Sell-to Customer No.", SalesHeader."Bill-to Customer No."));
+            ElectronicDocumentFormat.SendElectronically(
+                PostedBlob, ClientFileName, SalesInvoiceHeader,
+                CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+        end else begin
+            SalesCrMemoHeader.Get(DocumentNo);
+            SalesCrMemoHeader.SetRange("No.", DocumentNo);
+            ElectronicDocumentFormat.SendElectronically(
+                PostedBlob, ClientFileName, SalesCrMemoHeader,
+                CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+        end;
+
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempPreviewXML, PreviewBlob);
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(PostedXML, PostedBlob);
+
+        // Compare fiscally significant values produced by the same serializer,
+        // rather than identifiers assigned by the posting/export workflow.
+        AssertPreviewAndPostedElementEqual(TempPreviewXML, PostedXML,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiGenerali/DatiGeneraliDocumento/TipoDocumento');
+        AssertPreviewAndPostedElementEqual(TempPreviewXML, PostedXML,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee/PrezzoUnitario');
+        AssertPreviewAndPostedElementEqual(TempPreviewXML, PostedXML,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee/PrezzoTotale');
+        AssertPreviewAndPostedElementEqual(TempPreviewXML, PostedXML,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DettaglioLinee/AliquotaIVA');
+        AssertPreviewAndPostedElementEqual(TempPreviewXML, PostedXML,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DatiRiepilogo/ImponibileImporto');
+        AssertPreviewAndPostedElementEqual(TempPreviewXML, PostedXML,
+            '/p:FatturaElettronica/FatturaElettronicaBody/DatiBeniServizi/DatiRiepilogo/Imposta');
+        CompareAdditionalPreviewAndPostedFields(TempPreviewXML, PostedXML);
+        // A shipment created by this posting run has no DDT number at preview time.
+        // Compare DDTs only when no new shipment is being posted.
+        CompareOrderAndShipmentMetadata(
+            TempPreviewXML, PostedXML,
+            (SalesHeader."Document Type" <> SalesHeader."Document Type"::Order) or not SalesHeader.Ship);
+    end;
+
+    local procedure CompareOrderAndShipmentMetadata(
+        var TempPreviewXML: Record "XML Buffer" temporary;
+        var PostedXML: Record "XML Buffer" temporary;
+        CompareShipmentData: Boolean)
+    var
+        GeneralDataPath: Text;
+    begin
+        GeneralDataPath := '/p:FatturaElettronica/FatturaElettronicaBody/DatiGenerali';
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, GeneralDataPath + '/DatiOrdineAcquisto/IdDocumento');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, GeneralDataPath + '/DatiOrdineAcquisto/CodiceCUP');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, GeneralDataPath + '/DatiOrdineAcquisto/CodiceCIG');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, GeneralDataPath + '/DatiOrdineAcquisto/RiferimentoNumeroLinea');
+        if not CompareShipmentData then
+            exit;
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, GeneralDataPath + '/DatiDDT/NumeroDDT');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, GeneralDataPath + '/DatiDDT/DataDDT');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, GeneralDataPath + '/DatiDDT/RiferimentoNumeroLinea');
+    end;
+
+    local procedure CompareAdditionalPreviewAndPostedFields(
+        var TempPreviewXML: Record "XML Buffer" temporary;
+        var PostedXML: Record "XML Buffer" temporary)
+    var
+        BodyPath: Text;
+        LinePath: Text;
+        VATPath: Text;
+        PaymentPath: Text;
+    begin
+        BodyPath := '/p:FatturaElettronica/FatturaElettronicaBody';
+        LinePath := BodyPath + '/DatiBeniServizi/DettaglioLinee';
+        VATPath := BodyPath + '/DatiBeniServizi/DatiRiepilogo';
+        PaymentPath := BodyPath + '/DatiPagamento/DettaglioPagamento';
+
+        AssertPreviewAndPostedElementEqual(TempPreviewXML, PostedXML,
+            BodyPath + '/DatiGenerali/DatiGeneraliDocumento/Divisa');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML,
+            BodyPath + '/DatiGenerali/DatiGeneraliDocumento/ImportoTotaleDocumento');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML,
+            BodyPath + '/DatiGenerali/DatiGeneraliDocumento/ScontoMaggiorazione/Importo');
+        AssertPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, LinePath + '/Descrizione');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, LinePath + '/Quantita');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, LinePath + '/UnitaMisura');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, LinePath + '/ScontoMaggiorazione/Percentuale');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, LinePath + '/ScontoMaggiorazione/Importo');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, LinePath + '/Natura');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, VATPath + '/Natura');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, VATPath + '/EsigibilitaIVA');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, VATPath + '/RiferimentoNormativo');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, PaymentPath + '/DataScadenzaPagamento');
+        AssertOptionalPreviewAndPostedElementEqual(TempPreviewXML, PostedXML, PaymentPath + '/ImportoPagamento');
+    end;
+
+    local procedure AssertOptionalPreviewAndPostedElementEqual(
+        var TempPreviewXML: Record "XML Buffer" temporary;
+        var PostedXML: Record "XML Buffer" temporary;
+        XPath: Text)
+    begin
+        TempPreviewXML.Reset();
+        PostedXML.Reset();
+        TempPreviewXML.FindNodesByXPath(TempPreviewXML, XPath);
+        PostedXML.FindNodesByXPath(PostedXML, XPath);
+        Assert.AreEqual(PostedXML.Count(), TempPreviewXML.Count(),
+            StrSubstNo('Optional preview/posted XML node counts differ at %1', XPath));
+        if PostedXML.IsEmpty() then
+            exit;
+        TempPreviewXML.FindSet();
+        PostedXML.FindSet();
+        repeat
+            Assert.AreEqual(PostedXML.Value, TempPreviewXML.Value,
+                StrSubstNo('Optional preview/posted XML values differ at %1', XPath));
+            PostedXML.Next();
+        until TempPreviewXML.Next() = 0;
+    end;
+
+    local procedure AssertPreviewAndPostedElementEqual(
+        var TempPreviewXML: Record "XML Buffer" temporary;
+        var PostedXML: Record "XML Buffer" temporary;
+        XPath: Text)
+    begin
+        TempPreviewXML.Reset();
+        PostedXML.Reset();
+        TempPreviewXML.FindNodesByXPath(TempPreviewXML, XPath);
+        PostedXML.FindNodesByXPath(PostedXML, XPath);
+        Assert.IsTrue(TempPreviewXML.Count() > 0, StrSubstNo('Missing preview XML node %1', XPath));
+        Assert.AreEqual(PostedXML.Count(), TempPreviewXML.Count(),
+            StrSubstNo('Preview and posted XML node counts differ at %1', XPath));
+        TempPreviewXML.FindSet();
+        PostedXML.FindSet();
+        repeat
+            Assert.AreEqual(PostedXML.Value, TempPreviewXML.Value,
+                StrSubstNo('Preview and posted FatturaPA differ at %1', XPath));
+            PostedXML.Next();
+        until TempPreviewXML.Next() = 0;
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PrepareAndSerializeUnpostedFatturaPAInvoice()
+    var
+        SalesHeader: Record "Sales Header";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        ExportFatturaPADocument: Codeunit "Export FatturaPA Document";
+        ClientFileName: Text[250];
+    begin
+        // [SCENARIO] An unposted invoice can be prepared and serialized without
+        // [GIVEN] a valid unposted invoice
+        // [WHEN] the standard FatturaPA preview API serializes XML
+        // [THEN] the resulting preview matches required invoice content
+        // allocating the real FatturaPA progressive number.
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer(), SalesHeader."Document Type"::Invoice);
+
+        Commit(); // Make test document visible to posting preview.
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        Assert.IsTrue(TempFatturaHeader.FindFirst(), 'FatturaPA header was not prepared.');
+        Assert.AreEqual('PREVIEW', TempFatturaHeader."Progressive No.", 'Preview progressive number was not preserved.');
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Document);
+        Assert.IsTrue(TempFatturaLine.FindFirst(), 'FatturaPA document lines were not prepared.');
+        TempFatturaLine.Reset();
+
+        ExportFatturaPADocument.GenerateXMLFile(TempBlob, TempFatturaLine, TempFatturaHeader, ClientFileName);
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/ProgressivoInvio',
+            'PREVIEW');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PrepareAndSerializeUnpostedFatturaPACreditMemo()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] The resulting preview matches required credit-memo content.
+        // [GIVEN] a valid unposted credit memo
+        // [WHEN] the standard FatturaPA preview API serializes XML
+        // [THEN] the resulting preview matches required credit-memo content
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer(), SalesHeader."Document Type"::"Credit Memo");
+        Commit(); // Make test document visible to posting preview.
+        VerifyPreparedPreviewXML(SalesHeader, 'TD04');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PrepareAndSerializeUnpostedFatturaPAOrder()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] The resulting preview matches required order content.
+        // [GIVEN] a valid unposted sales order
+        // [WHEN] the standard FatturaPA preview API serializes XML
+        // [THEN] the resulting preview matches required order content
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer(), SalesHeader."Document Type"::Order);
+        Commit(); // Make test document visible to posting preview.
+        VerifyPreparedPreviewXML(SalesHeader, 'TD01');
+    end;
+
+    local procedure VerifyPreparedPreviewXML(SalesHeader: Record "Sales Header"; ExpectedFatturaDocumentType: Text)
+    var
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        ExportFatturaPADocument: Codeunit "Export FatturaPA Document";
+        ClientFileName: Text[250];
+    begin
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        Assert.IsTrue(TempFatturaHeader.FindFirst(), 'FatturaPA preview header was not prepared.');
+        Assert.AreEqual('PREVIEW', TempFatturaHeader."Progressive No.", 'Incorrect preview progressive number.');
+        Assert.AreEqual(ExpectedFatturaDocumentType, TempFatturaHeader."Fattura Document Type", 'Incorrect Fattura document type.');
+        TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Document);
+        Assert.IsTrue(TempFatturaLine.FindFirst(), 'No preview document lines were prepared.');
+        TempFatturaLine.Reset();
+
+        ExportFatturaPADocument.GenerateXMLFile(TempBlob, TempFatturaLine, TempFatturaHeader, ClientFileName);
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/ProgressivoInvio',
+            'PREVIEW');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PreparePreviewDoesNotConsumeFatturaPANumberSeries()
+    var
+        SalesHeader: Record "Sales Header";
+        FatturaPANoSeries: Record "No. Series Line";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        TempFatturaHeader: Record "Fattura Header" temporary;
+        TempFatturaLine: Record "Fattura Line" temporary;
+        FatturaPAPreviewMgt: Codeunit "FatturaPA Preview Mgt.";
+        OriginalLastNoUsed: Code[20];
+    begin
+        // [SCENARIO] The actual transmission series is not consumed.
+        // [GIVEN] a valid document and a configured FatturaPA series
+        // [WHEN] the preview buffers are prepared
+        // [THEN] the actual transmission series is not consumed
+        Initialize();
+        CreateSalesDocument(
+            SalesHeader, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer(), SalesHeader."Document Type"::Invoice);
+
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.TestField("Fattura PA Nos.");
+        FatturaPANoSeries.SetRange("Series Code", SalesReceivablesSetup."Fattura PA Nos.");
+        Assert.IsTrue(FatturaPANoSeries.FindFirst(), 'The FatturaPA number series has no lines.');
+        OriginalLastNoUsed := FatturaPANoSeries."Last No. Used";
+
+        Commit(); // Make test document visible to posting preview.
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+        FatturaPAPreviewMgt.PreparePreview(SalesHeader, 'PREVIEW', TempFatturaHeader, TempFatturaLine);
+
+        FatturaPANoSeries.FindFirst();
+        Assert.AreEqual(OriginalLastNoUsed, FatturaPANoSeries."Last No. Used", 'Preview consumed a FatturaPA progressive number.');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure ExportSalesInvoice()
     var
@@ -948,8 +2577,8 @@ codeunit 144200 "FatturaPA Test"
           ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
 
         // [THEN] The DatiGenerali node has two DatiOrdineAcquisto nodes.
-        // [THEN] First DatiOrdineAcquisto node has RiferimentoNumeroLinea = 2 and IdDocumento = "X".
-        // [THEN] Second DatiOrdineAcquisto node has RiferimentoNumeroLinea = 4, RiferimentoNumeroLinea = 5 and IdDocumento = "SO2" number.
+        // [THEN] DDT references identify exported commercial lines 1, 2 and 3,
+        // not source-line ordinals 2, 4 and 5 that include Get Shipment Lines descriptions.
         SalesInvoiceHeader.Get(PostedInvNo);
         VerifyDatiOrdineAcquistoForMultipleShipments(TempBlob, SalesInvoiceHeader."Customer Purchase Order No.");
 
@@ -1822,7 +3451,7 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [Scope('OnPrem')]
-    procedure VerifyExportedSalesInvoiceEsigibilitaIVATagWhenCoomentLineExist()
+    procedure VerifyExportedSalesInvoiceEsigibilitaIVATagWhenCommentLineExists()
     var
         TempXMLBuffer: Record "XML Buffer" temporary;
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -2927,11 +4556,11 @@ codeunit 144200 "FatturaPA Test"
     begin
         LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
         TempXMLBuffer.FindNodesByXPath(TempXMLBuffer, '/p:FatturaElettronica/FatturaElettronicaBody/DatiGenerali/DatiOrdineAcquisto');
-        AssertElementValue(TempXMLBuffer, 'RiferimentoNumeroLinea', '2');
+        AssertElementValue(TempXMLBuffer, 'RiferimentoNumeroLinea', '1');
         AssertElementValue(TempXMLBuffer, 'IdDocumento', DocumentNo);
         FindNextElement(TempXMLBuffer);
-        AssertElementValue(TempXMLBuffer, 'RiferimentoNumeroLinea', '4');
-        AssertElementValue(TempXMLBuffer, 'RiferimentoNumeroLinea', '5');
+        AssertElementValue(TempXMLBuffer, 'RiferimentoNumeroLinea', '2');
+        AssertElementValue(TempXMLBuffer, 'RiferimentoNumeroLinea', '3');
         AssertElementValue(TempXMLBuffer, 'IdDocumento', DocumentNo);
     end;
 
