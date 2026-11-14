@@ -265,6 +265,7 @@ codeunit 10978 "CII XML Builder"
         BuyerElectronicAddress: Text[250];
         BuyerCountryCode: Text;
         VATRegistrationNo: Text;
+        CustomerFound: Boolean;
     begin
         BuyerElement := XmlElement.Create('BuyerTradeParty', RamNamespaceTok);
 
@@ -276,6 +277,11 @@ codeunit 10978 "CII XML Builder"
         NameElement := XmlElement.Create('Name', RamNamespaceTok, GetHeaderFieldText(SourceDocumentHeader, 'Sell-to Customer Name', 'Name'));
         BuyerElement.Add(NameElement);
 
+        Customer.SetLoadFields("FR Electronic Address", "Registration Number", "VAT Registration No.");
+        CustomerFound := (CustomerNo <> '') and Customer.Get(CustomerNo);
+        if CustomerFound then
+            AddBuyerLegalOrganization(BuyerElement, Customer);
+
         AddPostalTradeAddress(
             BuyerElement,
             GetHeaderFieldText(SourceDocumentHeader, 'Sell-to Post Code', 'Post Code'),
@@ -286,8 +292,7 @@ codeunit 10978 "CII XML Builder"
 
         // BT-49 Buyer electronic routing address is held only on the live customer master record.
         // BR-FR-12: BT-49 is mandatory in French e-invoicing.
-        Customer.SetLoadFields("FR Electronic Address", "Registration Number", "VAT Registration No.");
-        if (CustomerNo <> '') and Customer.Get(CustomerNo) then
+        if CustomerFound then
             if FREDocHelpers.GetBuyerElectronicAddress(Customer, BuyerElectronicAddress) then
                 AddElectronicAddress(BuyerElement, BuyerElectronicAddress, '0225');
 
@@ -298,6 +303,27 @@ codeunit 10978 "CII XML Builder"
             AddVATRegistration(BuyerElement, GetVATRegistrationNoWithCountryPrefix(VATRegistrationNo, BuyerCountryCode));
 
         AgreementElement.Add(BuyerElement);
+    end;
+
+    local procedure AddBuyerLegalOrganization(var BuyerElement: XmlElement; Customer: Record Customer)
+    var
+        LegalOrgElement: XmlElement;
+        LegalOrgIdElement: XmlElement;
+        BuyerSIRENInvalidErr: Label 'Registration No. must contain exactly nine digits for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
+    begin
+        if Customer."Registration Number" = '' then
+            exit;
+
+        if (StrLen(Customer."Registration Number") <> 9) or
+           (DelChr(Customer."Registration Number", '=', '0123456789') <> '')
+        then
+            Error(BuyerSIRENInvalidErr, Customer."No.");
+
+        LegalOrgElement := XmlElement.Create('SpecifiedLegalOrganization', RamNamespaceTok);
+        LegalOrgIdElement := XmlElement.Create('ID', RamNamespaceTok, Customer."Registration Number");
+        LegalOrgIdElement.SetAttribute('schemeID', '0002');
+        LegalOrgElement.Add(LegalOrgIdElement);
+        BuyerElement.Add(LegalOrgElement);
     end;
 
     procedure TryGetBuyerElectronicAddress(Customer: Record Customer; var BuyerElectronicAddress: Text): Boolean
