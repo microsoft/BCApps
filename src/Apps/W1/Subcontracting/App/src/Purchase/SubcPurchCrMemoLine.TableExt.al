@@ -58,5 +58,20 @@ tableextension 20515 "Subc. Purch. CrMemo Line" extends "Purch. Cr. Memo Line"
             Editable = false;
             TableRelation = "Work Center";
         }
+        field(20551; "Subc. Prod. Ord. Comp Line No."; Integer)
+        {
+            Caption = 'Prod. Order Component Line No. (Sub)';
+            DataClassification = CustomerContent;
+            Editable = false;
+            TableRelation = "Prod. Order Component"."Line No." where(Status = const(Released),
+                                                                      "Prod. Order No." = field("Subc. Prod. Order No."),
+                                                                      "Prod. Order Line No." = field("Subc. Prod. Order Line No."));
+        }
+        field(20552; "Subc. Prod. Ord. Comp Due Date"; Date)
+        {
+            Caption = 'Prod. Order Component Due Date (Sub)';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
     }
 }
