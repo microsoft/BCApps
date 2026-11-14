@@ -693,7 +693,8 @@ codeunit 148331 "Expense Projects API Test"
         Commit();
 
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Projects API", ProjectsServiceNameTok);
-        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 400);
+        Assert.ExpectedError('Response code is 400 (BadRequest)');
         Assert.ExpectedError(ScopeRequiredErrTxt);
     end;
 
@@ -711,7 +712,8 @@ codeunit 148331 "Expense Projects API Test"
         Commit();
 
         TargetURL := BuildUserScopedProjectsURL(ExpenseUser.SystemId);
-        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 400);
+        Assert.ExpectedError('Response code is 400 (BadRequest)');
         Assert.ExpectedError(ProjectFieldsNotEnabledErrTxt);
     end;
 

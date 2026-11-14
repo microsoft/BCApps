@@ -109,11 +109,25 @@ page 48511 "Fabric Platform Setup"
                 {
                     Editable = NamespaceEditable;
                     ToolTip = 'Specifies the Fabric schema name used for the exported data tables.';
+
+                    trigger OnValidate()
+                    var
+                        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                    begin
+                        FabricPlatformMgt.NormalizeNamespace(Rec."Fabric Data Namespace");
+                    end;
                 }
                 field("Fabric Logging Namespace"; Rec."Fabric Logging Namespace")
                 {
                     Editable = NamespaceEditable;
                     ToolTip = 'Specifies the Fabric schema name used for the exported logging tables.';
+
+                    trigger OnValidate()
+                    var
+                        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                    begin
+                        FabricPlatformMgt.NormalizeNamespace(Rec."Fabric Logging Namespace");
+                    end;
                 }
                 field("Setup Complete"; Rec."Setup Complete")
                 {

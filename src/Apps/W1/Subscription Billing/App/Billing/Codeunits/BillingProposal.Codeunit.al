@@ -602,6 +602,7 @@ codeunit 8062 "Billing Proposal"
                 BillingPeriodStart := UsageDataBilling."Charge Start Date";
             if UsageDataBilling.FindLast() then
                 BillingPeriodEnd := UsageDataBilling."Charge End Date";
+            OnAfterCalculateBillingPeriodForUsageBasedSubscriptionLine(ServiceCommitment, UsageDataBilling, BillingPeriodStart, BillingPeriodEnd);
             exit;
         end;
 
@@ -656,7 +657,7 @@ codeunit 8062 "Billing Proposal"
             Error(NotAuthorizedToClearOrDeleteDocumentErr);
     end;
 
-    internal procedure DeleteBillingProposal(BillingTemplateCode: Code[20])
+    procedure DeleteBillingProposal(BillingTemplateCode: Code[20])
     var
         BillingLine: Record "Billing Line";
         BillingTemplate: Record "Billing Template";
@@ -706,7 +707,7 @@ codeunit 8062 "Billing Proposal"
         end;
     end;
 
-    internal procedure DeleteBillingLines(var BillingLine: Record "Billing Line")
+    procedure DeleteBillingLines(var BillingLine: Record "Billing Line")
     var
         Counter: Integer;
     begin
@@ -764,7 +765,7 @@ codeunit 8062 "Billing Proposal"
         CustomerContract.RecalculateHarmonizedBillingFieldsBasedOnNextBillingDate(0);
     end;
 
-    internal procedure UpdateBillingToDate(var BillingLine: Record "Billing Line"; NewBillingToDate: Date)
+    procedure UpdateBillingToDate(var BillingLine: Record "Billing Line"; NewBillingToDate: Date)
     var
         ServiceCommitment: Record "Subscription Line";
         BillingTemplate: Record "Billing Template";
@@ -1014,7 +1015,7 @@ codeunit 8062 "Billing Proposal"
         exit(not BillingLine.IsEmpty());
     end;
 
-    internal procedure DeleteBillingDocuments(BillingTemplateCode: Code[20])
+    procedure DeleteBillingDocuments(BillingTemplateCode: Code[20])
     var
         BillingLine: Record "Billing Line";
         BillingTemplate: Record "Billing Template";
@@ -1128,6 +1129,11 @@ codeunit 8062 "Billing Proposal"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalculateNextBillingToDateForSubscriptionLine(var NextBillingToDate: Date; SubscriptionLine: Record "Subscription Line"; BillingFromDate: Date)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalculateBillingPeriodForUsageBasedSubscriptionLine(SubscriptionLine: Record "Subscription Line"; var UsageDataBilling: Record "Usage Data Billing"; var BillingPeriodStart: Date; var BillingPeriodEnd: Date)
     begin
     end;
 

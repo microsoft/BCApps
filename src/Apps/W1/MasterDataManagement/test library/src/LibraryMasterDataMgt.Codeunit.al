@@ -262,6 +262,78 @@ codeunit 139757 "Library - Master Data Mgt."
         MasterDataManagementSetup.Modify(false);
     end;
 
+    /// <summary>Stores a client secret for the cross-environment connection, replacing any stored certificate.</summary>
+    /// <param name="ClientSecret">The client secret to store.</param>
+    [NonDebuggable]
+    procedure SetSourceClientSecret(ClientSecret: SecretText)
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.SetSourceClientSecret(ClientSecret);
+#pragma warning disable AA0214 // SetSourceClientSecret modifies the record's credential fields
+        MasterDataManagementSetup.Modify(false);
+#pragma warning restore AA0214
+    end;
+
+    /// <summary>Validates and stores a client certificate for the cross-environment connection, replacing any stored client secret.</summary>
+    /// <param name="CertificateBase64">The Base64-encoded .pfx or .p12 certificate.</param>
+    /// <param name="CertificatePassword">The password of the certificate; empty if it is not password protected.</param>
+    [NonDebuggable]
+    procedure SetSourceClientCertificate(CertificateBase64: Text; CertificatePassword: SecretText)
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.SetSourceClientCertificate(CertificateBase64, CertificatePassword);
+#pragma warning disable AA0214 // SetSourceClientCertificate modifies the record's credential fields
+        MasterDataManagementSetup.Modify(false);
+#pragma warning restore AA0214
+    end;
+
+    /// <summary>Checks whether the cross-environment connection authenticates with a client certificate.</summary>
+    /// <returns>True if a client certificate is stored for the connection.</returns>
+    procedure UsesSourceClientCertificate(): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        exit(MasterDataManagementSetup.UsesSourceClientCertificate());
+    end;
+
+    /// <summary>Clears the cross-environment connection details and removes the stored credentials from Isolated Storage.</summary>
+    procedure ClearCrossEnvConnection()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        if not MasterDataManagementSetup.Get() then
+            exit;
+        MasterDataManagementSetup.ClearCrossEnvConnection();
+#pragma warning disable AA0214 // ClearCrossEnvConnection modifies the record's connection and credential fields
+        MasterDataManagementSetup.Modify(false);
+#pragma warning restore AA0214
+    end;
+
+    /// <summary>Checks whether a cross-environment credential entry exists in the app's Isolated Storage, without reading its value.</summary>
+    /// <param name="CredentialKey">The Isolated Storage key of the credential, as stored on the setup record.</param>
+    /// <returns>True if an Isolated Storage entry exists for the key.</returns>
+    procedure IsSourceCredentialStored(CredentialKey: Guid): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        exit(MasterDataManagementSetup.IsSourceCredentialStored(CredentialKey));
+    end;
+
+    /// <summary>Checks whether the cross-environment connection details, including a credential, are complete.</summary>
+    /// <returns>True if the cross-environment connection is configured.</returns>
+    procedure IsCrossEnvConnectionConfigured(): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        exit(MasterDataManagementSetup.IsCrossEnvConnectionConfigured());
+    end;
+
     /// <summary>Runs the cross-environment change detector once.</summary>
     procedure RunChangeDetector()
     var

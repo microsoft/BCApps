@@ -92,6 +92,7 @@ codeunit 8400 "Record Set Management"
     var
         TempUnsortedRecordSetBuffer: Record "Record Set Buffer" temporary;
         RecordSetDefinition: Record "Record Set Definition";
+        TableMetadata: Record "Table Metadata";
         RecRef: RecordRef;
         CurrentKey: Integer;
     begin
@@ -102,13 +103,16 @@ codeunit 8400 "Record Set Management"
             exit;
 
         repeat
-            if RecRef.Get(RecordSetDefinition.Value) then begin
-                CurrentKey := TempUnsortedRecordSetBuffer.No;
-                Clear(TempUnsortedRecordSetBuffer);
-                TempUnsortedRecordSetBuffer."Value RecordID" := RecRef.RecordId;
-                TempUnsortedRecordSetBuffer.No := CurrentKey + 1;
-                TempUnsortedRecordSetBuffer.Insert();
-            end;
+            if TableMetadata.Get(RecordSetDefinition."Table No.") and
+               (TableMetadata.ObsoleteState <> TableMetadata.ObsoleteState::Removed)
+            then
+                if RecRef.Get(RecordSetDefinition.Value) then begin
+                    CurrentKey := TempUnsortedRecordSetBuffer.No;
+                    Clear(TempUnsortedRecordSetBuffer);
+                    TempUnsortedRecordSetBuffer."Value RecordID" := RecRef.RecordId;
+                    TempUnsortedRecordSetBuffer.No := CurrentKey + 1;
+                    TempUnsortedRecordSetBuffer.Insert();
+                end;
         until RecordSetDefinition.Next() = 0;
 
         TempUnsortedRecordSetBuffer.SetCurrentKey("Value RecordID");
@@ -215,4 +219,3 @@ codeunit 8400 "Record Set Management"
         RecordSetDefinition.FindSet();
     end;
 }
-

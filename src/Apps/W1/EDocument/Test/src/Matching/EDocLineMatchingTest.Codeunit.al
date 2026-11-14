@@ -47,6 +47,81 @@ codeunit 139659 "E-Doc. Line Matching Test"
     end;
 
     [Test]
+    procedure InsertImportedLineWithZeroAmountAndNoDiscount()
+    begin
+        // [SCENARIO] A zero-amount line without a discount is imported with zero discount percentage.
+        VerifyImportedLineDiscount(0, 0, 0);
+    end;
+
+    [Test]
+    procedure InsertImportedLineWithNoDiscount()
+    begin
+        // [SCENARIO] A nonzero-amount line without a discount retains zero discount percentage.
+        VerifyImportedLineDiscount(100, 0, 0);
+    end;
+
+    [Test]
+    procedure InsertImportedLineWithDiscount()
+    begin
+        // [SCENARIO] The imported discount percentage is calculated from the amount before discount.
+        VerifyImportedLineDiscount(80, 20, 20);
+    end;
+
+    [Test]
+    procedure InsertImportedLineWithFullDiscount()
+    begin
+        // [SCENARIO] A zero net amount with a nonzero discount retains a full discount percentage.
+        VerifyImportedLineDiscount(0, 100, 100);
+    end;
+
+    [Test]
+    procedure InsertImportedLineWithNegativeAmounts()
+    begin
+        // [SCENARIO] Negative amounts and discounts retain the existing discount calculation.
+        VerifyImportedLineDiscount(-80, -20, 20);
+        VerifyImportedLineDiscount(-120, 20, -20);
+        VerifyImportedLineDiscount(120, -20, -20);
+    end;
+
+    [Test]
+    procedure InsertImportedLineWithOffsettingAmounts()
+    begin
+        // [SCENARIO] Nonzero amounts that cancel the discount are imported without division by zero.
+        VerifyImportedLineDiscount(20, -20, 0);
+        VerifyImportedLineDiscount(-20, 20, 0);
+    end;
+
+    local procedure VerifyImportedLineDiscount(Amount: Decimal; LineDiscountAmount: Decimal; ExpectedDiscountPct: Decimal)
+    var
+        EDocument: Record "E-Document";
+        TempPurchaseLine: Record "Purchase Line" temporary;
+        TempEDocImportedLine: Record "E-Doc. Imported Line" temporary;
+        DocumentLine: RecordRef;
+    begin
+        // [GIVEN] An imported purchase line with the specified amount and discount.
+        EDocument."Entry No" := 1;
+        TempPurchaseLine.Type := Enum::"Purchase Line Type"::Item;
+        TempPurchaseLine."No." := 'ITEM';
+        TempPurchaseLine.Quantity := 1;
+        TempPurchaseLine."Direct Unit Cost" := Amount + LineDiscountAmount;
+        TempPurchaseLine.Amount := Amount;
+        TempPurchaseLine."Line Discount Amount" := LineDiscountAmount;
+        DocumentLine.GetTable(TempPurchaseLine);
+
+        // [WHEN] The purchase line is inserted into the order matching buffer.
+        TempEDocImportedLine.Insert(EDocument, DocumentLine, TempEDocImportedLine, true);
+
+        // [THEN] The line is imported with the expected discount percentage and its original values.
+        Assert.RecordCount(TempEDocImportedLine, 1);
+        TempEDocImportedLine.Get(EDocument."Entry No", 10000);
+        Assert.AreEqual(ExpectedDiscountPct, TempEDocImportedLine."Line Discount %", 'Incorrect imported line discount percentage.');
+        Assert.AreEqual(TempPurchaseLine.Type, TempEDocImportedLine.Type, 'Incorrect imported line type.');
+        Assert.AreEqual(TempPurchaseLine."No.", TempEDocImportedLine."No.", 'Incorrect imported item number.');
+        Assert.AreEqual(TempPurchaseLine.Quantity, TempEDocImportedLine.Quantity, 'Incorrect imported line quantity.');
+        Assert.AreEqual(TempPurchaseLine."Direct Unit Cost", TempEDocImportedLine."Direct Unit Cost", 'Incorrect imported direct unit cost.');
+    end;
+
+    [Test]
     procedure MatchOneImportLineToOnePOLineSuccess()
     var
         EDocument: Record "E-Document";
