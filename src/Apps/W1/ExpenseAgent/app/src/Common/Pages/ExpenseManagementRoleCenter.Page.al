@@ -163,6 +163,13 @@ page 6933 "Expense Management Role Center"
                         RunObject = Page "Expense Payment Methods";
                         ToolTip = 'Setup expense payment methods.';
                     }
+                    action("Expense Spend Limits")
+                    {
+                        Caption = 'Expense Spend Limits';
+                        ApplicationArea = Basic, Suite;
+                        RunObject = Page "Expense Spend Limits";
+                        ToolTip = 'Setup spend limits for Expense Users, Expense Teams, and the company.';
+                    }
                     action("Expense Management Rules")
                     {
                         Caption = 'Expense Management Rules';

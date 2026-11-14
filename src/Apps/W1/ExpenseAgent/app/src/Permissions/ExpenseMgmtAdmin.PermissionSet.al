@@ -26,6 +26,7 @@ permissionset 6905 "Expense Mgmt. Admin"
         tabledata "Mileage Rate Setup" = IMD,
         tabledata "Expense Agent Setup" = IMD,
         tabledata "Expense Agent Status" = IMD,
+        tabledata "Expense Spend Limit" = IMD,
         tabledata "Expense Rule Condition" = IMD,
         tabledata "Expense Rule Header" = IMD,
         tabledata "Expense Policy" = IMD,
