@@ -526,6 +526,9 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ApproverExpenseUser.Get(ExpenseReportHeader."Approver Expense User No.");
         ExpenseReportHeader.CalcFields("Amount (LCY)");
 
+        if CanOwnerApproveOwnReport(ExpenseReportHeader) then
+            ApproverExpenseUser.Get(ExpenseReportHeader."Expense User No.");
+
         while not ApproverExpenseUser."Unlimited Approval" and (ExpenseReportHeader."Amount (LCY)" > ApproverExpenseUser."Approval Limit (LCY)") do begin
             ProcessedApproverNos.Add(ApproverExpenseUser."No.");
             NextApproverNo := GetNextApproverNo(ApproverExpenseUser."No.");
@@ -542,6 +545,18 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ExpenseReportHeader."Final Approver No." := ApproverExpenseUser."No.";
         ExpenseReportHeader."Approver Expense User No." := ApproverExpenseUser."No.";
         ExpenseReportHeader."Approver Expense User ID" := ApproverExpenseUser."User Id For Approvals";
+    end;
+
+    // An approver-capable owner approves their own report when it fits within their own limit; otherwise the configured approver chain applies.
+    local procedure CanOwnerApproveOwnReport(ExpenseReportHeader: Record "Expense Report Header"): Boolean
+    var
+        OwnerExpenseUser: Record "Expense User";
+    begin
+        OwnerExpenseUser.Get(ExpenseReportHeader."Expense User No.");
+        if not IsApproverEligible(OwnerExpenseUser) then
+            exit(false);
+
+        exit(OwnerExpenseUser."Unlimited Approval" or (ExpenseReportHeader."Amount (LCY)" <= OwnerExpenseUser."Approval Limit (LCY)"));
     end;
 
     local procedure CheckAndAssignAlternateApproval(var ExpenseReportHeader: Record "Expense Report Header")
@@ -709,7 +724,10 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ExpenseApprovalSetup: Record "Expense Approval Setup";
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
-        if ExpenseApprovalSetup.Get(CurrentApproverNo) and (ExpenseApprovalSetup."Approver No." <> '') then
+        if ExpenseApprovalSetup.Get(CurrentApproverNo) and
+           (ExpenseApprovalSetup."Approver No." <> '') and
+           (ExpenseApprovalSetup."Approver No." <> CurrentApproverNo)
+        then
             exit(ExpenseApprovalSetup."Approver No.");
 
         ExpenseAgentSetup.GetRecordOnce();
