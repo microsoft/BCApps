@@ -75,6 +75,7 @@ codeunit 7235 "Master Data Mgt. Table Couple"
         IntegrationRecordRef: RecordRef;
         EmptyRecordRef: RecordRef;
         ExcludedLocalRecordRef: RecordRef;
+        ExactMatchFields: Dictionary of [Integer, Integer];
         HasLocalTableFilter: Boolean;
         ExcludedMatchFound: Boolean;
         MatchingFieldCount: Integer;
@@ -136,6 +137,7 @@ codeunit 7235 "Master Data Mgt. Table Couple"
                         Clear(LocalRecordRef);
                         LocalRecordRef.Open(IntegrationTableMapping."Table ID");
                         IntegrationTableMapping.SetRecordRefFilter(LocalRecordRef);
+                        Clear(ExactMatchFields);
                         Clear(ExcludedLocalRecordRef);
                         ExcludedMatchFound := false;
                         // this inner loop is looping through a temporary record set with a handful of user-chosen matching fields - not a performance concern as such
@@ -144,11 +146,11 @@ codeunit 7235 "Master Data Mgt. Table Couple"
                                 MatchCount := 0;
                                 TempMatchingIntegrationFieldMapping.Reset();
                                 TempMatchingIntegrationFieldMapping.SetRange("Match Priority", MatchPriority);
-                                MatchingFieldCount := SetMatchingFilters(IntegrationRecordRef, LocalRecordRef, TempMatchingIntegrationFieldMapping);
+                                MatchingFieldCount := SetMatchingFilters(IntegrationRecordRef, LocalRecordRef, TempMatchingIntegrationFieldMapping, ExactMatchFields);
 
                                 // if there is exactly one match, and it is not coupled, couple it. otherwise - log a synch error
                                 if MatchingFieldCount > 0 then
-                                    MatchCount := LocalRecordRef.Count();
+                                    MatchCount := CountMatches(IntegrationRecordRef, LocalRecordRef, ExactMatchFields);
                                 case MatchCount of
                                     0:
                                         begin
@@ -213,7 +215,8 @@ codeunit 7235 "Master Data Mgt. Table Couple"
             Session.LogMessage('0000J8H', StrSubstNo(SkippingPostCouplingSynchTelemetryUserChoiceMsg, GetMappingNameWithParent(IntegrationTableMapping)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
     end;
 
-    local procedure SetMatchingFilters(var IntegrationRecordRef: RecordRef; var LocalRecordRef: RecordRef; var TempMatchingIntegrationFieldMapping: Record "Integration Field Mapping" temporary) MatchingFieldCount: Integer
+    // ExactMatchFields collects the matching fields (local field no. -> integration field no.) whose filter can match more than the exact value
+    local procedure SetMatchingFilters(var IntegrationRecordRef: RecordRef; var LocalRecordRef: RecordRef; var TempMatchingIntegrationFieldMapping: Record "Integration Field Mapping" temporary; var ExactMatchFields: Dictionary of [Integer, Integer]) MatchingFieldCount: Integer
     var
         MatchingIntegrationRecordFieldRef: FieldRef;
         MatchingLocalFieldRef: FieldRef;
@@ -224,6 +227,8 @@ codeunit 7235 "Master Data Mgt. Table Couple"
             // initialize the fields that we should match on
             MatchingIntegrationRecordFieldRef := IntegrationRecordRef.Field(TempMatchingIntegrationFieldMapping."Integration Table Field No.");
             MatchingLocalFieldRef := LocalRecordRef.Field(TempMatchingIntegrationFieldMapping."Field No.");
+            if ExactMatchFields.ContainsKey(MatchingLocalFieldRef.Number()) then
+                ExactMatchFields.Remove(MatchingLocalFieldRef.Number());
 
             // raise an event so that custom filtering logic can be implemented (depending on which record and which fields are chosen as the matching field)
             SetMatchingFieldFilterHandled := false;
@@ -244,9 +249,12 @@ codeunit 7235 "Master Data Mgt. Table Couple"
                     FieldType::Text:
                         begin
                             if Format(MatchingIntegrationRecordFieldRef.Value()) <> '' then
-                                if not TempMatchingIntegrationFieldMapping."Case-Sensitive Matching" then
-                                    MatchingLocalFieldRef.SetFilter('''@' + Format(MatchingIntegrationRecordFieldRef.Value()).Replace('''', '''''') + '''')
-                                else
+                                if not TempMatchingIntegrationFieldMapping."Case-Sensitive Matching" then begin
+                                    MatchingLocalFieldRef.SetFilter('''@' + Format(MatchingIntegrationRecordFieldRef.Value()).Replace('''', '''''') + '''');
+                                    // quoting does not stop wildcard characters in the value from acting as wildcards, so such values are verified record by record
+                                    if HasFilterCharacters(Format(MatchingIntegrationRecordFieldRef.Value())) then
+                                        ExactMatchFields.Add(MatchingLocalFieldRef.Number(), MatchingIntegrationRecordFieldRef.Number());
+                                end else
                                     MatchingLocalFieldRef.SetRange(MatchingIntegrationRecordFieldRef.Value())
                             else
                                 MatchingLocalFieldRef.SetFilter('=''''');
@@ -260,12 +268,48 @@ codeunit 7235 "Master Data Mgt. Table Couple"
         until TempMatchingIntegrationFieldMapping.Next() = 0;
     end;
 
+    local procedure HasFilterCharacters(Value: Text): Boolean
+    begin
+        exit(DelChr(Value, '=', '*?@<>') <> Value);
+    end;
+
+    // counts the local records that match; when a text filter can match more than the exact value, only exact (case-insensitive) matches are kept as marked records
+    local procedure CountMatches(var IntegrationRecordRef: RecordRef; var LocalRecordRef: RecordRef; var ExactMatchFields: Dictionary of [Integer, Integer]): Integer
+    begin
+        LocalRecordRef.ClearMarks();
+        LocalRecordRef.MarkedOnly(false);
+        if ExactMatchFields.Count() = 0 then
+            exit(LocalRecordRef.Count());
+
+        if LocalRecordRef.FindSet() then
+            repeat
+                if IsExactMatch(IntegrationRecordRef, LocalRecordRef, ExactMatchFields) then
+                    LocalRecordRef.Mark(true);
+            until LocalRecordRef.Next() = 0;
+        LocalRecordRef.MarkedOnly(true);
+        exit(LocalRecordRef.Count());
+    end;
+
+    local procedure IsExactMatch(var IntegrationRecordRef: RecordRef; var LocalRecordRef: RecordRef; var ExactMatchFields: Dictionary of [Integer, Integer]): Boolean
+    var
+        LocalFieldNo: Integer;
+    begin
+        foreach LocalFieldNo in ExactMatchFields.Keys() do
+            if LowerCase(Format(LocalRecordRef.Field(LocalFieldNo).Value())) <> LowerCase(Format(IntegrationRecordRef.Field(ExactMatchFields.Get(LocalFieldNo)).Value())) then
+                exit(false);
+        exit(true);
+    end;
+
     local procedure FindMatchExcludedByLocalTableFilter(var IntegrationTableMapping: Record "Integration Table Mapping"; var IntegrationRecordRef: RecordRef; var TempMatchingIntegrationFieldMapping: Record "Integration Field Mapping" temporary; var ExcludedLocalRecordRef: RecordRef): Boolean
+    var
+        ExactMatchFields: Dictionary of [Integer, Integer];
     begin
         // repeat the lookup without the Local Table Filter, the caller has already established that no record matches within the filter
         Clear(ExcludedLocalRecordRef);
         ExcludedLocalRecordRef.Open(IntegrationTableMapping."Table ID");
-        if SetMatchingFilters(IntegrationRecordRef, ExcludedLocalRecordRef, TempMatchingIntegrationFieldMapping) = 0 then
+        if SetMatchingFilters(IntegrationRecordRef, ExcludedLocalRecordRef, TempMatchingIntegrationFieldMapping, ExactMatchFields) = 0 then
+            exit(false);
+        if CountMatches(IntegrationRecordRef, ExcludedLocalRecordRef, ExactMatchFields) = 0 then
             exit(false);
         exit(ExcludedLocalRecordRef.FindFirst());
     end;

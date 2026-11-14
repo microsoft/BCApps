@@ -1182,6 +1182,66 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         VerifyCouplingJobCounters(IntegrationTableMapping, 1, 0);
     end;
 
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure MatchBasedCouplingMatchesWildcardCharactersInTextLiterally()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        SourceCustomer: Record Customer;
+        LocalVendor: Record Vendor;
+        MatchName: Text;
+    begin
+        // [FEATURE] [Match-Based Coupling]
+        // [SCENARIO] Wildcard characters in a text matching value are matched literally and do not broaden the match.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] A source customer whose name ends with wildcard characters, and a local vendor whose name the wildcards would match
+        MatchName := GetUniqueMatchName();
+        CreateCustomerWithName(SourceCustomer, MatchName + '?*');
+        CreateVendorWithName(LocalVendor, MatchName + ' LTD');
+        CreateNameMatchBasedCouplingMapping(IntegrationTableMapping, SourceCustomer);
+
+        // [WHEN] Match-based coupling runs
+        RunMatchBasedCoupling(IntegrationTableMapping);
+
+        // [THEN] The vendor is not coupled, because its name is not the same as the customer's name
+        VerifyNotCoupled(SourceCustomer.SystemId);
+        VerifyCouplingJobCounters(IntegrationTableMapping, 0, 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure MatchBasedCouplingCouplesExactTextMatchContainingWildcardCharacters()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        SourceCustomer: Record Customer;
+        ExactLocalVendor: Record Vendor;
+        WildcardLocalVendor: Record Vendor;
+        MatchName: Text;
+    begin
+        // [FEATURE] [Match-Based Coupling]
+        // [SCENARIO] A text matching value with wildcard characters is coupled to the record with the same value (ignoring case),
+        //            even when the wildcards would also match other records.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] A source customer whose name contains wildcard characters
+        MatchName := GetUniqueMatchName();
+        CreateCustomerWithName(SourceCustomer, UpperCase(MatchName) + '?*');
+        // [GIVEN] A local vendor with the same name in a different casing, and one that only the wildcards would match
+        CreateVendorWithName(ExactLocalVendor, LowerCase(MatchName) + '?*');
+        CreateVendorWithName(WildcardLocalVendor, MatchName + 'X LTD');
+        CreateNameMatchBasedCouplingMapping(IntegrationTableMapping, SourceCustomer);
+
+        // [WHEN] Match-based coupling runs
+        RunMatchBasedCoupling(IntegrationTableMapping);
+
+        // [THEN] The source customer is coupled to the vendor with the same name
+        VerifyCoupled(SourceCustomer.SystemId, ExactLocalVendor.SystemId);
+        VerifyCouplingJobCounters(IntegrationTableMapping, 1, 0);
+    end;
+
     local procedure CreateMatchingSourceRecord(var SourceRecord: Record "MDM Test Table B")
     begin
         SourceRecord.Init();
