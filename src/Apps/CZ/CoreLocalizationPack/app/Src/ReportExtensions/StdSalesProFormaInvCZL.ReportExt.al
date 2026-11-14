@@ -301,7 +301,7 @@ reportextension 11708 "Std. Sales - Pro Forma Inv CZL" extends "Standard Sales -
     begin
         GeneralLedgerSetupCZL.Get();
         SalesSetupCZL.Get();
-        CompanyLogoPositionCZL := SalesSetupCZL."Logo Position on Documents";
+        CompanyLogoPositionCZL := SalesSetupCZL."Logo Position on Documents".AsInteger();
     end;
 
     var
