@@ -69,6 +69,8 @@ codeunit 148338 "Expense Permissions Test"
         ExpenseReportLine."Expense User No." := Expense."Expense User No.";
         ExpenseReportLine."Reimbursement Type" := Expense."Reimbursement Type";
         ExpenseReportLine."Expense Date" := Expense."Expense Date";
+        ExpenseReportLine."Expense Currency Code" := Expense."Currency Code";
+        ExpenseReportLine.Amount := Expense.Amount;
         ExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
         ExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";
 
