@@ -1116,7 +1116,7 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         VerifyCouplingJobCounters(IntegrationTableMapping, 0, 0);
 
         // [THEN] A synchronization of the uncoupled source record is scheduled to create it
-        CreateNewIntegrationTableMapping.SetRange("Parent Name", IntegrationTableMapping.Name);
+        FilterCreateNewMappings(IntegrationTableMapping, CreateNewIntegrationTableMapping);
         Assert.RecordCount(CreateNewIntegrationTableMapping, 1);
         CreateNewIntegrationTableMapping.FindFirst();
         Assert.IsFalse(CreateNewIntegrationTableMapping."Synch. Only Coupled Records", 'The create-new synchronization must include uncoupled records.');
@@ -1268,9 +1268,18 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
     var
         CreateNewIntegrationTableMapping: Record "Integration Table Mapping";
     begin
-        CreateNewIntegrationTableMapping.SetRange("Parent Name", IntegrationTableMapping.Name);
+        FilterCreateNewMappings(IntegrationTableMapping, CreateNewIntegrationTableMapping);
         Assert.RecordIsEmpty(CreateNewIntegrationTableMapping);
     end;
+
+    local procedure FilterCreateNewMappings(var IntegrationTableMapping: Record "Integration Table Mapping"; var CreateNewIntegrationTableMapping: Record "Integration Table Mapping")
+    begin
+        // the create-new synchronization runs on a generated mapping whose parent is the coupled mapping
+#pragma warning disable AA0210
+        CreateNewIntegrationTableMapping.SetRange("Parent Name", IntegrationTableMapping.Name);
+#pragma warning restore AA0210
+    end;
+
     local procedure GetCustomerMapping(var IntegrationTableMapping: Record "Integration Table Mapping")
     begin
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
