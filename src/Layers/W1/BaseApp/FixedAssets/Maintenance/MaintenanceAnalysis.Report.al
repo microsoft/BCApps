@@ -12,6 +12,7 @@ report 5630 "Maintenance - Analysis"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Maintenance Analysis';
+    ToolTip = 'Run the Maintenance Analysis report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

@@ -351,7 +351,6 @@ page 5601 "Fixed Asset List"
                 Caption = 'Fixed Assets List';
                 Image = "Report";
                 RunObject = Report "Fixed Asset - List";
-                ToolTip = 'View the list of fixed assets that exist in the system .';
             }
             action("Acquisition List")
             {
@@ -359,7 +358,6 @@ page 5601 "Fixed Asset List"
                 Caption = 'Acquisition List';
                 Image = "Report";
                 RunObject = Report "Fixed Asset - Acquisition List";
-                ToolTip = 'View the related acquisitions.';
             }
 #if not CLEAN28
             action(Details)
@@ -380,7 +378,6 @@ page 5601 "Fixed Asset List"
                 Caption = 'FA Book Value';
                 Image = "Report";
                 RunObject = Report "Fixed Asset - Book Value 01";
-                ToolTip = 'View detailed information about acquisition cost, depreciation and book value for both individual assets and groups of assets. For each of these three amount types, amounts are calculated at the beginning and at the end of a specified period as well as for the period itself.';
             }
             action("FA Book Val. - Appr. & Write-D")
             {
@@ -388,7 +385,6 @@ page 5601 "Fixed Asset List"
                 Caption = 'FA Book Val. - Appr. & Write-D';
                 Image = "Report";
                 RunObject = Report "Fixed Asset - Book Value 02";
-                ToolTip = 'View detailed information about acquisition cost, depreciation, appreciation, write-down and book value for both individual assets and groups of assets. For each of these categories, amounts are calculated at the beginning and at the end of a specified period, as well as for the period itself.';
             }
 #if not CLEAN28
             action(Analysis)
@@ -420,7 +416,6 @@ page 5601 "Fixed Asset List"
                 Caption = 'G/L Analysis';
                 Image = "Report";
                 RunObject = Report "Fixed Asset - G/L Analysis";
-                ToolTip = 'View an analysis of your fixed assets with various types of data for individual assets and/or groups of fixed assets.';
             }
             action(Register)
             {
@@ -428,7 +423,6 @@ page 5601 "Fixed Asset List"
                 Caption = 'Register';
                 Image = Confirm;
                 RunObject = Report "Fixed Asset Register";
-                ToolTip = 'View registers containing all the fixed asset entries that are created. Each register shows the first and last entry number of its entries.';
             }
         }
         area(Promoted)
