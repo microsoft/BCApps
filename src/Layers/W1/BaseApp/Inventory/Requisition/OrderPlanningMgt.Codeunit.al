@@ -152,7 +152,9 @@ codeunit 5522 "Order Planning Mgt."
     var
         UnplannedDemand: Record "Unplanned Demand";
         Item: Record Item;
+        DemandHeaderReqLine: Record "Requisition Line";
         HeaderExists: Boolean;
+        DemandLineExists: Boolean;
     begin
         UnplannedDemand.Copy(TempUnplannedDemand);
 
@@ -164,20 +166,29 @@ codeunit 5522 "Order Planning Mgt."
         OnInsertDemandLinesOnBeforeFindUnplannedDemand(TempUnplannedDemand, ReqLine);
         TempUnplannedDemand.Find('-');
         HeaderExists := false;
+        DemandLineExists := false;
 
         repeat
             if DemandType in [TempUnplannedDemand."Demand Type", DemandType::" "] then begin
-                if not HeaderExists then
+                if not HeaderExists then begin
                     InsertDemandHeader(UnplannedDemand, ReqLine);
+                    DemandHeaderReqLine := ReqLine;
+                end;
                 HeaderExists := true;
 
-                ReqLine.TransferFromUnplannedDemand(TempUnplannedDemand);
-                ReqLine.SetSupplyQty(TempUnplannedDemand."Quantity (Base)", TempUnplannedDemand."Needed Qty. (Base)");
-                ReqLine.SetSupplyDates(TempUnplannedDemand."Demand Date");
-                InsertReqLineFromUnplannedDemand(ReqLine, Item);
+                if ReqLine.TransferFromUnplannedDemandSkipBlockedItem(TempUnplannedDemand) then begin
+                    ReqLine.SetSupplyQty(TempUnplannedDemand."Quantity (Base)", TempUnplannedDemand."Needed Qty. (Base)");
+                    ReqLine.SetSupplyDates(TempUnplannedDemand."Demand Date");
+                    InsertReqLineFromUnplannedDemand(ReqLine, Item);
+                    DemandLineExists := true;
+                end;
             end;
             TempUnplannedDemand.Delete();
         until TempUnplannedDemand.Next() = 0;
+
+        // All demand lines were skipped because their items are blocked.
+        if HeaderExists and not DemandLineExists then
+            DemandHeaderReqLine.Delete();
 
         TempUnplannedDemand.Copy(UnplannedDemand);
     end;

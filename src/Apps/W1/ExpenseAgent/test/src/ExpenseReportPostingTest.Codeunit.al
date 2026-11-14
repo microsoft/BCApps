@@ -61,6 +61,7 @@ codeunit 148302 "Expense Report Posting Test"
         CannotUpdateAndDeleteAttachmentIfOpenStatusErr: Label 'You can only import and delete attachments on %1 %2 when the %3 is Open.', Comment = '%1 = Expense No., %2 = EXP100001, %3 = Status';
         CannotImportAndDeleteAttachmentOnPostedExpenseReportErr: Label 'You cannot import and delete attachments on %1 %2, %3 %4.', Comment = '%1 = Posted Expense Report No., %2 = P-ER000001, %3 = Line No., %4 = 10000';
         CannotUpdateAndDeleteAttachmentOnExpenseErr: Label 'You cannot update and delete attachment on an %1 %2 that is part of an %3 %4.', Comment = '%1 = Expense No., %2 = EXP100001, %3 = Expense Report No., %4 = ER100001';
+        NothingToPreviewMsg: Label 'Preview Posting of Expense Document is completed with no errors. However, the Show Entries page will not open because no ledger entries are created for this document.';
         CannotUpdateAndDeleteAttachmentOnExpenseReportErr: Label 'You cannot update and delete attachment on an %1 %2, %3 %4 that is part of an %5 %6.', Comment = '%1 = Expense Report No., %2 = ER100001, %3 = Line No., %4 = 10000, %5 = Expense No., %6 = EXP100001';
         CanPostExpenseReportQst: Label 'Do you want to post Expense Report %1?', Comment = '%1 = Expense Report No.';
 
@@ -1383,7 +1384,7 @@ codeunit 148302 "Expense Report Posting Test"
         LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
 
         // [GIVEN] Create Expense Report.
-        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', VATPostingSetup."VAT Bus. Posting Group");
 
         // [GIVEN] Create Expense Report Line.
         LibraryExpense.CreateExpenseReportLine(
@@ -1764,6 +1765,7 @@ codeunit 148302 "Expense Report Posting Test"
     procedure RefundableMustBeFlowFromExpenseReportLineToPostedExpenseReportLine()
     var
         Employee: Record Employee;
+        GLAccount: Record "G/L Account";
         PostCode: Record "Post Code";
         Customer: Record Customer;
         ExpensePaymentMethod: Record "Expense Payment Method";
@@ -1797,13 +1799,16 @@ codeunit 148302 "Expense Report Posting Test"
         Employee.Get(ExpenseUser."Employee No.");
         LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
 
+        // [GIVEN] Create G/L Account with sales setup.
+        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+
         // [GIVEN] Create Expense Report.
-        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', GLAccount."VAT Bus. Posting Group");
 
         // [GIVEN] Create Expense Report Line.
         LibraryExpense.CreateExpenseReportLine(
             ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, true, Customer."No.",
-            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup());
+            ExpenseReportLine."Account Type"::"G/L Account", GLAccount."No.");
 
         // [GIVEN] Find Expense Payment Method.
         LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
@@ -3559,6 +3564,8 @@ codeunit 148302 "Expense Report Posting Test"
 
         // [GIVEN] A policy for the category and a non-compliant evaluation captured on the line, then the line is marked evaluated.
         LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseCategory.Code, 'No alcohol on company expenses.');
+        CreatePolicyEnforcedItemization(ExpenseReportLine);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         LibraryExpense.CreateExpensePolicyEvaluation(
             ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Receipt includes alcohol.', false);
 
@@ -3752,6 +3759,15 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicy.Enabled := true;
         ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicy.Insert(true);
+        CreatePolicyEnforcedItemization(ExpenseReportLine);
+    end;
+
+    local procedure CreatePolicyEnforcedItemization(var ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+    begin
+        LibraryExpense.CreateExpenseReportLineItemization(ExpenseReportLineItem, ExpenseReportLine, ExpenseReportLine."Expense Category", '', WorkDate(), 0, 1);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
     end;
 
     [Test]
@@ -3792,6 +3808,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicy.Enabled := true;
         ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicy.Insert(true);
+        CreatePolicyEnforcedItemization(ExpenseReportLine);
 
         ExpensePolicyEvaluation.Init();
         ExpensePolicyEvaluation."Subject System Id" := ExpenseReportLine.SystemId;
@@ -3830,6 +3847,8 @@ codeunit 148302 "Expense Report Posting Test"
 
         // [THEN] The posted line carries only the current policy evaluation.
         FindPostedExpenseReportLine(PostedExpenseReportLine, ExpenseUser);
+        Assert.AreEqual(true, PostedExpenseReportLine.IsItemizationRequired(), 'The posted line must retain policy-driven itemization applicability.');
+        Assert.AreEqual(true, PostedExpenseReportLine.IsEnforcedItemizationRequired(), 'The posted line must retain policy-driven itemization enforcement.');
         Assert.AreEqual(ExpenseReportLine."Policies Evaluated At", PostedExpenseReportLine."Policies Evaluated At", 'The posted line must preserve when policies were evaluated.');
         Assert.AreEqual("Expense Policy Status"::Flagged, PostedExpenseReportLine."Policy Status At Posting", 'The posted line must preserve the Flagged status.');
         Assert.AreEqual("Expense Policy Status"::Flagged, PostedExpenseReportLine.GetPolicyStatus(), 'The posted status accessor must return the posting snapshot.');
@@ -3893,6 +3912,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpensePolicy.Enabled := true;
         ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
         ExpensePolicy.Insert(true);
+        CreatePolicyEnforcedItemization(ExpenseReportLine);
 
         ExpenseReportHeader.PerformManualRelease();
         LibraryVariableStorage.Enqueue(StrSubstNo(CanPostExpenseReportQst, ExpenseReportHeader."No."));
@@ -7152,6 +7172,205 @@ codeunit 148302 "Expense Report Posting Test"
         Assert.RecordCount(PostedExpenseReportHeader, 1);
     end;
 
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure ExpenseReportIsPostedWhenRefundableIsFalseAndTypeIsEmployeePaidWithoutLedgerEntries()
+    var
+        Expense: Record Expense;
+        ExpenseUser: Record "Expense User";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseReportHeader: Record "Expense Report Header";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        Amount: Decimal;
+    begin
+        // [SCENARIO 654115] Verify that a non-refundable Employee Paid expense is posted without G/L and Expense Ledger Entries.
+        Initialize();
+
+        // [GIVEN] Disable Expense Approval Workflow in Agent Setup.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+
+        // [GIVEN] Generate Random Amount.
+        Amount := LibraryRandom.RandIntInRange(100, 200);
+
+        // [GIVEN] Create and Release Expense with Payment Method.
+        CreateAndReleaseExpenseWithPaymentMethod(
+            Expense, ExpenseUser, ExpensePaymentMethod, "Expense Reimbursement Type"::"Employee Paid", false, '', 0, Amount);
+
+        // [GIVEN] Create Expense Report and Attach Expense.
+        CreateAndAttachExpenseToExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+
+        // [WHEN] Release and Post Expense Report.
+        ReleaseAndPostExpenseReport(ExpenseReportHeader);
+
+        // [THEN] Verify that the Posted Expense Report Line retains the non-refundable amount without reimbursement.
+        FindPostedExpenseReport(PostedExpenseReportHeader, Expense);
+        FindPostedExpenseReportLine(PostedExpenseReportLine, Expense);
+        Assert.AreEqual(
+            Amount, PostedExpenseReportLine.Amount,
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption(Amount), Amount, PostedExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            false, PostedExpenseReportLine.Refundable,
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption(Refundable), false, PostedExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            0, PostedExpenseReportLine."Reimbursable Amount",
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption("Reimbursable Amount"), 0, PostedExpenseReportLine.TableCaption()));
+
+        // [THEN] Verify that the Expense is linked to the Posted Expense Report.
+        Expense.Get(Expense."No.");
+        Assert.AreEqual(
+            PostedExpenseReportHeader."No.", Expense."Posted Expense Report No.",
+            StrSubstNo(ValueMustBeEqualErr, Expense.FieldCaption("Posted Expense Report No."), PostedExpenseReportHeader."No.", Expense.TableCaption()));
+
+        // [THEN] Verify that no G/L, Employee, Expense or Job Ledger Entries are created.
+        VerifyRecordCountOfGLEntry(PostedExpenseReportHeader, 0);
+        VerifyRecordCountOfEmployeeLedgerEntry(PostedExpenseReportHeader."No.", 0);
+        VerifyRecordCountOfExpenseAndJobLedgerEntry(PostedExpenseReportHeader, 0, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure ExpenseReportIsPostedWithDirectNonRefundableEmployeePaidLineInFCYWithoutLedgerEntries()
+    var
+        Employee: Record Employee;
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        CurrencyCode: Code[10];
+        Amount: Decimal;
+    begin
+        // [SCENARIO 654115] Verify that a directly entered non-refundable Employee Paid line in FCY posts without ledger entries.
+        Initialize();
+
+        // [GIVEN] Disable Expense Approval Workflow in Agent Setup.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+
+        // [GIVEN] Create Currency with Exchange Rate.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+
+        // [GIVEN] Create Expense User.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+
+        // [GIVEN] Create Expense Category.
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory, "Expense Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ");
+
+        // [GIVEN] Update Expense Account in Employee Posting Group.
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+
+        // [GIVEN] Find Expense Payment Method and generate Random Amount.
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, "Expense Reimbursement Type"::"Employee Paid");
+        Amount := LibraryRandom.RandIntInRange(100, 200);
+
+        // [GIVEN] Create Expense Report with a directly entered non-refundable Employee Paid line.
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", CurrencyCode, '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, false, CurrencyCode, Amount);
+
+        // [WHEN] Release and Post Expense Report.
+        ReleaseAndPostExpenseReport(ExpenseReportHeader);
+
+        // [THEN] Verify that the Posted Expense Report Line is created without an attached Expense or reimbursement.
+        FindPostedExpenseReport(PostedExpenseReportHeader, ExpenseUser);
+        PostedExpenseReportLine.Get(PostedExpenseReportHeader."No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(
+            '', PostedExpenseReportLine."Expense No.",
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption("Expense No."), '', PostedExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            Amount, PostedExpenseReportLine.Amount,
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption(Amount), Amount, PostedExpenseReportLine.TableCaption()));
+        Assert.AreEqual(
+            0, PostedExpenseReportLine."Reimbursable Amount (LCY)",
+            StrSubstNo(ValueMustBeEqualErr, PostedExpenseReportLine.FieldCaption("Reimbursable Amount (LCY)"), 0, PostedExpenseReportLine.TableCaption()));
+
+        // [THEN] Verify that no G/L, Employee, Expense or Job Ledger Entries are created.
+        VerifyRecordCountOfGLEntry(PostedExpenseReportHeader, 0);
+        VerifyRecordCountOfEmployeeLedgerEntry(PostedExpenseReportHeader."No.", 0);
+        VerifyRecordCountOfExpenseAndJobLedgerEntry(PostedExpenseReportHeader, 0, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,NothingToPreviewMessageHandler')]
+    procedure PreviewShowsNoEntriesMessageWhenAllLinesAreNonRefundableAndEmployeePaid()
+    var
+        Expense: Record Expense;
+        ExpenseUser: Record "Expense User";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseReportHeader: Record "Expense Report Header";
+        Amount: Decimal;
+    begin
+        // [SCENARIO 654115] Preview shows an information message when no line of the expense report generates ledger entries.
+        Initialize();
+
+        // [GIVEN] Disable Expense Approval Workflow in Agent Setup.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+
+        // [GIVEN] Generate Random Amount.
+        Amount := LibraryRandom.RandIntInRange(100, 200);
+
+        // [GIVEN] Create and Release non-refundable Employee Paid Expense, and attach it to an Expense Report.
+        CreateAndReleaseExpenseWithPaymentMethod(Expense, ExpenseUser, ExpensePaymentMethod, "Expense Reimbursement Type"::"Employee Paid", false, '', 0, Amount);
+        CreateAndAttachExpenseToExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+        ExpenseReportHeader.PerformManualRelease();
+        Commit();
+
+        // [WHEN] Preview Post Expense Report.
+        asserterror ExpenseReportHeader.Preview(ExpenseReportHeader);
+
+        // [THEN] The information message is shown by NothingToPreviewMessageHandler instead of the standard message.
+        Assert.ExpectedError('');
+    end;
+
+    [Test]
+    [HandlerFunctions('GLPostingPreviewCloseHandler')]
+    procedure PreviewShowsStandardPreviewWhenOnlySomeLinesAreNonRefundableAndEmployeePaid()
+    var
+        Employee: Record Employee;
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: array[2] of Record "Expense Report Line";
+        Amount: Decimal;
+    begin
+        // [SCENARIO 654115] Preview shows the standard posting preview, not the dedicated error, when at least one line generates ledger entries.
+        Initialize();
+
+        // [GIVEN] Disable Expense Approval Workflow in Agent Setup.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+
+        // [GIVEN] Create Expense User, Expense Category and update Expense Account in Employee Posting Group.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory, "Expense Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ");
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, "Expense Reimbursement Type"::"Employee Paid");
+        Amount := LibraryRandom.RandIntInRange(100, 200);
+
+        // [GIVEN] Create Expense Report with a non-refundable Employee Paid line and a refundable Employee Paid line.
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine[1], ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, false, '', Amount);
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine[2], ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', Amount);
+
+        // [GIVEN] Release Expense Report.
+        ExpenseReportHeader.PerformManualRelease();
+        Commit();
+
+        // [WHEN] Preview Post Expense Report.
+        asserterror ExpenseReportHeader.Preview(ExpenseReportHeader);
+
+        // [THEN] The standard posting preview is shown and the dedicated error is not raised.
+        Assert.ExpectedError('');
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;
@@ -8871,6 +9090,12 @@ codeunit 148302 "Expense Report Posting Test"
     end;
 
     [MessageHandler]
+    procedure NothingToPreviewMessageHandler(Msg: Text[1024])
+    begin
+        Assert.AreEqual(NothingToPreviewMsg, Msg, 'Unexpected message.');
+    end;
+
+    [MessageHandler]
     procedure MessageHandler(Msg: Text[1024])
     begin
     end;
@@ -8880,6 +9105,12 @@ codeunit 148302 "Expense Report Posting Test"
     begin
         GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"G/L Entry"));
         GLPostingPreview."No. of Records".AssertEquals(LibraryVariableStorage.DequeueInteger());
+        GLPostingPreview.OK().Invoke();
+    end;
+
+    [PageHandler]
+    procedure GLPostingPreviewCloseHandler(var GLPostingPreview: TestPage "G/L Posting Preview")
+    begin
         GLPostingPreview.OK().Invoke();
     end;
 

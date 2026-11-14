@@ -2,6 +2,7 @@ codeunit 133504 "SCM Costing Performance"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -25,6 +26,21 @@ codeunit 133504 "SCM Costing Performance"
         isInitialized: Boolean;
         NotLinearCCErr: Label 'Computational cost is not linear.';
         NotConstantCCErr: Label 'Computational cost must be constant.';
+        ReceiptProcessing25To50Err: Label 'Receipt processing must increase from 25 to 50 pending entries. Visits: %1, %2.', Comment = '%1 = receipt processing count for 25 entries, %2 = receipt processing count for 50 entries';
+        ReceiptProcessing50To100Err: Label 'Receipt processing must increase from 50 to 100 pending entries. Visits: %1, %2.', Comment = '%1 = receipt processing count for 50 entries, %2 = receipt processing count for 100 entries';
+        ReceiptNotRevisitedErr: Label 'Old receipt %1 must be revisited.', Comment = '%1 = item ledger entry number';
+        AvgCostExceptionCheckLineTxt: Label 'IsAvgCostException?ValueEntry', Locked = true;
+        ExclusionCheckLineTxt: Label 'IsExcludeILEFromAvgCostCalc?ExcludedValueEntry', Locked = true;
+        ItemLedgEntryGetByValueEntryLineTxt: Label 'Entry.Get?ValueEntry.?Item Ledger Entry No.??', Locked = true;
+        ItemLedgEntryGetByEntryNoLineTxt: Label 'Entry.Get?ItemLedgerEntryNo?', Locked = true;
+        ExclusionRescansNotRepeatedErr: Label 'Each sale must trigger an exclusion rescan over the valuation period. Exclusion checks: %1.', Comment = '%1 = number of exclusion checks';
+        ItemLedgEntrySignRereadErr: Label 'Item ledger entry sign must not be re-read on each exclusion rescan. Sign reads: %1, average cost exception checks: %2, exclusion checks: %3.', Comment = '%1 = item ledger entry reads, %2 = average cost exception checks, %3 = exclusion checks';
+        SaleCostAmountErr: Label 'Sale cost amount (actual) must be the average cost of the valuation date.';
+        ObservedItemNo: Code[20];
+        ReceiptVisits: Dictionary of [Integer, Integer];
+        ReceiptProcessingCount: Integer;
+        BufferedReceiptCount: Integer;
+        ObservedItemPasses: Integer;
 
     local procedure Initialize()
     var
@@ -252,6 +268,405 @@ codeunit 133504 "SCM Costing Performance"
 
         // [THEN] Cost adjustment routine demonstrates the same performance for 1 SKU and 3 SKUs
         Assert.IsTrue(LibraryCalcComplexity.IsConstant(NoOfHitsSmall, NoOfHitsLarge), NotConstantCCErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UninvoicedShipmentsKeep100ReceiptsPendingAcrossRuns()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ReceiptEntryNos: List of [Integer];
+        ProcessingCounts: array[3] of Integer;
+        BufferedCount: Integer;
+        RunNo: Integer;
+        ValueEntryCount: Integer;
+    begin
+        // [SCENARIO] A FIFO item has 100 invoiced purchase receipts, each fully applied to a shipped but uninvoiced sales line.
+        // Adjustment leaves these receipts marked "Applied Entry to Adjust" because sales invoicing is still outstanding.
+        // Before each of three later runs, a new positive adjustment makes the item eligible for processing without editing flags.
+        // Verify that every original receipt is visited again, remains buffered and marked before and after each run,
+        // and retains its correct cost without additional value entries. This characterizes legitimate deferred work, not a defect.
+        InitializePendingReceiptScenario(Item);
+        PostReceiptAndShipmentBatch(Item, 100, SalesHeader, ReceiptEntryNos);
+        RunObservedReceiptAdjustment(Item."No.", ReceiptEntryNos, ProcessingCounts[1], BufferedCount);
+        VerifyReceiptBacklog(Item."No.", ReceiptEntryNos, true);
+        Assert.AreEqual(100, BufferedCount, 'All receipts awaiting sales invoicing must remain buffered.');
+
+        for RunNo := 1 to ArrayLen(ProcessingCounts) do begin
+            // New posting selects the item naturally; no existing entry or item flags are edited.
+            PostFreshEntryToTriggerAdjustment(Item);
+            VerifyReceiptBacklog(Item."No.", ReceiptEntryNos, true);
+            ValueEntryCount := CountItemValueEntries(Item."No.");
+
+            RunObservedReceiptAdjustment(Item."No.", ReceiptEntryNos, ProcessingCounts[RunNo], BufferedCount);
+
+            VerifyEveryReceiptVisited(ReceiptEntryNos);
+            Assert.IsTrue(ProcessingCounts[RunNo] >= 100, 'Each later run must revisit the 100 old receipts.');
+            Assert.AreEqual(100, BufferedCount, 'The same receipts must remain buffered after each later run.');
+            VerifyReceiptBacklog(Item."No.", ReceiptEntryNos, true);
+            Assert.AreEqual(ValueEntryCount, CountItemValueEntries(Item."No."), 'Revisiting unchanged pending receipts must not create value entries.');
+        end;
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PendingReceiptProcessingGrowsWith25Then50Then100Entries()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ReceiptEntryNos: List of [Integer];
+        BatchSizes: array[3] of Integer;
+        ProcessingCounts: array[3] of Integer;
+        BufferedCount: Integer;
+        Stage: Integer;
+        ValueEntryCount: Integer;
+    begin
+        // [SCENARIO] Invoiced receipts applied to uninvoiced shipments accumulate for one FIFO item in batches of 25, 25 and 50.
+        // At each backlog size (25, 50 and 100), a single new positive adjustment triggers another run without changing old applications.
+        // Verify that all historical receipts are revisited and remain pending, while their costs and the value-entry count stay unchanged.
+        // Compare receipt-processing counts, not elapsed time, to demonstrate increasing repeated work as unfinished invoicing accumulates.
+        InitializePendingReceiptScenario(Item);
+        BatchSizes[1] := 25;
+        BatchSizes[2] := 25;
+        BatchSizes[3] := 50;
+
+        for Stage := 1 to ArrayLen(BatchSizes) do begin
+            PostReceiptAndShipmentBatch(Item, BatchSizes[Stage], SalesHeader, ReceiptEntryNos);
+            RunObservedReceiptAdjustment(Item."No.", ReceiptEntryNos, ProcessingCounts[Stage], BufferedCount);
+            VerifyReceiptBacklog(Item."No.", ReceiptEntryNos, true);
+
+            PostFreshEntryToTriggerAdjustment(Item);
+            ValueEntryCount := CountItemValueEntries(Item."No.");
+            RunObservedReceiptAdjustment(Item."No.", ReceiptEntryNos, ProcessingCounts[Stage], BufferedCount);
+
+            VerifyEveryReceiptVisited(ReceiptEntryNos);
+            Assert.AreEqual(ReceiptEntryNos.Count(), BufferedCount, 'The accumulated receipt backlog must survive each run.');
+            VerifyReceiptBacklog(Item."No.", ReceiptEntryNos, true);
+            Assert.AreEqual(ValueEntryCount, CountItemValueEntries(Item."No."), 'Additional processing must not change already correct costs.');
+        end;
+
+        Assert.IsTrue(
+            ProcessingCounts[2] > ProcessingCounts[1],
+            StrSubstNo(ReceiptProcessing25To50Err, ProcessingCounts[1], ProcessingCounts[2]));
+        Assert.IsTrue(
+            ProcessingCounts[3] > ProcessingCounts[2],
+            StrSubstNo(ReceiptProcessing50To100Err, ProcessingCounts[2], ProcessingCounts[3]));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure Invoicing100ShipmentsStopsRepeatedReceiptProcessing()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ReceiptEntryNos: List of [Integer];
+        ProcessingCount: Integer;
+        BufferedCount: Integer;
+        RunNo: Integer;
+        ValueEntryCount: Integer;
+    begin
+        // [SCENARIO] Establish 100 invoiced receipts applied to uninvoiced shipments and confirm they remain pending on a later run.
+        // Invoice all shipments and adjust costs: the receipts must be processed, leave the pending buffer and have their flags cleared,
+        // with actual receipt/sales costs of 10/-10 per pair and zero expected costs.
+        // Trigger three more runs using new positive adjustments and verify zero visits to the original receipts, no restored flags
+        // and no additional adjustment value entries. This distinguishes resolved work from legitimately deferred invoicing.
+        InitializePendingReceiptScenario(Item);
+        PostReceiptAndShipmentBatch(Item, 100, SalesHeader, ReceiptEntryNos);
+        RunObservedReceiptAdjustment(Item."No.", ReceiptEntryNos, ProcessingCount, BufferedCount);
+        VerifyReceiptBacklog(Item."No.", ReceiptEntryNos, true);
+        Assert.AreEqual(100, BufferedCount, 'The control must first establish a real pending backlog.');
+
+        PostFreshEntryToTriggerAdjustment(Item);
+        RunObservedReceiptAdjustment(Item."No.", ReceiptEntryNos, ProcessingCount, BufferedCount);
+        VerifyEveryReceiptVisited(ReceiptEntryNos);
+        VerifyReceiptBacklog(Item."No.", ReceiptEntryNos, true);
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        LibrarySales.PostSalesDocument(SalesHeader, false, true);
+        RunObservedReceiptAdjustment(Item."No.", ReceiptEntryNos, ProcessingCount, BufferedCount);
+        VerifyEveryReceiptVisited(ReceiptEntryNos);
+        VerifyReceiptBacklog(Item."No.", ReceiptEntryNos, false);
+        Assert.AreEqual(0, BufferedCount, 'Invoicing must resolve all tracked receipt deferrals.');
+
+        for RunNo := 1 to 3 do begin
+            PostFreshEntryToTriggerAdjustment(Item);
+            ValueEntryCount := CountItemValueEntries(Item."No.");
+            RunObservedReceiptAdjustment(Item."No.", ReceiptEntryNos, ProcessingCount, BufferedCount);
+
+            Assert.AreEqual(0, ProcessingCount, 'Later postings must not cause completed receipts to be processed again.');
+            Assert.AreEqual(0, BufferedCount, 'Completed receipts must not accumulate in a later buffer.');
+            VerifyReceiptBacklog(Item."No.", ReceiptEntryNos, false);
+            Assert.AreEqual(ValueEntryCount, CountItemValueEntries(Item."No."), 'Completed receipt costs must remain unchanged.');
+        end;
+    end;
+
+    [Test]
+    procedure AvgCostExclusionRescansDoNotRereadItemLedgerEntrySign()
+    var
+        Item: Record Item;
+        NoOfIterations: Integer;
+        ExclusionChecks: Integer;
+        AvgCostExceptionChecks: Integer;
+        ItemLedgEntrySignReads: Integer;
+    begin
+        // [FEATURE] [AI test 1.0] [Average Cost] [Item Charge]
+        // [SCENARIO] Average cost adjustment reads the item ledger entry sign once per buffer build, not again on every exclusion rescan
+        Initialize();
+
+        // [GIVEN] Average cost is calculated per item and day, cost adjustment is run manually
+        LibraryInventory.SetAverageCostSetup("Average Cost Calculation Type"::Item, "Average Cost Period Type"::Day);
+        LibraryInventory.SetAutomaticCostAdjmtNever();
+
+        // [GIVEN] Average cost item "I"
+        LibraryInventory.CreateItemSimple(Item, Item."Costing Method"::Average, 10);
+
+        // [GIVEN] On the same day, 10 times: purchase "P" of 10 pcs at 10, item charge 10 assigned to "P" (average cost exception), sale "S" of 1 pc
+        NoOfIterations := 10;
+        PostPurchasesWithItemChargeAndSales(Item, NoOfIterations);
+
+        // [WHEN] Adjust cost of "I" with code coverage on
+        RunAdjustmentWithCoverage(Item."No.", ExclusionChecks, AvgCostExceptionChecks, ItemLedgEntrySignReads);
+
+        // [THEN] Each sale "S" triggers an exclusion rescan over the item ledger entries of the valuation date
+        Assert.IsTrue(
+          ExclusionChecks >= NoOfIterations * NoOfIterations, StrSubstNo(ExclusionRescansNotRepeatedErr, ExclusionChecks));
+
+        // [THEN] Item ledger entries are read for their sign at most once per average cost exception check, regardless of the number of rescans
+        Assert.IsTrue(
+          ItemLedgEntrySignReads <= AvgCostExceptionChecks,
+          StrSubstNo(ItemLedgEntrySignRereadErr, ItemLedgEntrySignReads, AvgCostExceptionChecks, ExclusionChecks));
+
+        // [THEN] Each sale "S" is adjusted to the average cost of the day: -(10 * 10 * 10 + 10 * 10) / (10 * 10) = -11
+        VerifySalesCostAmountActual(Item."No.", NoOfIterations, -11);
+        LibraryCosting.CheckAdjustment(Item);
+    end;
+
+    local procedure InitializePendingReceiptScenario(var Item: Record Item)
+    begin
+        Initialize();
+        LibraryInventory.SetAutomaticCostAdjmtNever();
+        LibraryInventory.SetAutomaticCostPosting(false);
+        LibraryInventory.CreateItemSimple(Item, Item."Costing Method"::FIFO, 10);
+    end;
+
+    local procedure PostReceiptAndShipmentBatch(Item: Record Item; EntryCount: Integer; var SalesHeader: Record "Sales Header"; var ReceiptEntryNos: List of [Integer])
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SalesLine: Record "Sales Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        PreviousEntryNo: Integer;
+        NewReceiptCount: Integer;
+        LineNo: Integer;
+    begin
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetLoadFields("Entry No.");
+        if ItemLedgerEntry.FindLast() then
+            PreviousEntryNo := ItemLedgerEntry."Entry No.";
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        for LineNo := 1 to EntryCount do begin
+            LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+            PurchaseLine.Validate("Direct Unit Cost", 10);
+            PurchaseLine.Modify(true);
+        end;
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        ItemLedgerEntry.SetFilter("Entry No.", '>%1', PreviousEntryNo);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Purchase);
+        ItemLedgerEntry.SetRange(Positive, true);
+        ItemLedgerEntry.FindSet();
+        repeat
+            ReceiptEntryNos.Add(ItemLedgerEntry."Entry No.");
+            NewReceiptCount += 1;
+            LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+            SalesLine.Validate("Appl.-to Item Entry", ItemLedgerEntry."Entry No.");
+            SalesLine.Validate("Unit Price", 20);
+            SalesLine.Modify(true);
+        until ItemLedgerEntry.Next() = 0;
+        Assert.AreEqual(EntryCount, NewReceiptCount, 'Each purchase line must create a distinct tracked receipt.');
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+    end;
+
+    local procedure PostFreshEntryToTriggerAdjustment(var Item: Record Item)
+    begin
+        LibraryInventory.PostPositiveAdjustment(Item, '', '', '', 1, WorkDate(), 10);
+        Item.Get(Item."No.");
+        Item.TestField("Cost is Adjusted", false);
+    end;
+
+    local procedure RunObservedReceiptAdjustment(ItemNo: Code[20]; ReceiptEntryNos: List of [Integer]; var ProcessingCount: Integer; var BufferedCount: Integer)
+    var
+        Item: Record Item;
+        EntryNo: Integer;
+    begin
+        ObservedItemNo := ItemNo;
+        Clear(ReceiptVisits);
+        ReceiptProcessingCount := 0;
+        BufferedReceiptCount := 0;
+        ObservedItemPasses := 0;
+        foreach EntryNo in ReceiptEntryNos do
+            ReceiptVisits.Add(EntryNo, 0);
+
+        BindSubscription(this);
+        LibraryCosting.AdjustCostItemEntries(ItemNo, '');
+        UnbindSubscription(this);
+
+        Assert.IsTrue(ObservedItemPasses > 0, 'The item must actually be processed, not skipped as already adjusted.');
+        Item.Get(ItemNo);
+        Item.TestField("Cost is Adjusted", true);
+        ProcessingCount := ReceiptProcessingCount;
+        BufferedCount := BufferedReceiptCount;
+        Clear(ObservedItemNo);
+    end;
+
+    local procedure VerifyEveryReceiptVisited(ReceiptEntryNos: List of [Integer])
+    var
+        EntryNo: Integer;
+    begin
+        foreach EntryNo in ReceiptEntryNos do
+            Assert.IsTrue(ReceiptVisits.Get(EntryNo) > 0, StrSubstNo(ReceiptNotRevisitedErr, EntryNo));
+    end;
+
+    local procedure VerifyReceiptBacklog(ItemNo: Code[20]; ReceiptEntryNos: List of [Integer]; Pending: Boolean)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        EntryNo: Integer;
+    begin
+        ItemLedgerEntry.SetAutoCalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
+        foreach EntryNo in ReceiptEntryNos do begin
+            ItemLedgerEntry.Get(EntryNo);
+            ItemLedgerEntry.TestField("Item No.", ItemNo);
+            ItemLedgerEntry.TestField(Quantity, 1);
+            ItemLedgerEntry.TestField("Remaining Quantity", 0);
+            ItemLedgerEntry.TestField("Completely Invoiced", true);
+            ItemLedgerEntry.TestField("Applied Entry to Adjust", Pending);
+            ItemLedgerEntry.TestField("Cost Amount (Actual)", 10);
+            ItemLedgerEntry.TestField("Cost Amount (Expected)", 0);
+        end;
+
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetAutoCalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        Assert.RecordCount(ItemLedgerEntry, ReceiptEntryNos.Count());
+        ItemLedgerEntry.FindSet();
+        repeat
+            ItemLedgerEntry.TestField(Quantity, -1);
+            ItemLedgerEntry.TestField("Completely Invoiced", not Pending);
+            if Pending then begin
+                ItemLedgerEntry.TestField("Cost Amount (Actual)", 0);
+                ItemLedgerEntry.TestField("Cost Amount (Expected)", -10);
+            end else begin
+                ItemLedgerEntry.TestField("Cost Amount (Actual)", -10);
+                ItemLedgerEntry.TestField("Cost Amount (Expected)", 0);
+            end;
+        until ItemLedgerEntry.Next() = 0;
+    end;
+
+    local procedure CountItemValueEntries(ItemNo: Code[20]): Integer
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.SetRange("Item No.", ItemNo);
+        exit(ValueEntry.Count());
+    end;
+
+    local procedure GetInventoryAdjustmentLineHits(LinePattern: Text): Integer
+    var
+        CodeCoverage: Record "Code Coverage";
+    begin
+        exit(GetCodeCoverageForObject(CodeCoverage."Object Type"::Codeunit, Codeunit::"Inventory Adjustment", LinePattern));
+    end;
+
+    local procedure GetItemLedgEntrySignReads(): Integer
+    begin
+        exit(
+          GetInventoryAdjustmentLineHits(ItemLedgEntryGetByValueEntryLineTxt) +
+          GetInventoryAdjustmentLineHits(ItemLedgEntryGetByEntryNoLineTxt));
+    end;
+
+    local procedure PostPurchasesWithItemChargeAndSales(Item: Record Item; NoOfIterations: Integer)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        ItemChargePurchaseHeader: Record "Purchase Header";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        SalesHeader: Record "Sales Header";
+        Iteration: Integer;
+    begin
+        PurchRcptLine.SetRange(Type, PurchRcptLine.Type::Item);
+        PurchRcptLine.SetRange("No.", Item."No.");
+        for Iteration := 1 to NoOfIterations do begin
+            LibraryPurchase.PostPurchaseOrder(PurchaseHeader, Item, '', '', 10, WorkDate(), 10, true, true);
+            PurchRcptLine.FindLast();
+
+            LibraryPurchase.CreatePurchHeader(
+              ItemChargePurchaseHeader, ItemChargePurchaseHeader."Document Type"::Invoice, PurchRcptLine."Buy-from Vendor No.");
+            LibraryPurchase.AssignPurchChargeToPurchRcptLine(ItemChargePurchaseHeader, PurchRcptLine, 1, 10);
+            LibraryPurchase.PostPurchaseDocument(ItemChargePurchaseHeader, true, true);
+
+            LibrarySales.PostSalesOrder(SalesHeader, Item, '', '', 1, WorkDate(), 20, true, true);
+        end;
+    end;
+
+    local procedure RunAdjustmentWithCoverage(ItemNo: Code[20]; var ExclusionChecks: Integer; var AvgCostExceptionChecks: Integer; var ItemLedgEntrySignReads: Integer)
+    begin
+        CodeCoverageMgt.StartApplicationCoverage();
+        ExclusionChecks := GetInventoryAdjustmentLineHits(ExclusionCheckLineTxt);
+        AvgCostExceptionChecks := GetInventoryAdjustmentLineHits(AvgCostExceptionCheckLineTxt);
+        ItemLedgEntrySignReads := GetItemLedgEntrySignReads();
+
+        LibraryCosting.AdjustCostItemEntries(ItemNo, '');
+
+        ExclusionChecks := GetInventoryAdjustmentLineHits(ExclusionCheckLineTxt) - ExclusionChecks;
+        AvgCostExceptionChecks := GetInventoryAdjustmentLineHits(AvgCostExceptionCheckLineTxt) - AvgCostExceptionChecks;
+        ItemLedgEntrySignReads := GetItemLedgEntrySignReads() - ItemLedgEntrySignReads;
+        CodeCoverageMgt.StopApplicationCoverage();
+    end;
+
+    local procedure VerifySalesCostAmountActual(ItemNo: Code[20]; ExpectedCount: Integer; ExpectedCostAmount: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        Assert.RecordCount(ItemLedgerEntry, ExpectedCount);
+        ItemLedgerEntry.SetAutoCalcFields("Cost Amount (Actual)");
+        ItemLedgerEntry.FindSet();
+        repeat
+            Assert.AreEqual(ExpectedCostAmount, ItemLedgerEntry."Cost Amount (Actual)", SaleCostAmountErr);
+        until ItemLedgerEntry.Next() = 0;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Adjustment", OnAdjustItemAppliedCostForItemLedgerEntry, '', false, false)]
+    local procedure CountTrackedReceiptProcessing(var ItemLedgEntry: Record "Item Ledger Entry")
+    var
+        Visits: Integer;
+    begin
+        if ItemLedgEntry."Item No." <> ObservedItemNo then
+            exit;
+        if ReceiptVisits.Get(ItemLedgEntry."Entry No.", Visits) then begin
+            ReceiptVisits.Set(ItemLedgEntry."Entry No.", Visits + 1);
+            ReceiptProcessingCount += 1;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Adjustment", OnBeforeUpdateItemUnitCost2, '', false, false)]
+    local procedure CountTrackedBufferedReceipts(var Item: Record Item; var ItemLedgEntryToAdjust: Dictionary of [Code[20], List of [Integer]])
+    var
+        BufferedEntries: List of [Integer];
+        EntryNo: Integer;
+    begin
+        if Item."No." <> ObservedItemNo then
+            exit;
+        ObservedItemPasses += 1;
+        BufferedReceiptCount := 0;
+        if ItemLedgEntryToAdjust.Get(Item."No.", BufferedEntries) then
+            foreach EntryNo in BufferedEntries do
+                if ReceiptVisits.ContainsKey(EntryNo) then
+                    BufferedReceiptCount += 1;
     end;
 
     local procedure CreateItem(var Item: Record Item; CostingMethod: Enum "Costing Method")
@@ -647,4 +1062,3 @@ codeunit 133504 "SCM Costing Performance"
             until CodeCover.Next() = 0;
     end;
 }
-

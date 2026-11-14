@@ -46,7 +46,6 @@ codeunit 8062 "Billing Proposal"
         TempBillingLine.DeleteAll(false);
 
         SetKeysForGrouping(BillingLine, TempBillingLine, GroupBy);
-
         if BillingLine.FindSet() then
             repeat
                 UpdateGroupingLine(TempGroupBillingLine, BillingLine, GroupBy);
@@ -86,7 +85,6 @@ codeunit 8062 "Billing Proposal"
         TempPageFilter.CopyFilters(TempBillingLine); // remember the page view filters so they can be restored
         PageFilterBillingLine.CopyFilters(TempBillingLine); // page view filters (Partner, User ID) scope the DB read
         NextHeaderEntryNo := SmallestTempBillingLineEntryNo(TempBillingLine);
-
         foreach GroupKey in GroupKeys do begin
             DeleteTempRowsForGroup(TempBillingLine, GroupBy, GroupKey);
             RebuildTempRowsForGroup(TempBillingLine, PageFilterBillingLine, GroupBy, GroupKey, NextHeaderEntryNo);
@@ -183,7 +181,6 @@ codeunit 8062 "Billing Proposal"
                 TempGroupBillingLine."Update Required" := BillingLine."Update Required";
             TempGroupBillingLine.Insert(false);
         end;
-
         if GroupBy = GroupBy::Contract then begin
             if (BillingLine."Billing from" < TempGroupBillingLine."Billing from") or (TempGroupBillingLine."Billing from" = 0D) then begin
                 TempGroupBillingLine."Billing from" := BillingLine."Billing from";
@@ -203,6 +200,7 @@ codeunit 8062 "Billing Proposal"
         if GroupBy = GroupBy::None then
             exit;
 
+        ContractBillingLine2.SetRange(Partner, BillingLine.Partner);
         case GroupBy of
             GroupBy::Contract:
                 ContractBillingLine2.SetRange("Subscription Contract No.", BillingLine."Subscription Contract No.");
@@ -251,10 +249,8 @@ codeunit 8062 "Billing Proposal"
         BillingTemplate.Get(BillingTemplateCode);
         if BillingDate = 0D then
             Error(NoBillingDateErr);
-
         if not DeleteUpdateRequiredBillingLines(BillingTemplateCode) then
             exit;
-
         if BillingTemplate.Filter.HasValue() then
             FilterText := BillingTemplate.ReadFilter(BillingTemplate.FieldNo(Filter));
 
@@ -298,7 +294,6 @@ codeunit 8062 "Billing Proposal"
         // on the automated/background path or when no UI is available.
         if AutomatedBilling or not GuiAllowed() then
             exit;
-
         case BillingTemplate.Partner of
             Enum::"Service Partner"::Customer:
                 begin
@@ -391,7 +386,6 @@ codeunit 8062 "Billing Proposal"
             else
                 OnCheckSkipSubscriptionLineOnElse(ServiceCommitment, SkipServiceCommitment);
         end;
-
         if not SkipServiceCommitment then begin
             CalculateBillingPeriod(ServiceCommitment, BillingDate, BillingToDate, BillingPeriodStart, BillingPeriodEnd);
             BillingLine.InitNewBillingLine();
@@ -454,7 +448,6 @@ codeunit 8062 "Billing Proposal"
             if SupplierChargeEndDate <> 0D then
                 NewBillingFromDate2 := SupplierChargeEndDate + 1;
         end;
-
         if NewBillingFromDate2 <= BillingLine."Billing to" then
             NewBillingFromDate2 := BillingLine."Billing to" + 1;
 
@@ -465,7 +458,6 @@ codeunit 8062 "Billing Proposal"
         ServiceCommitmentNotEnded := ServiceCommitment."Subscription Line End Date" = 0D;
         if not ServiceCommitmentNotEnded then
             ServiceCommitmentNotEnded := NewBillingFromDate2 <= ServiceCommitment."Subscription Line End Date";
-
         if (NewBillingToDate <= BillingPeriodEnd) and ServiceCommitmentNotEnded then begin
             BillingLine2.InitNewBillingLine();
             UpdateBillingLine(BillingLine2, ServiceCommitment, BillingTemplate, NewBillingFromDate2, BillingPeriodEnd);//recursion
@@ -481,7 +473,6 @@ codeunit 8062 "Billing Proposal"
     begin
         if not ServiceCommitment.IsUsageBasedBillingValid() then
             exit(false);
-
         if not ServiceCommitment.IsUsageDataBillingFound(UsageDataBilling, BillingLine."Billing from", BillingLine."Billing to") then
             exit(false);
 
@@ -523,7 +514,6 @@ codeunit 8062 "Billing Proposal"
         OnBeforeCalculateBillingLineUnitAmountsAndServiceAmount(BillingLine, ServiceCommitment, IsHandled);
         if IsHandled then
             exit;
-
         if SetBillingLineUnitPriceAndServiceAmountsFromUsageDataBilling(BillingLine, ServiceCommitment) then
             exit;
         GLSetup.Get();
@@ -612,6 +602,7 @@ codeunit 8062 "Billing Proposal"
                 BillingPeriodStart := UsageDataBilling."Charge Start Date";
             if UsageDataBilling.FindLast() then
                 BillingPeriodEnd := UsageDataBilling."Charge End Date";
+            OnAfterCalculateBillingPeriodForUsageBasedSubscriptionLine(ServiceCommitment, UsageDataBilling, BillingPeriodStart, BillingPeriodEnd);
             exit;
         end;
 
@@ -645,7 +636,6 @@ codeunit 8062 "Billing Proposal"
             NextBillingToDate := CrossingChargeEndDate;
             CrossingChargeEndDate := ServiceCommitment.GetUsageDataChargeEndDateCrossingPeriodEnd(BillingFromDate, NextBillingToDate);
         end;
-
         if ServiceCommitment.IsPartnerCustomer() then begin
             CustomerContract.Get(ServiceCommitment."Subscription Contract No.");
             if CustomerContract.IsContractTypeSetAsHarmonizedBilling() then
@@ -667,7 +657,7 @@ codeunit 8062 "Billing Proposal"
             Error(NotAuthorizedToClearOrDeleteDocumentErr);
     end;
 
-    internal procedure DeleteBillingProposal(BillingTemplateCode: Code[20])
+    procedure DeleteBillingProposal(BillingTemplateCode: Code[20])
     var
         BillingLine: Record "Billing Line";
         BillingTemplate: Record "Billing Template";
@@ -717,7 +707,7 @@ codeunit 8062 "Billing Proposal"
         end;
     end;
 
-    internal procedure DeleteBillingLines(var BillingLine: Record "Billing Line")
+    procedure DeleteBillingLines(var BillingLine: Record "Billing Line")
     var
         Counter: Integer;
     begin
@@ -775,7 +765,7 @@ codeunit 8062 "Billing Proposal"
         CustomerContract.RecalculateHarmonizedBillingFieldsBasedOnNextBillingDate(0);
     end;
 
-    internal procedure UpdateBillingToDate(var BillingLine: Record "Billing Line"; NewBillingToDate: Date)
+    procedure UpdateBillingToDate(var BillingLine: Record "Billing Line"; NewBillingToDate: Date)
     var
         ServiceCommitment: Record "Subscription Line";
         BillingTemplate: Record "Billing Template";
@@ -806,7 +796,6 @@ codeunit 8062 "Billing Proposal"
         OnBeforeCreateBillingProposalFromContract(ContractNo, BillingRhytmFilter, ServicePartner, IsHandled);
         if IsHandled then
             exit;
-
         if not BillingProposalCanBeCreatedForContract(ContractNo, ServicePartner) then
             exit;
         CreateBillingDocumentPage.SetContractData(ServicePartner, ContractNo, BillingRhytmFilter);
@@ -1026,7 +1015,7 @@ codeunit 8062 "Billing Proposal"
         exit(not BillingLine.IsEmpty());
     end;
 
-    internal procedure DeleteBillingDocuments(BillingTemplateCode: Code[20])
+    procedure DeleteBillingDocuments(BillingTemplateCode: Code[20])
     var
         BillingLine: Record "Billing Line";
         BillingTemplate: Record "Billing Template";
@@ -1140,6 +1129,11 @@ codeunit 8062 "Billing Proposal"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalculateNextBillingToDateForSubscriptionLine(var NextBillingToDate: Date; SubscriptionLine: Record "Subscription Line"; BillingFromDate: Date)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalculateBillingPeriodForUsageBasedSubscriptionLine(SubscriptionLine: Record "Subscription Line"; var UsageDataBilling: Record "Usage Data Billing"; var BillingPeriodStart: Date; var BillingPeriodEnd: Date)
     begin
     end;
 

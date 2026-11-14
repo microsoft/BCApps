@@ -295,6 +295,114 @@ codeunit 144054 "ERM ES Income Statement"
         // [THEN] Verify Closed Income Statement Report should be run successfully.
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CloseIncomeStatementWithOffsettingLCYPreservesACY()
+    var
+        AccountingPeriod: Record "Accounting Period";
+        Currency: Record Currency;
+        IncomeGLAccount: array[2] of Record "G/L Account";
+        BalanceGLAccount: Record "G/L Account";
+        GLAccountFilter: Record "G/L Account";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GLEntry: Record "G/L Entry";
+        CloseIncomeStatement1: Report "Close Income Statement";
+        FiscalYearStartDate: Date;
+        FiscalYearEndDate: Date;
+        i: Integer;
+    begin
+        // [SCENARIO 656535] ES closing lines that offset in LCY retain historical ACY without an interim residual.
+        Initialize();
+
+        // [GIVEN] A closed fiscal year and ACY rates of 3 and 4 on consecutive posting dates.
+        LibraryFiscalYear.CloseFiscalYear();
+        LibraryFiscalYear.CreateFiscalYear();
+        LibraryFiscalYear.CloseFiscalYear();
+        AccountingPeriod.SetRange("New Fiscal Year", true);
+        AccountingPeriod.SetRange(Closed, true);
+        AccountingPeriod.FindLast();
+        FiscalYearStartDate := AccountingPeriod."Starting Date";
+        AccountingPeriod.SetRange(Closed);
+        AccountingPeriod.SetFilter("Starting Date", '>%1', FiscalYearStartDate);
+        AccountingPeriod.FindFirst();
+        FiscalYearEndDate := AccountingPeriod."Starting Date" - 1;
+        Currency.Get(LibraryERM.CreateCurrencyWithExchangeRate(FiscalYearStartDate, 3, 3));
+        LibraryERM.CreateExchangeRate(Currency.Code, FiscalYearStartDate + 1, 4, 4);
+        LibraryERM.SetAddReportingCurrency(Currency.Code);
+
+        // [GIVEN] Two income accounts sharing one income statement balancing account.
+        CreateDirectPostingGLAccount(BalanceGLAccount);
+        BalanceGLAccount.Validate("Income/Balance", BalanceGLAccount."Income/Balance"::"Balance Sheet");
+        BalanceGLAccount.Modify(true);
+        for i := 1 to ArrayLen(IncomeGLAccount) do begin
+            LibraryERM.CreateGLAccount(IncomeGLAccount[i]);
+            IncomeGLAccount[i].Validate("Income/Balance", IncomeGLAccount[i]."Income/Balance"::"Income Statement");
+            IncomeGLAccount[i].Validate("Income Stmt. Bal. Acc.", BalanceGLAccount."No.");
+            IncomeGLAccount[i].Modify(true);
+        end;
+
+        // [GIVEN] Historical income amounts of -100 LCY/-300 ACY and +100 LCY/+400 ACY, with blank source currency.
+        CreateGeneralJournalBatch(GenJournalBatch);
+        PostIncomeStatementLine(GenJournalBatch, IncomeGLAccount[1]."No.", BalanceGLAccount."No.", FiscalYearStartDate, -100);
+        PostIncomeStatementLine(GenJournalBatch, IncomeGLAccount[2]."No.", BalanceGLAccount."No.", FiscalYearStartDate + 1, 100);
+
+        // [WHEN] Close only these income accounts.
+        GLAccountFilter.SetFilter("No.", '%1|%2', IncomeGLAccount[1]."No.", IncomeGLAccount[2]."No.");
+        CloseIncomeStatement1.SetTableView(GLAccountFilter);
+        CloseIncomeStatement1.InitializeRequest(
+            FiscalYearEndDate, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalBatch.Name, GenJournalBatch.Name, false, false, false, BalanceGLAccount."No.");
+        CloseIncomeStatement1.UseRequestPage(false);
+        CloseIncomeStatement1.Run();
+
+        // [THEN] Exact historical ACY amounts are reversed, with one ACY-only balancing entry and no residual.
+        VerifyClosingEntry(IncomeGLAccount[1]."No.", GenJournalBatch.Name, FiscalYearEndDate, 100, 300);
+        VerifyClosingEntry(IncomeGLAccount[2]."No.", GenJournalBatch.Name, FiscalYearEndDate, -100, -400);
+        VerifyClosingEntry(BalanceGLAccount."No.", GenJournalBatch.Name, FiscalYearEndDate, 0, 100);
+        GLEntry.SetRange("Document No.", GenJournalBatch.Name);
+        GLEntry.SetRange("Posting Date", ClosingDate(FiscalYearEndDate));
+        Assert.RecordCount(GLEntry, 3);
+        GLEntry.SetRange("G/L Account No.", Currency."Residual Gains Account");
+        Assert.RecordIsEmpty(GLEntry);
+        GLEntry.SetRange("G/L Account No.", Currency."Residual Losses Account");
+        Assert.RecordIsEmpty(GLEntry);
+
+        // [THEN] Both income accounts are cleared in LCY and ACY.
+        for i := 1 to ArrayLen(IncomeGLAccount) do begin
+            IncomeGLAccount[i].SetRange("Date Filter", FiscalYearStartDate, ClosingDate(FiscalYearEndDate));
+            IncomeGLAccount[i].CalcFields("Net Change", "Additional-Currency Net Change");
+            IncomeGLAccount[i].TestField("Net Change", 0);
+            IncomeGLAccount[i].TestField("Additional-Currency Net Change", 0);
+        end;
+    end;
+
+    local procedure PostIncomeStatementLine(GenJournalBatch: Record "Gen. Journal Batch"; IncomeAccountNo: Code[20]; BalanceAccountNo: Code[20]; PostingDate: Date; Amount: Decimal)
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account", IncomeAccountNo,
+            GenJournalLine."Bal. Account Type"::"G/L Account", BalanceAccountNo, Amount);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure VerifyClosingEntry(AccountNo: Code[20]; DocumentNo: Code[20]; FiscalYearEndDate: Date; AmountLCY: Decimal; AmountACY: Decimal)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("G/L Account No.", AccountNo);
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("Posting Date", ClosingDate(FiscalYearEndDate));
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        GLEntry.TestField(Amount, AmountLCY);
+        GLEntry.TestField("Additional-Currency Amount", AmountACY);
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();

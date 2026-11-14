@@ -4,6 +4,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Integration.SyncEngine;
 using Microsoft.Utilities;
 using System.Environment;
+using System.Security.Encryption;
 using System.Telemetry;
 using System.Threading;
 
@@ -123,6 +124,30 @@ table 7230 "Master Data Management Setup"
             ExtendedDatatype = Masked;
             DataClassification = SystemMetadata;
         }
+        field(160; "Source Client Certificate Key"; Guid)
+        {
+            Caption = 'Source Client Certificate Key';
+            ExtendedDatatype = Masked;
+            DataClassification = SystemMetadata;
+        }
+        field(161; "Source Cert. Password Key"; Guid)
+        {
+            Caption = 'Source Certificate Password Key';
+            ExtendedDatatype = Masked;
+            DataClassification = SystemMetadata;
+        }
+        field(162; "Source Cert. Thumbprint"; Text[50])
+        {
+            Caption = 'Source Certificate Thumbprint';
+            Editable = false;
+            DataClassification = CustomerContent;
+        }
+        field(163; "Source Cert. Expiration Date"; DateTime)
+        {
+            Caption = 'Source Certificate Expiration Date';
+            Editable = false;
+            DataClassification = CustomerContent;
+        }
     }
 
     keys
@@ -165,6 +190,8 @@ table 7230 "Master Data Management Setup"
             exit;
 
         DisableConnection();
+        // Without the setup record nothing references the stored credentials, so remove them from Isolated Storage.
+        ClearSourceCredentials();
     end;
 
     procedure LookupCompanies(var Company: Record Company): Boolean
@@ -187,7 +214,7 @@ table 7230 "Master Data Management Setup"
 
     internal procedure IsCrossEnvConnectionConfigured(): Boolean
     begin
-        exit(("Source Environment URL" <> '') and ("Source Company Name" <> '') and ("Source OAuth Client Id" <> '') and (not IsNullGuid("Source Client Secret Key")));
+        exit(("Source Environment URL" <> '') and ("Source Company Name" <> '') and ("Source OAuth Client Id" <> '') and HasSourceCredential());
     end;
 
     internal procedure IsCrossEnvironment(): Boolean
@@ -195,26 +222,131 @@ table 7230 "Master Data Management Setup"
         exit("Source Environment Name" <> '');
     end;
 
-    // Reverting to same-environment: drop the source connection details and the stored secret.
+    // The source connection authenticates with either a client secret or a certificate, never both.
+    internal procedure UsesSourceClientCertificate(): Boolean
+    begin
+        exit(not IsNullGuid("Source Client Certificate Key"));
+    end;
+
+    local procedure HasSourceCredential(): Boolean
+    begin
+        exit((not IsNullGuid("Source Client Secret Key")) or UsesSourceClientCertificate());
+    end;
+
+    // Reverting to same-environment: drop the source connection details and the stored credentials.
     internal procedure ClearCrossEnvConnection()
     begin
         "Source Environment URL" := '';
         "Source Company Name" := '';
         "Source OAuth Client Id" := '';
-        if not IsNullGuid("Source Client Secret Key") then
-            if not IsolatedStorage.Delete("Source Client Secret Key", DataScope::Company) then;
-        Clear("Source Client Secret Key");
+        ClearSourceCredentials();
     end;
 
+    // Write-only by design: the secret is read back only by a local procedure of "MDM Http Source Transport", so no
+    // internal or public member hands the secret out.
     [NonDebuggable]
     internal procedure SetSourceClientSecret(ClientSecret: SecretText)
     begin
         "Source Client Secret Key" := SetSecret("Source Client Secret Key", ClientSecret);
+        ClearSourceClientCertificate();
     end;
 
-    internal procedure GetSourceClientSecret(): SecretText
+    // Write-only by design, like the client secret: the certificate and its password are read back only by local
+    // procedures of "MDM Http Source Transport". Only the non-secret thumbprint and expiration date are kept on the record.
+    [NonDebuggable]
+    internal procedure SetSourceClientCertificate(CertificateBase64: Text; CertificatePassword: SecretText)
+    var
+        Thumbprint: Text;
+        ExpirationDate: DateTime;
     begin
-        exit(GetSecret("Source Client Secret Key"));
+        CheckSourceClientCertificate(CertificateBase64, CertificatePassword, Thumbprint, ExpirationDate);
+        "Source Client Certificate Key" := SetCertificate("Source Client Certificate Key", CertificateBase64);
+        if CertificatePassword.IsEmpty() then
+            DeleteSecret("Source Cert. Password Key")
+        else
+            "Source Cert. Password Key" := SetSecret("Source Cert. Password Key", CertificatePassword);
+        "Source Cert. Thumbprint" := CopyStr(Thumbprint, 1, MaxStrLen("Source Cert. Thumbprint"));
+        "Source Cert. Expiration Date" := ExpirationDate;
+        DeleteSecret("Source Client Secret Key");
+    end;
+
+    // Errors unless the certificate can be read with the password, carries the private key needed to sign the token
+    // request, and has not expired.
+    [NonDebuggable]
+    internal procedure CheckSourceClientCertificate(CertificateBase64: Text; CertificatePassword: SecretText; var Thumbprint: Text; var ExpirationDate: DateTime)
+    var
+        HasPrivateKey: Boolean;
+    begin
+        if not TryReadCertificate(CertificateBase64, CertificatePassword, Thumbprint, ExpirationDate, HasPrivateKey) then
+            Error(CertificateNotReadableErr);
+        if not HasPrivateKey then
+            Error(CertificateWithoutPrivateKeyErr);
+        if ExpirationDate < CurrentDateTime() then
+            Error(CertificateExpiredErr, ExpirationDate);
+    end;
+
+    [TryFunction]
+    [NonDebuggable]
+    local procedure TryReadCertificate(CertificateBase64: Text; CertificatePassword: SecretText; var Thumbprint: Text; var ExpirationDate: DateTime; var HasPrivateKey: Boolean)
+    var
+        X509Certificate2: Codeunit X509Certificate2;
+    begin
+        HasPrivateKey := X509Certificate2.HasPrivateKey(CertificateBase64, CertificatePassword);
+        X509Certificate2.GetCertificateThumbprint(CertificateBase64, CertificatePassword, Thumbprint);
+        X509Certificate2.GetCertificateExpiration(CertificateBase64, CertificatePassword, ExpirationDate);
+    end;
+
+    // An environment copy (e.g. production to sandbox) must not carry the source credentials along: in a sandbox a DEV
+    // extension can be published under this app's id and read its Isolated Storage. The rest of the connection is
+    // kept, so an admin only re-enters the secret or re-uploads the certificate to resume synchronization in the copy.
+    internal procedure ClearSourceCredentialsOnEnvironmentCopy()
+    var
+        MasterDataMgtSetupDefault: Codeunit "Master Data Mgt. Setup Default";
+        DisableSynchronization: Boolean;
+    begin
+        DisableSynchronization := "Is Enabled" and IsCrossEnvironment();
+        if not HasSourceCredential() and not DisableSynchronization then
+            exit;
+
+        ClearSourceCredentials();
+
+        if DisableSynchronization then begin
+            "Is Enabled" := false;
+            UpdateDataSynchJobQueueEntriesStatus();
+            MasterDataMgtSetupDefault.UpdateChangeDetectorJob(Rec);
+        end;
+        Modify(false);
+    end;
+
+    local procedure ClearSourceCredentials()
+    begin
+        DeleteSecret("Source Client Secret Key");
+        ClearSourceClientCertificate();
+    end;
+
+    // Test seam: reports only whether a credential entry exists in Isolated Storage, never its value.
+    internal procedure IsSourceCredentialStored(CredentialKey: Guid): Boolean
+    begin
+        if IsNullGuid(CredentialKey) then
+            exit(false);
+        exit(IsolatedStorage.Contains(CredentialKey, DataScope::Company));
+    end;
+
+    local procedure ClearSourceClientCertificate()
+    begin
+        DeleteSecret("Source Client Certificate Key");
+        DeleteSecret("Source Cert. Password Key");
+        "Source Cert. Thumbprint" := '';
+        "Source Cert. Expiration Date" := 0DT;
+    end;
+
+    local procedure DeleteSecret(var SecretKey: Guid)
+    begin
+        if IsNullGuid(SecretKey) then
+            exit;
+        if IsolatedStorage.Contains(SecretKey, DataScope::Company) then
+            IsolatedStorage.Delete(SecretKey, DataScope::Company);
+        Clear(SecretKey);
     end;
 
     // Mirrors the Intercompany connection pattern: secrets live in module-scoped Isolated Storage, keyed by a Guid.
@@ -224,8 +356,7 @@ table 7230 "Master Data Management Setup"
         EnvironmentInformation: Codeunit "Environment Information";
         NewSecretKey: Guid;
     begin
-        if not IsNullGuid(SecretKey) then
-            if not IsolatedStorage.Delete(SecretKey, DataScope::Company) then;
+        DeleteSecret(SecretKey);
 
         NewSecretKey := CreateGuid();
         if EncryptionEnabled() then
@@ -241,11 +372,21 @@ table 7230 "Master Data Management Setup"
         exit(NewSecretKey);
     end;
 
-    local procedure GetSecret(SecretKey: Guid) SecretValue: SecretText
+    // IsolatedStorage.SetEncrypted is limited to 215 characters, far below a Base64-encoded .pfx file, so the
+    // certificate is stored with IsolatedStorage.Set, as the platform Certificate Management does. Isolated Storage is
+    // module-scoped and encrypted at rest; the certificate password is still stored with SetEncrypted.
+    [NonDebuggable]
+    local procedure SetCertificate(CertificateKey: Guid; CertificateBase64: SecretText): Guid
+    var
+        NewCertificateKey: Guid;
     begin
-        if IsNullGuid(SecretKey) then
-            exit;
-        if not IsolatedStorage.Get(SecretKey, DataScope::Company, SecretValue) then;
+        DeleteSecret(CertificateKey);
+
+        NewCertificateKey := CreateGuid();
+        if not IsolatedStorage.Set(NewCertificateKey, CertificateBase64, DataScope::Company) then
+            Error(CertificateNotSavedErr);
+
+        exit(NewCertificateKey);
     end;
 
     local procedure EnableConnection()
@@ -407,6 +548,10 @@ table 7230 "Master Data Management Setup"
         OpenSetupNavigationTxt: label 'Open Master Data Management Setup';
         CannotChangeSourceWhileEnabledErr: label 'You cannot change the source environment while synchronization is enabled. Disable synchronization first, then change the source.';
         EncryptionRequiredErr: label 'Enable data encryption before saving the source connection secret. Cross-environment credentials are never stored unencrypted.';
+        CertificateNotReadableErr: label 'The certificate could not be read. Make sure that the file is a .pfx or .p12 certificate and that the password is correct.';
+        CertificateWithoutPrivateKeyErr: label 'The certificate does not contain a private key. Upload a .pfx or .p12 file that includes the private key of the certificate registered for the Microsoft Entra application.';
+        CertificateExpiredErr: label 'The certificate expired on %1. Upload a valid certificate.', Comment = '%1 = expiration date and time of the certificate';
+        CertificateNotSavedErr: label 'The certificate could not be saved.';
         CrossEnvEnabledTelemetryTxt: label 'Cross-environment master data synchronization was enabled.', Locked = true;
         SynchronizationEnabledSourceTelemetryTxt: label 'Master data synchronization was enabled for the source company.', Locked = true;
         SynchronizationEnabledSubscriberTelemetryTxt: label 'Master data synchronization was enabled for the subscriber company.', Locked = true;

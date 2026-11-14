@@ -33,6 +33,19 @@ report 20505 "Subc. Calculate Subcontracts"
                 DataItemTableView = sorting(Type, "No.") where(Status = const(Released), Type = const("Work Center"), "Routing Status" = filter(< Finished));
                 RequestFilterFields = "Prod. Order No.", "Starting Date";
 
+                trigger OnPreDataItem()
+                var
+                    CurrentFilterGroup: Integer;
+                begin
+                    if not IsReadinessGateOn then
+                        exit;
+
+                    CurrentFilterGroup := FilterGroup();
+                    FilterGroup(8);
+                    SetFilter("Quantity Ready to Start", '<>0');
+                    FilterGroup(CurrentFilterGroup);
+                end;
+
                 trigger OnAfterGetRecord()
                 begin
                     TempProdOrderRoutingLine.Init();
@@ -66,9 +79,23 @@ report 20505 "Subc. Calculate Subcontracts"
 
     requestpage
     {
+        SaveValues = true;
 
         layout
         {
+            area(Content)
+            {
+                group(Options)
+                {
+                    Caption = 'Options';
+                    field("Only Operations Ready to Start"; IsReadinessGateOn)
+                    {
+                        ApplicationArea = Subcontracting;
+                        Caption = 'Only Operations Ready to Start';
+                        ToolTip = 'Specifies whether to create worksheet lines only for operations whose previous operations have posted enough output for them to start.';
+                    }
+                }
+            }
         }
 
         actions
@@ -82,7 +109,7 @@ report 20505 "Subc. Calculate Subcontracts"
 
     trigger OnInitReport()
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -116,7 +143,7 @@ report 20505 "Subc. Calculate Subcontracts"
         Item: Record Item;
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -127,19 +154,29 @@ report 20505 "Subc. Calculate Subcontracts"
         BaseQtyToPurch: Decimal;
         QtyToPurch: Decimal;
         GLSetupRead: Boolean;
+        IsReadinessGateOn: Boolean;
 
         ProcessingWorkCentersLbl: Label 'Processing Work Centers   #1##########\', Comment = '#1 = current work center number being processed';
         ProcessingOrdersLbl: Label 'Processing Orders         #2########## ', Comment = '#2 = current order number being processed';
 
     procedure SetWkShLine(NewReqLine: Record "Requisition Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
             exit;
 #endif
         ReqLine := NewReqLine;
+    end;
+
+    /// <summary>
+    /// Switches the readiness gate on or off for a run without a request page.
+    /// </summary>
+    /// <param name="NewIsReadinessGateOn">Specifies whether to create worksheet lines only for operations whose Quantity Ready to Start is not zero.</param>
+    procedure SetOnlyOperationsReadyToStart(NewIsReadinessGateOn: Boolean)
+    begin
+        IsReadinessGateOn := NewIsReadinessGateOn;
     end;
 
     local procedure InsertReqWkshLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line")
@@ -204,6 +241,7 @@ report 20505 "Subc. Calculate Subcontracts"
         ReqLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ReqLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ReqLine.Validate("Vendor No.", WorkCenter."Subcontractor No.");
+        SubcontractingManagement.SetSubcontractingOrderDate(ReqLine, ProdOrderRoutingLine."Starting Date");
         ReqLine.Description := ProdOrderRoutingLine.Description;
         ReqLine."Description 2" := ProdOrderRoutingLine."Description 2";
         SetVendorItemNo();

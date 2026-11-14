@@ -1508,8 +1508,7 @@ codeunit 134201 "Document Approval - Comments"
         ApprovalEntry: Record "Approval Entry";
     begin
         GetApprovalEntries(ApprovalEntry, TableID, DocumentType, DocumentNo);
-        ApprovalEntry.ModifyAll("Sender ID", UserSetup."Approver ID", true);
-        ApprovalEntry.ModifyAll("Approver ID", UserSetup."User ID", true);
+        ApprovalEntry.ModifyAll("Sender ID", UserSetup."Approver ID", "Approver ID", UserSetup."User ID", true);
     end;
 
     local procedure EnableRejectionComments(): Guid

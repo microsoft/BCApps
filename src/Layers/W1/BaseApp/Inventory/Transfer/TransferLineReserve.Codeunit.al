@@ -650,6 +650,8 @@ codeunit 99000836 "Transfer Line-Reserve"
         AvailabilityDate: Date;
     begin
         InitFromTransLine(TrackingSpecification, TransferLine, AvailabilityDate, Direction);
+        if SecondSourceQuantityArray[1] = Database::"Warehouse Shipment Line" then
+            TrackingSpecification."Bin Code" := '';
         ItemTrackingLines.SetSourceSpec(TrackingSpecification, AvailabilityDate);
         ItemTrackingLines.SetSecondSourceQuantity(SecondSourceQuantityArray);
         OnCallItemTrackingOnBeforeItemTrackingLinesRunModal(TransferLine, ItemTrackingLines);

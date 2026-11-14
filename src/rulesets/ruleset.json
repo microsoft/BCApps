@@ -30,6 +30,16 @@
   ],
   "rules": [
     {
+      "id": "AL0935",
+      "action": "None",
+      "justification": "Defer Word layout dataset obsoletion warnings during the compiler rollout."
+    },
+    {
+      "id": "AL0936",
+      "action": "None",
+      "justification": "Defer unresolved Word layout reference warnings during the compiler rollout."
+    },
+    {
         "id": "AS0023",
         "action": "Warning",
         "justification": "Needed to allow for BigInteger entry nos."
@@ -88,11 +98,6 @@
         "id":  "AW0017",
         "action":  "Warning",
         "justification": "MaskType is not yet implemented for repeater controls, but it does not break the UI. It is informational that the value will not be visible in the repeater."
-    },
-    {
-        "id": "AL1430",
-        "action": "Warning",
-        "justification": "TODO(#642602) - Recent bugfix uncovered violations that need to be addressed."
-    },
+    }
   ]
 }

@@ -27,6 +27,9 @@ page 20502 "Subc. Routing Info Factbox"
                     ShowSubcontractorFromRouting();
                 end;
             }
+            field("Quantity Ready to Start"; Rec."Quantity Ready to Start")
+            {
+            }
             field(ShowQtyInSubcontractingOrder; SubcRoutingFactboxMgmt.GetPurchOrderQtyFromRoutingLine(Rec))
             {
                 AutoFormatType = 0;

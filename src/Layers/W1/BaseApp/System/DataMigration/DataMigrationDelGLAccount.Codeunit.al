@@ -219,9 +219,7 @@ codeunit 1812 "Data Migration Del G/L Account"
         VATPostingSetup: Record "VAT Posting Setup";
     begin
         VATPostingSetup.Reset();
-        VATPostingSetup.ModifyAll("Sales VAT Account", '');
-        VATPostingSetup.ModifyAll("Purchase VAT Account", '');
-        VATPostingSetup.ModifyAll("Reverse Chrg. VAT Acc.", '');
+        VATPostingSetup.ModifyAll("Sales VAT Account", '', "Purchase VAT Account", '', "Reverse Chrg. VAT Acc.", '');
     end;
 }
 

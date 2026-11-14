@@ -1867,7 +1867,7 @@ table 37 "Sales Line"
                 IsHandled := false;
                 OnValidateVATProdPostingGroupOnBeforeUpdateUnitPrice(Rec, VATPostingSetup, IsHandled, xRec, SalesHeader, Currency);
                 if not IsHandled then
-                    if SalesHeader."Prices Including VAT" and (Type in [Type::Item, Type::Resource]) then
+                    if SalesHeader."Prices Including VAT" and (Type = Type::Resource) then
                         Validate("Unit Price",
                             Round(
                                 "Unit Price" * (100 + GetVATPct()) / (100 + xRec.GetVATPct()),
@@ -4154,13 +4154,7 @@ table 37 "Sales Line"
             Editable = false;
             FieldClass = FlowField;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(10000; "Package Tracking No."; Text[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Package Tracking No.';
         }

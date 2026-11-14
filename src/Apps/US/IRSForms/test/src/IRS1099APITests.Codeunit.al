@@ -7,7 +7,9 @@ namespace Microsoft.Finance.VAT.Reporting;
 codeunit 148018 "IRS 1099 API Tests"
 {
     Subtype = Test;
-    TestType = Uncategorized;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    TestType = IntegrationTest;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     var
@@ -52,6 +54,7 @@ codeunit 148018 "IRS 1099 API Tests"
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         IRSReportingPeriod: Record "IRS Reporting Period";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IRS1099FormDocHeader.DeleteAll(true);
         IRSReportingPeriod.DeleteAll(true);
         LibraryTestInitialize.OnTestInitialize(Codeunit::"IRS 1099 API Tests");
@@ -88,7 +91,7 @@ codeunit 148018 "IRS 1099 API Tests"
     local procedure GetIRS1099DocumentAPIWithExpands() Url: Text
     begin
         Url := LibraryGraphMgt.CreateTargetURL('', Page::"IRS 1099 Documents API", IRS1099DocumentsServiceNameLbl);
-        Url += '?$expand=irs1099documentlines,irs1099formreports';
+        Url := LibraryGraphMgt.AppendQueryParameterToTargetURL(Url, '$expand=irs1099documentlines,irs1099formreports');
         exit(Url);
     end;
 
