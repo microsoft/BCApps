@@ -350,8 +350,9 @@ codeunit 28 "Error Message Management"
 
         if FldRef.Type() = FieldType::Option then begin
             IntValue := ExpectedValue;
-            ExpectedValue := SelectStr(IntValue + 1, FldRef.OptionCaption());
+            ExpectedValue := FldRef.GetEnumValueCaptionFromOrdinalValue(IntValue);
         end;
+
         if Format(ExpectedValue) = '' then
             ExpectedValue := '''''';
         ErrorMessage := StrSubstNo(TestFieldValueErr, FldRef.Caption, Format(ExpectedValue));

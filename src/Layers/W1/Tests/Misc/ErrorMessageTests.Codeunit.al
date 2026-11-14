@@ -1369,6 +1369,109 @@ codeunit 135000 "Error Message Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure LogTestFieldEnumOrdinalPastCaptionCount()
+    var
+        DummySalesLine: Record "Sales Line";
+        TempErrorMessage: Record "Error Message" temporary;
+        ErrorMessageMgt: Codeunit "Error Message Management";
+        ErrorMessageHandler: Codeunit "Error Message Handler";
+        Ordinals: List of [Integer];
+        Ordinal, HighestOrdinal : Integer;
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 10082] LogTestField names the expected enum value when its ordinal exceeds the number of enum values
+        Initialize();
+        HighestOrdinal := 0;
+
+        // [GIVEN] The highest "Sales Line Type" ordinal, which is past the value count because the enum has a gap
+        Ordinals := Enum::"Sales Line Type".Ordinals();
+        foreach Ordinal in Ordinals do  // highest ordinal is not necessarily last in the list
+            if Ordinal > HighestOrdinal then
+                HighestOrdinal := Ordinal;
+
+        Assert.IsTrue(HighestOrdinal >= Ordinals.Count(), 'Sales Line Type needs an ordinal gap for this test.');
+
+        // [GIVEN] Error collection is active and Sales Line Type is blank
+        ErrorMessageMgt.Activate(ErrorMessageHandler);
+        DummySalesLine.Type := DummySalesLine.Type::" ";
+
+        // [WHEN] LogTestField expects the value with the highest ordinal
+        ErrorMessageMgt.LogTestField(DummySalesLine, DummySalesLine.FieldNo(Type), Enum::"Sales Line Type".FromInteger(HighestOrdinal));
+
+        // [THEN] The logged message names that value
+        ErrorMessageHandler.AppendTo(TempErrorMessage);
+        TempErrorMessage.FindFirst();
+        Assert.ExpectedMessage(Format(Enum::"Sales Line Type".FromInteger(HighestOrdinal)), TempErrorMessage.Message);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure LogTestFieldEnumOrdinalNotMatchingCaptionPosition()
+    var
+        DummySalesLine: Record "Sales Line";
+        TempErrorMessage: Record "Error Message" temporary;
+        ErrorMessageMgt: Codeunit "Error Message Management";
+        ErrorMessageHandler: Codeunit "Error Message Handler";
+        Ordinals: List of [Integer];
+        Ordinal, ShiftedOrdinal : Integer;
+        Found: Boolean;
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 10082] LogTestField names the expected enum value when its ordinal is within the number of enum values but not its position
+        Initialize();
+
+        // [GIVEN] An "IC Partner Reference Type" ordinal that is within the value count, while a different value sits at that position
+        Ordinals := Enum::"IC Partner Reference Type".Ordinals();
+        foreach Ordinal in Ordinals do
+            if Ordinal < Ordinals.Count() then
+                if Ordinals.Get(Ordinal + 1) <> Ordinal then begin
+                    ShiftedOrdinal := Ordinal;
+                    Found := true;
+                end;
+
+        Assert.IsTrue(Found, 'IC Partner Reference Type needs an ordinal gap below the value count for this test.');
+
+        // [GIVEN] Error collection is active and IC Partner Ref. Type is blank
+        ErrorMessageMgt.Activate(ErrorMessageHandler);
+        DummySalesLine."IC Partner Ref. Type" := DummySalesLine."IC Partner Ref. Type"::" ";
+
+        // [WHEN] LogTestField expects the value with that ordinal
+        ErrorMessageMgt.LogTestField(DummySalesLine, DummySalesLine.FieldNo("IC Partner Ref. Type"), Enum::"IC Partner Reference Type".FromInteger(ShiftedOrdinal));
+
+        // [THEN] The logged message names that value, not the value at its position
+        ErrorMessageHandler.AppendTo(TempErrorMessage);
+        TempErrorMessage.FindFirst();
+        Assert.ExpectedMessage(Format(Enum::"IC Partner Reference Type".FromInteger(ShiftedOrdinal)), TempErrorMessage.Message);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure LogTestFieldOptionLogsCaption()
+    var
+        DummySalesHeader: Record "Sales Header";
+        TempErrorMessage: Record "Error Message" temporary;
+        ErrorMessageMgt: Codeunit "Error Message Management";
+        ErrorMessageHandler: Codeunit "Error Message Handler";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 10082] LogTestField names the expected value of a plain Option field
+        Initialize();
+
+        // [GIVEN] Error collection is active and Sales Header "Invoice Discount Calculation" (an Option field) is None
+        ErrorMessageMgt.Activate(ErrorMessageHandler);
+        DummySalesHeader."Invoice Discount Calculation" := DummySalesHeader."Invoice Discount Calculation"::None;
+
+        // [WHEN] LogTestField expects Amount
+        ErrorMessageMgt.LogTestField(DummySalesHeader, DummySalesHeader.FieldNo("Invoice Discount Calculation"), DummySalesHeader."Invoice Discount Calculation"::Amount);
+
+        // [THEN] The logged message names Amount
+        ErrorMessageHandler.AppendTo(TempErrorMessage);
+        TempErrorMessage.FindFirst();
+        Assert.ExpectedMessage(Format(DummySalesHeader."Invoice Discount Calculation"::Amount), TempErrorMessage.Message);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure LogFieldErrorCheckContextFieldNo()
     var
         DummySalesHeader: Record "Sales Header";
