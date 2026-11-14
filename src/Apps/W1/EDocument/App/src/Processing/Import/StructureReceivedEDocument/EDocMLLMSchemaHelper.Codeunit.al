@@ -67,6 +67,8 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
         NestedObj2: JsonObject;
         NestedObj3: JsonObject;
         CurrencyText: Text;
+        TaxInclusiveAmount: Decimal;
+        TaxInclusiveProvided: Boolean;
     begin
         GetString(HeaderObj, 'id', MaxStrLen(TempHeader."Sales Invoice No."), TempHeader."Sales Invoice No.");
         GetDate(HeaderObj, 'issue_date', TempHeader."Document Date");
@@ -123,8 +125,16 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
         if GetNestedObject(HeaderObj, 'legal_monetary_total', NestedObj) then begin
             GetDecimal(NestedObj, 'tax_exclusive_amount', TempHeader."Sub Total");
             GetDecimal(NestedObj, 'allowance_total_amount', TempHeader."Total Discount");
+            TaxInclusiveProvided := GetDecimal(NestedObj, 'tax_inclusive_amount', TaxInclusiveAmount);
             GetDecimal(NestedObj, 'payable_amount', TempHeader.Total);
-            GetDecimal(NestedObj, 'payable_amount', TempHeader."Amount Due");
+            // Guard: for a positive invoice, the total including tax cannot be less than the tax-exclusive sub total.
+            // When the model emits the tax rate into payable_amount, correct it using tax_inclusive_amount or sub total + VAT.
+            if (TempHeader."Sub Total" > 0) and (TempHeader.Total < TempHeader."Sub Total") then
+                if TaxInclusiveProvided and (TaxInclusiveAmount >= TempHeader."Sub Total") then
+                    TempHeader.Total := TaxInclusiveAmount
+                else
+                    TempHeader.Total := TempHeader."Sub Total" + TempHeader."Total VAT";
+            TempHeader."Amount Due" := TempHeader.Total;
         end;
     end;
 
