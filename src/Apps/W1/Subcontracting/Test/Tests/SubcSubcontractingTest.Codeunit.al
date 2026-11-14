@@ -528,6 +528,76 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    procedure EmptyReleasedProdOrderSubcActionsDisabled()
+    var
+        ProductionOrder: Record "Production Order";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
+        ReleasedProductionOrdersPage: Page "Released Production Orders";
+        ReleasedProductionOrders: TestPage "Released Production Orders";
+    begin
+        // [SCENARIO 648872] Subcontracting actions require a selected released production order.
+        Initialize();
+
+        // [WHEN] Opening the released production orders list with a view containing no records.
+        LibraryApplicationArea.EnablePremiumSetup();
+        ProductionOrder.SetRange(Status, ProductionOrder.Status::Released);
+        ProductionOrder.SetRange("No.", '');
+        Assert.RecordIsEmpty(ProductionOrder);
+        ReleasedProductionOrdersPage.SetTableView(ProductionOrder);
+        ReleasedProductionOrders.Trap();
+        ReleasedProductionOrdersPage.Run();
+        Assert.IsFalse(ReleasedProductionOrders.First(), 'The released production orders list must be empty.');
+
+        // [THEN] Subcontracting actions cannot open unrelated records.
+        VerifyReleasedProdOrderSubcActionsEnabled(ReleasedProductionOrders, false);
+        ReleasedProductionOrders.Close();
+    end;
+
+    [Test]
+    procedure ReleasedProdOrderSubcActionsReenableAfterFilter()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
+        ReleasedProductionOrders: TestPage "Released Production Orders";
+    begin
+        // [SCENARIO 648872] Subcontracting actions follow the current selection when filters are changed.
+        Initialize();
+
+        // [GIVEN] A selected released production order.
+        LibraryApplicationArea.EnablePremiumSetup();
+        LibraryInventory.CreateItem(Item);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 1);
+        ReleasedProductionOrders.OpenView();
+        ReleasedProductionOrders.GoToRecord(ProductionOrder);
+        VerifyReleasedProdOrderSubcActionsEnabled(ReleasedProductionOrders, true);
+
+        // [WHEN] Filtering the selected order out of the list.
+        ReleasedProductionOrders.Filter.SetFilter("No.", '__NO_MATCH__');
+        Assert.IsFalse(ReleasedProductionOrders.First(), 'The released production orders list must be empty.');
+
+        // [THEN] Subcontracting actions are disabled.
+        VerifyReleasedProdOrderSubcActionsEnabled(ReleasedProductionOrders, false);
+
+        // [WHEN] Restoring the selected order.
+        ReleasedProductionOrders.Filter.SetFilter("No.", ProductionOrder."No.");
+        Assert.IsTrue(ReleasedProductionOrders.First(), 'The released production order must be available.');
+
+        // [THEN] Subcontracting actions are enabled again.
+        VerifyReleasedProdOrderSubcActionsEnabled(ReleasedProductionOrders, true);
+        ReleasedProductionOrders.Close();
+    end;
+
+    local procedure VerifyReleasedProdOrderSubcActionsEnabled(ReleasedProductionOrders: TestPage "Released Production Orders"; ExpectedEnabled: Boolean)
+    begin
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Subcontracting Purchase Lines".Enabled(), 'Subcontracting Order Lines must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Subc. Transfer Orders".Enabled(), 'Subcontracting Transfer Orders must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Subc. Transfer Entries".Enabled(), 'Subcontracting Transfer Entries must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."WIP Ledger Entries".Enabled(), 'Subcontracting WIP Entries must follow the current production order selection.');
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
     procedure CannotDeleteSubcontractingOrderWithAssociatedTransferOrder()
     var

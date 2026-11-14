@@ -152,6 +152,7 @@ page 9326 "Released Production Orders"
             group("Pro&d. Order")
             {
                 Caption = 'Pro&d. Order';
+                Enabled = Rec."No." <> '';
                 Image = "Order";
                 group("E&ntries")
                 {
@@ -247,6 +248,7 @@ page 9326 "Released Production Orders"
             group("F&unctions")
             {
                 Caption = 'F&unctions';
+                Enabled = Rec."No." <> '';
                 Image = "Action";
                 action("Change &Status")
                 {
@@ -314,8 +316,9 @@ page 9326 "Released Production Orders"
             action(PrintLabel)
             {
                 ApplicationArea = Manufacturing;
-                Image = Print;
                 Caption = 'Print Label';
+                Enabled = Rec."No." <> '';
+                Image = Print;
                 ToolTip = 'Print labels for the items on the order lines.';
 
                 trigger OnAction()
