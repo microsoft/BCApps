@@ -1076,11 +1076,17 @@ codeunit 148340 "Expense Policy Evaluation Test"
         StoredLineRef.GetTable(StoredExpenseReportLine);
         for FieldIndex := 1 to LineRef.FieldCount() do begin
             LineField := LineRef.FieldIndex(FieldIndex);
-            if (LineField.Class = FieldClass::Normal) and (LineField.Number < 2000000000) then begin
+            if (LineField.Class = FieldClass::Normal) and (LineField.Type <> FieldType::Blob) and (LineField.Number < 2000000000) then begin
                 StoredLineField := StoredLineRef.Field(LineField.Number);
                 Assert.AreEqual(StoredLineField.Value(), LineField.Value(), StrSubstNo(ParentFieldUnchangedErr, LineField.Name()));
             end;
         end;
+        Assert.AreEqual(
+            StoredExpenseReportLine.GetStartingPoint(), ExpenseReportLine.GetStartingPoint(),
+            StrSubstNo(ParentFieldUnchangedErr, ExpenseReportLine.FieldName("Starting Point Description")));
+        Assert.AreEqual(
+            StoredExpenseReportLine.GetEndingPoint(), ExpenseReportLine.GetEndingPoint(),
+            StrSubstNo(ParentFieldUnchangedErr, ExpenseReportLine.FieldName("Ending Point Description")));
         Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Pending child-only changes must make the held parent stale.');
         FailedCount := 99;
         PassedCount := 99;
