@@ -843,11 +843,13 @@ page 132 "Posted Sales Invoice"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Shipments';
                     Image = Shipment;
-                    ToolTip = 'View a list of related posted sales shipments.';
+                    ToolTip = 'View the posted sales shipments that the items on this invoice were shipped with. If only one shipment is related to the invoice, it opens directly.';
 
                     trigger OnAction()
+                    var
+                        SalesShipmentInvoiceLink: Codeunit "Sales Shipment-Invoice Link";
                     begin
-                        Rec.FindShipments(Rec);
+                        SalesShipmentInvoiceLink.ShowShipmentsForInvoice(Rec);
                     end;
                 }
                 action(ChangePaymentService)
