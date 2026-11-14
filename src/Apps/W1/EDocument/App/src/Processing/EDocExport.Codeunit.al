@@ -81,6 +81,16 @@ codeunit 6102 "E-Doc. Export"
     /// otherwise false.
     /// </returns>
     internal procedure CreateEDocument(DocumentHeader: RecordRef; DocumentSendingProfile: Record "Document Sending Profile"; EDocumentType: Enum "E-Document Type"; AllowReExport: Boolean): Boolean
+    begin
+        exit(CreateEDocument(DocumentHeader, DocumentSendingProfile, EDocumentType, AllowReExport, false, false));
+    end;
+
+    internal procedure CreateSelfBilledEDocument(DocumentHeader: RecordRef; DocumentSendingProfile: Record "Document Sending Profile"; EDocumentType: Enum "E-Document Type"; CheckDocument: Boolean): Boolean
+    begin
+        exit(CreateEDocument(DocumentHeader, DocumentSendingProfile, EDocumentType, false, true, CheckDocument));
+    end;
+
+    local procedure CreateEDocument(DocumentHeader: RecordRef; DocumentSendingProfile: Record "Document Sending Profile"; EDocumentType: Enum "E-Document Type"; AllowReExport: Boolean; EvaluateSelfBillingPolicy: Boolean; CheckDocument: Boolean): Boolean
     var
         WorkFlow: Record Workflow;
         EDocumentService: Record "E-Document Service";
@@ -96,7 +106,7 @@ codeunit 6102 "E-Doc. Export"
         if not EDocWorkFlowProcessing.GetServicesFromEntryPointResponseInWorkflow(WorkFlow, EDocumentService) then
             exit(false);
 
-        exit(CreateAndExportEDocument(DocumentHeader, EDocumentService, WorkFlow.Code, DocumentSendingProfile.Code, EDocumentType, AllowReExport));
+        exit(CreateAndExportEDocument(DocumentHeader, EDocumentService, WorkFlow.Code, DocumentSendingProfile.Code, EDocumentType, AllowReExport, EvaluateSelfBillingPolicy, CheckDocument));
     end;
 
     /// <summary>
@@ -105,15 +115,22 @@ codeunit 6102 "E-Doc. Export"
     /// If an E-Document already exists for the document header, re-exports for every supported service when AllowReExport is true.
     /// </summary>
     procedure CreateAndExportEDocument(var DocumentHeader: RecordRef; var EDocumentService: Record "E-Document Service"; WorkflowCode: Code[20]; DocumentSendingProfileCode: Code[20]; EDocumentType: Enum "E-Document Type"; AllowReExport: Boolean): Boolean
+    begin
+        exit(CreateAndExportEDocument(DocumentHeader, EDocumentService, WorkflowCode, DocumentSendingProfileCode, EDocumentType, AllowReExport, false, false));
+    end;
+
+    local procedure CreateAndExportEDocument(var DocumentHeader: RecordRef; var EDocumentService: Record "E-Document Service"; WorkflowCode: Code[20]; DocumentSendingProfileCode: Code[20]; EDocumentType: Enum "E-Document Type"; AllowReExport: Boolean; EvaluateSelfBillingPolicy: Boolean; CheckDocument: Boolean): Boolean
     var
         EDocument: Record "E-Document";
         EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
         SupportedServices: List of [Code[20]];
         ServiceCode: Code[20];
     begin
+        if not AllowReExport then
+            EDocumentProcessing.CheckSelfBillingSource(DocumentHeader, EDocumentType);
         if EDocumentService.FindSet() then
             repeat
-                if IsDocumentSupported(EDocumentService, DocumentHeader, EDocumentType) then
+                if IsServiceEligibleForInitiation(EDocumentService, DocumentHeader, EDocumentType, EvaluateSelfBillingPolicy) then
                     SupportedServices.Add(EDocumentService.Code);
             until EDocumentService.Next() = 0;
 
@@ -121,9 +138,11 @@ codeunit 6102 "E-Doc. Export"
             exit(false);
 
         EDocument.SetRange("Document Record ID", DocumentHeader.RecordId);
-        if not EDocument.FindFirst() then
-            CreateEDocumentRecord(EDocument, DocumentHeader, EDocumentType, WorkflowCode, DocumentSendingProfileCode, SupportedServices)
-        else begin
+        if not EDocument.FindFirst() then begin
+            if CheckDocument then
+                CheckSelectedServices(DocumentHeader, SupportedServices);
+            CreateEDocumentRecord(EDocument, DocumentHeader, EDocumentType, WorkflowCode, DocumentSendingProfileCode, SupportedServices);
+        end else begin
             if not AllowReExport then
                 exit(false);
             PopulateEDocument(EDocument, DocumentHeader);
@@ -142,6 +161,32 @@ codeunit 6102 "E-Doc. Export"
         exit(true);
     end;
 
+    local procedure IsServiceEligibleForInitiation(EDocumentService: Record "E-Document Service"; DocumentHeader: RecordRef; EDocumentType: Enum "E-Document Type"; EvaluateSelfBillingPolicy: Boolean): Boolean
+    begin
+        if not IsDocumentSupported(EDocumentService, DocumentHeader, EDocumentType) then
+            exit(false);
+        if EvaluateSelfBillingPolicy then
+            exit(EDocumentProcessing.HasSelfBillingSetup(EDocumentService, DocumentHeader, EDocumentType));
+        exit(true);
+    end;
+
+    local procedure CheckSelectedServices(DocumentHeader: RecordRef; SupportedServices: List of [Code[20]])
+    var
+        EDocumentService: Record "E-Document Service";
+        ServiceCode: Code[20];
+        IsHandled: Boolean;
+    begin
+        OnBeforeEDocumentCheck(DocumentHeader, Enum::"E-Document Processing Phase"::Post, IsHandled);
+        if IsHandled then
+            exit;
+        foreach ServiceCode in SupportedServices do begin
+            EDocumentService.Get(ServiceCode);
+            EDocumentInterface := EDocumentService."Document Format";
+            EDocumentInterface.Check(DocumentHeader, EDocumentService, Enum::"E-Document Processing Phase"::Post);
+        end;
+        OnAfterEDocumentCheck(DocumentHeader, Enum::"E-Document Processing Phase"::Post);
+    end;
+
     /// <summary>
     /// CreateEDocument - Creates an E-Document record for the given document header and a set of services.
     /// If services do not support the document type they are filtered out.
@@ -151,6 +196,7 @@ codeunit 6102 "E-Doc. Export"
     var
         SupportedServices: List of [Code[20]];
     begin
+        EDocumentProcessing.CheckSelfBillingSource(DocumentHeader, EDocumentType);
         EDocument.SetRange("Document Record ID", DocumentHeader.RecordId);
         if not EDocument.IsEmpty() then
             exit(false);
@@ -177,6 +223,7 @@ codeunit 6102 "E-Doc. Export"
     begin
         OnBeforeCreateEDocument(EDocument, DocumentHeader);
 
+        EDocumentProcessing.CheckSelfBillingSource(DocumentHeader, EDocumentType);
         EDocument.Validate("Document Record ID", DocumentHeader.RecordId);
         EDocument.Validate("Document Type", EDocumentType);
         EDocument.Validate(Status, EDocument.Status::"In Progress");
@@ -359,8 +406,6 @@ codeunit 6102 "E-Doc. Export"
         SalesHeader: Record "Sales Header";
         PurchHeader: Record "Purchase Header";
         FinanceChargeMemoHeader: Record "Finance Charge Memo Header";
-        PurchInvHeader: Record "Purch. Inv. Header";
-        PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
         SalesDocumentType: Enum "Sales Document Type";
         PurchDocumentType: Enum "Purchase Document Type";
         RemainingAmount, InterestAmount, AdditionalFee, VATAmount : Decimal;
@@ -479,17 +524,9 @@ codeunit 6102 "E-Doc. Export"
                     EDocument."Bill-to/Pay-to No." := SourceDocumentHeader.Field(PurchHeader.FieldNo("Pay-to Vendor No.")).Value;
                     EDocument."Bill-to/Pay-to Name" := SourceDocumentHeader.Field(PurchHeader.FieldNo("Pay-to Name")).Value;
 
-                    case SourceDocumentHeader.Number of
-                        Database::"Purch. Inv. Header":
-                            if SourceDocumentHeader.Field(PurchInvHeader.FieldNo("Self-Billing Invoice")).Value then
-                                EDocument."Document Type" := EDocument."Document Type"::"Self-Billed Purchase Invoice";
-                        Database::"Purch. Cr. Memo Hdr.":
-                            begin
-                                SourceDocumentHeader.SetTable(PurchCrMemoHdr);
-                                if EDocumentProcessing.IsSelfBilledCreditMemo(PurchCrMemoHdr) then
-                                    EDocument."Document Type" := EDocument."Document Type"::"Self-Billed Purch. Cr. Memo";
-                            end;
-                    end;
+                    if SourceDocumentHeader.Number() in [Database::"Purch. Inv. Header", Database::"Purch. Cr. Memo Hdr."] then
+                        if EDocumentProcessing.IsSelfBillingSource(SourceDocumentHeader) then
+                            EDocument."Document Type" := EDocumentProcessing.GetSelfBillingDocumentType(SourceDocumentHeader);
                     EDocument."Posting Date" := SourceDocumentHeader.Field(PurchHeader.FieldNo("Posting Date")).Value;
                     EDocument."Document Date" := SourceDocumentHeader.Field(PurchHeader.FieldNo("Document Date")).Value;
                     EDocument."Due Date" := SourceDocumentHeader.Field(PurchHeader.FieldNo("Due Date")).Value;
@@ -708,7 +745,7 @@ codeunit 6102 "E-Doc. Export"
         exit((EDocServiceSupportedType.Direction = EDocServiceSupportedType.Direction::Both) or (EDocServiceSupportedType.Direction = QueriedDirection));
     end;
 
-    local procedure IsDocumentSupported(EDocumentService: Record "E-Document Service"; SourceDocumentHeader: RecordRef; DocumentType: Enum "E-Document Type"): Boolean
+    internal procedure IsDocumentSupported(EDocumentService: Record "E-Document Service"; SourceDocumentHeader: RecordRef; DocumentType: Enum "E-Document Type"): Boolean
     var
         IExportEligibilityEvaluator: Interface IExportEligibilityEvaluator;
     begin

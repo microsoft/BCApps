@@ -8,6 +8,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
@@ -35,6 +36,7 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         PurchaseHeader: Record "Purchase Header";
         EDocPEPPOLValidation: Codeunit "E-Doc. PEPPOL Validation";
         EDocRemittanceAdviceMgt: Codeunit "E-Doc. Remittance Advice Mgt.";
+        EDocumentProcessing: Codeunit "E-Document Processing";
         SalesValidation: Interface "PEPPOL30 Validation";
         ServiceValidation: Interface "PEPPOL30 Validation";
     begin
@@ -42,6 +44,8 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         ServiceValidation := GetServiceFormat();
 
         case SourceDocumentHeader.Number of
+            Database::"Purch. Inv. Header", Database::"Purch. Cr. Memo Hdr.":
+                EDocumentProcessing.GetSelfBillingDocumentType(SourceDocumentHeader);
             Database::"Sales Header":
                 begin
                     SourceDocumentHeader.SetTable(SalesHeader);
@@ -107,8 +111,10 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
     procedure Create(EDocumentService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     var
         EDocErrorHelper: Codeunit "E-Document Error Helper";
+        EDocumentProcessing: Codeunit "E-Document Processing";
         DocOutStream: OutStream;
     begin
+        EDocumentProcessing.CheckSelfBillingSource(SourceDocumentHeader, EDocument."Document Type");
         TempBlob.CreateOutStream(DocOutStream);
         case EDocument."Document Type" of
             EDocument."Document Type"::"Sales Invoice":
@@ -325,6 +331,7 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
     local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)
     var
         EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
+        EDocumentProcessing: Codeunit "E-Document Processing";
     begin
         if Rec."Document Format" <> Rec."Document Format"::"PEPPOL BIS 3.0" then
             exit;
@@ -338,8 +345,7 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Service Invoice", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
         EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Service Credit Memo", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
         EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Remittance Advice", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
-        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Self-Billed Purchase Invoice", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
-        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Self-Billed Purch. Cr. Memo", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocumentProcessing.RegisterDefaultSelfBillingTypes(Rec.Code);
     end;
 
     [IntegrationEvent(false, false)]
