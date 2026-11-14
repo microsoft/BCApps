@@ -97,4 +97,12 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Travel Request', Locked = true;
     }
+
+    /// <summary>
+    /// No receipt declarations and category thresholds are enabled by company policy.
+    /// </summary>
+    value(9; NoReceipt)
+    {
+        Caption = 'No Receipt', Locked = true;
+    }
 }

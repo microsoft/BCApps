@@ -16,6 +16,18 @@ tableextension 6902 "Exp. Document Attachment Ext" extends "Document Attachment"
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        field(6901; "No Receipt Declaration"; Boolean)
+        {
+            Caption = 'No Receipt Declaration';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(6902; "System Generated"; Boolean)
+        {
+            Caption = 'System Generated';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
     }
     keys
     {

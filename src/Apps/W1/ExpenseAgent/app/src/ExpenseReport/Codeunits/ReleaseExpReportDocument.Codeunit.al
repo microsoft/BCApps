@@ -28,6 +28,7 @@ codeunit 6984 "Release Exp. Report Document"
         PolicyEvaluationNotCurrentErr: Label 'One or more expense lines have a policy evaluation that is not up to date. Re-run policy evaluation and approve again.';
         PolicyEvaluationNotCurrentCodeTok: Label ' (PolicyEvaluationNotCurrent)', Locked = true;
         ReimbursementErr: Label 'Reimbursement type must be set to a value in expense report %1, line %2 with description %3.', Comment = '%1 - Expense No. , %2 - Line No., %3 - description';
+        NoReceiptDeclarationNotCurrentErr: Label 'The no receipt declaration for expense %1 is missing or no longer current.', Comment = '%1 = Expense No.';
 
     local procedure ReleaseExpenseReport()
     var
@@ -66,6 +67,7 @@ codeunit 6984 "Release Exp. Report Document"
         ExpenseCategory: Record "Expense Category";
         ExpenseSubCategory: Record "Expense Subcategory";
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
     begin
         ExpenseReportLine.TestField("Expense Category");
         ExpenseCategory.Get(ExpenseReportLine."Expense Category");
@@ -80,6 +82,13 @@ codeunit 6984 "Release Exp. Report Document"
 
         if ExpenseReportLine."Job No." <> '' then
             ExpenseReportLine.TestField("Job Task No.");
+
+        if ExpenseReportLine."No Receipt Type" = ExpenseReportLine."No Receipt Type"::"Lost Receipt" then begin
+            ExpenseReportLine.TestField("No Receipt Reason");
+            if IsNullGuid(ExpenseReportLine."No Receipt Declaration ID") or not NoReceiptDeclarationMgt.HasDeclaration(ExpenseReportLine)
+            then
+                Error(NoReceiptDeclarationNotCurrentErr, ExpenseReportLine."Expense No.");
+        end;
 
         CheckBillableVendor(ExpenseReportLine);
         CheckBillableCustomer(ExpenseReportLine);
