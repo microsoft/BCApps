@@ -14,6 +14,8 @@ permissionset 10988 "E-Reporting FR User"
     IncludedPermissionSets = "E-Doc. Core - User";
 
     Permissions =
+        codeunit "FR Legal Identifiers" = X,
+        codeunit "FR Identifier Migration" = X,
         table "FR E-Invoice Message" = X,
         tabledata "FR E-Invoice Message" = R,
         table "FR E-Invoice Message VAT" = X,

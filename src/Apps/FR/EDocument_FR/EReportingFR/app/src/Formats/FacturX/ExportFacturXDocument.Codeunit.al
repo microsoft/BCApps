@@ -31,9 +31,15 @@ codeunit 10983 "Export Factur-X Document"
     end;
 
     procedure ExportDocument(var RecordExportBuffer: Record "Record Export Buffer")
+    begin
+        ExportDocument(RecordExportBuffer, '');
+    end;
+
+    procedure ExportDocument(var RecordExportBuffer: Record "Record Export Buffer"; ServiceCode: Code[20])
     var
         FRFacturXReportIntegration: Codeunit "Factur-X Report Integration";
     begin
+        FRFacturXReportIntegration.SetServiceContext(RecordExportBuffer.RecordID, ServiceCode);
         BindSubscription(FRFacturXReportIntegration);
         ExportSalesDocument(RecordExportBuffer);
         UnbindSubscription(FRFacturXReportIntegration);
@@ -59,6 +65,7 @@ codeunit 10983 "Export Factur-X Document"
                       SalesInvoiceHeader."Currency Code", SalesInvoiceHeader.Amount, SalesInvoiceHeader."Amount Including VAT");
 
         SourceDocumentHeader.GetTable(SalesInvoiceHeader);
+        OnGetEDocumentService(SourceDocumentHeader.RecordId, EDocument.Service);
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SourceDocumentLines.GetTable(SalesInvoiceLine);
 
@@ -80,6 +87,7 @@ codeunit 10983 "Export Factur-X Document"
                       SalesCrMemoHeader."Currency Code", SalesCrMemoHeader.Amount, SalesCrMemoHeader."Amount Including VAT");
 
         SourceDocumentHeader.GetTable(SalesCrMemoHeader);
+        OnGetEDocumentService(SourceDocumentHeader.RecordId, EDocument.Service);
         SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
         SourceDocumentLines.GetTable(SalesCrMemoLine);
 
@@ -101,6 +109,7 @@ codeunit 10983 "Export Factur-X Document"
                       ServiceInvoiceHeader."Currency Code", ServiceInvoiceHeader.Amount, ServiceInvoiceHeader."Amount Including VAT");
 
         SourceDocumentHeader.GetTable(ServiceInvoiceHeader);
+        OnGetEDocumentService(SourceDocumentHeader.RecordId, EDocument.Service);
         ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
         SourceDocumentLines.GetTable(ServiceInvoiceLine);
 
@@ -122,6 +131,7 @@ codeunit 10983 "Export Factur-X Document"
                       ServiceCrMemoHeader."Currency Code", ServiceCrMemoHeader.Amount, ServiceCrMemoHeader."Amount Including VAT");
 
         SourceDocumentHeader.GetTable(ServiceCrMemoHeader);
+        OnGetEDocumentService(SourceDocumentHeader.RecordId, EDocument.Service);
         ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
         SourceDocumentLines.GetTable(ServiceCrMemoLine);
 
@@ -145,6 +155,7 @@ codeunit 10983 "Export Factur-X Document"
                       IssuedReminderHeader."Interest Amount" + IssuedReminderHeader."Additional Fee" + IssuedReminderHeader."Add. Fee per Line" + IssuedReminderHeader."VAT Amount");
 
         SourceDocumentHeader.GetTable(IssuedReminderHeader);
+        OnGetEDocumentService(SourceDocumentHeader.RecordId, EDocument.Service);
         IssuedReminderLine.SetRange("Reminder No.", IssuedReminderHeader."No.");
         SourceDocumentLines.GetTable(IssuedReminderLine);
 
@@ -168,6 +179,7 @@ codeunit 10983 "Export Factur-X Document"
                       IssuedFinChargeMemoHeader."Interest Amount" + IssuedFinChargeMemoHeader."Additional Fee" + IssuedFinChargeMemoHeader."VAT Amount");
 
         SourceDocumentHeader.GetTable(IssuedFinChargeMemoHeader);
+        OnGetEDocumentService(SourceDocumentHeader.RecordId, EDocument.Service);
         IssuedFinChargeMemoLine.SetRange("Finance Charge Memo No.", IssuedFinChargeMemoHeader."No.");
         SourceDocumentLines.GetTable(IssuedFinChargeMemoLine);
 
@@ -376,6 +388,11 @@ codeunit 10983 "Export Factur-X Document"
         PDFDocument.AddAttachment(Name, DataType, MimeType, XmlInStream, Description, true);
 
         RenderingPayload := PDFDocument.ToJson(RenderingPayload);
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnGetEDocumentService(SourceRecordId: RecordId; var ServiceCode: Code[20])
+    begin
     end;
 
     [InternalEvent(false)]
