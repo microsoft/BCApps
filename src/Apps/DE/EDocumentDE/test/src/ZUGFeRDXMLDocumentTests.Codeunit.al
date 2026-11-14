@@ -35,6 +35,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 {
     Subtype = Test;
     TestType = Uncategorized;
+    Permissions = tabledata "Sales Cr.Memo Header" = m,
+                  tabledata "Sales Invoice Header" = i;
 
     trigger OnRun();
     begin
@@ -84,6 +86,312 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         OriginalCompanyUsesRegistrationNo: Boolean;
         OriginalCompanyVATRegistrationNo: Text[20];
         OriginalCompanyRegistrationNo: Text[20];
+
+    [Test]
+    procedure SalesCreditMemoExportsOriginalInvoiceReference()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 658066] A sales credit memo references its original sales invoice.
+        Initialize();
+
+        // [GIVEN] Posted credit memo "CM" applied to invoice "SI".
+        CreateCreditMemoWithInvoiceReference(SalesCrMemoHeader);
+
+        // [WHEN] Exporting "CM" and extracting its embedded ZUGFeRD XML.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The original invoice number occurs exactly once in InvoiceReferencedDocument.
+        VerifyOriginalInvoiceReference(TempXMLBuffer, SalesCrMemoHeader."Applies-to Doc. No.");
+    end;
+
+    [Test]
+    procedure SalesCreditMemoOmitsBlankInvoiceReference()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 658066] A blank applies-to number does not create an empty reference.
+        Initialize();
+
+        // [GIVEN] Posted credit memo "CM" without an applies-to number.
+        CreateCreditMemoWithInvoiceReference(SalesCrMemoHeader);
+        SalesCrMemoHeader."Applies-to Doc. No." := '';
+        SalesCrMemoHeader.Modify(false);
+
+        // [WHEN] Exporting "CM" and extracting its embedded XML.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] No InvoiceReferencedDocument is emitted.
+        VerifyNodeDoesNotExist(TempXMLBuffer, OriginalInvoiceReferencePath());
+    end;
+
+    [Test]
+    procedure SalesCreditMemoOmitsNonInvoiceReference()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 658066] Only applies-to type Invoice produces an invoice reference.
+        Initialize();
+
+        // [GIVEN] Posted credit memo "CM" with a non-invoice applies-to type.
+        CreateCreditMemoWithInvoiceReference(SalesCrMemoHeader);
+        SalesCrMemoHeader."Applies-to Doc. Type" := SalesCrMemoHeader."Applies-to Doc. Type"::"Credit Memo";
+        SalesCrMemoHeader.Modify(false);
+
+        // [WHEN] Exporting "CM" and extracting its embedded XML.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] No InvoiceReferencedDocument is emitted.
+        VerifyNodeDoesNotExist(TempXMLBuffer, OriginalInvoiceReferencePath());
+    end;
+
+    [Test]
+    procedure SalesCreditMemoOmitsMissingInvoiceReference()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 658066] A historical reference to a missing sales invoice is optional.
+        Initialize();
+
+        // [GIVEN] Posted credit memo "CM" referencing a nonexistent invoice.
+        CreateCreditMemoWithInvoiceReference(SalesCrMemoHeader);
+        SalesCrMemoHeader."Applies-to Doc. No." := LibraryUtility.GenerateGUID();
+        SalesCrMemoHeader.Modify(false);
+        Assert.IsFalse(SalesInvoiceHeader.Get(SalesCrMemoHeader."Applies-to Doc. No."), 'The invoice fixture must not exist.');
+
+        // [WHEN] Exporting "CM" and extracting its embedded XML.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Export succeeds without InvoiceReferencedDocument.
+        VerifyNodeDoesNotExist(TempXMLBuffer, OriginalInvoiceReferencePath());
+    end;
+
+    [Test]
+    procedure SalesCreditMemoDoesNotReferenceServiceInvoice()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 658066] A sales credit memo cannot resolve a service-only invoice number.
+        Initialize();
+
+        // [GIVEN] Credit memo "CM" referencing a number present only in service history.
+        CreateCreditMemoWithInvoiceReference(SalesCrMemoHeader);
+        ServiceInvoiceHeader."No." := LibraryUtility.GenerateGUID();
+        ServiceInvoiceHeader.Insert(false);
+        SalesCrMemoHeader."Applies-to Doc. No." := ServiceInvoiceHeader."No.";
+        SalesCrMemoHeader.Modify(false);
+        Assert.IsFalse(SalesInvoiceHeader.Get(ServiceInvoiceHeader."No."), 'No sales invoice may have the service-only number.');
+
+        // [WHEN] Exporting "CM" and extracting its embedded XML.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] No reference to the service invoice is emitted.
+        VerifyNodeDoesNotExist(TempXMLBuffer, OriginalInvoiceReferencePath());
+    end;
+
+    [Test]
+    procedure ServiceCreditMemoExportsOriginalInvoiceReference()
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 658066] A service credit memo references its original service invoice.
+        Initialize();
+
+        // [GIVEN] Posted service credit memo "CM" applied to service invoice "SI".
+        CreateCreditMemoWithInvoiceReference(ServiceCrMemoHeader);
+
+        // [WHEN] Exporting "CM" and extracting its embedded ZUGFeRD XML.
+        ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The service invoice number occurs exactly once in InvoiceReferencedDocument.
+        VerifyOriginalInvoiceReference(TempXMLBuffer, ServiceCrMemoHeader."Applies-to Doc. No.");
+    end;
+
+    [Test]
+    procedure ServiceCreditMemoOmitsBlankInvoiceReference()
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 658066] A service credit memo without an applies-to number omits the reference.
+        Initialize();
+
+        // [GIVEN] Posted service credit memo "CM" without an applies-to number.
+        CreateCreditMemoWithInvoiceReference(ServiceCrMemoHeader);
+        ServiceCrMemoHeader."Applies-to Doc. No." := '';
+        ServiceCrMemoHeader.Modify(false);
+
+        // [WHEN] Exporting "CM" and extracting its embedded XML.
+        ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] No empty InvoiceReferencedDocument is emitted.
+        VerifyNodeDoesNotExist(TempXMLBuffer, OriginalInvoiceReferencePath());
+    end;
+
+    [Test]
+    procedure ServiceCreditMemoOmitsNonInvoiceReference()
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 658066] A service credit memo with a non-invoice applies-to type omits the reference.
+        Initialize();
+
+        // [GIVEN] Posted service credit memo "CM" with a non-invoice applies-to type.
+        CreateCreditMemoWithInvoiceReference(ServiceCrMemoHeader);
+        ServiceCrMemoHeader."Applies-to Doc. Type" := ServiceCrMemoHeader."Applies-to Doc. Type"::"Credit Memo";
+        ServiceCrMemoHeader.Modify(false);
+
+        // [WHEN] Exporting "CM" and extracting its embedded XML.
+        ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] No InvoiceReferencedDocument is emitted.
+        VerifyNodeDoesNotExist(TempXMLBuffer, OriginalInvoiceReferencePath());
+    end;
+
+    [Test]
+    procedure ServiceCreditMemoOmitsMissingInvoiceReference()
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 658066] A historical reference to a missing service invoice is optional.
+        Initialize();
+
+        // [GIVEN] Posted service credit memo "CM" referencing a nonexistent invoice.
+        CreateCreditMemoWithInvoiceReference(ServiceCrMemoHeader);
+        ServiceCrMemoHeader."Applies-to Doc. No." := LibraryUtility.GenerateGUID();
+        ServiceCrMemoHeader.Modify(false);
+        Assert.IsFalse(ServiceInvoiceHeader.Get(ServiceCrMemoHeader."Applies-to Doc. No."), 'The invoice fixture must not exist.');
+
+        // [WHEN] Exporting "CM" and extracting its embedded XML.
+        ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Export succeeds without InvoiceReferencedDocument.
+        VerifyNodeDoesNotExist(TempXMLBuffer, OriginalInvoiceReferencePath());
+    end;
+
+    [Test]
+    procedure ServiceCreditMemoDoesNotReferenceSalesInvoice()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 658066] A service credit memo cannot resolve a sales-only invoice number.
+        Initialize();
+
+        // [GIVEN] Credit memo "CM" referencing a number present only in sales history.
+        CreateCreditMemoWithInvoiceReference(ServiceCrMemoHeader);
+        SalesInvoiceHeader."No." := LibraryUtility.GenerateGUID();
+        SalesInvoiceHeader.Insert(false);
+        ServiceCrMemoHeader."Applies-to Doc. No." := SalesInvoiceHeader."No.";
+        ServiceCrMemoHeader.Modify(false);
+        Assert.IsFalse(ServiceInvoiceHeader.Get(SalesInvoiceHeader."No."), 'No service invoice may have the sales-only number.');
+
+        // [WHEN] Exporting "CM" and extracting its embedded XML.
+        ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] No reference to the sales invoice is emitted.
+        VerifyNodeDoesNotExist(TempXMLBuffer, OriginalInvoiceReferencePath());
+    end;
+
+    [Test]
+    procedure ServiceCreditMemoReferencesInvoiceWithCollidingNumber()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 658066] A sales invoice with the same number does not prevent a service reference.
+        Initialize();
+
+        // [GIVEN] Service credit memo "CM" linked to an invoice whose number also exists in sales history.
+        CreateCreditMemoWithInvoiceReference(ServiceCrMemoHeader);
+        ServiceInvoiceHeader."No." := LibraryUtility.GenerateGUID();
+        ServiceInvoiceHeader.Insert(false);
+        SalesInvoiceHeader."No." := ServiceInvoiceHeader."No.";
+        SalesInvoiceHeader.Insert(false);
+        ServiceCrMemoHeader."Applies-to Doc. No." := ServiceInvoiceHeader."No.";
+        ServiceCrMemoHeader.Modify(false);
+
+        // [WHEN] Exporting "CM" and extracting its embedded XML.
+        ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The valid original invoice number is included exactly once.
+        VerifyOriginalInvoiceReference(TempXMLBuffer, ServiceCrMemoHeader."Applies-to Doc. No.");
+    end;
+
+    [Test]
+    procedure SalesCreditMemoDoesNotReuseInvoiceReference()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 658066] Reusing the exporter does not retain a sales invoice reference.
+        Initialize();
+
+        // [GIVEN] The exporter has generated a linked credit memo "CM".
+        CreateCreditMemoWithInvoiceReference(SalesCrMemoHeader);
+        ExportCreditMemoOnSameInstance(SalesCrMemoHeader, TempXMLBuffer);
+        VerifyOriginalInvoiceReference(TempXMLBuffer, SalesCrMemoHeader."Applies-to Doc. No.");
+        SalesCrMemoHeader."Applies-to Doc. No." := '';
+        SalesCrMemoHeader.Modify(false);
+
+        // [WHEN] Exporting "CM" without its link using the same instance.
+        ExportCreditMemoOnSameInstance(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The previous reference is not retained.
+        VerifyNodeDoesNotExist(TempXMLBuffer, OriginalInvoiceReferencePath());
+    end;
+
+    [Test]
+    procedure ServiceCreditMemoDoesNotReuseInvoiceReference()
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 658066] Reusing the exporter does not retain a service invoice reference.
+        Initialize();
+
+        // [GIVEN] The exporter has generated a linked service credit memo "CM".
+        CreateCreditMemoWithInvoiceReference(ServiceCrMemoHeader);
+        ExportCreditMemoOnSameInstance(ServiceCrMemoHeader, TempXMLBuffer);
+        VerifyOriginalInvoiceReference(TempXMLBuffer, ServiceCrMemoHeader."Applies-to Doc. No.");
+        ServiceCrMemoHeader."Applies-to Doc. No." := '';
+        ServiceCrMemoHeader.Modify(false);
+
+        // [WHEN] Exporting "CM" without its link using the same instance.
+        ExportCreditMemoOnSameInstance(ServiceCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The previous reference is not retained.
+        VerifyNodeDoesNotExist(TempXMLBuffer, OriginalInvoiceReferencePath());
+    end;
 
     #region SalesInvoice
     [Test]
@@ -4221,6 +4529,88 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         PDFDocument.GetDocumentAttachmentStream(PdfInStream, TempBlob2);
         TempBlob2.CreateInStream(PdfAttachmentStream);
         TempXMLBuffer.LoadFromStream(PdfAttachmentStream);
+    end;
+
+    local procedure CreateCreditMemoWithInvoiceReference(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice);
+        CreateSalesLine(SalesHeader, "Sales Line Type"::Item, false);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", SalesInvoiceHeader."Sell-to Customer No.");
+        CreateSalesLine(SalesHeader, "Sales Line Type"::Item, false);
+        SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
+        SalesHeader.Validate("Applies-to Doc. No.", SalesInvoiceHeader."No.");
+        SalesHeader.Modify(true);
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateCreditMemoWithInvoiceReference(var ServiceCrMemoHeader: Record "Service Cr.Memo Header")
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+    begin
+        CreateServiceHeader(ServiceHeader);
+        CreateServiceLine(ServiceHeader);
+        ServiceInvoiceHeader.Get(PostServiceDocument(ServiceHeader));
+
+        CreateServiceCrMemoHeader(ServiceHeader, ServiceInvoiceHeader."Customer No.");
+        CreateServiceLine(ServiceHeader);
+        ServiceHeader.Validate("Applies-to Doc. Type", ServiceHeader."Applies-to Doc. Type"::Invoice);
+        ServiceHeader.Validate("Applies-to Doc. No.", ServiceInvoiceHeader."No.");
+        ServiceHeader.Modify(true);
+        ServiceCrMemoHeader.Get(PostServiceCrMemoDocument(ServiceHeader));
+    end;
+
+    local procedure OriginalInvoiceReferencePath(): Text
+    begin
+        exit('/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:InvoiceReferencedDocument');
+    end;
+
+    local procedure VerifyOriginalInvoiceReference(var TempXMLBuffer: Record "XML Buffer" temporary; ExpectedInvoiceNo: Code[20])
+    begin
+        Assert.AreEqual(ExpectedInvoiceNo, GetNodeByPathWithError(TempXMLBuffer, OriginalInvoiceReferencePath() + '/ram:IssuerAssignedID'), 'The original invoice number must be exported.');
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Path, OriginalInvoiceReferencePath());
+        Assert.RecordCount(TempXMLBuffer, 1);
+        TempXMLBuffer.SetRange(Path, OriginalInvoiceReferencePath() + '/ram:IssuerAssignedID');
+        Assert.RecordCount(TempXMLBuffer, 1);
+        TempXMLBuffer.Reset();
+    end;
+
+    local procedure ExportCreditMemoOnSameInstance(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        XmlOutStream: OutStream;
+        XmlInStream: InStream;
+    begin
+        TempBlob.CreateOutStream(XmlOutStream, TextEncoding::UTF8);
+        ExportZUGFeRDDocument.CreateXML(SalesCrMemoHeader, XmlOutStream);
+        TempBlob.CreateInStream(XmlInStream);
+        DEXMLDocumentValidator.ValidateZUGFeRDXML(XmlInStream);
+        XmlInStream.ResetPosition();
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.DeleteAll();
+        TempXMLBuffer.LoadFromStream(XmlInStream);
+    end;
+
+    local procedure ExportCreditMemoOnSameInstance(ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        XmlOutStream: OutStream;
+        XmlInStream: InStream;
+    begin
+        TempBlob.CreateOutStream(XmlOutStream, TextEncoding::UTF8);
+        ExportZUGFeRDDocument.CreateXML(ServiceCrMemoHeader, XmlOutStream);
+        TempBlob.CreateInStream(XmlInStream);
+        DEXMLDocumentValidator.ValidateZUGFeRDXML(XmlInStream);
+        XmlInStream.ResetPosition();
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.DeleteAll();
+        TempXMLBuffer.LoadFromStream(XmlInStream);
     end;
 
     local procedure ExportCreditMemo(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
