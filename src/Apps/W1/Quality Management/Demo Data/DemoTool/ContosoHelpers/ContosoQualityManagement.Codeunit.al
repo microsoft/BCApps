@@ -196,6 +196,11 @@ codeunit 5710 "Contoso Quality Management"
     end;
 
     procedure InsertQualityInspectionGenRule(EntryNo: Integer; SortOrder: Integer; Intent: Enum "Qlty. Gen. Rule Intent"; TemplateCode: Code[20]; SourceTableNo: Integer; ConditionFilter: Text[400]; Description: Text[100]; ActivationTrigger: Enum "Qlty. Gen. Rule Act. Trigger")
+    begin
+        InsertQualityInspectionGenRule(EntryNo, SortOrder, Intent, TemplateCode, SourceTableNo, ConditionFilter, Description, ActivationTrigger, '');
+    end;
+
+    procedure InsertQualityInspectionGenRule(EntryNo: Integer; SortOrder: Integer; Intent: Enum "Qlty. Gen. Rule Intent"; TemplateCode: Code[20]; SourceTableNo: Integer; ConditionFilter: Text[400]; Description: Text[100]; ActivationTrigger: Enum "Qlty. Gen. Rule Act. Trigger"; ItemFilter: Text[2048])
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         Exists: Boolean;
@@ -215,6 +220,9 @@ codeunit 5710 "Contoso Quality Management"
 
         if ConditionFilter <> '' then
             QltyInspectionGenRule.Validate("Condition Filter", ConditionFilter);
+
+        if ItemFilter <> '' then
+            QltyInspectionGenRule.Validate("Item Filter", ItemFilter);
 
         if Description <> '' then
             QltyInspectionGenRule.Validate(Description, Description);
