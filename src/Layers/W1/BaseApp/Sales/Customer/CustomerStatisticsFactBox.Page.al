@@ -314,10 +314,12 @@ page 9082 "Customer Statistics FactBox"
         end;
     end;
 
-    [TryFunction]
-    local procedure TryGetDictionaryValueFromKey(var DictionaryToLookIn: Dictionary of [Text, Text]; KeyToSearchFor: Text; var ReturnValue: Text)
+    local procedure TryGetDictionaryValueFromKey(var DictionaryToLookIn: Dictionary of [Text, Text]; KeyToSearchFor: Text; var ReturnValue: Text): Boolean
     begin
+        if not DictionaryToLookIn.ContainsKey(KeyToSearchFor) then
+            exit(false);
         ReturnValue := DictionaryToLookIn.Get(KeyToSearchFor);
+        exit(true);
     end;
 
     local procedure ShowDetails()
