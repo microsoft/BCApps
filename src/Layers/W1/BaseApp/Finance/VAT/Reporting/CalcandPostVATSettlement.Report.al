@@ -437,6 +437,8 @@ report 20 "Calc. and Post VAT Settlement"
                 trigger OnAfterGetRecord()
                 begin
                     VATEntry.Reset();
+                    if PostSettlement and GLSetup.UseConcurrentPosting() then
+                        VATEntry.ReadIsolation := IsolationLevel::UpdLock;
                     VATEntry.SetRange(Type, VATType);
                     VATEntry.SetRange(Closed, false);
 
@@ -550,14 +552,17 @@ report 20 "Calc. and Post VAT Settlement"
 
             trigger OnPreDataItem()
             begin
-                GLEntry.LockTable(); // Avoid deadlock with function 12
-                if GLEntry.FindLast() then;
-                VATEntry.LockTable();
+                GLSetup.Get();
+                if not GLSetup.UseConcurrentPosting() then begin
+                    GLEntry.LockTable(); // Avoid deadlock with function 12
+                    if GLEntry.FindLast() then;
+                    VATEntry.LockTable();
+                end;
                 VATEntry.Reset();
-                NextVATEntryNo := VATEntry.GetLastEntryNo();
+                if not PostSettlement or not GLSetup.UseConcurrentPosting() then
+                    NextVATEntryNo := VATEntry.GetLastEntryNo();
 
                 SourceCodeSetup.Get();
-                GLSetup.Get();
                 VATAmount := 0;
                 VATAmountAddCurr := 0;
 
@@ -979,10 +984,23 @@ report 20 "Calc. and Post VAT Settlement"
 
     local procedure GetSettlementVATEntryNo(PostVATSettlement: Boolean): Integer
     var
+        GLRegister: Record "G/L Register";
+        SettlementVATEntry: Record "VAT Entry";
         NextAvailableVATEntryNo: Integer;
         LastPostedVATEntryNo: Integer;
     begin
         if PostVATSettlement then begin
+            if GLSetup.UseConcurrentPosting() then begin
+                GenJnlPostLine.GetGLReg(GLRegister);
+                SettlementVATEntry.SetCurrentKey("Document No.", "Posting Date");
+                SettlementVATEntry.SetRange("Document No.", GenJnlLine."Document No.");
+                SettlementVATEntry.SetRange("Posting Date", GenJnlLine."Posting Date");
+                SettlementVATEntry.SetRange("G/L Register No.", GLRegister."No.");
+                SettlementVATEntry.SetRange(Type, SettlementVATEntry.Type::Settlement);
+                SettlementVATEntry.FindLast();
+                exit(SettlementVATEntry."Entry No.");
+            end;
+
             NextAvailableVATEntryNo := GenJnlPostLine.GetNextVATEntryNo();
             if NextAvailableVATEntryNo <> 0 then
                 LastPostedVATEntryNo := NextAvailableVATEntryNo - 1;
