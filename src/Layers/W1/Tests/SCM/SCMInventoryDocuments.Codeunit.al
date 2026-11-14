@@ -47,6 +47,11 @@ codeunit 137140 "SCM Inventory Documents"
         AmountShouldEqualQtyTimesUnitAmountErr: Label 'Amount should equal Quantity * Unit Amount.';
         UnitAmountShouldBeDerivedErr: Label 'Unit Amount should be derived from Unit Cost and Indirect Cost %%.';
         UnitCostShouldBeDerivedErr: Label 'Unit Cost should be derived from Unit Amount and Indirect Cost %%.';
+        InboundReservationErr: Label 'Inbound quantities cannot be reserved until the items are received at the Transfer-to location.';
+        OutboundQtyNegativeLbl: Label 'Outbound reservation should have negative quantity';
+        OnlyOneLineShouldHaveQtyLbl: Label 'Only one transfer line should have qty in transit';
+        ShouldBeFirstTransferLbl: Label 'Should be the first transfer order';
+        FullyReservedErr: Label 'Fully reserved.';
 
     [Test]
     [Scope('OnPrem')]
@@ -2496,6 +2501,178 @@ codeunit 137140 "SCM Inventory Documents"
         Assert.IsTrue(InvtReceiptHeader.FindFirst(), 'Inventory Receipt should exist after posting');
     end;
 
+    [Test]
+    procedure InboundTransferReservationShowsSpecificError()
+    var
+        Item: Record Item;
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        LocationInTransit: Record Location;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ReservationEntry: Record "Reservation Entry";
+        InitialInventory: Decimal;
+        TransferQty: Decimal;
+    begin
+        // [SCENARIO 572435] Attempting to auto-reserve inbound transfer order line shows specific error message
+        Initialize();
+
+        // [GIVEN] Item "I" with inventory at Location "EAST"
+        InitialInventory := LibraryRandom.RandIntInRange(50, 100);
+        CreateItemWithInventoryAtLocation(Item, LocationFrom, InitialInventory);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+
+        // [GIVEN] Transfer Order from "EAST" to "WEST", Direct Transfer = OFF
+        TransferQty := LibraryRandom.RandIntInRange(10, InitialInventory);
+        CreateTransferOrder(TransferHeader, TransferLine, Item."No.", LocationFrom.Code, LocationTo.Code, LocationInTransit.Code, TransferQty);
+
+        // [WHEN] Auto-reserve is called on inbound transfer line at "WEST"
+        // [THEN] Error message shown
+        asserterror AutoReserveTransferLine(TransferLine, false);
+        Assert.ExpectedError(InboundReservationErr);
+
+        // [THEN] No reservation entries exist for this transfer
+        ReservationEntry.SetRange("Source Type", Database::"Transfer Line");
+        ReservationEntry.SetRange("Source ID", TransferHeader."No.");
+        ReservationEntry.SetRange("Source Subtype", 1);
+        Assert.RecordIsEmpty(ReservationEntry);
+    end;
+
+    [Test]
+    procedure OutboundTransferReservationSucceeds()
+    var
+        Item: Record Item;
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        LocationInTransit: Record Location;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ReservationEntry: Record "Reservation Entry";
+        InitialInventory: Decimal;
+        TransferQty: Decimal;
+    begin
+        // [SCENARIO 572435] Outbound transfer order lines can be reserved successfully
+        Initialize();
+
+        // [GIVEN] Item "I" with inventory at Location "EAST"
+        InitialInventory := LibraryRandom.RandIntInRange(50, 100);
+        CreateItemWithInventoryAtLocation(Item, LocationFrom, InitialInventory);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+
+        // [GIVEN] Transfer Order from "EAST" to "WEST"
+        TransferQty := LibraryRandom.RandIntInRange(10, InitialInventory);
+        CreateTransferOrder(TransferHeader, TransferLine, Item."No.", LocationFrom.Code, LocationTo.Code, LocationInTransit.Code, TransferQty);
+
+        // [WHEN] Auto-reserve is called on outbound transfer line at "EAST"
+        AutoReserveTransferLine(TransferLine, true);
+
+        // [THEN] Reservation entry exists with negative quantity for outbound direction
+        ReservationEntry.SetRange("Source Type", Database::"Transfer Line");
+        ReservationEntry.SetRange("Source ID", TransferHeader."No.");
+        ReservationEntry.SetRange("Source Subtype", 0);
+        Assert.RecordIsNotEmpty(ReservationEntry);
+        ReservationEntry.FindFirst();
+        Assert.IsTrue(ReservationEntry."Quantity (Base)" < 0, OutboundQtyNegativeLbl);
+
+        // [THEN] Reserving the fully reserved outbound line still reports the existing error.
+        asserterror AutoReserveTransferLine(TransferLine, true);
+        Assert.ExpectedError(FullyReservedErr);
+    end;
+
+    [Test]
+    procedure AvailableTransferLinesFiltersQtyInTransit()
+    var
+        Item: Record Item;
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        LocationInTransit: Record Location;
+        TransferHeader1: Record "Transfer Header";
+        TransferLine1: Record "Transfer Line";
+        TransferHeader2: Record "Transfer Header";
+        TransferLine2: Record "Transfer Line";
+        InitialInventory: Decimal;
+        Qty1: Decimal;
+        Qty2: Decimal;
+    begin
+        // [SCENARIO 572435] Shipped transfer lines have quantity in transit before receipt.
+        Initialize();
+
+        // [GIVEN] Item "I" at Location "EAST" with inventory
+        InitialInventory := LibraryRandom.RandIntInRange(100, 200);
+        CreateItemWithInventoryAtLocation(Item, LocationFrom, InitialInventory);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+
+        // [GIVEN] Transfer Order "T1" from "EAST" to "WEST", reserve outbound and post shipment
+        Qty1 := LibraryRandom.RandIntInRange(40, 60);
+        CreateTransferOrder(TransferHeader1, TransferLine1, Item."No.", LocationFrom.Code, LocationTo.Code, LocationInTransit.Code, Qty1);
+        AutoReserveTransferLine(TransferLine1, true);
+        LibraryInventory.PostTransferHeader(TransferHeader1, true, false);
+
+        // [GIVEN] Transfer Order "T2" from "EAST" to "WEST", not shipped
+        Qty2 := LibraryRandom.RandIntInRange(20, 40);
+        CreateTransferOrder(TransferHeader2, TransferLine2, Item."No.", LocationFrom.Code, LocationTo.Code, LocationInTransit.Code, Qty2);
+
+        // [WHEN] Filter Transfer Lines for "WEST" with Qty. in Transit > 0
+        TransferLine1.Reset();
+        TransferLine1.SetRange("Transfer-to Code", LocationTo.Code);
+        TransferLine1.SetFilter("Qty. in Transit (Base)", '>0');
+
+        // [THEN] Only "T1" with qty in transit is shown
+        Assert.AreEqual(1, TransferLine1.Count, OnlyOneLineShouldHaveQtyLbl);
+        TransferLine1.FindFirst();
+        Assert.AreEqual(TransferHeader1."No.", TransferLine1."Document No.", ShouldBeFirstTransferLbl);
+        Assert.AreEqual(Qty1, TransferLine1."Qty. in Transit (Base)", 'Qty in transit should match posted quantity');
+    end;
+
+    [Test]
+    procedure InboundReservationFailsAfterShipmentBeforeReceipt()
+    var
+        Item: Record Item;
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        LocationInTransit: Record Location;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ReservationEntry: Record "Reservation Entry";
+        InitialInventory: Decimal;
+        TransferQty: Decimal;
+    begin
+        // [SCENARIO 572435] Inbound transfer reservation fails after shipment but before receipt.
+        Initialize();
+
+        // [GIVEN] Item "I" with inventory at Location "EAST"
+        InitialInventory := LibraryRandom.RandIntInRange(50, 100);
+        CreateItemWithInventoryAtLocation(Item, LocationFrom, InitialInventory);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+
+        // [GIVEN] Transfer Order from "EAST" to "WEST", Direct Transfer = OFF
+        TransferQty := LibraryRandom.RandIntInRange(10, InitialInventory);
+        CreateTransferOrder(TransferHeader, TransferLine, Item."No.", LocationFrom.Code, LocationTo.Code, LocationInTransit.Code, TransferQty);
+
+        // [GIVEN] Reserve outbound and post transfer shipment
+        AutoReserveTransferLine(TransferLine, true);
+        LibraryInventory.PostTransferHeader(TransferHeader, true, false);
+
+        // [GIVEN] Transfer shipment is posted
+        TransferLine.Find();
+        TransferLine.TestField("Qty. in Transit (Base)", TransferQty);
+
+        // [WHEN] Attempt to reserve inbound transfer line at "WEST"
+        // [THEN] Error message shown
+        asserterror AutoReserveTransferLine(TransferLine, false);
+        Assert.ExpectedError(InboundReservationErr);
+
+        // [THEN] No reservation entries exist for inbound direction
+        ReservationEntry.SetRange("Source Type", Database::"Transfer Line");
+        ReservationEntry.SetRange("Source ID", TransferHeader."No.");
+        ReservationEntry.SetRange("Source Subtype", 1);
+        Assert.RecordIsEmpty(ReservationEntry);
+    end;
+
     local procedure CreateSerialSpecificTrackedItem(var Item: Record Item)
     var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -3025,6 +3202,39 @@ codeunit 137140 "SCM Inventory Documents"
             InventoryCommentLine.Insert(true);
             NoOfCommentsToCreate -= 1;
         end;
+    end;
+
+    local procedure CreateItemWithInventoryAtLocation(var Item: Record Item; var Location: Record Location; Quantity: Decimal)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", Location.Code, '', Quantity);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure CreateTransferOrder(var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; ItemNo: Code[20]; FromLocationCode: Code[10]; ToLocationCode: Code[10]; InTransitLocationCode: Code[10]; Quantity: Decimal)
+    begin
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocationCode, ToLocationCode, InTransitLocationCode);
+        TransferHeader.Validate("Direct Transfer", false);
+        TransferHeader.Modify(true);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, ItemNo, Quantity);
+    end;
+
+    local procedure AutoReserveTransferLine(var TransferLine: Record "Transfer Line"; IsOutbound: Boolean)
+    var
+        Reservation: Page Reservation;
+        Direction: Enum "Transfer Direction";
+    begin
+        TransferLine.Find();
+        if IsOutbound then
+            Direction := Direction::Outbound
+        else
+            Direction := Direction::Inbound;
+
+        Reservation.SetReservSource(TransferLine, Direction);
+        Reservation.AutoReserve();
     end;
 
     [ModalPageHandler]
