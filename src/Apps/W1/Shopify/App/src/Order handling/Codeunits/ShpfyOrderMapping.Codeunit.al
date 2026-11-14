@@ -21,6 +21,12 @@ codeunit 30163 "Shpfy Order Mapping"
 
     var
         OrderEvents: Codeunit "Shpfy Order Events";
+        BillToCustomerIssueTok: Label 'BillToCustomer', Locked = true;
+        GiftCardAccountIssueTok: Label 'GiftCardAccount', Locked = true;
+        ItemLineIssuePrefixTok: Label 'ItemLine:', Locked = true;
+        MappingErr: Label 'Not everything can be mapped.';
+        SellToCustomerIssueTok: Label 'SellToCustomer', Locked = true;
+        TipAccountIssueTok: Label 'TipAccount', Locked = true;
 
     /// <summary> 
     /// Description for DoMapping.
@@ -28,10 +34,25 @@ codeunit 30163 "Shpfy Order Mapping"
     /// <param name="OrderHeader">Parameter of type Record "Shopify Order Header".</param>
     internal procedure DoMapping(var OrderHeader: Record "Shpfy Order Header") Result: Boolean
     var
+        MissingIssues: List of [Text];
+    begin
+        exit(DoMappingWithIssues(OrderHeader, MissingIssues, "Shpfy Mapping Execution Mode"::Mapping));
+    end;
+
+    internal procedure DoMappingWithIssues(var OrderHeader: Record "Shpfy Order Header"; var MissingIssues: List of [Text]; ExecutionMode: Enum "Shpfy Mapping Execution Mode") Result: Boolean
+    var
         CustomerTemplate: Record "Shpfy Customer Template";
         OrderLine: Record "Shpfy Order Line";
         Shop: Record "Shpfy Shop";
+        LineMapped: Boolean;
     begin
+        if ExecutionMode = ExecutionMode::Unspecified then
+            if CurrentClientType() = ClientType::Background then
+                ExecutionMode := ExecutionMode::Background
+            else
+                ExecutionMode := ExecutionMode::Manual;
+
+        Clear(MissingIssues);
         Shop.Get(OrderHeader."Shop Code");
 
         if not OrderHeader.B2B then begin
@@ -63,19 +84,173 @@ codeunit 30163 "Shpfy Order Mapping"
         else
             Result := MapB2BHeaderFields(OrderHeader, Shop, Shop."Auto Create Unknown Companies" and (Shop."Company Import From Shopify" <> "Shpfy Company Import Range"::None));
 
+        if OrderHeader."Sell-to Customer No." = '' then begin
+            AddUniqueIssue(MissingIssues, SellToCustomerIssueTok);
+            Result := false;
+        end;
+        if OrderHeader."Bill-to Customer No." = '' then begin
+            AddUniqueIssue(MissingIssues, BillToCustomerIssueTok);
+            Result := false;
+        end;
+
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        OrderLine.SetLoadFields("Shopify Order Id", "Line Id", "Gift Card", Tip, "Shopify Variant Id", "Shopify Product Id", "Item No.", "Variant Code", "Unit of Measure Code");
         if OrderLine.FindSet(true) then
             repeat
-                if OrderLine.Tip then
-                    Result := Result and (Shop."Tip Account" <> '')
-                else
-                    if OrderLine."Gift Card" then
-                        Result := Result and (Shop."Sold Gift Card Account" <> '')
-                    else
-                        Result := Result and MapVariant(OrderLine, Shop);
+                if OrderLine.Tip then begin
+                    if Shop."Tip Account" = '' then begin
+                        AddUniqueIssue(MissingIssues, TipAccountIssueTok);
+                        Result := false;
+                    end;
+                end else
+                    if OrderLine."Gift Card" then begin
+                        if Shop."Sold Gift Card Account" = '' then begin
+                            AddUniqueIssue(MissingIssues, GiftCardAccountIssueTok);
+                            Result := false;
+                        end;
+                    end else begin
+                        LineMapped := MapVariant(OrderLine, Shop);
+                        if not LineMapped then begin
+                            MissingIssues.Add(ItemLineIssuePrefixTok + Format(OrderLine."Line Id", 0, 9));
+                            Result := false;
+                        end;
+                    end;
             until OrderLine.Next() = 0;
 
         OrderEvents.OnAfterMapShopifyOrder(OrderHeader, Result);
+        LogMappingIssues(MissingIssues, ExecutionMode);
+    end;
+
+    local procedure LogMappingIssues(MissingIssues: List of [Text]; ExecutionMode: Enum "Shpfy Mapping Execution Mode")
+    var
+        Categories: List of [Text];
+        Category: Text;
+        Dimensions: Dictionary of [Text, Text];
+        Issue: Text;
+        MappingTelemetryMsg: Label 'Shopify order mapping is incomplete.', Locked = true;
+    begin
+        foreach Issue in MissingIssues do begin
+            if Issue.StartsWith(ItemLineIssuePrefixTok) then
+                Category := 'Item'
+            else
+                Category := Issue;
+            if not Categories.Contains(Category) then begin
+                Categories.Add(Category);
+                Clear(Dimensions);
+                Dimensions.Add('Category', Category);
+                Dimensions.Add('Mode', Format(ExecutionMode));
+                Session.LogMessage('SHPCOMPLETENESS', MappingTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
+            end;
+        end;
+    end;
+
+    internal procedure GetMappingErrorMessage(MissingIssues: List of [Text]): Text
+    var
+        BillToCustomerMissingErr: Label 'Bill-to Customer No. is missing.';
+        ErrorBuilder: TextBuilder;
+        GiftCardAccountMissingErr: Label 'Sold Gift Card Account must have a value in Shopify Shop.';
+        ItemLineId: Text;
+        ItemLineMissingErr: Label 'Item No. is missing on Shopify order line %1.', Comment = '%1 = Shopify order line ID';
+        MissingIssue: Text;
+        SellToCustomerMissingErr: Label 'Sell-to Customer No. is missing.';
+        TipAccountMissingErr: Label 'Tip Account must have a value in Shopify Shop.';
+        UnknownMappingIssueErr: Label 'An unrecognized mapping issue was detected. Contact your administrator.';
+        UnknownMappingIssueTelemetryMsg: Label 'An unsupported Shopify order mapping issue token was encountered.', Locked = true;
+        UnknownIssueReported: Boolean;
+    begin
+        UnknownIssueReported := false;
+        ErrorBuilder.AppendLine(MappingErr);
+        foreach MissingIssue in MissingIssues do
+            if MissingIssue.StartsWith(ItemLineIssuePrefixTok) then begin
+                ItemLineId := CopyStr(MissingIssue, StrLen(ItemLineIssuePrefixTok) + 1);
+                ErrorBuilder.AppendLine(StrSubstNo(ItemLineMissingErr, ItemLineId));
+            end else
+                case MissingIssue of
+                    SellToCustomerIssueTok:
+                        ErrorBuilder.AppendLine(SellToCustomerMissingErr);
+                    BillToCustomerIssueTok:
+                        ErrorBuilder.AppendLine(BillToCustomerMissingErr);
+                    TipAccountIssueTok:
+                        ErrorBuilder.AppendLine(TipAccountMissingErr);
+                    GiftCardAccountIssueTok:
+                        ErrorBuilder.AppendLine(GiftCardAccountMissingErr);
+                    else
+                        if not UnknownIssueReported then begin
+                            ErrorBuilder.AppendLine(UnknownMappingIssueErr);
+                            Session.LogMessage('SHPMAPUNKNOWN', UnknownMappingIssueTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Shopify');
+                            UnknownIssueReported := true;
+                        end;
+                end;
+
+        exit(ErrorBuilder.ToText());
+    end;
+
+    internal procedure PersistMappingError(var OrderHeader: Record "Shpfy Order Header"; MissingIssues: List of [Text])
+    begin
+        if OrderHeader."Has Order State Error" then
+            exit;
+
+        SetMappingError(OrderHeader, MissingIssues);
+    end;
+
+    internal procedure PersistMappingErrorUnlessUnrelated(var OrderHeader: Record "Shpfy Order Header"; MissingIssues: List of [Text])
+    begin
+        if OrderHeader."Has Error" and not OrderHeader."Has Mapping Error" then
+            exit;
+
+        PersistMappingError(OrderHeader, MissingIssues);
+    end;
+
+    internal procedure PersistMappingErrorMessage(var OrderHeader: Record "Shpfy Order Header"; ErrorMessage: Text)
+    begin
+        OrderHeader."Has Error" := true;
+        OrderHeader."Has Mapping Error" := true;
+        OrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + ErrorMessage.Replace('\', GetLineBreak()), 1, MaxStrLen(OrderHeader."Error Message"));
+        OrderHeader.Modify(false);
+    end;
+
+    internal procedure SetMappingError(var OrderHeader: Record "Shpfy Order Header"; MissingIssues: List of [Text])
+    var
+        ErrorMessage: Text;
+    begin
+        ErrorMessage := Format(Time) + ' ' + GetMappingErrorMessage(MissingIssues);
+        OrderHeader."Has Error" := true;
+        OrderHeader."Has Mapping Error" := true;
+        OrderHeader."Error Message" := CopyStr(ErrorMessage, 1, MaxStrLen(OrderHeader."Error Message"));
+        OrderHeader.Modify(false);
+    end;
+
+    internal procedure ClearMappingError(var OrderHeader: Record "Shpfy Order Header")
+    begin
+        if OrderHeader."Has Order State Error" then
+            exit;
+        if not OrderHeader."Has Mapping Error" then
+            exit;
+
+        OrderHeader."Has Error" := false;
+        OrderHeader."Has Mapping Error" := false;
+        OrderHeader."Error Message" := '';
+        OrderHeader.Modify(false);
+    end;
+
+    internal procedure IsMappingError(ErrorMessage: Text): Boolean
+    begin
+        exit(ErrorMessage.StartsWith(MappingErr));
+    end;
+
+    local procedure GetLineBreak(): Text
+    var
+        LineBreak: Text[2];
+    begin
+        LineBreak[1] := 13;
+        LineBreak[2] := 10;
+        exit(LineBreak);
+    end;
+
+    local procedure AddUniqueIssue(var MissingIssues: List of [Text]; Issue: Text)
+    begin
+        if not MissingIssues.Contains(Issue) then
+            MissingIssues.Add(Issue);
     end;
 
     /// <summary> 
@@ -203,6 +378,10 @@ codeunit 30163 "Shpfy Order Mapping"
         ShopifyVariant: Record "Shpfy Variant";
         ProductImport: Codeunit "Shpfy Product Import";
     begin
+        Item.SetLoadFields("Sales Unit of Measure");
+        ItemVariant.SetLoadFields(Code);
+        ShopifyVariant.SetLoadFields("Item SystemId", "Item Variant SystemId", "UoM Option Id", "Option 1 Value", "Option 2 Value", "Option 3 Value");
+
         if not ShopifyVariant.Get(ShopifyOrderLine."Shopify Variant Id") or IsNullGuid(ShopifyVariant."Item SystemId") then begin
             ProductImport.SetShop(Shop);
             ProductImport.SetProduct(ShopifyOrderLine."Shopify Product Id");
