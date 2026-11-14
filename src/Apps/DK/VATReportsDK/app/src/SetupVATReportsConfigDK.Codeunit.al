@@ -45,13 +45,11 @@ codeunit 13691 "Setup VAT Reports Config DK"
     var
         VATReportsConfiguration: Record "VAT Reports Configuration";
     begin
-        with VATReportsConfiguration do begin
-            Validate("VAT Report Type", "VAT Report Type"::"EC Sales List");
-            Validate("VAT Report Version", MSECSLDKTok);
-            Validate("Suggest Lines Codeunit ID", Codeunit::"EC Sales List Suggest Lines");
-            Validate("Validate Codeunit ID", CODEUNIT::"ECSL Report Validate");
-            Validate("Submission Codeunit ID", Codeunit::"MS - ECSL Report Export File");
-            Insert();
-        end;
+        VATReportsConfiguration.Validate("VAT Report Type", VATReportsConfiguration."VAT Report Type"::"EC Sales List");
+        VATReportsConfiguration.Validate("VAT Report Version", MSECSLDKTok);
+        VATReportsConfiguration.Validate("Suggest Lines Codeunit ID", Codeunit::"EC Sales List Suggest Lines");
+        VATReportsConfiguration.Validate("Validate Codeunit ID", CODEUNIT::"ECSL Report Validate");
+        VATReportsConfiguration.Validate("Submission Codeunit ID", Codeunit::"MS - ECSL Report Export File");
+        VATReportsConfiguration.Insert();
     end;
 }
