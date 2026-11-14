@@ -21,6 +21,7 @@ codeunit 148364 EACorpCardSelectionTests
     var
         Assert: Codeunit Assert;
         CorpCardTestLib: Codeunit EACorpCardTestLib;
+        LibraryExpense: Codeunit "Library - Expense";
         LinkedReportLineCannotDeleteErr: Label 'Expense report %1 line %2 cannot be deleted because it is linked to corporate card transaction %3.', Comment = '%1 = expense report number, %2 = report line number, %3 = corporate card transaction entry number';
 
     [Test]
@@ -313,7 +314,6 @@ codeunit 148364 EACorpCardSelectionTests
         Expense: Record Expense;
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpensePaymentMethod: Record "Expense Payment Method";
-        LibraryExpense: Codeunit "Library - Expense";
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
         // [SCENARIO] With mandatory selection enabled, a manual card expense can be drafted without a card, but release requires an owned card.
@@ -355,7 +355,6 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        LibraryExpense: Codeunit "Library - Expense";
     begin
         // [SCENARIO] Optional card selection does not allow an expense to be released with a blocked selected card.
         Initialize();
@@ -1154,6 +1153,7 @@ codeunit 148364 EACorpCardSelectionTests
         SourceExpenseReportHeader: Record "Expense Report Header";
         TargetExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
+        ReleaseExpenseReportDocument: Codeunit "Release Exp. Report Document";
     begin
         // [SCENARIO] Moving a matched standalone line preserves its corporate card link in the target report.
         Initialize();
@@ -1162,12 +1162,8 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCard.Get('CORPCARD-0001');
         CreateMatchedStandaloneReportLine(ExpenseReportLine, CorpCardTrans, CorpCard);
         SourceExpenseReportHeader.Get(ExpenseReportLine."Document No.");
-        SourceExpenseReportHeader.Status := SourceExpenseReportHeader.Status::Open;
-        SourceExpenseReportHeader.Modify(false);
-        TargetExpenseReportHeader."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(TargetExpenseReportHeader."No."));
-        TargetExpenseReportHeader."Expense User No." := CorpCard."Expense User No.";
-        TargetExpenseReportHeader.Status := TargetExpenseReportHeader.Status::Open;
-        TargetExpenseReportHeader.Insert(false);
+        ReleaseExpenseReportDocument.PerformManualReopen(SourceExpenseReportHeader);
+        LibraryExpense.CreateExpenseReport(TargetExpenseReportHeader, CorpCard."Expense User No.", '', '');
 
         // [WHEN] The matched line is moved to the target report.
         ExpenseReportLine.MoveToExpenseReport(TargetExpenseReportHeader."No.");
@@ -1504,22 +1500,22 @@ codeunit 148364 EACorpCardSelectionTests
 
     local procedure CreateStandaloneReportLine(var ExpenseReportLine: Record "Expense Report Line"; CorpCard: Record "EA Corp Card")
     var
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
         ExpenseReportHeader: Record "Expense Report Header";
+        ReleaseExpenseReportDocument: Codeunit "Release Exp. Report Document";
     begin
-        ExpenseReportHeader."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExpenseReportHeader."No."));
-        ExpenseReportHeader."Expense User No." := CorpCard."Expense User No.";
-        ExpenseReportHeader.Status := ExpenseReportHeader.Status::Released;
-        ExpenseReportHeader.Insert(false);
-        ExpenseReportLine.Init();
-        ExpenseReportLine."Document No." := ExpenseReportHeader."No.";
-        ExpenseReportLine."Line No." := 10000;
-        ExpenseReportLine."Expense No." := '';
-        ExpenseReportLine."Expense User No." := CorpCard."Expense User No.";
-        ExpenseReportLine."Reimbursement Type" := ExpenseReportLine."Reimbursement Type"::"Credit Card";
-        ExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
-        ExpenseReportLine."Expense Date" := WorkDate();
-        ExpenseReportLine.Amount := 20;
-        ExpenseReportLine.Insert(false);
+        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Credit Card", ExpenseCategory."Expense Detail Required"::" ", ExpensePaymentMethod.Code);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, CorpCard."Expense User No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, CorpCard."Expense User No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, false, '', 20);
+        ExpenseReportLine.Validate("Corporate Card Id", CorpCard."Card Id");
+        ExpenseReportLine.Validate("Expense Date", WorkDate());
+        ExpenseReportLine.Modify(true);
+        ReleaseExpenseReportDocument.PerformManualRelease(ExpenseReportHeader);
     end;
 
     local procedure CreateLateFeedStatement(var CorpCardStatement: Record "EA Corp Card Statement"; var CorpCardTrans: Record "EA Corp Card Trans"; CorpCard: Record "EA Corp Card")
@@ -1630,7 +1626,6 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTrans: Record "EA Corp Card Trans";
         ExpenseAgentSetup: Record "Expense Agent Setup";
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
-        LibraryExpense: Codeunit "Library - Expense";
     begin
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup.Validate("Require Corporate Card", false);
@@ -1652,7 +1647,6 @@ codeunit 148364 EACorpCardSelectionTests
     var
         CorpCard: Record "EA Corp Card";
         CorpCardTrans: Record "EA Corp Card Trans";
-        LibraryExpense: Codeunit "Library - Expense";
         ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
         ExpenseNo: Code[20];
     begin

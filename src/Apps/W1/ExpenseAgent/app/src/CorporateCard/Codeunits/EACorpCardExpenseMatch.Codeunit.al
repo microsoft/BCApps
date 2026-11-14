@@ -83,7 +83,11 @@ codeunit 7448 "EA Corp Card Expense Match" implements "EA Corp Card Expense Matc
             Expense.SetRange(Amount, CorpCardTrans.Amount - AmountTolerance, CorpCardTrans.Amount + AmountTolerance);
             ExpenseReportLine.SetRange(Amount, CorpCardTrans.Amount - AmountTolerance, CorpCardTrans.Amount + AmountTolerance);
             PostedExpenseReportLine.SetRange(Amount, CorpCardTrans.Amount - AmountTolerance, CorpCardTrans.Amount + AmountTolerance);
-            if not Expense.IsEmpty() or not ExpenseReportLine.IsEmpty() or not PostedExpenseReportLine.IsEmpty() then
+            if not Expense.IsEmpty() then
+                Error(ExpenseAmountNeedsReviewErr, CorpCardTrans."Entry No.");
+            if not ExpenseReportLine.IsEmpty() then
+                Error(ExpenseAmountNeedsReviewErr, CorpCardTrans."Entry No.");
+            if not PostedExpenseReportLine.IsEmpty() then
                 Error(ExpenseAmountNeedsReviewErr, CorpCardTrans."Entry No.");
         end;
         exit(false);

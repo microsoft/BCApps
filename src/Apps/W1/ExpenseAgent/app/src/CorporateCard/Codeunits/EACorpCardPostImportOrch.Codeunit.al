@@ -48,6 +48,7 @@ codeunit 7423 "EA Corp Card Post Import Orch"
 
         CorpCardTrans.SetRange("Statement Entry No.", StatementEntryNo);
         CorpCardTrans.SetFilter(Status, '%1|%2', CorpCardTrans.Status::Imported, CorpCardTrans.Status::Exception);
+        CorpCardTrans.SetLoadFields("Entry No.", Status);
 
         if not CorpCardTrans.FindSet() then
             exit;
@@ -58,6 +59,7 @@ codeunit 7423 "EA Corp Card Post Import Orch"
                 if HasProcessingException(CorpCardTrans) then
                     TransactionEntryNos.Add(CorpCardTrans."Entry No.");
         until CorpCardTrans.Next() = 0;
+        CorpCardTrans.SetLoadFields();
 
         Commit();
         foreach TransactionEntryNo in TransactionEntryNos do begin

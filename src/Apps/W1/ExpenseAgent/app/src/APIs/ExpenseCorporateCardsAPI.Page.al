@@ -30,7 +30,7 @@ page 7451 "Expense Corporate Cards API"
         {
             repeater(Cards)
             {
-                field(id; Rec.SystemId) { Caption = 'Id'; }
+                field(id; Rec.SystemId) { Caption = 'Id'; Editable = false; }
                 field(corporateCardId; Rec."Card Id") { Caption = 'Corporate Card Id'; }
                 field(expenseUserNumber; Rec."Expense User No.") { Caption = 'Expense User Number'; }
                 field(lastFourDigits; Rec.GetLastFourDigits()) { Caption = 'Last Four Digits'; ToolTip = 'Specifies the last four digits used to identify the corporate card.'; }
