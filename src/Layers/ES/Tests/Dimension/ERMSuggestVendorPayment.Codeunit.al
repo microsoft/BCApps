@@ -42,6 +42,7 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         AppliesToIDNotSetErr: Label 'Applies-to ID is not set on Vendor Ledger Entry';
         AppliesToIDNotRemovedErr: Label 'Applies-to ID is not removed on Vendor Ledger Entry';
         SuggestToVendorRefundErr: Label 'Document No. must be blank.';
+        RemainingAmountFilterNotRestoredErr: Label 'Remaining Amount filter on Vendor Ledger Entry is not restored.';
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -759,7 +760,6 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         // [FEATURE] [Currency]
         // [SCENARIO 372005] Total Amount (LCY) of suggested payments is less or equal than Available Amount (LCY) when using Vendor Priority in case of several FCY Vendors and negative lines
         Initialize();
-
         for i := 1 to 3 do begin
             CurrencyCode[i] := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
             VendorNo[i] := CreateVendorWithPriority();
@@ -2000,6 +2000,56 @@ codeunit 134076 "ERM Suggest Vendor Payment"
     end;
 
     [Test]
+    [HandlerFunctions('CreatePaymentWithPostingModalPageHandler')]
+    procedure CreatePaymentForVendorLedgerEntriesFilteredByRemainingAmountInSpanish()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        BankAccount: Record "Bank Account";
+        PaymentJournal: TestPage "Payment Journal";
+        OriginalLanguageId: Integer;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Create Payment for Vendor Ledger Entries filtered by "Remaining Amount" succeeds when the language is Spanish
+        Initialize();
+
+        // [GIVEN] Posted Purchase Invoice "PI" for Vendor "V"
+        GenJournalLine.DeleteAll();
+        LibraryPurchase.CreatePurchaseInvoice(PurchaseHeader);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Bank Account "B", Starting Document No. and Posting Date for the "Create Payment" page
+        LibraryERM.FindBankAccount(BankAccount);
+        LibraryVariableStorage.Enqueue(LibraryUtility.GenerateGUID());
+        LibraryVariableStorage.Enqueue(BankAccount."No.");
+        LibraryVariableStorage.Enqueue(WorkDate());
+
+        // [GIVEN] Vendor Ledger Entries of Vendor "V" filtered by "Remaining Amount" <> 0
+        VendorLedgerEntry.SetRange("Vendor No.", PurchaseHeader."Buy-from Vendor No.");
+        VendorLedgerEntry.SetFilter("Remaining Amount", '<>0');
+
+        // [GIVEN] Language is Spanish (Spain)
+        OriginalLanguageId := GlobalLanguage();
+        GlobalLanguage(3082);
+
+        // [WHEN] Run "Create Payment" for the filtered Vendor Ledger Entries
+        PaymentJournal.Trap();
+        InvokeCreatePayment(VendorLedgerEntry);
+        GlobalLanguage(OriginalLanguageId);
+
+        // [THEN] Payment Journal Line is created for Vendor "V"
+        PaymentJournal."Account No.".AssertEquals(PurchaseHeader."Buy-from Vendor No.");
+        PaymentJournal."Document Type".AssertEquals(GenJournalLine."Document Type"::Payment);
+        PaymentJournal.Close();
+
+        // [THEN] "Remaining Amount" filter on Vendor Ledger Entry is restored
+        Assert.AreEqual('<>0', VendorLedgerEntry.GetFilter("Remaining Amount"), RemainingAmountFilterNotRestoredErr);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [HandlerFunctions('SuggestVendorPaymentsStartingDocNoRequestPageHandler,MessageHandler')]
     [Scope('OnPrem')]
     procedure SuggestVendorPaymentsTwoVendorsNoSeriesIncrBy10()
@@ -2013,7 +2063,6 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         // [FEATURE] [No. Series]
         // [SCENARIO 342243] "Suggest Vendor Payments" report considers "Increment by No." setup in number series of general journal batch
         Initialize();
-
         for Index := 1 to ArrayLen(PurchaseHeader) do begin
             LibraryPurchase.CreatePurchaseInvoice(PurchaseHeader[Index]);
             LibraryPurchase.PostPurchaseDocument(PurchaseHeader[Index], true, true);
@@ -2056,7 +2105,6 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         // [FEATURE] [No. Series]
         // [SCENARIO 342243] "Suggest Vendor Payments" report considers "Increment by No." setup in number series of general journal batch when "Summarized per Vendor" = TRUE
         Initialize();
-
         for VendorIndex := 1 to ArrayLen(Vendor) do begin
             LibraryPurchase.CreateVendor(Vendor[VendorIndex]);
             for DocIndex := 1 to ArrayLen(PurchaseHeader) do begin
@@ -2105,7 +2153,6 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         // [FEATURE] [No. Series]
         // [SCENARIO 342243] "Suggest Vendor Payments" report considers "Increment by No." setup in number series of general journal batch when "New Doc. No. per Line" = TRUE
         Initialize();
-
         for VendorIndex := 1 to ArrayLen(Vendor) do begin
             LibraryPurchase.CreateVendor(Vendor[VendorIndex]);
             for DocIndex := 1 to ArrayLen(PurchaseHeader) do begin
@@ -2166,7 +2213,6 @@ codeunit 134076 "ERM Suggest Vendor Payment"
 
         GenJournalLine.DeleteAll();
         CountPerVendor := 2;
-
         for IndexVendor := 1 to ArrayLen(Vendor) do begin
             LibraryPurchase.CreateVendor(Vendor[IndexVendor]);
             for IndexDoc := 1 to CountPerVendor do begin
@@ -2187,7 +2233,6 @@ codeunit 134076 "ERM Suggest Vendor Payment"
 
         VendorLedgerEntry.SetFilter("Vendor No.", '%1|%2', Vendor[1]."No.", Vendor[2]."No.");
         InvokeCreatePayment(VendorLedgerEntry);
-
         for IndexVendor := 1 to ArrayLen(Vendor) do begin
             PaymentJournal."Account No.".AssertEquals(Vendor[IndexVendor]."No.");
             PaymentJournal."Document Type".AssertEquals(GenJournalLine."Document Type"::Payment);
@@ -2197,7 +2242,6 @@ codeunit 134076 "ERM Suggest Vendor Payment"
             PaymentJournal.Next();
         end;
         PaymentJournal.Close();
-
         for IndexVendor := 1 to ArrayLen(Vendor) do begin
             GenJournalLine.SetRange("Account Type", GenJournalLine."Account Type"::Vendor);
             GenJournalLine.SetRange("Account No.", Vendor[IndexVendor]."No.");
@@ -3044,7 +3088,6 @@ codeunit 134076 "ERM Suggest Vendor Payment"
           GenJournalLine."Applies-to Doc. Type"::"Credit Memo", CrMemoNo, PaymentAmt[2], '');
         GenJournalLine."Document No." := PaymentNo;
         GenJournalLine.Modify();
-
         if (PaymentAmt[1] + PaymentAmt[2]) <> 0 then begin
             GenJournalLine."Line No." += 10000;
             GenJournalLine.Validate("Account Type", GenJournalLine."Account Type"::"Bank Account");
@@ -3447,7 +3490,6 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         GenJournalLine.Validate("Journal Template Name", GenJournalBatch."Journal Template Name");
         GenJournalLine.Validate("Journal Batch Name", GenJournalBatch.Name);
         SuggestVendorPayments.SetGenJnlLine(GenJournalLine);
-
         if VendorNo = '' then
             Vendor.SetRange("No.")
         else
@@ -4117,7 +4159,6 @@ codeunit 134076 "ERM Suggest Vendor Payment"
 
         // [THEN] System should remove "Applies-to ID" from all VendLedgerEntries
         Assert.AreEqual(true, VendorLedgerEntry.IsEmpty(), 'Applied-to ID is not removed on Vendor Ledger Entry');
-
         if PageIDUpdated <> 0 then begin
             GeneralJournalTemplate.Get(GenJournalBatch."Journal Template Name");
             GeneralJournalTemplate."Page ID" := PageIDUpdated;
