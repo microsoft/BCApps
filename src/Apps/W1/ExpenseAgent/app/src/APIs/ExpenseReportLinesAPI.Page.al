@@ -238,13 +238,25 @@ page 6929 "Expense Report Lines API"
                 {
                     Caption = 'Ending Date and Time';
                 }
-                field(startingPoint; Rec."Starting Point")
+                field(startingPoint; StartingPoint)
                 {
                     Caption = 'Starting Point';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.TestStatusOpen();
+                        Rec.SetStartingPoint(StartingPoint);
+                    end;
                 }
-                field(endingPoint; Rec."Ending Point")
+                field(endingPoint; EndingPoint)
                 {
                     Caption = 'Ending Point';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.TestStatusOpen();
+                        Rec.SetEndingPoint(EndingPoint);
+                    end;
                 }
                 field(mileage; Rec.Mileage)
                 {
@@ -427,6 +439,8 @@ page 6929 "Expense Report Lines API"
         CurrencyLCYDisplay: Code[10];
         ExpenseUserSystemId: Guid;
         TotalMileage: Decimal;
+        StartingPoint: Text;
+        EndingPoint: Text;
         JobDescription: Text[100];
         JobTaskDescription: Text[100];
         PolicyStatusDisplay: Enum "Expense Policy Status";
@@ -457,6 +471,8 @@ page 6929 "Expense Report Lines API"
         XCurrencyCodeDisplay := CurrencyCodeDisplay;
         ExpenseUserSystemId := ExpenseUser.GetSystemIdByExpenseUserNo(Rec."Expense User No.");
         TotalMileage := ExpenseAutoPopulation.GetEffectiveDistance(Rec.Mileage, Rec."Round Trip");
+        StartingPoint := Rec.GetStartingPoint();
+        EndingPoint := Rec.GetEndingPoint();
         PolicyStatusDisplay := Rec.GetPolicyStatus();
         HasPolicyViolationDisplay := PolicyStatusDisplay = PolicyStatusDisplay::Flagged;
 
@@ -478,6 +494,8 @@ page 6929 "Expense Report Lines API"
     begin
         CurrencyCodeDisplay := '';
         XCurrencyCodeDisplay := '';
+        StartingPoint := '';
+        EndingPoint := '';
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean

@@ -149,10 +149,10 @@ report 6952 "Expense Report Summary Page"
             column(PerDiemCurrencyLbl; ExpenseReportLine.FieldCaption("Expense Currency Code"))
             {
             }
-            column(MileageStartingPointLbl; ExpenseReportLine.FieldCaption("Starting Point"))
+            column(MileageStartingPointLbl; ExpenseReportLine.FieldCaption("Starting Point Description"))
             {
             }
-            column(MileageEndingPointLbl; ExpenseReportLine.FieldCaption("Ending Point"))
+            column(MileageEndingPointLbl; ExpenseReportLine.FieldCaption("Ending Point Description"))
             {
             }
             column(MileageMileageLbl; ExpenseReportLine.FieldCaption(Mileage))
@@ -250,7 +250,7 @@ report 6952 "Expense Report Summary Page"
                 DataItemLink = "Document No." = field("No.");
                 DataItemTableView = where("Expense Detail Required" = const("Mileage"));
 
-                column(Mileage_StartingPoint; "Starting Point")
+                column(Mileage_StartingPoint; StartingPoint)
                 {
                 }
                 column(Document_No_MileageLine; "Document No.")
@@ -259,7 +259,7 @@ report 6952 "Expense Report Summary Page"
                 column(Mileage_LineNo; "Line No.")
                 {
                 }
-                column(Mileage_EndingPoint; "Ending Point")
+                column(Mileage_EndingPoint; EndingPoint)
                 {
                 }
                 column(Mileage_Mileage; Mileage)
@@ -282,6 +282,8 @@ report 6952 "Expense Report Summary Page"
                 }
                 trigger OnAfterGetRecord()
                 begin
+                    StartingPoint := GetStartingPoint();
+                    EndingPoint := GetEndingPoint();
                     AmountPerMileage := GetMileageRate("Expense Date", "Expense Currency Code", "Expense Currency Factor", "Vehicle Type");
                     TotalMileage := ExpenseAutoPopulation.GetEffectiveDistance(Mileage, "Round Trip");
                 end;
@@ -348,6 +350,8 @@ report 6952 "Expense Report Summary Page"
         NumberOfHours: Integer;
         AmountPerMileage: Decimal;
         TotalMileage: Decimal;
+        StartingPoint: Text;
+        EndingPoint: Text;
         PerDiemUnitAmount: Decimal;
         PrepaymentAmount: Decimal;
         PaidAmount: Decimal;

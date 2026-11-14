@@ -39,6 +39,7 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         UpgradeMigratePostedExpRepLineCanceled();
         UpgradeMigrateExpenseUserUnlimitedApproval();
         UpgradeExpenseVendorNoSeries();
+        UpgradeStartingAndEndingPoint();
     end;
 
     local procedure UpgradeClearStaleCopyCompanyState()
@@ -126,6 +127,7 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         PerCompanyUpgradeTags.Add(GetMigratePostedExpRepLineCanceledTag());
         PerCompanyUpgradeTags.Add(GetMigrateExpenseUserUnlimitedApprovalTag());
         PerCompanyUpgradeTags.Add(GetExpenseVendorNoSeriesUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetMigrateStartingAndEndingPointTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
@@ -232,6 +234,88 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         exit('MS-658051-ExpenseVendorNoSeries-20261105');
     end;
 
+    /// <summary>
+    /// Copies the mileage starting and ending points from the obsolete Text[50] fields to the
+    /// blob fields on expenses, expense report lines and posted expense report lines, so existing
+    /// values remain available after the fields were replaced to allow addresses longer than 50 characters.
+    /// </summary>
+    local procedure UpgradeStartingAndEndingPoint()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetMigrateStartingAndEndingPointTag()) then
+            exit;
+
+        MigrateExpenseStartingAndEndingPoint();
+        MigrateExpenseReportLineStartingAndEndingPoint();
+        MigratePostedExpenseReportLineStartingAndEndingPoint();
+
+        UpgradeTag.SetUpgradeTag(GetMigrateStartingAndEndingPointTag());
+    end;
+
+    local procedure MigrateExpenseStartingAndEndingPoint()
+    var
+        Expense: Record Expense;
+    begin
+        Expense.SetLoadFields("Starting Point", "Ending Point");
+        Expense.SetFilter("Starting Point", '<>%1', '');
+        if Expense.FindSet() then
+            repeat
+                Expense.SetStartingPoint(Expense."Starting Point");
+                Expense.Modify();
+            until Expense.Next() = 0;
+
+        Expense.SetRange("Starting Point");
+        Expense.SetFilter("Ending Point", '<>%1', '');
+        if Expense.FindSet() then
+            repeat
+                Expense.SetEndingPoint(Expense."Ending Point");
+                Expense.Modify();
+            until Expense.Next() = 0;
+    end;
+
+    local procedure MigrateExpenseReportLineStartingAndEndingPoint()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        ExpenseReportLine.SetLoadFields("Starting Point", "Ending Point");
+        ExpenseReportLine.SetFilter("Starting Point", '<>%1', '');
+        if ExpenseReportLine.FindSet() then
+            repeat
+                ExpenseReportLine.SetStartingPoint(ExpenseReportLine."Starting Point");
+                ExpenseReportLine.Modify();
+            until ExpenseReportLine.Next() = 0;
+
+        ExpenseReportLine.SetRange("Starting Point");
+        ExpenseReportLine.SetFilter("Ending Point", '<>%1', '');
+        if ExpenseReportLine.FindSet() then
+            repeat
+                ExpenseReportLine.SetEndingPoint(ExpenseReportLine."Ending Point");
+                ExpenseReportLine.Modify();
+            until ExpenseReportLine.Next() = 0;
+    end;
+
+    local procedure MigratePostedExpenseReportLineStartingAndEndingPoint()
+    var
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+    begin
+        PostedExpenseReportLine.SetLoadFields("Starting Point", "Ending Point");
+        PostedExpenseReportLine.SetFilter("Starting Point", '<>%1', '');
+        if PostedExpenseReportLine.FindSet() then
+            repeat
+                PostedExpenseReportLine.SetStartingPoint(PostedExpenseReportLine."Starting Point");
+                PostedExpenseReportLine.Modify();
+            until PostedExpenseReportLine.Next() = 0;
+
+        PostedExpenseReportLine.SetRange("Starting Point");
+        PostedExpenseReportLine.SetFilter("Ending Point", '<>%1', '');
+        if PostedExpenseReportLine.FindSet() then
+            repeat
+                PostedExpenseReportLine.SetEndingPoint(PostedExpenseReportLine."Ending Point");
+                PostedExpenseReportLine.Modify();
+            until PostedExpenseReportLine.Next() = 0;
+    end;
+
     local procedure GetRemoveLegacyPrivacyNoticeUpgradeTag(): Code[250]
     begin
         exit('MS-646070-RemoveLegacyPrivacyNotice-20260818');
@@ -255,5 +339,10 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     local procedure GetMigrateExpenseUserUnlimitedApprovalTag(): Code[250]
     begin
         exit('MS-640938-MigrateExpenseUserUnlimitedApproval-20260925');
+    end;
+
+    local procedure GetMigrateStartingAndEndingPointTag(): Code[250]
+    begin
+        exit('MS-656559-MigrateStartingAndEndingPoint-20261111');
     end;
 }
