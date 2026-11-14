@@ -11,7 +11,7 @@ using System.AI;
 using System.Reflection;
 using System.Security.AccessControl;
 
-codeunit 4358 "Custom Agent Metadata Provider" implements IAgentMetadata, IAgentFactory
+codeunit 4358 "Custom Agent Metadata Provider" implements IAgentMetadata, IAgentFactory, IAgentManualTaskCreation
 {
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -84,6 +84,22 @@ codeunit 4358 "Custom Agent Metadata Provider" implements IAgentMetadata, IAgent
     procedure GetDefaultAccessControls(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     begin
         // Not providing any default access controls, they must be set by users.
+    end;
+
+    procedure IsManualAgentTaskCreationEnabled(AgentUserId: Guid; ManualTaskType: Enum "Manual Agent Task Creation Type"): Boolean
+    begin
+        // Reading the Agent virtual table here would recursively invoke this callback.
+        exit(ManualTaskType = ManualTaskType::Default);
+    end;
+
+    procedure IsMultipleFileUploadAllowed(AgentUserId: Guid): Boolean
+    begin
+        exit(false);
+    end;
+
+    procedure CreateManualAgentTask(AgentUserId: Guid; Files: List of [FileUpload])
+    begin
+        CustomAgentSetup.OpenEditInstructionsPage(AgentUserId);
     end;
 
     var
