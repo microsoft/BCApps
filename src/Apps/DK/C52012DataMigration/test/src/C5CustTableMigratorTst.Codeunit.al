@@ -228,56 +228,52 @@ codeunit 148003 "C5 CustTable Migrator Tst"
     var
         C5CustTable2: Record "C5 CustTable";
     begin
-        with C5CustTable do begin
-            Init();
-            if C5CustTable2.FindLast() then
-                RecId := C5CustTable2.RecId + 1;
-            Account := Acc;
-            Name := Account;
-            SearchName := Account + ' search';
-            Address1 := '123, Hobby Street';
-            Address2 := 'DerbyShire, Area GoGoland';
-            ZipCity := 'AT-1100 Wien';
-            Country := 'Austria';
-            Attention := 'Tim Nut';
-            Phone := '02345556262';
-            CellPhone := '028352757';
-            Email := Account + '@mail.com';
-            Department := CopyStr(DepartmentTxt, 1, 10);
-            Centre := CopyStr(CostCenterTxt, 1, 10);
-            Purpose := CopyStr(PurposeTxt, 1, 10);
-            SalesGroup := 'SalesGr';
-            BalanceMax := 1415551;
-            Group := 'CustGrp';
-            PriceGroup := CopyStr(CustPriceGroupTxt, 1, 10);
-            Language_ := Language_::English;
-            Payment := CopyStr(PaymentTxt, 1, 10);
-            SalesRep := CopyStr(SalesPersonTxt, 1, 10);
-            Delivery := CopyStr(DeliveryTxt, 1, 10);
-            TransportCode := 'PARAVION';
-            DiscGroup := CopyStr(DiscGroupTxt, 1, 10);
-            Blocked := Blocked::No;
-            InvoiceAccount := CopyStr(InvAccount, 1, 10);
-            PaymentMode := CopyStr(ProcCodeTxt, 1, 10);
-            Fax := 'FaxeKondi';
-            VatNumber := 'ATU' + Format(LibraryRandom.RandIntInRange(10000000, 99999999));
-            URL := 'www.aliddr.com';
-            Vat := 'VATPosting';
-            Insert(true);
-        end;
+        C5CustTable.Init();
+        if C5CustTable2.FindLast() then
+            C5CustTable.RecId := C5CustTable2.RecId + 1;
+        C5CustTable.Account := Acc;
+        C5CustTable.Name := C5CustTable.Account;
+        C5CustTable.SearchName := C5CustTable.Account + ' search';
+        C5CustTable.Address1 := '123, Hobby Street';
+        C5CustTable.Address2 := 'DerbyShire, Area GoGoland';
+        C5CustTable.ZipCity := 'AT-1100 Wien';
+        C5CustTable.Country := 'Austria';
+        C5CustTable.Attention := 'Tim Nut';
+        C5CustTable.Phone := '02345556262';
+        C5CustTable.CellPhone := '028352757';
+        C5CustTable.Email := C5CustTable.Account + '@mail.com';
+        C5CustTable.Department := CopyStr(DepartmentTxt, 1, 10);
+        C5CustTable.Centre := CopyStr(CostCenterTxt, 1, 10);
+        C5CustTable.Purpose := CopyStr(PurposeTxt, 1, 10);
+        C5CustTable.SalesGroup := 'SalesGr';
+        C5CustTable.BalanceMax := 1415551;
+        C5CustTable.Group := 'CustGrp';
+        C5CustTable.PriceGroup := CopyStr(CustPriceGroupTxt, 1, 10);
+        C5CustTable.Language_ := C5CustTable.Language_::English;
+        C5CustTable.Payment := CopyStr(PaymentTxt, 1, 10);
+        C5CustTable.SalesRep := CopyStr(SalesPersonTxt, 1, 10);
+        C5CustTable.Delivery := CopyStr(DeliveryTxt, 1, 10);
+        C5CustTable.TransportCode := 'PARAVION';
+        C5CustTable.DiscGroup := CopyStr(DiscGroupTxt, 1, 10);
+        C5CustTable.Blocked := C5CustTable.Blocked::No;
+        C5CustTable.InvoiceAccount := CopyStr(InvAccount, 1, 10);
+        C5CustTable.PaymentMode := CopyStr(ProcCodeTxt, 1, 10);
+        C5CustTable.Fax := 'FaxeKondi';
+        C5CustTable.VatNumber := 'ATU' + Format(LibraryRandom.RandIntInRange(10000000, 99999999));
+        C5CustTable.URL := 'www.aliddr.com';
+        C5CustTable.Vat := 'VATPosting';
+        C5CustTable.Insert(true);
     end;
 
     local procedure CreateC5InvenPriceGroup()
     var
         C5InvenPriceGroup: Record "C5 InvenPriceGroup";
     begin
-        with C5InvenPriceGroup do begin
-            Init();
-            Group := CopyStr(CustPriceGroupTxt, 1, 10);
-            GroupName := 'My CPG Description';
-            InclVat := InclVat::Yes;
-            Insert(true);
-        end;
+        C5InvenPriceGroup.Init();
+        C5InvenPriceGroup.Group := CopyStr(CustPriceGroupTxt, 1, 10);
+        C5InvenPriceGroup.GroupName := 'My CPG Description';
+        C5InvenPriceGroup.InclVat := C5InvenPriceGroup.InclVat::Yes;
+        C5InvenPriceGroup.Insert(true);
     end;
 
     local procedure FillC5StagingTables(var C5CustTable1: Record "C5 CustTable"; var C5CustTable2: Record "C5 CustTable")
@@ -309,48 +305,44 @@ codeunit 148003 "C5 CustTable Migrator Tst"
     var
         C5Payment: Record "C5 Payment";
     begin
-        with C5Payment do begin
-            Init();
-            Payment := CopyStr(PaymentTxt, 1, 10);
-            Txt := 'My payment';
-            Method := Method::"Cur. month";
-            UnitCode := UnitCode::Day;
-            Qty := 5;
-            Insert(true);
-        end;
+        C5Payment.Init();
+        C5Payment.Payment := CopyStr(PaymentTxt, 1, 10);
+        C5Payment.Txt := 'My payment';
+        C5Payment.Method := C5Payment.Method::"Cur. month";
+        C5Payment.UnitCode := C5Payment.UnitCode::Day;
+        C5Payment.Qty := 5;
+        C5Payment.Insert(true);
     end;
 
     local procedure CreateC5CustContact()
     var
         C5CustContact: Record "C5 CustContact";
     begin
-        with C5CustContact do begin
-            Init();
-            RecId := 1;
-            Account := CopyStr(CustNumTxt, 1, 10);
-            Name := CopyStr(CustNumTxt, 1, 10);
-            Address1 := '123, Hobby Street';
-            Address2 := 'DerbyShire, Area GoGoland';
-            Phone := '02345556262';
-            ZipCity := 'AT-1100 Wien';
-            Country := 'Austria';
-            Email := Account + '@mail.com';
-            PrimaryContact := PrimaryContact::Yes;
-            Insert(true);
+        C5CustContact.Init();
+        C5CustContact.RecId := 1;
+        C5CustContact.Account := CopyStr(CustNumTxt, 1, 10);
+        C5CustContact.Name := CopyStr(CustNumTxt, 1, 10);
+        C5CustContact.Address1 := '123, Hobby Street';
+        C5CustContact.Address2 := 'DerbyShire, Area GoGoland';
+        C5CustContact.Phone := '02345556262';
+        C5CustContact.ZipCity := 'AT-1100 Wien';
+        C5CustContact.Country := 'Austria';
+        C5CustContact.Email := C5CustContact.Account + '@mail.com';
+        C5CustContact.PrimaryContact := C5CustContact.PrimaryContact::Yes;
+        C5CustContact.Insert(true);
 
-            Init();
-            RecId := 2;
-            Account := CopyStr(CustNumTxt, 1, 10);
-            Name := 'Secondary Contact';
-            Address1 := 'Address1';
-            Address2 := 'Address2';
-            Phone := '12345678';
-            CellPhone := '12345678';
-            ZipCity := 'AT-1100 Wien';
-            Country := 'Austria';
-            Email := 'second@mail.com';
-            Insert(true);
-        end;
+        C5CustContact.Init();
+        C5CustContact.RecId := 2;
+        C5CustContact.Account := CopyStr(CustNumTxt, 1, 10);
+        C5CustContact.Name := 'Secondary Contact';
+        C5CustContact.Address1 := 'Address1';
+        C5CustContact.Address2 := 'Address2';
+        C5CustContact.Phone := '12345678';
+        C5CustContact.CellPhone := '12345678';
+        C5CustContact.ZipCity := 'AT-1100 Wien';
+        C5CustContact.Country := 'Austria';
+        C5CustContact.Email := 'second@mail.com';
+        C5CustContact.Insert(true);
     end;
 
     local procedure CheckPaymentTermsExist()
@@ -369,15 +361,13 @@ codeunit 148003 "C5 CustTable Migrator Tst"
     var
         C5Employee: Record "C5 Employee";
     begin
-        with C5Employee do begin
-            Init();
-            Employee := CopyStr(SalesPersonTxt, 1, 10);
-            EmployeeType := EmployeeType::"Sales rep.";
-            Name := 'Gert Thomas';
-            Phone := '123455';
-            Email := 'gertThomas@c5.com';
-            Insert(true);
-        end;
+        C5Employee.Init();
+        C5Employee.Employee := CopyStr(SalesPersonTxt, 1, 10);
+        C5Employee.EmployeeType := C5Employee.EmployeeType::"Sales rep.";
+        C5Employee.Name := 'Gert Thomas';
+        C5Employee.Phone := '123455';
+        C5Employee.Email := 'gertThomas@c5.com';
+        C5Employee.Insert(true);
     end;
 
     local procedure CheckSalesPersonExists()
@@ -395,12 +385,10 @@ codeunit 148003 "C5 CustTable Migrator Tst"
     var
         C5Delivery: Record "C5 Delivery";
     begin
-        with C5Delivery do begin
-            Init();
-            Delivery := CopyStr(DeliveryTxt, 1, 10);
-            Name := 'By Avion';
-            Insert(true);
-        end;
+        C5Delivery.Init();
+        C5Delivery.Delivery := CopyStr(DeliveryTxt, 1, 10);
+        C5Delivery.Name := 'By Avion';
+        C5Delivery.Insert(true);
     end;
 
     local procedure CheckShipmentMethodExists()
@@ -416,12 +404,10 @@ codeunit 148003 "C5 CustTable Migrator Tst"
     var
         C5CustDiscGroup: Record "C5 CustDiscGroup";
     begin
-        with C5CustDiscGroup do begin
-            Init();
-            DiscGroup := CopyStr(DiscGroupTxt, 1, 10);
-            Comment := 'A comment for disc group';
-            Insert(true);
-        end;
+        C5CustDiscGroup.Init();
+        C5CustDiscGroup.DiscGroup := CopyStr(DiscGroupTxt, 1, 10);
+        C5CustDiscGroup.Comment := 'A comment for disc group';
+        C5CustDiscGroup.Insert(true);
     end;
 
     local procedure CheckCustomerDiscountGroupExists()
@@ -437,13 +423,11 @@ codeunit 148003 "C5 CustTable Migrator Tst"
     var
         C5ProcCode: Record "C5 ProcCode";
     begin
-        with C5ProcCode do begin
-            Init();
-            Type := Type::Customer;
-            Code := CopyStr(ProcCodeTxt, 1, 10);
-            Name := 'Proc Code full name';
-            Insert(true);
-        end;
+        C5ProcCode.Init();
+        C5ProcCode.Type := C5ProcCode.Type::Customer;
+        C5ProcCode.Code := CopyStr(ProcCodeTxt, 1, 10);
+        C5ProcCode.Name := 'Proc Code full name';
+        C5ProcCode.Insert(true);
     end;
 
     local procedure CheckPaymentMethodExists()
@@ -478,34 +462,32 @@ codeunit 148003 "C5 CustTable Migrator Tst"
     var
         Customer: Record Customer;
     begin
-        with Customer do begin
-            SetRange("No.", UpperCase(C5CustTable.Account));
-            FindFirst();
-            Assert.AreEqual(Name, C5CustTable.Name, 'Name not migrated');
-            Assert.AreEqual("Search Name", UpperCase(C5CustTable.SearchName), 'Search name not migrated');
-            Assert.AreEqual(Address, C5CustTable.Address1, 'Address1 not migrated');
-            Assert.AreEqual("Address 2", C5CustTable.Address2, 'Address2 not migrated');
-            Assert.AreEqual("Post Code", 'AT-1100', 'Post code not migrated');
-            Assert.AreEqual("Country/Region Code", 'AT', 'Country not migrated');
-            Assert.AreEqual(Contact, C5CustTable.Attention, 'Attention not migrated');
-            Assert.AreEqual("Phone No.", C5CustTable.Phone, 'Phone not migrated');
-            Assert.AreEqual("Telex No.", C5CustTable.CellPhone, 'Cellphone not migrated');
-            Assert.AreEqual("Credit Limit (LCY)", C5CustTable.BalanceMax, 'BalanceMax not migrated');
-            Assert.AreEqual("Currency Code", C5CustTable.Currency, 'Currency not migrated');
-            Assert.AreEqual("Customer Price Group", UpperCase(C5CustTable.PriceGroup), 'Pricegroup not migrated');
-            Assert.AreEqual("Language Code", C5HelperFunctions.GetLanguageCodeForC5Language(C5CustTable.Language_), 'Language not migrated');
-            Assert.AreEqual("Payment Terms Code", UpperCase(C5CustTable.Payment), 'Payment not migrated');
-            Assert.AreEqual("Salesperson Code", UpperCase(C5CustTable.SalesRep), 'SalesRep not migrated');
-            Assert.AreEqual("Shipment Method Code", UpperCase(C5CustTable.Delivery), 'Delivery not migrated');
-            Assert.AreEqual("Invoice Disc. Code", UpperCase(C5CustTable.DiscGroup), 'Disc group not migrated');
-            Assert.AreEqual(Blocked, Customer.Blocked::" ", 'Blocked not migrated');
-            Assert.AreEqual("Bill-to Customer No.", UpperCase(C5CustTable.InvoiceAccount), 'InvoiceAccount not migrated');
-            Assert.AreEqual("Payment Method Code", UpperCase(C5CustTable.PaymentMode), 'Payment mode not migrated');
-            Assert.AreEqual("Fax No.", C5CustTable.Fax, 'Fax not migrated');
-            Assert.AreEqual("VAT Registration No.", UpperCase(C5CustTable.VatNumber), 'Vat number not migrated');
-            Assert.AreEqual("Home Page", C5CustTable.URL, 'Url not migrated');
-            Assert.AreEqual("E-Mail", C5CustTable.Email, 'Email not migrated');
-        end;
+        Customer.SetRange("No.", UpperCase(C5CustTable.Account));
+        Customer.FindFirst();
+        Assert.AreEqual(Customer.Name, C5CustTable.Name, 'Name not migrated');
+        Assert.AreEqual(Customer."Search Name", UpperCase(C5CustTable.SearchName), 'Search name not migrated');
+        Assert.AreEqual(Customer.Address, C5CustTable.Address1, 'Address1 not migrated');
+        Assert.AreEqual(Customer."Address 2", C5CustTable.Address2, 'Address2 not migrated');
+        Assert.AreEqual(Customer."Post Code", 'AT-1100', 'Post code not migrated');
+        Assert.AreEqual(Customer."Country/Region Code", 'AT', 'Country not migrated');
+        Assert.AreEqual(Customer.Contact, C5CustTable.Attention, 'Attention not migrated');
+        Assert.AreEqual(Customer."Phone No.", C5CustTable.Phone, 'Phone not migrated');
+        Assert.AreEqual(Customer."Telex No.", C5CustTable.CellPhone, 'Cellphone not migrated');
+        Assert.AreEqual(Customer."Credit Limit (LCY)", C5CustTable.BalanceMax, 'BalanceMax not migrated');
+        Assert.AreEqual(Customer."Currency Code", C5CustTable.Currency, 'Currency not migrated');
+        Assert.AreEqual(Customer."Customer Price Group", UpperCase(C5CustTable.PriceGroup), 'Pricegroup not migrated');
+        Assert.AreEqual(Customer."Language Code", C5HelperFunctions.GetLanguageCodeForC5Language(C5CustTable.Language_), 'Language not migrated');
+        Assert.AreEqual(Customer."Payment Terms Code", UpperCase(C5CustTable.Payment), 'Payment not migrated');
+        Assert.AreEqual(Customer."Salesperson Code", UpperCase(C5CustTable.SalesRep), 'SalesRep not migrated');
+        Assert.AreEqual(Customer."Shipment Method Code", UpperCase(C5CustTable.Delivery), 'Delivery not migrated');
+        Assert.AreEqual(Customer."Invoice Disc. Code", UpperCase(C5CustTable.DiscGroup), 'Disc group not migrated');
+        Assert.AreEqual(Customer.Blocked, Customer.Blocked::" ", 'Blocked not migrated');
+        Assert.AreEqual(Customer."Bill-to Customer No.", UpperCase(C5CustTable.InvoiceAccount), 'InvoiceAccount not migrated');
+        Assert.AreEqual(Customer."Payment Method Code", UpperCase(C5CustTable.PaymentMode), 'Payment mode not migrated');
+        Assert.AreEqual(Customer."Fax No.", C5CustTable.Fax, 'Fax not migrated');
+        Assert.AreEqual(Customer."VAT Registration No.", UpperCase(C5CustTable.VatNumber), 'Vat number not migrated');
+        Assert.AreEqual(Customer."Home Page", C5CustTable.URL, 'Url not migrated');
+        Assert.AreEqual(Customer."E-Mail", C5CustTable.Email, 'Email not migrated');
     end;
 
     local procedure CheckCustomerPostingSetupIsEmpty(C5CustTable: Record "C5 CustTable")
@@ -513,14 +495,12 @@ codeunit 148003 "C5 CustTable Migrator Tst"
         GenJournalLine: Record "Gen. Journal Line";
         Customer: Record Customer;
     begin
-        with Customer do begin
-            SetRange("No.", UpperCase(C5CustTable.Account));
-            FindFirst();
-            // check customer posting group
-            Assert.AreEqual('', "Customer Posting Group", 'Customer Posting group migrated from CustGroup');
+        Customer.SetRange("No.", UpperCase(C5CustTable.Account));
+        Customer.FindFirst();
+        // check customer posting group
+        Assert.AreEqual('', Customer."Customer Posting Group", 'Customer Posting group migrated from CustGroup');
 
-            Assert.RecordIsEmpty(GenJournalLine);
-        end;
+        Assert.RecordIsEmpty(GenJournalLine);
     end;
 
     local procedure CheckCustomerPostingSetup(C5CustTable: Record "C5 CustTable")
@@ -530,39 +510,37 @@ codeunit 148003 "C5 CustTable Migrator Tst"
         DimensionSetEntry: Record "Dimension Set Entry";
         Customer: Record Customer;
     begin
-        with Customer do begin
-            SetRange("No.", UpperCase(C5CustTable.Account));
-            FindFirst();
-            // check customer posting group
-            Assert.AreEqual('CUSTGRP', "Customer Posting Group", 'Customer Posting group was not migrated from CustGroup');
-            CustomerPostingGroup.Get("Customer Posting Group");
-            Assert.AreEqual('82020', CustomerPostingGroup."Receivables Account", 'incorrect receivables acc');
+        Customer.SetRange("No.", UpperCase(C5CustTable.Account));
+        Customer.FindFirst();
+        // check customer posting group
+        Assert.AreEqual('CUSTGRP', Customer."Customer Posting Group", 'Customer Posting group was not migrated from CustGroup');
+        CustomerPostingGroup.Get(Customer."Customer Posting Group");
+        Assert.AreEqual('82020', CustomerPostingGroup."Receivables Account", 'incorrect receivables acc');
 
-            // check general journal line
-            GenJournalLine.SetRange("Account Type", GenJournalLine."Account Type"::Customer);
-            GenJournalLine.SetRange("Account No.", C5CustTable.Account);
-            GenJournalLine.FindFirst();
-            Assert.AreEqual('CUSTMIGR', GenJournalLine."Journal Batch Name", 'Hard coded batch name incorrect');
-            Assert.AreEqual(1000, GenJournalLine.Amount, 'Incorrect amount');
-            Assert.AreEqual('C5MIGRATE', GenJournalLine."Document No.", 'Incorrect document number');
-            Assert.AreEqual(DMY2Date(10, 4, 2014), GenJournalLine."Document Date", 'incorrect doc date');
-            Assert.AreEqual(DMY2Date(10, 4, 2014), GenJournalLine."Posting Date", 'incorrect posting date');
-            Assert.AreEqual(DMY2Date(12, 5, 2014), GenJournalLine."Due Date", 'incorrect due date');
-            Assert.AreNotEqual('', GenJournalLine.Description, 'Empty discription');
-            Assert.AreEqual(CustomerPostingGroup."Receivables Account", GenJournalLine."Bal. Account No.", 'Balance account was different than expected.');
+        // check general journal line
+        GenJournalLine.SetRange("Account Type", GenJournalLine."Account Type"::Customer);
+        GenJournalLine.SetRange("Account No.", C5CustTable.Account);
+        GenJournalLine.FindFirst();
+        Assert.AreEqual('CUSTMIGR', GenJournalLine."Journal Batch Name", 'Hard coded batch name incorrect');
+        Assert.AreEqual(1000, GenJournalLine.Amount, 'Incorrect amount');
+        Assert.AreEqual('C5MIGRATE', GenJournalLine."Document No.", 'Incorrect document number');
+        Assert.AreEqual(DMY2Date(10, 4, 2014), GenJournalLine."Document Date", 'incorrect doc date');
+        Assert.AreEqual(DMY2Date(10, 4, 2014), GenJournalLine."Posting Date", 'incorrect posting date');
+        Assert.AreEqual(DMY2Date(12, 5, 2014), GenJournalLine."Due Date", 'incorrect due date');
+        Assert.AreNotEqual('', GenJournalLine.Description, 'Empty discription');
+        Assert.AreEqual(CustomerPostingGroup."Receivables Account", GenJournalLine."Bal. Account No.", 'Balance account was different than expected.');
 
-            // check dimension on the general line
-            DimensionSetEntry.SetRange("Dimension Set ID", GenJournalLine."Dimension Set ID");
-            DimensionSetEntry.SetRange("Dimension Code", 'C5DEPARTMENT');
-            DimensionSetEntry.FindFirst();
-            Assert.AreEqual(Uppercase(Department2Txt), DimensionSetEntry."Dimension Value Code", 'Incorrect department code');
-            DimensionSetEntry.SetRange("Dimension Code", 'C5COSTCENTRE');
-            DimensionSetEntry.FindFirst();
-            Assert.AreEqual(Uppercase(CostCenter2Txt), DimensionSetEntry."Dimension Value Code", 'Incorrect cost center code');
-            DimensionSetEntry.SetRange("Dimension Code", 'C5PURPOSE');
-            DimensionSetEntry.FindFirst();
-            Assert.AreEqual(Uppercase(Purpose2Txt), DimensionSetEntry."Dimension Value Code", 'Incorrect purpose code');
-        end;
+        // check dimension on the general line
+        DimensionSetEntry.SetRange("Dimension Set ID", GenJournalLine."Dimension Set ID");
+        DimensionSetEntry.SetRange("Dimension Code", 'C5DEPARTMENT');
+        DimensionSetEntry.FindFirst();
+        Assert.AreEqual(Uppercase(Department2Txt), DimensionSetEntry."Dimension Value Code", 'Incorrect department code');
+        DimensionSetEntry.SetRange("Dimension Code", 'C5COSTCENTRE');
+        DimensionSetEntry.FindFirst();
+        Assert.AreEqual(Uppercase(CostCenter2Txt), DimensionSetEntry."Dimension Value Code", 'Incorrect cost center code');
+        DimensionSetEntry.SetRange("Dimension Code", 'C5PURPOSE');
+        DimensionSetEntry.FindFirst();
+        Assert.AreEqual(Uppercase(Purpose2Txt), DimensionSetEntry."Dimension Value Code", 'Incorrect purpose code');
     end;
 
     local procedure CreateC5CustGroup(): Text[10]
@@ -622,4 +600,3 @@ codeunit 148003 "C5 CustTable Migrator Tst"
         C5CustTrans.Insert();
     end;
 }
-
