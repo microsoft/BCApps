@@ -313,6 +313,40 @@ codeunit 148165 "Elster Tables UT"
     end;
 
     [Test]
+    procedure ExportDownloadsXmlWithSpecialCharacters()
+    var
+        SalesVATAdvanceNotif: Record "Sales VAT Advance Notif.";
+        Umlaut: Char;
+        SharpS: Char;
+        ExpectedValue: Text;
+        XmlTxt: Label '<Elster><Value>%1 &amp; Co</Value><Amount>123.45</Amount></Elster>', Locked = true;
+    begin
+        Umlaut := 252;
+        SharpS := 223;
+        ExpectedValue := 'Gr' + Format(Umlaut) + Format(SharpS) + 'e';
+        CreateSalesVATAdvanceNotifForExport(SalesVATAdvanceNotif, StrSubstNo(XmlTxt, ExpectedValue));
+
+        VerifyDownloadedXml(SalesVATAdvanceNotif, ExpectedValue + ' & Co');
+    end;
+
+    [Test]
+    procedure ExportRetainsLineJoiningAndCanBeRepeated()
+    var
+        SalesVATAdvanceNotif: Record "Sales VAT Advance Notif.";
+        CarriageReturn: Char;
+        LineFeed: Char;
+        XmlTxt: Label '<Elster><Value>first%1second</Value><Amount>123.45</Amount></Elster>', Locked = true;
+    begin
+        CarriageReturn := 13;
+        LineFeed := 10;
+        CreateSalesVATAdvanceNotifForExport(
+            SalesVATAdvanceNotif, StrSubstNo(XmlTxt, Format(CarriageReturn) + Format(LineFeed)));
+
+        VerifyDownloadedXml(SalesVATAdvanceNotif, 'firstsecond');
+        VerifyDownloadedXml(SalesVATAdvanceNotif, 'firstsecond');
+    end;
+
+    [Test]
     procedure CalcEndDateForPeriodMonthSalesVATAdvNotif()
     var
         SalesVATAdvanceNotif: Record "Sales VAT Advance Notif.";
@@ -739,6 +773,68 @@ codeunit 148165 "Elster Tables UT"
         SalesVATAdvanceNotif."No." := LibraryUTUtility.GetNewCode();
         SalesVATAdvanceNotif."XML-File Creation Date" := XMLFileCreationDate;
         SalesVATAdvanceNotif.Insert();
+    end;
+
+    local procedure CreateSalesVATAdvanceNotifForExport(var SalesVATAdvanceNotif: Record "Sales VAT Advance Notif."; XmlText: Text)
+    var
+        ElecVATDeclSetup: Record "Elec. VAT Decl. Setup";
+        XmlOutStream: OutStream;
+    begin
+        if not ElecVATDeclSetup.Get() then
+            ElecVATDeclSetup.Insert();
+        ElecVATDeclSetup."XML File Default Name" := 'Elster';
+        ElecVATDeclSetup.Modify();
+
+        CreateSalesVATAdvanceNotif(SalesVATAdvanceNotif, WorkDate());
+        SalesVATAdvanceNotif.Description := 'StreamRegression';
+        SalesVATAdvanceNotif."XML Submission Document".CreateOutStream(XmlOutStream, TextEncoding::UTF8);
+        XmlOutStream.WriteText(XmlText);
+        SalesVATAdvanceNotif.Modify();
+    end;
+
+    local procedure VerifyDownloadedXml(var SalesVATAdvanceNotif: Record "Sales VAT Advance Notif."; ExpectedValue: Text)
+    var
+        LibraryFileMgtHandler: Codeunit "Library - File Mgt Handler";
+        Base64Convert: Codeunit "Base64 Convert";
+        TempBlob: Codeunit "Temp Blob";
+        SourceInStream: InStream;
+        DownloadInStream: InStream;
+        XmlDoc: XmlDocument;
+        XmlNode: XmlNode;
+        OriginalDocument: Text;
+        OriginalCreationDate: Date;
+    begin
+        SalesVATAdvanceNotif.CalcFields("XML Submission Document");
+        SalesVATAdvanceNotif."XML Submission Document".CreateInStream(SourceInStream);
+        OriginalDocument := Base64Convert.ToBase64(SourceInStream);
+        OriginalCreationDate := SalesVATAdvanceNotif."XML-File Creation Date";
+        LibraryFileMgtHandler.SetBeforeDownloadFromStreamHandlerActivated(true);
+        BindSubscription(LibraryFileMgtHandler);
+
+        SalesVATAdvanceNotif.Export();
+
+        LibraryFileMgtHandler.GetTempBlob(TempBlob);
+        UnbindSubscription(LibraryFileMgtHandler);
+        Assert.AreEqual(
+            'Elster_StreamRegression.xml', LibraryFileMgtHandler.GetDownloadFromSreamToFileName(),
+            'The download filename must use the configured name and notification description.');
+        Assert.IsTrue(TempBlob.HasValue(), 'Export must download the XML document.');
+        TempBlob.CreateInStream(DownloadInStream);
+        XmlDocument.ReadFrom(DownloadInStream, XmlDoc);
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/Elster/Value', XmlNode), 'The downloaded XML must contain the value.');
+        Assert.AreEqual(ExpectedValue, XmlNode.AsXmlElement().InnerText(), 'Export must preserve the legacy text and encoding.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/Elster/Amount', XmlNode), 'The downloaded XML must contain the amount.');
+        Assert.AreEqual('123.45', XmlNode.AsXmlElement().InnerText(), 'Export must preserve the reported amount.');
+
+        SalesVATAdvanceNotif.Get(SalesVATAdvanceNotif."No.");
+        SalesVATAdvanceNotif.CalcFields("XML Submission Document");
+        SalesVATAdvanceNotif."XML Submission Document".CreateInStream(SourceInStream);
+        Assert.AreEqual(
+            OriginalDocument, Base64Convert.ToBase64(SourceInStream),
+            'Export must not change the stored submission document.');
+        Assert.AreEqual(
+            OriginalCreationDate, SalesVATAdvanceNotif."XML-File Creation Date",
+            'Export must not change the XML creation date.');
     end;
 
     local procedure OnValidateSalesVATAdvNotif(FieldNo: Integer);

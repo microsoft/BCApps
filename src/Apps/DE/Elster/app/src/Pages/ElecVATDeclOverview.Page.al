@@ -15,13 +15,13 @@ page 11028 "Elec. VAT Decl. Overview"
             repeater(General)
             {
                 Caption = 'General';
-                field(Code; Code)
+                field(Code; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the VAT code to report.';
                 }
 
-                field(Amount; Amount)
+                field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the amount to report.';
