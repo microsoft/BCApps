@@ -1009,12 +1009,23 @@ codeunit 10778 "Verifactu Export"
     local procedure InsertInformationSystem(var InvoiceXMLNode: XmlElement)
     var
         SistemaInformacionXMLNode: XmlElement;
+        IDOtroXMLNode: XmlElement;
+        ProducerNameTok: Label 'Microsoft Corporation', Locked = true;
+        ProducerCountryCodeTok: Label 'US', Locked = true;
+        ProducerIDTypeTok: Label '04', Locked = true;
+        ProducerTaxIDTok: Label '91-1144442', Locked = true;
+        SystemNameTok: Label 'Dynamics 365 Business Central', Locked = true;
+        SystemIdTok: Label 'BC', Locked = true;
     begin
         SistemaInformacionXMLNode := XmlElement.Create('SistemaInformatico', XmlNamespaceSum1);
-        SistemaInformacionXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, CompanyInformation.Name));
-        SistemaInformacionXMLNode.Add(XmlElement.Create('NIF', XmlNamespaceSum1, CompanyInformation."VAT Registration No."));
-        SistemaInformacionXMLNode.Add(XmlElement.Create('NombreSistemaInformatico', XmlNamespaceSum1, 'BusinessCentral'));
-        SistemaInformacionXMLNode.Add(XmlElement.Create('IdSistemaInformatico', XmlNamespaceSum1, '77'));
+        SistemaInformacionXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, ProducerNameTok));
+        IDOtroXMLNode := XmlElement.Create('IDOtro', XmlNamespaceSum1);
+        IDOtroXMLNode.Add(XmlElement.Create('CodigoPais', XmlNamespaceSum1, ProducerCountryCodeTok));
+        IDOtroXMLNode.Add(XmlElement.Create('IDType', XmlNamespaceSum1, ProducerIDTypeTok));
+        IDOtroXMLNode.Add(XmlElement.Create('ID', XmlNamespaceSum1, ProducerTaxIDTok));
+        SistemaInformacionXMLNode.Add(IDOtroXMLNode);
+        SistemaInformacionXMLNode.Add(XmlElement.Create('NombreSistemaInformatico', XmlNamespaceSum1, SystemNameTok));
+        SistemaInformacionXMLNode.Add(XmlElement.Create('IdSistemaInformatico', XmlNamespaceSum1, SystemIdTok));
         SistemaInformacionXMLNode.Add(XmlElement.Create('Version', XmlNamespaceSum1, '1.0'));
         SistemaInformacionXMLNode.Add(XmlElement.Create('NumeroInstalacion', XmlNamespaceSum1, '001'));
         SistemaInformacionXMLNode.Add(XmlElement.Create('TipoUsoPosibleSoloVerifactu', XmlNamespaceSum1, 'N'));
