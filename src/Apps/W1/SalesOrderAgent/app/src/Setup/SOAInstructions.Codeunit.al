@@ -38,10 +38,12 @@ codeunit 4598 "SOA Instructions"
     local procedure UpdateBusinessSkill(ResourceName: Text)
     var
         BusinessSkill: Record "Business Skill";
+        TempBusinessSkill: Record "Business Skill" temporary;
         BusinessSkillBuilder: Codeunit "Business Skill Builder";
         SkillTitle: Text[250];
         SkillDescription: Text[2048];
         SkillText: Text;
+        SkillTextChanged: Boolean;
         DuplicateSkillTitleErr: Label 'More than one business skill has the title "%1". Keep one matching skill before updating Sales Order Agent setup.', Comment = '%1 = Business skill title.';
     begin
         ReadBusinessSkillMetadata(ResourceName, SkillTitle, SkillDescription);
@@ -53,14 +55,18 @@ codeunit 4598 "SOA Instructions"
             Error(DuplicateSkillTitleErr, SkillTitle);
 
         if BusinessSkill.FindFirst() then begin
+            // Compare through the skill reader so newline normalization cannot cause a version-only update.
+            TempBusinessSkill.SetText(SkillText);
+            SkillTextChanged := BusinessSkill.GetText() <> TempBusinessSkill.GetText(false);
             if (BusinessSkill.Description = SkillDescription) and
-               (BusinessSkill.GetText() = SkillText) and
+               not SkillTextChanged and
                (BusinessSkill.Status = BusinessSkill.Status::Active)
             then
                 exit;
 
             BusinessSkill.Description := SkillDescription;
-            BusinessSkill.SetText(SkillText);
+            if SkillTextChanged then
+                BusinessSkill.SetText(SkillText);
             BusinessSkill.Status := BusinessSkill.Status::Active;
             BusinessSkill.Modify(true);
         end else begin
