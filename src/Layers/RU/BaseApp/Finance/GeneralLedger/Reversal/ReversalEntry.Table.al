@@ -555,6 +555,14 @@ table 179 "Reversal Entry"
     /// <summary>
     /// Validates all entries in the reversal list for reversal eligibility and business rule compliance.
     /// </summary>
+    procedure CheckEntries()
+    begin
+        CheckEntries(false);
+    end;
+
+    /// <summary>
+    /// Validates all entries in the reversal list for reversal eligibility and business rule compliance.
+    /// </summary>
     procedure CheckEntries(IsVATAllocOnCost: Boolean)
     var
         GLAccount: Record "G/L Account";

@@ -163,6 +163,7 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
 
                 if "Expense Date" <> xRec."Expense Date" then begin
                     ClearRuleId();
@@ -189,6 +190,7 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
                 UpdateAmount();
                 ApplyRule();
             end;
@@ -202,6 +204,7 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
                 UpdateAmount();
                 ApplyRule();
             end;
@@ -456,18 +459,6 @@ table 6900 Expense
                 ApplyRule();
             end;
         }
-        field(63; "Vehicle Type"; Code[20])
-        {
-            Caption = 'Vehicle Type';
-            TableRelation = "Expense Vehicle Type";
-            ToolTip = 'Specifies the vehicle type used for this mileage expense. The mileage rate matching this vehicle type is applied, or the generic rate when no vehicle-specific rate exists.';
-
-            trigger OnValidate()
-            begin
-                TestStatusOpen();
-                ApplyRule();
-            end;
-        }
         field(30; "Reimbursable Amount"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -503,8 +494,34 @@ table 6900 Expense
             Caption = 'Credit Card Feed No.';
 
             trigger OnValidate()
+            var
+                CorpCardTrans: Record "EA Corp Card Trans";
             begin
                 TestStatusOpen();
+                if "Credit Card Feed No." <> 0 then begin
+                    CorpCardTrans.Get("Credit Card Feed No.");
+                    if "Corporate Card Id" = '' then
+                        "Corporate Card Id" := CorpCardTrans."Card Id";
+                    CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
+                end;
+            end;
+        }
+        field(107; "Corporate Card Id"; Code[50])
+        {
+            Caption = 'Corporate Card';
+            DataClassification = AccountData;
+            TableRelation = "EA Corp Card"."Card Id";
+            ToolTip = 'Specifies the corporate card used to pay for this expense, independently of whether a feed transaction has arrived.';
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+                CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
+            end;
+
+            trigger OnLookup()
+            begin
+                CorpCardSelectionMgt.LookupCard(Rec);
             end;
         }
         field(34; "Dimension Set ID"; Integer)
@@ -721,6 +738,25 @@ table 6900 Expense
             TableRelation = "Expense Vendor";
             Editable = false;
         }
+        field(63; "Vehicle Type"; Code[20])
+        {
+            Caption = 'Vehicle Type';
+            TableRelation = "Expense Vehicle Type";
+            ToolTip = 'Specifies the vehicle type used for this mileage expense. The mileage rate matching this vehicle type is applied, or the generic rate when no vehicle-specific rate exists.';
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+                ApplyRule();
+            end;
+        }
+        field(64; Source; Enum "Expense Source")
+        {
+            Caption = 'Source';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies how the expense was originally created.';
+            Editable = false;
+        }
     }
     keys
     {
@@ -729,6 +765,9 @@ table 6900 Expense
             Clustered = true;
         }
         key(CreditCardFeedNo; "Credit Card Feed No.")
+        {
+        }
+        key(CorporateCard; "Corporate Card Id")
         {
         }
     }
@@ -754,13 +793,25 @@ table 6900 Expense
             Rec."Created Date-Time" := CurrentDateTime;
 
         SetExpenseUserOnCreate();
+        CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
 
         if CalledFromExpenseAgent then
             EAKPITrack.UpdateExpenseEntry(Rec);
     end;
 
     trigger OnModify()
+    var
+        StoredExpense: Record Expense;
     begin
+        StoredExpense := xRec;
+        CheckCorporateCardSourceFields(StoredExpense);
+        if ("Corporate Card Id" <> StoredExpense."Corporate Card Id") or
+           ("Expense User No." <> StoredExpense."Expense User No.") or
+           ("Expense Date" <> StoredExpense."Expense Date") or
+           ("Reimbursement Type" <> StoredExpense."Reimbursement Type") or
+           ("Credit Card Feed No." <> StoredExpense."Credit Card Feed No.")
+        then
+            CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
         UpdateExpenseUserOnModify();
     end;
 
@@ -791,6 +842,7 @@ table 6900 Expense
         NoSeries: Codeunit "No. Series";
         DimMgt: Codeunit DimensionManagement;
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         HideValidationDialog: Boolean;
         SkipRuleApplication: Boolean;
         CalledFromExpenseAgent: Boolean;
@@ -807,6 +859,7 @@ table 6900 Expense
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 = Expense User No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
         ModifyOrDeleteErr: Label 'Modifications and delete are not allowed for records created by the Expense Agent API.';
+        CorporateCardSourceFieldCannotChangeErr: Label '%1 cannot be changed on an expense created from a corporate card transaction.', Comment = '%1 = field caption';
         ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
 
     procedure AssistEdit() Result: Boolean
@@ -954,6 +1007,30 @@ table 6900 Expense
     procedure TestStatusOpen()
     begin
         Rec.TestField(Status, Status::Open);
+    end;
+
+    local procedure CheckCorporateCardSourceFields()
+    var
+        StoredExpense: Record Expense;
+    begin
+        CheckCorporateCardSourceFields(StoredExpense);
+    end;
+
+    local procedure CheckCorporateCardSourceFields(var StoredExpense: Record Expense)
+    begin
+        if Rec.IsTemporary() or IsNullGuid(Rec.SystemId) then
+            exit;
+        if not StoredExpense.GetBySystemId(Rec.SystemId) then
+            exit;
+        if StoredExpense.Source <> StoredExpense.Source::CorporateCard then
+            exit;
+
+        if Rec.Amount <> StoredExpense.Amount then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption(Amount));
+        if Rec."Expense Date" <> StoredExpense."Expense Date" then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Expense Date"));
+        if Rec."Currency Code" <> StoredExpense."Currency Code" then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Currency Code"));
     end;
 
     procedure GetRuleStyleText() StatusStyleText: Text

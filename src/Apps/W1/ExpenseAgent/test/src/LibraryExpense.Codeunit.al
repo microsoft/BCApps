@@ -261,7 +261,36 @@ codeunit 148300 "Library - Expense"
         Expense.Validate("Currency Code", CurrencyCode);
         Expense.Validate(Amount, Amount);
         Expense.Validate(Refundable, Refundable);
+        if Expense."Reimbursement Type" = Expense."Reimbursement Type"::"Credit Card" then
+            Expense.Validate("Corporate Card Id", GetCorporateCardForExpenseUser(Expense."Expense User No.", Expense."Expense Date"));
         Expense.Modify();
+    end;
+
+    internal procedure GetCorporateCardForExpenseUser(ExpenseUserNo: Code[20]; ExpenseDate: Date): Code[50]
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardProvider: Record "EA Corp Card Provider";
+    begin
+        CorpCard.SetRange("Expense User No.", ExpenseUserNo);
+        CorpCard.SetRange(Blocked, false);
+        CorpCard.SetFilter("Valid From", '%1|..%2', 0D, ExpenseDate);
+        CorpCard.SetFilter("Valid To", '%1|%2..', 0D, ExpenseDate);
+        if CorpCard.FindFirst() then
+            exit(CorpCard."Card Id");
+
+        if not CorpCardProvider.Get('MANUAL-TEST') then begin
+            CorpCardProvider.Init();
+            CorpCardProvider.Code := 'MANUAL-TEST';
+            CorpCardProvider.Description := 'Manual corporate card test provider';
+            CorpCardProvider.Insert(true);
+        end;
+        CorpCard.Init();
+        CorpCard."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCard."Card Id"));
+        CorpCard."Provider Code" := CorpCardProvider.Code;
+        CorpCard."Expense User No." := ExpenseUserNo;
+        CorpCard."Masked Card No." := '**** 1234';
+        CorpCard.Insert(true);
+        exit(CorpCard."Card Id");
     end;
 
     internal procedure FindExpensePaymentMethod(var ExpensePaymentMethod: Record "Expense Payment Method"; ReimbursementType: Enum "Expense Reimbursement Type")
@@ -313,6 +342,10 @@ codeunit 148300 "Library - Expense"
         ExpenseReportLine.Validate("Amount", Amount);
         ExpenseReportLine.Validate("Expense Currency Code", CurrencyCode);
         ExpenseReportLine.Insert(true);
+        if ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Credit Card" then begin
+            ExpenseReportLine.Validate("Corporate Card Id", GetCorporateCardForExpenseUser(ExpenseReportLine."Expense User No.", ExpenseReportLine."Expense Date"));
+            ExpenseReportLine.Modify();
+        end;
     end;
 
     internal procedure CreateExpenseReportLine(var ExpenseReportLine: Record "Expense Report Line"; ExpenseReportHeader: Record "Expense Report Header"; ExpenseCategory: Code[20]; Billable: Boolean; BillableToCustomer: Code[20]; AccountType: Enum "Expense Line Type"; AccountNo: Code[20])
@@ -333,6 +366,10 @@ codeunit 148300 "Library - Expense"
         ExpenseReportLine.Validate("Account Type", AccountType);
         ExpenseReportLine.Validate("Account No.", AccountNo);
         ExpenseReportLine.Insert(true);
+        if ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Credit Card" then begin
+            ExpenseReportLine.Validate("Corporate Card Id", GetCorporateCardForExpenseUser(ExpenseReportLine."Expense User No.", ExpenseReportLine."Expense Date"));
+            ExpenseReportLine.Modify();
+        end;
     end;
 
     internal procedure CreateSpendRequest(var SpendRequest: Record "Spend Request")

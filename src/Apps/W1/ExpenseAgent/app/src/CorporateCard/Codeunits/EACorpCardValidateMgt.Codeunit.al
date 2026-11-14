@@ -111,12 +111,11 @@ codeunit 7435 "EA Corp Card Validate Mgt"
         MatchedCardId: Code[50];
     begin
         ExpenseNo := '';
-        Expense.SetRange(Status, Expense.Status::Open);
         Expense.SetRange("Credit Card Feed No.", 0);
         Expense.SetRange("Expense Date", CorpCardTrans."Trans Date");
         Expense.SetRange(Amount, CorpCardTrans.Amount);
         Expense.SetRange("Currency Code", CorpCardTrans."Currency Code");
-        Expense.SetLoadFields("Expense User No.", "Payment Method Code");
+        Expense.SetLoadFields("Expense User No.", "Payment Method Code", "Corporate Card Id", Status);
         if Expense.FindSet() then begin
             ProviderCorpCard.SetRange("Provider Code", CorpCardTrans."Provider Code");
             ProviderCorpCard.SetLoadFields("Expense User No.");
@@ -144,6 +143,12 @@ codeunit 7435 "EA Corp Card Validate Mgt"
                 if not TempExpensePaymentMethod.Get(Expense."Payment Method Code") then
                     continue;
                 TempCorpCard.SetRange("Expense User No.", Expense."Expense User No.");
+                TempCorpCard.SetRange("Card Id");
+                if Expense."Corporate Card Id" <> '' then
+                    TempCorpCard.SetRange("Card Id", Expense."Corporate Card Id")
+                else
+                    if Expense.Status <> Expense.Status::Open then
+                        continue;
                 if not TempCorpCard.FindSet() then
                     continue;
                 if (ExpenseNo <> '') or (TempCorpCard.Next() <> 0) then begin

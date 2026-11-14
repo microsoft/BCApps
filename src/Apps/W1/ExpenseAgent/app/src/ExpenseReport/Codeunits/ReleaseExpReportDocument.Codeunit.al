@@ -66,6 +66,7 @@ codeunit 6984 "Release Exp. Report Document"
         ExpenseCategory: Record "Expense Category";
         ExpenseSubCategory: Record "Expense Subcategory";
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
         ExpenseReportLine.TestField("Expense Category");
         ExpenseCategory.Get(ExpenseReportLine."Expense Category");
@@ -77,6 +78,7 @@ codeunit 6984 "Release Exp. Report Document"
         ExpenseReportLine.TestField(Description);
         if ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::" " then
             Error(ReimbursementErr, ExpenseReportLine."Expense No.", ExpenseReportLine."Line No.", ExpenseReportLine.Description);
+        CorpCardSelectionMgt.ValidateReportLine(ExpenseReportLine, true);
 
         if ExpenseReportLine."Job No." <> '' then
             ExpenseReportLine.TestField("Job Task No.");

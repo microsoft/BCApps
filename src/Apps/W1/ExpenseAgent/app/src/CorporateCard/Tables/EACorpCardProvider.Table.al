@@ -110,6 +110,12 @@ table 7426 "EA Corp Card Provider"
                 CheckSettlementAccountsDiffer();
             end;
         }
+        field(18; "Short Name"; Text[4])
+        {
+            Caption = 'Short Name';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the provider name, up to four characters, shown with the last four card digits in card selections.';
+        }
     }
 
     keys
@@ -119,6 +125,12 @@ table 7426 "EA Corp Card Provider"
             Clustered = true;
         }
     }
+
+    trigger OnInsert()
+    begin
+        if "Short Name" = '' then
+            "Short Name" := CopyStr(Code, 1, MaxStrLen("Short Name"));
+    end;
 
     trigger OnDelete()
     begin

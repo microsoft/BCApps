@@ -28,6 +28,10 @@ page 7434 "EA Corp Card Providers"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the provider description.';
                 }
+                field("Short Name"; Rec."Short Name")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field(Enabled; Rec.Enabled)
                 {
                     ApplicationArea = Basic, Suite;

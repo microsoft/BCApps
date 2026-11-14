@@ -22,6 +22,7 @@ page 6927 "Expenses API"
     ODataKeyFields = SystemId;
     SourceTable = Expense;
     AboutText = 'Provides access to data from the Expense table';
+    Permissions = tabledata "EA Corp Card" = r;
 
     layout
     {
@@ -211,6 +212,17 @@ page 6927 "Expenses API"
                 field(creditCardFeedNo; Rec."Credit Card Feed No.")
                 {
                     Caption = 'Credit Card Feed No.';
+                    Editable = false;
+                }
+                field(source; Rec.Source)
+                {
+                    Caption = 'Source';
+                    ToolTip = 'Specifies how the expense was originally created.';
+                    Editable = false;
+                }
+                field(corporateCardId; Rec."Corporate Card Id")
+                {
+                    Caption = 'Corporate Card Id';
                 }
                 field(extractionConfidence; Rec."Extraction Confidence")
                 {
@@ -418,11 +430,13 @@ page 6927 "Expenses API"
     local procedure UpdateExpenseUserNoFromSystemId()
     var
         ExpenseUser: Record "Expense User";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         NewExpenseUserNo: Code[20];
     begin
         NewExpenseUserNo := ExpenseUser.GetExpenseUserNoBySystemId(ExpenseUserSystemId);
         if (NewExpenseUserNo <> '') and (Rec."Expense User No." <> NewExpenseUserNo) then
             Rec."Expense User No." := NewExpenseUserNo;
+        CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
     end;
 
     [ServiceEnabled]

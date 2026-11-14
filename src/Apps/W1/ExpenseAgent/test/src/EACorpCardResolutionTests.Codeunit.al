@@ -266,12 +266,17 @@ codeunit 148362 EACorpCardResolutionTests
         CorpCardTrans: Record "EA Corp Card Trans";
         Expense: Record Expense;
     begin
+        // [SCENARIO] A missing card suffix is resolved through a unique existing expense without creating a duplicate.
         Initialize();
+
+        // [GIVEN] One matching credit-card expense has no selected card and the CSV row has no suffix.
         CreateMatchingExpense(Expense);
         SetCsvPayload('', false);
 
+        // [WHEN] The CSV statement is imported.
         RunImport(CsvProviderCodeTok, CorpCardStatement);
 
+        // [THEN] The existing expense and inferred card are linked, with no additional draft.
         CorpCardTestLib.FindTransInStatementByProviderTransId(CorpCardStatement."Statement Entry No.", CsvProviderCodeTok, 'RESOLVE-1', CorpCardTrans);
         Assert.AreEqual('CORPCARD-0001', CorpCardTrans."Card Id", 'The card must be inferred from the unique matching expense user and provider.');
         Assert.AreEqual(Expense."No.", CorpCardTrans."Expense No.", 'AutoDraft must link the unique existing expense instead of creating a duplicate.');
@@ -288,14 +293,19 @@ codeunit 148362 EACorpCardResolutionTests
         CorpCardStatement: Record "EA Corp Card Statement";
         Expense: Record Expense;
     begin
+        // [SCENARIO] A missing card suffix cannot be resolved through multiple matching expenses.
         Initialize();
+
+        // [GIVEN] Two expenses match the row without a suffix, alongside a valid row.
         CreateMatchingExpense(Expense);
         Clear(Expense);
         CreateMatchingExpense(Expense);
         SetCsvPayload('', true);
 
+        // [WHEN] The CSV statement is imported.
         RunImport(CsvProviderCodeTok, CorpCardStatement);
 
+        // [THEN] The ambiguous row is rejected with a diagnostic while the valid row imports.
         AssertMixedImport(CorpCardStatement, 'More than one expense or corporate card matches');
     end;
 
@@ -307,16 +317,21 @@ codeunit 148362 EACorpCardResolutionTests
         CorpCardStatement: Record "EA Corp Card Statement";
         Expense: Record Expense;
     begin
+        // [SCENARIO] A unique expense cannot identify a card when its user has multiple cards with the provider.
         Initialize();
+
+        // [GIVEN] A matching expense has no selected card, its user has two cards, and the CSV includes a valid row.
         CreateMatchingExpense(Expense);
         CorpCard.Get('CORPCARD-0001');
-        CorpCard."Card Id" := 'ANOTHER-INTERNAL-CARD';
+        CorpCard."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCard."Card Id"));
         CorpCard."Masked Card No." := '****7777';
         CorpCard.Insert(true);
         SetCsvPayload('', true);
 
+        // [WHEN] The CSV statement is imported.
         RunImport(CsvProviderCodeTok, CorpCardStatement);
 
+        // [THEN] The ambiguous row is rejected with a diagnostic while the valid row imports.
         AssertMixedImport(CorpCardStatement, 'More than one expense or corporate card matches');
     end;
 
@@ -327,12 +342,17 @@ codeunit 148362 EACorpCardResolutionTests
         CorpCardStatement: Record "EA Corp Card Statement";
         Expense: Record Expense;
     begin
+        // [SCENARIO] An unknown supplied suffix must not trigger expense-based card resolution.
         Initialize();
+
+        // [GIVEN] An otherwise matching expense exists and the CSV contains an unknown suffix and a valid row.
         CreateMatchingExpense(Expense);
         SetCsvPayload('9999', true);
 
+        // [WHEN] The CSV statement is imported.
         RunImport(CsvProviderCodeTok, CorpCardStatement);
 
+        // [THEN] The unknown suffix is rejected, the valid row imports, and the existing expense remains unlinked.
         AssertMixedImport(CorpCardStatement, 'No corporate card could be identified');
         Expense.Get(Expense."No.");
         Assert.AreEqual(0, Expense."Credit Card Feed No.", 'A supplied unknown suffix must not be ignored to match another card.');
@@ -359,7 +379,10 @@ codeunit 148362 EACorpCardResolutionTests
         CorpCardStatement: Record "EA Corp Card Statement";
         Expense: Record Expense;
     begin
+        // [SCENARIO] Expense-based card resolution requires both the transaction date and currency to match.
         Initialize();
+
+        // [GIVEN] One expense has a different date and another has a different currency, alongside a valid CSV row.
         CreateMatchingExpense(Expense);
         Expense.Validate("Expense Date", WorkDate() - 1);
         Expense.Modify(true);
@@ -369,8 +392,10 @@ codeunit 148362 EACorpCardResolutionTests
         Expense.Modify(true);
         SetCsvPayload('', true);
 
+        // [WHEN] The CSV statement is imported.
         RunImport(CsvProviderCodeTok, CorpCardStatement);
 
+        // [THEN] Neither expense resolves the missing suffix, while the valid row imports.
         AssertMixedImport(CorpCardStatement, 'No corporate card could be identified');
     end;
 
@@ -382,7 +407,10 @@ codeunit 148362 EACorpCardResolutionTests
         Expense: Record Expense;
         ExpensePaymentMethod: Record "Expense Payment Method";
     begin
+        // [SCENARIO] Expense-based card resolution excludes expenses paid by non-credit-card methods.
         Initialize();
+
+        // [GIVEN] An otherwise matching expense uses a non-credit-card payment method, alongside a valid CSV row.
         CreateMatchingExpense(Expense);
         ExpensePaymentMethod.SetFilter("Reimbursement Type", '<>%1', ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
         Assert.IsTrue(ExpensePaymentMethod.FindFirst(), 'The fixture must provide a non-credit-card payment method.');
@@ -390,8 +418,10 @@ codeunit 148362 EACorpCardResolutionTests
         Expense.Modify(true);
         SetCsvPayload('', true);
 
+        // [WHEN] The CSV statement is imported.
         RunImport(CsvProviderCodeTok, CorpCardStatement);
 
+        // [THEN] The unresolved row is rejected, the valid row imports, and the expense remains unlinked.
         AssertMixedImport(CorpCardStatement, 'No corporate card could be identified');
         Expense.Get(Expense."No.");
         Assert.AreEqual(0, Expense."Credit Card Feed No.", 'A non-credit-card expense must not be linked by the fallback.');
@@ -405,7 +435,10 @@ codeunit 148362 EACorpCardResolutionTests
         CorpCardStatement: Record "EA Corp Card Statement";
         Expense: Record Expense;
     begin
+        // [SCENARIO] An expense and card without an assigned user cannot establish a fallback match.
         Initialize();
+
+        // [GIVEN] An otherwise matching expense and card have no user, and the CSV includes a valid row.
         CreateMatchingExpense(Expense);
         Expense."Expense User No." := '';
         Expense.Modify(true);
@@ -414,8 +447,10 @@ codeunit 148362 EACorpCardResolutionTests
         CorpCard.Modify(true);
         SetCsvPayload('', true);
 
+        // [WHEN] The CSV statement is imported.
         RunImport(CsvProviderCodeTok, CorpCardStatement);
 
+        // [THEN] The unresolved row is rejected, the valid row imports, and the expense remains unlinked.
         AssertMixedImport(CorpCardStatement, 'No corporate card could be identified');
         Expense.Get(Expense."No.");
         Assert.AreEqual(0, Expense."Credit Card Feed No.", 'An unassigned expense must not identify an unassigned card.');
@@ -433,7 +468,10 @@ codeunit 148362 EACorpCardResolutionTests
         CorpCardExpenseWriter: Codeunit "EA Corp Card Expense Writer";
         CorpCardPostImportOrch: Codeunit "EA Corp Card Post Import Orch";
     begin
+        // [SCENARIO] An expense changed after staging must not be linked or replaced by a new draft.
         Initialize();
+
+        // [GIVEN] A row without a suffix is staged against a matching expense whose amount is then changed.
         CreateMatchingExpense(Expense);
         SetCsvPayload('', false);
         CorpCardProvider.Get(CsvProviderCodeTok);
@@ -449,8 +487,10 @@ codeunit 148362 EACorpCardResolutionTests
         Expense.Modify(true);
         Commit();
 
+        // [WHEN] Post-import processing revalidates the staged expense candidate.
         CorpCardPostImportOrch.ProcessStatementPostImport(CorpCardStatement."Statement Entry No.", CorpCardExpenseWriter);
 
+        // [THEN] The stale candidate becomes an exception and the original expense remains the only, unlinked expense.
         CorpCardTestLib.FindTransInStatementByProviderTransId(CorpCardStatement."Statement Entry No.", CsvProviderCodeTok, 'RESOLVE-1', CorpCardTrans);
         Assert.AreEqual(CorpCardTrans.Status::Exception, CorpCardTrans.Status, 'A changed fallback match must become a transaction-level exception.');
         Assert.AreEqual('', CorpCardTrans."Expense No.", 'A stale candidate must not be linked.');
@@ -480,6 +520,7 @@ codeunit 148362 EACorpCardResolutionTests
         LibraryExpense.CreateExpense(Expense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, 'USD', 19.63);
         LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
         Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
+        Expense.Validate("Corporate Card Id", '');
         Expense.Modify(true);
     end;
 

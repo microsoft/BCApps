@@ -20,6 +20,7 @@ page 6929 "Expense Report Lines API"
     ODataKeyFields = SystemId;
     SourceTable = "Expense Report Line";
     AboutText = 'Provides access to data from the Expense Report Line table';
+    Permissions = tabledata "EA Corp Card" = r;
 
     layout
     {
@@ -277,6 +278,11 @@ page 6929 "Expense Report Lines API"
                 field(creditCardFeedNo; Rec."Credit Card Feed No.")
                 {
                     Caption = 'Credit Card Feed No.';
+                    Editable = false;
+                }
+                field(corporateCardId; Rec."Corporate Card Id")
+                {
+                    Caption = 'Corporate Card Id';
                 }
                 field(expenseDetailRequired; Rec."Expense Detail Required")
                 {
@@ -499,11 +505,13 @@ page 6929 "Expense Report Lines API"
     local procedure UpdateExpenseUserNoFromSystemId()
     var
         ExpenseUser: Record "Expense User";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         NewExpenseUserNo: Code[20];
     begin
         NewExpenseUserNo := ExpenseUser.GetExpenseUserNoBySystemId(ExpenseUserSystemId);
         if (NewExpenseUserNo <> '') and (Rec."Expense User No." <> NewExpenseUserNo) then
             Rec."Expense User No." := NewExpenseUserNo;
+        CorpCardSelectionMgt.ValidateReportLine(Rec, false);
     end;
 
     [ServiceEnabled]

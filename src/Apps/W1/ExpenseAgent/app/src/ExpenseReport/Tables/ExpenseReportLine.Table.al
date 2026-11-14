@@ -337,7 +337,8 @@ table 6907 "Expense Report Line"
         field(21; "Account No."; Code[20])
         {
             Caption = 'Account No.';
-            TableRelation = if ("Account Type" = const(" ")) "Standard Text"
+            TableRelation =
+            if ("Account Type" = const(" ")) "Standard Text"
             else
             if ("Account Type" = const(Resource)) Resource
             else
@@ -857,6 +858,28 @@ table 6907 "Expense Report Line"
                 TestStatusOpen();
             end;
         }
+        field(107; "Corporate Card Id"; Code[50])
+        {
+            Caption = 'Corporate Card';
+            DataClassification = AccountData;
+            TableRelation = "EA Corp Card"."Card Id";
+            ToolTip = 'Specifies the corporate card used to pay for the expense.';
+
+            trigger OnValidate()
+            var
+                CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+            begin
+                TestStatusOpen();
+                CorpCardSelectionMgt.ValidateReportLine(Rec, false);
+            end;
+
+            trigger OnLookup()
+            var
+                CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+            begin
+                CorpCardSelectionMgt.LookupReportLineCard(Rec);
+            end;
+        }
         field(52; "Applied Rule Id"; Guid)
         {
             Caption = 'Applied Rule Id';
@@ -1121,18 +1144,25 @@ table 6907 "Expense Report Line"
         key(CreditCardFeedNo; "Credit Card Feed No.")
         {
         }
+        key(CorporateCard; "Corporate Card Id")
+        {
+        }
         key(SpendRequestNo; "Spend Request No.")
         {
         }
     }
 
     trigger OnInsert()
+    var
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
         GetExpenseReportHeader();
         InitHeaderDefaults(ExpenseReportHeader);
         ValidateDate();
         SetExpenseUserOnCreate();
         ApplyRule();
+        if ("Corporate Card Id" <> '') or ("Credit Card Feed No." <> 0) then
+            CorpCardSelectionMgt.ValidateReportLine(Rec, false);
         if PolicyInvalidationPending then
             "Policy Eval Version" += 1;
         PolicyInvalidationPending := false;
@@ -1141,8 +1171,20 @@ table 6907 "Expense Report Line"
     trigger OnModify()
     var
         StoredExpenseReportLine: Record "Expense Report Line";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         RelevantFieldChanged: Boolean;
     begin
+        StoredExpenseReportLine := xRec;
+        // Read the persisted before-image once; xRec can already contain the new values.
+        if not Rec.IsTemporary() then
+            StoredExpenseReportLine.Get("Document No.", "Line No.");
+        if ("Corporate Card Id" <> StoredExpenseReportLine."Corporate Card Id") or
+           ("Expense User No." <> StoredExpenseReportLine."Expense User No.") or
+           ("Expense Date" <> StoredExpenseReportLine."Expense Date") or
+           ("Reimbursement Type" <> StoredExpenseReportLine."Reimbursement Type") or
+           ("Credit Card Feed No." <> StoredExpenseReportLine."Credit Card Feed No.")
+        then
+            CorpCardSelectionMgt.ValidateReportLine(Rec, false);
         UpdateExpenseUserOnModify();
         RelevantFieldChanged := PolicyRelevantFieldChanged(StoredExpenseReportLine);
         if not IsNullGuid(StoredExpenseReportLine.SystemId) then begin
@@ -1160,7 +1202,9 @@ table 6907 "Expense Report Line"
         ExpenseReportCommentLine: Record "Expense Report Comment Line";
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
         ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
+        CorpCardSelectionMgt.CheckReportLineCanBeDeleted(Rec);
         DeleteAssociatedRecords();
 
         RemoveExpenseReportNoInExpense();
@@ -1461,7 +1505,7 @@ table 6907 "Expense Report Line"
         PolicyInvalidationPending := true;
     end;
 
-    local procedure PolicyRelevantFieldChanged(var StoredExpenseReportLine: Record "Expense Report Line"): Boolean
+    local procedure PolicyRelevantFieldChanged(StoredExpenseReportLine: Record "Expense Report Line"): Boolean
     var
         RecRef: RecordRef;
         xRecRef: RecordRef;
@@ -1469,13 +1513,6 @@ table 6907 "Expense Report Line"
         xFieldRef: FieldRef;
         Index: Integer;
     begin
-        // Compare against the committed pre-modify image read straight from the database.
-        // xRec is unreliable here - even passed explicitly from the trigger it has been
-        // observed to compare equal to Rec at runtime - so the before-image is fetched by
-        // primary key instead (OnModify runs before the row is written, so this Get returns
-        // the old values). If no stored row is found, conservatively treat it as changed.
-        if not StoredExpenseReportLine.Get(Rec."Document No.", Rec."Line No.") then
-            exit(true);
         RecRef.GetTable(Rec);
         xRecRef.GetTable(StoredExpenseReportLine);
         for Index := 1 to RecRef.FieldCount() do begin

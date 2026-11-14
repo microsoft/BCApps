@@ -209,6 +209,7 @@ codeunit 6983 "Create Expense Report"
         ExpenseReportLine."Starting Point" := Expense."Starting Point";
         ExpenseReportLine."Ending Point" := Expense."Ending Point";
         ExpenseReportLine."Credit Card Feed No." := Expense."Credit Card Feed No.";
+        ExpenseReportLine."Corporate Card Id" := Expense."Corporate Card Id";
         ExpenseReportLine.Validate("Reimbursement Type", Expense."Reimbursement Type");
         ExpenseReportLine.Validate("Expense Detail Required", Expense."Expense Detail Required");
         ExpenseReportLine.Validate("Expense Currency Code", Expense."Currency Code");

@@ -8,6 +8,7 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.HumanResources.Employee;
 using System.IO;
 using System.Utilities;
 
@@ -53,6 +54,116 @@ codeunit 148357 EACorpCardTestLib
         InitializeCorpCards();
         EnsureCurrencyExchangeRate('USD');
         EnsureCurrencyExchangeRate('EUR');
+    end;
+
+    internal procedure InitializeExpense(var Expense: Record Expense; CorpCard: Record "EA Corp Card")
+    begin
+        Expense.Init();
+        Expense."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Expense."No."));
+        Expense."Expense User No." := CorpCard."Expense User No.";
+        Expense."Reimbursement Type" := Expense."Reimbursement Type"::"Credit Card";
+        Expense."Expense Date" := WorkDate();
+        Expense.Amount := 20;
+    end;
+
+    internal procedure InsertExpense(var Expense: Record Expense; CorpCard: Record "EA Corp Card")
+    begin
+        InitializeExpense(Expense, CorpCard);
+        Expense."Corporate Card Id" := CorpCard."Card Id";
+        Expense.Insert();
+    end;
+
+    internal procedure PostManualExpense(var Expense: Record Expense; var PostedExpenseReportLine: Record "Posted Expense Report Line"; CorpCard: Record "EA Corp Card")
+    begin
+        PostManualExpense(Expense, PostedExpenseReportLine, CorpCard, false, 20);
+    end;
+
+    internal procedure PostManualExpense(var Expense: Record Expense; var PostedExpenseReportLine: Record "Posted Expense Report Line"; CorpCard: Record "EA Corp Card"; ReportAmount: Decimal)
+    begin
+        PostManualExpense(Expense, PostedExpenseReportLine, CorpCard, false, ReportAmount);
+    end;
+
+    internal procedure PostManualReportLine(var PostedExpenseReportLine: Record "Posted Expense Report Line"; CorpCard: Record "EA Corp Card")
+    var
+        Expense: Record Expense;
+    begin
+        PostManualExpense(Expense, PostedExpenseReportLine, CorpCard, true, 20);
+    end;
+
+    local procedure PostManualExpense(var Expense: Record Expense; var PostedExpenseReportLine: Record "Posted Expense Report Line"; CorpCard: Record "EA Corp Card"; StandaloneReportLine: Boolean; ReportAmount: Decimal)
+    var
+        Employee: Record Employee;
+        EmployeePostingGroup: Record "Employee Posting Group";
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpensePostingGroup: Record "Expense Posting Group";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseUser: Record "Expense User";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+        ReleaseExpenseReportDocument: Codeunit "Release Exp. Report Document";
+    begin
+        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        LibraryExpense.InitializeExpenseSourceCode();
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+        LibraryExpense.UpdateEnableAgentInAgentSetup(false);
+        LibraryERMCountryData.CreateVATData();
+        LibraryERMCountryData.UpdateGeneralPostingSetup();
+        LibraryERMCountryData.CreateGeneralPostingSetupData();
+        LibraryERMCountryData.UpdateVATPostingSetup();
+        LibraryERMCountryData.UpdateJournalTemplMandatory(false);
+
+        ExpenseUser.Get(CorpCard."Expense User No.");
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        EmployeePostingGroup.Get(Employee."Employee Posting Group");
+        EmployeePostingGroup.Validate("Expense Payable Card Paid Acc.", LibraryERM.CreateGLAccountNo());
+        EmployeePostingGroup.Modify(true);
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Credit Card", ExpenseCategory."Expense Detail Required"::" ", ExpensePaymentMethod.Code);
+        LibraryExpense.CreateExpensePostingGroup(ExpensePostingGroup);
+        ExpenseCategory.Validate("Posting Group", ExpensePostingGroup.Code);
+        ExpenseCategory.Modify(true);
+        if StandaloneReportLine then begin
+            LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+            LibraryExpense.CreateExpenseReportLine(
+                ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', 20);
+            ExpenseReportLine.Validate("Corporate Card Id", CorpCard."Card Id");
+            ExpenseReportLine.Modify(true);
+        end else begin
+            LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, '', 20);
+            Expense.Validate("Corporate Card Id", CorpCard."Card Id");
+            Expense.Modify(true);
+            ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+            LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+            ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
+        end;
+        if ExpenseReportLine.Amount <> ReportAmount then begin
+            ExpenseReportLine.Validate(Amount, ReportAmount);
+            ExpenseReportLine.Modify(true);
+        end;
+        ReleaseExpenseReportDocument.PerformManualRelease(ExpenseReportHeader);
+        ExpenseReportPost.RunWithCheck(ExpenseReportHeader);
+
+        if not StandaloneReportLine then
+            Expense.Get(Expense."No.");
+        PostedExpenseReportLine.Get(ExpenseReportHeader."Last Posting No.", ExpenseReportLine."Line No.");
+    end;
+
+    internal procedure CreateTransaction(var CorpCardTrans: Record "EA Corp Card Trans"; CorpCard: Record "EA Corp Card")
+    begin
+        CorpCardTrans.Init();
+        CorpCardTrans."Entry No." := 0;
+        CorpCardTrans."Provider Code" := CorpCard."Provider Code";
+        CorpCardTrans."Card Id" := CorpCard."Card Id";
+        CorpCardTrans."Provider Trans Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardTrans."Provider Trans Id"));
+        CorpCardTrans."Trans Date" := WorkDate();
+        CorpCardTrans.Amount := 20;
+        CorpCardTrans.Insert(true);
     end;
 
     local procedure InitializeCorpCardSetup()
@@ -116,6 +227,7 @@ codeunit 148357 EACorpCardTestLib
         CorpCardProvider.Get(ProviderCode);
         CorpCardProvider.Enabled := true;
         CorpCardProvider."Feed Type" := FeedType;
+        CreateCorpCardSetup.SetDefaultProviderShortName(CorpCardProvider);
         CorpCardProvider.Modify(true);
         CreateCorpCardSetup.EnsureDataExchangeForProvider(CorpCardProvider);
     end;

@@ -171,6 +171,7 @@ codeunit 148318 "Expense Capabilities API Test"
         // Enable Evaluate Policies too so the aiAssistedPolicyEvaluation capability is not reported
         // disabled, keeping the "no capability disabled" assertion below valid.
         ExpenseAgentSetup."Evaluate Policies" := true;
+        ExpenseAgentSetup."Require Corporate Card" := false;
         ExpenseAgentSetup.Modify();
         Commit();
 
@@ -184,6 +185,10 @@ codeunit 148318 "Expense Capabilities API Test"
         Assert.IsTrue(
             ResponseContainsCapabilityState(ResponseText, 'aiAssistedPolicyEvaluation', true),
             'Response must contain an enabled aiAssistedPolicyEvaluation capability row.');
+        // [THEN] CreditCardFeed advertises backend support even when card selection is optional.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, 'creditCardFeed', true),
+            'Response must contain an enabled creditCardFeed capability row independently of mandatory card selection.');
         LibraryExpenseAgent.RestoreExpenseAgentSetup();
         Commit();
     end;
