@@ -9,6 +9,7 @@ using Microsoft.CashFlow.Setup;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.FixedAssets.Journal;
 using Microsoft.Foundation.Company;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Intercompany.Journal;
@@ -222,6 +223,10 @@ codeunit 700 "Page Management"
                 exit(GetRequisitionWkshBatchPageID(RecRef));
             Database::"Requisition Line":
                 exit(GetRequisitionWkshLinePageID(RecRef));
+            Database::"FA Journal Batch":
+                exit(GetFAJournalBatchPageID(RecRef));
+            Database::"FA Journal Line":
+                exit(GetFAJournalLinePageID(RecRef));
             Database::"User Setup":
                 exit(PAGE::"User Setup");
             Database::"General Ledger Setup":
@@ -668,6 +673,47 @@ codeunit 700 "Page Management"
         end;
     end;
 
+    local procedure GetFAJournalBatchPageID(RecRef: RecordRef): Integer
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+        FAJournalLine: Record "FA Journal Line";
+    begin
+        RecRef.SetTable(FAJournalBatch);
+
+        FAJournalLine.SetRange("Journal Template Name", FAJournalBatch."Journal Template Name");
+        FAJournalLine.SetRange("Journal Batch Name", FAJournalBatch.Name);
+        if not FAJournalLine.FindFirst() then begin
+            FAJournalLine."Journal Template Name" := FAJournalBatch."Journal Template Name";
+            FAJournalLine."Journal Batch Name" := FAJournalBatch.Name;
+            RecRef.GetTable(FAJournalLine);
+
+            exit(Page::"Fixed Asset Journal");
+        end;
+
+        RecRef.GetTable(FAJournalLine);
+        exit(GetFAJournalLinePageID(RecRef));
+    end;
+
+    local procedure GetFAJournalLinePageID(RecRef: RecordRef): Integer
+    var
+        FAJournalLine: Record "FA Journal Line";
+        FAJournalTemplate: Record "FA Journal Template";
+        CardPageID: Integer;
+    begin
+        RecRef.SetTable(FAJournalLine);
+        FAJournalTemplate.Get(FAJournalLine."Journal Template Name");
+
+        if FAJournalTemplate."Page ID" <> 0 then
+            exit(FAJournalTemplate."Page ID");
+
+        if FAJournalTemplate.Recurring then
+            exit(Page::"Recurring Fixed Asset Journal");
+
+        OnGetFAJournalTemplatePageID(FAJournalTemplate, RecRef, CardPageID);
+
+        exit(CardPageID);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetConditionalListPageID(RecRef: RecordRef; var PageID: Integer; var IsHandled: Boolean; CheckDocumentTypeFilter: Boolean);
     begin
@@ -715,6 +761,11 @@ codeunit 700 "Page Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnGetReqWkshTemplatePageID(ReqWkshTemplate: Record "Req. Wksh. Template"; RecordRef: RecordRef; var CardPageID: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetFAJournalTemplatePageID(FAJournalTemplate: Record "FA Journal Template"; RecordRef: RecordRef; var CardPageID: Integer)
     begin
     end;
 }

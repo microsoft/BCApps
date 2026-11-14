@@ -1,6 +1,7 @@
 ﻿namespace System.Automation;
 
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.FixedAssets.Journal;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Requisition;
@@ -263,6 +264,7 @@ codeunit 1543 "Workflow Webhook Management"
         GenJournalLine: Record "Gen. Journal Line";
         ItemJournalBatch: Record "Item Journal Batch";
         RequisitionWkshName: Record "Requisition Wksh. Name";
+        FAJournalBatch: Record "FA Journal Batch";
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         SalesHeader: Record "Sales Header";
@@ -307,6 +309,11 @@ codeunit 1543 "Workflow Webhook Management"
                 begin
                     RecRef.SetTable(RequisitionWkshName);
                     WorkflowWebhookEntry."Data ID" := RequisitionWkshName.SystemId;
+                end;
+            Database::"FA Journal Batch":
+                begin
+                    RecRef.SetTable(FAJournalBatch);
+                    WorkflowWebhookEntry."Data ID" := FAJournalBatch.SystemId;
                 end;
             DATABASE::Item:
                 begin
