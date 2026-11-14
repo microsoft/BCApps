@@ -351,8 +351,6 @@ table 298 "Issued Reminder Line"
     /// </summary>
     /// <returns>The currency code from the header, or empty string if not found.</returns>
     procedure GetCurrencyCodeFromHeader(): Code[10]
-    var
-        IssuedReminderHeader: Record "Issued Reminder Header";
     begin
         if "Reminder No." = IssuedReminderHeader."No." then
             exit(IssuedReminderHeader."Currency Code");
