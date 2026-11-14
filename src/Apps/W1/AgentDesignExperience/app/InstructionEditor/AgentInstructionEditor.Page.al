@@ -311,7 +311,7 @@ page 4363 "Agent Instruction Editor"
                         if not CustomAgentInstructions.SaveInstructionsAsNewVersion(CurrPage.InstructionsPart.Page.GetInstructions(), GlobalAgentUserSecurityId) then
                             exit;
 
-                        CurrPage.InstructionsPart.Page.RefreshInstructionsAddin(true);
+                        CurrPage.InstructionsPart.Page.RefreshInstructions();
                         CurrPage.Update(false);
                     end;
                 }
@@ -331,7 +331,7 @@ page 4363 "Agent Instruction Editor"
                         if not CustomAgentInstructionsLog.GetRestoredPreviousVersionOfInstructions() then
                             exit;
 
-                        CurrPage.InstructionsPart.Page.RefreshInstructionsAddin(true);
+                        CurrPage.InstructionsPart.Page.RefreshInstructions();
                         CurrPage.Update(false);
                     end;
                 }
@@ -485,7 +485,6 @@ page 4363 "Agent Instruction Editor"
         IsProfileEditable := CustomAgentProfileMgt.IsProfileEditable(GlobalAgentUserSecurityId);
         IsWebClient := CustomAgentProfileMgt.IsWebClient();
         CurrPage.InstructionsPart.Page.SetUserSecurityId(GlobalAgentUserSecurityId);
-        CurrPage.InstructionsPart.Page.SetHideDeveloperUI(true);
 
         CurrPage.AgentTaskLogEntryPart.Page.SetUserSecurityId(GlobalAgentUserSecurityId);
         DataCaptionTxt := GetPageCaption();

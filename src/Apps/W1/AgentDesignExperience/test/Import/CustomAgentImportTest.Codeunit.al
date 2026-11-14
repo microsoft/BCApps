@@ -832,6 +832,28 @@ codeunit 133753 "Custom Agent Import Test"
         AssertExactDiagnosticCount(TempDiagnostic, 0, Severity::Error, 'TEST_IMP_AGENT_1');
     end;
 
+    [Test]
+    procedure TestImportBufferPreservesMarkdownFormatting()
+    var
+        TempAgentImportBuffer: Record "Agent Import Buffer" temporary;
+        Instructions: Text;
+        CarriageReturn: Char;
+        LineFeed: Char;
+    begin
+        CarriageReturn := 13;
+        LineFeed := 10;
+        Instructions := '    Preserve indentation <tag> & text' + Format(CarriageReturn) + Format(LineFeed) +
+            '# Instructions' + Format(LineFeed) + Format(LineFeed) +
+            'Keep this hard break.  ' + Format(LineFeed) + 'Final instruction.  ';
+        TempAgentImportBuffer."Entry No." := 1;
+        TempAgentImportBuffer.SetInstructions(Instructions);
+        TempAgentImportBuffer.Insert();
+
+        TempAgentImportBuffer.Get(1);
+
+        Assert.AreEqual(Instructions, TempAgentImportBuffer.GetInstructions(), 'Import previews and imported instructions must retain Markdown whitespace and literal HTML-like text.');
+    end;
+
     local procedure AssertAgentOneInBuffer(var TempAgentImportBuffer: Record "Agent Import Buffer" temporary)
     begin
         Assert.AreEqual(TestAgentPrefixTxt + '1', TempAgentImportBuffer.Name, 'Agent name should match resource file');

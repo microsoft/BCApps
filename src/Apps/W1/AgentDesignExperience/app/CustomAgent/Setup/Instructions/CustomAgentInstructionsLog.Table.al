@@ -68,17 +68,13 @@ table 4352 "Custom Agent Instructions Log"
     procedure GetInstructions(): Text
     var
         CustomAgentInstructions: Codeunit "Custom Agent Instructions";
-        InstructionsBuilder: TextBuilder;
         InstructionsInstream: InStream;
-        InstructionsLine: Text;
+        InstructionsText: Text;
     begin
         Rec.CalcFields(Instructions);
         Instructions.CreateInStream(InstructionsInstream, CustomAgentInstructions.GetDefaultEncoding());
-        while not InstructionsInstream.EOS() do begin
-            InstructionsInstream.ReadText(InstructionsLine);
-            InstructionsBuilder.AppendLine(InstructionsLine);
-        end;
-        exit(InstructionsBuilder.ToText().Trim());
+        InstructionsInstream.Read(InstructionsText);
+        exit(InstructionsText);
     end;
 
     procedure SetInstructions(NewInstructions: Text)
@@ -89,6 +85,6 @@ table 4352 "Custom Agent Instructions Log"
         TestField("Read-Only Instructions", false);
         Clear(Rec.Instructions);
         Rec.Instructions.CreateOutStream(InstructionsOutstream, CustomAgentInstructions.GetDefaultEncoding());
-        InstructionsOutstream.WriteText(NewInstructions.Trim());
+        InstructionsOutstream.WriteText(NewInstructions);
     end;
 }

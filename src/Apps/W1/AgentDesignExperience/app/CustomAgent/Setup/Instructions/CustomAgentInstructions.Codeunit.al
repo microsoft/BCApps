@@ -253,8 +253,6 @@ codeunit 4352 "Custom Agent Instructions"
     local procedure ShouldSaveInstructionsToLog(AgentUserSecurityId: Guid; CurrentInstructions: Text): Boolean
     var
         CustomAgentInstructionsLog: Record "Custom Agent Instructions Log";
-        LastInstructions: Text;
-        NewLineChars: Text;
     begin
         CustomAgentInstructionsLog.SetRange("User Security ID", AgentUserSecurityId);
         CustomAgentInstructionsLog.SetCurrentKey("User Security ID", SystemCreatedAt);
@@ -266,26 +264,7 @@ codeunit 4352 "Custom Agent Instructions"
             exit(true);
         end;
 
-        LastInstructions := CustomAgentInstructionsLog.GetInstructions();
-
-        NewLineChars := GetNewLineChars();
-        CurrentInstructions := DelChr(CurrentInstructions, '=', NewLineChars).Trim();
-        LastInstructions := DelChr(LastInstructions, '=', NewLineChars).Trim();
-
-        if CurrentInstructions = LastInstructions then
-            exit(false);
-
-        exit(true);
-    end;
-
-    local procedure GetNewLineChars(): Text
-    var
-        LF: Char;
-        CR: Char;
-    begin
-        LF := 10;
-        CR := 13;
-        exit(Format(LF) + Format(CR));
+        exit(CurrentInstructions <> CustomAgentInstructionsLog.GetInstructions());
     end;
 
     procedure GetNextVersionNumber(var CustomAgentSetup: Record "Custom Agent Setup") NewInstructionsName: Text[100]
