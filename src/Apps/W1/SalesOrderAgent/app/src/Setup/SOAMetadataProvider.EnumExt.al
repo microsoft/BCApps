@@ -7,12 +7,13 @@
 namespace Microsoft.Agent.SalesOrderAgent;
 
 using System.Agents;
+using System.Agents.Internal;
 
 enumextension 4400 "SOA Metadata Provider" extends "Agent Metadata Provider"
 {
     value(4400; "SO Agent")
     {
         Caption = 'Sales Order Agent';
-        Implementation = IAgentFactory = "SOA Metadata Provider", IAgentMetadata = "SOA Metadata Provider", IAgentTaskExecution = "SOA Agent Task Execution", IAgentManualTaskCreation = "SOA Metadata Provider";
+        Implementation = IAgentFactory = "SOA Metadata Provider", IAgentMetadata = "SOA Metadata Provider", IAgentTaskExecution = "SOA Agent Task Execution", IAgentManualTaskCreation = "SOA Metadata Provider", IAgentExperimental = "SOA Metadata Provider";
     }
 }

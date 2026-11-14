@@ -53,7 +53,6 @@ codeunit 4417 "SOA Item Selector"
             LogItemSelectorException(CandidateArray.Count(), ErrorCallStack);
             exit(false);
         end;
-
         if FailureCategory <> '' then begin
             LogItemSelectorResponseFailure(CandidateArray.Count(), FailureCategory, StatusCode);
             exit(false);
@@ -83,7 +82,7 @@ codeunit 4417 "SOA Item Selector"
         end;
 
         // Configure Azure OpenAI
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT56CeresLatest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT55ChatLatest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Sales Order Agent");
 
         // Set parameters
@@ -97,13 +96,11 @@ codeunit 4417 "SOA Item Selector"
 
         // Generate completion
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
-
         if not AOAIOperationResponse.IsSuccess() then begin
             FailureCategory := AOAIOperationFailureTok;
             StatusCode := Format(AOAIOperationResponse.GetStatusCode());
             exit;
         end;
-
         if not AOAIOperationResponse.IsFunctionCall() then begin
             FailureCategory := MissingFunctionCallFailureTok;
             exit;
@@ -223,7 +220,6 @@ codeunit 4417 "SOA Item Selector"
         LowerInputText := LowerCase(InputText);
         LowerSearchText := LowerCase(SearchText);
         Position := StrPos(LowerInputText, LowerSearchText);
-
         while (Position > 0) and (MaxIterations > 0) do begin
             MaxIterations -= 1;
             InputText := DelStr(InputText, Position, StrLen(SearchText));
