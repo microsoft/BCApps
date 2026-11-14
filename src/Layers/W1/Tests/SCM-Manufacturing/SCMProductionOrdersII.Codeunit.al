@@ -8160,11 +8160,22 @@ codeunit 137072 "SCM Production Orders II"
         CalcRegenPlanForSingleItem(CompItem."No.");
         AcceptAndCarryOutActionMessage(CompItem."No.");
 
-        // [GIVEN] The demand grows: standard component "Quantity per" and fixed component quantity are increased.
+        // [GIVEN] Only the standard component "Quantity per" grows.
         UpdateProdOrderComponentQty(ProductionOrder, StdComponentLineNo, UpdatedStdQtyPer);
-        UpdateProdOrderComponentQty(ProductionOrder, FixedComponentLineNo, UpdatedFixedQty);
 
-        // [WHEN] Regenerative planning runs again to top up the replenishment supply for "C".
+        // [WHEN] Regenerative planning runs again.
+        CalcRegenPlanForSingleItem(CompItem."No.");
+
+        // [THEN] New replenishment covers the full demand, not just the increase, after unposted supply bindings are cleared.
+        VerifyRequisitionLine(
+          CompItem."No.", "Action Message Type"::New, UpdatedStdQtyPer * ProdOrderQty + FixedQty, '');
+        VerifyProdOrderComponentReservedQty(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ", UpdatedStdQtyPer * ProdOrderQty);
+        VerifyProdOrderComponentReservedQty(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::"Fixed Quantity", FixedQty);
+
+        // [WHEN] The fixed component grows too and regenerative planning runs again.
+        UpdateProdOrderComponentQty(ProductionOrder, FixedComponentLineNo, UpdatedFixedQty);
         CalcRegenPlanForSingleItem(CompItem."No.");
 
         // [THEN] The reservation split across the two components stays correct: the standard line is reserved for
