@@ -36,7 +36,7 @@ table 'Capacity Ledger Entries'
 
 	measure 'Run Time' =
 			
-			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[type])
 			VAR TimeFactor =
 			    LOOKUPVALUE(
 			        'Time Factors'[Time Factor],
@@ -66,7 +66,7 @@ table 'Capacity Ledger Entries'
 
 	measure 'Setup Time' =
 			
-			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[type])
 			VAR TimeFactor =
 			    LOOKUPVALUE(
 			        'Time Factors'[Time Factor],
@@ -96,7 +96,7 @@ table 'Capacity Ledger Entries'
 
 	measure 'Stop Time' =
 			
-			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[Show Capacity In])
+			VAR SelectedUOM = SELECTEDVALUE('Manufacturing Setup'[type])
 			VAR TimeFactor =
 			    LOOKUPVALUE(
 			        'Time Factors'[Time Factor],
