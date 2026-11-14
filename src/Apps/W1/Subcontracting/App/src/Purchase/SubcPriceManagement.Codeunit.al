@@ -490,6 +490,7 @@ codeunit 20508 "Subc. Price Management"
         SubcontractorPrice.SetRange("Starting Date", 0D, OrderDate);
         SubcontractorPrice.SetFilter("Ending Date", '>=%1|%2', OrderDate, 0D);
 
+        OnGetSubcPriceForReqLineOnAfterSetFilters(SubcontractorPrice, RequisitionLine, FixedUOM);
 
         if SubcontractorPrice.FindLast() then begin
             if SubcontractorPrice."Unit of Measure Code" = RequisitionLine."Unit of Measure Code" then begin
@@ -762,5 +763,10 @@ codeunit 20508 "Subc. Price Management"
     begin
         ItemUnitofMeasure.Get(PurchaseLine."No.", PurchaseLine."Unit of Measure Code");
         exit(Round(PurchaseLine.Quantity * ItemUnitofMeasure."Qty. per Unit of Measure", 0.00001));
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetSubcPriceForReqLineOnAfterSetFilters(var SubcontractorPrice: Record "Subcontractor Price"; var RequisitionLine: Record "Requisition Line"; FixedUnitOfMeasureCode: Code[10])
+    begin
     end;
 }
