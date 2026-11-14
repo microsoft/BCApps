@@ -3291,6 +3291,13 @@ table 5902 "Service Line"
         DimMgt.GetShortcutDimensions(Rec."Dimension Set ID", ShortcutDimCode);
     end;
 
+    procedure InitType()
+    begin
+        Rec.Type := xRec.Type;
+
+        OnAfterInitType(Rec, xRec);
+    end;
+
     protected procedure ReplaceServItem(): Boolean
     var
         Item: Record Item;
@@ -6845,6 +6852,11 @@ table 5902 "Service Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetHideWarrantyWarning(var ServiceLine: Record "Service Line"; var HideWarrantyWarning: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitType(var ServiceLine: Record "Service Line"; xServiceLine: Record "Service Line")
     begin
     end;
 
