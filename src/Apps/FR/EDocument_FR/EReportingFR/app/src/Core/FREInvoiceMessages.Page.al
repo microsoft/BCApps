@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
+using Microsoft.eServices.EDocument;
+
 page 10973 "FR E-Invoice Messages"
 {
     ApplicationArea = Basic, Suite;
@@ -111,6 +113,22 @@ page 10973 "FR E-Invoice Messages"
     {
         area(Processing)
         {
+            action(OpenEDocument)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Open E-Document';
+                ToolTip = 'Open the parent E-Document to view message delivery status, diagnostics, and retry actions.';
+                Image = Open;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    EDocument: Record "E-Document";
+                begin
+                    EDocument.Get(Rec."E-Document Entry No.");
+                    Page.Run(Page::"E-Document", EDocument);
+                end;
+            }
             action(ViewVATBreakdown)
             {
                 ApplicationArea = Basic, Suite;
