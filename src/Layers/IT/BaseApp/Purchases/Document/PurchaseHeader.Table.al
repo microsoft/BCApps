@@ -2393,6 +2393,12 @@ table 38 "Purchase Header"
             FieldClass = FlowField;
             AutoFormatType = 1;
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Business Activity".Code;
+        }
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -3029,11 +3035,23 @@ table 38 "Purchase Header"
                 end;
             end;
         }
+#if not CLEANSCHEMA33
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
+#if not CLEAN30
             TableRelation = "Activity Code".Code;
+#endif
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
         field(12125; "Service Tariff No."; Code[10])
         {
             Caption = 'Service Tariff No.';

@@ -452,6 +452,7 @@ permissionset 5117 "D365 AUTOMATION"
                   tabledata "Booking Sync" = RIMD,
                   tabledata "Budget Buffer" = RIMD,
                   tabledata "Bus. Unit In Cons. Process" = RIM,
+                  tabledata "Business Activity" = RIMD,
                   tabledata "Business Chart Buffer" = RIMD,
                   tabledata "Business Chart Map" = RIMD,
                   tabledata "Business Chart User Setup" = RIMD,

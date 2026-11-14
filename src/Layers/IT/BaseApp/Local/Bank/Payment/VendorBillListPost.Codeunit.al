@@ -192,10 +192,10 @@ codeunit 12173 "Vendor Bill List - Post"
         GenJnlLine.Validate(Amount, VendorBillLine."Amount to Pay");
 
         CurrencyCodeHandled := false;
-        OnPostVendorBillLineOnBeforeValidateCurrencyCode(GenJnlLine,VendorBillHeader,VendorBillLine,VendLedgEntry,Bill,AmountLCY,CurrencyCodeHandled);
+        OnPostVendorBillLineOnBeforeValidateCurrencyCode(GenJnlLine, VendorBillHeader, VendorBillLine, VendLedgEntry, Bill, AmountLCY, CurrencyCodeHandled);
         if not CurrencyCodeHandled then
             GenJnlLine.Validate("Currency Code", VendorBillHeader."Currency Code");
-        
+
         if not VendorBillLine."Manual Line" then begin
             GenJnlLine.Validate("Salespers./Purch. Code", VendLedgEntry."Purchaser Code");
             ApplyInvAndUpdateLedgEntry(GenJnlLine, VendorBillLine, Tax::" ");
@@ -273,8 +273,12 @@ codeunit 12173 "Vendor Bill List - Post"
         GenJnlLine.Validate(Amount, VendorBillHeader."Bank Expense");
         if PurchInvHeader.GET(VendLedgEntry."Document No.") then begin
             GeneralLedgerSetup.GetRecordOnce();
+#if not CLEAN30
             if GeneralLedgerSetup."Use Activity Code" then
                 GenJnlLine.Validate("Activity Code", PurchInvHeader."Activity Code");
+#endif
+            if GeneralLedgerSetup."Use Business Activity Code" then
+                GenJnlLine.Validate("Business Activity Code", PurchInvHeader."Business Activity Code");
         end;
 
         OnBeforePostExpense(GenJnlLine, VendorBillHeader, VendLedgEntry);
@@ -441,7 +445,7 @@ codeunit 12173 "Vendor Bill List - Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostVendorBillLineOnBeforeValidateCurrencyCode(var GenJnlLine: Record "Gen. Journal Line"; VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendLedgEntry: Record "Vendor Ledger Entry"; Bill: Record Bill; var AmountLCY: Decimal;var IsHandled:Boolean)
+    local procedure OnPostVendorBillLineOnBeforeValidateCurrencyCode(var GenJnlLine: Record "Gen. Journal Line"; VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendLedgEntry: Record "Vendor Ledger Entry"; Bill: Record Bill; var AmountLCY: Decimal; var IsHandled: Boolean)
     begin
     end;
 }

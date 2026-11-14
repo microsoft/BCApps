@@ -2997,6 +2997,12 @@ table 36 "Sales Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Business Activity".Code;
+        }
         /// <summary>
         /// Specifies the identifier for the combination of dimensions applied to the document.
         /// </summary>
@@ -3764,11 +3770,23 @@ table 36 "Sales Header"
                     UpdateSalesLinesByFieldNo(FieldNo("Sell-to Customer No."), false);
             end;
         }
+#if not CLEANSCHEMA33
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
+#if not CLEAN30
             TableRelation = "Activity Code".Code;
+#endif
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
         field(12125; "Service Tariff No."; Code[10])
         {
             Caption = 'Service Tariff No.';

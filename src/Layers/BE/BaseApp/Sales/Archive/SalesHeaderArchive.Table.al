@@ -1183,6 +1183,12 @@ table 5107 "Sales Header Archive"
             ExtendedDatatype = PhoneNo;
             ToolTip = 'Specifies the telephone number of the company''s shipping address.';
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Business Activity".Code;
+        }
         /// <summary>
         /// Specifies the unique identifier for the combination of dimension values assigned to this document.
         /// </summary>

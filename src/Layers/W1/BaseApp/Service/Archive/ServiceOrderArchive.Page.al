@@ -169,6 +169,11 @@ page 6271 "Service Order Archive"
                     ApplicationArea = Suite;
                     Importance = Additional;
                 }
+                field("Business Activity Code"; Rec."Business Activity Code")
+                {
+                    ApplicationArea = Service;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                }
                 field("Assigned User ID"; Rec."Assigned User ID")
                 {
                     ApplicationArea = Service;

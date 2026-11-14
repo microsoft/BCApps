@@ -594,8 +594,12 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
             InvoicePostingParameters."External Document No.", InvoicePostingParameters."Source Code", '');
 
         GenJnlLine.CopyFromPurchHeader(PurchHeader);
+#if not CLEAN30
         if GLSetup."Use Activity Code" then
             GenJnlLine."Activity Code" := PurchHeader."Activity Code";
+#endif
+        if GLSetup."Use Business Activity Code" then
+            GenJnlLine."Business Activity Code" := PurchHeader."Business Activity Code";
         GenJnlLine."Reverse Sales VAT No. Series" := PurchHeader."Reverse Sales VAT No. Series";
         GenJnlLine."Reverse Sales VAT No." := PurchHeader."Reverse Sales VAT No.";
         GenJnlLine."Fiscal Code" := PurchHeader."Fiscal Code";

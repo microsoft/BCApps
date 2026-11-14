@@ -248,7 +248,6 @@ page 187 "VAT Setup"
         }
     }
 
-
     trigger OnOpenPage()
     var
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
@@ -262,6 +261,5 @@ page 187 "VAT Setup"
 
     var
         IsVATDateEnabled: Boolean;
-
 }
 

@@ -1439,6 +1439,11 @@ table 98 "General Ledger Setup"
             Caption = 'Use Concurrent Posting';
             ToolTip = 'Specifies whether to use concurrent posting when posting journals. Concurrent posting can reduce the time it takes to post journals by allowing multiple batches to be posted at the same time. Enabling this option requires additional configuration and setup, such as setting up a batch job to run the concurrent posting process and ensuring that your system has the necessary resources to support concurrent processing.';
         }
+        field(395; "Use Business Activity Code"; Boolean)
+        {
+            Caption = 'Use Business Activity Code';
+            DataClassification = CustomerContent;
+        }
         field(12100; "Use Document Date in Currency"; Boolean)
         {
             Caption = 'Use Document Date in Currency';
@@ -1511,10 +1516,20 @@ table 98 "General Ledger Setup"
         {
             Caption = 'Validate loc.VAT Reg. No.';
         }
+#if not CLEANSCHEMA33
         field(12131; "Use Activity Code"; Boolean)
         {
             Caption = 'Use Activity Code';
+            ObsoleteReason = 'Replaced by the Use Business Activity Code field.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
     }
 
     keys

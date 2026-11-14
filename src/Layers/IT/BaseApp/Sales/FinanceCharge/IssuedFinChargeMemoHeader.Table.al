@@ -16,7 +16,6 @@ using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.Customer;
-using Microsoft.Utilities;
 using System.Globalization;
 using System.Security.AccessControl;
 using System.Text;
@@ -178,7 +177,7 @@ table 304 "Issued Fin. Charge Memo Header"
         field(17; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer Posting Group';
-            ToolTip = 'Specifies the customer''Âs market type to link business transactions to.';
+            ToolTip = 'Specifies the customer''s market type to link business transactions to.';
             TableRelation = "Customer Posting Group";
         }
         /// <summary>
@@ -458,6 +457,12 @@ table 304 "Issued Fin. Charge Memo Header"
             ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
             TableRelation = "Bank Account" where("Currency Code" = field("Currency Code"));
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Business Activity".Code;
+        }
         /// <summary>
         /// Specifies the unique identifier for the dimension values assigned to this memo.
         /// </summary>
@@ -472,11 +477,23 @@ table 304 "Issued Fin. Charge Memo Header"
                 Rec.ShowDimensions();
             end;
         }
+#if not CLEANSCHEMA33
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
-            TableRelation = "Activity Code".Code;
+#if not CLEAN30
+            TableRelation = Microsoft.Utilities."Activity Code".Code;
+#endif
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
     }
 
     keys

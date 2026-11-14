@@ -105,6 +105,35 @@ page 12217 "Periodic VAT Split"
         SplitIsValidMsg: Label 'Periodic VAT Settlement Entry is split correctly between the separate entries.';
         SplitIsInvalidMsg: Label 'Periodic VAT Settlement Entry is not split correctly between the separate entries.';
 
+#if not CLEAN27
+    local procedure ValidateSplit(VATPeriod: Code[10]) Valid: Boolean
+    var
+        PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
+        PeriodicVATSettlementEntry2: Record "Periodic VAT Settlement Entry";
+        PriorPeriodOutputVAT, PriorPeriodInputVAT, AddCurrPriorPerInpVAT, AddCurrPriorPerOutVAT, PriorYearInputVAT, PriorYearOutputVAT : Decimal;
+    begin
+        PeriodicVATSettlementEntry.SetRange("VAT Period", VATPeriod);
+        PeriodicVATSettlementEntry.SetRange("Activity Code", '');
+        PeriodicVATSettlementEntry.FindFirst();
+        PeriodicVATSettlementEntry2.SetRange("VAT Period", VATPeriod);
+        PeriodicVATSettlementEntry2.SetFilter("Activity Code", '<>%1', '');
+        if PeriodicVATSettlementEntry2.FindSet() then
+            repeat
+                PriorPeriodOutputVAT += PeriodicVATSettlementEntry2."Prior Period Output VAT";
+                PriorPeriodInputVAT += PeriodicVATSettlementEntry2."Prior Period Input VAT";
+                AddCurrPriorPerInpVAT += PeriodicVATSettlementEntry2."Add Curr. Prior Per. Inp. VAT";
+                AddCurrPriorPerOutVAT += PeriodicVATSettlementEntry2."Add Curr. Prior Per. Out VAT";
+                PriorYearInputVAT += PeriodicVATSettlementEntry2."Prior Year Input VAT";
+                PriorYearOutputVAT += PeriodicVATSettlementEntry2."Prior Year Output VAT";
+            until PeriodicVATSettlementEntry2.Next() = 0;
+        Valid := (PeriodicVATSettlementEntry."Prior Period Input VAT" = PriorPeriodInputVAT) and
+                 (PeriodicVATSettlementEntry."Prior Period Output VAT" = PriorPeriodOutputVAT) and
+                 (PeriodicVATSettlementEntry."Add Curr. Prior Per. Inp. VAT" = AddCurrPriorPerInpVAT) and
+                 (PeriodicVATSettlementEntry."Add Curr. Prior Per. Out VAT" = AddCurrPriorPerOutVAT) and
+                 (PeriodicVATSettlementEntry."Prior Year Input VAT" = PriorYearInputVAT) and
+                 (PeriodicVATSettlementEntry."Prior Year Output VAT" = PriorYearOutputVAT);
+    end;
+#endif
 
     internal procedure SetPeriod(NewPeriod: Code[10])
     begin

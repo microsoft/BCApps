@@ -18,7 +18,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Setup;
-using Microsoft.Utilities;
 using System.Globalization;
 using System.IO;
 using System.Security.User;
@@ -583,6 +582,12 @@ table 302 "Finance Charge Memo Header"
             ToolTip = 'Specifies the bank account to use for bank information when the document is printed.';
             TableRelation = "Bank Account" where("Currency Code" = field("Currency Code"));
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Business Activity".Code;
+        }
         /// <summary>
         /// Specifies the unique identifier for the combination of dimension values assigned to this memo.
         /// </summary>
@@ -612,11 +617,23 @@ table 302 "Finance Charge Memo Header"
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "User Setup";
         }
+#if not CLEANSCHEMA33
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
-            TableRelation = "Activity Code".Code;
+#if not CLEAN30
+            TableRelation = Microsoft.Utilities."Activity Code".Code;
+#endif
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
     }
 
     keys
