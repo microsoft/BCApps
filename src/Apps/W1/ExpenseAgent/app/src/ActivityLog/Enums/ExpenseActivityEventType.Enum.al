@@ -82,4 +82,8 @@ enum 6922 "Expense Activity Event Type"
     {
         Caption = 'Posted';
     }
+    value(110; Closed)
+    {
+        Caption = 'Closed';
+    }
 }

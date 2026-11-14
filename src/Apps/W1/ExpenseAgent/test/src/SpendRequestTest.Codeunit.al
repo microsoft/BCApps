@@ -28,6 +28,7 @@ codeunit 148339 "Spend Request Test"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
         IsInitialized: Boolean;
         CloseConfirmReply: Boolean;
         CloseConfirmCount: Integer;
@@ -85,6 +86,9 @@ codeunit 148339 "Spend Request Test"
         OwnerScopeRequiredErr: Label 'The create expense report action must be invoked through the owning expense user.', Locked = true;
         NotTravelRequestApproverErr: Label 'is not authorized', Locked = true;
         LinkedExpenseReportExistsErr: Label 'because it is linked to an expense report.', Locked = true;
+        LinkedReportShownMsg: Label 'The report linked to the travel request should be shown.';
+        UnlinkedReportHiddenMsg: Label 'The report that is not linked to the travel request should not be shown.';
+        CanceledReportHiddenMsg: Label 'The canceled posted report should not be shown.';
         EmployeeNotLinkedErr: Label 'No expense user is linked to employee %1.', Comment = '%1 = Employee No.', Locked = true;
         DuplicateTravelerMappingErr: Label 'is already on this travel request', Locked = true;
         TravelerNotEmployeeErr: Label 'must be an expense user linked to an employee', Locked = true;
@@ -100,6 +104,16 @@ codeunit 148339 "Spend Request Test"
         DuplicateExpenseReportFilterTok: Label 'An expense report already exists*', Locked = true;
         ApproverUserIdRecordedMsg: Label 'The approving or rejecting user ID should be recorded on the travel request.';
         ApproverUserNameRecordedMsg: Label 'The approving or rejecting user name should be recorded on the travel request.';
+        ApproverUserDiffersMsg: Label 'The approver user must differ from the session user.';
+        ApproverUserNotFoundTok: Label 'the user ID for approvals, %1, does not match a Business Central user', Comment = '%1 = User ID for approvals', Locked = true;
+        ApproverUserNotFoundStatusMsg: Label 'The travel request must stay released when the approver user does not exist.';
+        TravelRequestCreatedLoggedMsg: Label 'The travel request history must start with its creation.';
+        TravelRequestClosedLoggedMsg: Label 'The closure of the travel request must be logged once.';
+        TravelRequestNotClosedLoggedMsg: Label 'No closure must be logged for a travel request that stays open.';
+        ActivePostedReportBlocksDeleteMsg: Label 'An active posted report must keep blocking deletion of the travel request.';
+        NonTravelCloseNotLoggedMsg: Label 'Closing a spend request that is not a travel request must not be logged.';
+        SpendReqReleasedFromClosedMsg: Label 'The closed travel request should be released again.';
+        ClosedByPostedReportCommentTok: Label 'Closed by posted expense report %1.', Locked = true;
         ApproverDateTimeRecordedMsg: Label 'The approval or rejection date and time should be recorded on the travel request.';
         AutoApprovedStatusMsg: Label 'A released travel request should be approved automatically when the agent is disabled.';
         ManualApprovedStatusMsg: Label 'The travel request should be approved by the assigned approver.';
@@ -982,6 +996,304 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
+    procedure DeleteTravelRequestAfterPostedReportIsCanceled()
+    var
+        SpendRequest: Record "Spend Request";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        TravelRequestNo: Code[20];
+    begin
+        // [SCENARIO 656387] A travel request can be deleted once its linked posted expense report is canceled.
+        Initialize();
+
+        // [GIVEN] A canceled posted report linked to the travel request on the header.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        TravelRequestNo := SpendRequest."No.";
+        PostedExpenseReportHeader.Get(InsertPostedExpenseReport(TravelRequestNo, '', true));
+
+        // [WHEN] The request is deleted.
+        SpendRequest.Delete(true);
+
+        // [THEN] The request is deleted and the canceled posted history is kept.
+        Assert.IsFalse(SpendRequest.Get(TravelRequestNo), 'The travel request linked only to a canceled posted report must be deleted.');
+        PostedExpenseReportHeader.Get(PostedExpenseReportHeader."No.");
+        PostedExpenseReportHeader.TestField(Canceled, true);
+        PostedExpenseReportHeader.TestField("Spend Request No.", TravelRequestNo);
+    end;
+
+    [Test]
+    procedure DeleteTravelRequestAfterPostedLineReportIsCanceled()
+    var
+        SpendRequest: Record "Spend Request";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        PostedReportNo: Code[20];
+        TravelRequestNo: Code[20];
+    begin
+        // [SCENARIO 656387] Canceled posted lines no longer block deleting the travel request they reference.
+        Initialize();
+
+        // [GIVEN] A canceled posted report linked to the travel request only through its line.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        TravelRequestNo := SpendRequest."No.";
+        PostedReportNo := InsertPostedExpenseReport('', TravelRequestNo, true);
+
+        // [WHEN] The request is deleted.
+        SpendRequest.Delete(true);
+
+        // [THEN] The request is deleted and the canceled posted lines are kept.
+        Assert.IsFalse(SpendRequest.Get(TravelRequestNo), 'The travel request linked only to canceled posted lines must be deleted.');
+        PostedExpenseReportLine.SetRange("Document No.", PostedReportNo);
+        PostedExpenseReportLine.SetRange("Spend Request No.", TravelRequestNo);
+        PostedExpenseReportLine.SetRange("Is Canceled", true);
+        Assert.RecordIsNotEmpty(PostedExpenseReportLine);
+    end;
+
+    [Test]
+    procedure DeleteTravelRequestBlockedByActivePostedReportNextToCanceledOne()
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        // [SCENARIO 656387] A canceled posted report doesn't unblock deletion while another posted report linked through its header is still active.
+        Initialize();
+
+        // [GIVEN] A travel request linked to a canceled posted report and to an active posted report through its header.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        InsertPostedExpenseReport(SpendRequest."No.", SpendRequest."No.", true);
+        InsertPostedExpenseReport(SpendRequest."No.", '', false);
+        Commit();
+
+        // [WHEN] The request is deleted.
+        asserterror SpendRequest.Delete(true);
+
+        // [THEN] Deletion is blocked and the request remains.
+        Assert.ExpectedError(LinkedExpenseReportExistsErr);
+        Assert.IsTrue(SpendRequest.Get(SpendRequest."No."), ActivePostedReportBlocksDeleteMsg);
+    end;
+
+    [Test]
+    procedure DeleteTravelRequestBlockedByActivePostedLineNextToCanceledOne()
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        // [SCENARIO 656387] A canceled posted report doesn't unblock deletion while another posted report linked through a line is still active.
+        Initialize();
+
+        // [GIVEN] A travel request linked to a canceled posted report and to an active posted report only through a line.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        InsertPostedExpenseReport(SpendRequest."No.", SpendRequest."No.", true);
+        InsertPostedExpenseReport('', SpendRequest."No.", false);
+        Commit();
+
+        // [WHEN] The request is deleted.
+        asserterror SpendRequest.Delete(true);
+
+        // [THEN] Deletion is blocked and the request remains.
+        Assert.ExpectedError(LinkedExpenseReportExistsErr);
+        Assert.IsTrue(SpendRequest.Get(SpendRequest."No."), ActivePostedReportBlocksDeleteMsg);
+    end;
+
+    [Test]
+    procedure TravelRequestCardShowsAllLinkedExpenseReports()
+    var
+        SpendRequest: Record "Spend Request";
+        OtherSpendRequest: Record "Spend Request";
+        TravelRequestCard: TestPage "Travel Request Card";
+        ExpenseReports: TestPage "Expense Reports";
+        HeaderLinkedReportNo: Code[20];
+        LineLinkedReportNo: Code[20];
+        UnlinkedReportNo: Code[20];
+    begin
+        // [SCENARIO 656389] The travel request card shows every expense report linked on the header or on a line.
+        Initialize();
+
+        // [GIVEN] A travel request with one report linked on the header and one linked only on a line.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryExpense.CreateSpendRequest(OtherSpendRequest);
+        HeaderLinkedReportNo := InsertExpenseReport(SpendRequest."No.", '');
+        LineLinkedReportNo := InsertExpenseReport('', SpendRequest."No.");
+        // [GIVEN] A report linked to another travel request.
+        UnlinkedReportNo := InsertExpenseReport(OtherSpendRequest."No.", OtherSpendRequest."No.");
+
+        // [WHEN] The Expense Reports action is invoked on the travel request card.
+        TravelRequestCard.OpenView();
+        TravelRequestCard.GoToRecord(SpendRequest);
+        ExpenseReports.Trap();
+        TravelRequestCard.ExpenseReports.Invoke();
+
+        // [THEN] Both linked reports are shown and the other report is not.
+        Assert.IsTrue(ExpenseReports.GoToKey(HeaderLinkedReportNo), LinkedReportShownMsg);
+        Assert.IsTrue(ExpenseReports.GoToKey(LineLinkedReportNo), LinkedReportShownMsg);
+        Assert.IsFalse(ExpenseReports.GoToKey(UnlinkedReportNo), UnlinkedReportHiddenMsg);
+        ExpenseReports.Close();
+    end;
+
+    [Test]
+    procedure TravelRequestListShowsAllLinkedPostedExpenseReports()
+    var
+        SpendRequest: Record "Spend Request";
+        OtherSpendRequest: Record "Spend Request";
+        TravelRequestList: TestPage "Travel Request List";
+        PostedExpenseReports: TestPage "Posted Expense Reports";
+        HeaderLinkedReportNo: Code[20];
+        LineLinkedReportNo: Code[20];
+        CanceledHeaderLinkedReportNo: Code[20];
+        CanceledLineLinkedReportNo: Code[20];
+        UnlinkedReportNo: Code[20];
+    begin
+        // [SCENARIO 656389] The travel request list shows every non-canceled posted report linked on the header or on a line.
+        Initialize();
+
+        // [GIVEN] A travel request with posted reports linked on the header and only on a line.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryExpense.CreateSpendRequest(OtherSpendRequest);
+        HeaderLinkedReportNo := InsertPostedExpenseReport(SpendRequest."No.", '', false);
+        LineLinkedReportNo := InsertPostedExpenseReport('', SpendRequest."No.", false);
+        // [GIVEN] Canceled posted reports linked in the same ways, and a report linked to another travel request.
+        CanceledHeaderLinkedReportNo := InsertPostedExpenseReport(SpendRequest."No.", SpendRequest."No.", true);
+        CanceledLineLinkedReportNo := InsertPostedExpenseReport('', SpendRequest."No.", true);
+        UnlinkedReportNo := InsertPostedExpenseReport(OtherSpendRequest."No.", OtherSpendRequest."No.", false);
+
+        // [WHEN] The Posted Expense Reports action is invoked for the travel request on the list.
+        TravelRequestList.OpenView();
+        TravelRequestList.GoToRecord(SpendRequest);
+        PostedExpenseReports.Trap();
+        TravelRequestList.PostedExpenseReports.Invoke();
+
+        // [THEN] Only the non-canceled linked reports are shown.
+        Assert.IsTrue(PostedExpenseReports.GoToKey(HeaderLinkedReportNo), LinkedReportShownMsg);
+        Assert.IsTrue(PostedExpenseReports.GoToKey(LineLinkedReportNo), LinkedReportShownMsg);
+        Assert.IsFalse(PostedExpenseReports.GoToKey(CanceledHeaderLinkedReportNo), CanceledReportHiddenMsg);
+        Assert.IsFalse(PostedExpenseReports.GoToKey(CanceledLineLinkedReportNo), CanceledReportHiddenMsg);
+        Assert.IsFalse(PostedExpenseReports.GoToKey(UnlinkedReportNo), UnlinkedReportHiddenMsg);
+        PostedExpenseReports.Close();
+    end;
+
+    [Test]
+    procedure DeleteErrorActionShowsAllLinkedExpenseReports()
+    var
+        SpendRequest: Record "Spend Request";
+        TravelReqLinkedReports: Codeunit "Travel Req. Linked Reports";
+        ExpenseReports: TestPage "Expense Reports";
+        LinkedReportError: ErrorInfo;
+        FirstReportNo: Code[20];
+        SecondReportNo: Code[20];
+    begin
+        // [SCENARIO 656389] The deletion error action opens every linked report, not only the first one.
+        Initialize();
+
+        // [GIVEN] A travel request linked to two expense reports, so deleting it fails.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        FirstReportNo := InsertExpenseReport(SpendRequest."No.", '');
+        SecondReportNo := InsertExpenseReport('', SpendRequest."No.");
+        Commit();
+        asserterror SpendRequest.Delete(true);
+        Assert.ExpectedError(LinkedExpenseReportExistsErr);
+
+        // [WHEN] The error action runs for the travel request.
+        LinkedReportError.RecordId := SpendRequest.RecordId;
+        ExpenseReports.Trap();
+        TravelReqLinkedReports.ShowExpenseReportsFromError(LinkedReportError);
+
+        // [THEN] Both linked reports are shown.
+        Assert.IsTrue(ExpenseReports.GoToKey(FirstReportNo), LinkedReportShownMsg);
+        Assert.IsTrue(ExpenseReports.GoToKey(SecondReportNo), LinkedReportShownMsg);
+        ExpenseReports.Close();
+    end;
+
+    [Test]
+    procedure DeleteErrorActionShowsAllLinkedPostedExpenseReports()
+    var
+        SpendRequest: Record "Spend Request";
+        TravelReqLinkedReports: Codeunit "Travel Req. Linked Reports";
+        PostedExpenseReports: TestPage "Posted Expense Reports";
+        LinkedReportError: ErrorInfo;
+        FirstReportNo: Code[20];
+        SecondReportNo: Code[20];
+    begin
+        // [SCENARIO 656389] The posted deletion error action opens every linked posted report.
+        Initialize();
+
+        // [GIVEN] A travel request linked to two posted expense reports, so deleting it fails.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        FirstReportNo := InsertPostedExpenseReport(SpendRequest."No.", '', false);
+        SecondReportNo := InsertPostedExpenseReport('', SpendRequest."No.", false);
+        Commit();
+        asserterror SpendRequest.Delete(true);
+        Assert.ExpectedError(LinkedExpenseReportExistsErr);
+
+        // [WHEN] The posted error action runs for the travel request.
+        LinkedReportError.RecordId := SpendRequest.RecordId;
+        PostedExpenseReports.Trap();
+        TravelReqLinkedReports.ShowPostedExpenseReportsFromError(LinkedReportError);
+
+        // [THEN] Both linked posted reports are shown.
+        Assert.IsTrue(PostedExpenseReports.GoToKey(FirstReportNo), LinkedReportShownMsg);
+        Assert.IsTrue(PostedExpenseReports.GoToKey(SecondReportNo), LinkedReportShownMsg);
+        PostedExpenseReports.Close();
+    end;
+
+    [Test]
+    procedure TravelRequestCardShowsLinkedPostedExpenseReports()
+    var
+        SpendRequest: Record "Spend Request";
+        OtherSpendRequest: Record "Spend Request";
+        TravelRequestCard: TestPage "Travel Request Card";
+        PostedExpenseReports: TestPage "Posted Expense Reports";
+        LinkedReportNo: Code[20];
+        UnlinkedReportNo: Code[20];
+    begin
+        // [SCENARIO 656389] The Posted Expense Reports action on the travel request card shows the linked posted reports.
+        Initialize();
+
+        // [GIVEN] A travel request with a linked posted report, and a posted report linked to another travel request.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryExpense.CreateSpendRequest(OtherSpendRequest);
+        LinkedReportNo := InsertPostedExpenseReport('', SpendRequest."No.", false);
+        UnlinkedReportNo := InsertPostedExpenseReport(OtherSpendRequest."No.", OtherSpendRequest."No.", false);
+
+        // [WHEN] The Posted Expense Reports action is invoked on the travel request card.
+        TravelRequestCard.OpenView();
+        TravelRequestCard.GoToRecord(SpendRequest);
+        PostedExpenseReports.Trap();
+        TravelRequestCard.PostedExpenseReports.Invoke();
+
+        // [THEN] Only the linked posted report is shown.
+        Assert.IsTrue(PostedExpenseReports.GoToKey(LinkedReportNo), LinkedReportShownMsg);
+        Assert.IsFalse(PostedExpenseReports.GoToKey(UnlinkedReportNo), UnlinkedReportHiddenMsg);
+        PostedExpenseReports.Close();
+    end;
+
+    [Test]
+    procedure TravelRequestListShowsLinkedExpenseReports()
+    var
+        SpendRequest: Record "Spend Request";
+        OtherSpendRequest: Record "Spend Request";
+        TravelRequestList: TestPage "Travel Request List";
+        ExpenseReports: TestPage "Expense Reports";
+        LinkedReportNo: Code[20];
+        UnlinkedReportNo: Code[20];
+    begin
+        // [SCENARIO 656389] The Expense Reports action on the travel request list shows the linked expense reports.
+        Initialize();
+
+        // [GIVEN] A travel request with a linked expense report, and an expense report linked to another travel request.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryExpense.CreateSpendRequest(OtherSpendRequest);
+        LinkedReportNo := InsertExpenseReport('', SpendRequest."No.");
+        UnlinkedReportNo := InsertExpenseReport(OtherSpendRequest."No.", OtherSpendRequest."No.");
+
+        // [WHEN] The Expense Reports action is invoked for the travel request on the list.
+        TravelRequestList.OpenView();
+        TravelRequestList.GoToRecord(SpendRequest);
+        ExpenseReports.Trap();
+        TravelRequestList.ExpenseReports.Invoke();
+
+        // [THEN] Only the linked expense report is shown.
+        Assert.IsTrue(ExpenseReports.GoToKey(LinkedReportNo), LinkedReportShownMsg);
+        Assert.IsFalse(ExpenseReports.GoToKey(UnlinkedReportNo), UnlinkedReportHiddenMsg);
+        ExpenseReports.Close();
+    end;
+
+    [Test]
     procedure DeleteTravelRequestWithoutReportRemovesDependents()
     var
         SpendRequest: Record "Spend Request";
@@ -1068,6 +1380,41 @@ codeunit 148339 "Spend Request Test"
         Assert.AreEqual(ExpectedDescription, ExpenseReportHeader.Description, ExpenseReportDescriptionMsg);
         ExpenseReportHeader.CalcFields("Travel Request SystemId");
         Assert.AreEqual(SpendRequest.SystemId, ExpenseReportHeader."Travel Request SystemId", TravelRequestSystemIdMsg);
+    end;
+
+    [Test]
+    procedure ApproveTravelRequestIgnoresCanceledPostedReportWithSameNo()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [SCENARIO 656387] A canceled posted report left behind by a deleted travel request doesn't stop a new request with the same number from getting its expense report.
+        Initialize();
+
+        // [GIVEN] A released travel request whose number is still on a canceled posted report for the same traveler.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        PostedExpenseReportHeader.Get(InsertPostedExpenseReport(SpendRequest."No.", SpendRequest."No.", true));
+        PostedExpenseReportHeader."Expense User No." := ExpenseUser."No.";
+        PostedExpenseReportHeader.Modify();
+        PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportHeader."No.");
+        PostedExpenseReportLine.ModifyAll("Expense User No.", ExpenseUser."No.");
+        ReleaseSpendRequest.Release(SpendRequest);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+
+        // [WHEN] The assigned approver approves the request.
+        TravelRequestApproval.Approve(SpendRequest, ApproverExpenseUser."No.");
+
+        // [THEN] A new expense report is created for the traveler.
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.SetRange("Expense User No.", ExpenseUser."No.");
+        Assert.RecordCount(ExpenseReportHeader, 1);
     end;
 
     [Test]
@@ -2578,6 +2925,7 @@ codeunit 148339 "Spend Request Test"
     var
         ExpenseReportHeader: Record "Expense Report Header";
         SpendRequest: Record "Spend Request";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ExpenseReportPost: Codeunit "Expense Report-Post";
     begin
         // [SCENARIO 616928] When the close is declined on entry, posting the report leaves the spend request approved.
@@ -2597,6 +2945,9 @@ codeunit 148339 "Spend Request Test"
         Assert.AreEqual(1, CloseConfirmCount, ClosePromptOnceMsg);
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, SpendReqNotClosedMsg);
+
+        // [THEN] No closure is logged for the travel request.
+        Assert.AreEqual(0, FindTravelRequestActivity(SpendRequest, Enum::"Expense Activity Event Type"::Closed, ExpenseActivityLogEntry), TravelRequestNotClosedLoggedMsg);
     end;
 
     [Test]
@@ -3145,6 +3496,122 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
+    procedure ApproveTravelRequestRecordsApproverUserNotSessionUser()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ApproverUser: Record User;
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [SCENARIO 656388] Approving a travel request on behalf of an approver records the approver's user, not the session user calling the API.
+        Initialize();
+
+        // [GIVEN] A released travel request whose approver is linked to a different Business Central user than the session user.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+        LinkApproverToSeparateUser(ApproverExpenseUser, ApproverUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+
+        // [WHEN] The approval is made for the approver.
+        TravelRequestApproval.Approve(SpendRequest, ApproverExpenseUser."No.");
+
+        // [THEN] The approver's user ID and user name are recorded.
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, ManualApprovedStatusMsg);
+        Assert.AreEqual(ApproverUser."User Security ID", SpendRequest."Approved/Rejected by User ID", ApproverUserIdRecordedMsg);
+        Assert.AreEqual(ApproverUser."User Name", SpendRequest."Approved/Rejected by User Name", ApproverUserNameRecordedMsg);
+    end;
+
+    [Test]
+    procedure RejectTravelRequestRecordsApproverUserNotSessionUser()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ApproverUser: Record User;
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [SCENARIO 656388] Rejecting a travel request on behalf of an approver records the approver's user, not the session user calling the API.
+        Initialize();
+
+        // [GIVEN] A released travel request whose approver is linked to a different Business Central user than the session user.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+        LinkApproverToSeparateUser(ApproverExpenseUser, ApproverUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+
+        // [WHEN] The rejection is made for the approver.
+        TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", 'The destination is outside the approved travel policy.');
+
+        // [THEN] The approver's user ID and user name are recorded.
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Open, SpendRequest.Status, RejectedByApproverStatusMsg);
+        Assert.AreEqual(ApproverUser."User Security ID", SpendRequest."Approved/Rejected by User ID", ApproverUserIdRecordedMsg);
+        Assert.AreEqual(ApproverUser."User Name", SpendRequest."Approved/Rejected by User Name", ApproverUserNameRecordedMsg);
+    end;
+
+    [Test]
+    procedure ApproveTravelRequestFailsWhenApproverUserDoesNotExist()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [SCENARIO 656388] A travel request cannot be approved for an approver whose user ID for approvals does not match a Business Central user.
+        Initialize();
+
+        // [GIVEN] A released travel request whose approver has a user ID for approvals without a matching user.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+        ApproverExpenseUser."User Id For Approvals" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
+        ApproverExpenseUser.Modify(false);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+        Commit();
+
+        // [WHEN] The approval is made for the approver.
+        asserterror TravelRequestApproval.Approve(SpendRequest, ApproverExpenseUser."No.");
+
+        // [THEN] An error explains that the approver's user does not exist and the request stays released.
+        Assert.ExpectedError(StrSubstNo(ApproverUserNotFoundTok, ApproverExpenseUser."User Id For Approvals"));
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, ApproverUserNotFoundStatusMsg);
+    end;
+
+    [Test]
+    procedure RejectTravelRequestFailsWhenApproverUserDoesNotExist()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [SCENARIO 656388] A travel request cannot be rejected for an approver whose user ID for approvals does not match a Business Central user.
+        Initialize();
+
+        // [GIVEN] A released travel request whose approver has a user ID for approvals without a matching user.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+        ApproverExpenseUser."User Id For Approvals" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
+        ApproverExpenseUser.Modify(false);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+        Commit();
+
+        // [WHEN] The rejection is made for the approver.
+        asserterror TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", 'Missing details.');
+
+        // [THEN] An error explains that the approver's user does not exist and the request stays released.
+        Assert.ExpectedError(StrSubstNo(ApproverUserNotFoundTok, ApproverExpenseUser."User Id For Approvals"));
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, ApproverUserNotFoundStatusMsg);
+    end;
+
+    [Test]
     procedure TravelRequestLifecycleLogsActivity()
     var
         SpendRequest: Record "Spend Request";
@@ -3192,6 +3659,161 @@ codeunit 148339 "Spend Request Test"
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Approved, Enum::"Expense Activity Actor Role"::Approver, ApproverExpenseUser);
         ExpenseActivityLogEntry.Next();
         VerifyExpenseReportCreatedActivity(ExpenseActivityLogEntry, SpendRequest, ExpenseUser);
+    end;
+
+    [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
+    procedure CloseTravelRequestLogsClosedActivity()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+    begin
+        // [SCENARIO 656402] Closing a travel request records the closure as the final state in its activity history.
+        Initialize();
+
+        // [GIVEN] An approved travel request without any activity history.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        CloseConfirmReply := true;
+
+        // [WHEN] The travel request is closed.
+        ReleaseSpendRequest.PerformManualClose(SpendRequest);
+
+        // [THEN] The history starts with the creation and ends with the closure by the Business Central user.
+        ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
+        Assert.RecordCount(ExpenseActivityLogEntry, 2);
+        ExpenseActivityLogEntry.FindFirst();
+        Assert.AreEqual(Enum::"Expense Activity Event Type"::Created, ExpenseActivityLogEntry."Event Type", TravelRequestCreatedLoggedMsg);
+        ExpenseActivityLogEntry.FindLast();
+        AssertTravelRequestClosedActivity(ExpenseActivityLogEntry, SpendRequest, '');
+    end;
+
+    [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
+    procedure CloseReleaseCloseLogsEachClosure()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+    begin
+        // [SCENARIO 656402] Closing a travel request again after it was released from Closed logs the new closure as the final state.
+        Initialize();
+
+        // [GIVEN] An approved travel request that is closed and then released again.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        CloseConfirmReply := true;
+        ReleaseSpendRequest.PerformManualClose(SpendRequest);
+        ReleaseSpendRequest.PerformManualRelease(SpendRequest);
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreNotEqual(SpendRequest.Status::Closed, SpendRequest.Status, SpendReqReleasedFromClosedMsg);
+
+        // [WHEN] The travel request is closed again.
+        ReleaseSpendRequest.PerformManualClose(SpendRequest);
+
+        // [THEN] Both closures are logged and the history ends with the latest one.
+        ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
+        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::Closed);
+        Assert.RecordCount(ExpenseActivityLogEntry, 2);
+        ExpenseActivityLogEntry.SetRange("Event Type");
+        ExpenseActivityLogEntry.FindLast();
+        AssertTravelRequestClosedActivity(ExpenseActivityLogEntry, SpendRequest, '');
+    end;
+
+    [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
+    procedure CloseReleaseCloseWithAgentEnabledLogsEachClosure()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+    begin
+        // [SCENARIO 656402] With the agent enabled, releasing a closed travel request logs nothing, and closing it again still logs the new closure.
+        Initialize();
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+
+        // [GIVEN] An approved travel request that is closed and then released again.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        CloseConfirmReply := true;
+        ReleaseSpendRequest.PerformManualClose(SpendRequest);
+        ReleaseSpendRequest.PerformManualRelease(SpendRequest);
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreNotEqual(SpendRequest.Status::Closed, SpendRequest.Status, SpendReqReleasedFromClosedMsg);
+
+        // [WHEN] The travel request is closed again.
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        ReleaseSpendRequest.PerformManualClose(SpendRequest);
+
+        // [THEN] Both closures are logged.
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
+        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::Closed);
+        Assert.RecordCount(ExpenseActivityLogEntry, 2);
+    end;
+
+    [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
+    procedure CloseNonTravelSpendRequestLogsNoActivity()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+    begin
+        // [SCENARIO 656402] Closing a spend request that is not a travel request adds no activity history.
+        Initialize();
+
+        // [GIVEN] An approved spend request that is not a travel request.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        SpendRequest."Document Type" := SpendRequest."Document Type"::" ";
+        SpendRequest.Modify(false);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        CloseConfirmReply := true;
+
+        // [WHEN] The spend request is closed.
+        ReleaseSpendRequest.PerformManualClose(SpendRequest);
+
+        // [THEN] It is closed and nothing is logged for it.
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Closed, SpendRequest.Status, SpendReqClosedMsg);
+        Assert.IsFalse(ExpenseActivityLogMgt.HasEntriesForSource(Database::"Spend Request", SpendRequest.SystemId), NonTravelCloseNotLoggedMsg);
+    end;
+
+    [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
+    procedure PostReportClosingTravelRequestLogsClosedActivity()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        SpendRequest: Record "Spend Request";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+    begin
+        // [SCENARIO 656402] Posting an expense report that closes its travel request records the closure in the travel request's activity history.
+        Initialize();
+
+        // [GIVEN] An expense report linked to an approved travel request, set to close the travel request.
+        CloseConfirmReply := true;
+        CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
+
+        // [WHEN] The report is released and posted.
+        ExpenseReportHeader.PerformManualRelease();
+        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
+
+        // [THEN] One Closed entry references the posted expense report.
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Closed, SpendRequest.Status, SpendReqClosedMsg);
+        Assert.AreEqual(1, FindTravelRequestActivity(SpendRequest, Enum::"Expense Activity Event Type"::Closed, ExpenseActivityLogEntry), TravelRequestClosedLoggedMsg);
+        AssertTravelRequestClosedActivity(
+            ExpenseActivityLogEntry, SpendRequest, StrSubstNo(ClosedByPostedReportCommentTok, ExpenseReportHeader."Last Posting No."));
     end;
 
     [Test]
@@ -3913,6 +4535,19 @@ codeunit 148339 "Spend Request Test"
         ApproverExpenseUser.Modify(true);
     end;
 
+    local procedure LinkApproverToSeparateUser(var ApproverExpenseUser: Record "Expense User"; var ApproverUser: Record User)
+    var
+        ApproverUserNameTok: Label 'TRAVEL APPROVER TEST USER', Locked = true;
+    begin
+        // Reuse one user because CI licenses cap the number of users.
+        ApproverUser.SetRange("User Name", ApproverUserNameTok);
+        if not ApproverUser.FindFirst() then
+            LibraryPermissions.CreateUser(ApproverUser, ApproverUserNameTok, false);
+        Assert.AreNotEqual(UserSecurityId(), ApproverUser."User Security ID", ApproverUserDiffersMsg);
+        ApproverExpenseUser."User Id For Approvals" := CopyStr(ApproverUser."User Name", 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
+        ApproverExpenseUser.Modify(false);
+    end;
+
     local procedure SetDefaultApprover(ApproverExpenseUserNo: Code[20])
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -4079,6 +4714,44 @@ codeunit 148339 "Spend Request Test"
         Assert.AreEqual(ApproverExpenseUserNo, SpendRequest."Approval Expense User No.", 'The approval expense user must match the approval route.');
         Assert.AreNotEqual(0DT, SpendRequest."Approved/Rejected At", 'The approval date and time must be persisted.');
         Assert.AreEqual('', SpendRequest."Rejection Reason", 'An approved request must not retain a rejection reason.');
+    end;
+
+    local procedure InsertExpenseReport(HeaderTravelRequestNo: Code[20]; LineTravelRequestNo: Code[20]): Code[20]
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        ExpenseReportHeader.Init();
+        ExpenseReportHeader."No." := LibraryUtility.GenerateGUID();
+        ExpenseReportHeader."Spend Request No." := HeaderTravelRequestNo;
+        ExpenseReportHeader.Insert();
+
+        ExpenseReportLine.Init();
+        ExpenseReportLine."Document No." := ExpenseReportHeader."No.";
+        ExpenseReportLine."Line No." := 10000;
+        ExpenseReportLine."Spend Request No." := LineTravelRequestNo;
+        ExpenseReportLine.Insert();
+        exit(ExpenseReportHeader."No.");
+    end;
+
+    local procedure InsertPostedExpenseReport(HeaderTravelRequestNo: Code[20]; LineTravelRequestNo: Code[20]; Canceled: Boolean): Code[20]
+    var
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+    begin
+        PostedExpenseReportHeader.Init();
+        PostedExpenseReportHeader."No." := LibraryUtility.GenerateGUID();
+        PostedExpenseReportHeader."Spend Request No." := HeaderTravelRequestNo;
+        PostedExpenseReportHeader.Canceled := Canceled;
+        PostedExpenseReportHeader.Insert();
+
+        PostedExpenseReportLine.Init();
+        PostedExpenseReportLine."Document No." := PostedExpenseReportHeader."No.";
+        PostedExpenseReportLine."Line No." := 10000;
+        PostedExpenseReportLine."Spend Request No." := LineTravelRequestNo;
+        PostedExpenseReportLine."Is Canceled" := Canceled;
+        PostedExpenseReportLine.Insert();
+        exit(PostedExpenseReportHeader."No.");
     end;
 
     local procedure CreatePostedTravelRequestReport(var SpendRequest: Record "Spend Request"; var PostedExpenseReportHeader: Record "Posted Expense Report Header"; AssignOnHeader: Boolean)
@@ -4286,6 +4959,19 @@ codeunit 148339 "Spend Request Test"
         TravelRequestsAPI.SetRecord(SpendRequest);
     end;
 
+    local procedure AssertTravelRequestClosedActivity(ExpenseActivityLogEntry: Record "Expense Activity Log Entry"; SpendRequest: Record "Spend Request"; ExpectedComment: Text)
+    var
+        User: Record User;
+    begin
+        User.Get(UserSecurityId());
+        Assert.AreEqual(Enum::"Expense Activity Event Type"::Closed, ExpenseActivityLogEntry."Event Type", TravelRequestClosedLoggedMsg);
+        Assert.AreEqual(SpendRequest."No.", ExpenseActivityLogEntry."Document No.", 'The closure must reference the travel request number.');
+        Assert.AreEqual(Enum::"Expense Activity Actor Role"::" ", ExpenseActivityLogEntry."Actor Role", 'The closure must not have an approval role.');
+        Assert.AreEqual(Database::User, ExpenseActivityLogEntry."Actor Table ID", 'The closure must be attributed to the Business Central user.');
+        Assert.AreEqual(User.SystemId, ExpenseActivityLogEntry."Actor Record System ID", 'The closure must be attributed to the current user.');
+        Assert.AreEqual(ExpectedComment, ExpenseActivityLogEntry.Comment, 'The closure must record the expected comment.');
+    end;
+
     local procedure AssertTravelRequestActivity(
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         SpendRequest: Record "Spend Request";
@@ -4403,5 +5089,10 @@ codeunit 148339 "Spend Request Test"
             Reply := CloseConfirmReply;
         end else
             Reply := true;
+    end;
+
+    [MessageHandler]
+    procedure SpendReqMessageHandler(Message: Text[1024])
+    begin
     end;
 }

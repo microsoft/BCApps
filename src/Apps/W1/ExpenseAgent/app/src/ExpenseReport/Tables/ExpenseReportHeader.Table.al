@@ -1587,9 +1587,11 @@ table 6906 "Expense Report Header"
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
     begin
+        // Canceled reports no longer use the travel request, so they don't block a new report for it.
         PostedExpenseReportHeader.ReadIsolation := IsolationLevel::ReadCommitted;
         PostedExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         PostedExpenseReportHeader.SetRange("Expense User No.", TravelerExpenseUserNo);
+        PostedExpenseReportHeader.SetRange(Canceled, false);
         PostedExpenseReportHeader.SetLoadFields("No.");
         if PostedExpenseReportHeader.FindFirst() then begin
             PostedReportError := GetPostedTravelRequestReportError(
@@ -1600,6 +1602,7 @@ table 6906 "Expense Report Header"
         PostedExpenseReportLine.ReadIsolation := IsolationLevel::ReadCommitted;
         PostedExpenseReportLine.SetRange("Spend Request No.", SpendRequest."No.");
         PostedExpenseReportLine.SetRange("Expense User No.", TravelerExpenseUserNo);
+        PostedExpenseReportLine.SetRange("Is Canceled", false);
         PostedExpenseReportLine.SetLoadFields("Document No.", "Line No.");
         if PostedExpenseReportLine.FindFirst() then begin
             PostedReportError := GetPostedTravelRequestReportError(
