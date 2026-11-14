@@ -14,6 +14,7 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
 
     procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary);
     begin
+        FilePaginationData.SetEndOfListing(true);
         TempFileAccountContent.Init();
         TempFileAccountContent.Type := TempFileAccountContent.Type::Directory;
         TempFileAccountContent.Name := 'Test Folder';
@@ -126,6 +127,7 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
 
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary);
     begin
+        FilePaginationData.SetEndOfListing(true);
     end;
 
     procedure CreateDirectory(AccountId: Guid; Path: Text);

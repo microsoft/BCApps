@@ -114,7 +114,7 @@ page 9455 "Storage Browser"
                 Image = Delete;
                 Ellipsis = true;
                 Visible = not IsInLookupMode;
-                Enabled = not IsInLookupMode;
+                Enabled = not IsInLookupMode and CanDeleteEntry;
                 ToolTip = 'Deletes the selected file or directory.';
 
                 trigger OnAction()
@@ -129,12 +129,17 @@ page 9455 "Storage Browser"
     var
         FileAccountBrowserMgt: Codeunit "File Account Browser Mgt.";
         CurrentPath, FileFilter, SaveFileName, CurrentPageCaption : Text;
-        DoNotLoadFiles, IsInLookupMode, ShowFileName : Boolean;
+        DoNotLoadFiles, IsInLookupMode, ShowFileName, CanDeleteEntry : Boolean;
 
     trigger OnOpenPage()
     begin
         if CurrentPageCaption <> '' then
             CurrPage.Caption(CurrentPageCaption);
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        CanDeleteEntry := not (Rec.Name in ['', '..']);
     end;
 
     internal procedure SetFileAccount(TempFileAccount: Record "File Account" temporary)
