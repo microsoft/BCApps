@@ -329,13 +329,13 @@ report 11 "G/L - VAT Reconciliation"
                                     VATEntry.SetRange("VAT Reporting Date", StartDate, EndDate);
 
                             VATEntry.SetRange(Reversed, false);
-                        end;
 
-                        VATEntryCopy.Copy(VATEntry);
-                        VATEntryCopy.SetCurrentKey("Entry No.");
-                        VATEntryCopy.SetGLAccountNoWithResponse(true, AdjustVATEntryConfirm, AdjustVATEntry);
-                        AdjustVATEntryConfirm := false;
-                        CheckGLAccountNoFilled(VATEntryCopy);
+                            VATEntryCopy.Copy(VATEntry);
+                            VATEntryCopy.SetCurrentKey("Entry No.");
+                            VATEntryCopy.SetGLAccountNoWithResponse(true, AdjustVATEntryConfirm, AdjustVATEntry);
+                            AdjustVATEntryConfirm := false;
+                            CheckGLAccountNoFilled(VATEntryCopy);
+                        end;
 
                         Identifier := Identifier + 1;
                     end;
