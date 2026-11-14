@@ -59,6 +59,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
         OrderHeader: Record "Shpfy Order Header";
         DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
         ShopifyTaxArea: Record "Shpfy Tax Area";
+        PreviousSalesHeader: Record "Sales Header";
         BCDocumentTypeConvert: Codeunit "Shpfy BC Document Type Convert";
         ProcessOrder: Codeunit "Shpfy Process Order";
         OrderMgt: Codeunit "Shpfy Order Mgt.";
@@ -102,7 +103,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                 SalesHeader."Bill-to Post Code" := CopyStr(OrderHeader."Bill-to Post Code", 1, MaxStrLen(SalesHeader."Bill-to Post Code"));
                 SalesHeader."Bill-to County" := CopyStr(OrderHeader."Bill-to County", 1, MaxStrLen(SalesHeader."Bill-to County"));
                 SalesHeader.Validate("Bill-to Contact No.", OrderHeader."Bill-to Contact No.");
-                SalesHeader.Validate("Ship-to Code", '');
+                PreviousSalesHeader := ProcessOrder.PrepareImportedShipTo(SalesHeader);
                 SalesHeader."Ship-to Name" := CopyStr(OrderHeader."Ship-to Name", 1, MaxStrLen(SalesHeader."Ship-to Name"));
                 SalesHeader."Ship-to Name 2" := CopyStr(OrderHeader."Ship-to Name 2", 1, MaxStrLen(SalesHeader."Ship-to Name 2"));
                 SalesHeader."Ship-to Address" := CopyStr(OrderHeader."Ship-to Address", 1, MaxStrLen(SalesHeader."Ship-to Address"));
@@ -129,6 +130,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                         if not OrderHeader."Tax Exempt" then
                             SalesHeader.Validate("Tax Liable", ShopifyTaxArea."Tax Liable");
                     end;
+                ProcessOrder.ApplyImportedShipToVATSetup(SalesHeader, PreviousSalesHeader, Shop, OrderHeader.B2B);
                 MapPaymentMethodCode(SalesHeader);
             end;
             SalesHeader."Shpfy Refund Id" := RefundHeader."Refund Id";
