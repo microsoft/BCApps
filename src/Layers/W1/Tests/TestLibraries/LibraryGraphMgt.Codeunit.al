@@ -55,6 +55,19 @@ codeunit 130618 "Library - Graph Mgt"
         WorkDate := DMY2Date(15, 11, Date2DMY(Today, 3));
     end;
 
+    /// <summary>
+    /// Sets the work date of the test session to the one API sessions always start with: today in the current user's time zone.
+    /// The API session's work date can't be changed from the test. Use it in tests that compare a document created through the API
+    /// with one created in the test session, so that fields the API doesn't expose get the same default dates.
+    /// Today can be outside the test-license date limits, so don't post with it; use SetLicenseSafeWorkDate() for that.
+    /// </summary>
+    procedure AlignWorkDateWithApiSession()
+    var
+        TypeHelper: Codeunit "Type Helper";
+    begin
+        WorkDate := DT2Date(TypeHelper.GetCurrentDateTimeInUserTimeZone());
+    end;
+
     procedure EnsureWebServiceExist(ServiceNameTxt: Text[240]; PageNumber: Integer)
     var
         WebService: Record "Web Service";
