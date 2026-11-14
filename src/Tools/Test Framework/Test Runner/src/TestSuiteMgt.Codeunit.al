@@ -215,6 +215,47 @@ codeunit 130456 "Test Suite Mgt."
         exit(ResultsJsonText);
     end;
 
+    procedure GetDisabledTestsToJSON(var TestMethodLine: Record "Test Method Line"): Text
+    var
+        FunctionTestMethodLine: Record "Test Method Line";
+        CodeunitTestMethodLine: Record "Test Method Line";
+        AllObj: Record AllObj;
+        DisabledTestsArray: JsonArray;
+        DisabledTestJson: JsonObject;
+        CodeunitName: Text;
+        DisabledTestsText: Text;
+    begin
+        FunctionTestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
+        FunctionTestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Function);
+        FunctionTestMethodLine.SetRange(Run, false);
+        if not FunctionTestMethodLine.FindSet() then
+            exit('');
+
+        repeat
+            CodeunitName := '';
+            CodeunitTestMethodLine.SetRange("Test Suite", FunctionTestMethodLine."Test Suite");
+            CodeunitTestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Codeunit);
+            CodeunitTestMethodLine.SetRange("Test Codeunit", FunctionTestMethodLine."Test Codeunit");
+            if CodeunitTestMethodLine.FindFirst() then
+                CodeunitName := CodeunitTestMethodLine.Name
+            else begin
+                AllObj.SetRange("Object Type", AllObj."Object Type"::Codeunit);
+                AllObj.SetRange("Object ID", FunctionTestMethodLine."Test Codeunit");
+                if AllObj.FindFirst() then
+                    CodeunitName := AllObj."Object Name";
+            end;
+
+            Clear(DisabledTestJson);
+            DisabledTestJson.Add('codeunitId', FunctionTestMethodLine."Test Codeunit");
+            DisabledTestJson.Add('codeunitName', CodeunitName);
+            DisabledTestJson.Add('method', FunctionTestMethodLine.Name);
+            DisabledTestsArray.Add(DisabledTestJson);
+        until FunctionTestMethodLine.Next() = 0;
+
+        DisabledTestsArray.WriteTo(DisabledTestsText);
+        exit(DisabledTestsText);
+    end;
+
     procedure RunSelectedTests(var TestMethodLine: Record "Test Method Line")
     var
         ALTestSuite: Record "AL Test Suite";
