@@ -1009,6 +1009,7 @@ table 123 "Purch. Inv. Line"
                 TempVATAmountLine."Calculated VAT Amount (ACY)" :=
                   "Amount Including VAT (ACY)" - "Amount (ACY)" - "VAT Difference (ACY)";
                 TempVATAmountLine."Includes Prepayment" := "Prepayment Line";
+                OnCalcVATAmountLinesOnBeforeInsertLine(PurchInvHeader, TempVATAmountLine);
                 TempVATAmountLine.InsertLine();
             until Next() = 0;
     end;
@@ -1296,6 +1297,11 @@ table 123 "Purch. Inv. Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetVATPct(var PurchInvLine: Record "Purch. Inv. Line"; var VATPct: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcVATAmountLinesOnBeforeInsertLine(PurchInvHeader: Record "Purch. Inv. Header"; var TempVATAmountLine: Record "VAT Amount Line" temporary)
     begin
     end;
 

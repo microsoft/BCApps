@@ -273,12 +273,6 @@ page 134 "Posted Sales Credit Memo"
                         ToolTip = 'Specifies the products or services being offered.';
                     }
                 }
-                field("Corrected Invoice No."; Rec."Corrected Invoice No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the number of the posted invoice that you need to correct.';
-                }
             }
             part(SalesCrMemoLines; "Posted Sales Cr. Memo Subform")
             {
@@ -339,16 +333,6 @@ page 134 "Posted Sales Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Visible = false;
-                }
-            }
-            group(Payment)
-            {
-                Caption = 'Payment';
-                field("Cust. Bank Acc. Code"; Rec."Cust. Bank Acc. Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the customer''s bank code that was on the sales header when this credit memo was issued.';
                 }
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
@@ -1078,5 +1062,4 @@ page 134 "Posted Sales Credit Memo"
         IsSellToCountyVisible := FormatAddress.UseCounty(Rec."Sell-to Country/Region Code");
         IsShipToCountyVisible := FormatAddress.UseCounty(Rec."Ship-to Country/Region Code");
     end;
-
 }

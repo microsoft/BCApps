@@ -8,6 +8,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
@@ -140,8 +141,6 @@ codeunit 7000026 "SII Purchase Subscribers"
         VendorLedgerEntry."Invoice Type" := GenJournalLine."Purch. Invoice Type";
         VendorLedgerEntry."Cr. Memo Type" := GenJournalLine."Purch. Cr. Memo Type";
         VendorLedgerEntry."Special Scheme Code" := GenJournalLine."Purch. Special Scheme Code";
-        VendorLedgerEntry."Correction Type" := GenJournalLine."Correction Type";
-        VendorLedgerEntry."Corrected Invoice No." := GenJournalLine."Corrected Invoice No.";
         VendorLedgerEntry."Succeeded Company Name" := GenJournalLine."Succeeded Company Name";
         VendorLedgerEntry."Succeeded VAT Registration No." := GenJournalLine."Succeeded VAT Registration No.";
         VendorLedgerEntry."ID Type" := GenJournalLine."ID Type";
@@ -156,13 +155,83 @@ codeunit 7000026 "SII Purchase Subscribers"
           (PurchCrMemoHeader."Operation Description 2" <> xPurchCrMemoHeader."Operation Description 2") or
           (PurchCrMemoHeader."Special Scheme Code" <> xPurchCrMemoHeader."Special Scheme Code") or
           (PurchCrMemoHeader."Cr. Memo Type" <> xPurchCrMemoHeader."Cr. Memo Type") or
-          (PurchCrMemoHeader."Corrected Invoice No." <> xPurchCrMemoHeader."Corrected Invoice No.") or
-          (PurchCrMemoHeader."Correction Type" <> xPurchCrMemoHeader."Correction Type") or
           (PurchCrMemoHeader."ID Type" <> xPurchCrMemoHeader."ID Type") or
           (PurchCrMemoHeader."Succeeded Company Name" <> xPurchCrMemoHeader."Succeeded Company Name") or
           (PurchCrMemoHeader."Succeeded VAT Registration No." <> xPurchCrMemoHeader."Succeeded VAT Registration No."));
     end;
 
+    [EventSubscriber(ObjectType::Page, Page::"Posted Purch. Invoice - Update", OnAfterRecordChanged, '', true, false)]
+    local procedure PurchInvHeaderOnAfterRecordChanged(var PurchInvHeader: Record "Purch. Inv. Header"; var IsChanged: Boolean; xPurchInvHeaderGlobal: Record "Purch. Inv. Header")
+    begin
+        IsChanged := IsChanged or
+          (PurchInvHeader."Operation Description" <> xPurchInvHeaderGlobal."Operation Description") or
+          (PurchInvHeader."Operation Description 2" <> xPurchInvHeaderGlobal."Operation Description 2") or
+          (PurchInvHeader."Special Scheme Code" <> xPurchInvHeaderGlobal."Special Scheme Code") or
+          (PurchInvHeader."Invoice Type" <> xPurchInvHeaderGlobal."Invoice Type") or
+          (PurchInvHeader."ID Type" <> xPurchInvHeaderGlobal."ID Type") or
+          (PurchInvHeader."Succeeded Company Name" <> xPurchInvHeaderGlobal."Succeeded Company Name") or
+          (PurchInvHeader."Succeeded VAT Registration No." <> xPurchInvHeaderGlobal."Succeeded VAT Registration No.");
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Post Invoice", OnPostLedgerEntryOnAfterCopyToGenJnlLine, '', true, false)]
+    local procedure OnPostLedgerEntryOnAfterCopyToGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; PurchHeader: Record "Purchase Header")
+    begin
+        GenJnlLine."Purch. Invoice Type" := PurchHeader."Invoice Type";
+        GenJnlLine."Purch. Cr. Memo Type" := PurchHeader."Cr. Memo Type";
+        GenJnlLine."Purch. Special Scheme Code" := PurchHeader."Special Scheme Code";
+        GenJnlLine."Succeeded Company Name" := PurchHeader."Succeeded Company Name";
+        GenJnlLine."Succeeded VAT Registration No." := PurchHeader."Succeeded VAT Registration No.";
+        GenJnlLine."ID Type" := PurchHeader."ID Type";
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Cr. Memo Hdr. - Edit", OnRunOnBeforeTestFieldNo, '', true, false)]
+    local procedure PurchCrMemoHdrOnRunOnBeforeTestFieldNo(var PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; PurchCrMemoHeaderRec: Record "Purch. Cr. Memo Hdr.")
+    begin
+        PurchCrMemoHeader."Operation Description" := PurchCrMemoHeaderRec."Operation Description";
+        PurchCrMemoHeader."Operation Description 2" := PurchCrMemoHeaderRec."Operation Description 2";
+        PurchCrMemoHeader."Special Scheme Code" := PurchCrMemoHeaderRec."Special Scheme Code";
+        PurchCrMemoHeader."Cr. Memo Type" := PurchCrMemoHeaderRec."Cr. Memo Type";
+        PurchCrMemoHeader."ID Type" := PurchCrMemoHeaderRec."ID Type";
+        PurchCrMemoHeader."Succeeded Company Name" := PurchCrMemoHeaderRec."Succeeded Company Name";
+        PurchCrMemoHeader."Succeeded VAT Registration No." := PurchCrMemoHeaderRec."Succeeded VAT Registration No.";
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Cr. Memo Hdr. - Edit", OnRunOnAfterPurchCrMemoHdrEdit, '', true, false)]
+    local procedure OnRunOnAfterPurchCrMemoHdrEdit(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
+    begin
+        UpdateSIIDocUploadState(PurchCrMemoHdr);
+    end;
+
+    local procedure UpdateSIIDocUploadState(PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
+    var
+        xSIIDocUploadState: Record "SII Doc. Upload State";
+        SIIDocUploadState: Record "SII Doc. Upload State";
+        SIIManagement: Codeunit "SII Management";
+        SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
+    begin
+        if not SIIManagement.IsSIISetupEnabled() then
+            exit;
+
+        if not SIIDocUploadState.GetSIIDocUploadStateByDocument(
+             SIIDocUploadState."Document Source"::"Vendor Ledger".AsInteger(),
+             SIIDocUploadState."Document Type"::"Credit Memo".AsInteger(),
+             PurchCrMemoHdr."Posting Date",
+             PurchCrMemoHdr."No.")
+        then
+            exit;
+
+        xSIIDocUploadState := SIIDocUploadState;
+        SIIDocUploadState.AssignPurchCreditMemoType(PurchCrMemoHdr."Cr. Memo Type");
+        SIIDocUploadState.AssignPurchSchemeCode(PurchCrMemoHdr."Special Scheme Code");
+        SIISchemeCodeMgt.ValidatePurchSpecialRegimeCodeInSIIDocUploadState(xSIIDocUploadState, SIIDocUploadState);
+        SIIDocUploadState.IDType := PurchCrMemoHdr."ID Type";
+        SIIDocUploadState."Succeeded Company Name" := PurchCrMemoHdr."Succeeded Company Name";
+        SIIDocUploadState."Succeeded VAT Registration No." := PurchCrMemoHdr."Succeeded VAT Registration No.";
+        SIIDocUploadState.GetCorrectionInfo(
+          SIIDocUploadState."Corrected Doc. No.", SIIDocUploadState."Corr. Posting Date", SIIDocUploadState."Posting Date");
+        SIIDocUploadState."Is Credit Memo Removal" := SIIDocUploadState.IsCreditMemoRemoval();
+        SIIDocUploadState.Modify();
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Inv. Header - Edit", OnBeforePurchInvHeaderModify, '', true, false)]
     local procedure OnBeforePurchInvHeaderModify(var PurchInvHeader: Record "Purch. Inv. Header"; PurchInvHeaderRec: Record "Purch. Inv. Header")

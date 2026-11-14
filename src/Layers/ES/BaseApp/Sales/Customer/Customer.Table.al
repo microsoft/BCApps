@@ -105,8 +105,7 @@ table 18 Customer
                 if "Invoice Disc. Code" = '' then
                     "Invoice Disc. Code" := "No.";
 
-                "Payment Days Code" := "No.";
-                "Non-Paymt. Periods Code" := "No.";
+                OnAfterInitInvoiceDiscCode(Rec);
             end;
         }
         /// <summary>
@@ -2316,22 +2315,6 @@ table 18 Customer
             Caption = 'Contact Graph Id';
             OptimizeForTextSearch = true;
         }
-        field(10700; "Payment Days Code"; Code[20])
-        {
-            Caption = 'Payment Days Code';
-            TableRelation = Customer;
-            ValidateTableRelation = false;
-        }
-        field(10701; "Non-Paymt. Periods Code"; Code[20])
-        {
-            Caption = 'Non-Paymt. Periods Code';
-            TableRelation = Customer;
-            ValidateTableRelation = false;
-        }
-        field(10702; "Not in AEAT"; Boolean)
-        {
-            Caption = 'Not in AEAT';
-        }
     }
 
     keys
@@ -2466,8 +2449,7 @@ table 18 Customer
         if "Invoice Disc. Code" = '' then
             "Invoice Disc. Code" := "No.";
 
-        "Payment Days Code" := "No.";
-        "Non-Paymt. Periods Code" := "No.";
+        OnAfterInitInvoiceDiscCode(Rec);
 
         if (not (InsertFromContact or (InsertFromTemplate and (Contact <> '')) or IsTemporary)) or ForceUpdateContact then
             UpdateContFromCust.OnInsert(Rec);
@@ -5113,6 +5095,11 @@ table 18 Customer
     /// <param name="VATRegNo">The VAT registration number that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetVATRegistrationNo(var Customer: Record Customer; var VATRegNo: Text[20]);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitInvoiceDiscCode(var Customer: Record Customer)
     begin
     end;
 }

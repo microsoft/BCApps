@@ -317,15 +317,6 @@ page 507 "Blanket Sales Order"
                 {
                     ApplicationArea = Suite;
                 }
-            }
-            group(Payment)
-            {
-                Caption = 'Payment';
-                field("Cust. Bank Acc. Code"; Rec."Cust. Bank Acc. Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the customer bank code to assign to the sales header in this field.';
-                }
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
                     ApplicationArea = VAT;
@@ -1021,9 +1012,9 @@ page 507 "Blanket Sales Order"
                 {
                     AccessByPermission = TableData "Cust. Invoice Disc." = R;
                     ApplicationArea = Suite;
-                    Caption = 'Calculate &Inv. and Pmt. Discounts';
-                    Image = CalculateDiscount;
-                    ToolTip = 'Update the lines with any payment discount that is specified in the related payment terms.';
+                    Caption = 'Calculate &Invoice Discount';
+                    Image = CalculateInvoiceDiscount;
+                    ToolTip = 'Calculate the invoice discount that applies to the sales order.';
 
                     trigger OnAction()
                     begin

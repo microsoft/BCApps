@@ -210,7 +210,7 @@ page 6660 "Posted Return Receipt"
                 }
                 group("Bill-to")
                 {
-                    Caption = 'Bill-to';                    
+                    Caption = 'Bill-to';
                     field("Bill-to Name"; Rec."Bill-to Name")
                     {
                         ApplicationArea = SalesReturnOrder;

@@ -42,6 +42,22 @@ page 10767 "Posted Purch. Cr.Memo - Update"
                     ToolTip = 'Specifies the date the credit memo was posted.';
                 }
             }
+            group("Invoice Details")
+            {
+                Caption = 'Invoice Details';
+                field("Correction Type"; Rec."Correction Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = true;
+                    ToolTip = 'Specifies the Correction Type.';
+                }
+                field("Corrected Invoice No."; Rec."Corrected Invoice No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = true;
+                    ToolTip = 'Specifies the number of the posted invoice that you need to correct.';
+                }
+            }
             group("Cr. Memo Details")
             {
                 Caption = 'Cr. Memo Details';
@@ -76,7 +92,10 @@ page 10767 "Posted Purch. Cr.Memo - Update"
 
     local procedure RecordChanged() IsChanged: Boolean
     begin
-        IsChanged := Rec."Posting Description" <> xPurchCrMemoHdr."Posting Description";
+        IsChanged :=
+          (Rec."Posting Description" <> xPurchCrMemoHdr."Posting Description") or
+          (Rec."Correction Type" <> xPurchCrMemoHdr."Correction Type") or
+          (Rec."Corrected Invoice No." <> xPurchCrMemoHdr."Corrected Invoice No.");
 
         OnAfterRecordChanged(Rec, xPurchCrMemoHdr, IsChanged);
     end;

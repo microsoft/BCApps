@@ -334,7 +334,7 @@ codeunit 144122 "ERM Purchase VAT EC Calculate"
           VATPostingSetup."VAT Bus. Posting Group", CurrencyCode);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         CurrencyFactor := FindCurrencyFactor(CurrencyCode, PurchaseHeader."Currency Factor");
-        VATAmount := -PurchaseLine.Amount / CurrencyFactor * VATPostingSetup."VAT+EC %" / 100;
+        VATAmount := Round(PurchaseLine.Amount / CurrencyFactor) - Round(PurchaseLine."Amount Including VAT" / CurrencyFactor);
 
         // Exercise.
         PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
@@ -581,6 +581,7 @@ codeunit 144122 "ERM Purchase VAT EC Calculate"
     var
         GenJournalLine: Record "Gen. Journal Line";
         VATPostingSetup: Record "VAT Posting Setup";
+        OldAdditionalReportingCurrency: Code[10];
         OldUnrealizedVAT: Boolean;
         VATAmount: Decimal;
     begin
@@ -588,6 +589,7 @@ codeunit 144122 "ERM Purchase VAT EC Calculate"
 
         // Setup: Update General ledger setup - Unrealized VAT and VAT Posting Setup - Purch. VAT Unreal. Account. Create and Post General Journal Line Document Type - Invoice.
         Initialize();
+        OldAdditionalReportingCurrency := UpdateGeneralLedgerSetupAdditionalReportingCurrency('');
         OldUnrealizedVAT := UpdateGeneralLedgerSetupUnrealizedVAT(true);  // Unrealized VAT - True.
         UpdateVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
         UpdateVATPostingSetupPurchVATUnrealAccount(
@@ -610,6 +612,7 @@ codeunit 144122 "ERM Purchase VAT EC Calculate"
         UpdateVATPostingSetupPurchVATUnrealAccount(
           VATPostingSetup, VATPostingSetup."Unrealized VAT Type"::" ", VATPostingSetup."Purch. VAT Unreal. Account");
         UpdateGeneralLedgerSetupUnrealizedVAT(OldUnrealizedVAT);
+        UpdateGeneralLedgerSetupAdditionalReportingCurrency(OldAdditionalReportingCurrency);
     end;
 
     [Test]
@@ -659,17 +662,15 @@ codeunit 144122 "ERM Purchase VAT EC Calculate"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReleasePurchaseDocument: Codeunit "Release Purchase Document";
-        FirstPrepmtPct: Decimal;
         ExpectedECAmount: Decimal;
     begin
         // [FEATURE] [Prepayment]
         // [SCENARIO 123350] "Purchase Prepmt. Doc. - Test" EC Amount = prepayment EC amount for second prepayment
         Initialize();
 
-        // [GIVEN] Purchase document with Amount = "A", Prepayment % = "P", "EC %" = "E"
+        // [GIVEN] Purchase document with partial prepayment and EC
         CreatePurchaseDocWithPostingSetup(PurchaseHeader);
         UpdatePurchaseDocPrepaymentPct(PurchaseHeader, LibraryRandom.RandIntInRange(10, 90));
-        FirstPrepmtPct := PurchaseHeader."Prepayment %";
 
         // [GIVEN] Post prepayment invoice
         PostPurchasePrepaymentInvoice(PurchaseHeader);
@@ -681,9 +682,11 @@ codeunit 144122 "ERM Purchase VAT EC Calculate"
         // [WHEN] Run "Purchase Prepmt. Doc. - Test" report
         RunPurchasePrepmtDocTestReport(PurchaseHeader."No.");
 
-        // [THEN] "EC Amount" = "A" * (100 - "P") * "E"
+        // [THEN] "EC Amount" = rounded total prepayment EC minus rounded invoiced prepayment EC
         FindPurchaseLine(PurchaseLine, PurchaseHeader."Document Type", PurchaseHeader."No.");
-        ExpectedECAmount := Round(PurchaseLine."VAT Base Amount" * (100 - FirstPrepmtPct) * PurchaseLine."EC %" / 10000);
+        ExpectedECAmount :=
+          Round(PurchaseLine."Prepmt. Line Amount" * PurchaseLine."EC %" / 100) -
+          Round(PurchaseLine."Prepmt. Amt. Inv." * PurchaseLine."EC %" / 100);
         VerifyPurchPrepmtDocTestReportECAmount(ExpectedECAmount);
     end;
 

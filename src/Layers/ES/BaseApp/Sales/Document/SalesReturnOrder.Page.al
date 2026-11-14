@@ -8,7 +8,6 @@ using Microsoft.CRM.Contact;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
@@ -21,7 +20,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Pricing;
-using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
@@ -335,11 +333,6 @@ page 6630 "Sales Return Order"
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = false;
-                }
-                field("Corrected Invoice No."; Rec."Corrected Invoice No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the posted invoice that you need to correct.';
                 }
             }
             part(SalesLines; "Sales Return Order Subform")
@@ -843,18 +836,6 @@ page 6630 "Sales Return Order"
                 SubPageLink = "No." = field("Sell-to Customer No."),
                               "Date Filter" = field("Date Filter");
             }
-            part(Control1903433807; "Cartera Receiv. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Bill-to Customer No.");
-                Visible = true;
-            }
-            part(Control1903433607; "Cartera Fact. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Bill-to Customer No.");
-                Visible = true;
-            }
             part(Control1906127307; "Sales Line FactBox")
             {
                 ApplicationArea = SalesReturnOrder;
@@ -1198,8 +1179,8 @@ page 6630 "Sales Return Order"
                 {
                     AccessByPermission = TableData "Cust. Invoice Disc." = R;
                     ApplicationArea = SalesReturnOrder;
-                    Caption = 'Calculate &Inv. and Pmt. Discounts';
-                    Image = CalculateDiscount;
+                    Caption = 'Calculate &Invoice Discount';
+                    Image = CalculateInvoiceDiscount;
                     ToolTip = 'Calculate the invoice discount that applies to the sales return order.';
 
                     trigger OnAction()

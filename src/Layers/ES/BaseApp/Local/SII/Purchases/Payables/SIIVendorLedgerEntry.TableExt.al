@@ -26,18 +26,6 @@ tableextension 7000018 "SII Vendor Ledger Entry" extends "Vendor Ledger Entry"
             Caption = 'Special Scheme Code';
             DataClassification = CustomerContent;
         }
-        field(10707; "Correction Type"; Option)
-        {
-            Caption = 'Correction Type';
-            DataClassification = CustomerContent;
-            OptionCaption = ' ,Replacement,Difference,Removal';
-            OptionMembers = " ",Replacement,Difference,Removal;
-        }
-        field(10708; "Corrected Invoice No."; Code[20])
-        {
-            Caption = 'Corrected Invoice No.';
-            DataClassification = CustomerContent;
-        }
         field(10720; "Succeeded Company Name"; Text[250])
         {
             Caption = 'Succeeded Company Name';

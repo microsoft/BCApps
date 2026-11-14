@@ -202,9 +202,6 @@ report 407 "Purchase - Credit Memo"
                     column(PricesIncludVAT_PurchCrMemoHeader; "Purch. Cr. Memo Hdr."."Prices Including VAT")
                     {
                     }
-                    column(CorrectInvcNo_PurchCrMemoHeader; "Purch. Cr. Memo Hdr."."Corrected Invoice No.")
-                    {
-                    }
                     column(ReturnOrderNo_PurchCrMemoHeader; "Purch. Cr. Memo Hdr."."Return Order No.")
                     {
                     }
@@ -239,9 +236,6 @@ report 407 "Purchase - Credit Memo"
                     {
                     }
                     column(PostingDateCaption; PostingDateCaptionLbl)
-                    {
-                    }
-                    column(CorrectedInvoiceNoCaption; CorrectedInvoiceNoCaptionLbl)
                     {
                     }
                     column(PaytoVenNo_PurchCrMemoHeaderCaption; "Purch. Cr. Memo Hdr.".FieldCaption("Pay-to Vendor No."))
@@ -997,7 +991,6 @@ report 407 "Purchase - Credit Memo"
         BankAccountNoCaptionLbl: Label 'Account No.';
         CreditMemoNoCaptionLbl: Label 'Credit Memo No.';
         PostingDateCaptionLbl: Label 'Posting Date';
-        CorrectedInvoiceNoCaptionLbl: Label 'Corrected Invoice No.';
         HeaderDimensionsCaptionLbl: Label 'Header Dimensions';
         DirectUnitCostCaptionLbl: Label 'Direct Unit Cost';
         DiscountPercentCaptionLbl: Label 'Discount %';

@@ -785,22 +785,6 @@ table 1381 "Customer Templ."
             Caption = 'Validate EU VAT Reg. No.';
             ToolTip = 'Specifies if the VAT registration number will be specified in the EU VAT Registration No. Check page so that it is validated against the VAT registration number validation service.';
         }
-        field(10700; "Payment Days Code"; Code[20])
-        {
-            Caption = 'Payment Days Code';
-            TableRelation = Customer;
-            ValidateTableRelation = false;
-        }
-        field(10701; "Non-Paymt. Periods Code"; Code[20])
-        {
-            Caption = 'Non-Paymt. Periods Code';
-            TableRelation = Customer;
-            ValidateTableRelation = false;
-        }
-        field(10702; "Not in AEAT"; Boolean)
-        {
-            Caption = 'Not in AEAT';
-        }
     }
 
     keys

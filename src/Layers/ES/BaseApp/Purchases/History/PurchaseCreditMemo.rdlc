@@ -9656,9 +9656,6 @@ End Function</Code>
         <Field Name="PricesIncludVAT_PurchCrMemoHeader">
           <DataField>PricesIncludVAT_PurchCrMemoHeader</DataField>
         </Field>
-        <Field Name="CorrectInvcNo_PurchCrMemoHeader">
-          <DataField>CorrectInvcNo_PurchCrMemoHeader</DataField>
-        </Field>
         <Field Name="ReturnOrderNo_PurchCrMemoHeader">
           <DataField>ReturnOrderNo_PurchCrMemoHeader</DataField>
         </Field>
@@ -9694,9 +9691,6 @@ End Function</Code>
         </Field>
         <Field Name="PostingDateCaption">
           <DataField>PostingDateCaption</DataField>
-        </Field>
-        <Field Name="CorrectedInvoiceNoCaption">
-          <DataField>CorrectedInvoiceNoCaption</DataField>
         </Field>
         <Field Name="PaytoVenNo_PurchCrMemoHeaderCaption">
           <DataField>PaytoVenNo_PurchCrMemoHeaderCaption</DataField>
@@ -10042,6 +10036,12 @@ End Function</Code>
         </Field>
         <Field Name="ShipToPhoneNo">
           <DataField>ShipToPhoneNo</DataField>
+        </Field>
+        <Field Name="CorrectInvcNo_PurchCrMemoHeader">
+          <DataField>CorrectInvcNo_PurchCrMemoHeader</DataField>
+        </Field>
+        <Field Name="CorrectedInvoiceNoCaption">
+          <DataField>CorrectedInvoiceNoCaption</DataField>
         </Field>
       </Fields>
       <Query>

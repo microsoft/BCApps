@@ -66,12 +66,6 @@ pageextension 7000004 "SII Posted Purch. Credit Memo" extends "Posted Purchase C
                     Editable = false;
                     ToolTip = 'Specifies the Credit Memo Type.';
                 }
-                field("Correction Type"; Rec."Correction Type")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the Correction Type.';
-                }
                 field("ID Type"; Rec."ID Type")
                 {
                     ApplicationArea = Basic, Suite;

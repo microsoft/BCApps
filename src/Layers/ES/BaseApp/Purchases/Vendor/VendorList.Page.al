@@ -9,7 +9,6 @@ using Microsoft.CRM.Contact;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Comment;
 using Microsoft.Integration.Dataverse;
@@ -288,12 +287,6 @@ page 27 "Vendor List"
                               "Global Dimension 2 Filter" = field("Global Dimension 2 Filter");
                 Visible = false;
             }
-            part(Control1903433907; "Cartera Payables Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("No.");
-                Visible = true;
-            }
             systempart(Control1900383207; Links)
             {
                 ApplicationArea = RecordLinks;
@@ -399,26 +392,6 @@ page 27 "Vendor List"
                     RunPageLink = "Table Name" = const(Vendor),
                                   "No." = field("No.");
                     ToolTip = 'View or add comments for the record.';
-                }
-                action("P&ayment Days")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'P&ayment Days';
-                    Image = PaymentDays;
-                    RunObject = Page "Payment Days";
-                    RunPageLink = "Table Name" = const(Vendor),
-                                  Code = field("Payment Days Code");
-                    ToolTip = 'View or edit the payment days that are associated with the payment code.';
-                }
-                action("Non-Pa&yment Periods")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Non-Pa&yment Periods';
-                    Image = PaymentPeriod;
-                    RunObject = Page "Non-Payment Periods";
-                    RunPageLink = "Table Name" = const(Vendor),
-                                  Code = field("Non-Paymt. Periods Code");
-                    ToolTip = 'View or edit the periods for which payments will not be made.';
                 }
                 action("Item Refe&rences")
                 {
@@ -1237,14 +1210,6 @@ page 27 "Vendor List"
                     Image = "Report";
                     RunObject = Report "Vendor - Trial Balance";
                 }
-                action("Vendor - Due Payments")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Vendor - Due Payments';
-                    Image = "Report";
-                    RunObject = Report "Vendor - Due Payments";
-                    ToolTip = 'View a list of payments to be made to a particular vendor sorted by due date.';
-                }
                 action("Vendor - Detail Trial Balance")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1369,10 +1334,6 @@ page 27 "Vendor List"
             group(Category_Report)
             {
                 Caption = 'Report', Comment = 'Generated from the PromotedActionCategories property index 2.';
-
-                actionref("Vendor - Due Payments_Promoted"; "Vendor - Due Payments")
-                {
-                }
             }
             group(Category_Synchronize)
             {
@@ -1484,5 +1445,3 @@ page 27 "Vendor List"
         CurrPage.SetSelectionFilter(Vendor);
     end;
 }
-
-

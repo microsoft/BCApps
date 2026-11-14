@@ -11,7 +11,6 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
@@ -29,7 +28,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Pricing;
-using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Automation;
@@ -434,15 +432,6 @@ page 43 "Sales Invoice"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
-                }
-                group(Payment)
-                {
-                    Caption = 'Payment';
-                    field("Cust. Bank Acc. Code"; Rec."Cust. Bank Acc. Code")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the customer bank code to assign to the sales header in this field.';
-                    }
                 }
                 group(Control58)
                 {
@@ -1052,18 +1041,6 @@ page 43 "Sales Invoice"
                 ApplicationArea = Basic, Suite;
                 SubPageLink = "No." = field("Sell-to Customer No."),
                               "Date Filter" = field("Date Filter");
-            }
-            part(Control1903433807; "Cartera Receiv. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Bill-to Customer No.");
-                Visible = true;
-            }
-            part(Control1903433607; "Cartera Fact. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Bill-to Customer No.");
-                Visible = true;
             }
             part(Control1906127307; "Sales Line FactBox")
             {
@@ -1873,6 +1850,7 @@ page 43 "Sales Invoice"
         SellToContact.GetOrClear(Rec."Sell-to Contact No.");
         BillToContact.GetOrClear(Rec."Bill-to Contact No.");
         CurrPage.IncomingDocAttachFactBox.Page.SetCurrentRecordID(Rec.RecordId);
+
         OnAfterOnAfterGetRecord(Rec);
     end;
 
@@ -1939,7 +1917,6 @@ page 43 "Sales Invoice"
         IsSaaS := EnvironmentInfo.IsSaaS();
         if (Rec."No." <> '') and (Rec."Sell-to Customer No." = '') then
             DocumentIsPosted := (not Rec.Get(Rec."Document Type", Rec."No."));
-
         PaymentServiceVisible := PaymentServiceSetup.IsPaymentServiceVisible();
 
         SetPostingGroupEditable();

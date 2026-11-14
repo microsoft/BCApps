@@ -26,18 +26,6 @@ tableextension 7000025 "SII Cust. Ledger Entry" extends "Cust. Ledger Entry"
             Caption = 'Special Scheme Code';
             DataClassification = CustomerContent;
         }
-        field(10703; "Correction Type"; Option)
-        {
-            Caption = 'Correction Type';
-            DataClassification = CustomerContent;
-            OptionCaption = ' ,Replacement,Difference,Removal';
-            OptionMembers = " ",Replacement,Difference,Removal;
-        }
-        field(10704; "Corrected Invoice No."; Code[20])
-        {
-            Caption = 'Corrected Invoice No.';
-            DataClassification = CustomerContent;
-        }
         field(10720; "Succeeded Company Name"; Text[250])
         {
             Caption = 'Succeeded Company Name';

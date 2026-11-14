@@ -369,6 +369,22 @@ page 147 "Posted Purchase Credit Memos"
                     Rec.Navigate();
                 end;
             }
+            action("Update Document")
+            {
+                ApplicationArea = Suite;
+                Caption = 'Update Document';
+                Image = Edit;
+                ToolTip = 'Add new information that is relevant to the document. You can only edit a few fields because the document has already been posted.';
+
+                trigger OnAction()
+                var
+                    PostedPurchCrMemoUpdate: Page "Posted Purch. Cr.Memo - Update";
+                begin
+                    PostedPurchCrMemoUpdate.LookupMode := true;
+                    PostedPurchCrMemoUpdate.SetRec(Rec);
+                    PostedPurchCrMemoUpdate.RunModal();
+                end;
+            }
             group(Cancel)
             {
                 Caption = 'Cancel';
@@ -400,22 +416,6 @@ page 147 "Posted Purchase Credit Memos"
                         Rec.ShowCanceledOrCorrInvoice();
                     end;
                 }
-            }
-            action("Update Document")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Update Document';
-                Image = Edit;
-                ToolTip = 'Add new information that is relevant to the document. You can only edit a few fields because the document has already been posted.';
-
-                trigger OnAction()
-                var
-                    PostedPurchCrMemoUpdate: Page "Posted Purch. Cr.Memo - Update";
-                begin
-                    PostedPurchCrMemoUpdate.LookupMode := true;
-                    PostedPurchCrMemoUpdate.SetRec(Rec);
-                    PostedPurchCrMemoUpdate.RunModal();
-                end;
             }
         }
         area(Promoted)
@@ -487,10 +487,6 @@ page 147 "Posted Purchase Credit Memos"
         CurrPage.IncomingDocAttachFactBox.PAGE.LoadDataFromRecord(Rec);
     end;
 
-    trigger OnAfterGetRecord()
-    begin
-    end;
-
     trigger OnOpenPage()
     var
         OfficeMgt: Codeunit "Office Management";
@@ -519,5 +515,4 @@ page 147 "Posted Purchase Credit Memos"
     local procedure OnBeforePrintRecords(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
     begin
     end;
-
 }

@@ -71,11 +71,6 @@ pageextension 7000006 "SII Sales Credit Memo" extends "Sales Credit Memo"
                         SIILastSummaryDocNo := '';
                     end;
                 }
-                field("Correction Type"; Rec."Correction Type")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the Correction Type.';
-                }
                 field("ID Type"; Rec."ID Type")
                 {
                     ApplicationArea = Basic, Suite;

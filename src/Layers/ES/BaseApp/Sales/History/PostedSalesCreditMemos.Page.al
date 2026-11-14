@@ -537,7 +537,6 @@ page 144 "Posted Sales Credit Memos"
             group(Category_Category4)
             {
                 Caption = 'Credit Memo', Comment = 'Generated from the PromotedActionCategories property index 3.';
-
                 actionref(Dimensions_Promoted; Dimensions)
                 {
                 }
@@ -605,7 +604,6 @@ page 144 "Posted Sales Credit Memos"
         if HasFilters and not Rec.Find() then
             if Rec.FindFirst() then;
         IsOfficeAddin := OfficeMgt.IsAvailable();
-
         SalesCrMemoHeader.CopyFilters(Rec);
         SalesCrMemoHeader.SetFilter("Document Exchange Status", '<>%1', Rec."Document Exchange Status"::"Not Sent");
         DocExchStatusVisible := not SalesCrMemoHeader.IsEmpty();

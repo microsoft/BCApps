@@ -597,11 +597,6 @@ page 46 "Sales Order Subform"
                         Page.RunModal(0, SalesInvoiceLine);
                     end;
                 }
-                field("Special Scheme Code"; Rec."Special Scheme Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the special scheme code.';
-                }
                 field("Prepmt Amt to Deduct"; Rec."Prepmt Amt to Deduct")
                 {
                     ApplicationArea = Prepayments;
