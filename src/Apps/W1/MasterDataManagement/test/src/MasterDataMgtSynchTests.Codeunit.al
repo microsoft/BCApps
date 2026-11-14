@@ -16,6 +16,7 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         LibrarySales: Codeunit "Library - Sales";
         LibraryRandom: Codeunit "Library - Random";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        LibraryUtility: Codeunit "Library - Utility";
         InitializeHandled: Boolean;
 
     [Test]
@@ -996,6 +997,280 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         Assert.IsFalse(LibraryMasterDataMgt.FindMappingByIntegrationRecordId(IntegrationTableMapping, MasterDataMgtCoupling), 'A source record outside the integration table filter must not match the mapping.');
     end;
 
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure MatchBasedCouplingCouplesMatchWithinLocalTableFilter()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        SourceRecord: Record "MDM Test Table B";
+        LocalRecord: Record "MDM Test Table A";
+    begin
+        // [FEATURE] [Match-Based Coupling]
+        // [SCENARIO] An uncoupled source record is coupled to the single local record that matches it within the Local Table Filter.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] A source record and a local record that matches it, and a Local Table Filter that includes the local record
+        CreateMatchingSourceRecord(SourceRecord);
+        CreateMatchingLocalRecord(LocalRecord, SourceRecord, false);
+        CreateMatchBasedCouplingMapping(IntegrationTableMapping, SourceRecord, GetLocalTableFilter(), true);
+
+        // [WHEN] Match-based coupling runs
+        RunMatchBasedCoupling(IntegrationTableMapping);
+
+        // [THEN] The records are coupled and no record creation is scheduled
+        VerifyCoupled(SourceRecord, LocalRecord);
+        VerifyCouplingJobCounters(IntegrationTableMapping, 1, 0);
+        VerifyCreateNewNotScheduled(IntegrationTableMapping);
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure MatchBasedCouplingPrefersMatchWithinLocalTableFilter()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        SourceRecord: Record "MDM Test Table B";
+        ExcludedLocalRecord: Record "MDM Test Table A";
+        IncludedLocalRecord: Record "MDM Test Table A";
+    begin
+        // [FEATURE] [Match-Based Coupling]
+        // [SCENARIO] When one matching local record is inside the Local Table Filter and another is outside, the record inside the filter is coupled.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] Two local records that match the source record, one excluded and one included by the Local Table Filter
+        CreateMatchingSourceRecord(SourceRecord);
+        CreateMatchingLocalRecord(ExcludedLocalRecord, SourceRecord, true);
+        CreateMatchingLocalRecord(IncludedLocalRecord, SourceRecord, false);
+        CreateMatchBasedCouplingMapping(IntegrationTableMapping, SourceRecord, GetLocalTableFilter(), true);
+
+        // [WHEN] Match-based coupling runs
+        RunMatchBasedCoupling(IntegrationTableMapping);
+
+        // [THEN] The source record is coupled to the local record within the filter
+        VerifyCoupled(SourceRecord, IncludedLocalRecord);
+        VerifyCouplingJobCounters(IntegrationTableMapping, 1, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure MatchBasedCouplingSkipsMatchExcludedByLocalTableFilter()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        IntegrationSynchJobErrors: Record "Integration Synch. Job Errors";
+        SourceRecord: Record "MDM Test Table B";
+        LocalRecord: Record "MDM Test Table A";
+    begin
+        // [FEATURE] [Match-Based Coupling]
+        // [SCENARIO 656175] When the only matching local record is excluded by the Local Table Filter, match-based coupling
+        //                   neither couples it nor creates a duplicate, and logs an error that explains why.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] A source record and a matching local record that the Local Table Filter excludes
+        CreateMatchingSourceRecord(SourceRecord);
+        CreateMatchingLocalRecord(LocalRecord, SourceRecord, true);
+        // [GIVEN] Create New in Case of No Match is selected
+        CreateMatchBasedCouplingMapping(IntegrationTableMapping, SourceRecord, GetLocalTableFilter(), true);
+
+        // [WHEN] Match-based coupling runs
+        RunMatchBasedCoupling(IntegrationTableMapping);
+
+        // [THEN] The records are not coupled and no record creation is scheduled
+        VerifyNotCoupled(SourceRecord);
+        VerifyCreateNewNotScheduled(IntegrationTableMapping);
+
+        // [THEN] One failure is logged for the source record, pointing to the excluded local record
+        VerifyCouplingJobCounters(IntegrationTableMapping, 0, 1);
+        FindCouplingJobErrors(IntegrationTableMapping, IntegrationSynchJobErrors);
+        Assert.RecordCount(IntegrationSynchJobErrors, 1);
+        IntegrationSynchJobErrors.FindFirst();
+        Assert.AreEqual(SourceRecord.RecordId(), IntegrationSynchJobErrors."Source Record ID", 'The error must point to the source record.');
+        Assert.AreEqual(LocalRecord.RecordId(), IntegrationSynchJobErrors."Destination Record ID", 'The error must point to the excluded local record.');
+        Assert.ExpectedMessage('Local Table Filter', IntegrationSynchJobErrors.Message);
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler,SynchronizationScheduledNotificationHandler')]
+    procedure MatchBasedCouplingCreatesNewWhenNoMatchExists()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        CreateNewIntegrationTableMapping: Record "Integration Table Mapping";
+        SourceRecord: Record "MDM Test Table B";
+    begin
+        // [FEATURE] [Match-Based Coupling]
+        // [SCENARIO] When no local record matches, inside or outside the Local Table Filter, and Create New in Case of No Match
+        //            is selected, a synchronization job is scheduled to create the record.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] A source record with no matching local record, a Local Table Filter, and Create New in Case of No Match is selected
+        CreateMatchingSourceRecord(SourceRecord);
+        CreateMatchBasedCouplingMapping(IntegrationTableMapping, SourceRecord, GetLocalTableFilter(), true);
+
+        // [WHEN] Match-based coupling runs
+        RunMatchBasedCoupling(IntegrationTableMapping);
+
+        // [THEN] The source record is not coupled, and no failure is logged
+        VerifyNotCoupled(SourceRecord);
+        VerifyCouplingJobCounters(IntegrationTableMapping, 0, 0);
+
+        // [THEN] A synchronization of the uncoupled source record is scheduled to create it
+        CreateNewIntegrationTableMapping.SetRange("Parent Name", IntegrationTableMapping.Name);
+        Assert.RecordCount(CreateNewIntegrationTableMapping, 1);
+        CreateNewIntegrationTableMapping.FindFirst();
+        Assert.IsFalse(CreateNewIntegrationTableMapping."Synch. Only Coupled Records", 'The create-new synchronization must include uncoupled records.');
+        Assert.AreEqual(IntegrationTableMapping.Direction::FromIntegrationTable, CreateNewIntegrationTableMapping.Direction, 'The create-new synchronization must run from the source company.');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure MatchBasedCouplingLogsErrorWhenNoMatchAndCreateNewIsNotSelected()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        IntegrationSynchJobErrors: Record "Integration Synch. Job Errors";
+        SourceRecord: Record "MDM Test Table B";
+    begin
+        // [FEATURE] [Match-Based Coupling]
+        // [SCENARIO] When no local record matches and Create New in Case of No Match is not selected, a failure is logged.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] A source record with no matching local record, and Create New in Case of No Match is not selected
+        CreateMatchingSourceRecord(SourceRecord);
+        CreateMatchBasedCouplingMapping(IntegrationTableMapping, SourceRecord, '', false);
+
+        // [WHEN] Match-based coupling runs
+        RunMatchBasedCoupling(IntegrationTableMapping);
+
+        // [THEN] The source record is not coupled, no record creation is scheduled, and a failure is logged
+        VerifyNotCoupled(SourceRecord);
+        VerifyCreateNewNotScheduled(IntegrationTableMapping);
+        VerifyCouplingJobCounters(IntegrationTableMapping, 0, 1);
+        FindCouplingJobErrors(IntegrationTableMapping, IntegrationSynchJobErrors);
+        Assert.RecordCount(IntegrationSynchJobErrors, 1);
+        IntegrationSynchJobErrors.FindFirst();
+        Assert.ExpectedMessage('no unique uncoupled matching entity was found', IntegrationSynchJobErrors.Message);
+    end;
+
+    local procedure CreateMatchingSourceRecord(var SourceRecord: Record "MDM Test Table B")
+    begin
+        SourceRecord.Init();
+        SourceRecord."Primary Key" := LibraryUtility.GenerateGUID();
+        SourceRecord.Insert();
+    end;
+
+    // the local record matches the source record through TableB Reference; a Test Date puts it outside the Local Table Filter
+    local procedure CreateMatchingLocalRecord(var LocalRecord: Record "MDM Test Table A"; SourceRecord: Record "MDM Test Table B"; ExcludedByLocalTableFilter: Boolean)
+    begin
+        LocalRecord.Init();
+        LocalRecord."Primary Key" := LibraryUtility.GenerateGUID();
+        LocalRecord."TableB Reference" := SourceRecord."Primary Key";
+        if ExcludedByLocalTableFilter then
+            LocalRecord."Test Date" := WorkDate();
+        LocalRecord.Insert();
+    end;
+
+    local procedure CreateMatchBasedCouplingMapping(var IntegrationTableMapping: Record "Integration Table Mapping"; SourceRecord: Record "MDM Test Table B"; LocalTableFilter: Text; CreateNewInCaseOfNoMatch: Boolean)
+    var
+        IntegrationFieldMapping: Record "Integration Field Mapping";
+        LocalRecord: Record "MDM Test Table A";
+        SourceRecordFilter: Record "MDM Test Table B";
+    begin
+        IntegrationTableMapping.Init();
+        IntegrationTableMapping.Name := CopyStr('MDMMATCH' + LibraryUtility.GenerateGUID(), 1, MaxStrLen(IntegrationTableMapping.Name));
+        IntegrationTableMapping.Type := IntegrationTableMapping.Type::"Master Data Management";
+        IntegrationTableMapping."Table ID" := Database::"MDM Test Table A";
+        IntegrationTableMapping."Integration Table ID" := Database::"MDM Test Table B";
+        IntegrationTableMapping."Integration Table UID Fld. No." := SourceRecord.FieldNo(SystemId);
+        IntegrationTableMapping."Int. Tbl. Modified On Fld. No." := SourceRecord.FieldNo(SystemModifiedAt);
+        IntegrationTableMapping.Direction := IntegrationTableMapping.Direction::FromIntegrationTable;
+        IntegrationTableMapping."Create New in Case of No Match" := CreateNewInCaseOfNoMatch;
+        IntegrationTableMapping."Synch. After Bulk Coupling" := false;
+        IntegrationTableMapping."Delete After Synchronization" := false;
+        // limit the coupling to the record under test, so that leftovers from other tests do not interfere
+        SourceRecordFilter.SetRange("Primary Key", SourceRecord."Primary Key");
+        IntegrationTableMapping.SetIntegrationTableFilter(SourceRecordFilter.GetView());
+        IntegrationTableMapping.SetTableFilter(LocalTableFilter);
+        IntegrationTableMapping.Insert();
+
+        IntegrationFieldMapping.Init();
+        IntegrationFieldMapping."Integration Table Mapping Name" := IntegrationTableMapping.Name;
+        IntegrationFieldMapping."Field No." := LocalRecord.FieldNo("TableB Reference");
+        IntegrationFieldMapping."Integration Table Field No." := SourceRecord.FieldNo("Primary Key");
+        IntegrationFieldMapping.Direction := IntegrationFieldMapping.Direction::FromIntegrationTable;
+        IntegrationFieldMapping.Status := IntegrationFieldMapping.Status::Enabled;
+        IntegrationFieldMapping."Use For Match-Based Coupling" := true;
+        IntegrationFieldMapping.Insert(true);
+    end;
+
+    local procedure GetLocalTableFilter(): Text
+    var
+        LocalRecord: Record "MDM Test Table A";
+    begin
+        LocalRecord.SetRange("Test Date", 0D);
+        exit(LocalRecord.GetView());
+    end;
+
+    local procedure RunMatchBasedCoupling(var IntegrationTableMapping: Record "Integration Table Mapping")
+    var
+        LibraryJobQueue: Codeunit "Library - Job Queue";
+    begin
+        // keep scheduled follow-up jobs from running in the background
+        BindSubscription(LibraryJobQueue);
+        Codeunit.Run(Codeunit::"Master Data Mgt. Table Couple", IntegrationTableMapping);
+        UnbindSubscription(LibraryJobQueue);
+    end;
+
+    local procedure FindCouplingJob(var IntegrationTableMapping: Record "Integration Table Mapping"; var IntegrationSynchJob: Record "Integration Synch. Job")
+    begin
+        IntegrationSynchJob.SetRange("Integration Table Mapping Name", IntegrationTableMapping.Name);
+        IntegrationSynchJob.SetRange(Type, IntegrationSynchJob.Type::Coupling);
+        IntegrationSynchJob.FindLast();
+    end;
+
+    local procedure FindCouplingJobErrors(var IntegrationTableMapping: Record "Integration Table Mapping"; var IntegrationSynchJobErrors: Record "Integration Synch. Job Errors")
+    var
+        IntegrationSynchJob: Record "Integration Synch. Job";
+    begin
+        FindCouplingJob(IntegrationTableMapping, IntegrationSynchJob);
+        IntegrationSynchJobErrors.SetRange("Integration Synch. Job ID", IntegrationSynchJob.ID);
+    end;
+
+    local procedure VerifyCouplingJobCounters(var IntegrationTableMapping: Record "Integration Table Mapping"; ExpectedCoupled: Integer; ExpectedFailed: Integer)
+    var
+        IntegrationSynchJob: Record "Integration Synch. Job";
+    begin
+        FindCouplingJob(IntegrationTableMapping, IntegrationSynchJob);
+        Assert.AreEqual(ExpectedCoupled, IntegrationSynchJob.Coupled, 'Unexpected number of coupled records.');
+        Assert.AreEqual(ExpectedFailed, IntegrationSynchJob.Failed, 'Unexpected number of failed records.');
+    end;
+
+    local procedure VerifyCoupled(SourceRecord: Record "MDM Test Table B"; LocalRecord: Record "MDM Test Table A")
+    var
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+    begin
+        MasterDataMgtCoupling.SetRange("Integration System ID", SourceRecord.SystemId);
+        Assert.RecordCount(MasterDataMgtCoupling, 1);
+        MasterDataMgtCoupling.FindFirst();
+        Assert.AreEqual(LocalRecord.SystemId, MasterDataMgtCoupling."Local System ID", 'The source record is coupled to the wrong local record.');
+    end;
+
+    local procedure VerifyNotCoupled(SourceRecord: Record "MDM Test Table B")
+    var
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+    begin
+        MasterDataMgtCoupling.SetRange("Integration System ID", SourceRecord.SystemId);
+        Assert.RecordIsEmpty(MasterDataMgtCoupling);
+    end;
+
+    local procedure VerifyCreateNewNotScheduled(var IntegrationTableMapping: Record "Integration Table Mapping")
+    var
+        CreateNewIntegrationTableMapping: Record "Integration Table Mapping";
+    begin
+        CreateNewIntegrationTableMapping.SetRange("Parent Name", IntegrationTableMapping.Name);
+        Assert.RecordIsEmpty(CreateNewIntegrationTableMapping);
+    end;
     local procedure GetCustomerMapping(var IntegrationTableMapping: Record "Integration Table Mapping")
     begin
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
@@ -1171,6 +1446,12 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         if StrPos(Message, 'default setup') <> 0 then
             exit;
         Assert.Fail(StrSubstNo('Unexpected message: %1', Message));
+    end;
+
+    [SendNotificationHandler]
+    procedure SynchronizationScheduledNotificationHandler(var Notification: Notification): Boolean
+    begin
+        exit(true);
     end;
 
     [IntegrationEvent(false, false)]
