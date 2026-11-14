@@ -7,6 +7,7 @@ namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Sales.Document;
+using Microsoft.Utilities;
 
 codeunit 30246 "Shpfy Create Sales Doc. Refund"
 {
@@ -41,17 +42,51 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
     local procedure CreateSalesDocument()
     var
         RefundHeader: Record "Shpfy Refund Header";
+        ReplacementSalesHeader: Record "Sales Header";
         ReleaseSalesDocument: Codeunit "Release Sales Document";
     begin
         if RefundHeader.Get(RefundId) then begin
             Shop.Get(RefundHeader."Shop Code");
             if DoCreateSalesHeader(RefundHeader, SalesDocumentType, OrderSalesHeader) then begin
                 CreateSalesLines(RefundHeader, OrderSalesHeader);
+                MoveNegativeSalesLines(OrderSalesHeader, ReplacementSalesHeader);
                 RefundHeader.Get(RefundHeader."Refund Id");
-                ReleaseSalesDocument.Run(OrderSalesHeader);
+                if Shop."Auto Release Sales Orders" then begin
+                    ReleaseSalesDocument.Run(OrderSalesHeader);
+                    if ReplacementSalesHeader."No." <> '' then
+                        ReleaseSalesDocument.Run(ReplacementSalesHeader);
+                end;
                 RefundProcessEvents.OnAfterProcessSalesDocument(RefundHeader, OrderSalesHeader);
             end;
         end;
+    end;
+
+    local procedure MoveNegativeSalesLines(var SalesHeader: Record "Sales Header"; var ReplacementSalesHeader: Record "Sales Header")
+    var
+        SalesLine: Record "Sales Line";
+        CopyDocumentMgt: Codeunit "Copy Document Mgt.";
+    begin
+        if (SalesHeader."Document Type" <> "Sales Document Type"::"Return Order") or
+           (Shop."Move Negative Lines To" = "Shpfy Move Negative Lines To"::"Do Not Move")
+        then
+            exit;
+
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetFilter(Quantity, '<0');
+        if SalesLine.IsEmpty() then
+            exit;
+
+        case Shop."Move Negative Lines To" of
+            "Shpfy Move Negative Lines To"::"Sales Order":
+                ReplacementSalesHeader."Document Type" := "Sales Document Type"::Order;
+            "Shpfy Move Negative Lines To"::"Sales Invoice":
+                ReplacementSalesHeader."Document Type" := "Sales Document Type"::Invoice;
+        end;
+
+        CopyDocumentMgt.SetProperties(true, false, true, true, true, false, false);
+        CopyDocumentMgt.CopySalesDoc("Sales Document Type From"::"Return Order", SalesHeader."No.", ReplacementSalesHeader);
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
     end;
 
     local procedure DoCreateSalesHeader(var RefundHeader: Record "Shpfy Refund Header"; SalesDocType: Enum "Sales Document Type"; var SalesHeader: Record "Sales Header"): Boolean
