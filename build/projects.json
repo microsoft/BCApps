@@ -5522,6 +5522,16 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\SCM"
     },
+    "Entity Text Tests": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\EntityText\\test",
+      "dvdFolder": "Applications\\EntityText\\Test",
+      "supportedCountries": "All",
+      "runStaticCodeAnalysis": true,
+      "isTest": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
+    },
     "Create Product Information With Copilot": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\CreateProductInformationWithCopilot\\app",
       "dvdFolder": "Applications\\CreateProductInformationWithCopilot\\Source",

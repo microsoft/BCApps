@@ -1,0 +1,68 @@
+{
+  "id": "e2c47942-6fe0-4ae2-9666-76844a79f567",
+  "name": "Entity Text Tests",
+  "publisher": "Microsoft",
+  "version": "30.1.0.0",
+  "brief": "Entity Text Tests",
+  "description": "Entity Text Tests",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?LinkId=847985",
+  "help": "https://go.microsoft.com/fwlink/?LinkId=849257",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?LinkId=849257",
+  "screenshots": [],
+  "logo": "ExtensionLogo.png",
+  "application": "30.0.0.0",
+  "platform": "30.0.0.0",
+  "target": "OnPrem",
+  "dependencies": [
+    {
+      "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+      "name": "System Application",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "2156302a-872f-4568-be0b-60968696f0d5",
+      "name": "AI Test Toolkit",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "4f820121-b9a0-4b0a-ade8-a4fc5ee2fde1",
+      "name": "AI Evaluate Tool",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "5afe217e-507a-40b4-9aa5-f4325b6e8230",
+      "name": "Agent Test Library",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "525d63b2-73bd-4b6f-8256-f88f7252980e",
+      "name": "Red Team Scan Test Library",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
+  "idRanges": [
+    {
+      "from": 133551,
+      "to": 133556
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ],
+  "resourceFolders": [
+    ".resources"
+  ]
+}
