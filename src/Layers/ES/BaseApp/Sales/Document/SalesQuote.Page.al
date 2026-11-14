@@ -11,7 +11,6 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Reporting;
@@ -22,7 +21,6 @@ using Microsoft.Sales.Archive;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
-using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
 using System.Automation;
 using System.Environment;
@@ -965,18 +963,6 @@ page 41 "Sales Quote"
         }
         area(factboxes)
         {
-            part(Control1903433807; "Cartera Receiv. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Bill-to Customer No.");
-                Visible = true;
-            }
-            part(Control1903433607; "Cartera Fact. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Bill-to Customer No.");
-                Visible = true;
-            }
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = All;
