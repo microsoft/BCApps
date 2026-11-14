@@ -133,7 +133,7 @@ page 99000896 "Available - Transfer Lines"
                             else
                                 CreateReservation(NewQtyReserved, NewQtyReservedBase)
                         else
-                            Error(Text001);
+                            ValidateReservationApplicable();
                     end;
                 }
                 action(CancelReservation)
@@ -197,6 +197,7 @@ page 99000896 "Available - Transfer Lines"
         Text003: Label 'Available Quantity is %1.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
+        InboundQtyErr: Label 'Inbound quantities cannot be reserved until the items are received at the Transfer-to location.';
 
     protected var
         ReservEntry: Record "Reservation Entry";
@@ -308,6 +309,7 @@ page 99000896 "Available - Transfer Lines"
                 begin
                     Rec.SetFilter("Shipment Date", ReservMgt.GetAvailabilityFilter(ReservEntry."Shipment Date"));
                     Rec.SetRange("Transfer-from Code", ReservEntry."Location Code");
+                    Rec.SetFilter("Outstanding Qty. (Base)", '>0');
                 end;
             TransferDirection::Inbound:
                 begin
@@ -315,12 +317,33 @@ page 99000896 "Available - Transfer Lines"
                     Rec.SetRange("Transfer-to Code", ReservEntry."Location Code");
                 end;
         end;
-
         Rec.SetRange("Item No.", ReservEntry."Item No.");
         Rec.SetRange("Variant Code", ReservEntry."Variant Code");
-        Rec.SetFilter("Outstanding Qty. (Base)", '>0');
 
         OnAfterSetFilters(Rec, ReservEntry);
+
+         if TransferDirection = TransferDirection::Inbound then
+             MarkAvailableInboundLines();
+    end;
+
+    local procedure MarkAvailableInboundLines()
+    begin
+        Rec.MarkedOnly(false);
+        Rec.ClearMarks();
+        if Rec.FindSet() then
+            repeat
+                if Rec."Qty. in Transit (Base)" > 0 then
+                    Rec.Mark(true);
+            until Rec.Next() = 0;
+        Rec.MarkedOnly(true);
+    end;
+
+    local procedure ValidateReservationApplicable()
+    begin
+        if (TransferDirection = TransferDirection::Inbound) and (Rec."Qty. in Transit (Base)" <> 0) then
+            Error(InboundQtyErr);
+
+        Error(Text001);
     end;
 
     [IntegrationEvent(false, false)]
@@ -338,4 +361,3 @@ page 99000896 "Available - Transfer Lines"
     begin
     end;
 }
-
