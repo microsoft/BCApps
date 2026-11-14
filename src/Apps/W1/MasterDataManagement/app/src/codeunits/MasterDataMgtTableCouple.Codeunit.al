@@ -29,6 +29,7 @@ codeunit 7235 "Master Data Mgt. Table Couple"
         NoMatchFoundTelemetryErr: Label 'No matching entity was found by matching on the following fields: %1.', Locked = true;
         SingleMatchAlreadyCoupledTelemetryErr: Label 'A single matching entity was found by matching on the following fields: %1, but it is already coupled.', Locked = true;
         MultipleMatchesFoundTelemetryErr: Label 'Multiple matching entities were found by matching on the following fields: %1.', Locked = true;
+        MatchExcludedByLocalTableFilterErr: Label 'A matching record exists, but the Local Table Filter of synchronization table %1 excludes it, so it was neither coupled nor created. To couple it, change the Local Table Filter and run match-based coupling again.', Comment = '%1 - synchronization table name';
         NoMatchingCriteriaDefinedTelemetryErr: Label 'User is trying to schedule match based coupling for integration table mapping %1 without having specified the matchin criteria.', Locked = true;
         NoConflictResolutionStrategyDefinedTelemetryErr: Label 'User is trying to schedule match based coupling for integration table mapping %1 without having specified the conflict resolution strategy.', Locked = true;
         SkippingPostCouplingSynchTelemetryUserChoiceMsg: Label 'Skipping post-coupling synchronization for integration table mapping %1, because the user chose not to run it.', Locked = true;
@@ -73,9 +74,9 @@ codeunit 7235 "Master Data Mgt. Table Couple"
         LocalRecordRef: RecordRef;
         IntegrationRecordRef: RecordRef;
         EmptyRecordRef: RecordRef;
-        MatchingIntegrationRecordFieldRef: FieldRef;
-        MatchingLocalFieldRef: FieldRef;
-        SetMatchingFieldFilterHandled: Boolean;
+        ExcludedLocalRecordRef: RecordRef;
+        HasLocalTableFilter: Boolean;
+        ExcludedMatchFound: Boolean;
         MatchingFieldCount: Integer;
         MatchCount: Integer;
         UnmatchedIntegrationSystemIdsDictionary: Dictionary of [Code[20], List of [Guid]];
@@ -116,6 +117,7 @@ codeunit 7235 "Master Data Mgt. Table Couple"
 
         // iterate through integration records and for each of them try to find a match in local system
         MasterDataManagementSetup.Get();
+        HasLocalTableFilter := IntegrationTableMapping.GetTableFilter() <> '';
         IntegrationMasterDataSynch.SplitIntegrationTableFilter(IntegrationTableMapping, FilterList);
         foreach TableFilter in FilterList do begin
             // Route the source read so match-based coupling works against the local company or another environment.
@@ -134,52 +136,15 @@ codeunit 7235 "Master Data Mgt. Table Couple"
                         Clear(LocalRecordRef);
                         LocalRecordRef.Open(IntegrationTableMapping."Table ID");
                         IntegrationTableMapping.SetRecordRefFilter(LocalRecordRef);
+                        Clear(ExcludedLocalRecordRef);
+                        ExcludedMatchFound := false;
                         // this inner loop is looping through a temporary record set with a handful of user-chosen matching fields - not a performance concern as such
                         foreach MatchPriority in MatchPriorityList do
                             if not CoupledIntegrationSystemIds.Contains(IntegrationRecordSystemId) then begin
-                                MatchingFieldCount := 0;
                                 MatchCount := 0;
                                 TempMatchingIntegrationFieldMapping.Reset();
                                 TempMatchingIntegrationFieldMapping.SetRange("Match Priority", MatchPriority);
-                                TempMatchingIntegrationFieldMapping.FindSet();
-                                repeat
-                                    // initialize the fields that we should match on
-                                    MatchingIntegrationRecordFieldRef := IntegrationRecordRef.Field(TempMatchingIntegrationFieldMapping."Integration Table Field No.");
-                                    MatchingLocalFieldRef := LocalRecordRef.Field(TempMatchingIntegrationFieldMapping."Field No.");
-
-                                    // raise an event so that custom filtering logic can be implemented (depending on which record and which fields are chosen as the matching field)
-                                    SetMatchingFieldFilterHandled := false;
-                                    OnBeforeSetMatchingFilter(IntegrationRecordRef, MatchingIntegrationRecordFieldRef, LocalRecordRef, MatchingLocalFieldRef, SetMatchingFieldFilterHandled);
-
-                                    // if nobody implemented custom filtering, apply default filtering logic
-                                    // and that is: set the filter on the integration table field with the value of the local field (case sensitive if specified by user)
-                                    if not SetMatchingFieldFilterHandled then
-                                        case MatchingIntegrationRecordFieldRef.Type of
-                                            FieldType::Code:
-                                                begin
-                                                    if Format(MatchingIntegrationRecordFieldRef.Value()) <> '' then
-                                                        MatchingLocalFieldRef.SetRange(MatchingIntegrationRecordFieldRef.Value())
-                                                    else
-                                                        MatchingLocalFieldRef.SetFilter('=''''');
-                                                    MatchingFieldCount += 1;
-                                                end;
-                                            FieldType::Text:
-                                                begin
-                                                    if Format(MatchingIntegrationRecordFieldRef.Value()) <> '' then
-                                                        if not TempMatchingIntegrationFieldMapping."Case-Sensitive Matching" then
-                                                            MatchingLocalFieldRef.SetFilter('''@' + Format(MatchingIntegrationRecordFieldRef.Value()).Replace('''', '''''') + '''')
-                                                        else
-                                                            MatchingLocalFieldRef.SetRange(MatchingIntegrationRecordFieldRef.Value())
-                                                    else
-                                                        MatchingLocalFieldRef.SetFilter('=''''');
-                                                    MatchingFieldCount += 1;
-                                                end;
-                                            else begin
-                                                MatchingLocalFieldRef.SetRange(MatchingIntegrationRecordFieldRef.Value());
-                                                MatchingFieldCount += 1;
-                                            end;
-                                        end;
-                                until TempMatchingIntegrationFieldMapping.Next() = 0;
+                                MatchingFieldCount := SetMatchingFilters(IntegrationRecordRef, LocalRecordRef, TempMatchingIntegrationFieldMapping);
 
                                 // if there is exactly one match, and it is not coupled, couple it. otherwise - log a synch error
                                 if MatchingFieldCount > 0 then
@@ -187,7 +152,10 @@ codeunit 7235 "Master Data Mgt. Table Couple"
                                 case MatchCount of
                                     0:
                                         begin
-                                            Session.LogMessage('0000J8E', GetNoMatchFoundTelemetryErrorMessage(IntegrationRecordRef, TempMatchingIntegrationFieldMapping), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                                            // the Local Table Filter limits what is synchronized, it must not hide an existing counterpart and cause a duplicate to be created
+                                            if HasLocalTableFilter and (MatchingFieldCount > 0) and not ExcludedMatchFound then
+                                                ExcludedMatchFound := FindMatchExcludedByLocalTableFilter(IntegrationTableMapping, IntegrationRecordRef, TempMatchingIntegrationFieldMapping, ExcludedLocalRecordRef);
+                                            Session.LogMessage('0000J8E', GetNoMatchFoundTelemetryErrorMessage(IntegrationRecordRef, TempMatchingIntegrationFieldMapping), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory(), 'MatchExcludedByLocalTableFilter', Format(ExcludedMatchFound, 0, 9));
                                             if not UnmatchedIntegrationSystemIds.Contains(IntegrationRecordSystemId) then
                                                 UnmatchedIntegrationSystemIds.Add(IntegrationRecordSystemId);
                                         end;
@@ -213,6 +181,12 @@ codeunit 7235 "Master Data Mgt. Table Couple"
                                     end;
                                 end;
                             end;
+
+                        if ExcludedMatchFound then
+                            if not CoupledIntegrationSystemIds.Contains(IntegrationRecordSystemId) then begin
+                                UnmatchedIntegrationSystemIds.Remove(IntegrationRecordSystemId);
+                                IntegrationTableSynch.LogSynchError(IntegrationRecordRef, ExcludedLocalRecordRef, StrSubstNo(MatchExcludedByLocalTableFilterErr, IntegrationTableMapping.GetUserFriendlyMappingName()), true);
+                            end;
                     end;
                 until IntegrationRecordRef.Next() = 0;
             if GuiAllowed then
@@ -237,6 +211,63 @@ codeunit 7235 "Master Data Mgt. Table Couple"
             SynchronizeCoupledRecords(IntegrationTableMapping, CoupledSystemIds, CoupledIntegrationSystemIds)
         else
             Session.LogMessage('0000J8H', StrSubstNo(SkippingPostCouplingSynchTelemetryUserChoiceMsg, GetMappingNameWithParent(IntegrationTableMapping)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+    end;
+
+    local procedure SetMatchingFilters(var IntegrationRecordRef: RecordRef; var LocalRecordRef: RecordRef; var TempMatchingIntegrationFieldMapping: Record "Integration Field Mapping" temporary) MatchingFieldCount: Integer
+    var
+        MatchingIntegrationRecordFieldRef: FieldRef;
+        MatchingLocalFieldRef: FieldRef;
+        SetMatchingFieldFilterHandled: Boolean;
+    begin
+        TempMatchingIntegrationFieldMapping.FindSet();
+        repeat
+            // initialize the fields that we should match on
+            MatchingIntegrationRecordFieldRef := IntegrationRecordRef.Field(TempMatchingIntegrationFieldMapping."Integration Table Field No.");
+            MatchingLocalFieldRef := LocalRecordRef.Field(TempMatchingIntegrationFieldMapping."Field No.");
+
+            // raise an event so that custom filtering logic can be implemented (depending on which record and which fields are chosen as the matching field)
+            SetMatchingFieldFilterHandled := false;
+            OnBeforeSetMatchingFilter(IntegrationRecordRef, MatchingIntegrationRecordFieldRef, LocalRecordRef, MatchingLocalFieldRef, SetMatchingFieldFilterHandled);
+
+            // if nobody implemented custom filtering, apply default filtering logic
+            // and that is: set the filter on the integration table field with the value of the local field (case sensitive if specified by user)
+            if not SetMatchingFieldFilterHandled then
+                case MatchingIntegrationRecordFieldRef.Type of
+                    FieldType::Code:
+                        begin
+                            if Format(MatchingIntegrationRecordFieldRef.Value()) <> '' then
+                                MatchingLocalFieldRef.SetRange(MatchingIntegrationRecordFieldRef.Value())
+                            else
+                                MatchingLocalFieldRef.SetFilter('=''''');
+                            MatchingFieldCount += 1;
+                        end;
+                    FieldType::Text:
+                        begin
+                            if Format(MatchingIntegrationRecordFieldRef.Value()) <> '' then
+                                if not TempMatchingIntegrationFieldMapping."Case-Sensitive Matching" then
+                                    MatchingLocalFieldRef.SetFilter('''@' + Format(MatchingIntegrationRecordFieldRef.Value()).Replace('''', '''''') + '''')
+                                else
+                                    MatchingLocalFieldRef.SetRange(MatchingIntegrationRecordFieldRef.Value())
+                            else
+                                MatchingLocalFieldRef.SetFilter('=''''');
+                            MatchingFieldCount += 1;
+                        end;
+                    else begin
+                        MatchingLocalFieldRef.SetRange(MatchingIntegrationRecordFieldRef.Value());
+                        MatchingFieldCount += 1;
+                    end;
+                end;
+        until TempMatchingIntegrationFieldMapping.Next() = 0;
+    end;
+
+    local procedure FindMatchExcludedByLocalTableFilter(var IntegrationTableMapping: Record "Integration Table Mapping"; var IntegrationRecordRef: RecordRef; var TempMatchingIntegrationFieldMapping: Record "Integration Field Mapping" temporary; var ExcludedLocalRecordRef: RecordRef): Boolean
+    begin
+        // repeat the lookup without the Local Table Filter, the caller has already established that no record matches within the filter
+        Clear(ExcludedLocalRecordRef);
+        ExcludedLocalRecordRef.Open(IntegrationTableMapping."Table ID");
+        if SetMatchingFilters(IntegrationRecordRef, ExcludedLocalRecordRef, TempMatchingIntegrationFieldMapping) = 0 then
+            exit(false);
+        exit(ExcludedLocalRecordRef.FindFirst());
     end;
 
     local procedure ShouldCreateNewRecordsInCaseOfNoMatch(var IntegrationTableMapping: Record "Integration Table Mapping"): Boolean
@@ -283,28 +314,28 @@ codeunit 7235 "Master Data Mgt. Table Couple"
         exit(StrSubstNo(NoMatchFoundErr, GetIntegrationOrgCompanyName(), ErrorCount));
     end;
 
-    local procedure GetNoMatchFoundTelemetryErrorMessage(var LocalRecordRef: RecordRef; var TempMatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary): Text
+    local procedure GetNoMatchFoundTelemetryErrorMessage(var IntegrationRecordRef: RecordRef; var TempMatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary): Text
     var
         MatchingFieldNameList: Text;
     begin
-        MatchingFieldNameList := GetMatchingFieldNameList(LocalRecordRef, TempMatchIntegrationFieldMapping);
+        MatchingFieldNameList := GetMatchingFieldNameList(IntegrationRecordRef, TempMatchIntegrationFieldMapping);
         // Record SystemId and source company name are kept out of the telemetry message; only the matching field names.
         exit(StrSubstNo(NoMatchFoundTelemetryErr, MatchingFieldNameList));
     end;
 
-    local procedure GetMultipleMatchesFoundTelemetryErrorMessage(var LocalRecordRef: RecordRef; var TempMatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary): Text
+    local procedure GetMultipleMatchesFoundTelemetryErrorMessage(var IntegrationRecordRef: RecordRef; var TempMatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary): Text
     var
         MatchingFieldNameList: Text;
     begin
-        MatchingFieldNameList := GetMatchingFieldNameList(LocalRecordRef, TempMatchIntegrationFieldMapping);
+        MatchingFieldNameList := GetMatchingFieldNameList(IntegrationRecordRef, TempMatchIntegrationFieldMapping);
         exit(StrSubstNo(MultipleMatchesFoundTelemetryErr, MatchingFieldNameList));
     end;
 
-    local procedure GetSingleMatchAlreadyCoupledTelemetryErrorMessage(var LocalRecordRef: RecordRef; var TempMatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary): Text
+    local procedure GetSingleMatchAlreadyCoupledTelemetryErrorMessage(var IntegrationRecordRef: RecordRef; var TempMatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary): Text
     var
         MatchingFieldNameList: Text;
     begin
-        MatchingFieldNameList := GetMatchingFieldNameList(LocalRecordRef, TempMatchIntegrationFieldMapping);
+        MatchingFieldNameList := GetMatchingFieldNameList(IntegrationRecordRef, TempMatchIntegrationFieldMapping);
         exit(StrSubstNo(SingleMatchAlreadyCoupledTelemetryErr, MatchingFieldNameList));
     end;
 
@@ -315,14 +346,14 @@ codeunit 7235 "Master Data Mgt. Table Couple"
         exit(IntegrationTableMapping.Name);
     end;
 
-    local procedure GetMatchingFieldNameList(var LocalRecordRef: RecordRef; var TempMatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary) MatchingFieldNameList: Text
+    local procedure GetMatchingFieldNameList(var IntegrationRecordRef: RecordRef; var TempMatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary) MatchingFieldNameList: Text
     begin
         TempMatchIntegrationFieldMapping.FindSet();
         repeat
             if MatchingFieldNameList = '' then
-                MatchingFieldNameList := LocalRecordRef.Field(TempMatchIntegrationFieldMapping."Field No.").Name()
+                MatchingFieldNameList := IntegrationRecordRef.Field(TempMatchIntegrationFieldMapping."Integration Table Field No.").Name()
             else
-                MatchingFieldNameList += ', ' + LocalRecordRef.Field(TempMatchIntegrationFieldMapping."Field No.").Name()
+                MatchingFieldNameList += ', ' + IntegrationRecordRef.Field(TempMatchIntegrationFieldMapping."Integration Table Field No.").Name()
         until TempMatchIntegrationFieldMapping.Next() = 0;
     end;
 
