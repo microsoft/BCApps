@@ -20,6 +20,7 @@ report 1405 "Bank Account - Labels"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Account - Labels';
+    ToolTip = 'Run the Bank Account - Labels report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
