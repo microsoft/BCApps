@@ -1,4 +1,4 @@
-﻿namespace System.Integration;
+namespace System.Integration;
 
 using Microsoft.CRM.Outlook;
 using System;
@@ -30,6 +30,9 @@ codeunit 1652 "Add-in Manifest Management"
         BrandingFolderTxt: Label 'ProjectMadeira/', Locked = true;
         ManifestFileNameTxt: Label '%1.xml', Locked = true;
         ManifestZipFileNameTxt: Label 'OutlookAddins.zip', Comment = 'Name of the zip file containing Outlook Addin manifest files.';
+        ManifestLookupStartedTelemetryTxt: Label 'Starting manifest lookup. HostType="%1"; HostTypeLength=%2.', Locked = true;
+        ManifestLookupCompletedTelemetryTxt: Label 'Completed manifest lookup. HostType="%1"; HostTypeLength=%2; ManifestCodeunit=%3.', Locked = true;
+        EmptyOfficeHostTypeTelemetryTxt: Label 'OfficeHostType .NET getter returned an empty comparison value. Using fallback "%1". This does not replace the incoming host type.', Locked = true;
 
     [Scope('OnPrem')]
     procedure DownloadManifestToClient(var NewOfficeAddin: Record "Office Add-in"; FileName: Text): Boolean
@@ -531,9 +534,28 @@ codeunit 1652 "Add-in Manifest Management"
     procedure GetAddinByHostType(var OfficeAddin: Record "Office Add-in"; HostType: Text)
     var
         ManifestCodeunit: Integer;
+        LookupVerbosity: Verbosity;
     begin
+        Session.LogMessage('0000WO5', StrSubstNo(ManifestLookupStartedTelemetryTxt, HostType, StrLen(HostType)),
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
         GetManifestCodeunit(ManifestCodeunit, HostType);
+        LookupVerbosity := Verbosity::Normal;
+        if ManifestCodeunit = 0 then
+            LookupVerbosity := Verbosity::Warning;
+        Session.LogMessage('0000WO6', StrSubstNo(ManifestLookupCompletedTelemetryTxt, HostType, StrLen(HostType), ManifestCodeunit),
+            LookupVerbosity, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
         GetAddin(OfficeAddin, ManifestCodeunit);
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetOfficeHostTypeOrDefault(OfficeHostType: Text; DefaultHostType: Text): Text
+    begin
+        if OfficeHostType <> '' then
+            exit(OfficeHostType);
+
+        Session.LogMessage('0000WO7', StrSubstNo(EmptyOfficeHostTypeTelemetryTxt, DefaultHostType),
+            Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
+        exit(DefaultHostType);
     end;
 
     [IntegrationEvent(false, false)]
