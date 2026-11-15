@@ -909,6 +909,41 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ExportXml_PEPPOL_BIS3_SalesCreditMemo_AppliesToDoc()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [Credit Memo]
+        // [SCENARIO 281593] PEPPOL BIS3. Export Sales Credit Memo with Applies-to Document fields set up
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice
+        SalesInvoiceHeader.Get(CreatePostSalesDoc(CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::Invoice));
+
+        // [GIVEN] Posted Sales Credit Memo applied to invoice
+        CreateSalesDoc(SalesHeader, SalesLine, SalesInvoiceHeader."Sell-to Customer No.", SalesHeader."Document Type"::"Credit Memo", '');
+        SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
+        SalesHeader.Validate("Applies-to Doc. No.", SalesInvoiceHeader."No.");
+        SalesHeader.Modify(false);
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Export Sales Credit Memo with PEPPOL BIS3
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
+        SalesCrMemoHeader.SetRecFilter();
+        PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
+
+        // [THEN] <InvoiceDocumentReference> has <ID> = posted sales invoice number
+        InitXPathXMLReaderForCreditNote(TempBlob);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+            'cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', SalesCrMemoHeader."Applies-to Doc. No.");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportXml_PEPPOL_BIS3_ServiceInvoice()
     var
         ServiceInvoiceHeader: Record "Service Invoice Header";
