@@ -320,21 +320,35 @@ codeunit 134388 "ERM Sales Tax"
 
     local procedure PostSalesTaxJournalVATEntry(var VATEntry: Record "VAT Entry")
     var
-        TempGenJournalLine: Record "Gen. Journal Line" temporary;
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
         ManageSalesTaxJournal: Codeunit "Manage Sales Tax Journal";
+        LastVATEntryNo: Integer;
     begin
-        TempGenJournalLine."Line No." := 10000;
-        TempGenJournalLine."Document No." :=
-          CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(TempGenJournalLine."Document No."));
-        TempGenJournalLine."Posting Date" := WorkDate();
-        TempGenJournalLine.Amount := 100;
-        TempGenJournalLine.Insert();
+        VATEntry.Reset();
+        if VATEntry.FindLast() then
+            LastVATEntryNo := VATEntry."Entry No.";
 
-        ManageSalesTaxJournal.PostToVAT(TempGenJournalLine);
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        GenJournalLine."Journal Template Name" := GenJournalTemplate.Name;
+        GenJournalLine."Journal Batch Name" := GenJournalBatch.Name;
+        GenJournalLine."Line No." := 10000;
+        GenJournalLine."Document No." :=
+          CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(GenJournalLine."Document No."));
+        GenJournalLine."Posting Date" := WorkDate();
+        GenJournalLine.Amount := 100;
+        GenJournalLine.Insert();
 
-        VATEntry.SetRange("Document No.", TempGenJournalLine."Document No.");
+        GenJournalLine.SetRange("Journal Template Name", GenJournalTemplate.Name);
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        ManageSalesTaxJournal.PostToVAT(GenJournalLine);
+
+        VATEntry.SetFilter("Entry No.", '>%1', LastVATEntryNo);
+        VATEntry.SetRange("Document No.", GenJournalLine."Document No.");
         VATEntry.FindFirst();
-        VATEntry.TestField("Posting Date", TempGenJournalLine."Posting Date");
+        VATEntry.TestField("Posting Date", GenJournalLine."Posting Date");
     end;
 
     local procedure Initialize()

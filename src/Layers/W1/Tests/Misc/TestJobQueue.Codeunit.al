@@ -860,10 +860,12 @@ codeunit 139026 "Test Job Queue"
         Customer: Record Customer;
         IssuedFinanceChargeMemoHdr: Record "Issued Fin. Charge Memo Header";
         JobQueueEntry: Record "Job Queue Entry";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         FinanceChargeMemoNo: Code[20];
     begin
         // [SCENARIO 547254] Interaction Log Entry should not be created while running the Finance Charge Memo from Job Queue Entries with Interaction Log disabled.
         Initialize();
+        LibraryERMCountryData.CreateVATData();
 
         // [GIVEN] Create Contact and Customer.
         LibraryMarketing.CreateContactWithCustomer(Contact, Customer);
@@ -1410,38 +1412,23 @@ codeunit 139026 "Test Job Queue"
         FinanceChargeMemoHeader.Modify(true);
         LibraryERM.CreateFinanceChargeMemoLine(
           FinanceChargeMemoLine, FinanceChargeMemoHeader."No.", FinanceChargeMemoLine.Type::"G/L Account");
-        FinanceChargeMemoLine.Validate("No.", CreateGLAccount());
+        FinanceChargeMemoLine.Validate("No.", LibraryERM.CreateGLAccountWithSalesSetup());
         FinanceChargeMemoLine.Validate(Amount, LibraryRandom.RandInt(100));
         FinanceChargeMemoLine.Modify(true);
         FinanceChargeMemoNo := FinanceChargeMemoHeader."No.";
     end;
 
-    local procedure CreateGLAccount(): Code[20]
-    var
-        GLAccount: Record "G/L Account";
-        GeneralPostingSetup: Record "General Posting Setup";
-        VATPostingSetup: Record "VAT Posting Setup";
-        GenProductPostingGroup: Record "Gen. Product Posting Group";
-    begin
-        GenProductPostingGroup.SetFilter("Def. VAT Prod. Posting Group", '<>%1', '');
-        GenProductPostingGroup.FindFirst();
-        LibraryERM.FindGeneralPostingSetup(GeneralPostingSetup);
-        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        LibraryERM.CreateGLAccount(GLAccount);
-        GLAccount.Validate("Gen. Posting Type", GLAccount."Gen. Posting Type"::Sale);
-        GLAccount.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
-        GLAccount.Validate("Gen. Prod. Posting Group", GenProductPostingGroup.Code);
-        GLAccount.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
-        GLAccount.Modify(true);
-        exit(GLAccount."No.");
-    end;
-
     local procedure IssueFinanceChargeMemo(No: Code[20])
     var
         FinanceChargeMemoHeader: Record "Finance Charge Memo Header";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        FinChrgMemoIssue: Codeunit "FinChrgMemo-Issue";
     begin
         FinanceChargeMemoHeader.Get(No);
-        LibraryERM.IssueFinanceChargeMemo(FinanceChargeMemoHeader);
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        FinChrgMemoIssue.Set(FinanceChargeMemoHeader, false, WorkDate());
+        FinChrgMemoIssue.SetGenJnlBatch(GenJournalBatch);
+        FinChrgMemoIssue.Run();
     end;
 
     local procedure CreateAndIssueReminder(var ReminderHeader: Record "Reminder Header"; CustomerNo: Code[20])

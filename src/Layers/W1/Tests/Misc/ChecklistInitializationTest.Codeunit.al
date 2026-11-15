@@ -14,10 +14,13 @@ codeunit 132606 "Checklist Initialization Test"
         GuidedExperienceTestLibrary: Codeunit "Guided Experience Test Library";
         ChecklistTestLibrary: Codeunit "Checklist Test Library";
         ChecklistSetupTestLibrary: Codeunit "Checklist Setup Test Library";
+        LibrarySignupContext: Codeunit "Library - Signup Context";
         TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
     begin
         // [GIVEN] The client type is set to Web
         TestClientTypeSubscriber.SetClientType(ClientType::Web);
+        BindSubscription(TestClientTypeSubscriber);
+        LibrarySignupContext.DeleteSignupContext();
 
         // [GIVEN] The company type is non-evaluation
         SetEvaluationPropertyForCompany(false);

@@ -485,6 +485,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         UnbindSubscription(ERMConcurrentGenJnlPosting);
         LibraryReportDataset.LoadDataSetFile();
         VATEntry.Get(VATEntry."Entry No.");
+        SettlementVATEntry.SetFilter("Entry No.", '>%1', LastVATEntryNo);
 
         if PostSettlement then begin
             // [THEN] The input entry and report refer to an actual settlement entry, not a reserved number.
@@ -496,7 +497,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
             VATEntry.TestField("Closed by Entry No.", SettlementVATEntry."Entry No.");
             SettlementVATEntry.TestField("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
             SettlementVATEntry.TestField("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
-            LibraryReportDataset.AssertElementWithValueExists('NextVATEntryNo', SettlementVATEntry."Entry No.");
+            AssertSettlementVATEntryNoInReport(SettlementVATEntry."Entry No.");
         end else begin
             // [THEN] Preview leaves the input open and the sequence unchanged, and displays a simulated number.
             VATEntry.TestField(Closed, false);
@@ -505,8 +506,17 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
             SettlementVATEntry.SetRange("Document No.", SettlementDocNo);
             SettlementVATEntry.SetRange(Type, SettlementVATEntry.Type::Settlement);
             Assert.RecordIsEmpty(SettlementVATEntry);
-            LibraryReportDataset.AssertElementWithValueExists('NextVATEntryNo', LastVATEntryNo + 1);
+            AssertSettlementVATEntryNoInReport(LastVATEntryNo + 1);
         end;
+    end;
+
+    local procedure AssertSettlementVATEntryNoInReport(ExpectedVATEntryNo: Integer)
+    begin
+        // The ES report uses NextVatEntryNo instead of NextVATEntryNo.
+        Assert.IsTrue(
+            LibraryReportDataset.SearchForElementByValue('NextVATEntryNo', ExpectedVATEntryNo) or
+            LibraryReportDataset.SearchForElementByValue('NextVatEntryNo', ExpectedVATEntryNo),
+            StrSubstNo('The report must show settlement VAT entry number %1.', ExpectedVATEntryNo));
     end;
 
     [Test]
@@ -838,6 +848,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Concurrent Gen.Jnl.Posting");
         LibrarySetupStorage.Restore();
+        LibraryERMCountryData.UpdateLocalData();
         if IsInitialized then
             exit;
 
