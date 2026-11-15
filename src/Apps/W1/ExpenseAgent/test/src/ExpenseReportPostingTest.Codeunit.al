@@ -1384,7 +1384,7 @@ codeunit 148302 "Expense Report Posting Test"
         LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
 
         // [GIVEN] Create Expense Report.
-        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', VATPostingSetup."VAT Bus. Posting Group");
 
         // [GIVEN] Create Expense Report Line.
         LibraryExpense.CreateExpenseReportLine(
@@ -1765,6 +1765,7 @@ codeunit 148302 "Expense Report Posting Test"
     procedure RefundableMustBeFlowFromExpenseReportLineToPostedExpenseReportLine()
     var
         Employee: Record Employee;
+        GLAccount: Record "G/L Account";
         PostCode: Record "Post Code";
         Customer: Record Customer;
         ExpensePaymentMethod: Record "Expense Payment Method";
@@ -1798,13 +1799,16 @@ codeunit 148302 "Expense Report Posting Test"
         Employee.Get(ExpenseUser."Employee No.");
         LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
 
+        // [GIVEN] Create G/L Account with sales setup.
+        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+
         // [GIVEN] Create Expense Report.
-        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', GLAccount."VAT Bus. Posting Group");
 
         // [GIVEN] Create Expense Report Line.
         LibraryExpense.CreateExpenseReportLine(
             ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, true, Customer."No.",
-            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup());
+            ExpenseReportLine."Account Type"::"G/L Account", GLAccount."No.");
 
         // [GIVEN] Find Expense Payment Method.
         LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");

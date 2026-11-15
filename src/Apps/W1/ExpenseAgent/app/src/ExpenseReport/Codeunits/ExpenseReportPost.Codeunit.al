@@ -278,7 +278,7 @@ codeunit 6987 "Expense Report-Post"
         if ExpenseReportLine.FindSet() then
             repeat
                 CheckMandatoryFields(ExpenseReportLine);
-                ValidateVATSpecLinesForPosting(ExpenseReportLine);
+                ValidateVATSpecLinesForPosting(ExpenseReportLine, ExpenseReportHeader);
                 if not CheckedSpendRequestNos.Contains(ExpenseReportLine."Spend Request No.") then begin
                     CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportLine."Spend Request No.");
                     CheckedSpendRequestNos.Add(ExpenseReportLine."Spend Request No.");
@@ -315,7 +315,7 @@ codeunit 6987 "Expense Report-Post"
         exit(SpendRequestNotPostableError);
     end;
 
-    local procedure ValidateVATSpecLinesForPosting(ExpenseReportLine: Record "Expense Report Line")
+    local procedure ValidateVATSpecLinesForPosting(ExpenseReportLine: Record "Expense Report Line"; ExpenseReportHeader: Record "Expense Report Header")
     var
         ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
     begin
@@ -326,7 +326,25 @@ codeunit 6987 "Expense Report-Post"
                 ValidateVATSpecMasterRecords(ExpenseReportLineVATSpec);
                 if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::"Pending" then
                     Error(GetPendingVATSpecErrorInfo(ExpenseReportLineVATSpec));
-            until ExpenseReportLineVATSpec.Next() = 0;
+                if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::Approved then begin
+                    ExpenseReportLineVATSpec.TestField("VAT Bus. Posting Group");
+                    ExpenseReportLineVATSpec.TestField("VAT Prod. Posting Group");
+                    CheckVATPostingSetup(ExpenseReportLineVATSpec."VAT Bus. Posting Group", ExpenseReportLineVATSpec."VAT Prod. Posting Group");
+                end;
+            until ExpenseReportLineVATSpec.Next() = 0
+        else begin
+            ExpenseReportLine.TestField("VAT Bus. Posting Group", ExpenseReportHeader."VAT Bus. Posting Group");
+            if ExpenseReportLine."VAT Prod. Posting Group" <> '' then
+                CheckVATPostingSetup(ExpenseReportLine."VAT Bus. Posting Group", ExpenseReportLine."VAT Prod. Posting Group");
+        end;
+    end;
+
+    local procedure CheckVATPostingSetup(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup);
+        VATPostingSetup.TestField("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
     end;
 
     local procedure ValidateVATSpecMasterRecords(ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.")
