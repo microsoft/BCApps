@@ -8,6 +8,7 @@ using Microsoft.ExpenseAgent;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Integration.Graph;
 
+// [FEATURE] [Expense Agent] [API] [Expense Attachments]
 codeunit 148354 "Expense Attachments API Test"
 {
     Subtype = Test;
@@ -156,7 +157,7 @@ codeunit 148354 "Expense Attachments API Test"
     end;
 
     [Test]
-    procedure DeletedExpenseIsNotFoundForDirectRequests()
+    procedure NavigationToDeletedExpenseIsNotFound()
     var
         Expense: Record Expense;
         DocumentAttachment: Record "Document Attachment";
@@ -164,7 +165,7 @@ codeunit 148354 "Expense Attachments API Test"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        // [SCENARIO 3249] Direct requests for the attachments of a deleted expense still fail.
+        // [SCENARIO 3249] Requesting the attachments through a deleted expense still fails.
         Initialize();
 
         // [GIVEN] An expense with an attachment that is then deleted.
@@ -174,17 +175,38 @@ codeunit 148354 "Expense Attachments API Test"
         Commit();
 
         // [WHEN] The attachments are requested through the deleted expense.
-        // [THEN] The platform reports that the expense doesn't exist.
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(Format(ExpenseId), Page::"Expenses API", ExpensesServiceNameTok, AttachmentsServiceNameTok);
         asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 404);
+
+        // [THEN] The platform reports that the expense doesn't exist.
         Assert.ExpectedError(StrSubstNo(ResponseCodeTok, 404));
         Assert.ExpectedError(ResourceNotFoundTok);
+    end;
+
+    [Test]
+    procedure FilterByDeletedExpenseReportsExpenseNotFound()
+    var
+        Expense: Record Expense;
+        DocumentAttachment: Record "Document Attachment";
+        ExpenseId: Guid;
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        // [SCENARIO 3249] Filtering the attachments by a deleted expense still reports that the expense wasn't found.
+        Initialize();
+
+        // [GIVEN] An expense with an attachment that is then deleted.
+        CreateExpenseWithAttachment(Expense, DocumentAttachment);
+        ExpenseId := Expense.SystemId;
+        Expense.Delete(true);
+        Commit();
 
         // [WHEN] The attachments are filtered by the deleted expense.
-        // [THEN] The missing expense error is returned.
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Attachments API", AttachmentsServiceNameTok);
         TargetURL := AppendQueryParameter(TargetURL, '$filter=expenseId eq ' + LibraryGraphMgt.StripBrackets(Format(ExpenseId)));
         asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 400);
+
+        // [THEN] The missing expense error is returned.
         Assert.ExpectedError(StrSubstNo(ResponseCodeTok, 400));
         Assert.ExpectedError(StrSubstNo(ExpenseNotFoundErr, ExpenseId));
     end;
