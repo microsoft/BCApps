@@ -57,20 +57,34 @@ codeunit 148357 EACorpCardTestLib
     end;
 
     internal procedure InitializeExpense(var Expense: Record Expense; CorpCard: Record "EA Corp Card")
+    var
+        ExpenseCategory: Record "Expense Category";
     begin
-        Expense.Init();
-        Expense."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Expense."No."));
-        Expense."Expense User No." := CorpCard."Expense User No.";
-        Expense."Reimbursement Type" := Expense."Reimbursement Type"::"Credit Card";
-        Expense."Expense Date" := WorkDate();
+        Clear(Expense);
+        CreateCardExpenseCategory(ExpenseCategory);
+        LibraryExpense.InitializeExpense(Expense, CorpCard."Expense User No.", ExpenseCategory.Code, '');
         Expense.Amount := 20;
     end;
 
     internal procedure InsertExpense(var Expense: Record Expense; CorpCard: Record "EA Corp Card")
+    var
+        ExpenseCategory: Record "Expense Category";
     begin
-        InitializeExpense(Expense, CorpCard);
-        Expense."Corporate Card Id" := CorpCard."Card Id";
-        Expense.Insert();
+        Clear(Expense);
+        CreateCardExpenseCategory(ExpenseCategory);
+        LibraryExpense.CreateExpense(Expense, CorpCard."Expense User No.", ExpenseCategory.Code, '', '', false, '', 20, false);
+        Expense.Validate("Corporate Card Id", CorpCard."Card Id");
+        Expense.Modify(true);
+    end;
+
+    local procedure CreateCardExpenseCategory(var ExpenseCategory: Record "Expense Category")
+    var
+        ExpensePaymentMethod: Record "Expense Payment Method";
+    begin
+        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Credit Card", ExpenseCategory."Expense Detail Required"::" ", ExpensePaymentMethod.Code);
     end;
 
     internal procedure PostManualExpense(var Expense: Record Expense; var PostedExpenseReportLine: Record "Posted Expense Report Line"; CorpCard: Record "EA Corp Card")

@@ -118,7 +118,7 @@ codeunit 148365 EACorpCardSelectionUITests
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InitializeExpense(EmployeePaidExpense, CorpCard);
         EmployeePaidExpense."Reimbursement Type" := EmployeePaidExpense."Reimbursement Type"::"Employee Paid";
-        EmployeePaidExpense.Insert();
+        EmployeePaidExpense.Insert(true);
 
         // [WHEN] The expense is shown.
         ExpenseCard.OpenEdit();

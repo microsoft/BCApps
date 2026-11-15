@@ -585,32 +585,13 @@ codeunit 148358 EACorpCardPostTests
 
         if StandaloneReportLine then begin
             LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
-            ExpenseReportLine.Init();
-            ExpenseReportLine.Validate("Document No.", ExpenseReportHeader."No.");
-            ExpenseReportLine."Line No." := 10000;
-            ExpenseReportLine.Validate(Description, 'Manual CARD expense');
-            ExpenseReportLine.Validate("Expense Ext. Doc. No.", CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExpenseReportLine."Expense Ext. Doc. No.")));
-            ExpenseReportLine.Validate("Merchant Name", 'Test merchant');
-            ExpenseReportLine.Validate("Expense User No.", ExpenseUser."No.");
-            ExpenseReportLine.Validate("Expense Category", ExpenseCategory.Code);
-            ExpenseReportLine.Validate("Payment Method Code", ExpensePaymentMethod.Code);
+            LibraryExpense.CreateExpenseReportLine(
+                ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code,
+                ExpensePaymentMethod.Code, true, '', 20, false);
             ExpenseReportLine.Validate("Expense Date", WorkDate());
-            ExpenseReportLine.Validate(Refundable, true);
-            ExpenseReportLine.Validate(Amount, 20);
-            ExpenseReportLine.Insert(true);
+            ExpenseReportLine.Modify(true);
         end else begin
-            Expense.Init();
-            Expense.Validate(Description, 'Manual CARD expense');
-            Expense.Validate("Expense Ext. Doc. No.", CopyStr(Format(CreateGuid()), 1, MaxStrLen(Expense."Expense Ext. Doc. No.")));
-            Expense.Validate("Merchant Name", 'Test merchant');
-            Expense.Validate("Expense User No.", ExpenseUser."No.");
-            Expense.Validate("Expense Category", ExpenseCategory.Code);
-            Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
-            Expense.Validate("Expense Date", WorkDate());
-            Expense.Insert(true);
-            Expense.Validate(Amount, 20);
-            Expense.Validate(Refundable, true);
-            Expense.Modify(true);
+            LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, '', 20, false);
             Expense.PerformManualRelease();
             LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
             ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);

@@ -51,7 +51,7 @@ codeunit 7449 "EA Corp Card Liability Mgt"
 
         if BankAccountLedgerEntry.Count() <> 1 then begin
             BankEntryErrorInfo.ErrorType := ErrorType::Internal;
-            BankEntryErrorInfo.DataClassification := DataClassification::SystemMetadata;
+            BankEntryErrorInfo.DataClassification := DataClassification::EndUserPseudonymousIdentifiers;
             BankEntryErrorInfo.Message := StrSubstNo(BankEntryNotUniqueErr, CorpCardTrans."Entry No.");
             Error(BankEntryErrorInfo);
         end;

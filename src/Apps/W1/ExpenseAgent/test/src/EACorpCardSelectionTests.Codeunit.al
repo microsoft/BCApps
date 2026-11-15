@@ -714,7 +714,7 @@ codeunit 148364 EACorpCardSelectionTests
         // [GIVEN] An unlinked expense has no selected card and its amount differs from the incoming transaction.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InitializeExpense(Expense, CorpCard);
-        Expense.Insert();
+        Expense.Insert(true);
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         Expense.Amount := CorpCardTrans.Amount + 1;
         Expense.Modify();
@@ -745,7 +745,7 @@ codeunit 148364 EACorpCardSelectionTests
         // [GIVEN] An unlinked expense has no selected card and uses a different currency from the incoming transaction.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InitializeExpense(Expense, CorpCard);
-        Expense.Insert();
+        Expense.Insert(true);
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         Expense."Currency Code" := 'EUR';
         Expense.Modify();
@@ -803,7 +803,7 @@ codeunit 148364 EACorpCardSelectionTests
             CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
             CorpCardTestLib.InitializeExpense(Expense, CorpCard);
             Expense."Expense Date" := CorpCardTrans."Trans Date" + (2 * Boundary - 1) * ExpenseAgentSetup."Corp Card Date Match Window";
-            Expense.Insert();
+            Expense.Insert(true);
 
             // [WHEN] The transaction is linked to the expense.
             CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
@@ -832,7 +832,7 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTestLib.InitializeExpense(Expense, CorpCard);
         if SelectCard then
             Expense."Corporate Card Id" := CorpCard."Card Id";
-        Expense.Insert();
+        Expense.Insert(true);
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         for Boundary := 0 to 1 do begin
             Expense."Expense Date" := CorpCardTrans."Trans Date" + (2 * Boundary - 1) * (ExpenseAgentSetup."Corp Card Date Match Window" + 1);
