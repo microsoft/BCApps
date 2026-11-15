@@ -8,7 +8,7 @@ using Microsoft.ExpenseAgent;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Integration.Graph;
 
-codeunit 148350 "Expense Attachments API Test"
+codeunit 148354 "Expense Attachments API Test"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
