@@ -130,7 +130,7 @@ page 6950 "Expense Attachments API"
             ExpenseIdFilter := Rec.GetFilter("Document Id");
             AttachmentIdFilter := Rec.GetFilter(Id);
 
-            ExpAttachBufferHandler.LoadAttachments(Rec, Database::Expense, ExpenseIdFilter, AttachmentIdFilter);
+            ExpAttachBufferHandler.LoadAttachments(Rec, Database::Expense, ExpenseIdFilter, AttachmentIdFilter, ExpAttachBufferHandler.IsFilteredByParentLink(Rec));
 
             Rec.SetView(FilterView);
             AttachmentsFound := Rec.FindFirst();
