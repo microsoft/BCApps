@@ -6,7 +6,7 @@ namespace Microsoft.Sales.Receivables;
 
 using Microsoft;
 
-tableextension 7000001 "CRT DetailedCustLedgEntry" extends "Detailed Cust. Ledg. Entry"
+tableextension 17700 "CRT DetailedCustLedgEntry" extends "Detailed Cust. Ledg. Entry"
 {
     fields
     {

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
-tableextension 7000097 "CRT Sales Invoice Header" extends "Sales Invoice Header"
+tableextension 17720 "CRT Sales Invoice Header" extends "Sales Invoice Header"
 {
     fields
     {

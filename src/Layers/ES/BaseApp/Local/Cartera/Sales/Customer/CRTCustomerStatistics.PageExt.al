@@ -6,7 +6,7 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Sales.Receivables;
 
-pageextension 10778 "CRT Customer Statistics" extends "Customer Statistics"
+pageextension 17716 "CRT Customer Statistics" extends "Customer Statistics"
 {
     layout
     {

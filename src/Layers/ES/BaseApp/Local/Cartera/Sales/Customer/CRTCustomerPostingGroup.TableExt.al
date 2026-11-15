@@ -7,7 +7,7 @@ namespace Microsoft.Sales.Customer;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.ReceivablesPayables;
 
-tableextension 7000002 "CRT Customer Posting Group" extends "Customer Posting Group"
+tableextension 17701 "CRT Customer Posting Group" extends "Customer Posting Group"
 {
     fields
     {

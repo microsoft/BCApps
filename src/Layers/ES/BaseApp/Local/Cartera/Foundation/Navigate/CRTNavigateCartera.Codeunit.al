@@ -19,7 +19,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
-codeunit 7000022 "CRTNavigateCartera"
+codeunit 17718 "CRTNavigateCartera"
 {
     SingleInstance = true;
 

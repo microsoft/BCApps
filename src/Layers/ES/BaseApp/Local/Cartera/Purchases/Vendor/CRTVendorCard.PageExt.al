@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.Vendor;
 
 using Microsoft.Purchases.Payables;
 
-pageextension 10767 "CRT Vendor Card" extends "Vendor Card"
+pageextension 17705 "CRT Vendor Card" extends "Vendor Card"
 {
     layout
     {

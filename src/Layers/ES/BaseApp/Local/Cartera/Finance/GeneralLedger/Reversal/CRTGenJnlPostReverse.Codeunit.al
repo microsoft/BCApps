@@ -7,7 +7,7 @@ namespace Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 
-codeunit 10797 "CRT GenJnl Post Reverse"
+codeunit 17705 "CRT GenJnl Post Reverse"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Reverse", 'OnReverseCustLedgEntryOnBeforeInsertCustLedgEntry', '', true, false)]
     local procedure OnReverseCustLedgEntryOnBeforeInsertCustLedgEntry(var NewCustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry: Record "Cust. Ledger Entry")

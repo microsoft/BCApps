@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
-pageextension 7000044 "CRT Payment Journal" extends "Payment Journal"
+pageextension 17736 "CRT Payment Journal" extends "Payment Journal"
 {
     layout
     {

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Payables;
 
-pageextension 7000071 "CRTVendorLedgerEntries" extends "Vendor Ledger Entries"
+pageextension 17740 "CRTVendorLedgerEntries" extends "Vendor Ledger Entries"
 {
     layout
     {

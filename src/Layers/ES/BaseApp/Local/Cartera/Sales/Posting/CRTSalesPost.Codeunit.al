@@ -9,7 +9,7 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Receivables;
 
-codeunit 10794 "CRT Sales-Post"
+codeunit 17702 "CRT Sales-Post"
 {
     Access = Internal;
 

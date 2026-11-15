@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.Vendor;
 
 using Microsoft.Purchases.Payables;
 
-pageextension 10777 "CRT Vendor Statistics" extends "Vendor Statistics"
+pageextension 17708 "CRT Vendor Statistics" extends "Vendor Statistics"
 {
     layout
     {

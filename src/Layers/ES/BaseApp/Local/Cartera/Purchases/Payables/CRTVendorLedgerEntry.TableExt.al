@@ -9,7 +9,7 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Sales.Receivables;
 
-tableextension 7000006 "CRT Vendor Ledger Entry" extends "Vendor Ledger Entry"
+tableextension 17703 "CRT Vendor Ledger Entry" extends "Vendor Ledger Entry"
 {
     fields
     {

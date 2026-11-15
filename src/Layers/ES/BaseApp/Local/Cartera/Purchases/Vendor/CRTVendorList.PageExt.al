@@ -7,7 +7,7 @@ namespace Microsoft.Purchases.Vendor;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Reports;
 
-pageextension 7000074 "CRT Vendor List" extends "Vendor List"
+pageextension 17743 "CRT Vendor List" extends "Vendor List"
 {
     layout
     {

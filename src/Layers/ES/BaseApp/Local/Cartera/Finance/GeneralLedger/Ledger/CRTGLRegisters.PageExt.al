@@ -6,7 +6,7 @@ namespace Microsoft.Finance.GeneralLedger.Ledger;
 
 using Microsoft.Finance.ReceivablesPayables;
 
-pageextension 7000012 "CRT G/L Registers" extends "G/L Registers"
+pageextension 17717 "CRT G/L Registers" extends "G/L Registers"
 {
     actions
     {

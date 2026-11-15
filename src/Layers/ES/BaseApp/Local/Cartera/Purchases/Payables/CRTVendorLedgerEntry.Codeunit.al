@@ -8,7 +8,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.PaymentTerms;
 
-codeunit 7000086 "CRT Vendor Ledger Entry"
+codeunit 17722 "CRT Vendor Ledger Entry"
 {
     [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterValidateEvent, 'Due Date', true, false)]
     local procedure DueDateOnAfterValidate(var Rec: Record "Vendor Ledger Entry"; var xRec: Record "Vendor Ledger Entry"; CurrFieldNo: Integer)

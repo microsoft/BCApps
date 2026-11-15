@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.Document;
 
 using Microsoft.Purchases.Payables;
 
-pageextension 10765 "CRT Purchase Credit Memo" extends "Purchase Credit Memo"
+pageextension 17703 "CRT Purchase Credit Memo" extends "Purchase Credit Memo"
 {
     layout
     {

@@ -10,7 +10,7 @@ using Microsoft.Purchases.History;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
-codeunit 7000080 "CRT Bank Account"
+codeunit 17721 "CRT Bank Account"
 {
     var
         CarteraSetup: Record "Cartera Setup";

@@ -6,7 +6,7 @@ namespace Microsoft.Bank.BankAccount;
 
 using Microsoft.Finance.GeneralLedger.Account;
 
-tableextension 7000081 "CRT BankAccountPostingGroup" extends "Bank Account Posting Group"
+tableextension 17706 "CRT BankAccountPostingGroup" extends "Bank Account Posting Group"
 {
     fields
     {

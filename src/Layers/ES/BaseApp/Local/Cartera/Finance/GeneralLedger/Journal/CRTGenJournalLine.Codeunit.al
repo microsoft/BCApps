@@ -8,7 +8,7 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 
-codeunit 10792 "CRT Gen. Journal Line"
+codeunit 17700 "CRT Gen. Journal Line"
 {
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnLookUpAppliesToDocCustOnAfterUpdateDocumentTypeAndAppliesTo, '', true, false)]
     local procedure OnLookUpAppliesToDocCustOnAfterUpdateDocumentTypeAndAppliesTo(var GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry")

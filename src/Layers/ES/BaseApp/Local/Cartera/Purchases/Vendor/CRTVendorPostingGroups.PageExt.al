@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Vendor;
 
-pageextension 7000076 "CRT Vendor Posting Groups" extends "Vendor Posting Groups"
+pageextension 17745 "CRT Vendor Posting Groups" extends "Vendor Posting Groups"
 {
     layout
     {

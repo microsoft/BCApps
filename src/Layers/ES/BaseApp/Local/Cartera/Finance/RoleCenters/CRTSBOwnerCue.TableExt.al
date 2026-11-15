@@ -6,7 +6,7 @@ namespace Microsoft.RoleCenters;
 
 using Microsoft.Finance.ReceivablesPayables;
 
-tableextension 7000091 "CRT SB Owner Cue" extends "SB Owner Cue"
+tableextension 17715 "CRT SB Owner Cue" extends "SB Owner Cue"
 {
     fields
     {

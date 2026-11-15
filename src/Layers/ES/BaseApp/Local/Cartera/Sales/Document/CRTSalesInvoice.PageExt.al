@@ -7,7 +7,7 @@ namespace Microsoft.Sales.Document;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Sales.Receivables;
 
-pageextension 10776 "CRT Sales Invoice" extends "Sales Invoice"
+pageextension 17715 "CRT Sales Invoice" extends "Sales Invoice"
 {
     layout
     {

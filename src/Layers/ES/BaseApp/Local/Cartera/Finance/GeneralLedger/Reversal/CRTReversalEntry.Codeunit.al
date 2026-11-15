@@ -7,7 +7,7 @@ namespace Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.ReceivablesPayables;
 
-codeunit 10796 "CRT Reversal Entry"
+codeunit 17704 "CRT Reversal Entry"
 {
     var
         EntryCannotBeReversedErr: Label 'The entry cannot be reversed';

@@ -7,7 +7,7 @@ namespace Microsoft.Sales.Receivables;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.ReceivablesPayables;
 
-tableextension 7000089 "CRT Cust. Ledger Entry" extends "Cust. Ledger Entry"
+tableextension 17713 "CRT Cust. Ledger Entry" extends "Cust. Ledger Entry"
 {
     fields
     {

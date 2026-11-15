@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
-tableextension 7000098 "CRT Sales Cr.Memo Header" extends "Sales Cr.Memo Header"
+tableextension 17721 "CRT Sales Cr.Memo Header" extends "Sales Cr.Memo Header"
 {
     fields
     {

@@ -7,7 +7,7 @@ namespace Microsoft.Sales.Document;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Sales.Receivables;
 
-pageextension 10775 "CRT Sales Order" extends "Sales Order"
+pageextension 17714 "CRT Sales Order" extends "Sales Order"
 {
     layout
     {

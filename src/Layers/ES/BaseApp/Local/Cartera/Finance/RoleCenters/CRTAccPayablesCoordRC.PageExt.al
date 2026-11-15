@@ -9,7 +9,7 @@ using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Reports;
 
-pageextension 10766 "CRT Acc. Payables Coord. RC" extends "Acc. Payables Coordinator RC"
+pageextension 17704 "CRT Acc. Payables Coord. RC" extends "Acc. Payables Coordinator RC"
 {
     actions
     {

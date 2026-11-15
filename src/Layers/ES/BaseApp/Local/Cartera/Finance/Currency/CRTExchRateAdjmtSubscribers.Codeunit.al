@@ -20,7 +20,7 @@ using Microsoft.Sales.Receivables;
 /// for exchange rate adjustments without modifying core adjustment procedures.
 /// Event subscribers can be added to handle local compliance and calculation rules.
 /// </remarks>
-codeunit 10795 "CRT ExchRateAdjmtSubscribers"
+codeunit 17703 "CRT ExchRateAdjmtSubscribers"
 {
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Exch. Rate Adjmt. Process", 'OnBeforeGetLocalCustAccountNo', '', true, false)]

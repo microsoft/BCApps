@@ -7,7 +7,7 @@ namespace Microsoft.Sales.Receivables;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.ReceivablesPayables;
 
-codeunit 7000088 "CRT Cust. Ledger Entry"
+codeunit 17723 "CRT Cust. Ledger Entry"
 {
 
     [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnAfterValidateEvent, 'Due Date', true, false)]

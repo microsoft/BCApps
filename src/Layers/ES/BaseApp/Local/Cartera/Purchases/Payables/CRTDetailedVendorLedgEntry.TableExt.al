@@ -7,7 +7,7 @@ namespace Microsoft.Purchases.Payables;
 using Microsoft;
 using Microsoft.Sales.Receivables;
 
-tableextension 7000087 "CRT DetailedVendorLedgEntry" extends "Detailed Vendor Ledg. Entry"
+tableextension 17711 "CRT DetailedVendorLedgEntry" extends "Detailed Vendor Ledg. Entry"
 {
     fields
     {

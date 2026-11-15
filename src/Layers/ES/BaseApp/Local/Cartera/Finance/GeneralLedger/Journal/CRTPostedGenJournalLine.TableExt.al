@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
-tableextension 7000092 "CRT Posted Gen. Journal Line" extends "Posted Gen. Journal Line"
+tableextension 17716 "CRT Posted Gen. Journal Line" extends "Posted Gen. Journal Line"
 {
     fields
     {

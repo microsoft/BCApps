@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
-tableextension 7000094 "CRT Purch. Inv. Header" extends "Purch. Inv. Header"
+tableextension 17718 "CRT Purch. Inv. Header" extends "Purch. Inv. Header"
 {
     fields
     {

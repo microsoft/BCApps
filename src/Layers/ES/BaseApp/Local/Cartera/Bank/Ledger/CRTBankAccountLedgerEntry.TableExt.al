@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Ledger;
 
-tableextension 7000084 "CRT Bank Account Ledger Entry" extends "Bank Account Ledger Entry"
+tableextension 17708 "CRT Bank Account Ledger Entry" extends "Bank Account Ledger Entry"
 {
     fields
     {

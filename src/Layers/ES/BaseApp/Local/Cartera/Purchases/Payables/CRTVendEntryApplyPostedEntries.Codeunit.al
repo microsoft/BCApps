@@ -7,7 +7,7 @@ namespace Microsoft.Purchases.Payables;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 
-codeunit 7000023 "CRTVendEntryApplyPostedEntries"
+codeunit 17719 "CRTVendEntryApplyPostedEntries"
 {
     var
         ApplicationEntryDescriptionLbl: Label 'Application of %1 %2', Comment = '%1 = Document Type, %2 = Document No.';

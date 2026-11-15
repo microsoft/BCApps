@@ -6,7 +6,7 @@ namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.Finance.ReceivablesPayables;
 
-tableextension 7000054 "CRT Finance Cue" extends "Finance Cue"
+tableextension 17704 "CRT Finance Cue" extends "Finance Cue"
 {
     fields
     {

@@ -9,7 +9,7 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 
-codeunit 10793 "CRT Purch.-Post"
+codeunit 17701 "CRT Purch.-Post"
 {
 
     var

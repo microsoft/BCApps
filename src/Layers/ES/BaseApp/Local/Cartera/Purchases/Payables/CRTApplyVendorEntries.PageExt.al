@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Payables;
 
-pageextension 7000072 "CRTApplyVendorEntries" extends "Apply Vendor Entries"
+pageextension 17741 "CRTApplyVendorEntries" extends "Apply Vendor Entries"
 {
     layout
     {

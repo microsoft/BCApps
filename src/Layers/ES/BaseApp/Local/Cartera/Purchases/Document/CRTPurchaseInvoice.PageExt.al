@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.Document;
 
 using Microsoft.Purchases.Payables;
 
-pageextension 10771 "CRT Purchase Invoice" extends "Purchase Invoice"
+pageextension 17712 "CRT Purchase Invoice" extends "Purchase Invoice"
 {
     layout
     {

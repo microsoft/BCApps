@@ -11,7 +11,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
-pageextension 7000019 "CRT Bank Account List" extends "Bank Account List"
+pageextension 17724 "CRT Bank Account List" extends "Bank Account List"
 {
     actions
     {

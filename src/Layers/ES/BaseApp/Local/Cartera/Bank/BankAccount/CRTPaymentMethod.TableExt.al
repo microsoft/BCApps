@@ -6,7 +6,7 @@ namespace Microsoft.Bank.BankAccount;
 
 using Microsoft.Sales.Receivables;
 
-tableextension 7000083 "CRT Payment Method" extends "Payment Method"
+tableextension 17707 "CRT Payment Method" extends "Payment Method"
 {
     fields
     {

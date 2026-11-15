@@ -9,7 +9,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reports;
 
-pageextension 7000028 "CRT Acc. Receivables Adm. RC" extends "Acc. Receivables Adm. RC"
+pageextension 17732 "CRT Acc. Receivables Adm. RC" extends "Acc. Receivables Adm. RC"
 {
     actions
     {

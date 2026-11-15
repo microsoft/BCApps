@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.RoleCenters;
 
 using Microsoft.Purchases.Reports;
 
-pageextension 7000077 "CRT Purchasing Manager RC" extends "Purchasing Manager Role Center"
+pageextension 17746 "CRT Purchasing Manager RC" extends "Purchasing Manager Role Center"
 {
     actions
     {

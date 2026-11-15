@@ -7,7 +7,7 @@ namespace Microsoft.Finance.ReceivablesPayables;
 using Microsoft;
 using Microsoft.Sales.Receivables;
 
-tableextension 7000086 "CRT CVLedgerEntryBuffer" extends "CV Ledger Entry Buffer"
+tableextension 17710 "CRT CVLedgerEntryBuffer" extends "CV Ledger Entry Buffer"
 {
     fields
     {

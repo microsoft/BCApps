@@ -6,7 +6,7 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Finance.ReceivablesPayables;
 
-tableextension 7000090 "CRT Gen. Journal Line" extends "Gen. Journal Line"
+tableextension 17714 "CRT Gen. Journal Line" extends "Gen. Journal Line"
 {
     fields
     {

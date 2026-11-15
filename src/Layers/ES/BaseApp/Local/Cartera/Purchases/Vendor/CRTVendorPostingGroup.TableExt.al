@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.Vendor;
 
 using Microsoft.Finance.GeneralLedger.Account;
 
-tableextension 7000003 "CRT Vendor Posting Group" extends "Vendor Posting Group"
+tableextension 17702 "CRT Vendor Posting Group" extends "Vendor Posting Group"
 {
     fields
     {

@@ -11,7 +11,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
-tableextension 7000080 "CRT Bank Account" extends "Bank Account"
+tableextension 17705 "CRT Bank Account" extends "Bank Account"
 {
     fields
     {

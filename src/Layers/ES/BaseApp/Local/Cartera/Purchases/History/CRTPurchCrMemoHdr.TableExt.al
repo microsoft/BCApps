@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
-tableextension 7000093 "CRT Purch. Cr. Memo Hdr." extends "Purch. Cr. Memo Hdr."
+tableextension 17717 "CRT Purch. Cr. Memo Hdr." extends "Purch. Cr. Memo Hdr."
 {
     fields
     {

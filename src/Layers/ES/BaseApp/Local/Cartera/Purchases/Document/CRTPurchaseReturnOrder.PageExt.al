@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.Document;
 
 using Microsoft.Purchases.Payables;
 
-pageextension 10768 "CRT Purchase Return Order" extends "Purchase Return Order"
+pageextension 17709 "CRT Purchase Return Order" extends "Purchase Return Order"
 {
     layout
     {
