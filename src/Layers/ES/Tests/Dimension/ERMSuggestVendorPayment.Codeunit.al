@@ -2049,8 +2049,7 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         // [THEN] Payment journal line is created for "V" in batch "B" and the Vendor Ledger Entry filters are restored
         VerifyPaymentJnlLineAndVendLedgEntryFilters(GenJournalBatch, VendorLedgerEntry, VendorNo);
 
-        GenJournalTemplate.Get(GenJournalBatch."Journal Template Name");
-        GenJournalTemplate.Delete(true);
+        // Keep template "T": "Create Payment" saves it (SaveValues) and later tests reuse it without handling the template list
         RestoreGeneralTemplates(TempGenJournalTemplate, GenJournalTemplate);
         LibraryVariableStorage.AssertEmpty();
     end;
