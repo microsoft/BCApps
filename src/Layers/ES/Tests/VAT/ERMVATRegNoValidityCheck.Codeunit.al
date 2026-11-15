@@ -1414,7 +1414,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler')]
+    [HandlerFunctions('MessageHandler,ConfirmHandlerYES')]
     [Scope('OnPrem')]
     procedure ValidateHeaderVATRegistrationNoChecksEnteredNumberWhenCustomerHasNone()
     begin
@@ -1423,7 +1423,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler')]
+    [HandlerFunctions('MessageHandler,ConfirmHandlerYES')]
     [Scope('OnPrem')]
     procedure ValidateHeaderVATRegistrationNoUsesCustomerCountryWhenDocumentCountryIsBlank()
     begin
@@ -1432,7 +1432,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler')]
+    [HandlerFunctions('MessageHandler,ConfirmHandlerYES')]
     [Scope('OnPrem')]
     procedure ValidateHeaderVATRegistrationNoUsesCompanyCountryWhenDocumentAndCustomerCountriesAreBlank()
     begin
