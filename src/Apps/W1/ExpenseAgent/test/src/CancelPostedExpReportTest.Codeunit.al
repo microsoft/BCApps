@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Address;
 using Microsoft.HumanResources.Employee;
 using System.Automation;
+using System.Security.AccessControl;
 
 codeunit 148319 "Cancel Posted Exp. Report Test"
 {
@@ -25,6 +26,7 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         IsInitialized: Boolean;
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
         AlreadyCanceledErr: Label 'has already been canceled';
+        CancelConfirmPrefixTxt: Label 'Do you want to cancel posted expense report', Locked = true;
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler,MessageHandler')]
@@ -282,6 +284,236 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         Assert.IsFalse(PostedExpenseReportLine."Is Canceled", 'Is Canceled must not be set by TransferFields from User Confirmed.');
     end;
 
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler,MessageHandler')]
+    procedure CancelFromPostedReportPageLogsCanceledActivity()
+    var
+        Expense: Record Expense;
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        TempPriorExpenseActivityLogEntry: Record "Expense Activity Log Entry" temporary;
+        PostedExpenseReport: TestPage "Posted Expense Report";
+        OriginalSubjectSystemID: Guid;
+    begin
+        // [SCENARIO 656401] Cancelling a posted expense report from the posted report page adds a Canceled entry to its history.
+        Initialize();
+
+        // [GIVEN] A posted expense report whose activity history started with a submission before posting.
+        PostExpenseReportWithHistory(Expense, PostedExpenseReportHeader, OriginalSubjectSystemID);
+        CopyPostedReportHistory(PostedExpenseReportHeader, TempPriorExpenseActivityLogEntry);
+        Assert.RecordCount(TempPriorExpenseActivityLogEntry, 2);
+
+        // [WHEN] The user cancels the report from the Posted Expense Report page and confirms.
+        PostedExpenseReport.OpenView();
+        PostedExpenseReport.GoToRecord(PostedExpenseReportHeader);
+        PostedExpenseReport.CancelPostedExpenseReport.Invoke();
+        PostedExpenseReport.Close();
+
+        // [THEN] Exactly one Canceled entry is owned by the posted report and continues the original report subject.
+        FindSingleCanceledEntry(PostedExpenseReportHeader, ExpenseActivityLogEntry);
+        Assert.AreEqual(Database::"Expense Report Header", ExpenseActivityLogEntry."Subject Table ID", 'The Canceled entry must keep the original report subject table.');
+        Assert.AreEqual(OriginalSubjectSystemID, ExpenseActivityLogEntry."Subject System ID", 'The Canceled entry must keep the original report subject.');
+        TempPriorExpenseActivityLogEntry.FindFirst();
+        Assert.AreEqual(TempPriorExpenseActivityLogEntry."Document No.", ExpenseActivityLogEntry."Document No.", 'The Canceled entry must keep the report document number of its history.');
+
+        // [THEN] The current Business Central user is the actor, identified by the User SystemId.
+        VerifyCurrentBCUserActor(ExpenseActivityLogEntry);
+
+        // [THEN] Earlier history is unchanged and the Canceled entry is the latest one.
+        VerifyPriorHistoryUnchanged(TempPriorExpenseActivityLogEntry, ExpenseActivityLogEntry);
+
+        // [THEN] The posted report page history shows the Canceled entry first.
+        PostedExpenseReport.OpenView();
+        PostedExpenseReport.GoToRecord(PostedExpenseReportHeader);
+        PostedExpenseReport.Activity.First();
+        Assert.AreEqual(
+            Format(Enum::"Expense Activity Event Type"::Canceled), PostedExpenseReport.Activity."Event Type".Value(),
+            'The posted report history must show the Canceled entry first.');
+        PostedExpenseReport.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure CancelOnRunLogsCanceledActivity()
+    var
+        Expense: Record Expense;
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        TempPriorExpenseActivityLogEntry: Record "Expense Activity Log Entry" temporary;
+        OriginalSubjectSystemID: Guid;
+    begin
+        // [SCENARIO 656401] Running the Cancel Posted Expense Report codeunit adds one Canceled entry to the posted report history.
+        Initialize();
+
+        // [GIVEN] A posted expense report with activity history.
+        PostExpenseReportWithHistory(Expense, PostedExpenseReportHeader, OriginalSubjectSystemID);
+        CopyPostedReportHistory(PostedExpenseReportHeader, TempPriorExpenseActivityLogEntry);
+
+        // [WHEN] The report is canceled through the codeunit OnRun trigger.
+        Codeunit.Run(Codeunit::"Cancel Posted Expense Report", PostedExpenseReportHeader);
+
+        // [THEN] One Canceled entry continues the original subject, performed by the current user, after unchanged earlier history.
+        PostedExpenseReportHeader.Get(PostedExpenseReportHeader."No.");
+        Assert.IsTrue(PostedExpenseReportHeader.Canceled, 'The posted expense report must be canceled.');
+        FindSingleCanceledEntry(PostedExpenseReportHeader, ExpenseActivityLogEntry);
+        Assert.AreEqual(OriginalSubjectSystemID, ExpenseActivityLogEntry."Subject System ID", 'The Canceled entry must keep the original report subject.');
+        VerifyCurrentBCUserActor(ExpenseActivityLogEntry);
+        VerifyPriorHistoryUnchanged(TempPriorExpenseActivityLogEntry, ExpenseActivityLogEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler,MessageHandler')]
+    procedure CancelWithoutActivityHistoryLogsNoActivity()
+    var
+        Expense: Record Expense;
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        CancelPostedExpReport: Codeunit "Cancel Posted Expense Report";
+    begin
+        // [SCENARIO 656401] Like posting, cancellation does not start activity history for a report without it.
+        Initialize();
+
+        // [GIVEN] A posted expense report without activity history.
+        PostExpenseReport(Expense, PostedExpenseReportHeader);
+        Assert.RecordIsEmpty(ExpenseActivityLogEntry);
+
+        // [WHEN] The report is canceled.
+        CancelPostedExpReport.CancelPostedExpenseReport(PostedExpenseReportHeader);
+
+        // [THEN] The report is canceled and no activity entry is logged.
+        PostedExpenseReportHeader.Get(PostedExpenseReportHeader."No.");
+        Assert.IsTrue(PostedExpenseReportHeader.Canceled, 'The posted expense report must be canceled.');
+        Assert.RecordIsEmpty(ExpenseActivityLogEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler,MessageHandler')]
+    procedure CancelIgnoresOtherSourceHistoryWithSameSystemId()
+    var
+        Expense: Record Expense;
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        CancelPostedExpReport: Codeunit "Cancel Posted Expense Report";
+        OriginalSubjectSystemID: Guid;
+        DecoySubjectSystemID: Guid;
+    begin
+        // [SCENARIO 656401] The Canceled entry takes its subject only from history owned by the posted report.
+        Initialize();
+
+        // [GIVEN] A posted expense report with activity history.
+        PostExpenseReportWithHistory(Expense, PostedExpenseReportHeader, OriginalSubjectSystemID);
+
+        // [GIVEN] A later entry of an expense report source that has the same SystemId as the posted report.
+        DecoySubjectSystemID := InsertSourcePairDecoy(PostedExpenseReportHeader);
+
+        // [WHEN] The report is canceled.
+        CancelPostedExpReport.CancelPostedExpenseReport(PostedExpenseReportHeader);
+
+        // [THEN] The Canceled entry keeps the posted report's own subject, not the decoy subject.
+        FindSingleCanceledEntry(PostedExpenseReportHeader, ExpenseActivityLogEntry);
+        Assert.AreEqual(OriginalSubjectSystemID, ExpenseActivityLogEntry."Subject System ID", 'The Canceled entry must keep the posted report subject.');
+        Assert.AreNotEqual(DecoySubjectSystemID, ExpenseActivityLogEntry."Subject System ID", 'The Canceled entry must not use the subject of another source.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler,MessageHandler')]
+    procedure CancelWithoutOwnHistoryIgnoresOtherSourceWithSameSystemId()
+    var
+        Expense: Record Expense;
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        CancelPostedExpReport: Codeunit "Cancel Posted Expense Report";
+        DecoySubjectSystemID: Guid;
+    begin
+        // [SCENARIO 656401] History of another source with the same SystemId does not make cancellation log activity.
+        Initialize();
+
+        // [GIVEN] A posted expense report without activity history and an expense report source entry with its SystemId.
+        PostExpenseReport(Expense, PostedExpenseReportHeader);
+        DecoySubjectSystemID := InsertSourcePairDecoy(PostedExpenseReportHeader);
+
+        // [WHEN] The report is canceled.
+        CancelPostedExpReport.CancelPostedExpenseReport(PostedExpenseReportHeader);
+
+        // [THEN] No Canceled entry is logged and only the decoy entry remains.
+        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::Canceled);
+        Assert.RecordIsEmpty(ExpenseActivityLogEntry);
+        ExpenseActivityLogEntry.Reset();
+        Assert.RecordCount(ExpenseActivityLogEntry, 1);
+        ExpenseActivityLogEntry.FindFirst();
+        Assert.AreEqual(DecoySubjectSystemID, ExpenseActivityLogEntry."Subject System ID", 'The decoy entry must be unchanged.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler,MessageHandler')]
+    procedure RepeatCancelDoesNotLogSecondCanceledActivity()
+    var
+        Expense: Record Expense;
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        CancelPostedExpReport: Codeunit "Cancel Posted Expense Report";
+        PostedExpenseReport: TestPage "Posted Expense Report";
+        OriginalSubjectSystemID: Guid;
+    begin
+        // [SCENARIO 656401] A canceled report has one Canceled entry and a repeat cancellation is rejected before it logs.
+        Initialize();
+
+        // [GIVEN] A posted expense report with activity history, canceled once.
+        PostExpenseReportWithHistory(Expense, PostedExpenseReportHeader, OriginalSubjectSystemID);
+        CancelPostedExpReport.CancelPostedExpenseReport(PostedExpenseReportHeader);
+
+        // [THEN] The history has exactly one Canceled entry after Submitted and Posted.
+        FindSingleCanceledEntry(PostedExpenseReportHeader, ExpenseActivityLogEntry);
+        ExpenseActivityLogEntry.Reset();
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Posted Expense Report Header");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", PostedExpenseReportHeader.SystemId);
+        Assert.RecordCount(ExpenseActivityLogEntry, 3);
+
+        // [THEN] The posted report page no longer offers Cancel.
+        PostedExpenseReport.OpenView();
+        PostedExpenseReport.GoToRecord(PostedExpenseReportHeader);
+        Assert.IsFalse(PostedExpenseReport.CancelPostedExpenseReport.Enabled(), 'Cancel must be disabled for a canceled report.');
+        PostedExpenseReport.Close();
+
+        // [WHEN] The report is canceled again through OnRun.
+        asserterror Codeunit.Run(Codeunit::"Cancel Posted Expense Report", PostedExpenseReportHeader);
+
+        // [THEN] The repeat cancellation is rejected.
+        Assert.ExpectedError(AlreadyCanceledErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,DeclineCancelConfirmHandler')]
+    procedure DeclinedCancelConfirmationLogsNoActivity()
+    var
+        Expense: Record Expense;
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        TempPriorExpenseActivityLogEntry: Record "Expense Activity Log Entry" temporary;
+        CancelPostedExpReport: Codeunit "Cancel Posted Expense Report";
+        OriginalSubjectSystemID: Guid;
+    begin
+        // [SCENARIO 656401] Declining the cancel confirmation neither cancels the report nor logs a Canceled entry.
+        Initialize();
+
+        // [GIVEN] A posted expense report with activity history.
+        PostExpenseReportWithHistory(Expense, PostedExpenseReportHeader, OriginalSubjectSystemID);
+        CopyPostedReportHistory(PostedExpenseReportHeader, TempPriorExpenseActivityLogEntry);
+
+        // [WHEN] The user declines the cancel confirmation.
+        CancelPostedExpReport.CancelPostedExpenseReport(PostedExpenseReportHeader);
+
+        // [THEN] The report is not canceled and its history is unchanged.
+        PostedExpenseReportHeader.Get(PostedExpenseReportHeader."No.");
+        Assert.IsFalse(PostedExpenseReportHeader.Canceled, 'The posted expense report must not be canceled.');
+        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::Canceled);
+        Assert.RecordIsEmpty(ExpenseActivityLogEntry);
+        ExpenseActivityLogEntry.Reset();
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Posted Expense Report Header");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", PostedExpenseReportHeader.SystemId);
+        Assert.RecordCount(ExpenseActivityLogEntry, TempPriorExpenseActivityLogEntry.Count());
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;
@@ -489,10 +721,110 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         Assert.RecordCount(ExpenseLedgerEntry, ExpectedCount);
     end;
 
+    local procedure PostExpenseReportWithHistory(var Expense: Record Expense; var PostedExpenseReportHeader: Record "Posted Expense Report Header"; var OriginalSubjectSystemID: Guid)
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+    begin
+        PostExpenseReportUpToRelease(Expense, ExpenseReportHeader);
+        ExpenseReportHeader.PerformManualRelease();
+        OriginalSubjectSystemID := ExpenseReportHeader.SystemId;
+        ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::Submitted,
+            Enum::"Expense Activity Initiator"::User,
+            Enum::"Expense Activity Actor Role"::Submitter,
+            ExpenseReportHeader."Expense User No.",
+            '');
+
+        PostExpenseReportFromHeader(ExpenseReportHeader, PostedExpenseReportHeader, Expense."Expense User No.");
+    end;
+
+    local procedure CopyPostedReportHistory(PostedExpenseReportHeader: Record "Posted Expense Report Header"; var TempExpenseActivityLogEntry: Record "Expense Activity Log Entry" temporary)
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Posted Expense Report Header");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", PostedExpenseReportHeader.SystemId);
+        if ExpenseActivityLogEntry.FindSet() then
+            repeat
+                TempExpenseActivityLogEntry := ExpenseActivityLogEntry;
+                TempExpenseActivityLogEntry.Insert();
+            until ExpenseActivityLogEntry.Next() = 0;
+    end;
+
+    local procedure FindSingleCanceledEntry(PostedExpenseReportHeader: Record "Posted Expense Report Header"; var ExpenseActivityLogEntry: Record "Expense Activity Log Entry")
+    begin
+        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::Canceled);
+        Assert.RecordCount(ExpenseActivityLogEntry, 1);
+        ExpenseActivityLogEntry.FindFirst();
+        Assert.AreEqual(Database::"Posted Expense Report Header", ExpenseActivityLogEntry."Source Table ID", 'The Canceled entry must be owned by the posted report table.');
+        Assert.AreEqual(PostedExpenseReportHeader.SystemId, ExpenseActivityLogEntry."Source Record System ID", 'The Canceled entry must be owned by the posted report.');
+    end;
+
+    local procedure VerifyCurrentBCUserActor(ExpenseActivityLogEntry: Record "Expense Activity Log Entry")
+    var
+        User: Record User;
+    begin
+        User.Get(UserSecurityId());
+        Assert.AreEqual(Enum::"Expense Activity Initiator"::User, ExpenseActivityLogEntry."Initiated By", 'Cancellation must be initiated by a user.');
+        Assert.AreEqual(Database::User, ExpenseActivityLogEntry."Actor Table ID", 'Cancellation must identify the current BC User actor.');
+        Assert.AreEqual(User.SystemId, ExpenseActivityLogEntry."Actor Record System ID", 'Cancellation must store the User SystemId.');
+        Assert.AreNotEqual(User."User Security ID", ExpenseActivityLogEntry."Actor Record System ID", 'Cancellation must not store the user security ID.');
+    end;
+
+    local procedure VerifyPriorHistoryUnchanged(var TempPriorExpenseActivityLogEntry: Record "Expense Activity Log Entry" temporary; CanceledExpenseActivityLogEntry: Record "Expense Activity Log Entry")
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Posted Expense Report Header");
+        ExpenseActivityLogEntry.SetRange("Source Record System ID", CanceledExpenseActivityLogEntry."Source Record System ID");
+        Assert.RecordCount(ExpenseActivityLogEntry, TempPriorExpenseActivityLogEntry.Count() + 1);
+
+        TempPriorExpenseActivityLogEntry.FindSet();
+        repeat
+            ExpenseActivityLogEntry.Get(TempPriorExpenseActivityLogEntry."Entry No.");
+            Assert.AreEqual(TempPriorExpenseActivityLogEntry."Event Type", ExpenseActivityLogEntry."Event Type", 'Earlier event types must be unchanged.');
+            Assert.AreEqual(TempPriorExpenseActivityLogEntry."Occurred At", ExpenseActivityLogEntry."Occurred At", 'Earlier event times must be unchanged.');
+            Assert.AreEqual(TempPriorExpenseActivityLogEntry."Subject System ID", ExpenseActivityLogEntry."Subject System ID", 'Earlier subjects must be unchanged.');
+            Assert.AreEqual(TempPriorExpenseActivityLogEntry."Actor Record System ID", ExpenseActivityLogEntry."Actor Record System ID", 'Earlier actors must be unchanged.');
+            Assert.AreEqual(TempPriorExpenseActivityLogEntry."Amount (LCY)", ExpenseActivityLogEntry."Amount (LCY)", 'Earlier amount snapshots must be unchanged.');
+            Assert.AreEqual(TempPriorExpenseActivityLogEntry."Expense Count", ExpenseActivityLogEntry."Expense Count", 'Earlier contents snapshots must be unchanged.');
+            Assert.AreEqual(TempPriorExpenseActivityLogEntry.Categories, ExpenseActivityLogEntry.Categories, 'Earlier category snapshots must be unchanged.');
+            Assert.IsTrue(CanceledExpenseActivityLogEntry."Entry No." > ExpenseActivityLogEntry."Entry No.", 'The Canceled entry must follow earlier entries.');
+            Assert.IsTrue(CanceledExpenseActivityLogEntry."Occurred At" >= ExpenseActivityLogEntry."Occurred At", 'The Canceled entry must not precede earlier entries.');
+        until TempPriorExpenseActivityLogEntry.Next() = 0;
+
+        Assert.AreEqual(0, CanceledExpenseActivityLogEntry."Amount (LCY)", 'The Canceled entry has no amount snapshot.');
+        Assert.AreEqual(0, CanceledExpenseActivityLogEntry."Expense Count", 'The Canceled entry has no contents snapshot.');
+    end;
+
+    local procedure InsertSourcePairDecoy(PostedExpenseReportHeader: Record "Posted Expense Report Header") DecoySubjectSystemID: Guid
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        // Same SystemId as the posted report, but owned by an expense report source and logged later than its own history.
+        DecoySubjectSystemID := CreateGuid();
+        ExpenseActivityLogEntry.Init();
+        ExpenseActivityLogEntry."Source Table ID" := Database::"Expense Report Header";
+        ExpenseActivityLogEntry."Source Record System ID" := PostedExpenseReportHeader.SystemId;
+        ExpenseActivityLogEntry."Subject Table ID" := Database::"Expense Report Header";
+        ExpenseActivityLogEntry."Subject System ID" := DecoySubjectSystemID;
+        ExpenseActivityLogEntry."Event Type" := Enum::"Expense Activity Event Type"::Submitted;
+        ExpenseActivityLogEntry."Occurred At" := CurrentDateTime() + 60 * 60 * 1000;
+        ExpenseActivityLogEntry.Insert();
+    end;
+
     [ModalPageHandler]
     procedure ExpensesModalPageHandler(var Expenses: TestPage Expenses)
     begin
         Expenses.OK().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure DeclineCancelConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := not Question.StartsWith(CancelConfirmPrefixTxt);
     end;
 
     [ConfirmHandler]
