@@ -2007,6 +2007,9 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         GenJournalLine: Record "Gen. Journal Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         BankAccount: Record "Bank Account";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        TempGenJournalTemplate: Record "Gen. Journal Template" temporary;
         PaymentJournal: TestPage "Payment Journal";
         OriginalLanguageId: Integer;
     begin
@@ -2018,6 +2021,12 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         GenJournalLine.DeleteAll();
         LibraryPurchase.CreatePurchaseInvoice(PurchaseHeader);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Single Gen. Journal Template of type Payments with Gen. Journal Batch, so the template selection page is not shown
+        GenJournalTemplate.SetRange(Type, GenJournalTemplate.Type::Payments);
+        SaveGeneralTemplates(GenJournalTemplate, TempGenJournalTemplate);
+        GenJournalTemplate.DeleteAll();
+        LibraryJournals.CreateGenJournalBatchWithType(GenJournalBatch, GenJournalBatch."Template Type"::Payments);
 
         // [GIVEN] Bank Account "B", Starting Document No. and Posting Date for the "Create Payment" page
         LibraryERM.FindBankAccount(BankAccount);
@@ -2042,6 +2051,7 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         PaymentJournal."Account No.".AssertEquals(PurchaseHeader."Buy-from Vendor No.");
         PaymentJournal."Document Type".AssertEquals(GenJournalLine."Document Type"::Payment);
         PaymentJournal.Close();
+        RestoreGeneralTemplates(TempGenJournalTemplate, GenJournalTemplate);
 
         // [THEN] "Remaining Amount" filter on Vendor Ledger Entry is restored
         Assert.AreEqual('<>0', VendorLedgerEntry.GetFilter("Remaining Amount"), RemainingAmountFilterNotRestoredErr);
