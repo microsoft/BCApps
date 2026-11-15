@@ -143,10 +143,6 @@ codeunit 6790 "WHT Employee Calculation"
         exit(InsertEmployeeWithholdingTaxEntry(GenJnlLine, WHTAmount, WHTBaseAmount, Abs(GenJnlLine.Amount), TransactionNo, NextEntryNo));
     end;
 
-    /// <summary>
-    /// Inserts an employee withholding tax entry and records <paramref name="ThresholdAccumBaseAmount"/> as the amount that counts towards the period threshold.
-    /// Use this overload when the journal line amount is not the original base of the withheld transaction, for example when one employee entry carries several expense lines.
-    /// </summary>
     procedure InsertEmployeeWithholdingTaxEntry(GenJnlLine: Record "Gen. Journal Line"; WHTAmount: Decimal; WHTBaseAmount: Decimal; ThresholdAccumBaseAmount: Decimal; TransactionNo: Integer; var NextEntryNo: Integer): Integer
     var
         WithholdingTaxEntry: Record "Withholding Tax Entry";
@@ -216,9 +212,6 @@ codeunit 6790 "WHT Employee Calculation"
         exit(InsertEmployeeWHTComponentEntry(GenJnlLine, WHTGroupLine, ComponentWHT, WHTBaseAmount, Abs(GenJnlLine.Amount), TransactionNo, NextEntryNo));
     end;
 
-    /// <summary>
-    /// Inserts an employee withholding tax component entry and records <paramref name="ThresholdAccumBaseAmount"/> as the amount that counts towards the period threshold.
-    /// </summary>
     procedure InsertEmployeeWHTComponentEntry(GenJnlLine: Record "Gen. Journal Line"; WHTGroupLine: Record "Withholding Tax Group Line"; ComponentWHT: Decimal; WHTBaseAmount: Decimal; ThresholdAccumBaseAmount: Decimal; TransactionNo: Integer; var NextEntryNo: Integer): Integer
     var
         WithholdingTaxEntry: Record "Withholding Tax Entry";
@@ -556,10 +549,6 @@ codeunit 6790 "WHT Employee Calculation"
         exit(ThresholdAccumulator."Accumulated Base Amount" + PendingAmount);
     end;
 
-    /// <summary>
-    /// Registers a base amount that belongs to the current period but has not been posted to the threshold accumulator yet.
-    /// Subsequent calculations on the same codeunit instance include this amount in the period total, for example when several expense lines are calculated before the employee entry is posted.
-    /// </summary>
     procedure AddPendingThresholdBase(GenJnlLine: Record "Gen. Journal Line"; BaseAmount: Decimal)
     var
         PostingSetup: Record "Withholding Tax Posting Setup";
