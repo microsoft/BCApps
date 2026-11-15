@@ -503,12 +503,14 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     end;
 
     local procedure AssertSettlementVATEntryNoInReport(ExpectedVATEntryNo: Integer)
+    var
+        SettlementVATEntryNoErr: Label 'The report must show settlement VAT entry number %1.', Comment = '%1 = Expected VAT entry number';
     begin
         // The ES report uses NextVatEntryNo instead of NextVATEntryNo.
         Assert.IsTrue(
             LibraryReportDataset.SearchForElementByValue('NextVATEntryNo', ExpectedVATEntryNo) or
             LibraryReportDataset.SearchForElementByValue('NextVatEntryNo', ExpectedVATEntryNo),
-            StrSubstNo('The report must show settlement VAT entry number %1.', ExpectedVATEntryNo));
+            StrSubstNo(SettlementVATEntryNoErr, ExpectedVATEntryNo));
     end;
 
     [Test]
