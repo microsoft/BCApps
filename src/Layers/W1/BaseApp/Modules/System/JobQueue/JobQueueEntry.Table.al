@@ -659,14 +659,6 @@ table 472 "Job Queue Entry"
         Clear(ExecutedSystemTaskId);
     end;
 
-    local procedure ReleaseExecutedSystemTaskId()
-    begin
-        // A different ID means the entry was rescheduled concurrently, and that task must still be cancelled.
-        if IsNullGuid(ExecutedSystemTaskId) or ("System Task ID" <> ExecutedSystemTaskId) then
-            exit;
-        Clear("System Task ID");
-    end;
-
     procedure GetLastLogEntryNo(): Integer
     begin
         exit(LastJobQueueLogEntryNo);
@@ -848,7 +840,9 @@ table 472 "Job Queue Entry"
         Success: Boolean;
     begin
         if not IsNullGuid("System Task ID") then begin
-            if ScheduledTask.Get("System Task ID") then begin
+            // The task executing this entry is removed by the platform when it completes; cancelling it would only send a redundant notification.
+            // A different ID means the entry was rescheduled concurrently, and that task must still be cancelled.
+            if ("System Task ID" <> ExecutedSystemTaskId) and ScheduledTask.Get("System Task ID") then begin
                 Success := TASKSCHEDULER.CancelTask("System Task ID");
                 if EmitTelemetry then
                     JobQueueTelemetry.SendTraceOnJobQueueEntryScheduledTaskCancelled(Rec, Success);
@@ -1025,7 +1019,6 @@ table 472 "Job Queue Entry"
                 "Earliest Start Date/Time" := JobQueueDispatcher.CalcNextRunTimeHoldDuetoInactivityJob(Rec, CurrentDateTime)
             else
                 "Earliest Start Date/Time" := JobQueueDispatcher.CalcNextRunTimeForRecurringJob(Rec, CurrentDateTime);
-            ReleaseExecutedSystemTaskId();
             EnqueueTask();
         end else
             Rec.Delete();
@@ -1052,7 +1045,6 @@ table 472 "Job Queue Entry"
             else
                 ExtraWaitTimeInMs := Power(10, Rec."No. of Attempts to Run");
             Rec."Earliest Start Date/Time" := CurrentDateTime + 1000 * Rec."Rerun Delay (sec.)" + ExtraWaitTimeInMs;
-            ReleaseExecutedSystemTaskId();
             EnqueueTask();
         end else begin
             SetStatusValue(Rec.Status::Error);
