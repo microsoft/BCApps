@@ -284,11 +284,13 @@ report 99001025 "Refresh Production Order"
         if ProductionOrder.GetFilter("Location Code") = '' then
             ProductionOrder.SetRange("Location Code", '')
         else
-            ProductionOrder.SetFilter("Location Code", '(%1)&%2', ProductionOrder.GetFilter("Location Code"), '''''');
+            ProductionOrder.SetFilter(
+                "Location Code", StrSubstNo('(%1)&%2', ProductionOrder.GetFilter("Location Code"), ''''''));
         if ProductionOrder.GetFilter(Status) = '' then
             ProductionOrder.SetFilter(Status, '<>%1', ProductionOrder.Status::Finished)
         else
-            ProductionOrder.SetFilter(Status, '(%1)&<>%2', ProductionOrder.GetFilter(Status), ProductionOrder.Status::Finished);
+            ProductionOrder.SetFilter(
+                Status, StrSubstNo('(%1)&<>%2', ProductionOrder.GetFilter(Status), ProductionOrder.Status::Finished));
         if ProductionOrder.FindSet() then
             repeat
                 if not ConfirmBlankLocation(ProductionOrder, OpenSetup) then begin
