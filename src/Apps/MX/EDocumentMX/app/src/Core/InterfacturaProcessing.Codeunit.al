@@ -66,14 +66,14 @@ codeunit 3355 "Interfactura Processing"
         RequestType := RequestType::"Request Stamp";
         Session.LogMessage('0000WL1', PaymentStampRequestedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText, false) then begin
-            Session.LogMessage('0000WL2', StrSubstNo(PaymentStampFailedMsg, ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WL2', StrSubstNo(PaymentStampFailedMsg, MessageContext.GetMessageEntryNo()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             Error(ErrorText);
         end;
         MessageContext.Http().SetHttpRequestMessage(HttpRequest);
         MessageContext.Http().SetHttpResponseMessage(HttpResponse);
         if GetResultCodeFromResponse(ResponseTxt) <> '1' then begin
             ErrorText := GetResponseErrorText(ResponseTxt);
-            Session.LogMessage('0000WL3', StrSubstNo(PaymentStampFailedMsg, ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WL3', StrSubstNo(PaymentStampFailedMsg, MessageContext.GetMessageEntryNo()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             MXEDocumentTelemetry.LogComplementStampRejected(ErrorText);
             Error(ErrorText);
         end;
@@ -413,7 +413,7 @@ codeunit 3355 "Interfactura Processing"
             SaveStampedCFDI(EDocument, StampedXml);
         end;
         if ErrorText <> '' then begin
-            Session.LogMessage('0000WL9', StrSubstNo(StampFailedMsg, EDocument."Entry No", ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WL9', StrSubstNo(StampFailedMsg, EDocument."Entry No"), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             Session.LogSecurityAudit(CFDIServiceNameTxt, SecurityOperationResult::Failure, StrSubstNo(SecurityAuditPACRejectedTxt, EDocument."Entry No", ErrorText), AuditCategory::CustomerFacing);
         end;
 
@@ -701,12 +701,12 @@ codeunit 3355 "Interfactura Processing"
         CancelOnTimeExpirationTok: Label 'Cancel on Time Expiration', Locked = true;
         StampRequestedMsg: Label 'Sending stamp request for E-Document %1.', Locked = true;
         StampSuccessMsg: Label 'Stamp request successful for E-Document %1.', Locked = true;
-        StampFailedMsg: Label 'Stamp request failed for E-Document %1: %2', Locked = true;
+        StampFailedMsg: Label 'Stamp request failed for E-Document %1.', Locked = true;
         CancelRequestedMsg: Label 'Cancellation request submitted for E-Document %1.', Locked = true;
         CancelSuccessMsg: Label 'Cancellation succeeded for E-Document %1.', Locked = true;
         PaymentStampRequestedMsg: Label 'Sending payment complement stamp request.', Locked = true;
         PaymentStampSuccessMsg: Label 'Payment complement stamp request successful.', Locked = true;
-        PaymentStampFailedMsg: Label 'Payment complement stamp request failed: %1', Locked = true;
+        PaymentStampFailedMsg: Label 'Payment complement stamp request failed for E-Document message %1.', Locked = true;
         SecurityAuditPACRejectedTxt: Label 'PAC rejected CFDI stamp request for E-Document %1: %2', Locked = true, Comment = '%1 - E-Document entry no, %2 - PAC error';
         SecurityAuditCancelRequestedTxt: Label 'CFDI cancellation request submitted for E-Document %1.', Locked = true, Comment = '%1 - E-Document entry no';
         CheckCancellationStatusMsg: Label 'Checking cancellation status for E-Document %1.', Locked = true;

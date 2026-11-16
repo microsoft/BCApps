@@ -65,7 +65,7 @@ codeunit 3370 "EDoc CFDI Email MX"
 
         CustomerEmail := Customer."E-Mail";
         if CustomerEmail = '' then begin
-            Session.LogMessage('0000WKU', StrSubstNo(NoCustomerEmailMsg, EDocument."Bill-to/Pay-to No."), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WKU', StrSubstNo(NoCustomerEmailMsg, EDocument."Entry No"), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             exit;
         end;
 
@@ -95,7 +95,7 @@ codeunit 3370 "EDoc CFDI Email MX"
         end;
 
         if not Email.Send(Message, EmailAccount."Account Id", EmailAccount.Connector) then
-            Session.LogMessage('0000WKW', StrSubstNo(SendEmailFailedMsg, GetLastErrorText()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogMessage('0000WKW', StrSubstNo(SendEmailFailedMsg, EDocument."Entry No"), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
     end;
 
     local procedure TryGeneratePDF(EDocument: Record "E-Document"; var TempBlobPDF: Codeunit "Temp Blob"): Boolean
@@ -152,8 +152,8 @@ codeunit 3370 "EDoc CFDI Email MX"
         FeatureNameTxt: Label 'CFDI Email';
         EmailSubjectTxt: Label 'Electronic Document (CFDI) %1', Comment = '%1 = Document No.';
         EmailBodyTxt: Label 'Dear %1,<br/><br/>Please find attached your CFDI electronic document %2.<br/><br/>Regards,', Comment = '%1 = Customer name, %2 = Document No.';
-        NoCustomerEmailMsg: Label 'Customer %1 has no email address. Stamped CFDI email was not sent.', Locked = true;
+        NoCustomerEmailMsg: Label 'Customer has no email address. Stamped CFDI email was not sent for E-Document %1.', Locked = true;
         NoEmailAccountMsg: Label 'No default email account configured. Stamped CFDI email was not sent.', Locked = true;
-        SendEmailFailedMsg: Label 'Failed to send stamped CFDI email: %1', Locked = true;
+        SendEmailFailedMsg: Label 'Failed to send stamped CFDI email for E-Document %1.', Locked = true;
         ScheduleEmailFailedMsg: Label 'Background tasks are not available; stamped CFDI email was not scheduled for E-Document %1.', Locked = true;
 }

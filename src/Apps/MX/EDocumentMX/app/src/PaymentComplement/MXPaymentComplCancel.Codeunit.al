@@ -152,7 +152,7 @@ codeunit 3374 "MX Payment Compl. Cancel"
             Error(MissingCancelRequestErr);
         Complement.Modify();
         if not InterfacturaProcessing.InvokeCancellationRequest(RequestText, IsStatusRequest, ResponseText, ErrorText) then begin
-            MXEDocumentTelemetry.LogComplementCancelFailed(Complement."Entry No.", ErrorText);
+            MXEDocumentTelemetry.LogComplementCancelFailed(Complement."Entry No.");
             Error(ErrorText);
         end;
         MXEDocumentTelemetry.LogComplementCancelRequested(Complement."Entry No.", IsStatusRequest);

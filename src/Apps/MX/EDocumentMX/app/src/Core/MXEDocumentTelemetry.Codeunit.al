@@ -40,9 +40,9 @@ codeunit 3376 "MX E-Document Telemetry"
         Session.LogMessage('0000WKN', StrSubstNo(ComplementCancelResultMsg, ComplementEntryNo, Format(CancellationStatus)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CategoryTok, FeatureNameTok);
     end;
 
-    procedure LogComplementCancelFailed(ComplementEntryNo: Integer; ErrorText: Text)
+    procedure LogComplementCancelFailed(ComplementEntryNo: Integer)
     begin
-        Session.LogMessage('0000WKO', StrSubstNo(ComplementCancelFailedMsg, ComplementEntryNo, ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CategoryTok, FeatureNameTok);
+        Session.LogMessage('0000WKO', StrSubstNo(ComplementCancelFailedMsg, ComplementEntryNo), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CategoryTok, FeatureNameTok);
     end;
 
     procedure LogCanceledWithoutPAC(DocumentKind: Text; EntryNo: Integer; Reason: Text)
@@ -65,7 +65,7 @@ codeunit 3376 "MX E-Document Telemetry"
         ComplementCancelRequestedMsg: Label 'Cancellation request submitted for payment complement %1.', Locked = true;
         ComplementCancelStatusRequestedMsg: Label 'Checking cancellation status for payment complement %1.', Locked = true;
         ComplementCancelResultMsg: Label 'Cancellation of payment complement %1 finished with status %2.', Locked = true;
-        ComplementCancelFailedMsg: Label 'Cancellation request for payment complement %1 failed: %2', Locked = true;
+        ComplementCancelFailedMsg: Label 'Cancellation request for payment complement %1 failed.', Locked = true;
         CanceledWithoutPACMsg: Label '%1 %2 was marked as canceled without contacting the PAC (%3).', Locked = true, Comment = '%1 = document kind, %2 = entry no, %3 = reason';
         CancellationResetMsg: Label 'Cancellation request of payment complement %1 was reset.', Locked = true;
         SecurityAuditComplementRejectedTxt: Label 'PAC rejected CFDI payment complement stamp request: %1', Locked = true, Comment = '%1 - PAC error';
