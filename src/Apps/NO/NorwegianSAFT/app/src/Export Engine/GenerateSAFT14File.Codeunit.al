@@ -47,6 +47,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
                 '#1#################################\\' +
                 '@2@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
         SAFTExportHeader.Get(ID);
+        GeneralLedgerSetup.Get();
         if "Master Data" then begin
             ExportHeaderWithMasterFiles(SAFTExportHeader);
             if GuiAllowed() then
@@ -64,6 +65,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
     end;
 
     var
+        GeneralLedgerSetup: Record "General Ledger Setup";
         GlobalSAFTSetup: Record "SAF-T Setup";
         GlobalCustomer: Record Customer;
         GlobalVendor: Record Vendor;
@@ -92,7 +94,6 @@ codeunit 10695 "Generate SAF-T 1.4 File"
 
     local procedure ExportHeader(SAFTExportHeader: Record "SAF-T Export Header")
     var
-        GeneralLedgerSetup: Record "General Ledger Setup";
         CompanyInformation: Record "Company Information";
         CountryRegion: Record "Country/Region";
     begin
@@ -115,7 +116,6 @@ codeunit 10695 "Generate SAF-T 1.4 File"
         SAFTXMLHelper.AppendXMLNode('SoftwareVersion', GetSoftwareVersion());
 
         ExportCompanyInfo('Company');
-        GeneralLedgerSetup.Get();
         SAFTXMLHelper.AppendXMLNode('DefaultCurrencyCode', GeneralLedgerSetup."LCY Code");
 
         SAFTXMLHelper.AddNewXMLNode('SelectionCriteria', '');
@@ -859,7 +859,9 @@ codeunit 10695 "Generate SAF-T 1.4 File"
     var
         TaxAmountNode: Text;
     begin
-        if CurrencyCode in ['', 'NOK'] then
+        if CurrencyCode in ['', GeneralLedgerSetup."LCY Code"] then
+            exit;
+        If abs((VATEntry.Amount) + abs(VATEntry.Base)) = 0 then
             exit;
 
         TaxAmountNode := IsDebitVATAmount ? 'DebitNOKTaxAmount' : 'CreditNOKTaxAmount';
