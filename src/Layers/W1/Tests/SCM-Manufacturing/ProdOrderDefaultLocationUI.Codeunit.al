@@ -291,15 +291,14 @@ codeunit 137438 "Prod. Order Default Loc. UI"
     end;
 
     [Test]
-    [HandlerFunctions('RefreshLocationWarningHandler')]
-    procedure RefreshBlankLocationWarningReenabled()
+    procedure RefreshBlankLocationWarningDisabled()
     var
         ProductionOrder: Record "Production Order";
         MyNotifications: Record "My Notifications";
         InstructionMgt: Codeunit "Instruction Mgt.";
         PageMyNotifications: Page "My Notifications";
     begin
-        // [SCENARIO] My Notifications can disable and subsequently re-enable the refresh warning.
+        // [SCENARIO] Disabling the refresh warning in My Notifications suppresses the dialog.
         InitializeRefreshWarning();
         // [GIVEN] The user has disabled the warning in My Notifications.
         PageMyNotifications.InitializeNotificationsWithDefaultState();
@@ -311,11 +310,28 @@ codeunit 137438 "Prod. Order Default Loc. UI"
         RunRefresh(ProductionOrder, false);
         // [THEN] Refresh proceeds without a dialog.
         VerifyRefreshed(ProductionOrder, true);
-        // [GIVEN] The user re-enables the warning.
+    end;
+
+    [Test]
+    [HandlerFunctions('RefreshLocationWarningHandler')]
+    procedure RefreshBlankLocationWarningReenabled()
+    var
+        ProductionOrder: Record "Production Order";
+        MyNotifications: Record "My Notifications";
+        InstructionMgt: Codeunit "Instruction Mgt.";
+        PageMyNotifications: Page "My Notifications";
+    begin
+        // [SCENARIO] Re-enabling a disabled refresh warning restores the dialog.
+        InitializeRefreshWarning();
+        // [GIVEN] The user disables and re-enables the warning in My Notifications.
+        PageMyNotifications.InitializeNotificationsWithDefaultState();
+        Assert.IsTrue(
+            MyNotifications.SetStatus(InstructionMgt.GetRefreshBlankLocationNotificationId(), false),
+            'The refresh warning must be registered in My Notifications.');
         MyNotifications.SetStatus(InstructionMgt.GetRefreshBlankLocationNotificationId(), true);
         CreateOrderForRefresh(ProductionOrder);
         EnqueueRefreshWarning(ProductionOrder, true, 'Skip');
-        // [WHEN] Another blank-location order is refreshed and the warning is declined.
+        // [WHEN] A blank-location order is refreshed and the warning is declined.
         RunRefresh(ProductionOrder, false);
         // [THEN] The warning is shown again and the order is not refreshed.
         VerifyRefreshed(ProductionOrder, false);
