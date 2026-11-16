@@ -25,6 +25,7 @@ codeunit 140012 "Test FAB Platform"
         TableResetMsg: Label 'Table %1 was reset. The next synchronization run will send a full snapshot.', Comment = '%1 = table id';
         TableNothingToResetMsg: Label 'Table %1 has no completed synchronization to reset. The next run will send a full snapshot.', Comment = '%1 = table id';
         UnexpectedEndWatermarkErr: Label 'Unexpected End Watermark for company %1, table %2.', Comment = '%1 = company name, %2 = table id';
+        DestinationChangeBlockedErr: Label 'You cannot change the Fabric workspace or Open Mirroring database while setup is complete or export is enabled.';
         WorkspaceRoleAssignmentsUrlLbl: Label 'https://api.fabric.microsoft.com/v1/workspaces/11111111-1111-1111-1111-111111111111/roleAssignments', Locked = true;
         WorkspaceRoleAssignmentsNextPageUrlLbl: Label 'https://api.fabric.microsoft.com/v1/workspaces/11111111-1111-1111-1111-111111111111/roleAssignments?continuationToken=next%3D', Locked = true;
 
@@ -1767,6 +1768,346 @@ codeunit 140012 "Test FAB Platform"
         VerifyEndWatermark(SucceededRunId, 'CRONUS', Database::"Tenant Fabric Setup", '');
         VerifyNoPendingMessages();
     end;
+
+    [Test]
+    procedure RejectDestinationChangeAfterSetupCompleted()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Check destination changes after setup completes and synchronization stops
+        //[GIVEN] Completed setup with export disabled
+        CreateDestinationSetup(TenantFabricSetup, true, false);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] Destination editing is requested
+        asserterror FabricPlatformMgt.CheckCanChangeDestination(TenantFabricSetup);
+
+        //[THEN] Reset is required and the saved destination is unchanged
+        VerifyDestinationChangeRejected(TenantFabricSetup);
+    end;
+
+    [Test]
+    procedure RejectDestinationChangeWhileExportEnabled()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Check destination changes while export is enabled
+        //[GIVEN] Enabled export without completed setup
+        CreateDestinationSetup(TenantFabricSetup, false, true);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] Destination editing is requested
+        asserterror FabricPlatformMgt.CheckCanChangeDestination(TenantFabricSetup);
+
+        //[THEN] Reset is required and the saved destination is unchanged
+        VerifyDestinationChangeRejected(TenantFabricSetup);
+    end;
+
+    [Test]
+    procedure AllowDestinationChangeBeforeSetup()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Check destination changes before connecting to Fabric
+        //[GIVEN] Setup and export are not enabled
+        CreateDestinationSetup(TenantFabricSetup, false, false);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] Destination editing is requested
+        FabricPlatformMgt.CheckCanChangeDestination(TenantFabricSetup);
+
+        //[THEN] Editing is allowed without changing the saved setup
+        VerifyDestinationUnchanged(TenantFabricSetup);
+    end;
+
+    [Test]
+    procedure RejectDestinationChangeWithStaleSetup()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        StaleSetup: Record "Tenant Fabric Setup";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Check destination changes using stale setup state
+        //[GIVEN] Saved setup is complete but the caller still has an incomplete setup record
+        CreateDestinationSetup(TenantFabricSetup, true, false);
+        StaleSetup := TenantFabricSetup;
+        StaleSetup."Setup Complete" := false;
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] Destination editing is requested using the stale record
+        asserterror FabricPlatformMgt.CheckCanChangeDestination(StaleSetup);
+
+        //[THEN] Saved setup state requires Reset and preserves the destination
+        VerifyDestinationChangeRejected(TenantFabricSetup);
+    end;
+
+    [Test]
+    procedure RejectWorkspaceSelectionAfterSetupCompleted()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        SetupPage: TestPage "Fabric Platform Setup";
+    begin
+        //[SCENARIO] Select a workspace on the setup page after setup completes
+        //[GIVEN] Completed setup with export disabled
+        CreateDestinationSetup(TenantFabricSetup, true, false);
+        //[GIVEN] Lower permissions and open the setup page
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        SetupPage.OpenEdit();
+
+        //[WHEN] Workspace selection is requested
+        asserterror SetupPage."Fabric Workspace Name".AssistEdit();
+
+        //[THEN] Reset is required before browsing and the destination is unchanged
+        VerifyDestinationChangeRejected(TenantFabricSetup);
+        SetupPage.Close();
+    end;
+
+    [Test]
+    procedure RejectDatabaseSelectionAfterSetupCompleted()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        SetupPage: TestPage "Fabric Platform Setup";
+    begin
+        //[SCENARIO] Select a mirrored database on the setup page after setup completes
+        //[GIVEN] Completed setup with export disabled
+        CreateDestinationSetup(TenantFabricSetup, true, false);
+        //[GIVEN] Lower permissions and open the setup page
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        SetupPage.OpenEdit();
+
+        //[WHEN] Mirrored database selection is requested
+        asserterror SetupPage."Fabric Open Mirroring Name".AssistEdit();
+
+        //[THEN] Reset is required before browsing and the destination is unchanged
+        VerifyDestinationChangeRejected(TenantFabricSetup);
+        SetupPage.Close();
+    end;
+
+    [Test]
+    procedure RejectWizardWorkspaceSelectionAfterSetupCompleted()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        SetupWizard: TestPage "Fabric Platform Setup Wizard";
+    begin
+        //[SCENARIO] Select a workspace in the wizard after setup completes
+        //[GIVEN] Completed setup with export disabled
+        CreateDestinationSetup(TenantFabricSetup, true, false);
+        //[GIVEN] Lower permissions and navigate to workspace selection
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        SetupWizard.OpenEdit();
+        SetupWizard.ActionNext.Invoke();
+        SetupWizard.ActionNext.Invoke();
+
+        //[WHEN] Workspace selection is requested
+        asserterror SetupWizard."Fabric Workspace Name".AssistEdit();
+
+        //[THEN] Reset is required before browsing and the destination is unchanged
+        VerifyDestinationChangeRejected(TenantFabricSetup);
+        SetupWizard.Close();
+    end;
+
+    [Test]
+    procedure RejectWizardDatabaseSelectionAfterSetupCompleted()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        SetupWizard: TestPage "Fabric Platform Setup Wizard";
+    begin
+        //[SCENARIO] Select a mirrored database in the wizard after setup completes
+        //[GIVEN] Completed setup with export disabled
+        CreateDestinationSetup(TenantFabricSetup, true, false);
+        //[GIVEN] Lower permissions and navigate to mirrored database selection
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        SetupWizard.OpenEdit();
+        SetupWizard.ActionNext.Invoke();
+        SetupWizard.ActionNext.Invoke();
+        SetupWizard.ActionNext.Invoke();
+        SetupWizard.ActionNext.Invoke();
+
+        //[WHEN] Mirrored database selection is requested
+        asserterror SetupWizard."Fabric Open Mirroring Name".AssistEdit();
+
+        //[THEN] Reset is required before browsing and the destination is unchanged
+        VerifyDestinationChangeRejected(TenantFabricSetup);
+        SetupWizard.Close();
+    end;
+
+    [Test]
+    procedure RejectAPIWorkspaceChangeAfterSetupCompleted()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        SetupAPI: TestPage "Fabric API Setup";
+    begin
+        //[SCENARIO] Change the workspace through the setup API after setup completes
+        //[GIVEN] Completed setup with export disabled
+        CreateDestinationSetup(TenantFabricSetup, true, false);
+        //[GIVEN] Lower permissions and open the setup API page
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        SetupAPI.OpenEdit();
+
+        //[WHEN] A different workspace ID is supplied
+        asserterror SetupAPI.fabricWorkspaceId.SetValue(CreateGuid());
+
+        //[THEN] Reset is required and the destination is unchanged
+        VerifyDestinationChangeRejected(TenantFabricSetup);
+        SetupAPI.Close();
+    end;
+
+    [Test]
+    procedure RejectAPIDatabaseChangeAfterSetupCompleted()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        SetupAPI: TestPage "Fabric API Setup";
+    begin
+        //[SCENARIO] Change the mirrored database through the setup API after setup completes
+        //[GIVEN] Completed setup with export disabled
+        CreateDestinationSetup(TenantFabricSetup, true, false);
+        //[GIVEN] Lower permissions and open the setup API page
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        SetupAPI.OpenEdit();
+
+        //[WHEN] A different mirrored database ID is supplied
+        asserterror SetupAPI.fabricLakehouseId.SetValue(CreateGuid());
+
+        //[THEN] Reset is required and the destination is unchanged
+        VerifyDestinationChangeRejected(TenantFabricSetup);
+        SetupAPI.Close();
+    end;
+
+    [Test]
+    procedure AllowAPIUnchangedDestinationAfterSetupCompleted()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        SetupAPI: TestPage "Fabric API Setup";
+    begin
+        //[SCENARIO] Resubmit the existing destination through the setup API
+        //[GIVEN] Completed setup with export disabled
+        CreateDestinationSetup(TenantFabricSetup, true, false);
+        //[GIVEN] Lower permissions and open the setup API page
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        SetupAPI.OpenEdit();
+
+        //[WHEN] The same destination IDs are supplied
+        SetupAPI.fabricWorkspaceId.SetValue(TenantFabricSetup."Fabric Workspace ID");
+        SetupAPI.fabricLakehouseId.SetValue(TenantFabricSetup."Fabric Lakehouse ID");
+        SetupAPI.Close();
+
+        //[THEN] The no-op update succeeds without changing setup
+        VerifyDestinationUnchanged(TenantFabricSetup);
+    end;
+
+    [Test]
+    procedure AllowAPIIntervalChangeAfterSetupCompleted()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        SetupAPI: TestPage "Fabric API Setup";
+    begin
+        //[SCENARIO] Change the export interval through the setup API after setup completes
+        //[GIVEN] Completed setup with export disabled
+        CreateDestinationSetup(TenantFabricSetup, true, false);
+        //[GIVEN] Lower permissions and open the setup API page
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        SetupAPI.OpenEdit();
+
+        //[WHEN] The interval is changed from five to ten minutes
+        SetupAPI.minutesBetweenExports.SetValue(10);
+        SetupAPI.Close();
+
+        //[THEN] The interval changes without changing the destination or lifecycle state
+        TenantFabricSetup."Minutes Between Exports" := 10;
+        VerifyDestinationUnchanged(TenantFabricSetup);
+    end;
+
+    [Test]
+    procedure AllowAPIDestinationChangeBeforeSetup()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        NewWorkspaceId: Guid;
+        NewDatabaseId: Guid;
+        SetupAPI: TestPage "Fabric API Setup";
+    begin
+        //[SCENARIO] Change the destination through the setup API before connecting
+        //[GIVEN] Setup and export are not enabled
+        CreateDestinationSetup(TenantFabricSetup, false, false);
+        NewWorkspaceId := CreateGuid();
+        NewDatabaseId := CreateGuid();
+        //[GIVEN] Lower permissions and open the setup API page
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        SetupAPI.OpenEdit();
+
+        //[WHEN] Different workspace and mirrored database IDs are supplied
+        SetupAPI.fabricWorkspaceId.SetValue(NewWorkspaceId);
+        SetupAPI.fabricLakehouseId.SetValue(NewDatabaseId);
+        SetupAPI.Close();
+
+        //[THEN] Both new destination IDs are saved without changing lifecycle state
+        TenantFabricSetup."Fabric Workspace ID" := NewWorkspaceId;
+        TenantFabricSetup."Fabric Lakehouse ID" := NewDatabaseId;
+        VerifyDestinationUnchanged(TenantFabricSetup);
+    end;
+
+    #region Destination fixtures
+
+    local procedure CreateDestinationSetup(var TenantFabricSetup: Record "Tenant Fabric Setup"; SetupComplete: Boolean; ExportEnabled: Boolean)
+    begin
+        TenantFabricSetup.DeleteAll(false);
+        TenantFabricSetup.Init();
+        TenantFabricSetup."Fabric Workspace ID" := CreateGuid();
+        TenantFabricSetup."Fabric Workspace Name" := 'Original workspace';
+        TenantFabricSetup."Fabric Lakehouse ID" := CreateGuid();
+        TenantFabricSetup."Fabric Data Namespace" := 'BusinessCentral';
+        TenantFabricSetup."Fabric Logging Namespace" := 'BusinessCentral_log';
+        TenantFabricSetup."Minutes Between Exports" := 5;
+        TenantFabricSetup."Max Consecutive Failed Runs" := 2;
+        TenantFabricSetup."Setup Complete" := SetupComplete;
+        TenantFabricSetup."Export Enabled" := ExportEnabled;
+        TenantFabricSetup.Insert(false);
+    end;
+
+    #endregion
+
+    #region Destination verification
+
+    local procedure VerifyDestinationChangeRejected(ExpectedSetup: Record "Tenant Fabric Setup")
+    begin
+        Assert.ExpectedError(DestinationChangeBlockedErr);
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyDestinationUnchanged(ExpectedSetup);
+    end;
+
+    local procedure VerifyDestinationUnchanged(ExpectedSetup: Record "Tenant Fabric Setup")
+    var
+        ActualSetup: Record "Tenant Fabric Setup";
+    begin
+        ActualSetup.Get(ExpectedSetup."Setup ID");
+        Assert.AreEqual(ExpectedSetup."Fabric Workspace ID", ActualSetup."Fabric Workspace ID", 'Unexpected workspace ID.');
+        Assert.AreEqual(ExpectedSetup."Fabric Workspace Name", ActualSetup."Fabric Workspace Name", 'Unexpected workspace name.');
+        Assert.AreEqual(ExpectedSetup."Fabric Lakehouse ID", ActualSetup."Fabric Lakehouse ID", 'Unexpected mirrored database ID.');
+        Assert.AreEqual(ExpectedSetup."Setup Complete", ActualSetup."Setup Complete", 'Unexpected setup completion state.');
+        Assert.AreEqual(ExpectedSetup."Export Enabled", ActualSetup."Export Enabled", 'Unexpected export enablement state.');
+        Assert.AreEqual(ExpectedSetup."Minutes Between Exports", ActualSetup."Minutes Between Exports", 'Unexpected export interval.');
+    end;
+
+    #endregion
 
     local procedure CreateRunningExportSummary() RunId: Guid
     var
