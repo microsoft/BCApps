@@ -1649,6 +1649,7 @@ codeunit 139020 "Test Job Queue SNAP"
     var
         JobQueueEntry: Record "Job Queue Entry";
         ScheduledTask: Record "Scheduled Task";
+        LibraryJobQueue: Codeunit "Library - Job Queue";
         ExecutedTaskId: Guid;
     begin
         // [SCENARIO 659464] Scheduling the next run of a successful recurring job does not cancel the task that has just executed it
@@ -1685,6 +1686,7 @@ codeunit 139020 "Test Job Queue SNAP"
         JobQueueEntry: Record "Job Queue Entry";
         JobQueueLogEntry: Record "Job Queue Log Entry";
         ScheduledTask: Record "Scheduled Task";
+        LibraryJobQueue: Codeunit "Library - Job Queue";
         ExecutedTaskId: Guid;
     begin
         // [SCENARIO 659464] Scheduling a retry of a failed job does not cancel the task that has just executed it
@@ -1720,6 +1722,7 @@ codeunit 139020 "Test Job Queue SNAP"
         JobQueueEntry: Record "Job Queue Entry";
         JobQueueLogEntry: Record "Job Queue Log Entry";
         ScheduledTask: Record "Scheduled Task";
+        LibraryJobQueue: Codeunit "Library - Job Queue";
         ExecutedTaskId: Guid;
         ReplacementTaskId: Guid;
     begin
