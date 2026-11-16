@@ -110,6 +110,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.RoleCenters;
 using System.Agents;
 using System.AI;
+using System.AI.BusinessSkills;
 using System.Apps;
 using System.Automation;
 using System.Azure.Identity;
@@ -3853,6 +3854,8 @@ codeunit 1751 "Data Classification Eval. Data"
     end;
 
     local procedure ClassifyBusinessIQ()
+    var
+        TextVersion: Record "Business Skill Text Version";
     begin
         SetTableFieldsToNormal(40200); // "Business Skill Domain"
         SetFieldToCompanyConfidential(40200, 3); // Description
@@ -3866,8 +3869,9 @@ codeunit 1751 "Data Classification Eval. Data"
         SetFieldToCompanyConfidential(40201, 11); // Skill Text
         SetFieldToPersonal(40201, 15); // Archived By
 
-        SetTableFieldsToNormal(40202); // "Business Skill Text Version"
-        SetFieldToCompanyConfidential(40202, 3); // Skill Text
+        SetTableFieldsToNormal(Database::"Business Skill Text Version");
+        SetFieldToCompanyConfidential(Database::"Business Skill Text Version", TextVersion.FieldNo("Skill Text"));
+        SetFieldToCompanyConfidential(Database::"Business Skill Text Version", TextVersion.FieldNo(Version));
 
         SetTableFieldsToNormal(40203); // "Business Skill Suggestion"
         SetFieldToCompanyConfidential(40203, 5); // Title

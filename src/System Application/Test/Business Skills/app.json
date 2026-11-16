@@ -1,0 +1,58 @@
+{
+  "id": "8e362160-8fc5-4b6f-b694-324bceeb2450",
+  "name": "Business Skills Test",
+  "publisher": "Microsoft",
+  "brief": "Tests business skill lifecycle, authoring, history and search.",
+  "description": "Tests the Business Skills System Application module without depending on Business IQ.",
+  "version": "30.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "",
+  "url": "https://go.microsoft.com/fwlink/?linkid=724011",
+  "logo": "",
+  "dependencies": [
+    {
+      "id": "47f31a2d-b5f8-4b35-956a-59e8edebd13b",
+      "name": "Business Skills",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "bebde88d-6846-479d-8b30-b9f8940fdcf8",
+      "name": "Business Skills Test Library",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+      "name": "Library Assert",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "e31ad830-3d46-472e-afeb-1d3d35247943",
+      "name": "BLOB Storage",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "30.0.0.0",
+  "target": "OnPrem",
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "idRanges": [
+    {
+      "from": 130050,
+      "to": 130054
+    }
+  ],
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ],
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
+}

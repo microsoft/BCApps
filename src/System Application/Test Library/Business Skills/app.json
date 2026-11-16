@@ -1,0 +1,35 @@
+{
+  "id": "bebde88d-6846-479d-8b30-b9f8940fdcf8",
+  "name": "Business Skills Test Library",
+  "publisher": "Microsoft",
+  "brief": "Provides business skill test fixtures.",
+  "description": "Provides shared business skill creation, activation and destructive test cleanup helpers.",
+  "version": "30.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "",
+  "url": "https://go.microsoft.com/fwlink/?linkid=724011",
+  "logo": "",
+  "dependencies": [
+    {
+      "id": "47f31a2d-b5f8-4b35-956a-59e8edebd13b",
+      "name": "Business Skills",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "30.0.0.0",
+  "target": "OnPrem",
+  "idRanges": [
+    {
+      "from": 130055,
+      "to": 130055
+    }
+  ],
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ],
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
+}
