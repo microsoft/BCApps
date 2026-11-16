@@ -426,7 +426,7 @@ codeunit 134778 "SCM Invt. Pick Post Preview"
 
         // [THEN] Inventory Pick lines are created
         FindAndUpdateWhseActivityPostingDate(
-          WarehouseActivityHeader, WarehouseActivityLine, Database::Job, Job."No.",
+          WarehouseActivityHeader, WarehouseActivityLine, Database::"Job Planning Line", Job."No.",
           WarehouseActivityHeader.Type::"Invt. Pick", WorkDate() + 1);
         LibraryWarehouse.SetQtyToHandleWhseActivity(WarehouseActivityHeader, WarehouseActivityLine.Quantity);
 

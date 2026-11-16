@@ -118,9 +118,9 @@ codeunit 134654 "O365 Sales Code Type Lkup Test"
         StandardSalesCodeCard.StdSalesLines.FilteredTypeField.AssertEquals(Format(StandardSalesLine.Type::Item));
 
         // [WHEN] Setting the saas type on the standard Sales Line to co
-        StandardSalesCodeCard.StdSalesLines.FilteredTypeField.SetValue(CopyStr(StandardSalesLine.FormatType(), 1, 2));
+        StandardSalesCodeCard.StdSalesLines.FilteredTypeField.SetValue(CopyStr(StandardSalesLine.FormatTypeAsText(), 1, 2));
         // [THEN] The SaaS type is set to Comment
-        StandardSalesCodeCard.StdSalesLines.FilteredTypeField.AssertEquals(StandardSalesLine.FormatType());
+        StandardSalesCodeCard.StdSalesLines.FilteredTypeField.AssertEquals(StandardSalesLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -143,12 +143,12 @@ codeunit 134654 "O365 Sales Code Type Lkup Test"
         // [WHEN] Setting the saas type on the standard Sales Line to ' '
         StandardSalesCodeCard.StdSalesLines.FilteredTypeField.SetValue(' ');
         // [THEN] The SaaS type is set to Blank
-        StandardSalesCodeCard.StdSalesLines.FilteredTypeField.AssertEquals(StandardSalesLine.FormatType());
+        StandardSalesCodeCard.StdSalesLines.FilteredTypeField.AssertEquals(StandardSalesLine.FormatTypeAsText());
 
         // [WHEN] Setting the saas type on the standard Sales Line to ''
         StandardSalesCodeCard.StdSalesLines.FilteredTypeField.SetValue('');
         // [THEN] The SaaS type is set to Blank
-        StandardSalesCodeCard.StdSalesLines.FilteredTypeField.AssertEquals(StandardSalesLine.FormatType());
+        StandardSalesCodeCard.StdSalesLines.FilteredTypeField.AssertEquals(StandardSalesLine.FormatTypeAsText());
     end;
 
     [Test]

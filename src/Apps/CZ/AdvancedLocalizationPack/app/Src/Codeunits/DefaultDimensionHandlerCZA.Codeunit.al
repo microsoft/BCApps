@@ -24,7 +24,8 @@ using Microsoft.Sales.Customer;
 codeunit 31392 "Default Dimension Handler CZA"
 {
     Access = Internal;
-
+#if not CLEAN29
+#pragma warning disable AL0432
     [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterValidateEvent', 'No.', false, false)]
     local procedure TestAutomaticCreateOnAfterValidateNo(var Rec: Record "Default Dimension"; var xRec: Record "Default Dimension"; CurrFieldNo: Integer)
     begin
@@ -38,7 +39,8 @@ codeunit 31392 "Default Dimension Handler CZA"
         if Rec."Automatic Create CZA" then
             DimensionAutoUpdateMgtCZA.ForceSetDimChangeSetupRead();
     end;
-
+#pragma warning restore AL0432
+#endif
     [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterInsertEvent', '', false, false)]
     local procedure ItemOnAfterInsertEvent(var Rec: Record Item)
     begin
@@ -548,41 +550,38 @@ codeunit 31392 "Default Dimension Handler CZA"
     local procedure JobOnCopyDefaultDimensionsFromCustomerOnBeforeUpdateDefaultDim(var Job: Record Job)
     var
         JobDefaultDimension: Record "Default Dimension";
-        AutoDefaultDimension: Record "Default Dimension";
+        AutoCreateDefaultDim: Record "Auto. Create Default Dim. CZA";
         NewDimensionValue: Record "Dimension Value";
         DimensionManagement: Codeunit DimensionManagement;
     begin
-        AutoDefaultDimension.SetRange("Table ID", Database::Job);
-        AutoDefaultDimension.SetRange("No.", '');
-        AutoDefaultDimension.SetRange("Automatic Create CZA", true);
-        if AutoDefaultDimension.FindSet() then
+        AutoCreateDefaultDim.SetRange("Table ID", Database::Job);
+        if AutoCreateDefaultDim.FindSet() then
             repeat
-                if NewDimensionValue.Get(AutoDefaultDimension."Dimension Code", Job."No.") then
-                    if not JobDefaultDimension.Get(Database::Job, Job."No.", AutoDefaultDimension."Dimension Code") then begin
-                        JobDefaultDimension.Init();
-                        JobDefaultDimension."Table ID" := Database::Job;
-                        JobDefaultDimension."No." := Job."No.";
-                        JobDefaultDimension."Dimension Code" := AutoDefaultDimension."Dimension Code";
-                        JobDefaultDimension."Dimension Value Code" := NewDimensionValue.Code;
-                        JobDefaultDimension."Value Posting" := AutoDefaultDimension."Auto. Create Value Posting CZA";
-                        JobDefaultDimension.Insert();
-                        DimensionManagement.DefaultDimOnInsert(JobDefaultDimension);
-                    end;
-            until AutoDefaultDimension.Next() = 0;
+                if NewDimensionValue.Get(AutoCreateDefaultDim."Dimension Code", Job."No.") then
+                    if not JobDefaultDimension.Get(Database::Job, Job."No.", AutoCreateDefaultDim."Dimension Code") then
+                        if not AutoCreateDefaultDim."Not Create Default Dimension" then begin
+                            JobDefaultDimension.Init();
+                            JobDefaultDimension."Table ID" := Database::Job;
+                            JobDefaultDimension."No." := Job."No.";
+                            JobDefaultDimension."Dimension Code" := AutoCreateDefaultDim."Dimension Code";
+                            JobDefaultDimension."Dimension Value Code" := NewDimensionValue.Code;
+                            JobDefaultDimension."Value Posting" := AutoCreateDefaultDim."Auto. Create Value Posting";
+                            JobDefaultDimension.Insert();
+                            DimensionManagement.DefaultDimOnInsert(JobDefaultDimension);
+                        end;
+            until AutoCreateDefaultDim.Next() = 0;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Item", 'OnCopyItemOnBeforeTargetItemInsert', '', false, false)]
     local procedure ItemCopyOnCopyItemOnBeforeTargetItemInsert(var CopyItemBuffer: Record "Copy Item Buffer")
     var
-        AutoDefaultDimension: Record "Default Dimension";
+        AutoCreateDefaultDim: Record "Auto. Create Default Dim. CZA";
     begin
         if not CopyItemBuffer.Dimensions then
             exit;
 
-        AutoDefaultDimension.SetRange("Table ID", Database::Item);
-        AutoDefaultDimension.SetRange("No.", '');
-        AutoDefaultDimension.SetRange("Automatic Create CZA", true);
-        if AutoDefaultDimension.IsEmpty() then
+        AutoCreateDefaultDim.SetRange("Table ID", Database::Item);
+        if AutoCreateDefaultDim.IsEmpty() then
             exit;
 
         CopyItemBuffer.Dimensions := false;

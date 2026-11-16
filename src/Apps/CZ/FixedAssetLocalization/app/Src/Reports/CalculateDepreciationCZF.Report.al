@@ -16,7 +16,7 @@ report 31240 "Calculate Depreciation CZF"
 {
     AdditionalSearchTerms = 'write down fixed asset';
     ApplicationArea = FixedAssets;
-    Caption = 'Calculate Depreciation';
+    Caption = 'Calculate Depreciation CZ';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 
@@ -25,6 +25,38 @@ report 31240 "Calculate Depreciation CZF"
         dataitem("Fixed Asset"; "Fixed Asset")
         {
             RequestFilterFields = "No.", "FA Class Code", "FA Subclass Code", "Budgeted Asset";
+            dataitem(CalcDerogDepr; "Fixed Asset")
+            {
+                DataItemLink = "No." = field("No.");
+                DataItemTableView = sorting("No.");
+
+                trigger OnAfterGetRecord()
+                begin
+                    if not HasDerogatorySetup then
+                        CurrReport.Skip();
+
+                    CalculateDepreciation.Calculate(
+                        DeprAmount, Custom1Amount, NumberOfDays, Custom1NumberOfDays,
+                        "No.", DepreciationBook2.Code, DeprUntilDate, EntryAmounts, 0D, DaysInPeriod);
+
+                    if DeprAmount2 <> 0 then
+                        if not DepreciationBook."Integration G/L - Derogatory" or "Budgeted Asset" then begin
+                            TempFAJournalLine."FA No." := "No.";
+                            TempFAJournalLine."FA Posting Type" := TempFAJournalLine."FA Posting Type"::Derogatory;
+                            TempFAJournalLine.Amount := CalcDerogDeprAmount(DeprAmount, DeprAmount2);
+                            TempFAJournalLine."No. of Depreciation Days" := NumberOfDays;
+                            TempFAJournalLine."Line No." += 1;
+                            TempFAJournalLine.Insert();
+                        end else begin
+                            TempGenJournalLine."Account No." := "No.";
+                            TempGenJournalLine."FA Posting Type" := TempGenJournalLine."FA Posting Type"::Derogatory;
+                            TempGenJournalLine.Amount := CalcDerogDeprAmount(DeprAmount, DeprAmount2);
+                            TempGenJournalLine."No. of Depreciation Days" := NumberOfDays;
+                            TempGenJournalLine."Line No." += 1;
+                            TempGenJournalLine.Insert();
+                        end;
+                end;
+            }
 
             trigger OnAfterGetRecord()
             var
@@ -33,6 +65,9 @@ report 31240 "Calculate Depreciation CZF"
                 if Inactive or Blocked then
                     CurrReport.Skip();
 
+                FADeprBook.SetLoadFields(
+                    "Depreciation Starting Date", "Straight-Line %", "Fixed Depr. Amount", "Declining-Balance %",
+                    "Depreciation Ending Date", "Tax Deprec. Group Code CZF", "Depreciation Method", "Deprec. Interrupted up to CZF");
                 if not FADeprBook.Get("No.", DeprBookCode) then
                     CurrReport.Skip();
                 if FADeprBook."Depreciation Starting Date" = 0D then
@@ -43,6 +78,13 @@ report 31240 "Calculate Depreciation CZF"
                    (FADeprBook."Depreciation Method" = FADeprBook."Depreciation Method"::"Straight-Line")
                 then
                     CurrReport.Skip();
+
+                HasDerogatorySetup := false;
+                if DepreciationBook2.Code <> '' then begin
+                    FADerogatoryDepreciationBook.SetRange("FA No.", "No.");
+                    FADerogatoryDepreciationBook.SetRange("Depreciation Book Code", DepreciationBook2.Code);
+                    HasDerogatorySetup := not FADerogatoryDepreciationBook.IsEmpty();
+                end;
 
                 DepreciationInterrupted := FADeprBook."Deprec. Interrupted up to CZF" >= DeprUntilDate;
 
@@ -100,6 +142,9 @@ report 31240 "Calculate Depreciation CZF"
                         TempGenJournalLine."Line No." += 1;
                         TempGenJournalLine.Insert();
                     end;
+
+                if HasDerogatorySetup then
+                    DeprAmount2 := DeprAmount;
             end;
 
             trigger OnPostDataItem()
@@ -118,6 +163,7 @@ report 31240 "Calculate Depreciation CZF"
                 end;
                 if TempFAJournalLine.FindSet() then
                     repeat
+                        InsertBonusDepreciationFAJnlLine();
                         FAJournalLine.Init();
                         FAJournalLine."Line No." := 0;
                         FAJournalSetup.SetFAJnlTrailCodes(FAJournalLine);
@@ -157,6 +203,7 @@ report 31240 "Calculate Depreciation CZF"
                 end;
                 if TempGenJournalLine.FindSet() then
                     repeat
+                        InsertBonusDepreciationGenJnlLine();
                         GenJournalLine.Init();
                         GenJournalLine."Line No." := 0;
                         FAJournalSetup.SetGenJnlTrailCodes(GenJournalLine);
@@ -337,7 +384,14 @@ report 31240 "Calculate Depreciation CZF"
 
     trigger OnPreReport()
     begin
+        Clear(DepreciationBook2);
         DepreciationBook.Get(DeprBookCode);
+
+        if DepreciationBook."Derogatory Calc." <> '' then
+            Error(DerogatoryBookErr, DepreciationBook.Code);
+        DepreciationBook2.SetRange("Derogatory Calc.", DeprBookCode);
+        if DepreciationBook2.FindFirst() then;
+
         if DeprUntilDate = 0D then
             Error(MustSpecifyErr, FAJournalLine.FieldCaption("FA Posting Date"));
         if PostingDate = 0D then
@@ -368,9 +422,13 @@ report 31240 "Calculate Depreciation CZF"
         DepreciationBook: Record "Depreciation Book";
         FAJournalSetup: Record "FA Journal Setup";
         GeneralLedgerSetup: Record "General Ledger Setup";
+        DepreciationBook2: Record "Depreciation Book";
+        FADerogatoryDepreciationBook: Record "FA Depreciation Book";
         CalculateDepreciation: Codeunit "Calculate Depreciation";
         FAInsertGLAccount: Codeunit "FA Insert G/L Account";
         SuppUpdtSourceHandlerCZF: Codeunit "Supp. Updt. Source Handler CZF";
+        FADeprBookBonusDepreciationApplied: Dictionary of [RecordId, Boolean];
+        FADeprBookBonusDepreciationAmount: Dictionary of [RecordId, Decimal];
         WindowDialog: Dialog;
         DeprAmount: Decimal;
         Custom1Amount: Decimal;
@@ -390,6 +448,8 @@ report 31240 "Calculate Depreciation CZF"
         GenJnlNextLineNo: Integer;
         EntryAmounts: array[4] of Decimal;
         LineNo: Integer;
+        DeprAmount2: Decimal;
+        HasDerogatorySetup: Boolean;
         DepreciationInterrupted: Boolean;
         CompletionStatsMsg: Label 'The depreciation has been calculated.\\No journal lines were created.';
         FAJnlLineCreatedCount: Integer;
@@ -404,6 +464,7 @@ report 31240 "Calculate Depreciation CZF"
         Text004Txt: Label 'Not depreciating fixed asset  #2##########\', Comment = '%1 = Fixed Asset No.';
         Text005Txt: Label 'Inserting journal lines       #3##########', Comment = '%1 = Line No.';
         UseForceNoOfDaysErr: Label 'Use Force No. of Days must be activated.';
+        DerogatoryBookErr: Label 'Depreciation cannot be posted on depreciation book %1 because it is set up as derogatory.', Comment = '%1 = Depreciation Book Code';
 
     procedure InitializeRequest(DeprBookCodeFrom: Code[10]; DeprUntilDateFrom: Date; UseForceNoOfDaysFrom: Boolean; DaysInPeriodFrom: Integer; PostingDateFrom: Date; DocumentNoFrom: Code[20]; PostingDescriptionFrom: Text[100]; BalAccountFrom: Boolean)
     begin
@@ -417,9 +478,137 @@ report 31240 "Calculate Depreciation CZF"
         BalAccount := BalAccountFrom;
     end;
 
+    local procedure CalcDerogDeprAmount(Amount1: Decimal; Amount2: Decimal): Decimal
+    begin
+        exit(Amount1 - Amount2);
+    end;
+
     local procedure BuildDescription(FANo: Code[20]; PeriodDate: Date): Text[100]
     begin
         exit(StrSubstNo(PostingDescription, FANo, StrSubstNo('%1/%2', Date2DMY(PeriodDate, 3), Date2DMY(PeriodDate, 2))));
+    end;
+
+    local procedure InsertBonusDepreciationFAJnlLine()
+    var
+        FADepreciationBook: Record "FA Depreciation Book";
+        BonusDepreciationAmount: Decimal;
+    begin
+        if not FASetup.BonusDepreciationCorrectlySetupCZF() then
+            exit;
+
+        FADepreciationBook.SetLoadFields("Use Bonus Depreciation", "Depreciation Starting Date", "Bonus Depreciation %");
+        if not FADepreciationBook.Get(TempFAJournalLine."FA No.", DeprBookCode) then
+            exit;
+
+        if not FADepreciationBook."Use Bonus Depreciation" then
+            exit;
+
+        if not FADepreciationBook.EligibleForBonusDepreciation(FASetup) then
+            exit;
+
+        if GetBonusDepreciationApplied(FADepreciationBook) then
+            exit;
+
+        // Implementation for inserting bonus depreciation line
+        FAJournalLine.Init();
+        FAJournalLine."Line No." := 0;
+        FAJournalSetup.SetFAJnlTrailCodes(FAJournalLine);
+        LineNo := LineNo + 1;
+        if GuiAllowed() then
+            WindowDialog.Update(3, LineNo);
+        FAJournalLine."Posting Date" := PostingDate;
+        FAJournalLine."FA Posting Date" := DeprUntilDate;
+        if FAJournalLine."Posting Date" = FAJournalLine."FA Posting Date" then
+            FAJournalLine."Posting Date" := 0D;
+        FAJournalLine."FA Posting Type" := "FA Journal Line FA Posting Type"::"Bonus Depreciation";
+        FAJournalLine.Validate("FA No.", TempFAJournalLine."FA No.");
+        FAJournalLine."Document No." := DocumentNo2;
+        FAJournalLine."Posting No. Series" := NoSeries;
+        FAJournalLine.Description := BuildDescription(TempFAJournalLine."FA No.", PostingDate);
+        FAJournalLine.Validate("Depreciation Book Code", DeprBookCode);
+        BonusDepreciationAmount := GetBonusDepreciationAmount(FADepreciationBook);
+        FAJournalLine.Validate(Amount, BonusDepreciationAmount);
+        FAJournalLine."FA Error Entry No." := TempFAJournalLine."FA Error Entry No.";
+        FAJnlNextLineNo := FAJnlNextLineNo + 10000;
+        FAJournalLine."Line No." := FAJnlNextLineNo;
+        FAJournalLine.Insert(true);
+        FAJnlLineCreatedCount += 1;
+    end;
+
+    local procedure GetBonusDepreciationApplied(FADepreciationBook: Record "FA Depreciation Book"): Boolean
+    var
+        BonusDepreciationApplied: Boolean;
+    begin
+        if not FADeprBookBonusDepreciationApplied.ContainsKey(FADepreciationBook.RecordId) then begin
+            BonusDepreciationApplied := FADepreciationBook.BonusDepreciationAppliedCZF();
+            FADeprBookBonusDepreciationApplied.Add(FADepreciationBook.RecordId, BonusDepreciationApplied);
+            exit(BonusDepreciationApplied)
+        end;
+
+        exit(FADeprBookBonusDepreciationApplied.Get(FADepreciationBook.RecordId));
+    end;
+
+    local procedure GetBonusDepreciationAmount(FADepreciationBook: Record "FA Depreciation Book"): Decimal
+    var
+        BonusDepreciationAmount: Decimal;
+    begin
+        if FADeprBookBonusDepreciationAmount.ContainsKey(FADepreciationBook.RecordId) then
+            exit(-FADeprBookBonusDepreciationAmount.Get(FADepreciationBook.RecordId));
+
+        BonusDepreciationAmount := -FADepreciationBook.BonusDepreciationAmountCZF();
+        FADeprBookBonusDepreciationAmount.Add(FADepreciationBook.RecordId, -BonusDepreciationAmount);
+        exit(BonusDepreciationAmount)
+    end;
+
+    local procedure InsertBonusDepreciationGenJnlLine()
+    var
+        FADepreciationBook: Record "FA Depreciation Book";
+        BonusDepreciationAmount: Decimal;
+    begin
+        if not FASetup.BonusDepreciationCorrectlySetupCZF() then
+            exit;
+
+        FADepreciationBook.SetLoadFields("Use Bonus Depreciation", "Depreciation Starting Date", "Bonus Depreciation %");
+        if not FADepreciationBook.Get(TempGenJournalLine."Account No.", DeprBookCode) then
+            exit;
+
+        if not FADepreciationBook."Use Bonus Depreciation" then
+            exit;
+
+        if not FADepreciationBook.EligibleForBonusDepreciation(FASetup) then
+            exit;
+
+        if GetBonusDepreciationApplied(FADepreciationBook) then
+            exit;
+
+        // Implementation for inserting bonus depreciation line
+        GenJournalLine.Init();
+        GenJournalLine."Line No." := 0;
+        FAJournalSetup.SetGenJnlTrailCodes(GenJournalLine);
+        LineNo := LineNo + 1;
+        if GuiAllowed() then
+            WindowDialog.Update(3, LineNo);
+        GenJournalLine."Posting Date" := PostingDate;
+        GenJournalLine."VAT Reporting Date" := PostingDate;
+        GenJournalLine."FA Posting Date" := DeprUntilDate;
+        if GenJournalLine."Posting Date" = GenJournalLine."FA Posting Date" then
+            GenJournalLine."FA Posting Date" := 0D;
+        GenJournalLine."FA Posting Type" := "Gen. Journal Line FA Posting Type"::"Bonus Depreciation";
+        GenJournalLine."Account Type" := GenJournalLine."Account Type"::"Fixed Asset";
+        GenJournalLine.Validate("Account No.", TempGenJournalLine."Account No.");
+        GenJournalLine."Document No." := DocumentNo2;
+        GenJournalLine."Posting No. Series" := NoSeries;
+        GenJournalLine.Description := BuildDescription(TempGenJournalLine."Account No.", PostingDate);
+        GenJournalLine.Validate("Depreciation Book Code", DeprBookCode);
+        BonusDepreciationAmount := GetBonusDepreciationAmount(FADepreciationBook);
+        GenJournalLine.Validate(Amount, BonusDepreciationAmount);
+        GenJournalLine."FA Error Entry No." := TempGenJournalLine."FA Error Entry No.";
+        GenJnlNextLineNo := GenJnlNextLineNo + 1000;
+        GenJournalLine."Line No." := GenJnlNextLineNo;
+        GenJournalLine.Insert(true);
+        GenJnlLineCreatedCount += 1;
+        if BalAccount then
+            FAInsertGLAccount.GetBalAcc(GenJournalLine, GenJnlNextLineNo);
     end;
 
     [IntegrationEvent(false, false)]

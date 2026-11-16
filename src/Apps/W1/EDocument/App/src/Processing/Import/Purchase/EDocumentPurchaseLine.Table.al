@@ -147,6 +147,7 @@ table 6101 "E-Document Purchase Line"
             begin
                 SetDescriptionFromLineTypeNo();
                 POMatchingValidation();
+                ClearUnitOfMeasureAndVariantNotValidForNo();
             end;
         }
         field(103; "[BC] Unit of Measure"; Code[20])
@@ -267,6 +268,43 @@ table 6101 "E-Document Purchase Line"
         if Rec.Description <> '' then
             exit;
         Rec.Description := GetMatchedEntityName();
+    end;
+
+    /// <summary>
+    /// Clears the unit of measure and variant code when they are not valid for the entity in "[BC] Purchase Type No.",
+    /// so that a reassigned line does not keep values from the previous entity that would fail when the purchase line is created.
+    /// </summary>
+    local procedure ClearUnitOfMeasureAndVariantNotValidForNo()
+    var
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        ItemVariant: Record "Item Variant";
+        ResourceUnitOfMeasure: Record "Resource Unit of Measure";
+    begin
+        if Rec."[BC] Purchase Type No." = '' then
+            exit;
+
+        if Rec."[BC] Variant Code" <> '' then begin
+            ItemVariant.SetLoadFields(Code);
+            if (Rec."[BC] Purchase Line Type" <> "Purchase Line Type"::Item) or not ItemVariant.Get(Rec."[BC] Purchase Type No.", Rec."[BC] Variant Code") then
+                Rec."[BC] Variant Code" := '';
+        end;
+
+        if Rec."[BC] Unit of Measure" = '' then
+            exit;
+        case Rec."[BC] Purchase Line Type" of
+            "Purchase Line Type"::Item:
+                begin
+                    ItemUnitOfMeasure.SetLoadFields(Code);
+                    if not ItemUnitOfMeasure.Get(Rec."[BC] Purchase Type No.", Rec."[BC] Unit of Measure") then
+                        Rec."[BC] Unit of Measure" := '';
+                end;
+            "Purchase Line Type"::Resource:
+                begin
+                    ResourceUnitOfMeasure.SetLoadFields(Code);
+                    if not ResourceUnitOfMeasure.Get(Rec."[BC] Purchase Type No.", Rec."[BC] Unit of Measure") then
+                        Rec."[BC] Unit of Measure" := '';
+                end;
+        end;
     end;
 
     /// <summary>

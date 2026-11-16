@@ -1,0 +1,68 @@
+name: Update Unstable Tests (Combined)
+author: Microsoft Corporation
+description: >
+  Maintains the per-branch unstable-tests artifact from both detection signals in a single run: the CI/CD
+  sliding-window recompute (Path A) and the additive cross-PR PR-build detector (Path B). Publishes the
+  updated per-branch artifact, and only uploads when an artifact was actually produced.
+inputs:
+  branch:
+    description: Target branch (e.g. 'main', 'releases/26.0')
+    required: true
+  run-limit:
+    description: 'Path A: number of recent completed CI/CD runs to examine.'
+    required: false
+    default: '3'
+  filter-push:
+    description: "Path A: include CI/CD runs triggered by push ('true'/'false')."
+    required: false
+    default: 'false'
+  filter-workflow-dispatch:
+    description: "Path A: include CI/CD runs triggered by workflow_dispatch ('true'/'false')."
+    required: false
+    default: 'true'
+  window-hours:
+    description: 'Path B: how many hours of recent PR builds to examine.'
+    required: false
+    default: '6'
+  min-distinct-prs:
+    description: 'Path B: minimum number of distinct PRs a test must fail on to be marked unstable.'
+    required: false
+    default: '3'
+runs:
+  using: composite
+  steps:
+    - name: Update unstable tests
+      id: update
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+        _branch: ${{ inputs.branch }}
+        _runLimit: ${{ inputs.run-limit }}
+        _filterPush: ${{ inputs.filter-push }}
+        _filterWorkflowDispatch: ${{ inputs.filter-workflow-dispatch }}
+        _windowHours: ${{ inputs.window-hours }}
+        _minDistinctPrs: ${{ inputs.min-distinct-prs }}
+      run: |
+        ${{ github.action_path }}/action.ps1 `
+          -Branch $env:_branch `
+          -RunLimit ([int]$env:_runLimit) `
+          -FilterPush:($env:_filterPush -eq 'true') `
+          -FilterWorkflowDispatch:($env:_filterWorkflowDispatch -eq 'true') `
+          -WindowHours ([int]$env:_windowHours) `
+          -MinDistinctPrs ([int]$env:_minDistinctPrs)
+
+    - name: Upload unstable tests artifact
+      if: steps.update.outputs.artifactName != ''
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      env:
+        ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
+      with:
+        name: ${{ steps.update.outputs.artifactName }}
+        path: .unstable-tests/unstable-tests.json
+        if-no-files-found: warn
+        # A fresh artifact is produced on every hourly run and PR builds only ever consume the latest, so
+        # a long retention just multiplies storage. 7 days still buffers a multi-day scheduler outage.
+        retention-days: 7
+branding:
+  icon: terminal
+  color: blue

@@ -206,7 +206,8 @@ table 98 "General Ledger Setup"
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                  "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                 "Initial Entry Due Date" = field("Date Filter")));
+                                                                                 "Initial Entry Due Date" = field("Date Filter"),
+                                                                                 "Excluded from calculation" = const(false)));
             Caption = 'Cust. Balances Due';
             Editable = false;
             FieldClass = FlowField;
@@ -220,7 +221,8 @@ table 98 "General Ledger Setup"
             AutoFormatType = 1;
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                   "Initial Entry Due Date" = field("Date Filter")));
+                                                                                   "Initial Entry Due Date" = field("Date Filter"),
+                                                                                   "Excluded from calculation" = const(false)));
             Caption = 'Vendor Balances Due';
             Editable = false;
             FieldClass = FlowField;
@@ -445,6 +447,16 @@ table 98 "General Ledger Setup"
             TableRelation = "No. Series";
         }
         /// <summary>
+        /// Number series used for assigning spend request numbers during spend request creation.
+        /// </summary>
+        field(64; "Spend Request No. Series"; Code[20])
+        {
+            Caption = 'Spend Request No. Series';
+            ToolTip = 'Specifies the code for the number series that will be used to assign numbers to spend requests.';
+            TableRelation = "No. Series";
+            DataClassification = CustomerContent;
+        }
+        /// <summary>
         /// Combines G/L entries with identical account, posting date, and dimensions into summary entries.
         /// </summary>
         field(65; "Summarize G/L Entries"; Boolean)
@@ -489,7 +501,14 @@ table 98 "General Ledger Setup"
             TableRelation = Currency;
 
             trigger OnValidate()
+            var
+                IsHandled: Boolean;
             begin
+                IsHandled := false;
+                OnBeforeValidateAdditionalReportingCurrency("Additional Reporting Currency", xRec."Additional Reporting Currency", IsHandled);
+                if IsHandled then
+                    exit;
+
                 if ("Additional Reporting Currency" <> xRec."Additional Reporting Currency") and
                    ("Additional Reporting Currency" <> '')
                 then begin
@@ -1857,6 +1876,19 @@ table 98 "General Ledger Setup"
     /// <param name="NewDimensionCode">New dimension code that was assigned</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateDimValueGlobalDimNo(ShortCutDimNo: Integer; OldDimensionCode: Code[20]; NewDimensionCode: Code[20])
+    begin
+    end;
+
+
+    /// <summary>
+    /// Integration event raised before validating the Additional Reporting Currency field.
+    /// Enables custom validation logic and the ability to bypass the standard adjustment and analysis view processing.
+    /// </summary>
+    /// <param name="AdditionalReportingCurrency">New additional reporting currency code being validated, can be modified by subscribers</param>
+    /// <param name="xRecAdditionalReportingCurrency">Previous additional reporting currency code before the change</param>
+    /// <param name="IsHandled">Set to true to bypass standard validation logic</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateAdditionalReportingCurrency(var AdditionalReportingCurrency: Code[10]; xRecAdditionalReportingCurrency: Code[10]; var IsHandled: Boolean)
     begin
     end;
 }

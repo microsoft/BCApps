@@ -13,6 +13,7 @@ report 846 "Cash Flow Date List"
     RDLCLayout = './CashFlow/Reports/CashFlowDateList.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Cash Flow Date List';
+    ToolTip = 'View forecast entries for a period of time that you specify. The registered cash flow forecast entries are organized by source types, such as receivables, sales orders, payables, and purchase orders. You specify the number of periods and their length.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

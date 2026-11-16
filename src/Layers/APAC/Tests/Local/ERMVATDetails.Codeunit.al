@@ -307,8 +307,8 @@ codeunit 141038 "ERM VAT - Details"
         VATEntry.SetRange("Bill-to/Pay-to No.", VendCustNo);
         VATEntry.SetRange(Base, LineBase);
         VATEntry.FindFirst();
-        VATEntry.TestField("Additional-Currency Amount", VATAmountACY);
-        VATEntry.TestField("Additional-Currency Base", VATBaseACY);
+        Assert.AreNearlyEqual(VATAmountACY, VATEntry."Additional-Currency Amount", LibraryERM.GetAmountRoundingPrecision(), AmountMustBeEqual);
+        Assert.AreNearlyEqual(VATBaseACY, VATEntry."Additional-Currency Base", LibraryERM.GetAmountRoundingPrecision(), AmountMustBeEqual);
     end;
 
     local procedure VerifyPostedSalesVATEntries(DocumentNo: Code[20]; CurrencyCode: Code[10]; CustomerNo: Code[20])

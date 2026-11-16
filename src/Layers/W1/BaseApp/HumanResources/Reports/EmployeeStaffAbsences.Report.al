@@ -13,6 +13,7 @@ report 5204 "Employee - Staff Absences"
     RDLCLayout = './HumanResources/Reports/EmployeeStaffAbsences.rdlc';
     ApplicationArea = BasicHR;
     Caption = 'Staff Absences';
+    ToolTip = 'View a list of employee absences by date. The list includes the cause of each employee absence.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

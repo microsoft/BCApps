@@ -34,17 +34,13 @@ codeunit 27032 "Update CFDI Fields Sales Doc"
         Customer.FindSet();
         repeat
             SalesHeader.SetRange("Bill-to Customer No.", Customer."No.");
-            if not SalesHeader.IsEmpty() then begin
-                SalesHeader.ModifyAll("CFDI Purpose", Customer."CFDI Purpose");
-                SalesHeader.ModifyAll("CFDI Relation", Customer."CFDI Relation");
-            end;
+            if not SalesHeader.IsEmpty() then
+                SalesHeader.ModifyAll("CFDI Purpose", Customer."CFDI Purpose", "CFDI Relation", Customer."CFDI Relation");
 
             SalesHeader.SetRange("Bill-to Customer No.", '');
             SalesHeader.SetRange("Sell-to Customer No.", Customer."No.");
-            if not SalesHeader.IsEmpty() then begin
-                SalesHeader.ModifyAll("CFDI Purpose", Customer."CFDI Purpose");
-                SalesHeader.ModifyAll("CFDI Relation", Customer."CFDI Relation");
-            end;
+            if not SalesHeader.IsEmpty() then
+                SalesHeader.ModifyAll("CFDI Purpose", Customer."CFDI Purpose", "CFDI Relation", Customer."CFDI Relation");
 
             SalesInvoiceHeader.SetFilter(
               "Electronic Document Status", '%1|%2|%3',
@@ -65,16 +61,12 @@ codeunit 27032 "Update CFDI Fields Sales Doc"
               SalesCrMemoHeader."Electronic Document Status"::"Stamp Request Error",
               SalesCrMemoHeader."Electronic Document Status"::"Cancel Error");
             SalesCrMemoHeader.SetRange("Bill-to Customer No.", Customer."No.");
-            if not SalesCrMemoHeader.IsEmpty() then begin
-                SalesCrMemoHeader.ModifyAll("CFDI Purpose", Customer."CFDI Purpose");
-                SalesCrMemoHeader.ModifyAll("CFDI Relation", Customer."CFDI Relation");
-            end;
+            if not SalesCrMemoHeader.IsEmpty() then
+                SalesCrMemoHeader.ModifyAll("CFDI Purpose", Customer."CFDI Purpose", "CFDI Relation", Customer."CFDI Relation");
             SalesCrMemoHeader.SetRange("Bill-to Customer No.", '');
             SalesCrMemoHeader.SetRange("Sell-to Customer No.", Customer."No.");
-            if not SalesCrMemoHeader.IsEmpty() then begin
-                SalesCrMemoHeader.ModifyAll("CFDI Purpose", Customer."CFDI Purpose");
-                SalesCrMemoHeader.ModifyAll("CFDI Relation", Customer."CFDI Relation");
-            end;
+            if not SalesCrMemoHeader.IsEmpty() then
+                SalesCrMemoHeader.ModifyAll("CFDI Purpose", Customer."CFDI Purpose", "CFDI Relation", Customer."CFDI Relation");
         until Customer.Next() = 0;
     end;
 

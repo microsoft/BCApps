@@ -1788,6 +1788,10 @@ codeunit 148103 "SAF-T XML Tests"
         TempXMLBuffer.Next();
         VerifyChildElementsCount(TempChildXMLBuffer, TempXMLBuffer, 1);
         SAFTTestHelper.AssertCurrentElementValue(TempChildXMLBuffer, 'n1:Amount', SAFTTestHelper.FormatAmount(PaymentAmount));
+
+        // [THEN] SAF-T 1.20 retains its signed debit/credit column totals after reversal
+        SAFTTestHelper.AssertCurrentValue(TempXMLBuffer, '/n1:AuditFile/n1:GeneralLedgerEntries/n1:TotalDebit', '0');
+        SAFTTestHelper.AssertCurrentValue(TempXMLBuffer, '/n1:AuditFile/n1:GeneralLedgerEntries/n1:TotalCredit', '0');
     end;
 
     [Test]

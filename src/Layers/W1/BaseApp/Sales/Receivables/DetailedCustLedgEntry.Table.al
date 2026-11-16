@@ -13,6 +13,7 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Security.AccessControl;
@@ -376,9 +377,15 @@ table 379 "Detailed Cust. Ledg. Entry"
         field(95; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
+            DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
+        }
+        field(7000004; "Excluded from calculation"; Boolean)
+        {
+            Caption = 'Excluded from calculation';
+            Editable = false;
         }
     }
 
@@ -388,7 +395,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         {
             Clustered = true;
         }
-        key(Key2; "Customer No.", "Currency Code")
+        key(Key2; "Customer No.", "Currency Code", "Excluded from calculation")
         {
             SumIndexFields = Amount, "Amount (LCY)";
         }
@@ -400,7 +407,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         {
             IncludedFields = Amount, "Amount (LCY)";
         }
-        key(Key6; "Customer No.", "Currency Code", "Initial Entry Global Dim. 1", "Initial Entry Global Dim. 2", "Initial Entry Due Date", "Posting Date")
+        key(Key6; "Customer No.", "Currency Code", "Initial Entry Global Dim. 1", "Initial Entry Global Dim. 2", "Initial Entry Due Date", "Posting Date", "Excluded from calculation")
         {
             IncludedFields = Amount, "Amount (LCY)";
         }
@@ -430,7 +437,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         }
         key(Key14; "Customer No.", "Initial Entry Due Date")
         {
-            IncludedFields = Amount, "Amount (LCY)";
+            IncludedFields = Amount, "Amount (LCY)", "Excluded from calculation";
         }
     }
 
@@ -444,6 +451,18 @@ table 379 "Detailed Cust. Ledg. Entry"
     trigger OnInsert()
     begin
         SetLedgerEntryAmount();
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Detailed Cust. Ledg. Entry", 'r')]
+    /// <summary>
+    /// Retrieves the next entry number from the Detailed Cust. Ledg. Entry table.
+    /// </summary>
+    /// <returns>Next Detailed Cust. Ledg. Entry number to be used in the system</returns>
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Detailed Cust. Ledg. Entry"));
     end;
 
     /// <summary>

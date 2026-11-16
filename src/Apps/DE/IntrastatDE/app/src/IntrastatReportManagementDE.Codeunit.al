@@ -493,7 +493,7 @@ codeunit 11029 IntrastatReportManagementDE
         FileNameLbl: Label '%1.xml', Locked = true;
         ZipFileNameLbl: Label 'Intrastat-%1.zip', Comment = '%1 - Statistics Period';
         IDEVRequiresMaterialNoErr: Label 'To export without a Material No., set the Submission Channel to eSTATISTIK.CORE. The IDEV format requires the Material No. (Company No.) in the Company Information.';
-        RegNoExcludeCharsTxt: Label 'ABCDEFGHIJKLMNOPQRSTUVWXYZ/-.+', Comment = 'Locked. Do not translate.';
+        RegNoExcludeCharsTxt: Label 'ABCDEFGHIJKLMNOPQRSTUVWXYZ/-.+', Locked = true;
         LocalNamespaceURILbl: Label 'http://www.w3.org/2001/XMLSchema-instance', Locked = true;
         StartDate, CreationDate : Date;
         CreationTime: Time;

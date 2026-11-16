@@ -1,7 +1,11 @@
+#if not CLEAN29
 codeunit 144010 "Company Field Report Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the FI Core app.';
+    ObsoleteTag = '29.0';
 
     trigger OnRun()
     begin
@@ -23,21 +27,11 @@ codeunit 144010 "Company Field Report Test"
     local procedure Initialize()
     var
         SalesAndReceivablesSetup: Record "Sales & Receivables Setup";
-        FeatureKey: Record "Feature Key";
-        FeatureKeyUpdateStatus: Record "Feature Data Update Status";
     begin
         LibrarySales.SetCreditWarningsToNoWarnings();
         LibrarySales.SetStockoutWarning(false);
         LibraryVariableStorage.Clear();
 
-        if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::None;
-            FeatureKey.Modify();
-        end;
-        if FeatureKeyUpdateStatus.Get('ReminderTermsCommunicationTexts', CompanyName()) then begin
-            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
-            FeatureKeyUpdateStatus.Modify();
-        end;
 
         LibraryReportDataset.Reset();
         CompanyInformation.FindFirst();
@@ -183,11 +177,6 @@ codeunit 144010 "Company Field Report Test"
                         LibraryReportDataset.GetElementValueInCurrentRow('CompanyInfoBusinessIdCode', CompanyInfoBusinessIdCode);
                         LibraryReportDataset.GetElementValueInCurrentRow('CompanyInfoegHomeCity', CompanyInfoRegHomeCity);
                     end;
-                3:
-                    begin
-                        LibraryReportDataset.GetElementValueInCurrentRow('CompanyInfoBusinessIdentityCode', CompanyInfoBusinessIdCode);
-                        LibraryReportDataset.GetElementValueInCurrentRow('CompanyInfoRegisteredHomeCity', CompanyInfoRegHomeCity);
-                    end;
                 4:
                     begin
                         LibraryReportDataset.GetElementValueInCurrentRow('CompanyInfoBusinessIDCode', CompanyInfoBusinessIdCode);
@@ -205,29 +194,6 @@ codeunit 144010 "Company Field Report Test"
     begin
         Reply := false;
     end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure VATVIESDeclarationTaxAuthReportHandler(var VATVIESDeclarationTaxAuthReport: TestRequestPage "VAT- VIES Declaration Tax Auth")
-    begin
-        VATVIESDeclarationTaxAuthReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [Test]
-    [HandlerFunctions('VATVIESDeclarationTaxAuthReportHandler')]
-    [Scope('OnPrem')]
-    procedure VATVIESDeclarationTaxAuthReport()
-    var
-        VATVIESDeclarationTaxAuthReport: Report "VAT- VIES Declaration Tax Auth";
-    begin
-        Initialize();
-
-        VATVIESDeclarationTaxAuthReport.UseRequestPage(true);
-        VATVIESDeclarationTaxAuthReport.InitializeRequest(true, WorkDate(), WorkDate() + 365, '');
-        VATVIESDeclarationTaxAuthReport.Run();
-        TestBusinessIdentityandHomeCity(3);
-    end;
-
 
     [RequestPageHandler]
     [Scope('OnPrem')]
@@ -767,3 +733,4 @@ codeunit 144010 "Company Field Report Test"
 
 
 }
+#endif

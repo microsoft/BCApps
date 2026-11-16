@@ -61,6 +61,7 @@ codeunit 149901 "Subc. Whse Put-Away LastOp."
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
         LibrarySetupStorage.Save(Database::"General Ledger Setup");
 
         IsInitialized := true;

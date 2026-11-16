@@ -11,8 +11,8 @@ page 36999 "Daily Sales"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Daily Sales';
-    AboutTitle = 'About Daily Sales';
+    Caption = 'Daily Sales (Power BI)';
+    AboutTitle = 'About Daily Sales (Power BI)';
     AboutText = 'The Daily Sales report offers a detailed analysis of sales amounts by weekday. The tabular report highlights trends by using conditional formatting to display figures in a gradient from low to high.';
 
     layout

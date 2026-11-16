@@ -15,6 +15,7 @@ using System.Utilities;
 report 411 "Vendor - Payment Receipt"
 {
     Caption = 'Vendor - Payment Receipt';
+    ToolTip = 'View a document showing which vendor ledger entries that a payment has been applied to.';
     ApplicationArea = Suite;
     UsageCategory = Documents;
     WordMergeDataItem = "Vendor Ledger Entry";

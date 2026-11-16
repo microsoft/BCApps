@@ -781,6 +781,7 @@ codeunit 18318 "GST Settlement"
     var
         GSTPaymentBuffer: Record "GST Payment Buffer";
     begin
+        GSTPaymentBuffer.SetCurrentKey("GST Registration No.", "Document No.", "Sequence No.");
         GSTPaymentBuffer.SetRange("GST Registration No.", GSTINNo);
         GSTPaymentBuffer.SetRange("Document No.", DocumentNo);
         if GSTPaymentBuffer.FindSet() then
@@ -3058,6 +3059,7 @@ codeunit 18318 "GST Settlement"
             GSTPaymentBufferDetails.DeleteAll();
 
         GSTPaymentBuffer.Reset();
+        GSTPaymentBuffer.SetCurrentKey("GST Registration No.", "Document No.", "Sequence No.");
         GSTPaymentBuffer.SetRange("GST Registration No.", GSTINNo);
         GSTPaymentBuffer.SetRange("Document No.", DocumentNo);
         if GSTPaymentBuffer.FindSet() then

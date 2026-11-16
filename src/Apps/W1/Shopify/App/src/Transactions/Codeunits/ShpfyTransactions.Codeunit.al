@@ -93,6 +93,7 @@ codeunit 30194 "Shpfy Transactions"
         JsonHelper.GetValueIntoField(JOrderTransaction, 'errorCode', RecordRef, OrderTransaction.FieldNo("Error Code"));
         JsonHelper.GetValueIntoField(JOrderTransaction, 'paymentId', RecordRef, OrderTransaction.FieldNo("Payment Id"));
         JsonHelper.GetValueIntoField(JOrderTransaction, 'amountSet.shopMoney.amount', RecordRef, OrderTransaction.FieldNo(Amount));
+        JsonHelper.GetValueIntoField(JOrderTransaction, 'amountSet.shopMoney.currencyCode', RecordRef, OrderTransaction.FieldNo(Currency));
         JsonHelper.GetValueIntoField(JOrderTransaction, 'amountSet.presentmentMoney.amount', RecordRef, OrderTransaction.FieldNo("Presentment Amount"));
         JsonHelper.GetValueIntoField(JOrderTransaction, 'amountSet.presentmentMoney.currencyCode', RecordRef, OrderTransaction.FieldNo("Presentment Currency"));
         JsonHelper.GetValueIntoField(JOrderTransaction, 'amountRoundingSet.shopMoney.amount', RecordRef, OrderTransaction.FieldNo("Rounding Amount"));

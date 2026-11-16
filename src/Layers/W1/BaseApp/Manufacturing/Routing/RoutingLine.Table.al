@@ -615,6 +615,30 @@ table 99000764 "Routing Line"
             until Next() = 0;
     end;
 
+    internal procedure CheckPreviousAndNextForTemp()
+    var
+        TempAffectedRoutingLine: Record "Routing Line" temporary;
+        PrevOperNo: Code[30];
+        NextOperNo: Code[30];
+    begin
+        PrevOperNo := Rec."Previous Operation No.";
+        NextOperNo := Rec."Next Operation No.";
+
+        TempAffectedRoutingLine.Copy(Rec, true);
+
+        if PrevOperNo <> '' then
+            if TempAffectedRoutingLine.Get(Rec."Routing No.", Rec."Version Code", PrevOperNo) then begin
+                TempAffectedRoutingLine."Next Operation No." := NextOperNo;
+                TempAffectedRoutingLine.Modify();
+            end;
+
+        if NextOperNo <> '' then
+            if TempAffectedRoutingLine.Get(Rec."Routing No.", Rec."Version Code", NextOperNo) then begin
+                TempAffectedRoutingLine."Previous Operation No." := PrevOperNo;
+                TempAffectedRoutingLine.Modify();
+            end;
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterDeleteRelations(RoutingLine: Record "Routing Line")
     begin
@@ -675,4 +699,3 @@ table 99000764 "Routing Line"
     begin
     end;
 }
-

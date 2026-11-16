@@ -226,7 +226,6 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'Cash Flow Date List';
                 Image = "Report";
                 RunObject = Report "Cash Flow Date List";
-                ToolTip = 'View forecast entries for a period of time that you specify. The registered cash flow forecast entries are organized by source types, such as receivables, sales orders, payables, and purchase orders. You specify the number of periods and their length.';
             }
             separator(Action115)
             {
@@ -339,7 +338,6 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'Cost Accounting P/L Statement';
                 Image = "Report";
                 RunObject = Report "Cost Acctg. Statement";
-                ToolTip = 'View the credit and debit balances per cost type, together with the chart of cost types.';
             }
             action("CA P/L Statement per Period")
             {
@@ -347,7 +345,6 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'CA P/L Statement per Period';
                 Image = "Report";
                 RunObject = Report "Cost Acctg. Stmt. per Period";
-                ToolTip = 'View profit and loss for cost types over two periods with the comparison as a percentage.';
             }
             action("CA P/L Statement with Budget")
             {
@@ -355,7 +352,6 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'CA P/L Statement with Budget';
                 Image = "Report";
                 RunObject = Report "Cost Acctg. Statement/Budget";
-                ToolTip = 'View a comparison of the balance to the budget figures and calculates the variance and the percent variance in the current accounting period, the accumulated accounting period, and the fiscal year.';
             }
             action("Cost Accounting Analysis")
             {
@@ -363,7 +359,6 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'Cost Accounting Analysis';
                 Image = "Report";
                 RunObject = Report "Cost Acctg. Analysis";
-                ToolTip = 'View balances per cost type with columns for seven fields for cost centers and cost objects. It is used as the cost distribution sheet in Cost accounting. The structure of the lines is based on the chart of cost types. You define up to seven cost centers and cost objects that appear as columns in the report.';
             }
             separator(Action1130008)
             {
@@ -1059,19 +1054,6 @@ page 9001 "Accounting Manager Role Center"
                 RunObject = Report "Calc. and Post VAT Settlement";
                 ToolTip = 'Close open VAT entries and transfers purchase and sales VAT amounts to the VAT settlement account. For every VAT posting group, the batch job finds all the VAT entries in the VAT Entry table that are included in the filters in the definition window.';
             }
-#if not CLEAN27
-            action("Periodic VAT Settlement List")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Periodic VAT Settlement List';
-                Image = ListPage;
-                RunObject = Page "Periodic VAT Settlement List";
-                ToolTip = 'View the list of periodic VAT settlements.';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'Replaced by VAT settlement per activity code.';
-                ObsoleteTag = '27.0';
-            }
-#else
             action("Periodic VAT Settl. List")
             {
                 ApplicationArea = Basic, Suite;
@@ -1080,7 +1062,6 @@ page 9001 "Accounting Manager Role Center"
                 RunObject = Page "Periodic VAT Settl. List";
                 ToolTip = 'View the list of periodic VAT settlements.';
             }
-#endif
             action("Withholding Tax Card")
             {
                 ApplicationArea = Basic, Suite;

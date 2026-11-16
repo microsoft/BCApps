@@ -386,6 +386,7 @@ codeunit 427 ICInboxOutboxMgt
         SalesInvLine.SetRange("Document No.", SalesInvHdr."No.");
         if RoundingLineNo <> 0 then
             SalesInvLine.SetRange("Line No.", 0, RoundingLineNo - 1);
+        OnCreateOutboxSalesInvTransOnBeforeLoop(SalesInvLine);
         if SalesInvLine.FindSet() then
             repeat
                 IsCommentType := (SalesInvLine.Type = SalesInvLine.Type::" ");
@@ -511,6 +512,7 @@ codeunit 427 ICInboxOutboxMgt
         SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHdr."No.");
         if RoundingLineNo <> 0 then
             SalesCrMemoLine.SetRange("Line No.", 0, RoundingLineNo - 1);
+        OnCreateOutboxSalesCrMemoTransOnBeforeLoop(SalesCrMemoLine);
         if SalesCrMemoLine.FindSet() then
             repeat
                 IsCommentType := (SalesCrMemoLine.Type = SalesCrMemoLine.Type::" ");
@@ -4207,6 +4209,26 @@ codeunit 427 ICInboxOutboxMgt
     /// <param name="ICOutBoxSalesHeader">Parent IC outbox sales header</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateOutboxSalesInvTransOnBeforeICOutBoxSalesLineInsert(var ICOutboxSalesLine: Record "IC Outbox Sales Line"; SalesInvLine: Record "Sales Invoice Line"; ICOutBoxSalesHeader: Record "IC Outbox Sales Header")
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised before looping over the sales invoice lines in CreateOutboxSalesInvTrans.
+    /// Allows extensions to apply additional filters to the sales invoice line record set before the loop iterates.
+    /// </summary>
+    /// <param name="SalesInvLine">The filtered sales invoice line record set that is about to be processed.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateOutboxSalesInvTransOnBeforeLoop(var SalesInvLine: Record "Sales Invoice Line")
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised before looping over the sales credit memo lines in CreateOutboxSalesCrMemoTrans.
+    /// Allows extensions to apply additional filters to the sales credit memo line record set before the loop iterates.
+    /// </summary>
+    /// <param name="SalesCrMemoLine">The filtered sales credit memo line record set that is about to be processed.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateOutboxSalesCrMemoTransOnBeforeLoop(var SalesCrMemoLine: Record "Sales Cr.Memo Line")
     begin
     end;
 

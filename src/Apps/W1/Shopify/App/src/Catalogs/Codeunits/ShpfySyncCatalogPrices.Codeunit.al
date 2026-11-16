@@ -13,36 +13,12 @@ using Microsoft.Inventory.Item;
 codeunit 30295 "Shpfy Sync Catalog Prices"
 {
     Access = Internal;
-    TableNo = "Shpfy Shop";
-
-    trigger OnRun()
-    var
-        Catalog: Record "Shpfy Catalog";
-        CatalogIds: List of [BigInteger];
-    begin
-        SetShop(Rec);
-        Catalog.SetRange("Shop Code", Shop.Code);
-        Catalog.SetRange("Sync Prices", true);
-        if CatalogType <> CatalogType::" " then
-            Catalog.SetRange("Catalog Type", CatalogType);
-        if CompanyId <> '' then
-            Catalog.SetRange("Company SystemId", CompanyId);
-        if Catalog.FindSet() then
-            repeat
-                if not CatalogIds.Contains(Catalog.Id) then begin
-                    CatalogIds.Add(Catalog.Id);
-                    ProductPriceCalc.SetShopAndCatalog(Shop, Catalog);
-                    SyncCatalogPrices(Catalog);
-                end;
-            until Catalog.Next() = 0;
-    end;
 
     var
         Shop: Record "Shpfy Shop";
         CatalogAPI: Codeunit "Shpfy Catalog API";
         ProductPriceCalc: Codeunit "Shpfy Product Price Calc.";
-        CompanyId: Text;
-        CatalogType: Enum "Shpfy Catalog Type";
+        ProcessedCatalogIds: List of [BigInteger];
 
     internal procedure SyncCatalogPrices(var Catalog: Record "Shpfy Catalog")
     var
@@ -105,21 +81,25 @@ codeunit 30295 "Shpfy Sync Catalog Prices"
         end;
     end;
 
-    local procedure SetShop(ShopifyShop: Record "Shpfy Shop")
+    internal procedure SetShop(ShopifyShop: Record "Shpfy Shop")
     begin
         Shop := ShopifyShop;
         Shop.SetRecFilter();
         CatalogAPI.SetShop(Shop);
+        Clear(ProcessedCatalogIds);
     end;
 
-    internal procedure SetCompanyId(ShopifyCompanyId: Text)
+    internal procedure SyncCatalog(var Catalog: Record "Shpfy Catalog")
     begin
-        CompanyId := ShopifyCompanyId;
+        if ProcessedCatalogIds.Contains(Catalog.Id) then
+            exit;
+        ProcessedCatalogIds.Add(Catalog.Id);
+        ProductPriceCalc.SetShopAndCatalog(Shop, Catalog);
+        SyncCatalogPrices(Catalog);
     end;
 
     internal procedure SetCatalogType(ShopifyCatalogType: Enum "Shpfy Catalog Type")
     begin
-        CatalogType := ShopifyCatalogType;
         CatalogAPI.SetCatalogType(ShopifyCatalogType);
     end;
 }

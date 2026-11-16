@@ -105,7 +105,6 @@ page 274 "Resource Registers"
                 Caption = 'Delete Empty Resource Registers';
                 Image = Delete;
                 RunObject = Report "Delete Empty Res. Registers";
-                ToolTip = 'Find and delete empty resource registers.';
             }
         }
         area(Promoted)

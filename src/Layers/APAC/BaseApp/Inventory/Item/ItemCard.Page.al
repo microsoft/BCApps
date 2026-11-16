@@ -398,6 +398,13 @@ page 30 "Item Card"
                         Enabled = IsInventoriable;
                         Importance = Additional;
                     }
+                    field("Overhead Rate"; Rec."Overhead Rate")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Enabled = IsInventoriable;
+                        Importance = Additional;
+                        ToolTip = 'Specifies the item''s indirect cost as an absolute amount.';
+                    }
                     field("Last Direct Cost"; Rec."Last Direct Cost")
                     {
                         ApplicationArea = Basic, Suite;
@@ -1594,9 +1601,10 @@ page 30 "Item Card"
                     action("Export Item Data")
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Export Item Data';
+                        Caption = 'Export item data';
                         Image = ExportFile;
                         ToolTip = 'Use this function to export item related data to text file (you can attach this file to support requests in case you may have issues with costing calculation).';
+                        Visible = not ManufacturingEnabled;
 
                         trigger OnAction()
                         var
@@ -2523,6 +2531,7 @@ page 30 "Item Card"
         EnableShowShowEnforcePositivInventory();
         EnableShowVariantMandatory();
         EntityTextEnabled := MarketingText.IsMarketingTextVisible();
+        ManufacturingEnabled := ApplicationAreaMgmtFacade.IsManufacturingEnabled();
     end;
 
     var
@@ -2534,6 +2543,7 @@ page 30 "Item Card"
         PrivacyNotice: Codeunit "Privacy Notice";
         FlowServiceManagement: Codeunit "Flow Service Management";
         IsInventoryAdjmtAllowed: Boolean;
+        ManufacturingEnabled: Boolean;
         ShowStockoutWarningDefaultYes: Boolean;
         ShowStockoutWarningDefaultNo: Boolean;
         ShowPreventNegInventoryDefaultYes: Boolean;

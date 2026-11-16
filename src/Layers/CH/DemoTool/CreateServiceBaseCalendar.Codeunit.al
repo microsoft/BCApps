@@ -63,19 +63,13 @@ codeunit 117507 "Create Service Base Calendar"
         BaseCalChange: Record "Base Calendar Change";
         BaseCalendar: Record "Base Calendar";
         Date: Record Date;
-        MakeAdjustments: Codeunit "Make Adjustments";
         StartDate: Date;
         XSERVICE: Label 'SERVICE';
         XServiceCalendar: Label 'Service Calendar';
-        XGB: Label 'GB';
         XWeekend: Label 'Weekend';
         XNewYearsEve: Label 'New Years Eve';
         XChristmasDay: Label 'Christmas Day';
         XBoxingDay: Label 'Boxing Day';
-        XMayDayBankHoliday: Label 'May Day Bank Holiday';
-        XBankHoliday: Label 'Bank Holiday';
-        XSummerBankHolidayScotland: Label 'Summer Bank Holiday, Scotland';
-        XSummerBankHoliday: Label 'Summer Bank Holiday';
         XCH: Label 'CH';
         XCHBaseNationalCalendar: Label 'CH Base National Calendar';
         XNatHol: Label 'National Holiday';
@@ -110,42 +104,13 @@ codeunit 117507 "Create Service Base Calendar"
         //----------------------------------------------------------------
         //My Bank Holiday, First and Last Monday of each May is a holiday
         //----------------------------------------------------------------
-        StartDate := MakeAdjustments.AdjustDate(19040501D);
-        repeat
-            InsertBaseCalChange(
-              XGB, BaseCalChange."Recurring System"::" ", BaseCalChange.Day::Monday, true, GetPeriodNoOneDate('>'), XMayDayBankHoliday);
-            StartDate := CalcDate('<1Y>', StartDate);
-        until StartDate = MakeAdjustments.AdjustDate(19100501D);
-
-        StartDate := CalcDate('<-1D>', MakeAdjustments.AdjustDate(19040601D));
-        repeat
-            InsertBaseCalChange(
-              XGB, BaseCalChange."Recurring System"::" ", BaseCalChange.Day::Monday, true, GetPeriodNoOneDate('<'), XBankHoliday);
-            StartDate := CalcDate('<1Y>', StartDate);
-        until StartDate = CalcDate('<-1D>', MakeAdjustments.AdjustDate(19100601D));
-
-        // -------------------------------------------------------------------
-        // My Bank Holiday, First and Last Monday of each Augest is a holiday
-        // -------------------------------------------------------------------
-        StartDate := MakeAdjustments.AdjustDate(19040801D);
-        repeat
-            InsertBaseCalChange(
-              XGB, BaseCalChange."Recurring System"::" ", BaseCalChange.Day::Monday, true, GetPeriodNoOneDate('>'),
-              XSummerBankHolidayScotland);
-            StartDate := CalcDate('<1Y>', StartDate);
-        until StartDate = MakeAdjustments.AdjustDate(19100801D);
-
-        StartDate := CalcDate('<-1D>', MakeAdjustments.AdjustDate(19040901D));
-        repeat
-            InsertBaseCalChange(
-              XGB, BaseCalChange."Recurring System"::" ", BaseCalChange.Day::Monday, true, GetPeriodNoOneDate('<'), XSummerBankHoliday);
-            StartDate := CalcDate('<1Y>', StartDate);
-        until StartDate = CalcDate('<-1D>', MakeAdjustments.AdjustDate(19100901D))
     end;
 
     procedure GetPeriodNoOneDate(SkipDirection: Text[1]): Date
     begin
+#pragma warning disable AA0205 // Accepted: this public legacy helper is retained for downstream compatibility, and its externally observable state-dependent behavior must remain unchanged. Tracked by AB#640773.
         Date.Get(Date."Period Type"::Date, StartDate);
+#pragma warning restore AA0205
         if Date."Period No." <> 1 then
             repeat
                 Date.Find(SkipDirection);
@@ -176,4 +141,3 @@ codeunit 117507 "Create Service Base Calendar"
         exit(DMY2Date(MonthDay, Month, (Date2DMY(HolidayDate, 3) + DemoDataSetup."Starting Year" - 2)));
     end;
 }
-

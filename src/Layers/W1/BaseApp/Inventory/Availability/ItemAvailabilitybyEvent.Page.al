@@ -473,7 +473,6 @@ page 5530 "Item Availability by Event"
         ForecastName: Code[10];
         LastUpdateTime: DateTime;
         SelectedDate: Date;
-        IncludePlanningSuggestions: Boolean;
         IncludeBlanketOrders: Boolean;
         Emphasize: Boolean;
         EnableShowDocumentAction: Boolean;
@@ -484,6 +483,7 @@ page 5530 "Item Availability by Event"
         LocationFilter: Text;
         VariantFilter: Text;
         PeriodType: Option Day,Week,Month,Quarter,Year;
+        IncludePlanningSuggestions: Boolean;
 
     protected procedure InitAndCalculatePeriodEntries()
     begin

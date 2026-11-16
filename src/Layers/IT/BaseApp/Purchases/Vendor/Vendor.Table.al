@@ -486,7 +486,8 @@ table 23 Vendor
             CalcFormula = - sum("Detailed Vendor Ledg. Entry".Amount where("Vendor No." = field("No."),
                                                                            "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                            "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                           "Currency Code" = field("Currency Filter")));
+                                                                           "Currency Code" = field("Currency Filter"),
+                                                                           "Excluded from calculation" = const(false)));
             Caption = 'Balance';
             Editable = false;
             FieldClass = FlowField;
@@ -498,7 +499,8 @@ table 23 Vendor
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor No." = field("No."),
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                   "Currency Code" = field("Currency Filter")));
+                                                                                   "Currency Code" = field("Currency Filter"),
+                                                                                   "Excluded from calculation" = const(false)));
             Caption = 'Balance (LCY)';
             Editable = false;
             FieldClass = FlowField;
@@ -511,7 +513,8 @@ table 23 Vendor
                                                                            "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                            "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                            "Posting Date" = field("Date Filter"),
-                                                                           "Currency Code" = field("Currency Filter")));
+                                                                           "Currency Code" = field("Currency Filter"),
+                                                                           "Excluded from calculation" = const(false)));
             Caption = 'Net Change';
             Editable = false;
             FieldClass = FlowField;
@@ -524,7 +527,8 @@ table 23 Vendor
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                                    "Posting Date" = field("Date Filter"),
-                                                                                   "Currency Code" = field("Currency Filter")));
+                                                                                   "Currency Code" = field("Currency Filter"),
+                                                                                   "Excluded from calculation" = const(false)));
             Caption = 'Net Change (LCY)';
             Editable = false;
             FieldClass = FlowField;
@@ -577,7 +581,8 @@ table 23 Vendor
                                                                            "Initial Entry Due Date" = field(upperlimit("Date Filter")),
                                                                            "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                            "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                           "Currency Code" = field("Currency Filter")));
+                                                                           "Currency Code" = field("Currency Filter"),
+                                                                           "Excluded from calculation" = const(false)));
             Caption = 'Balance Due';
             Editable = false;
             FieldClass = FlowField;
@@ -590,7 +595,8 @@ table 23 Vendor
                                                                                    "Initial Entry Due Date" = field(upperlimit("Date Filter")),
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                   "Currency Code" = field("Currency Filter")));
+                                                                                   "Currency Code" = field("Currency Filter"),
+                                                                                   "Excluded from calculation" = const(false)));
             Caption = 'Balance Due (LCY)';
             Editable = false;
             FieldClass = FlowField;
@@ -939,13 +945,7 @@ table 23 Vendor
                 MailManagement.CheckValidEmailAddresses("E-Mail");
             end;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(103; "Home Page"; Text[255])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Home Page';
             ToolTip = 'Specifies the vendor''s web site.';
@@ -1287,6 +1287,18 @@ table 23 Vendor
         {
             Caption = 'Self-Billing Agreement';
             ToolTip = 'Specifies the value of the Self-Billing Agreement field.';
+
+            trigger OnValidate()
+            begin
+                if not Rec."Self-Billing Agreement" then
+                    Rec.TestField("Self-Billing Invoice Nos.", '');
+            end;
+        }
+        field(181; "Self-Billing Invoice Nos."; Code[20])
+        {
+            Caption = 'Self-Billing Invoice Nos.';
+            ToolTip = 'Specifies the number series that is used to assign numbers to self-billed purchase invoices for this vendor. If it is empty, the number series from the Posted Self-Billing Inv. Nos. field in Purchases & Payables Setup is used.';
+            TableRelation = "No. Series";
         }
         field(288; "Preferred Bank Account Code"; Code[20])
         {
@@ -1680,6 +1692,11 @@ table 23 Vendor
             Caption = 'Over-Receipt Code';
             ToolTip = 'Specifies the policy that will be used for the vendor if more items than ordered are received.';
             TableRelation = "Over-Receipt Code";
+        }
+        field(8551; "Receipt on Invoice Policy"; Enum "Receipt on Invoice Policy")
+        {
+            Caption = 'Receipt on Invoice Policy';
+            ToolTip = 'Specifies whether receipt on invoice is enabled automatically for new purchase orders from this vendor.';
         }
         field(12100; "Int. on Arrears Code"; Code[10])
         {
@@ -2906,32 +2923,41 @@ table 23 Vendor
 
     local procedure IsContactUpdateNeeded(): Boolean
     var
+        VendorBeforeModify: Record Vendor;
         VendContUpdate: Codeunit "VendCont-Update";
         UpdateNeeded: Boolean;
     begin
+        VendorBeforeModify.Copy(xRec);
+
+        if not IsTemporary then begin
+            VendorBeforeModify.Get("No.");
+            if VendorBeforeModify.SystemRowVersion <> xRec.SystemRowVersion then
+                VendorBeforeModify := xRec;
+        end;
+
         UpdateNeeded :=
-          (Name <> xRec.Name) or
-          ("Search Name" <> xRec."Search Name") or
-          ("Name 2" <> xRec."Name 2") or
-          (Address <> xRec.Address) or
-          ("Address 2" <> xRec."Address 2") or
-          (City <> xRec.City) or
-          ("Phone No." <> xRec."Phone No.") or
-          ("Mobile Phone No." <> xRec."Mobile Phone No.") or
-          ("Telex No." <> xRec."Telex No.") or
-          ("Territory Code" <> xRec."Territory Code") or
-          ("Currency Code" <> xRec."Currency Code") or
-          ("Language Code" <> xRec."Language Code") or
-          ("Purchaser Code" <> xRec."Purchaser Code") or
-          ("Country/Region Code" <> xRec."Country/Region Code") or
-          ("Fax No." <> xRec."Fax No.") or
-          ("Telex Answer Back" <> xRec."Telex Answer Back") or
-          ("Registration Number" <> xRec."Registration Number") or
-          ("VAT Registration No." <> xRec."VAT Registration No.") or
-          ("Post Code" <> xRec."Post Code") or
-          (County <> xRec.County) or
-          ("E-Mail" <> xRec."E-Mail") or
-          ("Home Page" <> xRec."Home Page");
+          (Name <> VendorBeforeModify.Name) or
+          ("Search Name" <> VendorBeforeModify."Search Name") or
+          ("Name 2" <> VendorBeforeModify."Name 2") or
+          (Address <> VendorBeforeModify.Address) or
+          ("Address 2" <> VendorBeforeModify."Address 2") or
+          (City <> VendorBeforeModify.City) or
+          ("Phone No." <> VendorBeforeModify."Phone No.") or
+          ("Mobile Phone No." <> VendorBeforeModify."Mobile Phone No.") or
+          ("Telex No." <> VendorBeforeModify."Telex No.") or
+          ("Territory Code" <> VendorBeforeModify."Territory Code") or
+          ("Currency Code" <> VendorBeforeModify."Currency Code") or
+          ("Language Code" <> VendorBeforeModify."Language Code") or
+          ("Purchaser Code" <> VendorBeforeModify."Purchaser Code") or
+          ("Country/Region Code" <> VendorBeforeModify."Country/Region Code") or
+          ("Fax No." <> VendorBeforeModify."Fax No.") or
+          ("Telex Answer Back" <> VendorBeforeModify."Telex Answer Back") or
+          ("Registration Number" <> VendorBeforeModify."Registration Number") or
+          ("VAT Registration No." <> VendorBeforeModify."VAT Registration No.") or
+          ("Post Code" <> VendorBeforeModify."Post Code") or
+          (County <> VendorBeforeModify.County) or
+          ("E-Mail" <> VendorBeforeModify."E-Mail") or
+          ("Home Page" <> VendorBeforeModify."Home Page");
 
         if not UpdateNeeded and not IsTemporary then
             UpdateNeeded := VendContUpdate.ContactNameIsBlank("No.");
@@ -2939,7 +2965,7 @@ table 23 Vendor
         if ForceUpdateContact then
             UpdateNeeded := true;
 
-        OnBeforeIsContactUpdateNeeded(Rec, xRec, UpdateNeeded, ForceUpdateContact);
+        OnBeforeIsContactUpdateNeeded(Rec, VendorBeforeModify, UpdateNeeded, ForceUpdateContact);
         exit(UpdateNeeded);
     end;
 

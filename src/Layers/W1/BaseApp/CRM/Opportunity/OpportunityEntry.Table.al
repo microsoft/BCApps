@@ -686,6 +686,7 @@ table 5093 "Opportunity Entry"
                     TempSalesCycleStageFirst.FindFirst();
                     "Sales Cycle Stage" := TempSalesCycleStageFirst.Stage;
                     "Sales Cycle Stage Description" := TempSalesCycleStageFirst.Description;
+                    "Chances of Success %" := TempSalesCycleStageFirst."Chances of Success %";
                     "Action Taken" := "Action Taken"::" ";
                     "Cancel Old To Do" := false;
                 end;
@@ -694,6 +695,7 @@ table 5093 "Opportunity Entry"
                     TempSalesCycleStageNext.FindFirst();
                     "Sales Cycle Stage" := TempSalesCycleStageNext.Stage;
                     "Sales Cycle Stage Description" := TempSalesCycleStageNext.Description;
+                    "Chances of Success %" := TempSalesCycleStageNext."Chances of Success %";
                     "Action Taken" := "Action Taken"::Next;
                 end;
             "Action Type"::Previous:
@@ -701,6 +703,7 @@ table 5093 "Opportunity Entry"
                     TempSalesCycleStagePrevious.FindFirst();
                     "Sales Cycle Stage" := TempSalesCycleStagePrevious.Stage;
                     "Sales Cycle Stage Description" := TempSalesCycleStagePrevious.Description;
+                    "Chances of Success %" := TempSalesCycleStagePrevious."Chances of Success %";
                     "Action Taken" := "Action Taken"::Previous;
                 end;
             "Action Type"::Skip:
@@ -708,6 +711,7 @@ table 5093 "Opportunity Entry"
                     TempSalesCycleStageSkip.FindFirst();
                     "Sales Cycle Stage" := TempSalesCycleStageSkip.Stage;
                     "Sales Cycle Stage Description" := TempSalesCycleStageSkip.Description;
+                    "Chances of Success %" := TempSalesCycleStageSkip."Chances of Success %";
                     "Action Taken" := "Action Taken"::Jumped;
                 end;
             "Action Type"::Update:
@@ -715,6 +719,7 @@ table 5093 "Opportunity Entry"
                     TempSalesCycleStageUpdate.FindFirst();
                     "Sales Cycle Stage" := TempSalesCycleStageUpdate.Stage;
                     "Sales Cycle Stage Description" := TempSalesCycleStageUpdate.Description;
+                    "Chances of Success %" := TempSalesCycleStageUpdate."Chances of Success %";
                     "Action Taken" := "Action Taken"::Updated;
                     "Cancel Old To Do" := false;
                 end;
@@ -723,6 +728,7 @@ table 5093 "Opportunity Entry"
                     TempSalesCycleStageJump.FindLast();
                     "Sales Cycle Stage" := TempSalesCycleStageJump.Stage;
                     "Sales Cycle Stage Description" := TempSalesCycleStageJump.Description;
+                    "Chances of Success %" := TempSalesCycleStageJump."Chances of Success %";
                     "Action Taken" := "Action Taken"::Jumped;
                 end;
         end;

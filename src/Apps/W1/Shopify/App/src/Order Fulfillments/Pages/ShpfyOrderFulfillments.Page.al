@@ -56,6 +56,11 @@ page 30112 "Shpfy Order Fulfillments"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the date and time when the fulfillment was last modified in Shopify.';
                 }
+                field(DeliveredAt; Rec."Delivered At")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the date and time when the fulfillment was delivered in Shopify.';
+                }
                 field(TrackingNumber; Rec."Tracking Number")
                 {
                     ApplicationArea = All;

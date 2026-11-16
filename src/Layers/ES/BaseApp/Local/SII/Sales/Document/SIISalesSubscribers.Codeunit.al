@@ -11,9 +11,12 @@ using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.RoleCenters;
 
-codeunit 7000127 "SII Sales Subscribers"
+#pragma warning disable AS0088
+codeunit 7000027 "SII Sales Subscribers"
 {
-    [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnAfterValidateBillToCustomerNoOnSII', '', false, false)]
+    Access = Internal;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnAfterValidateBillToCustomerNoOnSII', '', true, false)]
     local procedure SalesHeaderOnAfterValidateBillToCustomerNo(var SalesHeader: Record "Sales Header")
     var
         SIIManagement: Codeunit "SII Management";
@@ -22,7 +25,7 @@ codeunit 7000127 "SII Sales Subscribers"
         SIIManagement.UpdateSIIInfoInSalesDoc(SalesHeader);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnAfterValidateCorrectedInvoiceNoOnSII', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnAfterValidateCorrectedInvoiceNoOnSII', '', true, false)]
     local procedure SalesHeaderOnAfterValidateCorrectedInvoiceNo(var SalesHeader: Record "Sales Header")
     var
         SIIManagement: Codeunit "SII Management";
@@ -30,7 +33,7 @@ codeunit 7000127 "SII Sales Subscribers"
         SalesHeader.Validate("ID Type", SIIManagement.GetSalesIDType(SalesHeader."Bill-to Customer No.", SalesHeader."Correction Type", SalesHeader."Corrected Invoice No."));
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnAfterInitRecord', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnAfterInitRecord', '', true, false)]
     local procedure SalesHeaderOnAfterInitRecord(var SalesHeader: Record "Sales Header")
     var
         SIIManagement: Codeunit "SII Management";
@@ -38,7 +41,7 @@ codeunit 7000127 "SII Sales Subscribers"
         SIIManagement.UpdateSIIInfoInSalesDoc(SalesHeader);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnAfterValidateEvent', 'VAT Prod. Posting Group', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnAfterValidateEvent', 'VAT Prod. Posting Group', true, false)]
     local procedure SalesLineOnAfterValidateVATProdPostingGroup(var Rec: Record "Sales Line")
     var
         SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
@@ -46,7 +49,7 @@ codeunit 7000127 "SII Sales Subscribers"
         SIISchemeCodeMgt.UpdateSalesSpecialSchemeCodeInSalesLine(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", 'OnAfterCopyCustLedgerEntryFromGenJnlLine', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", 'OnAfterCopyCustLedgerEntryFromGenJnlLine', '', true, false)]
     local procedure OnAfterCopyCustLedgerEntryFromGenJnlLine(var CustLedgerEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin
         CustLedgerEntry."Invoice Type" := GenJournalLine."Sales Invoice Type";
@@ -61,7 +64,7 @@ codeunit 7000127 "SII Sales Subscribers"
         CustLedgerEntry."Do Not Send To SII" := GenJournalLine."Do Not Send To SII";
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Pstd. Sales Cr. Memo - Update", OnAfterRecordChanged, '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Pstd. Sales Cr. Memo - Update", OnAfterRecordChanged, '', true, false)]
     local procedure OnAfterRecordChanged(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; xSalesCrMemoHeader: Record "Sales Cr.Memo Header"; var IsChanged: Boolean)
     begin
         IsChanged := IsChanged or
@@ -76,7 +79,7 @@ codeunit 7000127 "SII Sales Subscribers"
           (SalesCrMemoHeader.GetSIILastSummaryDocNo() <> xSalesCrMemoHeader.GetSIILastSummaryDocNo());
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Credit Memo Hdr. - Edit", OnBeforeSalesCrMemoHeaderModify, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Credit Memo Hdr. - Edit", OnBeforeSalesCrMemoHeaderModify, '', true, false)]
     local procedure OnBeforeSalesCrMemoHeaderModify(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; FromSalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
         SalesCrMemoHeader."Operation Description" := FromSalesCrMemoHeader."Operation Description";
@@ -93,7 +96,7 @@ codeunit 7000127 "SII Sales Subscribers"
         SalesCrMemoHeader.SetSIILastSummaryDocNo(FromSalesCrMemoHeader.GetSIILastSummaryDocNo());
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Credit Memo Hdr. - Edit", OnRunOnAfterSalesCrMemoHeaderEdit, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Credit Memo Hdr. - Edit", OnRunOnAfterSalesCrMemoHeaderEdit, '', true, false)]
     local procedure OnRunOnAfterSalesCrMemoHeaderEdit(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
         UpdateSIIDocUploadState(SalesCrMemoHeader);
@@ -131,21 +134,21 @@ codeunit 7000127 "SII Sales Subscribers"
         SIIDocUploadState.Modify();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeSalesInvHeaderInsert, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeSalesInvHeaderInsert, '', true, false)]
     local procedure OnBeforeSalesInvHeaderInsert(var SalesInvHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header")
     begin
         SalesInvHeader.SetSIIFirstSummaryDocNo(SalesHeader.GetSIIFirstSummaryDocNo());
         SalesInvHeader.SetSIILastSummaryDocNo(SalesHeader.GetSIILastSummaryDocNo());
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeSalesCrMemoHeaderInsert, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeSalesCrMemoHeaderInsert, '', true, false)]
     local procedure OnBeforeSalesCrMemoHeaderInsert(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesHeader: Record "Sales Header")
     begin
         SalesCrMemoHeader.SetSIIFirstSummaryDocNo(SalesHeader.GetSIIFirstSummaryDocNo());
         SalesCrMemoHeader.SetSIILastSummaryDocNo(SalesHeader.GetSIILastSummaryDocNo());
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"SO Activities Calculate", OnAfterCalculateCueFieldValues, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"SO Activities Calculate", OnAfterCalculateCueFieldValues, '', true, false)]
     local procedure OnAfterCalculateCueFieldValues(var SalesCue: Record "Sales Cue")
     var
         SIIRecreateMissingEntries: Codeunit "SII Recreate Missing Entries";

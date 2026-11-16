@@ -216,7 +216,6 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'Cash Flow Date List';
                 Image = "Report";
                 RunObject = Report "Cash Flow Date List";
-                ToolTip = 'View forecast entries for a period of time that you specify. The registered cash flow forecast entries are organized by source types, such as receivables, sales orders, payables, and purchase orders. You specify the number of periods and their length.';
             }
             separator(Action115)
             {
@@ -288,30 +287,6 @@ page 9001 "Accounting Manager Role Center"
                 RunObject = Report "G/L - VAT Reconciliation";
                 ToolTip = 'Verify that the VAT amounts on the VAT statements match the amounts from the G/L entries.';
             }
-#if not CLEAN27
-            action("VAT Audit")
-            {
-                ApplicationArea = VAT;
-                Caption = 'VAT Audit';
-                Image = "Report";
-                RunObject = Report "VAT Audit";
-                ObsoleteReason = 'Moved to VAT Audit Reports GB app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-                ToolTip = 'Prepare for the HMC&E VAT audit by exports the relevant data for VAT auditors into comma-separated files.';
-            }
-            action("VAT Entry Exception List")
-            {
-                ApplicationArea = VAT;
-                Caption = 'VAT Entry Exception List';
-                Image = "Report";
-                RunObject = Report "VAT Entry Exception Report";
-                ObsoleteReason = 'Moved to VAT Audit Reports GB app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-                ToolTip = 'View or print the differences between the calculated VAT and the changes that occur because of rounding, VAT tolerance percentage, and discounts. The report also displays the difference in VAT amounts for the tax authorities.';
-            }
-#endif
             separator("VAT EU Reporting")
             {
                 Caption = 'VAT EU Reporting';
@@ -350,7 +325,6 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'Cost Accounting P/L Statement';
                 Image = "Report";
                 RunObject = Report "Cost Acctg. Statement";
-                ToolTip = 'View the credit and debit balances per cost type, together with the chart of cost types.';
             }
             action("CA P/L Statement per Period")
             {
@@ -358,7 +332,6 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'CA P/L Statement per Period';
                 Image = "Report";
                 RunObject = Report "Cost Acctg. Stmt. per Period";
-                ToolTip = 'View profit and loss for cost types over two periods with the comparison as a percentage.';
             }
             action("CA P/L Statement with Budget")
             {
@@ -366,7 +339,6 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'CA P/L Statement with Budget';
                 Image = "Report";
                 RunObject = Report "Cost Acctg. Statement/Budget";
-                ToolTip = 'View a comparison of the balance to the budget figures and calculates the variance and the percent variance in the current accounting period, the accumulated accounting period, and the fiscal year.';
             }
             action("Cost Accounting Analysis")
             {
@@ -374,7 +346,6 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'Cost Accounting Analysis';
                 Image = "Report";
                 RunObject = Report "Cost Acctg. Analysis";
-                ToolTip = 'View balances per cost type with columns for seven fields for cost centers and cost objects. It is used as the cost distribution sheet in Cost accounting. The structure of the lines is based on the chart of cost types. You define up to seven cost centers and cost objects that appear as columns in the report.';
             }
         }
         area(embedding)

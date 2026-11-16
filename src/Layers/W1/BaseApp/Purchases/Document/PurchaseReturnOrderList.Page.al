@@ -581,7 +581,6 @@ page 9311 "Purchase Return Order List"
                     Caption = 'Delete Invoiced Orders';
                     Image = Delete;
                     RunObject = Report "Delete Invd Purch. Ret. Orders";
-                    ToolTip = 'Delete orders that were not automatically deleted after completion. For example, when several purchase orders were completed by a single invoice.';
                 }
                 separator(Action1102601014)
                 {

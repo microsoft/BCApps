@@ -201,16 +201,6 @@ page 6408 "Workflow - Customer Entity"
                     ApplicationArea = All;
                     Caption = 'Blocked', Locked = true;
                 }
-#if not CLEAN27
-                field(invoiceCopies; Rec."Invoice Copies")
-                {
-                    ApplicationArea = All;
-                    Caption = 'Invoice Copies', Locked = true;
-                    ObsoleteReason = 'This field is not used consequently and hence does not work as expected. It should be retired.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';                    
-                }
-#endif
                 field(lastStatementNumber; Rec."Last Statement No.")
                 {
                     ApplicationArea = All;
@@ -246,17 +236,23 @@ page 6408 "Workflow - Customer Entity"
                     ApplicationArea = All;
                     Caption = 'Last Date Modified', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(dateFilter; Rec."Date Filter")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Date Filter', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(globalDimension1Filter; Rec."Global Dimension 1 Filter")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Global Dimension 1 Filter', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(globalDimension2Filter; Rec."Global Dimension 2 Filter")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Global Dimension 2 Filter', Locked = true;
@@ -481,7 +477,9 @@ page 6408 "Workflow - Customer Entity"
                     ApplicationArea = All;
                     Caption = 'VAT Bus. Posting Group', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(currencyFilter; Rec."Currency Filter")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Currency Filter', Locked = true;

@@ -701,8 +701,7 @@ codeunit 132547 "Test Data Exch.Import - XML"
         DataExchMapping.ModifyAll("Use as Intermediate Table", true);
         DataExchMapping.FindFirst();
         DataExchFieldMapping.SetRange("Data Exch. Def Code", DataExchDef.Code);
-        DataExchFieldMapping.ModifyAll("Target Table ID", DATABASE::"G/L Account");
-        DataExchFieldMapping.ModifyAll("Target Field ID", GLAccount.FieldNo(Picture));
+        DataExchFieldMapping.ModifyAll("Target Table ID", DATABASE::"G/L Account", "Target Field ID", GLAccount.FieldNo(Picture));
         DataExchFieldMapping.FindFirst();
 
         // Exercise.

@@ -117,6 +117,11 @@ report 20402 "Qlty. Inspection Copy Template"
         ASingleTemplateErr: Label 'A single template must be chosen. The filters supplied result in %1 templates.', Comment = '%1=the expected number of templates';
         MustSpecifyACodeAndDescriptionErr: Label 'You must specify a target code and description when Bulk Copy from Items is disabled.';
 
+    /// <summary>
+    /// Copies a template to an item-specific template when bulk item copying is enabled.
+    /// </summary>
+    /// <param name="CopyFromQltyInspectionTemplateHdr">The source template to copy.</param>
+    /// <param name="Item">The item whose number and description identify the target template.</param>
     local procedure CopyTemplateFromItem(CopyFromQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; Item: Record Item)
     var
         DescriptionToUse: Text[100];
@@ -129,6 +134,12 @@ report 20402 "Qlty. Inspection Copy Template"
         end;
     end;
 
+    /// <summary>
+    /// Creates or updates a target template and copies source lines and their result conditions without removing extra target lines.
+    /// </summary>
+    /// <param name="CopyFromQltyInspectionTemplateHdr">The source template to copy.</param>
+    /// <param name="SpecificTemplate">The target template code.</param>
+    /// <param name="DescriptionToCopy">The target template description.</param>
     local procedure CopyTemplate(CopyFromQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; SpecificTemplate: Code[20]; DescriptionToCopy: Text[100])
     var
         TargetQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";

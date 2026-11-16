@@ -126,6 +126,9 @@ table 18322 "GST Payment Buffer Details"
         {
             Clustered = true;
         }
+        key(LineOrder; "GST Registration No.", "Document No.", "Line No.")
+        {
+        }
     }
 
     fieldgroups

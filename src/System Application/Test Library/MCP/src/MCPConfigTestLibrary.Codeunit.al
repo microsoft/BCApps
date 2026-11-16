@@ -6,16 +6,18 @@
 namespace System.TestLibraries.MCP;
 
 using System.MCP;
-using System.Reflection;
 
 codeunit 130131 "MCP Config Test Library"
 {
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
 
-    procedure LookupAPIPageTools(var PageMetadata: Record "Page Metadata"): Boolean
+    procedure LookupAPIObjects(): Boolean
+    var
+        TempMCPAPIObjectBuffer: Record "MCP API Object Buffer";
+        ObjectType: Option;
     begin
-        exit(MCPConfigImplementation.LookupAPIPageTools(PageMetadata));
+        exit(MCPConfigImplementation.LookupAPIObjects(TempMCPAPIObjectBuffer, ObjectType, false));
     end;
 
     procedure AddToolsByAPIGroup(ConfigId: Guid)
@@ -26,11 +28,6 @@ codeunit 130131 "MCP Config Test Library"
     procedure AddStandardAPITools(ConfigId: Guid)
     begin
         MCPConfigImplementation.AddStandardAPITools(ConfigId);
-    end;
-
-    procedure LookupAPIQueryTools(var QueryMetadata: Record "Query Metadata"): Boolean
-    begin
-        exit(MCPConfigImplementation.LookupAPIQueryTools(QueryMetadata));
     end;
 
     procedure LookupAPIPublisher(var APIPublisher: Text; var APIGroup: Text)
@@ -49,9 +46,9 @@ codeunit 130131 "MCP Config Test Library"
         MCPConfigImplementation.LookupAPIGroup(TempMCPAPIPublisherGroup, APIPublisher, APIGroup);
     end;
 
-    procedure GetHighestAPIPageVersion(PageMetadata: Record "Page Metadata"): Text[30]
+    procedure GetHighestAPIPageVersion(PageId: Integer): Text[30]
     begin
-        exit(MCPConfigImplementation.GetHighestAPIPageVersion(PageMetadata));
+        exit(MCPConfigImplementation.GetHighestAPIPageVersion(PageId));
     end;
 
     procedure GenerateConnectionString(ConfigurationName: Text[100]): Text
@@ -62,5 +59,23 @@ codeunit 130131 "MCP Config Test Library"
     procedure EncodeForMCPHeaderIfNonAscii(Value: Text): Text
     begin
         exit(MCPConfigImplementation.EncodeForMCPHeaderIfNonAscii(Value));
+    end;
+
+    procedure GetAgentSystemTools(var SystemTools: Dictionary of [Text, Text])
+    var
+        TempMCPSystemTool: Record "MCP System Tool" temporary;
+        MCPAgentToolsFeature: Codeunit "MCP Agent Tools Feature";
+    begin
+        Clear(SystemTools);
+        MCPAgentToolsFeature.LoadSystemTools(TempMCPSystemTool);
+        if TempMCPSystemTool.FindSet() then
+            repeat
+                SystemTools.Add(TempMCPSystemTool."Tool Name", TempMCPSystemTool."Tool Description");
+            until TempMCPSystemTool.Next() = 0;
+    end;
+
+    procedure ConfirmDataQueryToolsOnImport(EnableDataQueryTools: Boolean): Boolean
+    begin
+        exit(MCPConfigImplementation.ConfirmDataQueryToolsOnImport(EnableDataQueryTools));
     end;
 }

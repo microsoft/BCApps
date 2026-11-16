@@ -215,8 +215,9 @@ report 5186 "Remove Contacts"
                     trigger OnPreDataItem()
                     begin
                         FilterGroup(4);
-                        SetRange("Company No.", "Segment Line"."Contact Company No.");
-                        if not EntireCompanies then
+                        if EntireCompanies then
+                            SetRange("Company No.", "Segment Line"."Contact Company No.")
+                        else
                             SetRange("No.", "Segment Line"."Contact No.");
                         FilterGroup(0);
                     end;

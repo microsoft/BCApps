@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ubl:Invoice xmlns:ubl="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+	xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+	xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+	<cbc:CustomizationID>urn:cen.eu:en16931:2017</cbc:CustomizationID>
+	<cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID>
+	<cbc:ID>PBIS-DE-5001</cbc:ID>
+	<cbc:IssueDate>2026-01-22</cbc:IssueDate>
+	<cbc:DueDate>2026-02-22</cbc:DueDate>
+	<cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
+	<cbc:DocumentCurrencyCode>XYZ</cbc:DocumentCurrencyCode>
+	<cbc:BuyerReference>04011000-12345-34</cbc:BuyerReference>
+	<cac:OrderReference>
+		<cbc:ID>PO-2026-11</cbc:ID>
+	</cac:OrderReference>
+	<cac:AccountingSupplierParty>
+		<cac:Party>
+			<cbc:EndpointID schemeID="9930">DE123456789</cbc:EndpointID>
+			<cac:PartyName>
+				<cbc:Name>CRONUS International</cbc:Name>
+			</cac:PartyName>
+			<cac:PostalAddress>
+				<cbc:StreetName>Main Street, 14</cbc:StreetName>
+				<cbc:CityName>Berlin</cbc:CityName>
+				<cbc:PostalZone>10115</cbc:PostalZone>
+				<cac:Country>
+					<cbc:IdentificationCode>DE</cbc:IdentificationCode>
+				</cac:Country>
+			</cac:PostalAddress>
+			<cac:PartyTaxScheme>
+				<cbc:CompanyID>DE123456789</cbc:CompanyID>
+				<cac:TaxScheme>
+					<cbc:ID>VAT</cbc:ID>
+				</cac:TaxScheme>
+			</cac:PartyTaxScheme>
+			<cac:PartyLegalEntity>
+				<cbc:RegistrationName>CRONUS International</cbc:RegistrationName>
+			</cac:PartyLegalEntity>
+			<cac:Contact>
+				<cbc:Name>Jim Olive</cbc:Name>
+			</cac:Contact>
+		</cac:Party>
+	</cac:AccountingSupplierParty>
+	<cac:AccountingCustomerParty>
+		<cac:Party>
+			<cbc:EndpointID schemeID="0198">04011000-12345-34</cbc:EndpointID>
+			<cac:PartyName>
+				<cbc:Name>The Cannon Group PLC</cbc:Name>
+			</cac:PartyName>
+			<cac:PostalAddress>
+				<cbc:StreetName>192 Market Square</cbc:StreetName>
+				<cbc:CityName>Munich</cbc:CityName>
+				<cbc:PostalZone>80331</cbc:PostalZone>
+				<cac:Country>
+					<cbc:IdentificationCode>DE</cbc:IdentificationCode>
+				</cac:Country>
+			</cac:PostalAddress>
+			<cac:PartyTaxScheme>
+				<cbc:CompanyID>DE987654321</cbc:CompanyID>
+				<cac:TaxScheme>
+					<cbc:ID>VAT</cbc:ID>
+				</cac:TaxScheme>
+			</cac:PartyTaxScheme>
+			<cac:PartyLegalEntity>
+				<cbc:RegistrationName>The Cannon Group PLC</cbc:RegistrationName>
+			</cac:PartyLegalEntity>
+		</cac:Party>
+	</cac:AccountingCustomerParty>
+	<cac:TaxTotal>
+		<cbc:TaxAmount currencyID="XYZ">190</cbc:TaxAmount>
+	</cac:TaxTotal>
+	<cac:LegalMonetaryTotal>
+		<cbc:LineExtensionAmount currencyID="XYZ">1000</cbc:LineExtensionAmount>
+		<cbc:TaxExclusiveAmount currencyID="XYZ">1000</cbc:TaxExclusiveAmount>
+		<cbc:TaxInclusiveAmount currencyID="XYZ">1190</cbc:TaxInclusiveAmount>
+		<cbc:AllowanceTotalAmount currencyID="XYZ">0</cbc:AllowanceTotalAmount>
+		<cbc:PayableAmount currencyID="XYZ">1190</cbc:PayableAmount>
+	</cac:LegalMonetaryTotal>
+	<cac:InvoiceLine>
+		<cbc:ID>1000</cbc:ID>
+		<cbc:InvoicedQuantity unitCode="PCS">2</cbc:InvoicedQuantity>
+		<cbc:LineExtensionAmount currencyID="XYZ">1000</cbc:LineExtensionAmount>
+		<cac:Item>
+			<cbc:Name>Bicycle</cbc:Name>
+			<cac:ClassifiedTaxCategory>
+				<cbc:ID>S</cbc:ID>
+				<cbc:Percent>19</cbc:Percent>
+				<cac:TaxScheme>
+					<cbc:ID>VAT</cbc:ID>
+				</cac:TaxScheme>
+			</cac:ClassifiedTaxCategory>
+		</cac:Item>
+		<cac:Price>
+			<cbc:PriceAmount currencyID="XYZ">500</cbc:PriceAmount>
+		</cac:Price>
+	</cac:InvoiceLine>
+</ubl:Invoice>

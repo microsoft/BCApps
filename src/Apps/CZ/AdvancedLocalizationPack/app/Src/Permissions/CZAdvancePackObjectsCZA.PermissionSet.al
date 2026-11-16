@@ -40,11 +40,13 @@ permissionset 11742 "CZ Advance Pack - Objects CZA"
                   codeunit "Upgrade Tag Definitions CZA" = X,
                   page "Applied G/L Entries CZA" = X,
                   page "Apply Gen. Ledger Entries CZA" = X,
+                  page "Auto. Create Default Dim. CZA" = X,
                   page "Detailed G/L Entries CZA" = X,
                   page "Unapply G/L Entries CZA" = X,
                   report "G/L Entry Applying CZA" = X,
                   report "Inventory Account To Date CZA" = X,
                   report "Inventory Valuation - WIP CZA" = X,
                   report "Open G/L Entries To Date CZA" = X,
+                  table "Auto. Create Default Dim. CZA" = X,
                   table "Detailed G/L Entry CZA" = X;
 }

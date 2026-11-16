@@ -224,10 +224,7 @@ page 18282 "GST Reconciliation"
         GSTReconcilationLines.SetRange(Month, GivenMonth);
         GSTReconcilationLines.SetRange(Year, GivenYear);
 
-        GSTReconcilationLines.ModifyAll(Reconciled, false);
-        GSTReconcilationLines.ModifyAll("Reconciliation Date", 0D);
-        GSTReconcilationLines.ModifyAll("User Id", '');
-        GSTReconcilationLines.ModifyAll("Error Type", '');
+        GSTReconcilationLines.ModifyAll(Reconciled, false, "Reconciliation Date", 0D, "User Id", '', "Error Type", '');
 
         PeriodicGSTR2AData.SetRange("GSTIN No.", Rec."GSTIN No.");
         PeriodicGSTR2AData.SetRange(Month, GivenMonth);

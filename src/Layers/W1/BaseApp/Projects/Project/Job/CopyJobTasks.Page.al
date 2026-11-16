@@ -157,6 +157,12 @@ page 1041 "Copy Job Tasks"
                     Caption = 'Copy Dimensions';
                     ToolTip = 'Specifies that the dimensions will be copied to the new project task.';
                 }
+                field(CopyAssignedResources; CopyAssignedResources)
+                {
+                    ApplicationArea = Jobs;
+                    Caption = 'Copy Assigned Resources';
+                    ToolTip = 'Specifies that the assigned resources, at both project and project task level, will be copied to the new project.';
+                }
             }
         }
     }
@@ -185,6 +191,7 @@ page 1041 "Copy Job Tasks"
         if CloseAction in [ACTION::OK, ACTION::LookupOK] then begin
             ValidateUserInput();
             CopyJob.SetCopyOptions(false, CopyQuantity, CopyDimensions, Source, PlanningLineType, LedgerEntryType);
+            CopyJob.SetCopyAssignedResources(CopyAssignedResources);
             CopyJob.SetJobTaskRange(FromJobTaskNo, ToJobTaskNo);
             CopyJob.SetJobTaskDateRange(FromDate, ToDate);
             OnQueryClosePageOnBeforeCopyJobTasks(CopyJob, CopyQuantity, CopyDimensions, Source, PlanningLineType, LedgerEntryType);
@@ -218,6 +225,7 @@ page 1041 "Copy Job Tasks"
         PlanningLineType: Option "Budget+Billable",Budget,Billable;
         LedgerEntryType: Option "Usage+Sale",Usage,Sale;
         CopyQuantity, CopyDimensions : Boolean;
+        CopyAssignedResources: Boolean;
 
     local procedure ValidateUserInput()
     begin

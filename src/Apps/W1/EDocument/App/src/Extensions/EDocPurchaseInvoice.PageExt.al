@@ -1,10 +1,11 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Message;
 
 pageextension 6129 "E-Doc. Purchase Invoice" extends "Purchase Invoice"
 {
@@ -17,6 +18,21 @@ pageextension 6129 "E-Doc. Purchase Invoice" extends "Purchase Invoice"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Preview';
                 Visible = ShowEDocumentPdfPreview;
+                ShowFilter = false;
+            }
+        }
+        addlast(FactBoxes)
+        {
+            part(EDocStatusFactBox; "E-Doc. Status FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document';
+                ShowFilter = false;
+            }
+            part(EDocMessages; "E-Document Messages FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document Messages';
                 ShowFilter = false;
             }
         }
@@ -108,5 +124,7 @@ pageextension 6129 "E-Doc. Purchase Invoice" extends "Purchase Invoice"
         EDocDataStorageEntryNo := EDocumentHelper.GetInboundPdfPreviewEntryNo(Rec.RecordId(), Rec."E-Document Link");
         ShowEDocumentPdfPreview := EDocDataStorageEntryNo <> 0;
         CurrPage.EDocumentPdfPreview.Page.SetRecFilterByEDocDataStorageEntryNo(EDocDataStorageEntryNo);
+        CurrPage.EDocMessages.Page.SetSourceRecordId(Rec.RecordId());
+        CurrPage.EDocStatusFactBox.Page.SetDocumentRecordId(Rec.RecordId());
     end;
 }

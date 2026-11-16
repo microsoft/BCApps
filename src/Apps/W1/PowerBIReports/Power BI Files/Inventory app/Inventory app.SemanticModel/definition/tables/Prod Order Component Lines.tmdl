@@ -19,16 +19,33 @@ table 'Prod Order Component Lines'
 			
 			VAR Endpoint = "&page=99000818&"
 			VAR BaseLink = [Base Link] & Endpoint
-			// Filter Context
-			VAR Items = CONCATENATEX(VALUES('Prod Order Component Lines'[itemNo]),'Prod Order Component Lines'[itemNo], "|")
-			VAR DimensionSetIDs = CONCATENATEX(VALUES('Prod Order Component Lines'[dimensionSetID]), 'Prod Order Component Lines'[dimensionSetID], "|")
-			
-			
-			VAR ItemFilter = "filter='Prod. Order Component'.'Item No.' IS '" & Items & "'"
-			VAR DateFilter = " AND 'Prod. Order Component'.'Due Date' IS '" & [Ranged] & "'"
-			VAR DimensionFilter = " AND 'Prod. Order Component'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			VAR ProjectedLength =
+			    LEN ( BaseLink )
+			    + LEN ( "filter='Prod. Order Component'.'Item No.' IS ''" )
+			    + SUMX ( VALUES ( 'Prod Order Component Lines'[itemNo] ), LEN ( 'Prod Order Component Lines'[itemNo] ) + 1 )
+			    + LEN ( " AND 'Prod. Order Component'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'Prod Order Component Lines'[dimensionSetID] ), LEN ( 'Prod Order Component Lines'[dimensionSetID] ) + 1 )
+			    + LEN ( " AND 'Prod. Order Component'.'Due Date' IS ''" ) + ProjectedRangedLength
 			RETURN
-			BaseLink & ItemFilter & DimensionFilter & DateFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        BaseLink
+			            & "filter='Prod. Order Component'.'Item No.' IS '" & CONCATENATEX(VALUES('Prod Order Component Lines'[itemNo]),'Prod Order Component Lines'[itemNo], "|") & "'"
+			            & " AND 'Prod. Order Component'.'Dimension Set ID' IS '" & CONCATENATEX(VALUES('Prod Order Component Lines'[dimensionSetID]), 'Prod Order Component Lines'[dimensionSetID], "|") & "'"
+			            & " AND 'Prod. Order Component'.'Due Date' IS '" & [Ranged] & "'",
+			BaseLink
+			    )
 		displayFolder: _Back Link
 		lineageTag: 82762de4-408f-4bff-a747-373f8f8a9616
 

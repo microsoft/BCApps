@@ -7,8 +7,8 @@ page 8112 "Customer Deferrals Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Customer Deferrals';
-    AboutTitle = 'About Customer Deferrals';
+    Caption = 'Customer Deferrals (Power BI)';
+    AboutTitle = 'About Customer Deferrals (Power BI)';
     AboutText = 'The Customer Deferrals report provides an overview of deferred vs. released subscription sales amount.';
 
     layout

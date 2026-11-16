@@ -11,8 +11,8 @@ page 37056 "Inventory Valuation Overview"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Inventory Valuation Overview';
-    AboutTitle = 'About Inventory Valuation Overview';
+    Caption = 'Inventory Valuation Overview (Power BI)';
+    AboutTitle = 'About Inventory Valuation Overview (Power BI)';
     AboutText = 'The Inventory Valuation Overview dashboard displays the inventory ending balance against the ending balance posted to the general ledger. Inventory value by location is plotted on a bar chart which is supported by inventory metrics such as increase quantity and decrease quantity. ';
 
     layout

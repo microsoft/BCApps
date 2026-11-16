@@ -21,7 +21,7 @@ codeunit 17100 "Recurring Amount - Distribute"
             GenJnlLine2."Recurring Method" := Rec."Recurring Method"::"RB Reversing Balance";
             Error(
               '%1 must be either %2 or %3.',
-              Rec.FieldName("Recurring Method"),
+              Rec.FieldCaption("Recurring Method"),
               GenJnlLine1."Recurring Method",
               GenJnlLine2."Recurring Method");
         end;

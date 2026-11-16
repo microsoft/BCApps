@@ -176,11 +176,13 @@ codeunit 144718 "ERM Corr. Factura Test"
     [Scope('OnPrem')]
     procedure PrintPostedFacturaCrMemoFacturaInvoice()
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesHeader: Record "Sales Header";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         DocumentNo: Code[20];
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         // [FEATURE] [Factura-Invoice] [Credit Memo]
         // [SCENARIO 201525] Verify REP 12484 "Posted Cr. M. Factura-Invoice" base values
         Initialize();
@@ -215,16 +217,19 @@ codeunit 144718 "ERM Corr. Factura Test"
         // [THEN] Column "9" = -1000 (Amount Including VAT)
         LibraryRUReports.VerifyFactura_AmountInclVAT(
           LibraryReportValidation.GetFileName(), FormatAmount(-SalesCrMemoLine."Amount Including VAT"), 0);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure PrintPostedPrepmtFacturaCrMemoFacturaInvoice()
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         DocumentNo: Code[20];
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         // [FEATURE] [Factura-Invoice] [Credit Memo] [Prepayment]
         // [SCENARIO 201525] Verify REP 12484 "Posted Cr. M. Factura-Invoice" base values in case of prepayment
         Initialize();
@@ -257,6 +262,7 @@ codeunit 144718 "ERM Corr. Factura Test"
         // [THEN] Column "9" = -1000 (Amount Including VAT)
         // LibraryRUReports.VerifyFactura_AmountInclVAT(
         // LibraryReportValidation.GetFileName(),FormatAmount(-SalesCrMemoLine."Amount Including VAT"),0);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure Initialize()
@@ -280,53 +286,65 @@ codeunit 144718 "ERM Corr. Factura Test"
 
     local procedure RunCorrFacturaReport(var CorrSalesHeader: Record "Sales Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesCorrFacturaInvoice: Report "Sales Corr. Factura-Invoice";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         CorrSalesHeader.SetRecFilter();
         SalesCorrFacturaInvoice.SetFileNameSilent(LibraryReportValidation.GetFileName());
         SalesCorrFacturaInvoice.SetTableView(CorrSalesHeader);
         SalesCorrFacturaInvoice.UseRequestPage(false);
         SalesCorrFacturaInvoice.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunPostedCorrInvoiceReport(InvNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         PstdSalesCorrFactInv: Report "Pstd. Sales Corr. Fact. Inv.";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         SalesInvoiceHeader.SetRange("No.", InvNo);
         PstdSalesCorrFactInv.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PstdSalesCorrFactInv.SetTableView(SalesInvoiceHeader);
         PstdSalesCorrFactInv.UseRequestPage(false);
         PstdSalesCorrFactInv.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunPostedCorrCrMemoReport(InvNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         PstdSalesCorrCrMFact: Report "Pstd. Sales Corr. Cr. M. Fact.";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         SalesCrMemoHeader.SetRange("No.", InvNo);
         PstdSalesCorrCrMFact.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PstdSalesCorrCrMFact.SetTableView(SalesCrMemoHeader);
         PstdSalesCorrCrMFact.UseRequestPage(false);
         PstdSalesCorrCrMFact.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunPostedCrMemoFacturaInvoice(InvNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         PostedCrMFacturaInvoice: Report "Posted Cr. M. Factura-Invoice";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         SalesCrMemoHeader.SetRange("No.", InvNo);
         PostedCrMFacturaInvoice.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PostedCrMFacturaInvoice.SetTableView(SalesCrMemoHeader);
         PostedCrMFacturaInvoice.UseRequestPage(false);
         PostedCrMFacturaInvoice.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure CreatePostSalesDoc(var SalesHeader: Record "Sales Header"; DocType: Enum "Sales Document Type"): Code[20]
@@ -548,9 +566,11 @@ codeunit 144718 "ERM Corr. Factura Test"
 
     local procedure VerifyCorrFacturaReport(CorrDocNo: Code[20]; DocNo: Code[20]; CorrDocDate: Date; DocDate: Date; QtyBefore: Decimal; QtyAfter: Decimal; UoMCode: Code[10]; UoMOKEICode: Code[3])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         LocMgt: Codeunit "Localisation Management";
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         FileName := LibraryReportValidation.GetFileName();
         LibraryRUReports.VerifyCorrFactura_CorrDocNo(FileName, CorrDocNo);
         LibraryRUReports.VerifyCorrFactura_DocNo(FileName, DocNo);
@@ -560,39 +580,48 @@ codeunit 144718 "ERM Corr. Factura Test"
         LibraryRUReports.VerifyCorrFactura_Qty(FileName, Format(QtyAfter), 1);
         LibraryRUReports.VerifyCorrFactura_UOMCode(FileName, UoMOKEICode, 1);
         LibraryRUReports.VerifyCorrFactura_UOMName(FileName, UoMCode, 1);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyCorrFacturaReportCurrency(CurrencyCode: Code[10])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         CurrencyDescription: Text[30];
         CurrencyDigitalCode: Code[3];
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         GetCurrencyInfo(CurrencyCode, CurrencyDescription, CurrencyDigitalCode);
         FileName := LibraryReportValidation.GetFileName();
         LibraryRUReports.VerifyCorrFactura_CurrencyName(FileName, CurrencyDescription);
         LibraryRUReports.VerifyCorrFactura_CurrencyCode(FileName, CurrencyDigitalCode);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyCorrFacturaReportDash(CheckingLine: Integer)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         Offset: Integer;
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         Offset := CheckingLine - 22;
         FileName := LibraryReportValidation.GetFileName();
         LibraryRUReports.VerifyCorrFactura_Amount(FileName, '-', Offset);
         LibraryRUReports.VerifyCorrFactura_VATAmount(FileName, '-', Offset);
         LibraryRUReports.VerifyCorrFactura_AmountInclVAT(FileName, '-', Offset);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyCorrFacturaReportHeader(CustomerNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         CompanyInformation: Record "Company Information";
         Customer: Record Customer;
         LocalReportMgt: Codeunit "Local Report Management";
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         FileName := LibraryReportValidation.GetFileName();
         LibraryRUReports.VerifyCorrFactura_CompanyName(FileName, LocalReportMgt.GetCompanyName());
         LibraryRUReports.VerifyCorrFactura_CompanyAddress(FileName, LocalReportMgt.GetLegalAddress());
@@ -607,13 +636,16 @@ codeunit 144718 "ERM Corr. Factura Test"
           LibraryReportValidation.GetFileName(), LibraryRUReports.GetCustomerFullAddress(Customer."No."));
         LibraryRUReports.VerifyCorrFactura_BuyerINN(
           LibraryReportValidation.GetFileName(), Customer."VAT Registration No." + ' / ' + Customer."KPP Code");
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyCorrFacturaReportLine(ItemNo: Code[20]; Price: Decimal; Amount: Decimal; VATPct: Decimal; VATAmount: Decimal; AmountInclVAT: Decimal)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         Item: Record Item;
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         Item.Get(ItemNo);
         FileName := LibraryReportValidation.GetFileName();
         LibraryRUReports.VerifyCorrFactura_LineNo(FileName, '1', 0);
@@ -624,6 +656,7 @@ codeunit 144718 "ERM Corr. Factura Test"
         LibraryRUReports.VerifyCorrFactura_VATPct(FileName, Format(VATPct), 0);
         LibraryRUReports.VerifyCorrFactura_VATAmount(FileName, FormatAmount(VATAmount), 0);
         LibraryRUReports.VerifyCorrFactura_AmountInclVAT(FileName, FormatAmount(AmountInclVAT), 0);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     [ConfirmHandler]

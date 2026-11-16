@@ -761,6 +761,7 @@ table 254 "VAT Entry"
                 if Closed then
                     Error(VATDateModifiableClosedErr);
 
+                VATDateReportingMgt.ResetVATReturnPeriodWarning();
                 VATDateReportingMgt.CheckDateAllowed("VAT Reporting Date", Rec.FieldNo("VAT Reporting Date"), false);
                 VATDateReportingMgt.CheckDateAllowed(xRec."VAT Reporting Date", Rec.FieldNo("VAT Reporting Date"), true, false);
                 VATDateReportingMgt.UpdateLinkedEntries(Rec);
@@ -769,6 +770,7 @@ table 254 "VAT Entry"
         field(95; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
+            DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
@@ -1037,6 +1039,18 @@ table 254 "VAT Entry"
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"VAT Entry", 'r')]
     /// <summary>
+    /// Retrieves the next entry number from the VAT Entry table.
+    /// </summary>
+    /// <returns>Next VAT entry number to be used in the system</returns>
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"VAT Entry"));
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"VAT Entry", 'r')]
+    /// <summary>
     /// Retrieves the highest entry number from the VAT Entry table.
     /// </summary>
     /// <returns>Last VAT entry number used in the system</returns>
@@ -1150,7 +1164,12 @@ table 254 "VAT Entry"
            (Base = 0)
         then begin
             UnrealizedVATType := GetUnrealizedVATType();
-            if Abs(Paid) = Abs(Full) then
+            // Only fully realize when there is remaining unrealized VAT left on this entry.
+            // Otherwise a fully-settled entry with nothing left to realize returns 1, producing a
+            // zero-amount reversal entry that re-qualifies and drives an unbounded loop.
+            if (Abs(Paid) = Abs(Full)) and
+               (("Remaining Unrealized Amount" <> 0) or ("Remaining Unrealized Base" <> 0))
+            then
                 exit(1);
 
             if GenJnlLine."Document Type" = GenJnlLine."Document Type"::Refund then

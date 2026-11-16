@@ -13,7 +13,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Projects.Project.Posting;
-using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
@@ -229,8 +228,12 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         end;
 
         SalesPostInvoiceEvents.RunOnPrepareLineOnBeforeAdjustTotalAmounts(SalesLine, TotalAmount, TotalAmountACY, SalesHeader.GetUseDate());
-        DeferralUtilities.AdjustTotalAmountForDeferralsNoBase(
-            SalesLine."Deferral Code", AmtToDefer, AmtToDeferACY, TotalAmount, TotalAmountACY, SalesLine."Inv. Discount Amount" + SalesLine."Line Discount Amount", SalesLineACY."Inv. Discount Amount" + SalesLineACY."Line Discount Amount");
+        if SalesSetup."Discount Posting" = SalesSetup."Discount Posting"::"No Discounts" then
+            DeferralUtilities.AdjustTotalAmountForDeferralsNoBase(
+               SalesLine."Deferral Code", AmtToDefer, AmtToDeferACY, TotalAmount, TotalAmountACY, 0, 0)
+        else
+            DeferralUtilities.AdjustTotalAmountForDeferralsNoBase(
+                SalesLine."Deferral Code", AmtToDefer, AmtToDeferACY, TotalAmount, TotalAmountACY, SalesLine."Inv. Discount Amount" + SalesLine."Line Discount Amount", SalesLineACY."Inv. Discount Amount" + SalesLineACY."Line Discount Amount");
 
         IsHandled := false;
         SalesPostInvoiceEvents.RunOnPrepareLineOnBeforeSetAmounts(
@@ -263,9 +266,14 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         if SalesLine."Deferral Code" <> '' then begin
             SalesPostInvoiceEvents.RunOnPrepareLineOnBeforePrepareDeferralLine(
                 SalesLine, InvoicePostingBuffer, SalesHeader.GetUseDate(), InvDefLineNo, DeferralLineNo, SuppressCommit, DeferralAccount, SalesAccount);
-            PrepareDeferralLine(
-                SalesHeader, SalesLine, InvoicePostingBuffer.Amount, InvoicePostingBuffer."Amount (ACY)",
-                AmtToDefer, AmtToDeferACY, DeferralAccount, SalesAccount, SalesLine."Inv. Discount Amount" + SalesLine."Line Discount Amount", SalesLineACY."Inv. Discount Amount" + SalesLineACY."Line Discount Amount");
+            if SalesSetup."Discount Posting" = SalesSetup."Discount Posting"::"No Discounts" then
+                PrepareDeferralLine(
+                    SalesHeader, SalesLine, InvoicePostingBuffer.Amount, InvoicePostingBuffer."Amount (ACY)",
+                    AmtToDefer, AmtToDeferACY, DeferralAccount, SalesAccount, 0, 0)
+            else
+                PrepareDeferralLine(
+                    SalesHeader, SalesLine, InvoicePostingBuffer.Amount, InvoicePostingBuffer."Amount (ACY)",
+                    AmtToDefer, AmtToDeferACY, DeferralAccount, SalesAccount, SalesLine."Inv. Discount Amount" + SalesLine."Line Discount Amount", SalesLineACY."Inv. Discount Amount" + SalesLineACY."Line Discount Amount");
             SalesPostInvoiceEvents.RunOnPrepareLineOnAfterPrepareDeferralLine(
                 SalesLine, InvoicePostingBuffer, SalesHeader.GetUseDate(), InvDefLineNo, DeferralLineNo, SuppressCommit);
         end;
@@ -487,6 +495,8 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
                 end;
             until TempInvoicePostingBuffer.Next(-1) = 0;
 
+        SalesPostInvoiceEvents.RunOnPostLinesOnBeforeCalcSums(
+            SalesHeader, GenJnlPostLine, TotalSalesLine, TotalSalesLineLCY, InvoicePostingParameters, JobPostLine);
         TempInvoicePostingBuffer.CalcSums(Amount);
         TotalAmount := -TempInvoicePostingBuffer.Amount;
 
@@ -497,7 +507,6 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 
     local procedure PrepareGenJnlLine(var SalesHeader: Record "Sales Header"; var InvoicePostingBuffer: Record "Invoice Posting Buffer"; var GenJnlLine: Record "Gen. Journal Line")
     var
-        BillToCust: Record Customer;
         IsHandled: Boolean;
     begin
         InitGenJnlLine(GenJnlLine, SalesHeader, InvoicePostingBuffer);
@@ -510,10 +519,8 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 
         IsHandled := false;
         SalesPostInvoiceEventsBE.RunOnPrepareGenJnlLineOnBeforeUpdateCountryRegionCode(SalesHeader, GenJnlLine, InvoicePostingBuffer, IsHandled);
-        if not IsHandled then begin
-            BillToCust.Get(GenJnlLine."Bill-to/Pay-to No.");
-            GenJnlLine."Country/Region Code" := BillToCust."Country/Region Code";
-        end;
+        if not IsHandled then
+            GenJnlLine."Country/Region Code" := SalesHeader."VAT Country/Region Code";
 
         InvoicePostingBuffer.CopyToGenJnlLine(GenJnlLine);
         if GLSetup."Journal Templ. Name Mandatory" then

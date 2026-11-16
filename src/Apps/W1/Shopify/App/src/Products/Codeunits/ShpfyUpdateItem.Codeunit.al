@@ -39,7 +39,7 @@ codeunit 30188 "Shpfy Update Item"
                 ProductEvents.OnBeforeUpdateItem(Shop, ShopifyProduct, Rec, Item, IsHandled);
 
                 if not IsHandled then
-                    if DoUpdateItem(ShopifyProduct, Item) then
+                    if DoUpdateItem(ShopifyProduct, Rec, Item) then
                         ProductEvents.OnAfterUpdateItem(Shop, ShopifyProduct, Rec, Item);
 
                 IsHandled := false;
@@ -63,14 +63,19 @@ codeunit 30188 "Shpfy Update Item"
     /// Do Update Item.
     /// </summary>
     /// <param name="ShopifyProduct">Parameter of type Record "Shopify Product".</param>
+    /// <param name="ShopifyVariant">Parameter of type Record "Shopify Variant".</param>
     /// <param name="Item">Parameter of type Record Item.</param>
     /// <returns>Return value of type Boolean.</returns>
-    local procedure DoUpdateItem(var ShopifyProduct: Record "Shpfy Product"; var Item: Record Item): Boolean
+    local procedure DoUpdateItem(var ShopifyProduct: Record "Shpfy Product"; var ShopifyVariant: Record "Shpfy Variant"; var Item: Record Item): Boolean
     var
         ItemCategory: Record "Item Category";
         Vendor: Record Vendor;
+        CreateItem: Codeunit "Shpfy Create Item";
+        ProcessOrder: Codeunit "Shpfy Process Order";
         IsModified: Boolean;
         IsModifiedByEvent: Boolean;
+        TariffNo: Code[20];
+        CountryRegionCode: Code[10];
     begin
         if Item.Description <> ShopifyProduct.Title then begin
             IsModified := true;
@@ -91,6 +96,20 @@ codeunit 30188 "Shpfy Update Item"
                     IsModified := true;
                     Item."Vendor No." := Vendor."No.";
                 end;
+        end;
+        if Shop."Sync HS Code and Country" then begin
+            // Only apply a value that resolves to an existing BC Tariff Number / Country/Region, so an
+            // unmapped or blank Shopify value never wipes an existing value on the Business Central item.
+            TariffNo := CreateItem.GetTariffNo(ShopifyVariant."Tariff No.");
+            if (TariffNo <> '') and (Item."Tariff No." <> TariffNo) then begin
+                Item.Validate("Tariff No.", TariffNo);
+                IsModified := true;
+            end;
+            CountryRegionCode := ProcessOrder.GetCountryCode(ShopifyVariant."Country/Region of Origin Code");
+            if (CountryRegionCode <> '') and (Item."Country/Region of Origin Code" <> CountryRegionCode) then begin
+                Item.Validate("Country/Region of Origin Code", CountryRegionCode);
+                IsModified := true;
+            end;
         end;
         ProductEvents.OnDoUpdateItemBeforeModify(Shop, ShopifyProduct, Item, IsModifiedByEvent);
         if IsModified or IsModifiedByEvent then

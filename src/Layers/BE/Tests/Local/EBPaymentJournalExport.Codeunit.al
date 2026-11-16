@@ -1221,15 +1221,18 @@ codeunit 144008 "EB - Payment Journal Export"
         Initialize();
 
         // Preparation: create settings
+        SetShowCurrencyToFCYSymbolOnly();
         CountryCode := FindCountryRegion();
         ExportProtocol := CreateSEPAExportProtocol(false);
 
         // Create payments
+        SetCurrencySymbol(ForeignCurrencyCode);
         VendorSwift := GenerateBankAccSwiftCode();
         VendorNo := CreateVendor(CountryCode, ExportProtocol, VendorSwift, VendorIbanTxt);
         InvAmount1 := CreateAndPostPurchInv(VendorNo, false);
         FirstForeignCurrencyCodeIso := ForeignCurrencyIso;
         CreateForeignCurrency(SecondForeignCurrencyCode, SecondForeignCurrencyCodeIso);
+        SetCurrencySymbol(SecondForeignCurrencyCode);
         ForeignCurrencyCode := SecondForeignCurrencyCode;
         ForeignCurrencyIso := SecondForeignCurrencyCodeIso;
         InvAmount2 := CreateAndPostPurchInv(VendorNo, false);
@@ -1997,6 +2000,24 @@ codeunit 144008 "EB - Payment Journal Export"
         CurrencyIso := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(3, 0), 1, 3);
         ForeignCurrency.Validate("ISO Code", CurrencyIso);
         ForeignCurrency.Modify(true);
+    end;
+
+    local procedure SetShowCurrencyToFCYSymbolOnly()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Show Currency", GeneralLedgerSetup."Show Currency"::"FCY Symbol Only");
+        GeneralLedgerSetup.Modify(true);
+    end;
+
+    local procedure SetCurrencySymbol(CurrencyCode: Code[10])
+    var
+        Currency: Record Currency;
+    begin
+        Currency.Get(CurrencyCode);
+        Currency.Validate(Symbol, '$');
+        Currency.Modify(true);
     end;
 
     local procedure CreateSEPAExportProtocol(UseEuro: Boolean): Code[20]

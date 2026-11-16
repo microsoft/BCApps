@@ -101,6 +101,11 @@ page 31210 "Accountant CZ Role Center CZL"
             {
                 ApplicationArea = Basic, Suite;
             }
+            part("EET Activities"; "EET Activities CZL")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
             part("Intercompany Activities"; "Intercompany Activities")
             {
                 ApplicationArea = Intercompany;
@@ -1060,15 +1065,6 @@ page 31210 "Accountant CZ Role Center CZL"
                     Ellipsis = true;
                     ToolTip = 'Run batch to close income statement.';
                 }
-                action("Open Balance Sheet")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Open Balance Sheet';
-                    Image = CreateYear;
-                    RunObject = report "Open Balance Sheet CZL";
-                    Ellipsis = true;
-                    ToolTip = 'Run batch to open balance sheet.';
-                }
                 action("Close Balance Sheet")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1077,6 +1073,15 @@ page 31210 "Accountant CZ Role Center CZL"
                     RunObject = report "Close Balance Sheet CZL";
                     Ellipsis = true;
                     ToolTip = 'Run batch to close balance sheet.';
+                }
+                action("Open Balance Sheet")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Open Balance Sheet';
+                    Image = CreateYear;
+                    RunObject = report "Open Balance Sheet CZL";
+                    Ellipsis = true;
+                    ToolTip = 'Run batch to open balance sheet.';
                 }
                 action("Run Consolidation")
                 {

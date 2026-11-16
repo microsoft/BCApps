@@ -8,7 +8,6 @@ using Microsoft.eServices.EDocument.Format;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Setup;
-using System.TestLibraries.Config;
 
 codeunit 135647 "EDoc MLLM Tests"
 {
@@ -170,7 +169,7 @@ codeunit 135647 "EDoc MLLM Tests"
         ItemObj: JsonObject;
         QuantityObj: JsonObject;
     begin
-        // [SCENARIO] Line with quantity 0 defaults to 1
+        // [SCENARIO] Line with an explicit quantity of 0 keeps 0
         LibraryLowerPermission.SetOutsideO365Scope();
 
         ItemObj.Add('name', 'Zero Qty Item');
@@ -183,8 +182,31 @@ codeunit 135647 "EDoc MLLM Tests"
         EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, 1, TempLine, '');
 
         TempLine.FindFirst();
-        Assert.AreEqual(1, TempLine.Quantity, 'Zero quantity should default to 1');
+        Assert.AreEqual(0, TempLine.Quantity, 'Explicit zero quantity should be kept as 0');
         Assert.AreEqual('Zero Qty Item', TempLine.Description, 'Description');
+    end;
+
+    [Test]
+    procedure MapLines_MissingQuantity()
+    var
+        TempLine: Record "E-Document Purchase Line" temporary;
+        EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
+        LinesArray: JsonArray;
+        LineObj: JsonObject;
+        ItemObj: JsonObject;
+    begin
+        // [SCENARIO] Line without a quantity in the JSON defaults to 1
+        LibraryLowerPermission.SetOutsideO365Scope();
+
+        ItemObj.Add('name', 'No Qty Item');
+        LineObj.Add('item', ItemObj);
+        LinesArray.Add(LineObj);
+
+        EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, 1, TempLine, '');
+
+        TempLine.FindFirst();
+        Assert.AreEqual(1, TempLine.Quantity, 'Missing quantity should default to 1');
+        Assert.AreEqual('No Qty Item', TempLine.Description, 'Description');
     end;
 
     [Test]
@@ -203,66 +225,47 @@ codeunit 135647 "EDoc MLLM Tests"
     end;
 
     [Test]
-    procedure PreferredImpl_ControlAllocation_ReturnsADI()
+    procedure PreferredImpl_ReturnsMLLM()
     var
         EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
-        FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
     begin
-        // [SCENARIO] With control allocation, PreferredStructureDataImplementation returns ADI
+        // [SCENARIO] PDF documents use MLLM as the preferred structure data implementation
         LibraryLowerPermission.SetOutsideO365Scope();
-
-        FeatureConfigTestLib.UseControlAllocation();
-
-        Assert.AreEqual(
-            "Structure Received E-Doc."::ADI,
-            EDocPDFFileFormat.PreferredStructureDataImplementation(),
-            'Control allocation should return ADI');
-    end;
-
-    [Test]
-    procedure PreferredImpl_TreatmentAllocation_ReturnsMLLM()
-    // var
-    //     EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
-    //     FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
-    begin
-        // Bug #624677: ECS must be enabled for this test to pass. See wiki for ECS configuration.
-        // [SCENARIO] With treatment allocation, PreferredStructureDataImplementation returns MLLM
-        // LibraryLowerPermission.SetOutsideO365Scope();
-
-        // FeatureConfigTestLib.UseTreatmentAllocation();
-
-        // Assert.AreEqual(
-        //     "Structure Received E-Doc."::MLLM,
-        //     EDocPDFFileFormat.PreferredStructureDataImplementation(),
-        //     'Treatment allocation should return MLLM');
-    end;
-
-    [Test]
-    procedure PreferredImpl_EventOverride_TakesPrecedence()
-    var
-        EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
-        FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
-        EDocMLLMTests: Codeunit "EDoc MLLM Tests";
-    begin
-        // [SCENARIO] An event subscriber can override the result regardless of experiment allocation
-        LibraryLowerPermission.SetOutsideO365Scope();
-
-        FeatureConfigTestLib.UseControlAllocation(); // Would normally return ADI
-        BindSubscription(EDocMLLMTests);
 
         Assert.AreEqual(
             "Structure Received E-Doc."::MLLM,
             EDocPDFFileFormat.PreferredStructureDataImplementation(),
-            'Event override should take precedence over experiment allocation');
+            'PDF processing should return MLLM');
+    end;
+
+#if not CLEAN29
+    [Test]
+    procedure PreferredImpl_EventOverride_TakesPrecedence()
+    var
+        EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
+        EDocMLLMTests: Codeunit "EDoc MLLM Tests";
+    begin
+        // [SCENARIO] An event subscriber can override the default preferred implementation
+        LibraryLowerPermission.SetOutsideO365Scope();
+
+        BindSubscription(EDocMLLMTests);
+
+        Assert.AreEqual(
+            "Structure Received E-Doc."::ADI,
+            EDocPDFFileFormat.PreferredStructureDataImplementation(),
+            'Event override should take precedence over the default');
 
         UnbindSubscription(EDocMLLMTests);
     end;
 
+#pragma warning disable AL0432
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. PDF File Format", OnAfterSetIStructureReceivedEDocumentForPdf, '', false, false)]
-    local procedure OverrideToMLLM(var Result: Enum "Structure Received E-Doc.")
+    local procedure OverrideToADI(var Result: Enum "Structure Received E-Doc.")
     begin
-        Result := "Structure Received E-Doc."::MLLM;
+        Result := "Structure Received E-Doc."::ADI;
     end;
+#pragma warning restore AL0432
+#endif
 
     local procedure EnsureGLSetup()
     var

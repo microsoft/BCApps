@@ -17,7 +17,7 @@ using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Reports;
 using Microsoft.Inventory.Requisition;
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Manufacturing.Document;
 #endif
 using Microsoft.Purchases.Analysis;
@@ -123,7 +123,6 @@ page 9007 "Purchasing Agent Role Center"
                 Caption = 'Vendor/&Item Purchases';
                 Image = "Report";
                 RunObject = Report "Vendor/Item Purchases";
-                ToolTip = 'View a list of item entries for each vendor in a selected period.';
             }
             separator(Action28)
             {
@@ -154,7 +153,6 @@ page 9007 "Purchasing Agent Role Center"
                 Caption = 'Inventory &Purchase Orders';
                 Image = "Report";
                 RunObject = Report "Inventory Purchase Orders";
-                ToolTip = 'View a list of items on order from vendors. The report also shows the expected receipt date and the quantity and amount on back orders. The report can be used, for example, to see when items should be received and whether a reminder of a back order should be issued.';
             }
             action("Inventory - &Vendor Purchases")
             {
@@ -162,7 +160,6 @@ page 9007 "Purchasing Agent Role Center"
                 Caption = 'Inventory - &Vendor Purchases';
                 Image = "Report";
                 RunObject = Report "Inventory - Vendor Purchases";
-                ToolTip = 'View a list of the vendors that your company has purchased items from within a selected period. It shows invoiced quantity, amount and discount. The report can be used to analyze a company''s item purchases.';
             }
             action("Inventory &Cost and Price List")
             {
@@ -234,7 +231,7 @@ page 9007 "Purchasing Agent Role Center"
                 RunObject = Page "Purchase Credit Memos";
                 ToolTip = 'Create purchase credit memos to mirror sales credit memos that vendors send to you for incorrect or damaged items that you have paid for and then returned to the vendor. If you need more control of the purchase return process, such as warehouse documents for the physical handling, use purchase return orders, in which purchase credit memos are integrated. Purchase credit memos can be created automatically from PDF or image files from your vendors by using the Incoming Documents feature. Note: If you have not yet paid for an erroneous purchase, you can simply cancel the posted purchase invoice to automatically revert the financial transaction.';
             }
-#if not CLEAN27
+#if not CLEAN28
             action("Subcontracting Orders")
             {
                 ApplicationArea = LegacySubcontracting;

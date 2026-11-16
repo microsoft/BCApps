@@ -64,13 +64,11 @@ codeunit 99000850 "Sales Line-Planning"
     local procedure OnInsertDemandLinesOnCopyItemTracking(var RequisitionLine: Record "Requisition Line"; UnplannedDemand: Record "Unplanned Demand")
     var
         SalesLine: Record "Sales Line";
-        ReservationEntry: Record "Reservation Entry";
         ItemTrackingManagement: Codeunit "Item Tracking Management";
     begin
         if UnplannedDemand."Demand Type" = UnplannedDemand."Demand Type"::Sales then begin
             SalesLine.Get(UnplannedDemand."Demand SubType", UnplannedDemand."Demand Order No.", UnplannedDemand."Demand Line No.");
-            // Use new overload to set Reservation status instead of default Prospect to match Calculate Plan behavior
-            ItemTrackingManagement.CopyItemTracking(SalesLine.RowID1(), RequisitionLine.RowID1(), true, false, ReservationEntry."Reservation Status"::Reservation);
+            ItemTrackingManagement.CopyItemTracking(SalesLine.RowID1(), RequisitionLine.RowID1(), true);
         end;
     end;
 

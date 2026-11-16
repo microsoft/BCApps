@@ -99,8 +99,7 @@ codeunit 8066 "Purchase Documents"
         if not BillingLine.IsEmpty then begin
             BillingLine.ModifyAll("Document Type", BillingLine."Document Type"::None, false);
             BillingLine.SetRange("Document Type", BillingLine."Document Type"::None);
-            BillingLine.ModifyAll("Document No.", '', false);
-            BillingLine.ModifyAll("Document Line No.", 0, false);
+            BillingLine.ModifyAll("Document No.", '', "Document Line No.", 0, false);
         end
     end;
 
@@ -163,6 +162,7 @@ codeunit 8066 "Purchase Documents"
     local procedure MoveBillingLineToBillingLineArchive(var BillingLine: Record "Billing Line"; var PurchaseHeader: Record "Purchase Header"; var PurchaseInvoiceHeader: Record "Purch. Inv. Header"; var PurchaseCrMemoHeader: Record "Purch. Cr. Memo Hdr.")
     var
         BillingLineArchive: Record "Billing Line Archive";
+        UsageDataBilling: Record "Usage Data Billing";
         PostedDocumentNo: Code[20];
     begin
         case PurchaseHeader."Document Type" of
@@ -178,6 +178,8 @@ codeunit 8066 "Purchase Documents"
                 BillingLineArchive."Document No." := PostedDocumentNo;
                 BillingLineArchive."Entry No." := 0;
                 BillingLineArchive.Insert(false);
+                UsageDataBilling.SetRange("Billing Line Entry No.", BillingLine."Entry No.");
+                UsageDataBilling.ModifyAll("Billing Line Entry No.", BillingLineArchive."Entry No.", false);
                 OnAfterInsertBillingLineArchiveOnMoveBillingLineToBillingLineArchive(BillingLineArchive, BillingLine);
             until BillingLine.Next() = 0;
     end;

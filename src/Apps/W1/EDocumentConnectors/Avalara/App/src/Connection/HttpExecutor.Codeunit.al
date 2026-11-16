@@ -16,6 +16,7 @@ codeunit 6377 "Http Executor"
     /// <summary>
     /// Execute http calls. Handle response with error logging.
     /// </summary>
+    [NonDebuggable]
     procedure ExecuteHttpRequest(var Request: Codeunit Requests) Response: Text
     var
         HttpResponse: HttpResponseMessage;
@@ -26,6 +27,7 @@ codeunit 6377 "Http Executor"
     /// <summary>
     /// Execute http calls. Handle response with error logging and store response in HttpResponse
     /// </summary>
+    [NonDebuggable]
     procedure ExecuteHttpRequest(var Request: Codeunit Requests; HttpResponse: HttpResponseMessage) Response: Text
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -35,7 +37,7 @@ codeunit 6377 "Http Executor"
         FeatureTelemetry.LogUsage('0000NHA', this.AvalaraProcessing.GetAvalaraTok(), 'Avalara request.');
 
         if not HttpClient.Send(Request.GetRequest(), this.HttpResponseMessage) then begin
-            Session.LogMessage('', HttpSendFailedMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
+            Session.LogMessage('0000UW6', HttpSendFailedMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
             Error(HttpSendFailedMsg);
         end;
         HttpResponse := this.HttpResponseMessage;
@@ -53,6 +55,7 @@ codeunit 6377 "Http Executor"
     /// <summary>
     /// Throw error for requests not of status 200 and 201.
     /// </summary>
+    [NonDebuggable]
     local procedure HandleHttpResponse(LocalHttpResponseMessage: HttpResponseMessage; var Response: Text)
     var
         FriendlyErrorMsg: Text;
@@ -61,12 +64,12 @@ codeunit 6377 "Http Executor"
         case LocalHttpResponseMessage.HttpStatusCode() of
             200:
                 begin
-                    Session.LogMessage('', HTTPSuccessMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
+                    Session.LogMessage('0000UW7', HTTPSuccessMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
                     exit;
                 end;
             201:
                 begin
-                    Session.LogMessage('', HTTPSuccessAndCreatedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
+                    Session.LogMessage('0000UW8', HTTPSuccessAndCreatedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
                     exit;
                 end;
             400:
@@ -85,11 +88,12 @@ codeunit 6377 "Http Executor"
         end;
 
         FriendlyErrorMsg := StrSubstNo(HttpErrorMsg, LocalHttpResponseMessage.HttpStatusCode(), FriendlyErrorMsg);
-        Session.LogMessage('', StrSubstNo(HttpErrorMsg, LocalHttpResponseMessage.HttpStatusCode(), Response), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
+        Session.LogMessage('0000UW9', StrSubstNo(HttpErrorMsg, LocalHttpResponseMessage.HttpStatusCode(), Response), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
         Error(FriendlyErrorMsg);
     end;
 
     [TryFunction]
+    [NonDebuggable]
     local procedure Parse400Messages(Content: Text; var Message: Text)
     var
         ResponseJson: JsonObject;
@@ -101,6 +105,7 @@ codeunit 6377 "Http Executor"
     end;
 
     [TryFunction]
+    [NonDebuggable]
     local procedure GetContent(HttpResponseMsg: HttpResponseMessage; var Response: Text)
     begin
         HttpResponseMsg.Content().ReadAs(Response);

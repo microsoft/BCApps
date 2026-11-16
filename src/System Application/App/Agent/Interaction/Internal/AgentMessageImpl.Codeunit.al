@@ -30,12 +30,10 @@ codeunit 4308 "Agent Message Impl."
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         ContentInStream: InStream;
-        ContentText: Text;
     begin
         AgentTaskMessage.CalcFields(Content);
         AgentTaskMessage.Content.CreateInStream(ContentInStream, AgentTaskImpl.GetDefaultEncoding());
-        ContentInStream.Read(ContentText);
-        exit(ContentText);
+        exit(AgentTaskImpl.ReadStreamToEnd(ContentInStream));
     end;
 
     procedure UpdateText(TaskID: BigInteger; MessageID: Guid; NewMessageText: Text)
@@ -89,6 +87,34 @@ codeunit 4308 "Agent Message Impl."
     procedure SetStatusToSent(var AgentTaskMessage: Record "Agent Task Message")
     begin
         UpdateStatus(AgentTaskMessage, AgentTaskMessage.Status::Sent);
+    end;
+
+    procedure SetStatusToFailed(TaskID: BigInteger; MessageID: Guid; StatusReason: Text[250])
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+    begin
+        AgentTaskMessage."Task ID" := TaskID;
+        AgentTaskMessage.ID := MessageID;
+        SetStatusToFailed(AgentTaskMessage, StatusReason);
+    end;
+
+    procedure SetStatusToFailed(var AgentTaskMessage: Record "Agent Task Message"; StatusReason: Text[250])
+    begin
+        UpdateStatus(AgentTaskMessage, AgentTaskMessage.Status::Failed, StatusReason);
+    end;
+
+    procedure SetStatusToReviewed(TaskID: BigInteger; MessageID: Guid)
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+    begin
+        AgentTaskMessage."Task ID" := TaskID;
+        AgentTaskMessage.ID := MessageID;
+        SetStatusToReviewed(AgentTaskMessage);
+    end;
+
+    procedure SetStatusToReviewed(var AgentTaskMessage: Record "Agent Task Message")
+    begin
+        UpdateStatus(AgentTaskMessage, AgentTaskMessage.Status::Reviewed, '');
     end;
 
     procedure SetIgnoreAttachment(IgnoreAttachment: Boolean)
@@ -256,6 +282,21 @@ codeunit 4308 "Agent Message Impl."
         AgentTaskMessageToModify.Modify(true);
 
         AgentTaskMessage.Status := AgentTaskMessageToModify.Status;
+    end;
+
+    // The platform persists the status reason from the same record buffer as the status, so both fields
+    // must be written in a single Modify for the reason to be picked up for the resulting task log entry.
+    local procedure UpdateStatus(var AgentTaskMessage: Record "Agent Task Message"; Status: Option; StatusReason: Text[250])
+    var
+        AgentTaskMessageToModify: Record "Agent Task Message";
+    begin
+        AgentTaskMessageToModify.Get(AgentTaskMessage."Task ID", AgentTaskMessage.ID);
+        AgentTaskMessageToModify.Status := Status;
+        AgentTaskMessageToModify."Status Reason" := StatusReason;
+        AgentTaskMessageToModify.Modify(true);
+
+        AgentTaskMessage.Status := AgentTaskMessageToModify.Status;
+        AgentTaskMessage."Status Reason" := AgentTaskMessageToModify."Status Reason";
     end;
 
     procedure GetFileSizeDisplayText(SizeInBytes: Decimal): Text

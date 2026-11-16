@@ -109,7 +109,7 @@ codeunit 30103 "Shpfy Communication Mgt."
         ResponseHeaders: HttpHeaders;
     begin
         GraphQLQuery := GraphQLQueries.GetQuery(GraphQLType, Parameters, ExpectedCost);
-        exit(ExecuteGraphQL(GraphQLQuery, ResponseHeaders, ExpectedCost, CheckOutgoingRequest));
+        exit(ExecuteGraphQL(GraphQLQuery, ResponseHeaders, ExpectedCost, CheckOutgoingRequest, GraphQLQueries.GetGraphQLTypeName(GraphQLType)));
     end;
 
     /// <summary> 
@@ -119,7 +119,7 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <returns>Return value of type JsonToken.</returns>
     internal procedure ExecuteGraphQL(GraphQLQuery: Text): JsonToken
     begin
-        exit(ExecuteGraphQL(GraphQLQuery, 0));
+        exit(ExecuteGraphQL(GraphQLQuery, 10));
     end;
 
     /// <summary> 
@@ -143,6 +143,11 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <param name="ExpectedCost">Parameter of type Decimal.</param>
     /// <returns>Return variable JResponse of type JsonToken.</returns>
     internal procedure ExecuteGraphQL(GraphQLQuery: Text; var ResponseHeaders: HttpHeaders; ExpectedCost: Decimal; CheckOutgoingRequest: Boolean) JResponse: JsonToken
+    begin
+        exit(ExecuteGraphQL(GraphQLQuery, ResponseHeaders, ExpectedCost, CheckOutgoingRequest, ''));
+    end;
+
+    local procedure ExecuteGraphQL(GraphQLQuery: Text; var ResponseHeaders: HttpHeaders; ExpectedCost: Decimal; CheckOutgoingRequest: Boolean; GraphQLTypeName: Text) JResponse: JsonToken
     var
         ShpfyGraphQLRateLimit: Codeunit "Shpfy GraphQL Rate Limit";
         ShpfyJsonHelper: Codeunit "Shpfy Json Helper";
@@ -152,13 +157,13 @@ codeunit 30103 "Shpfy Communication Mgt."
     begin
         CheckQueryLength(GraphQLQuery);
         ShpfyGraphQLRateLimit.WaitForRequestAvailable(ExpectedCost);
-        ReceivedData := ExecuteWebRequest(CreateWebRequestURL('graphql.json'), 'POST', GraphQLQuery, ResponseHeaders, 3, CheckOutgoingRequest);
+        ReceivedData := ExecuteWebRequest(CreateWebRequestURL('graphql.json'), 'POST', GraphQLQuery, ResponseHeaders, 3, CheckOutgoingRequest, GraphQLTypeName);
         if JResponse.ReadFrom(ReceivedData) then begin
             ShpfyGraphQLRateLimit.SetQueryCost(ShpfyJsonHelper.GetJsonToken(JResponse, 'extensions.cost.throttleStatus'));
             while JResponse.AsObject().Contains('errors') and Format(JResponse).Contains('THROTTLED') do begin
                 LogGraphQLThrottledTelemetry(JResponse, ExpectedCost, ResponseHeaders);
                 ShpfyGraphQLRateLimit.WaitForRequestAvailable(ExpectedCost);
-                if JResponse.ReadFrom(ExecuteWebRequest(CreateWebRequestURL('graphql.json'), 'POST', GraphQLQuery, ResponseHeaders, 3, CheckOutgoingRequest)) then
+                if JResponse.ReadFrom(ExecuteWebRequest(CreateWebRequestURL('graphql.json'), 'POST', GraphQLQuery, ResponseHeaders, 3, CheckOutgoingRequest, GraphQLTypeName)) then
                     ShpfyGraphQLRateLimit.SetQueryCost(ShpfyJsonHelper.GetJsonToken(JResponse, 'extensions.cost.throttleStatus'));
             end;
             if JResponse.AsObject().Contains('errors') then
@@ -205,6 +210,11 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <param name="CheckOutgoingRequest">Boolean.</param>
     /// <returns>Return variable Response of type Text.</returns>
     internal procedure ExecuteWebRequest(Url: Text; Method: Text; Request: Text; var ResponseHeaders: HttpHeaders; MaxRetries: Integer; CheckOutgoingRequest: Boolean) Response: Text
+    begin
+        exit(ExecuteWebRequest(Url, Method, Request, ResponseHeaders, MaxRetries, CheckOutgoingRequest, ''));
+    end;
+
+    local procedure ExecuteWebRequest(Url: Text; Method: Text; Request: Text; var ResponseHeaders: HttpHeaders; MaxRetries: Integer; CheckOutgoingRequest: Boolean; GraphQLTypeName: Text) Response: Text
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         Wait: Duration;
@@ -212,6 +222,7 @@ codeunit 30103 "Shpfy Communication Mgt."
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
         RetryCounter: Integer;
+        Sent: Boolean;
     begin
         FeatureTelemetry.LogUptake('0000HUV', 'Shopify', Enum::"Feature Uptake Status"::Used);
         if CheckOutgoingRequest then
@@ -230,22 +241,30 @@ codeunit 30103 "Shpfy Communication Mgt."
                 Sleep(Wait);
         end;
 
-        if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
-            Clear(RetryCounter);
-            while (not HttpResponseMessage.IsBlockedByEnvironment) and (EvaluateResponse(HttpResponseMessage)) and (RetryCounter < MaxRetries) do begin
-                RetryCounter += 1;
-                Sleep(1000);
-                LogShopifyRequest(Url, Method, Request, HttpResponseMessage, Response, RetryCounter);
+        Sent := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+        if Sent then begin
+            if HandleUnauthorizedResponse(HttpResponseMessage) then begin
                 Clear(HttpClient);
                 Clear(HttpRequestMessage);
                 Clear(HttpResponseMessage);
                 CreateHttpRequestMessage(Url, Method, Request, HttpRequestMessage);
-                HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+                Sent := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+            end;
+            Clear(RetryCounter);
+            while Sent and (not HttpResponseMessage.IsBlockedByEnvironment) and (EvaluateResponse(HttpResponseMessage)) and (RetryCounter < MaxRetries) do begin
+                RetryCounter += 1;
+                Sleep(1000);
+                LogShopifyRequest(Url, Method, Request, HttpResponseMessage, Response, RetryCounter, GraphQLTypeName);
+                Clear(HttpClient);
+                Clear(HttpRequestMessage);
+                Clear(HttpResponseMessage);
+                CreateHttpRequestMessage(Url, Method, Request, HttpRequestMessage);
+                Sent := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
             end;
         end;
         if GetContent(HttpResponseMessage, Response) then;
         ResponseHeaders := HttpResponseMessage.Headers();
-        LogShopifyRequest(Url, Method, Request, HttpResponseMessage, Response, RetryCounter);
+        LogShopifyRequest(Url, Method, Request, HttpResponseMessage, Response, RetryCounter, GraphQLTypeName);
         Commit();
     end;
 
@@ -374,6 +393,7 @@ codeunit 30103 "Shpfy Communication Mgt."
         NoAccessTokenErr: label 'No Access token for the store "%1".\Please request an access token for this store.', Comment = '%1 = Store';
         ChangedScopeErr: Label 'The application scope is changed, please request a new access token for the store "%1".', Comment = '%1 = Store';
     begin
+        AuthenticationMgt.EnsureValidAccessToken(Store);
         if RegisteredStoreNew.Get(Store) then
             if RegisteredStoreNew."Requested Scope" = AuthenticationMgt.GetScope() then begin
                 AccessToken := RegisteredStoreNew.GetAccessToken();
@@ -394,7 +414,7 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <param name="Request">Parameter of type Text.</param>
     /// <param name="HttpResponseMessage">Parameter of type HttpResponseMessage.</param>
     /// <param name="Response">Parameter of type text.</param>
-    local procedure LogShopifyRequest(Url: Text; Method: Text; Request: Text; var HttpResponseMessage: HttpResponseMessage; Response: Text; RetryCount: Integer)
+    local procedure LogShopifyRequest(Url: Text; Method: Text; Request: Text; var HttpResponseMessage: HttpResponseMessage; Response: Text; RetryCount: Integer; GraphQLTypeName: Text)
     begin
         case Shop."Logging Mode" of
             Shop."Logging Mode"::All:
@@ -404,7 +424,7 @@ codeunit 30103 "Shpfy Communication Mgt."
                     CreateShopifyLogEntry(Url, Method, Request, HttpResponseMessage, Response, RetryCount);
         end;
 
-        LogShopifyRequestTelemetry(Url, Method, HttpResponseMessage, RetryCount);
+        LogShopifyRequestTelemetry(Url, Method, HttpResponseMessage, RetryCount, GraphQLTypeName);
     end;
 
     local procedure CreateShopifyLogEntry(Url: text; Method: Text; Request: Text; var HttpResponseMessage: HttpResponseMessage; Response: Text; RetryCount: Integer)
@@ -439,7 +459,7 @@ codeunit 30103 "Shpfy Communication Mgt."
                 exit(true);
     end;
 
-    local procedure LogShopifyRequestTelemetry(Url: Text; Method: Text; var HttpResponseMessage: HttpResponseMessage; RetryCount: Integer)
+    local procedure LogShopifyRequestTelemetry(Url: Text; Method: Text; var HttpResponseMessage: HttpResponseMessage; RetryCount: Integer; GraphQLTypeName: Text)
     var
         CustomDimensions: Dictionary of [Text, Text];
         Values: array[10] of Text;
@@ -449,6 +469,7 @@ codeunit 30103 "Shpfy Communication Mgt."
         CustomDimensions.Add('Url', Url);
         CustomDimensions.Add('Response Code', Format(HttpResponseMessage.HttpStatusCode));
         CustomDimensions.Add('Retry Count', Format(RetryCount));
+        CustomDimensions.Add('GraphQL Type', GraphQLTypeName);
         if HttpResponseMessage.Headers().GetValues('X-Request-ID', Values) then
             RequestId := Values[1];
         Session.LogMessage('0000K8W', StrSubstNo(RequestTelemetryLbl, Method, RequestId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
@@ -526,6 +547,21 @@ codeunit 30103 "Shpfy Communication Mgt."
                     Retry := true;
                 end;
         end;
+    end;
+
+    local procedure HandleUnauthorizedResponse(HttpResponseMessage: HttpResponseMessage): Boolean
+    var
+        AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
+        Store: Text;
+    begin
+        // An expiring offline token may have been retired unexpectedly. Force a single refresh
+        // (or migration) so the request can be retried with a fresh token.
+        if HttpResponseMessage.HttpStatusCode() <> 401 then
+            exit(false);
+        Store := Shop.GetStoreName();
+        if Store = '' then
+            exit(false);
+        exit(AuthenticationMgt.ForceTokenRefresh(Store));
     end;
 
     /// <summary> 
@@ -720,4 +756,3 @@ codeunit 30103 "Shpfy Communication Mgt."
         exit(50000);
     end;
 }
-

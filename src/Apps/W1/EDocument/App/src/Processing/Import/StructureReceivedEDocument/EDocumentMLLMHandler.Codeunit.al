@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Format;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.AI;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
@@ -27,7 +28,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         FeatureNameLbl: Label 'E-Document MLLM Extraction', Locked = true;
         FileDataLbl: Label 'data:application/pdf;base64,%1', Locked = true;
         SystemPromptResourceTok: Label 'Prompts/EDocMLLMExtraction-SystemPrompt.md', Locked = true;
-        UserPromptLbl: Label 'Extract invoice data into this UBL JSON structure: %1. \n\nExtract ONLY visible values. Return JSON only. %2', Locked = true;
+        UserPromptLbl: Label 'Extract invoice or credit note data into this UBL JSON structure: %1. \n\nExtract ONLY visible values. Return JSON only. %2', Locked = true, Comment = '%1 = UBL JSON schema, %2 = security clause';
         SecurityPromptAKVKeyTok: Label 'EDocMLLMExtraction-SecurityPromptV281', Locked = true;
         MLLMExtractionStartedMsg: Label 'MLLM extraction started.', Locked = true;
         MLLMExtractionSucceededMsg: Label 'MLLM extraction succeeded.', Locked = true;
@@ -37,7 +38,6 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         MLLMJsonParseFailedMsg: Label 'MLLM response is not valid JSON, falling back to ADI.', Locked = true;
         MLLMSchemaValidationFailedMsg: Label 'MLLM response missing required vendor fields (name or address), falling back to ADI.', Locked = true;
         ADIFallbackSucceededMsg: Label 'ADI fallback produced structured data.', Locked = true;
-        ADIFallbackFailedMsg: Label 'ADI fallback returned empty result.', Locked = true;
         DocumentNotProcessedErr: Label 'The document could not be processed.';
         InappropriateContentErr: Label 'The document could not be processed because it contains inappropriate content.';
 
@@ -78,14 +78,16 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         AOAIUserMessage: Codeunit "AOAI User Message";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
-        AOAIDeployments: Codeunit "AOAI Deployments";
+        EDocAIToolProcessor: Codeunit "E-Doc. AI Tool Processor";
         EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
         FromTempBlob: Codeunit "Temp Blob";
         CustomDimensions: Dictionary of [Text, Text];
         InStream: InStream;
         Base64Data: Text;
+        DeploymentName: Text;
         StartTime: DateTime;
         DurationMs: Integer;
+        UseCase: Option "Matching Assistance","PDF Extraction";
     begin
         // Load schema and convert PDF to base64
         FromTempBlob := EDocumentDataStorage.GetTempBlob();
@@ -93,10 +95,12 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         Base64Data := Base64Convert.ToBase64(InStream);
 
         // Build AOAI call
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
+        DeploymentName := EDocAIToolProcessor.GetChatCompletionsDeployment(UseCase::"PDF Extraction");
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", DeploymentName);
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis");
 
         AOAIChatCompletionParams.SetTemperature(0);
+        AOAIChatCompletionParams.SetMaxTokens(GetMaxTokens());
         AOAIChatCompletionParams.SetJsonMode(true);
 
         AOAIChatMessages.SetPrimarySystemMessage(NavApp.GetResourceAsText(SystemPromptResourceTok, TextEncoding::UTF8));
@@ -111,6 +115,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
 
         CustomDimensions := GetCustomDimensions();
         CustomDimensions.Add('DurationMs', Format(DurationMs));
+        CustomDimensions.Add('Model', DeploymentName);
 
         if not AOAIOperationResponse.IsSuccess() then begin
             Telemetry.LogMessage('0000SGS', MLLMApiCallFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
@@ -188,11 +193,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
     begin
         ADIResult := ADIHandler.StructureReceivedEDocument(EDocumentDataStorage);
 
-        if ADIResult.GetContent() <> '' then
-            Telemetry.LogMessage('0000SGY', ADIFallbackSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions())
-        else
-            Telemetry.LogMessage('0000SGZ', ADIFallbackFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
-
+        Telemetry.LogMessage('0000SGY', ADIFallbackSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
         exit(ADIResult);
     end;
 
@@ -269,9 +270,12 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;
         TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary;
         EDocPurchaseDraftUtility: Codeunit "E-Doc. Purchase Draft Utility";
+        IsCreditNote: Boolean;
     begin
-        ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine);
+        ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine, IsCreditNote);
         EDocPurchaseDraftUtility.PersistDraft(EDocument, TempEDocPurchaseHeader, TempEDocPurchaseLine);
+        if IsCreditNote then
+            exit(Enum::"E-Doc. Process Draft"::"Purchase Credit Memo");
         exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
     end;
 
@@ -279,19 +283,24 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         EDocument: Record "E-Document";
         TempBlob: Codeunit "Temp Blob";
         var TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;
-        var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary)
+        var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary;
+        var IsCreditNote: Boolean)
     var
         EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         InStream: InStream;
         SourceJsonObject: JsonObject;
         LinesToken: JsonToken;
         LinesArray: JsonArray;
+        InvoiceReferences: List of [Text];
         BlobAsText: Text;
     begin
         TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
         InStream.Read(BlobAsText);
         SourceJsonObject.ReadFrom(BlobAsText);
 
+        EDocImpSessionTelemetry.SetText('MLLMDocumentTypeCode', EDocMLLMSchemaHelper.GetDocumentTypeCodeForTelemetry(SourceJsonObject));
+        IsCreditNote := EDocMLLMSchemaHelper.IsCreditNote(SourceJsonObject);
         EDocMLLMSchemaHelper.MapHeaderFromJson(SourceJsonObject, TempEDocPurchaseHeader);
         TempEDocPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
 
@@ -300,6 +309,14 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
                 LinesArray := LinesToken.AsArray();
                 EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, EDocument."Entry No", TempEDocPurchaseLine, TempEDocPurchaseHeader."Currency Code");
             end;
+
+        if not IsCreditNote then
+            exit;
+        InvoiceReferences := EDocMLLMSchemaHelper.GetInvoiceReferences(SourceJsonObject, TempEDocPurchaseHeader."Sales Invoice No.");
+        if InvoiceReferences.Count() = 0 then
+            exit;
+        TempEDocPurchaseHeader."Vendor Invoice No." := CopyStr(InvoiceReferences.Get(1), 1, MaxStrLen(TempEDocPurchaseHeader."Vendor Invoice No."));
+        TempEDocPurchaseHeader."Several Invoices Referenced" := InvoiceReferences.Count() > 1;
     end;
 
     procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
@@ -307,8 +324,9 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         TempEDocPurchaseHeader: Record "E-Document Purchase Header" temporary;
         TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary;
         EDocReadablePurchaseDoc: Page "E-Doc. Readable Purchase Doc.";
+        IsCreditNote: Boolean;
     begin
-        ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine);
+        ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine, IsCreditNote);
         EDocReadablePurchaseDoc.SetBuffer(TempEDocPurchaseHeader, TempEDocPurchaseLine);
         EDocReadablePurchaseDoc.Run();
     end;
@@ -328,4 +346,10 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document MLLM Analysis") then
             CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis", '');
     end;
+
+    local procedure GetMaxTokens(): Integer
+    begin
+        exit(50000);
+    end;
+
 }

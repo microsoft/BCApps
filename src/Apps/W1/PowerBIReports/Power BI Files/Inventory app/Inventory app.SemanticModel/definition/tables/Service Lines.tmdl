@@ -22,14 +22,22 @@ table 'Service Lines'
 			
 			VAR Endpoint = "&page=5907&"
 			VAR BaseLink = [Base Link] & Endpoint
-			// Filter Context
-			VAR DocumentNo = CONCATENATEX(VALUES('Service Lines'[Document No.]),'Service Lines'[Document No.], "|")
-			VAR DimensionSetIDs = CONCATENATEX(VALUES('Service Lines'[dimensionSetID]), 'Service Lines'[dimensionSetID], "|")
-			
-			VAR DocumentNoFilter = "filter='Service Line'.'Document No.' IS '" & DocumentNo & "'"
-			VAR DimensionFilter = " AND 'Service Line'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( BaseLink )
+			    + LEN ( "filter='Service Line'.'Document No.' IS ''" )
+			    + SUMX ( VALUES ( 'Service Lines'[Document No.] ), LEN ( 'Service Lines'[Document No.] ) + 1 )
+			    + LEN ( " AND 'Service Line'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'Service Lines'[dimensionSetID] ), LEN ( 'Service Lines'[dimensionSetID] ) + 1 )
 			RETURN
-			BaseLink & DocumentNoFilter & DimensionFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        BaseLink
+			            & "filter='Service Line'.'Document No.' IS '" & CONCATENATEX(VALUES('Service Lines'[Document No.]),'Service Lines'[Document No.], "|") & "'"
+			            & " AND 'Service Line'.'Dimension Set ID' IS '" & CONCATENATEX(VALUES('Service Lines'[dimensionSetID]), 'Service Lines'[dimensionSetID], "|") & "'",
+			BaseLink
+			    )
 		displayFolder: _Back Link
 		lineageTag: d78656af-d260-4205-a5b7-fd3471197afa
 

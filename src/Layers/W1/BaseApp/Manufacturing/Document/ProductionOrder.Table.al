@@ -210,7 +210,7 @@ table 5405 "Production Order"
                     exit;
 
                 if Rec."Variant Code" <> '' then begin
-                    ItemVariant.SetLoadFields(Blocked);
+                    ItemVariant.SetLoadFields(Blocked, Description, "Description 2");
                     ItemVariant.Get(Rec."Source No.", Rec."Variant Code");
                     ItemVariant.TestField(Blocked, false);
                     Description := ItemVariant.Description;
@@ -677,8 +677,7 @@ table 5405 "Production Order"
         field(7300; "Completely Picked"; Boolean)
         {
             CalcFormula = min("Prod. Order Component"."Completely Picked" where(Status = field(Status),
-                                                                                 "Prod. Order No." = field("No."),
-                                                                                 "Supplied-by Line No." = filter(0)));
+                                                                                 "Prod. Order No." = field("No.")));
             Caption = 'Completely Picked';
             ToolTip = 'Specifies whether all production components have been completely picked.';
             FieldClass = FlowField;
@@ -1240,14 +1239,17 @@ table 5405 "Production Order"
             ProdOrderComponent."Flushing Method"::"Pick + Manual",
             ProdOrderComponent."Flushing Method"::"Pick + Forward",
             ProdOrderComponent."Flushing Method"::"Pick + Backward");
-        ProdOrderComponent.SetRange("Planning Level Code", 0);
         ProdOrderComponent.SetFilter("Expected Quantity", '>0');
         OnCreatePickOnBeforeRunCreatePickFromWhseSource(ProdOrderComponent);
-        if not ProdOrderComponent.IsEmpty() then
-            RunCreatePickFromWhseSource(AssignedUserID, SortingMethod, SetBreakBulkFilter, DoNotFillQtyToHandle, PrintDocument)
-        else
-            if not HideValidationDialog then
-                Message(Text008);
+        if ProdOrderComponent.FindSet() then
+            repeat
+                if ProdOrderComponent.IsEligibleForWarehousePick() then begin
+                    RunCreatePickFromWhseSource(AssignedUserID, SortingMethod, SetBreakBulkFilter, DoNotFillQtyToHandle, PrintDocument);
+                    exit;
+                end;
+            until ProdOrderComponent.Next() = 0;
+        if not HideValidationDialog then
+            Message(Text008);
     end;
 
     local procedure RunCreatePickFromWhseSource(AssignedUserID: Code[50]; SortingMethod: Option; SetBreakBulkFilter: Boolean; DoNotFillQtyToHandle: Boolean; PrintDocument: Boolean)
@@ -1606,6 +1608,9 @@ table 5405 "Production Order"
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
     begin
+        if Rec.IsTemporary() then
+            exit;
+
         InitDefaultDimensionSources(DefaultDimSource);
         CreateDim(DefaultDimSource);
     end;

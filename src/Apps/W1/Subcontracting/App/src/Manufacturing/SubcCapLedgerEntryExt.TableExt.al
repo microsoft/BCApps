@@ -7,23 +7,23 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Purchases.Document;
 
-tableextension 99001504 "Subc. Cap Ledger Entry Ext." extends "Capacity Ledger Entry"
+tableextension 20504 "Subc. Cap Ledger Entry Ext." extends "Capacity Ledger Entry"
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001500; "Subc. Subcontractor No."; Code[20])
+        field(20500; "Subc. Subcontractor No."; Code[20])
         {
             Caption = 'Subcontractor No.';
             DataClassification = CustomerContent;
         }
-        field(99001512; "Subc. Purch. Order No."; Code[20])
+        field(20512; "Subc. Purch. Order No."; Code[20])
         {
             Caption = 'Subc. Purch. Order No.';
             DataClassification = CustomerContent;
             TableRelation = "Purchase Header"."No." where("Document Type" = const(Order));
         }
-        field(99001513; "Subc. Purch. Order Line No."; Integer)
+        field(20513; "Subc. Purch. Order Line No."; Integer)
         {
             Caption = 'Subc. Purch. Order Line No.';
             DataClassification = CustomerContent;

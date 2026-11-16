@@ -61,6 +61,7 @@ using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 using Microsoft.Projects.Project.Job;
+using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Project.Setup;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
@@ -76,7 +77,9 @@ using Microsoft.Sales.Setup;
 using Microsoft.Service.History;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Structure;
+using Microsoft.Warehouse.Worksheet;
 using System.Automation;
 using System.Environment;
 using System.Environment.Configuration;
@@ -209,6 +212,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeDataExchFieldMapping();
         UpgradeJobReportSelection();
         UpgradeJobTaskReportSelection();
+        UpgradeRemittanceAdviceReportSelection();
         UpgradeAccountSchedulesToFinancialReports();
         UpgradeCRMUnitGroupMapping();
         UpgradeCRMSDK90ToCRMSDK91();
@@ -229,6 +233,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeICGLAccountNoInPostedGenJournalLine();
         UpgradeBankExportImportSetup();
         UpgradePurchasesPayablesAndSalesReceivablesSetups();
+        UpgradeRestoreOrderQtyOnReturnInSalesAndPurchasesSetup();
         UpgradeLocationBinPolicySetups();
         UpgradeInventorySetupAllowInvtAdjmt();
 #if not CLEAN29       
@@ -250,6 +255,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeGLAmountFCYAndCurrencyCode();
 #endif
         UpgradeICTransactionSourceType();
+        SetShowCurrencySymbolPosition();
         UpgradeABCAnalysisSetup();
         UpgradePurchRcptLineFields();
         UpgradeSalesShptLineFields();
@@ -257,6 +263,8 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeFinancialReportAuditLogAddRetentionPolicy();
         UpgradeZeroClosedBankAccountLedgerEntries();
         UpgradeDepreciationBooksGLIntegration();
+        UpgradePurchaseLineReceiptOnInvoice();
+        UpgradeWarehouseActivitySourceTypeForJobPlanningLine();
     end;
 
     local procedure ClearTemporaryTables()
@@ -1578,7 +1586,10 @@ codeunit 104000 "Upgrade - BaseApp"
         Dimension: Record Dimension;
         DimensionValue: Record "Dimension Value";
         DefaultDimension: Record "Default Dimension";
-        ModifyDefaultDimension: Record "Default Dimension";
+        Item: Record Item;
+        Customer: Record Customer;
+        Vendor: Record Vendor;
+        Employee: Record Employee;
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
         UpgradeTag: Codeunit "Upgrade Tag";
         BlankGuid: Guid;
@@ -1652,16 +1663,32 @@ codeunit 104000 "Upgrade - BaseApp"
             DefaultDimensionDataTransfer.CopyFields();
         end;
 
-        Clear(DefaultDimension);
-        DefaultDimension.SetFilter(ParentId, '%1', BlankGuid);
-        if DefaultDimension.FindSet() then
-            repeat
-                ModifyDefaultDimension := DefaultDimension;
-                if ModifyDefaultDimension.UpdateParentId() then
-                    ModifyDefaultDimension.Modify();
-            until DefaultDimension.Next() = 0;
+        UpgradeDefaultDimensionParentIds(Database::Item, Item.FieldNo("No."), Item.FieldNo(SystemId));
+        UpgradeDefaultDimensionParentIds(Database::Customer, Customer.FieldNo("No."), Customer.FieldNo(SystemId));
+        UpgradeDefaultDimensionParentIds(Database::Vendor, Vendor.FieldNo("No."), Vendor.FieldNo(SystemId));
+        UpgradeDefaultDimensionParentIds(Database::Employee, Employee.FieldNo("No."), Employee.FieldNo(SystemId));
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDefaultDimensionParentTypeUpgradeTag());
+    end;
+
+    local procedure UpgradeDefaultDimensionParentIds(TableId: Integer; NoFieldNo: Integer; SystemIdFieldNo: Integer)
+    var
+        DefaultDimension: Record "Default Dimension";
+        DefaultDimensionDataTransfer: DataTransfer;
+        BlankGuid: Guid;
+    begin
+        DefaultDimension.SetRange("Table ID", TableId);
+        DefaultDimension.SetFilter(ParentId, '%1', BlankGuid);
+        if DefaultDimension.IsEmpty() then
+            exit;
+
+        DefaultDimensionDataTransfer.SetTables(TableId, Database::"Default Dimension");
+        DefaultDimensionDataTransfer.AddDestinationFilter(DefaultDimension.FieldNo("Table ID"), '=%1', TableId);
+        DefaultDimensionDataTransfer.AddDestinationFilter(DefaultDimension.FieldNo(ParentId), '%1', BlankGuid);
+        DefaultDimensionDataTransfer.AddFieldValue(SystemIdFieldNo, DefaultDimension.FieldNo(ParentId));
+        DefaultDimensionDataTransfer.AddJoin(NoFieldNo, DefaultDimension.FieldNo("No."));
+        DefaultDimensionDataTransfer.UpdateAuditFields := false;
+        DefaultDimensionDataTransfer.CopyFields();
     end;
 
     local procedure UpgradeDimensionValues()
@@ -2780,6 +2807,19 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetJobTaskReportSelectionUpgradeTag());
     end;
 
+    local procedure UpgradeRemittanceAdviceReportSelection()
+    var
+        ReportSelectionMgt: Codeunit "Report Selection Mgt.";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetRemittanceAdviceReportSelectionUpgradeTag()) then
+            exit;
+        ReportSelectionMgt.InitReportSelection("Report Selection Usage"::"V.Remittance");
+        ReportSelectionMgt.InitReportSelection("Report Selection Usage"::"P.V.Remit.");
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetRemittanceAdviceReportSelectionUpgradeTag());
+    end;
+
     local procedure UpgradeCRMUnitGroupMapping()
     var
         CRMConnectionSetup: Record "CRM Connection Setup";
@@ -3409,6 +3449,28 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetPurchasesPayablesAndSalesReceivablesSetupsUpgradeTag());
     end;
 
+    local procedure UpgradeRestoreOrderQtyOnReturnInSalesAndPurchasesSetup()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetRestoreOrderQtyOnReturnInSalesAndPurchasesSetupUpgradeTag()) then
+            exit;
+
+        if PurchasesPayablesSetup.Get() then begin
+            PurchasesPayablesSetup.Validate("Restore Order Qty. on Return", true);
+            PurchasesPayablesSetup.Modify();
+        end;
+        if SalesReceivablesSetup.Get() then begin
+            SalesReceivablesSetup.Validate("Restore Order Qty. on Return", true);
+            SalesReceivablesSetup.Modify();
+        end;
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetRestoreOrderQtyOnReturnInSalesAndPurchasesSetupUpgradeTag());
+    end;
+
     local procedure UpgradeLocationBinPolicySetups()
     var
         Location: Record Location;
@@ -3515,8 +3577,14 @@ codeunit 104000 "Upgrade - BaseApp"
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetDirectTransferOnTransferOrderUpgradeTag()) then
             exit;
 
-        InventorySetup.GetRecordOnce();
-        DirectTransferPostingType := InventorySetup."Direct Transfer Posting Type";
+        TransferHeader.SetRange("Direct Transfer", true);
+        if TransferHeader.IsEmpty() then begin
+            UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDirectTransferOnTransferOrderUpgradeTag());
+            exit;
+        end;
+
+        if InventorySetup.Get() then
+            DirectTransferPostingType := InventorySetup."Direct Transfer Posting Type";
         if DirectTransferPostingType = DirectTransferPostingType::" " then
             DirectTransferPostingType := DirectTransferPostingType::"Shipment and Receipt";
 
@@ -3934,6 +4002,44 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICTransactionSourceTypeUpgradeTag());
     end;
 
+    local procedure SetShowCurrencySymbolPosition()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        Currency: Record Currency;
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetShowCurrencySymbolPositionUpgradeTag()) then
+            exit;
+
+        if GeneralLedgerSetup.Get() then
+            if GeneralLedgerSetup."Currency Symbol Position" = GeneralLedgerSetup."Currency Symbol Position"::Default then begin
+                GeneralLedgerSetup."Currency Symbol Position" := GeneralLedgerSetup."Currency Symbol Position"::"Before Amount";
+                GeneralLedgerSetup.Modify();
+            end else
+                if GeneralLedgerSetup."Currency Symbol Position" = GeneralLedgerSetup."Currency Symbol Position"::"Before Amount" then begin
+                    GeneralLedgerSetup."Currency Symbol Position" := GeneralLedgerSetup."Currency Symbol Position"::"After Amount";
+                    GeneralLedgerSetup.Modify();
+                end;
+
+        Currency.SetRange("Currency Symbol Position", Currency."Currency Symbol Position"::"Before Amount");
+        Currency.SetLoadFields("Currency Symbol Position");
+        if Currency.FindSet(true) then
+            repeat
+                Currency."Currency Symbol Position" := Currency."Currency Symbol Position"::"After Amount";
+                Currency.Modify();
+            until Currency.Next() = 0;
+
+        Currency.SetRange("Currency Symbol Position", Currency."Currency Symbol Position"::Default);
+        if Currency.FindSet(true) then
+            repeat
+                Currency."Currency Symbol Position" := Currency."Currency Symbol Position"::"Before Amount";
+                Currency.Modify();
+            until Currency.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetShowCurrencySymbolPositionUpgradeTag());
+    end;
+
     local procedure UpgradePurchRcptLineFields()
     var
         PurchRcptHeader: Record "Purch. Rcpt. Header";
@@ -4066,6 +4172,84 @@ codeunit 104000 "Upgrade - BaseApp"
         DepreciationBookDataTransfer.CopyFields();
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDepreciationBooksGLIntegrationUpgradeTag());
+    end;
+
+    local procedure UpgradePurchaseLineReceiptOnInvoice()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        ReceiptOnInvoiceDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetPurchLineReceiptOnInvoiceUpgradeTag()) then
+            exit;
+
+        ReceiptOnInvoiceDataTransfer.SetTables(Database::"Purchase Header", Database::"Purchase Line");
+        ReceiptOnInvoiceDataTransfer.AddSourceFilter(PurchaseHeader.FieldNo("Document Type"), '=%1', PurchaseHeader."Document Type"::Order);
+        ReceiptOnInvoiceDataTransfer.AddSourceFilter(PurchaseHeader.FieldNo("Receipt on Invoice"), '=%1', true);
+        ReceiptOnInvoiceDataTransfer.AddJoin(PurchaseHeader.FieldNo("Document Type"), PurchaseLine.FieldNo("Document Type"));
+        ReceiptOnInvoiceDataTransfer.AddJoin(PurchaseHeader.FieldNo("No."), PurchaseLine.FieldNo("Document No."));
+        ReceiptOnInvoiceDataTransfer.AddConstantValue(true, PurchaseLine.FieldNo("Receipt on Invoice"));
+        ReceiptOnInvoiceDataTransfer.UpdateAuditFields := false;
+        ReceiptOnInvoiceDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetPurchLineReceiptOnInvoiceUpgradeTag());
+    end;
+
+    local procedure UpgradeWarehouseActivitySourceTypeForJobPlanningLine()
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WarehouseRequest: Record "Warehouse Request";
+        WarehouseRequest2: Record "Warehouse Request";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        WarehouseActivityLineDataTransfer: DataTransfer;
+        WhseWorksheetLineDataTransfer: DataTransfer;
+    begin
+        // Upgrade legacy Job-related warehouse records to use the new Source Type and Source Subtype values
+        // Old format: Source Type = Database::Job (167), Source Subtype = 0
+        // New format: Source Type = Database::"Job Planning Line" (1003), Source Subtype = Order (2)
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag()) then
+            exit;
+
+        // Source Subtype is an Option field, so assign an Option-typed value to match the destination field type in DataTransfer.AddConstantValue
+        WarehouseActivityLine."Source Subtype" := "Job Planning Line Status"::Order.AsInteger();
+
+        WarehouseActivityLineDataTransfer.SetTables(Database::"Warehouse Activity Line", Database::"Warehouse Activity Line");
+        WarehouseActivityLineDataTransfer.AddSourceFilter(WarehouseActivityLine.FieldNo("Source Type"), '=%1', Database::Job);
+        WarehouseActivityLineDataTransfer.AddSourceFilter(WarehouseActivityLine.FieldNo("Source Subtype"), '=%1', 0);
+        WarehouseActivityLineDataTransfer.AddConstantValue(Database::"Job Planning Line", WarehouseActivityLine.FieldNo("Source Type"));
+        WarehouseActivityLineDataTransfer.AddConstantValue(WarehouseActivityLine."Source Subtype", WarehouseActivityLine.FieldNo("Source Subtype"));
+        WarehouseActivityLineDataTransfer.UpdateAuditFields := false;
+        WarehouseActivityLineDataTransfer.CopyFields();
+
+        // Upgrade Whse. Worksheet Line (Source Type / Source Subtype are not part of the primary key -> safe to use DataTransfer)
+        WhseWorksheetLine."Source Subtype" := "Job Planning Line Status"::Order.AsInteger();
+
+        WhseWorksheetLineDataTransfer.SetTables(Database::"Whse. Worksheet Line", Database::"Whse. Worksheet Line");
+        WhseWorksheetLineDataTransfer.AddSourceFilter(WhseWorksheetLine.FieldNo("Source Type"), '=%1', Database::Job);
+        WhseWorksheetLineDataTransfer.AddSourceFilter(WhseWorksheetLine.FieldNo("Source Subtype"), '=%1', 0);
+        WhseWorksheetLineDataTransfer.AddConstantValue(Database::"Job Planning Line", WhseWorksheetLine.FieldNo("Source Type"));
+        WhseWorksheetLineDataTransfer.AddConstantValue(WhseWorksheetLine."Source Subtype", WhseWorksheetLine.FieldNo("Source Subtype"));
+        WhseWorksheetLineDataTransfer.UpdateAuditFields := false;
+        WhseWorksheetLineDataTransfer.CopyFields();
+
+        // Upgrade Warehouse Request
+        // Restore the legacy-Job filters before FindSet(). Without them the loop would iterate every
+        // Warehouse Request (Sales, Purchase, Transfer, Prod. Order, etc.) and Rename it to
+        // Database::"Job Planning Line" whenever no target row already exists, corrupting non-job requests.
+        WarehouseRequest.SetRange("Source Type", Database::Job);
+        WarehouseRequest.SetRange("Source Subtype", 0);
+        if WarehouseRequest.FindSet() then
+            repeat
+                // Guard against a target record already existing with the new key values
+                if not WarehouseRequest2.Get(WarehouseRequest.Type, WarehouseRequest."Location Code", Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), WarehouseRequest."Source No.") then
+                    WarehouseRequest.Rename(WarehouseRequest.Type, WarehouseRequest."Location Code", Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), WarehouseRequest."Source No.");
+            until WarehouseRequest.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag());
     end;
 
     local procedure SEPACAMT05300108(): Code[20]

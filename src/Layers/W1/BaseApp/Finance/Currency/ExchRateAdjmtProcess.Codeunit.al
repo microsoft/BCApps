@@ -241,6 +241,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     local procedure AdjustCustomers()
     var
         Customer: Record Customer;
+        CustPostingGroupFilter: Text;
     begin
         CustNo := 0;
         GetNewCustLedgEntryNo();
@@ -248,13 +249,15 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         CustNoTotal := Customer.Count();
         Customer.SetView(ExchRateAdjmtParameters."Customer Filter");
         Customer.SetRange("Date Filter", ExchRateAdjmtParameters."Start Date", ExchRateAdjmtParameters."End Date");
+        CustPostingGroupFilter := Customer.GetFilter("Customer Posting Group");
+        Customer.SetRange("Customer Posting Group");
         if Customer.FindSet() then
             repeat
                 CustNo := CustNo + 1;
                 if not ExchRateAdjmtParameters."Hide UI" then
                     Window.Update(2, Round(CustNo / CustNoTotal * 10000, 1));
 
-                ProcessCustomerAdjustment(Customer);
+                ProcessCustomerAdjustment(Customer, CustPostingGroupFilter);
             until Customer.Next() = 0;
 
         if CustNo <> 0 then
@@ -264,6 +267,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     local procedure AdjustVendors();
     var
         Vendor: Record Vendor;
+        VendPostingGroupFilter: Text;
     begin
         VendNo := 0;
         GetNewVendLedgEntryNo();
@@ -271,13 +275,15 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         VendNoTotal := Vendor.Count();
         Vendor.SetView(ExchRateAdjmtParameters."Vendor Filter");
         Vendor.SetRange("Date Filter", ExchRateAdjmtParameters."Start Date", ExchRateAdjmtParameters."End Date");
+        VendPostingGroupFilter := Vendor.GetFilter("Vendor Posting Group");
+        Vendor.SetRange("Vendor Posting Group");
         if Vendor.FindSet() then
             repeat
                 VendNo := VendNo + 1;
                 if not ExchRateAdjmtParameters."Hide UI" then
                     Window.Update(3, Round(VendNo / VendNoTotal * 10000, 1));
 
-                ProcessVendorAdjustment(Vendor);
+                ProcessVendorAdjustment(Vendor, VendPostingGroupFilter);
             until Vendor.Next() = 0;
 
         if VendNo <> 0 then
@@ -600,14 +606,14 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         OnAfterSetVATEntryFilters(VATEntry);
     end;
 
-    local procedure ProcessCustomerAdjustment(var Customer: Record Customer)
+    local procedure ProcessCustomerAdjustment(var Customer: Record Customer; CustPostingGroupFilter: Text)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DtldCustLedgEntryToAdjust: Record "Detailed Cust. Ledg. Entry";
         TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary;
     begin
         TotalAdjAmount := 0;
-        PrepareTempCustLedgEntry(Customer, TempCustLedgerEntry);
+        PrepareTempCustLedgEntry(Customer, TempCustLedgerEntry, CustPostingGroupFilter);
 
         if TempCustLedgerEntry.Find('-') then
             repeat
@@ -659,14 +665,14 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         OnAfterSetDtldCustLedgEntryFilters(DtldCustLedgEntry2, CustLedgEntry2);
     end;
 
-    local procedure ProcessVendorAdjustment(var Vendor: Record Vendor)
+    local procedure ProcessVendorAdjustment(var Vendor: Record Vendor; VendPostingGroupFilter: Text)
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         DtldVendLedgEntryToAdjust: Record "Detailed Vendor Ledg. Entry";
         TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary;
     begin
         TotalAdjAmount := 0;
-        PrepareTempVendLedgEntry(Vendor, TempVendorLedgerEntry);
+        PrepareTempVendLedgEntry(Vendor, TempVendorLedgerEntry, VendPostingGroupFilter);
 
         if TempVendorLedgerEntry.Find('-') then
             repeat
@@ -1293,7 +1299,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
             until TempDtldEmplLedgEntry.Next() = 0;
     end;
 
-    local procedure PrepareTempCustLedgEntry(var Customer: Record Customer; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary)
+    local procedure PrepareTempCustLedgEntry(var Customer: Record Customer; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary; CustPostingGroupFilter: Text)
     var
         CustLedgerEntry2: Record "Cust. Ledger Entry";
         DtldCustLedgEntry2: Record "Detailed Cust. Ledg. Entry";
@@ -1322,7 +1328,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 CustLedgerEntry2."Entry No." := DtldCustLedgEntry2."Cust. Ledger Entry No.";
                 if CustLedgerEntry2.Find('=') then
                     if (CustLedgerEntry2."Posting Date" >= ExchRateAdjmtParameters."Start Date") and
-                        (CustLedgerEntry2."Posting Date" <= ExchRateAdjmtParameters."End Date")
+                        (CustLedgerEntry2."Posting Date" <= ExchRateAdjmtParameters."End Date") and
+                        CustLedgEntryMatchesPostingGroupFilter(CustLedgerEntry2, CustPostingGroupFilter)
                     then begin
                         TempCustLedgerEntry."Entry No." := CustLedgerEntry2."Entry No.";
                         if TempCustLedgerEntry.Insert() then;
@@ -1333,6 +1340,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         CustLedgerEntry2.SetRange("Customer No.", Customer."No.");
         CustLedgerEntry2.SetRange(Open, true);
         CustLedgerEntry2.SetRange("Posting Date", 0D, ExchRateAdjmtParameters."End Date");
+        if CustPostingGroupFilter <> '' then
+            CustLedgerEntry2.SetFilter("Customer Posting Group", CustPostingGroupFilter);
         OnPrepareTempCustLedgEntryOnAfterSetCustLedgerEntryFilters(CustLedgerEntry2);
         if CustLedgerEntry2.Find('-') then
             repeat
@@ -1342,7 +1351,20 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         CustLedgerEntry2.Reset();
     end;
 
-    local procedure PrepareTempVendLedgEntry(var Vendor: Record Vendor; var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary);
+    local procedure CustLedgEntryMatchesPostingGroupFilter(var CustLedgerEntry: Record "Cust. Ledger Entry"; CustPostingGroupFilter: Text): Boolean
+    var
+        CustLedgerEntryFilter: Record "Cust. Ledger Entry";
+    begin
+        if CustPostingGroupFilter = '' then
+            exit(true);
+
+        CustLedgerEntryFilter := CustLedgerEntry;
+        CustLedgerEntryFilter.SetRange("Entry No.", CustLedgerEntry."Entry No.");
+        CustLedgerEntryFilter.SetFilter("Customer Posting Group", CustPostingGroupFilter);
+        exit(not CustLedgerEntryFilter.IsEmpty());
+    end;
+
+    local procedure PrepareTempVendLedgEntry(var Vendor: Record Vendor; var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary; VendPostingGroupFilter: Text);
     var
         VendorLedgerEntry2: Record "Vendor Ledger Entry";
         DtldVendLedgEntry2: Record "Detailed Vendor Ledg. Entry";
@@ -1370,7 +1392,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 VendorLedgerEntry2."Entry No." := DtldVendLedgEntry2."Vendor Ledger Entry No.";
                 if VendorLedgerEntry2.Find('=') then
                     if (VendorLedgerEntry2."Posting Date" >= ExchRateAdjmtParameters."Start Date") and
-                        (VendorLedgerEntry2."Posting Date" <= ExchRateAdjmtParameters."End Date")
+                        (VendorLedgerEntry2."Posting Date" <= ExchRateAdjmtParameters."End Date") and
+                        VendLedgEntryMatchesPostingGroupFilter(VendorLedgerEntry2, VendPostingGroupFilter)
                     then begin
                         TempVendorLedgerEntry."Entry No." := VendorLedgerEntry2."Entry No.";
                         if TempVendorLedgerEntry.Insert() then;
@@ -1381,6 +1404,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         VendorLedgerEntry2.SetRange("Vendor No.", Vendor."No.");
         VendorLedgerEntry2.SetRange(Open, true);
         VendorLedgerEntry2.SetRange("Posting Date", 0D, ExchRateAdjmtParameters."End Date");
+        if VendPostingGroupFilter <> '' then
+            VendorLedgerEntry2.SetFilter("Vendor Posting Group", VendPostingGroupFilter);
         OnPrepareTempVendLedgEntryOnAfterSetVendLedgerEntryFilters(VendorLedgerEntry2);
         if VendorLedgerEntry2.Find('-') then
             repeat
@@ -1388,6 +1413,19 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 if TempVendorLedgerEntry.Insert() then;
             until VendorLedgerEntry2.Next() = 0;
         VendorLedgerEntry2.Reset();
+    end;
+
+    local procedure VendLedgEntryMatchesPostingGroupFilter(var VendorLedgerEntry: Record "Vendor Ledger Entry"; VendPostingGroupFilter: Text): Boolean
+    var
+        VendorLedgerEntryFilter: Record "Vendor Ledger Entry";
+    begin
+        if VendPostingGroupFilter = '' then
+            exit(true);
+
+        VendorLedgerEntryFilter := VendorLedgerEntry;
+        VendorLedgerEntryFilter.SetRange("Entry No.", VendorLedgerEntry."Entry No.");
+        VendorLedgerEntryFilter.SetFilter("Vendor Posting Group", VendPostingGroupFilter);
+        exit(not VendorLedgerEntryFilter.IsEmpty());
     end;
 
     local procedure PrepareTempEmplLedgEntry(var Employee: Record Employee; var TempEmployeeLedgerEntry: Record "Employee Ledger Entry" temporary);
@@ -2456,6 +2494,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 CustLedgerEntry2.SetRange("Date Filter", 0D, PostingDate2);
                 CustLedgerEntry2.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
                 OnAdjustExchRateCustOnAfterCalcFields(CustLedgerEntry2);
+                if AdjustCustLedgEntryOnLaterExchRateAdjmts(GenJournalLine, CustLedgerEntry2) then
+                    continue;
                 if ShouldAdjustEntry(
                         PostingDate2, CustLedgerEntry2."Currency Code", CustLedgerEntry2."Remaining Amount",
                         CustLedgerEntry2."Remaining Amt. (LCY)", CustLedgerEntry2."Adjusted Currency Factor")
@@ -2490,6 +2530,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 VendLedgerEntry2.SetRange("Date Filter", 0D, PostingDate2);
                 VendLedgerEntry2.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
                 OnAdjustExchRateVendOnAfterCalcFields(VendLedgerEntry2);
+                if AdjustVendLedgEntryOnLaterExchRateAdjmts(GenJournalLine, VendLedgerEntry2) then
+                    continue;
                 if ShouldAdjustEntry(
                     PostingDate2, VendLedgerEntry2."Currency Code",
                     VendLedgerEntry2."Remaining Amount", VendLedgerEntry2."Remaining Amt. (LCY)", VendLedgerEntry2."Adjusted Currency Factor")
@@ -2523,6 +2565,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 EmplLedgerEntry2.Get(TempEmplLedgerEntry."Entry No.");
                 EmplLedgerEntry2.SetRange("Date Filter", 0D, PostingDate2);
                 EmplLedgerEntry2.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
+                if AdjustEmplLedgEntryOnLaterExchRateAdjmts(GenJournalLine, EmplLedgerEntry2) then
+                    continue;
                 if ShouldAdjustEntry(
                     PostingDate2, EmplLedgerEntry2."Currency Code",
                     EmplLedgerEntry2."Remaining Amount", EmplLedgerEntry2."Remaining Amt. (LCY)", EmplLedgerEntry2."Adjusted Currency Factor")
@@ -2541,6 +2585,101 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                     HandlePostAdjmt("Exch. Rate Adjmt. Account Type"::Employee);
                 end;
             until TempEmplLedgerEntry.Next() = 0;
+    end;
+
+    local procedure AdjustCustLedgEntryOnLaterExchRateAdjmts(GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry"): Boolean
+    var
+        Customer: Record Customer;
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        DetailedCustLedgEntry.SetRange("Entry No.", 0, DetailedCustLedgEntry.GetLastEntryNo());
+        DetailedCustLedgEntry.SetCurrentKey("Cust. Ledger Entry No.", "Posting Date");
+        DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
+        DetailedCustLedgEntry.SetFilter("Posting Date", '%1..', GenJournalLine."Posting Date");
+        DetailedCustLedgEntry.SetFilter("Exch. Rate Adjmt. Reg. No.", '<>0');
+        DetailedCustLedgEntry.SetLoadFields("Posting Date", "Exch. Rate Adjmt. Reg. No.");
+        if not DetailedCustLedgEntry.FindSet() then
+            exit(false);
+
+        InitVariablesForSetLedgEntry(GenJournalLine);
+        SetCustLedgEntry(Customer, CustLedgerEntry);
+        repeat
+            CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
+            AddCurrency(
+                CustLedgerEntry."Currency Code",
+                GetExchRateAdjmtCurrencyFactor(DetailedCustLedgEntry."Exch. Rate Adjmt. Reg. No.", CustLedgerEntry."Adjusted Currency Factor"));
+            AdjustCustomerLedgerEntry(Customer, CustLedgerEntry, DetailedCustLedgEntry."Posting Date", true);
+            HandlePostAdjmt("Exch. Rate Adjmt. Account Type"::Customer);
+            TempDtldCustLedgEntrySums.DeleteAll();
+        until DetailedCustLedgEntry.Next() = 0;
+        exit(true);
+    end;
+
+    local procedure AdjustVendLedgEntryOnLaterExchRateAdjmts(GenJournalLine: Record "Gen. Journal Line"; VendLedgerEntry: Record "Vendor Ledger Entry"): Boolean
+    var
+        Vendor: Record Vendor;
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        DetailedVendorLedgEntry.SetRange("Entry No.", 0, DetailedVendorLedgEntry.GetLastEntryNo());
+        DetailedVendorLedgEntry.SetCurrentKey("Vendor Ledger Entry No.", "Posting Date");
+        DetailedVendorLedgEntry.SetRange("Vendor Ledger Entry No.", VendLedgerEntry."Entry No.");
+        DetailedVendorLedgEntry.SetFilter("Posting Date", '%1..', GenJournalLine."Posting Date");
+        DetailedVendorLedgEntry.SetFilter("Exch. Rate Adjmt. Reg. No.", '<>0');
+        DetailedVendorLedgEntry.SetLoadFields("Posting Date", "Exch. Rate Adjmt. Reg. No.");
+        if not DetailedVendorLedgEntry.FindSet() then
+            exit(false);
+
+        InitVariablesForSetLedgEntry(GenJournalLine);
+        SetVendLedgEntry(Vendor, VendLedgerEntry);
+        repeat
+            VendLedgerEntry.Get(VendLedgerEntry."Entry No.");
+            AddCurrency(
+                VendLedgerEntry."Currency Code",
+                GetExchRateAdjmtCurrencyFactor(DetailedVendorLedgEntry."Exch. Rate Adjmt. Reg. No.", VendLedgerEntry."Adjusted Currency Factor"));
+            AdjustVendorLedgerEntry(Vendor, VendLedgerEntry, DetailedVendorLedgEntry."Posting Date", true);
+            HandlePostAdjmt("Exch. Rate Adjmt. Account Type"::Vendor);
+            TempDtldVendLedgEntrySums.DeleteAll();
+        until DetailedVendorLedgEntry.Next() = 0;
+        exit(true);
+    end;
+
+    local procedure AdjustEmplLedgEntryOnLaterExchRateAdjmts(GenJournalLine: Record "Gen. Journal Line"; EmplLedgerEntry: Record "Employee Ledger Entry"): Boolean
+    var
+        Employee: Record Employee;
+        DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry";
+    begin
+        DetailedEmployeeLedgerEntry.SetRange("Entry No.", 0, DetailedEmployeeLedgerEntry.GetLastEntryNo());
+        DetailedEmployeeLedgerEntry.SetCurrentKey("Employee Ledger Entry No.", "Posting Date");
+        DetailedEmployeeLedgerEntry.SetRange("Employee Ledger Entry No.", EmplLedgerEntry."Entry No.");
+        DetailedEmployeeLedgerEntry.SetFilter("Posting Date", '%1..', GenJournalLine."Posting Date");
+        DetailedEmployeeLedgerEntry.SetFilter("Exch. Rate Adjmt. Reg. No.", '<>0');
+        DetailedEmployeeLedgerEntry.SetLoadFields("Posting Date", "Exch. Rate Adjmt. Reg. No.");
+        if not DetailedEmployeeLedgerEntry.FindSet() then
+            exit(false);
+
+        InitVariablesForSetLedgEntry(GenJournalLine);
+        SetEmplLedgEntry(Employee, EmplLedgerEntry);
+        repeat
+            EmplLedgerEntry.Get(EmplLedgerEntry."Entry No.");
+            AddCurrency(
+                EmplLedgerEntry."Currency Code",
+                GetExchRateAdjmtCurrencyFactor(DetailedEmployeeLedgerEntry."Exch. Rate Adjmt. Reg. No.", EmplLedgerEntry."Adjusted Currency Factor"));
+            AdjustEmployeeLedgerEntry(Employee, EmplLedgerEntry, DetailedEmployeeLedgerEntry."Posting Date", true);
+            HandlePostAdjmt("Exch. Rate Adjmt. Account Type"::Employee);
+            TempDtldEmplLedgEntrySums.DeleteAll();
+        until DetailedEmployeeLedgerEntry.Next() = 0;
+        exit(true);
+    end;
+
+    local procedure GetExchRateAdjmtCurrencyFactor(ExchRateAdjmtRegNo: Integer; DefaultCurrencyFactor: Decimal): Decimal
+    var
+        ExchRateAdjmtReg2: Record "Exch. Rate Adjmt. Reg.";
+    begin
+        ExchRateAdjmtReg2.SetLoadFields("Currency Factor");
+        if ExchRateAdjmtReg2.Get(ExchRateAdjmtRegNo) then
+            if ExchRateAdjmtReg2."Currency Factor" <> 0 then
+                exit(ExchRateAdjmtReg2."Currency Factor");
+        exit(DefaultCurrencyFactor);
     end;
 
     local procedure ResetTempAdjmtBuffer()
@@ -2825,7 +2964,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         TempExchRateAdjmtLedgEntry."Currency Factor" := CustLedgerEntry."Adjusted Currency Factor";
         TempExchRateAdjmtLedgEntry."Base Amount" := CustLedgerEntry."Remaining Amount";
         TempExchRateAdjmtLedgEntry."Base Amount (LCY)" := CustLedgerEntry."Remaining Amt. (LCY)";
-        TempExchRateAdjmtLedgEntry."Adjustment Amount" := CurrAdjAmount;
+        TempExchRateAdjmtLedgEntry."Adjustment Amount" := DetailedCustLedgEntry2."Amount (LCY)";
         TempExchRateAdjmtLedgEntry.Insert();
     end;
 
@@ -2846,7 +2985,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         TempExchRateAdjmtLedgEntry."Currency Factor" := VendorLedgerEntry."Adjusted Currency Factor";
         TempExchRateAdjmtLedgEntry."Base Amount" := VendorLedgerEntry."Remaining Amount";
         TempExchRateAdjmtLedgEntry."Base Amount (LCY)" := VendorLedgerEntry."Remaining Amt. (LCY)";
-        TempExchRateAdjmtLedgEntry."Adjustment Amount" := CurrAdjAmount;
+        TempExchRateAdjmtLedgEntry."Adjustment Amount" := DetailedVendorLedgEntry2."Amount (LCY)";
         TempExchRateAdjmtLedgEntry.Insert();
     end;
 
@@ -2867,7 +3006,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         TempExchRateAdjmtLedgEntry."Currency Factor" := Currency."Currency Factor";
         TempExchRateAdjmtLedgEntry."Base Amount" := EmplLedgEntry."Remaining Amount";
         TempExchRateAdjmtLedgEntry."Base Amount (LCY)" := EmplLedgEntry."Remaining Amt. (LCY)";
-        TempExchRateAdjmtLedgEntry."Adjustment Amount" := CurrAdjAmount;
+        TempExchRateAdjmtLedgEntry."Adjustment Amount" := DtldEmplLedgEntry."Amount (LCY)";
         TempExchRateAdjmtLedgEntry.Insert();
     end;
 

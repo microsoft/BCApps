@@ -24,6 +24,11 @@ pageextension 7416 "Excise Tax Trans Log Ext" extends "Sust. Excise Taxes Trans.
                 ApplicationArea = All;
                 ToolTip = 'Specifies the excise entry type.';
             }
+            field("Excise Calculation Type"; Rec."Excise Calculation Type")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specifies whether the excise duty was calculated per unit, as a percentage of the taxable amount, or as a combination of both.';
+            }
         }
         addafter("Source Unit of Measure Code")
         {
@@ -31,6 +36,11 @@ pageextension 7416 "Excise Tax Trans Log Ext" extends "Sust. Excise Taxes Trans.
             {
                 ApplicationArea = All;
                 ToolTip = 'Specifies the unit of measure for excise tax calculation.';
+            }
+            field("Item Category Code"; Rec."Item Category Code")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specifies the item category copied from the item ledger entry.';
             }
         }
         addafter("Source Qty.")
@@ -44,6 +54,16 @@ pageextension 7416 "Excise Tax Trans Log Ext" extends "Sust. Excise Taxes Trans.
             {
                 ApplicationArea = All;
                 ToolTip = 'Specifies the excise duty.';
+            }
+            field("Excise Duty %"; Rec."Excise Duty %")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specifies the percentage of the taxable amount that was charged as excise duty.';
+            }
+            field("Excise Taxable Amount"; Rec."Excise Taxable Amount")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specifies the amount that the ad valorem part of the excise duty was calculated from.';
             }
             field("Tax Amount"; Rec."Tax Amount")
             {

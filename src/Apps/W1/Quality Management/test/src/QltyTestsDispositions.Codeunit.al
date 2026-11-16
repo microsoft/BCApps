@@ -20,6 +20,8 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Dispositions;
+using Microsoft.QualityManagement.Dispositions.Move;
+using Microsoft.QualityManagement.Dispositions.Transfer;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.Test.QualityManagement.TestLibraries;
@@ -50,6 +52,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         NoPurchRcptLineErr: Label 'Could not find a related purchase receipt line with sufficient quantity for %1 from Quality Inspection %2,%3. Confirm the inspection source is a Purchase Line and that it has been received prior to creating a return.', Comment = '%1=item,%2=inspection,%3=re-inspection';
         WriteOffEntireItemTrackingErr: Label 'Reducing inventory using the item tracked quantity for inspection %1 was requested, however the item associated with this inspection does not require tracking.', Comment = '%1=the inspection';
         MissingAdjBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the adjustment batch.';
@@ -3897,7 +3900,42 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('CreateTransferOrderRequestPageHandler')]
     procedure CreateTransfer_NonDirectedWithBins_DirectTransfer_Untracked()
+    begin
+        // [SCENARIO] The manual transfer uses the selected destination bin instead of the default bin.
+        CreateTransferWithOptionalDestinationBin(true, true, false);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('CreateTransferOrderRequestPageHandler')]
+    procedure CreateTransferReport_BlankDestinationBin_UsesDefaultBin()
+    begin
+        // [SCENARIO] Leaving the destination bin blank preserves the standard default-bin selection.
+        CreateTransferWithOptionalDestinationBin(false, true, false);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('CreateTransferOrderRequestPageHandler')]
+    procedure CreateTransferReport_BlankDestinationBinWithoutDefault_CreatesTransfer()
+    begin
+        // [SCENARIO] A transfer can be created without selecting a destination bin when no default exists.
+        CreateTransferWithOptionalDestinationBin(false, false, false);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('CreateTransferOrderRequestPageHandler')]
+    procedure CreateTransferReport_WithoutRequestPage_BlankBinUsesDefaultBin()
+    begin
+        // [SCENARIO] Executing the report with saved options and no request page permits a blank destination bin.
+        CreateTransferWithOptionalDestinationBin(false, true, true);
+    end;
+
+    local procedure CreateTransferWithOptionalDestinationBin(SelectDestinationBin: Boolean; ConfigureDefaultBin: Boolean; RunWithoutRequestPage: Boolean)
     var
         Location: Record Location;
         DestinationLocation: Record Location;
@@ -3907,16 +3945,22 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         Bin: Record Bin;
+        DestinationBin: Record Bin;
+        DefaultDestinationBin: Record Bin;
+        BinContent: Record "Bin Content";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
-        TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
+        InspectionRecordRef: RecordRef;
+        RequestPageParameters: Text;
+        ExpectedDestinationBinCode: Code[20];
     begin
-        // [SCENARIO] Create a direct transfer order for untracked items from a non-directed location with bins
+        LibraryVariableStorage.Clear();
 
         // [GIVEN] Quality management setup and inspection generation rule are initialized
-        QltyInspectionUtility.EnsureSetupExists();
-        EnsureInspectionTemplateAndRuleForPurchaseLineExist(QltyInspectionTemplateHdr, QltyInspectionGenRule);
+        QltyInspectionUtility.EnsureBasicSetupExists(false);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
         // [GIVEN] A non-directed location with bins is created
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
@@ -3924,11 +3968,20 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         // [GIVEN] Three bins are created at the source location
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
 
-        // [GIVEN] A destination location is created
-        LibraryWarehouse.CreateLocation(DestinationLocation);
+        // [GIVEN] A destination location with mandatory bins is created
+        LibraryWarehouse.CreateLocationWMS(DestinationLocation, true, false, false, false, false);
+        LibraryWarehouse.CreateBin(DestinationBin, DestinationLocation.Code, LibraryUtility.GenerateGUID(), '', '');
 
         // [GIVEN] An untracked item is created
         LibraryInventory.CreateItem(Item);
+
+        if ConfigureDefaultBin then begin
+            LibraryWarehouse.CreateBin(DefaultDestinationBin, DestinationLocation.Code, LibraryUtility.GenerateGUID(), '', '');
+            LibraryWarehouse.CreateBinContent(BinContent, DestinationLocation.Code, '', DefaultDestinationBin.Code, Item."No.", '', Item."Base Unit of Measure");
+            BinContent.Validate(Default, true);
+            BinContent.Modify(true);
+            ExpectedDestinationBinCode := DefaultDestinationBin.Code;
+        end;
 
         // [GIVEN] A purchase order for 100 units is created with bin assignment, released, and received
         QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
@@ -3944,8 +3997,22 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         QltyInspectionGenRule.Delete();
 
-        // [WHEN] Transfer disposition is performed for 50 units to the destination location
-        LibraryAssert.IsTrue(QltyInspectionUtility.PerformTransferDisposition(QltyInspectionHeader, 50, TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity", '', '', DestinationLocation.Code, ''), 'Should have created transfer.');
+        LibraryVariableStorage.Enqueue(DestinationLocation.Code);
+        if SelectDestinationBin then begin
+            LibraryVariableStorage.Enqueue(DestinationBin.Code);
+            ExpectedDestinationBinCode := DestinationBin.Code;
+        end else
+            LibraryVariableStorage.Enqueue('');
+
+        // [WHEN] The manual transfer report is confirmed with an optional destination bin
+        QltyInspectionHeader.SetRecFilter();
+        Commit();
+        if RunWithoutRequestPage then begin
+            RequestPageParameters := Report.RunRequestPage(Report::"Qlty. Create Transfer Order");
+            InspectionRecordRef.GetTable(QltyInspectionHeader);
+            Report.Execute(Report::"Qlty. Create Transfer Order", RequestPageParameters, InspectionRecordRef);
+        end else
+            Report.RunModal(Report::"Qlty. Create Transfer Order", true, true, QltyInspectionHeader);
 
         // [THEN] One direct transfer header is created between source and destination locations
 #pragma warning disable AA0210 
@@ -3964,6 +4031,97 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TransferLine.FindFirst();
         LibraryAssert.AreEqual(50, TransferLine.Quantity, 'Should have requested quantity.');
         LibraryAssert.AreEqual(Bin.Code, TransferLine."Transfer-from Bin Code", 'Should have transfer-from bin code.');
+        LibraryAssert.AreEqual(ExpectedDestinationBinCode, TransferLine."Transfer-To Bin Code", 'Should preserve the selected bin or the standard default-bin behavior.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [RequestPageHandler]
+    procedure CreateTransferOrderRequestPageHandler(var QltyCreateTransferOrder: TestRequestPage "Qlty. Create Transfer Order")
+    begin
+        QltyCreateTransferOrder.ChooseMoveSpecificQuantity.SetValue(true);
+        QltyCreateTransferOrder.ChooseQuantity.SetValue(50);
+        QltyCreateTransferOrder.ChooseDestinationLocation.SetValue(LibraryVariableStorage.DequeueText());
+        LibraryAssert.IsTrue(QltyCreateTransferOrder.ChooseDestinationBin.Enabled(), 'Destination bin should be enabled for a non-directed location with mandatory bins.');
+        QltyCreateTransferOrder.ChooseDestinationBin.SetValue(LibraryVariableStorage.DequeueText());
+        QltyCreateTransferOrder.ChooseDirectTransfer.SetValue(true);
+        QltyCreateTransferOrder.OK().Invoke();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('DestinationLocationChangeRequestPageHandler')]
+    procedure CreateTransferReport_ChangeDestinationLocation_ClearsSelectedBin()
+    var
+        Location: Record Location;
+        NewLocation: Record Location;
+        Bin: Record Bin;
+        NewBin: Record Bin;
+        RequestPageParameters: Text;
+    begin
+        // [SCENARIO] Changing the destination location clears a selected bin that does not exist at the new location
+        LibraryVariableStorage.Clear();
+
+        // [GIVEN] Two non-directed locations with mandatory bins, each with its own bin
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
+        LibraryWarehouse.CreateBin(Bin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+        LibraryWarehouse.CreateLocationWMS(NewLocation, true, false, false, false, false);
+        LibraryWarehouse.CreateBin(NewBin, NewLocation.Code, LibraryUtility.GenerateGUID(), '', '');
+
+        // [WHEN] A destination bin is selected and the destination location is changed to the second location
+        LibraryVariableStorage.Enqueue(Location.Code);
+        LibraryVariableStorage.Enqueue(Bin.Code);
+        LibraryVariableStorage.Enqueue(NewLocation.Code);
+        Commit();
+        RequestPageParameters := Report.RunRequestPage(Report::"Qlty. Create Transfer Order");
+
+        // [THEN] Destination bin selection stays enabled and the selected bin is cleared
+        LibraryAssert.IsTrue(LibraryVariableStorage.DequeueBoolean(), 'Should keep bin selection enabled for a non-directed location with mandatory bins.');
+        LibraryAssert.AreEqual('', LibraryVariableStorage.DequeueText(), 'Should clear the destination bin on the request page.');
+        LibraryAssert.AreEqual('', RequestPageParameters, 'Should not return parameters from a cancelled request page.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('DestinationLocationChangeRequestPageHandler')]
+    procedure CreateTransferReport_DirectedDestination_DisablesBinSelection()
+    var
+        Location: Record Location;
+        DirectedLocation: Record Location;
+        Bin: Record Bin;
+        RequestPageParameters: Text;
+    begin
+        // [SCENARIO] A directed put-away and pick destination does not allow bin selection and clears a selected bin
+        LibraryVariableStorage.Clear();
+
+        // [GIVEN] A non-directed location with mandatory bins and a directed put-away and pick location
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
+        LibraryWarehouse.CreateBin(Bin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+        LibraryWarehouse.CreateFullWMSLocation(DirectedLocation, 1);
+
+        // [WHEN] A destination bin is selected and the destination location is changed to the directed location
+        LibraryVariableStorage.Enqueue(Location.Code);
+        LibraryVariableStorage.Enqueue(Bin.Code);
+        LibraryVariableStorage.Enqueue(DirectedLocation.Code);
+        Commit();
+        RequestPageParameters := Report.RunRequestPage(Report::"Qlty. Create Transfer Order");
+
+        // [THEN] Destination bin selection is disabled and the selected bin is cleared
+        LibraryAssert.IsFalse(LibraryVariableStorage.DequeueBoolean(), 'Should disable bin selection for directed put-away and pick locations.');
+        LibraryAssert.AreEqual('', LibraryVariableStorage.DequeueText(), 'Should clear the destination bin on the request page.');
+        LibraryAssert.AreEqual('', RequestPageParameters, 'Should not return parameters from a cancelled request page.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [RequestPageHandler]
+    procedure DestinationLocationChangeRequestPageHandler(var QltyCreateTransferOrder: TestRequestPage "Qlty. Create Transfer Order")
+    begin
+        QltyCreateTransferOrder.ChooseDestinationLocation.SetValue(LibraryVariableStorage.DequeueText());
+        QltyCreateTransferOrder.ChooseDestinationBin.SetValue(LibraryVariableStorage.DequeueText());
+        QltyCreateTransferOrder.ChooseDestinationLocation.SetValue(LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.Enqueue(QltyCreateTransferOrder.ChooseDestinationBin.Enabled());
+        LibraryVariableStorage.Enqueue(QltyCreateTransferOrder.ChooseDestinationBin.Value());
+        QltyCreateTransferOrder.Cancel().Invoke();
     end;
 
     [Test]
@@ -6819,6 +6977,247 @@ codeunit 139960 "Qlty. Tests - Dispositions"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('MoveInventoryDestinationEditabilityRequestPageHandler')]
+    procedure MoveInventoryReport_NonDirectedReclass_DestinationLocationEditable()
+    var
+        Location: Record Location;
+        DestinationLocation: Record Location;
+        SourceBin: Record Bin;
+        DestinationBin: Record Bin;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        // [SCENARIO] Item reclassification at a non-directed location allows choosing another destination location, while internal movement keeps the inspection location
+        LibraryVariableStorage.Clear();
+
+        // [GIVEN] An inspection at a non-directed location with mandatory bins and another non-directed destination location
+        CreateNonDirectedInspectionWithDestination(Location, DestinationLocation, DestinationBin, QltyInspectionHeader);
+        SourceBin.SetRange("Location Code", Location.Code);
+        SourceBin.FindFirst();
+
+        // [WHEN] The Move Inventory request page is opened for the single inspection and the destination and movement method are changed
+        LibraryVariableStorage.Enqueue(SourceBin.Code);
+        LibraryVariableStorage.Enqueue(DestinationLocation.Code);
+        LibraryVariableStorage.Enqueue(DestinationBin.Code);
+        QltyInspectionHeader.SetRecFilter();
+        Commit();
+        Report.RunModal(Report::"Qlty. Move Inventory", true, false, QltyInspectionHeader);
+
+        // [THEN] Item reclassification is selected by default, the destination location is editable and defaults to the inspection location
+        LibraryAssert.IsTrue(LibraryVariableStorage.DequeueBoolean(), 'Should use item reclassification by default.');
+        LibraryAssert.IsTrue(LibraryVariableStorage.DequeueBoolean(), 'Should allow changing the destination location for item reclassification at a non-directed location.');
+        LibraryAssert.AreEqual(Location.Code, LibraryVariableStorage.DequeueText(), 'Should default the destination location to the inspection location.');
+
+        // [THEN] Changing the destination location clears a bin from the previous location and accepts a bin from the new location
+        LibraryAssert.AreEqual('', LibraryVariableStorage.DequeueText(), 'Should clear the destination bin when the destination location changes.');
+        LibraryAssert.AreEqual(DestinationLocation.Code, LibraryVariableStorage.DequeueText(), 'Should accept another destination location.');
+        LibraryAssert.AreEqual(DestinationBin.Code, LibraryVariableStorage.DequeueText(), 'Should accept a bin from the new destination location.');
+
+        // [THEN] Switching to internal movement locks the destination location and restores the inspection location
+        LibraryAssert.IsFalse(LibraryVariableStorage.DequeueBoolean(), 'Should not allow changing the destination location for internal movements.');
+        LibraryAssert.AreEqual(Location.Code, LibraryVariableStorage.DequeueText(), 'Should restore the inspection location for internal movements.');
+        LibraryAssert.AreEqual('', LibraryVariableStorage.DequeueText(), 'Should clear the destination bin from the other location.');
+
+        // [THEN] Switching back to item reclassification makes the destination location editable again
+        LibraryAssert.IsTrue(LibraryVariableStorage.DequeueBoolean(), 'Should allow changing the destination location again for item reclassification.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('MoveInventoryReclassToOtherLocationRequestPageHandler')]
+    procedure MoveInventoryReport_NonDirectedReclass_ToOtherLocation_CreatesReclassLine()
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+        ReclassItemJournalTemplate: Record "Item Journal Template";
+        ReclassItemJournalBatch: Record "Item Journal Batch";
+        ReclassItemJournalLine: Record "Item Journal Line";
+        Location: Record Location;
+        DestinationLocation: Record Location;
+        DestinationBin: Record Bin;
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        PreviousItemReclassBatchName: Code[10];
+    begin
+        // [SCENARIO] The Move Inventory report creates an item reclassification line to another location for a single inspection at a non-directed location
+        LibraryVariableStorage.Clear();
+
+        // [GIVEN] An item reclassification batch is configured
+        QltyInspectionUtility.EnsureBasicSetupExists(false);
+        QltyManagementSetup.Get();
+        LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
+        LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
+        PreviousItemReclassBatchName := QltyManagementSetup."Item Reclass. Batch Name";
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
+        QltyManagementSetup.Modify();
+
+        // [GIVEN] An inspection at a non-directed location with mandatory bins and another non-directed destination location
+        CreateNonDirectedInspectionWithDestination(Location, DestinationLocation, DestinationBin, QltyInspectionHeader);
+
+        // [WHEN] The Move Inventory report is run with item reclassification to the other location and bin
+        LibraryVariableStorage.Enqueue(DestinationLocation.Code);
+        LibraryVariableStorage.Enqueue(DestinationBin.Code);
+        QltyInspectionHeader.SetRecFilter();
+        Commit();
+        Report.RunModal(Report::"Qlty. Move Inventory", true, false, QltyInspectionHeader);
+
+        // [THEN] An item reclassification line is created from the inspection location to the selected location and bin
+        ReclassItemJournalLine.SetRange("Journal Template Name", ReclassItemJournalTemplate.Name);
+        ReclassItemJournalLine.SetRange("Journal Batch Name", ReclassItemJournalBatch.Name);
+        ReclassItemJournalLine.SetRange("Item No.", QltyInspectionHeader."Source Item No.");
+        LibraryAssert.AreEqual(1, ReclassItemJournalLine.Count(), 'Should create one item reclassification line.');
+        ReclassItemJournalLine.FindFirst();
+        LibraryAssert.AreEqual(Location.Code, ReclassItemJournalLine."Location Code", 'Should move from the inspection location.');
+        LibraryAssert.AreEqual(DestinationLocation.Code, ReclassItemJournalLine."New Location Code", 'Should move to the selected destination location.');
+        LibraryAssert.AreEqual(DestinationBin.Code, ReclassItemJournalLine."New Bin Code", 'Should move to the selected destination bin.');
+        LibraryAssert.AreEqual(50, ReclassItemJournalLine.Quantity, 'Should move the requested quantity.');
+        LibraryVariableStorage.AssertEmpty();
+
+        ReclassItemJournalLine.DeleteAll();
+        ReclassItemJournalBatch.Delete();
+        ReclassItemJournalTemplate.Delete();
+        QltyManagementSetup.Get();
+        QltyManagementSetup."Item Reclass. Batch Name" := PreviousItemReclassBatchName;
+        QltyManagementSetup.Modify();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('MoveInventoryDirectedLocationRequestPageHandler')]
+    procedure MoveInventoryReport_Directed_DestinationLocationLocked()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        Location: Record Location;
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WarehouseEntry: Record "Warehouse Entry";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        // [SCENARIO] Directed put-away and pick locations keep the destination location locked for every movement method
+        LibraryVariableStorage.Clear();
+
+        // [GIVEN] A quality inspection for inventory at a directed put-away and pick location
+        QltyInspectionUtility.EnsureBasicSetupExists(false);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        LibraryWarehouse.CreateFullWMSLocation(Location, 3);
+        LibraryInventory.CreateItem(Item);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
+        WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
+        WarehouseEntry.FindFirst();
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
+        QltyInspectionGenRule.Delete();
+
+        // [WHEN] The Move Inventory request page is opened for the inspection with each movement method
+        QltyInspectionHeader.SetRecFilter();
+        Commit();
+        Report.RunModal(Report::"Qlty. Move Inventory", true, false, QltyInspectionHeader);
+
+        // [THEN] The destination location stays locked to the inspection location for warehouse reclassification and movement worksheet
+        LibraryAssert.IsFalse(LibraryVariableStorage.DequeueBoolean(), 'Should not allow changing the destination location for warehouse reclassification at a directed location.');
+        LibraryAssert.AreEqual(Location.Code, LibraryVariableStorage.DequeueText(), 'Should use the inspection location as destination.');
+        LibraryAssert.IsFalse(LibraryVariableStorage.DequeueBoolean(), 'Should not allow changing the destination location for the movement worksheet at a directed location.');
+        LibraryAssert.AreEqual(Location.Code, LibraryVariableStorage.DequeueText(), 'Should keep the inspection location as destination.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure CreateNonDirectedInspectionWithDestination(var Location: Record Location; var DestinationLocation: Record Location; var DestinationBin: Record Bin; var QltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Bin: Record Bin;
+    begin
+        QltyInspectionUtility.EnsureBasicSetupExists(false);
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
+        LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
+        LibraryWarehouse.CreateLocationWMS(DestinationLocation, true, false, false, false, false);
+        LibraryWarehouse.CreateBin(DestinationBin, DestinationLocation.Code, LibraryUtility.GenerateGUID(), '', '');
+
+        LibraryInventory.CreateItem(Item);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
+        Bin.SetRange("Location Code", Location.Code);
+        Bin.FindFirst();
+        PurchaseLine.Validate("Bin Code", Bin.Code);
+        PurchaseLine.Modify();
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
+
+        QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, QltyInspectionTemplateHdr.Code, QltyInspectionHeader);
+        QltyInspectionGenRule.Delete();
+    end;
+
+    [RequestPageHandler]
+    procedure MoveInventoryDestinationEditabilityRequestPageHandler(var QltyMoveInventory: TestRequestPage "Qlty. Move Inventory")
+    var
+        SourceBinCode: Text;
+        DestinationLocationCode: Text;
+        DestinationBinCode: Text;
+    begin
+        SourceBinCode := LibraryVariableStorage.DequeueText();
+        DestinationLocationCode := LibraryVariableStorage.DequeueText();
+        DestinationBinCode := LibraryVariableStorage.DequeueText();
+
+        LibraryVariableStorage.Enqueue(QltyMoveInventory.ChooseUseReclass.AsBoolean());
+        LibraryVariableStorage.Enqueue(QltyMoveInventory.ChooseDestinationLocation.Editable());
+        LibraryVariableStorage.Enqueue(QltyMoveInventory.ChooseDestinationLocation.Value());
+
+        QltyMoveInventory.ChooseDestinationBin.SetValue(SourceBinCode);
+        QltyMoveInventory.ChooseDestinationLocation.SetValue(DestinationLocationCode);
+        LibraryVariableStorage.Enqueue(QltyMoveInventory.ChooseDestinationBin.Value());
+        QltyMoveInventory.ChooseDestinationBin.SetValue(DestinationBinCode);
+        LibraryVariableStorage.Enqueue(QltyMoveInventory.ChooseDestinationLocation.Value());
+        LibraryVariableStorage.Enqueue(QltyMoveInventory.ChooseDestinationBin.Value());
+
+        QltyMoveInventory.ChooseUseWorksheet.SetValue(true);
+        LibraryVariableStorage.Enqueue(QltyMoveInventory.ChooseDestinationLocation.Editable());
+        LibraryVariableStorage.Enqueue(QltyMoveInventory.ChooseDestinationLocation.Value());
+        LibraryVariableStorage.Enqueue(QltyMoveInventory.ChooseDestinationBin.Value());
+
+        QltyMoveInventory.ChooseUseReclass.SetValue(true);
+        LibraryVariableStorage.Enqueue(QltyMoveInventory.ChooseDestinationLocation.Editable());
+
+        QltyMoveInventory.Cancel().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure MoveInventoryReclassToOtherLocationRequestPageHandler(var QltyMoveInventory: TestRequestPage "Qlty. Move Inventory")
+    begin
+        QltyMoveInventory.ChooseUseReclass.SetValue(true);
+        QltyMoveInventory.ChooseMoveSpecificQuantity.SetValue(true);
+        QltyMoveInventory.ChooseQuantity.SetValue(50);
+        LibraryAssert.IsTrue(QltyMoveInventory.ChooseDestinationLocation.Editable(), 'Destination location should be editable for item reclassification at a non-directed location.');
+        QltyMoveInventory.ChooseDestinationLocation.SetValue(LibraryVariableStorage.DequeueText());
+        QltyMoveInventory.ChooseDestinationBin.SetValue(LibraryVariableStorage.DequeueText());
+        QltyMoveInventory.ChoosePostLater.SetValue(true);
+        QltyMoveInventory.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure MoveInventoryDirectedLocationRequestPageHandler(var QltyMoveInventory: TestRequestPage "Qlty. Move Inventory")
+    begin
+        LibraryVariableStorage.Enqueue(QltyMoveInventory.ChooseDestinationLocation.Editable());
+        LibraryVariableStorage.Enqueue(QltyMoveInventory.ChooseDestinationLocation.Value());
+
+        QltyMoveInventory.ChooseUseWorksheet.SetValue(true);
+        LibraryVariableStorage.Enqueue(QltyMoveInventory.ChooseDestinationLocation.Editable());
+        LibraryVariableStorage.Enqueue(QltyMoveInventory.ChooseDestinationLocation.Value());
+
+        QltyMoveInventory.Cancel().Invoke();
+    end;
+
+    [Test]
     procedure AutoChooseMoveInventory_NoInventoryFound_ShouldError()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -6958,6 +7357,75 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         LibraryAssert.AreEqual(50, WhseInternalPutAwayLine.Quantity, 'Should have created internal put-away with quantity 50');
         WhseInternalPutAwayHeader.Get(WhseInternalPutAwayLine."No.");
         LibraryAssert.AreEqual(WhseInternalPutAwayHeader.Status::Released, WhseInternalPutAwayHeader.Status, 'Should have released internal putaway');
+    end;
+
+    [Test]
+    procedure InternalPutaway_FailedQuantity_SourcedFromStorageBinNotReceive()
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        Location: Record Location;
+        Item: Record Item;
+        Bin: Record Bin;
+        BinType: Record "Bin Type";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WarehouseEntry: Record "Warehouse Entry";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        WhseInternalPutAwayLine: Record "Whse. Internal Put-away Line";
+        WarehouseSetup: Record "Warehouse Setup";
+        FailedQuantity: Decimal;
+        TotalPutAwayQuantity: Decimal;
+    begin
+        // [SCENARIO] Creating an internal put-away for the failed quantity sources the inventory from the storage bin the goods were put away to, never from the receive bin, and moves exactly the failed quantity
+
+        // [GIVEN] A directed warehouse location with warehouse number series configured
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Warehouse Entry", QltyInspectionGenRule);
+        LibraryWarehouse.NoSeriesSetup(WarehouseSetup);
+        LibraryWarehouse.CreateFullWMSLocation(Location, 3);
+
+        // [GIVEN] Current user is set as warehouse employee for the location
+        QltyInspectionUtility.SetCurrLocationWhseEmployee(Location.Code);
+
+        // [GIVEN] An untracked item is purchased, received and put away at the directed location
+        LibraryInventory.CreateItem(Item);
+        QltyPurOrderGenerator.CreatePurchaseOrder(100, Location, Item, PurchaseHeader, PurchaseLine);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
+
+        // [GIVEN] A quality inspection is created for the put away warehouse entry (a storage bin, not the receive bin)
+        WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetFilter("Zone Code", '<>%1', 'RECEIVE');
+        WarehouseEntry.FindFirst();
+        QltyInspectionUtility.CreateInspectionWithWarehouseEntry(WarehouseEntry, QltyInspectionHeader);
+
+        // [GIVEN] The inspection has 5 samples with 3 failures and 2 passes
+        FailedQuantity := 3;
+        QltyInspectionHeader."Sample Size" := 5;
+        QltyInspectionHeader."Fail Quantity" := FailedQuantity;
+        QltyInspectionHeader."Pass Quantity" := 2;
+        QltyInspectionHeader.Modify();
+
+        // [WHEN] Perform disposition with internal put-away for the failed quantity
+        LibraryAssert.IsTrue(
+            QltyInspectionUtility.PerformInternalPutAwayDisposition(QltyInspectionHeader, 0, '', '', true, Enum::"Qlty. Quantity Behavior"::"Failed Quantity"),
+            'Should have created an internal put-away for the failed quantity');
+
+        // [THEN] Every created put-away line is sourced from a non-receive bin
+        WhseInternalPutAwayLine.SetRange("Item No.", Item."No.");
+        LibraryAssert.IsTrue(WhseInternalPutAwayLine.FindSet(), 'Expected internal put-away lines to be created');
+        repeat
+            Bin.Get(WhseInternalPutAwayLine."Location Code", WhseInternalPutAwayLine."From Bin Code");
+            if BinType.Get(Bin."Bin Type Code") then
+                LibraryAssert.IsFalse(BinType.Receive, 'Internal put-away must not be sourced from a receive bin');
+            TotalPutAwayQuantity += WhseInternalPutAwayLine.Quantity;
+        until WhseInternalPutAwayLine.Next() = 0;
+
+        // [THEN] The total put-away quantity equals the failed quantity
+        LibraryAssert.AreEqual(FailedQuantity, TotalPutAwayQuantity, 'Total internal put-away quantity should equal the failed quantity');
     end;
 
     [Test]

@@ -208,7 +208,7 @@ page 31136 "VAT Statement Preview Line CZL"
     begin
     end;
 #if not CLEAN28
-    [Obsolete('Replaced by OnRunVATEntriesOnAfterSetVATEntryFilters event in "VAT Statement Calculation CZL" codeunit.', '28.0')]
+    [Obsolete('Replaced by OnRunVATEntriesOnAfterSetVATEntryFilters event in "VAT Statement Calc. Events CZL" codeunit.', '28.0')]
     [IntegrationEvent(true, false)]
     local procedure OnBeforeOpenPageVATEntryTotaling(var VATEntry: Record "VAT Entry"; var VATStatementLine: Record "VAT Statement Line")
     begin
@@ -220,7 +220,7 @@ page 31136 "VAT Statement Preview Line CZL"
     begin
     end;
 #if not CLEAN28
-    [Obsolete('Replaced by OnHandleAnotherLineType event in "VAT Statement Calculation CZL" codeunit.', '28.0')]
+    [Obsolete('Replaced by OnHandleAnotherLineType event in "VAT Statement Calc. Events CZL" codeunit.', '28.0')]
     [IntegrationEvent(false, false)]
     local procedure OnColumnValueDrillDownVATStatementLineTypeCase(VATStatementLine: Record "VAT Statement Line"; var IsHandled: Boolean)
     begin

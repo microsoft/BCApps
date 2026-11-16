@@ -142,11 +142,6 @@ codeunit 11601 "BAS Management"
         if BASCalcSheet2.Exported then
             if not Confirm(Text1450004, false) then
                 exit;
-        GLSetup.Get();
-        if GLSetup."BAS Group Company" then
-            BASCalcSheet2.TestField(Consolidated, true);
-        if GLSetup."BAS Group Company" then
-            BASCalcSheet2.TestField("Group Consolidated", true);
 
         CheckBASCalcSheetExported(BASCalcSheet2.A1, BASCalcSheet2."BAS Version");
 
@@ -216,7 +211,7 @@ codeunit 11601 "BAS Management"
         end;
 
         BASCalcEntry.Reset();
-        if GLSetup."BAS Group Company" then begin
+        if BASCalcSheet2."Group Consolidated" then begin
             BASCalcEntry.SetCurrentKey("Consol. BAS Doc. No.", "Consol. Version No.");
             BASCalcEntry.SetRange("Consol. BAS Doc. No.", BASCalcSheet2.A1);
             BASCalcEntry.SetRange("Consol. Version No.", BASCalcSheet2."BAS Version");
@@ -427,20 +422,16 @@ codeunit 11601 "BAS Management"
             BASCalcEntry.SetRange("Company Name", BASBusUnits."Company Name");
             BASCalcEntry.SetRange("BAS Document No.", BASCalcSheetSubsid.A1);
             BASCalcEntry.SetRange("BAS Version", BASCalcSheetSubsid."BAS Version");
-            if not BASCalcEntry.IsEmpty() then begin
-                BASCalcEntry.ModifyAll("Consol. BAS Doc. No.", TempBASCalcSheet.A1);
-                BASCalcEntry.ModifyAll("Consol. Version No.", TempBASCalcSheet."BAS Version");
-            end;
+            if not BASCalcEntry.IsEmpty() then
+                BASCalcEntry.ModifyAll("Consol. BAS Doc. No.", TempBASCalcSheet.A1, "Consol. Version No.", TempBASCalcSheet."BAS Version");
         until BASBusUnits.Next() = 0;
 
         BASCalcEntry.Reset();
         BASCalcEntry.SetRange("Company Name", CompanyName);
         BASCalcEntry.SetRange("BAS Document No.", TempBASCalcSheet.A1);
         BASCalcEntry.SetRange("BAS Version", TempBASCalcSheet."BAS Version");
-        if not BASCalcEntry.IsEmpty() then begin
-            BASCalcEntry.ModifyAll("Consol. BAS Doc. No.", TempBASCalcSheet.A1);
-            BASCalcEntry.ModifyAll("Consol. Version No.", TempBASCalcSheet."BAS Version");
-        end;
+        if not BASCalcEntry.IsEmpty() then
+            BASCalcEntry.ModifyAll("Consol. BAS Doc. No.", TempBASCalcSheet.A1, "Consol. Version No.", TempBASCalcSheet."BAS Version");
 
         UpdateConsolBASCalculationSheet(TempBASCalcSheet, BASCalcSheetConsol);
         Message(Text1450025, TempBASCalcSheet.A1, TempBASCalcSheet."BAS Version");

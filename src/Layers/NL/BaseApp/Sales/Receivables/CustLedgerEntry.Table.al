@@ -147,7 +147,8 @@ table 21 "Cust. Ledger Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Cust. Ledger Entry No." = field("Entry No."),
-                                                                         "Posting Date" = field("Date Filter")));
+                                                                         "Posting Date" = field("Date Filter"),
+                                                                         "Excluded from calculation" = const(false)));
             Caption = 'Remaining Amount';
             Editable = false;
             FieldClass = FlowField;
@@ -176,7 +177,8 @@ table 21 "Cust. Ledger Entry"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Cust. Ledger Entry No." = field("Entry No."),
-                                                                                 "Posting Date" = field("Date Filter")));
+                                                                                 "Posting Date" = field("Date Filter"),
+                                                                                 "Excluded from calculation" = const(false)));
             Caption = 'Remaining Amt. (LCY)';
             Editable = false;
             FieldClass = FlowField;
@@ -1041,12 +1043,19 @@ table 21 "Cust. Ledger Entry"
             var
                 DisputeStatus: Record "Dispute Status";
                 MarkedAsOnHoldLbl: label 'X', Locked = true;
+                NewOnHold: Code[3];
             begin
-                if Rec."Dispute Status" = '' then
-                    exit;
-                if DisputeStatus.get(Rec."Dispute Status") then
-                    if DisputeStatus."Overwrite on hold" then
-                        "On Hold" := MarkedAsOnHoldLbl;
+                NewOnHold := "On Hold";
+                if (xRec."Dispute Status" <> '') and (xRec."Dispute Status" <> Rec."Dispute Status") and (NewOnHold = MarkedAsOnHoldLbl) then
+                    if DisputeStatus.Get(xRec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            NewOnHold := '';
+                if Rec."Dispute Status" <> '' then
+                    if DisputeStatus.Get(Rec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            NewOnHold := MarkedAsOnHoldLbl;
+                if NewOnHold <> "On Hold" then
+                    Validate("On Hold", NewOnHold);
             end;
         }
         /// <summary>
@@ -1183,11 +1192,6 @@ table 21 "Cust. Ledger Entry"
         {
         }
     }
-
-    trigger OnInsert()
-    begin
-        TestField("G/L Register No.");
-    end;
 
     var
 #pragma warning disable AA0074
@@ -1859,4 +1863,3 @@ table 21 "Cust. Ledger Entry"
     begin
     end;
 }
-

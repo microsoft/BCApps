@@ -25,6 +25,17 @@ codeunit 4613 "SMTP Message"
     end;
 
     /// <summary>
+    /// Add the name and email address the message is being sent from.
+    /// </summary>
+    /// <param name="Name">The name of the sender</param>
+    /// <param name="Address">The email address the message is sent from.</param>
+    /// <param name="EmailMessageId">The ID of the email message being sent, so subscribers to OnBeforeAddFrom can identify it.</param>
+    procedure AddFrom(Name: Text; Address: Text; EmailMessageId: Guid)
+    begin
+        SMTPMessageImpl.AddFrom(Name, Address, EmailMessageId);
+    end;
+
+    /// <summary>
     /// Adds the recipients that this email is being sent to.
     /// </summary>
     /// <param name="Recipients">The direct recipient(s)</param>
@@ -101,8 +112,9 @@ codeunit 4613 "SMTP Message"
     /// </summary>
     /// <param name="FromName">New from name</param>
     /// <param name="FromAddress">new from address</param>
+    /// <param name="EmailMessageId">The ID of the email message being sent, allowing subscribers to identify which message is being processed.</param>
     [IntegrationEvent(false, false)]
-    internal procedure OnBeforeAddFrom(var FromName: Text; var FromAddress: Text)
+    internal procedure OnBeforeAddFrom(var FromName: Text; var FromAddress: Text; EmailMessageId: Guid)
     begin
     end;
 }

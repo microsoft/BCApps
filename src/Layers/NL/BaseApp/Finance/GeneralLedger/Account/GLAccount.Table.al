@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,6 +16,7 @@ using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.Enums;
@@ -1020,6 +1021,15 @@ table 15 "G/L Account"
         {
             Caption = 'Exclude from Consolidation';
             ToolTip = 'Specifies whether the account is excluded from consolidation.';
+            DataClassification = CustomerContent;
+        }
+        /// <summary>
+        /// Specifies whether a spend request is required before expenses can be posted to this account.
+        /// </summary>
+        field(90; "Spend Request Required"; Enum "Spend Request Required")
+        {
+            Caption = 'Spend Request Required';
+            ToolTip = 'Specifies whether a spend request is required before expenses can be posted to this account.';
             DataClassification = CustomerContent;
         }
         /// <summary>

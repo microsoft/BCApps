@@ -48,6 +48,7 @@ permissionset 6719 "Jobs - Edit"
                   tabledata "General Ledger Setup" = RM,
                   tabledata "VAT Setup" = RM,
                   tabledata Job = RIMD,
+                  tabledata "Job Assigned Resource" = RIMD,
                   tabledata "Job G/L Account Price" = RIMD,
                   tabledata "Job Item Price" = RIMD,
                   tabledata "Job Journal Line" = r,

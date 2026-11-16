@@ -72,7 +72,7 @@ table 20411 "Qlty. Inspection Result"
                    (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")) and
                    (Rec."Copy Behavior" in [Rec."Copy Behavior"::"Automatically copy the result"])
                 then
-                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec.Code);
+                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec);
             end;
         }
         field(11; "Default Text Condition"; Text[500])
@@ -87,7 +87,7 @@ table 20411 "Qlty. Inspection Result"
                    (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")) and
                    (Rec."Copy Behavior" in [Rec."Copy Behavior"::"Automatically copy the result"])
                 then
-                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec.Code);
+                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec);
             end;
         }
         field(12; "Default Boolean Condition"; Text[500])
@@ -102,7 +102,7 @@ table 20411 "Qlty. Inspection Result"
                    (Rec."Default Boolean Condition" <> xRec."Default Boolean Condition")) and
                    (Rec."Copy Behavior" in [Rec."Copy Behavior"::"Automatically copy the result"])
                 then
-                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec.Code);
+                    QltyResultConditionMgmt.PromptUpdateTestsFromResultIfApplicable(Rec);
             end;
         }
         field(13; "Result Category"; Enum "Qlty. Result Category")
@@ -242,6 +242,9 @@ table 20411 "Qlty. Inspection Result"
         UpdateExistingConditions();
     end;
 
+    /// <summary>
+    /// Infers an uncategorized result category from recognized result codes.
+    /// </summary>
     internal procedure AutoSetResultCategoryFromName()
     begin
         if Rec."Result Category" <> Rec."Result Category"::Uncategorized then
@@ -297,13 +300,15 @@ table 20411 "Qlty. Inspection Result"
         QltyIResultConditConf.DeleteAll();
     end;
 
+    /// <summary>
+    /// Propagates the result evaluation sequence and visibility to existing condition configurations.
+    /// </summary>
     local procedure UpdateExistingConditions()
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
         QltyIResultConditConf.SetRange("Result Code", Rec.Code);
-        QltyIResultConditConf.ModifyAll(Priority, Rec."Evaluation Sequence", false);
-        QltyIResultConditConf.ModifyAll("Result Visibility", Rec."Result Visibility", false);
+        QltyIResultConditConf.ModifyAll(Priority, Rec."Evaluation Sequence", "Result Visibility", Rec."Result Visibility", false);
     end;
 
     /// <summary>
@@ -324,7 +329,7 @@ table 20411 "Qlty. Inspection Result"
     /// If there is an override style then it will be used.
     /// If there is no override style then it will make an assumption based on the category.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The override style, inferred category style, or the default no-style value.</returns>
     procedure GetResultStyle(): Text
     begin
         if Rec."Override Style" <> '' then

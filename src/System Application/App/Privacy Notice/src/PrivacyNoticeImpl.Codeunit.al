@@ -13,7 +13,8 @@ codeunit 1565 "Privacy Notice Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata Company = r,
-                  tabledata "Privacy Notice" = im;
+                  tabledata "Privacy Notice" = rim,
+                  tabledata "Privacy Notice Approval" = r;
 
     var
         EmptyGuid: Guid;
@@ -346,10 +347,15 @@ codeunit 1565 "Privacy Notice Impl."
     var
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
         MicrosoftLearnServiceInGeo: Boolean;
+        MicrosoftCopilotShouldApprove: Boolean;
     begin
         if CheckIntegrationIDEquality(SystemPrivacyNoticeReg.GetMicrosoftLearnID(), IntegrationID) then
             if (SystemPrivacyNoticeReg.TryGetMicrosoftLearnInGeoSupport(MicrosoftLearnServiceInGeo)) then
                 exit(MicrosoftLearnServiceInGeo);
+
+        if CheckIntegrationIDEquality(SystemPrivacyNoticeReg.GetMicrosoftCopilotID(), IntegrationID) then
+            if (SystemPrivacyNoticeReg.TryGetMicrosoftCopilotDefaultApproval(MicrosoftCopilotShouldApprove)) then
+                exit(MicrosoftCopilotShouldApprove);
 
         exit(false);
     end;

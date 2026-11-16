@@ -1,0 +1,2 @@
+# cost: 15
+{"query":"{ refund(id: \"gid://shopify/Refund/{{RefundId}}\") { return { exchangeLineItems(first: 10) { pageInfo { endCursor hasNextPage } nodes { id quantity variantId lineItems { id originalUnitPriceSet { presentmentMoney { amount } shopMoney { amount }} discountedUnitPriceSet { presentmentMoney { amount } shopMoney { amount }} totalDiscountSet { presentmentMoney { amount } shopMoney { amount }} taxLines { priceSet { presentmentMoney { amount } shopMoney { amount }}}}}}}}}"}

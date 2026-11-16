@@ -1,9 +1,12 @@
 # Privacy Notice
 
 Consent management layer for Business Central integrations that access external
-services (Teams, Power Automate, Bing, Microsoft Learn). Handles the full
-lifecycle: creating notices, prompting users for consent, storing approval state,
-and enforcing admin-level decisions that override individual user choices.
+services (Teams, Power Automate, Bing, Microsoft Learn, Microsoft Copilot).
+Handles the full lifecycle: creating notices, prompting users for consent,
+storing approval state, and enforcing admin-level decisions that override
+individual user choices.
+
+*Updated: 2026-07-29 -- Microsoft Copilot privacy notice registered*
 
 ## Quick reference
 
@@ -33,8 +36,19 @@ non-admins are not stored -- they just keep getting prompted).
 Privacy notices are registered via the `OnRegisterPrivacyNotices` event. All
 subscribers contribute to a temp table, and the module bulk-inserts any that don't
 already exist. The `ShouldApproveByDefault` mechanism auto-approves specific
-integrations on first creation (currently only Microsoft Learn when in-geo support
-is detected via a DotNet call).
+integrations on first creation. It is region-conditional, and each case is a
+separate DotNet probe wrapped in a `[TryFunction]` so a platform failure degrades
+to "not approved" rather than erroring:
+
+- **Microsoft Learn** -- approved when in-geo support is detected.
+- **Microsoft Copilot** -- approved when the environment is *not* within the EU
+  Data Boundary (`not ALCopilotFunctions.IsWithinEUDB()`). EEA environments
+  therefore start unapproved and require an explicit admin decision.
+
+Default approval only applies at registration time. An admin can change it
+afterwards on the Privacy Notices page, and that stored decision wins.
+
+*Updated: 2026-07-29 -- Microsoft Copilot default approval keyed to EU Data Boundary*
 
 ## Structure
 
@@ -75,3 +89,10 @@ Two integration events on codeunit 1563:
   (empty GUID) so it only shows org-wide decisions, not per-user ones.
 - `CreateDefaultPrivacyNoticesInSeparateThread` wraps `Codeunit.Run` to isolate
   registration failures -- if any subscriber errors, the calling flow isn't blocked.
+- Every codeunit in the module declares `InherentEntitlements = X` and
+  `InherentPermissions = X`, including the public facade (1563). This is what lets
+  service-invoked callers reach the facade without the caller holding Privacy
+  Notice permissions. It does not weaken the admin check, which still comes from
+  `PrivacyNoticeApproval.WritePermission()`.
+
+*Updated: 2026-07-29 -- inherent permissions on the facade for service-invoked callers*

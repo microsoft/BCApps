@@ -7,8 +7,8 @@ page 8105 "Revenue by Item Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Revenue by Item';
-    AboutTitle = 'About Revenue by Item';
+    Caption = 'Revenue by Item (Power BI)';
+    AboutTitle = 'About Revenue by Item (Power BI)';
     AboutText = 'The Revenue by Item report breaks down subscription performance by item category, highlighting metrics such as Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit Amount and Monthly Net Profit %. This report provides detailed insights into which categories and items are driving subscription revenue and profitability.';
 
     layout

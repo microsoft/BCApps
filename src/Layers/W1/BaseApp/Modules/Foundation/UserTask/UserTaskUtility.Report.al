@@ -7,6 +7,7 @@ namespace Microsoft.Foundation.Task;
 report 1170 "User Task Utility"
 {
     Caption = 'User Task Utility';
+    ToolTip = 'Find and delete user tasks.';
     ProcessingOnly = true;
 
     dataset

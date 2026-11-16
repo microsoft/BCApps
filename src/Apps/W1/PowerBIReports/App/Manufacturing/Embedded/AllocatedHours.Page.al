@@ -11,8 +11,8 @@ page 37043 "Allocated Hours"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Allocated Hours';
-    AboutTitle = 'About Allocated Hours';
+    Caption = 'Allocated Hours (Power BI)';
+    AboutTitle = 'About Allocated Hours (Power BI)';
     AboutText = 'View the number of hours remaining for production allocated to each Work Centre in a specified period. Allows you to determine if a Work Centre is under or overloaded and requires rescheduling.';
 
     layout

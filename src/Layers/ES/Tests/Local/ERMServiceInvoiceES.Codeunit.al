@@ -59,6 +59,7 @@ codeunit 144108 "ERM Service Invoice ES"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryCarteraReceivables: Codeunit "Library - Cartera Receivables";
         RecordMustExistMsg: Label 'Record must exist';
         isInitialized: Boolean;
 
@@ -106,36 +107,7 @@ codeunit 144108 "ERM Service Invoice ES"
         ServiceCrMemoHeader.SetRange("Customer No.", Customer."No.");
         Assert.IsTrue(ServiceCrMemoHeader.FindFirst(), RecordMustExistMsg);
     end;
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('ServiceStatisticsPageHandler')]
-    [Scope('OnPrem')]
-    procedure ManualInvoiceDiscountAmountAllowInvoiceDiscountTrue()
-    var
-        Customer: Record Customer;
-        ServiceHeader: Record "Service Header";
-        ServiceLine: Record "Service Line";
-        InvoiceDiscountAmount: Decimal;
-    begin
-        // Test to verify Program allows to enter Invoice Discount manually on Service Invoice if Type is G/L Account and also update Allow Invoice Disc as TRUE on Service Line.
 
-        // Setup: Create Service Invoice, update Allow Invoice Discount - TRUE on Service Line. Open Statistics and update Invoice Discount Amount on it.
-        Initialize();
-        LibrarySales.CreateCustomer(Customer);
-        CreateServiceDocument(
-          ServiceLine, ServiceHeader."Document Type"::Invoice, ServiceLine.Type::"G/L Account", Customer."No.", CreateGLAccount());
-        UpdateServiceLineAllowInvoiceDisc(ServiceLine);
-        InvoiceDiscountAmount := LibraryRandom.RandDec(10, 2);
-        LibraryVariableStorage.Enqueue(InvoiceDiscountAmount);  // Required inside ServiceStatisticsPageHandler.
-        InvokeStatisticsOnServiceInvoice(Customer."No.");  // Opens ServiceStatisticsPageHandler.
-
-        // Exercise: Post Service Invoice.
-        PostServiceDocument(ServiceLine."Document Type", ServiceLine."Document No.");
-
-        // Verify: Verify G/L entry created after considering Invoice Discount Amount.
-        VerifyGLEntry(ServiceLine."No.", -(ServiceLine.Amount - InvoiceDiscountAmount));
-    end;
-#endif
     [Test]
     [HandlerFunctions('ServiceStatisticsPageHandlerNM')]
     [Scope('OnPrem')]
@@ -474,6 +446,111 @@ codeunit 144108 "ERM Service Invoice ES"
         ItemLedgerEntry.TestField("Shpt. Method Code", ShipmentMethodCode);
     end;
 
+    [Test]
+    procedure ServiceCreditMemoAppliedToBillOutsideBillGroupPosts()
+    var
+        BankAccount: Record "Bank Account";
+        BillGroup: Record "Bill Group";
+        BillInBillGroupNo: Code[20];
+        BillToApplyNo: Code[20];
+        CarteraDoc: Record "Cartera Doc.";
+        CompanyInformation: Record "Company Information";
+        Customer: Record Customer;
+        Item: Record Item;
+        ServiceLine: Record "Service Line";
+    begin
+        // [SCENARIO 644547] A Service Credit Memo applied to a Bill that is NOT in a Bill Group can be posted, even when another Bill of the same customer is in an open Bill Group.
+        Initialize();
+        CompanyInformation.Get();
+
+        // [GIVEN] Create a Cartera customer using Manual Application Method and a Create Bills payment method.
+        CreateCarteraCustomerWithManualApplication(Customer, CompanyInformation."Country/Region Code");
+
+        // [GIVEN] Create two posted Service Invoices generate two open Bills for the customer.
+        BillInBillGroupNo := CreateAndPostServiceInvoiceGetBillNo(Customer."No.");
+        BillToApplyNo := CreateAndPostServiceInvoiceGetBillNo(Customer."No.");
+
+        // [GIVEN] The first Bill is placed in an open Bill Group, the second one stays in Cartera.
+        CreateBillGroupWithBill(BankAccount, BillGroup, CarteraDoc, Customer."No.", BillInBillGroupNo);
+
+        // [GIVEN] Create a Service Credit Memo applied to the Bill that is NOT in the Bill Group.
+        CreateServiceDocument(
+          ServiceLine, ServiceLine."Document Type"::"Credit Memo", ServiceLine.Type::Item, Customer."No.", LibraryInventory.CreateItem(Item));
+        UpdateServiceHeaderCorrectedInvoiceNo(ServiceLine."Document No.", FindServiceInvoiceHeader(Customer."No."));
+        UpdateServiceHeaderAppliesToDoc(ServiceLine."Document No.", BillToApplyNo);
+
+        // [WHEN] The Service Credit Memo is posted.
+        PostServiceDocument(ServiceLine."Document Type", ServiceLine."Document No.");
+
+        // [THEN] Verify the Service Credit Memo is posted successfully instead of being blocked by the settlement check.
+        VerifyServiceCreditMemoPosted(Customer."No.");
+    end;
+
+    [Test]
+    procedure ServiceCreditMemoManualWithoutApplicationSkipsBillGroupCheck()
+    var
+        BankAccount: Record "Bank Account";
+        BillGroup: Record "Bill Group";
+        BillInBillGroupNo: Code[20];
+        CarteraDoc: Record "Cartera Doc.";
+        CompanyInformation: Record "Company Information";
+        Customer: Record Customer;
+        Item: Record Item;
+        ServiceLine: Record "Service Line";
+    begin
+        // [SCENARIO 644547] A Service Credit Memo with no applied document and a Manual customer settles nothing, so the Bill Group settlement check must be skipped.
+        Initialize();
+        CompanyInformation.Get();
+
+        // [GIVEN] Create a Cartera customer using Manual Application Method and a Create Bills payment method.
+        CreateCarteraCustomerWithManualApplication(Customer, CompanyInformation."Country/Region Code");
+
+        // [GIVEN] Create a posted Service Invoice generates an open Bill that is placed in an open Bill Group.
+        BillInBillGroupNo := CreateAndPostServiceInvoiceGetBillNo(Customer."No.");
+        CreateBillGroupWithBill(BankAccount, BillGroup, CarteraDoc, Customer."No.", BillInBillGroupNo);
+
+        // [GIVEN] Create a Service Credit Memo without any Applies-to document.
+        CreateServiceDocument(
+          ServiceLine, ServiceLine."Document Type"::"Credit Memo", ServiceLine.Type::Item, Customer."No.", LibraryInventory.CreateItem(Item));
+        UpdateServiceHeaderCorrectedInvoiceNo(ServiceLine."Document No.", FindServiceInvoiceHeader(Customer."No."));
+
+        // [WHEN] The Service Credit Memo is posted.
+        PostServiceDocument(ServiceLine."Document Type", ServiceLine."Document No.");
+
+        // [THEN] Verify Service Credit Memo is posted successfully because a Manual, unapplied Credit Memo does not settle any document.
+        VerifyServiceCreditMemoPosted(Customer."No.");
+    end;
+
+    [Test]
+    procedure ServiceCreditMemoApplyToOldestWithBillInBillGroupIsBlocked()
+    var
+        BankAccount: Record "Bank Account";
+        BillGroup: Record "Bill Group";
+        BillInBillGroupNo: Code[20];
+        CarteraDoc: Record "Cartera Doc.";
+        CompanyInformation: Record "Company Information";
+        Customer: Record Customer;
+        Item: Record Item;
+        ServiceLine: Record "Service Line";
+    begin
+        // [SCENARIO 644547] A Service Credit Memo for an Apply to Oldest customer is still blocked from posting when a Bill is in an open Bill Group.
+        Initialize();
+        CompanyInformation.Get();
+        // [GIVEN] Create a Cartera customer using Apply to Oldest Application Method and a Create Bills payment method.
+        CreateCarteraCustomerWithApplyToOldest(Customer, CompanyInformation."Country/Region Code");
+        // [GIVEN] Create a posted Service Invoice generates an open Bill that is placed in an open Bill Group.
+        BillInBillGroupNo := CreateAndPostServiceInvoiceGetBillNo(Customer."No.");
+        CreateBillGroupWithBill(BankAccount, BillGroup, CarteraDoc, Customer."No.", BillInBillGroupNo);
+        // [GIVEN] Create a Service Credit Memo for the customer.
+        CreateServiceDocument(
+          ServiceLine, ServiceLine."Document Type"::"Credit Memo", ServiceLine.Type::Item, Customer."No.", LibraryInventory.CreateItem(Item));
+        UpdateServiceHeaderCorrectedInvoiceNo(ServiceLine."Document No.", FindServiceInvoiceHeader(Customer."No."));
+        // [WHEN] The Service Credit Memo is posted.
+        asserterror PostServiceDocument(ServiceLine."Document Type", ServiceLine."Document No.");
+        // [THEN] Verify posting is blocked because a Bill is in an open Bill Group and the customer uses Apply to Oldest Application Method.
+        Assert.ExpectedError('cannot be applied, since it is included in a bill group');
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
@@ -620,6 +697,43 @@ codeunit 144108 "ERM Service Invoice ES"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateCarteraCustomerWithManualApplication(var Customer: Record Customer; CountryRegionCode: Code[10])
+    begin
+        CreateCustomer(Customer, CountryRegionCode);  // Uses a Create Bills payment method.
+        Customer.Validate("Application Method", Customer."Application Method"::Manual);
+        Customer.Modify(true);
+    end;
+
+    local procedure CreateAndPostServiceInvoiceGetBillNo(CustomerNo: Code[20]): Code[20]
+    var
+        Item: Record Item;
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServiceLine: Record "Service Line";
+    begin
+        CreateServiceDocument(
+          ServiceLine, ServiceLine."Document Type"::Invoice, ServiceLine.Type::Item, CustomerNo, LibraryInventory.CreateItem(Item));
+        PostServiceDocument(ServiceLine."Document Type", ServiceLine."Document No.");
+
+        // With a Create Bills payment method the generated Bill keeps the posted invoice number as its Document No.
+        ServiceInvoiceHeader.SetRange("Customer No.", CustomerNo);
+        ServiceInvoiceHeader.FindLast();
+        exit(ServiceInvoiceHeader."No.");
+    end;
+
+    local procedure CreateCarteraCustomerWithApplyToOldest(var Customer: Record Customer; CountryRegionCode: Code[10])
+    begin
+        CreateCustomer(Customer, CountryRegionCode);  // Uses a Create Bills payment method.
+        Customer.Validate("Application Method", Customer."Application Method"::"Apply to Oldest");
+        Customer.Modify(true);
+    end;
+
+    local procedure CreateBillGroupWithBill(var BankAccount: Record "Bank Account"; var BillGroup: Record "Bill Group"; var CarteraDoc: Record "Cartera Doc."; CustomerNo: Code[20]; BillNo: Code[20])
+    begin
+        LibraryCarteraReceivables.CreateBankAccount(BankAccount, '');
+        LibraryCarteraReceivables.CreateBillGroup(BillGroup, BankAccount."No.", BillGroup."Dealing Type"::Collection);
+        LibraryCarteraReceivables.AddCarteraDocumentToBillGroup(CarteraDoc, BillNo, CustomerNo, BillGroup."No.");
+    end;
+
     local procedure CreateCustomerPaymentDayWithMultipleInstallmentsSetup(var PaymentTerms: Record "Payment Terms"): Code[20]
     var
         Customer: Record Customer;
@@ -668,16 +782,7 @@ codeunit 144108 "ERM Service Invoice ES"
         ServiceCrMemoHeader.FindFirst();
         exit(ServiceCrMemoHeader."No.");
     end;
-#if not CLEAN27
-    local procedure InvokeStatisticsOnServiceInvoice(CustomerNo: Code[20])
-    var
-        ServiceInvoice: TestPage "Service Invoice";
-    begin
-        ServiceInvoice.OpenEdit();
-        ServiceInvoice.FILTER.SetFilter("Customer No.", CustomerNo);
-        ServiceInvoice.Statistics.Invoke();
-    end;
-#endif
+    
     local procedure InvokeStatisticsOnServiceInvoiceNM(CustomerNo: Code[20])
     var
         ServiceInvoice: TestPage "Service Invoice";
@@ -811,6 +916,14 @@ codeunit 144108 "ERM Service Invoice ES"
         CustLedgerEntry.TestField("Remaining Amount", 0);
     end;
 
+    local procedure VerifyServiceCreditMemoPosted(CustomerNo: Code[20])
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+    begin
+        ServiceCrMemoHeader.SetRange("Customer No.", CustomerNo);
+        Assert.IsTrue(ServiceCrMemoHeader.FindFirst(), 'The Service Credit Memo should have been posted.');
+    end;
+
     local procedure VerifyCustLedgerEntryDueDate(CustomerNo: Code[20]; DueDate: Date)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -860,18 +973,7 @@ codeunit 144108 "ERM Service Invoice ES"
             DueDate := CalcDate(PaymentTerms."Due Date Calculation", DueDate);
         end;
     end;
-#if not CLEAN27
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure ServiceStatisticsPageHandler(var ServiceStatistics: TestPage "Service Statistics")
-    var
-        InvDiscountAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(InvDiscountAmount);
-        ServiceStatistics."Inv. Discount Amount_General".SetValue(InvDiscountAmount);
-        ServiceStatistics.OK().Invoke();
-    end;
-#endif
+
     [PageHandler]
     [Scope('OnPrem')]
     procedure ServiceStatisticsPageHandlerNM(var ServiceStatistics: TestPage "Service Statistics")

@@ -10,6 +10,7 @@ tableextension 6617 "FS CRM Product" extends "CRM Product"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve existing field IDs for compatibility.
         field(12000; FieldServiceProductType; Option)
         {
             Caption = 'Field Service Product Type';
@@ -21,5 +22,14 @@ tableextension 6617 "FS CRM Product" extends "CRM Product"
             OptionMembers = Inventory,Service,"Non-Inventory";
             DataClassification = SystemMetadata;
         }
+        field(12001; ConvertToCustomerAsset; Boolean)
+        {
+            Caption = 'Convert to Customer Asset';
+            Description = 'Indicates whether the product should generate a customer asset.';
+            ExternalName = 'msdyn_converttocustomerasset';
+            ExternalType = 'Boolean';
+            DataClassification = SystemMetadata;
+        }
+#pragma warning restore AS0099
     }
 }

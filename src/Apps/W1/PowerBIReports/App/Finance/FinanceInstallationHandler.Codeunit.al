@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.PowerBIReports;
 
 using Microsoft.Finance.GeneralLedger.Account;
+using System.Environment.Configuration;
 
 codeunit 36953 "Finance Installation Handler"
 {
@@ -27,6 +28,95 @@ codeunit 36953 "Finance Installation Handler"
         InsertL1AccountCategories();
         InsertL2AccountCategories();
         InsertL3AccountCategories();
+    end;
+
+    internal procedure NotifyIfAccountCategoryMappingIncomplete()
+    var
+        MyNotifications: Record "My Notifications";
+        Notify: Notification;
+        UnmappedCount: Integer;
+        IncompleteMappingMsg: Label '%1 Power BI account categories are not mapped to a G/L account category. Related finance KPIs (such as Liquidity, EBITDA, and Aged Receivables/Payables) will show blank values until you complete the mapping.', Comment = '%1 - number of unmapped account categories';
+        SetUpMappingLbl: Label 'Set up account categories';
+        DontShowAgainLbl: Label 'Don''t show again';
+    begin
+        UnmappedCount := GetUnmappedRequiredCategoryCount();
+        if UnmappedCount = 0 then
+            exit;
+
+        if not MyNotifications.Get(UserId(), GetMappingNotificationId()) then
+            SetMappingNotificationDefaultState(true);
+        if not MyNotifications.IsEnabled(GetMappingNotificationId()) then
+            exit;
+
+        Notify.Id := GetMappingNotificationId();
+        Notify.Message(StrSubstNo(IncompleteMappingMsg, UnmappedCount));
+        Notify.Scope := NotificationScope::LocalScope;
+        Notify.AddAction(SetUpMappingLbl, Codeunit::"Finance Installation Handler", 'OpenAccountCategoriesPage');
+        Notify.AddAction(DontShowAgainLbl, Codeunit::"Finance Installation Handler", 'DisableMappingNotification');
+        Notify.Send();
+    end;
+
+    procedure OpenAccountCategoriesPage(Notify: Notification)
+    begin
+        Page.Run(Page::"Account Categories");
+    end;
+
+    procedure DisableMappingNotification(Notify: Notification)
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        if not MyNotifications.Disable(GetMappingNotificationId()) then
+            SetMappingNotificationDefaultState(false);
+    end;
+
+    internal procedure SetMappingNotificationDefaultState(DefaultState: Boolean)
+    var
+        MyNotifications: Record "My Notifications";
+        NotificationNameTxt: Label 'Warn about incomplete Power BI account category mapping.';
+        NotificationDescTxt: Label 'Show a warning on the Power BI Reports Setup page when some Power BI account categories are not mapped to a G/L account category.';
+    begin
+        MyNotifications.InsertDefault(GetMappingNotificationId(), NotificationNameTxt, NotificationDescTxt, DefaultState);
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"My Notifications", 'OnInitializingNotificationWithDefaultState', '', false, false)]
+    local procedure OnInitializingNotificationWithDefaultState()
+    begin
+        SetMappingNotificationDefaultState(true);
+    end;
+
+    local procedure GetUnmappedRequiredCategoryCount(): Integer
+    var
+        PowerBIAccountCategory: Record "Account Category";
+        UnmappedCount: Integer;
+    begin
+        if PowerBIAccountCategory.FindSet() then
+            repeat
+                if IsAccountCategoryRequired(PowerBIAccountCategory."Account Category Type") then
+                    if PowerBIAccountCategory."G/L Acc. Category Entry No." = 0 then
+                        UnmappedCount += 1;
+            until PowerBIAccountCategory.Next() = 0;
+        exit(UnmappedCount);
+    end;
+
+    local procedure IsAccountCategoryRequired(AccountCategoryType: Enum "Account Category Type"): Boolean
+    begin
+        // These categories are intentionally left unmapped by default and are optional.
+        case AccountCategoryType of
+            AccountCategoryType::L2ExtraordinaryExpense,
+            AccountCategoryType::L2FXLossesExpense,
+            AccountCategoryType::L2FXGainsIncome,
+            AccountCategoryType::L2ExtraordinaryIncome,
+            AccountCategoryType::L3Purchases,
+            AccountCategoryType::L3AccountsPayable:
+                exit(false);
+            else
+                exit(true);
+        end;
+    end;
+
+    local procedure GetMappingNotificationId(): Guid
+    begin
+        exit('b6f6b8a4-2c1f-4f2e-9a5a-3c0d6e7f8a90');
     end;
 
     local procedure InsertL1AccountCategories()

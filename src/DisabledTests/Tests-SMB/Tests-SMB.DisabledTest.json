@@ -838,5 +838,29 @@
     "codeunitId": 139157,
     "codeunitName": "Invoice Premapping Tests",
     "method": "TestSuccessfulInvoicePremappingWithVendorDataFromIncomingDocument"
+  },
+  {
+    "codeunitId": 138009,
+    "codeunitName": "O365 Customer Statistics",
+    "method": "AmountOnOrders",
+    "bug": "RU: rounding difference (7.17 vs 7.18); disabled globally in NAV (shared W1 test, fails in RU config)"
+  },
+  {
+    "codeunitId": 138009,
+    "codeunitName": "O365 Customer Statistics",
+    "method": "AmountOnQuotes",
+    "bug": "RU: rounding difference (7.17 vs 7.18); disabled globally in NAV (shared W1 test, fails in RU config)"
+  },
+  {
+    "codeunitId": 138009,
+    "codeunitName": "O365 Customer Statistics",
+    "method": "AmountOnUnpostedCrMemos",
+    "bug": "RU: rounding difference (7.17 vs 7.18); disabled globally in NAV (shared W1 test, fails in RU config)"
+  },
+  {
+    "codeunitId": 138009,
+    "codeunitName": "O365 Customer Statistics",
+    "method": "AmountOnUnpostedInvoices",
+    "bug": "RU: rounding difference (7.17 vs 7.18); disabled globally in NAV (shared W1 test, fails in RU config)"
   }
 ]

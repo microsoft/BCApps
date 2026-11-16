@@ -85,12 +85,14 @@ page 1505 "Workflow Templates"
                 Caption = 'Reset Microsoft Templates';
                 Visible = not IsLookupMode;
                 Image = ResetStatus;
-                ToolTip = 'Recreate all Microsoft templates';
+                ToolTip = 'Delete and recreate the built-in Microsoft workflow templates. This affects only the templates, not the workflows that were created from them.';
 
                 trigger OnAction()
                 var
                     WorkflowSetup: Codeunit "Workflow Setup";
                 begin
+                    if not Confirm(ResetTemplatesQst) then
+                        exit;
                     WorkflowSetup.ResetWorkflowTemplates();
                     Initialize();
                 end;
@@ -151,6 +153,7 @@ page 1505 "Workflow Templates"
     var
         WorkflowSetup: Codeunit "Workflow Setup";
         QueryClosePageLookupErr: Label 'Select a workflow template to continue, or choose Cancel to close the page.';
+        ResetTemplatesQst: Label 'This will delete and recreate all Microsoft workflow templates. Do you want to continue?';
         DescriptionStyle: Text;
 
     protected var

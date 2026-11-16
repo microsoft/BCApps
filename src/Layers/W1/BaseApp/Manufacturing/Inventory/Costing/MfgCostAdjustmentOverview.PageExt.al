@@ -15,8 +15,8 @@ pageextension 99000759 "Mfg. Cost Adjustment Overview" extends "Cost Adjustment 
             action("Mfg. Export Item Data")
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'Export productionitem data';
-                ToolTip = 'Use this function to export production item related data to text file (you can attach this file to support requests in case you may have issues with costing calculation).';
+                Caption = 'Export item data';
+                ToolTip = 'Use this function to export item related data to text file (you can attach this file to support requests in case you may have issues with costing calculation).';
                 Image = Export;
 
                 trigger OnAction()
@@ -30,8 +30,8 @@ pageextension 99000759 "Mfg. Cost Adjustment Overview" extends "Cost Adjustment 
             action("Mfg. Import Item Data")
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'Import production item data';
-                ToolTip = 'Use this function to import production item related data from text file.';
+                Caption = 'Import item data';
+                ToolTip = 'Use this function to import item related data from text file.';
                 Image = Import;
                 Visible = SandboxActionsVisible;
 
@@ -39,10 +39,14 @@ pageextension 99000759 "Mfg. Cost Adjustment Overview" extends "Cost Adjustment 
                 begin
                     if not SandboxActionsVisible then
                         Error(GetNotTestEnvironmentErr());
-                    Xmlport.
-                    Run(XmlPort::"Mfg. Export Item Data", false, true);
+                    Xmlport.Run(XmlPort::"Mfg. Export Item Data", false, true);
                 end;
             }
+        }
+        addlast("Diagnostics_Promoted")
+        {
+            actionref("Mfg. Export Item Data_Promoted"; "Mfg. Export Item Data") { }
+            actionref("Mfg. Import Item Data_Promoted"; "Mfg. Import Item Data") { }
         }
     }
 

@@ -1,13 +1,32 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Message;
 
 pageextension 6145 "E-Doc. Posted Sales Cr. Memo" extends "Posted Sales Credit Memo"
 {
+    layout
+    {
+        addlast(FactBoxes)
+        {
+            part(EDocStatusFactBox; "E-Doc. Status FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document';
+                ShowFilter = false;
+            }
+            part(EDocMessages; "E-Document Messages FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document Messages';
+                ShowFilter = false;
+            }
+        }
+    }
     actions
     {
         addafter("&Cr. Memo")
@@ -42,7 +61,9 @@ pageextension 6145 "E-Doc. Posted Sales Cr. Memo" extends "Posted Sales Credit M
                         EDocumentProcessing: Codeunit "E-Document Processing";
                     begin
                         if EDocumentProcessing.CreateEDocumentFromPostedDocumentPage(Rec, Enum::"E-Document Type"::"Sales Credit Memo") then
-                            Message(EDocumentCreatedMsg);
+                            Message(EDocumentCreatedMsg)
+                        else
+                            Message(EDocumentNotCreatedMsg);
                     end;
                 }
             }
@@ -52,12 +73,14 @@ pageextension 6145 "E-Doc. Posted Sales Cr. Memo" extends "Posted Sales Credit M
     var
         EDocumentExists: Boolean;
         EDocumentCreatedMsg: Label 'The e-document has been created.';
+        EDocumentNotCreatedMsg: Label 'The e-document could not be created.';
 
     trigger OnAfterGetRecord()
     var
         EDocument: Record "E-Document";
     begin
-        EDocument.SetRange("Document Record ID", Rec.RecordId());
-        EDocumentExists := not EDocument.IsEmpty();
+        EDocumentExists := EDocument.HasEDocument(Rec.RecordId());
+        CurrPage.EDocMessages.Page.SetSourceRecordId(Rec.RecordId());
+        CurrPage.EDocStatusFactBox.Page.SetDocumentRecordId(Rec.RecordId());
     end;
 }

@@ -15,6 +15,7 @@ report 499 "Delete Invoiced Purch. Orders"
     AccessByPermission = TableData "Purchase Header" = RD;
     ApplicationArea = Suite;
     Caption = 'Delete Invoiced Purchase Orders';
+    ToolTip = 'Delete orders that were not automatically deleted after completion. For example, when several purchase orders were completed by a single invoice.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

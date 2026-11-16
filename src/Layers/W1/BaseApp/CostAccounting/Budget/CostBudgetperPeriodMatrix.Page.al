@@ -352,7 +352,6 @@ page 1131 "Cost Budget per Period Matrix"
                     Ellipsis = true;
                     Image = CopyGLtoCostBudget;
                     RunObject = Report "Copy G/L Budget to Cost Acctg.";
-                    ToolTip = 'Copy general ledger budget figures to the cost accounting budget. You can also enter budgets for the cost centers and cost objects in the general ledger.';
                 }
                 action("Copy Cost &Budget to G/L Budget")
                 {

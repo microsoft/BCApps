@@ -94,6 +94,7 @@ permissionset 5759 "D365 BANKING"
                   tabledata "G/L Entry - VAT Entry Link" = Rimd,
                   tabledata "G/L Entry" = Rim,
                   tabledata "G/L Register" = Rim,
+                  tabledata "G/L Transaction" = Rim,
                   tabledata "Gen. Journal Line" = RIMD,
                   tabledata "Gen. Journal Template" = RIMD,
                   tabledata "Interaction Log Entry" = R,

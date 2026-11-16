@@ -1234,7 +1234,7 @@ table 121 "Purch. Rcpt. Line"
         PurchaseLine: Record "Purchase Line";
     begin
         if Type = Type::" " then
-            exit(PurchaseLine.FormatType());
+            exit(PurchaseLine.FormatTypeAsText());
 
         exit(Format(Type));
     end;

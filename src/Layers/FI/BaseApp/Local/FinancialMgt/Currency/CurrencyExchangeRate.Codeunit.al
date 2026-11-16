@@ -1,8 +1,9 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+#if not CLEAN29
 namespace Microsoft.Finance.Currency;
 
 using Microsoft.Finance.GeneralLedger.Setup;
@@ -10,6 +11,9 @@ using System.IO;
 
 codeunit 32000001 "Currency Exchange Rate"
 {
+    ObsoleteReason = 'Moved to the FI Core app.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     trigger OnRun()
     var
@@ -136,8 +140,9 @@ codeunit 32000001 "Currency Exchange Rate"
 
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
+    [Obsolete('Moved to codeunit "Currency Exch. Rate Import" in the FI Core app. Subscribe to "Currency Exch. Rate Import".OnBeforeFileImport instead.', '29.0')]
     procedure OnBeforeFileImport(var FileName: Text)
     begin
     end;
 }
-
+#endif

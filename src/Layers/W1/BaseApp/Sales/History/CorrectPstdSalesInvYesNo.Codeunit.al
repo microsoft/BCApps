@@ -82,8 +82,11 @@ codeunit 1322 "Correct PstdSalesInv (Yes/No)"
         ConfirmManagement: Codeunit "Confirm Management";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         IsHandled: Boolean;
+        ConfirmQuestion: Text;
     begin
-        if ConfirmManagement.GetResponse(CorrectPostedInvoiceFromSingleOrderQst, false) then begin
+        ConfirmQuestion := CorrectPostedInvoiceFromSingleOrderQst;
+        OnCancelPostedInvoiceAndOpenSalesOrderOnBeforeConfirm(SalesInvoiceHeader, SalesHeader, ConfirmQuestion);
+        if ConfirmManagement.GetResponse(ConfirmQuestion, false) then begin
             if not CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvoiceHeader) then
                 exit(false);
 
@@ -131,6 +134,11 @@ codeunit 1322 "Correct PstdSalesInv (Yes/No)"
 
     [IntegrationEvent(false, false)]
     local procedure OnCorrectInvoiceOnBeforeOpenSalesOrderPage(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCancelPostedInvoiceAndOpenSalesOrderOnBeforeConfirm(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header"; var ConfirmQuestion: Text)
     begin
     end;
 }

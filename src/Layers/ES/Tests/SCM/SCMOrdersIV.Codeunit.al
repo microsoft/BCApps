@@ -5263,8 +5263,7 @@
         FindWarehouseActivityLine(
 WarehouseActivityLine, WarehouseActivityLine."Source Document"::"Purchase Order", SourceNo,
 WarehouseActivityLine."Activity Type"::"Put-away");
-        WarehouseActivityLine.ModifyAll("Zone Code", ZoneCode, true);
-        WarehouseActivityLine.ModifyAll("Bin Code", BinCode, true);
+        WarehouseActivityLine.ModifyAll("Zone Code", ZoneCode, "Bin Code", BinCode, true);
     end;
 
     local procedure UpdateQuantityOnSalesInvoiceLineByPage(No: Code[20]; ItemNo: Code[20]; Qty: Decimal)

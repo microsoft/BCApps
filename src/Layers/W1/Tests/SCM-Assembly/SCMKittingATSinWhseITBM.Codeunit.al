@@ -1160,6 +1160,7 @@ codeunit 137104 "SCM Kitting ATS in Whse/IT BM"
     begin
         ItemLedgerEntry.Reset();
         ItemLedgerEntry.SetRange("Item No.", ItemNo);
+#pragma warning disable AA0181, AA0233 // Positional Find() paired with Next(); suppression tracked for follow-up
         ItemLedgerEntry.Find(FindDirection);
 
         WhseActivityLineTake.Reset();
@@ -1205,6 +1206,7 @@ codeunit 137104 "SCM Kitting ATS in Whse/IT BM"
             WhseActivityLinePlace.Modify(true);
 
         until ItemLedgerEntry.Next() = 0;
+#pragma warning restore AA0181, AA0233
     end;
 
     local procedure NotEnoughItemPostingIT(Location: Record Location; HeaderQtyFactor: Decimal; PartialPostFactor: Decimal; AddAdditionalQty: Boolean; WhseActivity: Option; ExpectedErrorMessagePost: Text[1024]; ExpectedErrorMessageReg: Text[1024]; AssignITBeforeWhseAct: Boolean; AssignITOnWhseAct: Boolean; ITPartial: Boolean)

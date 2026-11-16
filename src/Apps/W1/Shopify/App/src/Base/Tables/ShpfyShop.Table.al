@@ -396,7 +396,7 @@ table 30102 "Shpfy Shop"
         field(44; "Allow Background Syncs"; Boolean)
         {
             Caption = 'Run Syncs in Background';
-            ToolTip = 'Specifies whether synchronization runs in the background. When enabled, you can continue working while large data sets synchronize. Disable for demos or troubleshooting to see real-time progress and receive detailed error messages.';
+            ToolTip = 'Specifies whether synchronization runs in the background. When enabled, you can continue working while large data sets synchronize. Review the status and errors in Job Queue Log Entries. Disable for demos or troubleshooting to see real-time progress and receive detailed error messages.';
             DataClassification = CustomerContent;
             InitValue = true;
         }
@@ -901,7 +901,9 @@ table 30102 "Shpfy Shop"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
         }
 #endif

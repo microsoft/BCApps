@@ -285,8 +285,7 @@ report 10135 "Item Sales Statistics"
 
                     Item.SetRange("Variant Filter", Code);
                     Item.CalcFields("Sales (Qty.)", "Sales (LCY)", "COGS (LCY)");
-                    if (Item."Sales (Qty.)" = 0) and PrintOnlyIfSales then
-                        CurrReport.Skip();
+                    SkipRecord := (Item."Sales (Qty.)" = 0) and PrintOnlyIfSales;
                     Profit := Item."Sales (LCY)" - Item."COGS (LCY)";
                     if Item."Sales (LCY)" <> 0 then
                         ItemProfitPct := Round(Profit / Item."Sales (LCY)" * 100, 0.1)
@@ -302,9 +301,11 @@ report 10135 "Item Sales Statistics"
                                 Item."Sales (Qty.)" := Item."Sales (Qty.)" + ItemLedgerEntry."Invoiced Quantity";
                             end;
                         until ItemLedgerEntry.Next() = 0;
-                    if (Item."Sales (Qty.)" = 0) and (QuantityReturned = 0) and
-                       (Item."Sales (LCY)" = 0) and (Item."COGS (LCY)" = 0)
-                    then
+                    SkipRecord := SkipRecord or
+                        ((Item."Sales (Qty.)" = 0) and (QuantityReturned = 0) and
+                         (Item."Sales (LCY)" = 0) and (Item."COGS (LCY)" = 0));
+                    OnItemVariantOnAfterGetRecordOnBeforePrintOnlyIfSalesCheck(Item, "Item Variant", PrintOnlyIfSales, SkipRecord);
+                    if SkipRecord then
                         CurrReport.Skip();
                 end;
 
@@ -322,6 +323,8 @@ report 10135 "Item Sales Statistics"
             }
 
             trigger OnAfterGetRecord()
+            var
+                SkipRecord: Boolean;
             begin
                 NoShow := false;
                 if BreakdownByVariant then begin
@@ -333,7 +336,9 @@ report 10135 "Item Sales Statistics"
 
                 SetRange("Variant Filter");
                 CalcFields("Sales (Qty.)", "Sales (LCY)", "COGS (LCY)");
-                if ("Sales (Qty.)" = 0) and PrintOnlyIfSales then
+                SkipRecord := ("Sales (Qty.)" = 0) and PrintOnlyIfSales;
+                OnAfterGetRecordItemOnBeforePrintOnlyIfSalesCheck(Item, PrintOnlyIfSales, SkipRecord);
+                if SkipRecord then
                     CurrReport.Skip();
                 Profit := "Sales (LCY)" - "COGS (LCY)";
                 if "Sales (LCY)" <> 0 then
@@ -451,6 +456,7 @@ report 10135 "Item Sales Statistics"
         IncludeItemDescriptions: Boolean;
         BreakdownByVariant: Boolean;
         BlankVariant: Boolean;
+        SkipRecord: Boolean;
         NoShow: Boolean;
         ItemFilter: Text;
         Title: Text[80];
@@ -488,5 +494,14 @@ report 10135 "Item Sales Statistics"
         ItemVariant.SetRange("Item No.", Item."No.");
         exit(ItemVariant.FindFirst())
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetRecordItemOnBeforePrintOnlyIfSalesCheck(var Item: Record Item; PrintOnlyIfSales: Boolean; var SkipRecord: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnItemVariantOnAfterGetRecordOnBeforePrintOnlyIfSalesCheck(var Item: Record Item; var ItemVariant: Record "Item Variant"; PrintOnlyIfSales: Boolean; var SkipRecord: Boolean)
+    begin
+    end;
+}

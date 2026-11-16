@@ -41,6 +41,11 @@ codeunit 3676 "BOM Tree Node Dictionary Impl."
         Get(FoundAtIndex, Found);
     end;
 
+    procedure Contains(InstanceKey: Text): Boolean
+    begin
+        exit(IndexOf(InstanceKey) <> 0);
+    end;
+
     procedure Add(Instance: Codeunit "BOM Tree Node") AtIndex: Integer
     var
         InstanceKey: Text;

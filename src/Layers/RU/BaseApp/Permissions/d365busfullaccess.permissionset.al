@@ -432,9 +432,7 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "Exchange Contact" = RIMD,
 #endif
                   tabledata "Exchange Object" = RIMD,
-#if not CLEAN28
                   tabledata "Exchange Sync" = RIMD,
-#endif
                   tabledata "Experience Tier Buffer" = RIMD,
                   tabledata "Experience Tier Setup" = RIMD,
                   tabledata "Extended Text Header" = RIMD,
@@ -757,6 +755,9 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "Service Connection" = RIMD,
                   tabledata "Shipment Method Translation" = RIMD,
                   tabledata "Sorting Table" = RIMD,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request" = RIMD,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request Detail" = RIMD,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request To G/L Link" = Rimd,
                   tabledata "Standard Address" = Rimd,
                   tabledata Microsoft.Manufacturing.StandardCost."Standard Cost Worksheet" = RIMD,
                   tabledata Microsoft.Manufacturing.StandardCost."Standard Cost Worksheet Name" = RIMD,

@@ -700,9 +700,7 @@ codeunit 136510 "Service Time Sheets UT"
         TimeSheetLine.DeleteAll();
 
         TimeSheetDetail.DeleteAll();
-        Resource.ModifyAll("Use Time Sheet", false);
-        Resource.ModifyAll("Time Sheet Owner User ID", '');
-        Resource.ModifyAll("Time Sheet Approver User ID", '');
+        Resource.ModifyAll("Use Time Sheet", false, "Time Sheet Owner User ID", '', "Time Sheet Approver User ID", '');
     end;
 
     local procedure InitUTScenario(var Resource: Record Resource; var TimeSheetHeader: Record "Time Sheet Header"; Date: Date)

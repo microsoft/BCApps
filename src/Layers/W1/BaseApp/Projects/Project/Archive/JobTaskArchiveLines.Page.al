@@ -187,6 +187,21 @@ page 5178 "Job Task Archive Lines"
                         JobPlanningArchiveLines.Run();
                     end;
                 }
+                action("Assigned Resources")
+                {
+                    ApplicationArea = Jobs;
+                    Caption = 'Assigned Resources';
+                    Image = Users;
+                    ToolTip = 'View the resources that were assigned to this project task in this archived version.';
+
+                    trigger OnAction()
+                    var
+                        JobAssignedResArchive: Page "Job Assigned Res. Archive";
+                    begin
+                        if JobAssignedResArchive.SetJobTaskContext(Rec) then
+                            JobAssignedResArchive.Run();
+                    end;
+                }
                 action("Job &Task Card")
                 {
                     ApplicationArea = Jobs;
@@ -207,6 +222,9 @@ page 5178 "Job Task Archive Lines"
                 Caption = 'Project Task';
 
                 actionref(JobPlanningLines_Promoted; JobPlanningLines)
+                {
+                }
+                actionref("Assigned Resources_Promoted"; "Assigned Resources")
                 {
                 }
                 actionref("Job &Task Card_Promoted"; "Job &Task Card")

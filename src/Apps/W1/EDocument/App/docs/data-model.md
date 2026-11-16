@@ -8,7 +8,7 @@ The central entity is the **E-Document** table (`table 6121 "E-Document"`). Ever
 
 An E-Document is always associated with at least one **E-Document Service Status** record (`table 6138`), which tracks the per-service state. The composite key is `(E-Document Entry No, E-Document Service Code)`. In practice, most documents have exactly one service status record, but the model supports multiple services per document (e.g., send via PEPPOL and also via email through different workflow steps).
 
-Every state transition produces an **E-Document Log** entry (`table 6124`), which captures the service status at that moment and optionally links to a **E-Doc. Data Storage** record (`table 6125`) containing the document blob. The separation between log and storage is intentional: multiple log entries can reference the same storage entry (for batch imports where many documents share one downloaded blob).
+Every state transition produces an **E-Document Log** entry (`table 6124`), which captures the service status at that moment and optionally links to a **E-Doc. Data Storage** record (`table 6125`) containing the document blob. The separation between log and storage is intentional: multiple log entries can reference the same storage entry (for batch imports where many documents share one downloaded blob). Lifecycle payloads that are not BC documents, such as PEPPOL Order Responses, are stored in **E-Document Message** records and linked back to the parent E-Document.
 
 The **E-Document Integration Log** (`table 6126`, in the Logging folder) stores HTTP request/response pairs from service communication. It links to both the E-Document and the service, providing a full communication audit trail.
 
@@ -18,13 +18,16 @@ erDiagram
     E-DOCUMENT ||--o{ E-DOCUMENT-LOG : "has log entries"
     E-DOCUMENT-LOG }o--o| E-DOC-DATA-STORAGE : "references blob"
     E-DOCUMENT ||--o{ E-DOCUMENT-INTEGRATION-LOG : "has comms log"
+    E-DOCUMENT ||--o{ E-DOCUMENT-MESSAGE : "has messages"
 ```
+
+*Updated: 2026-07-29 -- added lifecycle messages to the core model.*
 
 ## Service configuration
 
 An **E-Document Service** (`table 6103`) defines a processing endpoint. It combines a Document Format (the `"E-Document Format"` enum, which implements the `"E-Document"` interface for serialization) with a Service Integration (the `"Service Integration"` enum, which implements `IDocumentSender` and `IDocumentReceiver`). Both are extensible enums that connector apps extend.
 
-The service also holds import pipeline configuration: `"Import Process"` (Version 1.0 or 2.0), `"Read into Draft Impl."` (how to parse structured data), and a set of boolean flags that control import behavior (Validate Receiving Company, Resolve Unit Of Measure, Lookup Item Reference, Lookup Item GTIN, Lookup Account Mapping, etc.).
+The service also holds import pipeline configuration: `"Import Process"` (Version 1.0 or 2.0, with Version 2.0 as the table default), `"Read into Draft Impl."` (the Draft Format fallback for already-structured data), and a set of boolean flags that control import behavior (Validate Receiving Company, Resolve Unit Of Measure, Lookup Item Reference, Lookup Item GTIN, Lookup Account Mapping, etc.). Data Exchange definitions are linked through **E-Doc. Service Data Exch. Def.** and are installed from app resource XML files during install/upgrade rather than being embedded as AL labels.
 
 **E-Doc. Service Supported Type** links services to the document types they handle. This is a simple junction table keyed by `(Service Code, E-Document Type)`. A service that handles Sales Invoices and Sales Credit Memos has two records here.
 
@@ -37,24 +40,40 @@ erDiagram
     E-DOCUMENT-SERVICE ||--o{ E-DOC-SERVICE-SUPPORTED-TYPE : "supports types"
     E-DOCUMENT-SERVICE ||--o{ SERVICE-PARTICIPANT : "has participants"
     E-DOCUMENT-SERVICE ||--o{ E-DOC-MAPPING : "defines mappings"
+    E-DOCUMENT-SERVICE ||--o{ E-DOC-SERVICE-DATA-EXCH-DEF : "selects data exchange defs"
 ```
+
+*Updated: 2026-07-29 -- noted V2.0 default import settings and resource-backed Data Exchange definitions.*
 
 ## Inbound staging tables (V2.0 import pipeline)
 
-V2.0 inbound processing uses dedicated staging tables to hold parsed document data before creating actual BC purchase documents. This three-layer approach (raw blob -> staging tables -> BC documents) isolates parsing from business logic and allows users to review and correct data before committing.
+V2.0 inbound processing uses dedicated staging tables to hold parsed document data before creating actual BC documents. This three-layer approach (raw blob -> staging tables -> BC documents) isolates parsing from business logic and allows users to review and correct data before committing.
 
-**E-Document Purchase Header** (`table 6100`) and **E-Document Purchase Line** (`table 6101`, in `Processing/Import/Purchase/`) hold the parsed invoice data in a vendor-neutral format. The purchase header has two kinds of fields: external data (fields 2-100, prefixed with vendor/customer names, addresses, amounts as raw text) and BC-resolved fields (fields 101+, prefixed with `[BC]`, containing resolved vendor numbers, posting groups, etc.). The purchase line follows the same pattern. Both are keyed by E-Document Entry No.
+**E-Document Purchase Header** (`table 6100`) and **E-Document Purchase Line** (`table 6101`, in `Processing/Import/Purchase/`) hold parsed purchase invoice and credit memo data in a vendor-neutral format. The purchase header has two kinds of fields: external data (fields 2-100, prefixed with vendor/customer names, addresses, amounts as raw text) and BC-resolved fields (fields 101+, prefixed with `[BC]`, containing resolved vendor numbers, posting groups, etc.). The purchase line follows the same pattern. Both are keyed by E-Document Entry No. These purchase staging tables are deliberately consumable by dependent country apps.
+
+**E-Document Sales Header** (`table 6153`) and **E-Document Sales Line** (`table 6154`, in `Processing/Import/Sales/`) mirror the staging pattern for inbound sales orders. They store buyer/seller order data, requested delivery dates, totals, and BC-resolved customer and sales line fields before a Sales Order is created. These tables are internal and are included in the app's sensitivity classification subscriber.
 
 **E-Document Header Mapping** and **E-Document Line Mapping** (`Processing/Import/`) track how staging table fields were mapped to BC entities during the "Prepare draft" step.
 
-For order matching scenarios (linking inbound invoices to existing purchase orders), the **E-Doc. Imported Line** table (`Processing/OrderMatching/`) stores lines from the imported document alongside references to matched purchase order lines.
+For order matching scenarios (linking inbound invoices to existing purchase orders), the **E-Doc. Imported Line** table (`Processing/OrderMatching/`) stores lines from the imported document alongside references to matched purchase order lines. **E-Doc. Record Link** records the temporary source-to-target links between draft headers/lines and created purchase or sales lines so later posting and history logic can find the origin.
 
 ```mermaid
 erDiagram
-    E-DOCUMENT ||--o| E-DOCUMENT-PURCHASE-HEADER : "parsed into"
+    E-DOCUMENT ||--o| E-DOCUMENT-PURCHASE-HEADER : "purchase draft"
     E-DOCUMENT-PURCHASE-HEADER ||--o{ E-DOCUMENT-PURCHASE-LINE : "has lines"
+    E-DOCUMENT ||--o| E-DOCUMENT-SALES-HEADER : "sales draft"
+    E-DOCUMENT-SALES-HEADER ||--o{ E-DOCUMENT-SALES-LINE : "has lines"
     E-DOCUMENT ||--o{ E-DOC-IMPORTED-LINE : "for order matching"
+    E-DOCUMENT ||--o{ E-DOC-RECORD-LINK : "tracks created records"
 ```
+
+*Updated: 2026-07-29 -- added sales order staging, record links, and purchase staging visibility.*
+
+## Purchase draft VAT and dates
+
+Purchase draft data now carries more posting intent before the BC document exists. `Document Date` and `Due Date` are copied from the purchase staging header back to the E-Document during Prepare draft, so duplicate detection and document creation use the parsed date rather than only the received file metadata. Purchases & Payables Setup controls whether purchase drafts resolve VAT Product Posting Groups from extracted VAT rates and whether an allowed VAT amount difference is applied to created purchase lines. The VAT difference is derived from the difference between header Total VAT and line-calculated VAT, and only applies when both purchase and general ledger setup permit it.
+
+*Updated: 2026-07-29 -- added purchase draft date and VAT handling.*
 
 ## Dual data storage
 
@@ -68,7 +87,7 @@ Each `"E-Doc. Data Storage"` record has a `"File Format"` enum field that implem
 
 Outbound E-Documents link to their source BC document via `"Document Record ID"` (a RecordId). This is a BC runtime reference, not a traditional foreign key, which means it works across any source table (Sales Invoice Header, Service Cr.Memo Header, etc.) without explicit table relations.
 
-Inbound E-Documents, once the import pipeline completes, store the created BC document's RecordId in the same `"Document Record ID"` field. The E-Document table's `OnDelete` trigger prevents deletion of linked or processed documents.
+Inbound E-Documents, once the import pipeline completes, store the created BC document's RecordId in the same `"Document Record ID"` field. Purchase documents still keep the `"E-Document Link"` Guid while the draft is linked to an open purchase document; sales orders use the same link pattern for inbound order drafts. The E-Document table's `OnDelete` trigger prevents deletion of linked or processed documents.
 
 Extensions on BC tables add E-Document awareness: `"E-Document Link"` (a Guid) on `Purchase Header` links back to the E-Document's SystemId for V1.0 processing (marked for removal in CLEAN27). Page extensions on Posted Sales Invoice, Posted Purchase Invoice, etc. add factboxes showing E-Document status.
 

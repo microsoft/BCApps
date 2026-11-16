@@ -101,7 +101,7 @@ page 1965 "Early Access Preview Features"
                 var
                     Feedback: Codeunit "Microsoft User Feedback";
                 begin
-                    Feedback.RequestFeedback('Early Access Preview');
+                    Feedback.RequestFeedback('Early Access Preview', EarlyAccessPreviewFeatureAreaTok, EarlyAccessPreviewFeatureAreaDisplayNameTok);
                 end;
             }
             action(ProvideFeatureFeedback)
@@ -115,7 +115,7 @@ page 1965 "Early Access Preview Features"
                 var
                     Feedback: Codeunit "Microsoft User Feedback";
                 begin
-                    Feedback.RequestFeedback(Rec.Title);
+                    Feedback.RequestFeedback(Rec.Title, EarlyAccessPreviewFeatureAreaTok, EarlyAccessPreviewFeatureAreaDisplayNameTok);
                 end;
             }
             action(ViewHelp)
@@ -200,6 +200,7 @@ page 1965 "Early Access Preview Features"
         HasVideoUrl: Boolean;
         HasHelpUrl: Boolean;
         VideoFieldText: Text;
+        EarlyAccessPreviewFeatureAreaTok: Label 'EarlyAccessPreview', Locked = true;
+        EarlyAccessPreviewFeatureAreaDisplayNameTok: Label 'Early Access Preview', Locked = true;
         WatchVideoLbl: Label 'Watch Video';
 }
-

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.AuditFileExport;
 
+using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Period;
 using System;
@@ -918,11 +919,33 @@ report 11015 "Export Business Data"
     begin
         TempBlobZipArchive.CreateInStream(ZipArchiveInStream);
         ZipFileName := DataExportRecordDefinition."Data Exp. Rec. Type Code" + '.zip';
+
+        if not GuiAllowed() then begin
+            SaveZipToReportInbox(ZipArchiveInStream, DataExportRecordDefinition);
+            exit;
+        end;
+
         if ClientFileName <> '' then begin
             ZipFileNameOnServer := FileMgt.InstreamExportToServerFile(ZipArchiveInStream, '.zip');
             FileMgt.DownloadHandler(ZipFileNameOnServer, '', '', '', ClientFileName);
         end else
             FileMgt.DownloadFromStreamHandler(ZipArchiveInStream, '', '', '', ZipFileName);
+    end;
+
+    local procedure SaveZipToReportInbox(ZipArchiveInStream: InStream; DataExportRecordDefinition: Record "Data Export Record Definition")
+    var
+        ReportInbox: Record "Report Inbox";
+        ReportOutputOutStream: OutStream;
+    begin
+        ReportInbox.Init();
+        ReportInbox."User ID" := CopyStr(UserId(), 1, MaxStrLen(ReportInbox."User ID"));
+        ReportInbox."Report ID" := Report::"Export Business Data";
+        ReportInbox.Description := CopyStr(DataExportRecordDefinition."Data Exp. Rec. Type Code", 1, MaxStrLen(ReportInbox.Description));
+        ReportInbox."Output Type" := ReportInbox."Output Type"::Zip;
+        ReportInbox."Created Date-Time" := RoundDateTime(CurrentDateTime(), 60000);
+        ReportInbox."Report Output".CreateOutStream(ReportOutputOutStream);
+        CopyStream(ReportOutputOutStream, ZipArchiveInStream);
+        ReportInbox.Insert(true);
     end;
 
     [Scope('OnPrem')]

@@ -12,6 +12,7 @@ report 1008 "Job Analysis"
     AdditionalSearchTerms = 'project overview, Job Analysis';
     ApplicationArea = Jobs;
     Caption = 'Project Analysis';
+    ToolTip = 'Analyze the project, such as the budgeted prices, usage prices, and billable prices, and then compares the three sets of prices.';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
     DefaultRenderingLayout = RDLCLayout;

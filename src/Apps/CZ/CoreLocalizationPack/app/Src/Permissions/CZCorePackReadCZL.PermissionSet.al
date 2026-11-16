@@ -26,10 +26,12 @@ permissionset 11730 "CZ Core Pack - Read CZL"
                   tabledata "Document Footer CZL" = R,
                   tabledata "EET Business Premises CZL" = R,
                   tabledata "EET Cash Register CZL" = R,
+                  tabledata "EET Cue CZL" = R,
                   tabledata "EET Entry CZL" = R,
                   tabledata "EET Entry Status Log CZL" = R,
                   tabledata "EET Service Setup CZL" = R,
                   tabledata "Enhanced Currency Buffer CZL" = R,
+                  tabledata "EPO Service Setup CZL" = R,
                   tabledata "Excel Template CZL" = R,
                   tabledata "G/L Account Adjust. Buffer CZL" = R,
                   tabledata "Invt. Movement Template CZL" = R,
@@ -49,7 +51,7 @@ permissionset 11730 "CZ Core Pack - Read CZL"
                   tabledata "VAT Ctrl. Report Line CZL" = R,
                   tabledata "VAT Ctrl. Report Section CZL" = R,
                   tabledata "VAT LCY Correction Buffer CZL" = R,
-#if not CLEAN27
+#if not CLEAN28
 #pragma warning disable AL0432
                   tabledata "VAT Period CZL" = R,
 #pragma warning restore AL0432

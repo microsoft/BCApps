@@ -23,6 +23,7 @@ using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Setup;
@@ -2562,6 +2563,42 @@ table 81 "Gen. Journal Line"
             if ("Bal. Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Bal. Account No."), Blocked = const(false));
         }
         /// <summary>
+        /// Specifies the spend request that this journal line relates to.
+        /// </summary>
+        field(146; "Spend Request No."; Code[20])
+        {
+            Caption = 'Spend Request No.';
+            ToolTip = 'Specifies the spend request that this journal line relates to.';
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const(" "));
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            var
+                SpendRequest: Record "Spend Request";
+                DimensionSetIDArr: array[10] of Integer;
+            begin
+                if "Spend Request No." = '' then begin
+                    "Spend Request Close" := false;
+                    exit;
+                end;
+                SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Amount (LCY)");
+                if SpendRequest."Dimension Set ID" <> 0 then begin
+                    DimensionSetIDArr[1] := Rec."Dimension Set ID";
+                    DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";
+                    Rec."Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimensionSetIDArr, Rec."Shortcut Dimension 1 Code", Rec."Shortcut Dimension 2 Code");
+                end;
+            end;
+        }
+        /// <summary>
+        /// Specifies that the spend request will be closed when the journal line is posted.
+        /// </summary>
+        field(147; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Spend Request Close';
+            ToolTip = 'Specifies that the spend request will be closed when the journal line is posted.';
+            DataClassification = CustomerContent;
+        }
+        /// <summary>
         /// Job queue processing status for batch posting operations and automated journal processing.
         /// </summary>
         field(160; "Job Queue Status"; Enum "Document Job Queue Status")
@@ -3867,23 +3904,58 @@ table 81 "Gen. Journal Line"
             Caption = 'Entry No.';
             Editable = false;
         }
+#if not CLEANSCHEMA33
         field(10861; "Derogatory Line"; Boolean)
         {
             Caption = 'Derogatory Line';
             Editable = false;
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#endif
         }
         field(10862; "Delayed Unrealized VAT"; Boolean)
         {
             Caption = 'Delayed Unrealized VAT';
+            ObsoleteReason = 'Use Delayed Unreal. VAT in the Payment Management FR app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
         field(10863; "Realize VAT"; Boolean)
         {
             Caption = 'Realize VAT';
+            ObsoleteReason = 'Use Realize Delayed VAT in the Payment Management FR app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
         field(10864; "Created from No."; Code[20])
         {
             Caption = 'Created from No.';
+            ObsoleteReason = 'Use Created From Pmt. Slip No. in the Payment Management FR app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
     }
 
     keys
@@ -4041,6 +4113,9 @@ table 81 "Gen. Journal Line"
     end;
 
     var
+#if not CLEAN30
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
 #pragma warning disable AA0074
         Text000: Label '%1 or %2 must be a G/L Account or Bank Account.', Comment = '%1=Account Type,%2=Balance Account Type';
 #pragma warning disable AA0470
@@ -4123,8 +4198,10 @@ table 81 "Gen. Journal Line"
         GLSetupRead: Boolean;
         CustBankAcc: Record "Customer Bank Account";
         VendBankAcc: Record "Vendor Bank Account";
+#if not CLEAN30
         DerogDeprBook: Record "Depreciation Book";
         DerogFADeprBook: Record "FA Depreciation Book";
+#endif
         ExportAgainQst: Label 'One or more of the selected lines have already been exported. Do you want to export them again?';
         NothingToExportErr: Label 'There is nothing to export.';
         NotExistErr: Label 'Document number %1 does not exist or is already closed.', Comment = '%1=Document number';
@@ -4806,6 +4883,7 @@ table 81 "Gen. Journal Line"
                 exit;
 
         CheckDirectPosting(GLAcc);
+        CheckSpendRequest(GLAcc);
 
         OnAfterCheckGLAcc(Rec, GLAcc);
     end;
@@ -4835,6 +4913,14 @@ table 81 "Gen. Journal Line"
         GLAccount.TestField("Direct Posting", true);
 
         OnAfterCheckDirectPosting(GLAccount, Rec);
+    end;
+
+    local procedure CheckSpendRequest(var GLAccount: Record "G/L Account")
+    begin
+        if Rec."Spend Request No." <> '' then
+            exit;
+        if GLAccount."Spend Request Required" = GLAccount."Spend Request Required"::None then
+            exit;
     end;
 
     /// <summary>
@@ -5134,6 +5220,9 @@ table 81 "Gen. Journal Line"
             then
                 CustCheckCreditLimit.GenJnlLineCheck(Rec);
 
+        if "Spend Request No." <> '' then
+            CheckSpendRequestAmount();
+
         Validate("VAT %");
         Validate("Bal. VAT %");
         UpdateLineBalance();
@@ -5148,6 +5237,13 @@ table 81 "Gen. Journal Line"
         end;
 
         OnAfterValidateAmount(Rec);
+    end;
+
+    local procedure CheckSpendRequestAmount()
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Amount (LCY)");
     end;
 
     local procedure UpdateApplyToAmount()
@@ -5956,6 +6052,12 @@ table 81 "Gen. Journal Line"
     [Scope('OnPrem')]
     procedure GetDerogatorySetup()
     begin
+#if not CLEAN30
+        if AcceleratedDeprFeature.IsEnabled() then
+            exit;
+
+        // Retained legacy heuristic for companies still using the pre-move "Derogatory Calculation" setup field;
+        // once the feature is enabled (or after CLEAN30), eligibility is resolved centrally at posting time instead.
         "Derogatory Line" := false;
         if ("Account Type" = "Account Type"::"Fixed Asset") and
            ("Account No." <> '') and
@@ -5966,6 +6068,7 @@ table 81 "Gen. Journal Line"
                 if DerogFADeprBook.Get("Account No.", DerogDeprBook.Code) then
                     "Derogatory Line" := true;
         end;
+#endif
     end;
 
     procedure GetCustLedgerEntry()
@@ -6276,11 +6379,8 @@ table 81 "Gen. Journal Line"
         GenJournalLine.SetFilter("Line No.", '<>%1', "Line No.");
         GenJournalLine.SetRange("Document Type", "Applies-to Doc. Type");
         GenJournalLine.SetRange("Document No.", "Applies-to Doc. No.");
-        if not GenJournalLine.IsEmpty() then begin
-            GenJournalLine.ModifyAll("Applied Automatically", false);
-            GenJournalLine.ModifyAll("Account Type", GenJournalLine."Account Type"::"G/L Account");
-            GenJournalLine.ModifyAll("Account No.", '');
-        end;
+        if not GenJournalLine.IsEmpty() then
+            GenJournalLine.ModifyAll("Applied Automatically", false, "Account Type", GenJournalLine."Account Type"::"G/L Account", "Account No.", '');
     end;
 
     procedure GetIncomingDocumentURL(): Text[1024]
@@ -7220,6 +7320,8 @@ table 81 "Gen. Journal Line"
         "Ship-to/Order Address Code" := PurchHeader."Order Address Code";
         "Salespers./Purch. Code" := PurchHeader."Purchaser Code";
         "On Hold" := PurchHeader."On Hold";
+        "Spend Request No." := PurchHeader."Spend Request No.";
+        "Spend Request Close" := PurchHeader."Spend Request Close";
         if "Account Type" = "Account Type"::Vendor then
             "Posting Group" := PurchHeader."Vendor Posting Group";
         ReadGLSetup();
@@ -7250,6 +7352,8 @@ table 81 "Gen. Journal Line"
     end;
 
     procedure CopyFromPurchHeaderPrepmtPost(PurchHeader: Record "Purchase Header"; UsePmtDisc: Boolean)
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
         "Account Type" := "Account Type"::Vendor;
         "Account No." := PurchHeader."Pay-to Vendor No.";
@@ -7266,6 +7370,13 @@ table 81 "Gen. Journal Line"
         "Due Date" := PurchHeader."Prepayment Due Date";
         "Payment Terms Code" := PurchHeader."Payment Terms Code";
         "Payment Method Code" := PurchHeader."Payment Method Code";
+        if PurchHeader."Payment Reference" <> '' then
+            "Payment Reference" := PurchHeader."Payment Reference"
+        else begin
+            PurchasesPayablesSetup.Get();
+            if PurchasesPayablesSetup."Copy Inv. No. To Pmt. Ref." then
+                "Payment Reference" := PurchHeader."Vendor Invoice No.";
+        end;
         if UsePmtDisc then begin
             "Pmt. Discount Date" := PurchHeader."Prepmt. Pmt. Discount Date";
             "Payment Discount %" := PurchHeader."Prepmt. Payment Discount %";

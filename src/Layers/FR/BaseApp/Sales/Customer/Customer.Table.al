@@ -593,13 +593,8 @@ table 18 Customer
         {
             Caption = 'Invoice Copies';
             ObsoleteReason = 'This field is not used consequently and hence does not work as expected. It should be retired.';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
 #endif
         /// <summary>
@@ -732,7 +727,8 @@ table 18 Customer
             CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Customer No." = field("No."),
                                                                          "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                          "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                         "Currency Code" = field("Currency Filter")));
+                                                                         "Currency Code" = field("Currency Filter"),
+                                                                         "Excluded from calculation" = const(false)));
             Caption = 'Balance';
             Editable = false;
             FieldClass = FlowField;
@@ -747,7 +743,8 @@ table 18 Customer
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Customer No." = field("No."),
                                                                                  "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                  "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                 "Currency Code" = field("Currency Filter")));
+                                                                                 "Currency Code" = field("Currency Filter"),
+                                                                                 "Excluded from calculation" = const(false)));
             Caption = 'Balance (LCY)';
             Editable = false;
             FieldClass = FlowField;
@@ -764,7 +761,8 @@ table 18 Customer
                                                                          "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                          "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                          "Posting Date" = field("Date Filter"),
-                                                                         "Currency Code" = field("Currency Filter")));
+                                                                         "Currency Code" = field("Currency Filter"),
+                                                                         "Excluded from calculation" = const(false)));
             Caption = 'Net Change';
             Editable = false;
             FieldClass = FlowField;
@@ -780,7 +778,8 @@ table 18 Customer
                                                                                  "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                  "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                                  "Posting Date" = field("Date Filter"),
-                                                                                 "Currency Code" = field("Currency Filter")));
+                                                                                 "Currency Code" = field("Currency Filter"),
+                                                                                 "Excluded from calculation" = const(false)));
             Caption = 'Net Change (LCY)';
             Editable = false;
             FieldClass = FlowField;
@@ -862,7 +861,8 @@ table 18 Customer
                                                                          "Initial Entry Due Date" = field(upperlimit("Date Filter")),
                                                                          "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                          "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                         "Currency Code" = field("Currency Filter")));
+                                                                         "Currency Code" = field("Currency Filter"),
+                                                                         "Excluded from calculation" = const(false)));
             Caption = 'Balance Due';
             Editable = false;
             FieldClass = FlowField;
@@ -878,7 +878,8 @@ table 18 Customer
                                                                                  "Initial Entry Due Date" = field(upperlimit("Date Filter")),
                                                                                  "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                  "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                 "Currency Code" = field("Currency Filter")));
+                                                                                 "Currency Code" = field("Currency Filter"),
+                                                                                 "Excluded from calculation" = const(false)));
             Caption = 'Overdue Balance (LCY)';
             Editable = false;
             FieldClass = FlowField;
@@ -1322,13 +1323,7 @@ table 18 Customer
         /// <summary>
         /// Specifies the customer's website URL.
         /// </summary>
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(103; "Home Page"; Text[255])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Home Page';
             OptimizeForTextSearch = true;
@@ -2321,10 +2316,20 @@ table 18 Customer
             Caption = 'Contact Graph Id';
             OptimizeForTextSearch = true;
         }
+#if not CLEANSCHEMA33
         field(10805; "SIREN No."; Code[9])
         {
             Caption = 'SIREN No.';
+            ObsoleteReason = 'Moved to Sales FR app.';
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#endif
         }
+#endif
 #if not CLEAN28        
         field(10860; "Payment in progress (LCY)"; Decimal)
         {
@@ -2580,7 +2585,9 @@ table 18 Customer
         RemovePaymentRoleranceQst: Label 'Do you want to remove payment tolerance from entries that are currently open?';
         CreateNewCustTxt: Label 'Create a new customer card for %1', Comment = '%1 is the name to be used to create the customer. ';
         SelectCustErr: Label 'You must select an existing customer.';
+#if not CLEAN30
         SirenNoTemplateTxt: Label '%1: %2', Locked = true;
+#endif
         CustNotRegisteredTxt: Label 'This customer is not registered. To continue, choose one of the following options:';
         SelectCustTxt: Label 'Select an existing customer';
         OverrideImageQst: Label 'Override Image?';
@@ -2971,10 +2978,20 @@ table 18 Customer
                 exit(CustomerPriceGroup."Price Calculation Method");
     end;
 
-    procedure GetSIRENNoWithCaption(): Text
+#if not CLEAN30
+    [Obsolete('GetSIRENNoWithCaption() moved to Sales FR app', '30.0')]
+    procedure GetSIRENNoWithCaption() SIRENNoWithCaption: Text
     begin
-        exit(StrSubstNo(SirenNoTemplateTxt, Rec.FieldCaption("Siren No."), Rec."Siren No."));
+        SIRENNoWithCaption := StrSubstNo(SirenNoTemplateTxt, Rec.FieldCaption("Siren No."), Rec."Siren No.");
+        OnAfterGetSIRENNoWithCaption(Rec, SIRENNoWithCaption);
     end;
+
+    [Obsolete('SIREN number formatting moved to Sales FR app.', '30.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetSIRENNoWithCaption(Customer: Record Customer; var SIRENNoWithCaption: Text)
+    begin
+    end;
+#endif
 
     /// <summary>
     /// Calculates the total amount in local currency including balance, outstanding orders, shipped not invoiced, and outstanding invoices.
@@ -3725,41 +3742,50 @@ table 18 Customer
     /// <returns>True if contact update is needed; otherwise, false.</returns>
     procedure IsContactUpdateNeeded(): Boolean
     var
+        CustomerBeforeModify: Record Customer;
         CustContUpdate: Codeunit "CustCont-Update";
         UpdateNeeded: Boolean;
     begin
-        UpdateNeeded :=
-          (Name <> xRec.Name) or
-          ("Search Name" <> xRec."Search Name") or
-          ("Name 2" <> xRec."Name 2") or
-          (Address <> xRec.Address) or
-          ("Address 2" <> xRec."Address 2") or
-          (City <> xRec.City) or
-          ("Phone No." <> xRec."Phone No.") or
-          ("Mobile Phone No." <> xRec."Mobile Phone No.") or
-          ("Telex No." <> xRec."Telex No.") or
-          ("Territory Code" <> xRec."Territory Code") or
-          ("Currency Code" <> xRec."Currency Code") or
-          ("Language Code" <> xRec."Language Code") or
-          ("Salesperson Code" <> xRec."Salesperson Code") or
-          ("Country/Region Code" <> xRec."Country/Region Code") or
-          ("Fax No." <> xRec."Fax No.") or
-          ("Telex Answer Back" <> xRec."Telex Answer Back") or
-          ("Registration Number" <> xRec."Registration Number") or
-          ("VAT Registration No." <> xRec."VAT Registration No.") or
-          ("Post Code" <> xRec."Post Code") or
-          (County <> xRec.County) or
-          ("E-Mail" <> xRec."E-Mail") or
-          ("Home Page" <> xRec."Home Page") or
-          (Contact <> xRec.Contact);
+        CustomerBeforeModify.Copy(xRec);
 
+        // OnModify runs before the database write, so Get retrieves
+        // the persisted customer values from before the modification.
+        if not IsTemporary then begin
+            CustomerBeforeModify.Get("No.");
+            if CustomerBeforeModify.SystemRowVersion <> xRec.SystemRowVersion then
+                CustomerBeforeModify := xRec;
+        end;
+
+        UpdateNeeded :=
+          (Name <> CustomerBeforeModify.Name) or
+          ("Search Name" <> CustomerBeforeModify."Search Name") or
+          ("Name 2" <> CustomerBeforeModify."Name 2") or
+          (Address <> CustomerBeforeModify.Address) or
+          ("Address 2" <> CustomerBeforeModify."Address 2") or
+          (City <> CustomerBeforeModify.City) or
+          ("Phone No." <> CustomerBeforeModify."Phone No.") or
+          ("Mobile Phone No." <> CustomerBeforeModify."Mobile Phone No.") or
+          ("Telex No." <> CustomerBeforeModify."Telex No.") or
+          ("Territory Code" <> CustomerBeforeModify."Territory Code") or
+          ("Currency Code" <> CustomerBeforeModify."Currency Code") or
+          ("Language Code" <> CustomerBeforeModify."Language Code") or
+          ("Salesperson Code" <> CustomerBeforeModify."Salesperson Code") or
+          ("Country/Region Code" <> CustomerBeforeModify."Country/Region Code") or
+          ("Fax No." <> CustomerBeforeModify."Fax No.") or
+          ("Telex Answer Back" <> CustomerBeforeModify."Telex Answer Back") or
+          ("Registration Number" <> CustomerBeforeModify."Registration Number") or
+          ("VAT Registration No." <> CustomerBeforeModify."VAT Registration No.") or
+          ("Post Code" <> CustomerBeforeModify."Post Code") or
+          (County <> CustomerBeforeModify.County) or
+          ("E-Mail" <> CustomerBeforeModify."E-Mail") or
+          ("Home Page" <> CustomerBeforeModify."Home Page") or
+          (Contact <> CustomerBeforeModify.Contact);
         if not UpdateNeeded and not IsTemporary then
             UpdateNeeded := CustContUpdate.ContactNameIsBlank("No.");
-
         if ForceUpdateContact then
             UpdateNeeded := true;
 
-        OnBeforeIsContactUpdateNeeded(Rec, xRec, UpdateNeeded, ForceUpdateContact);
+        OnBeforeIsContactUpdateNeeded(Rec, CustomerBeforeModify, UpdateNeeded, ForceUpdateContact);
         exit(UpdateNeeded);
     end;
 
@@ -4601,7 +4627,11 @@ table 18 Customer
 
     local procedure IsOnBeforeCheckBlockedCustHandled(Customer: Record Customer; Source: Option Journal,Document; DocType: Enum "Gen. Journal Document Type"; Shipment: Boolean; Transaction: Boolean) IsHandled: Boolean
     begin
-        OnBeforeCheckBlockedCust(Customer, Source, DocType.AsInteger(), Shipment, Transaction, IsHandled)
+#if not CLEAN30
+        OnBeforeCheckBlockedCust(Customer, Source, DocType.AsInteger(), Shipment, Transaction, IsHandled);
+        if not IsHandled then
+#endif
+            OnBeforeCheckBlockedCust2(Customer, Source, DocType, Shipment, Transaction, IsHandled)
     end;
 
     /// <summary>
@@ -4613,8 +4643,16 @@ table 18 Customer
     /// <param name="Shipment">Indicates if this is a shipment operation.</param>
     /// <param name="Transaction">Indicates if this is a posting transaction.</param>
     /// <param name="IsHandled">Set to true to skip the default blocked check.</param>
+#if not CLEAN30
+    [Obsolete('Replaced by OnBeforeCheckBlockedCust2', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckBlockedCust(Customer: Record Customer; Source: Option Journal,Document; DocType: Option; Shipment: Boolean; Transaction: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+#endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckBlockedCust2(Customer: Record Customer; Source: Option Journal,Document; DocType: Enum "Gen. Journal Document Type"; Shipment: Boolean; Transaction: Boolean; var IsHandled: Boolean)
     begin
     end;
 

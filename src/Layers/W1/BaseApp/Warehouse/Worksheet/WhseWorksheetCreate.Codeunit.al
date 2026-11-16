@@ -174,8 +174,8 @@ codeunit 7311 "Whse. Worksheet-Create"
         WhseWkshLine."Whse. Document Type" := WhseWkshLine."Whse. Document Type"::Job;
         WhseWkshLine."Whse. Document No." := JobPlanningLine."Job No.";
         WhseWkshLine."Whse. Document Line No." := JobPlanningLine."Job Contract Entry No.";
-        WhseWkshLine."Source Type" := Database::Job;
-        WhseWkshLine."Source Subtype" := 0;
+        WhseWkshLine."Source Type" := Database::"Job Planning Line";
+        WhseWkshLine."Source Subtype" := "Job Planning Line Status"::Order.AsInteger(); // Warehouse operations only apply to Order status
         WhseWkshLine."Source No." := JobPlanningLine."Job No.";
         WhseWkshLine."Source Line No." := JobPlanningLine."Job Contract Entry No.";
         WhseWkshLine."Source Subline No." := JobPlanningLine."Line No.";
@@ -240,8 +240,7 @@ codeunit 7311 "Whse. Worksheet-Create"
     local procedure WhseWkshLineForJobPlanLineExists(var WhseWkshLine: Record "Whse. Worksheet Line"; var JobPlanningLine: Record "Job Planning Line"): Boolean
     begin
         WhseWkshLine.SetCurrentKey("Source Type", "Source Subtype", "Source No.", "Source Line No.", "Source Subline No.");
-        WhseWkshLine.SetRange("Source Type", Database::Job);
-        WhseWkshLine.SetRange("Source Subtype", 0);
+        WhseWkshLine.SetFilter("Source Type", '%1|%2', Database::Job, Database::"Job Planning Line");
         WhseWkshLine.SetRange("Source No.", JobPlanningLine."Job No.");
         WhseWkshLine.SetRange("Source Line No.", JobPlanningLine."Job Contract Entry No.");
         WhseWkshLine.SetRange("Source Subline No.", JobPlanningLine."Line No.");

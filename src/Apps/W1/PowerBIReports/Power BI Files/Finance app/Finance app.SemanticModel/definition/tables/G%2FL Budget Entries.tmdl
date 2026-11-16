@@ -25,23 +25,41 @@ table 'G/L Budget Entries'
 			VAR Endpoint = "&page=120&"
 			VAR baseLink = [Base Link] & Endpoint
 			
-			// Build filter context
-			var budgetName = CONCATENATEX(VALUES('G/L Budget Entries'[Budget Name]), [Budget Name], "|")
-			VAR GLAccounts =
-			    VALUES ( 'G/L Account'[G/L Account No.] )
+			// Build filter context(scalar/range values only )
 			VAR MinGLAcc =  MIN ( 'G/L Account'[G/L Account No.] )
 			VAR MaxGLAcc =  MAX ( 'G/L Account'[G/L Account No.] )
-			VAR DimensionSets = CONCATENATEX(VALUES('G/L Budget Entries'[dimensionSetID]), [dimensionSetID], "|")
-			
-			// Build URL string components
 			VAR GLAccountRange = MinGLAcc & ".." & MaxGLAcc
-			VAR GLAccountFilter = "filter='G/L Budget Entry'.'G/L Account No.' IS " & "'" & GLAccountRange & "'"
-			VAR GLPostingDateFilter = " AND 'G/L Budget Entry'.'Date' IS " & "'" & [Ranged]  & "'"
-			VAR GLBudgetFilter = " AND 'G/L Budget Entry'.'Budget Name' IS " & "'" & budgetName  & "'"
-			VAR DimensionSetFilter = " AND 'G/L Budget Entry'.'Dimension Set ID' IS " & "'" & DimensionSets & "'"
 			
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( baseLink )
+			    + LEN ( "filter='G/L Budget Entry'.'G/L Account No.' IS ''" ) + LEN ( GLAccountRange )
+			    + LEN ( " AND 'G/L Budget Entry'.'Date' IS ''" ) + ProjectedRangedLength
+			    + LEN ( " AND 'G/L Budget Entry'.'Budget Name' IS ''" )
+			    + SUMX ( VALUES ( 'G/L Budget Entries'[Budget Name] ), LEN ( 'G/L Budget Entries'[Budget Name] ) + 1 )
+			    + LEN ( " AND 'G/L Budget Entry'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'G/L Budget Entries'[dimensionSetID] ), LEN ( 'G/L Budget Entries'[dimensionSetID] ) + 1 )
 			RETURN
-			    baseLink & GLAccountFilter & GLPostingDateFilter & GLBudgetFilter & DimensionSetFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        baseLink
+			            & "filter='G/L Budget Entry'.'G/L Account No.' IS " & "'" & GLAccountRange & "'"
+			            & " AND 'G/L Budget Entry'.'Date' IS " & "'" & [Ranged]  & "'"
+			            & " AND 'G/L Budget Entry'.'Budget Name' IS " & "'" & CONCATENATEX(VALUES('G/L Budget Entries'[Budget Name]), [Budget Name], "|") & "'"
+			            & " AND 'G/L Budget Entry'.'Dimension Set ID' IS " & "'" & CONCATENATEX(VALUES('G/L Budget Entries'[dimensionSetID]), [dimensionSetID], "|") & "'",
+			    baseLink
+			    )
 		displayFolder: _G/L Budget Entry Measures\_G/L Budget Entry Back Links
 		lineageTag: 1dcb8fc2-2a72-419b-ac3e-527433816439
 

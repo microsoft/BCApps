@@ -8,11 +8,62 @@ codeunit 139752 "Outlook API Helper Tests"
     Subtype = Test;
     TestHttpRequestPolicy = BlockOutboundRequests;
     Permissions = tabledata "Email - Outlook Account" = rimd,
-                    tabledata "Email Inbox" = rimd;
+                    tabledata "Email Inbox" = rimd,
+                    tabledata "Email - Outlook API Setup" = rimd;
 
     var
         LibraryAssert: Codeunit "Library Assert";
         SendEmailExternalUserErr: Label 'Could not send the email, because the user is delegated or external.';
+
+    [Test]
+    procedure DefaultRedirectUrlIsAllowed()
+    var
+        EmailOAuthClient: Codeunit "Email - OAuth Client";
+        OAuth2: Codeunit OAuth2;
+        DefaultRedirectUrl: Text;
+    begin
+        // [FEATURE] [AI test 0.4]
+        OAuth2.GetDefaultRedirectUrl(DefaultRedirectUrl);
+
+        EmailOAuthClient.ValidateRedirectUrl(DefaultRedirectUrl);
+    end;
+
+    [Test]
+    procedure NonDefaultRedirectUrlIsBlocked()
+    var
+        EmailOAuthClient: Codeunit "Email - OAuth Client";
+    begin
+        // [FEATURE] [AI test 0.4]
+        asserterror EmailOAuthClient.ValidateRedirectUrl('https://contoso.example/oauth/callback');
+
+        LibraryAssert.ExpectedError('The redirect URL must be');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure RestoreDefaultRedirectUrlResetsSetupToDefault()
+    var
+        Setup: Record "Email - Outlook API Setup";
+        EmailOAuthClient: Codeunit "Email - OAuth Client";
+        OAuth2: Codeunit OAuth2;
+        RedirectUrlErrorInfo: ErrorInfo;
+        DefaultRedirectUrl: Text;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [GIVEN] A setup record holding a non-default redirect URL
+        if not Setup.Get() then
+            Setup.Insert();
+        Setup.RedirectURL := 'https://contoso.example/oauth/callback';
+        Setup.Modify();
+
+        // [WHEN] The Restore default redirect URL recovery action runs
+        EmailOAuthClient.RestoreDefaultRedirectUrl(RedirectUrlErrorInfo);
+
+        // [THEN] The stored redirect URL is reset to the environment default
+        OAuth2.GetDefaultRedirectUrl(DefaultRedirectUrl);
+        Setup.Get();
+        LibraryAssert.AreEqual(CopyStr(DefaultRedirectUrl, 1, MaxStrLen(Setup.RedirectURL)), Setup.RedirectURL, 'Redirect URL should be reset to the environment default.');
+    end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -210,6 +261,66 @@ codeunit 139752 "Outlook API Helper Tests"
         LibraryAssert.AreNotEqual(0, EmailMessage.Attachments_Next(), 'Expected a second attachment');
         LibraryAssert.AreEqual('doc.pdf', EmailMessage.Attachments_GetName(), 'Unexpected attachment name');
         LibraryAssert.AreEqual('', EmailMessage.Attachments_GetContentId(), 'Null contentId must parse as empty and not leak the previous value');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveEmailsNonFileAttachmentsHandler')]
+    procedure TestRetrieveEmailWithNonFileAttachments()
+    var
+        OutlookAccount: Record "Email - Outlook Account";
+        EmailInbox: Record "Email Inbox";
+        TempFilters: Record "Email Retrieval Filters" temporary;
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
+        EmailMessage: Codeunit "Email Message";
+        EmailOutlookAPIHelper: Codeunit "Email - Outlook API Helper";
+        InStream: InStream;
+        AttachmentContent: Text;
+    begin
+        // [SCENARIO] An email whose attachments include item/reference attachments (which Microsoft Graph
+        // returns without a 'contentBytes' property, e.g. bounce/NDR notifications) must not abort the batch.
+        // Only file attachments must be imported; the others are skipped gracefully.
+
+        // [GIVEN] An Outlook account exists
+        OutlookAccount.Init();
+        OutlookAccount.Id := CreateGuid();
+        OutlookAccount."Email Address" := 'testuser@test.com';
+        OutlookAccount.Name := 'Test User';
+        OutlookAccount."Outlook API Email Connector" := Enum::"Email Connector"::"Test Outlook REST API";
+        OutlookAccount.Insert();
+
+        // [GIVEN] OAuth token request is skipped
+        BindSubscription(SkipTokenRequest);
+        SkipTokenRequest.SetSkipTokenRequest(true);
+
+        // [GIVEN] Filters are set to load attachments
+        TempFilters.Init();
+        TempFilters."Load Attachments" := true;
+        TempFilters."Max No. of Emails" := 10;
+        TempFilters."Body Type" := TempFilters."Body Type"::HTML;
+
+        // [WHEN] Emails are retrieved (response has an item attachment and a reference attachment
+        // without contentBytes, followed by a regular file attachment)
+        EmailInbox.Init();
+        EmailOutlookAPIHelper.RetrieveEmails(OutlookAccount.Id, EmailInbox, TempFilters);
+
+        // [THEN] The email is imported instead of the whole batch failing with a missing 'contentBytes' error
+        EmailInbox.MarkedOnly(true);
+        LibraryAssert.IsTrue(EmailInbox.FindFirst(), 'Expected an email inbox record to be created');
+        LibraryAssert.AreEqual('Test Bounce With Item Attachment', EmailInbox.Description, 'Unexpected email subject');
+
+        // [THEN] Only the file attachment is present; the item and reference attachments were skipped
+        EmailMessage.Get(EmailInbox."Message Id");
+        LibraryAssert.IsTrue(EmailMessage.Attachments_First(), 'Expected the file attachment to be imported');
+        LibraryAssert.AreEqual('report.txt', EmailMessage.Attachments_GetName(), 'Unexpected attachment name');
+        LibraryAssert.AreEqual('text/plain', EmailMessage.Attachments_GetContentType(), 'Unexpected content type');
+
+        EmailMessage.Attachments_GetContent(InStream);
+        InStream.ReadText(AttachmentContent);
+        LibraryAssert.AreEqual('RegularContent', AttachmentContent, 'Unexpected file attachment content');
+
+        // [THEN] There are no further attachments (item and reference attachments were not imported)
+        LibraryAssert.AreEqual(0, EmailMessage.Attachments_Next(), 'Only the file attachment should have been imported');
     end;
 
     [Test]
@@ -449,6 +560,16 @@ codeunit 139752 "Outlook API Helper Tests"
     procedure GraphRetrieveEmailsNullContentIdHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
         RetrieveEmailFileTok: Label 'RetrieveEmailWithNullContentId.txt', Locked = true;
+    begin
+        Response.Content.WriteFrom(NavApp.GetResourceAsText(RetrieveEmailFileTok, TextEncoding::UTF8));
+        Response.HttpStatusCode := 200;
+        exit(false);
+    end;
+
+    [HttpClientHandler]
+    procedure GraphRetrieveEmailsNonFileAttachmentsHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        RetrieveEmailFileTok: Label 'RetrieveEmailWithNonFileAttachments.txt', Locked = true;
     begin
         Response.Content.WriteFrom(NavApp.GetResourceAsText(RetrieveEmailFileTok, TextEncoding::UTF8));
         Response.HttpStatusCode := 200;

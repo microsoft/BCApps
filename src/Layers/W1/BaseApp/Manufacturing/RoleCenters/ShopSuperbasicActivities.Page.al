@@ -55,7 +55,6 @@ page 9044 "Shop Super. basic Activities"
                         ApplicationArea = Manufacturing;
                         Caption = 'View Production Order - Shortage List';
                         RunObject = Report "Prod. Order - Shortage List";
-                        ToolTip = 'View a list of the missing quantity per production order. You are shown how the inventory development is planned from today until the set day - for example whether orders are still open.';
                     }
                     action("Change Production Order Status")
                     {

@@ -156,30 +156,6 @@ page 76 "Resource Card"
             group("Personal Data")
             {
                 Caption = 'Personal Data';
-#if not CLEAN27
-                group(Control1040003)
-                {
-                    ShowCaption = false;
-                    Visible = IsAddressLookupTextEnabled;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Functionality has been moved to the GetAddress.io UK Postcodes.';
-                    ObsoleteTag = '27.0';
-                    field(LookupAddress; LookupAddressLbl)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Editable = false;
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'Field has been moved to the GetAddress.io UK Postcodes.';
-                        ObsoleteTag = '27.0';
-                        ShowCaption = false;
-
-                        trigger OnDrillDown()
-                        begin
-                            ShowPostcodeLookup(true);
-                        end;
-                    }
-                }
-#endif
                 field("Job Title"; Rec."Job Title")
                 {
                     ApplicationArea = Jobs;
@@ -187,14 +163,6 @@ page 76 "Resource Card"
                 field(Address; Rec.Address)
                 {
                     ApplicationArea = Jobs;
-#if not CLEAN27
-                    trigger OnValidate()
-                    var
-                        PostcodeBusinessLogic: Codeunit "Postcode Business Logic";
-                    begin
-                        PostcodeBusinessLogic.ShowDiscoverabilityNotificationIfNeccessary();
-                    end;
-#endif
                 }
                 field("Address 2"; Rec."Address 2")
                 {
@@ -217,15 +185,6 @@ page 76 "Resource Card"
                 {
                     ApplicationArea = Jobs;
                     Importance = Promoted;
-#if not CLEAN27
-                    trigger OnValidate()
-                    var
-                        PostcodeBusinessLogic: Codeunit "Postcode Business Logic";
-                    begin
-                        PostcodeBusinessLogic.ShowDiscoverabilityNotificationIfNeccessary();
-                        ShowPostcodeLookup(false);
-                    end;
-#endif
                 }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
@@ -609,7 +568,6 @@ page 76 "Resource Card"
                 Caption = 'Resource Statistics';
                 Image = "Report";
                 RunObject = Report "Resource Statistics";
-                ToolTip = 'View detailed, historical information for the resource.';
             }
             action("Resource Usage")
             {
@@ -617,7 +575,6 @@ page 76 "Resource Card"
                 Caption = 'Resource Usage';
                 Image = "Report";
                 RunObject = Report "Resource Usage";
-                ToolTip = 'View the resource utilization that has taken place. The report includes the resource capacity, quantity of usage, and the remaining balance.';
             }
             action("Resource - Cost Breakdown")
             {
@@ -625,7 +582,6 @@ page 76 "Resource Card"
                 Caption = 'Resource - Cost Breakdown';
                 Image = "Report";
                 RunObject = Report "Resource - Cost Breakdown";
-                ToolTip = 'View the direct unit costs and the total direct costs for each resource. Only usage postings are considered in this report. Resource usage can be posted in the resource journal or the project journal.';
             }
         }
         area(processing)
@@ -772,9 +728,6 @@ page 76 "Resource Card"
             if Rec."No." <> xRec."No." then
                 CRMIntegrationManagement.SendResultNotification(Rec);
         end;
-#if not CLEAN27
-        HandleAddressLookupVisibility();
-#endif
     end;
 
     trigger OnOpenPage()
@@ -797,57 +750,9 @@ page 76 "Resource Card"
         CRMIsCoupledToRecord: Boolean;
         BlockedFilterApplied: Boolean;
         ExtendedPriceEnabled: Boolean;
-#if not CLEAN27
-        LookupAddressLbl: Label 'Lookup address from postcode';
-        IsAddressLookupTextEnabled: Boolean;
-#endif        
         NoFieldVisible: Boolean;
         IsCountyVisible: Boolean;
 
-#if not CLEAN27
-    [Obsolete('Functionality has been moved to the GetAddress.io UK Postcodes.', '27.0')]
-    local procedure ShowPostcodeLookup(ShowInputFields: Boolean)
-    var
-        TempEnteredAutocompleteAddress: Record "Autocomplete Address" temporary;
-        TempAutocompleteAddress: Record "Autocomplete Address" temporary;
-        PostcodeBusinessLogic: Codeunit "Postcode Business Logic";
-    begin
-        if not PostcodeBusinessLogic.SupportedCountryOrRegionCode(Rec."Country/Region Code") then
-            exit;
-
-        if not PostcodeBusinessLogic.IsConfigured() or ((Rec."Post Code" = '') and not ShowInputFields) then
-            exit;
-
-        TempEnteredAutocompleteAddress.Address := Rec.Address;
-        TempEnteredAutocompleteAddress.Postcode := Rec."Post Code";
-
-        if not PostcodeBusinessLogic.ShowLookupWindow(TempEnteredAutocompleteAddress, ShowInputFields, TempAutocompleteAddress) then
-            exit;
-
-        CopyAutocompleteFields(TempAutocompleteAddress);
-        HandleAddressLookupVisibility();
-    end;
-
-    local procedure CopyAutocompleteFields(var TempAutocompleteAddress: Record "Autocomplete Address" temporary)
-    begin
-        Rec.Address := TempAutocompleteAddress.Address;
-        Rec."Address 2" := TempAutocompleteAddress."Address 2";
-        Rec."Post Code" := TempAutocompleteAddress.Postcode;
-        Rec.City := TempAutocompleteAddress.City;
-        Rec.County := TempAutocompleteAddress.County;
-        Rec."Country/Region Code" := TempAutocompleteAddress."Country / Region";
-    end;
-
-    local procedure HandleAddressLookupVisibility()
-    var
-        PostcodeBusinessLogic: Codeunit "Postcode Business Logic";
-    begin
-        if not CurrPage.Editable or not PostcodeBusinessLogic.IsConfigured() then
-            IsAddressLookupTextEnabled := false
-        else
-            IsAddressLookupTextEnabled := PostcodeBusinessLogic.SupportedCountryOrRegionCode(Rec."Country/Region Code");
-    end;
-#endif
 
     local procedure SetNoFieldVisible()
     var

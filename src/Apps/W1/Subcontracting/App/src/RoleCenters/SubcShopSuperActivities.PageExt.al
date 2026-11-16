@@ -8,7 +8,7 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.RoleCenters;
 using Microsoft.Purchases.Document;
 
-pageextension 99001549 "Subc. Shop Super. Activities" extends "Shop Supervisor Activities"
+pageextension 20549 "Subc. Shop Super. Activities" extends "Shop Supervisor Activities"
 {
     layout
     {

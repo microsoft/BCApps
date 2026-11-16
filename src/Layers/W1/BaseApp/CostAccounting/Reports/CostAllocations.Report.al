@@ -12,6 +12,7 @@ report 1129 "Cost Allocations"
     RDLCLayout = './CostAccounting/Reports/CostAllocations.rdlc';
     ApplicationArea = CostAccounting;
     Caption = 'Cost Allocations';
+    ToolTip = 'Verify and print the allocation source and targets that are defined in the Cost Allocation window for controlling purposes.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

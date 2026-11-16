@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -103,6 +103,7 @@ table 25 "Vendor Ledger Entry"
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Vendor Ledg. Entry".Amount where("Vendor Ledger Entry No." = field("Entry No."),
                                                                           "Posting Date" = field("Date Filter"),
+                                                                          "Excluded from calculation" = const(false),
                                                                           "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Remaining Amount';
             ToolTip = 'Specifies the amount that remains to be applied to before the entry is totally applied to.';
@@ -127,6 +128,7 @@ table 25 "Vendor Ledger Entry"
             AutoFormatExpression = '';
             CalcFormula = sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Vendor Ledger Entry No." = field("Entry No."),
                                                                                   "Posting Date" = field("Date Filter"),
+                                                                                  "Excluded from calculation" = const(false),
                                                                                   "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Remaining Amt. (LCY)';
             Editable = false;
@@ -738,6 +740,25 @@ table 25 "Vendor Ledger Entry"
             TableRelation = "Dispute Status";
             DataClassification = CustomerContent;
             ToolTip = 'Specifies if there is an ongoing dispute for this document.';
+
+            trigger OnValidate()
+            var
+                DisputeStatus: Record "Dispute Status";
+                MarkedAsOnHoldLbl: label 'X', Locked = true;
+                NewOnHold: Code[3];
+            begin
+                NewOnHold := "On Hold";
+                if (xRec."Dispute Status" <> '') and (xRec."Dispute Status" <> Rec."Dispute Status") and (NewOnHold = MarkedAsOnHoldLbl) then
+                    if DisputeStatus.Get(xRec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            NewOnHold := '';
+                if Rec."Dispute Status" <> '' then
+                    if DisputeStatus.Get(Rec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            NewOnHold := MarkedAsOnHoldLbl;
+                if NewOnHold <> "On Hold" then
+                    Validate("On Hold", NewOnHold);
+            end;
         }
         field(12401; "Prepmt. Diff. Appln. Entry No."; Integer)
         {
@@ -903,6 +924,10 @@ table 25 "Vendor Ledger Entry"
         {
             IncludedFields = "Accepted Payment Tolerance";
         }
+        // Supports the Payment Reconciliation Journal candidate search (Document Type + Open + date range).
+        key(PmtReconCandidates; "Document Type", Open, "Posting Date")
+        {
+        }
     }
 
     fieldgroups
@@ -918,8 +943,6 @@ table 25 "Vendor Ledger Entry"
     var
 #pragma warning disable AA0470
         MustHaveSameSignErr: Label 'must have the same sign as %1';
-#pragma warning restore AA0470
-#pragma warning disable AA0470
         MustNotBeLargerErr: Label 'must not be larger than %1';
 #pragma warning restore AA0470
 #pragma warning disable AA0074

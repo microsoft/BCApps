@@ -29,7 +29,7 @@ pageextension 30101 "Shpfy Business Manager RC" extends "Business Manager Role C
             group(Shpfy)
             {
                 Caption = 'Shopify';
-                ToolTip = 'Manage Shopify Shops, customers, products, orders, gift cards, transactions and payouts.';
+                ToolTip = 'Manage Shopify Shops, customers, companies, products, orders, gift cards, transactions and payouts.';
 
                 action(ShpfyShops)
                 {
@@ -46,6 +46,14 @@ pageextension 30101 "Shpfy Business Manager RC" extends "Business Manager Role C
                     Image = CustomerList;
                     RunObject = page "Shpfy Customers";
                     ToolTip = 'View or edit detailed information for the customers that you trade with through Shopify.';
+                }
+                action(ShpfyCompanies)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Companies';
+                    Image = Company;
+                    RunObject = page "Shpfy Companies";
+                    ToolTip = 'View or edit detailed information for the companies that you trade with through Shopify.';
                 }
                 action(ShpfyProducts)
                 {

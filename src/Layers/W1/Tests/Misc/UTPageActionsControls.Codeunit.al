@@ -3406,7 +3406,9 @@ codeunit 134341 "UT Page Actions & Controls"
 
         // [THEN] Bill-to address fields are editable, and "Bill-to Name" field is not
         Assert.IsFalse(SalesQuotePage."Bill-to Name".Editable(), '');
-        Assert.IsTrue(SalesQuotePage."Bill-to Address".Editable() and
+        Assert.IsTrue(SalesQuotePage."Bill-to Name 2".Editable() and
+          SalesQuotePage."Bill-to Name 2".Enabled() and
+          SalesQuotePage."Bill-to Address".Editable() and
           SalesQuotePage."Bill-to Address 2".Editable() and
           SalesQuotePage."Bill-to City".Editable() and
           SalesQuotePage."Bill-to County".Editable() and
@@ -3437,7 +3439,9 @@ codeunit 134341 "UT Page Actions & Controls"
 
         // [THEN] Bill-to address fields are editable, and "Bill-to Name" field is not
         Assert.IsFalse(SalesOrderPage."Bill-to Name".Editable(), '');
-        Assert.IsTrue(SalesOrderPage."Bill-to Address".Editable() and
+        Assert.IsTrue(SalesOrderPage."Bill-to Name 2".Editable() and
+          SalesOrderPage."Bill-to Name 2".Enabled() and
+          SalesOrderPage."Bill-to Address".Editable() and
           SalesOrderPage."Bill-to Address 2".Editable() and
           SalesOrderPage."Bill-to City".Editable() and
           SalesOrderPage."Bill-to County".Editable() and
@@ -3468,7 +3472,9 @@ codeunit 134341 "UT Page Actions & Controls"
 
         // [THEN] Bill-to address fields are editable, and "Bill-to Name" field is not
         Assert.IsFalse(SalesInvoicePage."Bill-to Name".Editable(), '');
-        Assert.IsTrue(SalesInvoicePage."Bill-to Address".Editable() and
+        Assert.IsTrue(SalesInvoicePage."Bill-to Name 2".Editable() and
+          SalesInvoicePage."Bill-to Name 2".Enabled() and
+          SalesInvoicePage."Bill-to Address".Editable() and
           SalesInvoicePage."Bill-to Address 2".Editable() and
           SalesInvoicePage."Bill-to City".Editable() and
           SalesInvoicePage."Bill-to County".Editable() and
@@ -3500,7 +3506,9 @@ codeunit 134341 "UT Page Actions & Controls"
 
         // [THEN] Bill-to address fields are editable, and "Bill-to Name" field is not
         Assert.IsFalse(BlanketSalesOrderPage."Bill-to Name".Editable(), '');
-        Assert.IsTrue(BlanketSalesOrderPage."Bill-to Address".Editable() and
+        Assert.IsTrue(BlanketSalesOrderPage."Bill-to Name 2".Editable() and
+          BlanketSalesOrderPage."Bill-to Name 2".Enabled() and
+          BlanketSalesOrderPage."Bill-to Address".Editable() and
           BlanketSalesOrderPage."Bill-to Address 2".Editable() and
           BlanketSalesOrderPage."Bill-to City".Editable() and
           BlanketSalesOrderPage."Bill-to Post Code".Editable() and
@@ -3530,7 +3538,8 @@ codeunit 134341 "UT Page Actions & Controls"
 
         // [THEN] Pay-to address fields are editable, and "Pay-to Name" field is not
         Assert.IsFalse(PurchaseQuotePage."Pay-to Name".Editable(), '');
-        Assert.IsTrue(PurchaseQuotePage."Pay-to Address".Editable() and
+        Assert.IsTrue(PurchaseQuotePage."Pay-to Name 2".Editable() and
+          PurchaseQuotePage."Pay-to Address".Editable() and
           PurchaseQuotePage."Pay-to Address 2".Editable() and
           PurchaseQuotePage."Pay-to City".Editable() and
           PurchaseQuotePage."Pay-to County".Editable() and
@@ -3561,7 +3570,8 @@ codeunit 134341 "UT Page Actions & Controls"
 
         // [THEN] Pay-to address fields are editable, and "Pay-to Name" field is not
         Assert.IsFalse(PurchaseOrderPage."Pay-to Name".Editable(), '');
-        Assert.IsTrue(PurchaseOrderPage."Pay-to Address".Editable() and
+        Assert.IsTrue(PurchaseOrderPage."Pay-to Name 2".Editable() and
+          PurchaseOrderPage."Pay-to Address".Editable() and
           PurchaseOrderPage."Pay-to Address 2".Editable() and
           PurchaseOrderPage."Pay-to City".Editable() and
           PurchaseOrderPage."Pay-to County".Editable() and
@@ -3592,7 +3602,8 @@ codeunit 134341 "UT Page Actions & Controls"
 
         // [THEN] Pay-to address fields are editable, and "Pay-to Name" field is not
         Assert.IsFalse(PurchaseInvoicePage."Pay-to Name".Editable(), '');
-        Assert.IsTrue(PurchaseInvoicePage."Pay-to Address".Editable() and
+        Assert.IsTrue(PurchaseInvoicePage."Pay-to Name 2".Editable() and
+          PurchaseInvoicePage."Pay-to Address".Editable() and
           PurchaseInvoicePage."Pay-to Address 2".Editable() and
           PurchaseInvoicePage."Pay-to City".Editable() and
           PurchaseInvoicePage."Pay-to County".Editable() and

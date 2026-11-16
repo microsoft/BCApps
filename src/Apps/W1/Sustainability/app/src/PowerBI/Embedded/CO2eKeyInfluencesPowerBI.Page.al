@@ -7,8 +7,8 @@ page 6304 "CO2e Key Influences Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'CO2e Key Influences';
-    AboutTitle = 'About CO2e Key Influences';
+    Caption = 'CO2e Key Influences (Power BI)';
+    AboutTitle = 'About CO2e Key Influences (Power BI)';
     AboutText = 'The CO2e Key Influencers report identifies the key factors driving CO2e emission increases, highlighting the most impactful variables and trends based on the sustainability account categories.';
 
     layout
@@ -48,13 +48,7 @@ page 6304 "CO2e Key Influences Power BI"
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
         SetupHelper.EnsureUserAcceptedPowerBITerms();
-#if not CLEAN27
-#pragma warning disable AL0801
-#endif
         ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sustainability Report ID"));
-#if not CLEAN27
-#pragma warning restore AL0801
-#endif
     end;
 }
 

@@ -6,6 +6,7 @@ namespace Microsoft.Bank.DirectDebit;
 
 #if not CLEAN28
 using Microsoft.Bank.Payment;
+using System.Environment.Configuration;
 #endif
 
 /// <summary>
@@ -72,6 +73,12 @@ codeunit 1232 "SEPA DD-Prepare Source"
             exit;
 
 #if not CLEAN28
+        if not IsLegacyPaymentCollection(FromDirectDebitCollectionEntry) then begin
+            ToDirectDebitCollectionEntry := FromDirectDebitCollectionEntry;
+            OnAfterCreateTempCollectionEntries(FromDirectDebitCollectionEntry, ToDirectDebitCollectionEntry);
+            exit;
+        end;
+
         ToDirectDebitCollectionEntry.Reset();
         DirectDebitCollection.Get(FromDirectDebitCollectionEntry.GetRangeMin("Direct Debit Collection No."));
         PaymentHeader.Get(DirectDebitCollection.Identifier);
@@ -105,6 +112,24 @@ codeunit 1232 "SEPA DD-Prepare Source"
 
         OnAfterCreateTempCollectionEntries(FromDirectDebitCollectionEntry, ToDirectDebitCollectionEntry);
     end;
+
+#if not CLEAN28
+    local procedure IsLegacyPaymentCollection(var DirectDebitCollectionEntry: Record "Direct Debit Collection Entry"): Boolean
+    var
+        DirectDebitCollection: Record "Direct Debit Collection";
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+    begin
+        if FeatureManagementFacade.IsEnabled('Payment') then
+            exit(false);
+        if DirectDebitCollectionEntry.GetFilter("Direct Debit Collection No.") = '' then
+            exit(false);
+
+        DirectDebitCollection.Get(DirectDebitCollectionEntry.GetRangeMin("Direct Debit Collection No."));
+#pragma warning disable AL0432
+        exit(DirectDebitCollection."Source Table ID" = 10865); // Legacy Payment Header
+#pragma warning restore AL0432
+    end;
+#endif
 
     /// <summary>
     /// Integration event raised after creating temporary collection entries.

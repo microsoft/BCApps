@@ -73,6 +73,17 @@ codeunit 131920 "Library - Job"
         JobTask.Modify(true)
     end;
 
+    procedure CreateJobAssignedResource(JobNo: Code[20]; JobTaskNo: Code[20]; ResourceNo: Code[20]; var JobAssignedResource: Record "Job Assigned Resource")
+    begin
+        // Create an assigned resource for a project (blank JobTaskNo) or a project task
+
+        JobAssignedResource.Init();
+        JobAssignedResource.Validate("Job No.", JobNo);
+        JobAssignedResource.Validate("Job Task No.", JobTaskNo);
+        JobAssignedResource.Validate("Resource No.", ResourceNo);
+        JobAssignedResource.Insert(true);
+    end;
+
     procedure CreateJobPlanningLine(LineType: Enum "Job Planning Line Line Type"; Type: Enum "Job Planning Line Type"; JobTask: Record "Job Task"; var JobPlanningLine: Record "Job Planning Line")
     begin
         // Create a job planning line for job task <JobTask> of type <LineType> for consumable type <Type>
@@ -235,15 +246,6 @@ codeunit 131920 "Library - Job"
         PurchaseLine.Modify(true)
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Library Service', '27.0')]
-    procedure CreateServiceLineForPlan(JobPlanningLine: Record "Job Planning Line"; UsageLineType: Enum "Job Line Type"; Fraction: Decimal; var ServiceLine: Record "Service Line")
-    var
-        LibraryService: Codeunit "Library - Service";
-    begin
-        LibraryService.CreateServiceLineForPlan(JobPlanningLine, UsageLineType, Fraction, ServiceLine);
-    end;
-#endif
 
     procedure CreateJobGLAccountPrice(var JobGLAccountPrice: Record "Job G/L Account Price"; JobNo: Code[20]; JobTaskNo: Code[20]; GLAccountNo: Code[20]; CurrencyCode: Code[10])
     begin
@@ -1045,15 +1047,6 @@ codeunit 131920 "Library - Job"
         end
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Library Service', '27.0')]
-    procedure Job2ServiceConsumableType(Type: Enum "Job Planning Line Type"): Enum "Service Line Type"
-    var
-        LibraryService: Codeunit "Library - Service";
-    begin
-        exit(LibraryService.Job2ServiceConsumableType(Type));
-    end;
-#endif
 
     procedure GetUnitAmountRoundingPrecision(CurrencyCode: Code[10]): Decimal
     var
@@ -1207,13 +1200,6 @@ codeunit 131920 "Library - Job"
         exit(Right)
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Library Service', '27.0')]
-    procedure ServiceConsumption(): Integer
-    begin
-        exit(ConsumptionSource::Service)
-    end;
-#endif
 
     procedure JobConsumption(): Integer
     begin

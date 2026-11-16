@@ -89,7 +89,7 @@ page 6221 "Sustainability Setup"
                 }
                 field("Item Charge Emissions"; Rec."Item Charge Emissions")
                 {
-                    ToolTip = 'Specifies the enablement of default Sustainability Account emissions on the Item Charge (currently not operating).';
+                    ToolTip = 'Specifies the enablement of default Sustainability Account emissions on the Item Charge.';
                 }
                 field("Resource Emissions"; Rec."Resource Emissions")
                 {
@@ -105,7 +105,7 @@ page 6221 "Sustainability Setup"
                 }
                 field("Enable Value Chain Tracking"; Rec."Enable Value Chain Tracking")
                 {
-                    ToolTip = 'Specifies the enablement of sustainability value entries postings through value chain operations and the visibility of these fields in operational documents and journals.';
+                    ToolTip = 'Specifies whether to generate sustainability value entries from procurement operations for Scope 3 upstream tracking. Enabling this automatically turns on: Use Emissions in Purchase Documents, Item Emissions, Resource Emissions, Fixed Asset Emissions, Item Charge and Work/Machine Center Emissions. Emissions could be enabled separately, but Sustainability Value Entries will be fulfilled only when Value Chain Tracking is enabled.';
                 }
                 field("Use All Gases As CO2e"; Rec."Use All Gases As CO2e")
                 {

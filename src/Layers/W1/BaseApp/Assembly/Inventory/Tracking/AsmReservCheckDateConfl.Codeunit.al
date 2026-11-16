@@ -23,9 +23,6 @@ codeunit 937 "Asm. ReservCheckDateConfl"
 
         IsHandled := false;
         OnAssemblyHeaderCheckOnBeforeIssueError(ReservationEntry, AssemblyHeader, ForceRequest, IsHandled);
-#if not CLEAN27
-        ReservationCheckDateConfl.RunOnAssemblyHeaderCheckOnBeforeIssueError(ReservationEntry, AssemblyHeader, ForceRequest, IsHandled);
-#endif
         if not IsHandled then
             if ReservationCheckDateConfl.DateConflict(AssemblyHeader."Due Date", ForceRequest, ReservationEntry) then
                 if ForceRequest then
@@ -33,9 +30,6 @@ codeunit 937 "Asm. ReservCheckDateConfl"
 
         IsHandled := false;
         OnAssemblyHeaderCheckOnBeforeUpdateDate(ReservationEntry, AssemblyHeader, IsHandled);
-#if not CLEAN27
-        ReservationCheckDateConfl.RunOnAssemblyHeaderCheckOnBeforeUpdateDate(ReservationEntry, AssemblyHeader, IsHandled);
-#endif
         if not IsHandled then
             ReservationCheckDateConfl.UpdateDate(ReservationEntry, AssemblyHeader."Due Date");
 
@@ -60,9 +54,6 @@ codeunit 937 "Asm. ReservCheckDateConfl"
 
         IsHandled := false;
         OnAssemblyLineCheckOnBeforeUpdateDate(ReservationEntry, AssemblyLine, IsHandled);
-#if not CLEAN27
-        ReservationCheckDateConfl.RunOnAssemblyLineCheckOnBeforeUpdateDate(ReservationEntry, AssemblyLine, IsHandled);
-#endif
         if not IsHandled then
             ReservationCheckDateConfl.UpdateDate(ReservationEntry, AssemblyLine."Due Date");
 

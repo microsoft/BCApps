@@ -102,4 +102,12 @@ codeunit 6323 "Power BI System Table Report" implements "Power BI Uploadable Rep
         Parameters.Add('Company Name', CompanyName());
         Parameters.Add('Environment', EnvironmentInformation.GetEnvironmentName());
     end;
+
+    procedure GetTargetWorkspaceId(): Guid
+    var
+        NullGuid: Guid;
+    begin
+        // System (out-of-the-box blob) reports are always deployed to My Workspace.
+        exit(NullGuid);
+    end;
 }

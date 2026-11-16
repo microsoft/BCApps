@@ -636,6 +636,17 @@ page 5177 "Job Archive Card"
                 separator(Action64)
                 {
                 }
+                action("Assigned Resources")
+                {
+                    ApplicationArea = Jobs;
+                    Caption = 'Assigned Resources';
+                    Image = Users;
+                    RunObject = Page "Job Assigned Res. Archive";
+                    RunPageLink = "Job No." = field("No."),
+                                  "Job Task No." = const(''),
+                                  "Version No." = field("Version No.");
+                    ToolTip = 'View the resources that were assigned to the project in this archived version.';
+                }
                 action("Co&mments")
                 {
                     ApplicationArea = Comments;
@@ -700,6 +711,9 @@ page 5177 "Job Archive Card"
                 {
                 }
                 actionref(JobPlanningLines_Promoted; JobPlanningLines)
+                {
+                }
+                actionref("Assigned Resources_Promoted"; "Assigned Resources")
                 {
                 }
             }

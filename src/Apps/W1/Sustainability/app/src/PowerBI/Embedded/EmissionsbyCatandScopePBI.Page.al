@@ -7,8 +7,8 @@ page 6305 "Emissions by Cat and Scope PBI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Emissions by Category and Scope';
-    AboutTitle = 'About Emissions by Category and Scope';
+    Caption = 'Emissions by Category and Scope (Power BI)';
+    AboutTitle = 'About Emissions by Category and Scope (Power BI)';
     AboutText = 'The Emissions by Scope report breakdowns each emission type and showcases this based on the Account Category and the Scope so you can see how each account and scope is tracking.';
 
     layout
@@ -48,13 +48,7 @@ page 6305 "Emissions by Cat and Scope PBI"
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
         SetupHelper.EnsureUserAcceptedPowerBITerms();
-#if not CLEAN27
-#pragma warning disable AL0801
-#endif
         ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sustainability Report ID"));
-#if not CLEAN27
-#pragma warning restore AL0801
-#endif
     end;
 }
 

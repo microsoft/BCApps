@@ -252,8 +252,10 @@ codeunit 5818 "Undo Service Shipment Line"
         ServiceShipmentLine3.SetRange("Document No.", ServiceShipmentLine2."Document No.");
         ServiceShipmentLine3."Document No." := ServiceShipmentLine2."Document No.";
         ServiceShipmentLine3."Line No." := ServiceShipmentLine2."Line No.";
+#pragma warning disable AA0181, AA0233 // Positional Find() paired with Next(); suppression tracked for follow-up
         ServiceShipmentLine3.Find('=');
         if ServiceShipmentLine3.Next() <> 0 then begin
+#pragma warning restore AA0181, AA0233
             LineSpacing := (ServiceShipmentLine3."Line No." - ServiceShipmentLine2."Line No.") div 2;
             if LineSpacing = 0 then
                 Error(Text002);

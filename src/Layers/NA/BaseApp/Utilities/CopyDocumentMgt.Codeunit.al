@@ -47,6 +47,11 @@ using System.Utilities;
 codeunit 6620 "Copy Document Mgt."
 {
 
+    Permissions =
+        tabledata "Assembly Header" = rim,
+        tabledata "Assembly Line" = rim,
+        tabledata "Assemble-to-Order Link" = rim;
+
     trigger OnRun()
     begin
     end;
@@ -8517,6 +8522,7 @@ codeunit 6620 "Copy Document Mgt."
     local procedure OnBeforeCopySalesShptLinesToBuffer(var FromSalesLine: Record "Sales Line"; var FromSalesShptLine: Record "Sales Shipment Line"; var ToSalesHeader: Record "Sales Header")
     begin
     end;
+
 
     /// <summary>
     /// Event triggered before handling zero-amount posted invoices during the sales document copy process.
