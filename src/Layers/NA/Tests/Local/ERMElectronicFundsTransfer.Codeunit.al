@@ -3098,6 +3098,7 @@
         BankAccount: Record "Bank Account";
         GenJournalLine: Record "Gen. Journal Line";
         EFTExport: Record "EFT Export";
+        ObjectOptions: Record "Object Options";
         ERMElectronicFundsTransfer: Codeunit "ERM Electronic Funds Transfer";
         TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
         BulkVendorRemitReporting: Codeunit "Bulk Vendor Remit Reporting";
@@ -3105,6 +3106,11 @@
     begin
         // [SCENARIO 654023] Exporting payment journal lines sorted by "Document No." assigns one remittance advice no. per line
         Initialize();
+
+        // [GIVEN] Object options for the report are cleared.
+        ObjectOptions.SetRange("Object Type", ObjectOptions."Object Type"::Report);
+        ObjectOptions.SetRange("Object ID", Report::"ExportElecPayments - Word");
+        ObjectOptions.DeleteAll();
 
         // [GIVEN] The test client type is set to Web and subscriptions are bound.
         TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Web);

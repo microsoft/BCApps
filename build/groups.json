@@ -301,6 +301,20 @@
     ]
   },
   {
+    "name": "Tests-Concurrent Posting",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
     "name": "Tests-ERM",
     "groups": [
       {
@@ -879,6 +893,19 @@
       },
       {
         "name": "TestFramework"
+      }
+    ]
+  },
+  {
+    "name": "Test Runner Tests",
+    "groups": [
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
       }
     ]
   },
