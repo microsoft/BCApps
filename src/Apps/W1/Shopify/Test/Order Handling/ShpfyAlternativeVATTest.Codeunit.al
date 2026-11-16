@@ -19,7 +19,7 @@ using Microsoft.Sales.History;
 using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
 
-codeunit 139614 "Shpfy Alternative VAT Test"
+codeunit 139416 "Shpfy Alternative VAT Test"
 {
     Access = Internal;
     Subtype = Test;
