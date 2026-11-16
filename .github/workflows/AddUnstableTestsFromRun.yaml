@@ -37,9 +37,11 @@ jobs:
       - name: Build branch filter
         id: filter
         shell: pwsh
+        env:
+          BRANCH_FILTER: ${{ inputs.branch }}
         run: |
           # Convert the comma-separated branch filter into the JSON array that GetGitBranches expects.
-          $patterns = '${{ inputs.branch }}'.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+          $patterns = $env:BRANCH_FILTER.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
           $json = ConvertTo-Json @($patterns) -Compress
           Write-Host "Branch filter: $json"
           Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "includeJson=$json"
@@ -56,10 +58,12 @@ jobs:
       - name: Ensure JSON array
         id: ensureArray
         shell: pwsh
+        env:
+          BRANCHES_JSON: ${{ steps.getOfficialBranches.outputs.branchesJson }}
         run: |
           # PowerShell's ConvertTo-Json emits a bare string for single-element arrays.
           # Wrap it in an array if needed so the matrix strategy always receives a JSON array.
-          $raw = '${{ steps.getOfficialBranches.outputs.branchesJson }}'
+          $raw = $env:BRANCHES_JSON
           $parsed = $raw | ConvertFrom-Json
           if ($parsed -is [string]) { $parsed = @($parsed) }
           $json = ConvertTo-Json @($parsed) -Compress
