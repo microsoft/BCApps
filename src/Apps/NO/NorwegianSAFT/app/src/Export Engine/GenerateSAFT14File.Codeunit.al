@@ -846,7 +846,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
             TaxAmountNode := IsDebitVATAmount ? 'DebitTaxAmount' : 'CreditTaxAmount';
             SAFTXMLHelper.AddNewXMLNode(TaxAmountNode, '');
             SAFTXMLHelper.AppendXMLNode('Amount', FormatAmount(Abs(VATEntry.Amount)));
-            if ((CurrencyCode <> '') and (SourceCurrencyVATAmount <> 0)) then begin
+            if ((Not (CurrencyCode in ['', GeneralLedgerSetup."LCY Code"])) and (SourceCurrencyVATAmount <> 0)) then begin
                 SAFTXMLHelper.AppendXMLNode('CurrencyCode', CurrencyCode);
                 SAFTXMLHelper.AppendXMLNode('CurrencyAmount', FormatAmountSAFlongmonetary(Abs(SourceCurrencyVATAmount)));
             end;
@@ -860,9 +860,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
     var
         TaxAmountNode: Text;
     begin
-        if CurrencyCode in ['', GeneralLedgerSetup."LCY Code"] then
-            exit;
-        If abs(VATEntry.Base) = 0 then
+        if ((CurrencyCode in ['', GeneralLedgerSetup."LCY Code"]) and (VATEntry.Amount = 0)) then
             exit;
 
         TaxAmountNode := IsDebitVATAmount ? 'DebitNOKTaxAmount' : 'CreditNOKTaxAmount';
