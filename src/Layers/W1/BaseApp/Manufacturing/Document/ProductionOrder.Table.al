@@ -783,10 +783,7 @@ table 5405 "Production Order"
         InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
         NoSeries: Codeunit "No. Series";
         IsHandled: Boolean;
-        PreserveLocationCodeOnInsert: Boolean;
     begin
-        PreserveLocationCodeOnInsert := PreserveLocationCodeForNextInsert;
-        PreserveLocationCodeForNextInsert := false;
         IsHandled := false;
         OnBeforeOnInsert(Rec, xRec, InvtAdjmtEntryOrder, IsHandled);
         if IsHandled then
@@ -815,12 +812,6 @@ table 5405 "Production Order"
             end;
 
         InitRecord();
-
-        if not PreserveLocationCodeOnInsert and not IsTemporary() and
-           (Status in [Status::Simulated, Status::Planned, Status::"Firm Planned", Status::Released]) and
-           ("Location Code" = '') and (MfgSetup."Default Location Code" <> '')
-        then
-            Validate("Location Code", MfgSetup."Default Location Code");
 
         if MfgSetup."Normal Starting Time" <> 0T then
             Rec."Starting Time" := MfgSetup."Normal Starting Time";
@@ -872,7 +863,6 @@ table 5405 "Production Order"
         Text008: Label 'Nothing to handle. The production components are completely picked or not eligible for picking.';
 #pragma warning restore AA0074
         UpdateEndDate: Boolean;
-        PreserveLocationCodeForNextInsert: Boolean;
 #pragma warning disable AA0074
         Text010: Label 'You may have changed a dimension.\\Do you want to update the lines?';
         Text011: Label 'You cannot change Finished Production Order dimensions.';
@@ -882,11 +872,14 @@ table 5405 "Production Order"
     protected var
         HideValidationDialog: Boolean;
 
-    internal procedure InsertWithLocationCodePreserved()
+    procedure SetDefaultLocation()
     begin
-        PreserveLocationCodeForNextInsert := true;
-        Insert(true);
-        PreserveLocationCodeForNextInsert := false;
+        if "Location Code" <> '' then
+            exit;
+
+        if MfgSetup.Get() then
+            if MfgSetup."Default Location Code" <> '' then
+                Validate("Location Code", MfgSetup."Default Location Code");
     end;
 
     procedure InitRecord()

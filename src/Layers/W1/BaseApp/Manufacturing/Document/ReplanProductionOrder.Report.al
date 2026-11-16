@@ -155,7 +155,7 @@ report 99001026 "Replan Production Order"
                             ProdOrder.Status := MainProdOrder.Status;
                             ProdOrder."Replan Ref. No." := MainProdOrder."Replan Ref. No.";
                             ProdOrder."Replan Ref. Status" := MainProdOrder."Replan Ref. Status";
-                            ProdOrder.InsertWithLocationCodePreserved();
+                            ProdOrder.Insert(true);
 
                             ProdOrder."Starting Date" := WorkDate();
                             ProdOrder."Creation Date" := WorkDate();

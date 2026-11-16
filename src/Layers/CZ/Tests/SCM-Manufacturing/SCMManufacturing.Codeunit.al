@@ -5151,7 +5151,6 @@ codeunit 137404 "SCM Manufacturing"
         Location: Record Location;
         Bin: Record Bin;
         ProductionOrder: Record "Production Order";
-        ManufacturingSetup: Record "Manufacturing Setup";
         Fixture: Codeunit "SCM Production Orders";
         Iteration: Integer;
     begin
@@ -5167,17 +5166,8 @@ codeunit 137404 "SCM Manufacturing"
                 Location.Modify(true);
             end;
             Fixture.ConfigureDefaultLocation(Location.Code, '');
-            LibraryUtility.UpdateSetupNoSeriesCode(Database::"Manufacturing Setup", ManufacturingSetup.FieldNo("Released Order Nos."));
-            Clear(ProductionOrder);
-            ProductionOrder.Validate(Status, ProductionOrder.Status::Released);
-            ProductionOrder.Insert(true);
-            ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
-            ProductionOrder.TestField("Location Code", Location.Code);
-            if Iteration = 2 then
-                ProductionOrder.TestField("Bin Code", Bin.Code);
-            ProductionOrder.Validate("Source No.", Item."No.");
-            ProductionOrder.Validate(Quantity, 2);
-            ProductionOrder.Modify(true);
+            Fixture.CreateDefaultLocationManualOrder(
+                ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 2);
             ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
             ProductionOrder.TestField("Location Code", Location.Code);
             ProductionOrder.TestField(Quantity, 2);
@@ -5204,6 +5194,7 @@ codeunit 137404 "SCM Manufacturing"
         Fixture.ConfigureDefaultLocation(Location.Code, '');
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Manufacturing Setup", ManufacturingSetup.FieldNo("Released Order Nos."));
         ReleasedProductionOrder.OpenNew();
+        ReleasedProductionOrder."Location Code".AssertEquals(Location.Code);
         ReleasedProductionOrder."Source No.".SetValue(Item."No.");
         ReleasedProductionOrder.Quantity.SetValue(2);
         OrderNo := ReleasedProductionOrder."No.".Value();
@@ -5211,6 +5202,52 @@ codeunit 137404 "SCM Manufacturing"
         ProductionOrder.Get(ProductionOrder.Status::Released, OrderNo);
         ProductionOrder.TestField("Location Code", Location.Code);
         ProductionOrder.TestField(Quantity, 2);
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure DefaultLocationCardOverride()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        DefaultLocation: Record Location;
+        OtherLocation: Record Location;
+        ProductionOrder: Record "Production Order";
+        ManufacturingSetup: Record "Manufacturing Setup";
+        Fixture: Codeunit "SCM Production Orders";
+        ReleasedProductionOrder: TestPage "Released Production Order";
+        LocationCode: Code[10];
+        OrderNo: Code[20];
+        Iteration: Integer;
+    begin
+        Initialize();
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DefaultLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(OtherLocation);
+        Fixture.ConfigureDefaultLocation(DefaultLocation.Code, '');
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Manufacturing Setup", ManufacturingSetup.FieldNo("Released Order Nos."));
+        for Iteration := 1 to 2 do begin
+            LocationCode := '';
+            if Iteration = 2 then
+                LocationCode := OtherLocation.Code;
+            ReleasedProductionOrder.OpenNew();
+            ReleasedProductionOrder."Location Code".AssertEquals(DefaultLocation.Code);
+            ReleasedProductionOrder."Location Code".SetValue(LocationCode);
+            ReleasedProductionOrder."Source No.".SetValue(Item."No.");
+            ReleasedProductionOrder."Variant Code".SetValue(ItemVariant.Code);
+            ReleasedProductionOrder.Quantity.SetValue(2);
+            ReleasedProductionOrder."Location Code".AssertEquals(LocationCode);
+            OrderNo := ReleasedProductionOrder."No.".Value();
+            ReleasedProductionOrder.Close();
+            ProductionOrder.Get(ProductionOrder.Status::Released, OrderNo);
+            ProductionOrder.TestField("Location Code", LocationCode);
+            ProductionOrder.TestField("Variant Code", ItemVariant.Code);
+            ReleasedProductionOrder.OpenEdit();
+            ReleasedProductionOrder.GoToRecord(ProductionOrder);
+            ReleasedProductionOrder."Location Code".AssertEquals(LocationCode);
+            ReleasedProductionOrder.Close();
+        end;
         LibrarySetupStorage.Restore();
     end;
 
@@ -5227,7 +5264,7 @@ codeunit 137404 "SCM Manufacturing"
         Fixture.ConfigureDefaultLocation('', '');
         Fixture.CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Manual);
         for StatusIndex := 0 to 3 do begin
-            LibraryManufacturing.CreateProductionOrder(
+            Fixture.CreateDefaultLocationManualOrder(
                 ProductionOrder, Enum::"Production Order Status".FromInteger(StatusIndex), ProductionOrder."Source Type"::Item, Item."No.", 2);
             ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
             ProductionOrder.TestField("Location Code", '');
@@ -5259,6 +5296,7 @@ codeunit 137404 "SCM Manufacturing"
             ProductionOrder.Validate("Location Code", ExplicitLocation.Code);
             Observer.StartDefaultLocationCapture(DefaultLocation.Code, ExplicitLocation.Code);
             BindSubscription(Observer);
+            ProductionOrder.SetDefaultLocation();
             ProductionOrder.Insert(true);
             UnbindSubscription(Observer);
             Observer.AssertDefaultLocationCapture();
@@ -5283,7 +5321,7 @@ codeunit 137404 "SCM Manufacturing"
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Fixture.ConfigureDefaultLocation(Location.Code, '');
         for StatusIndex := 0 to 2 do begin
-            LibraryManufacturing.CreateProductionOrder(
+            Fixture.CreateDefaultLocationManualOrder(
                 ProductionOrder, Enum::"Production Order Status".FromInteger(StatusIndex), ProductionOrder."Source Type"::Item, Item."No.", 2);
             ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
             ProductionOrder.TestField("Location Code", Location.Code);
@@ -5309,10 +5347,9 @@ codeunit 137404 "SCM Manufacturing"
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Fixture.ConfigureDefaultLocation(Location.Code, '');
         for StatusIndex := 0 to 3 do begin
-            PrepareDefaultLocationHeader(ProductionOrder, Enum::"Production Order Status".FromInteger(StatusIndex));
-            ProductionOrder.Validate("Location Code", Location.Code);
-            ProductionOrder.Insert(true);
-            CompleteDefaultLocationHeader(ProductionOrder, Item."No.", 2);
+            Fixture.CreateDefaultLocationManualOrder(
+                ProductionOrder, Enum::"Production Order Status".FromInteger(StatusIndex), ProductionOrder."Source Type"::Item, Item."No.", 2);
+            ProductionOrder.TestField("Location Code", Location.Code);
             ProductionOrder.Validate("Location Code", '');
             ProductionOrder.Modify(true);
             ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
@@ -5435,7 +5472,7 @@ codeunit 137404 "SCM Manufacturing"
             Fixture.CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Manual);
             Fixture.CreateDefaultLocationOrder(SourceOrder, SourceOrder.Status::Released, Item."No.", SourceCode, 2);
             Fixture.ConfigureDefaultLocation(DefaultLocation.Code, '');
-            LibraryManufacturing.CreateProductionOrder(
+            Fixture.CreateDefaultLocationManualOrder(
                 TargetOrder, TargetOrder.Status::Released, TargetOrder."Source Type"::Item, Item."No.", 2);
             TargetOrder.TestField("Location Code", DefaultLocation.Code);
             RunCopyProductionDocument(SourceOrder.Status, SourceOrder."No.", TargetOrder);
@@ -5589,7 +5626,7 @@ codeunit 137404 "SCM Manufacturing"
             end else
                 StockkeepingUnit.Validate("Components at Location", '');
             StockkeepingUnit.Modify(true);
-            LibraryManufacturing.CreateProductionOrder(
+            Fixture.CreateDefaultLocationManualOrder(
                 ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 2);
             ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
             ProductionOrder.TestField("Location Code", OutputLocation.Code);
@@ -5626,6 +5663,10 @@ codeunit 137404 "SCM Manufacturing"
         ProductionOrder.Insert();
         ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
         ProductionOrder.TestField("Location Code", '');
+        PrepareDefaultLocationHeader(ProductionOrder, ProductionOrder.Status::Released);
+        ProductionOrder.Insert(true);
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+        ProductionOrder.TestField("Location Code", '');
         LibrarySetupStorage.Restore();
     end;
 
@@ -5649,7 +5690,7 @@ codeunit 137404 "SCM Manufacturing"
         Fixture.CreateDefaultLocationSalesOrder(SalesLine);
         Fixture.FindDefaultLocationOrder(SourceOrder, Item."No.");
         SourceOrder.TestField("Location Code", '');
-        LibraryManufacturing.CreateProductionOrder(
+        Fixture.CreateDefaultLocationManualOrder(
             ManualOrder, ManualOrder.Status::Released, ManualOrder."Source Type"::Item, Item."No.", 2);
         ManualOrder.Get(ManualOrder.Status, ManualOrder."No.");
         ManualOrder.TestField("Location Code", Location.Code);

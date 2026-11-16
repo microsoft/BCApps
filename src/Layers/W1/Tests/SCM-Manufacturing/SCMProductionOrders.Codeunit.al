@@ -5396,7 +5396,7 @@ codeunit 137069 "SCM Production Orders"
         Family.Modify(true);
         LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", Items[1]."No.", 3);
         LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", Items[2]."No.", 5);
-        LibraryManufacturing.CreateProductionOrder(
+        CreateDefaultLocationManualOrder(
             ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Family, Family."No.", 2);
         ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
         ProductionOrder.TestField("Location Code", Location.Code);
@@ -5497,6 +5497,68 @@ codeunit 137069 "SCM Production Orders"
         Item.Validate("Maximum Order Quantity", 0);
         Item.Validate("Order Multiple", 0);
         Item.Modify(true);
+    end;
+
+    procedure CreateDefaultLocationManualOrder(var ProductionOrder: Record "Production Order"; OrderStatus: Enum "Production Order Status"; SourceType: Enum "Prod. Order Source Type"; SourceNo: Code[20]; Quantity: Decimal)
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        SimulatedProductionOrder: TestPage "Simulated Production Order";
+        PlannedProductionOrder: TestPage "Planned Production Order";
+        FirmPlannedProductionOrder: TestPage "Firm Planned Prod. Order";
+        ReleasedProductionOrder: TestPage "Released Production Order";
+        NoSeriesFieldNo: Integer;
+        OrderNo: Code[20];
+    begin
+        case OrderStatus of
+            OrderStatus::Simulated:
+                NoSeriesFieldNo := ManufacturingSetup.FieldNo("Simulated Order Nos.");
+            OrderStatus::Planned:
+                NoSeriesFieldNo := ManufacturingSetup.FieldNo("Planned Order Nos.");
+            OrderStatus::"Firm Planned":
+                NoSeriesFieldNo := ManufacturingSetup.FieldNo("Firm Planned Order Nos.");
+            OrderStatus::Released:
+                NoSeriesFieldNo := ManufacturingSetup.FieldNo("Released Order Nos.");
+        end;
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Manufacturing Setup", NoSeriesFieldNo);
+        case OrderStatus of
+            OrderStatus::Simulated:
+                begin
+                    SimulatedProductionOrder.OpenNew();
+                    SimulatedProductionOrder."Source Type".SetValue(SourceType);
+                    SimulatedProductionOrder."Source No.".SetValue(SourceNo);
+                    SimulatedProductionOrder.Quantity.SetValue(Quantity);
+                    OrderNo := SimulatedProductionOrder."No.".Value();
+                    SimulatedProductionOrder.Close();
+                end;
+            OrderStatus::Planned:
+                begin
+                    PlannedProductionOrder.OpenNew();
+                    PlannedProductionOrder."Source Type".SetValue(SourceType);
+                    PlannedProductionOrder."Source No.".SetValue(SourceNo);
+                    PlannedProductionOrder.Quantity.SetValue(Quantity);
+                    OrderNo := PlannedProductionOrder."No.".Value();
+                    PlannedProductionOrder.Close();
+                end;
+            OrderStatus::"Firm Planned":
+                begin
+                    FirmPlannedProductionOrder.OpenNew();
+                    FirmPlannedProductionOrder."Source Type".SetValue(SourceType);
+                    FirmPlannedProductionOrder."Source No.".SetValue(SourceNo);
+                    FirmPlannedProductionOrder.Quantity.SetValue(Quantity);
+                    OrderNo := FirmPlannedProductionOrder."No.".Value();
+                    FirmPlannedProductionOrder.Close();
+                end;
+            OrderStatus::Released:
+                begin
+                    ReleasedProductionOrder.OpenNew();
+                    ReleasedProductionOrder."Source Type".SetValue(SourceType);
+                    ReleasedProductionOrder."Source No.".SetValue(SourceNo);
+                    ReleasedProductionOrder.Quantity.SetValue(Quantity);
+                    OrderNo := ReleasedProductionOrder."No.".Value();
+                    ReleasedProductionOrder.Close();
+                end;
+        end;
+        ProductionOrder.Get(OrderStatus, OrderNo);
     end;
 
     procedure CreateDefaultLocationOrder(var ProductionOrder: Record "Production Order"; OrderStatus: Enum "Production Order Status"; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal)

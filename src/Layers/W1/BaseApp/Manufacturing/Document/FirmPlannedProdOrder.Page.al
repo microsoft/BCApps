@@ -505,6 +505,11 @@ page 99000829 "Firm Planned Prod. Order"
     begin
     end;
 
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Rec.SetDefaultLocation();
+    end;
+
     trigger OnOpenPage()
     begin
     end;
