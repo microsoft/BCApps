@@ -823,7 +823,8 @@ codeunit 10695 "Generate SAF-T 1.4 File"
         if VATEntry."Source Currency Code" <> '' then begin
             CurrencyCode := VATEntry."Source Currency Code";
             SourceCurrencyVATAmount := VATEntry."Source Currency VAT Amount";
-        end;
+        end else
+            CurrencyCode := '';
 
         VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
         SAFTXMLHelper.AddNewXMLNode('TaxInformation', '');
@@ -861,7 +862,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
     begin
         if CurrencyCode in ['', GeneralLedgerSetup."LCY Code"] then
             exit;
-        If abs((VATEntry.Amount) + abs(VATEntry.Base)) = 0 then
+        If abs(VATEntry.Base) = 0 then
             exit;
 
         TaxAmountNode := IsDebitVATAmount ? 'DebitNOKTaxAmount' : 'CreditNOKTaxAmount';
