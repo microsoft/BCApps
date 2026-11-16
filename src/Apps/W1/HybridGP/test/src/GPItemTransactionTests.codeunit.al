@@ -220,6 +220,8 @@ codeunit 139665 "GP Item Transaction Tests"
 
         // [GIVEN] Some sample data is created and combined.
         CreateStagingTableEntriesForPopulateGPItemTransactions();
+
+        // [WHEN] GPItemTransactions is populated.
         GPPopulateCombinedTables.PopulateGPItemTransactions();
 
         // [THEN] Only 2 records are created in the GPItemTransactions table, one with the combined received quantity.
