@@ -265,9 +265,14 @@ codeunit 1550 "Record Restriction Mgt."
         if FAJournalLine.IsTemporary then
             exit;
 
-        if FAJournalBatch.Get(FAJournalLine."Journal Template Name", FAJournalLine."Journal Batch Name") then
+
+        if FAJournalBatch.Get(FAJournalLine."Journal Template Name", FAJournalLine."Journal Batch Name") then begin
+            if FAJournalBatch.Recurring then
+                exit;
+
             if ApprovalsMgmt.IsFAJournalBatchApprovalsWorkflowEnabled(FAJournalBatch) then
                 RestrictRecordUsage(FAJournalBatch, RestrictBatchUsageDetailsTxt);
+        end;
     end;
 
     local procedure RestrictRequisitionWorksheet(var RequisitionLine: Record "Requisition Line")

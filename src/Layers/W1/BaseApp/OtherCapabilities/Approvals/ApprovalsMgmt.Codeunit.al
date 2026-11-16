@@ -2515,9 +2515,7 @@ codeunit 1535 "Approvals Mgmt."
         GetFAJournalBatch(FAJournalBatch, FAJournalLine);
         CheckFAJournalBatchApprovalsWorkflowEnabled(FAJournalBatch);
 
-        if HasOpenApprovalEntries(FAJournalBatch.RecordId()) or
-           HasAnyOpenJournalLineApprovalEntries(FAJournalBatch."Journal Template Name", FAJournalBatch.Name)
-        then
+        if HasOpenApprovalEntries(FAJournalBatch.RecordId()) then
             Error(PendingJournalBatchApprovalExistsErr);
 
         if HasApprovedApprovalEntries(FAJournalBatch.RecordId()) then
