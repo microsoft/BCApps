@@ -1475,11 +1475,14 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         TransferHeader: Record "Transfer Header";
     begin
         // [SCENARIO 650215] Selecting the source last inherits the shipment-and-receipt route's in-transit code.
+        // [GIVEN] A shipment-and-receipt transfer route with an in-transit location.
         Initialize();
         CreateShipmentReceiptRouteWithTransit(TransferRoute);
 
+        // [WHEN] The source location is selected last on the transfer order.
         CreateTransferHeaderFromRoute(TransferHeader, TransferRoute, false);
 
+        // [THEN] The header is set to direct transfer with shipment-and-receipt posting and the route's in-transit code.
         TransferHeader.TestField("Direct Transfer", true);
         TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
         TransferHeader.TestField("In-Transit Code", TransferRoute."In-Transit Code");
@@ -1493,11 +1496,14 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         TransferHeader: Record "Transfer Header";
     begin
         // [SCENARIO 650215] Selecting the destination last inherits the shipment-and-receipt route's in-transit code.
+        // [GIVEN] A shipment-and-receipt transfer route with an in-transit location.
         Initialize();
         CreateShipmentReceiptRouteWithTransit(TransferRoute);
 
+        // [WHEN] The destination location is selected last on the transfer order.
         CreateTransferHeaderFromRoute(TransferHeader, TransferRoute, true);
 
+        // [THEN] The header is set to direct transfer with shipment-and-receipt posting and the route's in-transit code.
         TransferHeader.TestField("Direct Transfer", true);
         TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
         TransferHeader.TestField("In-Transit Code", TransferRoute."In-Transit Code");
@@ -1512,11 +1518,14 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         TransferLine: Record "Transfer Line";
     begin
         // [SCENARIO 650215] Changing the source updates the header and existing line to the new route's in-transit code.
+        // [GIVEN] A transfer order with an existing line and a new shipment-and-receipt route.
         Initialize();
 
+        // [WHEN] The source location is changed to use the new route.
         ChangeTransferRouteWithExistingLine(
             TransferHeader, TransferLine, TransferRoute, true, Enum::"Direct Transfer Posting Type"::"Shipment and Receipt");
 
+        // [THEN] The header and existing line use the new route's shipment-and-receipt settings.
         TransferHeader.TestField("Direct Transfer", true);
         TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
         TransferHeader.TestField("In-Transit Code", TransferRoute."In-Transit Code");
@@ -1532,11 +1541,14 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         TransferLine: Record "Transfer Line";
     begin
         // [SCENARIO 650215] Changing the destination updates the header and existing line to the new route's in-transit code.
+        // [GIVEN] A transfer order with an existing line and a new shipment-and-receipt route.
         Initialize();
 
+        // [WHEN] The destination location is changed to use the new route.
         ChangeTransferRouteWithExistingLine(
             TransferHeader, TransferLine, TransferRoute, false, Enum::"Direct Transfer Posting Type"::"Shipment and Receipt");
 
+        // [THEN] The header and existing line use the new route's shipment-and-receipt settings.
         TransferHeader.TestField("Direct Transfer", true);
         TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
         TransferHeader.TestField("In-Transit Code", TransferRoute."In-Transit Code");
@@ -1552,11 +1564,14 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         TransferLine: Record "Transfer Line";
     begin
         // [SCENARIO 650215] A source change to Direct Transfer posting clears transit on the header and existing line.
+        // [GIVEN] A transfer order with an existing line and a new direct transfer route.
         Initialize();
 
+        // [WHEN] The source location is changed to use the direct transfer route.
         ChangeTransferRouteWithExistingLine(
             TransferHeader, TransferLine, TransferRoute, true, Enum::"Direct Transfer Posting Type"::"Direct Transfer");
 
+        // [THEN] The header and existing line use direct transfer posting with no in-transit code.
         TransferHeader.TestField("Direct Transfer", true);
         TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Direct Transfer");
         TransferHeader.TestField("In-Transit Code", '');
@@ -1572,11 +1587,14 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         TransferLine: Record "Transfer Line";
     begin
         // [SCENARIO 650215] A destination change to Direct Transfer posting clears transit on the header and existing line.
+        // [GIVEN] A transfer order with an existing line and a new direct transfer route.
         Initialize();
 
+        // [WHEN] The destination location is changed to use the direct transfer route.
         ChangeTransferRouteWithExistingLine(
             TransferHeader, TransferLine, TransferRoute, false, Enum::"Direct Transfer Posting Type"::"Direct Transfer");
 
+        // [THEN] The header and existing line use direct transfer posting with no in-transit code.
         TransferHeader.TestField("Direct Transfer", true);
         TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Direct Transfer");
         TransferHeader.TestField("In-Transit Code", '');
