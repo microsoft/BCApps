@@ -208,6 +208,11 @@ page 5408 "Prod. Order Routing Lines"
                 {
                     ApplicationArea = Manufacturing;
                     Visible = false;
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update(true);
+                    end;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
@@ -230,6 +235,11 @@ page 5408 "Prod. Order Routing Lines"
                     Visible = false;
                 }
                 field("Posted Output Quantity"; Rec."Posted Output Quantity")
+                {
+                    ApplicationArea = Manufacturing;
+                    Visible = false;
+                }
+                field("Quantity Ready to Start"; Rec."Quantity Ready to Start")
                 {
                     ApplicationArea = Manufacturing;
                     Visible = false;

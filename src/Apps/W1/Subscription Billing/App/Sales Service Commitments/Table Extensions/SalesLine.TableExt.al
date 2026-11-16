@@ -149,7 +149,7 @@ tableextension 8054 "Sales Line" extends "Sales Line"
         }
         modify("Deferral Code")
         {
-            trigger OnAfterValidate()
+            trigger OnBeforeValidate()
             begin
                 if Rec."Deferral Code" <> '' then
                     if Rec.IsLineAttachedToBillingLine() then
@@ -406,7 +406,7 @@ tableextension 8054 "Sales Line" extends "Sales Line"
         exit(Rec.IsContractRenewal());
     end;
 
-    internal procedure IsContractRenewal(): Boolean
+    procedure IsContractRenewal(): Boolean
     var
         SalesServiceCommitment: Record "Sales Subscription Line";
     begin

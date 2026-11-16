@@ -60,9 +60,10 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
             PAGE::"APIV1 - Purchase Invoices",
             InvoiceServiceNameTxt,
             InvoiceServiceLinesNameTxt);
-        ASSERTERROR LibraryGraphMgt.GetFromWebService(ResponseText, TargetURL);
+        ASSERTERROR LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 404);
 
-        // [THEN] the response text should be empty
+        // [THEN] the URL is rejected as not found because the lines can only be reached through a parent document, and the response text is empty
+        Assert.ExpectedError('Response code is 404 (NotFound)');
         Assert.AreEqual('', ResponseText, 'Response JSON should be blank');
     end;
 
@@ -714,6 +715,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
         InvoiceLineJSON: Text;
+        LineDescription: Text;
     begin
         // [SCENARIO] Posting a line with description only will get a type item
         // [GIVEN] A post request with description only
@@ -722,7 +724,8 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
 
         COMMIT();
 
-        InvoiceLineJSON := '{"description":"test"}';
+        LineDescription := Format(CreateGuid());
+        InvoiceLineJSON := LibraryGraphMgt.AddPropertytoJSON('', 'description', LineDescription);
 
         // [WHEN] we just POST a blank line
         TargetURL := LibraryGraphMgt
@@ -734,8 +737,10 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         LibraryGraphMgt.PostToWebService(TargetURL, InvoiceLineJSON, ResponseText);
 
         // [THEN] Line of type Item is created
-        FindFirstPurchaseLine(PurchaseHeader, PurchaseLine);
-        PurchaseLine.FINDLAST();
+        PurchaseLine.SETRANGE("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SETRANGE("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SETRANGE(Description, LineDescription);
+        Assert.IsTrue(PurchaseLine.FINDFIRST(), 'Could not find the created purchase invoice line');
         Assert.AreEqual('', PurchaseLine."No.", 'No should be blank');
         Assert.AreEqual(PurchaseLine.Type, PurchaseLine.Type::Item, 'Wrong type is set');
 

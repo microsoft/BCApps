@@ -818,6 +818,19 @@
       "dvdFolder": "Applications\\BaseApp\\Test",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
+    "Tests-Concurrent Posting": {
+      "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\Concurrent Posting",
+      "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\Concurrent Posting\\app.json",
+      "isGDLProject": true,
+      "unsupportedCountries": [
+        "NA"
+      ],
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "dvdFolder": "Applications\\BaseApp\\Test",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
     "Tests-ERM": {
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\ERM",
       "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\ERM\\app.json",
@@ -2217,6 +2230,38 @@
       "logLevel": "warning",
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "Depreciation Differences FI": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FI\\DepreciationDifferencesFI\\app",
+      "dvdFolder": "Applications\\DepreciationDifferencesFI\\Source",
+      "hasTranslations": true,
+      "installOnEnvironmentUpdate": true,
+      "supportedCountries": "FI",
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
+      "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json"
+    },
+    "Depreciation Differences FI Demo Data": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FI\\DepreciationDifferencesFI\\demo data",
+      "dvdFolder": "Applications\\DepreciationDifferencesFI\\Source",
+      "skipInstallOnPrem": true,
+      "hasTranslations": true,
+      "supportedCountries": "FI",
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
+    },
+    "Depreciation Differences FI Tests": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FI\\DepreciationDifferencesFI\\test",
+      "dvdFolder": "Applications\\DepreciationDifferencesFI\\Test",
+      "supportedCountries": "FI",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
+      "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
     "DK Core": {
@@ -5342,6 +5387,7 @@
       "hasTranslations": true,
       "supportedCountries": "ES",
       "runStaticCodeAnalysis": true,
+      "installOnEnvironmentUpdate": true,
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
@@ -5769,6 +5815,7 @@
       "supportedCountries": [
         "AO",
         "AT",
+        "IS",
         "CZ",
         "DK",
         "FR",
@@ -5793,6 +5840,7 @@
       "supportedCountries": [
         "AO",
         "AT",
+        "IS",
         "CZ",
         "DK",
         "FR",
@@ -5814,19 +5862,27 @@
       "owningteam": "\\AI Business Solutions\\Finance"
     },
     "SAF-T Modification DK": {
-      "projectPath": "$env:INETROOT\\App\\Apps\\DK\\SAFTModificationDK\\app",
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\SAFTModificationDK\\app",
       "dvdFolder": "Applications\\SAFTModificationDK\\Source",
       "hasTranslations": true,
-      "supportedCountries": "DK",
+      "supportedCountries": [
+        "DK",
+        "AT",
+        "IS"
+      ],
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
     "SAF-T Modification DK Tests": {
-      "projectPath": "$env:INETROOT\\App\\Apps\\DK\\SAFTModificationDK\\test",
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\SAFTModificationDK\\test",
       "dvdFolder": "Applications\\SAFTModificationDK\\Test",
-      "supportedCountries": "DK",
+      "supportedCountries": [
+        "DK",
+        "AT",
+        "IS"
+      ],
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
@@ -6826,6 +6882,16 @@
       "hasTranslations": true,
       "runStaticCodeAnalysis": true,
       "installOnEnvironmentUpdate": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "skipInstallOnPrem": true
+    },
+    "Payables Agent Unit Tests": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\PayablesAgent\\test",
+      "supportedCountries": "All",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",

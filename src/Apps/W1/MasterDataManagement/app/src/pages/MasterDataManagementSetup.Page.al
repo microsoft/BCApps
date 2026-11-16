@@ -47,6 +47,13 @@ page 7230 "Master Data Management Setup"
                     Visible = CrossEnvConfigured;
                     ToolTip = 'Specifies the company in the source environment that master data is read from. Use the Cross-Environment Setup action to change it.';
                 }
+                field("Source Cert. Expiration Date"; Rec."Source Cert. Expiration Date")
+                {
+                    ApplicationArea = Suite;
+                    Editable = false;
+                    Visible = CrossEnvCertificateConfigured;
+                    ToolTip = 'Specifies when the certificate that authenticates to the source environment expires. Use the Cross-Environment Setup action to upload a new certificate before this date.';
+                }
                 field("Is Enabled"; Rec."Is Enabled")
                 {
                     ApplicationArea = Suite;
@@ -328,6 +335,7 @@ page 7230 "Master Data Management Setup"
         ClearCrossEnvConfirmQst: Label 'This removes the cross-environment connection and its stored credentials, and returns to same-environment synchronization. Do you want to continue?';
         IsEditable: Boolean;
         CrossEnvConfigured: Boolean;
+        CrossEnvCertificateConfigured: Boolean;
         IsSaaS: Boolean;
         ReopeningPage: Boolean;
         SynchronizationImportedMsg: label 'The synchronization setup is imported. \\To view or edit the synchronization table setup, choose action Synchronization Tables.\\To view or edit the synchronization field setup, select a synchronization table and choose action Synchronization Fields.';
@@ -352,6 +360,7 @@ page 7230 "Master Data Management Setup"
     begin
         IsEditable := (not Rec."Is Enabled");
         CrossEnvConfigured := Rec.IsCrossEnvironment();
+        CrossEnvCertificateConfigured := CrossEnvConfigured and Rec.UsesSourceClientCertificate();
     end;
 
     local procedure GetJobQueueEntriesObjectIDToRunFilter(): Text
