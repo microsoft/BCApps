@@ -208,9 +208,7 @@ codeunit 99000808 PlanningRoutingManagement
         PlanningRtngLine.SetRange("Worksheet Batch Name", ReqLine."Journal Batch Name");
         PlanningRtngLine.SetRange("Worksheet Line No.", ReqLine."Line No.");
 
-        PlanningRtngLine.ModifyAll("Sequence No.(Backward)", 0);
-        PlanningRtngLine.ModifyAll("Fixed Scrap Qty. (Accum.)", 0);
-        PlanningRtngLine.ModifyAll("Scrap Factor % (Accumulated)", 0);
+        PlanningRtngLine.ModifyAll("Sequence No.(Backward)", 0, "Fixed Scrap Qty. (Accum.)", 0, "Scrap Factor % (Accumulated)", 0);
 
         MaxSeq := PlanningRtngLine.Count();
 

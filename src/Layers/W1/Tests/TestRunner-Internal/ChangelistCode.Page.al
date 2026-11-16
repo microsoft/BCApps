@@ -209,8 +209,7 @@ page 130026 "Changelist Code"
         ChangelistCode: Record "Changelist Code";
     begin
         ChangelistCode.SetFilter("Coverage %", '<>0');
-        ChangelistCode.ModifyAll(Coverage, ChangelistCode.Coverage::None);
-        ChangelistCode.ModifyAll("Coverage %", 0);
+        ChangelistCode.ModifyAll(Coverage, ChangelistCode.Coverage::None, "Coverage %", 0);
     end;
 
     local procedure CalcOverallCoverage(var NoOfCodeLines: Integer; var NoOfCodeLinesHit: Integer): Decimal

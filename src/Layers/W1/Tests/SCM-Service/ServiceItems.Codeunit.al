@@ -2508,6 +2508,7 @@ codeunit 136103 "Service Items"
 
         // [WHEN] A new Service Item is created for customer "C" without specifying a Ship-to Code
         ServiceItemCard.OpenNew();
+        ServiceItemCard.Description.Activate();
         ServiceItemCard."Customer No.".SetValue(Customer."No.");
 
         // [THEN] Ship-to Code is blank

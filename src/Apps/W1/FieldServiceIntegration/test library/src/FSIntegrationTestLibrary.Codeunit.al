@@ -4,12 +4,21 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.TestLibraries.DynamicsFieldService;
 
+using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.DynamicsFieldService;
+using Microsoft.Integration.SyncEngine;
 using Microsoft.Service.Archive;
 using Microsoft.Service.Document;
 
 codeunit 139205 "FS Integration Test Library"
 {
+    EventSubscriberInstance = Manual;
+
+    var
+        SynchronizationCandidates: List of [RecordId];
+        EmptySynchronizationRequests: Integer;
+        UnchangedServiceOrders: Integer;
+
     procedure RegisterConnection(var FSConnectionSetup: Record "FS Connection Setup")
     begin
         FSConnectionSetup.RegisterConnection();
@@ -124,5 +133,127 @@ codeunit 139205 "FS Integration Test Library"
         FSArchivedServiceOrdersJob: Codeunit "FS Archived Service Orders Job";
     begin
         FSArchivedServiceOrdersJob.UpdateWorkOrderService(SalesLineArchive, FSWorkOrderService);
+    end;
+
+    /// <summary>
+    /// Synchronizes a filtered record set to a specific Field Service integration table.
+    /// </summary>
+    /// <param name="RecordsToSynchRecordRef">The filtered source records to synchronize.</param>
+    /// <param name="TargetTable">The target integration table ID.</param>
+    /// <param name="IgnoreChanges">Specifies whether to synchronize records without detected changes.</param>
+    /// <param name="IgnoreSynchOnlyCoupledRecords">Specifies whether to ignore the mapping's coupled-record restriction.</param>
+    /// <returns>The synchronization job ID.</returns>
+    procedure SynchRecordsToIntegrationTable(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean): Guid
+    var
+        FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
+    begin
+        exit(FSIntTableSubscriber.SynchFilteredRecordsToIntegrationTable(RecordsToSynchRecordRef, TargetTable, IgnoreChanges, IgnoreSynchOnlyCoupledRecords));
+    end;
+
+    /// <summary>
+    /// Clears the synchronization candidates and synchronization counters captured by this test library.
+    /// </summary>
+    procedure ClearSynchronizationCandidates()
+    begin
+        Clear(SynchronizationCandidates);
+        EmptySynchronizationRequests := 0;
+        UnchangedServiceOrders := 0;
+    end;
+
+    /// <summary>
+    /// Checks whether a record was selected for synchronization.
+    /// </summary>
+    /// <param name="CandidateRecordId">The record ID to check.</param>
+    /// <returns>True when the record was selected for synchronization; otherwise, false.</returns>
+    procedure WasSelectedForSynchronization(CandidateRecordId: RecordId): Boolean
+    begin
+        exit(SynchronizationCandidates.Contains(CandidateRecordId));
+    end;
+
+    /// <summary>
+    /// Gets the number of synchronization candidates for a table.
+    /// </summary>
+    /// <param name="TableId">The table ID for which to count synchronization candidates.</param>
+    /// <returns>The number of captured synchronization candidates for the table.</returns>
+    procedure GetSynchronizationCandidateCount(TableId: Integer) CandidateCount: Integer
+    var
+        CandidateRecordId: RecordId;
+    begin
+        foreach CandidateRecordId in SynchronizationCandidates do
+            if CandidateRecordId.TableNo() = TableId then
+                CandidateCount += 1;
+    end;
+
+    /// <summary>
+    /// Gets the number of captured synchronization requests that contained no records.
+    /// </summary>
+    /// <returns>The number of empty synchronization requests.</returns>
+    procedure GetEmptySynchronizationRequestCount(): Integer
+    begin
+        exit(EmptySynchronizationRequests);
+    end;
+
+    /// <summary>
+    /// Gets the number of unchanged service orders observed during synchronization.
+    /// </summary>
+    /// <returns>The number of unchanged service orders.</returns>
+    procedure GetUnchangedServiceOrderCount(): Integer
+    begin
+        exit(UnchangedServiceOrders);
+    end;
+
+    local procedure CaptureSynchronizationCandidates(var RecordsToSynchRecordRef: RecordRef)
+    begin
+        // Observe the production-selected set without applying any mapping filters in the test.
+        if RecordsToSynchRecordRef.FindSet() then
+            repeat
+                SynchronizationCandidates.Add(RecordsToSynchRecordRef.RecordId());
+            until RecordsToSynchRecordRef.Next() = 0
+        else
+            EmptySynchronizationRequests += 1;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CRM Integration Table Synch.", 'OnBeforeSynchRecordsFromIntegrationTable', '', false, false)]
+    local procedure CaptureAuxiliaryImport(var RecordsToSynchRecordRef: RecordRef; var IsHandled: Boolean)
+    begin
+        if not (RecordsToSynchRecordRef.Number() in
+                [Database::"FS Work Order Incident", Database::"FS Work Order Product",
+                 Database::"FS Work Order Service", Database::"FS Bookable Resource Booking"]) then
+            exit;
+
+        CaptureSynchronizationCandidates(RecordsToSynchRecordRef);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CRM Integration Table Synch.", 'OnBeforeSynchRecordsToIntegrationTable', '', false, false)]
+    local procedure CaptureAuxiliaryExport(var RecordsToSynchRecordRef: RecordRef; var IsHandled: Boolean)
+    begin
+        if not (RecordsToSynchRecordRef.Number() in [Database::"Service Header", Database::"Service Item Line"]) then
+            exit;
+
+        CaptureSynchronizationCandidates(RecordsToSynchRecordRef);
+        IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Table Synch.", 'OnBeforeSynchronize', '', false, false)]
+    local procedure CaptureServiceLineExport(var SourceRecordRef: RecordRef; var IsHandled: Boolean)
+    begin
+        case SourceRecordRef.Number() of
+            Database::"Service Line":
+                begin
+                    SynchronizationCandidates.Add(SourceRecordRef.RecordId());
+                    IsHandled := true;
+                end;
+            Database::"Service Header":
+                // Scheduled header tests observe the auxiliary record-set call, not the initial pass.
+                IsHandled := true;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Rec. Synch. Invoke", 'OnBeforeIgnoreUnchangedRecordHandled', '', false, false)]
+    local procedure CaptureUnchangedServiceOrder(SourceRecordRef: RecordRef)
+    begin
+        if SourceRecordRef.Number() in [Database::"Service Header", Database::"FS Work Order"] then
+            UnchangedServiceOrders += 1;
     end;
 }

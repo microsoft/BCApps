@@ -29,14 +29,14 @@ tableextension 20520 "Subc. Transfer Header" extends "Transfer Header"
             Caption = 'Source ID';
             DataClassification = CustomerContent;
             trigger OnLookup()
-#if not CLEAN29
+#if not CLEAN28
             var
 #pragma warning disable AL0432
                 SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -78,14 +78,14 @@ tableextension 20520 "Subc. Transfer Header" extends "Transfer Header"
     end;
 
     procedure CheckDirectTransferPosting()
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

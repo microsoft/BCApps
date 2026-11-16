@@ -22,35 +22,12 @@ codeunit 10503 "GovTalk Subscribers"
     begin
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0432
-    [Obsolete('Event will be removed in a future release', '27.0')]
-    [EventSubscriber(ObjectType::Page, Page::"ECSL Report", 'OnBeforeDeleteErrors', '', false, false)]
-    local procedure OnBeforeDeleteErrors(var IsHandled: Boolean)
-    var
-        GovTalk: Codeunit GovTalk;
-    begin
-        if GovTalk.IsEnabled() then
-            exit;
-        IsHandled := true;
-    end;
-#pragma warning restore AL0432    
-#endif
 
     [EventSubscriber(ObjectType::Page, Page::"ECSL Report", 'OnBeforeCheckForErrors', '', false, false)]
     local procedure OnAfterCheckForErrors(var ErrorsExist: Boolean; ErrorMessage: Record "Error Message"; TempErrorMessage: Record "Error Message" temporary)
     var
         GovTalkSetup: Record "Gov Talk Setup";
-#if not CLEAN27
-        TempErrorMessage2: Record "Error Message" temporary;
-        GovTalk: Codeunit GovTalk;
-#endif
     begin
-#if not CLEAN27
-        TempErrorMessage := TempErrorMessage2;
-        if not GovTalk.IsEnabled() then
-            exit;
-#endif
         ErrorMessage.SetRange("Context Record ID", GovTalkSetup.RecordId);
         ErrorMessage.CopyToTemp(TempErrorMessage);
     end;
@@ -59,14 +36,7 @@ codeunit 10503 "GovTalk Subscribers"
     local procedure OnAfterClassifyCountrySpecificTables()
     var
         DataClassificationEvalData: Codeunit "Data Classification Eval. Data";
-#if not CLEAN27
-        GovTalk: Codeunit GovTalk;
-#endif
     begin
-#if not CLEAN27
-        if not GovTalk.IsEnabled() then
-            exit;
-#endif
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"GovTalk Message");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Gov Talk Setup");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"GovTalk Msg. Parts");
@@ -74,15 +44,7 @@ codeunit 10503 "GovTalk Subscribers"
 
     [EventSubscriber(ObjectType::Report, Report::"EC Sales List", 'OnAfterVATEntryNext', '', false, false)]
     local procedure OnAfterVATEntryNext(ResetVATEntry: Boolean; var sender: Report "EC Sales List"; "VAT Entry": Record "VAT Entry")
-#if not CLEAN27
-    var
-        GovTalk: Codeunit GovTalk;
-#endif
     begin
-#if not CLEAN27
-        if not GovTalk.IsEnabled() then
-            exit;
-#endif
         sender.SetNewGroupStarted(ResetVATEntry);
         sender.SetPrevVATRegNo("VAT Entry"."VAT Registration No.");
         sender.UpdateXMLFileRTCGB();
@@ -90,15 +52,7 @@ codeunit 10503 "GovTalk Subscribers"
 
     [EventSubscriber(ObjectType::Report, Report::"EC Sales List", 'OnBeforeSetGrouping', '', false, false)]
     local procedure OnBeforeSetGrouping(ReportLayout: Option "Separate &Lines","Column with &Amount"; NotEUTrdPartyAmt: Decimal; Grouping: Option NotEUTrdPartyAmt,NotEUTrdPartyAmtService,EUTrdPartyAmt,EUTrdPartyAmtService; NotEUTrdPartyAmtService: Decimal; EUTrdPartyAmt: Decimal; EUTrdPartyAmtService: Decimal; var sender: Report "EC Sales List")
-#if not CLEAN27
-    var
-        GovTalk: Codeunit GovTalk;
-#endif
     begin
-#if not CLEAN27
-        if not GovTalk.IsEnabled() then
-            exit;
-#endif
         if ReportLayout = ReportLayout::"Separate &Lines" then begin
             if NotEUTrdPartyAmt <> 0 then begin
                 Grouping := Grouping::NotEUTrdPartyAmt;
@@ -122,72 +76,10 @@ codeunit 10503 "GovTalk Subscribers"
         sender.SetNotEUTrdPartyAmtService(NotEUTrdPartyAmtService);
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0432
-    [Obsolete('Event will be removed in a future release', '27.0')]
-    [EventSubscriber(ObjectType::Report, Report::"EC Sales List", 'OnBeforeUpdateXMLFileRTC', '', false, false)]
-    local procedure OnBeforeUpdateXMLFileRTC(var IsHandled: Boolean)
-    var
-        GovTalk: Codeunit GovTalk;
-    begin
-        if GovTalk.IsEnabled() then
-            exit;
-        IsHandled := true;
-    end;
-
-    [EventSubscriber(ObjectType::Report, Report::"EC Sales List", 'OnBeforeSaveXMLFile', '', false, false)]
-    local procedure OnBeforeSaveXMLFile(var IsHandled: Boolean)
-    var
-        GovTalk: Codeunit GovTalk;
-    begin
-        if GovTalk.IsEnabled() then
-            exit;
-        IsHandled := true;
-    end;
-
-    [EventSubscriber(ObjectType::Report, Report::"EC Sales List", 'OnBeforePostingDateError', '', false, false)]
-    local procedure OnBeforePostingDateError(var IsHandled: Boolean)
-    var
-        GovTalk: Codeunit GovTalk;
-    begin
-        if GovTalk.IsEnabled() then
-            exit;
-        IsHandled := true;
-    end;
-
-    [EventSubscriber(ObjectType::Report, Report::"EC Sales List", 'OnBeforeCreateXMLDocument', '', false, false)]
-    local procedure OnBeforeCreateXMLDocument(var IsHandled: Boolean)
-    var
-        GovTalk: Codeunit GovTalk;
-    begin
-        if GovTalk.IsEnabled() then
-            exit;
-        IsHandled := true;
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EC Sales List Suggest Lines", 'OnBeforeIsApplicableEntry', '', false, false)]
-    local procedure OnBeforeIsApplicableEntry(var IsHandled: Boolean)
-    var
-        GovTalk: Codeunit GovTalk;
-    begin
-        if GovTalk.IsEnabled() then
-            exit;
-        IsHandled := true;
-    end;
-#pragma warning restore AL0432    
-#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"EC Sales List Suggest Lines", 'OnBeforeAddOrUpdateECLLine', '', false, false)]
     local procedure OnBeforeAddOrUpdateECLLine(EUVATEntries: Query "EU VAT Entries"; var ECSLVATReportLine: Record "ECSL VAT Report Line"; var IsHandled: Boolean)
-#if not CLEAN27
-    var
-        GovTalk: Codeunit GovTalk;
-#endif
     begin
-#if not CLEAN27
-        if not GovTalk.IsEnabled() then
-            exit;
-#endif
 
         if not IsApplicableEntry(EUVATEntries) then
             IsHandled := true;
@@ -226,46 +118,7 @@ codeunit 10503 "GovTalk Subscribers"
         exit(true);
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0432
-    [Obsolete('Event will be removed in a future release', '27.0')]
-    [EventSubscriber(ObjectType::Table, Database::"VAT Report Archive", 'OnBeforeVATReportArchiveGet', '', false, false)]
-    local procedure OnBeforeVATReportArchiveGet(var IsHandled: Boolean; VATReportTypeValue: Option; VATReportNoValue: Code[20])
-    var
-        VATReportArchive: Record "VAT Report Archive";
-        GovTalk: Codeunit GovTalk;
-    begin
-        if GovTalk.IsEnabled() then
-            exit;
-        if not VATReportArchive.Get(VATReportTypeValue, VATReportNoValue) then
-            IsHandled := true;
-    end;
 
-    [EventSubscriber(ObjectType::Table, Database::"VAT Report Archive", 'OnBeforeArchiveResponseMessage', '', false, false)]
-    local procedure OnBeforeArchiveResponseMessage(var IsHandled: Boolean; VATReportTypeValue: Option; VATReportNoValue: Code[20]; var VATReportArchive: Record "VAT Report Archive")
-    var
-        GovTalk: Codeunit GovTalk;
-    begin
-        if GovTalk.IsEnabled() then
-            exit;
-        if VATReportArchive.Get(VATReportTypeValue, VATReportNoValue) then
-            IsHandled := true;
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"VAT Report Archive", 'OnBeforeNoSubmissionMessageAvailableError', '', false, false)]
-    local procedure OnBeforeNoSubmissionMessageAvailableError(var IsHandled: Boolean; var VATReportArchive: Record "VAT Report Archive"; VATReportTypeValue: Option; VATReportNoValue: Code[20])
-    var
-        GovTalk: Codeunit GovTalk;
-    begin
-        if GovTalk.IsEnabled() then
-            exit;
-        if VATReportArchive.Get(VATReportTypeValue, VATReportNoValue) then
-            IsHandled := true;
-    end;
-#pragma warning restore AL0432
-#endif
-
-#if CLEAN27
     [EventSubscriber(ObjectType::Table, Database::"VAT Report Archive", 'OnAfterNoSubmissionMessageAvailableError', '', false, false)]
     local procedure OnAfterNoSubmissionMessageAvailableError(var VATReportArchive: Record "VAT Report Archive"; var Rec: Record "VAT Report Archive"; VATReportTypeValue: Option; VATReportNoValue: Code[20])
     var
@@ -279,53 +132,29 @@ codeunit 10503 "GovTalk Subscribers"
             if not VATReportArchive.Get(VATReportTypeValue, VATReportNoValue, Rec."Xml Part ID") then
                 Error(NoSubmissionMessageAvailableErr);
     end;
-#endif
 
     [EventSubscriber(ObjectType::Page, Page::"VAT Report", 'OnBeforeDownloadSubmissionMessage', '', false, false)]
     local procedure OnBeforeDownloadSubmissionMessage(var IsHandled: Boolean; var VATReportHeader: Record "VAT Report Header")
     var
-#if CLEAN27
         VATReportArchive: Record "VAT Report Archive";
-#endif
-#if not CLEAN27
-        GovTalk: Codeunit GovTalk;
-#endif
     begin
-#if not CLEAN27
-        if not GovTalk.IsEnabled() then
-            exit;
-#endif
-#if CLEAN27
         IsHandled := true;
         VATReportArchive.SetDummyGuid(true);
         VATReportArchive.DownloadSubmissionMessage(VATReportHeader."VAT Report Config. Code".AsInteger(), VATReportHeader."No.");
         VATReportArchive.SetDummyGuid(false);
-#endif
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"VAT Report", 'OnBeforeDownloadResponseMessage', '', false, false)]
     local procedure OnBeforeDownloadResponseMessage(var IsHandled: Boolean; var VATReportHeader: Record "VAT Report Header")
     var
-#if CLEAN27
         VATReportArchive: Record "VAT Report Archive";
-#endif
-#if not CLEAN27
-        GovTalk: Codeunit GovTalk;
-#endif
     begin
-#if not CLEAN27
-        if not GovTalk.IsEnabled() then
-            exit;
-#endif
-#if CLEAN27
         IsHandled := true;
         VATReportArchive.SetDummyGuid(true);
         VATReportArchive.DownloadResponseMessage(VATReportHeader."VAT Report Config. Code".AsInteger(), VATReportHeader."No.");
         VATReportArchive.SetDummyGuid(false);
-#endif
     end;
 
-#if CLEAN27
     [EventSubscriber(ObjectType::Table, Database::"VAT Report Archive", 'OnAfterNoResponseMessageAvailableError', '', false, false)]
     local procedure OnAfterNoResponseMessageAvailableError(var VATReportArchive: Record "VAT Report Archive"; var Rec: Record "VAT Report Archive"; VATReportTypeValue: Option; VATReportNoValue: Code[20])
     var
@@ -339,75 +168,25 @@ codeunit 10503 "GovTalk Subscribers"
             if not VATReportArchive.Get(VATReportTypeValue, VATReportNoValue, Rec."Xml Part ID") then
                 Error(NoSubmissionMessageAvailableErr);
     end;
-#endif
 
-#if not CLEAN27
-#pragma warning disable AL0432
-    [Obsolete('Event will be removed in a future release', '27.0')]
-    [EventSubscriber(ObjectType::Table, Database::"VAT Report Archive", 'OnBeforeNoResponseMessageAvailableError', '', false, false)]
-    local procedure OnBeforeNoResponseMessageAvailableError(var IsHandled: Boolean; var VATReportArchive: Record "VAT Report Archive"; VATReportTypeValue: Option; VATReportNoValue: Code[20])
-    var
-        GovTalk: Codeunit GovTalk;
-    begin
-        if GovTalk.IsEnabled() then
-            exit;
-        if VATReportArchive.Get(VATReportTypeValue, VATReportNoValue) then
-            IsHandled := true;
-    end;
-#pragma warning restore AL0432    
-#endif
 
-#if CLEAN27
     [EventSubscriber(ObjectType::Table, Database::"VAT Report Archive", 'OnAfterInitVATReportArchive', '', false, false)]
     local procedure OnAfterInitVATReportArchive(var VATReportArchive: Record "VAT Report Archive"; var Rec: Record "VAT Report Archive")
     begin
         VATReportArchive."Xml Part ID" := Rec.GetXMLPartID();
     end;
-#endif
 
     [EventSubscriber(ObjectType::Report, Report::"VAT Report Request Page", 'OnBeforeVATStatementLineFindSet', '', false, false)]
     local procedure OnBeforeVATStatementLineFindSet(var VATStatementLine: Record "VAT Statement Line"; VATReportHeader: Record "VAT Report Header")
-#if not CLEAN27
-    var
-        GovTalk: Codeunit GovTalk;
-#endif
     begin
-#if not CLEAN27
-        if not GovTalk.IsEnabled() then
-            exit;
-#endif
         if VATStatementLine.Count() <> 9 then
             Error(WrongVATSatementSetupErr, VATReportHeader."Statement Template Name", VATReportHeader."Statement Name");
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0432
-    [Obsolete('Event will be removed in a future release', '27.0')]
-    [EventSubscriber(ObjectType::Report, Report::"VAT Report Request Page", 'OnBeforeVATStatementLineFindSet2', '', false, false)]
-    local procedure OnBeforeVATStatementLineFindSet2(var VATStatementLine: Record "VAT Statement Line"; VATReportHeader: Record "VAT Report Header"; var IsHandled: Boolean)
-    var
-        GovTalk: Codeunit GovTalk;
-    begin
-        if GovTalk.IsEnabled() then
-            exit;
-        IsHandled := true;
-        if VATStatementLine.Count() <> 9 then
-            Error(WrongVATSatementSetupErr, VATReportHeader."Statement Template Name", VATReportHeader."Statement Name");
-    end;
-#pragma warning restore AL0432    
-#endif
 
     [EventSubscriber(ObjectType::Report, Report::"VAT Report Request Page", 'OnBeforeCalcLineTotalWithBase', '', false, false)]
     local procedure OnBeforeCalcLineTotalWithBase(var VATStatementReportLine: Record "VAT Statement Report Line"; VATStatementLine: Record "VAT Statement Line"; VATReportHeader: Record "VAT Report Header")
-#if not CLEAN27
-    var
-        GovTalk: Codeunit GovTalk;
-#endif
     begin
-#if not CLEAN27
-        if not GovTalk.IsEnabled() then
-            exit;
-#endif
         VATStatementReportLine.Init();
         VATStatementReportLine.Validate("Box No.", VATStatementLine."Box No.");
         if not CheckBoxNo(VATStatementReportLine) then

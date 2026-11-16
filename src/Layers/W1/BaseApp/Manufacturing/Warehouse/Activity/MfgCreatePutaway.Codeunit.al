@@ -858,6 +858,8 @@ codeunit 99000893 "Mfg. Create Put-away"
                 RemQtyToPutAwayBase := TempProdOrdLineTrackingBuff."Qty. split for Put Away (Base)"
             else
                 RemQtyToPutAwayBase := ProdOrderLine.GetRemainingPutAwayQty();
+
+        OnAfterUpdateRemQtyToPutAwayBaseFromProdOrderLine(TempProdOrdLineTrackingBuff, ProdOrderLine, CalledFromPutAwayWorksheet, RemQtyToPutAwayBase);
     end;
 
     local procedure CreateWhsePutAwayForProdOutputFromTemplate(ProdOrderLine: Record "Prod. Order Line"; var TempProdOrdLineTrackingBuff: Record "Prod. Ord. Line Tracking Buff." temporary)
@@ -1195,6 +1197,11 @@ codeunit 99000893 "Mfg. Create Put-away"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetValues(var AssignedID: Code[50]; var SortActivity: Enum "Whse. Activity Sorting Method"; var DoNotFillQtytoHandle: Boolean; var BreakbulkFilter: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateRemQtyToPutAwayBaseFromProdOrderLine(var TempProdOrdLineTrackingBuff: Record "Prod. Ord. Line Tracking Buff." temporary; ProdOrderLine: Record "Prod. Order Line"; CalledFromPutAwayWorksheet: Boolean; var RemainingQuantityToPutAwayBase: Decimal)
     begin
     end;
 

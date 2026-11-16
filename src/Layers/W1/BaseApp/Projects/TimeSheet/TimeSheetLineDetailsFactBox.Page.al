@@ -159,14 +159,16 @@ page 948 "TimeSheet Line Details FactBox"
     local procedure SetWorkTypeDetails()
     begin
         WorkTypeDescription := '';
-        WorkTypeCodeVisible := Rec."Work Type Code" <> '';
+        WorkTypeCodeVisible := false;
 
         if Rec."Work Type Code" = '' then
             exit;
 
         if WorkType.Code <> Rec."Work Type Code" then
-            WorkType.Get(Rec."Work Type Code");
+            if not WorkType.Get(Rec."Work Type Code") then
+                Clear(WorkType);
 
+        WorkTypeCodeVisible := WorkType.Code <> '';
         WorkTypeDescription := WorkType.Description;
     end;
 
@@ -213,14 +215,16 @@ page 948 "TimeSheet Line Details FactBox"
     local procedure SetAbsenceDetails()
     begin
         CauseOfAbsenceDescription := '';
-        AbsenceCauseVisible := Rec."Cause of Absence Code" <> '';
+        AbsenceCauseVisible := false;
 
         if Rec."Cause of Absence Code" = '' then
             exit;
 
         if CauseOfAbsence.Code <> Rec."Cause of Absence Code" then
-            CauseOfAbsence.Get(Rec."Cause of Absence Code");
+            if not CauseOfAbsence.Get(Rec."Cause of Absence Code") then
+                Clear(CauseOfAbsence);
 
+        AbsenceCauseVisible := CauseOfAbsence.Code <> '';
         CauseOfAbsenceDescription := CauseOfAbsence.Description;
     end;
 

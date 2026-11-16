@@ -201,9 +201,7 @@ report 1095 "Update Job Item Cost"
 
     local procedure ModifyAllValueEntries(var ToValueEntry: Record "Value Entry"; var FromValueEntry: Record "Value Entry")
     begin
-        ToValueEntry.ModifyAll("Job No.", FromValueEntry."Job No.");
-        ToValueEntry.ModifyAll("Job Task No.", FromValueEntry."Job Task No.");
-        ToValueEntry.ModifyAll("Job Ledger Entry No.", FromValueEntry."Job Ledger Entry No.");
+        ToValueEntry.ModifyAll("Job No.", FromValueEntry."Job No.", "Job Task No.", FromValueEntry."Job Task No.", "Job Ledger Entry No.", FromValueEntry."Job Ledger Entry No.");
 
         OnAfterModifyAllValueEntries(ToValueEntry, FromValueEntry);
     end;

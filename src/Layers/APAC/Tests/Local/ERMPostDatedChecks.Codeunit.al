@@ -725,8 +725,7 @@ codeunit 141031 "ERM Post Dated Checks"
         CreatePaymentJournal(VendorNo);
 
         GenJnlLine.SetRange("Account No.", VendorNo);
-        GenJnlLine.ModifyAll("Bank Payment Type", GenJnlLine."Bank Payment Type"::"Manual Check");
-        GenJnlLine.ModifyAll("WHT Product Posting Group", WHTProdPostingGroupCode);
+        GenJnlLine.ModifyAll("Bank Payment Type", GenJnlLine."Bank Payment Type"::"Manual Check", "WHT Product Posting Group", WHTProdPostingGroupCode);
         NoOfInst := GenJnlLine.Count;
         PostPaymentJournal(VendorNo);
         exit(GenJnlLine."Document No.");

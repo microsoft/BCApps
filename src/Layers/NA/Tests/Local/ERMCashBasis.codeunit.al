@@ -2,6 +2,7 @@
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -19,6 +20,7 @@
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryRandom: Codeunit "Library - Random";
         IsInitialized: Boolean;
+        ReservedVATEntryNo: Integer;
         AmountErr: Label '%1 must be %2 in %3.', Comment = '%1 = Amount FieldCaption, %2 = Amount Value, %3 = Record TableCaption';
         VATPostingGroupMustBeErr: Label 'must be %1', Comment = '%1 = VAT product posting group code';
         ConfirmPostingAfterWorkingDateQst: Label 'The posting date of one or more journal lines is after the working date. Do you want to continue?';
@@ -652,6 +654,47 @@
           -Round(UnitPrice[2] * 21 / 100),
           VATEntry.Amount,
           'Group2 realized VAT amount should equal original unrealized amount');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ConcurrentPaymentMultipleVATGroupsSkipsReservedEntryNo()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        GenJournalLine: Record "Gen. Journal Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        ERMCashBasis: Codeunit "ERM Cash Basis";
+        CustomerNo: Code[20];
+        ItemNo: array[2] of Code[20];
+        InvoiceNo: Code[20];
+        UnitPrice: array[2] of Decimal;
+    begin
+        // [FEATURE] [Sales] [Concurrent Posting]
+        // [SCENARIO] Realizing multiple VAT groups skips a VAT entry number reserved by an intervening sequence allocation.
+        Initialize();
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Use Concurrent Posting", true);
+        GeneralLedgerSetup.Modify(true);
+
+        // [GIVEN] An invoice with two unrealized VAT entries.
+        UnitPrice[1] := 1000;
+        UnitPrice[2] := 2000;
+        InvoiceNo := CreateMultiVATGroupSalesInvoice(VATPostingSetup, CustomerNo, ItemNo, UnitPrice);
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice, InvoiceNo);
+        CustLedgerEntry.CalcFields("Amount (LCY)");
+
+        // [WHEN] Full payment realizes both entries while another VAT entry number is reserved before the first insertion.
+        BindSubscription(ERMCashBasis);
+        CreateAndPostPaymentGenJournalLine(
+          GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo,
+          InvoiceNo, -CustLedgerEntry."Amount (LCY)", WorkDate());
+        UnbindSubscription(ERMCashBasis);
+
+        // [THEN] The realized entries skip the reserved number and both source entries are fully realized.
+        ERMCashBasis.VerifyReservedVATEntryNoNotUsed(GenJournalLine."Document No.");
+        VerifyUnrealizedVATFullyRealized(InvoiceNo, VATPostingSetup[1]."VAT Prod. Posting Group");
+        VerifyUnrealizedVATFullyRealized(InvoiceNo, VATPostingSetup[2]."VAT Prod. Posting Group");
     end;
 
     [Test]
@@ -1593,6 +1636,32 @@
         Assert.AreEqual(0, VATEntry."Remaining Unrealized Base", 'Remaining Unrealized Base should be zero');
     end;
 
+    internal procedure VerifyReservedVATEntryNoNotUsed(PaymentDocumentNo: Code[20])
+    var
+        VATEntry: Record "VAT Entry";
+    begin
+        Assert.IsTrue(ReservedVATEntryNo > 0, 'An intervening VAT sequence number must have been reserved');
+        VATEntry.SetRange(Type, VATEntry.Type::Sale);
+        VATEntry.SetRange("Document No.", PaymentDocumentNo);
+        Assert.AreEqual(2, VATEntry.Count(), 'The payment must realize both VAT groups');
+        VATEntry.FindFirst();
+        VATEntry.TestField("Document Type", VATEntry."Document Type"::Payment);
+        Assert.IsTrue(VATEntry."Entry No." < ReservedVATEntryNo, 'The first realized entry must precede the intervening allocation');
+        VATEntry.FindLast();
+        VATEntry.TestField("Document Type", VATEntry."Document Type"::Payment);
+        Assert.IsTrue(VATEntry."Entry No." > ReservedVATEntryNo, 'The successor must skip the reserved VAT entry number');
+        Assert.IsTrue(VATEntry.GetNextEntryNo() > VATEntry."Entry No.", 'A subsequent sequence allocation must not reuse a realized entry number');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnBeforeInsertPostUnrealVATEntry', '', false, false)]
+    local procedure ReserveVATEntryNoBeforeFirstUnrealVATInsertion(var VATEntry: Record "VAT Entry"; GenJournalLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry")
+    begin
+        if ReservedVATEntryNo <> 0 then
+            exit;
+
+        ReservedVATEntryNo := VATEntry.GetNextEntryNo();
+    end;
+
     local procedure VerifyInvoiceUnrealizedVATGLEntriesDoNotExist(CreditMemoNo: Code[20]; VATPostingSetup: Record "VAT Posting Setup")
     var
         GLEntry: Record "G/L Entry";
@@ -1609,4 +1678,3 @@
     end;
 
 }
-

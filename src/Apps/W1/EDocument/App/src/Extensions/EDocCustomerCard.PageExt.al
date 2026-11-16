@@ -16,6 +16,14 @@ pageextension 6163 "E-Doc. Customer Card" extends "Customer Card"
 {
     layout
     {
+        addafter("Use GLN in Electronic Document")
+        {
+            field("Use Reg. No. in E-Document"; Rec."Use Reg. No. in E-Document")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies whether the customer registration number is used to identify the customer in electronic documents when the GLN and VAT registration number are blank.';
+            }
+        }
         addlast(Invoicing)
         {
             field("E-Document Service Participation Ids"; ParticipantIdCount)

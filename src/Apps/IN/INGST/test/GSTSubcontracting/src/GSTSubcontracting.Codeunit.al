@@ -2298,8 +2298,7 @@ codeunit 18479 "GST Subcontracting"
         SubOrderComponentList.Reset();
         SubOrderComponentList.SetRange("Document No.", PurchaseLine."Document No.");
         SubOrderComponentList.SetRange("Document Line No.", PurchaseLine."Line No.");
-        SubOrderComponentList.ModifyAll("Company Location", CompanyLocationCode);
-        SubOrderComponentList.ModifyAll("Bin Code", BinCode);
+        SubOrderComponentList.ModifyAll("Company Location", CompanyLocationCode, "Bin Code", BinCode);
     end;
 
     local procedure Initialize()

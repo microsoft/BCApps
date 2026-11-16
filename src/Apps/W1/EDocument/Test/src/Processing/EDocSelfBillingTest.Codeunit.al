@@ -343,6 +343,8 @@ codeunit 139783 "E-Doc. Self-Billing Test"
         LibraryEDoc.AddEDocServiceSupportedType(EDocumentService, Enum::"E-Document Type"::"Self-Billed Purchase Invoice");
         LibraryEDoc.AddEDocServiceSupportedType(EDocumentService, Enum::"E-Document Type"::"Self-Billed Purch. Cr. Memo");
 
+        // Keep the shared fixture when a later test error rolls back its transaction.
+        Commit();
         IsInitialized := true;
     end;
 }

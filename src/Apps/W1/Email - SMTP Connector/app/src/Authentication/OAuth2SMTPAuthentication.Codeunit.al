@@ -41,7 +41,8 @@ codeunit 4516 "OAuth2 SMTP Authentication"
         AccessToken := AzureAdMgt.GetAccessTokenAsSecretText(AzureADMgt.GetO365Resource(), AzureADMgt.GetO365ResourceName(), true);
         if AccessToken.IsEmpty() then
             Error(CouldNotAuthenticateErr);
-        GetUserName(AccessToken, UserName);
+        if not GetUserName(AccessToken, UserName) then
+            Error(CouldNotAuthenticateErr);
     end;
 
     /// <summary>
@@ -101,8 +102,10 @@ codeunit 4516 "OAuth2 SMTP Authentication"
     begin
         AccessToken := AzureAdMgt.GetAccessTokenAsSecretText(AzureADMgt.GetO365Resource(), AzureADMgt.GetO365ResourceName(), true);
         if not AccessToken.IsEmpty() then begin
-            GetUserName(AccessToken, UserName);
-            Message(AuthenticationSuccessfulMsg, UserName);
+            if GetUserName(AccessToken, UserName) then
+                Message(AuthenticationSuccessfulMsg, UserName)
+            else
+                Message(AuthenticationFailedMsg);
         end else
             Message(AuthenticationFailedMsg);
     end;
