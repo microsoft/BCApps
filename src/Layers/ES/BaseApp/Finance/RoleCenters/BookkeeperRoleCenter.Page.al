@@ -25,7 +25,9 @@ using Microsoft.Foundation.Task;
 using Microsoft.Inventory.Costing;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+#if not CLEAN28
 using Microsoft.Purchases.Reports;
+#endif
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;

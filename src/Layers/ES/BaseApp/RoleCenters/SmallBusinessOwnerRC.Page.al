@@ -42,7 +42,9 @@ using Microsoft.Projects.Resources.Ledger;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+#if not CLEAN28
 using Microsoft.Purchases.Reports;
+#endif
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Analysis;
 using Microsoft.Sales.Customer;

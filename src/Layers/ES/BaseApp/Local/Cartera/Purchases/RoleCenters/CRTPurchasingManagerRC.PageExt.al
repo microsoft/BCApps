@@ -17,6 +17,7 @@ pageextension 17746 "CRT Purchasing Manager RC" extends "Purchasing Manager Role
                 ApplicationArea = Basic, Suite;
                 Caption = 'Long Term Purchase Invoices';
                 RunObject = report "Long Term Purchase Invoices";
+                ToolTip = 'View open purchase invoices and bills with long-term due dates.';
             }
         }
     }
