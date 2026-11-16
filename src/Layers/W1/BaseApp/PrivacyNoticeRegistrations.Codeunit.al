@@ -13,9 +13,6 @@ codeunit 1357 "Privacy Notice Registrations"
     var
         MicrosoftOneDriveTxt: Label 'Microsoft OneDrive', Locked = true; // Product names are not translated and it's important this entry exists.
         MicrosoftExchangeTxt: Label 'Microsoft Exchange', Locked = true;
-#if not CLEAN27
-        MicrosoftPowerAutomateTxt: Label 'Power Automate', Locked = true;
-#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", 'OnRegisterPrivacyNotices', '', false, false)]
     local procedure CreatePrivacyNoticeRegistrations(var TempPrivacyNotice: Record "Privacy Notice" temporary)
@@ -41,11 +38,4 @@ codeunit 1357 "Privacy Notice Registrations"
         exit(MicrosoftExchangeTxt);
     end;
 
-#if not CLEAN27
-    [Obsolete('This procedure has moved to "Flow Service Management" instead.', '27.0')]
-    procedure GetPowerAutomatePrivacyNoticeId(): Code[50]
-    begin
-        exit(MicrosoftPowerAutomateTxt);
-    end;
-#endif
 }

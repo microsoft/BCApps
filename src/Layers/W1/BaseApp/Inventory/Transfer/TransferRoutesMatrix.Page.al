@@ -486,6 +486,7 @@ page 9285 "Transfer Routes Matrix"
         Field30Visible: Boolean;
         Field31Visible: Boolean;
         Field32Visible: Boolean;
+        DirectTxt: Label 'Direct';
 
     procedure LoadMatrix(NewMatrixColumns: array[32] of Text[1024]; var NewMatrixRecords: array[32] of Record Location; NewCurrentNoOfMatrixColumns: Integer; NewShow: Enum "Transfer Routes Show")
     begin
@@ -514,7 +515,10 @@ page 9285 "Transfer Routes Matrix"
                 Show::"Shipping Agent Service Code":
                     Specification := TransferRoute."Shipping Agent Service Code";
                 Show::"In-Transit Code":
-                    Specification := TransferRoute."In-Transit Code";
+                    if TransferRoute."Direct Transfer" and (MatrixRecords[MATRIX_ColumnOrdinal].Code <> Rec.Code) then
+                        Specification := DirectTxt
+                    else
+                        Specification := TransferRoute."In-Transit Code";
                 else
                     RunShowRouteSpecificationCaseElse();
             end;

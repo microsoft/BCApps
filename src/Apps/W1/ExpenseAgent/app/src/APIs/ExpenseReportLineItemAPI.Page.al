@@ -71,6 +71,11 @@ page 6905 "Expense Report Line Item API"
                 {
                     Caption = 'Daily Rate';
                 }
+                field(currencyCode; CurrencyCodeDisplay)
+                {
+                    Caption = 'Currency Code';
+                    Editable = false;
+                }
                 field(amount; Rec.Amount)
                 {
                     Caption = 'Amount';
@@ -83,11 +88,20 @@ page 6905 "Expense Report Line Item API"
         }
     }
 
+    var
+        CurrencyHelper: Codeunit "Expense API Currency Helper";
+        CurrencyCodeDisplay: Code[10];
+
     trigger OnInit()
     var
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        CurrencyCodeDisplay := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Currency Code");
     end;
 
     [ServiceEnabled]

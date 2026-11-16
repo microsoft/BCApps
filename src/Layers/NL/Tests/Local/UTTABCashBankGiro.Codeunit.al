@@ -502,6 +502,93 @@ codeunit 144012 "UT TAB Cash Bank Giro"
         Assert.ExpectedErrorCode(ExpectedErrorCodeLbl);
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure NewAppliesToIDIncrementsShortAndLongIDs()
+    begin
+        // [SCENARIO] Incrementing an applies-to ID preserves its prefix and carries within the full field length.
+        Initialize();
+
+        VerifyIncrementedAppliesToID('SHORT-0099', 'SHORT-0100');
+        VerifyIncrementedAppliesToID('APPL-123456789010099', 'APPL-123456789010100');
+        VerifyIncrementedAppliesToID('APPL-1234567890120099', 'APPL-1234567890120100');
+        VerifyIncrementedAppliesToID(
+          'APPL-123456789012345678901234567890123456789010099',
+          'APPL-123456789012345678901234567890123456789010100');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure NewAppliesToIDUsesFullBankDocumentNo()
+    begin
+        // [SCENARIO] The first bank applies-to ID fits the complete 20-character document number and numeric suffix.
+        Initialize();
+
+        VerifyFirstBankAppliesToID('BANK-00001', 'BANK-00001-000000001');
+        VerifyFirstBankAppliesToID('BANK-123456789012345', 'BANK-123456789012345-000000001');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure NewAppliesToIDUsesCashLineDocumentNo()
+    var
+        CBGStatement: Record "CBG Statement";
+        CBGStatementLine: Record "CBG Statement Line";
+    begin
+        // [SCENARIO] Cash applies-to IDs still use the line document number without a suffix.
+        Initialize();
+        CreateCBGStatement(
+          CBGStatement, CBGStatementLine, CBGStatement.Type::Cash,
+          CBGStatementLine."Account Type"::"G/L Account", CreateGLAccount(), '');
+        CBGStatementLine."Document No." := 'CASH-123456789012345';
+
+        Assert.AreEqual(
+          CBGStatementLine."Document No.", CBGStatementLine."New Applies-to ID"(),
+          'The cash applies-to ID must equal the line document number.');
+    end;
+
+    local procedure VerifyIncrementedAppliesToID(AppliesToID: Code[50]; ExpectedAppliesToID: Code[50])
+    var
+        CBGStatement: Record "CBG Statement";
+        CBGStatementLine: Record "CBG Statement Line";
+        NewAppliesToID: Code[50];
+    begin
+        CreateCBGStatement(
+          CBGStatement, CBGStatementLine, CBGStatement.Type::"Bank/Giro",
+          CBGStatementLine."Account Type"::"G/L Account", CreateGLAccount(), '');
+        CBGStatementLine."Applies-to ID" := AppliesToID;
+        CBGStatementLine.Modify();
+
+        NewAppliesToID := CBGStatementLine."New Applies-to ID"();
+
+        Assert.AreEqual(ExpectedAppliesToID, NewAppliesToID, 'The entire applies-to ID must be incremented.');
+        CBGStatementLine."Applies-to ID" := NewAppliesToID;
+        CBGStatementLine.Modify();
+        CBGStatementLine.Get(CBGStatementLine."Journal Template Name", CBGStatementLine."No.", CBGStatementLine."Line No.");
+        CBGStatementLine.TestField("Applies-to ID", ExpectedAppliesToID);
+    end;
+
+    local procedure VerifyFirstBankAppliesToID(DocumentNo: Code[20]; ExpectedAppliesToID: Code[50])
+    var
+        CBGStatement: Record "CBG Statement";
+        CBGStatementLine: Record "CBG Statement Line";
+    begin
+        CreateCBGStatement(
+          CBGStatement, CBGStatementLine, CBGStatement.Type::"Bank/Giro",
+          CBGStatementLine."Account Type"::"G/L Account", CreateGLAccount(), '');
+        CBGStatement."Document No." := DocumentNo;
+        CBGStatement.Modify();
+        CBGStatementLine."Applies-to ID" := '';
+        CBGStatementLine.Modify();
+
+        Assert.AreEqual(
+          ExpectedAppliesToID, CBGStatementLine."New Applies-to ID"(),
+          'The bank applies-to ID must contain the complete document number and suffix.');
+    end;
+
     local procedure Initialize()
     var
         GenJournalTemplate: Record "Gen. Journal Template";
@@ -726,4 +813,3 @@ codeunit 144012 "UT TAB Cash Bank Giro"
             Reply := true;
     end;
 }
-

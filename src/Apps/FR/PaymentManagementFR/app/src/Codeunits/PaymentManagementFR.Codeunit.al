@@ -358,7 +358,7 @@ codeunit 10837 "Payment Management FR"
                 SetPostingGroup();
                 SetAccountNo();
                 InvPostingBuffer[1]."System-Created Entry" := true;
-                if StepLedger.Sign = StepLedger.Sign::Debit then begin
+                if (StepLedger.Sign = StepLedger.Sign::Debit) xor IsReversedPaymentLine() then begin
                     InvPostingBuffer[1].Validate(Amount, Abs(PaymentLine.Amount));
                     InvPostingBuffer[1].Validate("Amount (LCY)", Abs(PaymentLine."Amount (LCY)"));
                 end else begin
@@ -374,7 +374,7 @@ codeunit 10837 "Payment Management FR"
                     if StepLedger."Detail Level" = StepLedger."Detail Level"::"Due Date" then
                         InvPostingBuffer[1]."Due Date" := PaymentLine."Due Date";
 
-                InvPostingBuffer[1]."Document Type" := StepLedger."Document Type";
+                InvPostingBuffer[1]."Document Type" := GetPostingDocumentType();
                 if StepLedger."Document No." = StepLedger."Document No."::"Header No." then
                     InvPostingBuffer[1]."Document No." := PaymentHeader."No."
                 else begin
@@ -422,6 +422,26 @@ codeunit 10837 "Payment Management FR"
             until StepLedger.Next() = 0;
             NoSeriesBatch.SaveState();
         end;
+    end;
+
+    local procedure IsReversedPaymentLine(): Boolean
+    begin
+        exit(
+            ((PaymentLine."Account Type" = PaymentLine."Account Type"::Customer) and (PaymentLine.Amount > 0)) or
+            ((PaymentLine."Account Type" = PaymentLine."Account Type"::Vendor) and (PaymentLine.Amount < 0)));
+    end;
+
+    local procedure GetPostingDocumentType(): Enum "Gen. Journal Document Type"
+    begin
+        if IsReversedPaymentLine() then
+            case StepLedger."Document Type" of
+                StepLedger."Document Type"::Payment:
+                    exit(StepLedger."Document Type"::Refund);
+                StepLedger."Document Type"::Refund:
+                    exit(StepLedger."Document Type"::Payment);
+            end;
+
+        exit(StepLedger."Document Type");
     end;
 
     local procedure GetDescriptionForInvPostingBuffer() Description: Text[98]
