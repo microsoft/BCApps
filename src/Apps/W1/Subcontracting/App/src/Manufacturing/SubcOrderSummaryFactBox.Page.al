@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
-page 20580 "Subc. Order Summary"
+page 20580 "Subc. Order Summary FactBox"
 {
     PageType = CardPart;
     SourceTable = "Production Order";

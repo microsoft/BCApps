@@ -54,6 +54,64 @@ codeunit 149908 "Subc. Warehouse Library"
         SummarySetupLibrary: Codeunit "Subc. Setup Library";
         SummaryDetailRecords: List of [RecordId];
 
+    /// <summary>
+    /// Inserts a synthetic receipt-history line for reader tests without creating a header or running posting logic.
+    /// </summary>
+    /// <param name="OrderNo">The production order identity assigned to the synthetic history line.</param>
+    /// <param name="Quantity">The signed document quantity, including precision used to test exact stored comparisons.</param>
+    procedure InsertSummaryReceipt(OrderNo: Code[20]; Quantity: Decimal)
+    var
+        ReceiptLine: Record "Purch. Rcpt. Line";
+    begin
+        ReceiptLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ReceiptLine."Document No."));
+        ReceiptLine."Line No." := 10000;
+        ReceiptLine."Prod. Order No." := OrderNo;
+        ReceiptLine.Quantity := Quantity;
+        ReceiptLine.Insert();
+    end;
+
+    /// <summary>
+    /// Inserts a synthetic invoice-history line for reader tests without creating a header or running posting logic.
+    /// </summary>
+    /// <param name="OrderNo">The production order identity assigned to the synthetic history line.</param>
+    /// <param name="Quantity">The signed document quantity, including precision used to test exact stored comparisons.</param>
+    procedure InsertSummaryInvoice(OrderNo: Code[20]; Quantity: Decimal)
+    var
+        InvoiceLine: Record "Purch. Inv. Line";
+    begin
+        InvoiceLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(InvoiceLine."Document No."));
+        InvoiceLine."Line No." := 10000;
+        InvoiceLine."Prod. Order No." := OrderNo;
+        InvoiceLine.Quantity := Quantity;
+        InvoiceLine.Insert();
+    end;
+
+    /// <summary>
+    /// Inserts a synthetic purchase line without a header or validation to test summary source and signed-quantity predicates.
+    /// </summary>
+    /// <param name="OrderNo">The production order identity assigned to the synthetic line.</param>
+    /// <param name="DocumentType">The included or deliberately excluded purchase document type.</param>
+    /// <param name="Quantity">The raw signed document quantity to persist.</param>
+    /// <param name="Invoiced">The raw signed invoiced quantity to compare with the document quantity.</param>
+    /// <param name="PurchaseLine">Returns the inserted line with a unique document number and a line number of 10000.</param>
+    procedure InsertSummaryPurchase(OrderNo: Code[20]; DocumentType: Enum "Purchase Document Type"; Quantity: Decimal; Invoiced: Decimal; var PurchaseLine: Record "Purchase Line")
+    begin
+        Clear(PurchaseLine);
+        PurchaseLine."Document Type" := DocumentType;
+        PurchaseLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchaseLine."Document No."));
+        PurchaseLine."Line No." := 10000;
+        PurchaseLine."Prod. Order No." := OrderNo;
+        PurchaseLine.Quantity := Quantity;
+        PurchaseLine."Quantity Invoiced" := Invoiced;
+        PurchaseLine.Insert();
+    end;
+
+    /// <summary>
+    /// Creates and refreshes a released item production order with a subcontracting operation and WIP transfer enabled.
+    /// </summary>
+    /// <param name="Quantity">The production order quantity in the created item's base unit of measure.</param>
+    /// <param name="ProductionOrder">Returns the released production order with its item, location and routing.</param>
+    /// <param name="WorkCenter">Returns the routing's subcontracting work center with a configured vendor location.</param>
     procedure CreateSummaryOrder(Quantity: Decimal; var ProductionOrder: Record "Production Order"; var WorkCenter: Record "Work Center")
     var
         Item: Record Item;
@@ -71,6 +129,14 @@ codeunit 149908 "Subc. Warehouse Library"
             Item."No.", Quantity, Location.Code);
     end;
 
+    /// <summary>
+    /// Creates and refreshes a released family production order with two output items and a subcontracting operation.
+    /// </summary>
+    /// <param name="FirstBaseQuantity">The first family item's quantity for one unit of family output, in base units.</param>
+    /// <param name="SecondBaseQuantity">The second family item's quantity for one unit of family output, in base units.</param>
+    /// <param name="ProductionOrder">Returns the released family order with a quantity of one.</param>
+    /// <param name="WorkCenter">Returns the shared subcontracting work center with WIP transfer enabled.</param>
+    /// <param name="Items">Returns the two output items in family-line order.</param>
     procedure CreateSummaryFamily(FirstBaseQuantity: Decimal; SecondBaseQuantity: Decimal; var ProductionOrder: Record "Production Order"; var WorkCenter: Record "Work Center"; var Items: array[2] of Record Item)
     var
         Family: Record Family;
@@ -113,6 +179,13 @@ codeunit 149908 "Subc. Warehouse Library"
         exit(RoutingHeader."No.");
     end;
 
+    /// <summary>
+    /// Creates a native subcontract purchase order for the production routing and ensures its general posting setup is valid.
+    /// </summary>
+    /// <param name="ProductionOrder">The refreshed order containing an operation for the supplied work center.</param>
+    /// <param name="WorkCenter">The subcontracting work center whose first matching operation is purchased.</param>
+    /// <param name="PurchaseHeader">Returns the created purchase order header.</param>
+    /// <param name="PurchaseLine">Returns the linked subcontract purchase line.</param>
     procedure CreateSummaryPurchase(ProductionOrder: Record "Production Order"; WorkCenter: Record "Work Center"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line")
     var
         RoutingLine: Record "Prod. Order Routing Line";
@@ -128,6 +201,13 @@ codeunit 149908 "Subc. Warehouse Library"
         SummarySetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
     end;
 
+    /// <summary>
+    /// Configures a transit route and invokes the purchase order action to create an outbound subcontracting WIP transfer.
+    /// </summary>
+    /// <param name="ProductionOrder">The order whose location supplies the WIP.</param>
+    /// <param name="WorkCenter">The subcontracting work center whose vendor has a configured subcontracting location.</param>
+    /// <param name="PurchaseHeader">The subcontract purchase order with transferable WIP lines.</param>
+    /// <param name="TransferHeader">Returns the outbound transfer found for the purchase order.</param>
     procedure CreateSummaryForward(ProductionOrder: Record "Production Order"; WorkCenter: Record "Work Center"; PurchaseHeader: Record "Purchase Header"; var TransferHeader: Record "Transfer Header")
     var
         Vendor: Record Vendor;
@@ -144,6 +224,11 @@ codeunit 149908 "Subc. Warehouse Library"
         FindSubcontractingTransferHeader(PurchaseHeader, false, TransferHeader);
     end;
 
+    /// <summary>
+    /// Invokes the purchase order action to create a return transfer for available subcontractor WIP.
+    /// </summary>
+    /// <param name="PurchaseHeader">The subcontract purchase order with WIP available to return.</param>
+    /// <param name="TransferHeader">Returns the return transfer found for the purchase order.</param>
     procedure CreateSummaryReturn(PurchaseHeader: Record "Purchase Header"; var TransferHeader: Record "Transfer Header")
     var
         PurchaseOrder: TestPage "Purchase Order";
@@ -155,6 +240,12 @@ codeunit 149908 "Subc. Warehouse Library"
         FindSubcontractingTransferHeader(PurchaseHeader, true, TransferHeader);
     end;
 
+    /// <summary>
+    /// Reopens the purchase order, assigns a unique vendor invoice number and invoices only the specified line quantity.
+    /// </summary>
+    /// <param name="PurchaseHeader">The existing order; final posting can delete it.</param>
+    /// <param name="PurchaseLine">The existing line with enough received, uninvoiced quantity; posting can delete it.</param>
+    /// <param name="Quantity">The quantity to invoice in the line's document unit of measure.</param>
     procedure PostSummaryInvoice(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; Quantity: Decimal)
     var
         OtherLine: Record "Purchase Line";
@@ -177,16 +268,27 @@ codeunit 149908 "Subc. Warehouse Library"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
     end;
 
+    /// <summary>
+    /// Clears captured detail keys before binding this manual subscriber instance and opening a summary drilldown.
+    /// </summary>
     procedure StartSummaryDetailCapture()
     begin
         Clear(SummaryDetailRecords);
     end;
 
+    /// <summary>
+    /// Asserts the number of distinct table and primary-key identities captured by the bound detail-page subscribers.
+    /// </summary>
+    /// <param name="ExpectedCount">The expected number of distinct detail records since capture was cleared.</param>
     procedure VerifySummaryDetailRecordCount(ExpectedCount: Integer)
     begin
         SummaryAssert.AreEqual(ExpectedCount, SummaryDetailRecords.Count(), 'Drilldown must contain exactly the expected full record keys.');
     end;
 
+    /// <summary>
+    /// Asserts that a detail drilldown visited the expected table and complete primary key.
+    /// </summary>
+    /// <param name="ExpectedRecordId">The source record identity expected in the current capture.</param>
     procedure VerifySummaryDetailRecord(ExpectedRecordId: RecordId)
     begin
         SummaryAssert.IsTrue(SummaryDetailRecords.Contains(ExpectedRecordId), 'Drilldown must contain the complete expected table and primary key.');
@@ -234,6 +336,19 @@ codeunit 149908 "Subc. Warehouse Library"
         CaptureSummaryDetail(Rec.RecordId());
     end;
 
+    /// <summary>
+    /// Opens the released production order card and asserts all nine summary values before closing it.
+    /// </summary>
+    /// <param name="ProductionOrder">The released order whose subcontracting summary is eligible and visible.</param>
+    /// <param name="RoutingCount">The expected count of current subcontracting routing operations.</param>
+    /// <param name="PurchaseQuantity">The expected raw sum of linked purchase order line quantities.</param>
+    /// <param name="ReceiptQuantity">The expected signed sum of linked posted receipt quantities.</param>
+    /// <param name="InvoiceQuantity">The expected signed sum of linked posted invoice quantities.</param>
+    /// <param name="FullyInvoiced">The expected exact-quantity invoicing indicator.</param>
+    /// <param name="AtSubcontractor">The expected signed non-transit WIP balance in item base units.</param>
+    /// <param name="InTransit">The expected signed transit WIP balance in item base units.</param>
+    /// <param name="ForwardCount">The expected count of original forward transfer lines.</param>
+    /// <param name="ReturnCount">The expected count of original return transfer lines.</param>
     procedure VerifySummaryCard(ProductionOrder: Record "Production Order"; RoutingCount: Integer; PurchaseQuantity: Decimal; ReceiptQuantity: Decimal; InvoiceQuantity: Decimal; FullyInvoiced: Boolean; AtSubcontractor: Decimal; InTransit: Decimal; ForwardCount: Integer; ReturnCount: Integer)
     var
         ReleasedOrder: TestPage "Released Production Order";
@@ -252,6 +367,12 @@ codeunit 149908 "Subc. Warehouse Library"
         ReleasedOrder.Close();
     end;
 
+    /// <summary>
+    /// Asserts that the released order card and persisted WIP ledger agree on both transit balances.
+    /// </summary>
+    /// <param name="ProductionOrder">The released order whose subcontracting summary is eligible and visible.</param>
+    /// <param name="AtSubcontractor">The expected signed non-transit WIP balance in item base units.</param>
+    /// <param name="InTransit">The expected signed transit WIP balance in item base units.</param>
     procedure VerifySummaryWIP(ProductionOrder: Record "Production Order"; AtSubcontractor: Decimal; InTransit: Decimal)
     var
         WIPEntry: Record "Subcontractor WIP Ledger Entry";

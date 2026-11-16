@@ -13,7 +13,7 @@ pageextension 20504 "Subc. Rel. Prod. Order" extends "Released Production Order"
     {
         addfirst(factboxes)
         {
-            part(SubcontractingSummary; "Subc. Order Summary")
+            part(SubcontractingSummary; "Subc. Order Summary FactBox")
             {
                 ApplicationArea = Subcontracting;
                 SubPageLink = Status = field(Status), "No." = field("No.");
@@ -106,11 +106,6 @@ pageextension 20504 "Subc. Rel. Prod. Order" extends "Released Production Order"
     }
 
     trigger OnAfterGetCurrRecord()
-    begin
-        UpdateSummaryVisibility();
-    end;
-
-    trigger OnAfterGetRecord()
     begin
         UpdateSummaryVisibility();
     end;

@@ -94,7 +94,7 @@ permissionset 20501 "Subcontract. - Objs"
         page "Subc. Subcontracting Worksheet" = X,
         page "Subc. Purchase Line Factbox" = X,
         page "Subc. Routing Info Factbox" = X,
-        page "Subc. Order Summary" = X,
+        page "Subc. Order Summary FactBox" = X,
         page "Subc. Summary Invoice Lines" = X,
         page "Subc. Transfer Line Factbox" = X,
         page "Subcontractor Prices" = X,
