@@ -307,20 +307,17 @@ codeunit 10978 "CII XML Builder"
 
     local procedure AddBuyerLegalOrganization(var BuyerElement: XmlElement; Customer: Record Customer)
     var
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         LegalOrgElement: XmlElement;
         LegalOrgIdElement: XmlElement;
-        BuyerSIRENInvalidErr: Label 'Registration No. must contain exactly nine digits for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
+        SIRENNo: Text;
     begin
-        if Customer."Registration Number" = '' then
+        SIRENNo := FREDocHelpers.GetBuyerSIREN(Customer);
+        if SIRENNo = '' then
             exit;
 
-        if (StrLen(Customer."Registration Number") <> 9) or
-           (DelChr(Customer."Registration Number", '=', '0123456789') <> '')
-        then
-            Error(BuyerSIRENInvalidErr, Customer."No.");
-
         LegalOrgElement := XmlElement.Create('SpecifiedLegalOrganization', RamNamespaceTok);
-        LegalOrgIdElement := XmlElement.Create('ID', RamNamespaceTok, Customer."Registration Number");
+        LegalOrgIdElement := XmlElement.Create('ID', RamNamespaceTok, SIRENNo);
         LegalOrgIdElement.SetAttribute('schemeID', '0002');
         LegalOrgElement.Add(LegalOrgIdElement);
         BuyerElement.Add(LegalOrgElement);

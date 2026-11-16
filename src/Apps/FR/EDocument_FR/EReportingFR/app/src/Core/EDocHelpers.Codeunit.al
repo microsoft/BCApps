@@ -182,6 +182,38 @@ codeunit 10991 "EDoc. Helpers"
         OnAfterGetBuyerElectronicAddress(Customer, BuyerElectronicAddress, Result);
     end;
 
+    internal procedure GetBuyerSIREN(Customer: Record Customer): Text
+    var
+        SIRENNo: Text;
+        VATRegistrationSIREN: Text[250];
+    begin
+        SIRENNo := GetSIRENNo(Customer."Registration Number", Customer."Registration Number");
+        if SIRENNo <> '' then
+            exit(SIRENNo);
+
+        SIRENNo := CopyStr(Customer."FR Electronic Address", 1, 9);
+        if IsNumericIdentifier(SIRENNo, 9) then
+            exit(SIRENNo);
+
+        if GetSIRENFromFrenchVATRegistrationNo(Customer."VAT Registration No.", VATRegistrationSIREN) then
+            exit(VATRegistrationSIREN);
+
+        exit('');
+    end;
+
+    internal procedure GetSIRENNo(RegistrationNo: Text; SIRETNo: Text): Text
+    begin
+        if IsNumericIdentifier(SIRETNo, 14) then
+            exit(CopyStr(SIRETNo, 1, 9));
+        if IsNumericIdentifier(RegistrationNo, 9) then
+            exit(RegistrationNo);
+    end;
+
+    local procedure IsNumericIdentifier(Identifier: Text; RequiredLength: Integer): Boolean
+    begin
+        exit((StrLen(Identifier) = RequiredLength) and (DelChr(Identifier, '=', '0123456789') = ''));
+    end;
+
     local procedure GetSIRENFromFrenchVATRegistrationNo(VATRegistrationNo: Text; var SIREN: Text[250]): Boolean
     begin
         VATRegistrationNo := DelChr(VATRegistrationNo, '=', ' ');

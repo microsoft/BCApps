@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Formats.Test;
 
 using Microsoft.eServices.EDocument.Formats;
 using Microsoft.Foundation.Company;
+using Microsoft.Sales.Customer;
 
 codeunit 148146 "Identification Tests"
 {
@@ -102,6 +103,88 @@ codeunit 148146 "Identification Tests"
         // [WHEN] CheckSIRETNotEmpty is called
         // [THEN] No error is raised
         EDocHelpers.CheckSIRETNotEmpty();
+    end;
+
+    [Test]
+    procedure BuyerSIRENPrefersRegistrationNumber()
+    var
+        Customer: Record Customer;
+    begin
+        // [SCENARIO] Legal registration takes precedence over routing and VAT identifiers.
+        Initialize();
+
+        Customer."Registration Number" := '012345678';
+        Customer."FR Electronic Address" := '987654321_001';
+        Customer."VAT Registration No." := 'FR12123456789';
+
+        Assert.AreEqual('012345678', EDocHelpers.GetBuyerSIREN(Customer),
+            'The buyer SIREN must come from the registration number and retain leading zeroes.');
+    end;
+
+    [Test]
+    procedure BuyerSIRENIsExtractedFromRegistrationSIRET()
+    var
+        Customer: Record Customer;
+    begin
+        // [SCENARIO] A registration number containing a SIRET supplies its first nine digits.
+        Initialize();
+
+        Customer."Registration Number" := '01234567800012';
+        Customer."FR Electronic Address" := '987654321_001';
+
+        Assert.AreEqual('012345678', EDocHelpers.GetBuyerSIREN(Customer),
+            'A registration SIRET must supply the legal SIREN before routing is considered.');
+    end;
+
+    [Test]
+    procedure BuyerSIRENFallsBackToElectronicAddress()
+    var
+        Customer: Record Customer;
+    begin
+        // [SCENARIO] An unusable registration falls back to the routing SIREN without its suffix.
+        Initialize();
+
+        Customer."Registration Number" := '12345678A';
+        Customer."FR Electronic Address" := '012345678_001';
+        Customer."VAT Registration No." := 'FR12987654321';
+
+        Assert.AreEqual('012345678', EDocHelpers.GetBuyerSIREN(Customer),
+            'The routing suffix must not be included in the legal SIREN.');
+    end;
+
+    [Test]
+    procedure BuyerSIRENFallsBackToFrenchVAT()
+    var
+        Customer: Record Customer;
+    begin
+        // [SCENARIO] French VAT supplies the SIREN when registration and routing cannot.
+        Initialize();
+
+        Customer."Registration Number" := '12345678';
+        Customer."FR Electronic Address" := '12345678A_001';
+        Customer."VAT Registration No." := 'fr 12 012345678';
+
+        Assert.AreEqual('012345678', EDocHelpers.GetBuyerSIREN(Customer),
+            'French VAT must supply the SIREN after removing spaces and accepting lowercase FR.');
+    end;
+
+    [Test]
+    procedure BuyerSIRENIsEmptyWithoutUsableIdentifiers()
+    var
+        Customer: Record Customer;
+    begin
+        // [SCENARIO] Missing or unusable identifiers do not raise an error or produce a legal SIREN.
+        Initialize();
+
+        Assert.AreEqual('', EDocHelpers.GetBuyerSIREN(Customer),
+            'An empty customer must not supply a legal SIREN.');
+
+        Customer."Registration Number" := '12345678A';
+        Customer."FR Electronic Address" := '12345678A_001';
+        Customer."VAT Registration No." := 'DE12012345678';
+
+        Assert.AreEqual('', EDocHelpers.GetBuyerSIREN(Customer),
+            'Unusable identifiers and non-French VAT must not supply a legal SIREN.');
     end;
 
     local procedure AssertExpectedDialogError(ExpectedErrorText: Text)
