@@ -270,16 +270,11 @@ codeunit 6620 "Copy Document Mgt."
         OnAfterCopySalesDocForCrMemoCancelling(FromDocNo, ToSalesHeader, IncludeHeader, RecalculateLines, MoveNegLines, CreateToHeader, HideDialog, ExactCostRevMandatory, ApplyFully, SkipTestCreditLimit, SkipCopyFromDescription);
     end;
 
-    /// <summary>Copies a sales document with an overridden warning mode, restoring the previous mode after a successful copy.</summary>
-    /// <remarks>The previous mode is not restored if copying raises an error.</remarks>
+    /// <summary>Sets the warning-notification mode for this instance and copies a sales document.</summary>
     procedure CopySalesDoc(FromDocType: Enum "Sales Document Type From"; FromDocNo: Code[20]; var ToSalesHeader: Record "Sales Header"; NewSkipWarningNotification: Boolean)
-    var
-        PreviousSkipWarningNotification: Boolean;
     begin
-        PreviousSkipWarningNotification := SkipWarningNotification;
         SkipWarningNotification := NewSkipWarningNotification;
         CopySalesDoc(FromDocType, FromDocNo, ToSalesHeader);
-        SkipWarningNotification := PreviousSkipWarningNotification;
     end;
 
     procedure CopySalesDoc(FromDocType: Enum "Sales Document Type From"; FromDocNo: Code[20]; var ToSalesHeader: Record "Sales Header")
