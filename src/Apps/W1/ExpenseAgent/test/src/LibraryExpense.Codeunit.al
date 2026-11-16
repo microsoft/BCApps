@@ -16,6 +16,7 @@ using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
 using System.Agents;
+using System.Environment.Configuration;
 using System.Utilities;
 
 codeunit 148300 "Library - Expense"
@@ -493,6 +494,28 @@ codeunit 148300 "Library - Expense"
         ExpenseAgentSetup.Validate("Minimum Hours for Per Diem", MinimumHoursForPerDiem);
         ExpenseAgentSetup.Validate("Min Hours for Partial Per Diem", MinimumHoursForPartialPerDiem);
         ExpenseAgentSetup.Modify(true);
+    end;
+
+    /// <summary>
+    /// Makes the current user act as the agent user with the given time zone, which per diem days are split in.
+    /// </summary>
+    internal procedure SetAgentTimeZone(TimeZoneId: Text[180])
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        UserPersonalization: Record "User Personalization";
+    begin
+        // Agent.GetUserSettings falls back to the current user, so the current user's settings stand in for the agent's.
+        if not UserPersonalization.Get(UserSecurityId()) then begin
+            UserPersonalization.Init();
+            UserPersonalization."User SID" := UserSecurityId();
+            UserPersonalization.Insert();
+        end;
+        UserPersonalization."Time Zone" := TimeZoneId;
+        UserPersonalization.Modify();
+
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."User Security ID" := UserSecurityId();
+        ExpenseAgentSetup.Modify();
     end;
 
     procedure UpdateExpenseAccountInEmployeePostingGroup(EmployeePostingGroupCode: Code[20])

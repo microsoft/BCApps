@@ -1534,7 +1534,8 @@ table 6906 "Expense Report Header"
 
         // The category must be set first, because it resets the per diem fields and the travel request link.
         ExpenseReportLine.Validate("Expense Category", PerDiemCategoryCode);
-        ExpenseReportLine.Validate("Expense Date", DT2Date(SpendRequest."Actual Start Date and Time"));
+        ExpenseAgentSetup.GetRecordOnce();
+        ExpenseReportLine.Validate("Expense Date", ExpenseAgentSetup.GetAgentDate(SpendRequest."Actual Start Date and Time"));
         ExpenseReportLine.Validate("Expense Location", SpendRequest."Expense Location");
         ExpenseReportLine.Validate("Starting Date and Time", SpendRequest."Actual Start Date and Time");
         ExpenseReportLine.Validate("Ending Date and Time", SpendRequest."Actual End Date and Time");
@@ -1559,7 +1560,8 @@ table 6906 "Expense Report Header"
         TripStartDate: Date;
     begin
         // Release checks this too, but the rules can change between release and approval.
-        TripStartDate := DT2Date(SpendRequest."Actual Start Date and Time");
+        ExpenseAgentSetup.GetRecordOnce();
+        TripStartDate := ExpenseAgentSetup.GetAgentDate(SpendRequest."Actual Start Date and Time");
         PerDiemCategoryCode := ExpenseRuleHeader.FindPerDiemCategory(SpendRequest."Expense Location", TripStartDate);
         if PerDiemCategoryCode <> '' then
             exit(PerDiemCategoryCode);

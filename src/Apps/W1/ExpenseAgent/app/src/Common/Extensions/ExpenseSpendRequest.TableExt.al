@@ -303,13 +303,15 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
     /// </summary>
     internal procedure CheckPerDiemRuleOnTripStart()
     var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpenseRuleHeader: Record "Expense Rule Header";
         TripStartDate: Date;
     begin
         if (not Rec."Per Diem Included") or (Rec."Expense Location" = '') or (Rec."Actual Start Date and Time" = 0DT) then
             exit;
 
-        TripStartDate := DT2Date(Rec."Actual Start Date and Time");
+        ExpenseAgentSetup.GetRecordOnce();
+        TripStartDate := ExpenseAgentSetup.GetAgentDate(Rec."Actual Start Date and Time");
         if ExpenseRuleHeader.FindPerDiemCategory(Rec."Expense Location", TripStartDate) = '' then
             Error(NoPerDiemRuleOnTripStartErr, Rec."Expense Location", TripStartDate);
     end;

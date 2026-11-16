@@ -218,6 +218,8 @@ page 6942 "Expense Agent Setup API"
     end;
 
     trigger OnAfterGetRecord()
+    var
+        UnresolvedReason: Text;
     begin
         Clear(AgentLanguageCode);
         Clear(AgentTimeZone);
@@ -226,9 +228,10 @@ page 6942 "Expense Agent Setup API"
             exit;
         if not TryGetAgentUserSettings(Rec."User Security ID") then begin
             Clear(AgentLanguageCode);
-            Clear(AgentTimeZone);
             Clear(AgentRegionalFormatId);
         end;
+        // Per diem days are split in this time zone, so expose exactly the value the calculation uses.
+        Rec.GetAgentTimeZone(AgentTimeZone, UnresolvedReason);
     end;
 
     [TryFunction]
@@ -240,7 +243,6 @@ page 6942 "Expense Agent Setup API"
     begin
         Agent.GetUserSettings(AgentUserSecurityID, TempUserSettings);
         AgentLanguageCode := Language.GetLanguageCode(TempUserSettings."Language ID");
-        AgentTimeZone := TempUserSettings."Time Zone";
         AgentRegionalFormatId := TempUserSettings."Locale ID";
     end;
 
