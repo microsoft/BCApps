@@ -9,6 +9,7 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
@@ -35,6 +36,382 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     begin
         // [FEATURE] Subcontracting Management
         IsInitialized := false;
+    end;
+
+    [Test]
+    [HandlerFunctions('SummaryRoutingHandler')]
+    procedure SummaryCardRoutingAndEligibility()
+    var
+        ProductionOrder: Record "Production Order";
+        OtherOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        ReleasedOrders: TestPage "Released Production Orders";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] The genuine card aggregates current subcontract operations, not internal or other-order lines.
+        Initialize();
+
+        // [GIVEN] Order "A" has two subcontract operations and one internal operation; "B" shares its routing.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        AddSummaryRoutingOperations(ProductionOrder);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            OtherOrder, OtherOrder.Status::Released, OtherOrder."Source Type"::Item, ProductionOrder."Source No.", 7, ProductionOrder."Location Code");
+
+        // [WHEN] The real Released list opens its card and the routing detail is invoked.
+        ReleasedOrders.OpenView();
+        ReleasedOrders.GoToRecord(ProductionOrder);
+        ReleasedOrder.Trap();
+        ReleasedOrders.Edit().Invoke();
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(2);
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+
+        // [THEN] Only "A"'s subcontract operation keys are returned.
+        VerifySummaryRoutingDetails(ProductionOrder);
+        ReleasedOrder.Close();
+        ReleasedOrders.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure SummaryCardNavigationAndBlankGuard()
+    var
+        ProductionOrder: Record "Production Order";
+        OtherOrder: Record "Production Order";
+        BlankOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        OtherWorkCenter: Record "Work Center";
+        SummaryMgmt: Codeunit "Subc. Order Summary Mgmt.";
+        ReleasedOrder: TestPage "Released Production Order";
+        HasOpenLine: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Navigation clears hidden and blank records instead of retaining another order's values.
+        Initialize();
+
+        // [GIVEN] Eligible "A", internal-only "B", and unrelated blank-linked purchasing data.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        AddSummaryRoutingOperations(ProductionOrder);
+        SubcWarehouseLibrary.CreateSummaryOrder(7, OtherOrder, OtherWorkCenter);
+        OtherWorkCenter.Validate("Subcontractor No.", '');
+        OtherWorkCenter.Modify(true);
+        CreateSummaryBlankPurchase();
+
+        // [WHEN] The actual card navigates "A" -> "B" -> "A".
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(2);
+        ReleasedOrder.GoToRecord(OtherOrder);
+
+        // [THEN] "B" is ineligible and does not inherit "A"; "A" is recomputed on return.
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.Visible(), 'Internal-only order must hide the summary.');
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(2);
+        ReleasedOrder.Close();
+        ReleasedOrder.OpenNew();
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.Visible(), 'Blank card must hide the summary.');
+        ReleasedOrder.Close();
+        Assert.AreEqual(0, SummaryMgmt.GetPurchaseQuantity(BlankOrder, HasOpenLine), 'Blank identity must not read blank-linked rows.');
+        Assert.IsFalse(SummaryMgmt.IsFullyInvoiced(BlankOrder), 'Blank identity must not display a positive indicator.');
+        SummaryMgmt.ShowPurchase(BlankOrder);
+        SummaryMgmt.ShowReceipts(BlankOrder);
+        SummaryMgmt.ShowInvoices(BlankOrder);
+        SummaryMgmt.ShowRouting(BlankOrder);
+        SummaryMgmt.ShowWIP(BlankOrder, false);
+        SummaryMgmt.ShowTransfers(BlankOrder, false);
+    end;
+
+    [Test]
+    procedure SummaryOrdinaryRefreshAndMembership()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReleasedOrder: TestPage "Released Production Order";
+        VendorNo: Code[20];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Persisted work-center membership is recalculated by the parent even while the part is hidden.
+        Initialize();
+
+        // [GIVEN] Eligible "A" has one current subcontract operation.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        VendorNo := WorkCenter."Subcontractor No.";
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(1);
+
+        // [WHEN] The work center's subcontractor is cleared and the current record is reread.
+        WorkCenter.Validate("Subcontractor No.", '');
+        WorkCenter.Modify(true);
+        ReleasedOrder.GoToRecord(ProductionOrder);
+
+        // [THEN] The parent hides the part, then restores it after the persisted vendor is restored.
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.Visible(), 'Cleared membership must hide the summary.');
+        WorkCenter.Validate("Subcontractor No.", VendorNo);
+        WorkCenter.Modify(true);
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        Assert.IsTrue(ReleasedOrder.SubcontractingSummary.Visible(), 'Hidden part must become eligible again.');
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(1);
+        SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, WorkCenter, PurchaseHeader, PurchaseLine);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.PurchaseQuantity.AssertEquals(10);
+        ReleasedOrder.SubcontractingSummary.ReceiptQuantity.AssertEquals(10);
+        ReleasedOrder.SubcontractingSummary.InvoiceQuantity.AssertEquals(0);
+        ReleasedOrder.SubcontractingSummary.FullyInvoiced.AssertEquals(Format(false));
+        ReleasedOrder.Close();
+    end;
+
+    [Test]
+    procedure SummaryVisibilityAndPersonalizationContract()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Eligible cards expose all nine read-only summary values by default; client personalization needs a client trace.
+        Initialize();
+
+        // [GIVEN] An eligible order without purchasing history.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+
+        // [WHEN] Its actual card is opened for editing.
+        ReleasedOrder.OpenEdit();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+
+        // [THEN] The summary is visible, but none of its nine fields is editable.
+        Assert.IsTrue(ReleasedOrder.SubcontractingSummary.Visible(), 'Eligible summary must be visible by default.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.RoutingCount.Editable(), 'Routing count is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.PurchaseQuantity.Editable(), 'Purchase quantity is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.ReceiptQuantity.Editable(), 'Receipt quantity is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.InvoiceQuantity.Editable(), 'Invoice quantity is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.FullyInvoiced.Editable(), 'Indicator is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.Editable(), 'WIP balance is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.WIPInTransit.Editable(), 'Transit balance is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.TransferCount.Editable(), 'Forward count is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.ReturnTransferCount.Editable(), 'Return count is read-only.');
+        ReleasedOrder.SubcontractingSummary.FullyInvoiced.AssertEquals(Format(true));
+        ReleasedOrder.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('SummaryReadTransferCreatedHandler,SummaryReadPurchaseHandler,SummaryReadReceiptHandler,SummaryReadInvoiceHandler,SummaryReadWIPHandler,SummaryReadTransferHandler,SummaryRoutingHandler')]
+    procedure SummaryReadPermissionsContract()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        RoutingLine: Record "Prod. Order Routing Line";
+        WIPEntry: Record "Subcontractor WIP Ledger Entry";
+        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
+        DirectPost: Codeunit "TransferOrder-Post Transfer";
+        ReleasedOrder: TestPage "Released Production Order";
+        OrderSystemModifiedAt: DateTime;
+        WIPEntryCount: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Record actual card read permission use without treating this Disabled suite as an effective-user permission test.
+        Initialize();
+
+        // [GIVEN] A real production order is prepared before the read-only permission recording phase.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, WorkCenter, PurchaseHeader, PurchaseLine);
+        SubcWarehouseLibrary.CreateSummaryForward(ProductionOrder, WorkCenter, PurchaseHeader, TransferHeader);
+        TransferHeader.Validate("Direct Transfer", true);
+        TransferHeader.Validate("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Direct Transfer");
+        TransferHeader.Modify(true);
+        DirectPost.SetHideValidationDialog(true);
+        DirectPost.Run(TransferHeader);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+        OrderSystemModifiedAt := ProductionOrder.SystemModifiedAt;
+        WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
+        WIPEntryCount := WIPEntry.Count();
+
+        // [WHEN] The real consumer reads under permission recording for the owning role.
+        LibraryLowerPermissions.StartLoggingNAVPermissions('Subcontract. - Read');
+        SubcWarehouseLibrary.VerifySummaryCard(ProductionOrder, 1, 10, 10, 0, false, 10, 0, 0, 0);
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.PurchaseQuantity.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(1);
+        SubcWarehouseLibrary.VerifySummaryDetailRecord(PurchaseLine.RecordId());
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.ReceiptQuantity.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+        ReceiptLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ReceiptLine.FindFirst();
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(1);
+        SubcWarehouseLibrary.VerifySummaryDetailRecord(ReceiptLine.RecordId());
+        ReleasedOrder.SubcontractingSummary.InvoiceQuantity.DrillDown();
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+        WIPEntry.FindFirst();
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(1);
+        SubcWarehouseLibrary.VerifySummaryDetailRecord(WIPEntry.RecordId());
+        ReleasedOrder.SubcontractingSummary.WIPInTransit.DrillDown();
+        ReleasedOrder.SubcontractingSummary.TransferCount.DrillDown();
+        ReleasedOrder.SubcontractingSummary.ReturnTransferCount.DrillDown();
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+        RoutingLine.SetRange(Status, ProductionOrder.Status);
+        RoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RoutingLine.FindFirst();
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(1);
+        SubcWarehouseLibrary.VerifySummaryDetailRecord(RoutingLine.RecordId());
+        Assert.AreEqual(1, LibraryVariableStorage.DequeueInteger(), 'Read-role routing detail must contain one operation.');
+        Assert.AreEqual(ProductionOrder."No.", LibraryVariableStorage.DequeueText(), 'Read-role routing detail must retain current order.');
+        Assert.AreEqual('10', LibraryVariableStorage.DequeueText(), 'Read-role routing detail must retain operation.');
+        ReleasedOrder.Close();
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+
+        // [THEN] Reading has not modified the header. Actual non-SUPER access remains a separate client obligation.
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+        Assert.AreEqual(OrderSystemModifiedAt, ProductionOrder.SystemModifiedAt, 'Summary reads must not write the production order.');
+        Assert.AreEqual(WIPEntryCount, WIPEntry.Count(), 'Summary details must not write WIP history.');
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        Assert.RecordIsEmpty(TransferLine);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure AddSummaryRoutingOperations(var ProductionOrder: Record "Production Order")
+    var
+        Item: Record Item;
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        SecondWorkCenter: Record "Work Center";
+        InternalWorkCenter: Record "Work Center";
+    begin
+        Item.Get(ProductionOrder."Source No.");
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+        LibraryMfgManagement.CreateSubcontractingWorkCenterWithCalendar(SecondWorkCenter);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '20', RoutingLine.Type::"Work Center", SecondWorkCenter."No.");
+        LibraryMfgManagement.CreateSubcontractingWorkCenterWithCalendar(InternalWorkCenter);
+        InternalWorkCenter.Validate("Subcontractor No.", '');
+        InternalWorkCenter.Modify(true);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '30', RoutingLine.Type::"Work Center", InternalWorkCenter."No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+    end;
+
+    local procedure CreateSummaryBlankPurchase()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+    begin
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 99);
+    end;
+
+    local procedure VerifySummaryRoutingDetails(ProductionOrder: Record "Production Order")
+    var
+        RoutingLine: Record "Prod. Order Routing Line";
+    begin
+        RoutingLine.SetRange(Status, ProductionOrder.Status);
+        RoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RoutingLine.SetRange(Subcontracting, true);
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(RoutingLine.Count());
+        Assert.AreEqual(2, LibraryVariableStorage.DequeueInteger(), 'Exactly two qualifying operations must be shown.');
+        RoutingLine.FindSet();
+        repeat
+            SubcWarehouseLibrary.VerifySummaryDetailRecord(RoutingLine.RecordId());
+            Assert.AreEqual(ProductionOrder."No.", LibraryVariableStorage.DequeueText(), 'Detail must be scoped to current order.');
+            Assert.AreEqual(RoutingLine."Operation No.", LibraryVariableStorage.DequeueText(), 'Detail operation must match the filtered routing.');
+        until RoutingLine.Next() = 0;
+    end;
+
+    [PageHandler]
+    procedure SummaryRoutingHandler(var Routing: TestPage "Prod. Order Routing")
+    var
+        OrderNumbers: List of [Text];
+        OperationNumbers: List of [Text];
+        RowIndex: Integer;
+    begin
+        if Routing.First() then
+            repeat
+                OrderNumbers.Add(Routing."Prod. Order No.".Value());
+                OperationNumbers.Add(Routing."Operation No.".Value());
+            until not Routing.Next();
+        LibraryVariableStorage.Enqueue(OrderNumbers.Count());
+        for RowIndex := 1 to OrderNumbers.Count() do begin
+            LibraryVariableStorage.Enqueue(OrderNumbers.Get(RowIndex));
+            LibraryVariableStorage.Enqueue(OperationNumbers.Get(RowIndex));
+        end;
+        Routing.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryReadTransferCreatedHandler(var TransferOrder: TestPage "Transfer Order")
+    begin
+        TransferOrder.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryReadPurchaseHandler(var Lines: TestPage "Purchase Lines")
+    var
+        HasRecord: Boolean;
+    begin
+        HasRecord := Lines.First();
+        while HasRecord do
+            HasRecord := Lines.Next();
+        Lines.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryReadReceiptHandler(var Lines: TestPage "Purch. Receipt Lines")
+    var
+        HasRecord: Boolean;
+    begin
+        HasRecord := Lines.First();
+        while HasRecord do
+            HasRecord := Lines.Next();
+        Lines.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryReadInvoiceHandler(var Lines: TestPage "Subc. Summary Invoice Lines")
+    begin
+        Lines.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryReadWIPHandler(var Entries: TestPage "Subc. WIP Ledger Entries")
+    var
+        HasRecord: Boolean;
+    begin
+        HasRecord := Entries.First();
+        while HasRecord do
+            HasRecord := Entries.Next();
+        Entries.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryReadTransferHandler(var Lines: TestPage "Transfer Lines")
+    begin
+        Lines.Close();
     end;
 
     local procedure Initialize()
@@ -1680,6 +2057,8 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";

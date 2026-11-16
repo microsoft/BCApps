@@ -6,8 +6,11 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Document;
 
 codeunit 149914 "Subc. WIP Adjustment Test"
 {
@@ -19,6 +22,82 @@ codeunit 149914 "Subc. WIP Adjustment Test"
     trigger OnRun()
     begin
         IsInitialized := false;
+    end;
+
+    [Test]
+    [HandlerFunctions('WIPAdjustmentPageHandler,SummaryTransferCreatedHandler')]
+    procedure SummaryRealOrderAdjustmentRefresh()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        WIPEntry: Record "Subcontractor WIP Ledger Entry";
+        DirectPost: Codeunit "TransferOrder-Post Transfer";
+        ReleasedOrder: TestPage "Released Production Order";
+        EntryCount: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Real-order native WIP adjustment appends deltas and refreshes the actual Released consumer, preserving target guards.
+        Initialize();
+
+        // [GIVEN] A real header, line and routing with ten natively posted WIP units, not synthetic CreateTestWIPSetup.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, WorkCenter, PurchaseHeader, PurchaseLine);
+        SubcWarehouseLibrary.CreateSummaryForward(ProductionOrder, WorkCenter, PurchaseHeader, TransferHeader);
+        TransferHeader.Validate("Direct Transfer", true);
+        TransferHeader.Validate("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Direct Transfer");
+        TransferHeader.Modify(true);
+        DirectPost.SetHideValidationDialog(true);
+        DirectPost.Run(TransferHeader);
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 10, 0);
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+
+        // [WHEN] The real parent action adjusts the valid target to six, then eight.
+        SetHandlerValues(6, 'SUMMARY-6', 'Summary target six', '');
+        ReleasedOrder."WIP Adjustment".Invoke();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(6);
+        AssertAdjustmentEntry(ProductionOrder."No.", -4, "WIP Ledger Entry Type"::"Negative Adjustment", 'SUMMARY-6', 'Summary target six', '');
+        SetHandlerValues(8, 'SUMMARY-8', 'Summary target eight', '');
+        ReleasedOrder."WIP Adjustment".Invoke();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+
+        // [THEN] The original ten remains and native -4/+2 deltas produce eight.
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(8);
+        ReleasedOrder.SubcontractingSummary.WIPInTransit.AssertEquals(0);
+        AssertAdjustmentEntry(ProductionOrder."No.", 2, "WIP Ledger Entry Type"::"Positive Adjustment", 'SUMMARY-8', 'Summary target eight', '');
+        WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
+        EntryCount := WIPEntry.Count();
+        Assert.AreEqual(3, EntryCount, 'One original plus two adjustment entries must remain.');
+
+        // [WHEN] A negative target is attempted through the same actual dialog.
+        SetHandlerValues(-1, 'INVALID', 'Invalid negative target', '');
+        asserterror ReleasedOrder."WIP Adjustment".Invoke();
+
+        // [THEN] The native target guard rejects it without adding entries.
+        Assert.ExpectedError('must not be negative');
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.AreEqual(EntryCount, WIPEntry.Count(), 'Rejected negative target must not append entries.');
+
+        // [WHEN] A target above the real production line quantity is attempted.
+        SetHandlerValues(11, 'INVALID', 'Invalid excessive target', '');
+        asserterror ReleasedOrder."WIP Adjustment".Invoke();
+
+        // [THEN] The native upper guard rejects it and the persisted card balance stays eight.
+        Assert.ExpectedError('must not exceed');
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.AreEqual(EntryCount, WIPEntry.Count(), 'Rejected excessive target must not append entries.');
+        ReleasedOrder.Close();
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 8, 0);
+    end;
+
+    [PageHandler]
+    procedure SummaryTransferCreatedHandler(var TransferOrder: TestPage "Transfer Order")
+    begin
+        TransferOrder.Close();
     end;
 
     [Test]
@@ -260,6 +339,7 @@ codeunit 149914 "Subc. WIP Adjustment Test"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
+        SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
         HandlerNewQuantity: Decimal;
         HandlerDocumentNo: Code[20];
@@ -430,6 +510,7 @@ codeunit 149914 "Subc. WIP Adjustment Test"
     begin
         WIPLedgerEntry.SetRange("Prod. Order No.", ProdOrderNo);
         WIPLedgerEntry.SetRange("Document Type", "WIP Document Type"::"Adjustment (Manual)");
+        WIPLedgerEntry.SetRange("Document No.", ExpectedDocumentNo);
         Assert.IsTrue(WIPLedgerEntry.FindFirst(), 'A WIP adjustment entry should have been created');
         Assert.AreEqual(1, WIPLedgerEntry.Count(), 'Exactly one adjustment entry should have been created');
         Assert.AreEqual(
