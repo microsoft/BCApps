@@ -595,7 +595,6 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     local procedure InjectBuyerIdentification(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SourceDocumentHeader: RecordRef)
     var
         Customer: Record Customer;
-        FRCIIXMLBuilder: Codeunit "CII XML Builder";
         FREDocHelpers: Codeunit "EDoc. Helpers";
         CustomerNoFieldRef: FieldRef;
         BuyerPartyNode: XmlNode;
@@ -604,7 +603,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     begin
         if not XmlDoc.SelectSingleNode('//cac:AccountingCustomerParty/cac:Party', NamespaceMgr, BuyerPartyNode) then
             exit;
-        if not FRCIIXMLBuilder.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
+        if not FREDocHelpers.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
             exit;
         CustomerNo := CustomerNoFieldRef.Value();
         Customer.SetLoadFields("Registration Number", "FR Electronic Address", "VAT Registration No.");
@@ -709,12 +708,11 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     local procedure GetCustomerElecAddress(SourceDocumentHeader: RecordRef; EDocumentServiceCode: Code[20]; var ElecAddress: Text[250]; var ElecAddressScheme: Enum "Electronic Address Scheme"): Boolean
     var
         Customer: Record Customer;
-        FRCIIXMLBuilder: Codeunit "CII XML Builder";
         FREDocHelpers: Codeunit "EDoc. Helpers";
         CustomerNoFieldRef: FieldRef;
         CustomerNo: Code[20];
     begin
-        if not FRCIIXMLBuilder.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
+        if not FREDocHelpers.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
             exit(false);
 
         CustomerNo := CustomerNoFieldRef.Value();

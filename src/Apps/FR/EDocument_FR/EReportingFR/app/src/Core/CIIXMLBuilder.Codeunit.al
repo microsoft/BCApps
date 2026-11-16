@@ -14,9 +14,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.UOM;
 using Microsoft.Sales.Customer;
-using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
-using Microsoft.Sales.Reminder;
 using Microsoft.Service.History;
 using System.Reflection;
 using System.Utilities;
@@ -269,7 +267,7 @@ codeunit 10978 "CII XML Builder"
     begin
         BuyerElement := XmlElement.Create('BuyerTradeParty', RamNamespaceTok);
 
-        if TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
+        if FREDocHelpers.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
             CustomerNo := CustomerNoFieldRef.Value();
 
         // Buyer name and postal address are taken from the posted document snapshot so that a later
@@ -321,31 +319,6 @@ codeunit 10978 "CII XML Builder"
         LegalOrgIdElement.SetAttribute('schemeID', '0002');
         LegalOrgElement.Add(LegalOrgIdElement);
         BuyerElement.Add(LegalOrgElement);
-    end;
-
-    procedure TryGetBuyerElectronicAddress(Customer: Record Customer; var BuyerElectronicAddress: Text): Boolean
-    var
-        VATRegistrationNo: Text;
-    begin
-        if Customer."FR Electronic Address" <> '' then begin
-            BuyerElectronicAddress := Customer."FR Electronic Address";
-            exit(true);
-        end;
-
-        if Customer."Registration Number" <> '' then begin
-            BuyerElectronicAddress := CopyStr(Customer."Registration Number", 1, 14);
-            exit(true);
-        end;
-
-        VATRegistrationNo := UpperCase(DelChr(Customer."VAT Registration No.", '=', ' '));
-        if (StrLen(VATRegistrationNo) = 13) and (CopyStr(VATRegistrationNo, 1, 2) = 'FR') and
-           (DelChr(CopyStr(VATRegistrationNo, 3), '=', '0123456789') = '')
-        then begin
-            BuyerElectronicAddress := CopyStr(VATRegistrationNo, 5, 9);
-            exit(true);
-        end;
-
-        exit(false);
     end;
 
     local procedure GetHeaderFieldText(var SourceDocumentHeader: RecordRef; PrimaryFieldName: Text; FallbackFieldName: Text): Text
@@ -405,30 +378,6 @@ codeunit 10978 "CII XML Builder"
             exit(VATRegistrationNo);
 
         exit(CountryCode.ToUpper() + VATRegistrationNo);
-    end;
-
-    procedure TryGetCustomerNoFieldRef(SourceDocumentHeader: RecordRef; var CustomerNoFieldRef: FieldRef): Boolean
-    var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        ServiceInvoiceHeader: Record "Service Invoice Header";
-    begin
-        case SourceDocumentHeader.Number() of
-            Database::"Sales Invoice Header", Database::"Sales Cr.Memo Header":
-                begin
-                    CustomerNoFieldRef := SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Sell-to Customer No."));
-                    exit(true);
-                end;
-            Database::"Service Invoice Header",
-            Database::"Service Cr.Memo Header",
-            Database::"Issued Reminder Header",
-            Database::"Issued Fin. Charge Memo Header":
-                begin
-                    CustomerNoFieldRef := SourceDocumentHeader.Field(ServiceInvoiceHeader.FieldNo("Customer No."));
-                    exit(true);
-                end;
-            else
-                exit(false);
-        end;
     end;
 
     local procedure AddTradeDelivery(var TransactionElement: XmlElement; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef)
