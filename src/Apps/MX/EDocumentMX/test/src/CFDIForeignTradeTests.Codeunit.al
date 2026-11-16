@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Interfactura.Tests;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.EServices.EDocument.Interfactura;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
@@ -12,7 +13,6 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
-using Microsoft.eServices.EDocument;
 using System.Utilities;
 
 codeunit 148758 "CFDI Foreign Trade Tests"

@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Interfactura;
 
+using Microsoft.Inventory.Transfer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Inventory.Transfer;
 
 codeunit 3372 "Carta Porte Fields Copy MX"
 {

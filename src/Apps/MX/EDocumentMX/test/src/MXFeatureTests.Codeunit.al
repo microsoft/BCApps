@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Interfactura.Tests;
 
-using Microsoft.EServices.EDocument.Interfactura;
 using Microsoft.eServices.EDocument;
+using Microsoft.EServices.EDocument.Interfactura;
 using System.Utilities;
 
 codeunit 148760 "MX Feature Tests"

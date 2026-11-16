@@ -7,7 +7,7 @@ namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.FixedAssets.FixedAsset;
 
-tableextension 3353 FixedAssetsTableExt extends "Fixed Asset"
+tableextension 3353 FixedAssets extends "Fixed Asset"
 {
     fields
     {

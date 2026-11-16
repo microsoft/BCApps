@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Interfactura.Tests;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.EServices.EDocument.Interfactura;
 using Microsoft.Foundation.Company;
-using Microsoft.eServices.EDocument;
 using System.Utilities;
 
 codeunit 148751 "CFDI Cancellation Tests"

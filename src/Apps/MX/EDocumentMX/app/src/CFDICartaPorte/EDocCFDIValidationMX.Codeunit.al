@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Interfactura;
 
-using Microsoft.eServices.EDocument;
 using Microsoft.Bank.BankAccount;
+using Microsoft.eServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.FixedAsset;
@@ -767,29 +767,25 @@ codeunit 3363 "EDoc CFDI Validation MX"
             TempErrorMessage.LogIfEmpty(DetailedCustLedgEntry, DetailedCustLedgEntry.FieldNo(Amount), TempErrorMessage."Message Type"::Error);
             case AppliedCustLedgerEntry."Document Type" of
                 AppliedCustLedgerEntry."Document Type"::Invoice:
-                    begin
-                        if SalesInvoiceHeader.Get(AppliedCustLedgerEntry."Document No.") then begin
-                            CheckAppliedDocumentIsStamped(SalesInvoiceHeader.RecordId());
-                            TempErrorMessage.LogIfEmpty(SalesInvoiceHeader, SalesInvoiceHeader.FieldNo("Bill-to Post Code"), TempErrorMessage."Message Type"::Error);
+                    if SalesInvoiceHeader.Get(AppliedCustLedgerEntry."Document No.") then begin
+                        CheckAppliedDocumentIsStamped(SalesInvoiceHeader.RecordId());
+                        TempErrorMessage.LogIfEmpty(SalesInvoiceHeader, SalesInvoiceHeader.FieldNo("Bill-to Post Code"), TempErrorMessage."Message Type"::Error);
+                    end else
+                        if ServiceInvoiceHeader.Get(AppliedCustLedgerEntry."Document No.") then begin
+                            CheckAppliedDocumentIsStamped(ServiceInvoiceHeader.RecordId());
+                            TempErrorMessage.LogIfEmpty(ServiceInvoiceHeader, ServiceInvoiceHeader.FieldNo("Bill-to Post Code"), TempErrorMessage."Message Type"::Error);
                         end else
-                            if ServiceInvoiceHeader.Get(AppliedCustLedgerEntry."Document No.") then begin
-                                CheckAppliedDocumentIsStamped(ServiceInvoiceHeader.RecordId());
-                                TempErrorMessage.LogIfEmpty(ServiceInvoiceHeader, ServiceInvoiceHeader.FieldNo("Bill-to Post Code"), TempErrorMessage."Message Type"::Error);
-                            end else
-                                TempErrorMessage.LogMessage(AppliedCustLedgerEntry, 0, TempErrorMessage."Message Type"::Error, StrSubstNo(PaymentAppliedHeaderMissingErr, AppliedCustLedgerEntry."Document No."));
-                    end;
+                            TempErrorMessage.LogMessage(AppliedCustLedgerEntry, 0, TempErrorMessage."Message Type"::Error, StrSubstNo(PaymentAppliedHeaderMissingErr, AppliedCustLedgerEntry."Document No."));
                 AppliedCustLedgerEntry."Document Type"::"Credit Memo":
-                    begin
-                        if SalesCrMemoHeader.Get(AppliedCustLedgerEntry."Document No.") then begin
-                            CheckAppliedDocumentIsStamped(SalesCrMemoHeader.RecordId());
-                            TempErrorMessage.LogIfEmpty(SalesCrMemoHeader, SalesCrMemoHeader.FieldNo("Bill-to Post Code"), TempErrorMessage."Message Type"::Error);
+                    if SalesCrMemoHeader.Get(AppliedCustLedgerEntry."Document No.") then begin
+                        CheckAppliedDocumentIsStamped(SalesCrMemoHeader.RecordId());
+                        TempErrorMessage.LogIfEmpty(SalesCrMemoHeader, SalesCrMemoHeader.FieldNo("Bill-to Post Code"), TempErrorMessage."Message Type"::Error);
+                    end else
+                        if ServiceCrMemoHeader.Get(AppliedCustLedgerEntry."Document No.") then begin
+                            CheckAppliedDocumentIsStamped(ServiceCrMemoHeader.RecordId());
+                            TempErrorMessage.LogIfEmpty(ServiceCrMemoHeader, ServiceCrMemoHeader.FieldNo("Bill-to Post Code"), TempErrorMessage."Message Type"::Error);
                         end else
-                            if ServiceCrMemoHeader.Get(AppliedCustLedgerEntry."Document No.") then begin
-                                CheckAppliedDocumentIsStamped(ServiceCrMemoHeader.RecordId());
-                                TempErrorMessage.LogIfEmpty(ServiceCrMemoHeader, ServiceCrMemoHeader.FieldNo("Bill-to Post Code"), TempErrorMessage."Message Type"::Error);
-                            end else
-                                TempErrorMessage.LogMessage(AppliedCustLedgerEntry, 0, TempErrorMessage."Message Type"::Error, StrSubstNo(PaymentAppliedHeaderMissingErr, AppliedCustLedgerEntry."Document No."));
-                    end;
+                            TempErrorMessage.LogMessage(AppliedCustLedgerEntry, 0, TempErrorMessage."Message Type"::Error, StrSubstNo(PaymentAppliedHeaderMissingErr, AppliedCustLedgerEntry."Document No."));
             end;
         until DetailedCustLedgEntry.Next() = 0;
         if not HasAppliedDocuments then

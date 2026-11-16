@@ -7,7 +7,7 @@ namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.FixedAssets.FixedAsset;
 
-pageextension 3352 FixedAssetsPageExt extends "Fixed Asset Card"
+pageextension 3352 FixedAssets extends "Fixed Asset Card"
 {
     layout
     {

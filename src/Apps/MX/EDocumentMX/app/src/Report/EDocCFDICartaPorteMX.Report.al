@@ -5,16 +5,15 @@
 namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Sales.History;
-using System;
 using System.Reflection;
 using System.Text;
 using System.Utilities;

@@ -6,11 +6,10 @@
 namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.Bank.BankAccount;
-
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.Address;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
@@ -394,17 +393,15 @@ codeunit 3356 "MX Payment Complement Builder"
 
     local procedure GetUUID(Applied: Record "Cust. Ledger Entry"; WriteBack: Codeunit "CFDI Write-Back MX"): Text
     var
-        SI: Record "Sales Invoice Header";
-        SVI: Record "Service Invoice Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
     begin
-        if SI.Get(Applied."Document No.") then begin
-            if WriteBack.GetUUIDForDocument(SI.RecordId()) <> '' then
-                exit(WriteBack.GetUUIDForDocument(SI.RecordId()));
-        end;
-        if SVI.Get(Applied."Document No.") then begin
-            if WriteBack.GetUUIDForDocument(SVI.RecordId()) <> '' then
-                exit(WriteBack.GetUUIDForDocument(SVI.RecordId()));
-        end;
+        if SalesInvoiceHeader.Get(Applied."Document No.") then
+            if WriteBack.GetUUIDForDocument(SalesInvoiceHeader.RecordId()) <> '' then
+                exit(WriteBack.GetUUIDForDocument(SalesInvoiceHeader.RecordId()));
+        if ServiceInvoiceHeader.Get(Applied."Document No.") then
+            if WriteBack.GetUUIDForDocument(ServiceInvoiceHeader.RecordId()) <> '' then
+                exit(WriteBack.GetUUIDForDocument(ServiceInvoiceHeader.RecordId()));
         Error(AppliedDocumentNotStampedErr, Applied."Document No.");
     end;
 
@@ -417,10 +414,10 @@ codeunit 3356 "MX Payment Complement Builder"
 
     local procedure GetSATMethod(Code: Code[10]): Code[10]
     var
-        M: Record "Payment Method";
+        PaymentMethod: Record "Payment Method";
     begin
-        M.Get(Code);
-        exit(M."SAT Method of Payment");
+        PaymentMethod.Get(Code);
+        exit(PaymentMethod."SAT Method of Payment");
     end;
 
     local procedure FormatPaymentDateTime(Payment: Record "Cust. Ledger Entry"): Text
@@ -446,14 +443,14 @@ codeunit 3356 "MX Payment Complement Builder"
     local procedure GetCertificate(Id: Code[10]; var Certificate: Text; var No: Text[250])
     var
         Setup: Record "MX Connection Setup";
-        Iso: Record "Isolated Certificate";
-        CM: Codeunit "Certificate Management";
-        X: Codeunit X509Certificate2;
+        IsolatedCertificate: Record "Isolated Certificate";
+        CertificateManagement: Codeunit "Certificate Management";
+        X509Certificate: Codeunit X509Certificate2;
         Signer: Codeunit "Digital Sign MX";
     begin
         Setup.Get(Id);
-        Iso.Get(Setup."SAT Certificate");
-        Certificate := X.GetRawCertDataAsBase64String(CM.GetCertAsBase64String(Iso), CM.GetPasswordAsSecret(Iso));
+        IsolatedCertificate.Get(Setup."SAT Certificate");
+        Certificate := X509Certificate.GetRawCertDataAsBase64String(CertificateManagement.GetCertAsBase64String(IsolatedCertificate), CertificateManagement.GetPasswordAsSecret(IsolatedCertificate));
         No := Signer.GetCertificateSerialNo(Id);
     end;
 

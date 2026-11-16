@@ -7,8 +7,8 @@ namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
-using Microsoft.Sales.Receivables;
 using Microsoft.eServices.EDocument.Processing.Message;
+using Microsoft.Sales.Receivables;
 using System.Utilities;
 
 codeunit 3357 "MX Payment Complement Mgt."

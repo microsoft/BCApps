@@ -5,9 +5,9 @@
 namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Purchases.Vendor;
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using System.IO;
 using System.Utilities;
 

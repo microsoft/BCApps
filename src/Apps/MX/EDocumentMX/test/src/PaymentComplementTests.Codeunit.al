@@ -5,8 +5,8 @@
 
 namespace Microsoft.EServices.EDocument.Interfactura.Tests;
 
-using Microsoft.Sales.Receivables;
 using Microsoft.EServices.EDocument.Interfactura;
+using Microsoft.Sales.Receivables;
 using System.Utilities;
 
 codeunit 148757 "Payment Complement Tests"

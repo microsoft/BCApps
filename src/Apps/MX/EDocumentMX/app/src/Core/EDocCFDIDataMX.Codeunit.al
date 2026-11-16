@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Interfactura;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Sales.History;
-using Microsoft.eServices.EDocument;
 
 codeunit 3373 "EDoc CFDI Data MX"
 {

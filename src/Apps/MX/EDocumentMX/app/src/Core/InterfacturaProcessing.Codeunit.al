@@ -5,10 +5,10 @@
 
 namespace Microsoft.EServices.EDocument.Interfactura;
 
-using Microsoft.Sales.History;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.eServices.EDocument.Processing.Message;
+using Microsoft.Sales.History;
 using System.Security.Encryption;
 using System.Utilities;
 
@@ -521,10 +521,10 @@ codeunit 3355 "Interfactura Processing"
 
     procedure GetDocumentResponse(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage): Boolean
     begin
-        exit(CheckIfDocumentStatusSuccessful(EDocument, EDocumentService, HttpRequest, HttpResponse));
+        exit(CheckIfDocumentStatusSuccessful(EDocument, EDocumentService));
     end;
 
-    local procedure CheckIfDocumentStatusSuccessful(EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var HttpRequestMessage: HttpRequestMessage; var HttpResponse: HttpResponseMessage): Boolean
+    local procedure CheckIfDocumentStatusSuccessful(EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"): Boolean
     var
         EDocumentServiceStatus: Record "E-Document Service Status";
     begin

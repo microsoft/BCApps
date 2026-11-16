@@ -34,7 +34,6 @@ codeunit 3375 "MX E-Document Feature"
     end;
 
     var
-        // TODO: replace with the feature key registered in Feature Management
         FeatureKeyIdTok: Label 'CFDICartaPorteMX', Locked = true;
         FeatureNotEnabledErr: Label 'E-Document for Mexico is in preview. It can only be used in sandbox environments where the feature is enabled in Feature Management.';
 }

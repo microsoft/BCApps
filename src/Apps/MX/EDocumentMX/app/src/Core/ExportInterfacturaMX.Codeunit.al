@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Interfactura;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.FixedAsset;
@@ -18,7 +19,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Service.History;
-using Microsoft.eServices.EDocument;
 using System.Reflection;
 using System.Security.Encryption;
 using System.Utilities;
@@ -62,7 +62,7 @@ codeunit 3354 "Export Interfactura MX"
                     if not IsBatch then
                         SalesHeader.SetRecFilter();
                     SourceDocumentLines.SetTable(SalesLine);
-                    ExportSalesHeader(EDocument, SalesHeader, SalesLine, TempBlob, IsBatch);
+                    ExportSalesHeader(SalesHeader, SalesLine, TempBlob);
                 end;
             Database::"Sales Invoice Header":
                 begin
@@ -71,7 +71,7 @@ codeunit 3354 "Export Interfactura MX"
                     if not IsBatch then
                         SalesInvoiceHeader.SetRecFilter();
                     SourceDocumentLines.SetTable(SalesInvoiceLine);
-                    ExportInvoice(EDocument, SalesInvoiceHeader, SalesInvoiceLine, TempBlob, IsBatch);
+                    ExportInvoice(SalesInvoiceHeader, SalesInvoiceLine, TempBlob);
                 end;
             Database::"Sales Cr.Memo Header":
                 begin
@@ -80,7 +80,7 @@ codeunit 3354 "Export Interfactura MX"
                     if not IsBatch then
                         SalesCrMemoHeader.SetRecFilter();
                     SourceDocumentLines.SetTable(SalesCrMemoLine);
-                    ExportCreditMemo(EDocument, SalesCrMemoHeader, SalesCrMemoLine, TempBlob, IsBatch);
+                    ExportCreditMemo(SalesCrMemoHeader, SalesCrMemoLine, TempBlob);
                 end;
             Database::"Service Invoice Header":
                 begin
@@ -88,7 +88,7 @@ codeunit 3354 "Export Interfactura MX"
                     if not IsBatch then
                         ServiceInvoiceHeader.SetRecFilter();
                     SourceDocumentLines.SetTable(ServiceInvoiceLine);
-                    ExportServiceInvoice(EDocument, ServiceInvoiceHeader, ServiceInvoiceLine, TempBlob, IsBatch);
+                    ExportServiceInvoice(ServiceInvoiceHeader, ServiceInvoiceLine, TempBlob);
                 end;
             Database::"Service Cr.Memo Header":
                 begin
@@ -96,7 +96,7 @@ codeunit 3354 "Export Interfactura MX"
                     if not IsBatch then
                         ServiceCrMemoHeader.SetRecFilter();
                     SourceDocumentLines.SetTable(ServiceCrMemoLine);
-                    ExportServiceCreditMemo(EDocument, ServiceCrMemoHeader, ServiceCrMemoLine, TempBlob, IsBatch);
+                    ExportServiceCreditMemo(ServiceCrMemoHeader, ServiceCrMemoLine, TempBlob);
                 end;
             Database::"Sales Shipment Header":
                 begin
@@ -105,7 +105,7 @@ codeunit 3354 "Export Interfactura MX"
                     if not IsBatch then
                         SalesShipmentHeader.SetRecFilter();
                     SourceDocumentLines.SetTable(SalesShipmentLine);
-                    ExportSalesShipment(EDocument, SalesShipmentHeader, SalesShipmentLine, TempBlob, IsBatch);
+                    ExportSalesShipment(SalesShipmentHeader, SalesShipmentLine, TempBlob);
                 end;
             Database::"Transfer Header":
                 begin
@@ -113,7 +113,7 @@ codeunit 3354 "Export Interfactura MX"
                     if not IsBatch then
                         TransferHeader.SetRecFilter();
                     SourceDocumentLines.SetTable(TransferLine);
-                    ExportTransferHeader(EDocument, TransferHeader, TransferLine, TempBlob, IsBatch);
+                    ExportTransferHeader(TransferHeader, TransferLine, TempBlob);
                 end;
             Database::"Transfer Shipment Header":
                 begin
@@ -122,7 +122,7 @@ codeunit 3354 "Export Interfactura MX"
                     if not IsBatch then
                         TransferShipmentHeader.SetRecFilter();
                     SourceDocumentLines.SetTable(TransferShipmentLine);
-                    ExportTransferShipment(EDocument, TransferShipmentHeader, TransferShipmentLine, TempBlob, IsBatch);
+                    ExportTransferShipment(TransferShipmentHeader, TransferShipmentLine, TempBlob);
                 end;
         end;
         Session.LogMessage('0000WKY', EndEventNameTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTok);
@@ -130,7 +130,7 @@ codeunit 3354 "Export Interfactura MX"
 
     #region Sales Order
 
-    local procedure ExportSalesHeader(var EDocument: Record "E-Document"; var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
+    local procedure ExportSalesHeader(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempBlob: Codeunit "Temp Blob")
     var
         XmlDocOut: XmlDocument;
         RootNode: XmlElement;
@@ -150,7 +150,7 @@ codeunit 3354 "Export Interfactura MX"
 
     #region Invoice
 
-    local procedure ExportInvoice(var EDocument: Record "E-Document"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
+    local procedure ExportInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; var TempBlob: Codeunit "Temp Blob")
     var
         XMLDocOut: XmlDocument;
         ComprobanteXMLNode: XmlElement;
@@ -174,19 +174,19 @@ codeunit 3354 "Export Interfactura MX"
         case AdvanceScenario of
             1:
                 CreateXMLDocument33AdvancePayment(
-                    ComprobanteXMLNode, SalesInvoiceHeader, SalesInvoiceLine, '', CertificateText, CertificateSerialNo, XMLDocOut,
+                    ComprobanteXMLNode, SalesInvoiceHeader, '', CertificateText, CertificateSerialNo,
                     SalesInvoiceHeader.Amount, SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount);
             2:
                 begin
                     AdvanceUUID := FindPrepaymentUUID(SalesInvoiceHeader);
                     CreateXMLDocument33AdvanceSettle(
-                        ComprobanteXMLNode, SalesInvoiceHeader, SalesInvoiceLine, '', CertificateText, CertificateSerialNo, XMLDocOut,
+                        ComprobanteXMLNode, SalesInvoiceHeader, SalesInvoiceLine, '', CertificateText, CertificateSerialNo,
                         AdvanceUUID, SalesInvoiceHeader.Amount, SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount, 0, 0);
                 end;
             else
                 CreateXMLDocument33(
-                    ComprobanteXMLNode, SalesInvoiceHeader, SalesInvoiceLine, '', CertificateText, CertificateSerialNo, XMLDocOut,
-                    SalesInvoiceHeader.Amount, SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount, 0, 0);
+                    ComprobanteXMLNode, SalesInvoiceHeader, SalesInvoiceLine, '', CertificateText, CertificateSerialNo,
+                    SalesInvoiceHeader.Amount, 0, 0);
         end;
 
         RemoveRedeclaredNamespaces(XMLDocOut);
@@ -275,7 +275,7 @@ codeunit 3354 "Export Interfactura MX"
 
     #region Service Invoice
 
-    local procedure ExportServiceInvoice(var EDocument: Record "E-Document"; var ServiceInvoiceHeader: Record "Service Invoice Header"; var ServiceInvoiceLine: Record "Service Invoice Line"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
+    local procedure ExportServiceInvoice(var ServiceInvoiceHeader: Record "Service Invoice Header"; var ServiceInvoiceLine: Record "Service Invoice Line"; var TempBlob: Codeunit "Temp Blob")
     var
         XmlDocOut: XmlDocument;
         RootNode: XmlElement;
@@ -295,7 +295,7 @@ codeunit 3354 "Export Interfactura MX"
 
     #region Credit Memo
 
-    local procedure ExportCreditMemo(var EDocument: Record "E-Document"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
+    local procedure ExportCreditMemo(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var TempBlob: Codeunit "Temp Blob")
     var
         XmlDocOut: XmlDocument;
         RootNode: XmlElement;
@@ -315,7 +315,7 @@ codeunit 3354 "Export Interfactura MX"
 
     #region Service Credit Memo
 
-    local procedure ExportServiceCreditMemo(var EDocument: Record "E-Document"; var ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var ServiceCrMemoLine: Record "Service Cr.Memo Line"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
+    local procedure ExportServiceCreditMemo(var ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var ServiceCrMemoLine: Record "Service Cr.Memo Line"; var TempBlob: Codeunit "Temp Blob")
     var
         XmlDocOut: XmlDocument;
         RootNode: XmlElement;
@@ -335,7 +335,7 @@ codeunit 3354 "Export Interfactura MX"
 
     #region Sales Shipment
 
-    local procedure ExportSalesShipment(var EDocument: Record "E-Document"; var SalesShptHeader: Record "Sales Shipment Header"; var SalesShptLine: Record "Sales Shipment Line"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
+    local procedure ExportSalesShipment(var SalesShptHeader: Record "Sales Shipment Header"; var SalesShptLine: Record "Sales Shipment Line"; var TempBlob: Codeunit "Temp Blob")
     var
         XmlDocOut: XmlDocument;
         RootNode: XmlElement;
@@ -355,7 +355,7 @@ codeunit 3354 "Export Interfactura MX"
 
     #region Transfer Header
 
-    local procedure ExportTransferHeader(var EDocument: Record "E-Document"; var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
+    local procedure ExportTransferHeader(var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; var TempBlob: Codeunit "Temp Blob")
     var
         XmlDocOut: XmlDocument;
         RootNode: XmlElement;
@@ -375,7 +375,7 @@ codeunit 3354 "Export Interfactura MX"
 
     #region Transfer Shipment
 
-    local procedure ExportTransferShipment(var EDocument: Record "E-Document"; var TransferShipment: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
+    local procedure ExportTransferShipment(var TransferShipment: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line"; var TempBlob: Codeunit "Temp Blob")
     var
         XmlDocOut: XmlDocument;
         RootNode: XmlElement;
@@ -1193,7 +1193,6 @@ codeunit 3354 "Export Interfactura MX"
             '',
             FormatDateTime(SalesShipmentHeader."Transit-from Date/Time"),
             '',
-            XmlDoc,
             UbicacionesNode,
             UbicacionesNode);
 
@@ -1208,7 +1207,6 @@ codeunit 3354 "Export Interfactura MX"
             'Destino',
             SalesShipmentHeader."SAT Address ID",
             SalesShipmentHeader."Ship-to Address",
-            'DE',
             DestinationRFCNo,
             ForeignRegId,
             ResidenciaFiscal,
@@ -1328,7 +1326,6 @@ codeunit 3354 "Export Interfactura MX"
             '',
             FormatDateTime(SalesHeader."Transit-from Date/Time"),
             '',
-            XmlDoc,
             UbicacionesNode,
             UbicacionesNode);
 
@@ -1343,7 +1340,6 @@ codeunit 3354 "Export Interfactura MX"
             'Destino',
             SalesHeader."SAT Address ID",
             SalesHeader."Ship-to Address",
-            'DE',
             DestinationRFCNo,
             ForeignRegId,
             ResidenciaFiscal,
@@ -1487,7 +1483,6 @@ codeunit 3354 "Export Interfactura MX"
             '',
             FormatDateTime(TransferHeader."Transit-from Date/Time"),
             '',
-            XmlDoc,
             UbicacionesNode,
             UbicacionesNode);
         AddNodeCartaPorteUbicacion(
@@ -1499,7 +1494,6 @@ codeunit 3354 "Export Interfactura MX"
             '',
             FormatDateTime(TransferHeader."Transit-from Date/Time" + (TransferHeader."Transit Hours" * 60 * 60 * 1000)),
             FormatDecimal(TransferHeader."Transit Distance", 6),
-            XmlDoc,
             UbicacionesNode,
             UbicacionesNode);
 
@@ -1612,7 +1606,6 @@ codeunit 3354 "Export Interfactura MX"
             '',
             FormatDateTime(TransferShipmentHeader."Transit-from Date/Time"),
             '',
-            XmlDoc,
             UbicacionesNode,
             UbicacionesNode);
         AddNodeCartaPorteUbicacion(
@@ -1624,7 +1617,6 @@ codeunit 3354 "Export Interfactura MX"
             '',
             FormatDateTime(TransferShipmentHeader."Transit-from Date/Time" + (TransferShipmentHeader."Transit Hours" * 60 * 60 * 1000)),
             FormatDecimal(TransferShipmentHeader."Transit Distance", 6),
-            XmlDoc,
             UbicacionesNode,
             UbicacionesNode);
 
@@ -1671,7 +1663,7 @@ codeunit 3354 "Export Interfactura MX"
         AddNodeCartaPorteFiguraTransporte(FiguraNode, Database::"Transfer Shipment Header", TransferShipmentHeader."No.", CartaPorteNode, CFDITransportOperator, Employee);
     end;
 
-    local procedure AddNodeCartaPorteUbicacionAddress(TipoUbicacion: Text; SATAddressId: Integer; AddressTxt: Text; LocationPrefix: Text[2]; RFCNo: Text; ForeignRegId: Text; ResidenciaFiscal: Text; FechaHoraSalidaLlegada: Text; DistanciaRecorrida: Text; XMLCurrNode: XmlNode)
+    local procedure AddNodeCartaPorteUbicacionAddress(TipoUbicacion: Text; SATAddressId: Integer; AddressTxt: Text; RFCNo: Text; ForeignRegId: Text; ResidenciaFiscal: Text; FechaHoraSalidaLlegada: Text; DistanciaRecorrida: Text; XMLCurrNode: XmlNode)
     var
         UbicacionNode: XmlNode;
         DomicilioNode: XmlNode;
@@ -2036,7 +2028,7 @@ codeunit 3354 "Export Interfactura MX"
         until CFDITransportOperator.Next() = 0;
     end;
 
-    local procedure CreateXMLDocument33(var RootNode: XmlElement; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; SignedString: Text; Certificate: Text; CertificateSerialNo: Text[250]; var XMLDoc: XmlDocument; SubTotal: Decimal; TotalTax: Decimal; TotalRetention: Decimal; TotalDiscount: Decimal)
+    local procedure CreateXMLDocument33(var RootNode: XmlElement; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; SignedString: Text; Certificate: Text; CertificateSerialNo: Text[250]; SubTotal: Decimal; TotalRetention: Decimal; TotalDiscount: Decimal)
     var
         Customer: Record Customer;
         CompanyInfo: Record "Company Information";
@@ -2130,7 +2122,7 @@ codeunit 3354 "Export Interfactura MX"
         if SalesInvoiceHeader."Foreign Trade" then begin
             CurrentNode := RootNode.AsXmlNode();
             CFDIXMLHelperMX.AddElementCFDI(CurrentNode, 'Complemento', '', XMLNewChild);
-            AddNodeComercioExterior(SalesInvoiceLine, SalesInvoiceHeader, XMLDoc, XMLNewChild, XMLNewChild);
+            AddNodeComercioExterior(SalesInvoiceLine, SalesInvoiceHeader, XMLNewChild);
         end;
     end;
 
@@ -2268,7 +2260,7 @@ codeunit 3354 "Export Interfactura MX"
         exit('E');
     end;
 
-    local procedure CreateXMLDocument33AdvancePayment(var RootNode: XmlElement; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; SignedString: Text; Certificate: Text; CertificateSerialNo: Text[250]; var XMLDoc: XmlDocument; SubTotal: Decimal; RetainAmt: Decimal)
+    local procedure CreateXMLDocument33AdvancePayment(var RootNode: XmlElement; var SalesInvoiceHeader: Record "Sales Invoice Header"; SignedString: Text; Certificate: Text; CertificateSerialNo: Text[250]; SubTotal: Decimal; RetainAmt: Decimal)
     var
         Customer: Record Customer;
         CompanyInfo: Record "Company Information";
@@ -2345,7 +2337,7 @@ codeunit 3354 "Export Interfactura MX"
         AddDocumentTaxNodeFromTempVATAmountLine(RootNode, TempVATAmountLine, TotalTax, 0, CurrencyCode);
     end;
 
-    local procedure CreateXMLDocument33AdvanceSettle(var RootNode: XmlElement; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; SignedString: Text; Certificate: Text; CertificateSerialNo: Text[250]; var XMLDoc: XmlDocument; UUID: Text[50]; SubTotal: Decimal; TotalTax: Decimal; TotalRetention: Decimal; TotalDiscount: Decimal)
+    local procedure CreateXMLDocument33AdvanceSettle(var RootNode: XmlElement; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; SignedString: Text; Certificate: Text; CertificateSerialNo: Text[250]; UUID: Text[50]; SubTotal: Decimal; TotalTax: Decimal; TotalRetention: Decimal; TotalDiscount: Decimal)
     var
         Customer: Record Customer;
         CompanyInfo: Record "Company Information";
@@ -2438,7 +2430,7 @@ codeunit 3354 "Export Interfactura MX"
         if SalesInvoiceHeader."Foreign Trade" then begin
             CurrentNode := RootNode.AsXmlNode();
             CFDIXMLHelperMX.AddElementCFDI(CurrentNode, 'Complemento', '', XMLNewChild);
-            AddNodeComercioExterior(SalesInvoiceLine, SalesInvoiceHeader, XMLDoc, XMLNewChild, XMLNewChild);
+            AddNodeComercioExterior(SalesInvoiceLine, SalesInvoiceHeader, XMLNewChild);
         end;
     end;
 
@@ -2599,7 +2591,7 @@ codeunit 3354 "Export Interfactura MX"
         exit(XmlTxt);
     end;
 
-    local procedure AddNodeComercioExterior(var TempDocumentLineCCE: Record "Sales Invoice Line"; DocumentHeader: Record "Sales Invoice Header"; var XMLDoc: XmlDocument; XMLCurrNode: XmlNode; XMLNewChild: XmlNode)
+    local procedure AddNodeComercioExterior(var TempDocumentLineCCE: Record "Sales Invoice Line"; DocumentHeader: Record "Sales Invoice Header"; XMLCurrNode: XmlNode)
     var
         Customer: Record Customer;
         Location: Record Location;
@@ -2676,7 +2668,7 @@ codeunit 3354 "Export Interfactura MX"
         exit(Round(1 / DocumentCurrencyFactor, 0.000001) / ExchangeRateUSD);
     end;
 
-    local procedure AddNodeCartaPorteUbicacion(TipoUbicacion: Text; Location: Record Location; LocationPrefix: Text[2]; RFCNo: Text; ForeignRegId: Text; ResidenciaFiscal: Text; FechaHoraSalidaLlegada: Text; DistanciaRecorrida: Text; var XMLDoc: XmlDocument; XMLCurrNode: XmlNode; XMLNewChild: XmlNode)
+    local procedure AddNodeCartaPorteUbicacion(TipoUbicacion: Text; Location: Record Location; LocationPrefix: Text[2]; RFCNo: Text; ForeignRegId: Text; ResidenciaFiscal: Text; FechaHoraSalidaLlegada: Text; DistanciaRecorrida: Text; XMLCurrNode: XmlNode; XMLNewChild: XmlNode)
     var
         UbicacionNode: XmlNode;
         DomicilioNode: XmlNode;
@@ -2723,9 +2715,8 @@ codeunit 3354 "Export Interfactura MX"
                 else
                     if IsXmlSpecialTagStart(CopyStr(XmlText, Position, 1)) then
                         SkipToTagEnd(XmlText, Position)
-                    else begin
+                    else
                         AppendOpeningTag(XmlText, Position, OriginalString, PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
-                    end;
             end else
                 Position += 1;
 
@@ -3009,9 +3000,7 @@ codeunit 3354 "Export Interfactura MX"
                     AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'ObjetoImp', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
                 end;
             'informacionaduanera':
-                begin
-                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'NumeroPedimento', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
-                end;
+                AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'NumeroPedimento', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
             'cartaporte':
                 begin
                     AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Version', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
@@ -3026,13 +3015,10 @@ codeunit 3354 "Export Interfactura MX"
                     AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'UbicacionPoloDestino', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
                 end;
             'ubicaciones', 'regimenesaduaneros', 'figuratransporte', 'remolques':
-                begin
-                    // Container nodes without attributes in the legacy-oriented canonical string.
-                end;
+                // Container nodes without attributes in the legacy-oriented canonical string.
+                ;
             'regimenaduaneroccp':
-                begin
-                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'RegimenAduanero', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
-                end;
+                AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'RegimenAduanero', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
             'ubicacion':
                 begin
                     AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'TipoUbicacion', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);

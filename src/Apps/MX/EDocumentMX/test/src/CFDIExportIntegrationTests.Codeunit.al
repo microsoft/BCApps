@@ -4,11 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Interfactura.Tests;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.EServices.EDocument.Interfactura;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
@@ -16,7 +17,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Setup;
-using Microsoft.eServices.EDocument;
 using System.Utilities;
 
 codeunit 148754 "CFDI Export Integration Tests"
@@ -605,12 +605,11 @@ codeunit 148754 "CFDI Export Integration Tests"
             SalesShipmentHeader."SAT Transport Type" := '01';
         SalesShipmentHeader.Modify();
 
-        if Location.Get(SalesShipmentHeader."Location Code") then begin
+        if Location.Get(SalesShipmentHeader."Location Code") then
             if Location."SAT Address ID" = 0 then begin
                 Location."SAT Address ID" := SalesShipmentHeader."SAT Address ID";
                 Location.Modify();
             end;
-        end;
     end;
 
     local procedure CreateSATAddress(): Integer

@@ -5,8 +5,8 @@
 
 namespace Microsoft.EServices.EDocument.Interfactura;
 
-using Microsoft.Foundation.Company;
 using Microsoft.eServices.EDocument;
+using Microsoft.Foundation.Company;
 using System.Utilities;
 
 codeunit 3359 "CFDI Cancellation MX"
@@ -83,7 +83,7 @@ codeunit 3359 "CFDI Cancellation MX"
         IsHandled := false;
         OnMapCancellationStatusToken(StatusToken, ServiceStatus, IsHandled);
 
-        if not IsHandled then begin
+        if not IsHandled then
             case LowerCase(StatusToken) of
                 'enproceso', 'en proceso':
                     ServiceStatus := Enum::"E-Document Service Status"::"Pending Response";
@@ -94,7 +94,6 @@ codeunit 3359 "CFDI Cancellation MX"
                 else
                     ServiceStatus := GetCancellationStatus(EDocument);
             end;
-        end;
 
         ResultStatus := ServiceStatus;
         ApplyCancellationToEDocument(EDocument, ServiceStatus, ResultText, DateTimeCancelledTxt, CancellationId);

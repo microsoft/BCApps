@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Interfactura;
 
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
@@ -11,9 +14,6 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
-using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using System.Utilities;
 
 codeunit 3352 "EDoc CFDI MX" implements "E-Document"
