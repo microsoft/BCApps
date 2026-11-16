@@ -734,18 +734,26 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         if GLRegister.FindLast() then
             LastGLRegisterNo := GLRegister."No.";
 
-        // [WHEN] Two journal lines are posted separately
+        // [WHEN] The first journal line is posted
         CreateSimpleGLJournalLine(GenJournalLine);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] The first posting creates one register with its own G/L Entries
+        GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
+        Assert.AreEqual(1, GLRegister.Count(), 'The first posting must create one G/L Register');
+        GLRegister.FindFirst();
+        FirstRegisterNo := GLRegister."No.";
+        GLEntry.SetRange("G/L Register No.", FirstRegisterNo);
+        Assert.RecordIsNotEmpty(GLEntry);
+
+        // [WHEN] The second journal line is posted separately
         CreateSimpleGLJournalLine(GenJournalLine);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         // [THEN] Two registers are created and each has its own non-empty set of G/L Entries within its entry range
         GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
         Assert.AreEqual(2, GLRegister.Count(), 'Two G/L Registers should have been created');
-        GLRegister.FindSet();
-        FirstRegisterNo := GLRegister."No.";
-        GLRegister.Next();
+        GLRegister.FindLast();
         SecondRegisterNo := GLRegister."No.";
 
         GLEntry.SetRange("G/L Register No.", FirstRegisterNo);

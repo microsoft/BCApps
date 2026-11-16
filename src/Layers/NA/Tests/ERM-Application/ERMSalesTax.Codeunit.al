@@ -17,6 +17,7 @@ codeunit 134388 "ERM Sales Tax"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryERM: Codeunit "Library - ERM";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         isInitialized: Boolean;
         TaxDetailErr: Label 'Tax Detail not found.';
 
@@ -332,14 +333,9 @@ codeunit 134388 "ERM Sales Tax"
 
         LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
-        GenJournalLine."Journal Template Name" := GenJournalTemplate.Name;
-        GenJournalLine."Journal Batch Name" := GenJournalBatch.Name;
-        GenJournalLine."Line No." := 10000;
-        GenJournalLine."Document No." :=
-          CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(GenJournalLine."Document No."));
-        GenJournalLine."Posting Date" := WorkDate();
-        GenJournalLine.Amount := 100;
-        GenJournalLine.Insert();
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), 100);
 
         GenJournalLine.SetRange("Journal Template Name", GenJournalTemplate.Name);
         GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
@@ -356,11 +352,13 @@ codeunit 134388 "ERM Sales Tax"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Sales Tax");
+        LibrarySetupStorage.Restore();
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"ERM Sales Tax");
 
         LibraryERMCountryData.UpdateGeneralLedgerSetup();
+        LibrarySetupStorage.SaveGeneralLedgerSetup();
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Sales Tax");
