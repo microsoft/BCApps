@@ -434,31 +434,18 @@ codeunit 144158 "ERM Unapply Customer Vendor"
 
     local procedure DeletePeriodicSettlementVATEntry(PeriodDate: Date)
     var
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
     begin
         FindPeriodicSettlementVATEntry(PeriodicSettlementVATEntry, PeriodDate);
         PeriodicSettlementVATEntry.Delete(true);
     end;
 
-#if not CLEAN27
-    local procedure FindPeriodicSettlementVATEntry(var PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry"; PeriodDate: Date)
-    begin
-        PeriodicSettlementVATEntry.SetRange(
-          "VAT Period", StrSubstNo(VATPeriodTxt, Date2DMY(PeriodDate, 3), ConvertStr(Format(Date2DMY(PeriodDate, 2), 2), ' ', '0')));  // Value Zero required for VAT Period.
-        PeriodicSettlementVATEntry.FindFirst();
-    end;
-#else
     local procedure FindPeriodicSettlementVATEntry(var PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry"; PeriodDate: Date)
     begin
         PeriodicSettlementVATEntry.SetRange(
           "VAT Period", StrSubstNo(VATPeriodTxt, Date2DMY(PeriodDate, 3), ConvertStr(Format(Date2DMY(PeriodDate, 2), 2), ' ', '0')));  // Value Zero required for VAT Period.
         PeriodicSettlementVATEntry.FindFirst();
     end;
-#endif
 
     local procedure GetStartingDate(): Date
     var
@@ -516,11 +503,7 @@ codeunit 144158 "ERM Unapply Customer Vendor"
 
     local procedure UpdatePeriodicSettlementVATEntry()
     var
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
     begin
         FindPeriodicSettlementVATEntry(PeriodicSettlementVATEntry, WorkDate());
         PeriodicSettlementVATEntry.Validate("VAT Period Closed", false);

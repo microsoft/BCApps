@@ -1005,18 +1005,15 @@ codeunit 13916 "Export XRechnung Document"
         DeliveryAddress."Address 2" := SalesInvoiceHeader."Ship-to Address 2";
         DeliveryAddress.City := SalesInvoiceHeader."Ship-to City";
         DeliveryAddress."Post Code" := SalesInvoiceHeader."Ship-to Post Code";
+        DeliveryAddress.County := SalesInvoiceHeader."Ship-to County";
         DeliveryAddress."Country/Region Code" := SalesInvoiceHeader."Ship-to Country/Region Code";
         ActualDeliveryDate := SalesInvoiceHeader."Shipment Date";
         DeliveryGLN := GetDeliveryGLN(SalesInvoiceHeader."Sell-to Customer No.", SalesInvoiceHeader."Ship-to Code");
 
         OnBeforeInsertSalesInvDelivery(SalesInvoiceHeader, ActualDeliveryDate, DeliveryAddress, DeliveryGLN);
 
-        DeliveryElement := XmlElement.Create('Delivery', XmlNamespaceCAC);
-
-        if ActualDeliveryDate <> CalcDate('<0D>') then
-            DeliveryElement.Add(XmlElement.Create('ActualDeliveryDate', XmlNamespaceCBC, FormatDate(ActualDeliveryDate)));
-
-        InsertDeliveryLocation(DeliveryElement, DeliveryAddress, DeliveryGLN);
+        if not CreateDeliveryElement(DeliveryElement, ActualDeliveryDate, DeliveryAddress, DeliveryGLN) then
+            exit;
 
         OnInsertDeliveryOnBeforeAddSalesInvDeliveryElement(SalesInvoiceHeader, DeliveryElement);
         RootXMLNode.Add(DeliveryElement);
@@ -1033,21 +1030,35 @@ codeunit 13916 "Export XRechnung Document"
         DeliveryAddress."Address 2" := SalesCrMemoHeader."Ship-to Address 2";
         DeliveryAddress.City := SalesCrMemoHeader."Ship-to City";
         DeliveryAddress."Post Code" := SalesCrMemoHeader."Ship-to Post Code";
+        DeliveryAddress.County := SalesCrMemoHeader."Ship-to County";
         DeliveryAddress."Country/Region Code" := SalesCrMemoHeader."Ship-to Country/Region Code";
         ActualDeliveryDate := SalesCrMemoHeader."Shipment Date";
         DeliveryGLN := GetDeliveryGLN(SalesCrMemoHeader."Sell-to Customer No.", SalesCrMemoHeader."Ship-to Code");
 
         OnBeforeInsertSalesCrMemoDelivery(SalesCrMemoHeader, ActualDeliveryDate, DeliveryAddress, DeliveryGLN);
 
-        DeliveryElement := XmlElement.Create('Delivery', XmlNamespaceCAC);
-
-        if ActualDeliveryDate <> CalcDate('<0D>') then
-            DeliveryElement.Add(XmlElement.Create('ActualDeliveryDate', XmlNamespaceCBC, FormatDate(ActualDeliveryDate)));
-
-        InsertDeliveryLocation(DeliveryElement, DeliveryAddress, DeliveryGLN);
+        if not CreateDeliveryElement(DeliveryElement, ActualDeliveryDate, DeliveryAddress, DeliveryGLN) then
+            exit;
 
         OnInsertDeliveryOnBeforeAddSalesCrMemoDeliveryElement(SalesCrMemoHeader, DeliveryElement);
         RootXMLNode.Add(DeliveryElement);
+    end;
+
+    local procedure CreateDeliveryElement(var DeliveryElement: XmlElement; ActualDeliveryDate: Date; DeliveryAddress: Record "Standard Address"; DeliveryGLN: Code[13]): Boolean
+    begin
+        // The delivery information (BG-13) is optional: write it only when there is something to deliver to or a date to state.
+        if (ActualDeliveryDate = 0D) and (DeliveryGLN = '') and not HasDeliveryAddress(DeliveryAddress) then
+            exit(false);
+
+        DeliveryElement := XmlElement.Create('Delivery', XmlNamespaceCAC);
+
+        if ActualDeliveryDate <> 0D then
+            DeliveryElement.Add(XmlElement.Create('ActualDeliveryDate', XmlNamespaceCBC, FormatDate(ActualDeliveryDate)));
+
+        if (DeliveryGLN <> '') or HasDeliveryAddress(DeliveryAddress) then
+            InsertDeliveryLocation(DeliveryElement, DeliveryAddress, DeliveryGLN);
+
+        exit(true);
     end;
 
     local procedure InsertDeliveryLocation(var DeliveryElement: XmlElement; DeliveryAddress: Record "Standard Address"; DeliveryGLN: Code[13]);
@@ -1057,8 +1068,35 @@ codeunit 13916 "Export XRechnung Document"
         DeliveryLocationElement := XmlElement.Create('DeliveryLocation', XmlNamespaceCAC);
         if DeliveryGLN <> '' then
             DeliveryLocationElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', GLNSchemeIDTok), DeliveryGLN));
-        InsertAddress(DeliveryLocationElement, 'Address', DeliveryAddress);
+        if HasDeliveryAddress(DeliveryAddress) then
+            InsertDeliveryAddress(DeliveryLocationElement, DeliveryAddress);
         DeliveryElement.Add(DeliveryLocationElement);
+    end;
+
+    local procedure InsertDeliveryAddress(var DeliveryLocationElement: XmlElement; DeliveryAddress: Record "Standard Address")
+    var
+        AddressElement: XmlElement;
+    begin
+        AddressElement := XmlElement.Create('Address', XmlNamespaceCAC);
+        if DeliveryAddress.Address <> '' then
+            AddressElement.Add(XmlElement.Create('StreetName', XmlNamespaceCBC, DeliveryAddress.Address));
+        if DeliveryAddress."Address 2" <> '' then
+            AddressElement.Add(XmlElement.Create('AdditionalStreetName', XmlNamespaceCBC, DeliveryAddress."Address 2"));
+        if DeliveryAddress.City <> '' then
+            AddressElement.Add(XmlElement.Create('CityName', XmlNamespaceCBC, DeliveryAddress.City));
+        if DeliveryAddress."Post Code" <> '' then
+            AddressElement.Add(XmlElement.Create('PostalZone', XmlNamespaceCBC, DeliveryAddress."Post Code"));
+        if DeliveryAddress.County <> '' then
+            AddressElement.Add(XmlElement.Create('CountrySubentity', XmlNamespaceCBC, DeliveryAddress.County));
+        InsertCountry(AddressElement, GetCountryISOCode(GetCountryRegionCode(DeliveryAddress."Country/Region Code")));
+        DeliveryLocationElement.Add(AddressElement);
+    end;
+
+    local procedure HasDeliveryAddress(DeliveryAddress: Record "Standard Address"): Boolean
+    begin
+        exit(
+          (DeliveryAddress.Address <> '') or (DeliveryAddress."Address 2" <> '') or (DeliveryAddress.City <> '') or
+          (DeliveryAddress."Post Code" <> '') or (DeliveryAddress.County <> '') or (DeliveryAddress."Country/Region Code" <> ''));
     end;
 
     local procedure GetDeliveryGLN(CustomerNo: Code[20]; ShipToCode: Code[10]): Code[13]
@@ -1205,7 +1243,7 @@ codeunit 13916 "Export XRechnung Document"
         ItemElement := XmlElement.Create('Item', XmlNamespaceCAC);
         if SalesInvLine."Description 2" <> '' then
             ItemElement.Add(XmlElement.Create('Description', XmlNamespaceCBC, SalesInvLine."Description 2"));
-        ItemElement.Add(XmlElement.Create('Name', XmlNamespaceCBC, CopyStr(SalesInvLine.Description, 1, 40)));
+        ItemElement.Add(XmlElement.Create('Name', XmlNamespaceCBC, SalesInvLine.Description));
         InsertSellersItemIdentification(ItemElement, SalesInvLine."No.");
         if SalesInvLine.Type = SalesInvLine.Type::Item then
             InsertStandardItemIdentification(ItemElement, SalesInvLine."No.");
@@ -1220,7 +1258,7 @@ codeunit 13916 "Export XRechnung Document"
         ItemElement := XmlElement.Create('Item', XmlNamespaceCAC);
         if SalesCrMemoLine."Description 2" <> '' then
             ItemElement.Add(XmlElement.Create('Description', XmlNamespaceCBC, SalesCrMemoLine."Description 2"));
-        ItemElement.Add(XmlElement.Create('Name', XmlNamespaceCBC, CopyStr(SalesCrMemoLine.Description, 1, 40)));
+        ItemElement.Add(XmlElement.Create('Name', XmlNamespaceCBC, SalesCrMemoLine.Description));
         InsertSellersItemIdentification(ItemElement, SalesCrMemoLine."No.");
         if SalesCrMemoLine.Type = SalesCrMemoLine.Type::Item then
             InsertStandardItemIdentification(ItemElement, SalesCrMemoLine."No.");
@@ -1356,14 +1394,17 @@ codeunit 13916 "Export XRechnung Document"
         PartyElement.Add(PartyLegalEntityElement);
     end;
 
-    local procedure InsertCustomerPartyLegalEntity(var PartyElement: XmlElement; CustomerName: Text[100]; CustomerGLN: Code[13]);
+    local procedure InsertCustomerPartyLegalEntity(var PartyElement: XmlElement; CustomerName: Text[100]; CustomerGLN: Code[13]; CustomerRegistrationNo: Text[50]);
     var
         PartyLegalEntityElement: XmlElement;
     begin
         PartyLegalEntityElement := XmlElement.Create('PartyLegalEntity', XmlNamespaceCAC);
         PartyLegalEntityElement.Add(XmlElement.Create('RegistrationName', XmlNamespaceCBC, CustomerName));
         if CustomerGLN <> '' then
-            PartyLegalEntityElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', GLNSchemeIDTok), CustomerGLN));
+            PartyLegalEntityElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', GLNSchemeIDTok), CustomerGLN))
+        else
+            if CustomerRegistrationNo <> '' then
+                PartyLegalEntityElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, CustomerRegistrationNo));
         PartyElement.Add(PartyLegalEntityElement);
     end;
 
@@ -1463,6 +1504,7 @@ codeunit 13916 "Export XRechnung Document"
         ReportSelections: Record "Report Selections";
         VATRegNo: Text[20];
         CustomerGLN: Code[13];
+        CustomerRegistrationNo: Text[50];
         PartyName: Text[100];
         CustomerName: Text[100];
         ContactName: Text[100];
@@ -1478,6 +1520,8 @@ codeunit 13916 "Export XRechnung Document"
         if Customer.Get(SalesInvoiceHeader."Sell-to Customer No.") then;
         if Customer."Use GLN in Electronic Document" then
             CustomerGLN := Customer.GLN;
+        if Customer."Use Reg. No. in E-Document" and (Customer.GLN = '') and (Customer."VAT Registration No." = '') and (Customer."Registration Number" <> '') then
+            CustomerRegistrationNo := Customer."Registration Number";
         VATRegNo := Customer."VAT Registration No.";
         PartyName := SalesInvoiceHeader."Bill-to Name";
         CustomerName := SalesInvoiceHeader."Sell-to Customer Name";
@@ -1485,10 +1529,10 @@ codeunit 13916 "Export XRechnung Document"
         ReportSelections.FindEmailBodyUsageForCust("Report Selection Usage"::"S.Invoice", SalesInvoiceHeader."Bill-to Customer No.", TempBodyReportSelections);
         ContactEMail := ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Invoice".AsInteger(), SalesInvoiceHeader, SalesInvoiceHeader."Bill-to Customer No.", TempBodyReportSelections);
 
-        OnBeforeInsertSalesInvCustomerParty(SalesInvoiceHeader, VATRegNo, CustomerGLN, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
+        OnBeforeInsertSalesInvCustomerParty(SalesInvoiceHeader, VATRegNo, CustomerGLN, CustomerRegistrationNo, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
 
         AccountingCustomerParty := XmlElement.Create('AccountingCustomerParty', XmlNamespaceCAC);
-        InsertCustomerParty(AccountingCustomerParty, VATRegNo, CustomerGLN, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
+        InsertCustomerParty(AccountingCustomerParty, VATRegNo, CustomerGLN, CustomerRegistrationNo, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
         RootXMLNode.Add(AccountingCustomerParty);
     end;
 
@@ -1500,6 +1544,7 @@ codeunit 13916 "Export XRechnung Document"
         ReportSelections: Record "Report Selections";
         VATRegNo: Text[20];
         CustomerGLN: Code[13];
+        CustomerRegistrationNo: Text[50];
         PartyName: Text[100];
         CustomerName: Text[100];
         ContactName: Text[100];
@@ -1515,6 +1560,8 @@ codeunit 13916 "Export XRechnung Document"
         if Customer.Get(SalesCrMemoHeader."Sell-to Customer No.") then;
         if Customer."Use GLN in Electronic Document" then
             CustomerGLN := Customer.GLN;
+        if Customer."Use Reg. No. in E-Document" and (Customer.GLN = '') and (Customer."VAT Registration No." = '') and (Customer."Registration Number" <> '') then
+            CustomerRegistrationNo := Customer."Registration Number";
         VATRegNo := Customer."VAT Registration No.";
         PartyName := SalesCrMemoHeader."Bill-to Name";
         CustomerName := SalesCrMemoHeader."Sell-to Customer Name";
@@ -1522,14 +1569,14 @@ codeunit 13916 "Export XRechnung Document"
         ReportSelections.FindEmailBodyUsageForCust("Report Selection Usage"::"S.Cr.Memo", SalesCrMemoHeader."Bill-to Customer No.", TempBodyReportSelections);
         ContactEMail := ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Cr.Memo".AsInteger(), SalesCrMemoHeader, SalesCrMemoHeader."Bill-to Customer No.", TempBodyReportSelections);
 
-        OnBeforeInsertSalesCrMemoCustomerParty(SalesCrMemoHeader, VATRegNo, CustomerGLN, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
+        OnBeforeInsertSalesCrMemoCustomerParty(SalesCrMemoHeader, VATRegNo, CustomerGLN, CustomerRegistrationNo, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
 
         AccountingCustomerParty := XmlElement.Create('AccountingCustomerParty', XmlNamespaceCAC);
-        InsertCustomerParty(AccountingCustomerParty, VATRegNo, CustomerGLN, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
+        InsertCustomerParty(AccountingCustomerParty, VATRegNo, CustomerGLN, CustomerRegistrationNo, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
         RootXMLNode.Add(AccountingCustomerParty);
     end;
 
-    local procedure InsertCustomerParty(var AccountingCustomerParty: XmlElement; VATRegNo: Text[20]; CustomerGLN: Code[13]; PartyName: Text[100]; PostalAddress: Record "Standard Address"; CustomerName: Text[100]; ContactName: Text[100]; ContactEMail: Text[250]);
+    local procedure InsertCustomerParty(var AccountingCustomerParty: XmlElement; VATRegNo: Text[20]; CustomerGLN: Code[13]; CustomerRegistrationNo: Text[50]; PartyName: Text[100]; PostalAddress: Record "Standard Address"; CustomerName: Text[100]; ContactName: Text[100]; ContactEMail: Text[250]);
     var
         PartyElement: XmlElement;
     begin
@@ -1545,9 +1592,9 @@ codeunit 13916 "Export XRechnung Document"
 
         InsertPartyName(PartyElement, PartyName);
         InsertAddress(PartyElement, 'PostalAddress', PostalAddress);
-        if not AllLinesNotSubjectToVAT then
+        if (VATRegNo <> '') and not AllLinesNotSubjectToVAT then
             InsertPartyTaxScheme(PartyElement, VATRegNo, PostalAddress."Country/Region Code");
-        InsertCustomerPartyLegalEntity(PartyElement, CustomerName, CustomerGLN);
+        InsertCustomerPartyLegalEntity(PartyElement, CustomerName, CustomerGLN, CustomerRegistrationNo);
         InsertContact(PartyElement, ContactName, ContactEMail);
         AccountingCustomerParty.Add(PartyElement);
     end;
@@ -2478,7 +2525,7 @@ codeunit 13916 "Export XRechnung Document"
     /// Fires before the buyer (BG-7) is created for a sales invoice. Subscribe to override its values.
     /// </summary>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertSalesInvCustomerParty(SalesInvoiceHeader: Record "Sales Invoice Header"; var VATRegNo: Text[20]; var CustomerGLN: Code[13]; var PartyName: Text[100]; var PostalAddress: Record "Standard Address"; var CustomerName: Text[100]; var ContactName: Text[100]; var ContactEMail: Text[250])
+    local procedure OnBeforeInsertSalesInvCustomerParty(SalesInvoiceHeader: Record "Sales Invoice Header"; var VATRegNo: Text[20]; var CustomerGLN: Code[13]; var CustomerRegistrationNo: Text[50]; var PartyName: Text[100]; var PostalAddress: Record "Standard Address"; var CustomerName: Text[100]; var ContactName: Text[100]; var ContactEMail: Text[250])
     begin
     end;
 
@@ -2486,7 +2533,7 @@ codeunit 13916 "Export XRechnung Document"
     /// Fires before the buyer (BG-7) is created for a sales credit memo. Subscribe to override its values.
     /// </summary>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertSalesCrMemoCustomerParty(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var VATRegNo: Text[20]; var CustomerGLN: Code[13]; var PartyName: Text[100]; var PostalAddress: Record "Standard Address"; var CustomerName: Text[100]; var ContactName: Text[100]; var ContactEMail: Text[250])
+    local procedure OnBeforeInsertSalesCrMemoCustomerParty(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var VATRegNo: Text[20]; var CustomerGLN: Code[13]; var CustomerRegistrationNo: Text[50]; var PartyName: Text[100]; var PostalAddress: Record "Standard Address"; var CustomerName: Text[100]; var ContactName: Text[100]; var ContactEMail: Text[250])
     begin
     end;
 

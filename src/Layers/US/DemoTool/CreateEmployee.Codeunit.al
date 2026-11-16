@@ -63,7 +63,7 @@ codeunit 101600 "Create Employee"
         XTerry: Label 'Terry';
         XDodds: Label 'Dodds';
         XTDODDS: Label 'TDODDS';
-        XEmplExp: Label 'EMPLEXP', Locked = true;
+        XEmplExpTxt: Label 'EMPLEXP';
         XEmployeesPayable: Label 'Employees Payable';
         X3710Route9South: Label '3710 Route 9 South';
 
@@ -223,7 +223,7 @@ codeunit 101600 "Create Employee"
         GLAccount.SetRange(Name, XEmployeesPayable);
         if not GLAccount.FindFirst() then
             GlAccount.get(CreateGLAccount.AccountsPayableDomestic());
-        EmployeePostingGroup.Code := XEmplExp;
+        EmployeePostingGroup.Code := XEmplExpTxt;
         RoundingGLAccount."No." := CreateCustPostGroup.GetRoundingAccount();
         EmployeePostingGroup."Payables Account" := GLAccount."No.";
 
@@ -253,7 +253,7 @@ codeunit 101600 "Create Employee"
 
     procedure EmployeePostingGroupCode(): Code[20]
     begin
-        exit(XEmplExp);
+        exit(XEmplExpTxt);
     end;
 }
 

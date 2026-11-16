@@ -129,6 +129,7 @@ codeunit 5600 "FA Insert Ledger Entry"
             CheckFADocNo(FALedgEntry);
         FALedgEntry."Derogatory Excluded" := CalcExcludeDerogatory(FALedgEntry);
         DerogatoryPostingMgt.ValidateDerogatoryLink(FALedgEntry);
+        FALedgEntry."G/L Register No." := GLRegisterNo;
         FALedgEntry.Insert(true);
         FeatureTelemetry.LogUsage('0000H4F', 'Fixed Asset', 'Insert FA Ledger Entry');
         OnInsertFAOnAfterInsertFALedgEntry(FALedgEntry, FALedgEntry3);
@@ -218,6 +219,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         if MaintenanceLedgEntry."G/L Entry No." > 0 then
             FAInsertGLAcc.InsertMaintenanceAccNo(MaintenanceLedgEntry);
         DerogatoryPostingMgt.ValidateDerogatoryLink(MaintenanceLedgEntry);
+        MaintenanceLedgEntry."G/L Register No." := GLRegisterNo;
         MaintenanceLedgEntry.Insert(true);
         SetMaintenanceLastDate(MaintenanceLedgEntry);
         InsertRegister("FA Register Called From"::Maintenance, NextMaintenanceEntryNo);
@@ -578,6 +580,7 @@ codeunit 5600 "FA Insert Ledger Entry"
             FALedgEntry3."Journal Batch Name" := '';
             FALedgEntry3."FA No./Budgeted FA No." := '';
             FALedgEntry3."Derogatory Source Entry No." := DerogatorySourceEntryNo;
+            FALedgEntry3."G/L Register No." := GLRegisterNo;
             OnInsertReverseEntryOnBeforeInsertFALedgEntry(FALedgEntry3);
             FALedgEntry3.Insert(true);
             if FALedgEntry3."FA Posting Type" <> FALedgEntry3."FA Posting Type"::"Salvage Value" then begin
@@ -633,6 +636,7 @@ codeunit 5600 "FA Insert Ledger Entry"
             MaintenanceLedgEntry3."FA No./Budgeted FA No." := '';
             MaintenanceLedgEntry3."Derogatory Source Entry No." := DerogatorySourceEntryNo;
             OnInsertReverseEntryOnBeforeInsertMaintenanceLedgerEntry(MaintenanceLedgEntry3);
+            MaintenanceLedgEntry3."G/L Register No." := GLRegisterNo;
             MaintenanceLedgEntry3.Insert();
             InsertRegister("FA Register Called From"::Maintenance, NextMaintenanceEntryNo);
             InsertMaintRevEntryForDerog(FAEntryType, MaintenanceLedgEntry3);

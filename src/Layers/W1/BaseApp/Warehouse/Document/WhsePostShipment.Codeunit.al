@@ -114,8 +114,12 @@ codeunit 5763 "Whse.-Post Shipment"
                 GetLocation(WhseShptLine."Location Code");
                 if Location."Require Pick" and (WhseShptLine."Shipping Advice" = WhseShptLine."Shipping Advice"::Complete) then
                     CheckItemTrkgPicked(WhseShptLine);
-                if Location."Bin Mandatory" then
-                    WhseShptLine.TestField("Bin Code");
+                if Location."Bin Mandatory" then begin
+                    IsHandled := false;
+                    OnCodeOnBeforeTestBinCode(WhseShptLine, IsHandled);
+                    if not IsHandled then
+                        WhseShptLine.TestField("Bin Code");
+                end;
                 if not WhseShptLine."Assemble to Order" then begin
                     IsHandled := false;
                     OnCodeOnBeforeCheckFullATOPosted(WhseShptLine, IsHandled);
@@ -991,6 +995,11 @@ codeunit 5763 "Whse.-Post Shipment"
 
     [IntegrationEvent(false, false)]
     local procedure OnCreateWhseJnlLineOnSetSourceCode(var WarehouseJournalLine: Record "Warehouse Journal Line"; var PostedWhseShipmentLine: Record "Posted Whse. Shipment Line"; SourceCodeSetup: Record "Source Code Setup")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCodeOnBeforeTestBinCode(WarehouseShipmentLine: Record "Warehouse Shipment Line"; var IsHandled: Boolean)
     begin
     end;
 }

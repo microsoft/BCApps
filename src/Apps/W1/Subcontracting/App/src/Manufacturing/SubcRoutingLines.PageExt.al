@@ -14,7 +14,7 @@ pageextension 20508 "Subc. Routing Lines" extends "Routing Lines"
         {
             trigger OnAfterValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
                 if not SubcontractingEnabled then
                     exit;
 #endif
@@ -25,7 +25,7 @@ pageextension 20508 "Subc. Routing Lines" extends "Routing Lines"
         {
             trigger OnAfterValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
                 if not SubcontractingEnabled then
                     exit;
 #endif
@@ -86,7 +86,7 @@ pageextension 20508 "Subc. Routing Lines" extends "Routing Lines"
         }
     }
 
-#if not CLEAN29
+#if not CLEAN28
     trigger OnOpenPage()
     begin
 #pragma warning disable AL0432
@@ -97,7 +97,7 @@ pageextension 20508 "Subc. Routing Lines" extends "Routing Lines"
 
     trigger OnAfterGetRecord()
     begin
-#if not CLEAN29
+#if not CLEAN28
         if not SubcontractingEnabled then
             exit;
 
@@ -107,7 +107,7 @@ pageextension 20508 "Subc. Routing Lines" extends "Routing Lines"
 
     trigger OnAfterGetCurrRecord()
     begin
-#if not CLEAN29
+#if not CLEAN28
         if not SubcontractingEnabled then
             exit;
 
@@ -116,7 +116,7 @@ pageextension 20508 "Subc. Routing Lines" extends "Routing Lines"
     end;
 
     var
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -134,7 +134,7 @@ pageextension 20508 "Subc. Routing Lines" extends "Routing Lines"
     var
         SubcontractorPrice: Record "Subcontractor Price";
     begin
-#if not CLEAN29
+#if not CLEAN28
         if not SubcontractingEnabled then
             exit;
 

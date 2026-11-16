@@ -15,7 +15,7 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             trigger OnAfterValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
                 if not SubcontractingEnabled then
                     exit;
 #endif
@@ -26,7 +26,7 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         {
             trigger OnAfterValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
                 if not SubcontractingEnabled then
                     exit;
 #endif
@@ -167,7 +167,7 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
         }
     }
     var
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -182,7 +182,7 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
     var
         StatusFilter: Text;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcontractingEnabled := SubcFeatureFlagHandler.IsSubcontractingEnabled();
 #pragma warning restore AL0432
@@ -198,7 +198,7 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
 
     trigger OnAfterGetRecord()
     begin
-#if not CLEAN29
+#if not CLEAN28
         if not SubcontractingEnabled then
             exit;
 #endif
@@ -207,7 +207,7 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
 
     trigger OnAfterGetCurrRecord()
     begin
-#if not CLEAN29
+#if not CLEAN28
         if not SubcontractingEnabled then
             exit;
 #endif
