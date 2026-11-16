@@ -797,6 +797,7 @@ codeunit 137353 "SCM Inventory Valuation - WIP"
         ItemJournalBatch: Record "Item Journal Batch";
         ValueEntry: Record "Value Entry";
     begin
+        LibraryCosting.AdjustCostItemEntries(ComponentItem."No.", '');
         LibraryPatterns.CalculateInventoryValueRun(
           ItemJournalBatch, ComponentItem, RevalDate, "Inventory Value Calc. Per"::"Item Ledger Entry", false, false, false,
           "Inventory Value Calc. Base"::" ", false, '', '');
