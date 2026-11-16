@@ -45,14 +45,6 @@ page 4 "Payment Terms"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("Has Installments"; Rec."Has Installments")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                field("Has Installments"; Rec."Has Installments")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
                 field("Coupled to Dataverse"; CDSIsCoupledToRecord)
                 {
                     ApplicationArea = All;
