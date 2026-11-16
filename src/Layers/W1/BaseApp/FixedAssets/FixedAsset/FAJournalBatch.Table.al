@@ -171,7 +171,7 @@ table 5620 "FA Journal Batch"
         WorkflowEventHandling: Codeunit "Workflow Event Handling";
         WorkflowManagement: Codeunit "Workflow Management";
     begin
-        OpenApprovalEntriesExistForCurrentUser := OpenApprovalEntriesExistForCurrentUser or ApprovalsMgmt.HasOpenApprovalEntriesForCurrentUser(FAJournalBatch.RecordId());
+        OpenApprovalEntriesExistForCurrentUser := ApprovalsMgmt.HasOpenApprovalEntriesForCurrentUser(FAJournalBatch.RecordId());
         OpenApprovalEntriesOnJournalBatchExist := ApprovalsMgmt.HasOpenApprovalEntries(FAJournalBatch.RecordId());
         CanCancelApprovalForJournalBatch := ApprovalsMgmt.CanCancelApprovalForRecord(FAJournalBatch.RecordId());
         WorkflowWebhookManagement.GetCanRequestAndCanCancel(FAJournalBatch.RecordId(), LocalCanRequestFlowApprovalForBatch, LocalCanCancelFlowApprovalForBatch);

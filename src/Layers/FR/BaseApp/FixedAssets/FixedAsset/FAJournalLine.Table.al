@@ -407,6 +407,7 @@ table 5621 "FA Journal Line"
         LockTable();
         FAJnlSetup.SetFAJnlTrailCodes(Rec);
 
+        FAJnlBatch.Get("Journal Template Name", "Journal Batch Name");
         ApprovalsMgmt.PreventInsertRecIfOpenApprovalEntryExist(FAJnlBatch);
 
         Rec.ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
