@@ -43,7 +43,25 @@ pageextension 3305 AgentTaskList extends "Agent Task List"
 
     trigger OnOpenPage()
     begin
+        if IsFilteredToAnotherAgent() then
+            exit;
         IsAgentActionVisible := PayablesAgentSetup.CanShowAgentActions();
+    end;
+
+    local procedure IsFilteredToAnotherAgent(): Boolean
+    var
+        Agent: Record Agent;
+        AgentUserSecurityIdFilter: Text;
+        FilteredAgentUserSecurityId: Guid;
+    begin
+        AgentUserSecurityIdFilter := Rec.GetFilter("Agent User Security ID");
+        if AgentUserSecurityIdFilter = '' then
+            exit(false);
+        if not Evaluate(FilteredAgentUserSecurityId, AgentUserSecurityIdFilter) then
+            exit(true);
+        if not PayablesAgentSetup.GetAgent(Agent, false) then
+            exit(true);
+        exit(FilteredAgentUserSecurityId <> Agent."User Security ID");
     end;
 
     local procedure CreatePATask(Files: List of [FileUpload])
