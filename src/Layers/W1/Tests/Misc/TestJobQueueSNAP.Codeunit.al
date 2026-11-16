@@ -1649,12 +1649,12 @@ codeunit 139020 "Test Job Queue SNAP"
     var
         JobQueueEntry: Record "Job Queue Entry";
         ScheduledTask: Record "Scheduled Task";
-        LibraryJobQueue: Codeunit "Library - Job Queue";
+        IsolatedLibraryJobQueue: Codeunit "Library - Job Queue";
         ExecutedTaskId: Guid;
     begin
         // [SCENARIO 659464] Scheduling the next run of a successful recurring job does not cancel the task that has just executed it
-        BindSubscription(LibraryJobQueue);
-        LibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
+        BindSubscription(IsolatedLibraryJobQueue);
+        IsolatedLibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
 
         // [GIVEN] Recurring Job Queue Entry whose "System Task ID" is the task executing it
         ExecutedTaskId := CreateNotReadyScheduledTask();
@@ -1666,7 +1666,7 @@ codeunit 139020 "Test Job Queue SNAP"
         JobQueueEntry.Insert();
 
         // [WHEN] The dispatcher runs the entry successfully
-        LibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
+        IsolatedLibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
 
         // [THEN] The executed task is not cancelled and the next run is scheduled
         Assert.IsTrue(ScheduledTask.Get(ExecutedTaskId), 'The executed task must not be cancelled.');
@@ -1676,7 +1676,7 @@ codeunit 139020 "Test Job Queue SNAP"
 
         TaskScheduler.CancelTask(ExecutedTaskId);
         JobQueueEntry.Delete();
-        UnbindSubscription(LibraryJobQueue);
+        UnbindSubscription(IsolatedLibraryJobQueue);
     end;
 
     [Test]
@@ -1686,12 +1686,12 @@ codeunit 139020 "Test Job Queue SNAP"
         JobQueueEntry: Record "Job Queue Entry";
         JobQueueLogEntry: Record "Job Queue Log Entry";
         ScheduledTask: Record "Scheduled Task";
-        LibraryJobQueue: Codeunit "Library - Job Queue";
+        IsolatedLibraryJobQueue: Codeunit "Library - Job Queue";
         ExecutedTaskId: Guid;
     begin
         // [SCENARIO 659464] Scheduling a retry of a failed job does not cancel the task that has just executed it
-        BindSubscription(LibraryJobQueue);
-        LibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
+        BindSubscription(IsolatedLibraryJobQueue);
+        IsolatedLibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
 
         // [GIVEN] Failed Job Queue Entry with attempts left, whose "System Task ID" is the task executing it
         ExecutedTaskId := CreateNotReadyScheduledTask();
@@ -1699,7 +1699,7 @@ codeunit 139020 "Test Job Queue SNAP"
         InsertJobQueueLogEntry(JobQueueEntry.ID, ExecutedTaskId, JobQueueLogEntry.Status::"In Process", 0, 0);
 
         // [WHEN] The error handler runs
-        LibraryJobQueue.RunJobQueueErrorHandler(JobQueueEntry);
+        IsolatedLibraryJobQueue.RunJobQueueErrorHandler(JobQueueEntry);
 
         // [THEN] The executed task is not cancelled and the retry is scheduled
         Assert.IsTrue(ScheduledTask.Get(ExecutedTaskId), 'The executed task must not be cancelled.');
@@ -1712,7 +1712,7 @@ codeunit 139020 "Test Job Queue SNAP"
         JobQueueEntry.Delete();
         JobQueueLogEntry.SetRange(ID, JobQueueEntry.ID);
         JobQueueLogEntry.DeleteAll();
-        UnbindSubscription(LibraryJobQueue);
+        UnbindSubscription(IsolatedLibraryJobQueue);
     end;
 
     [Test]
@@ -1722,13 +1722,13 @@ codeunit 139020 "Test Job Queue SNAP"
         JobQueueEntry: Record "Job Queue Entry";
         JobQueueLogEntry: Record "Job Queue Log Entry";
         ScheduledTask: Record "Scheduled Task";
-        LibraryJobQueue: Codeunit "Library - Job Queue";
+        IsolatedLibraryJobQueue: Codeunit "Library - Job Queue";
         ExecutedTaskId: Guid;
         ReplacementTaskId: Guid;
     begin
         // [SCENARIO 659464] A task that replaced the executed task while the job was running is still cancelled when the retry is scheduled
-        BindSubscription(LibraryJobQueue);
-        LibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
+        BindSubscription(IsolatedLibraryJobQueue);
+        IsolatedLibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
 
         // [GIVEN] Failed Job Queue Entry executed by task "E", whose "System Task ID" was replaced by task "R"
         ExecutedTaskId := CreateNotReadyScheduledTask();
@@ -1737,7 +1737,7 @@ codeunit 139020 "Test Job Queue SNAP"
         InsertJobQueueLogEntry(JobQueueEntry.ID, ExecutedTaskId, JobQueueLogEntry.Status::"In Process", 0, 0);
 
         // [WHEN] The error handler runs
-        LibraryJobQueue.RunJobQueueErrorHandler(JobQueueEntry);
+        IsolatedLibraryJobQueue.RunJobQueueErrorHandler(JobQueueEntry);
 
         // [THEN] Task "R" is cancelled and task "E" is left to the platform
         Assert.IsFalse(ScheduledTask.Get(ReplacementTaskId), 'The replacement task must be cancelled.');
@@ -1748,7 +1748,7 @@ codeunit 139020 "Test Job Queue SNAP"
         JobQueueEntry.Delete();
         JobQueueLogEntry.SetRange(ID, JobQueueEntry.ID);
         JobQueueLogEntry.DeleteAll();
-        UnbindSubscription(LibraryJobQueue);
+        UnbindSubscription(IsolatedLibraryJobQueue);
     end;
 
     local procedure CreateNotReadyScheduledTask(): Guid
