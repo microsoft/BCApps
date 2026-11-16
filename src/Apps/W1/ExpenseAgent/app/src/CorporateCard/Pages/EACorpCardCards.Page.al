@@ -9,6 +9,7 @@ page 7431 "EA Corp Card Cards"
     ApplicationArea = Basic, Suite;
     Caption = 'Corporate Cards';
     PageType = List;
+    PopulateAllFields = true;
     UsageCategory = Lists;
     SourceTable = "EA Corp Card";
 
@@ -18,6 +19,13 @@ page 7431 "EA Corp Card Cards"
         {
             repeater(General)
             {
+                field(CorporateCard; CorpCardSelectionMgt.GetCardDisplay(Rec, Rec."Provider Short Name"))
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Corporate Card';
+                    Editable = false;
+                    ToolTip = 'Specifies the provider short name followed by the last four digits of the corporate card.';
+                }
                 field("Card Id"; Rec."Card Id")
                 {
                     ApplicationArea = Basic, Suite;
@@ -27,6 +35,11 @@ page 7431 "EA Corp Card Cards"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the transaction feed provider for this card.';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.CalcFields("Provider Short Name");
+                    end;
                 }
                 field("External Card Ref"; Rec."External Card Ref")
                 {
@@ -48,6 +61,7 @@ page 7431 "EA Corp Card Cards"
                     ToolTip = 'Specifies whether this card is blocked from new imports.';
                 }
             }
+
         }
     }
 
@@ -84,4 +98,12 @@ page 7431 "EA Corp Card Cards"
             }
         }
     }
+
+    trigger OnOpenPage()
+    begin
+        Rec.SetAutoCalcFields("Provider Short Name");
+    end;
+
+    var
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
 }

@@ -199,6 +199,25 @@ Describe "ParallelTestExecution app-name resolution" {
     }
 }
 
+Describe "ParallelTestExecution concurrent posting routing" {
+    BeforeAll {
+        $script:concurrentPostingRepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+        $script:concurrentPostingApp = Get-Content (Join-Path $script:concurrentPostingRepoRoot 'src\Layers\W1\Tests\Concurrent Posting\app.json') -Raw |
+            ConvertFrom-Json
+    }
+
+    It "runs the session-based posting tests in the typed lane rather than a legacy bucket" {
+        $installedApps = @($script:concurrentPostingApp.name, 'Tests-ERM')
+        $typedApps = @(Get-AppNamesForBucket -InstalledTestAppNames $installedApps -TestType UnitTest)
+        $typedApps | Should -Contain $script:concurrentPostingApp.name
+        $typedApps | Should -Not -Contain 'Tests-ERM'
+        foreach ($bucket in 1, 2) {
+            $legacyApps = @(Get-AppNamesForBucket -InstalledTestAppNames $installedApps -TestType Legacy -BucketNumber $bucket)
+            $legacyApps | Should -Not -Contain $script:concurrentPostingApp.name
+        }
+    }
+}
+
 Describe "ParallelTestExecution background-task profile" {
     BeforeAll {
         $script:profileRepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path

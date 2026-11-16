@@ -46,6 +46,8 @@ codeunit 6987 "Expense Report-Post"
                   TableData "Posted Exp. Policy Evaluation" = i,
                   TableData "Expense Category" = r,
                   TableData "Expense Posting Group" = r,
+                  TableData "EA Corp Card" = r,
+                  TableData "EA Corp Card Trans" = r,
                   TableData "Expense User" = r;
 
     trigger OnRun()
@@ -269,6 +271,7 @@ codeunit 6987 "Expense Report-Post"
     local procedure ValidateExpenseReportLineForPosting(ExpenseReportHeader: Record "Expense Report Header")
     var
         ExpenseReportLine: Record "Expense Report Line";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         CheckedSpendRequestNos: List of [Code[20]];
     begin
         CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportHeader."Spend Request No.");
@@ -278,7 +281,8 @@ codeunit 6987 "Expense Report-Post"
         if ExpenseReportLine.FindSet() then
             repeat
                 CheckMandatoryFields(ExpenseReportLine);
-                ValidateVATSpecLinesForPosting(ExpenseReportLine);
+                CorpCardSelectionMgt.ValidateReportLine(ExpenseReportLine, true);
+                ValidateVATSpecLinesForPosting(ExpenseReportLine, ExpenseReportHeader);
                 if not CheckedSpendRequestNos.Contains(ExpenseReportLine."Spend Request No.") then begin
                     CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportLine."Spend Request No.");
                     CheckedSpendRequestNos.Add(ExpenseReportLine."Spend Request No.");
@@ -315,7 +319,7 @@ codeunit 6987 "Expense Report-Post"
         exit(SpendRequestNotPostableError);
     end;
 
-    local procedure ValidateVATSpecLinesForPosting(ExpenseReportLine: Record "Expense Report Line")
+    local procedure ValidateVATSpecLinesForPosting(ExpenseReportLine: Record "Expense Report Line"; ExpenseReportHeader: Record "Expense Report Header")
     var
         ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
     begin
@@ -326,7 +330,25 @@ codeunit 6987 "Expense Report-Post"
                 ValidateVATSpecMasterRecords(ExpenseReportLineVATSpec);
                 if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::"Pending" then
                     Error(GetPendingVATSpecErrorInfo(ExpenseReportLineVATSpec));
-            until ExpenseReportLineVATSpec.Next() = 0;
+                if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::Approved then begin
+                    ExpenseReportLineVATSpec.TestField("VAT Bus. Posting Group");
+                    ExpenseReportLineVATSpec.TestField("VAT Prod. Posting Group");
+                    CheckVATPostingSetup(ExpenseReportLineVATSpec."VAT Bus. Posting Group", ExpenseReportLineVATSpec."VAT Prod. Posting Group");
+                end;
+            until ExpenseReportLineVATSpec.Next() = 0
+        else begin
+            ExpenseReportLine.TestField("VAT Bus. Posting Group", ExpenseReportHeader."VAT Bus. Posting Group");
+            if ExpenseReportLine."VAT Prod. Posting Group" <> '' then
+                CheckVATPostingSetup(ExpenseReportLine."VAT Bus. Posting Group", ExpenseReportLine."VAT Prod. Posting Group");
+        end;
+    end;
+
+    local procedure CheckVATPostingSetup(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup);
+        VATPostingSetup.TestField("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
     end;
 
     local procedure ValidateVATSpecMasterRecords(ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.")
@@ -671,6 +693,18 @@ codeunit 6987 "Expense Report-Post"
         SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportLine."Dimension Set ID");
 
         GenJnlPostLine.RunWithCheck(GenJournalLine);
+
+        if (ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Credit Card") and
+           (GenJournalLine."Account Type" = GenJournalLine."Account Type"::"G/L Account")
+        then begin
+            PostedExpReportLine.Get(PostedExpReportLine."Document No.", PostedExpReportLine."Line No.");
+            PostedExpReportLine."Card Payable Account No." := GenJournalLine."Account No.";
+            PostedExpReportLine."Card Liability Amount" := GenJournalLine.Amount;
+            PostedExpReportLine."Card Liability Amount (LCY)" := GenJournalLine."Amount (LCY)";
+            PostedExpReportLine."Card Liability Currency Code" := GenJournalLine."Currency Code";
+            PostedExpReportLine."Card Liability Currency Factor" := GenJournalLine."Currency Factor";
+            PostedExpReportLine.Modify();
+        end;
 
         PostRoundingDifferenceOnCurrency(
             ExpenseReportHeader, ExpenseReportLine,

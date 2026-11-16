@@ -315,6 +315,7 @@ codeunit 6908 "Expense Event Subscriber"
         end;
         SpendRequest.CheckExpenseLocation();
         SpendRequest.CheckActualDateTimes();
+        SpendRequest.CheckPerDiemRuleOnTripStart();
 
         Traveler.SetRange("Spend Request No.", SpendRequest."No.");
         if Traveler.IsEmpty() then

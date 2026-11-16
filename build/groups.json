@@ -301,6 +301,20 @@
     ]
   },
   {
+    "name": "Tests-Concurrent Posting",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
     "name": "Tests-ERM",
     "groups": [
       {
@@ -3383,6 +3397,9 @@
       },
       {
         "name": "OnPremExtensions"
+      },
+      {
+        "name": "Internal"
       }
     ]
   },
@@ -3423,6 +3440,9 @@
       },
       {
         "name": "OnPremExtensions"
+      },
+      {
+        "name": "Internal"
       }
     ]
   },
@@ -9235,6 +9255,23 @@
       },
       {
         "name": "Internal"
+      }
+    ]
+  },
+  {
+    "name": "Payables Agent Unit Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
       }
     ]
   },

@@ -223,6 +223,7 @@ page 5280 "SAF-T Wizard"
                         Caption = 'G/L Accounts Mapped:';
                         Editable = false;
                         ApplicationArea = Basic, Suite;
+                        ToolTip = 'Specifies the number of G/L accounts that have been mapped to SAF-T accounts.';
                     }
                     field(GLAccountMappingRemainder; GLAccountMappingRemainderTxt)
                     {
@@ -269,6 +270,7 @@ page 5280 "SAF-T Wizard"
                         Caption = 'VAT Posting Setup mapped:';
                         Editable = false;
                         ApplicationArea = Basic, Suite;
+                        ToolTip = 'Specifies the number of VAT posting setup entries that have been mapped.';
                     }
                     field(VATMappingNARemainder; VATMappingNARemainderTxt)
                     {
