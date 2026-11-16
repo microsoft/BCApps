@@ -49,6 +49,7 @@ codeunit 137055 "SCM Warehouse Pick"
         PickNotFoundErr: Label 'Pick should be created for reserved Sales Order %1', Comment = '%1 = Document No.';
         ShippedQtyMismatchErr: Label 'Expected %1 units to be shipped for the sales order.', Comment = '%1 - Quantity';
         UnexpectedQtyOfLotInBinErr: Label 'Unexpected quantity of lot %1 in bin %2.', Comment = '%1 - Lot No.; %2 - Bin Code';
+        PickTakeQtyBaseForLotErr: Label 'Unexpected pick take quantity (base) for lot %1.', Comment = '%1 - Lot No.';
 
     [Test]
     [HandlerFunctions('ReservationPageHandler')]
@@ -4532,7 +4533,7 @@ codeunit 137055 "SCM Warehouse Pick"
         if LotNo <> '' then
             WarehouseActivityLine.SetRange("Lot No.", LotNo);
         WarehouseActivityLine.CalcSums("Qty. (Base)");
-        Assert.AreEqual(ExpectedQtyBase, WarehouseActivityLine."Qty. (Base)", StrSubstNo('Pick take quantity (base) for lot %1', LotNo));
+        Assert.AreEqual(ExpectedQtyBase, WarehouseActivityLine."Qty. (Base)", StrSubstNo(PickTakeQtyBaseForLotErr, LotNo));
     end;
 
     local procedure VerifyQuantityOnBin(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; LotNo: Code[50]; ExpectedQty: Decimal)
