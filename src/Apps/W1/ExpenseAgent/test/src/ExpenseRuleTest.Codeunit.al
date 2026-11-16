@@ -9116,7 +9116,7 @@ codeunit 148301 "Expense Rule Test"
         ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
         TripStart, TripEnd : DateTime;
     begin
-        // [SCENARIO] Trip days are split on the agent's wall clock, whatever the session time zone is.
+        // [SCENARIO 659478] Trip days are split on the agent's wall clock, whatever the session time zone is.
         // [GIVEN] Agent time zone Tokyo (UTC+9) and a trip from 14:00Z to 16:00Z on 2026-03-10 (23:00 to 01:00 in Tokyo).
         ExpensePerDiemCalculation.SetTimeZone(TokyoTimeZoneTok);
         TripStart := UtcDateTime('2026-03-10T14:00:00Z');
@@ -9137,7 +9137,7 @@ codeunit 148301 "Expense Rule Test"
     var
         ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
     begin
-        // [SCENARIO] The agent offset is taken at each instant, so DST transitions are respected.
+        // [SCENARIO 659478] The agent offset is taken at each instant, so DST transitions are respected.
         // [GIVEN] Agent time zone Eastern. DST starts 2026-03-08 at 07:00Z (02:00 EST becomes 03:00 EDT).
         ExpensePerDiemCalculation.SetTimeZone(EasternTimeZoneTok);
 
@@ -9170,7 +9170,7 @@ codeunit 148301 "Expense Rule Test"
         ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
         DayStart: DateTime;
     begin
-        // [SCENARIO] In zones that switch at midnight, the day starts at the first valid instant.
+        // [SCENARIO 659478] In zones that switch at midnight, the day starts at the first valid instant.
         // [GIVEN] Agent time zone Santiago. On 2025-09-07 local midnight does not exist: 00:00 -04 becomes 01:00 -03 at 04:00Z.
         ExpensePerDiemCalculation.SetTimeZone(SantiagoTimeZoneTok);
 
@@ -9200,7 +9200,7 @@ codeunit 148301 "Expense Rule Test"
         TripStart, TripEnd : DateTime;
         ConditionValue: Decimal;
     begin
-        // [SCENARIO] The same UTC trip gives the same per diem rows for the agent, the API (UTC session) and web users.
+        // [SCENARIO 659478] The same UTC trip gives the same per diem rows for the agent, the API (UTC session) and web users.
         Initialize();
 
         // [GIVEN] The agent works in Eastern time.
@@ -9243,7 +9243,7 @@ codeunit 148301 "Expense Rule Test"
         UnresolvedReason: Text;
         TripStart: DateTime;
     begin
-        // [SCENARIO] Without a usable agent time zone, days are split in the session time zone as before.
+        // [SCENARIO 659478] Without a usable agent time zone, days are split in the session time zone as before.
         Initialize();
         TripStart := UtcDateTime('2026-06-15T20:00:00Z');
 

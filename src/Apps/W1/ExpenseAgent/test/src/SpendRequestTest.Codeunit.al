@@ -1455,7 +1455,7 @@ codeunit 148339 "Spend Request Test"
         TripStart, TripEnd : DateTime;
         DailyRate: Decimal;
     begin
-        // [SCENARIO] The per diem line of an approved travel request is dated in the agent time zone, whatever the session time zone is.
+        // [SCENARIO 659478] The per diem line of an approved travel request is dated in the agent time zone, whatever the session time zone is.
         Initialize();
         SetFullRatePerDiemCalculation();
 
@@ -1500,7 +1500,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseLocation: Record "Expense Location";
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] The per diem rule on the trip start date is found using the agent's date, not the session's.
+        // [SCENARIO 659478] The per diem rule on the trip start date is found using the agent's date, not the session's.
         Initialize();
         SetFullRatePerDiemCalculation();
 
