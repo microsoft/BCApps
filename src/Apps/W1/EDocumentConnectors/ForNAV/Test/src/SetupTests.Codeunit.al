@@ -7,7 +7,7 @@ namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 using System.Environment;
 using System.Reflection;
 
-codeunit 148222 "Setup Tests"
+codeunit 148231 "Setup Tests"
 {
     Subtype = Test;
 
