@@ -78,6 +78,7 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ProductionOrder: Record "Production Order";
+        QtyReadyToStartMgt: Codeunit "Qty. Ready to Start Mgt.";
     begin
         if not ItemJournalLine.Subcontracting then
             exit;
@@ -97,6 +98,7 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
         if CapacityLedgerEntry."Output Quantity" >= ProdOrderLine."Quantity (Base)" then begin
             ProdOrderRoutingLine."Routing Status" := "Prod. Order Routing Status"::Finished;
             ProdOrderRoutingLine.Modify();
+            QtyReadyToStartMgt.UpdateSuccessorsQtyReadyToStart(ProdOrderRoutingLine);
         end;
     end;
 

@@ -161,6 +161,7 @@
     "../../../src/Apps/W1/MicrosoftFabricMirroring/test",
     "../../../src/Apps/W1/OnboardingSignals/test",
     "../../../src/Apps/W1/Onprem Permissions/test",
+    "../../../src/Apps/W1/PayablesAgent/test",
     "../../../src/Apps/W1/PaymentPractices/Test",
     "../../../src/Apps/W1/PaymentPractices/Test Library",
     "../../../src/Apps/W1/PayPalPaymentsStandard/test",
