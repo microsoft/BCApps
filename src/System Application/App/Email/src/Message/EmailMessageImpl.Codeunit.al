@@ -791,6 +791,7 @@ codeunit 8905 "Email Message Impl."
 
     local procedure DeleteEmailMessageIfOrphaned(var EmailMessage: Record "Email Message")
     var
+        EmailInbox: Record "Email Inbox";
         EmailOutbox: Record "Email Outbox";
         SentEmail: Record "Sent Email";
     begin
@@ -800,6 +801,10 @@ codeunit 8905 "Email Message Impl."
 
         SentEmail.SetRange("Message Id", EmailMessage.Id);
         if not SentEmail.IsEmpty() then
+            exit;
+
+        EmailInbox.SetRange("Message Id", EmailMessage.Id);
+        if not EmailInbox.IsEmpty() then
             exit;
 
         EmailMessage.Delete();
