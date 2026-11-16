@@ -1,0 +1,30 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Agent.PayablesAgent;
+
+// Defines the draft-based agent workspace by binding its role center and E-Document-specific page customizations.
+profile "Payables Agent"
+{
+    Caption = 'Payables Agent (Copilot)', Locked = true;
+    Description = 'Default role center for Payables Agent';
+    ProfileDescription = 'Functionality for the Payables Agent to efficiently process purchase invoices and e-documents.';
+    RoleCenter = "Payables Agent RC";
+    Customizations = "PA E-Doc. Error Messages Part",
+                     "PA E-Doc. Purchase Draft",
+                     "PA EDoc Purchase Draft Subform",
+                     "PA Inbound E-Documents",
+                     "PA Purchase Invoice",
+                     "PA Purchase Credit Memo",
+                     "PA Vendor Card",
+                     "PA Vendors",
+                     "PA Posted Purch. Doc.",
+                     "PA Item Reference Entries",
+                     "PA Text-to-Account Mapping",
+                     "PA Chart of Accounts",
+                     "PA Hist. Purchase Lines",
+                     "PA Deferral Template List",
+                     "PA Items";
+}
