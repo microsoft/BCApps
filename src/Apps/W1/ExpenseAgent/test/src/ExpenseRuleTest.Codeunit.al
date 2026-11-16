@@ -9134,11 +9134,11 @@ codeunit 148301 "Expense Rule Test"
     end;
 
     [Test]
-    procedure PerDiemDayBoundariesFollowUsAndEuDaylightSavingTime()
+    procedure PerDiemDayBoundariesFollowUsDaylightSavingTime()
     var
         ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
     begin
-        // [SCENARIO 659478] The agent offset is taken at each instant, so DST transitions are respected.
+        // [SCENARIO 659478] The agent offset is taken at each instant, so US DST transitions are respected.
         // [GIVEN] Agent time zone Eastern. DST starts 2026-03-08 at 07:00Z (02:00 EST becomes 03:00 EDT).
         ExpensePerDiemCalculation.SetTimeZone(EasternTimeZoneTok);
 
@@ -9156,7 +9156,14 @@ codeunit 148301 "Expense Rule Test"
 
         // [THEN] An ambiguous wall time when DST ends (2026-11-01 01:30) resolves to the earlier instant (EDT).
         Assert.AreEqual(UtcDateTime('2026-11-01T05:30:00Z'), ExpensePerDiemCalculation.CreateAgentDateTime(DMY2Date(1, 11, 2026), 013000T), 'Ambiguous wall time when DST ends');
+    end;
 
+    [Test]
+    procedure PerDiemDayBoundariesFollowEuDaylightSavingTime()
+    var
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+    begin
+        // [SCENARIO 659478] The agent offset is taken at each instant, so EU DST transitions are respected.
         // [GIVEN] Agent time zone Central Europe. DST starts 2026-03-29 at 01:00Z (02:00 CET becomes 03:00 CEST).
         ExpensePerDiemCalculation.SetTimeZone(RomanceTimeZoneTok);
 
@@ -9239,7 +9246,7 @@ codeunit 148301 "Expense Rule Test"
     end;
 
     [Test]
-    procedure PerDiemUsesSessionTimeZoneWhenAgentTimeZoneIsUnavailable()
+    procedure PerDiemUsesSessionTimeZoneWhenNoAgentIsConfigured()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
@@ -9248,7 +9255,7 @@ codeunit 148301 "Expense Rule Test"
         TripStart: DateTime;
         Resolved: Boolean;
     begin
-        // [SCENARIO 659478] Without a usable agent time zone, days are split in the session time zone as before.
+        // [SCENARIO 659478] Without an agent, days are split in the session time zone as before.
         Initialize();
         TripStart := UtcDateTime('2026-06-15T20:00:00Z');
 
@@ -9266,6 +9273,21 @@ codeunit 148301 "Expense Rule Test"
         Assert.AreEqual('NoAgent', UnresolvedReason, 'Reason without agent');
         Assert.AreEqual(DT2Date(TripStart), ExpensePerDiemCalculation.GetAgentDate(TripStart), 'Session date without agent');
         Assert.AreEqual(DT2Time(TripStart), ExpensePerDiemCalculation.GetAgentTime(TripStart), 'Session time without agent');
+    end;
+
+    [Test]
+    procedure PerDiemUsesSessionTimeZoneWhenAgentTimeZoneIsBlank()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+        AgentTimeZoneId: Text[180];
+        UnresolvedReason: Text;
+        TripStart: DateTime;
+        Resolved: Boolean;
+    begin
+        // [SCENARIO 659478] With a blank agent time zone, days are split in the session time zone as before.
+        Initialize();
+        TripStart := UtcDateTime('2026-06-15T20:00:00Z');
 
         // [GIVEN] The agent has a blank time zone.
         LibraryExpense.SetAgentTimeZone('');

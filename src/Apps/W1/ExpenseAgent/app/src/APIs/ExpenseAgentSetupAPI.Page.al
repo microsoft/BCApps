@@ -219,6 +219,7 @@ page 6942 "Expense Agent Setup API"
 
     trigger OnAfterGetRecord()
     var
+        TempUserSettings: Record "User Settings" temporary;
         UnresolvedReason: Text;
     begin
         Clear(AgentLanguageCode);
@@ -226,18 +227,18 @@ page 6942 "Expense Agent Setup API"
         Clear(AgentRegionalFormatId);
         if IsNullGuid(Rec."User Security ID") then
             exit;
-        if not TryGetAgentUserSettings(Rec."User Security ID") then begin
+        if not TryGetAgentUserSettings(Rec."User Security ID", TempUserSettings) then begin
             Clear(AgentLanguageCode);
             Clear(AgentRegionalFormatId);
+            exit;
         end;
         // Per diem days are split in this time zone, so expose exactly the value the calculation uses.
-        Rec.GetAgentTimeZone(AgentTimeZone, UnresolvedReason);
+        Rec.GetAgentTimeZoneFromUserSettings(TempUserSettings, AgentTimeZone, UnresolvedReason);
     end;
 
     [TryFunction]
-    local procedure TryGetAgentUserSettings(AgentUserSecurityID: Guid)
+    local procedure TryGetAgentUserSettings(AgentUserSecurityID: Guid; var TempUserSettings: Record "User Settings" temporary)
     var
-        TempUserSettings: Record "User Settings" temporary;
         Agent: Codeunit Agent;
         Language: Codeunit Language;
     begin

@@ -968,8 +968,18 @@ table 6930 "Expense Agent Setup"
             UnresolvedReason := SettingsLookupFailedTok;
             exit(false);
         end;
-        // Agent.GetUserSettings also returns the current user's settings when the agent no longer exists.
-        if TempUserSettings."User Security ID" <> Rec."User Security ID" then begin
+        exit(GetAgentTimeZoneFromUserSettings(TempUserSettings, AgentTimeZoneId, UnresolvedReason));
+    end;
+
+    /// <summary>
+    /// Resolves the agent time zone from user settings already loaded with Agent.GetUserSettings for this agent.
+    /// </summary>
+    internal procedure GetAgentTimeZoneFromUserSettings(var TempUserSettings: Record "User Settings" temporary; var AgentTimeZoneId: Text[180]; var UnresolvedReason: Text): Boolean
+    begin
+        Clear(AgentTimeZoneId);
+        Clear(UnresolvedReason);
+        // Agent.GetUserSettings returns the current user's settings for an empty ID or when the agent no longer exists.
+        if IsNullGuid(Rec."User Security ID") or (TempUserSettings."User Security ID" <> Rec."User Security ID") then begin
             UnresolvedReason := NoAgentTok;
             exit(false);
         end;
