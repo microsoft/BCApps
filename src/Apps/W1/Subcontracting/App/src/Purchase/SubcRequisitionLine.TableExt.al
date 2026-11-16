@@ -24,7 +24,7 @@ tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
             ToolTip = 'Specifies the code that is assigned to the standard task.';
             trigger OnValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -59,7 +59,7 @@ tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
             ToolTip = 'Specifies the quantity of the price list unit of measure or the base unit of measure.';
             trigger OnValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -84,7 +84,7 @@ tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
             ToolTip = 'Specifies the unit of measure for the price list that is on the subcontracting worksheet.';
             trigger OnValidate()
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -126,7 +126,7 @@ tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
             end;
         }
     }
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -137,7 +137,7 @@ tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
     var
         ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -151,7 +151,7 @@ tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
     var
         ItemUnitofMeasure: Record "Item Unit of Measure";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -165,7 +165,7 @@ tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
     var
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -179,7 +179,7 @@ tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
     var
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

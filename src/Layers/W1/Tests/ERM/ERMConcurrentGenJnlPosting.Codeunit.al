@@ -1,0 +1,842 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Finance.Test;
+
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.HumanResources.Payables;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
+
+codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
+{
+    Subtype = Test;
+    TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
+
+    trigger OnRun()
+    begin
+        // [FEATURE] [G/L Posting] [Concurrent Posting]
+    end;
+
+    var
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        Assert: Codeunit Assert;
+        IsInitialized: Boolean;
+        CaptureNextVATEntryNo: Boolean;
+        InsertedVATEntryNo: Integer;
+        EventNextVATEntryNo: Integer;
+        ReserveSummarizedVATGLEntryNo: Boolean;
+        ReservedSummarizedVATGLEntryNo: Integer;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostGenJnlLineWithConcurrentPosting()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        GLRegister: Record "G/L Register";
+        LastGLEntryNo: Integer;
+        LastGLRegisterNo: Integer;
+    begin
+        // [FEATURE] [Gen. Journal] [Concurrent Posting]
+        // [SCENARIO] Posting a G/L journal line with "Use Concurrent Posting" = TRUE creates G/L entries and a G/L Register.
+        Initialize();
+
+        // [GIVEN] "Use Concurrent Posting" is enabled
+        EnableConcurrentPosting(true);
+        if GLEntry.FindLast() then
+            LastGLEntryNo := GLEntry."Entry No.";
+        if GLRegister.FindLast() then
+            LastGLRegisterNo := GLRegister."No.";
+
+        // [GIVEN] A balanced Gen. Journal Line
+        CreateSimpleGLJournalLine(GenJournalLine);
+
+        // [WHEN] The journal line is posted
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] New G/L entries are created
+        GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
+        Assert.IsTrue(GLEntry.FindFirst(), 'G/L entries should have been created after posting');
+
+        // [THEN] The G/L entry has a SIFT Bucket No. equal to Entry No. mod 5
+        Assert.AreEqual(GLEntry."Entry No." mod 5, GLEntry."SIFT Bucket No.", 'SIFT Bucket No. must equal Entry No. mod 5');
+
+        // [THEN] A new G/L Register is created
+        GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
+        Assert.IsTrue(not GLRegister.IsEmpty(), 'A G/L Register should have been created after posting');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostGenJnlLineWithLegacyPosting()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        GLRegister: Record "G/L Register";
+        LastGLEntryNo: Integer;
+        LastGLRegisterNo: Integer;
+    begin
+        // [FEATURE] [Gen. Journal] [Legacy Posting]
+        // [SCENARIO] Posting a G/L journal line with "Use Concurrent Posting" = FALSE creates G/L entries and a G/L Register.
+        Initialize();
+
+        // [GIVEN] "Use Concurrent Posting" is disabled (legacy)
+        EnableConcurrentPosting(false);
+        if GLEntry.FindLast() then
+            LastGLEntryNo := GLEntry."Entry No.";
+        if GLRegister.FindLast() then
+            LastGLRegisterNo := GLRegister."No.";
+
+        // [GIVEN] A balanced Gen. Journal Line
+        CreateSimpleGLJournalLine(GenJournalLine);
+
+        // [WHEN] The journal line is posted
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] New G/L entries are created
+        GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
+        Assert.IsTrue(GLEntry.FindFirst(), 'G/L entries should have been created after posting');
+
+        // [THEN] The G/L entry has a SIFT Bucket No. equal to Entry No. mod 5
+        Assert.AreEqual(GLEntry."Entry No." mod 5, GLEntry."SIFT Bucket No.", 'SIFT Bucket No. must equal Entry No. mod 5');
+
+        // [THEN] A new G/L Register is created
+        GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
+        Assert.IsTrue(not GLRegister.IsEmpty(), 'A G/L Register should have been created after posting');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostSalesInvoiceWithConcurrentPosting()
+    var
+        SalesHeader: Record "Sales Header";
+        GLEntry: Record "G/L Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        LastGLEntryNo: Integer;
+        LastDtldEntryNo: Integer;
+    begin
+        // [FEATURE] [Sales] [Concurrent Posting]
+        // [SCENARIO] Posting a Sales Invoice with "Use Concurrent Posting" = TRUE creates G/L entries and Detailed Cust. Ledg. entries.
+        Initialize();
+
+        // [GIVEN] "Use Concurrent Posting" is enabled
+        EnableConcurrentPosting(true);
+        if GLEntry.FindLast() then
+            LastGLEntryNo := GLEntry."Entry No.";
+        if DetailedCustLedgEntry.FindLast() then
+            LastDtldEntryNo := DetailedCustLedgEntry."Entry No.";
+
+        // [GIVEN] A Sales Invoice
+        LibrarySales.CreateSalesInvoice(SalesHeader);
+
+        // [WHEN] The Sales Invoice is posted
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] New G/L entries are created
+        GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
+        Assert.IsTrue(GLEntry.FindSet(), 'G/L entries should have been created after posting the Sales Invoice');
+
+        // [THEN] Each new G/L entry has SIFT Bucket No. = Entry No. mod 5
+        repeat
+            Assert.AreEqual(
+                GLEntry."Entry No." mod 5,
+                GLEntry."SIFT Bucket No.",
+                'SIFT Bucket No. must equal Entry No. mod 5 for all new G/L entries');
+        until GLEntry.Next() = 0;
+
+        // [THEN] New Detailed Cust. Ledg. entries are created
+        DetailedCustLedgEntry.SetFilter("Entry No.", '>%1', LastDtldEntryNo);
+        Assert.IsTrue(not DetailedCustLedgEntry.IsEmpty(), 'Detailed Cust. Ledg. entries should have been created');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostPurchaseInvoiceWithConcurrentPosting()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        GLEntry: Record "G/L Entry";
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        LastGLEntryNo: Integer;
+        LastDtldEntryNo: Integer;
+    begin
+        // [FEATURE] [Purchase] [Concurrent Posting]
+        // [SCENARIO] Posting a Purchase Invoice with "Use Concurrent Posting" = TRUE creates G/L entries and Detailed Vendor Ledg. entries.
+        Initialize();
+
+        // [GIVEN] "Use Concurrent Posting" is enabled
+        EnableConcurrentPosting(true);
+        if GLEntry.FindLast() then
+            LastGLEntryNo := GLEntry."Entry No.";
+        if DetailedVendorLedgEntry.FindLast() then
+            LastDtldEntryNo := DetailedVendorLedgEntry."Entry No.";
+
+        // [GIVEN] A Purchase Invoice
+        LibraryPurchase.CreatePurchaseInvoice(PurchaseHeader);
+
+        // [WHEN] The Purchase Invoice is posted
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] New G/L entries are created
+        GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
+        Assert.IsTrue(GLEntry.FindSet(), 'G/L entries should have been created after posting the Purchase Invoice');
+
+        // [THEN] Each new G/L entry has SIFT Bucket No. = Entry No. mod 5
+        repeat
+            Assert.AreEqual(
+                GLEntry."Entry No." mod 5,
+                GLEntry."SIFT Bucket No.",
+                'SIFT Bucket No. must equal Entry No. mod 5 for all new G/L entries');
+        until GLEntry.Next() = 0;
+
+        // [THEN] New Detailed Vendor Ledg. entries are created
+        DetailedVendorLedgEntry.SetFilter("Entry No.", '>%1', LastDtldEntryNo);
+        Assert.IsTrue(not DetailedVendorLedgEntry.IsEmpty(), 'Detailed Vendor Ledg. entries should have been created');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VATEntryGetNextEntryNoReturnsPositiveValue()
+    var
+        VATEntry: Record "VAT Entry";
+        NextNo: Integer;
+    begin
+        // [FEATURE] [VAT Entry] [Sequence]
+        // [SCENARIO] VATEntry.GetNextEntryNo() returns a value greater than zero.
+        Initialize();
+
+        // [WHEN] GetNextEntryNo is called
+        NextNo := VATEntry.GetNextEntryNo();
+
+        // [THEN] The returned value is positive
+        Assert.IsTrue(NextNo > 0, 'VATEntry.GetNextEntryNo() must return a positive value');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DetailedCustLedgEntryGetNextEntryNoReturnsPositiveValue()
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        NextNo: Integer;
+    begin
+        // [FEATURE] [Detailed Cust. Ledg. Entry] [Sequence]
+        // [SCENARIO] DetailedCustLedgEntry.GetNextEntryNo() returns a value greater than zero.
+        Initialize();
+
+        // [WHEN] GetNextEntryNo is called
+        NextNo := DetailedCustLedgEntry.GetNextEntryNo();
+
+        // [THEN] The returned value is positive
+        Assert.IsTrue(NextNo > 0, 'DetailedCustLedgEntry.GetNextEntryNo() must return a positive value');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DetailedVendLedgEntryGetNextEntryNoReturnsPositiveValue()
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        NextNo: Integer;
+    begin
+        // [FEATURE] [Detailed Vendor Ledg. Entry] [Sequence]
+        // [SCENARIO] DetailedVendorLedgEntry.GetNextEntryNo() returns a value greater than zero.
+        Initialize();
+
+        // [WHEN] GetNextEntryNo is called
+        NextNo := DetailedVendorLedgEntry.GetNextEntryNo();
+
+        // [THEN] The returned value is positive
+        Assert.IsTrue(NextNo > 0, 'DetailedVendorLedgEntry.GetNextEntryNo() must return a positive value');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DetailedEmplLedgEntryGetNextEntryNoReturnsPositiveValue()
+    var
+        DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry";
+        NextNo: Integer;
+    begin
+        // [FEATURE] [Detailed Employee Ledger Entry] [Sequence]
+        // [SCENARIO] DetailedEmployeeLedgerEntry.GetNextEntryNo() returns a value greater than zero.
+        Initialize();
+
+        // [WHEN] GetNextEntryNo is called
+        NextNo := DetailedEmployeeLedgerEntry.GetNextEntryNo();
+
+        // [THEN] The returned value is positive
+        Assert.IsTrue(NextNo > 0, 'DetailedEmployeeLedgerEntry.GetNextEntryNo() must return a positive value');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GLRegisterGetNextRegisterNoReturnsPositiveValue()
+    var
+        GLRegister: Record "G/L Register";
+        NextNo: Integer;
+    begin
+        // [FEATURE] [G/L Register] [Sequence]
+        // [SCENARIO] GLRegister.GetNextEntryNo() returns a value greater than zero.
+        Initialize();
+
+        // [WHEN] GetNextEntryNo is called
+        NextNo := GLRegister.GetNextEntryNo();
+
+        // [THEN] The returned value is positive
+        Assert.IsTrue(NextNo > 0, 'GLRegister.GetNextEntryNo() must return a positive value');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GLRegisterGetNextEntryNoIsMonotonicallyIncreasing()
+    var
+        GLRegister: Record "G/L Register";
+        FirstNo: Integer;
+        SecondNo: Integer;
+    begin
+        // [FEATURE] [G/L Register] [Sequence]
+        // [SCENARIO] Successive calls to GLRegister.GetNextEntryNo() return strictly increasing values.
+        Initialize();
+
+        // [WHEN] GetNextEntryNo is called twice
+        FirstNo := GLRegister.GetNextEntryNo();
+        SecondNo := GLRegister.GetNextEntryNo();
+
+        // [THEN] The second value is strictly greater than the first
+        Assert.IsTrue(SecondNo > FirstNo, 'Successive calls to GLRegister.GetNextEntryNo() must return increasing values');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostGenJnlLineWithVATConcurrentPosting()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        VATEntry: Record "VAT Entry";
+        GLEntry: Record "G/L Entry";
+        LastGLEntryNo: Integer;
+        LastVATEntryNo: Integer;
+    begin
+        // [FEATURE] [VAT] [Concurrent Posting]
+        // [SCENARIO] Posting a journal line with VAT with "Use Concurrent Posting" = TRUE creates both G/L entries and VAT entries.
+        Initialize();
+
+        // [GIVEN] "Use Concurrent Posting" is enabled
+        EnableConcurrentPosting(true);
+        if GLEntry.FindLast() then
+            LastGLEntryNo := GLEntry."Entry No.";
+        if VATEntry.FindLast() then
+            LastVATEntryNo := VATEntry."Entry No.";
+
+        // [GIVEN] A journal line posted to a VAT-enabled account
+        CreateVATJournalLine(GenJournalLine, GenJournalBatch);
+
+        // [WHEN] The journal is posted
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] New G/L entries are created
+        GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
+        Assert.IsTrue(not GLEntry.IsEmpty(), 'G/L entries should have been created');
+
+        // [THEN] New VAT entries are created
+        VATEntry.SetFilter("Entry No.", '>%1', LastVATEntryNo);
+        Assert.IsTrue(not VATEntry.IsEmpty(), 'VAT entries should have been created');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure OnAfterInsertVATEntryPreservesNextEntryNoContractWithConcurrentPosting()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        ERMConcurrentGenJnlPosting: Codeunit "ERM Concurrent Gen.Jnl.Posting";
+    begin
+        // [FEATURE] [VAT] [Concurrent Posting] [Event]
+        // [SCENARIO] OnAfterInsertVATEntry exposes the inserted VAT entry number plus one when concurrent posting is enabled.
+        Initialize();
+        EnableConcurrentPosting(true);
+        CreateVATJournalLine(GenJournalLine, GenJournalBatch);
+        ERMConcurrentGenJnlPosting.StartCapturingNextVATEntryNo();
+        BindSubscription(ERMConcurrentGenJnlPosting);
+
+        // [WHEN] A VAT entry is inserted
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        UnbindSubscription(ERMConcurrentGenJnlPosting);
+
+        // [THEN] The event keeps its legacy NextEntryNo contract
+        ERMConcurrentGenJnlPosting.VerifyCapturedNextVATEntryNo();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SummarizedUnrealizedVATSkipsReservedGLEntryNo()
+    begin
+        // [FEATURE] [VAT] [Unrealized VAT] [Concurrent Posting]
+        // [SCENARIO] Summarized VAT posting skips an unrelated G/L sequence reservation and preserves VAT links.
+        // [GIVEN] A posted invoice with unrealized VAT and G/L entry summarization enabled.
+        // [WHEN] Payment realizes VAT with an intervening G/L allocation before buffered VAT entries are flushed.
+        // [THEN] Posting skips the unrelated reservation and links VAT to the matching realized G/L entry.
+        PostUnrealizedVATWithInterveningGLAllocation(true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UnsummarizedUnrealizedVATSkipsReservedGLEntryNo()
+    begin
+        // [FEATURE] [VAT] [Unrealized VAT] [Concurrent Posting]
+        // [SCENARIO] Unsummarized VAT posting skips an unrelated G/L sequence reservation and preserves VAT links.
+        // [GIVEN] A posted invoice with unrealized VAT and G/L entry summarization disabled.
+        // [WHEN] Payment realizes VAT with an intervening G/L allocation before buffered VAT entries are flushed.
+        // [THEN] Posting skips the unrelated reservation and links VAT to the matching realized G/L entry.
+        PostUnrealizedVATWithInterveningGLAllocation(false);
+    end;
+
+    local procedure PostUnrealizedVATWithInterveningGLAllocation(SummarizeGLEntries: Boolean)
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLAccount: Record "G/L Account";
+        VATEntry: Record "VAT Entry";
+        GLEntry: Record "G/L Entry";
+        GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
+        ERMConcurrentGenJnlPosting: Codeunit "ERM Concurrent Gen.Jnl.Posting";
+        InvoiceNo: Code[20];
+        InvoiceAmount: Decimal;
+    begin
+        // [SCENARIO] An intervening G/L sequence allocation cannot be used by buffered VAT entries or their links.
+        Initialize();
+        EnableConcurrentPosting(true);
+        LibraryERM.SetUnrealizedVAT(true);
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Summarize G/L Entries" := SummarizeGLEntries;
+        GeneralLedgerSetup.Modify();
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
+        VATPostingSetup.Validate("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::Percentage);
+        VATPostingSetup.Validate("Sales VAT Unreal. Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] A posted invoice with unrealized VAT.
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
+            LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GLAccount."Gen. Posting Type"::Sale), 1);
+        SalesLine.Validate("Unit Price", 1000);
+        SalesLine.Modify(true);
+        InvoiceAmount := SalesLine."Amount Including VAT";
+        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        CreateGenJnlBatch(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine2WithBalAcc(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Customer, Customer."No.",
+            GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNoWithDirectPosting(), -InvoiceAmount);
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceNo);
+        GenJournalLine.Modify(true);
+        ERMConcurrentGenJnlPosting.StartReservingSummarizedVATGLEntryNo();
+        BindSubscription(ERMConcurrentGenJnlPosting);
+
+        // [WHEN] Payment realizes VAT and reserves an unrelated G/L number after buffering but before flushing.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        UnbindSubscription(ERMConcurrentGenJnlPosting);
+
+        // [THEN] Posting succeeds without using the unrelated reservation.
+        ERMConcurrentGenJnlPosting.VerifyReservedSummarizedVATGLEntryNoNotUsed();
+
+        // [THEN] The realized VAT entry links to the realized, not the unrealized, VAT G/L account.
+        VATEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        Assert.AreEqual(1, VATEntry.Count(), 'The payment must realize the invoice VAT');
+        VATEntry.FindFirst();
+        VATEntry.TestField("Document Type", VATEntry."Document Type"::Payment);
+        VATEntry.TestField("Unrealized VAT Entry No.");
+        GLEntryVATEntryLink.SetRange("VAT Entry No.", VATEntry."Entry No.");
+        Assert.AreEqual(1, GLEntryVATEntryLink.Count(), 'Realized VAT must have exactly one G/L link');
+        GLEntryVATEntryLink.FindFirst();
+        GLEntry.Get(GLEntryVATEntryLink."G/L Entry No.");
+        GLEntry.TestField("G/L Account No.", VATPostingSetup."Sales VAT Account");
+        GLEntry.TestField("Document No.", GenJournalLine."Document No.");
+        GLEntry.TestField("G/L Register No.", VATEntry."G/L Register No.");
+        Assert.AreEqual(VATEntry.Amount, GLEntry.Amount, 'The VAT link must reference the matching realized amount');
+
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup."Sales VAT Unreal. Account");
+        Assert.AreEqual(1, GLEntry.Count(), 'The payment must reverse unrealized VAT');
+        GLEntry.FindFirst();
+        Assert.AreEqual(-VATEntry.Amount, GLEntry.Amount, 'Unrealized and realized VAT must balance');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostMultipleGenJnlLinesWithConcurrentPosting()
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        GLRegister: Record "G/L Register";
+        LastGLEntryNo: Integer;
+        LastGLRegisterNo: Integer;
+        EntryCount: Integer;
+    begin
+        // [FEATURE] [Gen. Journal] [Concurrent Posting]
+        // [SCENARIO] Posting multiple journal lines with "Use Concurrent Posting" = TRUE creates sequential G/L entries in a single register.
+        Initialize();
+
+        // [GIVEN] "Use Concurrent Posting" is enabled
+        EnableConcurrentPosting(true);
+        if GLEntry.FindLast() then
+            LastGLEntryNo := GLEntry."Entry No.";
+        if GLRegister.FindLast() then
+            LastGLRegisterNo := GLRegister."No.";
+
+        // [GIVEN] A batch with multiple balanced journal lines
+        CreateGenJnlBatch(GenJournalBatch);
+        CreateBalancedGLJournalLine(GenJournalBatch, GenJournalLine);
+        CreateBalancedGLJournalLine(GenJournalBatch, GenJournalLine);
+        CreateBalancedGLJournalLine(GenJournalBatch, GenJournalLine);
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine.FindFirst(); // Required for ES
+        GenJournalLine.ModifyAll("Document No.", GenJournalLine."Document No.");
+
+        // [WHEN] The batch is posted
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] New G/L entries are created
+        GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
+        EntryCount := GLEntry.Count();
+        Assert.IsTrue(EntryCount > 0, 'G/L entries should have been created for each journal line');
+
+        // [THEN] All new G/L entries have SIFT Bucket No. = Entry No. mod 5
+        GLEntry.FindSet();
+        repeat
+            Assert.AreEqual(
+                GLEntry."Entry No." mod 5,
+                GLEntry."SIFT Bucket No.",
+                'SIFT Bucket No. must equal Entry No. mod 5');
+        until GLEntry.Next() = 0;
+
+        // [THEN] Exactly one new G/L Register is created for the batch
+        GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
+        Assert.AreEqual(1, GLRegister.Count(), 'Exactly one G/L Register should be created per batch posting');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostedGenJnlLinesLinkToCreatedRegisterWithConcurrentPosting()
+    begin
+        // [FEATURE] [Gen. Journal] [Concurrent Posting] [Posted Gen. Journal Line]
+        // [SCENARIO] Posted Gen. Journal Lines reference the G/L Register created by the batch posting with "Use Concurrent Posting" = TRUE.
+        Initialize();
+
+        // [GIVEN] "Use Concurrent Posting" is enabled
+        EnableConcurrentPosting(true);
+
+        // [WHEN] A batch with "Copy to Posted Jnl. Lines" is posted
+        // [THEN] Posted Gen. Journal Lines and G/L Entries reference the created register
+        PostBatchAndVerifyRegisterLinks(0);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostedGenJnlLinesLinkToCreatedRegisterWhenSequenceIsAhead()
+    begin
+        // [FEATURE] [Gen. Journal] [Concurrent Posting] [Posted Gen. Journal Line]
+        // [SCENARIO] Posted Gen. Journal Lines reference the actual G/L Register even if other sessions already took higher register numbers from the sequence.
+        Initialize();
+
+        // [GIVEN] "Use Concurrent Posting" is enabled
+        EnableConcurrentPosting(true);
+
+        // [WHEN] Register numbers are consumed by other sessions and a batch with "Copy to Posted Jnl. Lines" is posted
+        // [THEN] Posted Gen. Journal Lines and G/L Entries reference the created register, not "last register no. + 1"
+        PostBatchAndVerifyRegisterLinks(3);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GLEntriesAreStampedWithTheirOwnRegisterWithConcurrentPosting()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        GLRegister: Record "G/L Register";
+        LastGLRegisterNo: Integer;
+        FirstRegisterNo: Integer;
+        SecondRegisterNo: Integer;
+    begin
+        // [FEATURE] [Gen. Journal] [Concurrent Posting] [G/L Register]
+        // [SCENARIO] Each posting stamps its G/L Entries with its own G/L Register No., so register filters do not mix entries.
+        Initialize();
+
+        // [GIVEN] "Use Concurrent Posting" is enabled
+        EnableConcurrentPosting(true);
+        if GLRegister.FindLast() then
+            LastGLRegisterNo := GLRegister."No.";
+
+        // [WHEN] Two journal lines are posted separately
+        CreateSimpleGLJournalLine(GenJournalLine);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        CreateSimpleGLJournalLine(GenJournalLine);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Two registers are created and each has its own non-empty set of G/L Entries within its entry range
+        GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
+        Assert.AreEqual(2, GLRegister.Count(), 'Two G/L Registers should have been created');
+        GLRegister.FindSet();
+        FirstRegisterNo := GLRegister."No.";
+        GLRegister.Next();
+        SecondRegisterNo := GLRegister."No.";
+
+        GLEntry.SetRange("G/L Register No.", FirstRegisterNo);
+        Assert.RecordIsNotEmpty(GLEntry);
+        GLEntry.SetRange("G/L Register No.", SecondRegisterNo);
+        Assert.RecordIsNotEmpty(GLEntry);
+        GLEntry.SetRange("G/L Register No.", FirstRegisterNo);
+        GLEntry.SetFilter("Entry No.", '%1..%2', GLRegister."From Entry No.", GLRegister."To Entry No.");
+        Assert.RecordIsEmpty(GLEntry);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostSalesInvoiceWithItemWithConcurrentPosting()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        GLEntry: Record "G/L Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        GLRegister: Record "G/L Register";
+        LastGLEntryNo: Integer;
+        LastGLRegisterNo: Integer;
+    begin
+        // [FEATURE] [Sales] [Inventory] [Concurrent Posting]
+        // [SCENARIO] Posting an item sales invoice with "Use Concurrent Posting" = TRUE does not depend on the G/L Entry table lock and stamps all G/L entries with the created register.
+        Initialize();
+
+        // [GIVEN] "Use Concurrent Posting" is enabled
+        EnableConcurrentPosting(true);
+        if GLEntry.FindLast() then
+            LastGLEntryNo := GLEntry."Entry No.";
+        if GLRegister.FindLast() then
+            LastGLRegisterNo := GLRegister."No.";
+
+        // [GIVEN] A sales invoice with an inventory item
+        LibraryInventory.CreateItem(Item);
+        LibrarySales.CreateSalesDocumentWithItem(
+          SalesHeader, SalesLine, SalesHeader."Document Type"::Invoice, '', Item."No.", LibraryRandom.RandInt(10), '', WorkDate());
+
+        // [WHEN] The invoice is posted
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The item ledger entry is created
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        Assert.RecordIsNotEmpty(ItemLedgerEntry);
+
+        // [THEN] All new G/L entries are stamped with a register created by this posting
+        GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
+        Assert.RecordIsNotEmpty(GLRegister);
+
+        GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
+        Assert.RecordIsNotEmpty(GLEntry);
+        GLEntry.SetFilter("G/L Register No.", '<=%1', LastGLRegisterNo);
+        Assert.RecordIsEmpty(GLEntry);
+    end;
+
+    local procedure PostBatchAndVerifyRegisterLinks(ConsumedRegisterNos: Integer)
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLRegister: Record "G/L Register";
+        PostedGenJournalLine: Record "Posted Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        LastGLRegisterNo: Integer;
+        i: Integer;
+    begin
+        if GLRegister.FindLast() then
+            LastGLRegisterNo := GLRegister."No.";
+
+        for i := 1 to ConsumedRegisterNos do
+            GLRegister.GetNextEntryNo();
+
+        CreateGenJnlBatch(GenJournalBatch);
+        GenJournalBatch."Copy to Posted Jnl. Lines" := true;
+        GenJournalBatch.Modify();
+        CreateBalancedGLJournalLine(GenJournalBatch, GenJournalLine);
+        CreateBalancedGLJournalLine(GenJournalBatch, GenJournalLine);
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine.FindFirst();
+        GenJournalLine.ModifyAll("Document No.", GenJournalLine."Document No.");
+
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        GLRegister.Reset();
+        GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
+        Assert.AreEqual(1, GLRegister.Count(), 'Exactly one G/L Register should be created per batch posting');
+        GLRegister.FindFirst();
+
+        PostedGenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        PostedGenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        Assert.AreEqual(2, PostedGenJournalLine.Count(), 'Both journal lines should be copied to posted journal lines');
+        PostedGenJournalLine.SetRange("G/L Register No.", GLRegister."No.");
+        Assert.AreEqual(2, PostedGenJournalLine.Count(), 'Posted journal lines must reference the created G/L Register');
+
+        GLEntry.SetRange("G/L Register No.", GLRegister."No.");
+        Assert.RecordIsNotEmpty(GLEntry);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Concurrent Gen.Jnl.Posting");
+        LibrarySetupStorage.Restore();
+        if IsInitialized then
+            exit;
+
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"ERM Concurrent Gen.Jnl.Posting");
+
+        LibraryERMCountryData.UpdateGeneralLedgerSetup();
+        LibraryERMCountryData.UpdateJournalTemplMandatory(false);
+        LibrarySetupStorage.SaveGeneralLedgerSetup();
+
+        IsInitialized := true;
+        Commit();
+
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"ERM Concurrent Gen.Jnl.Posting");
+    end;
+
+    local procedure EnableConcurrentPosting(Enable: Boolean)
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Use Concurrent Posting" := Enable;
+        GeneralLedgerSetup.Modify();
+    end;
+
+    local procedure CreateGenJnlBatch(var GenJournalBatch: Record "Gen. Journal Batch")
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+    begin
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+    end;
+
+    local procedure CreateSimpleGLJournalLine(var GenJournalLine: Record "Gen. Journal Line")
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+    begin
+        CreateGenJnlBatch(GenJournalBatch);
+        CreateBalancedGLJournalLine(GenJournalBatch, GenJournalLine);
+    end;
+
+    local procedure CreateBalancedGLJournalLine(GenJournalBatch: Record "Gen. Journal Batch"; var GenJournalLine: Record "Gen. Journal Line")
+    begin
+        LibraryERM.CreateGeneralJnlLine2WithBalAcc(
+            GenJournalLine,
+            GenJournalBatch."Journal Template Name",
+            GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::"G/L Account",
+            LibraryERM.CreateGLAccountNoWithDirectPosting(),
+            GenJournalLine."Account Type"::"G/L Account",
+            LibraryERM.CreateGLAccountNoWithDirectPosting(),
+            1000.25);
+    end;
+
+    local procedure CreateVATJournalLine(var GenJournalLine: Record "Gen. Journal Line"; var GenJournalBatch: Record "Gen. Journal Batch")
+    var
+        GLAccount: Record "G/L Account";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GLAccount.Validate("Gen. Posting Type", GLAccount."Gen. Posting Type"::Sale);
+        GLAccount.Modify(true);
+
+        CreateGenJnlBatch(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine2WithBalAcc(
+            GenJournalLine,
+            GenJournalBatch."Journal Template Name",
+            GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::"G/L Account",
+            GLAccount."No.",
+            GenJournalLine."Account Type"::"G/L Account",
+            LibraryERM.CreateGLAccountNoWithDirectPosting(),
+            1000.25);
+    end;
+
+    internal procedure StartCapturingNextVATEntryNo()
+    begin
+        CaptureNextVATEntryNo := true;
+    end;
+
+    internal procedure StartReservingSummarizedVATGLEntryNo()
+    begin
+        ReserveSummarizedVATGLEntryNo := true;
+    end;
+
+    internal procedure VerifyReservedSummarizedVATGLEntryNoNotUsed()
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        Assert.IsTrue(ReservedSummarizedVATGLEntryNo > 0, 'An intervening G/L sequence allocation must have occurred');
+        Assert.IsFalse(GLEntry.Get(ReservedSummarizedVATGLEntryNo), 'Posting must not consume the unrelated G/L sequence reservation');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforeInsertPostUnrealVATEntry, '', false, false)]
+    local procedure ReserveGLEntryNoBeforeUnrealizedVATFlush()
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        if not ReserveSummarizedVATGLEntryNo then
+            exit;
+
+        ReservedSummarizedVATGLEntryNo := GLEntry.GetNextEntryNo();
+        ReserveSummarizedVATGLEntryNo := false;
+    end;
+
+    internal procedure VerifyCapturedNextVATEntryNo()
+    begin
+        Assert.IsFalse(CaptureNextVATEntryNo, 'OnAfterInsertVATEntry must be raised for the posted VAT entry');
+        Assert.AreEqual(InsertedVATEntryNo + 1, EventNextVATEntryNo, 'OnAfterInsertVATEntry must expose the inserted VAT entry number plus one');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnAfterInsertVATEntry, '', false, false)]
+    local procedure CaptureNextEntryNoOnAfterInsertVATEntry(GenJnlLine: Record "Gen. Journal Line"; VATEntry: Record "VAT Entry"; GLEntryNo: Integer; var NextEntryNo: Integer; var TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary)
+    begin
+        if not CaptureNextVATEntryNo then
+            exit;
+
+        InsertedVATEntryNo := VATEntry."Entry No.";
+        EventNextVATEntryNo := NextEntryNo;
+        CaptureNextVATEntryNo := false;
+    end;
+}

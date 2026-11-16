@@ -11,5 +11,6 @@ permissionset 10777 DocRegESRead
     Caption = 'Document Registration in Spain - Read';
 
     Permissions = tabledata "Verifactu Setup" = R,
-                  tabledata "Verifactu Document" = R;
+                  tabledata "Verifactu Document" = R,
+                  codeunit "Doc. Registration Cert. Mgt." = X;
 }

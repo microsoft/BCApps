@@ -139,8 +139,8 @@ codeunit 139620 ErrMsgScenarioTestHelper
     begin
         // Create a new currency with GL account setup and two exchange rates for the currency
         CurrencyCode := LibraryERM.CreateCurrencyWithGLAccountSetup();
-        LibraryERM.CreateExchangeRate(CurrencyCode, Today() - 1, 100, 100);
-        LibraryERM.CreateExchangeRate(CurrencyCode, Today() + 5, 101, 101);
+        LibraryERM.CreateExchangeRate(CurrencyCode, WorkDate() - 1, 100, 100);
+        LibraryERM.CreateExchangeRate(CurrencyCode, WorkDate() + 5, 101, 101);
 
         // Create a customer with new currency
         LibrarySales.CreateCustomer(Customer);
