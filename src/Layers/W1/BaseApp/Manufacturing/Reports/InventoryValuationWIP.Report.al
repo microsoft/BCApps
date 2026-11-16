@@ -670,10 +670,15 @@ report 5802 "Inventory Valuation - WIP"
     end;
 
     local procedure IsProductionCost(ValueEntry: Record "Value Entry"): Boolean
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
     begin
-        if (ValueEntry."Entry Type" = ValueEntry."Entry Type"::Revaluation) and (ValueEntry."Item Ledger Entry Type" = ValueEntry."Item Ledger Entry Type"::Consumption)
-            and ("Value Entry"."Item Ledger Entry Quantity" > 0) then
-            exit(false);
+        // Revaluation of a reversed (positive) consumption entry is posted to Inventory Adjmt., not WIP.
+        if (ValueEntry."Entry Type" = ValueEntry."Entry Type"::Revaluation) and (ValueEntry."Item Ledger Entry Type" = ValueEntry."Item Ledger Entry Type"::Consumption) then begin
+            ItemLedgerEntry.SetLoadFields(Positive);
+            if ItemLedgerEntry.Get(ValueEntry."Item Ledger Entry No.") and ItemLedgerEntry.Positive then
+                exit(false);
+        end;
 
         exit(true);
     end;

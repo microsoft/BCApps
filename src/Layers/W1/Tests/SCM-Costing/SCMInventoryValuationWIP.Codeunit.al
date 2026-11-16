@@ -25,6 +25,8 @@ codeunit 137353 "SCM Inventory Valuation - WIP"
         CalcStandardCost: Codeunit "Calculate Standard Cost";
         isInitialized: Boolean;
         OriginalWorkDate: Date;
+        RevaluationNotPostedErr: Label 'A revaluation must be posted for the reversed consumption entry.';
+        ProdOrderRowNotFoundErr: Label 'The production order must be shown in the report.';
 
     [Test]
     [HandlerFunctions('ConfirmHandler,InventoryValuationWIPRequestPageHandler')]
@@ -311,6 +313,77 @@ codeunit 137353 "SCM Inventory Valuation - WIP"
         VerifyOpenningBalanceOnInventoryValuationWIPReport(ProductionOrder."No.", ParentItem."Unit Cost" * Qty);
     end;
 
+    [Test]
+    [HandlerFunctions('InventoryValuationWIPRequestPageHandler')]
+    procedure RevaluationOfReversedConsumptionDoesNotChangeWIPRegardlessOfStartingDate()
+    var
+        ParentItem: Record Item;
+        ChildItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ValueEntry: Record "Value Entry";
+        ItemJournalBatch: Record "Item Journal Batch";
+        UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
+        RevalDate: Date;
+        EndDate: Date;
+        ExpectedWIP: Decimal;
+        Qty: Integer;
+    begin
+        // [FEATURE] [Revaluation]
+        // [SCENARIO 658991] Revaluation of a reversed consumption entry is posted to Inventory Adjmt., not WIP, so the report must return the same WIP whether the revaluation falls inside or before the reporting period.
+        Initialize();
+        Qty := LibraryRandom.RandInt(10);
+        RevalDate := WorkDate() + LibraryRandom.RandInt(5);
+        EndDate := RevalDate + LibraryRandom.RandIntInRange(10, 30);
+
+        // [GIVEN] Component "C" purchased and invoiced, and a released production order "PO" for an item that uses "C".
+        SetupInventoryForReportWithoutPurchOrder(
+          ParentItem, ChildItem, ProductionOrder, ProdOrderLine, ParentItem."Costing Method"::FIFO,
+          ChildItem."Costing Method"::FIFO, true, Qty, 1, WorkDate());
+
+        // [GIVEN] Consumption of "C" posted from "PO" and then reversed.
+        LibraryManufacturing.POSTConsumption(ProdOrderLine, ChildItem, '', '', Qty, WorkDate(), 0);
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
+        ItemLedgerEntry.SetRange("Item No.", ChildItem."No.");
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
+        UndoProdPostingMgmt.SetHideDialog(true);
+        UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+
+        // [GIVEN] The reversed (positive) consumption entry of "C" is revalued on "RevalDate".
+        LibraryPatterns.CalculateInventoryValueRun(
+          ItemJournalBatch, ChildItem, RevalDate, "Inventory Value Calc. Per"::"Item Ledger Entry", false, false, false,
+          "Inventory Value Calc. Base"::" ", false, '', '');
+        LibraryPatterns.ModifyPostRevaluation(ItemJournalBatch, LibraryRandom.RandIntInRange(2, 5));
+
+        ValueEntry.SetRange("Order Type", ValueEntry."Order Type"::Production);
+        ValueEntry.SetRange("Order No.", ProductionOrder."No.");
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Consumption);
+        ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::Revaluation);
+        ValueEntry.FindFirst();
+        Assert.AreNotEqual(0, ValueEntry."Cost Amount (Actual)", RevaluationNotPostedErr);
+
+        // [GIVEN] WIP of "PO" is the consumption cost posted to the WIP account, which excludes the revaluation.
+        ValueEntry.SetFilter("Entry Type", '<>%1', ValueEntry."Entry Type"::Revaluation);
+        ValueEntry.CalcSums("Cost Amount (Actual)");
+        ExpectedWIP := -ValueEntry."Cost Amount (Actual)";
+
+        // [WHEN] The report is run for a period that includes the revaluation.
+        RunInventoryValuationWIPReport(ProductionOrder."No.", WorkDate(), EndDate);
+
+        // [THEN] The revaluation is not reported as consumption, and ending WIP equals "ExpectedWIP".
+        VerifyWIPBalancesOnInventoryValuationWIPReport(ProductionOrder."No.", 0, ExpectedWIP, ExpectedWIP);
+
+        // [WHEN] The report is run for a period starting after the revaluation, with the same ending date.
+        RunInventoryValuationWIPReport(ProductionOrder."No.", RevalDate + 1, EndDate);
+
+        // [THEN] Opening and ending WIP equal "ExpectedWIP", the same ending WIP as the first run.
+        VerifyWIPBalancesOnInventoryValuationWIPReport(ProductionOrder."No.", ExpectedWIP, 0, ExpectedWIP);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -594,6 +667,16 @@ codeunit 137353 "SCM Inventory Valuation - WIP"
         LibraryReportDataset.SetRange('No_ProductionOrder', ProductionOrderNo);
         LibraryReportDataset.GetNextRow();
         LibraryReportDataset.AssertCurrentRowValueEquals('LastWIP', ExpectedOpenningBalance);
+    end;
+
+    local procedure VerifyWIPBalancesOnInventoryValuationWIPReport(ProductionOrderNo: Code[20]; ExpectedOpeningWIP: Decimal; ExpectedConsumption: Decimal; ExpectedEndingWIP: Decimal)
+    begin
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('No_ProductionOrder', ProductionOrderNo);
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), ProdOrderRowNotFoundErr);
+        LibraryReportDataset.AssertCurrentRowValueEquals('LastWIP', ExpectedOpeningWIP);
+        LibraryReportDataset.AssertCurrentRowValueEquals('ValueOfMatConsump', ExpectedConsumption);
+        LibraryReportDataset.AssertCurrentRowValueEquals('AtLastDate', ExpectedEndingWIP);
     end;
 
     [RequestPageHandler]
