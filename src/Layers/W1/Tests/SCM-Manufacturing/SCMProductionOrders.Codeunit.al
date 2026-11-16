@@ -5247,7 +5247,9 @@ codeunit 137069 "SCM Production Orders"
         SourceCode: Code[10];
         Iteration: Integer;
     begin
+        // [SCENARIO] Sales item production retains the sales location, including blank, rather than the setup default.
         Initialize();
+        // [GIVEN] A setup default and sales demand at either an explicit or blank location.
         SetupStorage.SaveManufacturingSetup();
         SetupStorage.SaveInventorySetup();
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
@@ -5261,8 +5263,10 @@ codeunit 137069 "SCM Production Orders"
             CreateDefaultLocationSalesLine(SalesHeader, SalesLine, Item."No.", SourceCode, 3);
             Observer.StartDefaultLocationCapture(Location.Code, '');
             BindSubscription(Observer);
+            // [WHEN] An item production order is created from the sales line.
             CreateDefaultLocationSalesOrder(SalesLine);
             UnbindSubscription(Observer);
+            // [THEN] The default is not validated and related records and reservations use the source location.
             Observer.AssertDefaultLocationCapture();
             FindDefaultLocationOrder(ProductionOrder, Item."No.");
             AssertDefaultLocationRelations(ProductionOrder, Item."No.", SourceCode, SourceCode, 3);
@@ -5296,7 +5300,9 @@ codeunit 137069 "SCM Production Orders"
         Iteration: Integer;
         StatusIndex: Integer;
     begin
+        // [SCENARIO] Status changes preserve saved locations, including blank, instead of applying the current default.
         Initialize();
+        // [GIVEN] Orders in each pre-release status with an explicit or blank location.
         SetupStorage.SaveManufacturingSetup();
         SetupStorage.SaveInventorySetup();
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
@@ -5311,12 +5317,16 @@ codeunit 137069 "SCM Production Orders"
                 InitialStatus := Enum::"Production Order Status".FromInteger(StatusIndex);
                 CreateDefaultLocationOrder(ProductionOrder, InitialStatus, Item."No.", SourceCode, 2);
                 ConfigureDefaultLocation(Location.Code, '');
+                // [WHEN] An existing order is released after the setup default changes.
+                // [THEN] The status-transfer helper verifies saved locations and zero setup-default validations.
                 TransferDefaultLocationOrder(ProductionOrder, ProductionOrder.Status::Released, Item."No.", SourceCode, Location.Code);
             end;
             ConfigureDefaultLocation('', '');
             CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Manual);
             CreateDefaultLocationOrder(ProductionOrder, ProductionOrder.Status::Simulated, Item."No.", SourceCode, 2);
             ConfigureDefaultLocation(Location.Code, '');
+            // [WHEN] The order passes through every intermediate status.
+            // [THEN] Each transition preserves the same source location and related records.
             TransferDefaultLocationOrder(ProductionOrder, ProductionOrder.Status::Planned, Item."No.", SourceCode, Location.Code);
             TransferDefaultLocationOrder(ProductionOrder, ProductionOrder.Status::"Firm Planned", Item."No.", SourceCode, Location.Code);
             TransferDefaultLocationOrder(ProductionOrder, ProductionOrder.Status::Released, Item."No.", SourceCode, Location.Code);
@@ -5339,7 +5349,9 @@ codeunit 137069 "SCM Production Orders"
         OrderNo: Code[20];
         Iteration: Integer;
     begin
+        // [SCENARIO] Reopening and finishing again preserve saved locations without duplicating output or consumption.
         Initialize();
+        // [GIVEN] A posted and finished order and a subsequently configured default location.
         SetupStorage.SaveManufacturingSetup();
         SetupStorage.SaveInventorySetup();
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
@@ -5358,11 +5370,15 @@ codeunit 137069 "SCM Production Orders"
             ConfigureDefaultLocation(Location.Code, '');
             FinishedOrder.Get(FinishedOrder.Status::Finished, OrderNo);
             FinishedOrder.TestField("Location Code", SourceCode);
+            // [WHEN] The finished order is reopened.
             StatusManagement.ProcessProdOrderForReopen(FinishedOrder);
+            // [THEN] The reopened order retains its saved location and related quantities.
             ProductionOrder.Get(ProductionOrder.Status::Released, OrderNo);
             ProductionOrder.TestField(Reopened, true);
             AssertDefaultLocationRelations(ProductionOrder, Item."No.", SourceCode, SourceCode, 2);
+            // [WHEN] The order is finished again.
             LibraryManufacturing.ChangeStatusReleasedToFinished(OrderNo);
+            // [THEN] Its location and the previously posted ledger quantities remain unchanged.
             FinishedOrder.Get(FinishedOrder.Status::Finished, OrderNo);
             FinishedOrder.TestField("Location Code", SourceCode);
             AssertDefaultLocationLedger(Item."No.", OrderNo, SourceCode, Enum::"Item Ledger Entry Type"::Output, 2);
@@ -5384,7 +5400,9 @@ codeunit 137069 "SCM Production Orders"
         ItemIndex: Integer;
         Quantity: Decimal;
     begin
+        // [SCENARIO] An initialized family order inherits the output location without changing family quantities.
         Initialize();
+        // [GIVEN] A default location and a family containing items with quantities three and five.
         SetupStorage.SaveManufacturingSetup();
         SetupStorage.SaveInventorySetup();
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
@@ -5396,11 +5414,13 @@ codeunit 137069 "SCM Production Orders"
         Family.Modify(true);
         LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", Items[1]."No.", 3);
         LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", Items[2]."No.", 5);
-        CreateDefaultLocationManualOrder(
+        // [WHEN] A family order for quantity two is explicitly initialized and refreshed.
+        CreateDefaultLocationInitializedOrder(
             ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Family, Family."No.", 2);
         ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
         ProductionOrder.TestField("Location Code", Location.Code);
         LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+        // [THEN] Output and consumption use the default location and the multiplied family quantities.
         for ItemIndex := 1 to 2 do begin
             Quantity := 2 * (2 * ItemIndex + 1);
             AssertDefaultLocationRelations(ProductionOrder, Items[ItemIndex]."No.", Location.Code, Location.Code, Quantity);
@@ -5499,15 +5519,10 @@ codeunit 137069 "SCM Production Orders"
         Item.Modify(true);
     end;
 
-    procedure CreateDefaultLocationManualOrder(var ProductionOrder: Record "Production Order"; OrderStatus: Enum "Production Order Status"; SourceType: Enum "Prod. Order Source Type"; SourceNo: Code[20]; Quantity: Decimal)
+    procedure CreateDefaultLocationInitializedOrder(var ProductionOrder: Record "Production Order"; OrderStatus: Enum "Production Order Status"; SourceType: Enum "Prod. Order Source Type"; SourceNo: Code[20]; Quantity: Decimal)
     var
         ManufacturingSetup: Record "Manufacturing Setup";
-        SimulatedProductionOrder: TestPage "Simulated Production Order";
-        PlannedProductionOrder: TestPage "Planned Production Order";
-        FirmPlannedProductionOrder: TestPage "Firm Planned Prod. Order";
-        ReleasedProductionOrder: TestPage "Released Production Order";
         NoSeriesFieldNo: Integer;
-        OrderNo: Code[20];
     begin
         case OrderStatus of
             OrderStatus::Simulated:
@@ -5520,45 +5535,14 @@ codeunit 137069 "SCM Production Orders"
                 NoSeriesFieldNo := ManufacturingSetup.FieldNo("Released Order Nos.");
         end;
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Manufacturing Setup", NoSeriesFieldNo);
-        case OrderStatus of
-            OrderStatus::Simulated:
-                begin
-                    SimulatedProductionOrder.OpenNew();
-                    SimulatedProductionOrder."Source Type".SetValue(SourceType);
-                    SimulatedProductionOrder."Source No.".SetValue(SourceNo);
-                    SimulatedProductionOrder.Quantity.SetValue(Quantity);
-                    OrderNo := SimulatedProductionOrder."No.".Value();
-                    SimulatedProductionOrder.Close();
-                end;
-            OrderStatus::Planned:
-                begin
-                    PlannedProductionOrder.OpenNew();
-                    PlannedProductionOrder."Source Type".SetValue(SourceType);
-                    PlannedProductionOrder."Source No.".SetValue(SourceNo);
-                    PlannedProductionOrder.Quantity.SetValue(Quantity);
-                    OrderNo := PlannedProductionOrder."No.".Value();
-                    PlannedProductionOrder.Close();
-                end;
-            OrderStatus::"Firm Planned":
-                begin
-                    FirmPlannedProductionOrder.OpenNew();
-                    FirmPlannedProductionOrder."Source Type".SetValue(SourceType);
-                    FirmPlannedProductionOrder."Source No.".SetValue(SourceNo);
-                    FirmPlannedProductionOrder.Quantity.SetValue(Quantity);
-                    OrderNo := FirmPlannedProductionOrder."No.".Value();
-                    FirmPlannedProductionOrder.Close();
-                end;
-            OrderStatus::Released:
-                begin
-                    ReleasedProductionOrder.OpenNew();
-                    ReleasedProductionOrder."Source Type".SetValue(SourceType);
-                    ReleasedProductionOrder."Source No.".SetValue(SourceNo);
-                    ReleasedProductionOrder.Quantity.SetValue(Quantity);
-                    OrderNo := ReleasedProductionOrder."No.".Value();
-                    ReleasedProductionOrder.Close();
-                end;
-        end;
-        ProductionOrder.Get(OrderStatus, OrderNo);
+        Clear(ProductionOrder);
+        ProductionOrder.Status := OrderStatus;
+        ProductionOrder.SetDefaultLocation();
+        ProductionOrder.Insert(true);
+        ProductionOrder.Validate("Source Type", SourceType);
+        ProductionOrder.Validate("Source No.", SourceNo);
+        ProductionOrder.Validate(Quantity, Quantity);
+        ProductionOrder.Modify(true);
     end;
 
     procedure CreateDefaultLocationOrder(var ProductionOrder: Record "Production Order"; OrderStatus: Enum "Production Order Status"; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal)

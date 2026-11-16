@@ -1620,7 +1620,9 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         SourceCode: Code[10];
         Iteration: Integer;
     begin
+        // [SCENARIO] The production-definition wizard preserves the sales location, including blank, in the created order.
         Initialize();
+        // [GIVEN] A setup default and sales demand with an item variant and source location.
         LibrarySetupStorage.SaveInventorySetup();
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DefaultLocation);
         Observer.ConfigureDefaultLocation(DefaultLocation.Code, '');
@@ -1639,8 +1641,10 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
             Observer.StartDefaultLocationCapture(DefaultLocation.Code, '');
             BindSubscription(Observer);
             Commit();
+            // [WHEN] The native wizard creates a released production order from the sales line.
             ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder, ProductionOrder.Status::Released);
             UnbindSubscription(Observer);
+            // [THEN] Temporary and persisted output, components, routing and reservations retain source identity and quantities.
             Observer.AssertDefaultLocationCapture();
             Assert.IsTrue(WizardFinished, 'The native wizard must finish.');
             ProdDefManager.GetTempData(TempData);

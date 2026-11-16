@@ -3496,7 +3496,9 @@ codeunit 137080 "SCM Planning And Manufacturing"
         Iteration: Integer;
         Direction: Option Forward,Backward;
     begin
+        // [SCENARIO] Planning carry-out preserves the planning location, including blank, through forward flushing.
         Initialize();
+        // [GIVEN] A default location and planning demand at a different or blank source location.
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DefaultLocation);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SourceLocation);
         Observer.ConfigureDefaultLocation(DefaultLocation.Code, '');
@@ -3512,8 +3514,10 @@ codeunit 137080 "SCM Planning And Manufacturing"
             LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Forward, false, true);
             Observer.StartDefaultLocationCapture(DefaultLocation.Code, '');
             BindSubscription(Observer);
+            // [WHEN] Planning carry-out creates released production supply.
             CreateProdOrdersFromPlanWorksheet(RequisitionLine, Enum::"Planning Create Prod. Order"::Released);
             UnbindSubscription(Observer);
+            // [THEN] No setup-default validation occurs and supply and consumption retain the source location and quantity.
             Observer.AssertDefaultLocationCapture();
             Observer.FindDefaultLocationOrder(ProductionOrder, Item."No.");
             ProductionOrder.TestField(Quantity, 1);

@@ -5154,7 +5154,9 @@ codeunit 137404 "SCM Manufacturing"
         Fixture: Codeunit "SCM Production Orders";
         Iteration: Integer;
     begin
+        // [SCENARIO] Initializing a released order applies the setup output location and its production bin.
         Initialize();
+        // [GIVEN] An item and a default location, with and without a mandatory output bin.
         LibraryInventory.CreateItem(Item);
         for Iteration := 1 to 2 do begin
             LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
@@ -5166,87 +5168,15 @@ codeunit 137404 "SCM Manufacturing"
                 Location.Modify(true);
             end;
             Fixture.ConfigureDefaultLocation(Location.Code, '');
-            Fixture.CreateDefaultLocationManualOrder(
+            // [WHEN] A released order is explicitly initialized with the setup default.
+            Fixture.CreateDefaultLocationInitializedOrder(
                 ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 2);
+            // [THEN] The location, quantity and applicable output bin are retained.
             ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
             ProductionOrder.TestField("Location Code", Location.Code);
             ProductionOrder.TestField(Quantity, 2);
             if Iteration = 2 then
                 ProductionOrder.TestField("Bin Code", Bin.Code);
-        end;
-        LibrarySetupStorage.Restore();
-    end;
-
-    [Test]
-    procedure DefaultLocationReleasedCard()
-    var
-        Item: Record Item;
-        Location: Record Location;
-        ProductionOrder: Record "Production Order";
-        ManufacturingSetup: Record "Manufacturing Setup";
-        Fixture: Codeunit "SCM Production Orders";
-        ReleasedProductionOrder: TestPage "Released Production Order";
-        OrderNo: Code[20];
-    begin
-        Initialize();
-        LibraryInventory.CreateItem(Item);
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        Fixture.ConfigureDefaultLocation(Location.Code, '');
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Manufacturing Setup", ManufacturingSetup.FieldNo("Released Order Nos."));
-        ReleasedProductionOrder.OpenNew();
-        ReleasedProductionOrder."Location Code".AssertEquals(Location.Code);
-        ReleasedProductionOrder."Source No.".SetValue(Item."No.");
-        ReleasedProductionOrder.Quantity.SetValue(2);
-        OrderNo := ReleasedProductionOrder."No.".Value();
-        ReleasedProductionOrder.Close();
-        ProductionOrder.Get(ProductionOrder.Status::Released, OrderNo);
-        ProductionOrder.TestField("Location Code", Location.Code);
-        ProductionOrder.TestField(Quantity, 2);
-        LibrarySetupStorage.Restore();
-    end;
-
-    [Test]
-    procedure DefaultLocationCardOverride()
-    var
-        Item: Record Item;
-        ItemVariant: Record "Item Variant";
-        DefaultLocation: Record Location;
-        OtherLocation: Record Location;
-        ProductionOrder: Record "Production Order";
-        ManufacturingSetup: Record "Manufacturing Setup";
-        Fixture: Codeunit "SCM Production Orders";
-        ReleasedProductionOrder: TestPage "Released Production Order";
-        LocationCode: Code[10];
-        OrderNo: Code[20];
-        Iteration: Integer;
-    begin
-        Initialize();
-        LibraryInventory.CreateItem(Item);
-        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DefaultLocation);
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(OtherLocation);
-        Fixture.ConfigureDefaultLocation(DefaultLocation.Code, '');
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Manufacturing Setup", ManufacturingSetup.FieldNo("Released Order Nos."));
-        for Iteration := 1 to 2 do begin
-            LocationCode := '';
-            if Iteration = 2 then
-                LocationCode := OtherLocation.Code;
-            ReleasedProductionOrder.OpenNew();
-            ReleasedProductionOrder."Location Code".AssertEquals(DefaultLocation.Code);
-            ReleasedProductionOrder."Location Code".SetValue(LocationCode);
-            ReleasedProductionOrder."Source No.".SetValue(Item."No.");
-            ReleasedProductionOrder."Variant Code".SetValue(ItemVariant.Code);
-            ReleasedProductionOrder.Quantity.SetValue(2);
-            ReleasedProductionOrder."Location Code".AssertEquals(LocationCode);
-            OrderNo := ReleasedProductionOrder."No.".Value();
-            ReleasedProductionOrder.Close();
-            ProductionOrder.Get(ProductionOrder.Status::Released, OrderNo);
-            ProductionOrder.TestField("Location Code", LocationCode);
-            ProductionOrder.TestField("Variant Code", ItemVariant.Code);
-            ReleasedProductionOrder.OpenEdit();
-            ReleasedProductionOrder.GoToRecord(ProductionOrder);
-            ReleasedProductionOrder."Location Code".AssertEquals(LocationCode);
-            ReleasedProductionOrder.Close();
         end;
         LibrarySetupStorage.Restore();
     end;
@@ -5260,12 +5190,16 @@ codeunit 137404 "SCM Manufacturing"
         Fixture: Codeunit "SCM Production Orders";
         StatusIndex: Integer;
     begin
+        // [SCENARIO] A blank setup default leaves initialized orders and their refreshed lines without a location.
         Initialize();
+        // [GIVEN] No default location and an item with a component.
         Fixture.ConfigureDefaultLocation('', '');
         Fixture.CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Manual);
         for StatusIndex := 0 to 3 do begin
-            Fixture.CreateDefaultLocationManualOrder(
+            // [WHEN] Each supported initial status is initialized without a setup location.
+            Fixture.CreateDefaultLocationInitializedOrder(
                 ProductionOrder, Enum::"Production Order Status".FromInteger(StatusIndex), ProductionOrder."Source Type"::Item, Item."No.", 2);
+            // [THEN] Neither the header nor refreshed output and component lines acquire a location.
             ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
             ProductionOrder.TestField("Location Code", '');
             LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
@@ -5286,7 +5220,9 @@ codeunit 137404 "SCM Manufacturing"
         Observer: Codeunit "SCM Production Orders";
         StatusIndex: Integer;
     begin
+        // [SCENARIO] Explicit initialization does not replace or validate over an existing location.
         Initialize();
+        // [GIVEN] An explicit header location different from the manufacturing default.
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DefaultLocation);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ExplicitLocation);
         Fixture.ConfigureDefaultLocation(DefaultLocation.Code, '');
@@ -5296,36 +5232,15 @@ codeunit 137404 "SCM Manufacturing"
             ProductionOrder.Validate("Location Code", ExplicitLocation.Code);
             Observer.StartDefaultLocationCapture(DefaultLocation.Code, ExplicitLocation.Code);
             BindSubscription(Observer);
+            // [WHEN] Default initialization and insertion are requested for that header.
             ProductionOrder.SetDefaultLocation();
             ProductionOrder.Insert(true);
             UnbindSubscription(Observer);
+            // [THEN] No setup-location validation occurs and related records retain the explicit location.
             Observer.AssertDefaultLocationCapture();
             CompleteDefaultLocationHeader(ProductionOrder, Item."No.", 2);
             LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
             Fixture.AssertDefaultLocationRelations(ProductionOrder, Item."No.", ExplicitLocation.Code, ExplicitLocation.Code, 2);
-        end;
-        LibrarySetupStorage.Restore();
-    end;
-
-    [Test]
-    procedure DefaultLocationOtherInitialStatuses()
-    var
-        Item: Record Item;
-        Location: Record Location;
-        ProductionOrder: Record "Production Order";
-        Fixture: Codeunit "SCM Production Orders";
-        StatusIndex: Integer;
-    begin
-        Initialize();
-        LibraryInventory.CreateItem(Item);
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        Fixture.ConfigureDefaultLocation(Location.Code, '');
-        for StatusIndex := 0 to 2 do begin
-            Fixture.CreateDefaultLocationManualOrder(
-                ProductionOrder, Enum::"Production Order Status".FromInteger(StatusIndex), ProductionOrder."Source Type"::Item, Item."No.", 2);
-            ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
-            ProductionOrder.TestField("Location Code", Location.Code);
-            ProductionOrder.TestField(Quantity, 2);
         end;
         LibrarySetupStorage.Restore();
     end;
@@ -5341,25 +5256,31 @@ codeunit 137404 "SCM Manufacturing"
         Fixture: Codeunit "SCM Production Orders";
         StatusIndex: Integer;
     begin
+        // [SCENARIO] Revalidating the item or variant does not restore an intentionally cleared default location.
         Initialize();
+        // [GIVEN] An initialized order with the setup location and an available item variant.
         Fixture.CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Manual);
         LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Fixture.ConfigureDefaultLocation(Location.Code, '');
         for StatusIndex := 0 to 3 do begin
-            Fixture.CreateDefaultLocationManualOrder(
+            Fixture.CreateDefaultLocationInitializedOrder(
                 ProductionOrder, Enum::"Production Order Status".FromInteger(StatusIndex), ProductionOrder."Source Type"::Item, Item."No.", 2);
             ProductionOrder.TestField("Location Code", Location.Code);
+            // [WHEN] The location is cleared and the source item is validated again.
             ProductionOrder.Validate("Location Code", '');
             ProductionOrder.Modify(true);
             ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
             ProductionOrder.Validate("Source No.", Item."No.");
             ProductionOrder.Modify(true);
             ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+            // [THEN] The location remains blank after source validation.
             ProductionOrder.TestField("Location Code", '');
+            // [WHEN] The item variant is changed.
             ProductionOrder.Validate("Variant Code", ItemVariant.Code);
             ProductionOrder.Modify(true);
             ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+            // [THEN] The blank location and the order's quantity and routing are preserved.
             ProductionOrder.TestField("Location Code", '');
             ProductionOrder.TestField("Variant Code", ItemVariant.Code);
             ProductionOrder.TestField("Routing No.", Item."Routing No.");
@@ -5387,7 +5308,9 @@ codeunit 137404 "SCM Manufacturing"
         Quantity: Decimal;
         ItemIndex: Integer;
     begin
+        // [SCENARIO] A sales project order preserves each sales line's location, including blank, through posting.
         Initialize();
+        // [GIVEN] A setup default and two sales items with different source locations and forward flushing.
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DefaultLocation);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Observer.ConfigureDefaultLocation(DefaultLocation.Code, '');
@@ -5406,11 +5329,13 @@ codeunit 137404 "SCM Manufacturing"
                 SalesLines[ItemIndex].Modify(true);
             end;
         end;
+        // [WHEN] A released project production order is created from the sales order.
         Observer.StartDefaultLocationCapture(DefaultLocation.Code, '');
         BindSubscription(Observer);
         LibraryManufacturing.CreateProductionOrderFromSalesOrder(
             SalesHeader, ProductionOrder.Status::Released, Enum::"Create Production Order Type"::ProjectOrder);
         UnbindSubscription(Observer);
+        // [THEN] The default is not validated and output, components, reservations and posted quantities retain source locations.
         Observer.AssertDefaultLocationCapture();
         Observer.FindDefaultLocationOrder(ProductionOrder, SalesHeader."No.");
         ProductionOrder.TestField("Location Code", '');
@@ -5461,7 +5386,9 @@ codeunit 137404 "SCM Manufacturing"
         SourceCode: Code[10];
         Iteration: Integer;
     begin
+        // [SCENARIO] Copying an order replaces an initialized target location with the source snapshot, including blank.
         Initialize();
+        // [GIVEN] A source order and a target initialized with a different setup location.
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SourceLocation);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DefaultLocation);
         for Iteration := 1 to 2 do begin
@@ -5472,10 +5399,12 @@ codeunit 137404 "SCM Manufacturing"
             Fixture.CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Manual);
             Fixture.CreateDefaultLocationOrder(SourceOrder, SourceOrder.Status::Released, Item."No.", SourceCode, 2);
             Fixture.ConfigureDefaultLocation(DefaultLocation.Code, '');
-            Fixture.CreateDefaultLocationManualOrder(
+            Fixture.CreateDefaultLocationInitializedOrder(
                 TargetOrder, TargetOrder.Status::Released, TargetOrder."Source Type"::Item, Item."No.", 2);
             TargetOrder.TestField("Location Code", DefaultLocation.Code);
+            // [WHEN] The source production document is copied to the target.
             RunCopyProductionDocument(SourceOrder.Status, SourceOrder."No.", TargetOrder);
+            // [THEN] The target header and output line retain the source location and quantities.
             TargetOrder.Get(TargetOrder.Status, TargetOrder."No.");
             TargetOrder.TestField("Location Code", SourceCode);
             TargetOrder.TestField("Source No.", Item."No.");
@@ -5507,7 +5436,9 @@ codeunit 137404 "SCM Manufacturing"
         Iteration: Integer;
         SetupIndex: Integer;
     begin
+        // [SCENARIO] Refresh does not reinterpret an order's location when the setup default changes.
         Initialize();
+        // [GIVEN] An existing order with a nonblank or blank location and changing setup defaults.
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SourceLocation);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Defaults[1]);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Defaults[2]);
@@ -5524,7 +5455,9 @@ codeunit 137404 "SCM Manufacturing"
                     DefaultCode := Defaults[SetupIndex].Code;
                 Fixture.ConfigureDefaultLocation(DefaultCode, '');
                 Fixture.AssertDefaultLocationRelations(ProductionOrder, Item."No.", SourceCode, SourceCode, 2);
+                // [WHEN] The existing order is refreshed.
                 LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+                // [THEN] Header, output and component locations still match the saved order.
                 Fixture.AssertDefaultLocationRelations(ProductionOrder, Item."No.", SourceCode, SourceCode, 2);
             end;
         end;
@@ -5550,7 +5483,9 @@ codeunit 137404 "SCM Manufacturing"
         Direction: Option Forward,Backward;
         CalcMethod: Option "No Levels","One level","All levels";
     begin
+        // [SCENARIO] Replanning retains the demand location on dependent supply, even when it is blank.
         Initialize();
+        // [GIVEN] Component demand at a source location and a different setup default.
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SourceLocation);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DefaultLocation);
         for Iteration := 1 to 2 do begin
@@ -5571,8 +5506,10 @@ codeunit 137404 "SCM Manufacturing"
             Observer.ConfigureDefaultLocation(DefaultLocation.Code, '');
             Observer.StartDefaultLocationCapture(DefaultLocation.Code, '');
             BindSubscription(Observer);
+            // [WHEN] Replanning creates dependent production supply.
             LibraryManufacturing.RunReplanProductionOrder(ParentOrder, Direction::Backward, CalcMethod::"One level");
             UnbindSubscription(Observer);
+            // [THEN] The setup default is not validated and parent and child supply retain the demand location.
             Observer.AssertDefaultLocationCapture();
             ParentOrder.Get(ParentOrder.Status, ParentOrder."No.");
             ParentOrder.TestField("Location Code", SourceCode);
@@ -5605,7 +5542,9 @@ codeunit 137404 "SCM Manufacturing"
         SetupComponentCode: Code[10];
         Branch: Integer;
     begin
+        // [SCENARIO] Defaulting an output location preserves SKU, setup and output component-location precedence.
         Initialize();
+        // [GIVEN] Different output, setup-component and SKU-component locations.
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(OutputLocation);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SetupComponentLocation);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SKUComponentLocation);
@@ -5626,15 +5565,19 @@ codeunit 137404 "SCM Manufacturing"
             end else
                 StockkeepingUnit.Validate("Components at Location", '');
             StockkeepingUnit.Modify(true);
-            Fixture.CreateDefaultLocationManualOrder(
+            // [WHEN] An initialized order is refreshed for each component-location precedence branch.
+            Fixture.CreateDefaultLocationInitializedOrder(
                 ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 2);
             ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
             ProductionOrder.TestField("Location Code", OutputLocation.Code);
             LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+            // [THEN] Components use the highest-priority applicable location.
             Fixture.AssertDefaultLocationRelations(ProductionOrder, Item."No.", OutputLocation.Code, ComponentCode, 2);
             Fixture.PostDefaultLocationStock(Component."No.", ComponentCode, 2);
+            // [WHEN] The setup default changes before output is posted.
             Fixture.ConfigureDefaultLocation(LaterDefaultLocation.Code, SetupComponentCode);
             Fixture.PostDefaultLocationOutput(ProductionOrder, Item."No.", 2);
+            // [THEN] Posting uses the saved output and component locations, not the later default.
             Fixture.AssertDefaultLocationLedger(Item."No.", ProductionOrder."No.", OutputLocation.Code, Enum::"Item Ledger Entry Type"::Output, 2);
             Fixture.AssertDefaultLocationLedger(Component."No.", ProductionOrder."No.", ComponentCode, Enum::"Item Ledger Entry Type"::Consumption, -2);
         end;
@@ -5649,11 +5592,15 @@ codeunit 137404 "SCM Manufacturing"
         Location: Record Location;
         Fixture: Codeunit "SCM Production Orders";
     begin
+        // [SCENARIO] General initialization and table insertion do not implicitly apply the manual-page default.
         Initialize();
+        // [GIVEN] A nonblank setup default and temporary and persistent production-order records.
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Fixture.ConfigureDefaultLocation(Location.Code, '');
         PrepareDefaultLocationHeader(TempProductionOrder, TempProductionOrder.Status::Released);
+        // [WHEN] General initialization or insertion is used without explicitly requesting the default.
         TempProductionOrder.InitRecord();
+        // [THEN] Temporary records and persistent inserts with or without triggers keep a blank location.
         TempProductionOrder.TestField("Location Code", '');
         TempProductionOrder.Insert(true);
         TempProductionOrder.TestField("Location Code", '');
@@ -5682,7 +5629,9 @@ codeunit 137404 "SCM Manufacturing"
         ManualOrder: Record "Production Order";
         Fixture: Codeunit "SCM Production Orders";
     begin
+        // [SCENARIO] Source-driven creation does not prevent explicit default initialization of a subsequent order.
         Initialize();
+        // [GIVEN] A setup default and a sales-derived order with an authoritative blank location.
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Fixture.ConfigureDefaultLocation(Location.Code, '');
         Fixture.CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Manual);
@@ -5690,8 +5639,10 @@ codeunit 137404 "SCM Manufacturing"
         Fixture.CreateDefaultLocationSalesOrder(SalesLine);
         Fixture.FindDefaultLocationOrder(SourceOrder, Item."No.");
         SourceOrder.TestField("Location Code", '');
-        Fixture.CreateDefaultLocationManualOrder(
+        // [WHEN] An unrelated order is explicitly initialized in the same session.
+        Fixture.CreateDefaultLocationInitializedOrder(
             ManualOrder, ManualOrder.Status::Released, ManualOrder."Source Type"::Item, Item."No.", 2);
+        // [THEN] That order receives the default without changing the source-derived order.
         ManualOrder.Get(ManualOrder.Status, ManualOrder."No.");
         ManualOrder.TestField("Location Code", Location.Code);
         ManualOrder.TestField(Quantity, 2);
@@ -5709,7 +5660,9 @@ codeunit 137404 "SCM Manufacturing"
         ProdOrderComponent: Record "Prod. Order Component";
         Fixture: Codeunit "SCM Production Orders";
     begin
+        // [SCENARIO] An output-header default does not change the existing behavior for manually added components.
         Initialize();
+        // [GIVEN] A production order with an output location and a separate component item.
         LibraryInventory.CreateItem(Item);
         LibraryInventory.CreateItem(Component);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
@@ -5718,11 +5671,13 @@ codeunit 137404 "SCM Manufacturing"
         ProdOrderLine.SetRange(Status, ProductionOrder.Status);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderLine.FindFirst();
+        // [WHEN] A component is added manually to the output line.
         LibraryManufacturing.CreateProductionOrderComponent(
             ProdOrderComponent, ProductionOrder.Status, ProductionOrder."No.", ProdOrderLine."Line No.");
         ProdOrderComponent.Validate("Item No.", Component."No.");
         ProdOrderComponent.Validate("Quantity per", 1);
         ProdOrderComponent.Modify(true);
+        // [THEN] The component keeps its native blank location and expected quantity.
         ProdOrderComponent.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
         ProdOrderComponent.TestField("Location Code", '');
         ProdOrderComponent.TestField("Expected Quantity", 2);
