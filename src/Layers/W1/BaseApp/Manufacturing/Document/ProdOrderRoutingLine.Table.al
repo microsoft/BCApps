@@ -356,13 +356,15 @@ table 5409 "Prod. Order Routing Line"
             var
                 ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode: Record "Prod. Order Routing Line";
             begin
-                ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode := Rec;
-                ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.SetRecFilter();
-                ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.SetRange("Operation No.");
-                ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.SetRange("Routing Link Code", "Routing Link Code");
-                if not ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.IsEmpty() then
-                    if not Confirm(DuplicateRoutingLinkCodeLbl, false, FieldCaption("Routing Link Code"), "Routing Link Code") then
-                        Error(CancelledUpdateLbl);
+                if "Routing Link Code" <> '' then begin
+                    ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode := Rec;
+                    ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.SetRecFilter();
+                    ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.SetRange("Operation No.");
+                    ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.SetRange("Routing Link Code", "Routing Link Code");
+                    if not ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.IsEmpty() then
+                        if not Confirm(DuplicateRoutingLinkCodeLbl, false, FieldCaption("Routing Link Code"), "Routing Link Code") then
+                            Error(CancelledUpdateLbl);
+                end;
 
                 AdjustProdOrderComponentForRoutingLinkCode(Rec, xRec);
             end;

@@ -56,6 +56,8 @@ codeunit 137082 "SCM Manufacturing - Routings"
         ActionMustBeDisabledErr: Label 'Action must be disabled';
         ActionMustBeEnabledErr: Label 'Action must be enabled';
         StartingDateTimeMustBeLessErr: Label 'Starting Date-Time of 1st Prod. Order Routing line must be less than Satrting Date-Time of 2nd Prod. Order Routing Line.';
+        DuplicateRoutingLinkCodeQst: Label '%1 %2 is used more than once on this Routing. Do you want to update it anyway?', Comment = '%1 = Field Caption; %2 = Field Value';
+        UpdateCancelledErr: Label 'Update cancelled.';
 
     [Test]
     [Scope('OnPrem')]
@@ -2100,6 +2102,91 @@ codeunit 137082 "SCM Manufacturing - Routings"
         Assert.IsTrue(ProdOrderRoutingLine[1]."Starting Date-Time" < ProdOrderRoutingLine[2]."Starting Date-Time", StartingDateTimeMustBeLessErr);
     end;
 
+    [Test]
+    procedure RemovingRoutingLinkCodeOnProdOrderRoutingLineDoesNotAskForConfirmation()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingLink: Record "Routing Link";
+        WorkCenter: Record "Work Center";
+    begin
+        // [SCENARIO 13557] Removing the routing link code from a prod. order routing line does not ask for confirmation when other operations have no routing link code
+        Initialize();
+
+        // [GIVEN] Serial routing: operation "10" without routing link code, operation "20" with routing link code "RL"
+        LibraryManufacturing.CreateWorkCenterWithCalendar(WorkCenter);
+        LibraryManufacturing.CreateRoutingLink(RoutingLink);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '20', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingLine.Validate("Routing Link Code", RoutingLink.Code);
+        RoutingLine.Modify(true);
+        LibraryManufacturing.UpdateRoutingStatus(RoutingHeader, RoutingHeader.Status::Certified);
+
+        // [GIVEN] Refreshed released production order for an item with that routing and no production BOM
+        CreateItemWithRouting(Item, RoutingHeader."No.");
+        LibraryManufacturing.CreateAndRefreshProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10));
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Operation No.", '20');
+        ProdOrderRoutingLine.FindFirst();
+
+        // [WHEN] Remove the routing link code from operation "20"
+        ProdOrderRoutingLine.Validate("Routing Link Code", '');
+        ProdOrderRoutingLine.Modify(true);
+
+        // [THEN] No confirmation is raised (the test has no confirm handler) and the routing link code is empty
+        ProdOrderRoutingLine.Find();
+        ProdOrderRoutingLine.TestField("Routing Link Code", '');
+    end;
+
+    [Test]
+    [HandlerFunctions('DuplicateRoutingLinkCodeConfirmHandler')]
+    procedure SettingDuplicateRoutingLinkCodeOnProdOrderRoutingLineAsksForConfirmation()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingLink: Record "Routing Link";
+        WorkCenter: Record "Work Center";
+    begin
+        // [SCENARIO 13557] Setting a routing link code that another operation of the same routing already uses still asks for confirmation
+        Initialize();
+
+        // [GIVEN] Serial routing: operation "10" with routing link code "RL", operation "20" without routing link code
+        LibraryManufacturing.CreateWorkCenterWithCalendar(WorkCenter);
+        LibraryManufacturing.CreateRoutingLink(RoutingLink);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingLine.Validate("Routing Link Code", RoutingLink.Code);
+        RoutingLine.Modify(true);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '20', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        LibraryManufacturing.UpdateRoutingStatus(RoutingHeader, RoutingHeader.Status::Certified);
+
+        // [GIVEN] Refreshed released production order for an item with that routing and no production BOM
+        CreateItemWithRouting(Item, RoutingHeader."No.");
+        LibraryManufacturing.CreateAndRefreshProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10));
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Operation No.", '20');
+        ProdOrderRoutingLine.FindFirst();
+
+        // [WHEN] Set routing link code "RL" on operation "20" and answer No
+        LibraryVariableStorage.Enqueue(StrSubstNo(DuplicateRoutingLinkCodeQst, ProdOrderRoutingLine.FieldCaption("Routing Link Code"), RoutingLink.Code));
+        asserterror ProdOrderRoutingLine.Validate("Routing Link Code", RoutingLink.Code);
+
+        // [THEN] The duplicate question was asked and the update is cancelled
+        Assert.ExpectedError(UpdateCancelledErr);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Manufacturing - Routings");
@@ -2428,6 +2515,13 @@ codeunit 137082 "SCM Manufacturing - Routings"
     [MessageHandler]
     procedure MessageHandler(Message: Text[1024])
     begin
+    end;
+
+    [ConfirmHandler]
+    procedure DuplicateRoutingLinkCodeConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedConfirm(LibraryVariableStorage.DequeueText(), Question);
+        Reply := false;
     end;
 }
 
