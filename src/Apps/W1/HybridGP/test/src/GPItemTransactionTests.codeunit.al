@@ -208,6 +208,31 @@ codeunit 139665 "GP Item Transaction Tests"
         Assert.RecordCount(ItemLedgerEntry, 0);
     end;
 
+    // 
+    [Test]
+    procedure TestPopulateGPItemTransactions()
+    var
+        GPItemTransactions: Record "GP Item Transactions";
+        GPPopulateCombinedTables: Codeunit "GP Populate Combined Tables";
+    begin
+        // [SCENARIO] Items are migrated from GP, and there are multiple lot number lines for one of the receipts.
+        // [GIVEN] There are no records in Item and ItemTransaction staging tables.
+        Initialize();
+
+        // [GIVEN] Some sample data is created and combined.
+        CreateStagingTableEntriesForPopulateGPItemTransactions();
+        GPPopulateCombinedTables.PopulateGPItemTransactions();
+
+        // [THEN] Only 2 records are created in the GPItemTransactions table, one with the combined received quantity.
+        Assert.RecordCount(GPItemTransactions, 2);
+
+        GPItemTransactions.SetRange(Quantity, 8);
+        Assert.IsFalse(GPItemTransactions.IsEmpty(), 'Expected record with Quantity = 8 not found.');
+
+        GPItemTransactions.SetRange(Quantity, 10);
+        Assert.IsFalse(GPItemTransactions.IsEmpty(), 'Expected record with Quantity = 10 not found.');
+    end;
+
     local procedure CheckItemLedgerEntryFields(ItemLedgerEntry: Record "Item Ledger Entry"; LocationCode: Code[10]; Quantity: Decimal; CostAmount: Decimal; PostingDate: Date)
     begin
         Assert.AreEqual(LocationCode, ItemLedgerEntry."Location Code", 'Location code not set.');
@@ -238,6 +263,10 @@ codeunit 139665 "GP Item Transaction Tests"
         ItemJournalLine: Record "Item Journal Line";
         InventorySetup: Record "Inventory Setup";
         GPMigrationWarning: Record "GP Migration Warnings";
+        GPIV10200: Record "GP IV10200";
+        GPIV00101: Record "GP IV00101";
+        GPIV00300: Record "GP IV00300";
+        GPIV00200: Record "GP IV00200";
     begin
         GPItem.DeleteAll();
         GPItemTransaction.DeleteAll();
@@ -257,6 +286,10 @@ codeunit 139665 "GP Item Transaction Tests"
         ItemJournalLine.DeleteAll();
         ItemJournalBatch.DeleteAll();
         GPMigrationWarning.DeleteAll();
+        GPIV10200.DeleteAll();
+        GPIV00101.DeleteAll();
+        GPIV00300.DeleteAll();
+        GPIV00200.DeleteAll();
 
         if not InventorySetup.Get() then
             InventorySetup.Insert(true);
@@ -676,5 +709,89 @@ codeunit 139665 "GP Item Transaction Tests"
         GPItemLocation.LOCNCODE := 'SOUTH';
         GPItemLocation.LOCNDSCR := 'South Warehouse';
         GPItemLocation.Insert();
+    end;
+
+    local procedure CreateStagingTableEntriesForPopulateGPItemTransactions()
+    var
+        GPIV00101: Record "GP IV00101";
+        GPIV10200: Record "GP IV10200";
+        GPIV00300: Record "GP IV00300";
+        ITEMNMBR1Lbl: Label 'WIRE-SCD-0001', Locked = true;
+        LOCNCODE1Lbl: Label 'WAREHOUSE', Locked = true;
+        LOTNUMBR1Lbl: Label 'LOT1', Locked = true;
+        LOTNUMBR2Lbl: Label 'LOT2', Locked = true;
+        DATERECD1: Date;
+        DATERECD2: Date;
+    begin
+        DATERECD1 := DMY2Date(1, 1, 2000);
+        DATERECD2 := DMY2Date(2, 1, 2000);
+
+        GPIV00101.Init();
+        GPIV00101.ITEMNMBR := ITEMNMBR1Lbl;
+        GPIV00101.ITMTRKOP := 3; // Lot
+        GPIV00101.CURRCOST := 0.16;
+        GPIV00101.Insert();
+
+        // Receipt 1 with two lot number lines
+        GPIV10200.Init();
+        GPIV10200.ITEMNMBR := ITEMNMBR1Lbl;
+        GPIV10200.TRXLOCTN := LOCNCODE1Lbl;
+        GPIV10200.UNITCOST := 0.16;
+        GPIV10200.RCPTNMBR := 'RCT1000';
+        GPIV10200.RCTSEQNM := 1;
+        GPIV10200.DATERECD := DATERECD1;
+        GPIV10200.QTYRECVD := 8;
+        GPIV10200.QTYSOLD := 0;
+        GPIV10200.QTYTYPE := 1;
+        GPIV10200.Insert();
+
+        GPIV00300.Init();
+        GPIV00300.ITEMNMBR := ITEMNMBR1Lbl;
+        GPIV00300.LOCNCODE := LOCNCODE1Lbl;
+        GPIV00300.DTSEQNUM := 1;
+        GPIV00300.DATERECD := DATERECD1;
+        GPIV00300.RCTSEQNM := 1;
+        GPIV00300.LOTNUMBR := LOTNUMBR1Lbl;
+        GPIV00300.QTYRECVD := 5;
+        GPIV00300.QTYSOLD := 0;
+        GPIV00300.QTYTYPE := 1;
+        GPIV00300.Insert();
+
+        GPIV00300.Init();
+        GPIV00300.ITEMNMBR := ITEMNMBR1Lbl;
+        GPIV00300.LOCNCODE := LOCNCODE1Lbl;
+        GPIV00300.DTSEQNUM := 2;
+        GPIV00300.DATERECD := DATERECD1;
+        GPIV00300.RCTSEQNM := 1;
+        GPIV00300.LOTNUMBR := LOTNUMBR1Lbl;
+        GPIV00300.QTYRECVD := 3;
+        GPIV00300.QTYSOLD := 0;
+        GPIV00300.QTYTYPE := 1;
+        GPIV00300.Insert();
+
+        // Receipt 2 with one lot number line
+        GPIV10200.Init();
+        GPIV10200.ITEMNMBR := ITEMNMBR1Lbl;
+        GPIV10200.TRXLOCTN := LOCNCODE1Lbl;
+        GPIV10200.UNITCOST := 0.16;
+        GPIV10200.RCPTNMBR := 'RCT1001';
+        GPIV10200.RCTSEQNM := 2;
+        GPIV10200.DATERECD := DATERECD2;
+        GPIV10200.QTYRECVD := 10;
+        GPIV10200.QTYSOLD := 0;
+        GPIV10200.QTYTYPE := 1;
+        GPIV10200.Insert();
+
+        GPIV00300.Init();
+        GPIV00300.ITEMNMBR := ITEMNMBR1Lbl;
+        GPIV00300.LOCNCODE := LOCNCODE1Lbl;
+        GPIV00300.DTSEQNUM := 1;
+        GPIV00300.DATERECD := DATERECD2;
+        GPIV00300.RCTSEQNM := 2;
+        GPIV00300.LOTNUMBR := LOTNUMBR2Lbl;
+        GPIV00300.QTYRECVD := 10;
+        GPIV00300.QTYSOLD := 0;
+        GPIV00300.QTYTYPE := 1;
+        GPIV00300.Insert();
     end;
 }
