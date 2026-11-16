@@ -27,10 +27,12 @@ codeunit 8205 "Contoso Expense Agent"
         tabledata "Employee Posting Group" = rim,
         tabledata "Expense Report Header" = rim,
         tabledata "Expense Report Line" = rimd,
+        tabledata "EA Corp Card" = r,
         tabledata "Expense Agent Setup" = r;
 
     var
         OverwriteData: Boolean;
+        RegisteredCorporateCardMissingErr: Label 'No registered, unblocked corporate card is valid for expense user %1 on %2. Set up a corporate card before generating demo expenses.', Comment = '%1 = expense user number, %2 = expense date';
 
     procedure SetOverwriteData(Overwrite: Boolean)
     begin
@@ -314,9 +316,26 @@ codeunit 8205 "Contoso Expense Agent"
         Expense."Expense Ext. Doc. No." := ExpenseExtDocNo;
         Expense."Job No." := JobNo;
         Expense."Job Task No." := JobTaskNo;
+        if Expense."Reimbursement Type" = Expense."Reimbursement Type"::"Credit Card" then
+            Expense.Validate("Corporate Card Id", GetCorporateCard(ExpenseUserNo, ExpenseDate));
         Expense.Insert(true);
 
         exit(Expense);
+    end;
+
+    local procedure GetCorporateCard(ExpenseUserNo: Code[20]; ExpenseDate: Date): Code[50]
+    var
+        CorpCard: Record "EA Corp Card";
+    begin
+        CorpCard.SetRange("Expense User No.", ExpenseUserNo);
+        CorpCard.SetRange(Blocked, false);
+        if ExpenseDate <> 0D then begin
+            CorpCard.SetFilter("Valid From", '%1|..%2', 0D, ExpenseDate);
+            CorpCard.SetFilter("Valid To", '%1|%2..', 0D, ExpenseDate);
+        end;
+        if not CorpCard.FindFirst() then
+            Error(RegisteredCorporateCardMissingErr, ExpenseUserNo, ExpenseDate);
+        exit(CorpCard."Card Id");
     end;
 
     local procedure ValidateCurrencyCodeInExpense(var Expense: Record Expense; CurrencyCode: Code[10])
