@@ -864,7 +864,7 @@ codeunit 40125 "GP Populate Combined Tables"
         InsertGPItemTransactions(TempGPItemTransactionsBuffer);
     end;
 
-    local procedure AggregateGPItemTransaction(var GPPopulateItemTransactions: Query "GP Populate Item Transactions"; var GPItemTransactionsBuffer: Record "GP Item Transactions Buffer")
+    local procedure AggregateGPItemTransaction(var GPPopulateItemTransactions: Query "GP Populate Item Transactions"; var TempGPItemTransactionsBuffer: Record "GP Item Transactions Buffer")
     var
         GPItemTransactions: Record "GP Item Transactions";
         GPIV00101: Record "GP IV00101";
@@ -888,7 +888,7 @@ codeunit 40125 "GP Populate Combined Tables"
         LotNumber := CopyStr(GPPopulateItemTransactions.LOTNUMBR.Trim(), 1, MaxStrLen(GPItemTransactions.LotNumber));
         Quantity := GetGPItemTransactionQuantity(GPPopulateItemTransactions);
 
-        if GPItemTransactionsBuffer.Get(
+        if TempGPItemTransactionsBuffer.Get(
             ItemNumber,
             TransactionLocation,
             GPPopulateItemTransactions.DATERECD,
@@ -897,25 +897,25 @@ codeunit 40125 "GP Populate Combined Tables"
             LotNumber,
             GPPopulateItemTransactions.RCTSEQNM)
         then begin
-            GPItemTransactionsBuffer.Quantity += Quantity;
-            GPItemTransactionsBuffer.Modify();
+            TempGPItemTransactionsBuffer.Quantity += Quantity;
+            TempGPItemTransactionsBuffer.Modify();
             exit;
         end;
 
-        GPItemTransactionsBuffer.Init();
-        GPItemTransactionsBuffer."No" := ItemNumber;
-        GPItemTransactionsBuffer.Location := TransactionLocation;
-        GPItemTransactionsBuffer.DateReceived := GPPopulateItemTransactions.DATERECD;
-        GPItemTransactionsBuffer.ReceiptNumber := ReceiptNumber;
-        GPItemTransactionsBuffer.SerialNumber := SerialNumber;
-        GPItemTransactionsBuffer.LotNumber := LotNumber;
-        GPItemTransactionsBuffer.ReceiptSEQNumber := GPPopulateItemTransactions.RCTSEQNM;
-        GPItemTransactionsBuffer.Quantity := Quantity;
-        GPItemTransactionsBuffer.UnitCost := GPPopulateItemTransactions.UNITCOST;
-        GPItemTransactionsBuffer.CurrentCost := GPPopulateItemTransactions.CURRCOST;
-        GPItemTransactionsBuffer.StandardCost := GPPopulateItemTransactions.STNDCOST;
-        GPItemTransactionsBuffer.ExpirationDate := GPPopulateItemTransactions.EXPNDATE;
-        GPItemTransactionsBuffer.Insert();
+        TempGPItemTransactionsBuffer.Init();
+        TempGPItemTransactionsBuffer."No" := ItemNumber;
+        TempGPItemTransactionsBuffer.Location := TransactionLocation;
+        TempGPItemTransactionsBuffer.DateReceived := GPPopulateItemTransactions.DATERECD;
+        TempGPItemTransactionsBuffer.ReceiptNumber := ReceiptNumber;
+        TempGPItemTransactionsBuffer.SerialNumber := SerialNumber;
+        TempGPItemTransactionsBuffer.LotNumber := LotNumber;
+        TempGPItemTransactionsBuffer.ReceiptSEQNumber := GPPopulateItemTransactions.RCTSEQNM;
+        TempGPItemTransactionsBuffer.Quantity := Quantity;
+        TempGPItemTransactionsBuffer.UnitCost := GPPopulateItemTransactions.UNITCOST;
+        TempGPItemTransactionsBuffer.CurrentCost := GPPopulateItemTransactions.CURRCOST;
+        TempGPItemTransactionsBuffer.StandardCost := GPPopulateItemTransactions.STNDCOST;
+        TempGPItemTransactionsBuffer.ExpirationDate := GPPopulateItemTransactions.EXPNDATE;
+        TempGPItemTransactionsBuffer.Insert();
     end;
 
     local procedure GetGPItemTransactionQuantity(var GPPopulateItemTransactions: Query "GP Populate Item Transactions"): Decimal
@@ -932,31 +932,31 @@ codeunit 40125 "GP Populate Combined Tables"
         end;
     end;
 
-    local procedure InsertGPItemTransactions(var GPItemTransactionsBuffer: Record "GP Item Transactions Buffer")
+    local procedure InsertGPItemTransactions(var TempGPItemTransactionsBuffer: Record "GP Item Transactions Buffer")
     var
         GPItemTransactions: Record "GP Item Transactions";
     begin
-        GPItemTransactionsBuffer.Reset();
+        TempGPItemTransactionsBuffer.Reset();
 
-        if not GPItemTransactionsBuffer.FindSet() then
+        if not TempGPItemTransactionsBuffer.FindSet() then
             exit;
 
         repeat
             GPItemTransactions.Init();
-            GPItemTransactions.No := GPItemTransactionsBuffer."No";
-            GPItemTransactions.Location := GPItemTransactionsBuffer.Location;
-            GPItemTransactions.DateReceived := GPItemTransactionsBuffer.DateReceived;
-            GPItemTransactions.UnitCost := GPItemTransactionsBuffer.UnitCost;
-            GPItemTransactions.ReceiptSEQNumber := GPItemTransactionsBuffer.ReceiptSEQNumber;
-            GPItemTransactions.CurrentCost := GPItemTransactionsBuffer.CurrentCost;
-            GPItemTransactions.StandardCost := GPItemTransactionsBuffer.StandardCost;
-            GPItemTransactions.ReceiptNumber := GPItemTransactionsBuffer.ReceiptNumber;
-            GPItemTransactions.SerialNumber := GPItemTransactionsBuffer.SerialNumber;
-            GPItemTransactions.LotNumber := GPItemTransactionsBuffer.LotNumber;
-            GPItemTransactions.ExpirationDate := GPItemTransactionsBuffer.ExpirationDate;
-            GPItemTransactions.Quantity := GPItemTransactionsBuffer.Quantity;
+            GPItemTransactions.No := TempGPItemTransactionsBuffer."No";
+            GPItemTransactions.Location := TempGPItemTransactionsBuffer.Location;
+            GPItemTransactions.DateReceived := TempGPItemTransactionsBuffer.DateReceived;
+            GPItemTransactions.UnitCost := TempGPItemTransactionsBuffer.UnitCost;
+            GPItemTransactions.ReceiptSEQNumber := TempGPItemTransactionsBuffer.ReceiptSEQNumber;
+            GPItemTransactions.CurrentCost := TempGPItemTransactionsBuffer.CurrentCost;
+            GPItemTransactions.StandardCost := TempGPItemTransactionsBuffer.StandardCost;
+            GPItemTransactions.ReceiptNumber := TempGPItemTransactionsBuffer.ReceiptNumber;
+            GPItemTransactions.SerialNumber := TempGPItemTransactionsBuffer.SerialNumber;
+            GPItemTransactions.LotNumber := TempGPItemTransactionsBuffer.LotNumber;
+            GPItemTransactions.ExpirationDate := TempGPItemTransactionsBuffer.ExpirationDate;
+            GPItemTransactions.Quantity := TempGPItemTransactionsBuffer.Quantity;
             GPItemTransactions.Insert();
-        until GPItemTransactionsBuffer.Next() = 0;
+        until TempGPItemTransactionsBuffer.Next() = 0;
     end;
 
     internal procedure PopulateCodes()
