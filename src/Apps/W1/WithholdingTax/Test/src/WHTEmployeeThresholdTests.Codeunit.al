@@ -384,7 +384,9 @@ codeunit 148323 "WHT Employee Threshold Tests"
         WithholdingTaxEntry: Record "Withholding Tax Entry";
     begin
         EmployeeLedgerEntry.SetRange("Employee No.", EmployeeNo);
+#pragma warning disable AA0210
         EmployeeLedgerEntry.SetRange("Document No.", DocumentNo);
+#pragma warning restore AA0210
         EmployeeLedgerEntry.FindFirst();
         EmployeeLedgerEntry.CalcFields(Amount);
         Assert.AreEqual(EmployeeAmount, EmployeeLedgerEntry.Amount, StrSubstNo(WrongValueErr, EmployeeLedgerEntry.FieldCaption(Amount)));
