@@ -37,6 +37,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
         ReturnFileExists: Boolean;
         ResourcePathFileName: Text;
         SharePointUrlLbl: Label 'https://contoso.sharepoint.com/sites/test', Locked = true;
+        TenantRootSharePointUrlLbl: Label 'https://contoso.sharepoint.com', Locked = true;
         UnexpectedResourcePathRequestErr: Label 'Unexpected ResourcePath request: %1', Comment = '%1 = Mock HTTP request path';
 
     #region File Operations
@@ -130,7 +131,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
         TempBlob.CreateInStream(InStream);
 
         ConnectorImpl.CreateFile(Account.Id, ResourcePathFileName, InStream);
-        AssertDecodedRequestPath(FileAddPath, '/sites/test/Reports #50%/Literal%20Folder/');
+        AssertDecodedRequestPath(FileAddPath, '/sites/test/Reports #50%/Literal%20Folder');
         Assert.IsTrue(FileAddPath.Contains('Invoice%20%2350%2523.pdf'), 'Upload must encode the filename without decoding literal %23');
 
         ConnectorImpl.GetFile(Account.Id, ResourcePathFileName, InStream);
@@ -139,7 +140,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
         AssertDecodedRequestPath(DownloadPath, '/sites/test/Reports #50%/Literal%20Folder/' + ResourcePathFileName);
 
         Assert.IsTrue(ConnectorImpl.FileExists(Account.Id, ResourcePathFileName), 'FileExists must use the decoded parent folder');
-        AssertDecodedRequestPath(LastPath, '/sites/test/Reports #50%/Literal%20Folder/');
+        AssertDecodedRequestPath(LastPath, '/sites/test/Reports #50%/Literal%20Folder');
 
         ConnectorImpl.ListFiles(Account.Id, '', Pagination, TempContent);
         Assert.RecordCount(TempContent, 1);
@@ -246,6 +247,85 @@ codeunit 144586 "Ext. SP REST Helper Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateFileHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestCreateFileInSubfolderTargetsParentFolderWithoutTrailingSlash()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        OutStream: OutStream;
+    begin
+        // [SCENARIO] Uploading a file into a nested folder addresses the parent folder without a trailing slash
+        // [GIVEN] A file to upload into a nested folder
+        Initialize(Account);
+        TempBlob.CreateOutStream(OutStream);
+        OutStream.WriteText('content');
+        TempBlob.CreateInStream(InStream);
+
+        // [WHEN] Creating the file
+        RestHelper.CreateFile(Account, 'Invoices/2026/file.txt', InStream);
+
+        // [THEN] The parent folder is addressed without a trailing slash, which SharePoint rejects with 404
+        AssertDecodedRequestPath(FileAddPath, '/sites/test/Invoices/2026');
+        Assert.IsTrue(FileAddPath.Contains('file.txt'), 'The upload should target the requested file name. Actual: ' + FileAddPath);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateFileHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestCreateFileWithDoubledSeparatorTargetsParentFolderWithoutTrailingSlash()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        OutStream: OutStream;
+    begin
+        // [SCENARIO] A leading slash on the file path combined with a base folder yields '.../Shared Documents//file.txt'
+        // [GIVEN] An account with a base folder and a file path that starts with a slash
+        Initialize(Account);
+        Account."Base Relative Folder Path" := 'Shared Documents';
+        Account.Modify();
+        TempBlob.CreateOutStream(OutStream);
+        OutStream.WriteText('content');
+        TempBlob.CreateInStream(InStream);
+
+        // [WHEN] Creating the file
+        RestHelper.CreateFile(Account, '/file.txt', InStream);
+
+        // [THEN] The parent folder is still addressed without a trailing slash
+        AssertDecodedRequestPath(FileAddPath, '/sites/test/Shared Documents');
+        Assert.IsTrue(FileAddPath.Contains('file.txt'), 'The upload should target the requested file name. Actual: ' + FileAddPath);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateFileHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestCreateFileAtTenantRootTargetsRootFolder()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        OutStream: OutStream;
+    begin
+        // [SCENARIO] A root-level file on a tenant-root site resolves to the parent folder '/'
+        // [GIVEN] An account pointing at the tenant root, with no site path and no base folder
+        Initialize(Account);
+        Account."SharePoint Url" := TenantRootSharePointUrlLbl;
+        Account.Modify();
+        TempBlob.CreateOutStream(OutStream);
+        OutStream.WriteText('content');
+        TempBlob.CreateInStream(InStream);
+
+        // [WHEN] Creating a file at the root
+        RestHelper.CreateFile(Account, 'file.txt', InStream);
+
+        // [THEN] The parent folder is the root '/', not an empty path
+        AssertDecodedRequestPath(FileAddPath, '/');
+        Assert.IsTrue(FileAddPath.Contains('file.txt'), 'The upload should target the requested file name. Actual: ' + FileAddPath);
+    end;
+
+    [Test]
     [HandlerFunctions('CopyFileHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestCopyFileDownloadsSourceAndCreatesTargetWithoutDelete()
@@ -298,6 +378,7 @@ codeunit 144586 "Ext. SP REST Helper Test"
 
         // [WHEN] / [THEN]
         Assert.IsTrue(RestHelper.FileExists(Account, 'file.txt'), 'FileExists should return true');
+        AssertDecodedRequestPath(LastPath, '/sites/test');
     end;
 
     [Test]
@@ -356,6 +437,91 @@ codeunit 144586 "Ext. SP REST Helper Test"
         TempContent.FindFirst();
         Assert.AreEqual('Subfolder', TempContent.Name, 'Folder name should match');
         Assert.AreEqual(TempContent.Type::Directory, TempContent.Type, 'Type should be Directory');
+    end;
+
+    [Test]
+    [HandlerFunctions('ListDirectoriesHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestListDirectoriesWithTrailingSlashTargetsFolderWithoutTrailingSlash()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempContent: Record "File Account Content" temporary;
+        Pagination: Codeunit "File Pagination Data";
+    begin
+        // [SCENARIO] The Storage Browser '..' navigation passes parent paths with a trailing slash, e.g. 'A/'
+        // [GIVEN]
+        Initialize(Account);
+
+        // [WHEN] Listing directories of a path that ends with a slash
+        RestHelper.ListDirectories(Account, 'A/', Pagination, TempContent);
+
+        // [THEN] The folder is addressed without a trailing slash
+        AssertDecodedRequestPath(LastPath, '/sites/test/A');
+        // [THEN] The listed entries keep the caller's original parent path
+        TempContent.FindFirst();
+        Assert.AreEqual('A/', TempContent."Parent Directory", 'Parent Directory should keep the original path');
+    end;
+
+    [Test]
+    [HandlerFunctions('ListFilesHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestListFilesWithTrailingSlashTargetsFolderWithoutTrailingSlash()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempContent: Record "File Account Content" temporary;
+        Pagination: Codeunit "File Pagination Data";
+    begin
+        // [SCENARIO] The Storage Browser '..' navigation passes parent paths with a trailing slash, e.g. 'A/'
+        // [GIVEN]
+        Initialize(Account);
+
+        // [WHEN] Listing files of a path that ends with a slash
+        RestHelper.ListFiles(Account, 'A/', Pagination, TempContent);
+
+        // [THEN] The folder is addressed without a trailing slash
+        AssertDecodedRequestPath(LastPath, '/sites/test/A');
+        Assert.RecordCount(TempContent, 2);
+    end;
+
+    [Test]
+    [HandlerFunctions('ListDirectoriesHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestListDirectoriesAtTenantRootTargetsRootFolder()
+    var
+        Account: Record "Ext. SharePoint Account";
+        TempContent: Record "File Account Content" temporary;
+        Pagination: Codeunit "File Pagination Data";
+    begin
+        // [SCENARIO] Trimming the trailing slash must not turn the tenant root into an empty path
+        // [GIVEN] An account pointing at the tenant root, with no site path and no base folder
+        Initialize(Account);
+        Account."SharePoint Url" := TenantRootSharePointUrlLbl;
+        Account.Modify();
+
+        // [WHEN] Listing directories of the root
+        RestHelper.ListDirectories(Account, '', Pagination, TempContent);
+
+        // [THEN] The root folder is addressed as '/'
+        AssertDecodedRequestPath(LastPath, '/');
+    end;
+
+    [Test]
+    [HandlerFunctions('DirectoryExistsHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestDirectoryExistsWithTrailingSlashTargetsFolderWithoutTrailingSlash()
+    var
+        Account: Record "Ext. SharePoint Account";
+    begin
+        // [SCENARIO] Checking a directory with a trailing slash addresses the folder without that slash
+        // [GIVEN] The folder exists on the server
+        Initialize(Account);
+        ReturnFolderExists := true;
+
+        // [WHEN] Checking a path that ends with a slash
+        Assert.IsTrue(RestHelper.DirectoryExists(Account, 'MyFolder/'), 'DirectoryExists should return true');
+
+        // [THEN] The folder is addressed without a trailing slash
+        AssertDecodedRequestPath(LastPath, '/sites/test/MyFolder');
     end;
 
     [Test]
