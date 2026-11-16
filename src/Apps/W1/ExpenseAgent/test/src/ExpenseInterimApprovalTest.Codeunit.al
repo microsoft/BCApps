@@ -34,7 +34,8 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
         IsInitialized: Boolean;
         InterimApproverAgentRequiredErr: Label 'An interim approver can only be assigned when the agent is enabled in %1.', Comment = '%1 = Expense Agent Setup table caption';
-        InterimApproverStatusErr: Label 'You can only assign an interim approver while the expense report is %1.', Comment = '%1 = Pending Approval status caption';
+        InterimApproverStatusErr: Label 'You can only assign an interim approver while the expense report is %1 or %2.', Comment = '%1 = Released status caption, %2 = Pending Approval status caption';
+        InterimApproverActorErr: Label 'Only the expense report owner %1 can assign an interim approver.', Comment = '%1 = Expense User No. of the report owner';
         InterimApproverRequiredErr: Label 'Select an interim approver from the available approvers.';
         InterimApproverConflictErr: Label 'The %1 cannot be the same as the %2 (value: %3).', Comment = '%1 = Interim Approver No. caption, %2 = conflicting field caption, %3 = conflicting field value';
         InterimApproverCannotFinalizeErr: Label '%1 %2 cannot give final approval. Final approval must be completed by a different approver.', Comment = '%1 = Interim Approver No. caption, %2 = Interim Approver No.';
@@ -45,6 +46,7 @@ codeunit 148346 "Expense Interim Approval Test"
         AlternateApproverDateRangeErr: Label '%1 cannot be after %2.', Comment = '%1 = Effective Start Date field caption, %2 = Effective End Date field caption';
         AlternateApproverOverlappingCoverageErr: Label 'Overlapping alternate coverage exists for primary approver %1.', Comment = '%1 = Primary approver number';
         ApproverRequiredErr: Label 'Expense report %1 exceeds the %2 for approver %3. Configure the approver in Expense Approval Setup.', Comment = '%1 = Expense report number, %2 = Approval Limit field caption, %3 = Expense User number';
+        CannotRemovePendingApproverErr: Label 'You cannot remove approval rights from expense user %1 because this user is an interim or final approver for expense report %2 that is pending approval. Complete or reassign the pending approval first.', Comment = '%1 = Expense User No., %2 = Expense Report No.';
         ApproverMustBeEnabledInExpenseUserErr: Label '%1 must be enabled to approve or reject expense reports in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         ApproverApprovalLimitErr: Label 'Expense report %1 exceeds the %2 for approver %3.', Comment = '%1 = Expense report number, %2 = Approval Limit field caption, %3 = Expense User number';
         NotAuthorizedToRecallExpReportErr: Label 'Only the original submitter or a user with %1 can recall a submitted expense report.', Comment = '%1 = Unlimited Approval field caption';
@@ -264,7 +266,40 @@ codeunit 148346 "Expense Interim Approval Test"
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler')]
-    procedure AssignInterimApproverRequiresPendingApproval()
+    procedure AssignInterimApproverBeforeSubmissionKeepsReleasedStatus()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ApproverExpenseUserNoBeforeAssignment: Code[20];
+        ApproverExpenseUserIDBeforeAssignment: Code[50];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 657870] An interim approver assigned to a released report is configured without submitting the report.
+        Initialize();
+
+        // [GIVEN] Agent is enabled and a released (not submitted) expense report.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ApproverExpenseUserNoBeforeAssignment := ExpenseReportHeader."Approver Expense User No.";
+        ApproverExpenseUserIDBeforeAssignment := ExpenseReportHeader."Approver Expense User ID";
+
+        // [WHEN] An interim approver is assigned before submission.
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+
+        // [THEN] The interim approver is configured, the report stays Released and is not awaiting any approver.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Released);
+        VerifyInterimApprover(ExpenseReportHeader, InterimApprover."No.");
+        ExpenseReportHeader.TestField("Approver Expense User No.", ApproverExpenseUserNoBeforeAssignment);
+        ExpenseReportHeader.TestField("Approver Expense User ID", ApproverExpenseUserIDBeforeAssignment);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SubmitWithPreassignedInterimRoutesToInterimFirst()
     var
         Submitter: Record "Expense User";
         InterimApprover: Record "Expense User";
@@ -272,7 +307,79 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseReportHeader: Record "Expense Report Header";
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO 638097] An interim approver can only be assigned while the report is Pending Approval.
+        // [SCENARIO 657870] Submitting a report with a preassigned interim approver routes it directly to the interim approver, then to the final approver.
+        Initialize();
+
+        // [GIVEN] Agent is enabled and a released report with an interim approver assigned before submission.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+
+        // [WHEN] The report is submitted.
+        ExpenseReportHeader.PerformManualPendingApproval(Submitter."No.");
+
+        // [THEN] The report is Pending Approval with the interim approver as the active approver.
+        VerifyApprovalRouting(ExpenseReportHeader, InterimApprover, FinalApprover);
+        VerifyInterimApprover(ExpenseReportHeader, InterimApprover."No.");
+
+        // [WHEN] The interim approver approves.
+        ExpenseReportHeader.PerformManualApproved(InterimApprover."No.", true);
+
+        // [THEN] The report moves to Interim Approved and is routed to the final approver.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Interim Approved");
+        VerifyActiveApprover(ExpenseReportHeader, FinalApprover);
+
+        // [WHEN] The final approver approves.
+        ExpenseReportHeader.PerformManualApproved(FinalApprover."No.", true);
+
+        // [THEN] The report is Approved.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure AssignInterimApproverOnOpenReportIsBlocked()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 657870] An interim approver cannot be assigned to an open report.
+        Initialize();
+
+        // [GIVEN] Agent is enabled and an open expense report.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateOpenExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+
+        // Preserve the report when the expected validation error rolls back its transaction.
+        Commit();
+
+        // [WHEN] An interim approver is assigned to the open report.
+        asserterror ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+
+        // [THEN] The status error is raised and the report stays Open without an interim approver.
+        VerifyInterimApproverStatusError();
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Open);
+        VerifyInterimApprover(ExpenseReportHeader, '');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure AssignInterimApproverBeforeSubmissionChecksConflictAndActor()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 657870] Assigning an interim approver before submission keeps the conflict and owner checks.
         Initialize();
 
         // [GIVEN] Agent is enabled and a released (not submitted) expense report.
@@ -281,11 +388,69 @@ codeunit 148346 "Expense Interim Approval Test"
         CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
 
-        // [WHEN] An interim approver is assigned before submission.
-        asserterror ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        // Preserve the report when the expected validation errors roll back their transactions.
+        Commit();
 
-        // [THEN] An error is raised.
-        Assert.ExpectedError(StrSubstNo(InterimApproverStatusErr, Format(ExpenseReportHeader.Status::"Pending Approval")));
+        // [WHEN] The final approver is assigned as interim approver before submission.
+        asserterror ExpenseReportHeader.AssignInterimApprover(FinalApprover."No.", Submitter."No.");
+
+        // [THEN] The conflict error is raised.
+        Assert.ExpectedError(
+            StrSubstNo(
+                InterimApproverConflictErr,
+                ExpenseReportHeader.FieldCaption("Interim Approver No."),
+                ExpenseReportHeader.FieldCaption("Final Approver No."),
+                ExpenseReportHeader."Final Approver No."));
+
+        // [WHEN] Someone other than the report owner assigns an interim approver before submission.
+        asserterror ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", FinalApprover."No.");
+
+        // [THEN] The owner error is raised and no interim approver is configured.
+        Assert.ExpectedError(StrSubstNo(InterimApproverActorErr, Submitter."No."));
+        VerifyInterimApprover(ExpenseReportHeader, '');
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Released);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure AssignInterimApproverBlockedAfterInterimApproval()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        OtherApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 657870] An interim approver cannot be assigned once the report is Interim Approved or Approved.
+        Initialize();
+
+        // [GIVEN] Agent is enabled and a report approved by its interim approver.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateApproverExpenseUser(OtherApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        ExpenseReportHeader.PerformManualApproved(InterimApprover."No.", true);
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Interim Approved");
+
+        // Preserve the report when the expected validation error rolls back its transaction.
+        Commit();
+
+        // [WHEN] An interim approver is assigned to the Interim Approved report.
+        asserterror ExpenseReportHeader.AssignInterimApprover(OtherApprover."No.", Submitter."No.");
+
+        // [THEN] The status error is raised.
+        VerifyInterimApproverStatusError();
+
+        // [WHEN] The final approver approves and an interim approver is assigned to the Approved report.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.PerformManualApproved(FinalApprover."No.", true);
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        asserterror ExpenseReportHeader.AssignInterimApprover(OtherApprover."No.", Submitter."No.");
+
+        // [THEN] The status error is raised.
+        VerifyInterimApproverStatusError();
     end;
 
     [Test]
@@ -1926,6 +2091,43 @@ codeunit 148346 "Expense Interim Approval Test"
         WorkDate(OriginalWorkDate);
     end;
 
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure CannotDisableApproverAssignedToPendingExpenseReport()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO 652243] An approver assigned to an expense report awaiting approval cannot have approval rights removed.
+        Initialize();
+
+        // [GIVEN] A pending report with both a final approver and an assigned interim approver.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        SetCurrentUser(Submitter);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+
+        // [WHEN] Approval rights are removed from either approver.
+        asserterror InterimApprover.Validate("Can Approve", false);
+        Assert.ExpectedError(StrSubstNo(CannotRemovePendingApproverErr, InterimApprover."No.", ExpenseReportHeader."No."));
+
+        FinalApprover.Get(FinalApprover."No.");
+        asserterror FinalApprover.Validate("Can Approve", false);
+        Assert.ExpectedError(StrSubstNo(CannotRemovePendingApproverErr, FinalApprover."No.", ExpenseReportHeader."No."));
+
+        // [WHEN] The report is Interim Approved and assigned to the final approver.
+        ExpenseReportHeader.Status := ExpenseReportHeader.Status::"Interim Approved";
+        ExpenseReportHeader.Modify(false);
+        FinalApprover.Get(FinalApprover."No.");
+        asserterror FinalApprover.Validate("Can Approve", false);
+
+        // [THEN] Approval rights remain protected while the report is Interim Approved.
+        Assert.ExpectedError(StrSubstNo(CannotRemovePendingApproverErr, FinalApprover."No.", ExpenseReportHeader."No."));
+    end;
+
     local procedure Initialize()
     var
         UserSetup: Record "User Setup";
@@ -2107,17 +2309,23 @@ codeunit 148346 "Expense Interim Approval Test"
 
     local procedure CreateAndReleaseExpenseReport(Submitter: Record "Expense User"; var ExpenseReportHeader: Record "Expense Report Header")
     var
+        ReleaseExpenseReportDocument: Codeunit "Release Exp. Report Document";
+    begin
+        CreateOpenExpenseReport(Submitter, ExpenseReportHeader);
+        ReleaseExpenseReportDocument.PerformManualCheckAndRelease(ExpenseReportHeader);
+    end;
+
+    local procedure CreateOpenExpenseReport(Submitter: Record "Expense User"; var ExpenseReportHeader: Record "Expense Report Header")
+    var
         Expense: Record Expense;
         CreateExpenseReport: Codeunit "Create Expense Report";
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
-        ReleaseExpenseReportDocument: Codeunit "Release Exp. Report Document";
     begin
         CreateExpense(Expense, Submitter, LibraryRandom.RandIntInRange(5000, 10000));
         ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
 
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Submitter."No.", Expense."Currency Code", Expense."VAT Bus. Posting Group");
         CreateExpenseReport.AddExpensesToReport(ExpenseReportHeader);
-        ReleaseExpenseReportDocument.PerformManualCheckAndRelease(ExpenseReportHeader);
     end;
 
     local procedure CreateExpense(var Expense: Record Expense; ExpenseUser: Record "Expense User"; Amount: Decimal)
@@ -2195,6 +2403,17 @@ codeunit 148346 "Expense Interim Approval Test"
     begin
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
         ExpenseReportHeader.TestField("Interim Approver No.", ExpectedInterimNo);
+    end;
+
+    local procedure VerifyInterimApproverStatusError()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        Assert.ExpectedError(
+            StrSubstNo(
+                InterimApproverStatusErr,
+                Format(ExpenseReportHeader.Status::Released),
+                Format(ExpenseReportHeader.Status::"Pending Approval")));
     end;
 
     local procedure EnableSaaS(IsSaaS: Boolean)

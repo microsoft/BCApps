@@ -264,6 +264,93 @@
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure CancelFALedgerEntryIntoNonEmptyGenJournalUsesLastDocumentNo()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FALedgerEntry: Record "FA Ledger Entry";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        CancelFALedgEntries: Codeunit "Cancel FA Ledger Entries";
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [Cancel FA Ledger Entries]
+        // [SCENARIO 651316] Cancelling an FA ledger entry into a non-empty FA G/L journal uses the document number of the last journal line.
+        Initialize();
+
+        // [GIVEN] Fixed asset with posted acquisition cost in a depreciation book with G/L integration.
+        CreateFAWithPostedAcquisitionCost(FixedAsset, DepreciationBook, false);
+        IndexationAndIntegrationInBook(DepreciationBook.Code);
+
+        // [GIVEN] FA G/L journal batch with a number series and an existing line with Document No. = "D".
+        CreateGenJournalBatch(GenJournalBatch);
+        SetGenJournalBatchInFAJournalSetup(DepreciationBook.Code, GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+          GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), LibraryRandom.RandDec(100, 2));
+        DocumentNo := LibraryUtility.GenerateGUID();
+        GenJournalLine."Document No." := DocumentNo;
+        GenJournalLine.Modify();
+
+        // [WHEN] Cancel the acquisition cost FA ledger entry.
+        FALedgerEntry.SetRange("FA No.", FixedAsset."No.");
+        FALedgerEntry.FindLast();
+        CancelFALedgEntries.TransferLine(FALedgerEntry, false, 0D);
+
+        // [THEN] The cancellation line is added as the last line of the batch with Document No. = "D".
+        GenJournalLine.Reset();
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine.FindLast();
+        GenJournalLine.TestField("FA Error Entry No.", FALedgerEntry."Entry No.");
+        GenJournalLine.TestField("Document No.", DocumentNo);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure CancelFALedgerEntryIntoNonEmptyFAJournalUsesLastDocumentNo()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FALedgerEntry: Record "FA Ledger Entry";
+        FAJournalBatch: Record "FA Journal Batch";
+        FAJournalLine: Record "FA Journal Line";
+        CancelFALedgEntries: Codeunit "Cancel FA Ledger Entries";
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [Cancel FA Ledger Entries]
+        // [SCENARIO 651316] Cancelling an FA ledger entry into a non-empty FA journal uses the document number of the last journal line.
+        Initialize();
+
+        // [GIVEN] Fixed asset with posted acquisition cost in a depreciation book without G/L integration.
+        CreateFAWithPostedAcquisitionCost(FixedAsset, DepreciationBook, false);
+
+        // [GIVEN] FA journal batch with a number series and an existing line with Document No. = "D".
+        CreateFAJournalBatch(FAJournalBatch);
+        SetFAJournalBatchInFAJournalSetup(DepreciationBook.Code, FAJournalBatch);
+        LibraryFixedAsset.CreateFAJournalLine(FAJournalLine, FAJournalBatch."Journal Template Name", FAJournalBatch.Name);
+        DocumentNo := LibraryUtility.GenerateGUID();
+        FAJournalLine."Document No." := DocumentNo;
+        FAJournalLine.Modify();
+
+        // [WHEN] Cancel the acquisition cost FA ledger entry.
+        FALedgerEntry.SetRange("FA No.", FixedAsset."No.");
+        FALedgerEntry.FindLast();
+        CancelFALedgEntries.TransferLine(FALedgerEntry, false, 0D);
+
+        // [THEN] The cancellation line is added as the last line of the batch with Document No. = "D".
+        FAJournalLine.Reset();
+        FAJournalLine.SetRange("Journal Template Name", FAJournalBatch."Journal Template Name");
+        FAJournalLine.SetRange("Journal Batch Name", FAJournalBatch.Name);
+        FAJournalLine.FindLast();
+        FAJournalLine.TestField("FA Error Entry No.", FALedgerEntry."Entry No.");
+        FAJournalLine.TestField("Document No.", DocumentNo);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure CopyFixedAssets()
     var
@@ -3297,6 +3384,42 @@
         LibraryFixedAsset.CreateFAJournalSetup(FAJournalSetup, DepreciationBook.Code, '');
         UpdateFAJournalSetup(FAJournalSetup);
         UpdateFAPostingTypeSetup(DepreciationBook.Code); // NAVCZ
+    end;
+
+    local procedure CreateFAWithPostedAcquisitionCost(var FixedAsset: Record "Fixed Asset"; var DepreciationBook: Record "Depreciation Book"; AllowChangesInDeprFields: Boolean)
+    var
+        FADepreciationBook: Record "FA Depreciation Book";
+        FAJournalLine: Record "FA Journal Line";
+    begin
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateJournalSetupDepreciation(DepreciationBook);
+        DepreciationBook.Validate("Allow Changes in Depr. Fields", AllowChangesInDeprFields);
+        DepreciationBook.Modify(true);
+        CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code);
+        CreateFAJournalLine(
+          FAJournalLine, FixedAsset."No.", DepreciationBook.Code, FAJournalLine."Document Type"::" ",
+          FAJournalLine."FA Posting Type"::"Acquisition Cost");
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+    end;
+
+    local procedure SetGenJournalBatchInFAJournalSetup(DepreciationBookCode: Code[10]; GenJournalBatch: Record "Gen. Journal Batch")
+    var
+        FAJournalSetup: Record "FA Journal Setup";
+    begin
+        FAJournalSetup.Get(DepreciationBookCode, '');
+        FAJournalSetup.Validate("Gen. Jnl. Template Name", GenJournalBatch."Journal Template Name");
+        FAJournalSetup.Validate("Gen. Jnl. Batch Name", GenJournalBatch.Name);
+        FAJournalSetup.Modify(true);
+    end;
+
+    local procedure SetFAJournalBatchInFAJournalSetup(DepreciationBookCode: Code[10]; FAJournalBatch: Record "FA Journal Batch")
+    var
+        FAJournalSetup: Record "FA Journal Setup";
+    begin
+        FAJournalSetup.Get(DepreciationBookCode, '');
+        FAJournalSetup.Validate("FA Jnl. Template Name", FAJournalBatch."Journal Template Name");
+        FAJournalSetup.Validate("FA Jnl. Batch Name", FAJournalBatch.Name);
+        FAJournalSetup.Modify(true);
     end;
 
     local procedure CreateGenJournalBatch(var GenJournalBatch: Record "Gen. Journal Batch")

@@ -254,6 +254,172 @@ codeunit 134288 "Non-Deductible VAT Journal"
         Assert.AreEqual(NonDeductableVATAmount, VATEntry."Non-Deductible VAT Amount", StrSubstNo(NonDeductiableVATAmountMustBeEqualErr, NonDeductableVATAmount));
     end;
 
+    [Test]
+    procedure ReverseChargeVATWithHundredPctNonDeductibleVATInFCY()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        GenJournalLine: Record "Gen. Journal Line";
+        ExpectedVATAmountLCY: Decimal;
+    begin
+        // [SCENARIO 656042] Foreign-currency reverse-charge VAT is fully non-deductible on the main account.
+        Initialize();
+
+        // [GIVEN] A purchase journal line with 100% non-deductible reverse-charge VAT and a foreign currency.
+        CreateReverseChargeJournalLineInFCY(
+            GenJournalLine, VATPostingSetup, false, LibraryRandom.RandDec(1000, 2), LibraryRandom.RandIntInRange(2, 5));
+        ExpectedVATAmountLCY := CalculateReverseChargeVATAmountLCY(GenJournalLine, VATPostingSetup);
+
+        // [WHEN] The journal line is posted.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] All VAT is non-deductible and the reverse-charge entries balance.
+        GenJournalLine.TestField("Non-Deductible VAT Amount LCY", ExpectedVATAmountLCY);
+        VerifyReverseChargeVATEntries(GenJournalLine, VATPostingSetup, ExpectedVATAmountLCY);
+    end;
+
+    [Test]
+    procedure ReverseChargeVATWithHundredPctNonDeductibleVATInFCYBalAcc()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        GenJournalLine: Record "Gen. Journal Line";
+        ExpectedVATAmountLCY: Decimal;
+    begin
+        // [SCENARIO 656042] Foreign-currency reverse-charge VAT is fully non-deductible on the balancing account.
+        Initialize();
+
+        // [GIVEN] A foreign-currency journal line with 100% non-deductible reverse-charge VAT on the balancing account.
+        CreateReverseChargeJournalLineInFCY(
+            GenJournalLine, VATPostingSetup, true, LibraryRandom.RandDec(1000, 2), LibraryRandom.RandIntInRange(2, 5));
+        ExpectedVATAmountLCY := CalculateReverseChargeVATAmountLCY(GenJournalLine, VATPostingSetup);
+
+        // [WHEN] The journal line is posted.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] All balancing-account VAT is non-deductible and the reverse-charge entries balance.
+        GenJournalLine.TestField("Bal. Non-Ded. VAT Amount LCY", ExpectedVATAmountLCY);
+        VerifyReverseChargeVATEntries(GenJournalLine, VATPostingSetup, ExpectedVATAmountLCY);
+    end;
+
+    [Test]
+    procedure ReverseChargeNonDeductibleVATInFCYWithRounding()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        GenJournalLine: Record "Gen. Journal Line";
+        ExpectedVATAmountLCY: Decimal;
+    begin
+        // [SCENARIO 656042] FCY rounding leaves no deductible VAT residue for 100% non-deductible reverse charge.
+        Initialize();
+
+        // [GIVEN] A randomized journal amount whose converted FCY VAT differs from VAT calculated in LCY.
+        CreateReverseChargeJournalLineInFCY(
+            GenJournalLine, VATPostingSetup, false, LibraryRandom.RandInt(100) * 12 + 4.01, 3);
+        ExpectedVATAmountLCY := CalculateReverseChargeVATAmountLCY(GenJournalLine, VATPostingSetup);
+        VerifyVATConversionRoundingDifference(GenJournalLine, VATPostingSetup, ExpectedVATAmountLCY);
+
+        // [WHEN] The journal line is posted.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Non-deductible VAT matches posting's LCY VAT and no deductible residue remains.
+        GenJournalLine.TestField("Non-Deductible VAT Amount LCY", ExpectedVATAmountLCY);
+        VerifyReverseChargeVATEntries(GenJournalLine, VATPostingSetup, ExpectedVATAmountLCY);
+    end;
+
+    [Test]
+    procedure ReverseChargeNonDeductibleVATInFCYBalAccWithRounding()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        GenJournalLine: Record "Gen. Journal Line";
+        ExpectedVATAmountLCY: Decimal;
+    begin
+        // [SCENARIO 656042] FCY rounding leaves no deductible VAT residue on the reverse-charge balancing account.
+        Initialize();
+
+        // [GIVEN] Balancing-account reverse-charge VAT with a randomized amount exposing FCY conversion rounding.
+        CreateReverseChargeJournalLineInFCY(
+            GenJournalLine, VATPostingSetup, true, LibraryRandom.RandInt(100) * 12 + 4.01, 3);
+        ExpectedVATAmountLCY := CalculateReverseChargeVATAmountLCY(GenJournalLine, VATPostingSetup);
+        VerifyVATConversionRoundingDifference(GenJournalLine, VATPostingSetup, ExpectedVATAmountLCY);
+
+        // [WHEN] The journal line is posted.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Balancing-account non-deductible VAT matches posting's LCY VAT and the entries balance.
+        GenJournalLine.TestField("Bal. Non-Ded. VAT Amount LCY", ExpectedVATAmountLCY);
+        VerifyReverseChargeVATEntries(GenJournalLine, VATPostingSetup, ExpectedVATAmountLCY);
+    end;
+
+    local procedure CreateReverseChargeJournalLineInFCY(var GenJournalLine: Record "Gen. Journal Line"; var VATPostingSetup: Record "VAT Posting Setup"; BalancingAccount: Boolean; Amount: Decimal; ExchangeRate: Decimal)
+    var
+        VATAccountNo: Code[20];
+    begin
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT", 25);
+        LibraryNonDeductibleVAT.SetAllowNonDeductibleVATForVATPostingSetup(VATPostingSetup);
+        VATPostingSetup.Validate("Non-Deductible VAT %", 100);
+        VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Validate("Non-Ded. Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
+        VATAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Purchase);
+
+        if BalancingAccount then begin
+            LibraryJournals.CreateGenJournalLineWithBatch(
+                GenJournalLine, GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account",
+                LibraryERM.CreateGLAccountNo(), -Amount);
+            GenJournalLine.Validate("Bal. Account No.", VATAccountNo);
+        end else begin
+            LibraryJournals.CreateGenJournalLineWithBatch(
+                GenJournalLine, GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account",
+                VATAccountNo, Amount);
+            GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNo());
+        end;
+        GenJournalLine.Validate("Currency Code", LibraryERM.CreateCurrencyWithExchangeRate(GenJournalLine."Posting Date", ExchangeRate, ExchangeRate));
+        GenJournalLine.Modify(true);
+    end;
+
+    local procedure CalculateReverseChargeVATAmountLCY(GenJournalLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"): Decimal
+    var
+        LCYCurrency: Record Currency;
+    begin
+        LCYCurrency.InitRoundingPrecision();
+        exit(
+            Round(Abs(GenJournalLine."Amount (LCY)") * VATPostingSetup."VAT %" / 100,
+                LCYCurrency."Amount Rounding Precision", LCYCurrency.VATRoundingDirection()));
+    end;
+
+    local procedure VerifyVATConversionRoundingDifference(GenJournalLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; ExpectedVATAmountLCY: Decimal)
+    var
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        ConvertedVATAmountLCY: Decimal;
+    begin
+        Currency.Get(GenJournalLine."Currency Code");
+        ConvertedVATAmountLCY :=
+            Round(CurrencyExchangeRate.ExchangeAmtFCYToLCY(
+                GenJournalLine."Posting Date", GenJournalLine."Currency Code",
+                Round(Abs(GenJournalLine.Amount) * VATPostingSetup."VAT %" / 100, Currency."Amount Rounding Precision"), GenJournalLine."Currency Factor"));
+        Assert.AreNotEqual(ExpectedVATAmountLCY, ConvertedVATAmountLCY, 'The test must exercise an FCY-to-LCY VAT rounding difference.');
+    end;
+
+    local procedure VerifyReverseChargeVATEntries(GenJournalLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; ExpectedVATAmountLCY: Decimal)
+    var
+        VATEntry: Record "VAT Entry";
+        GLEntry: Record "G/L Entry";
+    begin
+        FindVATEntryByVATPostingSetup(VATEntry, VATPostingSetup);
+        VATEntry.TestField(Amount, 0);
+        VATEntry.TestField("Non-Deductible VAT Amount", ExpectedVATAmountLCY);
+        GLEntry.SetRange("Posting Date", GenJournalLine."Posting Date");
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup."Reverse Chrg. VAT Acc.");
+        GLEntry.FindFirst();
+        GLEntry.TestField(Amount, -ExpectedVATAmountLCY);
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup."Non-Ded. Purchase VAT Account");
+        GLEntry.FindFirst();
+        GLEntry.TestField(Amount, ExpectedVATAmountLCY);
+        GLEntry.SetRange("G/L Account No.");
+        GLEntry.CalcSums(Amount);
+        GLEntry.TestField(Amount, 0);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

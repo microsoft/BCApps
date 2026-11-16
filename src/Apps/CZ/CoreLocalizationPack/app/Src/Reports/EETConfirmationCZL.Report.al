@@ -65,13 +65,16 @@ report 31121 "EET Confirmation CZL"
             column(FiscalIdentificationCode_EETEntry; "Fiscal Identification Code")
             {
             }
+            column(AcknowledgementCode_EETEntry; "Acknowledgement Code")
+            {
+            }
             column(CreationDatetime_EETEntry; "Created At")
             {
             }
             column(CashRegisterCode_EETEntry; "Cash Register Code")
             {
             }
-            column(BusinessPremissesId_EETEntry; GetBusinessPremisesId())
+            column(BusinessPremissesId_EETEntry; GetBusinessPremisesUnitId())
             {
             }
             column(SalesRegimeText_EETEntry; GetSalesRegimeText())
@@ -86,12 +89,13 @@ report 31121 "EET Confirmation CZL"
     labels
     {
         TotalLbl = 'Total:';
-        BusPremisesLbl = 'Business Premises:';
+        BusPremisesLbl = 'Registrating Units:';
         CashRegisterLbl = 'Cash Register:';
         ReceiptSerialNoLbl = 'Receipt Serial No.:';
         BKPLbl = 'BKP:';
         FIKLbl = 'FIK:';
         PKPLbl = 'PKP:';
+        POKLbl = 'POK:';
         IssueDatetimeLbl = 'Issue Datetime:';
         TotalSalesAmountLbl = 'Total Sales Amount:';
         SalesRegimeLbl = 'EET regime:';

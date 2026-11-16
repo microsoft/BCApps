@@ -5,6 +5,7 @@
 namespace Microsoft.Assembly.Document;
 
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
@@ -145,6 +146,71 @@ codeunit 928 "Assembly Line Invt. Profile"
     begin
         if InventoryProfile."Source Type" = Database::"Assembly Line" then
             InventoryProfile."Order Priority" := 470;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnAfterShouldDeleteReservEntry', '', true, true)]
+    local procedure OnAfterShouldDeleteReservEntry(ReservationEntry: Record "Reservation Entry"; ToDate: Date; var DeleteCondition: Boolean; TemplateName: Code[10]; WorksheetName: Code[10])
+    begin
+        if not DeleteCondition then
+            exit;
+        if ReservationEntry."Source Type" <> Database::"Assembly Line" then
+            exit;
+        if ReservationEntry.IsReservationOrTracking() or not ReservationEntry.TrackingExists() then
+            exit;
+
+        if HasAssemblyPlanningSuggestion(ReservationEntry) then
+            DeleteCondition := false;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnDeleteTrackingOnAfterSetReservEntryFilters', '', true, true)]
+    local procedure OnDeleteTrackingOnAfterSetReservEntryFilters(var ReservationEntry: Record "Reservation Entry"; StockkeepingUnit: Record "Stockkeeping Unit"; ToDate: Date)
+    var
+        AssemblyReservationEntry: Record "Reservation Entry";
+        OppositeReservationEntry: Record "Reservation Entry";
+        ItemTrackingMgt: Codeunit "Item Tracking Management";
+        ReservationEngineMgt: Codeunit "Reservation Engine Mgt.";
+        PlanningSuggestionCache: Dictionary of [Text, Boolean];
+        SourceRowID: Text[250];
+        HasPlanningSuggestion: Boolean;
+    begin
+        AssemblyReservationEntry.CopyFilters(ReservationEntry);
+        AssemblyReservationEntry.SetRange("Source Type", Database::"Assembly Line");
+        AssemblyReservationEntry.SetRange(Positive, false);
+        AssemblyReservationEntry.SetRange("Reservation Status", AssemblyReservationEntry."Reservation Status"::Tracking);
+        AssemblyReservationEntry.SetFilter("Expected Receipt Date", '..%1', ToDate);
+        AssemblyReservationEntry.SetFilter("Shipment Date", '..%1', ToDate);
+        if AssemblyReservationEntry.FindSet() then
+            repeat
+                if AssemblyReservationEntry.TrackingExists() then begin
+                    SourceRowID := ItemTrackingMgt.ComposeRowID(
+                        AssemblyReservationEntry."Source Type", AssemblyReservationEntry."Source Subtype",
+                        AssemblyReservationEntry."Source ID", AssemblyReservationEntry."Source Batch Name",
+                        AssemblyReservationEntry."Source Prod. Order Line", AssemblyReservationEntry."Source Ref. No.");
+                    if not PlanningSuggestionCache.Get(SourceRowID, HasPlanningSuggestion) then begin
+                        HasPlanningSuggestion := HasAssemblyPlanningSuggestion(AssemblyReservationEntry);
+                        PlanningSuggestionCache.Add(SourceRowID, HasPlanningSuggestion);
+                    end;
+                    if HasPlanningSuggestion then begin
+                        OppositeReservationEntry.Get(AssemblyReservationEntry."Entry No.", true);
+                        // Rebuild the link without removing the component's item tracking or matching it to another supply.
+                        ReservationEngineMgt.CloseSurplusTrackingEntry(OppositeReservationEntry);
+                        AssemblyReservationEntry.Get(AssemblyReservationEntry."Entry No.", false);
+                        AssemblyReservationEntry.Binding := AssemblyReservationEntry.Binding::" ";
+                        AssemblyReservationEntry."Expected Receipt Date" := 0D;
+                        AssemblyReservationEntry.Modify();
+                    end;
+                end;
+            until AssemblyReservationEntry.Next() = 0;
+    end;
+
+    local procedure HasAssemblyPlanningSuggestion(ReservationEntry: Record "Reservation Entry"): Boolean
+    var
+        RequisitionLine: Record "Requisition Line";
+    begin
+        RequisitionLine.SetRefOrderFilters(
+            RequisitionLine."Ref. Order Type"::Assembly, ReservationEntry."Source Subtype", ReservationEntry."Source ID", 0);
+        RequisitionLine.SetOperationNoFilterToBlank();
+        exit(not RequisitionLine.IsEmpty());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnForecastConsumptionOnAfterSetPlanningSourceTypeFilter', '', true, true)]
