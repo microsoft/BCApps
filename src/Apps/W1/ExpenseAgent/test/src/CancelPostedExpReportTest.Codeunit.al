@@ -285,10 +285,9 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler,MessageHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure CancelFromPostedReportPageLogsCanceledActivity()
     var
-        Expense: Record Expense;
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         TempPriorExpenseActivityLogEntry: Record "Expense Activity Log Entry" temporary;
@@ -299,7 +298,7 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         Initialize();
 
         // [GIVEN] A posted expense report whose activity history started with a submission before posting.
-        PostExpenseReportWithHistory(Expense, PostedExpenseReportHeader, OriginalSubjectSystemID);
+        CreatePostedReportWithHistory(PostedExpenseReportHeader, OriginalSubjectSystemID);
         CopyPostedReportHistory(PostedExpenseReportHeader, TempPriorExpenseActivityLogEntry);
         Assert.RecordCount(TempPriorExpenseActivityLogEntry, 2);
 
@@ -333,10 +332,8 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
     procedure CancelOnRunLogsCanceledActivity()
     var
-        Expense: Record Expense;
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         TempPriorExpenseActivityLogEntry: Record "Expense Activity Log Entry" temporary;
@@ -346,7 +343,7 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         Initialize();
 
         // [GIVEN] A posted expense report with activity history.
-        PostExpenseReportWithHistory(Expense, PostedExpenseReportHeader, OriginalSubjectSystemID);
+        CreatePostedReportWithHistory(PostedExpenseReportHeader, OriginalSubjectSystemID);
         CopyPostedReportHistory(PostedExpenseReportHeader, TempPriorExpenseActivityLogEntry);
 
         // [WHEN] The report is canceled through the codeunit OnRun trigger.
@@ -362,10 +359,9 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler,MessageHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure CancelWithoutActivityHistoryLogsNoActivity()
     var
-        Expense: Record Expense;
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         CancelPostedExpReport: Codeunit "Cancel Posted Expense Report";
@@ -374,7 +370,7 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         Initialize();
 
         // [GIVEN] A posted expense report without activity history.
-        PostExpenseReport(Expense, PostedExpenseReportHeader);
+        CreatePostedReportWithoutHistory(PostedExpenseReportHeader);
         Assert.RecordIsEmpty(ExpenseActivityLogEntry);
 
         // [WHEN] The report is canceled.
@@ -387,10 +383,9 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler,MessageHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure CancelIgnoresOtherSourceHistoryWithSameSystemId()
     var
-        Expense: Record Expense;
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         CancelPostedExpReport: Codeunit "Cancel Posted Expense Report";
@@ -401,7 +396,7 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         Initialize();
 
         // [GIVEN] A posted expense report with activity history.
-        PostExpenseReportWithHistory(Expense, PostedExpenseReportHeader, OriginalSubjectSystemID);
+        CreatePostedReportWithHistory(PostedExpenseReportHeader, OriginalSubjectSystemID);
 
         // [GIVEN] A later entry of an expense report source that has the same SystemId as the posted report.
         DecoySubjectSystemID := InsertSourcePairDecoy(PostedExpenseReportHeader);
@@ -416,10 +411,9 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler,MessageHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure CancelWithoutOwnHistoryIgnoresOtherSourceWithSameSystemId()
     var
-        Expense: Record Expense;
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         CancelPostedExpReport: Codeunit "Cancel Posted Expense Report";
@@ -429,7 +423,7 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         Initialize();
 
         // [GIVEN] A posted expense report without activity history and an expense report source entry with its SystemId.
-        PostExpenseReport(Expense, PostedExpenseReportHeader);
+        CreatePostedReportWithoutHistory(PostedExpenseReportHeader);
         DecoySubjectSystemID := InsertSourcePairDecoy(PostedExpenseReportHeader);
 
         // [WHEN] The report is canceled.
@@ -445,10 +439,9 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler,MessageHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure RepeatCancelDoesNotLogSecondCanceledActivity()
     var
-        Expense: Record Expense;
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         CancelPostedExpReport: Codeunit "Cancel Posted Expense Report";
@@ -459,7 +452,7 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         Initialize();
 
         // [GIVEN] A posted expense report with activity history, canceled once.
-        PostExpenseReportWithHistory(Expense, PostedExpenseReportHeader, OriginalSubjectSystemID);
+        CreatePostedReportWithHistory(PostedExpenseReportHeader, OriginalSubjectSystemID);
         CancelPostedExpReport.CancelPostedExpenseReport(PostedExpenseReportHeader);
 
         // [THEN] The history has exactly one Canceled entry after Submitted and Posted.
@@ -483,10 +476,9 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExpensesModalPageHandler,DeclineCancelConfirmHandler')]
+    [HandlerFunctions('DeclineCancelConfirmHandler')]
     procedure DeclinedCancelConfirmationLogsNoActivity()
     var
-        Expense: Record Expense;
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         TempPriorExpenseActivityLogEntry: Record "Expense Activity Log Entry" temporary;
@@ -497,7 +489,7 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         Initialize();
 
         // [GIVEN] A posted expense report with activity history.
-        PostExpenseReportWithHistory(Expense, PostedExpenseReportHeader, OriginalSubjectSystemID);
+        CreatePostedReportWithHistory(PostedExpenseReportHeader, OriginalSubjectSystemID);
         CopyPostedReportHistory(PostedExpenseReportHeader, TempPriorExpenseActivityLogEntry);
 
         // [WHEN] The user declines the cancel confirmation.
@@ -721,23 +713,50 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         Assert.RecordCount(ExpenseLedgerEntry, ExpectedCount);
     end;
 
-    local procedure PostExpenseReportWithHistory(var Expense: Record Expense; var PostedExpenseReportHeader: Record "Posted Expense Report Header"; var OriginalSubjectSystemID: Guid)
+    local procedure CreatePostedReportWithHistory(var PostedExpenseReportHeader: Record "Posted Expense Report Header"; var OriginalSubjectSystemID: Guid)
+    begin
+        CreatePostedReport(PostedExpenseReportHeader, true, OriginalSubjectSystemID);
+    end;
+
+    local procedure CreatePostedReportWithoutHistory(var PostedExpenseReportHeader: Record "Posted Expense Report Header")
     var
+        OriginalSubjectSystemID: Guid;
+    begin
+        CreatePostedReport(PostedExpenseReportHeader, false, OriginalSubjectSystemID);
+    end;
+
+    local procedure CreatePostedReport(var PostedExpenseReportHeader: Record "Posted Expense Report Header"; WithHistory: Boolean; var OriginalSubjectSystemID: Guid)
+    var
+        ExpenseUser: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+        LibraryUtility: Codeunit "Library - Utility";
     begin
-        PostExpenseReportUpToRelease(Expense, ExpenseReportHeader);
-        ExpenseReportHeader.PerformManualRelease();
+        // Builds the posted header and its history the way Expense Report-Post does, but without ledger entries, so the
+        // cancellation runs in every localization. Italy blocks reversing posted Invoice documents, which expense posting creates.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
         OriginalSubjectSystemID := ExpenseReportHeader.SystemId;
-        ExpenseActivityLogMgt.LogExpenseReportEvent(
-            ExpenseReportHeader,
-            Enum::"Expense Activity Event Type"::Submitted,
-            Enum::"Expense Activity Initiator"::User,
-            Enum::"Expense Activity Actor Role"::Submitter,
-            ExpenseReportHeader."Expense User No.",
-            '');
+        if WithHistory then
+            ExpenseActivityLogMgt.LogExpenseReportEvent(
+                ExpenseReportHeader,
+                Enum::"Expense Activity Event Type"::Submitted,
+                Enum::"Expense Activity Initiator"::User,
+                Enum::"Expense Activity Actor Role"::Submitter,
+                ExpenseUser."No.",
+                '');
 
-        PostExpenseReportFromHeader(ExpenseReportHeader, PostedExpenseReportHeader, Expense."Expense User No.");
+        PostedExpenseReportHeader.Init();
+        PostedExpenseReportHeader.TransferFields(ExpenseReportHeader);
+        PostedExpenseReportHeader."No." := LibraryUtility.GenerateGUID();
+        PostedExpenseReportHeader."Posting Date" := WorkDate();
+        PostedExpenseReportHeader.Insert();
+        if WithHistory then begin
+            ExpenseActivityLogMgt.LogExpenseReportEventByBCUser(
+                ExpenseReportHeader, Enum::"Expense Activity Event Type"::Posted, Enum::"Expense Activity Actor Role"::" ", '');
+            ExpenseActivityLogMgt.ReassignExpenseReportEntriesToPosted(ExpenseReportHeader, PostedExpenseReportHeader);
+        end;
+        ExpenseReportHeader.Delete(true);
     end;
 
     local procedure CopyPostedReportHistory(PostedExpenseReportHeader: Record "Posted Expense Report Header"; var TempExpenseActivityLogEntry: Record "Expense Activity Log Entry" temporary)
