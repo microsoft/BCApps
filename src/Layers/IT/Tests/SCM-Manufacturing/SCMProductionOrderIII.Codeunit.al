@@ -8988,22 +8988,24 @@ codeunit 137079 "SCM Production Order III"
         Assert.RecordCount(PurchaseLine, 2);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
 
-        PurchRcptLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-        PurchRcptLine.FindFirst();
-        PurchRcptLine.SetRange("Document No.", PurchRcptLine."Document No.");
+        PurchRcptLine.SetRange("Document No.", PurchaseHeader."Last Receiving No.");
         Assert.RecordCount(PurchRcptLine, 2);
-        exit(PurchRcptLine."Document No.");
+        exit(PurchaseHeader."Last Receiving No.");
     end;
 
     local procedure UndoSubcontractingReceiptLine(ReceiptNo: Code[20]; OperationNo: Code[10])
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        LineFound: Boolean;
     begin
         PurchRcptLine.SetRange("Document No.", ReceiptNo);
-        PurchRcptLine.SetRange("Operation No.", OperationNo);
-        PurchRcptLine.SetRange(Correction, false);
-        PurchRcptLine.FindFirst();
+        PurchRcptLine.FindSet();
+        repeat
+            LineFound := (not PurchRcptLine.Correction) and (PurchRcptLine."Operation No." = OperationNo);
+        until LineFound or (PurchRcptLine.Next() = 0);
+        Assert.IsTrue(LineFound, 'Original receipt line for the operation was not found.');
         PurchRcptLine.SetRange("Line No.", PurchRcptLine."Line No.");
         LibraryPurchase.UndoPurchaseReceiptLine(PurchRcptLine);
     end;
