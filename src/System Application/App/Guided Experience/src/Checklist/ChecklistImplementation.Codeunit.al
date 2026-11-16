@@ -172,10 +172,9 @@ codeunit 1993 "Checklist Implementation"
     var
         Company: Record Company;
         ChecklistSetup: Record "Checklist Setup";
-        ClientTypeManagement: Codeunit "Client Type Management";
         CurrentDateTimeUTC: DateTime;
     begin
-        if not (ClientTypeManagement.GetCurrentClientType() in [ClientType::Web, ClientType::Windows, ClientType::Desktop]) then
+        if not (Session.CurrentClientType() in [ClientType::Web, ClientType::Windows, ClientType::Desktop]) then
             exit(false);
 
         if not Company.Get(CompanyName()) then

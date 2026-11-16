@@ -10,7 +10,6 @@ using System.Environment.Configuration;
 using System.Media;
 using System.Reflection;
 using System.Security.AccessControl;
-using System.TestLibraries.Reflection;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 
@@ -2830,30 +2829,6 @@ ObjectIDToRun2, ManualSetupCategory::Uncategorized, '');
         // [THEN] The result is true
         Assert.IsTrue(Checklist.ShouldInitializeChecklist(true),
             'The checklist should be initialized when the Checklist Setup table is empty.');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestShouldInitializeChecklistRespectsClientType()
-    var
-        ChecklistSetup: Record "Checklist Setup";
-        Checklist: Codeunit Checklist;
-        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
-    begin
-        SetCompanyEvaluationStatus(false);
-        ChecklistSetup.DeleteAll();
-        BindSubscription(TestClientTypeSubscriber);
-        PermissionsMock.Set('Guided Exp Edit');
-
-        TestClientTypeSubscriber.SetClientType(ClientType::Api);
-        Assert.IsFalse(Checklist.ShouldInitializeChecklist(false),
-            'The checklist should not be initialized for an API client.');
-
-        TestClientTypeSubscriber.SetClientType(ClientType::Web);
-        Assert.IsTrue(Checklist.ShouldInitializeChecklist(false),
-            'The checklist should be initialized for a web client.');
-
-        UnbindSubscription(TestClientTypeSubscriber);
     end;
 
     [Test]

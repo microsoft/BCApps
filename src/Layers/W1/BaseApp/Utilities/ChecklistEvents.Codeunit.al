@@ -32,10 +32,9 @@ codeunit 1997 "Checklist Events"
         Company: Record Company;
         SignupContextValues: Record "Signup Context Values";
         Checklist: Codeunit Checklist;
-        ClientTypeManagement: Codeunit "Client Type Management";
         SystemInitialization: Codeunit "System Initialization";
     begin
-        if not (ClientTypeManagement.GetCurrentClientType() in [ClientType::Web, ClientType::Windows, ClientType::Desktop]) then
+        if not (Session.CurrentClientType() in [ClientType::Web, ClientType::Windows, ClientType::Desktop]) then
             exit;
 
         if not Checklist.ShouldInitializeChecklist(false) then
