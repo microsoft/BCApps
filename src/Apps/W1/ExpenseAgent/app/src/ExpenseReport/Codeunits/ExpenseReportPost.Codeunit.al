@@ -46,6 +46,8 @@ codeunit 6987 "Expense Report-Post"
                   TableData "Posted Exp. Policy Evaluation" = i,
                   TableData "Expense Category" = r,
                   TableData "Expense Posting Group" = r,
+                  TableData "EA Corp Card" = r,
+                  TableData "EA Corp Card Trans" = r,
                   TableData "Expense User" = r;
 
     trigger OnRun()
@@ -286,6 +288,7 @@ codeunit 6987 "Expense Report-Post"
     local procedure ValidateExpenseReportLineForPosting(ExpenseReportHeader: Record "Expense Report Header")
     var
         ExpenseReportLine: Record "Expense Report Line";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
         // The travel requests linked to the report are kept to log the ones that this posting closes.
         Clear(LinkedSpendRequestNos);
@@ -296,6 +299,7 @@ codeunit 6987 "Expense Report-Post"
         if ExpenseReportLine.FindSet() then
             repeat
                 CheckMandatoryFields(ExpenseReportLine);
+                CorpCardSelectionMgt.ValidateReportLine(ExpenseReportLine, true);
                 ValidateVATSpecLinesForPosting(ExpenseReportLine, ExpenseReportHeader);
                 if not LinkedSpendRequestNos.Contains(ExpenseReportLine."Spend Request No.") then begin
                     CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportLine."Spend Request No.");
@@ -707,6 +711,18 @@ codeunit 6987 "Expense Report-Post"
         SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportLine."Dimension Set ID");
 
         GenJnlPostLine.RunWithCheck(GenJournalLine);
+
+        if (ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Credit Card") and
+           (GenJournalLine."Account Type" = GenJournalLine."Account Type"::"G/L Account")
+        then begin
+            PostedExpReportLine.Get(PostedExpReportLine."Document No.", PostedExpReportLine."Line No.");
+            PostedExpReportLine."Card Payable Account No." := GenJournalLine."Account No.";
+            PostedExpReportLine."Card Liability Amount" := GenJournalLine.Amount;
+            PostedExpReportLine."Card Liability Amount (LCY)" := GenJournalLine."Amount (LCY)";
+            PostedExpReportLine."Card Liability Currency Code" := GenJournalLine."Currency Code";
+            PostedExpReportLine."Card Liability Currency Factor" := GenJournalLine."Currency Factor";
+            PostedExpReportLine.Modify();
+        end;
 
         PostRoundingDifferenceOnCurrency(
             ExpenseReportHeader, ExpenseReportLine,

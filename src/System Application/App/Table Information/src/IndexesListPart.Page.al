@@ -180,6 +180,36 @@ page 8704 "Indexes List Part"
     {
         area(Processing)
         {
+            action(UpdateIndexStatistics)
+            {
+                Caption = 'Update index statistics';
+                Enabled = Rec.Enabled and (Rec."Index Type" = Rec."Index Type"::Index);
+                Image = Refresh;
+                ToolTip = 'Update the database statistics for the selected index in the selected company. SIFT indexes are not supported.';
+
+                trigger OnAction()
+                var
+                    IndexManagement: Codeunit "Index Management";
+                    RecordIDOfCurrentPosition: RecordId;
+                    IndexName: Text;
+                begin
+                    IndexName := Rec."Index Name";
+                    if not Dialog.Confirm(UpdateIndexStatisticsQst, false, IndexName) then
+                        exit;
+
+                    IndexManagement.UpdateIndexStatistics(Rec);
+
+                    RecordIDOfCurrentPosition := Rec.RecordId;
+
+                    Rec.DeleteAll();
+                    BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to show the new statistics update time.
+
+                    if Rec.Get(RecordIDOfCurrentPosition) then;
+
+                    Message(UpdateIndexStatisticsCompletedMsg, IndexName);
+                    CurrPage.Update(false);
+                end;
+            }
             action(TurnIndexOff)
             {
                 Caption = 'Turn index off';
@@ -388,7 +418,7 @@ page 8704 "Indexes List Part"
                         InsertDisabledIndex(KeyRec, false);
                 end;
 
-                if KeyRec.MaintainSIFTIndex then begin
+                if KeyRec.MaintainSIFTIndex or (not KeyRec.Enabled and (KeyRec.SumIndexFields <> '')) then begin
                     IndexName := GetKeyIndexName(KeyRec, true);
                     if not Rec.Get(LinkTableId, IndexName, SetCompanyName, KeyRec."Source App ID", Rec."Index Type"::SIFT) then
                         InsertDisabledIndex(KeyRec, true);
@@ -482,4 +512,6 @@ page 8704 "Indexes List Part"
         NoDateTimeValueLbl: Label '-', Locked = true;
         TurnOffIndexWarningQst: Label 'Turning a non-AL defined index off cannot be undone. Please confirm.';
         TurnOnIndexQueueInfoMsg: Label 'The index has been enqueued to be turned on. It will be attempted during the subsequent maintenance window (overnight local time).';
+        UpdateIndexStatisticsQst: Label 'Updating statistics may temporarily affect database performance. Do you want to update statistics for index %1?', Comment = '%1 = index name';
+        UpdateIndexStatisticsCompletedMsg: Label 'Database statistics for index %1 were updated.', Comment = '%1 = index name';
 }
