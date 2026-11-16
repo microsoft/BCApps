@@ -25,7 +25,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         NotConfiguredErr: Label 'The cross-environment connection to the source is not configured yet.';
         OpenSetupActionTxt: Label 'Open Master Data Management Setup';
         NonSaaSErr: Label 'Cross-environment synchronization is only available in online environments.';
-        NoTokenErr: Label 'Could not acquire an access token for the source environment. Check the client ID and secret.';
+        NoTokenErr: Label 'Could not acquire an access token for the source environment. Check the client ID and the client secret or certificate.';
         SendFailedErr: Label 'The request to the source environment could not be sent. Check the source environment URL.';
         InvalidSourceUrlErr: Label 'The source environment URL is not a valid Business Central endpoint.';
         InvalidSourceUrlAuditTxt: Label 'Blocked a cross-environment request: the configured source environment URL host ''%1'' is not a valid Business Central endpoint.', Comment = '%1 = the rejected host';
@@ -93,9 +93,10 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
 
         for Attempt := 0 to MaxRetries() do
             if TrySend(MasterDataManagementSetup, ActionName, RequestBody, ResponseMessage) then begin
-                ResponseMessage.Content().ReadAs(ResponseBodyText);
-                if ResponseMessage.IsSuccessStatusCode() then
+                if ResponseMessage.IsSuccessStatusCode() then begin
+                    ResponseMessage.Content().ReadAs(ResponseBodyText);
                     exit(UnwrapODataValue(ResponseBodyText));
+                end;
                 if not ShouldRetry(ResponseMessage, Attempt, RetryAfter) then begin
                     LogRequestFailure(MasterDataManagementSetup, ActionName, ResponseMessage);
                     Error(SetupNavigationError(HttpStatusErrorMessage(MasterDataManagementSetup, ResponseMessage.HttpStatusCode())));
@@ -248,7 +249,6 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
     [NonDebuggable]
     local procedure AcquireToken(var MasterDataManagementSetup: Record "Master Data Management Setup") Token: SecretText
     var
-        OAuth2: Codeunit OAuth2;
         AzureADTenant: Codeunit "Azure AD Tenant";
         AuditLog: Codeunit "Audit Log";
         Scopes: List of [Text];
@@ -256,20 +256,52 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
     begin
         Scopes.Add(GetBcResourceScope());
         TokenEndpoint := StrSubstNo(GetTokenEndpointTemplate(), AzureADTenant.GetAadTenantId());
-        // Prefer a cached/refreshed token (no round-trip when a valid one exists); fall back to a fresh
-        // client-credentials grant if the cache misses, errors, or returns an empty token.
+        if MasterDataManagementSetup.UsesSourceClientCertificate() then
+            Token := AcquireTokenWithCertificate(MasterDataManagementSetup, TokenEndpoint, Scopes)
+        else
+            Token := AcquireTokenWithClientSecret(MasterDataManagementSetup, TokenEndpoint, Scopes);
+        if Token.IsEmpty() then begin
+            AuditLog.LogAuditMessage(StrSubstNo(TokenFailedAuditTxt, MasterDataManagementSetup."Source Environment Name"), SecurityOperationResult::Failure, AuditCategory::Authentication, 4, 0);
+            Error(SetupNavigationError(NoTokenErr));
+        end;
+        AuditLog.LogAuditMessage(StrSubstNo(TokenAcquiredAuditTxt, MasterDataManagementSetup."Source Environment Name"), SecurityOperationResult::Success, AuditCategory::Authentication, 4, 0);
+    end;
+
+    // Prefer a cached/refreshed token (no round-trip when a valid one exists); fall back to a fresh client-credentials
+    // grant if the cache misses, errors, or returns an empty token. Returns an empty token when both fail.
+    [NonDebuggable]
+    local procedure AcquireTokenWithClientSecret(var MasterDataManagementSetup: Record "Master Data Management Setup"; TokenEndpoint: Text; Scopes: List of [Text]) Token: SecretText
+    var
+        OAuth2: Codeunit OAuth2;
+    begin
         if not TryAcquireTokenFromCache(MasterDataManagementSetup, TokenEndpoint, Scopes, Token) then
             Clear(Token);
         if Token.IsEmpty() then
             if not OAuth2.AcquireTokenWithClientCredentials(
                 MasterDataManagementSetup."Source OAuth Client Id",
                 GetSourceClientSecret(MasterDataManagementSetup),
-                TokenEndpoint, '', Scopes, Token) or Token.IsEmpty()
-            then begin
-                AuditLog.LogAuditMessage(StrSubstNo(TokenFailedAuditTxt, MasterDataManagementSetup."Source Environment Name"), SecurityOperationResult::Failure, AuditCategory::Authentication, 4, 0);
-                Error(SetupNavigationError(NoTokenErr));
-            end;
-        AuditLog.LogAuditMessage(StrSubstNo(TokenAcquiredAuditTxt, MasterDataManagementSetup."Source Environment Name"), SecurityOperationResult::Success, AuditCategory::Authentication, 4, 0);
+                TokenEndpoint, '', Scopes, Token)
+            then
+                Clear(Token);
+    end;
+
+    // Same cache-first flow as the client secret, authenticating the client-credentials grant with the certificate
+    // registered for the Microsoft Entra application. Returns an empty token when both attempts fail.
+    [NonDebuggable]
+    local procedure AcquireTokenWithCertificate(var MasterDataManagementSetup: Record "Master Data Management Setup"; TokenEndpoint: Text; Scopes: List of [Text]) Token: SecretText
+    var
+        OAuth2: Codeunit OAuth2;
+        Certificate: SecretText;
+        CertificatePassword: SecretText;
+        IdToken: Text;
+    begin
+        Certificate := GetSourceClientCertificate(MasterDataManagementSetup);
+        CertificatePassword := GetSourceCertificatePassword(MasterDataManagementSetup);
+        if not OAuth2.AcquireTokensFromCacheWithCertificate(MasterDataManagementSetup."Source OAuth Client Id", Certificate, CertificatePassword, '', TokenEndpoint, Scopes, Token, IdToken) then
+            Clear(Token);
+        if Token.IsEmpty() then
+            if not OAuth2.AcquireTokensWithCertificate(MasterDataManagementSetup."Source OAuth Client Id", Certificate, CertificatePassword, '', TokenEndpoint, Scopes, Token, IdToken) then
+                Clear(Token);
     end;
 
     // Reuses a token from the platform (MSAL) cache when one is valid; a cache miss or error is treated as "no token"
@@ -284,14 +316,32 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
             Clear(Token);
     end;
 
-    // The only reader of the stored secret. Kept local so no member callable from outside this object - including by
-    // internalsVisibleTo friends - returns it; it flows solely into the OAuth2 token request.
+    // The only readers of the stored credentials. Kept local so no member callable from outside this object - including
+    // by internalsVisibleTo friends - returns them; they flow solely into the OAuth2 token request.
     [NonDebuggable]
     local procedure GetSourceClientSecret(MasterDataManagementSetup: Record "Master Data Management Setup") SecretValue: SecretText
     begin
-        if IsNullGuid(MasterDataManagementSetup."Source Client Secret Key") then
+        GetStoredSecret(MasterDataManagementSetup."Source Client Secret Key", SecretValue);
+    end;
+
+    [NonDebuggable]
+    local procedure GetSourceClientCertificate(MasterDataManagementSetup: Record "Master Data Management Setup") Certificate: SecretText
+    begin
+        GetStoredSecret(MasterDataManagementSetup."Source Client Certificate Key", Certificate);
+    end;
+
+    [NonDebuggable]
+    local procedure GetSourceCertificatePassword(MasterDataManagementSetup: Record "Master Data Management Setup") CertificatePassword: SecretText
+    begin
+        GetStoredSecret(MasterDataManagementSetup."Source Cert. Password Key", CertificatePassword);
+    end;
+
+    [NonDebuggable]
+    local procedure GetStoredSecret(SecretKey: Guid; var SecretValue: SecretText)
+    begin
+        if IsNullGuid(SecretKey) then
             exit;
-        if not IsolatedStorage.Get(MasterDataManagementSetup."Source Client Secret Key", DataScope::Company, SecretValue) then;
+        if not IsolatedStorage.Get(SecretKey, DataScope::Company, SecretValue) then;
     end;
 
     // Production and the TIE/PPE ring use different Entra authorities and BC resource audiences. Cross-env is same
