@@ -382,7 +382,10 @@ codeunit 1339 "Cancel Posted Sales Cr. Memo"
         TestGLAccount(GenPostingSetup."Sales Account", SalesCrMemoLine);
         GenPostingSetup.TestField("Sales Credit Memo Account");
         TestGLAccount(GenPostingSetup."Sales Credit Memo Account", SalesCrMemoLine);
-        GenPostingSetup.TestField("Sales Line Disc. Account");
+        if HasLineDiscountSetup(SalesCrMemoLine) then begin
+            GenPostingSetup.TestField("Sales Line Disc. Account");
+            TestGLAccount(GenPostingSetup."Sales Line Disc. Account", SalesCrMemoLine);
+        end;
         TestGLAccount(GenPostingSetup."Sales Line Disc. Account", SalesCrMemoLine);
         if SalesCrMemoLine.Type = SalesCrMemoLine.Type::Item then begin
             Item.Get(SalesCrMemoLine."No.");
@@ -549,6 +552,18 @@ codeunit 1339 "Cancel Posted Sales Cr. Memo"
             ErrorType::DimErr:
                 Error(InvalidDimCodeCancelErr, AccountCaption, AccountNo, No, Name);
         end;
+    end;
+
+    local procedure HasLineDiscountSetup(SalesCrMemoLine: Record "Sales Cr.Memo Line"): Boolean
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        if SalesCrMemoLine."Line Discount %" = 0 then
+            exit(false);
+        SalesReceivablesSetup.GetRecordOnce();
+        exit(
+            (SalesReceivablesSetup."Discount Posting" in
+                [SalesReceivablesSetup."Discount Posting"::"Line Discounts", SalesReceivablesSetup."Discount Posting"::"All Discounts"]));
     end;
 
     [IntegrationEvent(false, false)]
