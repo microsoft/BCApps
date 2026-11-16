@@ -161,6 +161,15 @@ page 6999 "Expense Report SubPage"
                     ToolTip = 'Specifies the total amount of the expense for this line in local currency, including any applicable taxes. Automatically calculated from the amount and exchange rate.';
                     Editable = false;
                 }
+                field("Original Amount"; Rec."Original Amount")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Split from Line No."; Rec."Split from Line No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
                 field("Reimbursement Type"; Rec."Reimbursement Type")
                 {
                     ApplicationArea = Basic, Suite;
@@ -617,6 +626,45 @@ page 6999 "Expense Report SubPage"
                     RunPageLink = "No." = field("Spend Request No.");
                     Visible = Rec."Spend Request No." <> '';
                 }
+                group(SplitExpense)
+                {
+                    Caption = 'Split Expense';
+                    Image = Split;
+
+                    action(SplitExpenseSameUser)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Same User';
+                        Image = Split;
+                        Enabled = Rec."Line No." <> 0;
+                        ToolTip = 'Split the line into a new line for the same user, for example when a receipt contains several expense categories, VAT rates, or a non-refundable part. Specify the amount and expense category of the new line. The amount of the original line is reduced accordingly.';
+
+                        trigger OnAction()
+                        var
+                            ExpenseLineSplit: Codeunit "Expense Line Split";
+                        begin
+                            ExpenseLineSplit.SplitForSameUser(Rec);
+                            CurrPage.Update(false);
+                        end;
+                    }
+                    action(SplitExpenseDifferentUsers)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Different Users';
+                        Image = Allocations;
+                        Enabled = Rec."Line No." <> 0;
+                        Visible = SplitWithDifferentUsersAvailable;
+                        ToolTip = 'Split the line with other users. Specify the users and the amount for each of them. A new expense with status Open is created for each user, who must confirm it before it can be processed. The amount of the original line is reduced accordingly.';
+
+                        trigger OnAction()
+                        var
+                            ExpenseLineSplit: Codeunit "Expense Line Split";
+                        begin
+                            ExpenseLineSplit.SplitForDifferentUsers(Rec);
+                            CurrPage.Update(false);
+                        end;
+                    }
+                }
             }
         }
     }
@@ -655,6 +703,7 @@ page 6999 "Expense Report SubPage"
         TotalMileage: Decimal;
         AllowVATReclaim: Boolean;
         PolicyEvaluationEnabled: Boolean;
+        SplitWithDifferentUsersAvailable: Boolean;
         ReimbursementAmountLbl: Label '%1 (%2)', Comment = '%1 = Field Caption, %2 = Field Value';
         LCYLbl: Label 'LCY';
         PolicyStatus: Enum "Expense Policy Status";
@@ -676,6 +725,7 @@ page 6999 "Expense Report SubPage"
 
         ExpenseAgentSetup.GetRecordOnce();
         AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
+        SplitWithDifferentUsersAvailable := ExpenseAgentSetup."Enable Agent";
         PolicyEvaluationEnabled := ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AiAssistedPolicyEvaluation);
         if PolicyEvaluationEnabled then begin
             PolicyStatus := Rec.GetPolicyStatus();
@@ -719,7 +769,6 @@ page 6999 "Expense Report SubPage"
     begin
         if not ExpenseReportHeader.Get(Rec."Document No.") then
             exit;
-
         if ExpenseReportHeader."Reimbursement Currency Code" <> '' then
             exit(StrSubstNo(ReimbursementAmountLbl, Rec.FieldCaption("Reimbursable Amount"), ExpenseReportHeader."Reimbursement Currency Code"))
         else
