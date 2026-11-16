@@ -6619,7 +6619,7 @@ codeunit 90 "Purch.-Post"
         if TempSalesTaxAmtLine.Find('-') then begin
             repeat
                 TaxLineCount := TaxLineCount + 1;
-                if GuiAllowed then
+                if GuiAllowed and not HideProgressWindow then
                     Window.Update(3, StrSubstNo('%1 / %2', LineCount, TaxLineCount));
                 if ((TempSalesTaxAmtLine."Tax Base Amount" <> 0) and
                     (TempSalesTaxAmtLine."Tax Type" = TempSalesTaxAmtLine."Tax Type"::"Sales and Use Tax")) or
@@ -7034,6 +7034,15 @@ codeunit 90 "Purch.-Post"
     procedure SetPreviewMode(NewPreviewMode: Boolean)
     begin
         PreviewMode := NewPreviewMode;
+    end;
+
+    /// <summary>
+    /// Sets global variable HideProgressWindow
+    /// </summary>
+    /// <param name="NewHideProgressWindow">New value for hide progress window</param>
+    procedure SetHideProgressWindow(NewHideProgressWindow: Boolean)
+    begin
+        HideProgressWindow := NewHideProgressWindow;
     end;
 
     /// <summary>
