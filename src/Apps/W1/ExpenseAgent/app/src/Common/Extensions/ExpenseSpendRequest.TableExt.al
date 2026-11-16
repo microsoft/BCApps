@@ -135,13 +135,14 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         field(6908; "Expense Location"; Code[20])
         {
             Caption = 'Expense Location';
-            ToolTip = 'Specifies the expense location of the travel. The expense location can only be used, and is required, when per diem is included.';
+            ToolTip = 'Specifies the expense location of the travel. The expense location can only be used, and is required, when per diem is included. It must have a per diem rule.';
             DataClassification = CustomerContent;
             TableRelation = "Expense Location"."No.";
 
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CheckPerDiemRuleExists();
             end;
         }
         field(6910; "Requested For Name"; Text[100])
@@ -286,11 +287,43 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         ReplaceRequestedForTravelerQst: Label 'The %1 was changed. A traveler was automatically added for the previous %1. Do you want to remove that traveler and add a new one for the current %1 instead?', Comment = '%1 = Requested For field caption';
         ExpenseLocationRequiresPerDiemErr: Label '%1 can only be specified when %2 is selected.', Comment = '%1 = Expense Location field caption, %2 = Per Diem Included field caption';
         ActualEndBeforeStartErr: Label '%1 cannot be before %2.', Comment = '%1 = Actual End Date and Time field caption, %2 = Actual Start Date and Time field caption';
+        NoPerDiemRuleForLocationErr: Label 'There is no per diem rule for expense location %1. Choose an expense location that has a per diem rule for an active per diem expense category, or set up such a rule first.', Comment = '%1 = Expense Location';
+        NoPerDiemRuleOnTripStartErr: Label 'No per diem rule for expense location %1 is in effect on %2, the trip start date. Change the expense location or the trip dates, or set up a per diem rule for this location that is in effect on that date.', Comment = '%1 = Expense Location, %2 = Trip start date';
 
     internal procedure CheckExpenseLocation()
     begin
         if (Rec."Expense Location" <> '') and not Rec."Per Diem Included" then
             Error(ExpenseLocationRequiresPerDiemErr, Rec.FieldCaption("Expense Location"), Rec.FieldCaption("Per Diem Included"));
+        CheckPerDiemRuleExists();
+    end;
+
+    /// <summary>
+    /// Checks that a per diem rule for the expense location is in effect on the trip start date,
+    /// so that approval can create the per diem line.
+    /// </summary>
+    internal procedure CheckPerDiemRuleOnTripStart()
+    var
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        TripStartDate: Date;
+    begin
+        if (not Rec."Per Diem Included") or (Rec."Expense Location" = '') or (Rec."Actual Start Date and Time" = 0DT) then
+            exit;
+
+        TripStartDate := DT2Date(Rec."Actual Start Date and Time");
+        if ExpenseRuleHeader.FindPerDiemCategory(Rec."Expense Location", TripStartDate) = '' then
+            Error(NoPerDiemRuleOnTripStartErr, Rec."Expense Location", TripStartDate);
+    end;
+
+    local procedure CheckPerDiemRuleExists()
+    var
+        ExpenseRuleHeader: Record "Expense Rule Header";
+    begin
+        // The trip dates can still change, so the effective date is checked on release.
+        if (not Rec."Per Diem Included") or (Rec."Expense Location" = '') then
+            exit;
+
+        if ExpenseRuleHeader.FindPerDiemCategory(Rec."Expense Location", 0D) = '' then
+            Error(NoPerDiemRuleForLocationErr, Rec."Expense Location");
     end;
 
     internal procedure CheckActualDateTimes()

@@ -13,6 +13,7 @@ codeunit 20570 "Subc. Upgrade Tag Def. Ext."
     begin
         PerCompanyUpgradeTags.Add(GetSubcontractingUpgradeTag());
         PerCompanyUpgradeTags.Add(GetReqWkshTemplateTypeUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetReqWkshTemplatePageUpgradeTag());
     end;
 
     internal procedure GetSubcontractingUpgradeTag(): Code[250]
@@ -23,5 +24,10 @@ codeunit 20570 "Subc. Upgrade Tag Def. Ext."
     internal procedure GetReqWkshTemplateTypeUpgradeTag(): Code[250]
     begin
         exit('MS-644283-SubcReqWkshTemplTypeRenumber-20260803');
+    end;
+
+    internal procedure GetReqWkshTemplatePageUpgradeTag(): Code[250]
+    begin
+        exit('MS-647022-SubcReqWkshTemplPage-20261109');
     end;
 }

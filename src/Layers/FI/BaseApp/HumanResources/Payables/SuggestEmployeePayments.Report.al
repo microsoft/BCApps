@@ -828,11 +828,4 @@ report 394 "Suggest Employee Payments"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterIncludeEmployee(Employee: Record Employee; EmployeeBalance: Decimal; var Result: Boolean)
-    begin
-    end;
-#endif
 }

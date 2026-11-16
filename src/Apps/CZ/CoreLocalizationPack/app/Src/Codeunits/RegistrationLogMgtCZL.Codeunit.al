@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -9,6 +9,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Reflection;
+using System.Telemetry;
 
 codeunit 11755 "Registration Log Mgt. CZL"
 {
@@ -19,6 +20,13 @@ codeunit 11755 "Registration Log Mgt. CZL"
         NotVerifiedRegNoMsg: Label 'We couldn''t verify the registration number. Try again later.';
         DetailNotVerifiedMsg: Label 'Registration number is valid.\No details information was provided by ARES service.';
         DescriptionLbl: Label 'Registration No. Validation Service Setup';
+        ResponseIntegrityErr: Label 'The response from the ARES registration number validation service did not match the requested registration number and was rejected.';
+        ResponseSchemaErr: Label 'The response from the ARES registration number validation service did not contain the expected data and was rejected.';
+        ResponseIntegrityTxt: Label 'The registration no. validation failed. The ARES response identifier did not match the request.', Locked = true;
+        ResponseSchemaTxt: Label 'The registration no. validation failed. The ARES response did not contain the expected data.', Locked = true;
+        SecurityAuditResponseIntegrityTxt: Label 'The ARES registration number validation service returned a response that did not match the requested registration number.', Locked = true;
+        SecurityAuditResponseSchemaTxt: Label 'The ARES registration number validation service returned a response that did not contain the expected data.', Locked = true;
+        AresTelemetryCategoryTok: Label 'ARES Registration No. Validation', Locked = true;
 
     procedure LogCustomer(Customer: Record Customer)
     begin
@@ -94,6 +102,10 @@ codeunit 11755 "Registration Log Mgt. CZL"
         NAKeyTok: Label 'N/A', Locked = true;
         CountryCodeKeyTok: Label 'kodStatu', Locked = true;
     begin
+        // A response from the unauthenticated ARES service is trusted only if it echoes the requested registration
+        // number, so a substituted or malformed response cannot write another company's data into master data.
+        ValidateResponseIntegrity(NewRegistrationLogCZL, ResponseObject);
+
         NewRegistrationLogCZL."Entry No." := 0;
         NewRegistrationLogCZL.Status := NewRegistrationLogCZL.Status::Valid;
         NewRegistrationLogCZL."Verified Date" := CurrentDateTime;
@@ -164,6 +176,61 @@ codeunit 11755 "Registration Log Mgt. CZL"
 
         if NewRegistrationLogCZL.LogDetails() then
             NewRegistrationLogCZL.Modify();
+    end;
+
+    local procedure ValidateResponseIntegrity(RegistrationLogCZL: Record "Registration Log CZL"; ResponseObject: JsonObject)
+    var
+        AuditLog: Codeunit "Audit Log";
+        ResponseRegistrationNo: Text;
+    begin
+        if not HasExpectedResponseSchema(ResponseObject, ResponseRegistrationNo) then begin
+            // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
+            AuditLog.LogAuditMessage(SecurityAuditResponseSchemaTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            Session.LogMessage('0000W6X', ResponseSchemaTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', AresTelemetryCategoryTok);
+            Error(ResponseSchemaErr);
+        end;
+
+        // ARES only answers successfully for an exact 8-digit IČO (anything else is rejected with HTTP 400) and echoes
+        // it unchanged, so a legitimate response always matches the requested registration number exactly.
+        if ResponseRegistrationNo.Trim() <> RegistrationLogCZL."Registration No.".Trim() then begin
+            AuditLog.LogAuditMessage(SecurityAuditResponseIntegrityTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            Session.LogMessage('0000W6Y', ResponseIntegrityTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', AresTelemetryCategoryTok);
+            Error(ResponseIntegrityErr);
+        end;
+    end;
+
+    local procedure HasExpectedResponseSchema(ResponseObject: JsonObject; var ResponseRegistrationNo: Text): Boolean
+    var
+        AddressObject: JsonObject;
+        Name: Text;
+        RegistrationNoKeyTok: Label 'ico', Locked = true;
+        NameKeyTok: Label 'obchodniJmeno', Locked = true;
+        AddressKeyTok: Label 'sidlo', Locked = true;
+    begin
+        // ARES returns the identifier, the name and the registered address for every economic subject. Optional data,
+        // such as the VAT registration number (absent for non-VAT payers) or the street, is not required.
+        if not GetNonEmptyStringValue(ResponseObject, RegistrationNoKeyTok, ResponseRegistrationNo) then
+            exit(false);
+        if not GetNonEmptyStringValue(ResponseObject, NameKeyTok, Name) then
+            exit(false);
+        exit(GetValue(ResponseObject, AddressKeyTok, AddressObject));
+    end;
+
+    local procedure GetNonEmptyStringValue(JsonObject: JsonObject; JsonKey: Text; var Result: Text): Boolean
+    var
+        JsonToken: JsonToken;
+        RawValue: Text;
+    begin
+        if not JsonObject.Get(JsonKey, JsonToken) then
+            exit(false);
+        // Only a scalar can be read as a value, so an object or array cannot stand in for the expected field.
+        if not GetValue(JsonToken, Result) then
+            exit(false);
+        // Require a JSON string: a number or boolean is not the data type ARES returns for these fields.
+        JsonToken.AsValue().WriteTo(RawValue);
+        if not RawValue.StartsWith('"') then
+            exit(false);
+        exit(Result.Trim() <> '');
     end;
 
     local procedure FormatPostCode(PostCode: Text): Code[20]

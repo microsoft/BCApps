@@ -575,7 +575,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         SourceRecordRef: RecordRef;
         HeaderTradeAgreementElement, SellerTradePartyElement, BuyerTradePartyElement, SpecifiedTaxRegistrationElement, IDElement : XmlElement;
         SellerOrderReferencedDocumentElement, BuyerOrderReferencedDocumentElement : XmlElement;
-        PostalTradeAddressElement, ContactElement : XmlElement;
+        PostalTradeAddressElement, ContactElement, BuyerLegalOrganizationElement : XmlElement;
         SellerIDAttr, BuyerIDAttr : XmlAttribute;
         CustomerNo: Code[20];
         CustomerGLN: Code[13];
@@ -586,6 +586,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         City: Text[50];
         CountryCode: Code[10];
         VATRegistrationNo: Text[20];
+        CustomerRegistrationNo: Text[50];
         YourReference: Text[35];
         Contact: Text[100];
         CustomerEmail: Text[250];
@@ -650,14 +651,17 @@ codeunit 13917 "Export ZUGFeRD Document"
         end;
 
         GetSellerPostalAddr(RespCentrCode, SellerStreetName, SellerAdditionalStreetName, SellerCityName, SellerPostalZone, SellerCountryCode);
-        Customer.SetLoadFields("Use GLN in Electronic Document", GLN);
-        if Customer.Get(CustomerNo) then
+        Customer.SetLoadFields("Use GLN in Electronic Document", GLN, "Registration Number", "Use Reg. No. in E-Document", "VAT Registration No.");
+        if Customer.Get(CustomerNo) then begin
             if Customer."Use GLN in Electronic Document" then
                 CustomerGLN := Customer.GLN;
+            if Customer."Use Reg. No. in E-Document" and (Customer.GLN = '') and (Customer."VAT Registration No." = '') and (Customer."Registration Number" <> '') then
+                CustomerRegistrationNo := Customer."Registration Number";
+        end;
 
         if GetSourceDocumentRecordRef(RecordVariant, SourceRecordRef) then
             OnInsertApplicableHeaderTradeAgreementOnBeforeCreateElement(
-                SourceRecordRef, CustomerGLN, CustomerName, Address, Address2, PostCode, City, CountryCode,
+                SourceRecordRef, CustomerGLN, CustomerRegistrationNo, CustomerName, Address, Address2, PostCode, City, CountryCode,
                 VATRegistrationNo, Contact, PhoneNumber, CustomerEmail, OrderNo, ExternalDocumentNo);
 
         HeaderTradeAgreementElement := XmlElement.Create('ApplicableHeaderTradeAgreement', XmlNamespaceRAM);
@@ -723,6 +727,12 @@ codeunit 13917 "Export ZUGFeRD Document"
             BuyerTradePartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', GLNSchemeIDTok), CustomerGLN));
         BuyerTradePartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, CustomerName));
 
+        if CustomerRegistrationNo <> '' then begin
+            BuyerLegalOrganizationElement := XmlElement.Create('SpecifiedLegalOrganization', XmlNamespaceRAM);
+            BuyerLegalOrganizationElement.Add(XmlElement.Create('ID', XmlNamespaceRAM, CustomerRegistrationNo));
+            BuyerTradePartyElement.Add(BuyerLegalOrganizationElement);
+        end;
+
         // Buyer Contact
         InsertBuyerContact(BuyerTradePartyElement, Contact, PhoneNumber, CustomerEmail);
 
@@ -769,99 +779,106 @@ codeunit 13917 "Export ZUGFeRD Document"
 
     local procedure InsertApplicableHeaderTradeDelivery(var RootXMLNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header")
     var
-        ShipToAddress: Record "Standard Address";
-        SourceRecordRef: RecordRef;
-        DeliveryElement, ShipToPartyElement, PostalAddressElement, ActualDeliveryDateElement, OccurrenceDateTimeElement : XmlElement;
-        ShipToName: Text[100];
-        DeliveryGLN: Code[13];
-        ActualDeliveryDate: Date;
+        DeliveryAddress: Record "Standard Address";
     begin
-        ShipToName := SalesInvoiceHeader."Sell-to Customer Name";
-        ShipToAddress.Address := SalesInvoiceHeader."Sell-to Address";
-        ShipToAddress.City := SalesInvoiceHeader."Sell-to City";
-        ShipToAddress."Post Code" := SalesInvoiceHeader."Sell-to Post Code";
-        ShipToAddress."Country/Region Code" := SalesInvoiceHeader."Sell-to Country/Region Code";
-        DeliveryGLN := GetDeliveryGLN(SalesInvoiceHeader."Sell-to Customer No.", SalesInvoiceHeader."Ship-to Code");
-        ActualDeliveryDate := SalesInvoiceHeader."Shipment Date";
+        DeliveryAddress.Address := SalesInvoiceHeader."Ship-to Address";
+        DeliveryAddress."Address 2" := SalesInvoiceHeader."Ship-to Address 2";
+        DeliveryAddress.City := SalesInvoiceHeader."Ship-to City";
+        DeliveryAddress."Post Code" := SalesInvoiceHeader."Ship-to Post Code";
+        DeliveryAddress.County := SalesInvoiceHeader."Ship-to County";
+        DeliveryAddress."Country/Region Code" := SalesInvoiceHeader."Ship-to Country/Region Code";
 
-        if GetSourceDocumentRecordRef(SalesInvoiceHeader, SourceRecordRef) then
-            OnInsertApplicableHeaderTradeDeliveryOnBeforeCreateElement(SourceRecordRef, ShipToName, ShipToAddress, DeliveryGLN, ActualDeliveryDate);
-
-        DeliveryElement := XmlElement.Create('ApplicableHeaderTradeDelivery', XmlNamespaceRAM);
-
-        ShipToPartyElement := XmlElement.Create('ShipToTradeParty', XmlNamespaceRAM);
-        if DeliveryGLN <> '' then
-            ShipToPartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', GLNSchemeIDTok), DeliveryGLN));
-        ShipToPartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, ShipToName));
-
-        PostalAddressElement := XmlElement.Create('PostalTradeAddress', XmlNamespaceRAM);
-        PostalAddressElement.Add(XmlElement.Create('PostcodeCode', XmlNamespaceRAM, ShipToAddress."Post Code"));
-        PostalAddressElement.Add(XmlElement.Create('LineOne', XmlNamespaceRAM, ShipToAddress.Address));
-        PostalAddressElement.Add(XmlElement.Create('CityName', XmlNamespaceRAM, ShipToAddress.City));
-        PostalAddressElement.Add(XmlElement.Create('CountryID', XmlNamespaceRAM, GetCountryISOCode(GetCountryRegionCode(ShipToAddress."Country/Region Code"))));
-
-        ShipToPartyElement.Add(PostalAddressElement);
-        DeliveryElement.Add(ShipToPartyElement);
-
-        ActualDeliveryDateElement := XmlElement.Create('ActualDeliverySupplyChainEvent', XmlNamespaceRAM);
-        OccurrenceDateTimeElement := XmlElement.Create('OccurrenceDateTime', XmlNamespaceRAM);
-        OccurrenceDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(ActualDeliveryDate)));
-        ActualDeliveryDateElement.Add(OccurrenceDateTimeElement);
-        DeliveryElement.Add(ActualDeliveryDateElement);
-
-        if GetSourceDocumentRecordRef(SalesInvoiceHeader, SourceRecordRef) then
-            OnAfterInsertApplicableHeaderTradeDelivery(DeliveryElement, SourceRecordRef);
-        RootXMLNode.Add(DeliveryElement);
+        InsertApplicableHeaderTradeDelivery(
+            RootXMLNode, SalesInvoiceHeader, SalesInvoiceHeader."Shipment Date", SalesInvoiceHeader."Ship-to Name", DeliveryAddress,
+            GetDeliveryGLN(SalesInvoiceHeader."Sell-to Customer No.", SalesInvoiceHeader."Ship-to Code"));
     end;
 
     local procedure InsertApplicableHeaderTradeDelivery(var RootXMLNode: XmlElement; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
-        ShipToAddress: Record "Standard Address";
-        SourceRecordRef: RecordRef;
-        DeliveryElement, ShipToPartyElement, PostalAddressElement, ActualDeliveryDateElement, OccurrenceDateTimeElement : XmlElement;
-        ShipToName: Text[100];
-        DeliveryGLN: Code[13];
-        ActualDeliveryDate: Date;
+        DeliveryAddress: Record "Standard Address";
     begin
-        ShipToName := SalesCrMemoHeader."Sell-to Customer Name";
-        ShipToAddress.Address := SalesCrMemoHeader."Sell-to Address";
-        ShipToAddress.City := SalesCrMemoHeader."Sell-to City";
-        ShipToAddress."Post Code" := SalesCrMemoHeader."Sell-to Post Code";
-        ShipToAddress."Country/Region Code" := SalesCrMemoHeader."Sell-to Country/Region Code";
-        DeliveryGLN := GetDeliveryGLN(SalesCrMemoHeader."Sell-to Customer No.", SalesCrMemoHeader."Ship-to Code");
-        ActualDeliveryDate := SalesCrMemoHeader."Shipment Date";
+        DeliveryAddress.Address := SalesCrMemoHeader."Ship-to Address";
+        DeliveryAddress."Address 2" := SalesCrMemoHeader."Ship-to Address 2";
+        DeliveryAddress.City := SalesCrMemoHeader."Ship-to City";
+        DeliveryAddress."Post Code" := SalesCrMemoHeader."Ship-to Post Code";
+        DeliveryAddress.County := SalesCrMemoHeader."Ship-to County";
+        DeliveryAddress."Country/Region Code" := SalesCrMemoHeader."Ship-to Country/Region Code";
 
-        if GetSourceDocumentRecordRef(SalesCrMemoHeader, SourceRecordRef) then
-            OnInsertApplicableHeaderTradeDeliveryOnBeforeCreateElement(SourceRecordRef, ShipToName, ShipToAddress, DeliveryGLN, ActualDeliveryDate);
+        InsertApplicableHeaderTradeDelivery(
+            RootXMLNode, SalesCrMemoHeader, SalesCrMemoHeader."Shipment Date", SalesCrMemoHeader."Ship-to Name", DeliveryAddress,
+            GetDeliveryGLN(SalesCrMemoHeader."Sell-to Customer No.", SalesCrMemoHeader."Ship-to Code"));
+    end;
 
+    local procedure InsertApplicableHeaderTradeDelivery(var RootXMLNode: XmlElement; RecordVariant: Variant; ActualDeliveryDate: Date; ShipToName: Text[100]; DeliveryAddress: Record "Standard Address"; DeliveryGLN: Code[13])
+    var
+        SourceRecordRef: RecordRef;
+        DeliveryElement, ActualDeliveryDateElement, OccurrenceDateTimeElement : XmlElement;
+        HasSourceRecordRef: Boolean;
+    begin
+        HasSourceRecordRef := GetSourceDocumentRecordRef(RecordVariant, SourceRecordRef);
+        if HasSourceRecordRef then
+            OnInsertApplicableHeaderTradeDeliveryOnBeforeCreateElement(SourceRecordRef, ShipToName, DeliveryAddress, DeliveryGLN, ActualDeliveryDate);
+
+        // CII requires ApplicableHeaderTradeDelivery, but the delivery information (BG-13) in it is optional.
         DeliveryElement := XmlElement.Create('ApplicableHeaderTradeDelivery', XmlNamespaceRAM);
 
-        ShipToPartyElement := XmlElement.Create('ShipToTradeParty', XmlNamespaceRAM);
-        if DeliveryGLN <> '' then
-            ShipToPartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', GLNSchemeIDTok), DeliveryGLN));
-        ShipToPartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, ShipToName));
+        if (ShipToName <> '') or (DeliveryGLN <> '') or HasDeliveryAddress(DeliveryAddress) then
+            InsertShipToTradeParty(DeliveryElement, ShipToName, DeliveryAddress, DeliveryGLN);
 
-        PostalAddressElement := XmlElement.Create('PostalTradeAddress', XmlNamespaceRAM);
-        PostalAddressElement.Add(XmlElement.Create('PostcodeCode', XmlNamespaceRAM, ShipToAddress."Post Code"));
-        PostalAddressElement.Add(XmlElement.Create('LineOne', XmlNamespaceRAM, ShipToAddress.Address));
-        PostalAddressElement.Add(XmlElement.Create('CityName', XmlNamespaceRAM, ShipToAddress.City));
-        PostalAddressElement.Add(XmlElement.Create('CountryID', XmlNamespaceRAM, GetCountryISOCode(GetCountryRegionCode(ShipToAddress."Country/Region Code"))));
+        if ActualDeliveryDate <> 0D then begin
+            ActualDeliveryDateElement := XmlElement.Create('ActualDeliverySupplyChainEvent', XmlNamespaceRAM);
+            OccurrenceDateTimeElement := XmlElement.Create('OccurrenceDateTime', XmlNamespaceRAM);
+            OccurrenceDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(ActualDeliveryDate)));
+            ActualDeliveryDateElement.Add(OccurrenceDateTimeElement);
+            DeliveryElement.Add(ActualDeliveryDateElement);
+        end;
 
-        ShipToPartyElement.Add(PostalAddressElement);
-        DeliveryElement.Add(ShipToPartyElement);
-
-        ActualDeliveryDateElement := XmlElement.Create('ActualDeliverySupplyChainEvent', XmlNamespaceRAM);
-        OccurrenceDateTimeElement := XmlElement.Create('OccurrenceDateTime', XmlNamespaceRAM);
-        OccurrenceDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(ActualDeliveryDate)));
-        ActualDeliveryDateElement.Add(OccurrenceDateTimeElement);
-        DeliveryElement.Add(ActualDeliveryDateElement);
-
-        if GetSourceDocumentRecordRef(SalesCrMemoHeader, SourceRecordRef) then
+        if HasSourceRecordRef then
             OnAfterInsertApplicableHeaderTradeDelivery(DeliveryElement, SourceRecordRef);
         RootXMLNode.Add(DeliveryElement);
     end;
 
-    local procedure GetDeliveryGLN(CustomerNo: Code[20]; ShipToCode: Code[10]) DeliveryGLN: Code[13]
+    local procedure InsertShipToTradeParty(var DeliveryElement: XmlElement; ShipToName: Text[100]; DeliveryAddress: Record "Standard Address"; DeliveryGLN: Code[13])
+    var
+        ShipToPartyElement: XmlElement;
+    begin
+        ShipToPartyElement := XmlElement.Create('ShipToTradeParty', XmlNamespaceRAM);
+        if DeliveryGLN <> '' then
+            ShipToPartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', GLNSchemeIDTok), DeliveryGLN));
+        if ShipToName <> '' then
+            ShipToPartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, ShipToName));
+        if HasDeliveryAddress(DeliveryAddress) then
+            InsertShipToTradeAddress(ShipToPartyElement, DeliveryAddress);
+        DeliveryElement.Add(ShipToPartyElement);
+    end;
+
+    local procedure InsertShipToTradeAddress(var ShipToPartyElement: XmlElement; DeliveryAddress: Record "Standard Address")
+    var
+        PostalAddressElement: XmlElement;
+    begin
+        PostalAddressElement := XmlElement.Create('PostalTradeAddress', XmlNamespaceRAM);
+        if DeliveryAddress."Post Code" <> '' then
+            PostalAddressElement.Add(XmlElement.Create('PostcodeCode', XmlNamespaceRAM, DeliveryAddress."Post Code"));
+        if DeliveryAddress.Address <> '' then
+            PostalAddressElement.Add(XmlElement.Create('LineOne', XmlNamespaceRAM, DeliveryAddress.Address));
+        if DeliveryAddress."Address 2" <> '' then
+            PostalAddressElement.Add(XmlElement.Create('LineTwo', XmlNamespaceRAM, DeliveryAddress."Address 2"));
+        if DeliveryAddress.City <> '' then
+            PostalAddressElement.Add(XmlElement.Create('CityName', XmlNamespaceRAM, DeliveryAddress.City));
+        PostalAddressElement.Add(XmlElement.Create('CountryID', XmlNamespaceRAM, GetCountryISOCode(GetCountryRegionCode(DeliveryAddress."Country/Region Code"))));
+        if DeliveryAddress.County <> '' then
+            PostalAddressElement.Add(XmlElement.Create('CountrySubDivisionName', XmlNamespaceRAM, DeliveryAddress.County));
+        ShipToPartyElement.Add(PostalAddressElement);
+    end;
+
+    local procedure HasDeliveryAddress(DeliveryAddress: Record "Standard Address"): Boolean
+    begin
+        exit(
+          (DeliveryAddress.Address <> '') or (DeliveryAddress."Address 2" <> '') or (DeliveryAddress.City <> '') or
+          (DeliveryAddress."Post Code" <> '') or (DeliveryAddress.County <> '') or (DeliveryAddress."Country/Region Code" <> ''));
+    end;
+
+    local procedure GetDeliveryGLN(CustomerNo: Code[20]; ShipToCode: Code[10]): Code[13]
     var
         Customer: Record Customer;
         ShipToAddress: Record "Ship-to Address";
@@ -873,9 +890,9 @@ codeunit 13917 "Export ZUGFeRD Document"
             exit('');
         ShipToAddress.SetLoadFields(GLN);
         if (ShipToCode <> '') and ShipToAddress.Get(CustomerNo, ShipToCode) then
-            DeliveryGLN := ShipToAddress.GLN;
-        if DeliveryGLN = '' then
-            DeliveryGLN := Customer.GLN;
+            if ShipToAddress.GLN <> '' then
+                exit(ShipToAddress.GLN);
+        exit(Customer.GLN);
     end;
 
     /// <summary>
@@ -2314,6 +2331,7 @@ codeunit 13917 "Export ZUGFeRD Document"
     /// </summary>
     /// <param name="HeaderRecordRef">The source document: Sales Invoice, Sales Cr.Memo, Service Invoice or Service Cr.Memo Header.</param>
     /// <param name="CustomerGLN">The buyer GLN (BT-46) written to ram:GlobalID. Blank omits the element.</param>
+    /// <param name="CustomerRegistrationNo">The buyer legal registration identifier (BT-47) written to ram:SpecifiedLegalOrganization. Blank omits the element.</param>
     /// <param name="CustomerName">The buyer name (BT-44).</param>
     /// <param name="Address">The buyer address line 1 (BT-50).</param>
     /// <param name="Address2">The buyer address line 2 (BT-51). Blank omits the element.</param>
@@ -2327,7 +2345,7 @@ codeunit 13917 "Export ZUGFeRD Document"
     /// <param name="OrderNo">The sales order reference (BT-14). Blank omits the element.</param>
     /// <param name="ExternalDocumentNo">The purchase order reference (BT-13). Blank omits the element.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnInsertApplicableHeaderTradeAgreementOnBeforeCreateElement(HeaderRecordRef: RecordRef; var CustomerGLN: Code[13]; var CustomerName: Text[100]; var Address: Text[100]; var Address2: Text[100]; var PostCode: Text[20]; var City: Text[50]; var CountryCode: Code[10]; var VATRegistrationNo: Text[20]; var Contact: Text[100]; var PhoneNumber: Text[30]; var CustomerEmail: Text[250]; var OrderNo: Code[20]; var ExternalDocumentNo: Code[35])
+    local procedure OnInsertApplicableHeaderTradeAgreementOnBeforeCreateElement(HeaderRecordRef: RecordRef; var CustomerGLN: Code[13]; var CustomerRegistrationNo: Text[50]; var CustomerName: Text[100]; var Address: Text[100]; var Address2: Text[100]; var PostCode: Text[20]; var City: Text[50]; var CountryCode: Code[10]; var VATRegistrationNo: Text[20]; var Contact: Text[100]; var PhoneNumber: Text[30]; var CustomerEmail: Text[250]; var OrderNo: Code[20]; var ExternalDocumentNo: Code[35])
     begin
     end;
 
@@ -2336,10 +2354,10 @@ codeunit 13917 "Export ZUGFeRD Document"
     /// Subscribe to change the values the export writes, using HeaderRecordRef to access any field of the source document.
     /// </summary>
     /// <param name="HeaderRecordRef">The source document: Sales Invoice, Sales Cr.Memo, Service Invoice or Service Cr.Memo Header.</param>
-    /// <param name="ShipToName">The deliver-to party name (BT-70).</param>
-    /// <param name="ShipToAddress">The deliver-to address (BG-15). Address, City, Post Code and Country/Region Code are written.</param>
+    /// <param name="ShipToName">The deliver-to party name (BT-70). Blank omits the element.</param>
+    /// <param name="ShipToAddress">The deliver-to address (BG-15). Address, Address 2, City, Post Code, County and Country/Region Code are written; blank fields omit their elements.</param>
     /// <param name="DeliveryGLN">The deliver-to location identifier (BT-71). Blank omits the element.</param>
-    /// <param name="ActualDeliveryDate">The actual delivery date (BT-72).</param>
+    /// <param name="ActualDeliveryDate">The actual delivery date (BT-72). A blank date omits the element.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertApplicableHeaderTradeDeliveryOnBeforeCreateElement(HeaderRecordRef: RecordRef; var ShipToName: Text[100]; var ShipToAddress: Record "Standard Address"; var DeliveryGLN: Code[13]; var ActualDeliveryDate: Date)
     begin

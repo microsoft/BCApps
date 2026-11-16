@@ -23,6 +23,7 @@ codeunit 144013 "ERM Cartera Journal Posting"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -39,9 +40,139 @@ codeunit 144013 "ERM Cartera Journal Posting"
         LibraryApplicationArea: Codeunit "Library - Application Area";
         LibraryCarteraPayables: Codeunit "Library - Cartera Payables";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        ReserveInterveningGLEntryNo: Boolean;
+        PostingBillAccount: Boolean;
+        SavedReservedGLEntryNo: Integer;
+        InterveningGLEntryNo: Integer;
         ValueMustBeEqualMsg: Label 'Value Must Be Equal.';
         WrongNoOfCustLedgEntryErr: Label 'Wrong number of Customer Ledger Entry.';
         ExportedToPaymentFileError: Label 'Vendor Ledger Entry should not be exported to Payment File.';
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ConcurrentReceivableBillReusesReservedGLEntryNo()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        // [FEATURE] [Cartera] [Receivables] [Concurrent Posting]
+        // [SCENARIO] A receivable bill retains its G/L reservation despite an intervening sequence allocation.
+        // [GIVEN] Concurrent posting is enabled and a customer bill journal line is prepared.
+        // [WHEN] The bill is posted with an intervening G/L sequence allocation.
+        // [THEN] Posting uses its saved reservation, leaves the unrelated reservation unused, and balances.
+        PostBillWithInterveningGLAllocation(GenJournalLine."Account Type"::Customer);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ConcurrentPayableBillReusesReservedGLEntryNo()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        // [FEATURE] [Cartera] [Payables] [Concurrent Posting]
+        // [SCENARIO] Payment of a payable bill retains its G/L reservation despite an intervening sequence allocation.
+        // [GIVEN] Concurrent posting is enabled, a vendor bill is posted, and an applying payment is prepared.
+        // [WHEN] The payment is posted with an intervening G/L sequence allocation.
+        // [THEN] Posting uses its saved reservation, leaves the unrelated reservation unused, and balances.
+        PostBillWithInterveningGLAllocation(GenJournalLine."Account Type"::Vendor);
+    end;
+
+    local procedure PostBillWithInterveningGLAllocation(AccountType: Enum "Gen. Journal Account Type")
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        ERMCarteraJournalPosting: Codeunit "ERM Cartera Journal Posting";
+        AccountNo: Code[20];
+        DocumentNo: Code[20];
+        BillDocumentNo: Code[20];
+        Amount: Decimal;
+    begin
+        // [SCENARIO] Bill posting reuses its saved reservation rather than the intervening G/L sequence number.
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Use Concurrent Posting" := true;
+        GeneralLedgerSetup.Modify();
+        if AccountType = GenJournalLine."Account Type"::Customer then begin
+            AccountNo := CreateCustomer('');
+            Amount := 1000;
+        end else begin
+            AccountNo := CreateVendor('');
+            Amount := -1000;
+        end;
+
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::Cartera);
+        GenJournalTemplate.Modify(true);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        CreateGeneralJournalLineWithBalancingAccount(
+            GenJournalLine, GenJournalBatch, DocumentNo, GenJournalLine."Document Type"::Bill,
+            AccountType, AccountNo, FindPaymentMethod(true, false), Amount, '1',
+            LibraryERM.CreateGLAccountNoWithDirectPosting());
+        if AccountType = GenJournalLine."Account Type"::Vendor then begin
+            LibraryERM.PostGeneralJnlLine(GenJournalLine);
+            BillDocumentNo := DocumentNo;
+            Clear(DocumentNo);
+            Amount := -Amount;
+            CreateGeneralJournalLineWithBalancingAccount(
+                GenJournalLine, GenJournalBatch, DocumentNo, GenJournalLine."Document Type"::Payment,
+                AccountType, AccountNo, FindPaymentMethod(false, true), Amount, '',
+                LibraryERM.CreateGLAccountNoWithDirectPosting());
+            GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Bill);
+            GenJournalLine.Validate("Applies-to Doc. No.", BillDocumentNo);
+            GenJournalLine.Validate("Applies-to Bill No.", '1');
+            GenJournalLine.Modify(true);
+        end;
+        ERMCarteraJournalPosting.StartReservingInterveningGLEntryNo();
+        BindSubscription(ERMCarteraJournalPosting);
+
+        // [WHEN] A sequence number is consumed between saving and advancing the bill's G/L reservation.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        UnbindSubscription(ERMCarteraJournalPosting);
+
+        // [THEN] The saved reservation is posted and the unrelated reservation remains unused.
+        ERMCarteraJournalPosting.VerifyBillGLEntryReservations(DocumentNo, Amount);
+        GLEntry.SetRange("Document No.", DocumentNo);
+        Assert.AreEqual(2, GLEntry.Count(), 'The bill must create its G/L entry and balancing entry');
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(0, GLEntry.Amount, 'The posted bill must balance');
+    end;
+
+    internal procedure StartReservingInterveningGLEntryNo()
+    begin
+        ReserveInterveningGLEntryNo := true;
+    end;
+
+    internal procedure VerifyBillGLEntryReservations(DocumentNo: Code[20]; Amount: Decimal)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        Assert.IsTrue(InterveningGLEntryNo > 0, 'An intervening G/L sequence allocation must have occurred');
+        Assert.IsFalse(GLEntry.Get(InterveningGLEntryNo), 'Bill posting must not use the unrelated reservation');
+        GLEntry.Get(SavedReservedGLEntryNo);
+        GLEntry.TestField("Document No.", DocumentNo);
+        Assert.AreEqual(Amount, GLEntry.Amount, 'The bill must use its saved G/L reservation');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnBeforeIncrNextEntryNo', '', false, false)]
+    local procedure ReserveGLEntryNoBeforeBillReservationAdvance(var NextEntryNo: Integer; var IsHandled: Boolean)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        if not ReserveInterveningGLEntryNo or not PostingBillAccount then
+            exit;
+
+        SavedReservedGLEntryNo := NextEntryNo;
+        InterveningGLEntryNo := GLEntry.GetNextEntryNo();
+        ReserveInterveningGLEntryNo := false;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnBeforePostGenJnlLine', '', false, false)]
+    local procedure TrackBillAccountPosting(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean)
+    begin
+        PostingBillAccount :=
+            GenJournalLine."Account Type" in [GenJournalLine."Account Type"::Customer, GenJournalLine."Account Type"::Vendor];
+    end;
 
     [Test]
     [Scope('OnPrem')]
@@ -683,4 +814,3 @@ codeunit 144013 "ERM Cartera Journal Posting"
         GeneralJournalTemplateList.OK().Invoke();
     end;
 }
-

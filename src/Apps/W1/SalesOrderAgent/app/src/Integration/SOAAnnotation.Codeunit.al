@@ -47,7 +47,6 @@ codeunit 4399 "SOA Annotation"
             exit;
 
         Clear(Annotations);
-
         if ShouldAddOverProcessLimitAnnotation(SOASetup) then
             AddOverProcessLimitAnnotation(Annotations, SOASetup);
         if ShouldAddAccessTokenAnnotation() then
@@ -242,11 +241,9 @@ codeunit 4399 "SOA Annotation"
         AgentTaskMessageAttachment.SetRange(Ignored, false);
         if not AgentTaskMessageAttachment.FindSet() then
             exit(false);
-
         repeat
             AttachmentSystemIds.Add(AgentTaskMessageAttachment.SystemId);
         until AgentTaskMessageAttachment.Next() = 0;
-
         foreach AttachmentSystemId in AttachmentSystemIds do begin
             if ProcessAttachmentForRelevance(AgentTaskMessage, AttachmentSystemId, TotalContentLength) then
                 IsAttachmentRelevant := true;
@@ -271,7 +268,6 @@ codeunit 4399 "SOA Annotation"
     begin
         if not AgentTaskMessageAttachment.GetBySystemId(AttachmentSystemId) then
             exit(false);
-
         if not SOAAttachmentMLLM.EnsureCanonicalTextContent(AgentTaskMessageAttachment, AttachmentContentTxt, ExtractionFailureReason) then begin
             // Ignore only the attachment that could not be analyzed and continue with the remaining attachments
             HandleAttachmentExtractionFailed(AgentTaskMessageAttachment, AgentTaskMessage, SOABilling, TelemetryDimensions, ExtractionFailureReason);
@@ -350,11 +346,10 @@ codeunit 4399 "SOA Annotation"
         IrrelevantValidationErr: Label 'SOA attachment irrelevant validation failed. Status: %1, Error: %2', Comment = '%1 = Status Code, %2 = Error', Locked = true;
         AttachmentUserMessageTxt: Label '<message>%1</message> <attachment>%2</attachment>', Locked = true;
     begin
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT56CeresLatest());
 
         TelemetryDimensions.Add('TaskId', Format(AgentTaskMessageAttachment."Task ID"));
         TelemetryDimensions.Add('MessageId', Format(AgentTaskMessageAttachment."Message ID"));
-
         if not GetIrrelevantAttachmentPrompt(Prompt) then begin
             FeatureTelemetry.LogError('0000Q7L', SOASetupCU.GetFeatureName(), 'Retrieve SOA Irrelevant Prompt', 'Unable to retrieve SOA Irrelevant Prompt from Azure Key Vault.', GetLastErrorCallStack(), TelemetryDimensions);
             exit(false);
@@ -371,7 +366,6 @@ codeunit 4399 "SOA Annotation"
         AgentTaskMessage.CalcFields(Content);
         AgentTaskMessage.Content.CreateInStream(InStream, TextEncoding::UTF8);
         InStream.Read(AgentTaskMessageTxt);
-
         if AgentAttachmentTxt = '' then begin
             FeatureTelemetry.LogUsage('0000Q7M', SOASetupCU.GetFeatureName(), 'No attachment content found for the task.', TelemetryDimensions);
             exit(false);
@@ -379,17 +373,14 @@ codeunit 4399 "SOA Annotation"
 
         AOAIChatMessages.AddUserMessage(StrSubstNo(AttachmentUserMessageTxt, AgentTaskMessageTxt, AgentAttachmentTxt));
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
-
         if not AOAIOperationResponse.IsSuccess() then begin
             FeatureTelemetry.LogError('0000Q7N', SOASetupCU.GetFeatureName(), 'Retrieve SOA Attachment Validation', StrSubstNo(IrrelevantValidationErr, AOAIOperationResponse.GetStatusCode(), AOAIOperationResponse.GetError()), GetLastErrorCallStack(), TelemetryDimensions);
             exit(false);
         end;
-
         if not AOAIOperationResponse.IsFunctionCall() then begin
             FeatureTelemetry.LogError('0000Q7O', SOASetupCU.GetFeatureName(), 'SOA attachment irrelevant validation', 'Response did not contain a function call.', GetLastErrorCallStack(), TelemetryDimensions);
             exit(false);
         end;
-
         if not SOAValidationFunc.IsIrrelevant() then begin
             FeatureTelemetry.LogUsage('0000Q7P', SOASetupCU.GetFeatureName(), 'SOA attachment determined as relevant.', TelemetryDimensions);
             exit(true);
@@ -415,10 +406,9 @@ codeunit 4399 "SOA Annotation"
         TelemetryDimensions: Dictionary of [Text, Text];
         IrrelevantValidationErr: Label 'SOA irrelevant validation failed. Status: %1, Error: %2', Comment = '%1 = Status Code, %2 = Error', Locked = true;
     begin
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT56CeresLatest());
 
         TelemetryDimensions.Add('TaskId', Format(AgentTaskMessage."Task ID"));
-
         if not GetIrrelevantMessagePrompt(Prompt) then begin
             FeatureTelemetry.LogError('0000PPC', SOASetupCU.GetFeatureName(), 'Retrieve SOA Irrelevant Prompt', 'Unable to retrieve SOA Irrelevant Prompt from Azure Key Vault.', GetLastErrorCallStack(), TelemetryDimensions);
             exit(true);
@@ -453,17 +443,14 @@ codeunit 4399 "SOA Annotation"
         end;
 
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
-
         if not AOAIOperationResponse.IsSuccess() then begin
             FeatureTelemetry.LogError('0000PPE', SOASetupCU.GetFeatureName(), 'AOAIOperationResponse', StrSubstNo(IrrelevantValidationErr, AOAIOperationResponse.GetStatusCode(), AOAIOperationResponse.GetError()), GetLastErrorCallStack(), TelemetryDimensions);
             exit(true);
         end;
-
         if not AOAIOperationResponse.IsFunctionCall() then begin
             FeatureTelemetry.LogError('0000PPF', SOASetupCU.GetFeatureName(), 'AOAIOperationResponse IsFunctionCall', 'SOA irrelevant validation: response did not contain a function call.', GetLastErrorCallStack(), TelemetryDimensions);
             exit(true);
         end;
-
         if not SOAValidationFunc.IsIrrelevant() then begin
             FeatureTelemetry.LogUsage('0000PPG', SOASetupCU.GetFeatureName(), 'SOA message determined as relevant.', TelemetryDimensions);
             exit(true);

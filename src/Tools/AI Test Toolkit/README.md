@@ -26,6 +26,28 @@ The BC Copilot Eval Toolkit lets developers write and run automated evals for co
 1. You can also use the API (page 149038 "AIT Log Entry API") to get the result for a suite
 1. Open AL Test Tool and switch to the created eval suite to execute each eval manually
 
+The _AI Eval Command Line Runner_ page can export structured run data for the latest suite version. Repeatedly use the _Load Next AI Eval Run Data File_ action and read the _AI Eval Run Data File_, _AI Eval Run Data File Path_, and _AI Eval Run Data File Error_ fields until the content contains `No more AI Eval run data files.`. Programmatic consumers must implement the download loop and file writing; a file-writing script is not included here.
+
+The export uses the following structure:
+
+```text
+<suite>\
+  version-<version>\
+    results.json
+    export-status.json
+    <dataset-group-without-extension>-<test-input-code>\
+      evaluation-result-<AI-Eval-log-ID>.json
+      agent-task-details\
+        task-<Agent-Task-ID>.json
+```
+
+`results.json` is the entry point for analysis. Its `exportStatusFile` property identifies the writer's completion report, `export-status.json`. Check this report before treating the package as complete. Each evaluation result contains the original dataset identifiers, input, output, status, metrics, errors, and references to optional Agent Task troubleshooting details. Input, output, messages, and call stacks are read line by line without trimming, with a default line separator inserted between lines. Exact original line endings and trailing terminators are not guaranteed to be preserved.
+
+The stream emits `results.json`, then **all evaluation results**, and only then Agent Task details. This ordering does not change the folder hierarchy. Evaluations for the same dataset can reference the same task file, which is emitted once per export; the same task in different dataset folders still has a file in each folder. If a task cannot be exported, the action raises the error to the caller and stops the export instead of emitting an error document and continuing with later tasks. The _AI Eval Run Data File Error_ field remains available for compatibility with export consumers but is empty; failures are raised by the action. Existing Agent Management authorization and troubleshooting redaction checks still apply.
+
+The file writer is responsible for maintaining `export-status.json` with `InProgress`, `Completed`, or `Partial` status and diagnostic details. An interrupted process can leave `InProgress`; neither that nor a missing status file indicates a complete export. Export status is separate from evaluation success or failure. This completion report is not emitted by the AL action.
+
+Known dataset file extensions are removed only from folder names; persisted dataset codes are unchanged. Generated folder names use only ASCII letters, digits, `_`, and `-`; other characters are replaced with `_`, and Windows reserved names receive a leading `_`. JSON files retain their `.json` extension. Generated dataset folder components longer than 255 characters are abbreviated. Dictionary mappings reuse the same names throughout an export, reserving ordinary names before allocating abbreviations and adding `-2`, `-3`, and subsequent suffixes for collisions. Distinct original group/input pairs remain distinct even when sanitization, extension removal, or joining their names produces a collision. The same serializer instance is used for the summary and subsequent file paths so that all relative references agree. Actual suite codes are limited to 10 characters, so suite folders need no abbreviation or persistent mapping file. Suite names are not disambiguated: codes that produce the same folder name share an output location, and a later export of the same version replaces the earlier export.
 
 ## Writing data-driven AI evals
 
