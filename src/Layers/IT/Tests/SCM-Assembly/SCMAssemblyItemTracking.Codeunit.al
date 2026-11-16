@@ -6,6 +6,7 @@ namespace Microsoft.Assembly.Test;
 
 using Microsoft.Assembly.Document;
 using Microsoft.Assembly.History;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.BOM;
