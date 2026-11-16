@@ -27,12 +27,12 @@
         fail-fast: false
         steps:
         - name: Checkout
-            uses: actions/checkout@<pinned SHA> # <version>
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
             with:
             ref: ${{ matrix.branch }}
 
         - name: Checkout actions
-            uses: actions/checkout@<pinned SHA> # <version>
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
             with:
             path: _actions
             sparse-checkout: |
@@ -54,7 +54,7 @@
           updateBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
         steps:
         - name: Checkout
-            uses: actions/checkout@<pinned SHA> # <version>
+            uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
         - name: Get Official Branches
             id: getOfficialBranches
