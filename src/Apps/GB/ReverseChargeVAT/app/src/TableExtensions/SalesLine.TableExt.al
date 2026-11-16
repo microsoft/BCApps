@@ -10,6 +10,7 @@ tableextension 10563 "Sales Line" extends "Sales Line"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve existing field IDs for compatibility.
         field(10507; "Reverse Charge Item GB"; Boolean)
         {
             Caption = 'Reverse Charge Item';
@@ -23,6 +24,7 @@ tableextension 10563 "Sales Line" extends "Sales Line"
             AutoFormatExpression = Rec."Currency Code";
             DataClassification = CustomerContent;
         }
+#pragma warning restore AS0099
     }
 
     var

@@ -2021,6 +2021,18 @@ dotnet
         type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALMicrosoftLearnFunctions"; ALMicrosoftLearnFunctions)
         {
         }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALAIFeatureTrialInfo"; ALAIFeatureTrialInfo)
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALAIFeatureTrialRecurrenceType"; ALAIFeatureTrialRecurrenceType)
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALAIFeatureTrialReportResult"; ALAIFeatureTrialReportResult)
+        {
+        }
     }
     assembly("Microsoft.Dynamics.Nav.DataSearch")
     {

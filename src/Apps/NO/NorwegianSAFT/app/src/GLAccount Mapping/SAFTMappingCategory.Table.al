@@ -51,7 +51,7 @@ table 10671 "SAF-T Mapping Category"
     }
     fieldgroups
     {
-        fieldgroup(DropDown; "No.", Description)
+        fieldgroup(DropDown; "No.", "Extended No.", Description)
         {
 
         }

@@ -137,12 +137,33 @@ page 6949 "Expense User"
                     end;
 
                 }
+                field("Alternate Approver Name"; AlternateApproverName)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Alternate Approver Name';
+                    Editable = false;
+                    ToolTip = 'Specifies the name of the active alternate approver for the expense user.';
+                }
                 field("Welcome Email Status"; Rec."Welcome Email Status")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     Importance = Additional;
                     ToolTip = 'Specifies whether a welcome email has been queued, sent, or failed for the expense user.';
+                }
+            }
+            group("Approval Information")
+            {
+                Caption = 'Approval Information';
+                Visible = Rec."Can Approve";
+
+                field("Approval Limit (LCY)"; Rec."Approval Limit (LCY)")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Unlimited Approval"; Rec."Unlimited Approval")
+                {
+                    ApplicationArea = Basic, Suite;
                 }
             }
             part(ExpenseApprovalSetup; "Expense Approval Setups Part")
@@ -162,7 +183,7 @@ page 6949 "Expense User"
             action(CreateEmployee)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Create Employee';
+                Caption = 'Create employee';
                 Image = Create;
                 ToolTip = 'Checks for an existing employee by email and creates an employee if no match exists.';
                 Visible = IsCreateEmployeeVisible;
@@ -174,7 +195,7 @@ page 6949 "Expense User"
             }
             action("Send Welcome Email")
             {
-                Caption = 'Send Welcome Email';
+                Caption = 'Send welcome email';
                 ApplicationArea = Basic, Suite;
                 Image = Email;
                 ToolTip = 'Sends a welcome email to the expense user.';
@@ -207,6 +228,32 @@ page 6949 "Expense User"
                     ExpenseApprovalMgmt.OpenApprovalSetupPage(Rec);
                 end;
             }
+            action("Alternate Approvers")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Alternate Approvers';
+                Image = UserSetup;
+                RunObject = Page "Expense Alternate Approvers";
+                RunPageLink = "Primary Approver No." = field("No.");
+                RunPageMode = Edit;
+                Visible = Rec."Can Approve";
+                ToolTip = 'Configure planned alternate approvers and their coverage dates.';
+            }
+            action(CorporateCards)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Corporate Cards';
+                Image = Card;
+                ToolTip = 'Opens the Corporate Cards page filtered to this expense user.';
+
+                trigger OnAction()
+                var
+                    EACorpCard: Record "EA Corp Card";
+                begin
+                    EACorpCard.SetRange("Expense User No.", Rec."No.");
+                    Page.Run(Page::"EA Corp Card Cards", EACorpCard);
+                end;
+            }
         }
 
         area(Promoted)
@@ -219,6 +266,9 @@ page 6949 "Expense User"
                     ShowAs = Standard;
 
                     actionref(ApprovalSetup_Promoted; ApprovalSetup)
+                    {
+                    }
+                    actionref(AlternateApprovers_Promoted; "Alternate Approvers")
                     {
                     }
                 }
@@ -234,16 +284,18 @@ page 6949 "Expense User"
 
     trigger OnDeleteRecord(): Boolean
     begin
-        exit(Rec.ConfirmApproverReassignment());
+        IsDeletingExpenseUser := Rec.ConfirmApproverReassignment();
+        exit(IsDeletingExpenseUser);
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
         ConfirmManagement: Codeunit "Confirm Management";
     begin
-        if Rec."Employee No." = '' then
-            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CloseWithoutEmployeeNoQst, Rec.FieldCaption("Employee No.")), true) then
-                exit(false);
+        if not IsDeletingExpenseUser then
+            if Rec."Employee No." = '' then
+                if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CloseWithoutEmployeeNoQst, Rec.FieldCaption("Employee No.")), true) then
+                    exit(false);
     end;
 
     trigger OnOpenPage()
@@ -260,6 +312,8 @@ page 6949 "Expense User"
     var
         NoFieldVisible: Boolean;
         IsCreateEmployeeVisible: Boolean;
+        IsDeletingExpenseUser: Boolean;
+        AlternateApproverName: Text[100];
         CloseWithoutEmployeeNoQst: Label '%1 is blank. The expense user will not be linked to an employee.\\Are you sure you want to exit?', Comment = '%1 = Employee No. field caption';
 
     local procedure SetCodeFieldVisible()
@@ -271,11 +325,17 @@ page 6949 "Expense User"
 
     local procedure SetControlAppearance()
     var
+        ExpenseUser: Record "Expense User";
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.SetLoadFields("Create Emp. for Expense Users");
         ExpenseAgentSetup.GetRecordOnce();
 
         IsCreateEmployeeVisible := ExpenseAgentSetup."Create Emp. for Expense Users";
+
+        AlternateApproverName := '';
+        if ExpenseUser.Get(ExpenseReportApprovalMgmt.GetActiveAlternateApproverNo(Rec."No.", WorkDate())) then
+            AlternateApproverName := ExpenseUser."Name";
     end;
 }

@@ -41,6 +41,10 @@ codeunit 144012 "IT - VAT Reporting - Export"
         StandardDatifatturaXmlnsDsAttrTxt: Label 'http://www.w3.org/2000/09/xmldsig#', Locked = true;
         StandardDatifatturaXmlnsNs2AttrTxt: Label 'http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v2.0', Locked = true;
         DatiFatturaForOneDocumentWithMultipleLinesErr: Label 'DatiFattura Report has wrong number of elements for document with multiple lines.';
+        XPathQueryLbl: Label '//*[local-name()="%1"]', Locked = true, Comment = '%1 = element name used to build an XPath expression';
+        IncorrectNodeCountErr: Label 'Incorrect %1 count', Comment = '%1 = node name';
+        AttributeMissingErr: Label 'Attribute %1 is missing', Comment = '%1 = attribute name';
+        IncorrectAttributeValueErr: Label 'Incorrect %1 attribute value', Comment = '%1 = attribute name';
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -2440,6 +2444,17 @@ codeunit 144012 "IT - VAT Reporting - Export"
         exit(ApplicationPath + '\..\..\..\');
     end;
 
+    local procedure ResolveTestAssetPath(RelativePath: Text): Text
+    var
+        FileManagement: Codeunit "File Management";
+        BCAppsAssetPath: Text;
+    begin
+        BCAppsAssetPath := GetInetRoot() + '\App\BCApps\src' + RelativePath;
+        if FileManagement.ServerFileExists(BCAppsAssetPath) then
+            exit(BCAppsAssetPath);
+        exit(GetInetRoot() + RelativePath);
+    end;
+
     local procedure GenerateReportLine(var VATReportHeader: Record "VAT Report Header"; var VATReportLine: Record "VAT Report Line"; IndividualPerson: Boolean; Resident: Option; DocumentType: Enum "Gen. Journal Document Type"; GenPostingType: Enum "General Posting Type"; VATReportType: Option; ContractPaymentType: Option)
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -2511,9 +2526,9 @@ codeunit 144012 "IT - VAT Reporting - Export"
         XMLDoc.Save(XmlStream);
         XmlFile.Close();
 
-        SignatureXsdPath := GetInetRoot() + '\GDL\IT\App\Test\XMLSchemas\xmldsig-core-schema.xsd';
+        SignatureXsdPath := ResolveTestAssetPath('\GDL\IT\App\Test\XMLSchemas\xmldsig-core-schema.xsd');
         LibraryVerifyXMLSchema.SetAdditionalSchemaPath(SignatureXsdPath);
-        XsdPath := GetInetRoot() + '\GDL\IT\App\Test\XMLSchemas\fornituraIvp_2018_v1.xsd';
+        XsdPath := ResolveTestAssetPath('\GDL\IT\App\Test\XMLSchemas\fornituraIvp_2018_v1.xsd');
         Assert.IsTrue(LibraryVerifyXMLSchema.VerifyXMLAgainstSchema(XmlPath, XsdPath, Message), Message);
     end;
 
@@ -2618,27 +2633,61 @@ codeunit 144012 "IT - VAT Reporting - Export"
 
     local procedure VerifyDatiFatturaAttributes(FileName: Text)
     var
-        XMLDoc: DotNet XmlDocument;
+        XmlDocument: XmlDocument;
+        XmlRootElement: XmlElement;
     begin
-        XMLDoc := XMLDoc.XmlDocument();
-        XMLDoc.Load(FileName);
-        ValidateXmlAgainstXsdSchema(XMLDoc);
-        LibraryXMLRead.Initialize(FileName);
-        LibraryXMLRead.VerifyAttributeValue('ns2:DatiFattura', 'xmlns:xs', StandardDatifatturaXmlnsXsAttrTxt);
-        LibraryXMLRead.VerifyAttributeValue('ns2:DatiFattura', 'xmlns:ds', StandardDatifatturaXmlnsDsAttrTxt);
-        LibraryXMLRead.VerifyAttributeValue('ns2:DatiFattura', 'versione', 'DAT20');
-        LibraryXMLRead.VerifyAttributeValue('ns2:DatiFattura', 'xmlns:ns2', StandardDatifatturaXmlnsNs2AttrTxt);
+        LoadXmlDocument(FileName, XmlDocument);
+        XmlDocument.GetRoot(XmlRootElement);
+        VerifyXmlAttribute(XmlRootElement, 'xs', 'http://www.w3.org/2000/xmlns/', StandardDatifatturaXmlnsXsAttrTxt);
+        VerifyXmlAttribute(XmlRootElement, 'ds', 'http://www.w3.org/2000/xmlns/', StandardDatifatturaXmlnsDsAttrTxt);
+        VerifyXmlAttribute(XmlRootElement, 'versione', '', 'DAT20');
+        VerifyXmlAttribute(XmlRootElement, 'ns2', 'http://www.w3.org/2000/xmlns/', StandardDatifatturaXmlnsNs2AttrTxt);
     end;
 
     local procedure VerifyDatiFatturaInvoiceNoAndDate(FileName: Text; PostingDate: Date; Numero: Text)
+    var
+        XmlDocument: XmlDocument;
+        ActualNumero: Text;
     begin
-        LibraryXMLRead.Initialize(FileName);
-        Assert.AreEqual(1, LibraryXMLRead.GetNodesCount('Numero'), 'Incorrect Numero count');
-        Assert.AreEqual(GetAlphanumeric(Numero), LibraryXMLRead.GetNodeValueAtIndex('Numero', 0), 'Incorrect Numero value');
-        AssertIsAlphanumeric(LibraryXMLRead.GetNodeValueAtIndex('Numero', 0));
-        Assert.AreEqual(1, LibraryXMLRead.GetNodesCount('Data'), 'Incorrect Data count');
+        LoadXmlDocument(FileName, XmlDocument);
+        ActualNumero := GetSingleXmlNodeValue(XmlDocument, 'Numero');
+        Assert.AreEqual(GetAlphanumeric(Numero), ActualNumero, 'Incorrect Numero value');
+        AssertIsAlphanumeric(ActualNumero);
         Assert.AreEqual(
-          Format(PostingDate, 0, '<Year4>-<Month,2>-<Day,2>'), LibraryXMLRead.GetNodeValueAtIndex('Data', 0), 'Incorrect Data value');
+            Format(PostingDate, 0, '<Year4>-<Month,2>-<Day,2>'), GetSingleXmlNodeValue(XmlDocument, 'Data'), 'Incorrect Data value');
+    end;
+
+    local procedure LoadXmlDocument(FileName: Text; var LoadedXmlDocument: XmlDocument)
+    var
+      XmlFile: File;
+      XmlInStream: InStream;
+    begin
+      XmlFile.Open(FileName);
+      XmlFile.CreateInStream(XmlInStream);
+      XmlDocument.ReadFrom(XmlInStream, LoadedXmlDocument);
+      XmlFile.Close();
+    end;
+
+    local procedure GetSingleXmlNodeValue(XmlDocument: XmlDocument; NodeName: Text): Text
+    var
+      XmlNode: XmlNode;
+      XmlNodeList: XmlNodeList;
+    begin
+        XmlDocument.SelectNodes(StrSubstNo(XPathQueryLbl, NodeName), XmlNodeList);
+        Assert.AreEqual(1, XmlNodeList.Count(), StrSubstNo(IncorrectNodeCountErr, NodeName));
+        XmlNodeList.Get(1, XmlNode);
+        exit(XmlNode.AsXmlElement().InnerText());
+    end;
+
+    local procedure VerifyXmlAttribute(XmlElement: XmlElement; AttributeName: Text; NamespaceUri: Text; ExpectedValue: Text)
+    var
+      XmlAttribute: XmlAttribute;
+      XmlAttributes: XmlAttributeCollection;
+    begin
+        XmlAttributes := XmlElement.Attributes();
+        Assert.IsTrue(
+            XmlAttributes.Get(AttributeName, NamespaceUri, XmlAttribute), StrSubstNo(AttributeMissingErr, AttributeName));
+        Assert.AreEqual(ExpectedValue, XmlAttribute.Value(), StrSubstNo(IncorrectAttributeValueErr, AttributeName));
     end;
 
     local procedure VerifyDatiFatturaFileForScenarioWithOneFile(NodeName: Text; SuggestedFileName: Text)

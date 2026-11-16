@@ -127,11 +127,11 @@ xmlport 9864 "Import Permission Sets"
                     if TempTenantPermissionSet.Get(TempTenantPermissionSet."App ID", TempTenantPermissionSet."Role ID") then
                         currXMLport.Skip();
                     if not UpdatePermissions then begin
-                        TenantPermissionSetRel.SetFilter("App ID", TempTenantPermissionSet."App ID");
-                        TenantPermissionSetRel.SetFilter("Role ID", TempTenantPermissionSet."Role ID");
+                        TenantPermissionSetRel.SetRange("App ID", TempTenantPermissionSet."App ID");
+                        TenantPermissionSetRel.SetRange("Role ID", TempTenantPermissionSet."Role ID");
                         TenantPermissionSetRel.DeleteAll();
-                        TenantPermission.SetFilter("App ID", TempTenantPermissionSet."App ID");
-                        TenantPermission.SetFilter("Role ID", TempTenantPermissionSet."Role ID");
+                        TenantPermission.SetRange("App ID", TempTenantPermissionSet."App ID");
+                        TenantPermission.SetRange("Role ID", TempTenantPermissionSet."Role ID");
                         TenantPermission.DeleteAll();
                     end;
                 end;
@@ -225,14 +225,16 @@ xmlport 9864 "Import Permission Sets"
                 var
                     TenantPermission: Record "Tenant Permission";
                     TenantPermissionSetRel: Record "Tenant Permission Set Rel.";
+                    NullGuid: Guid;
                 begin
                     if TempMetadataPermissionSet.Get(TempMetadataPermissionSet."App ID", TempMetadataPermissionSet."Role ID") then
                         currXMLport.Skip();
                     if not UpdatePermissions then begin
-                        TenantPermissionSetRel.SetRange("App ID", TempMetadataPermissionSet."App ID");
+                        // System permission sets are imported as tenant permission sets with an empty App ID
+                        TenantPermissionSetRel.SetRange("App ID", NullGuid);
                         TenantPermissionSetRel.SetRange("Role ID", TempMetadataPermissionSet."Role ID");
                         TenantPermissionSetRel.DeleteAll();
-                        TenantPermission.SetRange("App ID", TempMetadataPermissionSet."App ID");
+                        TenantPermission.SetRange("App ID", NullGuid);
                         TenantPermission.SetRange("Role ID", TempMetadataPermissionSet."Role ID");
                         TenantPermission.DeleteAll();
                     end;

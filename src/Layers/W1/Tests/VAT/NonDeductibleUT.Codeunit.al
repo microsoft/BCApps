@@ -469,6 +469,33 @@ codeunit 134282 "Non-Deductible UT"
         Assert.ExpectedError(StrSubstNo(DifferentNonDedVATRatesSameVATIdentifierErr, VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group"));
     end;
 
+    [Test]
+    procedure AutomaticVATEntryStillCalculatesNonDeductibleVAT()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        NonDeductibleVAT: Codeunit "Non-Deductible VAT";
+        VATAmount: Decimal;
+        VATBase: Decimal;
+        VATAmountACY: Decimal;
+        VATBaseACY: Decimal;
+    begin
+        // [SCENARIO 657371] Automatic journal VAT entries still calculate non-deductible VAT.
+        Initialize();
+        GenJournalLine."Document Type" := GenJournalLine."Document Type"::Invoice;
+        GenJournalLine."VAT Calculation Type" := GenJournalLine."VAT Calculation Type"::"Normal VAT";
+        GenJournalLine."VAT Posting" := GenJournalLine."VAT Posting"::"Automatic VAT Entry";
+        GenJournalLine."Non-Deductible VAT %" := 50;
+        VATAmount := 0.03;
+        VATBase := 0.13;
+
+        NonDeductibleVAT.AdjustVATAmountsFromGenJnlLine(VATAmount, VATBase, VATAmountACY, VATBaseACY, GenJournalLine);
+
+        GenJournalLine.TestField("Non-Deductible VAT Amount LCY", 0.02);
+        GenJournalLine.TestField("Non-Deductible VAT Base LCY", 0.07);
+        Assert.AreEqual(0.01, VATAmount, AmountErrorLbl);
+        Assert.AreEqual(0.06, VATBase, AmountErrorLbl);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Non-Deductible UT");

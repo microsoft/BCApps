@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Utilities;
-using System.Security.User;
 
 page 6979 "Expense Report List"
 {
@@ -151,14 +150,14 @@ page 6979 "Expense Report List"
     trigger OnOpenPage()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        UserSetup: Record "User Setup";
+        ExpenseUser: Record "Expense User";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
-            ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
-            if not UserSetup."Unlimited Expense Approval" then
+            ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
+            if not ExpenseUser."Unlimited Approval" then
                 ExpenseReportApprovalMgmt.FilterExpenseReports(Rec, Rec.FieldNo("Created By"));
         end;
     end;

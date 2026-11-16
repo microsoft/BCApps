@@ -16,7 +16,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         field(6900; "Requested For"; Code[20])
         {
             Caption = 'Requested For';
-            ToolTip = 'Specifies the expense user for whom the spend request is being created.';
+            ToolTip = 'Specifies the expense user for whom the travel request is being created.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Expense User";
 
@@ -54,6 +54,14 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             Caption = 'International Travel';
             ToolTip = 'Specifies whether the travel is international.';
             DataClassification = CustomerContent;
+            ObsoleteReason = 'Replaced by the Expense Location field.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
 
             trigger OnValidate()
             begin
@@ -66,11 +74,18 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             ToolTip = 'Specifies the origin country for the travel.';
             DataClassification = CustomerContent;
             TableRelation = "Country/Region".Code;
+            ObsoleteReason = 'Replaced by the Expense Location field.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
 
             trigger OnValidate()
             begin
                 TestStatusOpen();
-                UpdateInternationalTravel();
             end;
         }
         field(6905; "Dest. Country/Region Code"; Code[10])
@@ -79,11 +94,18 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             ToolTip = 'Specifies the destination country for the travel.';
             DataClassification = CustomerContent;
             TableRelation = "Country/Region".Code;
+            ObsoleteReason = 'Replaced by the Expense Location field.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
 
             trigger OnValidate()
             begin
                 TestStatusOpen();
-                UpdateInternationalTravel();
             end;
         }
         field(6906; "Restrictions"; Text[250])
@@ -100,18 +122,40 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         field(6907; "Per Diem Included"; Boolean)
         {
             Caption = 'Per Diem Included';
-            ToolTip = 'Specifies whether per diem is included in the requisition.';
+            ToolTip = 'Specifies whether per diem is included in the travel request.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                if not Rec."Per Diem Included" then
+                    Rec.Validate("Expense Location", '');
             end;
+        }
+        field(6908; "Expense Location"; Code[20])
+        {
+            Caption = 'Expense Location';
+            ToolTip = 'Specifies the expense location of the travel. The expense location can only be used, and is required, when per diem is included. It must have a per diem rule.';
+            DataClassification = CustomerContent;
+            TableRelation = "Expense Location"."No.";
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+                CheckPerDiemRuleExists();
+            end;
+        }
+        field(6910; "Requested For Name"; Text[100])
+        {
+            Caption = 'Requested For Name';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User".Name where("No." = field("Requested For")));
+            ToolTip = 'Specifies the name of the expense user for whom the travel request is being created.';
         }
         field(6911; "Actual Start Date and Time"; DateTime)
         {
             Caption = 'Actual Start Date and Time';
-            ToolTip = 'Specifies the actual start date and time of the travel.';
+            ToolTip = 'Specifies the actual start date and time of the travel. Required when per diem is included.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -122,7 +166,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         field(6912; "Actual End Date and Time"; DateTime)
         {
             Caption = 'Actual End Date and Time';
-            ToolTip = 'Specifies the actual end date and time of the travel.';
+            ToolTip = 'Specifies the actual end date and time of the travel. Required when per diem is included.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -139,6 +183,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         field(6914; "Submitted By Expense User No."; Code[20])
         {
             Caption = 'Submitted By Expense User No.';
+            ToolTip = 'Specifies the expense user who submitted the travel request.';
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = "Expense User"."No.";
@@ -146,12 +191,14 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         field(6915; "Submitted At"; DateTime)
         {
             Caption = 'Submitted At';
+            ToolTip = 'Specifies the date and time when the travel request was submitted.';
             DataClassification = SystemMetadata;
             Editable = false;
         }
         field(6916; "Approval Expense User No."; Code[20])
         {
             Caption = 'Approval Expense User No.';
+            ToolTip = 'Specifies the expense user who approved or rejected the travel request.';
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = "Expense User"."No.";
@@ -159,6 +206,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         field(6917; "Rejection Reason"; Text[2048])
         {
             Caption = 'Rejection Reason';
+            ToolTip = 'Specifies the reason the travel request was rejected.';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -174,21 +222,22 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             FieldClass = FlowFilter;
             TableRelation = "Expense User".SystemId;
         }
+        field(6920; "Approval Expense User Name"; Text[100])
+        {
+            Caption = 'Approval Expense User Name';
+            ToolTip = 'Specifies the display name of the expense user who approved or rejected the travel request.';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User".Name where("No." = field("Approval Expense User No.")));
+            Editable = false;
+        }
+        field(6921; "Submitter Comment"; Text[2048])
+        {
+            Caption = 'Submitter Comment';
+            ToolTip = 'Specifies the latest comment from the submitter when submitting a travel request or resubmitting a rejected travel request.';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
     }
-    trigger OnInsert()
-    var
-        StartDateProvided: Boolean;
-        EndDateProvided: Boolean;
-    begin
-        StartDateProvided := APIStartDateProvided;
-        EndDateProvided := APIEndDateProvided;
-        APIStartDateProvided := false;
-        APIEndDateProvided := false;
-
-        // The base OnInsert initializes both dates to WorkDate. Restore API inputs before persistence.
-        ApplyExpectedDatesFromAPI(APIExpectedStartDate, APIExpectedEndDate, StartDateProvided, EndDateProvided);
-    end;
-
     trigger OnAfterInsert()
     begin
         if Rec."Document Type" = Rec."Document Type"::"Travel Request" then
@@ -225,17 +274,66 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
     trigger OnDelete()
     var
         Traveler: Record Traveler;
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
     begin
         Traveler.SetRange("Spend Request No.", Rec."No.");
         Traveler.DeleteAll();
+
+        if Rec."Document Type" = Rec."Document Type"::"Travel Request" then
+            ExpenseActivityLogMgt.DeleteEntriesForSource(Database::"Spend Request", Rec.SystemId);
     end;
 
     var
-        APIExpectedStartDate: Date;
-        APIExpectedEndDate: Date;
-        APIStartDateProvided: Boolean;
-        APIEndDateProvided: Boolean;
         ReplaceRequestedForTravelerQst: Label 'The %1 was changed. A traveler was automatically added for the previous %1. Do you want to remove that traveler and add a new one for the current %1 instead?', Comment = '%1 = Requested For field caption';
+        ExpenseLocationRequiresPerDiemErr: Label '%1 can only be specified when %2 is selected.', Comment = '%1 = Expense Location field caption, %2 = Per Diem Included field caption';
+        ActualEndBeforeStartErr: Label '%1 cannot be before %2.', Comment = '%1 = Actual End Date and Time field caption, %2 = Actual Start Date and Time field caption';
+        NoPerDiemRuleForLocationErr: Label 'There is no per diem rule for expense location %1. Choose an expense location that has a per diem rule for an active per diem expense category, or set up such a rule first.', Comment = '%1 = Expense Location';
+        NoPerDiemRuleOnTripStartErr: Label 'No per diem rule for expense location %1 is in effect on %2, the trip start date. Change the expense location or the trip dates, or set up a per diem rule for this location that is in effect on that date.', Comment = '%1 = Expense Location, %2 = Trip start date';
+
+    internal procedure CheckExpenseLocation()
+    begin
+        if (Rec."Expense Location" <> '') and not Rec."Per Diem Included" then
+            Error(ExpenseLocationRequiresPerDiemErr, Rec.FieldCaption("Expense Location"), Rec.FieldCaption("Per Diem Included"));
+        CheckPerDiemRuleExists();
+    end;
+
+    /// <summary>
+    /// Checks that a per diem rule for the expense location is in effect on the trip start date,
+    /// so that approval can create the per diem line.
+    /// </summary>
+    internal procedure CheckPerDiemRuleOnTripStart()
+    var
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        TripStartDate: Date;
+    begin
+        if (not Rec."Per Diem Included") or (Rec."Expense Location" = '') or (Rec."Actual Start Date and Time" = 0DT) then
+            exit;
+
+        TripStartDate := DT2Date(Rec."Actual Start Date and Time");
+        if ExpenseRuleHeader.FindPerDiemCategory(Rec."Expense Location", TripStartDate) = '' then
+            Error(NoPerDiemRuleOnTripStartErr, Rec."Expense Location", TripStartDate);
+    end;
+
+    local procedure CheckPerDiemRuleExists()
+    var
+        ExpenseRuleHeader: Record "Expense Rule Header";
+    begin
+        // The trip dates can still change, so the effective date is checked on release.
+        if (not Rec."Per Diem Included") or (Rec."Expense Location" = '') then
+            exit;
+
+        if ExpenseRuleHeader.FindPerDiemCategory(Rec."Expense Location", 0D) = '' then
+            Error(NoPerDiemRuleForLocationErr, Rec."Expense Location");
+    end;
+
+    internal procedure CheckActualDateTimes()
+    begin
+        if (Rec."Actual Start Date and Time" = 0DT) or (Rec."Actual End Date and Time" = 0DT) then
+            exit;
+
+        if Rec."Actual End Date and Time" < Rec."Actual Start Date and Time" then
+            Error(ActualEndBeforeStartErr, Rec.FieldCaption("Actual End Date and Time"), Rec.FieldCaption("Actual Start Date and Time"));
+    end;
 
     local procedure GetLinkedExpenseReportError(ReportRecordId: RecordId; ReportPageNo: Integer): ErrorInfo
     var
@@ -254,28 +352,6 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         LinkedReportError.PageNo := ReportPageNo;
         LinkedReportError.AddNavigationAction(ShowItLbl);
         exit(LinkedReportError);
-    end;
-
-    internal procedure SetExpectedDatesForAPIInsert(StartDate: Date; EndDate: Date; StartDateProvided: Boolean; EndDateProvided: Boolean)
-    begin
-        APIExpectedStartDate := StartDate;
-        APIExpectedEndDate := EndDate;
-        APIStartDateProvided := StartDateProvided;
-        APIEndDateProvided := EndDateProvided;
-    end;
-
-    internal procedure ApplyExpectedDatesFromAPI(StartDate: Date; EndDate: Date; StartDateProvided: Boolean; EndDateProvided: Boolean)
-    begin
-        // Populate the final pair before either field trigger validates it; omitted values remain unchanged.
-        if StartDateProvided then
-            Rec."Expected Start Date" := StartDate;
-        if EndDateProvided then
-            Rec."Expected End Date" := EndDate;
-
-        if StartDateProvided then
-            Rec.Validate("Expected Start Date");
-        if EndDateProvided then
-            Rec.Validate("Expected End Date");
     end;
 
     internal procedure InsertRequestedForTraveler()
@@ -297,12 +373,16 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
 
     local procedure UpdateRequestedForTraveler(PreviousRequestedFor: Code[20])
     var
+        Traveler: Record Traveler;
         ConfirmManagement: Codeunit "Confirm Management";
     begin
         if Rec."Requested For" = PreviousRequestedFor then
             exit;
 
-        if (PreviousRequestedFor <> '') and RequestedForTravelerExists(PreviousRequestedFor) then begin
+        // A previous traveler with a linked expense report stays on the travel request.
+        if (PreviousRequestedFor <> '') and RequestedForTravelerExists(PreviousRequestedFor) and
+           not Traveler.HasLinkedExpenseReports(Rec."No.", PreviousRequestedFor)
+        then begin
             if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(ReplaceRequestedForTravelerQst, Rec.FieldCaption("Requested For")), true) then
                 exit;
 
@@ -338,16 +418,6 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
         exit(SequenceNoMgt.GetNextSeqNo(Database::Traveler))
-    end;
-
-    local procedure UpdateInternationalTravel()
-    begin
-        if (Rec."Origin Country/Region Code" = '') or (Rec."Dest. Country/Region Code" = '') then begin
-            Rec.Validate("International Travel", false);
-            exit;
-        end;
-
-        Rec.Validate("International Travel", Rec."Origin Country/Region Code" <> Rec."Dest. Country/Region Code");
     end;
 
     local procedure SpendRequestExists(): Boolean

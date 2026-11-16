@@ -255,21 +255,18 @@ codeunit 18 "Financial Report Mgt."
     begin
         ConfigPackageData.SetLoadFields(Value);
         ConfigPackageData.SetRange("Package Code", PackageCode);
-
         if OldFinancialReportName <> NewFinancialReportName then begin
             ConfigPackageData.SetRange("Table ID", Database::"Financial Report");
             ConfigPackageData.SetRange("Field ID", FinancialReport.FieldNo(Name));
             ConfigPackageData.SetRange(Value, OldFinancialReportName);
             ConfigPackageData.ModifyAll(Value, NewFinancialReportName);
         end;
-
         if OldAccScheduleName <> NewAccScheduleName then begin
             ConfigPackageData.SetRange("Table ID", Database::"Financial Report");
             ConfigPackageData.SetRange("Field ID", FinancialReport.FieldNo("Financial Report Row Group"));
             ConfigPackageData.SetRange(Value, OldAccScheduleName);
             ConfigPackageData.ModifyAll(Value, NewAccScheduleName);
         end;
-
         if OldColumnLayoutName <> NewColumnLayoutName then begin
             ConfigPackageData.SetRange("Table ID", Database::"Financial Report");
             ConfigPackageData.SetRange("Field ID", FinancialReport.FieldNo("Financial Report Column Group"));
@@ -395,7 +392,6 @@ codeunit 18 "Financial Report Mgt."
         FinancialReport: Record "Financial Report";
     begin
         if not FinancialReport.Get(FinancialReportName) then;
-
         if PAGE.RunModal(0, FinancialReport) <> ACTION::LookupOK then
             exit(false);
 
@@ -521,12 +517,13 @@ codeunit 18 "Financial Report Mgt."
     procedure FindGLAccountWhereUsedInAccScheduleLine(GLAccNo: Code[20]; var TempGLAccWhereUsed: Record "G/L Account Where-Used" temporary): Boolean
     var
         AccScheduleLine: Record "Acc. Schedule Line";
+        AccScheduleName: Record "Acc. Schedule Name";
     begin
         FilterAccScheduleLineByGLAccount(AccScheduleLine, GLAccNo);
         if AccScheduleLine.FindSet() then begin
             TempGLAccWhereUsed."Table ID" := Database::"Acc. Schedule Line";
             TempGLAccWhereUsed."Table Name" := CopyStr(AccScheduleLine.TableCaption(), 1, MaxStrLen(TempGLAccWhereUsed."Table Name"));
-            TempGLAccWhereUsed."Field Name" := CopyStr(AccScheduleLine.FieldCaption(Totaling), 1, MaxStrLen(TempGLAccWhereUsed."Field Name"));
+            TempGLAccWhereUsed."Table Name" := CopyStr(AccScheduleName.TableCaption(), 1, MaxStrLen(TempGLAccWhereUsed."Table Name"));
             repeat
                 TempGLAccWhereUsed."Key 1" := AccScheduleLine."Schedule Name";
                 TempGLAccWhereUsed."Key 2" := Format(AccScheduleLine."Line No.");
@@ -551,13 +548,13 @@ codeunit 18 "Financial Report Mgt."
     procedure FindGLAccountWhereUsedInColumnLayout(GLAccNo: Code[20]; var TempGLAccWhereUsed: Record "G/L Account Where-Used" temporary): Boolean
     var
         ColumnLayout: Record "Column Layout";
+        ColumnLayoutName: Record "Column Layout Name";
     begin
         FilterColumnLayoutByGLAccount(ColumnLayout, GLAccNo);
         if not ColumnLayout.FindSet() then
             exit(false);
         TempGLAccWhereUsed."Table ID" := Database::"Column Layout";
-        TempGLAccWhereUsed."Table Name" := CopyStr(ColumnLayout.TableCaption(), 1, MaxStrLen(TempGLAccWhereUsed."Table Name"));
-        TempGLAccWhereUsed."Field Name" := CopyStr(ColumnLayout.FieldCaption("G/L Account Totaling"), 1, MaxStrLen(TempGLAccWhereUsed."Field Name"));
+        TempGLAccWhereUsed."Table Name" := CopyStr(ColumnLayoutName.TableCaption(), 1, MaxStrLen(TempGLAccWhereUsed."Table Name"));
         repeat
             TempGLAccWhereUsed."Key 1" := ColumnLayout."Column Layout Name";
             TempGLAccWhereUsed."Key 2" := Format(ColumnLayout."Line No.");
@@ -713,7 +710,6 @@ codeunit 18 "Financial Report Mgt."
             AccScheduleLine.SetRange("Date Filter", StartDate, EndDate);
             exit;
         end;
-
         if FinancialReport.DateFilterPeriodFormula <> '' then
             if PeriodFormulaParser.TryCalculatePeriodStartEnd(
                 FinancialReport.DateFilterPeriodFormula, FinancialReport.DateFilterPeriodFormulaLID,
@@ -723,7 +719,6 @@ codeunit 18 "Financial Report Mgt."
                     AccScheduleLine.SetRange("Date Filter", StartDate, EndDate);
                     exit;
                 end;
-
         if FinancialReport.DateFilter <> '' then
             if TrySetAccScheduleLineDateFilter(FinancialReport.DateFilter, AccScheduleLine) then
                 exit;

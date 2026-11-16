@@ -9,7 +9,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Utilities;
-using System.Security.User;
 
 page 6910 "Expense Report"
 {
@@ -485,7 +484,7 @@ page 6910 "Expense Report"
                     Image = UserSetup;
                     ToolTip = 'Assign an optional interim approver who approves before the final approver.';
                     Visible = AgentEnabled;
-                    Enabled = Rec.Status = Rec.Status::"Pending Approval";
+                    Enabled = AssignInterimApproverEnabled;
 
                     trigger OnAction()
                     begin
@@ -712,17 +711,15 @@ page 6910 "Expense Report"
     trigger OnOpenPage()
     var
         ExpenseUser: Record "Expense User";
-        UserSetup: Record "User Setup";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
-            ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
-            if not UserSetup."Unlimited Expense Approval" then begin
+            ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
+            if not ExpenseUser."Unlimited Approval" then begin
                 CheckSetDefaultOwnerFilter();
-                ExpenseUserNo := ExpenseReportApprovalMgmt.GetExpenseUserNo();
-                ExpenseUser.Get(ExpenseUserNo);
+                ExpenseUserNo := ExpenseUser."No.";
             end;
         end;
 
@@ -764,6 +761,7 @@ page 6910 "Expense Report"
         SubmitterComment: Text;
         ApprovalActionsEnabled: Boolean;
         AgentEnabled: Boolean;
+        AssignInterimApproverEnabled: Boolean;
 
     protected var
         SubmitEnabled: Boolean;
@@ -779,6 +777,7 @@ page 6910 "Expense Report"
         ReopenSubmittedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Submitted");
         ApproveEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::Approve);
         ReopenApprovedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Approved");
+        AssignInterimApproverEnabled := ExpenseReportApprovalMgt.CanAssignInterimApprover(Rec);
 
         ExpenseAgentSetup.GetRecordOnce();
         AgentEnabled := ExpenseAgentSetup."Enable Agent";

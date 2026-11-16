@@ -10,6 +10,7 @@ tableextension 10565 "Sales Invoice Line" extends "Sales Invoice Line"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve existing field IDs for compatibility.
         field(10507; "Reverse Charge Item GB"; Boolean)
         {
             Caption = 'Reverse Charge Item';
@@ -23,5 +24,6 @@ tableextension 10565 "Sales Invoice Line" extends "Sales Invoice Line"
             AutoFormatType = 1;
             AutoFormatExpression = GetCurrencyCode();
         }
+#pragma warning restore AS0099
     }
 }

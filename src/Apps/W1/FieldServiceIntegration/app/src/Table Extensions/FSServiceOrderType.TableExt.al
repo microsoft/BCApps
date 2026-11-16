@@ -11,6 +11,7 @@ tableextension 6619 "FS Service Order Type" extends "Service Order Type"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve the existing field ID for compatibility.
         field(12000; "Coupled to FS"; Boolean)
         {
             FieldClass = FlowField;
@@ -18,5 +19,6 @@ tableextension 6619 "FS Service Order Type" extends "Service Order Type"
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Service Order Type")));
         }
+#pragma warning restore AS0099
     }
 }

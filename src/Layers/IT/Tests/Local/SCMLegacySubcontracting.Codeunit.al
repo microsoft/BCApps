@@ -633,6 +633,51 @@ codeunit 137500 "SCM Legacy Subcontracting"
 
     [Test]
     [Scope('OnPrem')]
+    procedure PreCheckDisableSucceedsWhenWIPPurchaseLineFullyReceived()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        TransferLine: Record "Transfer Line";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+        SCMLegacySubcontracting: Codeunit "SCM Legacy Subcontracting";
+    begin
+        // [SCENARIO 649448] A fully received retained WIP purchase line does not block disabling Legacy Subcontracting
+        Initialize();
+
+        // [GIVEN] ManufacturingSetup."Legacy Subcontracting" = true
+        SetLegacySubcontracting(true);
+
+        // [GIVEN] No open WIP transfers
+        TransferLine.SetRange("WIP Item", true);
+        TransferLine.DeleteAll();
+
+        // [GIVEN] A retained WIP purchase order item line is fully received
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("WIP Item", true);
+        PurchaseLine.DeleteAll();
+        PurchaseLine.Reset();
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        PurchaseLine."WIP Item" := true;
+        PurchaseLine."Outstanding Quantity" := 0;
+        PurchaseLine.Modify();
+
+        // [GIVEN] The Subcontracting app and the IT Migration app are mocked as installed
+        BindSubscription(SCMLegacySubcontracting);
+
+        // [WHEN] Call CanDisableLegacySubcontracting
+        // [THEN] No error is raised
+        LegacySubcFeatureHandler.CanDisableLegacySubcontracting();
+
+        UnbindSubscription(SCMLegacySubcontracting);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure PreCheckDisableErrorWordingMatchesWIPItemFilterForPurchaseOrders()
     var
         PurchaseHeader: Record "Purchase Header";

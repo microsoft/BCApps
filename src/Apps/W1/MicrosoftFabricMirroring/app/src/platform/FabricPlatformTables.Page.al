@@ -1,0 +1,126 @@
+namespace Microsoft.FabricExport;
+
+using System.Fabric;
+using System.Reflection;
+
+page 48512 "Fabric Platform Tables"
+{
+    Caption = 'Fabric Table Configuration';
+    PageType = List;
+    SourceTable = "Tenant Fabric Tables";
+    ApplicationArea = All;
+    InsertAllowed = false;
+    DeleteAllowed = false;
+    AboutTitle = 'Choose tables to synchronize';
+    AboutText = 'Add the Business Central tables you want to send to Microsoft Fabric. You can select up to 1000 tables.';
+
+    layout
+    {
+        area(Content)
+        {
+            repeater(Lines)
+            {
+                field("Table ID"; Rec."Table ID")
+                {
+                    Editable = false;
+                    ToolTip = 'Specifies the ID of the Business Central table to export.';
+                }
+                field("Table Name"; Rec."Table Name")
+                {
+                    Editable = false;
+                    ToolTip = 'Specifies the name of the Business Central table to export.';
+                }
+                field("Fabric Entity Name"; Rec."Fabric Entity Name")
+                {
+                    Editable = false;
+                    ToolTip = 'Specifies the destination entity name used in Microsoft Fabric.';
+                }
+                field("Fabric Schema Type"; Rec."Fabric Schema Type")
+                {
+                    ToolTip = 'Specifies whether the table is exported as data or logging.';
+                }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(AddTable)
+            {
+                Caption = 'Add table';
+                ApplicationArea = All;
+                Image = New;
+                ToolTip = 'Adds one or more Business Central tables to the export selection. A maximum of 1000 tables can be selected.';
+
+                trigger OnAction()
+                var
+                    AllObjWithCaption: Record AllObjWithCaption;
+                    FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                    FabricTableValidation: Codeunit "Fabric Table Validation";
+                    ObjectsPage: Page Objects;
+                begin
+                    FabricPlatformMgt.CheckCanAddTable();
+
+                    AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
+                    AllObjWithCaption.SetFilter("Object ID", FabricTableValidation.GetExportableTableIdFilter());
+                    ObjectsPage.SetTableView(AllObjWithCaption);
+                    ObjectsPage.LookupMode(true);
+                    if ObjectsPage.RunModal() <> Action::LookupOK then
+                        exit;
+
+                    ObjectsPage.SetSelectionFilter(AllObjWithCaption);
+                    FabricPlatformMgt.AddTables(AllObjWithCaption);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(RemoveTable)
+            {
+                Caption = 'Remove table';
+                ApplicationArea = All;
+                Image = Delete;
+                ToolTip = 'Removes the selected table from the export selection. Tables still claimed by an active configuration package cannot be removed here.';
+
+                trigger OnAction()
+                var
+                    FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                begin
+                    FabricPlatformMgt.RemoveTable(Rec."Table ID");
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ResetTable)
+            {
+                Caption = 'Reset table';
+                ApplicationArea = All;
+                Image = Refresh;
+                ToolTip = 'Makes the next synchronization run send a full snapshot of the selected table to Microsoft Fabric.';
+
+                trigger OnAction()
+                var
+                    FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                begin
+                    if not Confirm(ResetTableQst, false, Rec."Table Name") then
+                        exit;
+
+                    FabricPlatformMgt.ResetTable(Rec."Table ID");
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(AddTable_Promoted; AddTable) { }
+                actionref(RemoveTable_Promoted; RemoveTable) { }
+                actionref(ResetTable_Promoted; ResetTable) { }
+            }
+        }
+    }
+
+    var
+        ResetTableQst: Label 'The next synchronization run will send a full snapshot of table %1 to Microsoft Fabric. Do you want to continue?', Comment = '%1 = table name';
+}

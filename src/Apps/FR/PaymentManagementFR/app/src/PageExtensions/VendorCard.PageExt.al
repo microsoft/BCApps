@@ -4,12 +4,19 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 
 pageextension 10842 "Vendor Card" extends "Vendor Card"
 {
     layout
     {
+#if not CLEAN30
+        modify("Payment Balance (LCY)")
+        {
+            Visible = not FeatureEnabled;
+        }
+#endif
 #if not CLEAN28
 #pragma warning disable AL0432
         modify("Payment in progress (LCY)")
@@ -22,8 +29,29 @@ pageextension 10842 "Vendor Card" extends "Vendor Card"
         }
 #pragma warning restore AL0432
 #endif
-        addafter("Payment Balance (LCY)")
+        addafter("Block Payment Tolerance")
         {
+            field("Payment Balance (LCY) FR"; Rec."Balance (LCY)")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Payment Balance (LCY)';
+                ToolTip = 'Specifies the total value of your completed purchases from the vendor in the current fiscal year. It is calculated from amounts excluding VAT on all completed purchase invoices and credit memos.';
+#if not CLEAN30
+                Visible = FeatureEnabled;
+#endif
+
+                trigger OnDrillDown()
+                var
+                    VendLedgEntry: Record "Vendor Ledger Entry";
+                    DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
+                begin
+                    DtldVendLedgEntry.SetFilter("Vendor No.", Rec."No.");
+                    Rec.CopyFilter("Global Dimension 1 Filter", DtldVendLedgEntry."Initial Entry Global Dim. 1");
+                    Rec.CopyFilter("Global Dimension 2 Filter", DtldVendLedgEntry."Initial Entry Global Dim. 2");
+                    Rec.CopyFilter("Currency Filter", DtldVendLedgEntry."Currency Code");
+                    VendLedgEntry.DrillDownOnEntries(DtldVendLedgEntry);
+                end;
+            }
             field("Payment in progress (LCY) FR"; Rec."Payment in progress (LCY) FR")
             {
                 ApplicationArea = Basic, Suite;
@@ -76,7 +104,7 @@ pageextension 10842 "Vendor Card" extends "Vendor Card"
         }
     }
 
-#if not CLEAN28
+#if not CLEAN30
     trigger OnOpenPage()
     var
         PaymentFeatureFR: Codeunit "Payment Management Feature FR";

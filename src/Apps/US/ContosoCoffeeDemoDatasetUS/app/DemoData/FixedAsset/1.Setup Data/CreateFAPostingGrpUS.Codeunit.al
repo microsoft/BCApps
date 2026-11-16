@@ -27,6 +27,8 @@ codeunit 11495 "Create FA Posting Grp. US"
     end;
 
     local procedure ValidateRecordFields(var FAPostingGroup: Record "FA Posting Group"; AcquisitionCostAccount: Code[20]; AccumDepreciationAccount: Code[20]; AcqCostAcconDisposal: Code[20]; AccumDeprAcconDisposal: Code[20]; GainsAcconDisposal: Code[20]; LossesAcconDisposal: Code[20]; MaintenanceExpenseAccount: Code[20]; AcquisitionCostBalAcc: Code[20]; DepreciationExpenseAcc: Code[20])
+    var
+        CreateGLAccount: Codeunit "Create G/L Account";
     begin
         FAPostingGroup.Validate("Acquisition Cost Account", AcquisitionCostAccount);
         FAPostingGroup.Validate("Accum. Depreciation Account", AccumDepreciationAccount);
@@ -37,5 +39,9 @@ codeunit 11495 "Create FA Posting Grp. US"
         FAPostingGroup.Validate("Maintenance Expense Account", MaintenanceExpenseAccount);
         FAPostingGroup.Validate("Acquisition Cost Bal. Acc.", AcquisitionCostBalAcc);
         FAPostingGroup.Validate("Depreciation Expense Acc.", DepreciationExpenseAcc);
+        FAPostingGroup.Validate("Derogatory Acc.", CreateGLAccount.DerogatoryAccount());
+        FAPostingGroup.Validate("Derogatory Account (Decrease)", CreateGLAccount.DerogatoryAccount());
+        FAPostingGroup.Validate("Derog. Bal. Account (Decrease)", CreateGLAccount.DerogExpenseAccForCredit());
+        FAPostingGroup.Validate("Derogatory Expense Acc.", CreateGLAccount.DerogExpenseAccForDebit());
     end;
 }

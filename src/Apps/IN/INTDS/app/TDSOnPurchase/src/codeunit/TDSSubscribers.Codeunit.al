@@ -350,7 +350,12 @@ codeunit 18716 "TDS Subscribers"
         TotalLineAmount: Decimal;
         CurrentUsed: Decimal;
         AppliedAmount: Decimal;
+        IsHandled: Boolean;
     begin
+        OnBeforeUpdateTDSCertificateUsage(PurchaseLine, IsHandled);
+        if IsHandled then
+            exit;
+
         if not PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
             exit;
 
@@ -446,7 +451,12 @@ codeunit 18716 "TDS Subscribers"
     var
         PurchaseLine: Record "Purchase Line";
         CalculateTax: Codeunit "Calculate Tax";
+        IsHandled: Boolean;
     begin
+        OnBeforeRecalculateTDSOnPurchaseHeader(Rec, IsHandled);
+        if IsHandled then
+            exit;
+
         PurchaseLine.SetCurrentKey("Document Type", "Document No.", "TDS Section Code");
         PurchaseLine.SetRange("Document Type", Rec."Document Type");
         PurchaseLine.SetRange("Document No.", Rec."No.");
@@ -462,8 +472,13 @@ codeunit 18716 "TDS Subscribers"
     var
         PurchaseLine: Record "Purchase Line";
         CalculateTax: Codeunit "Calculate Tax";
+        IsHandled: Boolean;
     begin
         if Rec."Posting Date" = xRec."Posting Date" then
+            exit;
+
+        OnBeforeRecalculateTDSOnPurchaseHeader(Rec, IsHandled);
+        if IsHandled then
             exit;
 
         PurchaseLine.SetCurrentKey("Document Type", "Document No.", "TDS Section Code");
@@ -606,6 +621,16 @@ codeunit 18716 "TDS Subscribers"
 
     [IntegrationEvent(false, false)]
     local procedure OnFindPurchaseLineOnAfterCalcPurchaseDiscount(var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateTDSCertificateUsage(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeRecalculateTDSOnPurchaseHeader(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
 }

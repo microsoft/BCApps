@@ -132,7 +132,7 @@ table 1518 "My Notifications"
         if Rec.WritePermission then
             if InitRecord(NotificationId, NotificationName, DescriptionText) then begin
                 Enabled := DefaultState;
-                Insert();
+                InsertOrGet();
             end;
     end;
 
@@ -141,7 +141,7 @@ table 1518 "My Notifications"
         if Rec.WritePermission then
             if InitRecord(NotificationId, NotificationName, DescriptionText) then begin
                 "Apply to Table Id" := TableNum;
-                Insert();
+                InsertOrGet();
             end;
     end;
 
@@ -157,11 +157,18 @@ table 1518 "My Notifications"
                 "Apply to Table Filter".CreateOutStream(FiltersOutStream);
                 FiltersOutStream.Write(GetXmlFromTableView(TableNum, Filters));
                 if NewRecord then
-                    Insert()
+                    InsertOrGet()
                 else
                     Modify();
             end;
         end;
+    end;
+
+    local procedure InsertOrGet()
+    begin
+        // Another session may have initialized the notification after InitRecord checked for it.
+        if not Insert() then
+            Get("User Id", "Notification Id");
     end;
 
     procedure GetDescription() Ret: Text
@@ -349,4 +356,3 @@ table 1518 "My Notifications"
     begin
     end;
 }
-

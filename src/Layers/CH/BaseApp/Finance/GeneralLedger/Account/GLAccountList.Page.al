@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -357,6 +357,20 @@ page 18 "G/L Account List"
                 {
                 }
             }
+        }
+    }
+
+    views
+    {
+        view(Uncategorized)
+        {
+            Caption = 'Uncategorized accounts';
+            Filters = where("Account Category" = const(" "));
+        }
+        view(NoSubCategory)
+        {
+            Caption = 'Uncategorized accounts (missing sub category)';
+            Filters = where("Account Subcategory Entry No." = const(0));
         }
     }
 

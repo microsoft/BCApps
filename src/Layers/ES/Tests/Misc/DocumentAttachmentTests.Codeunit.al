@@ -2,6 +2,7 @@ codeunit 134776 "Document Attachment Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -27,16 +28,25 @@ codeunit 134776 "Document Attachment Tests"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        FailGetRefTableRecordId: RecordId;
+        SubscriberSourceRecordId: RecordId;
         ExpectedPurchaseDocumentFlow: Boolean;
+        ForceGetRefTableFail: Boolean;
         isInitialized: Boolean;
         RecallNotifications: Boolean;
+        ResolveRecRefInSubscriber: Boolean;
         ReportSelectionUsage: Enum "Report Selection Usage";
         AttachedDateInvalidErr: Label 'Attached date is invalid';
         AttachmentFileNameLbl: Label '%1.jpeg', Comment = '%1=File Name';
         AttachmentNotDeletedErr: Label 'Attachment is not deleted';
+        AttachmentDeletedErr: Label 'Attachment must not be deleted';
+        DeleteCancelledErr: Label 'The delete operation must not be cancelled.';
+        DeleteNotCancelledErr: Label 'The delete operation must be cancelled with a silent error.';
+        CannotResolveSourceRecordErr: Label 'The source record for this attachment cannot be resolved in table %1.', Comment = '%1 = Table Caption';
         ConfirmConvertToOrderQst: Label 'Do you want to convert the quote to an order?';
         ConfirmOpeningNewOrderAfterQuoteToOrderQst: Label 'Do you want to open the new order?';
         DeleteAttachmentsConfirmQst: Label 'Do you want to delete the attachments for this document?';
+        DeleteFromUnfilteredListQst: Label 'The list of attachments is not filtered to the current document. If you continue, the selected attachments will be deleted even if they belong to other documents in the company.\\Do you want to continue?';
         DuplicateErr: Label 'This file is already attached to the document. Please choose another file.';
         ExpectedFieldNotEditableErr: Label 'Expected field %1 is not editable in %2', Comment = '%1=FieldName, %2=PageName';
         ExpectedFieldNotVisibleErr: Label 'Expected field %1 is not visible in %2', Comment = '%1=FieldName, %2=PageName';
@@ -46,12 +56,15 @@ codeunit 134776 "Document Attachment Tests"
         FlowSalesValueForFirstAttachmentMismatchErr: Label 'Flow sales value not equal for first attachment.';
         FlowSalesValueForSecondAttachmentMismatchErr: Label 'Flow sales value not equal for second attachment.';
         JpegFileNameTok: Label '%1.jpeg';
+        MissingSourceRecordMustNotBeResolvedErr: Label 'The source record must not be resolved when the record does not exist.';
         NoContentErr: Label 'The selected file ''%1'' has no content. Please choose another file.', Comment = '%1=FileName';
         NoSaveToPDFReportTxt: Label 'There are no reports which could be saved to PDF for this document.';
         OpenInDetailNotEnabledErr: Label 'OpenInDetail button must be enabled in FactBox %1 of page %2', Comment = '%1=FactBox PageName, %2= PageName';
         OpportunityOneLbl: Label 'Opportunity1';
         OpportunityTwoLbl: Label 'Opportunity2';
         PrintedToAttachmentTxt: Label 'The document has been printed to attachments.';
+        RecRefMustNotBeOpenErr: Label 'The RecordRef must not be opened when the source table is not mapped.';
+        RecRefMustNotBeOpenForMissingRecordErr: Label 'The RecordRef must not be opened when the source record does not exist.';
         RenameCodeLbl: Label 'T';
         PurchaseCreditMemoFileNamePrefixLbl: Label 'purchasecreditmemo', Locked = true;
         PurchaseInvoiceFileNamePrefixLbl: Label 'purchaseinvoice', Locked = true;
@@ -61,7 +74,11 @@ codeunit 134776 "Document Attachment Tests"
         ServiceCreditMemoFileNamePrefixLbl: Label 'servicecreditmemo', Locked = true;
         ServiceInvoiceFileNamePrefixLbl: Label 'serviceinvoice', Locked = true;
         SecondAttachmentFileNameMismatchErr: Label 'Second file name not equal to saved attachment.';
+        SourceRecordMustNotBeResolvedErr: Label 'The source record must not be resolved when the source table is not mapped.';
+        SourceRecordNotResolvedErr: Label 'The source record must be resolved for the %1.', Comment = '%1 = Table Caption';
+        UnexpectedSourceTableErr: Label 'The RecordRef must be opened on the %1.', Comment = '%1 = Table Caption';
         TwoAttachmentsExpectedErr: Label 'Two attachments were expected for this record.';
+        UnexpectedAttachmentInDetailsErr: Label 'The Document Attachment Details page must open for the record that the subscriber resolved.';
         UnexpectedFieldVisibilityErr: Label 'Unexpected visibility for field %1', Comment = '%1=FieldCaption';
         UnexpectedFieldVisibleErr: Label 'Unexpected field visible! %1', Comment = '%1=FieldName';
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
@@ -3709,6 +3726,138 @@ codeunit 134776 "Document Attachment Tests"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerDeleteFromUnfilteredList')]
+    procedure DeleteFromUnfilteredAttachmentListConfirmedDeletesAttachments()
+    var
+        Customer: array[3] of Record Customer;
+        FactboxDocumentAttachment: Record "Document Attachment";
+        SelectedDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+    begin
+        // [SCENARIO 653614] Deleting several attachments from an unfiltered attachment list asks once and deletes the selected attachments when confirmed
+        Initialize();
+
+        // [GIVEN] Customers "C1", "C2" and "C3" with two attachments each
+        CreateCustomerWithAttachments(Customer[1]);
+        CreateCustomerWithAttachments(Customer[2]);
+        CreateCustomerWithAttachments(Customer[3]);
+
+        // [WHEN] The four attachments of "C1" and "C2" are selected in an attachment list without any filters and deleted, and the user confirms
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1], Customer[2]);
+        LibraryVariableStorage.Enqueue(true);
+        Assert.IsTrue(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteCancelledErr);
+
+        // [THEN] The confirmation is shown only once and the attachments of "C1" and "C2" are deleted
+        LibraryVariableStorage.AssertEmpty();
+        Assert.IsFalse(CustomerAttachmentExists(Customer[1]), AttachmentNotDeletedErr);
+        Assert.IsFalse(CustomerAttachmentExists(Customer[2]), AttachmentNotDeletedErr);
+
+        // [THEN] The attachments of "C3", which were not selected, are kept
+        Assert.IsTrue(CustomerAttachmentExists(Customer[3]), AttachmentDeletedErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerDeleteFromUnfilteredList')]
+    procedure DeleteFromUnfilteredAttachmentListDeclinedKeepsAttachments()
+    var
+        Customer: array[2] of Record Customer;
+        FactboxDocumentAttachment: Record "Document Attachment";
+        SelectedDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+    begin
+        // [SCENARIO 653614] Deleting several attachments from an unfiltered attachment list deletes nothing when the user declines the confirmation
+        Initialize();
+
+        // [GIVEN] Customers "C1" and "C2" with two attachments each
+        CreateCustomerWithAttachments(Customer[1]);
+        CreateCustomerWithAttachments(Customer[2]);
+
+        // [WHEN] The four attachments are selected in an attachment list without any filters and deleted, and the user declines
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1], Customer[2]);
+        LibraryVariableStorage.Enqueue(false);
+        Assert.IsFalse(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteNotCancelledErr);
+
+        // [THEN] The confirmation is shown only once, the delete operation is cancelled with a silent error and none of the selected attachments are deleted
+        Assert.AreEqual('', GetLastErrorText(), DeleteNotCancelledErr);
+        LibraryVariableStorage.AssertEmpty();
+        Assert.AreEqual(4, SelectedDocumentAttachment.Count(), AttachmentDeletedErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerDeleteFromUnfilteredList')]
+    procedure DeleteFromUnfilteredAttachmentListAsksAgainForNextDelete()
+    var
+        Customer: array[2] of Record Customer;
+        FactboxDocumentAttachment: Record "Document Attachment";
+        SelectedDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+    begin
+        // [SCENARIO 653614] A declined delete from an unfiltered attachment list does not prevent the user from being asked again for the next delete
+        Initialize();
+
+        // [GIVEN] Customers "C1" and "C2" with two attachments each
+        CreateCustomerWithAttachments(Customer[1]);
+        CreateCustomerWithAttachments(Customer[2]);
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1], Customer[2]);
+
+        // [GIVEN] The selected attachments were deleted from an attachment list without any filters and the user declined
+        LibraryVariableStorage.Enqueue(false);
+        Assert.IsFalse(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteNotCancelledErr);
+        Assert.AreEqual(4, SelectedDocumentAttachment.Count(), AttachmentDeletedErr);
+
+        // [WHEN] Only the attachments of "C2", which were not the first records of the declined delete, are deleted from the same attachment list and the user confirms
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[2], Customer[2]);
+        LibraryVariableStorage.Enqueue(true);
+        Assert.IsTrue(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteCancelledErr);
+
+        // [THEN] The confirmation is shown again, the attachments of "C2" are deleted and the attachments of "C1" are kept
+        LibraryVariableStorage.AssertEmpty();
+        Assert.IsFalse(CustomerAttachmentExists(Customer[2]), AttachmentNotDeletedErr);
+        Assert.IsTrue(CustomerAttachmentExists(Customer[1]), AttachmentDeletedErr);
+    end;
+
+    [Test]
+    procedure DeleteFromFilteredAttachmentListDoesNotAskForConfirmation()
+    var
+        Customer: array[2] of Record Customer;
+        FactboxDocumentAttachment: Record "Document Attachment";
+        SelectedDocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+    begin
+        // [SCENARIO 653614] Deleting from an attachment list filtered to a document does not ask for an additional confirmation
+        Initialize();
+
+        // [GIVEN] Customer "C1" with two attachments
+        CreateCustomerWithAttachments(Customer[1]);
+        Customer[2] := Customer[1];
+
+        // [GIVEN] Attachment list filtered to "C1" with link filters, as when the FactBox is linked to the customer
+        FactboxDocumentAttachment.FilterGroup(4);
+        FactboxDocumentAttachment.SetRange("Table ID", Database::Customer);
+        FactboxDocumentAttachment.SetRange("No.", Customer[1]."No.");
+        FactboxDocumentAttachment.FilterGroup(0);
+
+        // [WHEN] Both attachments of "C1" are selected and deleted from the attachment list
+        SetCustomerAttachmentSelection(SelectedDocumentAttachment, Customer[1], Customer[2]);
+        Assert.IsTrue(DeleteSelectedAttachmentsFromFactbox(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment), DeleteCancelledErr);
+
+        // [THEN] No confirmation is shown (no ConfirmHandler) and the attachments of "C1" are deleted
+        Assert.IsFalse(CustomerAttachmentExists(Customer[1]), AttachmentNotDeletedErr);
+
+        // [THEN] A list linked only by fields other than "No." (e.g. E-Document pages) is also treated as filtered
+        FactboxDocumentAttachment.Reset();
+        FactboxDocumentAttachment.FilterGroup(4);
+        FactboxDocumentAttachment.SetRange("Table ID", Database::Customer);
+        FactboxDocumentAttachment.FilterGroup(0);
+        Assert.IsFalse(DocumentAttachmentMgmt.IsDocumentAttachmentListUnfiltered(FactboxDocumentAttachment), 'A list with link filters must be treated as filtered.');
+        Assert.AreEqual(0, FactboxDocumentAttachment.FilterGroup(), 'The filter group must be restored.');
+
+        // [THEN] A list without any filters is treated as unfiltered
+        FactboxDocumentAttachment.Reset();
+        Assert.IsTrue(DocumentAttachmentMgmt.IsDocumentAttachmentListUnfiltered(FactboxDocumentAttachment), 'A list without filters must be treated as unfiltered.');
+    end;
+
+    [Test]
     [HandlerFunctions('ListProductionFlow')]
     [Scope('OnPrem')]
     procedure TestDocAttachPageInRoutingHeader()
@@ -4710,6 +4859,222 @@ codeunit 134776 "Document Attachment Tests"
         CheckDocAttachments(PostedLineTableId, 1, PostedDocumentNo, ExpectedDocumentType.AsInteger(), FileNamePrefix + 'line');
     end;
 
+    [Test]
+    procedure EnsureAttachmentCanBeUploadedOnPostedSalesShipment()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO 646549] Uploading a file from the Documents FactBox on Posted Sales Shipment must not fail with "The record is not open".
+        Initialize();
+
+        // [GIVEN] Create Customer and Item with a new Inventory Posting Setup for the blank Location, so the shipment can be posted.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        CreateInventoryPostingSetupForItem(Item);
+
+        // [GIVEN] Create and post Sales Order to get a Posted Sales Shipment.
+        CreateSalesDoc(SalesHeader, SalesLine, Customer, Item, SalesHeader."Document Type"::Order);
+        SalesShipmentHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, false));
+
+        // [GIVEN] Document Attachment record as the Documents FactBox filters it on the Posted Sales Shipment page.
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Sales Shipment Header";
+        DocumentAttachment."No." := SalesShipmentHeader."No.";
+
+        // [WHEN] The Documents FactBox resolves the source record before saving the uploaded file.
+        // [THEN] The source record is resolved and the RecordRef is opened on Sales Shipment Header.
+        Assert.IsTrue(
+            DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment),
+            StrSubstNo(SourceRecordNotResolvedErr, SalesShipmentHeader.TableCaption()));
+        Assert.AreEqual(
+            Database::"Sales Shipment Header",
+            RecRef.Number(),
+            StrSubstNo(UnexpectedSourceTableErr, SalesShipmentHeader.TableCaption()));
+
+        // [WHEN] The uploaded file is saved through the resolved RecordRef.
+        CreateDocAttach(RecRef, 'PostedSalesShipment.jpeg', false, false);
+
+        // [THEN] Verify the attachment is stored for the Posted Sales Shipment.
+        CheckDocAttachmentsForPostedDocs(Database::"Sales Shipment Header", 1, SalesShipmentHeader."No.", 'PostedSalesShipment');
+    end;
+
+    [Test]
+    procedure EnsureAttachmentCanBeUploadedOnPostedReturnReceipt()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ReturnReceiptHeader: Record "Return Receipt Header";
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO 646549] Uploading a file from the Documents FactBox on Posted Return Receipt must not fail with "The record is not open".
+        Initialize();
+
+        // [GIVEN] Create Customer and Item with a new Inventory Posting Setup for the blank Location, so the return receipt can be posted.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        CreateInventoryPostingSetupForItem(Item);
+
+        // [GIVEN] Create and post Sales Return Order to get a Posted Return Receipt.
+        CreateSalesDoc(SalesHeader, SalesLine, Customer, Item, SalesHeader."Document Type"::"Return Order");
+        ReturnReceiptHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, false));
+
+        // [GIVEN] Document Attachment record as the Documents FactBox filters it on the Posted Return Receipt page.
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Return Receipt Header";
+        DocumentAttachment."No." := ReturnReceiptHeader."No.";
+
+        // [WHEN] The Documents FactBox resolves the source record before saving the uploaded file.
+        // [THEN] The source record is resolved and the RecordRef is opened on Return Receipt Header.
+        Assert.IsTrue(
+            DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment),
+            StrSubstNo(SourceRecordNotResolvedErr, ReturnReceiptHeader.TableCaption()));
+        Assert.AreEqual(
+            Database::"Return Receipt Header",
+            RecRef.Number(),
+            StrSubstNo(UnexpectedSourceTableErr, ReturnReceiptHeader.TableCaption()));
+
+        // [WHEN] The uploaded file is saved through the resolved RecordRef.
+        CreateDocAttach(RecRef, 'PostedReturnReceipt.jpeg', false, false);
+
+        // [THEN] Verify the attachment is stored for the Posted Return Receipt.
+        CheckDocAttachmentsForPostedDocs(Database::"Return Receipt Header", 1, ReturnReceiptHeader."No.", 'PostedReturnReceipt');
+    end;
+
+    [Test]
+    procedure EnsureSourceRecordIsNotResolvedForUnmappedTable()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO 646549] All Documents FactBox actions share the same source resolution, which must leave the RecordRef closed for an unmapped table.
+        Initialize();
+
+        // [GIVEN] Document Attachment that points to a table neither the FactBox nor any subscriber maps.
+        CreateDocAttachForUnmappedTable(DocumentAttachment);
+
+        // [WHEN] The Documents FactBox resolves the source record.
+        // [THEN] Resolution fails and the RecordRef stays closed, so the actions raise the controlled error instead of "The record is not open".
+        Assert.IsFalse(DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment), SourceRecordMustNotBeResolvedErr);
+        Assert.AreEqual(0, RecRef.Number(), RecRefMustNotBeOpenErr);
+    end;
+
+    [Test]
+    procedure EnsureSourceRecordIsNotResolvedForMissingPostedSalesShipment()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO 646549] A mapped table whose source record is missing must not be reported as resolved, otherwise the attachment lands on an arbitrary shipment.
+        Initialize();
+
+        // [GIVEN] Document Attachment that points to a Posted Sales Shipment that does not exist.
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Sales Shipment Header";
+        DocumentAttachment."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."No."));
+
+        // [WHEN] The Documents FactBox resolves the source record.
+        // [THEN] Resolution fails and the RecordRef stays closed, so no attachment can be stored on another shipment.
+        Assert.IsFalse(DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment), MissingSourceRecordMustNotBeResolvedErr);
+        Assert.AreEqual(0, RecRef.Number(), RecRefMustNotBeOpenForMissingRecordErr);
+    end;
+
+    [Test]
+    procedure EnsureShowDetailsErrorsWhenSourceRecordCannotBeResolved()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        PaymentTerms: Record "Payment Terms";
+    begin
+        // [SCENARIO 646549] Show details reports the unresolved source record instead of failing with "The record is not open".
+        // Upload files and Attach from email cannot be invoked from a TestPage, but they run the same source resolution as Show details.
+        Initialize();
+
+        // [GIVEN] Document Attachment that points to a table neither the FactBox nor any subscriber maps.
+        CreateDocAttachForUnmappedTable(DocumentAttachment);
+
+        // [WHEN] Show details is invoked for that attachment.
+        asserterror ShowAttachmentDetails(DocumentAttachment);
+
+        // [THEN] The error states that the source record cannot be resolved and names the table.
+        Assert.ExpectedError(StrSubstNo(CannotResolveSourceRecordErr, PaymentTerms.TableCaption()));
+    end;
+
+    [Test]
+    procedure EnsureShowDetailsErrorsWhenPostedSalesShipmentIsMissing()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+    begin
+        // [SCENARIO 646549] Show details on an attachment of a Posted Sales Shipment that no longer exists must error instead of opening another shipment.
+        Initialize();
+
+        // [GIVEN] Document Attachment that points to a Posted Sales Shipment that does not exist.
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Sales Shipment Header";
+        DocumentAttachment."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."No."));
+        DocumentAttachment."File Name" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."File Name"));
+        DocumentAttachment.Insert();
+
+        // [WHEN] Show details is invoked for that attachment.
+        asserterror ShowAttachmentDetails(DocumentAttachment);
+
+        // [THEN] The error states that the source record cannot be resolved and names the table.
+        Assert.ExpectedError(StrSubstNo(CannotResolveSourceRecordErr, SalesShipmentHeader.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('DocumentAttachmentDetailsMPH')]
+    procedure EnsureShowDetailsUsesRecRefResolvedBySubscriber()
+    var
+        HostCustomer: Record Customer;
+        SubscriberCustomer: Record Customer;
+        DocumentAttachmentTests: Codeunit "Document Attachment Tests";
+        RecRef: RecordRef;
+        CustomerCard: TestPage "Customer Card";
+    begin
+        // [SCENARIO 646549] An extension that resolves the RecordRef in OnAfterGetRecRefFail must still be able to open the attachments.
+        Initialize();
+
+        // [GIVEN] Customer "HostCust" with an attachment, shown in the Documents FactBox of the Customer Card.
+        LibrarySales.CreateCustomer(HostCustomer);
+        RecRef.Get(HostCustomer.RecordId());
+        CreateDocAttach(RecRef, 'HostCust.jpeg', false, false);
+
+        // [GIVEN] Customer with an attachment "SubscriberCust", which the subscriber returns as the source record.
+        LibrarySales.CreateCustomer(SubscriberCustomer);
+        RecRef.Get(SubscriberCustomer.RecordId());
+        CreateDocAttach(RecRef, 'SubscriberCust.jpeg', false, false);
+
+        // [GIVEN] Customer Card opened for "HostCust".
+        CustomerCard.OpenView();
+        CustomerCard.GoToRecord(HostCustomer);
+
+        // [GIVEN] The FactBox cannot resolve "HostCust" on its own, and a subscriber resolves "SubscriberCust" in OnAfterGetRecRefFail.
+        DocumentAttachmentTests.SetForceGetRefTableFail(HostCustomer.RecordId());
+        DocumentAttachmentTests.SetSubscriberSourceRecord(SubscriberCustomer.RecordId());
+        BindSubscription(DocumentAttachmentTests);
+
+        // [WHEN] Show details is invoked on the Documents FactBox.
+        CustomerCard."Attached Documents List".OpenInDetail.Invoke();
+        UnbindSubscription(DocumentAttachmentTests);
+        CustomerCard.Close();
+
+        // [THEN] No error is raised and the details page opens for the record that the subscriber resolved.
+        Assert.AreEqual('SubscriberCust', LibraryVariableStorage.DequeueText(), UnexpectedAttachmentInDetailsErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -4839,6 +5204,60 @@ codeunit 134776 "Document Attachment Tests"
     begin
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, DocType, Vendor."No.");
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+    end;
+
+    local procedure CreateCustomerWithAttachments(var Customer: Record Customer)
+    var
+        RecRef: RecordRef;
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        RecRef.GetTable(Customer);
+        CreateDocAttach(RecRef, 'Cust1.jpeg', false, false);
+        CreateDocAttach(RecRef, 'Cust2.jpeg', false, false);
+    end;
+
+    local procedure CustomerAttachmentExists(Customer: Record Customer): Boolean
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        DocumentAttachment.SetRange("Table ID", Database::Customer);
+        DocumentAttachment.SetRange("No.", Customer."No.");
+        exit(not DocumentAttachment.IsEmpty());
+    end;
+
+    local procedure SetCustomerAttachmentSelection(var SelectedDocumentAttachment: Record "Document Attachment"; Customer1: Record Customer; Customer2: Record Customer)
+    begin
+        SelectedDocumentAttachment.SetRange("Table ID", Database::Customer);
+        SelectedDocumentAttachment.SetFilter("No.", '%1|%2', Customer1."No.", Customer2."No.");
+    end;
+
+    local procedure DeleteSelectedAttachmentsFromFactbox(var DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt"; var FactboxDocumentAttachment: Record "Document Attachment"; var SelectedDocumentAttachment: Record "Document Attachment"): Boolean
+    var
+        SelectedIds: List of [Guid];
+        SelectedId: Guid;
+    begin
+        // A TestPage cannot delete records, so this calls the page's delete guard the way the platform runs
+        // OnDeleteRecord of page "Doc. Attachment List Factbox": once per selected record, with the page's selection.
+        // An error in the guard cancels the remaining deletes, like it cancels the page's delete action. Returns false then.
+        ClearLastError();
+        if SelectedDocumentAttachment.FindSet() then
+            repeat
+                SelectedIds.Add(SelectedDocumentAttachment.SystemId);
+            until SelectedDocumentAttachment.Next() = 0;
+
+        foreach SelectedId in SelectedIds do begin
+            FactboxDocumentAttachment.GetBySystemId(SelectedId);
+            if not TryConfirmDeleteFromUnfilteredList(DocumentAttachmentMgmt, FactboxDocumentAttachment, SelectedDocumentAttachment) then
+                exit(false);
+            FactboxDocumentAttachment.Delete(true);
+        end;
+        exit(true);
+    end;
+
+    [TryFunction]
+    local procedure TryConfirmDeleteFromUnfilteredList(var DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt"; var FactboxDocumentAttachment: Record "Document Attachment"; var SelectedDocumentAttachment: Record "Document Attachment")
+    begin
+        DocumentAttachmentMgmt.ConfirmDeleteFromUnfilteredList(FactboxDocumentAttachment, SelectedDocumentAttachment);
     end;
 
     [Scope('OnPrem')]
@@ -5380,6 +5799,98 @@ codeunit 134776 "Document Attachment Tests"
         CreateDocAttachProductionImageType(RecRef, StrSubstNo(AttachmentFileNameLbl, LibraryRandom.RandText(5)), true);
     end;
 
+    local procedure CreateInventoryPostingSetupForItem(var Item: Record Item)
+    var
+        InventoryPostingGroup: Record "Inventory Posting Group";
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+    begin
+        LibraryInventory.CreateInventoryPostingGroup(InventoryPostingGroup);
+        LibraryInventory.CreateInventoryPostingSetup(InventoryPostingSetup, '', InventoryPostingGroup.Code);
+        InventoryPostingSetup.Validate("Inventory Account", LibraryERM.CreateGLAccountNo());
+        InventoryPostingSetup.Validate("Inventory Account (Interim)", LibraryERM.CreateGLAccountNo());
+        InventoryPostingSetup.Modify(true);
+
+        Item.Validate("Inventory Posting Group", InventoryPostingGroup.Code);
+        Item.Modify(true);
+    end;
+
+    local procedure CreateDocAttachForUnmappedTable(var DocumentAttachment: Record "Document Attachment")
+    var
+        PaymentTerms: Record "Payment Terms";
+    begin
+        // Payment Terms is not mapped in GetRefTable and has no OnAfterGetRefTable subscriber, so the RecordRef is left closed.
+        LibraryERM.CreatePaymentTerms(PaymentTerms);
+
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Payment Terms";
+        DocumentAttachment."No." := PaymentTerms.Code;
+        DocumentAttachment."File Name" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."File Name"));
+        DocumentAttachment.Insert();
+    end;
+
+    local procedure ShowAttachmentDetails(var DocumentAttachment: Record "Document Attachment")
+    var
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        DocumentAttachmentDetails: Page "Document Attachment Details";
+        RecRef: RecordRef;
+    begin
+        if DocumentAttachment."Table ID" = 0 then
+            exit;
+
+        if not DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment) then begin
+            if ResolveRecRefInSubscriber then
+                RecRef.Get(SubscriberSourceRecordId);
+            if RecRef.Number() = 0 then
+                Error(CannotResolveSourceRecordErr, GetTableCaption(DocumentAttachment."Table ID"));
+        end;
+
+        DocumentAttachmentDetails.OpenForRecRef(RecRef);
+        DocumentAttachmentDetails.RunModal();
+    end;
+
+    local procedure GetTableCaption(TableID: Integer): Text
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        if TableMetadata.Get(TableID) then
+            exit(TableMetadata.Caption);
+        exit(Format(TableID));
+    end;
+
+    internal procedure SetSubscriberSourceRecord(SourceRecordId: RecordId)
+    begin
+        SubscriberSourceRecordId := SourceRecordId;
+        ResolveRecRefInSubscriber := true;
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Doc. Attachment List Factbox", 'OnAfterGetRecRefFail', '', false, false)]
+    local procedure ResolveSourceRecordOnAfterGetRecRefFail(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef)
+    begin
+        if not ResolveRecRefInSubscriber then
+            exit;
+
+        RecRef.Get(SubscriberSourceRecordId);
+    end;
+
+    internal procedure SetForceGetRefTableFail(RecordIdToFail: RecordId)
+    begin
+        FailGetRefTableRecordId := RecordIdToFail;
+        ForceGetRefTableFail := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterGetRefTable', '', false, false)]
+    local procedure FailGetRefTableOnAfterGetRefTable(var RecRef: RecordRef; DocumentAttachment: Record "Document Attachment")
+    begin
+        if not ForceGetRefTableFail then
+            exit;
+            
+        if RecRef.Number() = 0 then
+            exit;
+
+        if RecRef.RecordId() = FailGetRefTableRecordId then
+            RecRef.Close();
+    end;
+
     [ModalPageHandler]
     procedure RelatedAttachmentsHandler(var RelatedAttachmentsPage: TestPage "Email Related Attachments")
     begin
@@ -5556,6 +6067,14 @@ codeunit 134776 "Document Attachment Tests"
     procedure MessageHandler(Message: Text[1024])
     begin
         LibraryVariableStorage.Enqueue(Message);
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure ConfirmHandlerDeleteFromUnfilteredList(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedMessage(DeleteFromUnfilteredListQst, Question);
+        Reply := LibraryVariableStorage.DequeueBoolean();
     end;
 
     [ConfirmHandler]

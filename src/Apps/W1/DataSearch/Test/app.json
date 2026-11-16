@@ -40,7 +40,7 @@
       "to": 139509
     }
   ],
-  "target": "OnPrem",
+  "target": "Cloud",
   "features": [
     "TranslationFile"
   ],

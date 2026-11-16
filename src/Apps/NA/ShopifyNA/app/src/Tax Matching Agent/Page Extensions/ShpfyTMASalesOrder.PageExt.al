@@ -26,7 +26,7 @@ pageextension 30476 "Shpfy TMA Sales Order" extends "Sales Order"
                 Caption = 'Shopify Tax Match Applied';
                 Editable = false;
                 Importance = Additional;
-                ToolTip = 'Specifies that the Tax Matching Agent populated the Tax Area Code on the originating Shopify order. Use the Review Shopify Tax Match action to review the AI-generated decisions.';
+                ToolTip = 'Specifies that Shopify Tax Matching populated the Tax Area Code on the originating Shopify order. Use the Review Shopify Tax Match action to review the AI-generated decisions.';
             }
         }
     }
@@ -39,7 +39,7 @@ pageextension 30476 "Shpfy TMA Sales Order" extends "Sales Order"
                 ApplicationArea = All;
                 Caption = 'Review Shopify Tax Match';
                 Image = SparkleFilled;
-                ToolTip = 'Opens the tax match review for the originating Shopify order, where you can see the resolved Tax Area and per-line Tax Jurisdiction Codes together with the AI confidence and explanation for each agent-matched field.';
+                ToolTip = 'Opens the tax match review for the originating Shopify order, where you can see the resolved Tax Area and per-line Tax Jurisdiction Codes together with the AI confidence and explanation for each AI-matched field.';
                 Visible = Rec."Shpfy Tax Match Applied";
 
                 trigger OnAction()

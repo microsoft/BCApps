@@ -22,6 +22,7 @@ using System.Utilities;
 codeunit 139879 "E2E PowerBI Project Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     Access = Internal;
 

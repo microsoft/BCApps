@@ -286,14 +286,6 @@ table 910 "Posted Assembly Header"
         DimMgt.ShowDimensionSet("Dimension Set ID", StrSubstNo('%1 %2', TableCaption(), "No."));
     end;
 
-#if not CLEAN27
-    [Obsolete('The statistics action is refactored to use the RunObject property instead.', '27.0')]
-    procedure ShowStatistics()
-    begin
-        TestField("Item No.");
-        PAGE.Run(PAGE::"Posted Asm. Order Statistics", Rec);
-    end;
-#endif
     procedure PrintRecords(ShowRequestForm: Boolean)
     var
         ReportSelections: Record "Report Selections";

@@ -670,8 +670,7 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
         if IsHandled then
             exit(Result);
 
-        if (ProdOrderComp."Flushing Method" = ProdOrderComp."Flushing Method"::"Pick + Backward") and
-            (ProdOrderComp."Calculation Formula" = ProdOrderComp."Calculation Formula"::" ") then
+        if (ProdOrderComp."Calculation Formula" = ProdOrderComp."Calculation Formula"::" ") then
             CompQtyBasePerMfgQtyBase := (ProdOrderComp."Quantity per" * ProdOrderComp."Qty. per Unit of Measure") / ProdOrderLine."Qty. per Unit of Measure"
         else
             CompQtyBasePerMfgQtyBase := (ProdOrderComp."Quantity" * ProdOrderComp."Qty. per Unit of Measure") / ProdOrderLine."Qty. per Unit of Measure";

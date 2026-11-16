@@ -35,7 +35,7 @@ codeunit 148150 "FR E-Doc. Msg. Sender Mock" implements IDocumentSender, IDocume
             InStream.ReadText(PayloadLine);
             LastPayload += PayloadLine;
         end;
-        if ReportSuccess then
+        if not ReportFailure then
             MessageContext.Status().SetStatus("E-Document Service Status"::Sent);
     end;
 
@@ -56,13 +56,13 @@ codeunit 148150 "FR E-Doc. Msg. Sender Mock" implements IDocumentSender, IDocume
     begin
         Clear(LastPayload);
         Clear(LastResponseType);
-        ReportSuccess := true;
+        ReportFailure := false;
         SendCount := 0;
     end;
 
     procedure SetReportSuccess(NewReportSuccess: Boolean)
     begin
-        ReportSuccess := NewReportSuccess;
+        ReportFailure := not NewReportSuccess;
     end;
 
     procedure GetSendCount(): Integer
@@ -83,6 +83,6 @@ codeunit 148150 "FR E-Doc. Msg. Sender Mock" implements IDocumentSender, IDocume
     var
         LastResponseType: Enum "E-Doc. Response Type";
         LastPayload: Text;
-        ReportSuccess: Boolean;
+        ReportFailure: Boolean;
         SendCount: Integer;
 }
