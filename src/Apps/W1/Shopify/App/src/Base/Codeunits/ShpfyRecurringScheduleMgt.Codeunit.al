@@ -455,12 +455,22 @@ codeunit 30206 "Shpfy Recurring Schedule Mgt."
     end;
 
     local procedure SetCreatedSchedulesActivationOutcome(var TempCreatedJobQueueEntry: Record "Job Queue Entry" temporary; var JobQueueEntry: Record "Job Queue Entry"; AzureADGraphUser: Codeunit "Azure AD Graph User"; ApprovalsMgt: Codeunit "Approvals Mgmt."; var ApprovalRequested: Boolean; var LicensedUserHandover: Boolean)
+    var
+        ApprovalEnabled: Boolean;
+        CanActivate: Boolean;
     begin
         if not TempCreatedJobQueueEntry.FindSet(false) then
             exit;
+        CanActivate := TaskScheduler.CanCreateTask() and not AzureADGraphUser.IsUserDelegated();
+        if not CanActivate then begin
+            ApprovalEnabled := ApprovalsMgt.CheckJobQueueEntryApprovalEnabled();
+            // Commit the inserted batch once, before approval workflows run for the created entries.
+            if ApprovalEnabled then
+                Commit();
+        end;
         repeat
             JobQueueEntry.Get(TempCreatedJobQueueEntry.ID);
-            SetActivationOutcome(JobQueueEntry, AzureADGraphUser, ApprovalsMgt, ApprovalRequested, LicensedUserHandover);
+            SetActivationOutcome(JobQueueEntry, ApprovalsMgt, CanActivate, ApprovalEnabled, ApprovalRequested, LicensedUserHandover);
         until TempCreatedJobQueueEntry.Next() = 0;
     end;
 
@@ -508,14 +518,13 @@ codeunit 30206 "Shpfy Recurring Schedule Mgt."
         JobQueueEntry.SetReportParameters(GetReportParameters(Shop.Code, RecurringSyncBuffer.Workload));
     end;
 
-    local procedure SetActivationOutcome(var JobQueueEntry: Record "Job Queue Entry"; AzureADGraphUser: Codeunit "Azure AD Graph User"; ApprovalsMgt: Codeunit "Approvals Mgmt."; var ApprovalRequested: Boolean; var LicensedUserHandover: Boolean)
+    local procedure SetActivationOutcome(var JobQueueEntry: Record "Job Queue Entry"; ApprovalsMgt: Codeunit "Approvals Mgmt."; CanActivate: Boolean; ApprovalEnabled: Boolean; var ApprovalRequested: Boolean; var LicensedUserHandover: Boolean)
     begin
-        if TaskScheduler.CanCreateTask() and not AzureADGraphUser.IsUserDelegated() then begin
+        if CanActivate then begin
             JobQueueEntry.SetStatus(JobQueueEntry.Status::Ready);
             exit;
         end;
-        if ApprovalsMgt.CheckJobQueueEntryApprovalEnabled() then begin
-            Commit();
+        if ApprovalEnabled then begin
             ApprovalsMgt.OnSendJobQueueEntryForApproval(JobQueueEntry);
             if not JobQueueEntry.Get(JobQueueEntry.ID) then
                 exit;
@@ -551,7 +560,17 @@ codeunit 30206 "Shpfy Recurring Schedule Mgt."
             Workload::"Catalog Prices":
                 exit(Report::"Shpfy Sync Catalog Prices");
         end;
-        Error(WorkloadNotSupportedErr, Format(Workload));
+        RaiseWorkloadNotSupportedError(Workload);
+    end;
+
+    local procedure RaiseWorkloadNotSupportedError(Workload: Enum "Shpfy Sync Workload")
+    var
+        WorkloadNotSupportedErrorInfo: ErrorInfo;
+    begin
+        WorkloadNotSupportedErrorInfo.ErrorType := ErrorType::Internal;
+        WorkloadNotSupportedErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        WorkloadNotSupportedErrorInfo.Message := StrSubstNo(WorkloadNotSupportedErr, Format(Workload));
+        Error(WorkloadNotSupportedErrorInfo);
     end;
 
     local procedure GetStartingTime(Shop: Record "Shpfy Shop"; Workload: Enum "Shpfy Sync Workload"; var StartingTime: Time; var EarliestStartDateTime: DateTime)
@@ -638,7 +657,7 @@ codeunit 30206 "Shpfy Recurring Schedule Mgt."
             Workload::"Catalog Prices":
                 exit(GetCatalogPriceReportParameters(ShopDataItem, ReportName));
             else
-                Error(WorkloadNotSupportedErr, Format(Workload));
+                RaiseWorkloadNotSupportedError(Workload);
         end;
     end;
 

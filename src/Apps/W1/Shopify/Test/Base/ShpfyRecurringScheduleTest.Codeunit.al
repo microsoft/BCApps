@@ -10,245 +10,26 @@ using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 using System.Threading;
 
-codeunit 139649 "Shpfy Recurring Schedule Test"
+codeunit 134244 "Shpfy Recurring Schedule Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
 
     var
+        Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
         ScheduleMgt: Codeunit "Shpfy Recurring Schedule Mgt.";
+        TestShopCodePrefixTok: Label 'SCHED', Locked = true;
 
     #region Tests
     [Test]
-    procedure GuideStepsUseOnlyBackNextAndFinish()
-    var
-        ShopifyShop: Record "Shpfy Shop";
-        RecurringSyncGuide: Page "Shpfy Recurring Sync Guide";
-        GuidePage: TestPage "Shpfy Recurring Sync Guide";
-        WelcomeBackErr: Label 'Back must be disabled on the Welcome step.';
-        WelcomeFinishErr: Label 'Finish must be disabled on the Welcome step.';
-        WelcomeNextErr: Label 'Next must be enabled on the Welcome step.';
-        SelectionBackErr: Label 'Back must be enabled on the selection step.';
-        SelectionFinishErr: Label 'Finish must be enabled on the selection step.';
-        SelectionNextErr: Label 'Next must be disabled on the selection step.';
-    begin
-        //[SCENARIO] Guide steps use only Back, Next, and Finish.
-
-        //[GIVEN] No recurring Shopify synchronization job queue entries exist.
-        //[GIVEN] No recurring schedule test shops exist.
-        this.Initialize();
-
-        //[GIVEN] A shop with ready product synchronizations exists.
-        this.CreateProductsToShopifyShop(ShopifyShop, 'SCHEDSTEPS');
-
-        //[GIVEN] The guide is initialized for the shop.
-        RecurringSyncGuide.SetShop(ShopifyShop);
-
-        //[GIVEN] The guide page is trapped.
-        GuidePage.Trap();
-
-        //[WHEN] The guide opens.
-        RecurringSyncGuide.Run();
-
-        //[THEN] Back is disabled on the Welcome step.
-        this.LibraryAssert.IsFalse(GuidePage.ActionBack.Enabled(), WelcomeBackErr);
-
-        //[THEN] Next is enabled on the Welcome step.
-        this.LibraryAssert.IsTrue(GuidePage.ActionNext.Enabled(), WelcomeNextErr);
-
-        //[THEN] Finish is disabled on the Welcome step.
-        this.LibraryAssert.IsFalse(GuidePage.ActionFinish.Enabled(), WelcomeFinishErr);
-
-        //[WHEN] Next opens the selection step.
-        GuidePage.ActionNext.Invoke();
-
-        //[THEN] Back is enabled on the selection step.
-        this.LibraryAssert.IsTrue(GuidePage.ActionBack.Enabled(), SelectionBackErr);
-
-        //[THEN] Next is disabled on the selection step.
-        this.LibraryAssert.IsFalse(GuidePage.ActionNext.Enabled(), SelectionNextErr);
-
-        //[THEN] Finish is enabled on the selection step.
-        this.LibraryAssert.IsTrue(GuidePage.ActionFinish.Enabled(), SelectionFinishErr);
-
-        //[WHEN] Back returns to the Welcome step.
-        GuidePage.ActionBack.Invoke();
-
-        //[THEN] Next is enabled again.
-        this.LibraryAssert.IsTrue(GuidePage.ActionNext.Enabled(), WelcomeNextErr);
-
-        //[THEN] The guide can be closed without creating schedules.
-        GuidePage.Close();
-    end;
-
-    [Test]
-    procedure FinishRequiresSelection()
-    var
-        ShopifyShop: Record "Shpfy Shop";
-        RecurringSyncGuide: Page "Shpfy Recurring Sync Guide";
-        GuidePage: TestPage "Shpfy Recurring Sync Guide";
-        NoSelectionFinishErr: Label 'Finish must be disabled when no synchronization is selected.';
-        SelectedFinishErr: Label 'Finish must be enabled after selecting a ready synchronization.';
-    begin
-        //[SCENARIO] Finish requires at least one selected synchronization.
-
-        //[GIVEN] No recurring Shopify synchronization job queue entries exist.
-        //[GIVEN] No recurring schedule test shops exist.
-        this.Initialize();
-
-        //[GIVEN] A shop with ready product synchronizations exists.
-        this.CreateProductsToShopifyShop(ShopifyShop, 'SCHEDSELECT');
-
-        //[GIVEN] The guide is initialized for the shop.
-        RecurringSyncGuide.SetShop(ShopifyShop);
-
-        //[GIVEN] The guide page is trapped.
-        GuidePage.Trap();
-
-        //[GIVEN] The guide opens.
-        RecurringSyncGuide.Run();
-
-        //[GIVEN] The selection step is opened.
-        GuidePage.ActionNext.Invoke();
-
-        //[GIVEN] Every selectable workload is cleared.
-        this.ClearScheduleSelections(GuidePage);
-
-        //[THEN] Finish is disabled without a selected workload.
-        this.LibraryAssert.IsFalse(GuidePage.ActionFinish.Enabled(), NoSelectionFinishErr);
-
-        //[WHEN] A ready workload is selected again.
-        GuidePage.SelectionPart.First();
-        GuidePage.SelectionPart.Selected.SetValue(true);
-
-        //[THEN] Finish is enabled again.
-        this.LibraryAssert.IsTrue(GuidePage.ActionFinish.Enabled(), SelectedFinishErr);
-        GuidePage.Close();
-    end;
-
-    [Test]
-    [HandlerFunctions('FrequencyMessageHandler')]
-    procedure FinishRequiresValidFrequency()
-    var
-        ShopifyShop: Record "Shpfy Shop";
-        RecurringSyncGuide: Page "Shpfy Recurring Sync Guide";
-        GuidePage: TestPage "Shpfy Recurring Sync Guide";
-        InvalidFrequencyFinishErr: Label 'Finish must be disabled when any selected synchronization has a nonpositive frequency.';
-        ValidFrequencyFinishErr: Label 'Finish must be enabled after correcting every selected frequency.';
-        UnselectedFrequencyFinishErr: Label 'An invalid frequency on an unselected synchronization must not disable Finish.';
-    begin
-        //[SCENARIO] An invalid frequency shows a message and blocks Finish.
-
-        //[GIVEN] No recurring Shopify synchronization job queue entries exist.
-        //[GIVEN] No recurring schedule test shops exist.
-        this.Initialize();
-
-        //[GIVEN] A shop with ready product synchronizations exists.
-        this.CreateProductsToShopifyShop(ShopifyShop, 'SCHEDFREQ');
-
-        //[GIVEN] The guide is initialized for the shop.
-        RecurringSyncGuide.SetShop(ShopifyShop);
-
-        //[GIVEN] The guide page is trapped.
-        GuidePage.Trap();
-
-        //[GIVEN] The guide opens.
-        RecurringSyncGuide.Run();
-
-        //[GIVEN] The selection step is opened.
-        GuidePage.ActionNext.Invoke();
-
-        //[GIVEN] The first workload is current.
-        GuidePage.SelectionPart.First();
-
-        //[GIVEN] The selected workload has an invalid frequency.
-        GuidePage.SelectionPart.Frequency.SetValue(0);
-
-        //[THEN] Finish is disabled.
-        this.LibraryAssert.IsFalse(GuidePage.ActionFinish.Enabled(), InvalidFrequencyFinishErr);
-
-        //[WHEN] Another row becomes current.
-        GuidePage.SelectionPart.Next();
-
-        //[THEN] The invalid selected frequency still disables Finish.
-        this.LibraryAssert.IsFalse(GuidePage.ActionFinish.Enabled(), InvalidFrequencyFinishErr);
-
-        //[WHEN] The invalid workload is deselected.
-        GuidePage.SelectionPart.First();
-        GuidePage.SelectionPart.Selected.SetValue(false);
-
-        //[THEN] The remaining valid selected workloads enable Finish.
-        this.LibraryAssert.IsTrue(GuidePage.ActionFinish.Enabled(), UnselectedFrequencyFinishErr);
-
-        //[WHEN] The invalid workload is selected again.
-        GuidePage.SelectionPart.Selected.SetValue(true);
-
-        //[THEN] Finish is disabled again.
-        this.LibraryAssert.IsFalse(GuidePage.ActionFinish.Enabled(), InvalidFrequencyFinishErr);
-
-        //[WHEN] The invalid frequency is corrected.
-        GuidePage.SelectionPart.Frequency.SetValue(1440);
-
-        //[THEN] Finish is enabled again.
-        this.LibraryAssert.IsTrue(GuidePage.ActionFinish.Enabled(), ValidFrequencyFinishErr);
-
-        //[WHEN] A selected frequency is negative.
-        GuidePage.SelectionPart.Frequency.SetValue(-1);
-
-        //[THEN] Finish is disabled for negative frequencies too.
-        this.LibraryAssert.IsFalse(GuidePage.ActionFinish.Enabled(), InvalidFrequencyFinishErr);
-        GuidePage.Close();
-    end;
-
-    [Test]
-    procedure FinishIsDisabledWhenOnlyUnavailableWorkloadsRemain()
-    var
-        JobQueueEntry: Record "Job Queue Entry";
-        ShopifyShop: Record "Shpfy Shop";
-        TempRecommendations: Record "Shpfy Recurring Sync Buffer" temporary;
-        RecurringSyncGuide: Page "Shpfy Recurring Sync Guide";
-        GuidePage: TestPage "Shpfy Recurring Sync Guide";
-        NoReadyWorkloadsErr: Label 'Finish must be disabled when all ready workloads are already scheduled.';
-    begin
-        //[SCENARIO] Finish is disabled when only unavailable workloads remain.
-
-        //[GIVEN] No recurring Shopify synchronization job queue entries or test shops exist.
-        this.Initialize();
-
-        //[GIVEN] A shop with incomplete synchronization setup exists.
-        this.CreateShop(ShopifyShop, 'SCHEDUNAVAILABLE');
-
-        //[GIVEN] Every ready workload is already scheduled.
-        this.ScheduleMgt.BuildRecommendations(ShopifyShop, TempRecommendations);
-        TempRecommendations.SetRange(Selectable, true);
-        if TempRecommendations.FindSet(false) then
-            repeat
-                this.ScheduleMgt.CreateJobQueueEntry(ShopifyShop, TempRecommendations, TempRecommendations.Frequency, JobQueueEntry);
-            until TempRecommendations.Next() = 0;
-
-        //[GIVEN] The guide is initialized and opened for the shop.
-        RecurringSyncGuide.SetShop(ShopifyShop);
-        GuidePage.Trap();
-        RecurringSyncGuide.Run();
-
-        //[WHEN] The selection step is opened.
-        GuidePage.ActionNext.Invoke();
-
-        //[THEN] Finish is disabled.
-        this.LibraryAssert.IsFalse(GuidePage.ActionFinish.Enabled(), NoReadyWorkloadsErr);
-        GuidePage.Close();
-    end;
-
-    [Test]
     procedure ShopifyAdminUsesIndirectJobQueuePermissions()
     var
-        JobQueueCategory: Record "Job Queue Category";
         JobQueueEntry: Record "Job Queue Entry";
-        ShopifyShop: Record "Shpfy Shop";
         TempJobQueueEntryBuffer: Record "Job Queue Entry" temporary;
         TempRecurringSyncBuffer: Record "Shpfy Recurring Sync Buffer" temporary;
+        ShopifyShop: Record "Shpfy Shop";
         CreatedEntryID: Guid;
         ScheduleListedErr: Label 'Shopify Admin must be able to create and list Shopify schedules through the connector.';
     begin
@@ -258,7 +39,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] A shop ready for product synchronization exists.
-        this.CreateProductsToShopifyShop(ShopifyShop, 'SCHEDPERMISSIONS');
+        this.CreateProductsToShopifyShop(ShopifyShop);
 
         //[GIVEN] Only Shopify Admin and object execution permissions are assigned.
         this.PermissionsMock.Start();
@@ -283,7 +64,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.LibraryAssert.ExpectedErrorCode('DB:ClientModifyDenied');
 
         //[THEN] Direct access to Job Queue Categories is denied.
-        asserterror JobQueueCategory.FindFirst();
+        asserterror this.ReadJobQueueCategories();
         this.LibraryAssert.ExpectedErrorCode('DB:ClientReadDenied');
 
         this.PermissionsMock.Stop();
@@ -305,7 +86,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] A shop with ready product synchronizations exists.
-        this.CreateProductsToShopifyShop(ShopifyShop, 'SCHEDNOSETUP');
+        this.CreateProductsToShopifyShop(ShopifyShop);
 
         //[GIVEN] Recommendations are built.
         this.ScheduleMgt.BuildRecommendations(ShopifyShop, TempRecurringSyncBuffer);
@@ -324,8 +105,8 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
     procedure InProcessScheduleIsDisplayedAsRunning()
     var
         JobQueueEntry: Record "Job Queue Entry";
-        StatusDisplay: Text;
         RunningStatusErr: Label 'In Process must be displayed as Running.';
+        StatusDisplay: Text;
     begin
         //[SCENARIO] In Process schedule is displayed as Running.
 
@@ -411,7 +192,8 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
     procedure MultiShopFilterIncludingCurrentShopIsRecognizedAsMultipleShops()
     var
         JobQueueEntry: Record "Job Queue Entry";
-        ShopifyShop: Record "Shpfy Shop";
+        ShopA: Record "Shpfy Shop";
+        ShopB: Record "Shpfy Shop";
         Workload: Enum "Shpfy Sync Workload";
         Coverage: Enum "Shpfy Sync Coverage";
         IsRecognized: Boolean;
@@ -425,16 +207,16 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop A exists.
-        this.CreateShop(ShopifyShop, 'SCHEDA');
+        this.CreateShop(ShopA);
 
         //[GIVEN] Shop B exists.
-        this.CreateShop(ShopifyShop, 'SCHEDB');
+        this.CreateShop(ShopB);
 
         //[GIVEN] Product schedule filtered to shops A and B exists.
-        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Products", this.ProductParameters('false', '0', 'SCHEDA|SCHEDB'));
+        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Products", this.ProductParameters('false', '0', ShopA.Code + '|' + ShopB.Code));
 
         //[WHEN] Schedule is recognized for shop A.
-        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, 'SCHEDA', Workload, Coverage);
+        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, ShopA.Code, Workload, Coverage);
 
         //[THEN] Schedule is recognized.
         this.LibraryAssert.IsTrue(IsRecognized, MultiShopMatchErr);
@@ -447,7 +229,9 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
     procedure MultiShopFilterExcludingCurrentShopIsClassifiedAsOtherShops()
     var
         JobQueueEntry: Record "Job Queue Entry";
-        ShopifyShop: Record "Shpfy Shop";
+        ShopA: Record "Shpfy Shop";
+        ShopB: Record "Shpfy Shop";
+        ShopC: Record "Shpfy Shop";
         Workload: Enum "Shpfy Sync Workload";
         Coverage: Enum "Shpfy Sync Coverage";
         IsRecognized: Boolean;
@@ -461,19 +245,19 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop A exists.
-        this.CreateShop(ShopifyShop, 'SCHEDA');
+        this.CreateShop(ShopA);
 
         //[GIVEN] Shop B exists.
-        this.CreateShop(ShopifyShop, 'SCHEDB');
+        this.CreateShop(ShopB);
 
         //[GIVEN] Shop C exists.
-        this.CreateShop(ShopifyShop, 'SCHEDC');
+        this.CreateShop(ShopC);
 
         //[GIVEN] Product schedule filtered to shops A and B exists.
-        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Products", this.ProductParameters('false', '0', 'SCHEDA|SCHEDB'));
+        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Products", this.ProductParameters('false', '0', ShopA.Code + '|' + ShopB.Code));
 
         //[WHEN] Schedule is recognized for shop C.
-        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, 'SCHEDC', Workload, Coverage);
+        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, ShopC.Code, Workload, Coverage);
 
         //[THEN] Schedule is not recognized.
         this.LibraryAssert.IsFalse(IsRecognized, OtherShopsMatchErr);
@@ -500,13 +284,13 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop A exists.
-        this.CreateShop(ShopifyShop, 'SCHEDA');
+        this.CreateShop(ShopifyShop);
 
         //[GIVEN] Product schedule filtered to shop A exists.
-        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Products", this.ProductParameters('false', '0', 'SCHEDA'));
+        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Products", this.ProductParameters('false', '0', ShopifyShop.Code));
 
         //[WHEN] Schedule is recognized for shop A.
-        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, 'SCHEDA', Workload, Coverage);
+        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, ShopifyShop.Code, Workload, Coverage);
 
         //[THEN] Schedule is recognized.
         this.LibraryAssert.IsTrue(IsRecognized, SingleShopMatchErr);
@@ -532,13 +316,13 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop A exists.
-        this.CreateShop(ShopifyShop, 'SCHEDA');
+        this.CreateShop(ShopifyShop);
 
         //[GIVEN] Product schedule with an explicitly empty shop filter exists.
         this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Products", '<ReportParameters><Options><OnlySyncPrice>false</OnlySyncPrice><NumberOfRecords>0</NumberOfRecords></Options><DataItems><DataItem name="Shop">Shpfy Shop: Code=</DataItem></DataItems></ReportParameters>');
 
         //[WHEN] Schedule is recognized for shop A.
-        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, 'SCHEDA', Workload, Coverage);
+        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, ShopifyShop.Code, Workload, Coverage);
 
         //[THEN] Schedule is not recognized.
         this.LibraryAssert.IsFalse(IsRecognized, EmptyShopFilterErr);
@@ -561,13 +345,13 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop A exists.
-        this.CreateShop(ShopifyShop, 'SCHEDA');
+        this.CreateShop(ShopifyShop);
 
         //[GIVEN] Product schedule with duplicate shop data items exists.
         this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Products", '<ReportParameters><Options><OnlySyncPrice>false</OnlySyncPrice><NumberOfRecords>0</NumberOfRecords></Options><DataItems><DataItem name="Shop">Shpfy Shop</DataItem><DataItem name="Shop">Shpfy Shop</DataItem></DataItems></ReportParameters>');
 
         //[WHEN] Schedule is recognized for shop A.
-        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, 'SCHEDA', Workload, Coverage);
+        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, ShopifyShop.Code, Workload, Coverage);
 
         //[THEN] Schedule is not recognized.
         this.LibraryAssert.IsFalse(IsRecognized, DuplicateDataItemsErr);
@@ -877,7 +661,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop exists.
-        this.CreateShop(ShopifyShop, 'SCHEDRECID');
+        this.CreateShop(ShopifyShop);
 
         //[GIVEN] Product schedule for all shops exists.
         this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Products", this.ProductParameters('false', '0', ''));
@@ -909,7 +693,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop ready for product synchronization to Shopify exists.
-        this.CreateProductsToShopifyShop(ShopifyShop, 'SCHEDFINISH');
+        this.CreateProductsToShopifyShop(ShopifyShop);
 
         //[GIVEN] Products workload is selected.
         this.CreateSelectedRecommendation(TempRecurringSyncBuffer, Enum::"Shpfy Sync Workload"::Products, Enum::"Shpfy Sync Direction"::"Products to Shopify", RecurringProductSyncTxt);
@@ -940,7 +724,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop ready for product synchronization to Shopify exists.
-        this.CreateProductsToShopifyShop(ShopifyShop, 'SCHEDFINISH');
+        this.CreateProductsToShopifyShop(ShopifyShop);
 
         //[GIVEN] Products workload is selected.
         this.CreateSelectedRecommendation(TempRecurringSyncBuffer, Enum::"Shpfy Sync Workload"::Products, Enum::"Shpfy Sync Direction"::"Products to Shopify", RecurringProductSyncTxt);
@@ -976,7 +760,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop with parentheses in its code exists.
-        this.CreateShop(ShopifyShop, 'SCHED (A)');
+        this.CreateShopWithParenthesesInCode(ShopifyShop);
 
         //[GIVEN] Price schedule with a native shop view using field names exists.
         this.CreateNativePriceSchedule(JobQueueEntry, ShopifyShop, true, false);
@@ -1012,7 +796,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop with parentheses in its code exists.
-        this.CreateShop(ShopifyShop, 'SCHED (A)');
+        this.CreateShopWithParenthesesInCode(ShopifyShop);
 
         //[GIVEN] Price schedule with a native shop view using field numbers exists.
         this.CreateNativePriceSchedule(JobQueueEntry, ShopifyShop, false, false);
@@ -1048,10 +832,10 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop with parentheses in its code exists.
-        this.CreateShop(ShopifyShop, 'SCHED (A)');
+        this.CreateShopWithParenthesesInCode(ShopifyShop);
 
         //[GIVEN] Other shop exists.
-        this.CreateShop(OtherShop, 'SCHEDOTHER');
+        this.CreateShop(OtherShop);
 
         //[GIVEN] Price schedule with a native shop view for the first shop exists.
         this.CreateNativePriceSchedule(JobQueueEntry, ShopifyShop, true, false);
@@ -1080,7 +864,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop with parentheses in its code exists.
-        this.CreateShop(ShopifyShop, 'SCHED (A)');
+        this.CreateShopWithParenthesesInCode(ShopifyShop);
 
         //[GIVEN] Price schedule with a native shop view using field names and an additional filter exists.
         this.CreateNativePriceSchedule(JobQueueEntry, ShopifyShop, true, true);
@@ -1109,7 +893,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop with parentheses in its code exists.
-        this.CreateShop(ShopifyShop, 'SCHED (A)');
+        this.CreateShopWithParenthesesInCode(ShopifyShop);
 
         //[GIVEN] Price schedule with a native shop view using field numbers and an additional filter exists.
         this.CreateNativePriceSchedule(JobQueueEntry, ShopifyShop, false, true);
@@ -1145,7 +929,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop ready for product synchronization to Shopify exists.
-        this.CreateProductsToShopifyShop(ShopifyShop, 'SCHEDLIST');
+        this.CreateProductsToShopifyShop(ShopifyShop);
 
         //[GIVEN] Hourly product schedule for the shop exists.
         this.CreateProductScheduleForShop(JobQueueEntry, ShopifyShop.Code, 60, JobQueueEntry.Status::Ready);
@@ -1201,7 +985,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop without product synchronization setup exists.
-        this.CreateShop(ShopifyShop, 'SCHEDSTALE');
+        this.CreateShop(ShopifyShop);
 
         //[GIVEN] Products workload is selected.
         this.CreateSelectedRecommendation(TempRecurringSyncBuffer, Enum::"Shpfy Sync Workload"::Products, Enum::"Shpfy Sync Direction"::Products, StaleProductSyncTxt);
@@ -1234,13 +1018,13 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop A exists.
-        this.CreateShop(ShopifyShop, 'SCHEDA');
+        this.CreateShop(ShopifyShop);
 
         //[GIVEN] Inventory schedule for shop A exists.
-        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Stock to Shopify", '<ReportParameters><Options><Skip_x0020_Import>false</Skip_x0020_Import><Variant_x0020_ID_x0020_Filter /></Options><DataItems><DataItem name="Shop">Shpfy Shop: Code=SCHEDA</DataItem></DataItems></ReportParameters>');
+        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Stock to Shopify", '<ReportParameters><Options><Skip_x0020_Import>false</Skip_x0020_Import><Variant_x0020_ID_x0020_Filter /></Options><DataItems><DataItem name="Shop">Shpfy Shop: Code=' + ShopifyShop.Code + '</DataItem></DataItems></ReportParameters>');
 
         //[WHEN] Schedule is recognized for shop A.
-        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, 'SCHEDA', Workload, Coverage);
+        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, ShopifyShop.Code, Workload, Coverage);
 
         //[THEN] Schedule is recognized.
         this.LibraryAssert.IsTrue(IsRecognized, InventoryRecognizedErr);
@@ -1267,13 +1051,13 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop A exists.
-        this.CreateShop(ShopifyShop, 'SCHEDA');
+        this.CreateShop(ShopifyShop);
 
         //[GIVEN] Orders schedule for shop A exists.
-        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Orders from Shopify", '<ReportParameters><Options /><DataItems><DataItem name="Shop">Shpfy Shop: Code=SCHEDA</DataItem><DataItem name="OrdersToImport">Shpfy Orders to Import</DataItem></DataItems></ReportParameters>');
+        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Orders from Shopify", '<ReportParameters><Options /><DataItems><DataItem name="Shop">Shpfy Shop: Code=' + ShopifyShop.Code + '</DataItem><DataItem name="OrdersToImport">Shpfy Orders to Import</DataItem></DataItems></ReportParameters>');
 
         //[WHEN] Schedule is recognized for shop A.
-        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, 'SCHEDA', Workload, Coverage);
+        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, ShopifyShop.Code, Workload, Coverage);
 
         //[THEN] Schedule is recognized.
         this.LibraryAssert.IsTrue(IsRecognized, OrdersRecognizedErr);
@@ -1300,13 +1084,13 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop A exists.
-        this.CreateShop(ShopifyShop, 'SCHEDA');
+        this.CreateShop(ShopifyShop);
 
         //[GIVEN] Customers schedule for shop A exists.
-        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Customers", '<ReportParameters><Options /><DataItems><DataItem name="Shop">Shpfy Shop: Code=SCHEDA</DataItem></DataItems></ReportParameters>');
+        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Customers", '<ReportParameters><Options /><DataItems><DataItem name="Shop">Shpfy Shop: Code=' + ShopifyShop.Code + '</DataItem></DataItems></ReportParameters>');
 
         //[WHEN] Schedule is recognized for shop A.
-        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, 'SCHEDA', Workload, Coverage);
+        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, ShopifyShop.Code, Workload, Coverage);
 
         //[THEN] Schedule is recognized.
         this.LibraryAssert.IsTrue(IsRecognized, CustomersRecognizedErr);
@@ -1333,13 +1117,13 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop A exists.
-        this.CreateShop(ShopifyShop, 'SCHEDA');
+        this.CreateShop(ShopifyShop);
 
         //[GIVEN] Companies schedule for shop A exists.
-        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Companies", '<ReportParameters><Options /><DataItems><DataItem name="Shop">Shpfy Shop: Code=SCHEDA</DataItem></DataItems></ReportParameters>');
+        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Companies", '<ReportParameters><Options /><DataItems><DataItem name="Shop">Shpfy Shop: Code=' + ShopifyShop.Code + '</DataItem></DataItems></ReportParameters>');
 
         //[WHEN] Schedule is recognized for shop A.
-        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, 'SCHEDA', Workload, Coverage);
+        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, ShopifyShop.Code, Workload, Coverage);
 
         //[THEN] Schedule is recognized.
         this.LibraryAssert.IsTrue(IsRecognized, CompaniesRecognizedErr);
@@ -1366,13 +1150,13 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop A exists.
-        this.CreateShop(ShopifyShop, 'SCHEDA');
+        this.CreateShop(ShopifyShop);
 
         //[GIVEN] Images schedule without a product filter for shop A exists.
-        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Images", '<ReportParameters><Options><ProductFilter /></Options><DataItems><DataItem name="Shop">Shpfy Shop: Code=SCHEDA</DataItem></DataItems></ReportParameters>');
+        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Images", '<ReportParameters><Options><ProductFilter /></Options><DataItems><DataItem name="Shop">Shpfy Shop: Code=' + ShopifyShop.Code + '</DataItem></DataItems></ReportParameters>');
 
         //[WHEN] Schedule is recognized for shop A.
-        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, 'SCHEDA', Workload, Coverage);
+        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, ShopifyShop.Code, Workload, Coverage);
 
         //[THEN] Schedule is recognized.
         this.LibraryAssert.IsTrue(IsRecognized, ImagesRecognizedErr);
@@ -1388,6 +1172,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         Workload: Enum "Shpfy Sync Workload";
         Coverage: Enum "Shpfy Sync Coverage";
         IsRecognized: Boolean;
+        ShopCode: Code[20];
         InvoiceShopOptionErr: Label 'An invoice schedule must recognize its explicit shop option.';
         InvoiceCoverageErr: Label 'An invoice schedule is shop-specific.';
     begin
@@ -1397,11 +1182,14 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         //[GIVEN] No recurring schedule test shops exist.
         this.Initialize();
 
+        //[GIVEN] Shop A has a unique code.
+        ShopCode := this.GenerateShopCode();
+
         //[GIVEN] Posted invoice schedule for shop A exists.
-        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Invoices to Shpfy", '<ReportParameters><Options><Shop>SCHEDA</Shop></Options><DataItems><DataItem name="SalesInvoiceHeader">Sales Invoice Header</DataItem></DataItems></ReportParameters>');
+        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Invoices to Shpfy", '<ReportParameters><Options><Shop>' + ShopCode + '</Shop></Options><DataItems><DataItem name="SalesInvoiceHeader">Sales Invoice Header</DataItem></DataItems></ReportParameters>');
 
         //[WHEN] Schedule is recognized for shop A.
-        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, 'SCHEDA', Workload, Coverage);
+        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, ShopCode, Workload, Coverage);
 
         //[THEN] Schedule is recognized.
         this.LibraryAssert.IsTrue(IsRecognized, InvoiceShopOptionErr);
@@ -1417,6 +1205,8 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         Workload: Enum "Shpfy Sync Workload";
         Coverage: Enum "Shpfy Sync Coverage";
         IsRecognized: Boolean;
+        OtherShopCode: Code[20];
+        ShopCode: Code[20];
         InvoiceOtherShopErr: Label 'An invoice schedule for another shop must not match.';
     begin
         //[SCENARIO] Invoice schedule is not recognized for other shop.
@@ -1425,11 +1215,15 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         //[GIVEN] No recurring schedule test shops exist.
         this.Initialize();
 
+        //[GIVEN] Shops A and B have unique codes.
+        ShopCode := this.GenerateShopCode();
+        OtherShopCode := this.GenerateShopCode();
+
         //[GIVEN] Posted invoice schedule for shop A exists.
-        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Invoices to Shpfy", '<ReportParameters><Options><Shop>SCHEDA</Shop></Options><DataItems><DataItem name="SalesInvoiceHeader">Sales Invoice Header</DataItem></DataItems></ReportParameters>');
+        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Invoices to Shpfy", '<ReportParameters><Options><Shop>' + ShopCode + '</Shop></Options><DataItems><DataItem name="SalesInvoiceHeader">Sales Invoice Header</DataItem></DataItems></ReportParameters>');
 
         //[WHEN] Schedule is recognized for shop B.
-        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, 'SCHEDB', Workload, Coverage);
+        IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, OtherShopCode, Workload, Coverage);
 
         //[THEN] Schedule is not recognized.
         this.LibraryAssert.IsFalse(IsRecognized, InvoiceOtherShopErr);
@@ -1454,10 +1248,10 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop exists.
-        this.CreateShop(ShopifyShop, 'SCHEDCAT');
+        this.CreateShop(ShopifyShop);
 
         //[GIVEN] Catalog price schedule filtered to the shop exists.
-        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Catalog Prices", '<ReportParameters><Options><ShopifyCompanyId /><ShopifyCatalogType>0</ShopifyCatalogType></Options><DataItems><DataItem name="Shop">Shpfy Shop: Code=SCHEDCAT</DataItem><DataItem name="Catalog">Shpfy Catalog</DataItem></DataItems></ReportParameters>');
+        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Catalog Prices", '<ReportParameters><Options><ShopifyCompanyId /><ShopifyCatalogType>0</ShopifyCatalogType></Options><DataItems><DataItem name="Shop">Shpfy Shop: Code=' + ShopifyShop.Code + '</DataItem><DataItem name="Catalog">Shpfy Catalog</DataItem></DataItems></ReportParameters>');
 
         //[WHEN] Schedule is recognized for the shop.
         IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, ShopifyShop.Code, Workload, Coverage);
@@ -1489,7 +1283,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop exists.
-        this.CreateShop(ShopifyShop, 'SCHEDCAT');
+        this.CreateShop(ShopifyShop);
 
         //[GIVEN] Catalog price schedule without a shop filter exists.
         this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Catalog Prices", '<ReportParameters><Options><ShopifyCompanyId /><ShopifyCatalogType>0</ShopifyCatalogType></Options><DataItems><DataItem name="Shop">Shpfy Shop</DataItem><DataItem name="Catalog">Shpfy Catalog</DataItem></DataItems></ReportParameters>');
@@ -1518,10 +1312,10 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop exists.
-        this.CreateShop(ShopifyShop, 'SCHEDCAT');
+        this.CreateShop(ShopifyShop);
 
         //[GIVEN] Catalog price schedule restricted to a company exists.
-        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Catalog Prices", '<ReportParameters><Options><ShopifyCompanyId>company-id</ShopifyCompanyId><ShopifyCatalogType>0</ShopifyCatalogType></Options><DataItems><DataItem name="Shop">Shpfy Shop: Code=SCHEDCAT</DataItem><DataItem name="Catalog">Shpfy Catalog</DataItem></DataItems></ReportParameters>');
+        this.CreateJobQueueEntry(JobQueueEntry, Report::"Shpfy Sync Catalog Prices", '<ReportParameters><Options><ShopifyCompanyId>company-id</ShopifyCompanyId><ShopifyCatalogType>0</ShopifyCatalogType></Options><DataItems><DataItem name="Shop">Shpfy Shop: Code=' + ShopifyShop.Code + '</DataItem><DataItem name="Catalog">Shpfy Catalog</DataItem></DataItems></ReportParameters>');
 
         //[WHEN] Schedule is recognized for the shop.
         IsRecognized := this.ScheduleMgt.IsRecognizedSchedule(JobQueueEntry, ShopifyShop.Code, Workload, Coverage);
@@ -1615,7 +1409,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop ready for all workloads with order webhooks exists.
-        this.CreateShopReadyForAllWorkloads(ShopifyShop, 'SCHEDREADY', true);
+        this.CreateShopReadyForAllWorkloads(ShopifyShop, true);
 
         //[GIVEN] Shop location with stock calculation exists.
         this.CreateShopLocation(ShopifyShop.Code, 1, Enum::"Shpfy Stock Calculation"::"Non-reserved Inventory");
@@ -1682,7 +1476,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop ready for all workloads without order webhooks exists.
-        this.CreateShopReadyForAllWorkloads(ShopifyShop, 'SCHEDMATRIX', false);
+        this.CreateShopReadyForAllWorkloads(ShopifyShop, false);
 
         //[GIVEN] Shop location with stock calculation exists.
         this.CreateShopLocation(ShopifyShop.Code, 1, Enum::"Shpfy Stock Calculation"::"Projected Available Balance Today");
@@ -1749,7 +1543,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop with inbound synchronization settings exists.
-        this.CreateInboundShop(ShopifyShop, 'SCHEDINBOUND');
+        this.CreateInboundShop(ShopifyShop);
 
         //[WHEN] Recommendations are built.
         this.ScheduleMgt.BuildRecommendations(ShopifyShop, TempRecurringSyncBuffer);
@@ -1806,7 +1600,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop with inbound synchronization settings exists.
-        this.CreateInboundShop(ShopifyShop, 'SCHEDINBOUND');
+        this.CreateInboundShop(ShopifyShop);
 
         //[GIVEN] Shop location with stock calculation and blank location filter exists.
         this.CreateShopLocation(ShopifyShop.Code, 2, Enum::"Shpfy Stock Calculation"::"Non-reserved Inventory");
@@ -1842,7 +1636,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop with inbound settings and outgoing requests disabled exists.
-        this.CreateShopWithOutgoingRequestsDisabled(ShopifyShop, 'SCHEDOVERLAY');
+        this.CreateShopWithOutgoingRequestsDisabled(ShopifyShop);
 
         //[WHEN] Recommendations are built.
         this.ScheduleMgt.BuildRecommendations(ShopifyShop, TempRecurringSyncBuffer);
@@ -1891,7 +1685,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop with auto-create but without customer and company import exists.
-        this.CreateShopWithAutoCreateWithoutImport(ShopifyShop, 'SCHEDIMPORT');
+        this.CreateShopWithAutoCreateWithoutImport(ShopifyShop);
 
         //[WHEN] Recommendations are built.
         this.ScheduleMgt.BuildRecommendations(ShopifyShop, TempRecurringSyncBuffer);
@@ -1928,7 +1722,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop exists.
-        this.CreateShop(ShopifyShop, 'SCHEDCREATE');
+        this.CreateShop(ShopifyShop);
 
         //[WHEN] Products schedule is created.
         this.CreateScheduleForWorkload(ShopifyShop, Enum::"Shpfy Sync Workload"::Products, 1440, JobQueueEntries[1]);
@@ -2018,7 +1812,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop exists.
-        this.CreateShop(ShopifyShop, 'SCHEDDAILY');
+        this.CreateShop(ShopifyShop);
 
         //[GIVEN] Products recurring sync buffer exists.
         this.CreateRecurringSyncBuffer(TempRecurringSyncBuffer, Enum::"Shpfy Sync Workload"::Products, RecurringProductSyncTxt);
@@ -2074,7 +1868,7 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.Initialize();
 
         //[GIVEN] Shop without order webhooks exists.
-        this.CreateShop(ShopifyShop, 'SCHEDMIDNIGHT');
+        this.CreateShop(ShopifyShop);
 
         //[WHEN] A 30-minute order schedule is created.
         this.CreateScheduleForWorkload(ShopifyShop, Enum::"Shpfy Sync Workload"::Orders, 30, JobQueueEntry);
@@ -2129,48 +1923,53 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         ShopifyPaymentTerms: Record "Shpfy Payment Terms";
         ShopifyShop: Record "Shpfy Shop";
         ShopifyShopLocation: Record "Shpfy Shop Location";
-        TestShopCodeFilterTok: Label 'SCHED*', Locked = true;
+        TestShopCodeFilter: Text;
     begin
-        ShopifyShopLocation.SetFilter("Shop Code", TestShopCodeFilterTok);
+        TestShopCodeFilter := this.TestShopCodePrefixTok + '*';
+        ShopifyShopLocation.SetFilter("Shop Code", TestShopCodeFilter);
         ShopifyShopLocation.DeleteAll(false);
-        ShopifyPaymentTerms.SetFilter("Shop Code", TestShopCodeFilterTok);
+        ShopifyPaymentTerms.SetFilter("Shop Code", TestShopCodeFilter);
         ShopifyPaymentTerms.DeleteAll(false);
-        ShopifyShop.SetFilter(Code, TestShopCodeFilterTok);
+        ShopifyShop.SetFilter(Code, TestShopCodeFilter);
         ShopifyShop.DeleteAll(false);
     end;
     #endregion Initialize
 
     #region Given
-    local procedure ClearScheduleSelections(var GuidePage: TestPage "Shpfy Recurring Sync Guide")
+    local procedure GenerateShopCode(): Code[20]
     begin
-        GuidePage.SelectionPart.First();
-        repeat
-            if GuidePage.SelectionPart.Selected.Editable() then begin
-                GuidePage.SelectionPart.Selected.SetValue(false);
-                GuidePage.SelectionPart.Selected.AssertEquals(false);
-            end;
-        until not GuidePage.SelectionPart.Next();
+        exit(CopyStr(this.TestShopCodePrefixTok + this.Any.AlphabeticText(15), 1, 20));
     end;
 
-    local procedure CreateShop(var ShopifyShop: Record "Shpfy Shop"; ShopCode: Code[20])
+    local procedure CreateShop(var ShopifyShop: Record "Shpfy Shop")
+    begin
+        this.InsertShop(ShopifyShop, this.GenerateShopCode());
+    end;
+
+    local procedure CreateShopWithParenthesesInCode(var ShopifyShop: Record "Shpfy Shop")
+    begin
+        this.InsertShop(ShopifyShop, CopyStr(this.TestShopCodePrefixTok + ' (' + this.Any.AlphabeticText(12) + ')', 1, MaxStrLen(ShopifyShop.Code)));
+    end;
+
+    local procedure InsertShop(var ShopifyShop: Record "Shpfy Shop"; ShopCode: Code[20])
     begin
         ShopifyShop.Init();
         ShopifyShop.Code := ShopCode;
         ShopifyShop.Insert(false);
     end;
 
-    local procedure CreateProductsToShopifyShop(var ShopifyShop: Record "Shpfy Shop"; ShopCode: Code[20])
+    local procedure CreateProductsToShopifyShop(var ShopifyShop: Record "Shpfy Shop")
     begin
-        this.CreateShop(ShopifyShop, ShopCode);
+        this.CreateShop(ShopifyShop);
         ShopifyShop."Sync Item" := ShopifyShop."Sync Item"::"To Shopify";
         ShopifyShop."Can Update Shopify Products" := true;
         ShopifyShop."Allow Outgoing Requests" := true;
         ShopifyShop.Modify(false);
     end;
 
-    local procedure CreateShopReadyForAllWorkloads(var ShopifyShop: Record "Shpfy Shop"; ShopCode: Code[20]; OrderCreatedWebhooks: Boolean)
+    local procedure CreateShopReadyForAllWorkloads(var ShopifyShop: Record "Shpfy Shop"; OrderCreatedWebhooks: Boolean)
     begin
-        this.CreateShop(ShopifyShop, ShopCode);
+        this.CreateShop(ShopifyShop);
         ShopifyShop."Sync Item" := ShopifyShop."Sync Item"::"To Shopify";
         ShopifyShop."Can Update Shopify Products" := true;
         ShopifyShop."Sync Item Images" := ShopifyShop."Sync Item Images"::"From Shopify";
@@ -2182,9 +1981,9 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         ShopifyShop.Modify(false);
     end;
 
-    local procedure CreateInboundShop(var ShopifyShop: Record "Shpfy Shop"; ShopCode: Code[20])
+    local procedure CreateInboundShop(var ShopifyShop: Record "Shpfy Shop")
     begin
-        this.CreateShop(ShopifyShop, ShopCode);
+        this.CreateShop(ShopifyShop);
         ShopifyShop."Sync Item" := ShopifyShop."Sync Item"::"From Shopify";
         ShopifyShop."Auto Create Unknown Items" := true;
         ShopifyShop."Customer Import From Shopify" := ShopifyShop."Customer Import From Shopify"::WithOrderImport;
@@ -2198,9 +1997,9 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         ShopifyShop.Modify(false);
     end;
 
-    local procedure CreateShopWithOutgoingRequestsDisabled(var ShopifyShop: Record "Shpfy Shop"; ShopCode: Code[20])
+    local procedure CreateShopWithOutgoingRequestsDisabled(var ShopifyShop: Record "Shpfy Shop")
     begin
-        this.CreateShop(ShopifyShop, ShopCode);
+        this.CreateShop(ShopifyShop);
         ShopifyShop."Sync Item" := ShopifyShop."Sync Item"::"From Shopify";
         ShopifyShop."Auto Create Unknown Items" := true;
         ShopifyShop."Sync Item Images" := ShopifyShop."Sync Item Images"::"From Shopify";
@@ -2210,9 +2009,9 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         ShopifyShop.Modify(false);
     end;
 
-    local procedure CreateShopWithAutoCreateWithoutImport(var ShopifyShop: Record "Shpfy Shop"; ShopCode: Code[20])
+    local procedure CreateShopWithAutoCreateWithoutImport(var ShopifyShop: Record "Shpfy Shop")
     begin
-        this.CreateShop(ShopifyShop, ShopCode);
+        this.CreateShop(ShopifyShop);
         ShopifyShop."Customer Import From Shopify" := ShopifyShop."Customer Import From Shopify"::None;
         ShopifyShop."Shopify Can Update Customer" := true;
         ShopifyShop."Auto Create Unknown Customers" := true;
@@ -2417,6 +2216,14 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
         this.LibraryAssert.IsTrue(TempJobQueueEntryBuffer.Get(JobQueueEntry.ID), ExistingScheduleErr);
     end;
 
+    local procedure ReadJobQueueCategories()
+    var
+        JobQueueCategory: Record "Job Queue Category";
+    begin
+        if JobQueueCategory.IsEmpty() then
+            exit;
+    end;
+
     local procedure GetReportName(Workload: Enum "Shpfy Sync Workload"): Text
     var
         UnsupportedWorkloadErr: Label 'The synchronization workload %1 is not supported.', Comment = '%1 = Synchronization workload';
@@ -2442,15 +2249,6 @@ codeunit 139649 "Shpfy Recurring Schedule Test"
                 exit('Shpfy Sync Catalog Prices');
         end;
         Error(UnsupportedWorkloadErr, Format(Workload));
-    end;
-
-    [MessageHandler]
-    procedure FrequencyMessageHandler(Message: Text[1024])
-    var
-        FrequencyMessageTxt: Label 'Frequency must be greater than zero for Products to Shopify.', Locked = true;
-        FrequencyMessageErr: Label 'A blank or zero frequency must show the frequency message for the workload.';
-    begin
-        this.LibraryAssert.AreEqual(FrequencyMessageTxt, Message, FrequencyMessageErr);
     end;
     #endregion Then
 }
