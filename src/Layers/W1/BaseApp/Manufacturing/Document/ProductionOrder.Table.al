@@ -872,6 +872,9 @@ table 5405 "Production Order"
     protected var
         HideValidationDialog: Boolean;
 
+    /// <summary>
+    /// Applies the setup default to a blank location when a caller opts in to new-order defaulting.
+    /// </summary>
     procedure SetDefaultLocation()
     begin
         if "Location Code" <> '' then

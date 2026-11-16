@@ -45,8 +45,10 @@ report 99001025 "Refresh Production Order"
                 if Status = Status::Finished then
                     CurrReport.Skip();
 
-                if TempSkippedProductionOrder.Get(Status, "No.") then
+                if SkippedProductionOrders.ContainsKey("Production Order".RecordId()) then begin
                     CurrReport.Skip();
+                    exit;
+                end;
 
                 TestField("Due Date");
                 CheckVariantCodeMandatory("Production Order");
@@ -250,7 +252,6 @@ report 99001025 "Refresh Production Order"
     end;
 
     var
-        TempSkippedProductionOrder: Record "Production Order" temporary;
         CalculateProdOrder: Codeunit "Calculate Prod. Order";
         CreateProdOrderLines: Codeunit "Create Prod. Order Lines";
 #pragma warning disable AA0204
@@ -262,6 +263,7 @@ report 99001025 "Refresh Production Order"
 #pragma warning restore AA0204
         HideValidationDialog: Boolean;
         ProgressDialog: Dialog;
+        SkippedProductionOrders: Dictionary of [RecordId, Boolean];
         ProcessingProgressTxt: Label 'Refreshing Production Orders...\\';
         ProcessingProductionOrderStatusLbl: Label 'Status         #1##########\', Comment = '%1 = Production Order Status';
         ProcessingProductionOrderNoLbl: Label 'No.            #2##########', Comment = '%1 = Production Order No.';
@@ -276,20 +278,26 @@ report 99001025 "Refresh Production Order"
         ProductionOrder: Record "Production Order";
         OpenSetup: Boolean;
     begin
-        TempSkippedProductionOrder.Reset();
-        TempSkippedProductionOrder.DeleteAll();
+        Clear(SkippedProductionOrders);
         ProductionOrder.CopyFilters("Production Order");
+        // Intersect preflight restrictions with caller filters rather than replacing their selection.
+        if ProductionOrder.GetFilter("Location Code") = '' then
+            ProductionOrder.SetRange("Location Code", '')
+        else
+            ProductionOrder.SetFilter("Location Code", '(%1)&%2', ProductionOrder.GetFilter("Location Code"), '''''');
+        if ProductionOrder.GetFilter(Status) = '' then
+            ProductionOrder.SetFilter(Status, '<>%1', ProductionOrder.Status::Finished)
+        else
+            ProductionOrder.SetFilter(Status, '(%1)&<>%2', ProductionOrder.GetFilter(Status), ProductionOrder.Status::Finished);
         if ProductionOrder.FindSet() then
             repeat
-                if (ProductionOrder.Status <> ProductionOrder.Status::Finished) and (ProductionOrder."Location Code" = '') then
-                    if not ConfirmBlankLocation(ProductionOrder, OpenSetup) then begin
-                        if OpenSetup then begin
-                            Page.Run(Page::"Manufacturing Setup");
-                            CurrReport.Quit();
-                        end;
-                        TempSkippedProductionOrder := ProductionOrder;
-                        TempSkippedProductionOrder.Insert();
+                if not ConfirmBlankLocation(ProductionOrder, OpenSetup) then begin
+                    if OpenSetup then begin
+                        Page.Run(Page::"Manufacturing Setup");
+                        CurrReport.Quit();
                     end;
+                    SkippedProductionOrders.Add(ProductionOrder.RecordId(), true);
+                end;
             until ProductionOrder.Next() = 0;
     end;
 

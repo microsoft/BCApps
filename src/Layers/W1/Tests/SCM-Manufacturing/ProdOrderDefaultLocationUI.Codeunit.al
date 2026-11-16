@@ -37,6 +37,28 @@ codeunit 137438 "Prod. Order Default Loc. UI"
     [Test]
     procedure DefaultLocationReleasedCard()
     var
+        Location: Record Location;
+        ManufacturingSetup: Record "Manufacturing Setup";
+        Fixture: Codeunit "SCM Production Orders";
+        ReleasedProductionOrder: TestPage "Released Production Order";
+    begin
+        // [SCENARIO] A new released order shows the setup location before the user enters any fields.
+        Initialize();
+        // [GIVEN] A default manufacturing location and a released-order number series.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Fixture.ConfigureDefaultLocation(Location.Code, '');
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Manufacturing Setup", ManufacturingSetup.FieldNo("Released Order Nos."));
+        // [WHEN] A user opens a new released production order.
+        ReleasedProductionOrder.OpenNew();
+        // [THEN] The location is defaulted before the user supplies any fields.
+        ReleasedProductionOrder."Location Code".AssertEquals(Location.Code);
+        ReleasedProductionOrder.Close();
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure DefaultLocationReleasedCardSaved()
+    var
         Item: Record Item;
         Location: Record Location;
         ProductionOrder: Record "Production Order";
@@ -45,17 +67,14 @@ codeunit 137438 "Prod. Order Default Loc. UI"
         ReleasedProductionOrder: TestPage "Released Production Order";
         OrderNo: Code[20];
     begin
-        // [SCENARIO] A new released order shows the setup location before entry and retains it when saved.
+        // [SCENARIO] Saving a new released order retains its default location.
         Initialize();
-        // [GIVEN] A default manufacturing location and an item.
+        // [GIVEN] A new released order with a default manufacturing location and an item.
         LibraryInventory.CreateItem(Item);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Fixture.ConfigureDefaultLocation(Location.Code, '');
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Manufacturing Setup", ManufacturingSetup.FieldNo("Released Order Nos."));
-        // [WHEN] A user opens a new released production order.
         ReleasedProductionOrder.OpenNew();
-        // [THEN] The location is defaulted before the user supplies any fields.
-        ReleasedProductionOrder."Location Code".AssertEquals(Location.Code);
         // [WHEN] The user enters an item and quantity and saves the order.
         ReleasedProductionOrder."Source No.".SetValue(Item."No.");
         ReleasedProductionOrder.Quantity.SetValue(2);
@@ -83,7 +102,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
         OrderNo: Code[20];
         Iteration: Integer;
     begin
-        // [SCENARIO] A user's cleared or replacement location survives source entry, saving and reopening.
+        // [SCENARIO] Saving source and variant entry preserves a user's cleared or replacement location.
         Initialize();
         // [GIVEN] A default location, an alternative location and an item variant.
         LibraryInventory.CreateItem(Item);
@@ -98,23 +117,63 @@ codeunit 137438 "Prod. Order Default Loc. UI"
                 LocationCode := OtherLocation.Code;
             ReleasedProductionOrder.OpenNew();
             ReleasedProductionOrder."Location Code".AssertEquals(DefaultLocation.Code);
-            // [WHEN] The user clears or replaces the default, then enters the item and variant.
+            // [WHEN] The user saves the order after overriding the location and entering the item and variant.
             ReleasedProductionOrder."Location Code".SetValue(LocationCode);
             ReleasedProductionOrder."Source No.".SetValue(Item."No.");
             ReleasedProductionOrder."Variant Code".SetValue(ItemVariant.Code);
             ReleasedProductionOrder.Quantity.SetValue(2);
-            // [THEN] Source entry and saving respect the user's location.
-            ReleasedProductionOrder."Location Code".AssertEquals(LocationCode);
             OrderNo := ReleasedProductionOrder."No.".Value();
             ReleasedProductionOrder.Close();
+            // [THEN] The saved order respects the user's location and variant.
             ProductionOrder.Get(ProductionOrder.Status::Released, OrderNo);
             ProductionOrder.TestField("Location Code", LocationCode);
             ProductionOrder.TestField("Variant Code", ItemVariant.Code);
+        end;
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure DefaultLocationCardOverrideReopened()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        DefaultLocation: Record Location;
+        OtherLocation: Record Location;
+        ProductionOrder: Record "Production Order";
+        ManufacturingSetup: Record "Manufacturing Setup";
+        Fixture: Codeunit "SCM Production Orders";
+        ReleasedProductionOrder: TestPage "Released Production Order";
+        LocationCode: Code[10];
+        OrderNo: Code[20];
+        Iteration: Integer;
+    begin
+        // [SCENARIO] Reopening an existing order does not replace a user's saved blank or explicit location.
+        Initialize();
+        // [GIVEN] Orders saved through the card with the default cleared or replaced and a variant entered.
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DefaultLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(OtherLocation);
+        Fixture.ConfigureDefaultLocation(DefaultLocation.Code, '');
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Manufacturing Setup", ManufacturingSetup.FieldNo("Released Order Nos."));
+        for Iteration := 1 to 2 do begin
+            LocationCode := '';
+            if Iteration = 2 then
+                LocationCode := OtherLocation.Code;
+            ReleasedProductionOrder.OpenNew();
+            ReleasedProductionOrder."Location Code".SetValue(LocationCode);
+            ReleasedProductionOrder."Source No.".SetValue(Item."No.");
+            ReleasedProductionOrder."Variant Code".SetValue(ItemVariant.Code);
+            ReleasedProductionOrder.Quantity.SetValue(2);
+            OrderNo := ReleasedProductionOrder."No.".Value();
+            ReleasedProductionOrder.Close();
+            ProductionOrder.Get(ProductionOrder.Status::Released, OrderNo);
             // [WHEN] The user reopens the existing order.
             ReleasedProductionOrder.OpenEdit();
             ReleasedProductionOrder.GoToRecord(ProductionOrder);
             // [THEN] The setup default is not applied again.
             ReleasedProductionOrder."Location Code".AssertEquals(LocationCode);
+            ReleasedProductionOrder."Variant Code".AssertEquals(ItemVariant.Code);
             ReleasedProductionOrder.Close();
         end;
         LibrarySetupStorage.Restore();

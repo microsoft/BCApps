@@ -5534,7 +5534,6 @@ codeunit 137404 "SCM Manufacturing"
         OutputLocation: Record Location;
         SetupComponentLocation: Record Location;
         SKUComponentLocation: Record Location;
-        LaterDefaultLocation: Record Location;
         StockkeepingUnit: Record "Stockkeeping Unit";
         ProductionOrder: Record "Production Order";
         Fixture: Codeunit "SCM Production Orders";
@@ -5548,7 +5547,6 @@ codeunit 137404 "SCM Manufacturing"
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(OutputLocation);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SetupComponentLocation);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SKUComponentLocation);
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LaterDefaultLocation);
         for Branch := 1 to 3 do begin
             SetupComponentCode := '';
             ComponentCode := OutputLocation.Code;
@@ -5573,9 +5571,55 @@ codeunit 137404 "SCM Manufacturing"
             LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
             // [THEN] Components use the highest-priority applicable location.
             Fixture.AssertDefaultLocationRelations(ProductionOrder, Item."No.", OutputLocation.Code, ComponentCode, 2);
+        end;
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure DefaultLocationPostingUsesSavedLocations()
+    var
+        Item: Record Item;
+        Component: Record Item;
+        OutputLocation: Record Location;
+        SetupComponentLocation: Record Location;
+        SKUComponentLocation: Record Location;
+        LaterDefaultLocation: Record Location;
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        ProductionOrder: Record "Production Order";
+        Fixture: Codeunit "SCM Production Orders";
+        ComponentCode: Code[10];
+        SetupComponentCode: Code[10];
+        Branch: Integer;
+    begin
+        // [SCENARIO] Posting retains saved output and component locations after the setup default changes.
+        Initialize();
+        // [GIVEN] Refreshed orders for each component-location precedence branch and a changed setup default.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(OutputLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SetupComponentLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SKUComponentLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LaterDefaultLocation);
+        for Branch := 1 to 3 do begin
+            SetupComponentCode := '';
+            ComponentCode := OutputLocation.Code;
+            if Branch < 3 then begin
+                SetupComponentCode := SetupComponentLocation.Code;
+                ComponentCode := SetupComponentCode;
+            end;
+            Fixture.ConfigureDefaultLocation(OutputLocation.Code, SetupComponentCode);
+            Fixture.CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Backward);
+            LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit, OutputLocation.Code, Item."No.", '');
+            if Branch = 1 then begin
+                StockkeepingUnit.Validate("Components at Location", SKUComponentLocation.Code);
+                ComponentCode := SKUComponentLocation.Code;
+            end else
+                StockkeepingUnit.Validate("Components at Location", '');
+            StockkeepingUnit.Modify(true);
+            Fixture.CreateDefaultLocationInitializedOrder(
+                ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 2);
+            LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
             Fixture.PostDefaultLocationStock(Component."No.", ComponentCode, 2);
-            // [WHEN] The setup default changes before output is posted.
             Fixture.ConfigureDefaultLocation(LaterDefaultLocation.Code, SetupComponentCode);
+            // [WHEN] Output is posted against the existing order.
             Fixture.PostDefaultLocationOutput(ProductionOrder, Item."No.", 2);
             // [THEN] Posting uses the saved output and component locations, not the later default.
             Fixture.AssertDefaultLocationLedger(Item."No.", ProductionOrder."No.", OutputLocation.Code, Enum::"Item Ledger Entry Type"::Output, 2);
