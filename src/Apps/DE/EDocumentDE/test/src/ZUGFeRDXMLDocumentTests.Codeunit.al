@@ -4064,15 +4064,15 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
     #region BuyerElectronicAddress
     [Test]
-    procedure CheckSalesInvoiceInZUGFeRDFormatWithoutAnyBuyerEMail()
+    procedure CheckSalesInvoiceInZUGFeRDFormatWithRoutingNoWithoutEMail()
     var
         SalesHeader: Record "Sales Header";
     begin
-        // [SCENARIO] The buyer e-mail (BT-58) and the buyer electronic address (BT-49) are optional in ZUGFeRD, so the check does not require them.
+        // [SCENARIO] The ZUGFeRD check does not require an e-mail when the E-Invoice Routing No. supplies the buyer electronic address (BT-49).
         Initialize();
 
-        // [GIVEN] Sales invoice for a customer without e-mail and E-Invoice Routing No., the Sell-to E-Mail is blank
-        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithBuyerAddresses(false, false));
+        // [GIVEN] Sales invoice for a customer with an E-Invoice Routing No. and without e-mail, the Sell-to E-Mail is blank
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithBuyerAddresses(false, true));
         CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
         SalesHeader."Sell-to E-Mail" := '';
         SalesHeader.Modify(false);
@@ -4084,13 +4084,81 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure CheckSalesInvoiceInZUGFeRDFormatWithoutSellToEMail()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] The ZUGFeRD check does not require the Sell-to E-Mail when the buyer e-mail comes from the bill-to customer.
+        Initialize();
+
+        // [GIVEN] Sales invoice for a customer with an e-mail address and without E-Invoice Routing No., the Sell-to E-Mail is blank
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithBuyerAddresses(true, false));
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesHeader."Sell-to E-Mail" := '';
+        SalesHeader.Modify(false);
+
+        // [WHEN] Check the document
+        CheckSalesHeader(SalesHeader);
+
+        // [THEN] No error is raised
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInZUGFeRDFormatWithoutBuyerElectronicAddress()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] The ZUGFeRD XML follows the XRechnung guideline, so the check fails when no buyer electronic address (BT-49) can be resolved.
+        Initialize();
+
+        // [GIVEN] Sales invoice for a customer without e-mail, E-Invoice Routing No. and GLN, the Sell-to E-Mail is blank
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithBuyerAddresses(false, false));
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesHeader."Sell-to E-Mail" := '';
+        SalesHeader.Modify(false);
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names the buyer electronic address (BT-49)
+        Assert.ExpectedError('BT-49');
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInZUGFeRDFormatBuyerReferenceAlwaysMandatory()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] The ZUGFeRD XML follows the XRechnung guideline, so the buyer reference (BT-10, BR-DE-15) is required even when "Buyer Reference Mandatory" is off.
+        Initialize();
+
+        // [GIVEN] "Buyer Reference Mandatory" is off on the E-Document Service
+        EDocumentService.Get(EDocumentService.Code);
+        EDocumentService."Buyer Reference Mandatory" := false;
+        EDocumentService.Modify();
+
+        // [GIVEN] Sales invoice for a customer without E-Invoice Routing No. and with a blank Your Reference
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithBuyerAddresses(true, false));
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesHeader.Validate("Your Reference", '');
+        SalesHeader.Modify(false);
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error states that the buyer reference is mandatory
+        Assert.ExpectedError('Buyer Reference is mandatory');
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInZUGFeRDFormatWithoutBuyerElectronicAddress()
     var
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
-        // [SCENARIO] Without e-mail, E-Invoice Routing No. and GLN neither the buyer electronic address (BT-49) nor the contact e-mail (BT-58) is exported.
+        // [SCENARIO] Without e-mail, E-Invoice Routing No. and GLN the export writes neither an empty buyer electronic address (BT-49) nor a contact e-mail (BT-58).
+        // The check blocks such documents before the export; this test covers the export on its own.
         Initialize();
 
         // [GIVEN] Posted sales invoice for a customer without e-mail and E-Invoice Routing No., the Sell-to E-Mail is blank
