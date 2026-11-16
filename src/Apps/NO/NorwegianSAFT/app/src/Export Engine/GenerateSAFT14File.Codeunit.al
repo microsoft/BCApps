@@ -846,7 +846,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
             TaxAmountNode := IsDebitVATAmount ? 'DebitTaxAmount' : 'CreditTaxAmount';
             SAFTXMLHelper.AddNewXMLNode(TaxAmountNode, '');
             SAFTXMLHelper.AppendXMLNode('Amount', FormatAmount(Abs(VATEntry.Amount)));
-            if ((Not (CurrencyCode in ['', GeneralLedgerSetup."LCY Code"])) and (SourceCurrencyVATAmount <> 0)) then begin
+            If IncludeNOKVAT(CurrencyCode, SourceCurrencyVATAmount) then begin
                 SAFTXMLHelper.AppendXMLNode('CurrencyCode', CurrencyCode);
                 SAFTXMLHelper.AppendXMLNode('CurrencyAmount', FormatAmountSAFlongmonetary(Abs(SourceCurrencyVATAmount)));
             end;
@@ -860,14 +860,18 @@ codeunit 10695 "Generate SAF-T 1.4 File"
     var
         TaxAmountNode: Text;
     begin
-        if ((CurrencyCode in ['', GeneralLedgerSetup."LCY Code"]) and (VATEntry.Amount = 0)) then
+        if not IncludeNOKVAT(CurrencyCode, VATEntry.Amount) then
             exit;
-
         TaxAmountNode := IsDebitVATAmount ? 'DebitNOKTaxAmount' : 'CreditNOKTaxAmount';
         SAFTXMLHelper.AddNewXMLNode(TaxAmountNode, '');
         SAFTXMLHelper.AppendXMLNode('NOKAmount', FormatAmount(Abs(VATEntry.Amount)));
         SAFTXMLHelper.AppendXMLNode('NOKTaxBase', FormatAmount(Abs(VATEntry.Base)));
         SAFTXMLHelper.FinalizeXMLNode();
+    end;
+
+    Local procedure IncludeNOKVAT(CurrencyCode: Code[10]; VatAMount: Decimal): Boolean
+    begin
+        Exit(((Not (CurrencyCode in ['', GeneralLedgerSetup."LCY Code"])) and (VatAMount <> 0)));
     end;
 
     local procedure ExportAmountInfo(ParentNodeName: Text; Amount: Decimal)
