@@ -283,6 +283,7 @@ codeunit 1283 "Export Generic XML"
                 TempDataExchField."Data Exch. No." := DataExchField."Data Exch. No.";
                 TempDataExchField."Line No." := DataExchField."Line No.";
                 TempDataExchField."Column No." := DataExchField."Column No.";
+                TempDataExchField."Node ID" := DataExchField."Node ID";
                 TempDataExchField.Value := DataExchField.Value;
                 if DataExchField."Value BLOB".HasValue() then begin
                     DataExchField.CalcFields("Value BLOB");
