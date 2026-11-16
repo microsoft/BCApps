@@ -10,6 +10,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
+using System.TestLibraries.Utilities;
 
 codeunit 137438 "Prod. Order Default Loc. UI"
 {
