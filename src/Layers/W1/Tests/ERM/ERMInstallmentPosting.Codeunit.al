@@ -6,6 +6,7 @@ namespace Microsoft.Foundation.PaymentTerms;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Setup;
+using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -45,20 +46,42 @@ codeunit 134493 "ERM Installment Posting"
         SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Plan: Record "Installment Plan";
+        PlanLine: Record "Installment Plan Line";
+        TempPreviewLine: Record "Installment Plan Line" temporary;
         CustLedgerEntry: Record "Cust. Ledger Entry";
         GLEntry: Record "G/L Entry";
         VATEntry: Record "VAT Entry";
+        DimensionValue: Record "Dimension Value";
         DiscountByType: Codeunit "Sales - Calc Discount By Type";
+        LibraryDimension: Codeunit "Library - Dimension";
+        SalesInstallmentMgt: Codeunit "Sales Installment Mgt.";
     begin
         CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryDimension.CreateDimWithDimValue(DimensionValue);
+        SalesHeader.Validate(
+            "Dimension Set ID", LibraryDimension.CreateDimSet(0, DimensionValue."Dimension Code", DimensionValue.Code));
+        SalesHeader.Validate("External Document No.", LibraryUtility.GenerateGUID());
+        SalesHeader.Modify(true);
+        SalesLine.Validate("Dimension Set ID", SalesHeader."Dimension Set ID");
         SalesLine.Validate("Unit Cost (LCY)", 120);
         SalesLine.Modify(true);
         DiscountByType.ApplyInvDiscBasedOnAmt(10, SalesHeader);
         Plan.Get(SalesHeader."Installment Plan ID");
+        SalesInstallmentMgt.CalculatePreview(SalesHeader, TempPreviewLine);
 
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
         VerifyPostedSchedule(SalesInvoiceHeader, Plan.ID);
+        TempPreviewLine.FindSet();
+        repeat
+            PlanLine.Get(Plan.ID, TempPreviewLine."Line No.");
+            Assert.AreEqual(TempPreviewLine.Amount, PlanLine.Amount, 'Fresh preview must match each posted document amount.');
+            Assert.AreEqual(TempPreviewLine."Amount (LCY)", PlanLine."Amount (LCY)", 'Fresh preview must match each posted LCY amount.');
+            Assert.AreEqual(TempPreviewLine."Due Date", PlanLine."Due Date", 'Fresh preview must match each posted due date.');
+            Assert.AreEqual(
+                TempPreviewLine."Original Pmt. Disc. Possible", PlanLine."Original Pmt. Disc. Possible",
+                'Fresh preview must match each posted discount eligibility.');
+        until TempPreviewLine.Next() = 0;
         Plan.Get(Plan.ID);
         Assert.AreEqual(112.5, Plan.Amount, 'The schedule must include VAT and the invoice discount exactly once.');
         CustLedgerEntry.SetRange("Installment Plan ID", Plan.ID);
@@ -106,6 +129,67 @@ codeunit 134493 "ERM Installment Posting"
         repeat
             Assert.AreEqual(CurrencyFactor, CustLedgerEntry."Original Currency Factor", 'The factor must not be allocated.');
             Assert.AreEqual(CurrencyFactor, CustLedgerEntry."Adjusted Currency Factor", 'The original factor must be retained.');
+        until CustLedgerEntry.Next() = 0;
+    end;
+
+    [Test]
+    procedure PostingRecalculatesToleranceCapsPerEntryAndHonorsCustomerBlock()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PlanLine: Record "Installment Plan Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Customer: Record Customer;
+        GLSetup: Record "General Ledger Setup";
+    begin
+        CreateInvoice(SalesHeader, SalesLine, '');
+        GLSetup.Get();
+        GLSetup."Payment Tolerance %" := 2;
+        GLSetup."Max. Payment Tolerance Amount" := 0.5;
+        Evaluate(GLSetup."Payment Discount Grace Period", '<5D>');
+        GLSetup.Modify();
+        Customer.Get(SalesHeader."Bill-to Customer No.");
+        Customer."Block Payment Tolerance" := false;
+        Customer.Modify(true);
+        PlanLine.Get(SalesHeader."Installment Plan ID", 10000);
+        PlanLine."Payment %" := 10;
+        PlanLine.Modify(true);
+        PlanLine.Get(SalesHeader."Installment Plan ID", 20000);
+        PlanLine."Payment %" := 20;
+        PlanLine.Modify(true);
+
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        VerifyPostedSchedule(SalesInvoiceHeader, SalesInvoiceHeader."Installment Plan ID");
+        CustLedgerEntry.SetRange("Installment Plan ID", SalesInvoiceHeader."Installment Plan ID");
+        CustLedgerEntry.FindSet();
+        repeat
+            if CustLedgerEntry."Installment No." = 1 then
+                Assert.AreEqual(0.25, CustLedgerEntry."Max. Payment Tolerance", 'The percentage must use this installment, not the invoice total.')
+            else
+                Assert.AreEqual(0.5, CustLedgerEntry."Max. Payment Tolerance", 'The native cap must apply independently to each installment.');
+            if CustLedgerEntry."Pmt. Discount Date" = 0D then
+                Assert.AreEqual(0D, CustLedgerEntry."Pmt. Disc. Tolerance Date", 'No discount date must mean no discount tolerance date.')
+            else
+                Assert.AreEqual(
+                    CalcDate(GLSetup."Payment Discount Grace Period", CustLedgerEntry."Pmt. Discount Date"),
+                    CustLedgerEntry."Pmt. Disc. Tolerance Date", 'Each installment must retain its own grace-period date.');
+        until CustLedgerEntry.Next() = 0;
+
+        CreateInvoice(SalesHeader, SalesLine, '');
+        Customer.Get(SalesHeader."Bill-to Customer No.");
+        Customer."Block Payment Tolerance" := true;
+        Customer.Modify(true);
+
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        VerifyPostedSchedule(SalesInvoiceHeader, SalesInvoiceHeader."Installment Plan ID");
+        CustLedgerEntry.SetRange("Installment Plan ID", SalesInvoiceHeader."Installment Plan ID");
+        CustLedgerEntry.FindSet();
+        repeat
+            Assert.AreEqual(0, CustLedgerEntry."Max. Payment Tolerance", 'The customer block must apply to every installment.');
+            Assert.AreEqual(0D, CustLedgerEntry."Pmt. Disc. Tolerance Date", 'The customer block must also suppress discount tolerance dates.');
         until CustLedgerEntry.Next() = 0;
     end;
 
@@ -169,6 +253,7 @@ codeunit 134493 "ERM Installment Posting"
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
         PostingObserver: Codeunit "ERM Installment Posting";
         SalesPost: Codeunit "Sales-Post";
         PlanID: Guid;
@@ -188,6 +273,16 @@ codeunit 134493 "ERM Installment Posting"
         Assert.ExpectedError(ForcedFailureErr);
         UnbindSubscription(PostingObserver);
         VerifyDraftAfterRollback(PlanID, PostingNo);
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        Clear(SalesPost);
+        SalesPost.SetSuppressCommit(true);
+        SalesPost.Run(SalesHeader);
+
+        SalesInvoiceHeader.Get(PostingNo);
+        VerifyPostedSchedule(SalesInvoiceHeader, PlanID);
+        SalesInvoiceHeader.SetRange("Installment Plan ID", PlanID);
+        Assert.AreEqual(1, SalesInvoiceHeader.Count(), 'Retry must create exactly one complete posted invoice.');
     end;
 
     [Test]
@@ -678,6 +773,33 @@ codeunit 134493 "ERM Installment Posting"
         PostedSchedule.Close();
     end;
 
+    [Test]
+    procedure CorrectiveCopyAndNotificationRejectInstallmentInvoices()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CorrectionHeader: Record "Sales Header";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        InvoiceNotification: Notification;
+        UnsupportedCorrectionErr: Label 'Automatic correction, cancellation, and reversal of installment invoices are not supported.', Locked = true;
+    begin
+        CreateInvoice(SalesHeader, SalesLine, '');
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        asserterror CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, CorrectionHeader);
+
+        Assert.ExpectedError(UnsupportedCorrectionErr);
+        PayInstallment(SalesInvoiceHeader."Installment Plan ID", 3, 10);
+        InvoiceNotification.Id := CreateGuid();
+        InvoiceNotification.SetData(SalesInvoiceHeader.FieldName("No."), SalesInvoiceHeader."No.");
+
+        asserterror CorrectPostedSalesInvoice.CreateCorrectiveCreditMemo(InvoiceNotification);
+
+        Assert.ExpectedError(UnsupportedCorrectionErr);
+        VerifyInvoiceBalance(SalesInvoiceHeader, 115, false);
+    end;
+
     local procedure PayInstallment(PlanID: Guid; Sequence: Integer; Amount: Decimal)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -850,6 +972,12 @@ codeunit 134493 "ERM Installment Posting"
             Assert.AreEqual(PlanLine."Original Pmt. Disc. Possible", CustLedgerEntry."Original Pmt. Disc. Possible", 'Discounts must be calculated per entry.');
             Assert.AreEqual(PlanLine."Installment No.", CustLedgerEntry."Installment No.", 'Ledger sequence must match the schedule.');
             Assert.AreEqual(3, CustLedgerEntry."No. of Installments", 'The ledger must retain the installment count.');
+            Assert.AreEqual(PlanID, CustLedgerEntry."Installment Plan ID", 'Every linked entry must belong to this plan.');
+            Assert.AreEqual(SalesInvoiceHeader."Bill-to Customer No.", CustLedgerEntry."Customer No.", 'The bill-to customer must be preserved.');
+            Assert.AreEqual(SalesInvoiceHeader."No.", CustLedgerEntry."Document No.", 'The invoice number must be preserved.');
+            Assert.AreEqual(SalesInvoiceHeader."External Document No.", CustLedgerEntry."External Document No.", 'External matching metadata must be preserved.');
+            Assert.AreEqual(SalesInvoiceHeader."Currency Code", CustLedgerEntry."Currency Code", 'The invoice currency must be preserved.');
+            Assert.AreEqual(SalesInvoiceHeader."Dimension Set ID", CustLedgerEntry."Dimension Set ID", 'Header dimensions must be preserved on every receivable.');
             Assert.IsTrue(CustLedgerEntry.Open and CustLedgerEntry.Positive, 'Each installment must start as an open positive obligation.');
             DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
             DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::"Initial Entry");

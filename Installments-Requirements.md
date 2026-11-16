@@ -1162,10 +1162,13 @@ behavior. Avoid adding unrelated blanket restrictions to customers or companies.
 | D07 | Allocate globally safe object/field IDs and define draft-to-posted plan ownership, copy/delete, and producer handoff. | Detailed schema work before M1-02/M1-03 objects are finalized. |
 | D08 | Existing API status updates from every plan entry are M1 compatibility work; new schedule endpoints remain deferred. | Required adjustment to the original milestone interpretation. |
 
-**Next implementation package:** M1-02, setup and pure calculation, using the
+**Next implementation package at Step 1 completion:** M1-02, setup and pure calculation, using the
 allocation rules and focused edge cases above. Do not start split posting until
 the discount-input contract, supported guards, field allocation, and identity
 decisions have been settled.
+
+Steps 2-5 have since been implemented. Current integration readiness and the
+remaining environment-acceptance gates are recorded in section 21.
 
 **Step 1 deliverables:** Posting trace and monetary allocation map, classified
 consumer-impact inventory, IT reference fixtures, proposed supported-path/guard
@@ -1525,3 +1528,121 @@ AL compilation or accounting behavior.
 The user confirmed Step 5 compilation completed on 2026-11-16. Country scope
 and runtime test results were not specified. Data-upgrade execution, runtime
 test execution, and upgrade performance validation remain pending with the user.
+
+## 21. Step 6: integration review and acceptance readiness
+
+**Status:** Source integration review and focused hardening complete. The Step 6
+changes have not been compiled or executed. The user's earlier compilation
+confirmation covers Step 5, not these changes. M1 acceptance and sign-off remain
+blocked on designated-environment evidence.
+
+### 21.1. Integration findings and hardening
+
+Reviewed native W1 customer posting, discount and tolerance calculation,
+snapshot lifecycle, invoice grouping/backfill, correction entry points, and
+Italy's preserved legacy split. No change to financial allocation, schema,
+object IDs, supported scope, or feature activation was required.
+
+Two native corrective-copy routes did not pass through the existing
+`OnBeforeCreateCorrectiveSalesCrMemo` guard:
+
+- `CreateCreditMemoCopyDocument` can proceed directly to document copying.
+- The notification action `CreateCorrectiveCreditMemo` calls
+  `CreateCopyDocument` directly, including for partially settled invoices.
+
+Added an early `OnBeforeCreateCreditMemoCopyDocument` subscriber and a shared
+`OnBeforeSalesHeaderInsert` subscriber in `Installment Posting`. Both reuse the
+existing explicit unsupported-correction error. The first rejects the copy
+request before native checks/notifications; the second protects document
+creation, including the notification route, before inserting a new sales header.
+Ordinary invoices with no global Plan ID retain native behavior.
+
+Focused source coverage was strengthened in `ERM Installment Posting`:
+
+- New corrective-copy/notification rejection test, including a partial payment.
+- New tolerance test with 10/20/remainder allocation: at 2% with a 0.50 cap,
+  installment tolerances are 0.25/0.50/0.50, not three invoice-sized amounts.
+  It also checks per-entry grace dates and the customer tolerance block.
+- The injected-failure case now retries the same persisted invoice and checks
+  that exactly one complete posted result exists.
+- The VAT/invoice-discount case now compares a fresh preview to posted amounts,
+  LCY amounts, dates, and discount eligibility. It uses nonzero dimensions and
+  an external document number; shared verification checks those fields,
+  customer, currency, document number, and plan ownership on every receivable.
+
+### 21.2. M1 acceptance coverage map
+
+Source suites: **C** = 134491 `ERM Installment Calculation` (18 tests),
+**D** = 134492 `ERM Installment Draft` (13 tests), and
+**P** = 134493 `ERM Installment Posting` (22 tests).
+Total: **53 test methods, not executed**. Every row below still requires runtime
+evidence; test presence and source review are not acceptance results.
+The additional checks column identifies coverage beyond the named source cases.
+
+| Acceptance ID | Source evidence | Additional designated-environment checks |
+| --- | --- | --- |
+| M1-AT-01 | C `OrdinaryTermsProduceNoSyntheticPlan`; P `OrdinaryInvoiceRemainsSingleWhenReusableRulesAreAdded`. | Ordinary invoice dates, discounts, and native navigation baseline. |
+| M1-AT-02 | C `PercentagesUseOriginalTotalsAndDocumentDate`, `RemainingAmountReceivesUnallocatedPercentage`. | Run C. |
+| M1-AT-03 | C `FinalLineReceivesIndependentCurrencyResiduals`. | Run C. |
+| M1-AT-04 | C `UsesWholeUnitAndThreeDecimalPrecisions`. | Run C; verify configured currencies in the UI. |
+| M1-AT-05 | P `ForeignCurrencyPostingKeepsIndependentLCYResidualAndCurrencyFactors`. | Trace customer/control-account totals in both currencies. |
+| M1-AT-06 | C invalid percentage, remainder, date, precision, and rounded-amount cases. | Attempt invalid-rule posting and confirm no financial records persist. |
+| M1-AT-07 | D `PreviewUsesCurrentVATAndInvoiceDiscountTotalsWithoutCaching`; P `PostingSplitsOnlyReceivablesAndPreservesDiscountedInvoiceTotals` now compares preview/posting line by line. | Complete the document-date, currency, quantity, price, VAT, and discount change matrix. |
+| M1-AT-08 | D `DateRevalidationDoesNotReloadChangedSetup`, `ChangingTermsReplacesOnlyTheOwnedPlan`; P posted immutability and posted schedule tests. | Verify explicit terms replacement and posted history through the UI. |
+| M1-AT-09 | D copy, deletion, unsaved-header, customer-change, and terms-change cases. | Exercise document actions with real user permissions. |
+| M1-AT-10 | P `PostingSplitsOnlyReceivablesAndPreservesDiscountedInvoiceTotals`. | Inspect the posted invoice, VAT, revenue, and control-account reconciliation. |
+| M1-AT-11 | C `DiscountsUseEachLineAndPostingDateGracePeriod`; P shared posted-schedule assertions. | Native settlement/discount behavior for the supported gross-base policy. |
+| M1-AT-12 | P shared posted-schedule assertions, now with nonzero dimension/external-reference fixture. | Ledger and detailed-entry inspection/navigation. |
+| M1-AT-13 | P failure/rollback/retry and posting-preview cases. | Run P and inspect the persisted retry result. |
+| M1-AT-14 | P selected-entry payment and aggregate invoice balance cases. | Manual application pages: full first installment and partial later installment. |
+| M1-AT-15 | P `PostedScheduleShowsOriginalRulesAndCurrentEntryBalances`. | Schedule action and exact entry drilldown after setup/payment changes. |
+| M1-AT-16 | P journal rejection and new `CorrectiveCopyAndNotificationRejectInstallmentInvoices`; reviewed posting guards. | Full unsupported producer, correction, cancellation, reversal, and payment-combination matrix, plus ordinary controls. |
+| M1-AT-17 | P `OrdinaryInvoiceRemainsSingleWhenReusableRulesAreAdded` reuses posting after a successful installment invoice. | Ordinary posting immediately after a failed installment attempt. |
+| M1-AT-18 | IT native legacy loop and early global-plan rejection reviewed; prior shared propagation recorded in sections 19-20. | Run legacy IT reference cases and confirm no double split. No IT runtime result is recorded. |
+| M1-AT-19 | P `InvoiceBalancesFiltersAndAPIStatusFollowEveryInstallment`. | Verify actual API responses after non-anchor, anchor, and final settlement. |
+| M1-AT-20 | P aggregate balance assertions exercise native Closed filters; ordinary follow-up checks its open filter. | Actual Open/Paid views, including a fully settled ordinary invoice. |
+| M1-AT-21 | P implicit-oldest, document-number, selected-entry payment, and posted-entry/header-edit cases. | Exercise native application/edit pages and verify header summary stability. |
+| M1-AT-22 | P new tolerance case, auxiliary negative-profit/residual case, zero-LCY calculation case, and posted discount assertions. | Native zero-LCY posting and supported discount/tolerance settlement edge cases. |
+
+This map does not certify the broader V1 application, unapplication, revaluation,
+discount-tax, correction, collection, or output/API scope.
+
+### 21.3. Source verification and propagation
+
+Only the W1 `InstallmentPosting.Codeunit.al` and its W1 posting test codeunit
+changed in Step 6, alongside this document. The shared posting helper has no
+country override; no existing native/country file needed a new merge.
+The new event parameter names/types match the W1, APAC, and ES publishers.
+
+Explicit changed-file validation passed:
+
+```powershell
+Import-Module .\build\scripts\Miapp\MicroSnapApp.psm1 -Force
+$paths = @(git diff --name-only | Where-Object { $_ -like '*.al' })
+Invoke-MiSnapApp -Files $paths
+```
+
+Result: **SUCCESS: No missing files** for both changed AL paths.
+Comment/string-aware delimiter checks, duplicate import/method checks, and
+conflict-marker checks passed for those files. `git diff --check` passed.
+These are source/propagation checks, not AL compilation or runtime execution.
+
+### 21.4. Outstanding environment gates
+
+The user must complete and record the following before M1 sign-off:
+
+1. Compile the Step 6 changes in the relevant W1/country projects.
+2. Execute the Base Application data upgrade in the validation environment.
+   Verify the per-company installment invoice-group upgrade tag, historical
+   ordinary/installment balances and filters, and metadata-only changes.
+   Record upgrade duration/locking on representative ledger volumes.
+3. Execute all three test codeunits above and record results for all 53 tests.
+   The existing backfill test exercises helper idempotency; it does not prove
+   deployment-time execution or tag handling.
+4. Complete the additional acceptance checks in section 21.2, including native
+   UI/API flows, ordinary W1 controls, and legacy IT reference cases.
+
+No build, publish, data upgrade, or container-backed test was run by the
+assistant. No commit was created. Step 6 environment acceptance remains open;
+the milestone is not signed off and unrestricted production activation remains
+outside M1.

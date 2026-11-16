@@ -59,6 +59,7 @@ codeunit 8842 "Installment Posting"
         SalesHeader.TestField(Correction, false);
         SalesHeader.TestField("Tax Area Code", '');
         SalesHeader.TestField("Tax Liable", false);
+        SalesHeader.TestField("VAT Base Discount %", 0);
         SalesHeader.TestField("Direct Debit Mandate ID", '');
         SalesHeader.TestField("Payment Service Set ID", 0);
         Customer.Get(SalesHeader."Bill-to Customer No.");
@@ -82,7 +83,6 @@ codeunit 8842 "Installment Posting"
                 SalesLine.TestField("Prepayment Line", false);
                 SalesLine.TestField("Prepayment %", 0);
                 SalesLine.TestField("Prepmt. Amt. Inv.", 0);
-                SalesLine.TestField("VAT Base Discount %", 0);
                 SalesLine.TestField("Quantity Invoiced", 0);
                 if SalesLine.Type <> SalesLine.Type::" " then begin
                     SalesLine.TestField("Qty. to Invoice", SalesLine.Quantity);
@@ -460,6 +460,18 @@ codeunit 8842 "Installment Posting"
     begin
         if not IsNullGuid(SalesInvoiceHeader."Installment Plan ID") then
             Error(CorrectionErr);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Sales Invoice", 'OnBeforeCreateCreditMemoCopyDocument', '', false, false)]
+    local procedure CheckCreditMemoCopy(SalesInvoiceHeader: Record "Sales Invoice Header")
+    begin
+        CheckCorrectiveInvoice(SalesInvoiceHeader);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Sales Invoice", 'OnBeforeSalesHeaderInsert', '', false, false)]
+    local procedure CheckCorrectiveDocumentCreation(SalesInvoiceHeader: Record "Sales Invoice Header")
+    begin
+        CheckCorrectiveInvoice(SalesInvoiceHeader);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Sales Invoice", 'OnBeforeUnapplyCostApplication', '', false, false)]
