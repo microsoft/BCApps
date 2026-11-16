@@ -2167,6 +2167,11 @@ table 5741 "Transfer Line"
         exit(TransHeader);
     end;
 
+    internal procedure SetTransferHeader(TransferHeader: Record "Transfer Header")
+    begin
+        TransHeader := TransferHeader;
+    end;
+
     /// <summary>
     /// Checks for date conflicts in the transfer line in case global parameter 'TrackingBlocked' is set to false.
     /// </summary>
