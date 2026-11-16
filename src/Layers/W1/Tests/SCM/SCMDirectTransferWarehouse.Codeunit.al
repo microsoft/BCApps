@@ -351,6 +351,56 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
 
     [Test]
     [Scope('OnPrem')]
+    procedure DirectTransferRouteCreatesInboundInventoryPutaway()
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        Item: Record Item;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        TransferRoute: Record "Transfer Route";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [Direct Transfer] [Transfer Route] [Inventory Put-away]
+        // [SCENARIO 649163] A route-specific Direct Transfer posting mode creates an inbound inventory put-away
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 100);
+
+        // [GIVEN] Inventory Setup defaults direct transfer posting to "Shipment and Receipt"
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt");
+
+        // [GIVEN] Location "FROM" has no warehouse requirements and location "TO" requires put-away
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationFrom);
+        CreateLocationWithWarehouseSetup(LocationTo, false, true, false, false, false);
+
+        // [GIVEN] A transfer route overrides the posting mode to "Direct Transfer"
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, LocationFrom.Code, LocationTo.Code, '', '', '');
+        TransferRoute.Validate("Direct Transfer", true);
+        TransferRoute.Validate("Direct Transfer Posting", TransferRoute."Direct Transfer Posting"::"Direct Transfer");
+        TransferRoute.Modify(true);
+
+        // [GIVEN] A direct transfer order with available inventory
+        CreateItemWithPositiveInventory(Item, LocationFrom.Code, Quantity);
+        LibraryInventory.CreateTransferHeader(TransferHeader, LocationFrom.Code, LocationTo.Code, '');
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", Quantity);
+        TransferHeader.TestField("Direct Transfer", true);
+        TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Direct Transfer");
+
+        // [WHEN] The transfer order is released and an inventory put-away is created
+        LibraryInventory.ReleaseTransferOrder(TransferHeader);
+        LibraryWarehouse.CreateInvtPutPickMovement(
+            "Warehouse Request Source Document"::"Inbound Transfer",
+            TransferHeader."No.", true, false, false);
+
+        // [THEN] The inventory put-away exists for the transfer order
+        FindWarehouseActivityHeader(
+            WarehouseActivityHeader, WarehouseActivityHeader.Type::"Invt. Put-away",
+            LocationTo.Code, TransferHeader."No.");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure DirectTransferPostingModeDirectTransferAllowsWarehouse()
     var
         LocationFrom: Record Location;

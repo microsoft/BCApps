@@ -38,7 +38,6 @@ codeunit 5708 "Release Transfer Document"
             if TransferHeader."Transfer-from Code" = TransferHeader."Transfer-to Code" then
                 Error(Text001, TransferHeader."No.", TransferHeader.FieldCaption("Transfer-from Code"), TransferHeader.FieldCaption("Transfer-to Code"));
 
-        InvtSetup.Get();
         IsHandled := false;
         OnBeforeCheckTransitLocations(TransferHeader, IsHandled);
         if not IsHandled then
@@ -62,7 +61,7 @@ codeunit 5708 "Release Transfer Document"
 
         if not (
             TransferHeader."Direct Transfer" and
-            (InvtSetup."Direct Transfer Posting Type" = InvtSetup."Direct Transfer Posting Type"::"Direct Transfer"))
+            (TransferHeader."Direct Transfer Posting" = TransferHeader."Direct Transfer Posting"::"Direct Transfer"))
         then
             WhseTransferRelease.SetCallFromTransferOrder(true);
 
@@ -73,7 +72,6 @@ codeunit 5708 "Release Transfer Document"
 
     var
         TransferHeader: Record "Transfer Header";
-        InvtSetup: Record "Inventory Setup";
         WhseTransferRelease: Codeunit "Whse.-Transfer Release";
 #pragma warning disable AA0074
 #pragma warning disable AA0470
