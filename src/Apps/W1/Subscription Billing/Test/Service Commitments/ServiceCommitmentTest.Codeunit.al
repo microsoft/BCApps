@@ -31,6 +31,13 @@ codeunit 148156 "Service Commitment Test"
         RecurringDiscountCannotBeGrantedErr: Label 'Recurring discounts cannot be granted in conjunction with Usage Based Billing', Locked = true;
         BillingLineForServiceCommitmentExistErr: Label 'The contract line is in the current billing. Delete the billing line to be able to adjust the Subscription Line start date.', Locked = true;
         BillingLineArchiveForServiceCommitmentExistErr: Label 'The contract line has already been billed. The Subscription Line start date can no longer be changed.', Locked = true;
+        BilledUntilEndOfTermDescriptionLbl: Label 'Billed until end of term', Locked = true;
+        ClosedDescriptionLbl: Label 'Already closed', Locked = true;
+        OnOverdueDateDescriptionLbl: Label 'Next Billing Date on the overdue date', Locked = true;
+        BilledUntilEndNearOverdueDateDescriptionLbl: Label 'Billed until an end of term just before the overdue date', Locked = true;
+        OpenEndedDescriptionLbl: Label 'Without Subscription Line End Date', Locked = true;
+        EndingLaterDescriptionLbl: Label 'Ending later, billing behind', Locked = true;
+        LastPeriodDescriptionLbl: Label 'Last period still to be billed', Locked = true;
 
     #region Tests
 
@@ -485,7 +492,7 @@ codeunit 148156 "Service Commitment Test"
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure TestOverdueServiceCommitments()
     var
-        TempOverdueServiceCommitments: Record "Overdue Subscription Line";
+        TempOverdueServiceCommitments: Record "Overdue Subscription Line" temporary;
         ServiceContractSetup: Record "Subscription Contract Setup";
         i: Integer;
         InsertCounter: Integer;
@@ -511,6 +518,44 @@ codeunit 148156 "Service Commitment Test"
         end;
 
         Assert.AreEqual(InsertCounter, TempOverdueServiceCommitments.CountOverdueServiceCommitments(), 'Only service commitments that are open and within the correct date range should be counted.');
+    end;
+
+    [Test]
+    procedure TestOverdueServiceCommitmentsExcludeLinesBilledUntilEndOfTerm()
+    var
+        TempOverdueServiceCommitments: Record "Overdue Subscription Line" temporary;
+    begin
+        // [SCENARIO] A Subscription Line that has been billed beyond its Subscription Line End Date is not counted as overdue,
+        // [SCENARIO] even if its Closed flag has not been updated yet.
+
+        // [GIVEN] Overdue Subscription Lines with and without a Subscription Line End Date
+        Initialize();
+        CreateOverdueServiceCommitments();
+
+        // [WHEN] The overdue Subscription Lines are counted
+        // [THEN] Only the Subscription Lines that still have something left to bill are counted
+        Assert.AreEqual(3, TempOverdueServiceCommitments.CountOverdueServiceCommitments(), 'Subscription Lines that have been billed beyond their Subscription Line End Date should not be counted as overdue.');
+    end;
+
+    [Test]
+    procedure TestOverdueServiceCommitmentsListExcludesLinesBilledUntilEndOfTerm()
+    var
+        TempOverdueServiceCommitments: Record "Overdue Subscription Line" temporary;
+    begin
+        // [SCENARIO] A Subscription Line that has been billed beyond its Subscription Line End Date is not listed on the
+        // [SCENARIO] Overdue Subscription Lines page, even if its Closed flag has not been updated yet.
+
+        // [GIVEN] Overdue Subscription Lines with and without a Subscription Line End Date
+        Initialize();
+        CreateOverdueServiceCommitments();
+
+        // [WHEN] The overdue Subscription Lines are collected for the list
+        TempOverdueServiceCommitments.FillOverdueServiceCommitments();
+
+        // [THEN] Only the Subscription Lines that still have something left to bill are listed
+        Assert.AreEqual(3, TempOverdueServiceCommitments.Count(), 'Subscription Lines that have been billed beyond their Subscription Line End Date should not be listed as overdue.');
+        TempOverdueServiceCommitments.SetRange("Subscription Line Description", BilledUntilEndOfTermDescriptionLbl);
+        Assert.IsTrue(TempOverdueServiceCommitments.IsEmpty(), 'The Subscription Line that has been billed beyond its Subscription Line End Date should not be listed as overdue.');
     end;
 
     [Test]
@@ -742,6 +787,44 @@ codeunit 148156 "Service Commitment Test"
         ClearAll();
 
         ContractTestLibrary.CreateServiceCommitmentTemplate(ServiceCommitmentTemplate);
+    end;
+
+    local procedure CreateOverdueServiceCommitments()
+    var
+        ServiceContractSetup: Record "Subscription Contract Setup";
+    begin
+        ContractTestLibrary.InitContractsApp();
+
+        ServiceContractSetup.Get();
+        Evaluate(ServiceContractSetup."Overdue Date Formula", '<1M>');
+        ServiceContractSetup.Modify(false);
+
+        // Billed beyond the Subscription Line End Date, so there is nothing left to bill
+        InsertOverdueServiceCommitment(CalcDate('<-10D>', WorkDate()), CalcDate('<-9D>', WorkDate()), false, BilledUntilEndOfTermDescriptionLbl);
+        // Already closed, so it is not overdue even though there is still something left to bill
+        InsertOverdueServiceCommitment(0D, CalcDate('<-1M>', WorkDate()), true, ClosedDescriptionLbl);
+        // No Subscription Line End Date at all
+        InsertOverdueServiceCommitment(0D, CalcDate('<-1M>', WorkDate()), false, OpenEndedDescriptionLbl);
+        // Subscription Line End Date in the future, billing is behind
+        InsertOverdueServiceCommitment(CalcDate('<6M>', WorkDate()), CalcDate('<-1M>', WorkDate()), false, EndingLaterDescriptionLbl);
+        // Next Billing Date on the Subscription Line End Date, so the last period is still to be billed
+        InsertOverdueServiceCommitment(CalcDate('<-1D>', WorkDate()), CalcDate('<-1D>', WorkDate()), false, LastPeriodDescriptionLbl);
+        // Next Billing Date exactly on the overdue date, so it is not overdue yet
+        InsertOverdueServiceCommitment(0D, CalcDate('<1M>', WorkDate()), false, OnOverdueDateDescriptionLbl);
+        // Billed past a Subscription Line End Date that lies just before the overdue date
+        InsertOverdueServiceCommitment(CalcDate('<1M-2D>', WorkDate()), CalcDate('<1M-1D>', WorkDate()), false, BilledUntilEndNearOverdueDateDescriptionLbl);
+    end;
+
+    local procedure InsertOverdueServiceCommitment(ServiceCommitmentEndDate: Date; NextBillingDate: Date; ServiceCommitmentClosed: Boolean; ServiceCommitmentDescription: Text[100])
+    begin
+        ServiceCommitment.Init();
+        ServiceCommitment."Entry No." := 0;
+        ServiceCommitment.Partner := ServiceCommitment.Partner::Customer;
+        ServiceCommitment.Description := ServiceCommitmentDescription;
+        ServiceCommitment."Subscription Line End Date" := ServiceCommitmentEndDate;
+        ServiceCommitment."Next Billing Date" := NextBillingDate;
+        ServiceCommitment.Closed := ServiceCommitmentClosed;
+        ServiceCommitment.Insert(false);
     end;
 
     local procedure InsertServiceCommitment(ServicePartner: Enum "Service Partner"; var InsertCounter: Integer)
