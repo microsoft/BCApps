@@ -39,6 +39,8 @@ codeunit 1330 "Instruction Mgt."
         ClosingNoncertifiedProductionBOMRoutingConfirmQst: Label 'The Production BOM or routing has not been certified. Are you sure you want to exit?';
         DefaultDimPrioritiesMissingTxt: Label 'Notify user about missing Default Dimension Priorities.';
         DefaultDimPrioritiesMissingDescriptionTxt: Label 'Show notification when Default Dimension Priorities are not defined, and then header dimension will have priority over lines default dimensions.';
+        RefreshBlankLocationTxt: Label 'Warn about production orders without a location.';
+        RefreshBlankLocationDescriptionTxt: Label 'Show a confirmation before refreshing a production order with a blank Location Code.';
 
     procedure ShowConfirm(ConfirmQst: Text; InstructionType: Code[50]): Boolean
     begin
@@ -146,6 +148,16 @@ codeunit 1330 "Instruction Mgt."
     procedure ClosingUnreleasedOrdersCode(): Code[50]
     begin
         exit('CLOSINGUNRELEASEDORDERS');
+    end;
+
+    procedure RefreshBlankLocationCode(): Code[50]
+    begin
+        exit('REFRESHPRODORDERWITHOUTLOCATION');
+    end;
+
+    procedure GetRefreshBlankLocationNotificationId(): Guid
+    begin
+        exit('000c7990-2207-45df-861c-01f7c9aff84d');
     end;
 
     procedure ClosingNonCertifiedProductionBOMROUTINGCode(): Code[50]
@@ -294,6 +306,10 @@ codeunit 1330 "Instruction Mgt."
           ClosingProductionBOMRoutingsNotificationTxt,
           ClosingNoncertifiedProductionBOMRoutingNotificationDescriptionTxt,
           IsEnabled(ClosingNonCertifiedProductionBOMROUTINGCode()));
+        MyNotifications.InsertDefault(GetRefreshBlankLocationNotificationId(),
+          RefreshBlankLocationTxt,
+          RefreshBlankLocationDescriptionTxt,
+          IsEnabled(RefreshBlankLocationCode()));
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"My Notifications", 'OnAfterIsNotificationEnabled', '', false, false)]
@@ -346,6 +362,11 @@ codeunit 1330 "Instruction Mgt."
                     EnableMessageForCurrentUser(ClosingNonCertifiedProductionBOMROUTINGCode())
                 else
                     DisableMessageForCurrentUser(ClosingNonCertifiedProductionBOMROUTINGCode());
+            GetRefreshBlankLocationNotificationId():
+                if NewEnabledState then
+                    EnableMessageForCurrentUser(RefreshBlankLocationCode())
+                else
+                    DisableMessageForCurrentUser(RefreshBlankLocationCode());
         end;
     end;
 

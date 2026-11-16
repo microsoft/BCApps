@@ -10,6 +10,8 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Family;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Utilities;
 using System.Utilities;
 
 report 99001025 "Refresh Production Order"
@@ -41,6 +43,9 @@ report 99001025 "Refresh Production Order"
                 Confirmed: Boolean;
             begin
                 if Status = Status::Finished then
+                    CurrReport.Skip();
+
+                if TempSkippedProductionOrder.Get(Status, "No.") then
                     CurrReport.Skip();
 
                 TestField("Due Date");
@@ -140,6 +145,7 @@ report 99001025 "Refresh Production Order"
 
             trigger OnPreDataItem()
             begin
+                CheckBlankLocations();
                 if not HideValidationDialog then
                     ProgressDialog.Open(
                       ProcessingProgressTxt +
@@ -244,6 +250,7 @@ report 99001025 "Refresh Production Order"
     end;
 
     var
+        TempSkippedProductionOrder: Record "Production Order" temporary;
         CalculateProdOrder: Codeunit "Calculate Prod. Order";
         CreateProdOrderLines: Codeunit "Create Prod. Order Lines";
 #pragma warning disable AA0204
@@ -262,6 +269,76 @@ report 99001025 "Refresh Production Order"
         ComponentNeedMustBeCalculatedErr: Label 'Component Need must be calculated, when lines are calculated.';
         SpecialWarehouseHandlingRequiredErr: Label 'One or more of the lines on this %1 require special warehouse handling. The %2 for these lines has been set to blank.', Comment = '%1 = Production Order caption, %2 = Bin Code';
         AlreadyPickedLinesQst: Label 'Components for production order %1 have already been picked. Do you want to continue?', Comment = '%1 = Production Order No.; Example: Components for production order 101001 have already been picked. Do you want to continue?';
+        BlankLocationRefreshTelemetryTxt: Label 'Refresh was requested for a production order with a blank location.', Locked = true;
+
+    local procedure CheckBlankLocations()
+    var
+        ProductionOrder: Record "Production Order";
+        OpenSetup: Boolean;
+    begin
+        TempSkippedProductionOrder.Reset();
+        TempSkippedProductionOrder.DeleteAll();
+        ProductionOrder.CopyFilters("Production Order");
+        if ProductionOrder.FindSet() then
+            repeat
+                if (ProductionOrder.Status <> ProductionOrder.Status::Finished) and (ProductionOrder."Location Code" = '') then
+                    if not ConfirmBlankLocation(ProductionOrder, OpenSetup) then begin
+                        if OpenSetup then begin
+                            Page.Run(Page::"Manufacturing Setup");
+                            CurrReport.Quit();
+                        end;
+                        TempSkippedProductionOrder := ProductionOrder;
+                        TempSkippedProductionOrder.Insert();
+                    end;
+            until ProductionOrder.Next() = 0;
+    end;
+
+    local procedure ConfirmBlankLocation(ProductionOrder: Record "Production Order"; var OpenSetup: Boolean): Boolean
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        InstructionMgt: Codeunit "Instruction Mgt.";
+        Warning: Page "Refresh Prod. Order Warning";
+        CustomDimensions: Dictionary of [Text, Text];
+        ConfirmationMode: Text;
+        Decision: Text;
+        DefaultLocationConfigured: Boolean;
+        Proceed: Boolean;
+    begin
+        OpenSetup := false;
+        Proceed := true;
+        if not GuiAllowed() then
+            ConfirmationMode := 'NonInteractive'
+        else
+            if HideValidationDialog then
+                ConfirmationMode := 'Hidden'
+            else
+                if not InstructionMgt.IsEnabled(InstructionMgt.RefreshBlankLocationCode()) then
+                    ConfirmationMode := 'Disabled'
+                else begin
+                    ConfirmationMode := 'Shown';
+                    Warning.SetProductionOrder(ProductionOrder);
+                    Proceed := Warning.RunModal() = Action::Yes;
+                    OpenSetup := Warning.IsSetupRequested();
+                    if OpenSetup then
+                        Proceed := false;
+                end;
+
+        if Proceed then
+            Decision := 'Continue'
+        else
+            Decision := 'Skip';
+        if OpenSetup then
+            Decision := 'OpenSetup';
+        CustomDimensions.Add('Category', 'Manufacturing');
+        CustomDimensions.Add('ProductionOrderStatus', Format(ProductionOrder.Status.AsInteger(), 0, 9));
+        CustomDimensions.Add('ConfirmationMode', ConfirmationMode);
+        CustomDimensions.Add('Decision', Decision);
+        if ManufacturingSetup.Get() then
+            DefaultLocationConfigured := ManufacturingSetup."Default Location Code" <> '';
+        CustomDimensions.Add('DefaultLocationConfigured', Format(DefaultLocationConfigured, 0, 9));
+        Session.LogMessage('0000WPN', BlankLocationRefreshTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
+        exit(Proceed);
+    end;
 
     local procedure CheckReservationExist()
     var

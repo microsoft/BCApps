@@ -8,7 +8,8 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
-using System.TestLibraries.Utilities;
+using Microsoft.Utilities;
+using System.Environment.Configuration;
 
 codeunit 137438 "Prod. Order Default Loc. UI"
 {
@@ -21,12 +22,16 @@ codeunit 137438 "Prod. Order Default Loc. UI"
     end;
 
     var
+        Assert: Codeunit Assert;
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         IsInitialized: Boolean;
+        ManufacturingSetupOpened: Boolean;
 
     [Test]
     procedure DefaultLocationReleasedCard()
@@ -176,6 +181,273 @@ codeunit 137438 "Prod. Order Default Loc. UI"
             ProductionOrder.TestField(Quantity, 2);
         end;
         LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    [HandlerFunctions('RefreshLocationWarningHandler')]
+    procedure RefreshBlankLocationAccepted()
+    var
+        ProductionOrder: Record "Production Order";
+        Location: Record Location;
+        Fixture: Codeunit "SCM Production Orders";
+    begin
+        // [SCENARIO] Accepting the warning refreshes an intentionally blank order without applying the setup default.
+        InitializeRefreshWarning();
+        // [GIVEN] A blank-location order and a configured default location.
+        CreateOrderForRefresh(ProductionOrder);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Fixture.ConfigureDefaultLocation(Location.Code, '');
+        EnqueueRefreshWarning(ProductionOrder, false, 'Continue');
+        // [WHEN] The user chooses to continue.
+        RunRefresh(ProductionOrder, false);
+        // [THEN] A line is created without changing the order's blank location.
+        VerifyRefreshed(ProductionOrder, true);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('RefreshLocationWarningHandler')]
+    procedure RefreshBlankLocationDeclinedInBatch()
+    var
+        FirstOrder: Record "Production Order";
+        SecondOrder: Record "Production Order";
+        ProductionOrder: Record "Production Order";
+    begin
+        // [SCENARIO] Declining one blank-location order does not prevent another selected order from refreshing.
+        InitializeRefreshWarning();
+        // [GIVEN] Two blank-location orders and no manufacturing default.
+        CreateOrderForRefresh(FirstOrder);
+        CreateOrderForRefresh(SecondOrder);
+        EnqueueRefreshWarning(FirstOrder, true, 'Skip');
+        EnqueueRefreshWarning(SecondOrder, true, 'Continue');
+        ProductionOrder.SetRange(Status, FirstOrder.Status);
+        ProductionOrder.SetFilter("No.", '%1|%2', FirstOrder."No.", SecondOrder."No.");
+        // [WHEN] The user declines the first order and accepts the second.
+        RunRefresh(ProductionOrder, false);
+        // [THEN] Only the accepted order has refreshed lines.
+        VerifyRefreshed(FirstOrder, false);
+        VerifyRefreshed(SecondOrder, true);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('RefreshLocationWarningHandler')]
+    procedure RefreshBlankLocationWarningReenabled()
+    var
+        ProductionOrder: Record "Production Order";
+        MyNotifications: Record "My Notifications";
+        InstructionMgt: Codeunit "Instruction Mgt.";
+        PageMyNotifications: Page "My Notifications";
+    begin
+        // [SCENARIO] My Notifications can disable and subsequently re-enable the refresh warning.
+        InitializeRefreshWarning();
+        // [GIVEN] The user has disabled the warning in My Notifications.
+        PageMyNotifications.InitializeNotificationsWithDefaultState();
+        Assert.IsTrue(
+            MyNotifications.SetStatus(InstructionMgt.GetRefreshBlankLocationNotificationId(), false),
+            'The refresh warning must be registered in My Notifications.');
+        CreateOrderForRefresh(ProductionOrder);
+        // [WHEN] A blank-location order is refreshed with the warning disabled.
+        RunRefresh(ProductionOrder, false);
+        // [THEN] Refresh proceeds without a dialog.
+        VerifyRefreshed(ProductionOrder, true);
+        // [GIVEN] The user re-enables the warning.
+        MyNotifications.SetStatus(InstructionMgt.GetRefreshBlankLocationNotificationId(), true);
+        CreateOrderForRefresh(ProductionOrder);
+        EnqueueRefreshWarning(ProductionOrder, true, 'Skip');
+        // [WHEN] Another blank-location order is refreshed and the warning is declined.
+        RunRefresh(ProductionOrder, false);
+        // [THEN] The warning is shown again and the order is not refreshed.
+        VerifyRefreshed(ProductionOrder, false);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure RefreshPopulatedLocationWithoutWarning()
+    var
+        ProductionOrder: Record "Production Order";
+        Location: Record Location;
+    begin
+        // [SCENARIO] An order with a location refreshes without a blank-location warning.
+        InitializeRefreshWarning();
+        // [GIVEN] An order with an explicit location.
+        CreateOrderForRefresh(ProductionOrder);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        ProductionOrder.Validate("Location Code", Location.Code);
+        ProductionOrder.Modify(true);
+        // [WHEN] The order is refreshed.
+        RunRefresh(ProductionOrder, false);
+        // [THEN] Lines are created and the location is retained without prompting.
+        VerifyRefreshed(ProductionOrder, true);
+    end;
+
+    [Test]
+    procedure RefreshLocationWarningHonorsSelectionFilters()
+    var
+        SelectedOrder: Record "Production Order";
+        UnselectedOrder: Record "Production Order";
+        OtherStatusOrder: Record "Production Order";
+        ProductionOrder: Record "Production Order";
+        Location: Record Location;
+    begin
+        // [SCENARIO] Warning preflight does not prompt for orders outside the report's status or location filters.
+        InitializeRefreshWarning();
+        // [GIVEN] A selected order with a location and blank-location orders excluded by status or location.
+        CreateOrderForRefresh(SelectedOrder);
+        CreateOrderForRefresh(UnselectedOrder);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        SelectedOrder.Validate("Location Code", Location.Code);
+        SelectedOrder.Modify(true);
+        OtherStatusOrder := SelectedOrder;
+        OtherStatusOrder.Status := OtherStatusOrder.Status::Planned;
+        OtherStatusOrder."Location Code" := '';
+        OtherStatusOrder.Insert();
+        ProductionOrder.SetRange(Status, SelectedOrder.Status);
+        ProductionOrder.SetRange("Location Code", Location.Code);
+        ProductionOrder.SetFilter("No.", '%1|%2', SelectedOrder."No.", UnselectedOrder."No.");
+        // [WHEN] Only the populated-location order is selected for refresh.
+        RunRefresh(ProductionOrder, false);
+        // [THEN] Only that order refreshes and no warning is shown for excluded orders.
+        VerifyRefreshed(SelectedOrder, true);
+        VerifyRefreshed(UnselectedOrder, false);
+        VerifyRefreshed(OtherStatusOrder, false);
+    end;
+
+    [Test]
+    procedure RefreshBlankLocationWithDialogsHidden()
+    var
+        ProductionOrder: Record "Production Order";
+    begin
+        // [SCENARIO] Callers hiding validation dialogs can refresh blank-location orders without interaction.
+        InitializeRefreshWarning();
+        // [GIVEN] A blank-location order.
+        CreateOrderForRefresh(ProductionOrder);
+        // [WHEN] Refresh is called with validation dialogs hidden.
+        RunRefresh(ProductionOrder, true);
+        // [THEN] Lines are created without displaying the warning.
+        VerifyRefreshed(ProductionOrder, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('RefreshLocationWarningHandler,ManufacturingSetupHandler')]
+    procedure RefreshOpenSetupStopsEntireBatch()
+    var
+        FirstOrder: Record "Production Order";
+        SecondOrder: Record "Production Order";
+        ProductionOrder: Record "Production Order";
+    begin
+        // [SCENARIO] Opening setup from a warning stops the entire refresh before any selected order is changed.
+        InitializeRefreshWarning();
+        // [GIVEN] Two blank-location orders and no manufacturing default.
+        CreateOrderForRefresh(FirstOrder);
+        CreateOrderForRefresh(SecondOrder);
+        EnqueueRefreshWarning(FirstOrder, true, 'Continue');
+        EnqueueRefreshWarning(SecondOrder, true, 'Setup');
+        ProductionOrder.SetRange(Status, FirstOrder.Status);
+        ProductionOrder.SetFilter("No.", '%1|%2', FirstOrder."No.", SecondOrder."No.");
+        // [WHEN] The user accepts the first warning but opens setup from the second.
+        RunRefresh(ProductionOrder, false);
+        // [THEN] Setup opens and neither order has refreshed lines.
+        Assert.IsTrue(ManufacturingSetupOpened, 'Manufacturing Setup must open from the warning.');
+        VerifyRefreshed(FirstOrder, false);
+        VerifyRefreshed(SecondOrder, false);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure InitializeRefreshWarning()
+    var
+        Fixture: Codeunit "SCM Production Orders";
+        InstructionMgt: Codeunit "Instruction Mgt.";
+    begin
+        Initialize();
+        LibraryVariableStorage.Clear();
+        ManufacturingSetupOpened := false;
+        Fixture.ConfigureDefaultLocation('', '');
+        InstructionMgt.EnableMessageForCurrentUser(InstructionMgt.RefreshBlankLocationCode());
+    end;
+
+    local procedure CreateOrderForRefresh(var ProductionOrder: Record "Production Order")
+    var
+        Item: Record Item;
+    begin
+        LibraryInventory.CreateItem(Item);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::"Firm Planned", ProductionOrder."Source Type"::Item, Item."No.", 1);
+        ProductionOrder.Validate("Location Code", '');
+        ProductionOrder.Modify(true);
+    end;
+
+    local procedure EnqueueRefreshWarning(ProductionOrder: Record "Production Order"; SetupMissing: Boolean; Choice: Text)
+    begin
+        LibraryVariableStorage.Enqueue(ProductionOrder."No.");
+        LibraryVariableStorage.Enqueue(SetupMissing);
+        LibraryVariableStorage.Enqueue(Choice);
+    end;
+
+    local procedure RunRefresh(var ProductionOrder: Record "Production Order"; HideDialogs: Boolean)
+    var
+        OrderFilter: Record "Production Order";
+        RefreshProductionOrder: Report "Refresh Production Order";
+    begin
+        if ProductionOrder.HasFilter() then
+            OrderFilter.CopyFilters(ProductionOrder)
+        else begin
+            OrderFilter.SetRange(Status, ProductionOrder.Status);
+            OrderFilter.SetRange("No.", ProductionOrder."No.");
+        end;
+        Commit();
+        RefreshProductionOrder.SetTableView(OrderFilter);
+        RefreshProductionOrder.InitializeRequest(1, true, true, true, false);
+        RefreshProductionOrder.SetHideValidationDialog(HideDialogs);
+        RefreshProductionOrder.UseRequestPage(false);
+        RefreshProductionOrder.RunModal();
+    end;
+
+    local procedure VerifyRefreshed(ProductionOrder: Record "Production Order"; ExpectedRefreshed: Boolean)
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        LocationCode: Code[10];
+    begin
+        LocationCode := ProductionOrder."Location Code";
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+        ProductionOrder.TestField("Location Code", LocationCode);
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Assert.AreEqual(ExpectedRefreshed, not ProdOrderLine.IsEmpty(), 'Unexpected refresh result.');
+        if ExpectedRefreshed then begin
+            ProdOrderLine.FindFirst();
+            ProdOrderLine.TestField("Location Code", LocationCode);
+        end;
+    end;
+
+    [ModalPageHandler]
+    procedure RefreshLocationWarningHandler(var Warning: TestPage "Refresh Prod. Order Warning")
+    var
+        Choice: Text;
+    begin
+        Warning."No.".AssertEquals(LibraryVariableStorage.DequeueText());
+        Assert.AreEqual(
+            LibraryVariableStorage.DequeueBoolean(), Warning.OpenManufacturingSetup.Visible(),
+            'The setup link must only be available when no manufacturing default is configured.');
+        Assert.AreEqual(
+            Warning.OpenManufacturingSetup.Visible(), Warning.SetupInstructions.Visible(),
+            'The setup instructions and setup link must be shown together.');
+        Choice := LibraryVariableStorage.DequeueText();
+        case Choice of
+            'Continue':
+                Warning.Yes().Invoke();
+            'Skip':
+                Warning.No().Invoke();
+            'Setup':
+                Warning.OpenManufacturingSetup.Drilldown();
+        end;
+    end;
+
+    [PageHandler]
+    procedure ManufacturingSetupHandler(var ManufacturingSetup: TestPage "Manufacturing Setup")
+    begin
+        ManufacturingSetupOpened := true;
+        ManufacturingSetup.Close();
     end;
 
     local procedure Initialize()
