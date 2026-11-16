@@ -307,7 +307,6 @@ report 4403 "EXR Aged Acc Payable Excel"
 
     local procedure InitReport()
     var
-        FirstStartDate: Date;
         WorkingEndDate: Date;
         WorkingStartDate: Date;
         i: Integer;
@@ -331,12 +330,15 @@ report 4403 "EXR Aged Acc Payable Excel"
             WorkingStartDate := CalcDate(PeriodLength, WorkingStartDate);
             WorkingEndDate := CalcDate(PeriodLength, WorkingEndDate);
         until i >= PeriodCount;
-        FirstStartDate := WorkingStartDate;
 
-        VendorAgingData.SetAutoCalcFields("Net Change (LCY)");
-        VendorAgingData.SetRange("Date Filter", FirstStartDate, EndingDate);
-        if SkipZeroBalanceVendors then
+        PeriodStarts.Add(0D);
+        PeriodEnds.Add(WorkingEndDate);
+
+        VendorAgingData.SetRange("Date Filter", 0D, EndingDate);
+        if SkipZeroBalanceVendors then begin
+            VendorAgingData.SetAutoCalcFields("Net Change (LCY)");
             VendorAgingData.SetFilter("Net Change (LCY)", '<>0');
+        end;
     end;
 
     local procedure InsertAgingData(var Vendor: Record "Vendor")
@@ -351,8 +353,6 @@ report 4403 "EXR Aged Acc Payable Excel"
         VendorLedgerEntry.SetRange("Date Filter", 0D, EndingDate);
 
         case TempEXRAgingReportBuffer."Aged By" of
-            TempEXRAgingReportBuffer."Aged By"::"Due Date":
-                VendorLedgerEntry.SetRange("Due Date", EarliestPeriodStart, EndingDate);
             TempEXRAgingReportBuffer."Aged By"::"Posting Date":
                 VendorLedgerEntry.SetRange("Posting Date", EarliestPeriodStart, EndingDate);
             TempEXRAgingReportBuffer."Aged By"::"Document Date":

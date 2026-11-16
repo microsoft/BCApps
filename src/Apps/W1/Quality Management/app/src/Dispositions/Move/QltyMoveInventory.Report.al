@@ -74,6 +74,7 @@ report 20404 "Qlty. Move Inventory"
                         trigger OnValidate()
                         begin
                             UseMovement := not UseReclass;
+                            UpdateDestinationLocationEditable();
                         end;
                     }
                     field(ChooseUseWorksheet; UseMovement)
@@ -85,6 +86,7 @@ report 20404 "Qlty. Move Inventory"
                         trigger OnValidate()
                         begin
                             UseReclass := not UseMovement;
+                            UpdateDestinationLocationEditable();
                         end;
                     }
                 }
@@ -253,13 +255,8 @@ report 20404 "Qlty. Move Inventory"
                         Editable = IsDestinationLocationEditable;
 
                         trigger OnValidate()
-                        var
-                            DestinationLocation: Record Location;
                         begin
-                            ShowBinCode := true;
-                            if DestinationLocation.Get(DestinationLocationCode) then
-                                ShowBinCode := DestinationLocation."Bin Mandatory";
-                            DestinationBinCode := '';
+                            SetDestinationLocation(DestinationLocationCode);
                         end;
                     }
 
@@ -335,7 +332,7 @@ report 20404 "Qlty. Move Inventory"
         trigger OnOpenPage()
         var
             QltyInspectionHeader: Record "Qlty. Inspection Header";
-            DestinationLocation: Record Location;
+            InspectionLocation: Record Location;
         begin
             QltyInspectionHeader.CopyFilters(CurrentInspection);
             if not QltyInspectionHeader.FindSet() then
@@ -346,12 +343,12 @@ report 20404 "Qlty. Move Inventory"
             if QltyInspectionHeader."Location Code" = '' then
                 exit;
 
-            DestinationLocationCode := QltyInspectionHeader."Location Code";
-            IsDestinationLocationEditable := false;
+            InspectionLocationCode := QltyInspectionHeader."Location Code";
+            if InspectionLocation.Get(InspectionLocationCode) then
+                IsInspectionLocationDirected := InspectionLocation."Directed Put-away and Pick";
 
-            ShowBinCode := false;
-            if DestinationLocation.Get(DestinationLocationCode) then
-                ShowBinCode := DestinationLocation."Bin Mandatory";
+            SetDestinationLocation(InspectionLocationCode);
+            UpdateDestinationLocationEditable();
         end;
     }
 
@@ -361,12 +358,14 @@ report 20404 "Qlty. Move Inventory"
         FilterOfSourceBinCode: Code[100];
         DestinationLocationCode: Code[10];
         DestinationBinCode: Code[20];
+        InspectionLocationCode: Code[10];
         SpecificQuantity: Decimal;
         IsMoveTracked: Boolean;
         ShouldPostImmediately: Boolean;
         ShouldPostLater: Boolean;
         ShowBinCode: Boolean;
         IsDestinationLocationEditable: Boolean;
+        IsInspectionLocationDirected: Boolean;
         UseMovement: Boolean;
         UseReclass: Boolean;
         IsMoveSpecific: Boolean;
@@ -382,5 +381,32 @@ report 20404 "Qlty. Move Inventory"
         UseReclass := not UseMovement;
         IsMoveSpecific := true;
         IsDestinationLocationEditable := true;
+    end;
+
+    local procedure SetDestinationLocation(NewDestinationLocationCode: Code[10])
+    var
+        DestinationLocation: Record Location;
+    begin
+        DestinationLocationCode := NewDestinationLocationCode;
+        ShowBinCode := true;
+        if DestinationLocation.Get(DestinationLocationCode) then
+            ShowBinCode := DestinationLocation."Bin Mandatory";
+        DestinationBinCode := '';
+    end;
+
+    /// <summary>
+    /// Only the item reclassification journal at a non-directed location can move inventory to another location.
+    /// Warehouse movements, warehouse reclassifications and internal movements must stay within the inspection location.
+    /// </summary>
+    local procedure UpdateDestinationLocationEditable()
+    begin
+        if InspectionLocationCode = '' then begin
+            IsDestinationLocationEditable := true;
+            exit;
+        end;
+
+        IsDestinationLocationEditable := UseReclass and not IsInspectionLocationDirected;
+        if not IsDestinationLocationEditable and (DestinationLocationCode <> InspectionLocationCode) then
+            SetDestinationLocation(InspectionLocationCode);
     end;
 }
