@@ -107,7 +107,7 @@ codeunit 149908 "Subc. Warehouse Library"
     end;
 
     /// <summary>
-    /// Creates and refreshes a released item production order with a subcontracting operation and WIP transfer enabled.
+    /// Enables Premium application areas and creates a refreshed released item order with subcontracting and WIP transfer.
     /// </summary>
     /// <param name="Quantity">The production order quantity in the created item's base unit of measure.</param>
     /// <param name="ProductionOrder">Returns the released production order with its item, location and routing.</param>
@@ -130,7 +130,7 @@ codeunit 149908 "Subc. Warehouse Library"
     end;
 
     /// <summary>
-    /// Creates and refreshes a released family production order with two output items and a subcontracting operation.
+    /// Enables Premium application areas and creates a refreshed released family order with two items and subcontracting.
     /// </summary>
     /// <param name="FirstBaseQuantity">The first family item's quantity for one unit of family output, in base units.</param>
     /// <param name="SecondBaseQuantity">The second family item's quantity for one unit of family output, in base units.</param>
@@ -164,7 +164,9 @@ codeunit 149908 "Subc. Warehouse Library"
         Vendor: Record Vendor;
         RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
     begin
+        LibraryApplicationArea.EnablePremiumSetup();
         SubcLibraryMfgManagement.CreateSubcontractingWorkCenterWithCalendar(WorkCenter);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor.Get(WorkCenter."Subcontractor No.");

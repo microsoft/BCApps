@@ -29,20 +29,139 @@ codeunit 149914 "Subc. WIP Adjustment Test"
     procedure SummaryRealOrderAdjustmentRefresh()
     var
         ProductionOrder: Record "Production Order";
-        WorkCenter: Record "Work Center";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        TransferHeader: Record "Transfer Header";
         WIPEntry: Record "Subcontractor WIP Ledger Entry";
-        DirectPost: Codeunit "TransferOrder-Post Transfer";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] A negative adjustment refreshes the open Released card immediately after the dialog closes.
+        Initialize();
+
+        // [GIVEN] The card is open on an order with ten natively posted WIP units.
+        CreateSummaryAdjustmentOrder(ProductionOrder, ReleasedOrder);
+        SetHandlerValues(6, 'SUMMARY-6', 'Summary target six', '');
+
+        // [WHEN] The real parent action adjusts the target to six.
+        ReleasedOrder."WIP Adjustment".Invoke();
+
+        // [THEN] The same card shows six without rereading the order, and the original ten is offset by a -4 delta.
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(6);
+        ReleasedOrder.SubcontractingSummary.WIPInTransit.AssertEquals(0);
+        AssertAdjustmentEntry(ProductionOrder."No.", -4, "WIP Ledger Entry Type"::"Negative Adjustment", 'SUMMARY-6', 'Summary target six', '');
+        WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
+        Assert.AreEqual(2, WIPEntry.Count(), 'The original and negative adjustment must remain.');
+        ReleasedOrder.Close();
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 6, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('WIPAdjustmentPageHandler,SummaryTransferCreatedHandler')]
+    procedure SummaryRealOrderPositiveAdjustmentRefresh()
+    var
+        ProductionOrder: Record "Production Order";
+        WIPEntry: Record "Subcontractor WIP Ledger Entry";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] A positive adjustment refreshes the open card without losing earlier signed ledger movements.
+        Initialize();
+
+        // [GIVEN] A ten-unit order has already been adjusted to six through its open card.
+        CreateSummaryAdjustmentOrder(ProductionOrder, ReleasedOrder);
+        SetHandlerValues(6, 'SUMMARY-6', 'Summary target six', '');
+        ReleasedOrder."WIP Adjustment".Invoke();
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(6);
+        SetHandlerValues(8, 'SUMMARY-8', 'Summary target eight', '');
+
+        // [WHEN] The real parent action raises the target to eight.
+        ReleasedOrder."WIP Adjustment".Invoke();
+
+        // [THEN] The same card immediately shows eight; the original ten and -4/+2 deltas remain.
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(8);
+        ReleasedOrder.SubcontractingSummary.WIPInTransit.AssertEquals(0);
+        AssertAdjustmentEntry(ProductionOrder."No.", -4, "WIP Ledger Entry Type"::"Negative Adjustment", 'SUMMARY-6', 'Summary target six', '');
+        AssertAdjustmentEntry(ProductionOrder."No.", 2, "WIP Ledger Entry Type"::"Positive Adjustment", 'SUMMARY-8', 'Summary target eight', '');
+        WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
+        Assert.AreEqual(3, WIPEntry.Count(), 'One original plus two adjustment entries must remain.');
+        ReleasedOrder.Close();
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 8, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('WIPAdjustmentPageHandler,SummaryTransferCreatedHandler')]
+    procedure SummaryRealOrderNegativeTargetRejected()
+    var
+        ProductionOrder: Record "Production Order";
+        WIPEntry: Record "Subcontractor WIP Ledger Entry";
         ReleasedOrder: TestPage "Released Production Order";
         EntryCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 636866] Real-order native WIP adjustment appends deltas and refreshes the actual Released consumer, preserving target guards.
+        // [SCENARIO 636866] Rejecting a negative adjustment target preserves the real order's displayed and persisted balance.
         Initialize();
 
-        // [GIVEN] A real header, line and routing with ten natively posted WIP units, not synthetic CreateTestWIPSetup.
+        // [GIVEN] An open real-order card already displays an adjusted balance of eight.
+        CreateSummaryAdjustmentOrder(ProductionOrder, ReleasedOrder);
+        SetHandlerValues(8, 'SUMMARY-8', 'Summary target eight', '');
+        ReleasedOrder."WIP Adjustment".Invoke();
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(8);
+        WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
+        EntryCount := WIPEntry.Count();
+        SetHandlerValues(-1, 'INVALID', 'Invalid negative target', '');
+
+        // [WHEN] A negative target is attempted through the same actual dialog.
+        asserterror ReleasedOrder."WIP Adjustment".Invoke();
+
+        // [THEN] The native target guard rejects it without adding entries.
+        Assert.ExpectedError('must not be negative');
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.AreEqual(EntryCount, WIPEntry.Count(), 'Rejected negative target must not append entries.');
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(8);
+        ReleasedOrder.Close();
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 8, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('WIPAdjustmentPageHandler,SummaryTransferCreatedHandler')]
+    procedure SummaryRealOrderExcessiveTargetRejected()
+    var
+        ProductionOrder: Record "Production Order";
+        WIPEntry: Record "Subcontractor WIP Ledger Entry";
+        ReleasedOrder: TestPage "Released Production Order";
+        EntryCount: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Rejecting a target above the real production quantity preserves the existing balance.
+        Initialize();
+
+        // [GIVEN] A ten-unit production order has an open card displaying an adjusted balance of eight.
+        CreateSummaryAdjustmentOrder(ProductionOrder, ReleasedOrder);
+        SetHandlerValues(8, 'SUMMARY-8', 'Summary target eight', '');
+        ReleasedOrder."WIP Adjustment".Invoke();
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(8);
+        WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
+        EntryCount := WIPEntry.Count();
+        SetHandlerValues(11, 'INVALID', 'Invalid excessive target', '');
+
+        // [WHEN] A target above the real production line quantity is attempted.
+        asserterror ReleasedOrder."WIP Adjustment".Invoke();
+
+        // [THEN] The native upper guard rejects it and the persisted card balance stays eight.
+        Assert.ExpectedError('must not exceed');
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.AreEqual(EntryCount, WIPEntry.Count(), 'Rejected excessive target must not append entries.');
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(8);
+        ReleasedOrder.Close();
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 8, 0);
+    end;
+
+    local procedure CreateSummaryAdjustmentOrder(var ProductionOrder: Record "Production Order"; var ReleasedOrder: TestPage "Released Production Order")
+    var
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        DirectPost: Codeunit "TransferOrder-Post Transfer";
+    begin
         SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
         SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, WorkCenter, PurchaseHeader, PurchaseLine);
         SubcWarehouseLibrary.CreateSummaryForward(ProductionOrder, WorkCenter, PurchaseHeader, TransferHeader);
@@ -51,47 +170,10 @@ codeunit 149914 "Subc. WIP Adjustment Test"
         TransferHeader.Modify(true);
         DirectPost.SetHideValidationDialog(true);
         DirectPost.Run(TransferHeader);
-        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 10, 0);
         ReleasedOrder.OpenView();
         ReleasedOrder.GoToRecord(ProductionOrder);
-
-        // [WHEN] The real parent action adjusts the valid target to six, then eight.
-        SetHandlerValues(6, 'SUMMARY-6', 'Summary target six', '');
-        ReleasedOrder."WIP Adjustment".Invoke();
-        ReleasedOrder.GoToRecord(ProductionOrder);
-        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(6);
-        AssertAdjustmentEntry(ProductionOrder."No.", -4, "WIP Ledger Entry Type"::"Negative Adjustment", 'SUMMARY-6', 'Summary target six', '');
-        SetHandlerValues(8, 'SUMMARY-8', 'Summary target eight', '');
-        ReleasedOrder."WIP Adjustment".Invoke();
-        ReleasedOrder.GoToRecord(ProductionOrder);
-
-        // [THEN] The original ten remains and native -4/+2 deltas produce eight.
-        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(8);
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(10);
         ReleasedOrder.SubcontractingSummary.WIPInTransit.AssertEquals(0);
-        AssertAdjustmentEntry(ProductionOrder."No.", 2, "WIP Ledger Entry Type"::"Positive Adjustment", 'SUMMARY-8', 'Summary target eight', '');
-        WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
-        EntryCount := WIPEntry.Count();
-        Assert.AreEqual(3, EntryCount, 'One original plus two adjustment entries must remain.');
-
-        // [WHEN] A negative target is attempted through the same actual dialog.
-        SetHandlerValues(-1, 'INVALID', 'Invalid negative target', '');
-        asserterror ReleasedOrder."WIP Adjustment".Invoke();
-
-        // [THEN] The native target guard rejects it without adding entries.
-        Assert.ExpectedError('must not be negative');
-        Assert.ExpectedErrorCode('Dialog');
-        Assert.AreEqual(EntryCount, WIPEntry.Count(), 'Rejected negative target must not append entries.');
-
-        // [WHEN] A target above the real production line quantity is attempted.
-        SetHandlerValues(11, 'INVALID', 'Invalid excessive target', '');
-        asserterror ReleasedOrder."WIP Adjustment".Invoke();
-
-        // [THEN] The native upper guard rejects it and the persisted card balance stays eight.
-        Assert.ExpectedError('must not exceed');
-        Assert.ExpectedErrorCode('Dialog');
-        Assert.AreEqual(EntryCount, WIPEntry.Count(), 'Rejected excessive target must not append entries.');
-        ReleasedOrder.Close();
-        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 8, 0);
     end;
 
     [PageHandler]

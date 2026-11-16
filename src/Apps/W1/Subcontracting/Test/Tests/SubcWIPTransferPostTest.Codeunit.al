@@ -414,23 +414,23 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
     local procedure InsertSummaryWIP(ProductionOrder: Record "Production Order"; InTransit: Boolean; Quantity: Decimal)
     var
         WIPEntry: Record "Subcontractor WIP Ledger Entry";
-        LastWIPEntry: Record "Subcontractor WIP Ledger Entry";
-        Item: Record Item;
-        NextEntryNo: Integer;
+        ProductionLine: Record "Prod. Order Line";
+        RoutingLine: Record "Prod. Order Routing Line";
     begin
-        NextEntryNo := 1;
-        if LastWIPEntry.FindLast() then
-            NextEntryNo := LastWIPEntry."Entry No." + 1;
-        LibraryInventory.CreateItem(Item);
-        WIPEntry."Entry No." := NextEntryNo;
-        WIPEntry."Item No." := Item."No.";
-        WIPEntry."Base Unit of Measure" := Item."Base Unit of Measure";
-        WIPEntry."Operation No." := CopyStr(Format(NextEntryNo), 1, MaxStrLen(WIPEntry."Operation No."));
-        WIPEntry."Prod. Order Status" := ProductionOrder.Status;
-        WIPEntry."Prod. Order No." := ProductionOrder."No.";
-        WIPEntry."In Transit" := InTransit;
-        WIPEntry."Quantity (Base)" := Quantity;
-        WIPEntry.Insert();
+        ProductionLine.SetRange(Status, ProductionLine.Status::Released);
+        ProductionLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProductionLine.FindFirst();
+        RoutingLine.SetRange(Status, RoutingLine.Status::Released);
+        RoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RoutingLine.FindFirst();
+        SubcontractingMgmtLibrary.CreateWIPLedgerEntry(
+            WIPEntry, ProductionLine."Item No.", ProductionLine."Location Code",
+            ProductionOrder, ProductionLine, RoutingLine, RoutingLine."Work Center No.", Quantity, InTransit);
+        if WIPEntry."Prod. Order Status" <> ProductionOrder.Status then begin
+            // The library creates Released entries; this reader fixture also exercises a same-number Finished identity.
+            WIPEntry."Prod. Order Status" := ProductionOrder.Status;
+            WIPEntry.Modify();
+        end;
     end;
 
     local procedure VerifySummaryWIPDetails(ProductionOrder: Record "Production Order")

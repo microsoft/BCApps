@@ -4545,6 +4545,66 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.IsTrue(SummaryMgmt.IsFullyInvoiced(ProductionOrder), 'Exact stored equality must qualify.');
     end;
 
+    [Test]
+    procedure SummaryBlankIdentityDoesNotReadOrOpenDetails()
+    var
+        BlankOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        SummaryMgmt: Codeunit "Subc. Order Summary Mgmt.";
+        HasOpenLine: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] A blank identity cannot read unrelated blank-linked purchasing rows or open detail pages.
+        Initialize();
+
+        // [GIVEN] An ordinary purchase line has quantity but no production order identity.
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 99);
+
+        // [WHEN] Summary reads and detail requests receive a blank production order identity.
+        // [THEN] No quantity, positive indicator or page invocation escapes the guard; no page handlers are registered.
+        Assert.AreEqual(0, SummaryMgmt.GetPurchaseQuantity(BlankOrder, HasOpenLine), 'Blank identity must not read blank-linked rows.');
+        Assert.IsFalse(SummaryMgmt.IsFullyInvoiced(BlankOrder), 'Blank identity must not display a positive indicator.');
+        SummaryMgmt.ShowPurchase(BlankOrder);
+        SummaryMgmt.ShowReceipts(BlankOrder);
+        SummaryMgmt.ShowInvoices(BlankOrder);
+        SummaryMgmt.ShowRouting(BlankOrder);
+        SummaryMgmt.ShowWIP(BlankOrder, false);
+        SummaryMgmt.ShowTransfers(BlankOrder, false);
+    end;
+
+    [Test]
+    procedure SummaryDisabledApplicationAreaDoesNotRead()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
+        SummaryMgmt: Codeunit "Subc. Order Summary Mgmt.";
+        HasOpenLine: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] The supported application-area gate prevents reads when subcontracting is unavailable.
+        Initialize();
+
+        // [GIVEN] An eligible order has a linked ten-unit purchase line.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, WorkCenter, PurchaseHeader, PurchaseLine);
+
+        // [WHEN] The Essential experience disables the subcontracting application area.
+        LibraryApplicationArea.EnableEssentialSetup();
+
+        // [THEN] The summary cannot read the existing linked quantity or report a positive indicator.
+        Assert.IsFalse(SummaryMgmt.CanRead(ProductionOrder), 'Disabled application area must prevent summary reads.');
+        Assert.AreEqual(0, SummaryMgmt.GetPurchaseQuantity(ProductionOrder, HasOpenLine), 'Disabled application area must not expose linked quantities.');
+        Assert.IsFalse(SummaryMgmt.IsFullyInvoiced(ProductionOrder), 'Disabled application area must not expose an invoicing indicator.');
+        LibraryApplicationArea.EnablePremiumSetup();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting Test");

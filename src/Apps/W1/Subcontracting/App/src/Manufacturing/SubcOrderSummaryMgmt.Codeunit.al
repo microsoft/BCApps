@@ -156,22 +156,12 @@ codeunit 20580 "Subc. Order Summary Mgmt."
     end;
 
     procedure CanRead(ProductionOrder: Record "Production Order"): Boolean
-#if not CLEAN28
     var
-#pragma warning disable AL0432
-        FeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
-#pragma warning restore AL0432
-#endif
+        ApplicationAreaMgmt: Codeunit "Subc. Application Area Mgmt.";
     begin
         if ProductionOrder."No." = '' then
             exit(false);
-#if not CLEAN28
-#pragma warning disable AL0432
-        if not FeatureFlagHandler.IsSubcontractingEnabled() then
-#pragma warning restore AL0432
-            exit(false);
-#endif
-        exit(true);
+        exit(ApplicationAreaMgmt.IsSubcontractingApplicationAreaEnabled());
     end;
 
     local procedure FilterRouting(ProductionOrder: Record "Production Order"; var RoutingLine: Record "Prod. Order Routing Line")

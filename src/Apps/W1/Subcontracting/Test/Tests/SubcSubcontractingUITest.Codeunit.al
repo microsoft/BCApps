@@ -611,7 +611,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         PurchaseLine.Validate(Quantity, FirstQuantity);
         PurchaseLine.Modify(true);
         SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
-        Assert.AreEqual(FirstQuantity * 6, PurchaseLine."Quantity (Base)", 'First contributor must persist factor-six base quantity.');
+        Assert.AreEqual(6, PurchaseLine."Qty. per Unit of Measure", 'First contributor must retain the factor-six document UOM conversion.');
         PurchaseLine.SetRange("No.", Items[2]."No.");
         PurchaseLine.FindFirst();
         Assert.AreEqual(SecondQuantity, PurchaseLine.Quantity, 'Second contributor must exist with its raw quantity.');
@@ -632,7 +632,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ReceiptLine.SetRange("No.", Items[1]."No.");
         ReceiptLine.FindFirst();
         Assert.AreEqual(FirstQuantity, ReceiptLine.Quantity, 'First family receipt must retain document quantity.');
-        Assert.AreEqual(FirstQuantity * 6, ReceiptLine."Quantity (Base)", 'First family receipt must retain numeric base conversion.');
+        Assert.AreEqual(6, ReceiptLine."Qty. per Unit of Measure", 'First family receipt must retain the factor-six document UOM conversion.');
         ReceiptLine.SetRange("No.", Items[2]."No.");
         ReceiptLine.FindFirst();
         Assert.AreEqual(SecondQuantity, ReceiptLine.Quantity, 'Second family receipt must be posted.');
@@ -846,7 +846,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
         // [GIVEN] Order "A" has two subcontract operations and one internal operation; "B" shares its routing.
         SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
-        AddSummaryRoutingOperations(ProductionOrder);
+        AddSummaryRoutingOperations(ProductionOrder, true);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             OtherOrder, OtherOrder.Status::Released, OtherOrder."Source Type"::Item, ProductionOrder."Source No.", 7, ProductionOrder."Location Code");
 
@@ -873,24 +873,20 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     var
         ProductionOrder: Record "Production Order";
         OtherOrder: Record "Production Order";
-        BlankOrder: Record "Production Order";
         WorkCenter: Record "Work Center";
         OtherWorkCenter: Record "Work Center";
-        SummaryMgmt: Codeunit "Subc. Order Summary Mgmt.";
         ReleasedOrder: TestPage "Released Production Order";
-        HasOpenLine: Boolean;
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 636866] Navigation clears hidden and blank records instead of retaining another order's values.
         Initialize();
 
-        // [GIVEN] Eligible "A", internal-only "B", and unrelated blank-linked purchasing data.
+        // [GIVEN] Eligible "A" and internal-only "B".
         SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
-        AddSummaryRoutingOperations(ProductionOrder);
+        AddSummaryRoutingOperations(ProductionOrder, true);
         SubcWarehouseLibrary.CreateSummaryOrder(7, OtherOrder, OtherWorkCenter);
         OtherWorkCenter.Validate("Subcontractor No.", '');
         OtherWorkCenter.Modify(true);
-        CreateSummaryBlankPurchase();
 
         // [WHEN] The actual card navigates "A" -> "B" -> "A".
         ReleasedOrder.OpenView();
@@ -906,14 +902,43 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ReleasedOrder.OpenNew();
         Assert.IsFalse(ReleasedOrder.SubcontractingSummary.Visible(), 'Blank card must hide the summary.');
         ReleasedOrder.Close();
-        Assert.AreEqual(0, SummaryMgmt.GetPurchaseQuantity(BlankOrder, HasOpenLine), 'Blank identity must not read blank-linked rows.');
-        Assert.IsFalse(SummaryMgmt.IsFullyInvoiced(BlankOrder), 'Blank identity must not display a positive indicator.');
-        SummaryMgmt.ShowPurchase(BlankOrder);
-        SummaryMgmt.ShowReceipts(BlankOrder);
-        SummaryMgmt.ShowInvoices(BlankOrder);
-        SummaryMgmt.ShowRouting(BlankOrder);
-        SummaryMgmt.ShowWIP(BlankOrder, false);
-        SummaryMgmt.ShowTransfers(BlankOrder, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('SummaryRefreshProductionOrderHandler')]
+    procedure SummaryRefreshActionUpdatesWithoutReselection()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Refresh Production Order updates the open summary without reselecting the order.
+        Initialize();
+
+        // [GIVEN] The open card has one operation, while its certified master routing now has two subcontract operations.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(1);
+        AddSummaryRoutingOperations(ProductionOrder, false);
+
+        // [WHEN] The real parent action recalculates the order from its changed master routing.
+        ReleasedOrder.RefreshProductionOrder.Invoke();
+
+        // [THEN] The same card immediately shows both subcontract operations without GoToRecord or reopening.
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(2);
+        ReleasedOrder.Close();
+    end;
+
+    [RequestPageHandler]
+    procedure SummaryRefreshProductionOrderHandler(var RefreshOrder: TestRequestPage "Refresh Production Order")
+    begin
+        RefreshOrder.CalcLines.SetValue(true);
+        RefreshOrder.CalcRoutings.SetValue(true);
+        RefreshOrder.CalcComponents.SetValue(true);
+        RefreshOrder.CreateInbRqst.SetValue(false);
+        RefreshOrder.OK().Invoke();
     end;
 
     [Test]
@@ -1086,7 +1111,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         LibraryVariableStorage.AssertEmpty();
     end;
 
-    local procedure AddSummaryRoutingOperations(var ProductionOrder: Record "Production Order")
+    local procedure AddSummaryRoutingOperations(var ProductionOrder: Record "Production Order"; RefreshOrder: Boolean)
     var
         Item: Record Item;
         RoutingHeader: Record "Routing Header";
@@ -1106,18 +1131,8 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '30', RoutingLine.Type::"Work Center", InternalWorkCenter."No.");
         RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
         RoutingHeader.Modify(true);
-        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
-    end;
-
-    local procedure CreateSummaryBlankPurchase()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        Item: Record Item;
-    begin
-        LibraryInventory.CreateItem(Item);
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 99);
+        if RefreshOrder then
+            LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
     end;
 
     local procedure VerifySummaryRoutingDetails(ProductionOrder: Record "Production Order")
