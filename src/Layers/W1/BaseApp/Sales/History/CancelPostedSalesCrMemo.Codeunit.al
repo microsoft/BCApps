@@ -386,7 +386,6 @@ codeunit 1339 "Cancel Posted Sales Cr. Memo"
             GenPostingSetup.TestField("Sales Line Disc. Account");
             TestGLAccount(GenPostingSetup."Sales Line Disc. Account", SalesCrMemoLine);
         end;
-        TestGLAccount(GenPostingSetup."Sales Line Disc. Account", SalesCrMemoLine);
         if SalesCrMemoLine.Type = SalesCrMemoLine.Type::Item then begin
             Item.Get(SalesCrMemoLine."No.");
             if Item.IsInventoriableType() then
