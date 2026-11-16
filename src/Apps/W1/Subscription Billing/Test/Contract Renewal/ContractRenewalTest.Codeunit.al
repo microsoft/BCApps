@@ -185,9 +185,10 @@ codeunit 139692 "Contract Renewal Test"
         SalesHeader: Record "Sales Header";
         LibraryERM: Codeunit "Library - ERM";
         SalesQuoteTestPage: TestPage "Sales Quote";
+        HeaderCannotBeChangedErr: Label 'You cannot make this change because the document is linked to a contract. If you still want to change the field, first delete this document and then make the change to the contract.', Locked = true;
     begin
         Initialize();
-        // Test: Changes in Header & Sales Line should be disallowed
+        // Test: Changes in the contract renewal quote header should be disallowed
         ContractTestLibrary.CreateCustomer(Customer);
         CreateFakeContractRenewalQuote(SalesHeader);
         Commit(); // retain data after asserterror
@@ -196,10 +197,13 @@ codeunit 139692 "Contract Renewal Test"
         SalesQuoteTestPage.OpenEdit();
         SalesQuoteTestPage.GoToRecord(SalesHeader);
         asserterror SalesQuoteTestPage."Currency Code".SetValue(LibraryERM.CreateCurrencyWithRandomExchRates());
+        Assert.ExpectedError(HeaderCannotBeChangedErr);
 
-        // Check with direct validation
+        // Check another user field edit; direct record validation has CurrFieldNo = 0.
         SalesHeader.Get(SalesHeader."Document Type"::Quote, SalesHeader."No.");
-        asserterror SalesHeader.Validate("Sell-to Customer No.", Customer."No.");
+        SalesQuoteTestPage.GoToRecord(SalesHeader);
+        asserterror SalesQuoteTestPage."Sell-to Customer No.".SetValue(Customer."No.");
+        Assert.ExpectedError(HeaderCannotBeChangedErr);
     end;
 
     [Test]
@@ -606,6 +610,7 @@ codeunit 139692 "Contract Renewal Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure DisallowSalesQuoteToInvoiceForContractRenewal()
     var
         SalesHeader: Record "Sales Header";
@@ -618,6 +623,7 @@ codeunit 139692 "Contract Renewal Test"
 
         ConfirmOption := true;
         asserterror Codeunit.Run(Codeunit::"Sales-Quote to Invoice Yes/No", SalesHeader);
+        Assert.ExpectedError('This action is not allowed for contract Renewal Quotes.');
     end;
 
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]

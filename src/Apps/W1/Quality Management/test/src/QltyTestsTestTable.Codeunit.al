@@ -2849,9 +2849,10 @@ codeunit 139967 "Qlty. Tests - Test Table"
         Initialize();
 
         // [GIVEN] Quality management setup is configured
-        PrepareTriggerFallbackSetup(QltyManagementSetup);
+        QltyInspectionUtility.EnsureSetupExists();
 
         // [GIVEN] Management setup warehouse trigger is set to OnWhseMovementRegister
+        QltyManagementSetup.Get();
         QltyManagementSetup.Validate("Warehouse Trigger", QltyManagementSetup."Warehouse Trigger"::OnWhseMovementRegister);
         QltyManagementSetup.Modify();
 
@@ -2864,7 +2865,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [THEN] Warehouse Movement Trigger defaults to OnWhseMovementRegister
         LibraryAssert.IsTrue(QltyInspectionGenRule."Warehouse Movement Trigger" = QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister, 'Should have default trigger value.');
-        LibrarySetupStorage.Restore();
     end;
 
     [Test]

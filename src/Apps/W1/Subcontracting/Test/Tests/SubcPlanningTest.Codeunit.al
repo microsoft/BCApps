@@ -423,7 +423,6 @@ codeunit 139996 "Subc. Planning Test"
         LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
 
         // [THEN] No requisition line is suggested for the Vendor-Supplied component
-        RequisitionLine.Reset();
         RequisitionLine.SetRange("No.", ComponentItem."No.");
         Assert.RecordIsEmpty(RequisitionLine);
 

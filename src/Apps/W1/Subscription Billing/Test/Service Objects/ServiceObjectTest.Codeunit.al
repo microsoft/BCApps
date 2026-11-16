@@ -1113,7 +1113,7 @@ codeunit 148157 "Service Object Test"
 
         SetupServiceObjectWithServiceCommitment(Item, ServiceObject, false, false);
         ServiceObject.SetHideValidationDialog(true);
-        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
         ServiceObject."End-User Customer No." := Customer."No.";
         ServiceObject.Modify(false);
         ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");

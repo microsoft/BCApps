@@ -59,7 +59,8 @@ Describe "W1 verification project discovery and workflow" {
         $provenance = Get-Content (Join-Path $script:root "build\scripts\VerificationAlTool.json") -Raw | ConvertFrom-Json
         $zip = Join-Path $script:root "build\tools\altool-dev-net10.zip"
         (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash | Should -Be $provenance.archiveSha256
-        $provenance.stagedSourcePatchSha256 | Should -Be "E9EA98940D4CD6D687502CF3109C461F6348F3D8311BB54C7DF734D6D6FBC527"
+        $provenance.stagedSourcePatchSha256 | Should -Be "1D950830187580BE624385982C46AD64AA72ECDE0631DA53972EC4F06BC47B45"
+        $provenance.renewSessionScope | Should -Be "codeunit"
     }
 
     It "uses the existing clean-container and Global publication overrides before native initialization" {
@@ -73,6 +74,27 @@ Describe "W1 verification project discovery and workflow" {
         $publish | Should -Not -Match 'useDevEndpoint|Test Runner|Permissions Mock'
         $toolkit | Should -Match 'Skipping Test Toolkit import'
         $importData.IndexOf("Install-AllApps -ContainerName") | Should -BeLessThan $importData.LastIndexOf("New-AdditionalTenants -ContainerName")
+    }
+}
+
+Describe "Native renewal contract preparation" {
+    It "rejects <Scope> provenance before extraction or executable invocation" -ForEach @(
+        @{ Scope = "method"; ExpectedError = "*must renew once per ordered codeunit group*" }
+        @{ Scope = ""; ExpectedError = "*renewSessionScope*has not been supplied*" }
+    ) {
+        $scripts = New-Item -ItemType Directory -Path (Join-Path $TestDrive "scripts") -Force
+        $tools = New-Item -ItemType Directory -Path (Join-Path $TestDrive "tools") -Force
+        Copy-Item (Join-Path $PSScriptRoot "..\Prepare-VerificationAlTool.ps1") $scripts
+        @{
+            archiveSha256 = "not-used"
+            exeSha256 = "not-used"
+            dllSha256 = "not-used"
+            languageModelToolsSha256 = "not-used"
+            version = "not-used"
+            renewSessionScope = $Scope
+        } | ConvertTo-Json | Set-Content (Join-Path $scripts "VerificationAlTool.json") -Encoding ASCII
+        $null = New-Item -ItemType File -Path (Join-Path $tools "altool-dev-net10.zip") -Force
+        { & (Join-Path $scripts "Prepare-VerificationAlTool.ps1") } | Should -Throw $ExpectedError
     }
 }
 
@@ -202,6 +224,7 @@ Describe "Native ALTool verification adapter" {
             }
             Mock -ModuleName AlToolTestRunner Invoke-AlNativeCommand {
                 $ArgumentList | Should -Contain "--renewsession"
+                $ArgumentList | Should -Not -Contain "--renewsession-per-method"
                 $index = [array]::IndexOf($ArgumentList, "--testgroups")
                 $groups = @(Get-Content -LiteralPath $ArgumentList[$index + 1] -Raw | ConvertFrom-Json)
                 $groups.Count | Should -Be 1
@@ -435,7 +458,7 @@ Describe "Native ALTool verification adapter" {
     }
 
     Describe "Actual custom ALTool artifact preparation" -Skip:($env:BCAPPS_VERIFY_NATIVE_TOOL -ne "true") {
-        It "checks exact hashes, executable version and native renewal support without publishing" {
+        It "checks exact hashes, executable version and both native renewal options without publishing" {
             $savedRunnerTemp = $env:RUNNER_TEMP
             $savedGitHubEnv = $env:GITHUB_ENV
             $env:RUNNER_TEMP = $TestDrive
@@ -497,6 +520,7 @@ Describe "Native ALTool verification adapter" {
         Mock -ModuleName BcAppsActionRunnerFixture Invoke-AlNativeCommand {
             $FilePath | Should -Be "verified-altool.exe"
             $ArgumentList | Should -Contain "--renewsession"
+            $ArgumentList | Should -Not -Contain "--renewsession-per-method"
             $ArgumentList | Should -Contain "--testgroups"
             ($ArgumentList -join " ") | Should -Not -Match "\-\-coverage"
             $groupsIndex = [array]::IndexOf($ArgumentList, "--testgroups")

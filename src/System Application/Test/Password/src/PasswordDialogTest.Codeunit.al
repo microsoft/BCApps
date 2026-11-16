@@ -25,6 +25,8 @@ codeunit 135033 "Password Dialog Test"
         DisablePasswordConfirmation: Boolean;
         DisablePasswordValidation: Boolean;
         PasswordMissmatch: Boolean;
+        CurrentPasswordMismatchMessage: Text;
+        CurrentPasswordMismatchMessageCount: Integer;
         ValidPasswordTxt: Label 'Some Password 2!';
         AnotherValidPasswordTxt: Label 'Some Password 3!';
         InValidPasswordTxt: Label 'Some Password';
@@ -269,7 +271,7 @@ codeunit 135033 "Password Dialog Test"
     end;
 
     [Test]
-    [HandlerFunctions('ChangePasswordDialogWithCurrentPasswordEmptyModalPageHandler')]
+    [HandlerFunctions('ChangePasswordDialogWithCurrentPasswordEmptyModalPageHandler,CurrentPasswordMismatchMessageHandler')]
     procedure OpenPasswordChangeDialogWithCurrentPasswordEmptyTest();
     var
         Password: SecretText;
@@ -283,10 +285,13 @@ codeunit 135033 "Password Dialog Test"
         // [GIVEN] The old password is for comparison that the old password matches the entered user and 
         // the new password does not match the old password.
         CurrentPassword := SecretStrSubstNo(ValidPasswordTxt);
+        Clear(CurrentPasswordMismatchMessage);
+        CurrentPasswordMismatchMessageCount := 0;
 
         // [WHEN] The password dialog is opened in change password mode.
-        // [THEN] An error is expected, as we will not fill in OldPassword.
+        // [THEN] Closing with an empty old password is rejected before a valid retry.
         PasswordDialogManagement.OpenPasswordChangeDialog(CurrentPassword, Password);
+        Assert.AreEqual(AnotherValidPasswordTxt, GetPasswordValue(Password), 'A different password was expected.');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Password Dialog Management", 'OnSetMinPasswordLength', '', true, true)]
@@ -342,9 +347,21 @@ codeunit 135033 "Password Dialog Test"
         PasswordDialog.Password.SetValue(AnotherValidPasswordTxt);
         PasswordDialog.ConfirmPassword.SetValue(AnotherValidPasswordTxt);
 
-        //As we forgot to enter previous password, we expect an error
-        asserterror PasswordDialog.OK().Invoke();
-        Assert.ExpectedError(CurrentPasswordMismatchErr);
+        Assert.AreEqual(0, CurrentPasswordMismatchMessageCount, 'No password mismatch should be reported before attempting to close the dialog.');
+        PasswordDialog.OK().Invoke();
+        Assert.AreEqual(1, CurrentPasswordMismatchMessageCount, 'Closing without the old password must report one validation message.');
+        Assert.AreEqual(CurrentPasswordMismatchErr, CurrentPasswordMismatchMessage, 'The original password mismatch must be reported.');
+
+        PasswordDialog.OldPassword.SetValue(ValidPasswordTxt);
+        PasswordDialog.OK().Invoke();
+        Assert.AreEqual(1, CurrentPasswordMismatchMessageCount, 'Closing with the correct old password must not report another validation message.');
+    end;
+
+    [MessageHandler]
+    procedure CurrentPasswordMismatchMessageHandler(Message: Text[1024])
+    begin
+        CurrentPasswordMismatchMessageCount += 1;
+        CurrentPasswordMismatchMessage := Message;
     end;
 
     [ConfirmHandler]

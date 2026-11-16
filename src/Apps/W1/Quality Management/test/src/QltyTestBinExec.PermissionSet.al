@@ -4,10 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.QualityManagement;
 
+using Microsoft.Warehouse.Structure;
 using System.TestLibraries.Utilities;
 
-permissionset 139957 "Qlty. Test Assert"
+permissionset 139957 "Qlty. Test Bin Exec"
 {
     Assignable = true;
-    Permissions = codeunit "Library Assert" = X;
+
+    // Supply execution prerequisites without granting the bin data or page access under test.
+    Permissions = codeunit "Library Assert" = X,
+                  table Bin = X;
 }

@@ -41,6 +41,27 @@ Running the above will
 * Set up launch.jsons and settings.jsons in your VSCode
 * Compile and publish all AL apps that match `.\src\System Application\`
 
+## W1 native verification branch
+
+The verification workflow uses the tracked `build\tools\altool-dev-net10.zip`, checked
+against `build\scripts\VerificationAlTool.json` before execution. Preparation rejects
+missing or mismatched binaries, versions, or renewal options. It does not substitute
+a released ALTool or fall back to BcContainerHelper test execution.
+
+The adapter passes `--renewsession`: one fresh native session for each ordered
+codeunit group, shared by that group's explicitly selected methods. Repeated entries
+for the same codeunit remain distinct session boundaries. The separate
+`--renewsession-per-method` option renews before each method; the options are mutually
+exclusive. Without either option, ALTool retains its shared whole-batch session.
+Within a codeunit invocation the server filter deduplicates repeated method names;
+per-method renewal instead makes a separate invocation for each listed entry.
+
+Canonical test-bucket and disabled-test selection still produces explicit method
+lists; codeunit renewal does not run excluded methods or an unfiltered codeunit.
+Coverage remains off, and the existing four app workers and serialized warmup remain
+unchanged. Codeunit-local setup can be reused within the selected group, but a test
+selected alone cannot rely on a preceding initialization method.
+
 ## GDL development (layers and views)
 
 Anything that ships in multiple localizations (the **Base Application** and the application layers) lives under `src/Layers`, organized by country/region. Each country's app is composed by overlapping multiple **layers** in order: a `W1` ("worldwide") base, optional regional layers, and the country layer. For example, the `US` app is composed of `W1` + `NA` + `US`, where each layer either introduces new objects or replaces objects from a base layer.

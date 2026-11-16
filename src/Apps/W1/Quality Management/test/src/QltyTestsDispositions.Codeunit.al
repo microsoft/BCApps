@@ -3689,11 +3689,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseJournalTemplate: Record "Warehouse Journal Template";
         WarehouseJournalBatch: Record "Warehouse Journal Batch";
         WarehouseJournalLine: Record "Warehouse Journal Line";
+        ReclassItemJournalTemplate: Record "Item Journal Template";
+        ReclassItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
         ReservationEntry: Record "Reservation Entry";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         NoSeries: Codeunit "No. Series";
     begin
-        // [SCENARIO] Validate that no warehouse journal lines are created when no inventory is found at the filtered location
+        // [SCENARIO] Validate that no journal lines are created when no inventory is found at the filtered location
 
         // [GIVEN] Quality management setup and inspection generation rule are initialized
         QltyInspectionUtility.EnsureSetupExists();
@@ -3718,9 +3721,14 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         LibraryWarehouse.CreateWhseJournalBatch(WarehouseJournalBatch, WarehouseJournalTemplate.Name, Location.Code);
 
-        // [GIVEN] Quality management setup is configured with warehouse adjustment batch
+        // [GIVEN] An item reclassification template and batch are available
+        LibraryInventory.CreateItemJournalTemplateByType(ReclassItemJournalTemplate, ReclassItemJournalTemplate.Type::Transfer);
+        LibraryInventory.CreateItemJournalBatch(ReclassItemJournalBatch, ReclassItemJournalTemplate.Name);
+
+        // [GIVEN] Quality management setup is configured with warehouse adjustment and item reclassification batches
         QltyManagementSetup.Get();
         QltyManagementSetup."Whse. Item Journal Batch Name" := WarehouseJournalBatch.Name;
+        QltyManagementSetup."Item Reclass. Batch Name" := ReclassItemJournalBatch.Name;
         QltyManagementSetup.Modify();
 
         // [GIVEN] Disposition buffer is configured with filter location where no inventory exists
@@ -3737,9 +3745,16 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseJournalLine.SetRange("Journal Batch Name", WarehouseJournalBatch.Name);
         LibraryAssert.IsTrue(WarehouseJournalLine.IsEmpty(), 'No adjustment line should have been created');
 
+        ItemJournalLine.SetRange("Journal Template Name", ReclassItemJournalTemplate.Name);
+        ItemJournalLine.SetRange("Journal Batch Name", ReclassItemJournalBatch.Name);
+        ItemJournalLine.SetRange("Item No.", Item."No.");
+        LibraryAssert.IsTrue(ItemJournalLine.IsEmpty(), 'No item reclassification journal line should have been created');
+
         QltyInspectionGenRule.Delete();
         WarehouseJournalBatch.Delete();
         WarehouseJournalTemplate.Delete();
+        ReclassItemJournalBatch.Delete();
+        ReclassItemJournalTemplate.Delete();
     end;
 
     [Test]

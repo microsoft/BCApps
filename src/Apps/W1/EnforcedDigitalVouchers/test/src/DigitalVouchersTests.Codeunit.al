@@ -300,6 +300,7 @@ codeunit 139515 "Digital Vouchers Tests"
     procedure PostBlankDocumentGeneralJournalLineWithRequiredAttachmentAndNoDigitalVoucher()
     var
         GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
         DigVouchersDisableEnforce: Codeunit "Dig. Vouchers Disable Enforce";
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
     begin
@@ -318,10 +319,13 @@ codeunit 139515 "Digital Vouchers Tests"
         LibraryVariableStorage.Enqueue(true);
         LibraryVariableStorage.Enqueue(NotPossibleToPostWithoutVoucherErr);
         // [WHEN] Post general journal
-        asserterror BatchProcessingMgt.BatchProcessGenJournalLine(GenJournalLine, Codeunit::"Gen. Jnl.-Post");
+        BatchProcessingMgt.BatchProcessGenJournalLine(GenJournalLine, Codeunit::"Gen. Jnl.-Post");
 
         // [THEN] Error "Not possible to post without the voucher" is shown in the error message page
         // Verified in the ErrorMessagePageHandler
+        GenJournalLine.Get(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", GenJournalLine."Line No.");
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        Assert.RecordIsEmpty(GLEntry);
 
         LibraryVariableStorage.AssertEmpty();
         UnbindSubscription(DigVouchersDisableEnforce);
@@ -444,6 +448,7 @@ codeunit 139515 "Digital Vouchers Tests"
         // [SCENARIO 537136] Stan cannot post a sales journal line with required attachment and no digital voucher
 
         Initialize();
+        EnableDigitalVoucherFeature();
         BindSubscription(DigVouchersDisableEnforce);
         // [GIVEN] Digital voucher entry setup for sales journal is "Attachment"
         InitSetupCheckOnly("Digital Voucher Entry Type"::"Sales Journal", "Digital Voucher Check Type"::Attachment);
@@ -472,27 +477,32 @@ codeunit 139515 "Digital Vouchers Tests"
     procedure PostPurchaseJournalLineWithRequiredAttachmentAndNoDigitalVoucher()
     var
         GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
         DigVouchersDisableEnforce: Codeunit "Dig. Vouchers Disable Enforce";
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
     begin
         // [SCENARIO 537136] Stan cannot post a purchase journal line with required attachment and no digital voucher
 
         Initialize();
+        EnableDigitalVoucherFeature();
         BindSubscription(DigVouchersDisableEnforce);
         // [GIVEN] Digital voucher entry setup for purchase journal is "Attachment"
         InitSetupCheckOnly("Digital Voucher Entry Type"::"Purchase Journal", "Digital Voucher Check Type"::Attachment);
         // [GIVEN] Purchase journal line is created
         LibraryJournals.CreateGenJournalLineWithBatch(
             GenJournalLine, GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Vendor,
-            LibraryPurchase.CreateVendorNo(), LibraryRandom.RandDec(100, 2));
+            LibraryPurchase.CreateVendorNo(), -LibraryRandom.RandDec(100, 2));
         LibraryVariableStorage.Enqueue(DoYouWantToPostQst);
         LibraryVariableStorage.Enqueue(true);
         LibraryVariableStorage.Enqueue(NotPossibleToPostWithoutVoucherErr);
         // [WHEN] Post purchase journal
-        asserterror BatchProcessingMgt.BatchProcessGenJournalLine(GenJournalLine, Codeunit::"Gen. Jnl.-Post");
+        BatchProcessingMgt.BatchProcessGenJournalLine(GenJournalLine, Codeunit::"Gen. Jnl.-Post");
 
         // [THEN] Error "Not possible to post without the voucher" is shown in the error message page
         // Verified in the ErrorMessagePageHandler
+        GenJournalLine.Get(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", GenJournalLine."Line No.");
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        Assert.RecordIsEmpty(GLEntry);
 
         LibraryVariableStorage.AssertEmpty();
         UnbindSubscription(DigVouchersDisableEnforce);
@@ -2042,7 +2052,7 @@ codeunit 139515 "Digital Vouchers Tests"
     [PageHandler]
     procedure ErrorMessagePageHandler(var ErrorMessagesPage: TestPage "Error Messages")
     begin
-        Assert.AreEqual(LibraryVariableStorage.DequeueText(), ErrorMessagesPage.Description, 'Error message description is not correct');
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), ErrorMessagesPage.Description.Value(), 'Error message description is not correct');
     end;
 
     [StrMenuHandler]

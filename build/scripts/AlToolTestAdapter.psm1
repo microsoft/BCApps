@@ -156,7 +156,7 @@ function Install-BcAppsVerificationFramework {
 
 <#
 .SYNOPSIS
-    Executes the selected app's enabled methods natively with session renewal and no coverage.
+    Executes the selected app's enabled methods natively with codeunit-scoped session renewal and no coverage.
 .DESCRIPTION
     Uses the pinned action's ToolResponse parser and JUnit writer for actual method outcomes.
     Persists missing outcomes as NativeTestResultUnreported errors, not AL assertion failures
@@ -258,7 +258,7 @@ function Invoke-BcAppsNativeTestRun {
                     "--port", "$($connection.Port)", "--environmenttype", "OnPrem",
                     "--authentication", "UserPassword", "--tenant", $parameters.tenant
                 )
-                Write-Host "Native ALTool --renewsession: '$($parameters.appName)', tenant '$($parameters.tenant)', $($codeunits.Count) codeunits, $(($codeunits.Tests | Measure-Object).Count) explicit methods."
+                Write-Host "Native ALTool --renewsession (per codeunit): '$($parameters.appName)', tenant '$($parameters.tenant)', $($codeunits.Count) codeunits, $(($codeunits.Tests | Measure-Object).Count) explicit methods."
                 $native = Invoke-AlNativeCommand -FilePath $parameters["_bcAppsAlToolPath"] -ArgumentList $arguments
                 if ($native.ExitCode -notin @(0, 1)) {
                     $infrastructureErrors.Add("Native ALTool exited $($native.ExitCode).")

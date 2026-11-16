@@ -33,8 +33,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     begin
         // [SCENARIO] A quality inspector can select destination bins with the additional bin lookup role.
         LibraryLowerPermissions.AddPermissionSet(InspectorRoleIDTok);
-        LibraryLowerPermissions.AddPermissionSet(BinLookupRoleIDTok);
-        LibraryLowerPermissions.AddPermissionSet('Qlty. Test Assert');
+        LibraryLowerPermissions.AddPermissionSet('Qlty. Test Bin Exec');
 
         VerifyCanSelectDestinationBin();
     end;
@@ -44,8 +43,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     begin
         // [SCENARIO] A quality supervisor can select destination bins with the additional bin lookup role.
         LibraryLowerPermissions.AddPermissionSet(AdminSupervisorRoleIDTok);
-        LibraryLowerPermissions.AddPermissionSet(BinLookupRoleIDTok);
-        LibraryLowerPermissions.AddPermissionSet('Qlty. Test Assert');
+        LibraryLowerPermissions.AddPermissionSet('Qlty. Test Bin Exec');
 
         VerifyCanSelectDestinationBin();
     end;
@@ -246,7 +244,10 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         Bin: Record Bin;
         BinList: TestPage "Bin List";
     begin
+        LibraryAssert.IsFalse(Bin.ReadPermission(), 'The quality role and test execution permissions alone should not grant read permission on bins.');
+        LibraryLowerPermissions.AddPermissionSet(BinLookupRoleIDTok);
         LibraryAssert.IsTrue(Bin.ReadPermission(), 'The bin lookup role should grant read permission on bins.');
+        LibraryAssert.IsFalse(Bin.WritePermission(), 'The bin lookup role should not grant write permission on bins.');
         BinList.OpenView();
         BinList.Close();
     end;

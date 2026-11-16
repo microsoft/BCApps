@@ -4,10 +4,13 @@ $zip = Join-Path $PSScriptRoot "..\tools\altool-dev-net10.zip"
 if (-not (Test-Path -LiteralPath $zip -PathType Leaf)) {
     throw "The verified custom ALTool bundle is missing from build\tools\altool-dev-net10.zip."
 }
-foreach ($field in @("archiveSha256", "exeSha256", "dllSha256", "languageModelToolsSha256", "version")) {
+foreach ($field in @("archiveSha256", "exeSha256", "dllSha256", "languageModelToolsSha256", "version", "renewSessionScope")) {
     if (-not $provenance.$field) {
         throw "Custom ALTool provenance '$field' has not been supplied. Do not substitute a released tool."
     }
+}
+if ($provenance.renewSessionScope -ne "codeunit") {
+    throw "Custom ALTool must renew once per ordered codeunit group, not per method."
 }
 
 $destination = Join-Path $env:RUNNER_TEMP ("bcapps-altool-" + [guid]::NewGuid().ToString("N"))
@@ -30,8 +33,10 @@ if ($LASTEXITCODE -ne 0 -or ($versionOutput -join "`n").Trim() -ne $provenance.v
     throw "Custom ALTool version does not match the verified build: $($versionOutput -join ' ')."
 }
 $helpOutput = @(& $alToolPath runtests --help 2>&1)
-if ($LASTEXITCODE -ne 0 -or ($helpOutput -join "`n") -notmatch '\-\-renewsession\b') {
-    throw "Custom ALTool does not advertise the required native --renewsession option."
+$helpText = $helpOutput -join "`n"
+if ($LASTEXITCODE -ne 0 -or $helpText -notmatch '(?m)--renewsession(?=\s|$)' -or
+    $helpText -notmatch '(?m)--renewsession-per-method(?=\s|$)') {
+    throw "Custom ALTool must advertise --renewsession and the separate --renewsession-per-method option."
 }
 Add-Content -Encoding UTF8 -Path $env:GITHUB_ENV -Value "AlToolPath=$alToolPath"
-Write-Host "Using verified native ALTool $($provenance.version), archive SHA256 $($provenance.archiveSha256), with --renewsession."
+Write-Host "Using verified native ALTool $($provenance.version), archive SHA256 $($provenance.archiveSha256), with --renewsession (one session per ordered codeunit group)."

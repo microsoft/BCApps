@@ -395,6 +395,7 @@ codeunit 139780 "Integration Tests"
         CurrencyExchangeRate: Record "Currency Exchange Rate";
         GeneralLedgerSetup: Record "General Ledger Setup";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryUtility: Codeunit "Library - Utility";
     begin
         this.LibraryPermission.SetOutsideO365Scope();
 
@@ -420,7 +421,7 @@ codeunit 139780 "Integration Tests"
         this.LibraryEDocument.SetupStandardSalesScenario(this.Customer, this.EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Logiq);
         this.LibraryEDocument.SetupStandardPurchaseScenario(this.Vendor, this.EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Logiq);
 
-        this.Vendor."VAT Registration No." := 'NO 777 777 777';
+        this.Vendor."VAT Registration No." := LibraryUtility.GenerateGUID();
         this.Vendor."Receive E-Document To" := Enum::"E-Document Type"::"Purchase Invoice";
         this.Vendor.Modify();
 
@@ -618,8 +619,14 @@ codeunit 139780 "Integration Tests"
     end;
 
     local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
+    var
+        ResourceContent: Text;
     begin
-        Response.Content.WriteFrom(NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8));
+        ResourceContent := NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8);
+        // Keep the supplier identity scoped to this test's vendor, not a vendor from an earlier committed test.
+        if ResourceText in [TestFile1Tok, TestFile2Tok] then
+            ResourceContent := ResourceContent.Replace('NO 777 777 777', this.Vendor."VAT Registration No.");
+        Response.Content.WriteFrom(ResourceContent);
     end;
 
     local procedure GetTransferStatus(var Response: TestHttpResponseMessage)
