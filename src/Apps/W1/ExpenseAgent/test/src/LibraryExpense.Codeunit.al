@@ -16,6 +16,8 @@ using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
 using System.Agents;
+using System.Security.AccessControl;
+using System.Security.User;
 using System.Utilities;
 
 codeunit 148300 "Library - Expense"
@@ -111,6 +113,50 @@ codeunit 148300 "Library - Expense"
         ExpenseUser.Validate("No.", LibraryUtility.GenerateRandomCode(ExpenseUser.FieldNo("No."), Database::"Expense User"));
         ExpenseUser.Validate("Employee No.", LibraryHumanResource.CreateEmployeeNo());
         ExpenseUser.Insert(true);
+    end;
+
+    internal procedure CreateExpenseUserWithApprovalIdentity(var ExpenseUser: Record "Expense User"; CanApprove: Boolean)
+    var
+        UserSetup: Record "User Setup";
+        User: Record User;
+        LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
+        UserEmail: Text[80];
+    begin
+        LibraryDocumentApprovals.CreateMockupUserSetup(UserSetup);
+        UserEmail := CopyStr(DelChr(LowerCase(Format(CreateGuid())), '=', '{}-') + '@test.local', 1, MaxStrLen(UserEmail));
+        User.SetRange("User Name", UserSetup."User ID");
+        if User.FindFirst() then begin
+            User."Authentication Email" := UserEmail;
+            User.Modify();
+        end else begin
+            User.Init();
+            User."User Security ID" := CreateGuid();
+            User."User Name" := UserSetup."User ID";
+            User."Authentication Email" := UserEmail;
+            User.Insert(true);
+        end;
+
+        CreateExpenseUser(ExpenseUser);
+        ExpenseUser.Validate("E-mail", UserEmail);
+        if CanApprove then begin
+            ExpenseUser.Validate("Can Approve", true);
+            ExpenseUser.Validate("Unlimited Approval", true);
+        end;
+        ExpenseUser.Validate("Entra Id", CreateGuid());
+        ExpenseUser.Modify();
+    end;
+
+    internal procedure CreateAlternateApproverCoverage(PrimaryApproverNo: Code[20]; AlternateApproverNo: Code[20]; StartDate: Date; EndDate: Date): Guid
+    var
+        ExpenseAlternateApprover: Record "Expense Alternate Approver";
+    begin
+        ExpenseAlternateApprover.Init();
+        ExpenseAlternateApprover.Validate("Primary Approver No.", PrimaryApproverNo);
+        ExpenseAlternateApprover.Validate("Alternate Approver No.", AlternateApproverNo);
+        ExpenseAlternateApprover.Validate("Effective Start Date", StartDate);
+        ExpenseAlternateApprover.Validate("Effective End Date", EndDate);
+        ExpenseAlternateApprover.Insert(true);
+        exit(ExpenseAlternateApprover.SystemId);
     end;
 
     procedure CreateEmployee(EmployeeNo: Code[20]): Code[20]
