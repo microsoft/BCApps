@@ -44,6 +44,9 @@ codeunit 48520 "Fabric Platform Mgt"
         StopSynchronizationLbl: Label 'Stop synchronization';
         SetupRequiredTitleLbl: Label 'Setup required';
         SetupRequiredDetailedMsg: Label 'Open the Fabric Platform Setup page, fill in the missing value described above, and run Enable mirroring again.';
+        DestinationChangeBlockedTitleLbl: Label 'Reset the Fabric connection';
+        DestinationChangeBlockedErr: Label 'You cannot change the Fabric workspace or Open Mirroring database while setup is complete or export is enabled.';
+        DestinationChangeBlockedDetailedMsg: Label 'Choose Reset on Microsoft Fabric Mirroring Setup and wait until Setup Complete and Export Enabled are cleared before changing the destination. Stop synchronization only pauses export. Reset removes the connection, resets watermarks, deletes synchronization logs, and clears the stored client secret.';
 
     internal procedure MaxTableCount(): Integer
     begin
@@ -90,6 +93,25 @@ codeunit 48520 "Fabric Platform Mgt"
         TenantFabricSetup: Record "Tenant Fabric Setup";
     begin
         exit(not TenantFabricSetup.IsEmpty());
+    end;
+
+    internal procedure CheckCanChangeDestination(TenantFabricSetup: Record "Tenant Fabric Setup")
+    var
+        CurrentSetup: Record "Tenant Fabric Setup";
+        DestinationChangeErrorInfo: ErrorInfo;
+    begin
+        CurrentSetup.Get(TenantFabricSetup."Setup ID");
+        if not (CurrentSetup."Setup Complete" or CurrentSetup."Export Enabled") then
+            exit;
+
+        DestinationChangeErrorInfo := ErrorInfo.Create(DestinationChangeBlockedErr);
+        DestinationChangeErrorInfo.Title(DestinationChangeBlockedTitleLbl);
+        DestinationChangeErrorInfo.DetailedMessage(DestinationChangeBlockedDetailedMsg);
+        DestinationChangeErrorInfo.DataClassification(DataClassification::SystemMetadata);
+        DestinationChangeErrorInfo.PageNo(Page::"Fabric Platform Setup");
+        DestinationChangeErrorInfo.RecordId(CurrentSetup.RecordId());
+        DestinationChangeErrorInfo.AddNavigationAction(OpenFabricSetupLbl);
+        Error(DestinationChangeErrorInfo);
     end;
 
     // -------------------------------------------------------------------------

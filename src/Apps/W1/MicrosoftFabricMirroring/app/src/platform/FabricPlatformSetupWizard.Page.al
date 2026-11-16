@@ -141,15 +141,17 @@ page 48519 "Fabric Platform Setup Wizard"
                 {
                     Caption = 'Fabric Workspace Name';
                     Editable = false;
-                    ToolTip = 'Specifies the display name of the selected Microsoft Fabric workspace. Use the assist button to browse available workspaces.';
+                    ToolTip = 'Specifies the display name of the selected Microsoft Fabric workspace. Use the assist button to browse available workspaces. Reset the existing connection before changing the destination.';
 
                     trigger OnAssistEdit()
                     var
                         TempBuffer: Record "Name/Value Buffer" temporary;
                         AdminClient: Codeunit "Fabric Platform Admin Client";
+                        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
                         LookupPage: Page "Fabric Platform Name Lookup";
                         WorkspaceId: Guid;
                     begin
+                        FabricPlatformMgt.CheckCanChangeDestination(Rec);
                         AdminClient.GetWorkspaces(TempBuffer);
                         if TempBuffer.IsEmpty() then
                             Error(NoWorkspacesFoundErr);
@@ -159,6 +161,8 @@ page 48519 "Fabric Platform Setup Wizard"
                             LookupPage.GetRecord(TempBuffer);
                             if not Evaluate(WorkspaceId, TempBuffer.Value) then
                                 Error(CreateFabricDataErrorInfo(StrSubstNo(WorkspaceIdInvalidErr, TempBuffer.Value)));
+                            Rec.LockTable();
+                            FabricPlatformMgt.CheckCanChangeDestination(Rec);
                             Rec.Validate("Fabric Workspace ID", WorkspaceId);
                             Rec.Validate("Fabric Workspace Name", CopyStr(TempBuffer.Name, 1, MaxStrLen(Rec."Fabric Workspace Name")));
                             Clear(Rec."Fabric Lakehouse ID");
@@ -189,15 +193,17 @@ page 48519 "Fabric Platform Setup Wizard"
                 {
                     Caption = 'Fabric Open Mirroring Name';
                     Editable = false;
-                    ToolTip = 'Specifies the display name of the selected Microsoft Fabric Open Mirroring database. Use the assist button to browse Open Mirroring databases in the selected workspace.';
+                    ToolTip = 'Specifies the display name of the selected Microsoft Fabric Open Mirroring database. Use the assist button to browse Open Mirroring databases in the selected workspace. Reset the existing connection before changing the destination.';
 
                     trigger OnAssistEdit()
                     var
                         TempBuffer: Record "Name/Value Buffer" temporary;
                         AdminClient: Codeunit "Fabric Platform Admin Client";
+                        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
                         LookupPage: Page "Fabric Platform Name Lookup";
                         MirroredDatabaseId: Guid;
                     begin
+                        FabricPlatformMgt.CheckCanChangeDestination(Rec);
                         AdminClient.GetMirroredDatabases(Rec."Fabric Workspace ID", TempBuffer);
                         if TempBuffer.IsEmpty() then
                             Error(NoMirroredDatabasesFoundErr);
@@ -207,6 +213,8 @@ page 48519 "Fabric Platform Setup Wizard"
                             LookupPage.GetRecord(TempBuffer);
                             if not Evaluate(MirroredDatabaseId, TempBuffer.Value) then
                                 Error(CreateFabricDataErrorInfo(StrSubstNo(MirroredDatabaseIdInvalidErr, TempBuffer.Value)));
+                            Rec.LockTable();
+                            FabricPlatformMgt.CheckCanChangeDestination(Rec);
                             Rec.Validate("Fabric Lakehouse ID", MirroredDatabaseId);
                             Rec.Modify(true);
                             OpenMirroringNameValue := CopyStr(TempBuffer.Name, 1, MaxStrLen(OpenMirroringNameValue));

@@ -28,9 +28,35 @@ page 48507 "Fabric API Setup"
                     Caption = 'Id';
                     Editable = false;
                 }
-                field(fabricWorkspaceId; Rec."Fabric Workspace ID") { Caption = 'Fabric Workspace Id'; }
+                field(fabricWorkspaceId; Rec."Fabric Workspace ID")
+                {
+                    Caption = 'Fabric Workspace Id';
+
+                    trigger OnValidate()
+                    var
+                        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                    begin
+                        if Rec."Fabric Workspace ID" <> xRec."Fabric Workspace ID" then begin
+                            Rec.LockTable();
+                            FabricPlatformMgt.CheckCanChangeDestination(Rec);
+                        end;
+                    end;
+                }
                 field(fabricWorkspaceName; Rec."Fabric Workspace Name") { Caption = 'Fabric Workspace Name'; }
-                field(fabricLakehouseId; Rec."Fabric Lakehouse ID") { Caption = 'Fabric Lakehouse Id'; }
+                field(fabricLakehouseId; Rec."Fabric Lakehouse ID")
+                {
+                    Caption = 'Fabric Lakehouse Id';
+
+                    trigger OnValidate()
+                    var
+                        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                    begin
+                        if Rec."Fabric Lakehouse ID" <> xRec."Fabric Lakehouse ID" then begin
+                            Rec.LockTable();
+                            FabricPlatformMgt.CheckCanChangeDestination(Rec);
+                        end;
+                    end;
+                }
                 field(fabricDataNamespace; Rec."Fabric Data Namespace") { Caption = 'Fabric Data Namespace'; }
                 field(fabricLoggingNamespace; Rec."Fabric Logging Namespace") { Caption = 'Fabric Logging Namespace'; }
                 field(minutesBetweenExports; Rec."Minutes Between Exports") { Caption = 'Minutes Between Exports'; }
