@@ -548,6 +548,12 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
 
                         OnAdjustAppliedOutbndEntriesOnBeforeCheckExpectedCost(Item, OutbndValueEntry);
                         if not OutbndValueEntry."Expected Cost" then begin
+                            // Variance and indirect cost entries of an exact cost reversing output carry no invoiced quantity,
+                            // so take it from the item ledger entry to post their adjustments as actual cost.
+                            if (OutbndValueEntry."Invoiced Quantity" = 0) and OutbndItemLedgEntry.IsExactCostReversingOutput() then begin
+                                OutbndValueEntry."Invoiced Quantity" := OutbndItemLedgEntry."Invoiced Quantity";
+                                OutbndValueEntry."Valued Quantity" := OutbndItemLedgEntry."Invoiced Quantity";
+                            end;
                             EntryAdjusted :=
                               EntryAdjusted or CreateIndirectCostAdjmt(TempOldCostElementBuf, TempAdjustedCostElementBuf, OutbndValueEntry, OutbndValueEntry."Entry Type"::"Indirect Cost");
                             EntryAdjusted :=

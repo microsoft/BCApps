@@ -4679,6 +4679,22 @@ codeunit 137083 "SCM Production Orders IV"
                 StrSubstNo(EntryMustBeEqualErr, ValueEntry.FieldCaption("Expected Cost"), false, ValueEntry."Entry No.", ValueEntry.TableCaption()));
         until ValueEntry.Next() = 0;
 
+        // [THEN] "Cost Amount (Expected)" of the output Item Ledger Entries of item "P" nets to 0.
+        ValueEntry.Reset();
+        ValueEntry.SetRange("Item No.", ProdItem."No.");
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Output);
+        ValueEntry.SetRange("Order Type", ValueEntry."Order Type"::Production);
+        ValueEntry.SetRange("Order No.", ProductionOrder."No.");
+        ValueEntry.CalcSums("Cost Amount (Expected)", "Cost Amount (Actual)");
+        Assert.AreEqual(
+            0, ValueEntry."Cost Amount (Expected)",
+            StrSubstNo(ValueMustBeEqualErr, ValueEntry.FieldCaption("Cost Amount (Expected)"), 0, ValueEntry.TableCaption()));
+
+        // [THEN] Inventory value of item "P" ("Cost Amount (Actual)") equals "Standard Cost" * 1 for the remaining output quantity.
+        Assert.AreEqual(
+            ProdItem."Standard Cost", ValueEntry."Cost Amount (Actual)",
+            StrSubstNo(ValueMustBeEqualErr, ValueEntry.FieldCaption("Cost Amount (Actual)"), ProdItem."Standard Cost", ValueEntry.TableCaption()));
+
         // [THEN] Post Inventory Cost to G/L completes successfully and posts all Value Entries of item "P".
         LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), '');
         PostValueEntryToGL.SetRange("Item No.", ProdItem."No.");
