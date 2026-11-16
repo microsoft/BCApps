@@ -436,7 +436,7 @@ table 6788 "Withholding Tax Entry"
             AutoFormatExpression = Rec."Currency Code";
             Editable = false;
         }
-        field(113; "Threshold Accum. Base Amt."; Decimal)
+        field(113; "Threshold Accum. Base Amount"; Decimal)
         {
             Caption = 'Threshold Accumulation Base Amount';
             AutoFormatType = 1;

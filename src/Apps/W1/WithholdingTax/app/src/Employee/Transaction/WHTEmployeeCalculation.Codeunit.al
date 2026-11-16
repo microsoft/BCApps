@@ -182,7 +182,7 @@ codeunit 6790 "WHT Employee Calculation"
         WithholdingTaxEntry."Threshold Base" := PostingSetup."WHT Threshold Base";
 
         WithholdingTaxEntry."Taxable Base Amount" := WHTBaseAmount;
-        WithholdingTaxEntry."Threshold Accum. Base Amt." := Abs(ThresholdAccumBaseAmount);
+        WithholdingTaxEntry."Threshold Accum. Base Amount" := Abs(ThresholdAccumBaseAmount);
         WithholdingTaxEntry.Base := WHTBaseAmount;
         WithholdingTaxEntry.Amount := -WHTAmount;
         WithholdingTaxEntry."Base (LCY)" := WHTBaseAmount;
@@ -256,7 +256,7 @@ codeunit 6790 "WHT Employee Calculation"
         WithholdingTaxEntry."Threshold Base" := ComponentSetup."WHT Threshold Base";
 
         WithholdingTaxEntry."Taxable Base Amount" := WHTBaseAmount;
-        WithholdingTaxEntry."Threshold Accum. Base Amt." := Abs(ThresholdAccumBaseAmount);
+        WithholdingTaxEntry."Threshold Accum. Base Amount" := Abs(ThresholdAccumBaseAmount);
 
         WithholdingTaxEntry.Base := WHTBaseAmount;
         WithholdingTaxEntry.Amount := -ComponentWHT;
@@ -636,7 +636,7 @@ codeunit 6790 "WHT Employee Calculation"
         ThresholdAccumulator."Threshold Base" := PostingSetup."WHT Threshold Base";
         ThresholdAccumulator."Period Start Date" := PeriodStartDate;
         ThresholdAccumulator."Period End Date" := PeriodEndDate;
-        ThresholdAccumulator."Accumulated Base Amount" := WithholdingTaxEntry."Threshold Accum. Base Amt.";
+        ThresholdAccumulator."Accumulated Base Amount" := WithholdingTaxEntry."Threshold Accum. Base Amount";
         ThresholdAccumulator."Accumulated WHT Amount" := Abs(WithholdingTaxEntry.Amount);
         OnBeforeUpdateThresholdAccumulator(ThresholdAccumulator, WithholdingTaxEntry, PostingSetup);
         ThresholdAccumulator.Insert(true);
@@ -669,7 +669,7 @@ codeunit 6790 "WHT Employee Calculation"
         ThresholdAccumulator."Threshold Base" := PostingSetup."WHT Threshold Base";
         ThresholdAccumulator."Period Start Date" := PeriodStartDate;
         ThresholdAccumulator."Period End Date" := PeriodEndDate;
-        ThresholdAccumulator."Accumulated Base Amount" := -WithholdingTaxEntry."Threshold Accum. Base Amt.";
+        ThresholdAccumulator."Accumulated Base Amount" := -WithholdingTaxEntry."Threshold Accum. Base Amount";
         ThresholdAccumulator."Accumulated WHT Amount" := -Abs(WithholdingTaxEntry.Amount);
         OnBeforeReverseThresholdAccumulator(ThresholdAccumulator, WithholdingTaxEntry, PostingSetup);
         ThresholdAccumulator.Insert(true);
