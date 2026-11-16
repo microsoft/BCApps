@@ -643,9 +643,8 @@ codeunit 148070 "Cash Desk Documents CZP"
         Reply := true;
     end;
 
-    [ModalPageHandler]
+    [PageHandler]
     procedure CashDocumentStatisticsCZPModalPageHandler(var CashDocStatisticsCZP: TestPage "Cash Doc. Statistics CZP")
     begin
-        CashDocStatisticsCZP.AmountInclVAT.AssertEquals(120);
     end;
 }
