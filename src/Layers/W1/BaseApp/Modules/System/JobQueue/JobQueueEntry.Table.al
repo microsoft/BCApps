@@ -515,6 +515,7 @@ table 472 "Job Queue Entry"
         ExpiresBeforeStartErr: Label '%1 must be later than %2.', Comment = '%1 = Expiration Date, %2=Start date';
         UserSessionJobsCannotBeRecurringErr: Label 'You cannot set up recurring user session job queue entries.';
         LastJobQueueLogEntryNo: Integer;
+        ExecutedSystemTaskId: Guid;
         ObjNotFoundErr: Label 'There is no Object with ID %1.', Comment = '%1=Object Id.';
         NoPermissionsErr: Label 'You are not allowed to schedule background tasks. Ask your system administrator to give you permission to do so. Specifically, you need Insert, Modify and Delete Permissions for the %1 table.', Comment = '%1 Table Name';
 
@@ -644,6 +645,26 @@ table 472 "Job Queue Entry"
         end;
 
         OnAfterFinalizeRun(Rec);
+    end;
+
+    /// <summary>
+    /// Finalizes the run of the scheduled task that has just executed this entry.
+    /// The executed task is removed by the platform once it completes, so it is not cancelled when the next run is scheduled.
+    /// </summary>
+    /// <param name="ExecutedTaskId">The ID of the scheduled task that executed this entry.</param>
+    internal procedure FinalizeRun(ExecutedTaskId: Guid)
+    begin
+        ExecutedSystemTaskId := ExecutedTaskId;
+        FinalizeRun();
+        Clear(ExecutedSystemTaskId);
+    end;
+
+    local procedure ReleaseExecutedSystemTaskId()
+    begin
+        // A different ID means the entry was rescheduled concurrently, and that task must still be cancelled.
+        if IsNullGuid(ExecutedSystemTaskId) or ("System Task ID" <> ExecutedSystemTaskId) then
+            exit;
+        Clear("System Task ID");
     end;
 
     procedure GetLastLogEntryNo(): Integer
@@ -1004,6 +1025,7 @@ table 472 "Job Queue Entry"
                 "Earliest Start Date/Time" := JobQueueDispatcher.CalcNextRunTimeHoldDuetoInactivityJob(Rec, CurrentDateTime)
             else
                 "Earliest Start Date/Time" := JobQueueDispatcher.CalcNextRunTimeForRecurringJob(Rec, CurrentDateTime);
+            ReleaseExecutedSystemTaskId();
             EnqueueTask();
         end else
             Rec.Delete();
@@ -1030,6 +1052,7 @@ table 472 "Job Queue Entry"
             else
                 ExtraWaitTimeInMs := Power(10, Rec."No. of Attempts to Run");
             Rec."Earliest Start Date/Time" := CurrentDateTime + 1000 * Rec."Rerun Delay (sec.)" + ExtraWaitTimeInMs;
+            ReleaseExecutedSystemTaskId();
             EnqueueTask();
         end else begin
             SetStatusValue(Rec.Status::Error);
