@@ -1,6 +1,19 @@
-// [FEATURE] [Fixed Assets] [UI]
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.Test.FixedAssets;
+
+using Microsoft.FixedAssets;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Setup;
+using Microsoft.HumanResources.Employee;
+using Microsoft.HumanResources.Setup;
+
 codeunit 148140 "Fixed Assets UI CZF"
 {
+    // [FEATURE] [Fixed Assets] [UI]
     Subtype = Test;
     TestPermissions = NonRestrictive;
 
