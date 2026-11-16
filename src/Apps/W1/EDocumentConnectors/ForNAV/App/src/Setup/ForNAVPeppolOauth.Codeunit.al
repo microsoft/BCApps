@@ -336,7 +336,8 @@ codeunit 6422 "ForNAV Peppol Oauth"
             Error(HttpErr, ResponseCode, Response);
     end;
 
-    [Obsolete('Roles are no longer stored; role-based access is not used.', '1.0.0.0')]
+#if not CLEAN30
+    [Obsolete('Roles are no longer stored; role-based access is not used.', '30.0')]
     internal procedure StoreRoles(Roles: List of [Text])
     var
 #Pragma warning disable AL0432
@@ -351,6 +352,7 @@ codeunit 6422 "ForNAV Peppol Oauth"
             PeppolRole.Insert();
         end;
     end;
+#endif
 
     // Test hook: lets PeppolTest short-circuit a raw (non-Setup.Send) outbound request and
     // hand back a canned status/body, so setup and rotation requests can be exercised

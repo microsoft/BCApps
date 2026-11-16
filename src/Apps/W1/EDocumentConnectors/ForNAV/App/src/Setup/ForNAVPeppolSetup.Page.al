@@ -352,6 +352,7 @@ page 6413 "ForNAV Peppol Setup"
                     SendEmail();
                 end;
             }
+#if not CLEAN30
             action(Roles)
             {
                 ApplicationArea = All;
@@ -359,11 +360,12 @@ page 6413 "ForNAV Peppol Setup"
                 Image = Permission;
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Roles are no longer stored; role-based access is not used.';
-                ObsoleteTag = '1.0';
+                ObsoleteTag = '30.0';
                 Caption = 'Roles';
                 ToolTip = 'Setup the roles for the ForNAV Peppol setup.';
                 RunObject = page "ForNAV Peppol Roles";
             }
+#endif
             action(RecreateJobQueue)
             {
                 ApplicationArea = All;

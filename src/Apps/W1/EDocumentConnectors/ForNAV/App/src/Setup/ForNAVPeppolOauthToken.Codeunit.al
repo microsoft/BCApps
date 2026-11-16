@@ -136,9 +136,11 @@ codeunit 6423 "ForNAV Peppol Oauth Token"
         NewAccessTokenExpires := AccessTokenExpires;
     end;
 
-    [Obsolete('Roles are no longer stored; role-based access is not used.', '1.0.0.0')]
+#if not CLEAN30
+    [Obsolete('Roles are no longer stored; role-based access is not used.', '30.0')]
     internal procedure GetRoles(): List of [Text]
     begin
         exit(Roles);
     end;
+#endif
 }
