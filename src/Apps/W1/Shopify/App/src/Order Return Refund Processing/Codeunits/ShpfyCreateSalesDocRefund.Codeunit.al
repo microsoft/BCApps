@@ -85,7 +85,7 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
         end;
 
         CopyDocumentMgt.SetProperties(true, false, true, true, true, false, false);
-        CopyDocumentMgt.CopySalesDoc("Sales Document Type From"::"Return Order", SalesHeader."No.", ReplacementSalesHeader);
+        CopyDocumentMgt.CopySalesDoc("Sales Document Type From"::"Return Order", SalesHeader."No.", ReplacementSalesHeader, true);
         SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
     end;
 

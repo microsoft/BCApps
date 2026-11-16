@@ -8,10 +8,12 @@ namespace Microsoft.Integration.Shopify.Test;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.TestLibraries.Upgrade;
 using System.TestLibraries.Utilities;
 using System.Upgrade;
@@ -1312,6 +1314,211 @@ codeunit 139611 "Shpfy Order Refund Test"
     end;
 
     [Test]
+    [HandlerFunctions('ExchangeMoveNotificationHandler,ExchangeMoveRecallNotificationHandler')]
+    procedure UnitTestSkippedExchangeLineRollsBackAndCanRetry()
+    var
+        Shop: Record "Shpfy Shop";
+        OriginalShop: Record "Shpfy Shop";
+        RefundHeader: Record "Shpfy Refund Header";
+        FailedSalesHeader: Record "Sales Header";
+        SalesHeader: Record "Sales Header";
+        SalesHeaders: Record "Sales Header";
+        ReplacementSalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        BlockedItem: Record Item;
+        DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        RefundId: BigInteger;
+        ExchangeOrderLineId: BigInteger;
+        BlockedExchangeOrderLineId: BigInteger;
+        FailedDocumentCount: Integer;
+        FailedSalesLineCount: Integer;
+        FailedRefundLinkCount: Integer;
+        FailedReplacementLinkCount: Integer;
+        ProcessingError: Boolean;
+        WasProcessed: Boolean;
+        ErrorDescription: Text;
+    begin
+        // [SCENARIO] A skipped replacement rolls back the entire automatic move, even without auto-release.
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+        OriginalShop := Shop;
+        Shop."Process Returns As" := "Sales Document Type"::"Return Order";
+        Shop."Move Negative Lines To" := "Shpfy Move Negative Lines To"::"Sales Invoice";
+        Shop."Auto Release Sales Orders" := false;
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+
+        // [GIVEN] A refund contains a valid replacement and a second replacement that is blocked for sales.
+        RefundId := CreateRefundWithBlockedExchange(Shop, BlockedItem, ExchangeOrderLineId, BlockedExchangeOrderLineId);
+        RefundHeader.Get(RefundId);
+
+        // [WHEN] Automatic movement encounters the blocked replacement.
+        IReturnRefundProcess := "Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        FailedSalesHeader := IReturnRefundProcess.CreateSalesDocument("Shpfy Source Document Type"::Refund, RefundId);
+        RefundHeader.Get(RefundId);
+        ProcessingError := RefundHeader."Has Processing Error";
+        ErrorDescription := RefundHeader.GetLastErrorDescription();
+        RefundHeader.CalcFields("Is Processed");
+        WasProcessed := RefundHeader."Is Processed";
+#pragma warning disable AA0210
+        SalesHeaders.SetRange("Shpfy Refund Id", RefundId);
+        SalesLine.SetRange("Shpfy Refund Id", RefundId);
+#pragma warning restore AA0210
+        FailedDocumentCount := SalesHeaders.Count();
+        FailedSalesLineCount := SalesLine.Count();
+        DocLinkToBCDoc.SetRange("Shopify Document Type", "Shpfy Shop Document Type"::"Shopify Shop Refund");
+        DocLinkToBCDoc.SetRange("Shopify Document Id", RefundId);
+        FailedRefundLinkCount := DocLinkToBCDoc.Count();
+        DocLinkToBCDoc.SetRange("Shopify Document Type", "Shpfy Shop Document Type"::"Shopify Shop Order");
+        DocLinkToBCDoc.SetRange("Shopify Document Id", RefundHeader."Order Id");
+        DocLinkToBCDoc.SetRange("Document Type", "Shpfy Document Type"::"Sales Invoice");
+        FailedReplacementLinkCount := DocLinkToBCDoc.Count();
+
+        // [WHEN] The blocked item is unblocked and the same refund is retried.
+        BlockedItem.Get(BlockedItem."No.");
+        BlockedItem."Sales Blocked" := false;
+        BlockedItem.Modify(false);
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument("Shpfy Source Document Type"::Refund, RefundId);
+        IReturnRefundProcess.CreateSalesDocument("Shpfy Source Document Type"::Refund, RefundId);
+        RestoreExchangeShopSettings(OriginalShop);
+        NotificationLifecycleMgt.RecallAllNotifications();
+        Commit();
+
+        // [THEN] The failed attempt reported the blocked item and persisted no documents, lines, or links.
+        LibraryAssert.AreEqual('', FailedSalesHeader."No.", 'An incomplete move must not return a partial document.');
+        LibraryAssert.IsTrue(ProcessingError, 'The refund must expose the blocked-item error.');
+        LibraryAssert.IsTrue(ErrorDescription.Contains(BlockedItem."No."), ErrorDescription);
+        LibraryAssert.IsTrue(ErrorDescription.Contains(BlockedItem.FieldCaption("Sales Blocked")), ErrorDescription);
+        LibraryAssert.IsFalse(WasProcessed, 'The failed refund must remain available for retry.');
+        LibraryAssert.AreEqual(0, FailedDocumentCount, 'Both sales documents must be rolled back.');
+        LibraryAssert.AreEqual(0, FailedSalesLineCount, 'Both documents'' sales lines must be rolled back.');
+        LibraryAssert.AreEqual(0, FailedRefundLinkCount, 'The failed refund must not retain a document link.');
+        LibraryAssert.AreEqual(0, FailedReplacementLinkCount, 'The order must not retain a partial replacement link.');
+
+        // [THEN] Retrying creates one open return and one open invoice containing both replacements exactly once.
+        LibraryAssert.AreNotEqual('', SalesHeader."No.", 'The unblocked refund must process successfully.');
+        RefundHeader.Get(RefundId);
+        LibraryAssert.IsFalse(RefundHeader."Has Processing Error", RefundHeader.GetLastErrorDescription());
+        RefundHeader.CalcFields("Is Processed");
+        LibraryAssert.IsTrue(RefundHeader."Is Processed", 'The successful retry must mark the refund processed.');
+        LibraryAssert.AreEqual(2, SalesHeaders.Count(), 'Retry must create exactly one return and one invoice.');
+        ReplacementSalesHeader.CopyFilters(SalesHeaders);
+        ReplacementSalesHeader.SetRange("Document Type", "Sales Document Type"::Invoice);
+        LibraryAssert.AreEqual(1, ReplacementSalesHeader.Count(), 'Retry must create exactly one replacement invoice.');
+        ReplacementSalesHeader.FindFirst();
+        LibraryAssert.AreEqual(ReplacementSalesHeader.Status::Open, ReplacementSalesHeader.Status, 'Auto Release off must leave the replacement open.');
+        LibraryAssert.AreEqual(SalesHeader.Status::Open, SalesHeader.Status, 'Auto Release off must leave the return open.');
+        SalesHeader.CalcFields("Amount Including VAT");
+        ReplacementSalesHeader.CalcFields("Amount Including VAT");
+        LibraryAssert.AreNearlyEqual(10, SalesHeader."Amount Including VAT", 0.01, 'The return amount must be preserved.');
+        LibraryAssert.AreNearlyEqual(55, ReplacementSalesHeader."Amount Including VAT", 0.01, 'Both replacement amounts must be preserved.');
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", ReplacementSalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", ReplacementSalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        LibraryAssert.AreEqual(2, SalesLine.Count(), 'Both replacement lines must be present exactly once.');
+#pragma warning disable AA0210
+        SalesLine.SetRange("Shpfy Order Line Id", ExchangeOrderLineId);
+#pragma warning restore AA0210
+        LibraryAssert.IsTrue(SalesLine.FindFirst(), 'The originally valid replacement must be present.');
+        LibraryAssert.AreEqual(1, SalesLine.Quantity, 'The first replacement quantity must be preserved.');
+#pragma warning disable AA0210
+        SalesLine.SetRange("Shpfy Order Line Id", BlockedExchangeOrderLineId);
+#pragma warning restore AA0210
+        LibraryAssert.IsTrue(SalesLine.FindFirst(), 'The previously blocked replacement must be present.');
+        LibraryAssert.AreEqual(BlockedItem."No.", SalesLine."No.", 'The previously blocked item must be preserved.');
+        LibraryAssert.AreEqual(2, SalesLine.Quantity, 'The previously blocked replacement quantity must be preserved.');
+        LibraryAssert.AreEqual(1, DocLinkToBCDoc.Count(), 'The successful replacement must be linked to the order once.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeMoveNotificationHandler,ExchangeMoveRecallNotificationHandler')]
+    procedure UnitTestCopyWarningOverrideCanBeChanged()
+    var
+        Shop: Record "Shpfy Shop";
+        OriginalShop: Record "Shpfy Shop";
+        SourceSalesHeader: Record "Sales Header";
+        TargetSalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        BlockedItem: Record Item;
+        CopyDocumentMgt: Codeunit "Copy Document Mgt.";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        RefundId: BigInteger;
+        ExchangeOrderLineId: BigInteger;
+        BlockedExchangeOrderLineId: BigInteger;
+        RemainingNegativeLineCount: Integer;
+        CopyError: Text;
+    begin
+        // [SCENARIO] An explicit warning override can select standard copy behavior after an error.
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+        OriginalShop := Shop;
+        Shop."Process Returns As" := "Sales Document Type"::"Return Order";
+        Shop."Move Negative Lines To" := "Shpfy Move Negative Lines To"::"Do Not Move";
+        Shop."Auto Release Sales Orders" := false;
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+
+        // [GIVEN] A committed return order contains valid and sales-blocked replacement items.
+        RefundId := CreateRefundWithBlockedExchange(Shop, BlockedItem, ExchangeOrderLineId, BlockedExchangeOrderLineId);
+        IReturnRefundProcess := "Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        SourceSalesHeader := IReturnRefundProcess.CreateSalesDocument("Shpfy Source Document Type"::Refund, RefundId);
+        RestoreExchangeShopSettings(OriginalShop);
+        Commit();
+        SourceSalesHeader.TestField("No.");
+
+        // [WHEN] Warning notifications are disabled and the blocked item causes an error.
+        CopyDocumentMgt.SetProperties(true, false, true, true, true, false, false);
+        TargetSalesHeader."Document Type" := "Sales Document Type"::Invoice;
+        asserterror CopyDocumentMgt.CopySalesDoc(
+            "Sales Document Type From"::"Return Order", SourceSalesHeader."No.", TargetSalesHeader, true);
+        CopyError := GetLastErrorText(false);
+        SalesLine.SetRange("Document Type", SourceSalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SourceSalesHeader."No.");
+#pragma warning disable AA0210
+        SalesLine.SetFilter(Quantity, '<0');
+#pragma warning restore AA0210
+        RemainingNegativeLineCount := SalesLine.Count();
+
+        // [WHEN] The next copy explicitly enables warning notifications with the item still blocked.
+        Clear(TargetSalesHeader);
+        TargetSalesHeader."Document Type" := "Sales Document Type"::Invoice;
+        CopyDocumentMgt.SetProperties(true, false, true, true, true, false, false);
+        CopyDocumentMgt.CopySalesDoc(
+            "Sales Document Type From"::"Return Order", SourceSalesHeader."No.", TargetSalesHeader, false);
+        NotificationLifecycleMgt.RecallAllNotifications();
+        Commit();
+
+        // [THEN] The first call rolled back, while the warning-enabled copy retained its skip behavior.
+        LibraryAssert.IsTrue(CopyError.Contains(BlockedItem."No."), CopyError);
+        LibraryAssert.IsTrue(CopyError.Contains(BlockedItem.FieldCaption("Sales Blocked")), CopyError);
+        LibraryAssert.AreEqual(2, RemainingNegativeLineCount, 'A failed strict copy must preserve both source lines.');
+        LibraryAssert.AreNotEqual('', TargetSalesHeader."No.", 'An explicit false override must enable standard warning handling.');
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", TargetSalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", TargetSalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        LibraryAssert.AreEqual(1, SalesLine.Count(), 'The legacy copy must still skip the blocked replacement.');
+        SalesLine.FindFirst();
+        LibraryAssert.AreEqual(ExchangeOrderLineId, SalesLine."Shpfy Order Line Id", 'The valid replacement must still be copied.');
+    end;
+
+    [SendNotificationHandler]
+    procedure ExchangeMoveNotificationHandler(var Notification: Notification): Boolean
+    begin
+        exit(true);
+    end;
+
+    [RecallNotificationHandler]
+    procedure ExchangeMoveRecallNotificationHandler(var Notification: Notification): Boolean
+    begin
+        exit(true);
+    end;
+
+    [Test]
     procedure UnitTestExchangeLineDoesNotFlagProcessedOrderAsConflicting()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -1656,6 +1863,29 @@ codeunit 139611 "Shpfy Order Refund Test"
         Shop."Create Invoices From Orders" := OriginalShop."Create Invoices From Orders";
         Shop."Currency Handling" := OriginalShop."Currency Handling";
         Shop.Modify(false);
+    end;
+
+    local procedure CreateRefundWithBlockedExchange(Shop: Record "Shpfy Shop"; var BlockedItem: Record Item; var ExchangeOrderLineId: BigInteger; var BlockedExchangeOrderLineId: BigInteger) RefundId: BigInteger
+    var
+        RefundHeader: Record "Shpfy Refund Header";
+        OrderLine: Record "Shpfy Order Line";
+        ItemTemplMgt: Codeunit "Item Templ. Mgt.";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        IsHandled: Boolean;
+    begin
+        RefundId := CreateHigherPriceExchangeRefund(Shop, ExchangeOrderLineId);
+        RefundHeader.Get(RefundId);
+        ItemTemplMgt.CreateItemFromTemplate(BlockedItem, IsHandled, Shop."Item Templ. Code");
+        BlockedItem."Sales Blocked" := true;
+        BlockedItem.Modify(false);
+        BlockedExchangeOrderLineId := OrderRefundsHelper.CreateOrderLineWithUnitPrice(
+            RefundHeader."Order Id", 20001, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), 13);
+        OrderLine.Get(RefundHeader."Order Id", BlockedExchangeOrderLineId);
+        OrderLine."Item No." := BlockedItem."No.";
+        OrderLine.Quantity := 2;
+        OrderLine."Is Exchange Item" := true;
+        OrderLine.Modify(false);
+        OrderRefundsHelper.CreateExchangeRefundLine(RefundId, BlockedExchangeOrderLineId, 2, 13);
     end;
 
     local procedure CreateHigherPriceExchangeRefund(Shop: Record "Shpfy Shop"; var ExchangeOrderLineId: BigInteger) RefundId: BigInteger
