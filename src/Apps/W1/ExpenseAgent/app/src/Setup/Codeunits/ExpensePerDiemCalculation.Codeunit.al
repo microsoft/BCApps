@@ -101,7 +101,7 @@ codeunit 6911 "Expense Per Diem Calculation"
 
             // Use flat percentage if configured
             if ExpenseAgentSetup."Partial Day Rules" = ExpenseAgentSetup."Partial Day Rules"::"Flat Percentage Of Full Rate" then
-                exit(BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100)
+                exit(CalculatePartialDayAmount(BaseRate))
             else
                 exit(0); // Partial day rules not configured for flat percentage
         end;
@@ -145,7 +145,7 @@ codeunit 6911 "Expense Per Diem Calculation"
                     exit(BaseRate);
                 if (ExpenseAgentSetup."Partial Day Rules" = ExpenseAgentSetup."Partial Day Rules"::"Based On Eligible Hours") and
                         (PeriodDurationHours >= (ExpenseAgentSetup."Min Hours for Partial Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Min Hours for Partial Per Diem"))) then
-                    exit(BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100)
+                    exit(CalculatePartialDayAmount(BaseRate))
                 else
                     exit(0);
             end;
@@ -199,7 +199,7 @@ codeunit 6911 "Expense Per Diem Calculation"
                     exit(BaseRate);
                 if (ExpenseAgentSetup."Partial Day Rules" = ExpenseAgentSetup."Partial Day Rules"::"Based On Eligible Hours") and
                         (PeriodDurationHours >= (ExpenseAgentSetup."Min Hours for Partial Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Min Hours for Partial Per Diem"))) then
-                    exit(BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100)
+                    exit(CalculatePartialDayAmount(BaseRate))
                 else
                     exit(0);
             end;
@@ -209,6 +209,16 @@ codeunit 6911 "Expense Per Diem Calculation"
 
         // If no overnight period starts on this date, no per diem for this day
         exit(0);
+    end;
+
+    local procedure CalculatePartialDayAmount(BaseRate: Decimal): Decimal
+    var
+        PartialDayAmount: Decimal;
+    begin
+        PartialDayAmount := BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100;
+        if ExpenseAgentSetup."Partial Day Rounding Precision" <> 0 then
+            PartialDayAmount := Round(PartialDayAmount, ExpenseAgentSetup."Partial Day Rounding Precision");
+        exit(PartialDayAmount);
     end;
 
     local procedure GetToleranceInHours(Hours: Decimal): Decimal
