@@ -1511,6 +1511,52 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
 
     [Test]
     [Scope('OnPrem')]
+    procedure RouteShipmentReceiptTransitPostsAlignedQuantities()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Item: Record Item;
+        TransferOrderPostYesNo: Codeunit "TransferOrder-Post (Yes/No)";
+    begin
+        // [SCENARIO 650215] A direct shipment-and-receipt order with inherited transit keeps quantities aligned and posts normally.
+        Initialize();
+
+        // [GIVEN] A route with transit and ten items in stock at its source.
+        CreateShipmentReceiptRouteWithTransit(TransferRoute);
+        CreateItemWithPositiveInventory(Item, TransferRoute."Transfer-from Code", 10);
+        CreateTransferHeaderFromRoute(TransferHeader, TransferRoute, true);
+
+        // [WHEN] An item line is created without overriding the route's transit or receipt quantity.
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 10);
+
+        // [THEN] Both ship and receipt quantities default to ten, including base quantities.
+        TransferHeader.TestField("Direct Transfer", true);
+        TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferLine.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+        TransferLine.TestField("Qty. to Ship", 10);
+        TransferLine.TestField("Qty. to Receive", 10);
+        TransferLine.TestField("Qty. to Ship (Base)", 10);
+        TransferLine.TestField("Qty. to Receive (Base)", 10);
+
+        // [WHEN] The shipment quantity is reduced to five.
+        TransferLine.Validate("Qty. to Ship", 5);
+        TransferLine.Modify(true);
+
+        // [THEN] The read-only receipt quantity follows the shipment quantity.
+        TransferLine.TestField("Qty. to Receive", 5);
+        TransferLine.TestField("Qty. to Receive (Base)", 5);
+
+        // [WHEN] The order is posted through the normal Post action.
+        TransferOrderPostYesNo.Run(TransferHeader);
+
+        // [THEN] Shipment and receipt documents are posted and five items reach the destination.
+        VerifyTransferShipmentAndReceiptPosted(TransferHeader."No.");
+        VerifyItemLedgerEntriesForTransfer(Item."No.", TransferRoute."Transfer-from Code", TransferRoute."Transfer-to Code", -5, 5);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure TransferFromRouteUpdatesShipmentReceiptTransit()
     var
         TransferRoute: Record "Transfer Route";
