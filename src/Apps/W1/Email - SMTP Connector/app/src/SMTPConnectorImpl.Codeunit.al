@@ -134,6 +134,9 @@ codeunit 4513 "SMTP Connector Impl." implements "Email Connector"
 
         Initialize(Account);
 
+        // Build the message first so sender validation errors surface without contacting the server
+        BuildSMTPMessage(Message);
+
         ClearLastError();
         Result := SMTPClient.Connect(Account.Server, Account."Server Port", Account."Secure Connection");
 
@@ -185,8 +188,6 @@ codeunit 4513 "SMTP Connector Impl." implements "Email Connector"
                     SMTPAccount."Server Port",
                     SMTPAccount."Authentication Type"), Verbosity::Normal, DataClassification::EndUserPseudonymousIdentifiers, TelemetryScope::ExtensionPublisher, 'Category', SmtpCategoryLbl);
         end;
-
-        BuildSMTPMessage(Message);
 
         ClearLastError();
         Result := SMTPClient.Send(SMTPMessage);
