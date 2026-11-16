@@ -215,8 +215,8 @@ codeunit 148313 "Expense Mileage Test"
         // [GIVEN] Create a mileage expense with all fields filled.
         CreateMileageExpense(Expense, LibraryRandom.RandDec(50, 2));
         Expense.Validate("Round Trip", true);
-        Expense.Validate("Starting Point", 'Point A');
-        Expense.Validate("Ending Point", 'Point B');
+        Expense.SetStartingPoint('Point A');
+        Expense.SetEndingPoint('Point B');
         Expense.Modify();
 
         // [GIVEN] Create a non-mileage category.
@@ -227,10 +227,99 @@ codeunit 148313 "Expense Mileage Test"
         Expense.Modify();
 
         // [THEN] All mileage-related fields are cleared.
+        Expense.Get(Expense."No.");
         Assert.AreEqual(0, Expense.Mileage, 'Mileage should be 0 after category change');
         Assert.AreEqual(false, Expense."Round Trip", 'Round Trip should be false after category change');
-        Assert.AreEqual('', Expense."Starting Point", 'Starting Point should be empty after category change');
-        Assert.AreEqual('', Expense."Ending Point", 'Ending Point should be empty after category change');
+        Assert.AreEqual('', Expense.GetStartingPoint(), 'Starting Point should be empty after category change');
+        Assert.AreEqual('', Expense.GetEndingPoint(), 'Ending Point should be empty after category change');
+    end;
+
+    [Test]
+    procedure MileagePointsLongerThan50CharactersAreSavedOnExpense()
+    var
+        Expense: Record Expense;
+        ExpenseNo: Code[20];
+        StartingPoint: Text;
+        EndingPoint: Text;
+    begin
+        // [SCENARIO 656559] Starting and ending points longer than 50 characters can be saved on an expense.
+        Initialize();
+
+        // [GIVEN] A mileage expense.
+        CreateMileageExpense(Expense, LibraryRandom.RandDec(50, 2));
+        ExpenseNo := Expense."No.";
+
+        // [GIVEN] Starting and ending points longer than 50 characters.
+        StartingPoint := LibraryRandom.RandText(LibraryRandom.RandIntInRange(100, 200));
+        EndingPoint := LibraryRandom.RandText(LibraryRandom.RandIntInRange(100, 200));
+
+        // [WHEN] The points are saved on the expense.
+        Expense.SetStartingPoint(StartingPoint);
+        Expense.SetEndingPoint(EndingPoint);
+        Expense.Modify();
+
+        // [THEN] The full values are read back from the database.
+        Clear(Expense);
+        Expense.Get(ExpenseNo);
+        Assert.AreEqual(StartingPoint, Expense.GetStartingPoint(), 'Starting Point should keep more than 50 characters');
+        Assert.AreEqual(EndingPoint, Expense.GetEndingPoint(), 'Ending Point should keep more than 50 characters');
+
+        // [WHEN] Both points are cleared and saved.
+        Expense.SetStartingPoint('');
+        Expense.SetEndingPoint('');
+        Expense.Modify();
+
+        // [THEN] The cleared values remain empty after reloading.
+        Clear(Expense);
+        Expense.Get(ExpenseNo);
+        Assert.AreEqual('', Expense.GetStartingPoint(), 'Starting Point should stay empty after clearing');
+        Assert.AreEqual('', Expense.GetEndingPoint(), 'Ending Point should stay empty after clearing');
+    end;
+
+    [Test]
+    procedure MileagePointsCannotBeChangedOnExpensePageWhenExpenseIsReleased()
+    var
+        Expense: Record Expense;
+        StoredExpense: Record Expense;
+        StartingPointExpensePage: TestPage Expense;
+        EndingPointExpensePage: TestPage Expense;
+    begin
+        // [SCENARIO 656559] Starting and ending points cannot be changed on the Expense page when the expense is not open.
+        Initialize();
+
+        // [GIVEN] A released mileage expense.
+        CreateMileageExpense(Expense, LibraryRandom.RandDec(50, 2));
+        Expense.SetStartingPoint('Point A');
+        Expense.SetEndingPoint('Point B');
+        Expense.Status := Expense.Status::Released;
+        Expense.Modify();
+        Commit();
+
+        // [THEN] The status check requires the expense to be open.
+        asserterror Expense.TestStatusOpen();
+        Assert.ExpectedTestFieldError(Expense.FieldCaption(Status), Format(Expense.Status::Open));
+
+        // [WHEN] The starting point is changed on the Expense page.
+        StartingPointExpensePage.OpenEdit();
+        StartingPointExpensePage.GoToRecord(Expense);
+        asserterror StartingPointExpensePage."Starting Point".SetValue(LibraryRandom.RandText(10));
+
+        // [THEN] The page reports a status validation error and leaves the saved point unchanged.
+        Assert.ExpectedError(Expense.FieldCaption("Starting Point Description"));
+        Assert.ExpectedError(Expense.FieldCaption(Status));
+        StoredExpense.Get(Expense."No.");
+        Assert.AreEqual('Point A', StoredExpense.GetStartingPoint(), 'Starting Point should not change on a released expense');
+
+        // [WHEN] The ending point is changed on the Expense page.
+        EndingPointExpensePage.OpenEdit();
+        EndingPointExpensePage.GoToRecord(Expense);
+        asserterror EndingPointExpensePage."Ending Point".SetValue(LibraryRandom.RandText(10));
+
+        // [THEN] The page reports a status validation error and leaves the saved point unchanged.
+        Assert.ExpectedError(Expense.FieldCaption("Ending Point Description"));
+        Assert.ExpectedError(Expense.FieldCaption(Status));
+        StoredExpense.Get(Expense."No.");
+        Assert.AreEqual('Point B', StoredExpense.GetEndingPoint(), 'Ending Point should not change on a released expense');
     end;
 
     [Test]
@@ -262,8 +351,8 @@ codeunit 148313 "Expense Mileage Test"
         // [GIVEN] Set mileage fields.
         ExpenseReportLine.Validate(Mileage, LibraryRandom.RandDec(50, 2));
         ExpenseReportLine.Validate("Round Trip", true);
-        ExpenseReportLine."Starting Point" := 'Point A';
-        ExpenseReportLine."Ending Point" := 'Point B';
+        ExpenseReportLine.SetStartingPoint('Point A');
+        ExpenseReportLine.SetEndingPoint('Point B');
         ExpenseReportLine.Modify();
 
         // [GIVEN] Create a non-mileage category.
@@ -274,10 +363,144 @@ codeunit 148313 "Expense Mileage Test"
         ExpenseReportLine.Modify();
 
         // [THEN] All mileage-related fields are cleared.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual(0, ExpenseReportLine.Mileage, 'Mileage should be 0 after category change');
         Assert.AreEqual(false, ExpenseReportLine."Round Trip", 'Round Trip should be false after category change');
-        Assert.AreEqual('', ExpenseReportLine."Starting Point", 'Starting Point should be empty after category change');
-        Assert.AreEqual('', ExpenseReportLine."Ending Point", 'Ending Point should be empty after category change');
+        Assert.AreEqual('', ExpenseReportLine.GetStartingPoint(), 'Starting Point should be empty after category change');
+        Assert.AreEqual('', ExpenseReportLine.GetEndingPoint(), 'Ending Point should be empty after category change');
+    end;
+
+    [Test]
+    procedure MileagePointsLongerThan50CharactersAreSavedOnExpenseReportLine()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        MileageCategory: Record "Expense Category";
+        ExpenseUser: Record "Expense User";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        StartingPoint: Text;
+        EndingPoint: Text;
+    begin
+        // [SCENARIO 656559] Starting and ending points longer than 50 characters can be saved on an expense report line.
+        Initialize();
+
+        // [GIVEN] An expense report with a mileage line.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(MileageCategory, MileageCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Mileage);
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", MileageCategory.Code, ExpensePaymentMethod.Code, true, '', 0);
+
+        // [GIVEN] Starting and ending points longer than 50 characters.
+        StartingPoint := LibraryRandom.RandText(LibraryRandom.RandIntInRange(100, 200));
+        EndingPoint := LibraryRandom.RandText(LibraryRandom.RandIntInRange(100, 200));
+
+        // [WHEN] The points are saved on the line.
+        ExpenseReportLine.SetStartingPoint(StartingPoint);
+        ExpenseReportLine.SetEndingPoint(EndingPoint);
+        ExpenseReportLine.Modify();
+
+        // [THEN] The full values are read back from the database.
+        Clear(ExpenseReportLine);
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        Assert.AreEqual(StartingPoint, ExpenseReportLine.GetStartingPoint(), 'Starting Point should keep more than 50 characters');
+        Assert.AreEqual(EndingPoint, ExpenseReportLine.GetEndingPoint(), 'Ending Point should keep more than 50 characters');
+
+        // [WHEN] Both points are cleared and saved.
+        ExpenseReportLine.SetStartingPoint('');
+        ExpenseReportLine.SetEndingPoint('');
+        ExpenseReportLine.Modify();
+
+        // [THEN] The cleared values remain empty after reloading.
+        Clear(ExpenseReportLine);
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        Assert.AreEqual('', ExpenseReportLine.GetStartingPoint(), 'Starting Point should stay empty after clearing');
+        Assert.AreEqual('', ExpenseReportLine.GetEndingPoint(), 'Ending Point should stay empty after clearing');
+    end;
+
+    [Test]
+    procedure MileagePointsLongerThan50CharactersAreKeptWhenExpenseReportLineIsMoved()
+    var
+        SourceExpenseReportHeader: Record "Expense Report Header";
+        TargetExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        MileageCategory: Record "Expense Category";
+        ExpenseUser: Record "Expense User";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        StartingPoint: Text;
+        EndingPoint: Text;
+    begin
+        // [SCENARIO 656559] Starting and ending points longer than 50 characters are kept when the line is moved to another expense report.
+        Initialize();
+
+        // [GIVEN] A mileage line with points longer than 50 characters in the source expense report.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(MileageCategory, MileageCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::Mileage);
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+        LibraryExpense.CreateExpenseReport(SourceExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReport(TargetExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, SourceExpenseReportHeader, ExpenseUser."No.", MileageCategory.Code, ExpensePaymentMethod.Code, true, '', 0);
+        StartingPoint := LibraryRandom.RandText(LibraryRandom.RandIntInRange(100, 200));
+        EndingPoint := LibraryRandom.RandText(LibraryRandom.RandIntInRange(100, 200));
+        ExpenseReportLine.SetStartingPoint(StartingPoint);
+        ExpenseReportLine.SetEndingPoint(EndingPoint);
+        ExpenseReportLine.Modify();
+
+        // [WHEN] The line is moved to the target expense report.
+        ExpenseReportLine.MoveToExpenseReport(TargetExpenseReportHeader."No.");
+
+        // [THEN] The moved line keeps the full starting and ending points.
+        Clear(ExpenseReportLine);
+        ExpenseReportLine.SetRange("Document No.", TargetExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        Assert.AreEqual(StartingPoint, ExpenseReportLine.GetStartingPoint(), 'Starting Point should be kept when the line is moved');
+        Assert.AreEqual(EndingPoint, ExpenseReportLine.GetEndingPoint(), 'Ending Point should be kept when the line is moved');
+    end;
+
+    [Test]
+    procedure MileagePointsLongerThan50CharactersAreSavedOnPostedExpenseReportLine()
+    var
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        DocumentNo: Code[20];
+        StartingPoint: Text;
+        EndingPoint: Text;
+    begin
+        // [SCENARIO 656559] Starting and ending points longer than 50 characters can be stored on a posted expense report line.
+        Initialize();
+
+        // [GIVEN] Starting and ending points longer than 50 characters.
+        DocumentNo := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentNo));
+        StartingPoint := LibraryRandom.RandText(LibraryRandom.RandIntInRange(100, 200));
+        EndingPoint := LibraryRandom.RandText(LibraryRandom.RandIntInRange(100, 200));
+
+        // [WHEN] The points are saved on a posted expense report line.
+        PostedExpenseReportLine.Init();
+        PostedExpenseReportLine."Document No." := DocumentNo;
+        PostedExpenseReportLine."Line No." := 10000;
+        PostedExpenseReportLine.SetStartingPoint(StartingPoint);
+        PostedExpenseReportLine.SetEndingPoint(EndingPoint);
+        PostedExpenseReportLine.Insert();
+
+        // [THEN] The full values are read back from the database.
+        Clear(PostedExpenseReportLine);
+        PostedExpenseReportLine.SetRange("Document No.", DocumentNo);
+        PostedExpenseReportLine.FindFirst();
+        Assert.AreEqual(StartingPoint, PostedExpenseReportLine.GetStartingPoint(), 'Starting Point should keep more than 50 characters');
+        Assert.AreEqual(EndingPoint, PostedExpenseReportLine.GetEndingPoint(), 'Ending Point should keep more than 50 characters');
+
+        // [WHEN] Both points are cleared and saved.
+        PostedExpenseReportLine.SetStartingPoint('');
+        PostedExpenseReportLine.SetEndingPoint('');
+        PostedExpenseReportLine.Modify();
+
+        // [THEN] The cleared values remain empty after reloading.
+        Clear(PostedExpenseReportLine);
+        PostedExpenseReportLine.SetRange("Document No.", DocumentNo);
+        PostedExpenseReportLine.FindFirst();
+        Assert.AreEqual('', PostedExpenseReportLine.GetStartingPoint(), 'Starting Point should stay empty after clearing');
+        Assert.AreEqual('', PostedExpenseReportLine.GetEndingPoint(), 'Ending Point should stay empty after clearing');
     end;
 
     [Test]
