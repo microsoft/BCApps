@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using System.DateTime;
-using System.Telemetry;
 
 codeunit 6911 "Expense Per Diem Calculation"
 {
@@ -17,7 +16,7 @@ codeunit 6911 "Expense Per Diem Calculation"
 
     internal procedure SetExpenseAgentSetup(NewExpenseAgentSetup: Record "Expense Agent Setup")
     var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
+        ExpenseAuditSubscribers: Codeunit "Expense Audit Subscribers";
         TelemetryDimensions: Dictionary of [Text, Text];
         ResolvedTimeZoneId: Text[180];
         UnresolvedReason: Text;
@@ -29,8 +28,10 @@ codeunit 6911 "Expense Per Diem Calculation"
         end;
 
         SetTimeZone('');
+        TelemetryDimensions.Add('Category', ExpenseAuditSubscribers.TelemetryCategory());
+        TelemetryDimensions.Add('FeatureName', ExpenseAgentSetup.GetFeatureName());
         TelemetryDimensions.Add('Reason', UnresolvedReason);
-        FeatureTelemetry.LogUsage('0000WPD', ExpenseAgentSetup.GetFeatureName(), TimeZoneFallbackLbl, TelemetryDimensions);
+        Session.LogMessage('0000WPD', TimeZoneFallbackLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
     end;
 
     /// <summary>
