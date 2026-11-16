@@ -208,7 +208,6 @@ codeunit 139665 "GP Item Transaction Tests"
         Assert.RecordCount(ItemLedgerEntry, 0);
     end;
 
-    // 
     [Test]
     procedure TestPopulateGPItemTransactions()
     var
