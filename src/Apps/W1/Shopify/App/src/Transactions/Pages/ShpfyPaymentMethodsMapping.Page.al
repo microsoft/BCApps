@@ -65,7 +65,7 @@ page 30132 "Shpfy Payment Methods Mapping"
             action(DiscoverPaymentMethods)
             {
                 ApplicationArea = All;
-Caption = 'Discover payment methods';
+                Caption = 'Discover payment methods';
                 Image = Refresh;
                 ToolTip = 'Find payment methods used on recent Shopify orders and add new entries to Payment Method Mapping. Existing entries aren''t changed.';
 
@@ -74,7 +74,8 @@ Caption = 'Discover payment methods';
                     PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
                     Shop: Record "Shpfy Shop";
                     DiscoverPaymentMethods: Codeunit "Shpfy Discover Payment Methods";
-                    ShopCodeFilter: Text;
+                    ShopCode: Code[20];
+                    ShopCodeMax: Code[20];
                     HasOrders: Boolean;
                     CreatedMappingCount: Integer;
                     ShopContextRequiredErr: Label 'Open this page from a Shopify Shop Card to discover payment methods.';
@@ -83,11 +84,12 @@ Caption = 'Discover payment methods';
                     NoNewPaymentMethodsMsg: Label 'No new Shopify payment methods were found in the 100 most recent orders.';
                     NoOrdersFoundMsg: Label 'No Shopify orders are available for payment method discovery.';
                 begin
-                    ShopCodeFilter := Rec.GetFilter("Shop Code");
-                    if ShopCodeFilter = '' then
+                    if not TryGetShopCodeRange(ShopCode, ShopCodeMax) then
                         Error(ShopContextRequiredErr);
-                    if not Shop.Get(ShopCodeFilter) then
-                        Error(ShopNotFoundErr, ShopCodeFilter);
+                    if (ShopCode = '') or (ShopCode <> ShopCodeMax) then
+                        Error(ShopContextRequiredErr);
+                    if not Shop.Get(ShopCode) then
+                        Error(ShopNotFoundErr, ShopCode);
                     if not PaymentMethodMapping.WritePermission() then
                         Error(MappingModificationPermissionErr);
 
@@ -103,4 +105,11 @@ Caption = 'Discover payment methods';
             }
         }
     }
+
+    [TryFunction]
+    local procedure TryGetShopCodeRange(var ShopCodeMin: Code[20]; var ShopCodeMax: Code[20])
+    begin
+        ShopCodeMin := Rec.GetRangeMin("Shop Code");
+        ShopCodeMax := Rec.GetRangeMax("Shop Code");
+    end;
 }

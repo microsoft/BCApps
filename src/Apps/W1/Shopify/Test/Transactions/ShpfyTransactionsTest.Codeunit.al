@@ -26,6 +26,7 @@ codeunit 139697 "Shpfy Transactions Test"
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         TransactionData: Codeunit "Library - Variable Storage";
+        DiscoveryShopifyUrl: Text[250];
         IsInitialized: Boolean;
         IsoCodeCounter: Integer;
         DiscoveryResponse: Text;
@@ -42,6 +43,7 @@ codeunit 139697 "Shpfy Transactions Test"
 
         Codeunit.Run(Codeunit::"Shpfy Initialize Test");
         Shop := CommunicationMgt.GetShopRecord();
+        DiscoveryShopifyUrl := Shop."Shopify URL";
 
         AccessToken := LibraryRandom.RandText(20);
         InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
@@ -300,7 +302,6 @@ codeunit 139697 "Shpfy Transactions Test"
     [HandlerFunctions('PaymentMethodDiscoveryHttpHandler')]
     procedure RepeatedDiscoveryDoesNotDuplicateNormalizedMappings()
     var
-        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
         DiscoverPaymentMethods: Codeunit "Shpfy Discover Payment Methods";
         Gateway: Text[30];
         ExistingGateway: Text[30];
@@ -309,9 +310,11 @@ codeunit 139697 "Shpfy Transactions Test"
         SecondOrderGateway: Text[30];
         CardCompanyFirst: Text[50];
         CardCompanySecond: Text[50];
+        NormalizedCardCompany: Text[30];
         ExistingCardCompany: Code[30];
         HasOrders: Boolean;
         CreatedMappingCount: Integer;
+        FirstCreatedMappingCount: Integer;
     begin
         //[SCENARIO] Repeated discovery does not duplicate normalized mapping combinations.
 
@@ -337,6 +340,7 @@ codeunit 139697 "Shpfy Transactions Test"
         CardCompanyFirst := 'F11-Credit-Card-Company-12345678901234567890-A';
         //[GIVEN] A distinct long card-company identity with the same normalized key is prepared.
         CardCompanySecond := 'F11-Credit-Card-Company-12345678901234567890-B';
+        NormalizedCardCompany := CopyStr(CardCompanyFirst, 1, MaxStrLen(NormalizedCardCompany));
         //[GIVEN] An existing card-company identity is prepared.
         ExistingCardCompany := 'Existing Card';
         //[GIVEN] The existing mapping retains its configured payment method.
@@ -346,19 +350,88 @@ codeunit 139697 "Shpfy Transactions Test"
 
         //[WHEN] Payment method discovery runs twice for the shop.
         DiscoverPaymentMethods.Discover(Shop.Code, HasOrders, CreatedMappingCount);
+        FirstCreatedMappingCount := CreatedMappingCount;
         DiscoverPaymentMethods.Discover(Shop.Code, HasOrders, CreatedMappingCount);
 
-        //[THEN] Repeated discovery does not duplicate normalized mapping combinations.
-        PaymentMethodMapping.SetRange("Shop Code", Shop.Code);
-        PaymentMethodMapping.SetRange("Gateway", Gateway);
-        LibraryAssert.AreEqual(2, PaymentMethodMapping.Count(), 'Repeat discovery should not duplicate normalized mapping combinations');
+        //[THEN] The first run reports orders and creates each missing normalized mapping once.
+        AssertDiscoveryRunCounts(HasOrders, FirstCreatedMappingCount);
+        //[THEN] Repeated discovery creates no additional mappings.
+        AssertRepeatedDiscoveryMappings(Shop.Code, CreatedMappingCount, Gateway, FifthGateway, ExistingGateway, SecondOrderGateway);
+        //[THEN] Two distinct card-company names that normalize to the same mapping key create one mapping using the first value.
+        AssertNormalizedAndBoundaryMappings(Shop.Code, Gateway, NormalizedCardCompany, FifthGateway, IgnoredGateway, SecondOrderGateway);
+        //[THEN] Existing accounting and gateway values remain unchanged.
+        AssertExistingMappingUnchanged(Shop.Code, ExistingGateway, ExistingCardCompany);
+        //[THEN] Lookup records are created for included identities only, including both colliding source names.
+        AssertDiscoveryLookups(Gateway, FifthGateway, IgnoredGateway, CardCompanyFirst, CardCompanySecond);
+    end;
+
+    [Test]
+    [HandlerFunctions('PaymentMethodDiscoveryPageHandler,PaymentMethodDiscoveryHttpHandler')]
+    procedure DiscoverActionResolvesLiteralShopCodeFromPageLink()
+    var
+        SpecialShop: Record "Shpfy Shop";
+        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        ShopCard: TestPage "Shpfy Shop Card";
+        Gateway: Code[30];
+        DiscoveryResponseLbl: Label '{"data":{"orders":{"nodes":[{"transactions":[{"gateway":"%1","manualPaymentGateway":false,"paymentDetails":null}]}]}}}', Locked = true;
+    begin
+        //[SCENARIO] Discovery resolves a shop with filter-special characters from the Shop Card page link.
+        //[GIVEN] The Shopify test environment is initialized.
+        Initialize();
+        //[GIVEN] A persisted shop has a code containing the AL filter-special characters '*' and '|'.
+        CreateShopWithFilterCharacters(SpecialShop);
+        DiscoveryShopifyUrl := SpecialShop."Shopify URL";
+        //[GIVEN] Shopify returns one transaction with a unique gateway for the selected shop.
+        Gateway := CopyStr('literal-' + Any.AlphanumericText(8), 1, MaxStrLen(Gateway));
+        DiscoveryResponse := StrSubstNo(DiscoveryResponseLbl, Gateway);
+
+        //[WHEN] Discovery is invoked from the Shop Card's page-linked mapping page.
+        ShopCard.OpenView();
+        ShopCard.GoToRecord(SpecialShop);
+        ShopCard.PaymentMethods.Invoke();
+
+        //[THEN] The selected literal shop is used and its mapping is created.
+        LibraryAssert.IsTrue(PaymentMethodMapping.Get(SpecialShop.Code, Gateway, ''), 'The discovery action should resolve the literal shop code from the page link');
+    end;
+
+    [Test]
+    [HandlerFunctions('PaymentMethodDiscoveryHttpHandler')]
+    procedure DiscoveryRequestsOnlyOneHundredOrdersAndIncludesTheHundredth()
+    var
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
+        DiscoverPaymentMethods: Codeunit "Shpfy Discover Payment Methods";
+        SharedGateway: Code[30];
+        HundredthGateway: Code[30];
+        HundredFirstGateway: Code[30];
+        GraphQLQuery: Text;
+        HasOrders: Boolean;
+        CreatedMappingCount: Integer;
+        ExpectedCost: Integer;
+    begin
+        //[SCENARIO] Discovery requests the 100 newest orders and includes transactions from the hundredth.
+        //[GIVEN] The Shopify test environment is initialized.
+        Initialize();
+        //[GIVEN] Unique gateway identities are prepared for the first 99 orders, the hundredth order, and the excluded 101st order.
+        SharedGateway := CopyStr('limit-shared-' + Any.AlphanumericText(8), 1, MaxStrLen(SharedGateway));
+        HundredthGateway := CopyStr('limit-100-' + Any.AlphanumericText(8), 1, MaxStrLen(HundredthGateway));
+        HundredFirstGateway := CopyStr('limit-101-' + Any.AlphanumericText(8), 1, MaxStrLen(HundredFirstGateway));
+        GraphQLQuery := GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Payments_GetRecentOrderTransactions, ExpectedCost);
+        //[GIVEN] Shopify's mocked response contains 100 orders, with a unique gateway on order 100.
+        DiscoveryResponse := CreateHundredOrderDiscoveryResponse(SharedGateway, HundredthGateway);
+
+        //[WHEN] Discovery processes the 100 orders returned by Shopify.
+        DiscoverPaymentMethods.Discover(Shop.Code, HasOrders, CreatedMappingCount);
+
+        //[THEN] The GraphQL query is limited to 100 orders and five transactions per order.
+        AssertDiscoveryQueryLimits(GraphQLQuery);
+        //[THEN] The first and hundredth order mappings are created, and no 101st-order marker exists.
+        AssertHundredOrderResults(Shop.Code, HasOrders, CreatedMappingCount, SharedGateway, HundredthGateway, HundredFirstGateway);
     end;
 
     [Test]
     [HandlerFunctions('PaymentMethodDiscoveryHttpHandler')]
     procedure DiscoverPaymentMethodsRollsBackWritesWhenMappingInsertFails()
     var
-        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
         DiscoverPaymentMethods: Codeunit "Shpfy Discover Payment Methods";
         ShpfyTransactionsTest: Codeunit "Shpfy Transactions Test";
         FirstGateway: Code[30];
@@ -386,11 +459,6 @@ codeunit 139697 "Shpfy Transactions Test"
         ShpfyTransactionsTest.SetPaymentMethodMappingInsertFailure(FailingGateway);
         //[GIVEN] The failure subscriber is bound.
         BindSubscription(ShpfyTransactionsTest);
-        //[GIVEN] The mapping query is restricted to the shop.
-        PaymentMethodMapping.SetRange("Shop Code", Shop.Code);
-        //[GIVEN] The mapping query includes both transaction gateways.
-        PaymentMethodMapping.SetFilter(Gateway, '%1|%2', FirstGateway, FailingGateway);
-
         //[WHEN] Discovery encounters the injected mapping-insert failure.
         asserterror DiscoverPaymentMethods.Discover(Shop.Code, HasOrders, CreatedMappingCount);
         ErrorText := GetLastErrorText();
@@ -399,10 +467,7 @@ codeunit 139697 "Shpfy Transactions Test"
         ShpfyTransactionsTest.ClearPaymentMethodMappingInsertFailure();
 
         //[THEN] Discovery reports the injected mapping-insert failure.
-        LibraryAssert.IsTrue(StrPos(ErrorText, 'Injected payment-method mapping insert failure.') > 0, 'Discovery should fail on the selected mapping insert');
-
-        //[THEN] Neither new mapping remains after the mapping-insert failure.
-        LibraryAssert.IsTrue(PaymentMethodMapping.IsEmpty(), 'All new mappings should roll back after a mapping insert fails');
+        AssertMappingInsertFailureRollback(ErrorText, Shop.Code, FirstGateway, FailingGateway);
     end;
 
     [Test]
@@ -444,8 +509,6 @@ codeunit 139697 "Shpfy Transactions Test"
     [HandlerFunctions('PaymentMethodDiscoveryHttpHandler')]
     procedure DiscoverPaymentMethodsDoesNotWriteAfterShopifyReadFailure()
     var
-        TransactionGateway: Record "Shpfy Transaction Gateway";
-        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
         DiscoverPaymentMethods: Codeunit "Shpfy Discover Payment Methods";
         Gateway: Text[30];
         HasOrders: Boolean;
@@ -465,22 +528,12 @@ codeunit 139697 "Shpfy Transactions Test"
         Gateway := CopyStr('error-' + Any.AlphanumericText(8), 1, MaxStrLen(Gateway));
         //[GIVEN] Shopify returns a read error with the transaction response.
         DiscoveryResponse := CreateReadFailureDiscoveryResponse(Gateway);
-        //[GIVEN] The gateway lookup query is restricted to the transaction gateway.
-        TransactionGateway.SetRange(Name, Gateway);
-        //[GIVEN] The mapping query is restricted to the shop.
-        PaymentMethodMapping.SetRange("Shop Code", Shop.Code);
-        //[GIVEN] The mapping query is restricted to the transaction gateway.
-        PaymentMethodMapping.SetRange(Gateway, Gateway);
-
         //[WHEN] Discovery reads the failed Shopify response.
         asserterror DiscoverPaymentMethods.Discover(Shop.Code, HasOrders, CreatedMappingCount);
         ErrorText := GetLastErrorText();
 
         //[THEN] Discovery surfaces the Shopify error message.
-        LibraryAssert.IsTrue(StrPos(ErrorText, 'discovery read failed') > 0, 'Discovery should report the Shopify read failure');
-
-        //[THEN] The failed Shopify read creates neither a gateway lookup nor a mapping.
-        LibraryAssert.IsTrue(TransactionGateway.IsEmpty() and PaymentMethodMapping.IsEmpty(), 'A failed Shopify read must not create local gateway lookups or mappings');
+        AssertReadFailureDoesNotCreateLookups(ErrorText, Shop.Code, Gateway);
     end;
 
     [Test]
@@ -581,6 +634,53 @@ codeunit 139697 "Shpfy Transactions Test"
         PaymentMethodMapping.Insert();
     end;
 
+    local procedure CreateShopWithFilterCharacters(var SpecialShop: Record "Shpfy Shop")
+    var
+        SpecialShopCode: Code[20];
+    begin
+        SpecialShopCode := CopyStr('F11*|' + Any.AlphanumericText(8), 1, MaxStrLen(SpecialShopCode));
+        SpecialShop.Init();
+        SpecialShop.Code := SpecialShopCode;
+        SpecialShop.Validate("Shopify URL", Shop."Shopify URL");
+        SpecialShop.Enabled := true;
+        SpecialShop.Insert(false);
+    end;
+
+    local procedure CreateHundredOrderDiscoveryResponse(SharedGateway: Code[30]; HundredthGateway: Code[30]): Text
+    var
+        JRoot: JsonObject;
+        JData: JsonObject;
+        JOrders: JsonObject;
+        JOrder: JsonObject;
+        JTransaction: JsonObject;
+        JNodes: JsonArray;
+        JTransactions: JsonArray;
+        Gateway: Code[30];
+        Response: Text;
+        OrderIndex: Integer;
+    begin
+        for OrderIndex := 1 to 100 do begin
+            Clear(JOrder);
+            Clear(JTransaction);
+            Clear(JTransactions);
+            if OrderIndex = 100 then
+                Gateway := HundredthGateway
+            else
+                Gateway := SharedGateway;
+            JTransaction.Add('gateway', Gateway);
+            JTransaction.Add('manualPaymentGateway', true);
+            JTransactions.Add(JTransaction);
+            JOrder.Add('transactions', JTransactions);
+            JNodes.Add(JOrder);
+        end;
+
+        JOrders.Add('nodes', JNodes);
+        JData.Add('orders', JOrders);
+        JRoot.Add('data', JData);
+        JRoot.WriteTo(Response);
+        exit(Response);
+    end;
+
     local procedure CreatePaymentMethodMapping(Gateway: Text[30]; CardCompany: Text[30]; PaymentMethodCode: Code[10])
     var
         PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
@@ -649,10 +749,16 @@ codeunit 139697 "Shpfy Transactions Test"
         exit(not PaymentMethodMappingMgt.FindMapping(Shop.Code, Gateway, 'Unmatched company', PaymentMethodMapping));
     end;
 
+    [PageHandler]
+    internal procedure PaymentMethodDiscoveryPageHandler(var PaymentMethodMappings: TestPage "Shpfy Payment Methods Mapping")
+    begin
+        PaymentMethodMappings.DiscoverPaymentMethods.Invoke();
+    end;
+
     [HttpClientHandler]
     internal procedure PaymentMethodDiscoveryHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
-        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+        if not InitializeTest.VerifyRequestUrl(Request.Path, DiscoveryShopifyUrl) then
             exit(true);
 
         Response.Content.WriteFrom(DiscoveryResponse);
@@ -703,6 +809,108 @@ codeunit 139697 "Shpfy Transactions Test"
     #endregion
 
     #region Then
+    local procedure AssertDiscoveryRunCounts(HasOrders: Boolean; FirstCreatedMappingCount: Integer)
+    begin
+        LibraryAssert.IsTrue(HasOrders, 'Discovery should report that Shopify orders were found');
+        LibraryAssert.AreEqual(4, FirstCreatedMappingCount, 'Discovery should create the four missing mapping identities');
+    end;
+
+    local procedure AssertRepeatedDiscoveryMappings(ShopCode: Code[20]; CreatedMappingCount: Integer; Gateway: Text[30]; FifthGateway: Text[30]; ExistingGateway: Text[30]; SecondOrderGateway: Text[30])
+    var
+        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+    begin
+        LibraryAssert.AreEqual(0, CreatedMappingCount, 'A repeated discovery should not create existing mappings again');
+        PaymentMethodMapping.SetRange("Shop Code", ShopCode);
+        PaymentMethodMapping.SetFilter(Gateway, '%1|%2|%3|%4', Gateway, FifthGateway, ExistingGateway, SecondOrderGateway);
+        LibraryAssert.AreEqual(5, PaymentMethodMapping.Count(), 'Discovery should preserve the existing mapping and create four unique mappings');
+    end;
+
+    local procedure AssertNormalizedAndBoundaryMappings(ShopCode: Code[20]; Gateway: Text[30]; NormalizedCardCompany: Text[30]; FifthGateway: Text[30]; IgnoredGateway: Text[30]; SecondOrderGateway: Text[30])
+    var
+        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+    begin
+        LibraryAssert.IsTrue(PaymentMethodMapping.Get(ShopCode, Gateway, NormalizedCardCompany), 'The normalized card-company mapping should exist');
+        LibraryAssert.IsTrue(PaymentMethodMapping."Manual Payment Gateway", 'The first transaction should determine the normalized mapping value');
+        LibraryAssert.IsTrue(PaymentMethodMapping.Get(ShopCode, Gateway, ''), 'The blank card-company mapping from transaction three should exist');
+        LibraryAssert.IsTrue(PaymentMethodMapping.Get(ShopCode, FifthGateway, 'Fifth Card'), 'The fifth transaction should be included');
+        LibraryAssert.IsFalse(PaymentMethodMapping.Get(ShopCode, IgnoredGateway, 'Ignored Sixth Card'), 'The sixth transaction should be excluded');
+        LibraryAssert.IsTrue(PaymentMethodMapping.Get(ShopCode, SecondOrderGateway, ''), 'The second order should be included');
+    end;
+
+    local procedure AssertExistingMappingUnchanged(ShopCode: Code[20]; ExistingGateway: Text[30]; ExistingCardCompany: Code[30])
+    var
+        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+    begin
+        LibraryAssert.IsTrue(PaymentMethodMapping.Get(ShopCode, ExistingGateway, ExistingCardCompany), 'The existing mapping should remain present');
+        LibraryAssert.AreEqual('KEEP', PaymentMethodMapping."Payment Method Code", 'Discovery must not overwrite an existing payment method');
+        LibraryAssert.IsFalse(PaymentMethodMapping."Manual Payment Gateway", 'Discovery must not overwrite an existing manual-gateway value');
+        LibraryAssert.IsFalse(PaymentMethodMapping."Post Automatically", 'Discovery must not change existing automatic-post setup');
+        LibraryAssert.AreEqual('', PaymentMethodMapping."Auto-Post Jnl. Template", 'Discovery must preserve the existing journal template');
+        LibraryAssert.AreEqual('', PaymentMethodMapping."Auto-Post Jnl. Batch", 'Discovery must preserve the existing journal batch');
+    end;
+
+    local procedure AssertDiscoveryLookups(Gateway: Text[30]; FifthGateway: Text[30]; IgnoredGateway: Text[30]; CardCompanyFirst: Text[50]; CardCompanySecond: Text[50])
+    var
+        TransactionGateway: Record "Shpfy Transaction Gateway";
+        CreditCardCompany: Record "Shpfy Credit Card Company";
+    begin
+        LibraryAssert.IsTrue(TransactionGateway.Get(Gateway), 'The included gateway should be created');
+        LibraryAssert.IsTrue(TransactionGateway.Get(FifthGateway), 'The fifth transaction gateway should be created');
+        LibraryAssert.IsFalse(TransactionGateway.Get(IgnoredGateway), 'The sixth transaction gateway should not be created');
+        LibraryAssert.IsTrue(CreditCardCompany.Get(CardCompanyFirst), 'The first source card-company lookup should be created');
+        LibraryAssert.IsTrue(CreditCardCompany.Get(CardCompanySecond), 'The colliding source card-company lookup should be created');
+        LibraryAssert.IsFalse(CreditCardCompany.Get('Ignored Card'), 'A card company from a blank gateway should not be created');
+    end;
+
+    local procedure AssertDiscoveryQueryLimits(GraphQLQuery: Text)
+    begin
+        LibraryAssert.IsTrue(StrPos(GraphQLQuery, 'orders(first:100') > 0, 'The Shopify query should request only the 100 newest orders');
+        LibraryAssert.IsTrue(StrPos(GraphQLQuery, 'transactions(first:5') > 0, 'The Shopify query should request only the first five transactions per order');
+    end;
+
+    local procedure AssertHundredOrderResults(ShopCode: Code[20]; HasOrders: Boolean; CreatedMappingCount: Integer; SharedGateway: Code[30]; HundredthGateway: Code[30]; HundredFirstGateway: Code[30])
+    var
+        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        TransactionGateway: Record "Shpfy Transaction Gateway";
+    begin
+        LibraryAssert.IsTrue(HasOrders, 'Discovery should report that Shopify orders were found');
+        LibraryAssert.AreEqual(2, CreatedMappingCount, 'One shared mapping and the hundredth-order mapping should be created');
+        LibraryAssert.IsTrue(PaymentMethodMapping.Get(ShopCode, SharedGateway, ''), 'A mapping from the first 99 orders should exist');
+        LibraryAssert.IsTrue(PaymentMethodMapping.Get(ShopCode, HundredthGateway, ''), 'The hundredth order should be included');
+        LibraryAssert.IsFalse(PaymentMethodMapping.Get(ShopCode, HundredFirstGateway, ''), 'The 101st order should not be requested or mapped');
+        LibraryAssert.IsFalse(TransactionGateway.Get(HundredFirstGateway), 'The 101st-order gateway lookup should not be created');
+    end;
+
+    local procedure AssertMappingInsertFailureRollback(ErrorText: Text; ShopCode: Code[20]; FirstGateway: Code[30]; FailingGateway: Code[30])
+    var
+        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        TransactionGateway: Record "Shpfy Transaction Gateway";
+        CreditCardCompany: Record "Shpfy Credit Card Company";
+    begin
+        LibraryAssert.IsTrue(StrPos(ErrorText, 'Injected payment-method mapping insert failure.') > 0, 'Discovery should fail on the selected mapping insert');
+        PaymentMethodMapping.SetRange("Shop Code", ShopCode);
+        PaymentMethodMapping.SetFilter(Gateway, '%1|%2', FirstGateway, FailingGateway);
+        LibraryAssert.IsTrue(PaymentMethodMapping.IsEmpty(), 'All new mappings should roll back after a mapping insert fails');
+        LibraryAssert.IsFalse(TransactionGateway.Get(FirstGateway), 'The first gateway lookup should roll back');
+        LibraryAssert.IsFalse(TransactionGateway.Get(FailingGateway), 'The failing gateway lookup should roll back');
+        LibraryAssert.IsFalse(CreditCardCompany.Get('Rollback First Card'), 'The first card-company lookup should roll back');
+        LibraryAssert.IsFalse(CreditCardCompany.Get('Rollback Failing Card'), 'The failing card-company lookup should roll back');
+    end;
+
+    local procedure AssertReadFailureDoesNotCreateLookups(ErrorText: Text; ShopCode: Code[20]; Gateway: Text[30])
+    var
+        TransactionGateway: Record "Shpfy Transaction Gateway";
+        CreditCardCompany: Record "Shpfy Credit Card Company";
+        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+    begin
+        LibraryAssert.IsTrue(StrPos(ErrorText, 'discovery read failed') > 0, 'Discovery should report the Shopify read failure');
+        TransactionGateway.SetRange(Name, Gateway);
+        PaymentMethodMapping.SetRange("Shop Code", ShopCode);
+        PaymentMethodMapping.SetRange(Gateway, Gateway);
+        LibraryAssert.IsTrue(TransactionGateway.IsEmpty() and PaymentMethodMapping.IsEmpty(), 'A failed Shopify read must not create local gateway lookups or mappings');
+        LibraryAssert.IsFalse(CreditCardCompany.Get('Read Failure Card'), 'A failed Shopify read must not create a card-company lookup');
+    end;
+
     local procedure FindSuccessTransaction(OrderHeader: Record "Shpfy Order Header"; var OrderTransaction: Record "Shpfy Order Transaction")
     begin
         OrderTransaction.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
