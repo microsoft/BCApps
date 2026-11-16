@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Requisition;
 
-codeunit 139999 "Subc. Keep Carried Out ReqLine"
+codeunit 140006 "Subc. Keep Carried Out ReqLine"
 {
     EventSubscriberInstance = Manual;
 
