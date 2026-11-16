@@ -279,7 +279,7 @@ report 99001025 "Refresh Production Order"
         OpenSetup: Boolean;
     begin
         Clear(SkippedProductionOrders);
-        ProductionOrder.CopyFilters("Production Order");
+        ProductionOrder.Copy("Production Order");
         // Intersect preflight restrictions with caller filters rather than replacing their selection.
         if ProductionOrder.GetFilter("Location Code") = '' then
             ProductionOrder.SetRange("Location Code", '')
