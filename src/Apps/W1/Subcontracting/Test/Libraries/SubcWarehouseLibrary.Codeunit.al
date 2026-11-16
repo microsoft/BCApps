@@ -254,8 +254,8 @@ codeunit 149908 "Subc. Warehouse Library"
 
     procedure VerifySummaryWIP(ProductionOrder: Record "Production Order"; AtSubcontractor: Decimal; InTransit: Decimal)
     var
-        ReleasedOrder: TestPage "Released Production Order";
         WIPEntry: Record "Subcontractor WIP Ledger Entry";
+        ReleasedOrder: TestPage "Released Production Order";
     begin
         ReleasedOrder.OpenView();
         ReleasedOrder.GoToRecord(ProductionOrder);

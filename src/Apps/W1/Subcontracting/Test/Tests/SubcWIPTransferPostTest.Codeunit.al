@@ -28,6 +28,7 @@ using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
+using System.TestLibraries.Utilities;
 
 codeunit 149910 "Subc. WIP Transfer Post Test"
 {
@@ -399,7 +400,9 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
     begin
         WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
         WIPEntry.SetRange("Item No.", Item."No.");
+#pragma warning disable AA0210 // WIP is already restricted to the test order and item.
         WIPEntry.SetRange("In Transit", InTransit);
+#pragma warning restore AA0210
         WIPEntry.CalcSums("Quantity (Base)");
         Assert.AreEqual(Quantity, WIPEntry."Quantity (Base)", 'Every family contributor must have the expected numeric persisted balance.');
         WIPEntry.FindSet();

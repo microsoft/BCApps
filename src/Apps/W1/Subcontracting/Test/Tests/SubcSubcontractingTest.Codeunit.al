@@ -4782,6 +4782,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+#pragma warning disable AA0210 // Bounded receipt and correction fixtures.
     [HandlerFunctions('SummaryConfirmHandler,SummaryReceiptLinesHandler')]
     procedure SummaryReceiptUndoSigned()
     var
@@ -4829,6 +4830,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ReleasedOrder.Close();
         LibraryVariableStorage.AssertEmpty();
     end;
+#pragma warning restore AA0210
 
     [Test]
     procedure SummaryEmptyQuantityProxy()
@@ -4895,7 +4897,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.IsFalse(SummaryMgmt.IsFullyInvoiced(ProductionOrder), 'Display-equal stored totals are not equal.');
 
         // [WHEN] The stored invoice total becomes exactly equal.
+#pragma warning disable AA0210 // Bounded invoice fixture.
         InvoiceLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
         InvoiceLine.FindFirst();
         InvoiceLine.Quantity := 0.100001;
         InvoiceLine.Modify();
@@ -4913,6 +4917,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseLine: Record "Purchase Line";
         CreditLine: Record "Purch. Cr. Memo Line";
         ReturnLine: Record "Return Shipment Line";
+        LibraryUtility: Codeunit "Library - Utility";
         SummaryMgmt: Codeunit "Subc. Order Summary Mgmt.";
     begin
         // [FEATURE] [AI test 1.0]
@@ -5099,6 +5104,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseLine: Record "Purchase Line";
         ReceiptLine: Record "Purch. Rcpt. Line";
         InvoiceLine: Record "Purch. Inv. Line";
+        LibraryUtility: Codeunit "Library - Utility";
     begin
         SubcWarehouseLibrary.CreateSummaryFamily(FirstQuantity * 6, SecondQuantity, ProductionOrder, WorkCenter, Items);
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
@@ -5128,6 +5134,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
         VerifySummaryPurchaseCard(ProductionOrder, 0, FirstQuantity + SecondQuantity, FirstQuantity + SecondQuantity, true);
         VerifySummaryPurchaseDetails(ProductionOrder);
+#pragma warning disable AA0210 // Filters inspect only the documents created by this family fixture.
         ReceiptLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         ReceiptLine.SetRange("No.", Items[1]."No.");
         ReceiptLine.FindFirst();
@@ -5142,6 +5149,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(FirstQuantity, InvoiceLine.Quantity, 'First family invoice must be posted.');
         Assert.AreEqual(ItemUOM.Code, InvoiceLine."Unit of Measure Code", 'First family invoice must retain document UOM.');
         InvoiceLine.SetRange("No.", Items[2]."No.");
+#pragma warning restore AA0210
         InvoiceLine.FindFirst();
         Assert.AreEqual(SecondQuantity, InvoiceLine.Quantity, 'Second family invoice must be posted.');
     end;
@@ -5219,6 +5227,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     local procedure InsertSummaryReceipt(OrderNo: Code[20]; Quantity: Decimal)
     var
         ReceiptLine: Record "Purch. Rcpt. Line";
+        LibraryUtility: Codeunit "Library - Utility";
     begin
         ReceiptLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ReceiptLine."Document No."));
         ReceiptLine."Line No." := 10000;
@@ -5230,6 +5239,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     local procedure InsertSummaryInvoice(OrderNo: Code[20]; Quantity: Decimal)
     var
         InvoiceLine: Record "Purch. Inv. Line";
+        LibraryUtility: Codeunit "Library - Utility";
     begin
         InvoiceLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(InvoiceLine."Document No."));
         InvoiceLine."Line No." := 10000;
@@ -5239,6 +5249,8 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     local procedure InsertSummaryPurchase(OrderNo: Code[20]; DocumentType: Enum "Purchase Document Type"; Quantity: Decimal; Invoiced: Decimal; var PurchaseLine: Record "Purchase Line")
+    var
+        LibraryUtility: Codeunit "Library - Utility";
     begin
         Clear(PurchaseLine);
         PurchaseLine."Document Type" := DocumentType;

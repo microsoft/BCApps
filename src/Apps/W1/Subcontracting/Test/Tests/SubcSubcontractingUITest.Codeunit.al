@@ -253,7 +253,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         BindSubscription(SubcWarehouseLibrary);
         ReleasedOrder.SubcontractingSummary.ReceiptQuantity.DrillDown();
         UnbindSubscription(SubcWarehouseLibrary);
+#pragma warning disable AA0210 // Bounded receipt fixture.
         ReceiptLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
         ReceiptLine.FindFirst();
         SubcWarehouseLibrary.VerifySummaryDetailRecordCount(1);
         SubcWarehouseLibrary.VerifySummaryDetailRecord(ReceiptLine.RecordId());
@@ -332,7 +334,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     begin
         RoutingLine.SetRange(Status, ProductionOrder.Status);
         RoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210 // Subcontracting is a FlowField; routing is already scoped to one order.
         RoutingLine.SetRange(Subcontracting, true);
+#pragma warning restore AA0210
         SubcWarehouseLibrary.VerifySummaryDetailRecordCount(RoutingLine.Count());
         Assert.AreEqual(2, LibraryVariableStorage.DequeueInteger(), 'Exactly two qualifying operations must be shown.');
         RoutingLine.FindSet();

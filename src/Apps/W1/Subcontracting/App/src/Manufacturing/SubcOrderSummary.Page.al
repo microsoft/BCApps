@@ -34,6 +34,7 @@ page 20580 "Subc. Order Summary"
             }
             field(PurchaseQuantity; PurchaseQuantity)
             {
+                AutoFormatType = 0;
                 Caption = 'Purch. Order Qty.';
                 DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the raw sum of Quantity on linked purchase Order lines across all items, operations and document units of measure, including retained fully invoiced lines. This is not remaining quantity or unique finished output. View the matching lines.';
@@ -45,6 +46,7 @@ page 20580 "Subc. Order Summary"
             }
             field(ReceiptQuantity; ReceiptQuantity)
             {
+                AutoFormatType = 0;
                 Caption = 'Quantity Received';
                 DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the raw signed sum of Quantity on linked posted purchase receipt lines, including negative corrections, across all items, operations and document units of measure. This is not unique finished output. View the matching receipt lines.';
@@ -56,6 +58,7 @@ page 20580 "Subc. Order Summary"
             }
             field(InvoiceQuantity; InvoiceQuantity)
             {
+                AutoFormatType = 0;
                 Caption = 'Quantity Invoiced';
                 DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the raw signed sum of Quantity on linked posted purchase invoice lines across all items, operations and document units of measure, including signed corrections in that table. Credit memo and return sources are excluded. View the matching invoice lines.';
@@ -73,6 +76,7 @@ page 20580 "Subc. Order Summary"
             }
             field(WIPAtSubcontractor; WIPAtSubcontractor)
             {
+                AutoFormatType = 0;
                 Caption = 'WIP Qty. (Base) at Subc.';
                 DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the signed sum of non-transit WIP ledger Quantity (Base) for this production status and order. Each item contributes its own base units without conversion to a common unit or finished output. Current vendor or location setup does not restrict historical balances. View the matching entries.';
@@ -84,6 +88,7 @@ page 20580 "Subc. Order Summary"
             }
             field(WIPInTransit; WIPInTransit)
             {
+                AutoFormatType = 0;
                 Caption = 'WIP Qty. (Base) in Transit';
                 DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the signed sum of in-transit WIP ledger Quantity (Base) for this production status and order, including outbound and return transit. Each item contributes its own base units, not a common finished-output unit. View the matching entries.';
