@@ -299,6 +299,50 @@ codeunit 148343 "Expense Activity Log API Test"
     end;
 
     [Test]
+    procedure PagedActivityHistoryReturnsSameEntriesAsUnpagedRead()
+    var
+        ExpenseUser: array[2] of Record "Expense User";
+        ExpenseReportHeader: array[2] of Record "Expense Report Header";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+        TargetURL: Text;
+    begin
+        // [SCENARIO] Following @odata.nextLink with a small server page size returns every entry of the unpaged read.
+        // [GIVEN] A submitter with two reports, one of which carries submitter and approver activity.
+        Initialize();
+        CreateTestExpenseUser(ExpenseUser[1]);
+        CreateTestExpenseUser(ExpenseUser[2]);
+        CreateTestExpenseReport(ExpenseReportHeader[1], ExpenseUser[1]."No.");
+        CreateTestExpenseReport(ExpenseReportHeader[2], ExpenseUser[1]."No.");
+        ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader[1], Enum::"Expense Activity Event Type"::Created,
+            Enum::"Expense Activity Initiator"::User, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser[1]."No.", '');
+        ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader[1], Enum::"Expense Activity Event Type"::Submitted,
+            Enum::"Expense Activity Initiator"::User, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser[1]."No.", '');
+        ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader[1], Enum::"Expense Activity Event Type"::Approved,
+            Enum::"Expense Activity Initiator"::User, Enum::"Expense Activity Actor Role"::Approver, ExpenseUser[2]."No.", '');
+        ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader[2], Enum::"Expense Activity Event Type"::Submitted,
+            Enum::"Expense Activity Initiator"::User, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser[1]."No.", '');
+        Commit();
+
+        // [WHEN] Submitter history is read unpaged and with a page size of one.
+        // [THEN] The paged read follows nextLink across several pages and returns the same entries.
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(ExpenseUser[1].SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ServiceNameTok);
+        TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(TargetURL, '$filter=historyActorRole eq ''Submitter''');
+        VerifyPagedReadMatchesUnpagedRead(TargetURL, 4);
+
+        // [WHEN] Report-scoped activity is read unpaged and with a page size of one.
+        // [THEN] The paged read returns the same entries.
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(ExpenseReportHeader[1].SystemId), Page::"Expense Reports API", ExpenseReportsServiceNameTok, ServiceNameTok);
+        VerifyPagedReadMatchesUnpagedRead(TargetURL, 3);
+        CompleteTest();
+    end;
+
+    [Test]
     procedure ApproverHistoryReturnsCompleteTimelinesForActedOnReports()
     var
         ExpenseUser: array[3] of Record "Expense User";
@@ -599,6 +643,62 @@ codeunit 148343 "Expense Activity Log API Test"
     begin
         Assert.IsTrue(Entry.AsObject().Get(PropertyName, Value), 'The response must contain ' + PropertyName + '.');
         exit(Value.AsValue().AsDecimal());
+    end;
+
+    local procedure VerifyPagedReadMatchesUnpagedRead(TargetURL: Text; ExpectedCount: Integer)
+    var
+        UnpagedIds: List of [Text];
+        PagedIds: List of [Text];
+        EntryId: Text;
+        NextLink: Text;
+        PageCount: Integer;
+    begin
+        NextLink := ReadActivityPage(TargetURL, 0, UnpagedIds);
+        Assert.AreEqual('', NextLink, 'The unpaged read must not return a nextLink.');
+        Assert.AreEqual(ExpectedCount, UnpagedIds.Count(), 'The unpaged read must return every scoped entry.');
+
+        NextLink := TargetURL;
+        repeat
+            PageCount += 1;
+            Assert.IsTrue(PageCount <= ExpectedCount + 1, 'The paged read must terminate.');
+            NextLink := ReadActivityPage(NextLink, 1, PagedIds);
+        until NextLink = '';
+
+        Assert.IsTrue(PageCount > 1, 'The server must honor the page size so that the read spans several pages.');
+        Assert.AreEqual(UnpagedIds.Count(), PagedIds.Count(), 'The paged read must return as many entries as the unpaged read.');
+        foreach EntryId in UnpagedIds do
+            Assert.IsTrue(PagedIds.Contains(EntryId), 'The paged read is missing entry ' + EntryId + '.');
+    end;
+
+    local procedure ReadActivityPage(TargetURL: Text; MaxPageSize: Integer; var EntryIds: List of [Text]) NextLink: Text
+    var
+        HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        RequestHeaders: HttpHeaders;
+        Response: JsonObject;
+        Token: JsonToken;
+        EntryToken: JsonToken;
+        ResponseText: Text;
+    begin
+        // Library - Graph Mgt. cannot send the Prefer header, so the request is sent directly with the same authentication.
+        LibraryGraphMgt.InitializeWebRequestWithURL(HttpRequestMessage, TargetURL);
+        HttpRequestMessage.GetHeaders(RequestHeaders);
+        RequestHeaders.Add('Accept', 'application/json');
+        if MaxPageSize > 0 then
+            RequestHeaders.Add('Prefer', 'odata.maxpagesize=' + Format(MaxPageSize));
+        if not (RequestHeaders.Contains('Authorization') or RequestHeaders.ContainsSecret('Authorization')) then
+            HttpClient.UseDefaultNetworkWindowsAuthentication();
+        Assert.IsTrue(HttpClient.Send(HttpRequestMessage, HttpResponseMessage), GetLastErrorText());
+        HttpResponseMessage.Content.ReadAs(ResponseText);
+        Assert.AreEqual(200, HttpResponseMessage.HttpStatusCode(), 'Unexpected response: ' + ResponseText);
+
+        Assert.IsTrue(Response.ReadFrom(ResponseText), 'The API response must be valid JSON.');
+        Response.Get('value', Token);
+        foreach EntryToken in Token.AsArray() do
+            EntryIds.Add(GetJsonText(EntryToken, 'id'));
+        if Response.Get('@odata.nextLink', Token) then
+            NextLink := Token.AsValue().AsText();
     end;
 
     local procedure VerifyPolicyCategoryCode(ResponseText: Text; ExpectedCategoryCode: Code[20])
