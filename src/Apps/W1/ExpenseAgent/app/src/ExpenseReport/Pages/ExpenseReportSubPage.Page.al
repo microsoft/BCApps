@@ -522,6 +522,21 @@ page 6999 "Expense Report SubPage"
                         CurrPage.Update(true);
                     end;
                 }
+                action(ChangeHistory)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Change History';
+                    Image = ChangeLog;
+                    ToolTip = 'View the changes to the line that were made after the expense report was submitted, including who made each change.';
+                    Visible = (Rec."Document No." <> '') and (Rec."Line No." <> 0);
+
+                    trigger OnAction()
+                    var
+                        ExpReportChangeLogMgt: Codeunit "Exp. Report Change Log Mgt.";
+                    begin
+                        ExpReportChangeLogMgt.ShowChangeLog(Rec);
+                    end;
+                }
                 action("Participants")
                 {
                     Image = PersonInCharge;

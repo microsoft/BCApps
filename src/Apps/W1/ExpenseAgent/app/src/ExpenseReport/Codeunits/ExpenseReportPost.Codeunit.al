@@ -73,6 +73,7 @@ codeunit 6987 "Expense Report-Post"
         ExpenseReportWithStatusErr: Label 'Expense Report %1 cannot be posted because its status is %2.', Comment = '%1 = Document No., %2 = Status';
         SpendRequestStatusNotPostableErr: Label 'Expense report %1 cannot be posted because travel request %2 has status %3. The travel request must be approved.', Comment = '%1 = Expense Report No., %2 = Travel Request No., %3 = Travel Request Status';
         NothingToPostErr: Label 'There is nothing to post.';
+        RuleViolationPresentOnLineErr: Label 'There are one or more rule violations in this expense report. Check the expenses marked for review before submitting again.';
         DocumentCanOnlyBePostedWhenApprovalProcessIsCompleteErr: Label 'This document can only be posted when the approval process is complete.';
         ReimbursementNotificationCannotBeSentErr: Label 'Reimbursement notification cannot be sent as the reimbursable amount is 0.';
         AgentNotEnabledErr: Label 'Please make sure the Expense Agent is active.';
@@ -166,6 +167,7 @@ codeunit 6987 "Expense Report-Post"
     local procedure CheckAndCreatePostedDocument(var ExpenseReportHeader: Record "Expense Report Header")
     var
         ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+        ExpReportChangeLogMgt: Codeunit "Exp. Report Change Log Mgt.";
     begin
         AmountToEmployee := 0;
         ValidateExpenseReportForPosting(ExpenseReportHeader);
@@ -182,8 +184,10 @@ codeunit 6987 "Expense Report-Post"
         InsertPstdExpReportHeaderVATSpecs(ExpenseReportHeader."No.", PostedExpenseReportHeader."No.");
         if AmountToEmployee <> 0 then
             PostEmployeeEntry(ExpenseReportHeader);
-        if not PreviewMode then
+        if not PreviewMode then begin
             ExpenseActivityLogMgt.ReassignExpenseReportEntriesToPosted(ExpenseReportHeader, PostedExpenseReportHeader);
+            ExpReportChangeLogMgt.ReassignEntriesToPosted(ExpenseReportHeader, PostedExpenseReportHeader);
+        end;
     end;
 
     local procedure ValidateExpenseReportForPosting(var ExpenseReportHeader: Record "Expense Report Header")
@@ -381,6 +385,43 @@ codeunit 6987 "Expense Report-Post"
 
         if ExpenseSubCategory.Get(ExpenseReportLine."Expense Category", ExpenseReportLine."Expense Subcategory Code") then
             ExpenseSubCategory.TestField(Inactive, false);
+
+        if ExpenseReportLine."Job No." <> '' then
+            ExpenseReportLine.TestField("Job Task No.");
+
+        CheckBillableVendor(ExpenseReportLine);
+        CheckBillableCustomer(ExpenseReportLine);
+        CheckRuleViolations(ExpenseReportLine);
+    end;
+
+    local procedure CheckBillableVendor(ExpenseReportLine: Record "Expense Report Line")
+    begin
+        if not ExpenseReportLine."Purchase Invoice" then
+            exit;
+
+        ExpenseReportLine.TestField("Vendor No.");
+        ExpenseReportLine.TestField("Posted Purch. Invoice No.");
+    end;
+
+    local procedure CheckBillableCustomer(ExpenseReportLine: Record "Expense Report Line")
+    begin
+        if not ExpenseReportLine.Billable then
+            exit;
+
+        ExpenseReportLine.TestField("Billable to Customer");
+        ExpenseReportLine.TestField("Account Type", ExpenseReportLine."Account Type"::"G/L Account");
+        ExpenseReportLine.TestField("Account No.");
+    end;
+
+    local procedure CheckRuleViolations(var ExpenseReportLine: Record "Expense Report Line")
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        if not ExpenseAgentSetup."Use Rules" then
+            exit;
+
+        ExpenseReportLine.CalcFields("Rule Violations");
+        if ExpenseReportLine."Rule Violations" then
+            Error(RuleViolationPresentOnLineErr);
     end;
 
     local procedure CopyDocumentAttachment(ExpenseReportLine: Record "Expense Report Line"; PostedExpReportLine: Record "Posted Expense Report Line")
