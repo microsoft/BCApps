@@ -342,7 +342,7 @@ page 143 "Posted Sales Invoices"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Installment Schedule';
                     Image = PaymentPeriod;
-                    Enabled = not IsNullGuid(Rec."Installment Plan ID");
+                    Enabled = HasInstallmentPlan;
                     ToolTip = 'View the original installment schedule, current unpaid amounts, and linked customer entries.';
 
                     trigger OnAction()
@@ -768,6 +768,7 @@ page 143 "Posted Sales Invoices"
     begin
         IsHandled := false;
         OnBeforeOnAfterGetCurrRecord(Rec, IsHandled, HasPostedSalesInvoices, CRMIsCoupledToRecord, CRMIntegrationEnabled);
+        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
         if IsHandled then
             exit;
 
@@ -823,6 +824,7 @@ page 143 "Posted Sales Invoices"
         DocExchStatusVisible: Boolean;
         IsOfficeAddin: Boolean;
         HasPostedSalesInvoices: Boolean;
+        HasInstallmentPlan: Boolean;
 
     [IntegrationEvent(true, false)]
     local procedure OnOpenPageOnAfterSetFilters(var SalesInvoiceHeader: Record "Sales Invoice Header")

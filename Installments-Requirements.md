@@ -1531,10 +1531,10 @@ test execution, and upgrade performance validation remain pending with the user.
 
 ## 21. Step 6: integration review and acceptance readiness
 
-**Status:** Source integration review and focused hardening complete. The Step 6
-changes have not been compiled or executed. The user's earlier compilation
-confirmation covers Step 5, not these changes. M1 acceptance and sign-off remain
-blocked on designated-environment evidence.
+**Status:** Source integration review and focused hardening complete. The user
+reported M1 verification in progress on 2026-11-16; compilation, upgrade, and
+runtime results have not yet been recorded. M1 acceptance and sign-off remain
+pending designated-environment evidence.
 
 ### 21.1. Integration findings and hardening
 
@@ -1575,8 +1575,8 @@ Focused source coverage was strengthened in `ERM Installment Posting`:
 Source suites: **C** = 134491 `ERM Installment Calculation` (18 tests),
 **D** = 134492 `ERM Installment Draft` (13 tests), and
 **P** = 134493 `ERM Installment Posting` (22 tests).
-Total: **53 test methods, not executed**. Every row below still requires runtime
-evidence; test presence and source review are not acceptance results.
+Total: **53 test methods; runtime results not yet recorded**. Every row below
+still requires runtime evidence; test presence and source review are not acceptance results.
 The additional checks column identifies coverage beyond the named source cases.
 
 | Acceptance ID | Source evidence | Additional designated-environment checks |
@@ -1646,3 +1646,163 @@ No build, publish, data upgrade, or container-backed test was run by the
 assistant. No commit was created. Step 6 environment acceptance remains open;
 the milestone is not signed off and unrestricted production activation remains
 outside M1.
+
+## 22. M2 implementation plan: invoice output and read-only schedule API
+
+### 22.1. Objective, scope, and dependency on M1
+
+**Scope confirmed by the user:** Finish Slice 1 with printed sales-invoice
+schedules and a read-only posted-installment API. M2 is not the broader
+receivables Slice 2.
+
+Make the existing W1 posted schedule consumable by invoice recipients and
+integrations without introducing another calculator, another financial source
+of truth, or new posting/application behavior.
+
+M1 verification continues independently. M2 planning and contract investigation
+can proceed now; M2 acceptance requires an accepted M1 baseline and resolution
+of any M1 defects affecting output/API correctness. Neither milestone by itself
+authorizes unrestricted production activation.
+
+| Included | Explicitly excluded |
+| --- | --- |
+| Configurable summary/detailed schedule on posted sales-invoice output. | Draft/order/pro forma output and additional invoice producers. |
+| Original posted amounts, dates, and installment discount terms. | Recalculation from current Payment Terms or manual posted-schedule editing. |
+| A read-only API for posted global installment lines and live balances. | Draft schedule APIs, API writes, schedule overrides, payment initiation, or new settlement policies. |
+| Compatibility with existing invoice API identity, totals/status, and PDF delivery. | Changing existing invoice API identities or replacing standard invoice resources. |
+| Report/layout, API, permission, and country compatibility checks. | Corrections, unapplication, collections, aging, cash-flow, payables, and IT migration/global activation. |
+
+Existing M1 unsupported-path guards remain in force. Legacy IT invoices must
+not acquire synthetic global schedules or be routed through global posting.
+
+### 22.2. Source anchors and design constraints
+
+The following canonical files were inspected for planning:
+
+| Source | Planning consequence |
+| --- | --- |
+| W1 `Sales\History\StandardSalesInvoice.Report.al`, report 1306. | Already exposes header due date/payment terms, aggregate remaining-amount text, payment reporting arguments, and six rendering layouts. Add schedule output once per invoice, not once per commercial line. |
+| Report 1306 rendering section. | Current W1 layouts are RDLC plus standard Word, Blue Word, themable Word, VAT-specification Word, and default-email Word. Dataset changes alone do not update these layouts. |
+| FR, ES, NA, and NO report 1306 overrides. | Shared report changes need Miapp propagation and preservation of local output behavior; layout propagation must also be inventoried. |
+| W1 `Sales\History\PostedInstallmentSchedule.Page.al`; `SalesInstallmentHistory.Codeunit.al`. | Reuse posted ownership/link validation and the existing distinction between original schedule values and live customer-entry balances. Do not make a UI page the output/API service. |
+| `Installment Plan` and `Installment Plan Line`. | Original allocation/date/discount values are persisted already. Use the line SystemId as the proposed stable API row identity, not a fresh request-time GUID or ledger entry arithmetic. |
+| `Integration\Entity\SalesInvoiceAggregator.Codeunit.al`, `GetSalesInvoiceHeaderId`. | Public invoice ID can be Draft Invoice SystemId, falling back to posted SystemId. It is not always the posted header SystemId or the plan source ID. |
+| `src\Apps\W1\APIV2\app\src\pages\APIV2SalesInvoices.Page.al`. | The standard API is aggregate-backed and not extensible. An additive child navigation would require a deliberate change in the API app, with API contract/version review. |
+| `APIV2SalesInvoiceLines.Page.al`; `APIV2PDFDocument.Page.al`. | Existing API pages demonstrate temporary read models and parent-linked resources. PDF retrieval delegates to native PDF Document Management; trace its report/layout selection before promising output coverage. |
+| `src\Apps\W1\APIV2\test\src\APIV2SalesInvoicesE2E.Codeunit.al`. | Extend existing invoice E2E conventions for API identity, requests, permissions, and delivery regression coverage. |
+
+Base App remains the owner of installment business/read logic. The API app can
+consume that logic; Base App must not depend on the API app.
+
+### 22.3. Proposed output and API contracts
+
+These are recommended defaults to finalize in M2-01, not additional approved
+product decisions.
+
+**Invoice output**
+
+- Support Detailed and Summary modes. Recommend Detailed by default for global
+  installment invoices, with an explicit summary alternative. Freeze setting
+  ownership, unattended defaults, and any request-page override in M2-01.
+  Ordinary invoices retain their native presentation.
+- Detailed output shows installment number/count, original due date, original
+  document-currency amount, and applicable discount percentage/date/eligibility.
+  Show currency unambiguously and respect its amount precision.
+- Summary text must truthfully describe the posted schedule. Do not substitute
+  a reusable Payment Terms description that can change after posting.
+- Read original amounts and dates from the posted snapshot. Reprints after
+  setup edits, settlement, or exchange-rate adjustment must not rewrite those
+  original obligations.
+- If live paid/remaining information is displayed, label it separately and use
+  aggregate invoice balances. Do not present the first installment's due date
+  as the due date for the entire outstanding invoice, or header discount zero
+  as a claim that no installment has a discount.
+- Do not multiply revenue, VAT, totals, document copies, or payment instructions.
+  Preserve native print counters and delivery behavior; schedule reads must not
+  modify plans or financial records.
+- Target all six W1 report 1306 layouts. Freeze expected email-body versus
+  attachment presentation and country coverage before implementation. Custom
+  layouts and other report IDs are not automatically upgraded or certified;
+  document their required adaptation and make supported output choices clear.
+
+**Read-only API**
+
+- Recommend an additive child collection beneath the existing sales invoice
+  resource, provisionally `salesInvoices({invoiceId})/installments`. Final entity
+  names, version placement, navigation, and direct-root access need API review.
+- Return only posted global schedules belonging to the authorized company and
+  parent invoice. A valid ordinary or draft invoice has no posted installment
+  rows; invalid/inaccessible parents follow normal API error behavior.
+- Proposed fields: stable line ID, public sales-invoice ID, plan ID, installment
+  number/count, due date, currency, original amount/LCY amount, remaining
+  amount/LCY amount, open flag, original discount terms/eligibility, and a stable
+  customer-ledger-entry identifier. Final public names/types belong to M2-01.
+- Obtain current balances/open state from each exact linked customer entry.
+  Remaining LCY may change through native exchange adjustments; do not treat it
+  as a recalculated original amount or infer cash paid by simple subtraction.
+- Support normal parent scoping, ordering by sequence, pagination, and explicitly
+  agreed filters/expansion. Do not assume calculated page variables provide
+  server-side filtering or that temporary rows preserve API filters automatically.
+- Reject create/update/delete operations; do not expose posting, correction,
+  rescheduling, or payment actions on this resource.
+- Do not add a persistent balance cache. Choose the simplest read model that
+  satisfies identity, filtering, permissions, and paging requirements.
+- Verify ETag/conditional-read behavior when linked ledger balances change.
+  Immutable plan timestamps are not financial last-change timestamps; do not
+  promise delta/change-tracking semantics without a correct supporting contract.
+- Missing/mismatched posted ownership or ledger links are explicit errors, not
+  empty/zero-valued synthetic schedules. Apply native permissions and company
+  isolation without granting broad new financial-table access.
+
+### 22.4. Implementation packages and deliverables
+
+| Package | Prerequisites | Work and deliverable | Completion evidence |
+| --- | --- | --- | --- |
+| M2-01: Freeze output/API contracts | M2 scope confirmed; M1 results tracked. | Trace report selections, PDF/email paths, six layouts and country variants; finalize display defaults, API schema/identity/read-model approach, supported queries, permissions, and object/field allocation. Record explicit supported/custom-layout boundaries. | Reviewed contract and acceptance fixtures; no unresolved decision that would change schema or output semantics. |
+| M2-02: Shared posted read model and presentation configuration | M2-01. | Reuse or minimally extract posted ownership/link validation; provide original lines plus optional live balances to consumers. Add only required configuration with defined defaults. Avoid a second schedule store, recalculation, or financial cache. | Focused source tests for ownership, immutable original values, current balances, and ordinary/no-plan behavior; configuration/upgrade impact documented. |
+| M2-03: Invoice report datasets, layouts, and delivery | M2-02. | Add one schedule section per invoice to report 1306; implement summary/detail in the certified RDLC/Word layouts; correct global-plan due/discount labels. Cover preview, PDF, email and API PDF through their actual selected-report paths. | Dataset assertions plus rendered-output review for every certified layout and delivery path. Shared changes propagated and local differences retained. |
+| M2-04: Read-only posted schedule API | M2-02; API contract from M2-01. | Add the approved API resource/navigation using native public invoice identity, stable line IDs, exact ledger links, explicit parent scoping, and least-privilege reads. No new write operations. | API tests for payloads, identity, live updates, paging/filtering, permissions/company boundaries, unsupported writes, and existing invoice/PDF compatibility. |
+| M2-05: Integration and regression review | M2-03 and M2-04. | Complete W1/country propagation review; check ordinary invoices, legacy IT, custom-layout guidance, numeric/date localization, batching, and realistic output/API volumes. Resolve tightly coupled defects. | MiSnap/source evidence, layout coverage inventory, targeted regression results and recorded remaining release gates. |
+| M2-06: Designated-environment acceptance and sign-off | M2-05 and accepted M1 baseline. | Run the acceptance matrix below; capture report samples, API requests/results, country scope, permissions, and performance evidence. | M2 acceptance passed; limitations and deferred V1 gates remain explicit. |
+
+M2-03 and M2-04 can proceed independently after M2-02. Do not expand either into
+settlement/correction implementation. Follow repository practice: the user
+performs compilation, publishing, and container-backed runtime validation.
+
+### 22.5. Focused M2 acceptance matrix
+
+| ID | Scenario | Required assertion |
+| --- | --- | --- |
+| M2-AT-01 | Print/email/API-PDF an ordinary invoice. | Native amounts, dates, layout behavior, API responses, and payment behavior remain unchanged; no empty schedule section. |
+| M2-AT-02 | Detailed output for a three-installment VAT invoice with invoice discount. | Exactly one schedule per invoice; amounts/dates/discount terms match the posted snapshot and sum to the original invoice total. |
+| M2-AT-03 | Summary mode and unattended output. | Truthful installment summary, deterministic configured defaults, and no misleading single-date/zero-discount representation. |
+| M2-AT-04 | Reprint after reusable setup edits and partial/full settlement. | Original schedule remains unchanged; any current balance/paid text is separately identified and reflects the whole invoice. |
+| M2-AT-05 | Foreign currency, whole-unit/three-decimal precision, and LCY exchange adjustments. | Correct currency/date formatting; original document/LCY allocations remain distinct from current remaining amounts. |
+| M2-AT-06 | Multiple invoices, ordinary/global mixture, long schedule, and multiple copies. | No cross-document leakage, duplicate totals, lost rows, broken grouping, or unintended blank sections/pages. |
+| M2-AT-07 | Every certified layout and selected print/PDF/email/API-PDF path. | Required content is visibly rendered, not merely present in the dataset; local legal content survives propagation. |
+| M2-AT-08 | GET a posted global schedule repeatedly and after setup changes. | Stable line/public parent identities, deterministic sequence, and immutable original values matching printed output. |
+| M2-AT-09 | Retrieve after non-anchor, anchor, partial, and final settlement. | Exact per-entry balances/open flags and truthful existing invoice totals/status; no premature Paid state. |
+| M2-AT-10 | Public invoice ID differs from posted header SystemId. | Existing API ID resolves the correct schedule; no accidental assumption that plan source ID is always the public ID. |
+| M2-AT-11 | Parent scoping, supported filters, pagination, and expansion. | Correct rows/counts and stable identities across pages; a client filter cannot escape its authorized parent. |
+| M2-AT-12 | Ordinary/draft parent, wrong parent, inaccessible company/invoice, and denied permissions. | No posted schedule for ordinary/draft invoices; other cases follow native authorization/error behavior without leaking rows. |
+| M2-AT-13 | POST/PATCH/DELETE and malformed or broken ledger links. | Writes are rejected; invalid provenance is reported explicitly; GET does not repair/create plans or financial records. |
+| M2-AT-14 | Ledger update followed by conditional/fresh GET. | No falsely unchanged financial response based only on immutable plan timestamps; approved caching contract is honored. |
+| M2-AT-15 | Legacy IT output/API controls and global activation safeguards. | Legacy behavior remains intact; no synthetic global schedule, IT activation, or second split. |
+| M2-AT-16 | Representative invoice batch/API volume and M1 regression. | Acceptable measured execution/query behavior, no persistent balance cache, and no regression of the accepted M1 contract. |
+
+Use focused Base App read-model/report tests and API-app E2E tests, reusing
+existing libraries. Keep rendered Word/RDLC/PDF inspection as explicit acceptance
+evidence; dataset tests cannot establish pagination, readability, or email layout
+correctness.
+
+### 22.6. Exit criteria and first executable step
+
+M2 is complete only when the agreed output/API contracts are implemented,
+certified layouts/delivery paths and API cases pass, country propagation is
+reviewed, and the M1 prerequisite is accepted. Record exact validation commands,
+results, versions/country scope, and remaining limitations during implementation.
+No M2 implementation, compilation, deployment, or runtime validation has begun.
+
+**First executable step: M2-01.** Produce the concrete report/layout/delivery
+inventory, public API contract, read-model/identity mapping, and configuration
+decisions before creating AL objects or changing layouts.

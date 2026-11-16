@@ -747,7 +747,7 @@ page 132 "Posted Sales Invoice"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Installment Schedule';
                     Image = PaymentPeriod;
-                    Enabled = not IsNullGuid(Rec."Installment Plan ID");
+                    Enabled = HasInstallmentPlan;
                     ToolTip = 'View the original installment schedule, current unpaid amounts, and linked customer entries.';
 
                     trigger OnAction()
@@ -1307,6 +1307,7 @@ page 132 "Posted Sales Invoice"
     begin
         IsHandled := false;
         OnBeforeOnAfterGetCurrRecord(Rec, IsHandled, CRMIsCoupledToRecord, CRMIntegrationEnabled);
+        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
         if IsHandled then
             exit;
         if GuiAllowed() then begin
@@ -1368,6 +1369,7 @@ page 132 "Posted Sales Invoice"
         IsSellToCountyVisible: Boolean;
         IsShipToCountyVisible: Boolean;
         VATDateEnabled: Boolean;
+        HasInstallmentPlan: Boolean;
 
     protected var
         SalesInvHeader: Record "Sales Invoice Header";
