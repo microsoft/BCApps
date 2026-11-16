@@ -823,8 +823,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
         if VATEntry."Source Currency Code" <> '' then begin
             CurrencyCode := VATEntry."Source Currency Code";
             SourceCurrencyVATAmount := VATEntry."Source Currency VAT Amount";
-        end else
-            CurrencyCode := '';
+        end;
 
         VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
         SAFTXMLHelper.AddNewXMLNode('TaxInformation', '');
