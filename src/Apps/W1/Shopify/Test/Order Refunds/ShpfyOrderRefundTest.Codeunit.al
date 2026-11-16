@@ -1670,7 +1670,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         OrderId := OrderRefundsHelper.CreateShopifyOrder();
         OrderHeader.Get(OrderId);
         OrderHeader."Shop Code" := Shop.Code;
-        OrderHeader."Shopify Order No." := CopyStr(Any.AlphabeticText(10), 1, MaxStrLen(OrderHeader."Shopify Order No."));
+        OrderHeader."Shopify Order No." := CopyStr(UpperCase(Any.AlphabeticText(10)), 1, MaxStrLen(OrderHeader."Shopify Order No."));
         OrderHeader."Total Amount" := 10;
         OrderHeader."Subtotal Amount" := 10;
         OrderHeader."VAT Amount" := 0;
