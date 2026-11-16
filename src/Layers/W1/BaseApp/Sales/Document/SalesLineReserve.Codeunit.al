@@ -532,6 +532,7 @@ codeunit 99000832 "Sales Line-Reserve"
     procedure TransferSaleLineToSalesLine(var OldSalesLine: Record "Sales Line"; var NewSalesLine: Record "Sales Line"; TransferQty: Decimal)
     var
         OldReservationEntry: Record "Reservation Entry";
+        PassReservationEntry: Record "Reservation Entry";
         ReservationStatus: Enum "Reservation Status";
         IsHandled: Boolean;
     begin
@@ -554,21 +555,22 @@ codeunit 99000832 "Sales Line-Reserve"
             OldReservationEntry.SetRange("Reservation Status", ReservationStatus);
             if OldReservationEntry.FindSet() then
                 repeat
-                    OldReservationEntry.TestItemFields(OldSalesLine."No.", OldSalesLine."Variant Code", OldSalesLine."Location Code");
-                    if (OldReservationEntry."Reservation Status" = OldReservationEntry."Reservation Status"::Prospect) and
+                    PassReservationEntry := OldReservationEntry;
+                    PassReservationEntry.TestItemFields(OldSalesLine."No.", OldSalesLine."Variant Code", OldSalesLine."Location Code");
+                    if (PassReservationEntry."Reservation Status" = PassReservationEntry."Reservation Status"::Prospect) and
                        (OldSalesLine."Document Type" in [OldSalesLine."Document Type"::Quote,
                                                          OldSalesLine."Document Type"::"Blanket Order"])
                     then
-                        OldReservationEntry."Reservation Status" := OldReservationEntry."Reservation Status"::Surplus;
+                        PassReservationEntry."Reservation Status" := PassReservationEntry."Reservation Status"::Surplus;
 
                     IsHandled := false;
-                    OnTransferSaleLineToSalesLineOnBeforeCalcTransferQty(NewSalesLine, OldReservationEntry, IsHandled);
+                    OnTransferSaleLineToSalesLineOnBeforeCalcTransferQty(NewSalesLine, PassReservationEntry, IsHandled);
                     if not IsHandled then
                         TransferQty :=
                             CreateReservEntry.TransferReservEntry(
                                 Database::"Sales Line",
                                 NewSalesLine."Document Type".AsInteger(), NewSalesLine."Document No.", '', 0,
-                                NewSalesLine."Line No.", NewSalesLine."Qty. per Unit of Measure", OldReservationEntry, TransferQty);
+                                NewSalesLine."Line No.", NewSalesLine."Qty. per Unit of Measure", PassReservationEntry, TransferQty);
 
                 until (OldReservationEntry.Next() = 0) or (TransferQty = 0);
         end;
