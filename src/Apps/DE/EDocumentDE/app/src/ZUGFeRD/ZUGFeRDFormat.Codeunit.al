@@ -41,6 +41,8 @@ codeunit 13920 "ZUGFeRD Format" implements "E-Document"
         DEPaymentMeansHelper.CheckPaymentDataAvailable(SourceDocumentHeader);
         DEContext.Start();
         DEContext.SetSkipCustomerVATRegNoCheck(EDocumentDEHelper.HasRoutingNo(SourceDocumentHeader));
+        // The buyer e-mail (BT-58) and the buyer electronic address (BT-49) are optional in ZUGFeRD.
+        DEContext.SetSkipSellToEMailCheck(true);
         EDocPEPPOLBIS30.Check(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
         DEContext.Stop();
         OnAfterCheck(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);

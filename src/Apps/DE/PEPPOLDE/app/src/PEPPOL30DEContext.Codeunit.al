@@ -19,6 +19,8 @@ namespace Microsoft.Peppol.DE;
 ///       "E-Document DE Helper".HasRoutingNo (true when the document's Buyer Reference is a valid
 ///       Leitweg-ID or the bill-to customer has an E-Invoice Routing No.). The Sales Validation reads
 ///       this to relax the W1 Customer GLN/VAT requirement.</item>
+/// <item>Whether the Sell-to E-Mail check should be skipped. EDocumentDE sets this for the XRechnung and ZUGFeRD
+///       formats, which resolve the buyer e-mail and the buyer electronic address (BT-49) themselves.</item>
 /// <item>The resolved <i>buyer-reference value</i> (computed by EDocumentDE's InitBuyerReference
 ///       from either the Customer's E-Invoice Routing No. or the document's Your Reference field).
 ///       The Doc Info Provider returns this in the PEPPOL XML BuyerReference element.</item>
@@ -77,6 +79,7 @@ codeunit 37404 "PEPPOL30 DE Context"
     var
         BuyerReferenceValue: Text;
         SkipCustomerVATRegNoCheckValue: Boolean;
+        SkipSellToEMailCheckValue: Boolean;
 
     /// <summary>
     /// Binds this codeunit instance as the active DE PEPPOL context for the current call stack
@@ -93,6 +96,7 @@ codeunit 37404 "PEPPOL30 DE Context"
         if BindSubscription(this) then;
         Clear(BuyerReferenceValue);
         Clear(SkipCustomerVATRegNoCheckValue);
+        Clear(SkipSellToEMailCheckValue);
     end;
 
     /// <summary>
@@ -110,6 +114,7 @@ codeunit 37404 "PEPPOL30 DE Context"
         if UnbindSubscription(this) then;
         Clear(BuyerReferenceValue);
         Clear(SkipCustomerVATRegNoCheckValue);
+        Clear(SkipSellToEMailCheckValue);
     end;
 
     /// <summary>
@@ -151,6 +156,24 @@ codeunit 37404 "PEPPOL30 DE Context"
     procedure SetSkipCustomerVATRegNoCheck(NewValue: Boolean)
     begin
         OnSetSkipCustomerVATRegNoCheck(NewValue);
+    end;
+
+    /// <summary>
+    /// Publishes whether the DE Sell-to E-Mail check should be skipped for the active document.
+    /// The XRechnung and ZUGFeRD formats in EDocumentDE set this flag: they resolve the buyer e-mail
+    /// from the e-mail setup of the bill-to customer and check the buyer electronic address (BT-49)
+    /// themselves, so a blank Sell-to E-Mail on the document must not block them.
+    /// </summary>
+    /// <param name="NewValue">
+    /// <c>true</c> to skip the Sell-to E-Mail check; <c>false</c> to enforce it.
+    /// </param>
+    /// <remarks>
+    /// Only meaningful between Start() and Stop(). When no instance is bound the publish has no
+    /// observable effect.
+    /// </remarks>
+    procedure SetSkipSellToEMailCheck(NewValue: Boolean)
+    begin
+        OnSetSkipSellToEMailCheck(NewValue);
     end;
 
     /// <summary>
@@ -197,6 +220,19 @@ codeunit 37404 "PEPPOL30 DE Context"
         OnGetSkipCustomerVATRegNoCheck(Result);
     end;
 
+    /// <summary>
+    /// Returns the skip-Sell-to-E-Mail-check flag pushed by the EDocumentDE bridge via
+    /// <see cref="SetSkipSellToEMailCheck"/> on the active bound instance.
+    /// </summary>
+    /// <returns>
+    /// <c>true</c> when the Sell-to E-Mail check should be skipped; <c>false</c> when no context is
+    /// bound or the check must be enforced.
+    /// </returns>
+    procedure GetSkipSellToEMailCheck() Result: Boolean
+    begin
+        OnGetSkipSellToEMailCheck(Result);
+    end;
+
     #region Internal pub/sub bridge - the bound instance captures writes and answers reads
     [IntegrationEvent(false, false)]
     local procedure OnSetBuyerReference(NewBuyerReference: Text)
@@ -205,6 +241,16 @@ codeunit 37404 "PEPPOL30 DE Context"
 
     [IntegrationEvent(false, false)]
     local procedure OnSetSkipCustomerVATRegNoCheck(NewValue: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetSkipSellToEMailCheck(NewValue: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetSkipSellToEMailCheck(var Result: Boolean)
     begin
     end;
 
@@ -251,6 +297,18 @@ codeunit 37404 "PEPPOL30 DE Context"
     local procedure SubOnGetSkipCustomerVATRegNoCheck(var Result: Boolean)
     begin
         Result := SkipCustomerVATRegNoCheckValue;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"PEPPOL30 DE Context", OnSetSkipSellToEMailCheck, '', false, false)]
+    local procedure SubOnSetSkipSellToEMailCheck(NewValue: Boolean)
+    begin
+        SkipSellToEMailCheckValue := NewValue;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"PEPPOL30 DE Context", OnGetSkipSellToEMailCheck, '', false, false)]
+    local procedure SubOnGetSkipSellToEMailCheck(var Result: Boolean)
+    begin
+        Result := SkipSellToEMailCheckValue;
     end;
     #endregion
 }

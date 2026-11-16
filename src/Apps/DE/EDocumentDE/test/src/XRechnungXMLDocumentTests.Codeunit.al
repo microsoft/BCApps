@@ -66,6 +66,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         DEXMLDocumentValidator: Codeunit "DE XML Document Validator";
         ExportXRechnungDocument: Codeunit "Export XRechnung Document";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
+        BuyerEndpointIDTok: Label '/ubl:Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID', Locked = true;
+        BuyerContactEMailTok: Label '/ubl:Invoice/cac:AccountingCustomerParty/cac:Party/cac:Contact/cbc:ElectronicMail', Locked = true;
         AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true, Comment = '%1 = XML attribute name, %2 = XML element XPath';
         SellerContactReasonErr: Label 'must be filled in. It is required for the seller contact (BG-6) of the electronic document', Locked = true;
         UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
@@ -4061,6 +4063,178 @@ codeunit 13918 "XRechnung XML Document Tests"
 
     #endregion
 
+    #region BuyerElectronicAddress
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatWithoutSellToEMail()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] The XRechnung check does not require the Sell-to E-Mail when the buyer e-mail comes from the bill-to customer.
+        Initialize();
+
+        // [GIVEN] Sales invoice for a customer with an e-mail address, the Sell-to E-Mail of the document is blank
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithBuyerAddresses(true, false));
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesHeader."Sell-to E-Mail" := '';
+        SalesHeader.Modify(false);
+
+        // [WHEN] Check the document
+        CheckSalesHeader(SalesHeader);
+
+        // [THEN] No error is raised
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatWithRoutingNoWithoutEMail()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] The XRechnung check accepts the E-Invoice Routing No. as buyer electronic address (BT-49) when no e-mail exists.
+        Initialize();
+
+        // [GIVEN] Sales invoice for a customer with an E-Invoice Routing No. and without e-mail, the Sell-to E-Mail is blank
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithBuyerAddresses(false, true));
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesHeader."Sell-to E-Mail" := '';
+        SalesHeader.Modify(false);
+
+        // [WHEN] Check the document
+        CheckSalesHeader(SalesHeader);
+
+        // [THEN] No error is raised
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatWithoutBuyerElectronicAddress()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] The XRechnung check fails when no buyer electronic address (BT-49) can be resolved.
+        Initialize();
+
+        // [GIVEN] Sales invoice for a customer without e-mail, E-Invoice Routing No. and GLN, the Sell-to E-Mail is blank
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithBuyerAddresses(false, false));
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesHeader."Sell-to E-Mail" := '';
+        SalesHeader.Modify(false);
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names the buyer electronic address (BT-49)
+        Assert.ExpectedError('BT-49');
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatBuyerReferenceAlwaysMandatory()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] XRechnung requires the buyer reference (BT-10, BR-DE-15) even when "Buyer Reference Mandatory" is off.
+        Initialize();
+
+        // [GIVEN] "Buyer Reference Mandatory" is off on the E-Document Service
+        EDocumentService.Get(EDocumentService.Code);
+        EDocumentService."Buyer Reference Mandatory" := false;
+        EDocumentService.Modify();
+
+        // [GIVEN] Sales invoice for a customer without E-Invoice Routing No. and with a blank Your Reference
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithBuyerAddresses(true, false));
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesHeader.Validate("Your Reference", '');
+        SalesHeader.Modify(false);
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error states that the buyer reference is mandatory
+        Assert.ExpectedError('Buyer Reference is mandatory');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatBuyerEndpointFromCustomerEMail()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] Without a Sell-to E-Mail the bill-to customer's e-mail is exported as buyer electronic address (BT-49) and contact e-mail (BT-58).
+        Initialize();
+
+        // [GIVEN] Posted sales invoice for a customer with an e-mail address, the Sell-to E-Mail is blank
+        Customer.Get(CreateCustomerWithBuyerAddresses(true, true));
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, Customer."No.");
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesHeader."Sell-to E-Mail" := '';
+        SalesHeader.Modify(false);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] EndpointID is the customer e-mail with schemeID EM, the contact e-mail is the customer e-mail
+        VerifyBuyerEndpoint(TempXMLBuffer, Customer."E-Mail", 'EM');
+        Assert.AreEqual(Customer."E-Mail", GetNodeByPathWithError(TempXMLBuffer, BuyerContactEMailTok), StrSubstNo(IncorrectValueErr, BuyerContactEMailTok));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatBuyerEndpointFromRoutingNo()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] Without any e-mail the E-Invoice Routing No. is exported as buyer electronic address (BT-49) with schemeID 0204.
+        Initialize();
+
+        // [GIVEN] Posted sales invoice for a customer with an E-Invoice Routing No. and without e-mail
+        Customer.Get(CreateCustomerWithBuyerAddresses(false, true));
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, Customer."No.");
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesHeader."Sell-to E-Mail" := '';
+        SalesHeader.Modify(false);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] EndpointID is the E-Invoice Routing No. with schemeID 0204, no contact e-mail is exported
+        VerifyBuyerEndpoint(TempXMLBuffer, Customer."E-Invoice Routing No.", '0204');
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, BuyerContactEMailTok), StrSubstNo(UnexpectedNodeErr, BuyerContactEMailTok));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatBuyerEndpointFromGLN()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] Without e-mail and E-Invoice Routing No. the customer GLN is exported as buyer electronic address (BT-49) with schemeID 0088.
+        Initialize();
+
+        // [GIVEN] Posted sales invoice for a customer that uses its GLN in electronic documents, without e-mail and E-Invoice Routing No.
+        Customer.Get(CreateCustomerWithBuyerAddresses(false, false));
+        Customer.GLN := CustomerGLN();
+        Customer."Use GLN in Electronic Document" := true;
+        Customer.Modify(true);
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, Customer."No.");
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesHeader."Sell-to E-Mail" := '';
+        SalesHeader.Modify(false);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] EndpointID is the customer GLN with schemeID 0088
+        VerifyBuyerEndpoint(TempXMLBuffer, CustomerGLN(), '0088');
+    end;
+    #endregion
+
     local procedure CreateAndPostSalesInvoiceWithItemCharge(NoOfItemLines: Integer; ChargeQuantity: Decimal; ChargeUnitPrice: Decimal; var ItemChargeNo: Code[20]): Code[20]
     begin
         exit(CreateAndPostSalesInvoiceWithItemCharge(NoOfItemLines, NoOfItemLines, ChargeQuantity, ChargeUnitPrice, ItemChargeNo));
@@ -6340,6 +6514,25 @@ codeunit 13918 "XRechnung XML Document Tests"
             SalesReceivablesSetup."Posted Credit Memo Nos.", SalesReceivablesSetup."Posted Return Receipt Nos.",
             ServiceMgtSetup."Posted Service Invoice Nos.", ServiceMgtSetup."Posted Serv. Credit Memo Nos.");
         NoSeriesLine.ModifyAll("Last Date Used", 0D);
+    end;
+
+    local procedure CreateCustomerWithBuyerAddresses(WithEMail: Boolean; WithRoutingNo: Boolean): Code[20]
+    var
+        Customer: Record Customer;
+    begin
+        Customer.Get(CreateCustomer());
+        if not WithEMail then
+            Customer."E-Mail" := '';
+        if not WithRoutingNo then
+            Customer."E-Invoice Routing No." := '';
+        Customer.Modify(true);
+        exit(Customer."No.");
+    end;
+
+    local procedure VerifyBuyerEndpoint(var TempXMLBuffer: Record "XML Buffer" temporary; ExpectedEndpointID: Text; ExpectedSchemeID: Text)
+    begin
+        Assert.AreEqual(ExpectedEndpointID, GetNodeByPathWithError(TempXMLBuffer, BuyerEndpointIDTok), StrSubstNo(IncorrectValueErr, BuyerEndpointIDTok));
+        Assert.AreEqual(ExpectedSchemeID, GetAttributeByPathWithError(TempXMLBuffer, BuyerEndpointIDTok, 'schemeID'), StrSubstNo(IncorrectValueErr, BuyerEndpointIDTok + '/@schemeID'));
     end;
 
     local procedure Initialize();

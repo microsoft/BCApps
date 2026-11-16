@@ -66,6 +66,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
         DEXMLDocumentValidator: Codeunit "DE XML Document Validator";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
+        BuyerURIIDTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID', Locked = true;
+        BuyerContactEMailTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:DefinedTradeContact/ram:EmailURIUniversalCommunication/ram:URIID', Locked = true;
         AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true, Comment = '%1 = XML attribute name, %2 = XML element XPath';
         SellerContactReasonErr: Label 'must be filled in. It is required for the seller contact (BG-6) of the electronic document', Locked = true;
         UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
@@ -4060,6 +4062,81 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
     #endregion
 
+    #region BuyerElectronicAddress
+    [Test]
+    procedure CheckSalesInvoiceInZUGFeRDFormatWithoutAnyBuyerEMail()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] The buyer e-mail (BT-58) and the buyer electronic address (BT-49) are optional in ZUGFeRD, so the check does not require them.
+        Initialize();
+
+        // [GIVEN] Sales invoice for a customer without e-mail and E-Invoice Routing No., the Sell-to E-Mail is blank
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithBuyerAddresses(false, false));
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesHeader."Sell-to E-Mail" := '';
+        SalesHeader.Modify(false);
+
+        // [WHEN] Check the document
+        CheckSalesHeader(SalesHeader);
+
+        // [THEN] No error is raised
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatWithoutBuyerElectronicAddress()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] Without e-mail, E-Invoice Routing No. and GLN neither the buyer electronic address (BT-49) nor the contact e-mail (BT-58) is exported.
+        Initialize();
+
+        // [GIVEN] Posted sales invoice for a customer without e-mail and E-Invoice Routing No., the Sell-to E-Mail is blank
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CreateCustomerWithBuyerAddresses(false, false));
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesHeader."Sell-to E-Mail" := '';
+        SalesHeader.Modify(false);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Neither BT-49 nor BT-58 is exported
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, BuyerURIIDTok), StrSubstNo(UnexpectedNodeErr, BuyerURIIDTok));
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, BuyerContactEMailTok), StrSubstNo(UnexpectedNodeErr, BuyerContactEMailTok));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatBuyerElectronicAddressFromRoutingNo()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] Without any e-mail the E-Invoice Routing No. is exported as buyer electronic address (BT-49) with schemeID 0204.
+        Initialize();
+
+        // [GIVEN] Posted sales invoice for a customer with an E-Invoice Routing No. and without e-mail
+        Customer.Get(CreateCustomerWithBuyerAddresses(false, true));
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, Customer."No.");
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesHeader."Sell-to E-Mail" := '';
+        SalesHeader.Modify(false);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] URIID is the E-Invoice Routing No. with schemeID 0204, no contact e-mail is exported
+        Assert.AreEqual(Customer."E-Invoice Routing No.", GetNodeByPathWithError(TempXMLBuffer, BuyerURIIDTok), StrSubstNo(IncorrectValueErr, BuyerURIIDTok));
+        Assert.AreEqual('0204', GetAttributeByPathWithError(TempXMLBuffer, BuyerURIIDTok, 'schemeID'), StrSubstNo(IncorrectValueErr, BuyerURIIDTok + '/@schemeID'));
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, BuyerContactEMailTok), StrSubstNo(UnexpectedNodeErr, BuyerContactEMailTok));
+    end;
+    #endregion
+
     local procedure CreateAndPostSalesInvoiceWithChargeAndZeroQuantityLine(var ItemChargeNo: Code[20]): Code[20]
     var
         Item: Record Item;
@@ -6374,6 +6451,19 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
             if NodeExistsByPath(TempXMLBuffer, Path) then
                 Assert.AreNotEqual('', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         end;
+    end;
+
+    local procedure CreateCustomerWithBuyerAddresses(WithEMail: Boolean; WithRoutingNo: Boolean): Code[20]
+    var
+        Customer: Record Customer;
+    begin
+        Customer.Get(CreateCustomer());
+        if not WithEMail then
+            Customer."E-Mail" := '';
+        if not WithRoutingNo then
+            Customer."E-Invoice Routing No." := '';
+        Customer.Modify(true);
+        exit(Customer."No.");
     end;
 
     local procedure Initialize();

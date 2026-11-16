@@ -1480,11 +1480,11 @@ codeunit 13916 "Export XRechnung Document"
     var
         BillToAddress: Record "Standard Address";
         Customer: Record Customer;
-        TempBodyReportSelections: Record "Report Selections" temporary;
-        ReportSelections: Record "Report Selections";
         CustomerGLN: Text[13];
         CustomerRegistrationNo: Text[50];
         AccountingCustomerParty: XmlElement;
+        BuyerEndpointID: Text;
+        BuyerEndpointSchemeID: Text;
     begin
         BillToAddress.Address := SalesInvoiceHeader."Bill-to Address";
         BillToAddress."Address 2" := SalesInvoiceHeader."Bill-to Address 2";
@@ -1498,12 +1498,11 @@ codeunit 13916 "Export XRechnung Document"
             CustomerGLN := Customer.GLN;
         if Customer."Use Reg. No. in E-Document" and (Customer.GLN = '') and (Customer."VAT Registration No." = '') and (Customer."Registration Number" <> '') then
             CustomerRegistrationNo := Customer."Registration Number";
-        ReportSelections.FindEmailBodyUsageForCust("Report Selection Usage"::"S.Invoice", SalesInvoiceHeader."Bill-to Customer No.", TempBodyReportSelections);
+        EDocumentDEHelper.GetBuyerElectronicAddress(SalesInvoiceHeader, EDocumentService, BuyerEndpointID, BuyerEndpointSchemeID);
         InsertCustomerParty(
               AccountingCustomerParty, Customer."VAT Registration No.", CustomerGLN, CustomerRegistrationNo,
               SalesInvoiceHeader."Bill-to Name", BillToAddress, SalesInvoiceHeader."Sell-to Customer Name",
-              SalesInvoiceHeader."Sell-to Contact",
-              ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Invoice".AsInteger(), SalesInvoiceHeader, SalesInvoiceHeader."Bill-to Customer No.", TempBodyReportSelections));
+              SalesInvoiceHeader."Sell-to Contact", EDocumentDEHelper.GetBuyerEMail(SalesInvoiceHeader), BuyerEndpointID, BuyerEndpointSchemeID);
         RootXMLNode.Add(AccountingCustomerParty);
     end;
 
@@ -1511,11 +1510,11 @@ codeunit 13916 "Export XRechnung Document"
     var
         BillToAddress: Record "Standard Address";
         Customer: Record Customer;
-        TempBodyReportSelections: Record "Report Selections" temporary;
-        ReportSelections: Record "Report Selections";
         CustomerGLN: Text[13];
         CustomerRegistrationNo: Text[50];
         AccountingCustomerParty: XmlElement;
+        BuyerEndpointID: Text;
+        BuyerEndpointSchemeID: Text;
     begin
         BillToAddress.Address := SalesCrMemoHeader."Bill-to Address";
         BillToAddress."Address 2" := SalesCrMemoHeader."Bill-to Address 2";
@@ -1529,23 +1528,23 @@ codeunit 13916 "Export XRechnung Document"
             CustomerGLN := Customer.GLN;
         if Customer."Use Reg. No. in E-Document" and (Customer.GLN = '') and (Customer."VAT Registration No." = '') and (Customer."Registration Number" <> '') then
             CustomerRegistrationNo := Customer."Registration Number";
-        ReportSelections.FindEmailBodyUsageForCust("Report Selection Usage"::"S.Cr.Memo", SalesCrMemoHeader."Bill-to Customer No.", TempBodyReportSelections);
+        EDocumentDEHelper.GetBuyerElectronicAddress(SalesCrMemoHeader, EDocumentService, BuyerEndpointID, BuyerEndpointSchemeID);
         InsertCustomerParty(
               AccountingCustomerParty, Customer."VAT Registration No.", CustomerGLN, CustomerRegistrationNo,
               SalesCrMemoHeader."Bill-to Name", BillToAddress, SalesCrMemoHeader."Sell-to Customer Name",
-              SalesCrMemoHeader."Sell-to Contact",
-              ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Cr.Memo".AsInteger(), SalesCrMemoHeader, SalesCrMemoHeader."Bill-to Customer No.", TempBodyReportSelections));
+              SalesCrMemoHeader."Sell-to Contact", EDocumentDEHelper.GetBuyerEMail(SalesCrMemoHeader), BuyerEndpointID, BuyerEndpointSchemeID);
         RootXMLNode.Add(AccountingCustomerParty);
     end;
 
-    local procedure InsertCustomerParty(var AccountingCustomerParty: XmlElement; VATRegNo: Text[20]; CustomerGLN: Code[13]; CustomerRegistrationNo: Text[50]; PartyName: Text[100]; PostalAddress: Record "Standard Address"; CustomerName: Text[100]; ContactName: Text[100]; ContactEMail: Text[250]);
+    local procedure InsertCustomerParty(var AccountingCustomerParty: XmlElement; VATRegNo: Text[20]; CustomerGLN: Code[13]; CustomerRegistrationNo: Text[50]; PartyName: Text[100]; PostalAddress: Record "Standard Address"; CustomerName: Text[100]; ContactName: Text[100]; ContactEMail: Text[250]; BuyerEndpointID: Text; BuyerEndpointSchemeID: Text);
     var
         PartyElement: XmlElement;
     begin
         if ContactName = '' then
             ContactName := CustomerName;
         PartyElement := XmlElement.Create('Party', XmlNamespaceCAC);
-        PartyElement.Add(XmlElement.Create('EndpointID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', 'EM'), ContactEMail));
+        if BuyerEndpointID <> '' then
+            PartyElement.Add(XmlElement.Create('EndpointID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', BuyerEndpointSchemeID), BuyerEndpointID));
         if CustomerGLN <> '' then
             InsertPartyIdentification(PartyElement, CustomerGLN, GLNSchemeIDTok)
         else

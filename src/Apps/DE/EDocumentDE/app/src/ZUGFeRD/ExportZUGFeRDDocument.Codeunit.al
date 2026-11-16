@@ -568,8 +568,6 @@ codeunit 13917 "Export ZUGFeRD Document"
         Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
-        TempBodyReportSelections: Record "Report Selections" temporary;
-        ReportSelections: Record "Report Selections";
         DataTypeManagement: Codeunit "Data Type Management";
         HeaderRecordRef: RecordRef;
         HeaderTradeAgreementElement, SellerTradePartyElement, BuyerTradePartyElement, SpecifiedTaxRegistrationElement, IDElement : XmlElement;
@@ -589,6 +587,8 @@ codeunit 13917 "Export ZUGFeRD Document"
         YourReference: Text[35];
         Contact: Text[100];
         CustomerEmail: Text[250];
+        BuyerEndpointID: Text;
+        BuyerEndpointSchemeID: Text;
         PhoneNumber: Text[30];
         OrderNo: Code[20];
         ExternalDocumentNo: Code[35];
@@ -618,8 +618,7 @@ codeunit 13917 "Export ZUGFeRD Document"
                     VATRegistrationNo := SalesInvoiceHeader."VAT Registration No.";
                     YourReference := SalesInvoiceHeader."Your Reference";
                     Contact := SalesInvoiceHeader."Sell-to Contact";
-                    ReportSelections.FindEmailBodyUsageForCust("Report Selection Usage"::"S.Invoice", CustomerNo, TempBodyReportSelections);
-                    CustomerEmail := ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Invoice".AsInteger(), RecordVariant, CustomerNo, TempBodyReportSelections);
+                    CustomerEmail := EDocumentDEHelper.GetBuyerEMail(RecordVariant);
                     PhoneNumber := SalesInvoiceHeader."Sell-to Phone No.";
                     OrderNo := SalesInvoiceHeader."Order No.";
                     ExternalDocumentNo := SalesInvoiceHeader."External Document No.";
@@ -639,8 +638,7 @@ codeunit 13917 "Export ZUGFeRD Document"
                     VATRegistrationNo := SalesCrMemoHeader."VAT Registration No.";
                     YourReference := SalesCrMemoHeader."Your Reference";
                     Contact := SalesCrMemoHeader."Sell-to Contact";
-                    ReportSelections.FindEmailBodyUsageForCust("Report Selection Usage"::"S.Cr.Memo", CustomerNo, TempBodyReportSelections);
-                    CustomerEmail := ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Cr.Memo".AsInteger(), RecordVariant, CustomerNo, TempBodyReportSelections);
+                    CustomerEmail := EDocumentDEHelper.GetBuyerEMail(RecordVariant);
                     PhoneNumber := SalesCrMemoHeader."Sell-to Phone No.";
                     OrderNo := SalesCrMemoHeader."Return Order No.";
                     ExternalDocumentNo := SalesCrMemoHeader."External Document No.";
@@ -739,10 +737,10 @@ codeunit 13917 "Export ZUGFeRD Document"
         PostalTradeAddressElement.Add(XmlElement.Create('CountryID', XmlNamespaceRAM, GetCountryISOCode(GetCountryRegionCode(CountryCode))));
         BuyerTradePartyElement.Add(PostalTradeAddressElement);
 
-        // Buyer E-Mail
-        if CustomerEmail <> '' then
+        // Buyer electronic address (BT-49)
+        if EDocumentDEHelper.GetBuyerElectronicAddress(RecordVariant, EDocumentService, BuyerEndpointID, BuyerEndpointSchemeID) then
             BuyerTradePartyElement.Add(XmlElement.Create('URIUniversalCommunication', XmlNamespaceRAM,
-                XmlElement.Create('URIID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', 'EM'), CustomerEmail)));
+                XmlElement.Create('URIID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', BuyerEndpointSchemeID), BuyerEndpointID)));
 
         if VATRegistrationNo <> '' then begin
             BuyerIDAttr := XmlAttribute.Create('schemeID', 'VA');
