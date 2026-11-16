@@ -50,20 +50,20 @@ codeunit 7430 "EA Corp Card Feed Mgt"
         HasFailedImport: Boolean;
     begin
         CorpCardProvider.SetRange(Enabled, true);
-        CorpCardProvider.SetFilter("Feed Type", '<>%1&<>%2&<>%3', CorpCardProvider."Feed Type"::DataExch, CorpCardProvider."Feed Type"::CSV, CorpCardProvider."Feed Type"::XML);
         if not CorpCardProvider.FindFirst() then
             exit;
 
         repeat
-            if not CorpCardImportOrch.RunProvider(CorpCardProvider, false, ImportErrorText, ImportErrorInfo, HasStructuredErrorInfo) then begin
-                if not HasFailedImport then
-                    FirstImportErrorText := ImportErrorText;
-                HasFailedImport := true;
-                if HasStructuredErrorInfo and not HasActionableErrorInfo then begin
-                    FirstActionableErrorInfo := ImportErrorInfo;
-                    HasActionableErrorInfo := true;
+            if not CorpCardProvider.IsFileBasedImport() then
+                if not CorpCardImportOrch.RunProvider(CorpCardProvider, false, ImportErrorText, ImportErrorInfo, HasStructuredErrorInfo) then begin
+                    if not HasFailedImport then
+                        FirstImportErrorText := ImportErrorText;
+                    HasFailedImport := true;
+                    if HasStructuredErrorInfo and not HasActionableErrorInfo then begin
+                        FirstActionableErrorInfo := ImportErrorInfo;
+                        HasActionableErrorInfo := true;
+                    end;
                 end;
-            end;
             CorpCardProvider.SetFilter(Code, '>%1', CorpCardProvider.Code);
         until not CorpCardProvider.FindFirst();
 
