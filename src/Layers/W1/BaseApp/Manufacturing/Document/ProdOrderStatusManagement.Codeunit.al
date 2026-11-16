@@ -565,7 +565,7 @@ codeunit 5407 "Prod. Order Status Management"
         end;
 
         OnTransProdOrderOnBeforeToProdOrderInsert(ToProdOrder, FromProdOrder, NewPostingDate);
-        ToProdOrder.Insert(true);
+        ToProdOrder.InsertWithLocationCodePreserved();
         ToProdOrder."Starting Time" := FromProdOrder."Starting Time";
         ToProdOrder."Starting Date" := FromProdOrder."Starting Date";
         ToProdOrder."Ending Time" := FromProdOrder."Ending Time";

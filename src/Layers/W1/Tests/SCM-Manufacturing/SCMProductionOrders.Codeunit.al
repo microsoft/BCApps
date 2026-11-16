@@ -15,6 +15,7 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
@@ -78,6 +79,12 @@ codeunit 137069 "SCM Production Orders"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         ProductionJournalMgt: Codeunit "Production Journal Mgt";
         Initialized: Boolean;
+        DefaultLocationCaptureEnabled: Boolean;
+        DefaultLocationCapturedInserts: Integer;
+        DefaultLocationCapturedValidations: Integer;
+        DefaultLocationUnexpectedInserts: Integer;
+        DefaultLocationConfiguredCode: Code[10];
+        DefaultLocationExpectedInsertCode: Code[10];
         UpdateDimensionMethod: Option ByProductionOrderLine,ByShowDimensionsOnLine,ByProductionOrder;
         AvailabilityWarningsMsg: Label 'You do not have enough inventory to meet the demand for items in one or more lines';
         CannotDeleteRecActRoutingErr: Label 'You cannot delete the Quality Measure because it is being used on one or more active Routings.';
@@ -5221,6 +5228,438 @@ codeunit 137069 "SCM Production Orders"
         Assert.AreEqual(
           SetupTimeAfterFirstFinish, GetTotalSetupTimeOnCapacityLedgerEntries(ProductionOrder."No."),
           'Setup time must not be reposted when reopening and re-finishing the production order.');
+    end;
+
+    [Test]
+    procedure DefaultLocationSalesItemSource()
+    var
+        Item: Record Item;
+        Component: Record Item;
+        Location: Record Location;
+        SourceLocation: Record Location;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        Observer: Codeunit "SCM Production Orders";
+        SetupStorage: Codeunit "Library - Setup Storage";
+        SourceCode: Code[10];
+        Iteration: Integer;
+    begin
+        Initialize();
+        SetupStorage.SaveManufacturingSetup();
+        SetupStorage.SaveInventorySetup();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SourceLocation);
+        ConfigureDefaultLocation(Location.Code, '');
+        for Iteration := 1 to 2 do begin
+            SourceCode := '';
+            if Iteration = 1 then
+                SourceCode := SourceLocation.Code;
+            CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Manual);
+            CreateDefaultLocationSalesLine(SalesHeader, SalesLine, Item."No.", SourceCode, 3);
+            Observer.StartDefaultLocationCapture(Location.Code, '');
+            BindSubscription(Observer);
+            CreateDefaultLocationSalesOrder(SalesLine);
+            UnbindSubscription(Observer);
+            Observer.AssertDefaultLocationCapture();
+            FindDefaultLocationOrder(ProductionOrder, Item."No.");
+            AssertDefaultLocationRelations(ProductionOrder, Item."No.", SourceCode, SourceCode, 3);
+            ProdOrderLine.Reset();
+            ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+            ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+            ProdOrderLine.SetRange("Item No.", Item."No.");
+            ProdOrderLine.FindFirst();
+            ProdOrderRoutingLine.Reset();
+            ProdOrderRoutingLine.SetRange(Status, ProdOrderLine.Status);
+            ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
+            ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
+            ProdOrderRoutingLine.SetRange("Routing No.", Item."Routing No.");
+            Assert.RecordCount(ProdOrderRoutingLine, 1);
+            AssertDefaultLocationReservation(SalesLine, ProductionOrder, 3);
+        end;
+        SetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure DefaultLocationStatusTransfer()
+    var
+        Item: Record Item;
+        Component: Record Item;
+        Location: Record Location;
+        SourceLocation: Record Location;
+        ProductionOrder: Record "Production Order";
+        SetupStorage: Codeunit "Library - Setup Storage";
+        SourceCode: Code[10];
+        InitialStatus: Enum "Production Order Status";
+        Iteration: Integer;
+        StatusIndex: Integer;
+    begin
+        Initialize();
+        SetupStorage.SaveManufacturingSetup();
+        SetupStorage.SaveInventorySetup();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SourceLocation);
+        for Iteration := 1 to 2 do begin
+            SourceCode := '';
+            if Iteration = 1 then
+                SourceCode := SourceLocation.Code;
+            for StatusIndex := 0 to 2 do begin
+                ConfigureDefaultLocation('', '');
+                CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Manual);
+                InitialStatus := Enum::"Production Order Status".FromInteger(StatusIndex);
+                CreateDefaultLocationOrder(ProductionOrder, InitialStatus, Item."No.", SourceCode, 2);
+                ConfigureDefaultLocation(Location.Code, '');
+                TransferDefaultLocationOrder(ProductionOrder, ProductionOrder.Status::Released, Item."No.", SourceCode, Location.Code);
+            end;
+            ConfigureDefaultLocation('', '');
+            CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Manual);
+            CreateDefaultLocationOrder(ProductionOrder, ProductionOrder.Status::Simulated, Item."No.", SourceCode, 2);
+            ConfigureDefaultLocation(Location.Code, '');
+            TransferDefaultLocationOrder(ProductionOrder, ProductionOrder.Status::Planned, Item."No.", SourceCode, Location.Code);
+            TransferDefaultLocationOrder(ProductionOrder, ProductionOrder.Status::"Firm Planned", Item."No.", SourceCode, Location.Code);
+            TransferDefaultLocationOrder(ProductionOrder, ProductionOrder.Status::Released, Item."No.", SourceCode, Location.Code);
+        end;
+        SetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure DefaultLocationReopenSnapshot()
+    var
+        Item: Record Item;
+        Component: Record Item;
+        Location: Record Location;
+        SourceLocation: Record Location;
+        ProductionOrder: Record "Production Order";
+        FinishedOrder: Record "Production Order";
+        StatusManagement: Codeunit "Prod. Order Status Management";
+        SetupStorage: Codeunit "Library - Setup Storage";
+        SourceCode: Code[10];
+        OrderNo: Code[20];
+        Iteration: Integer;
+    begin
+        Initialize();
+        SetupStorage.SaveManufacturingSetup();
+        SetupStorage.SaveInventorySetup();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SourceLocation);
+        for Iteration := 1 to 2 do begin
+            SourceCode := '';
+            if Iteration = 1 then
+                SourceCode := SourceLocation.Code;
+            ConfigureDefaultLocation('', '');
+            CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Backward);
+            PostDefaultLocationStock(Component."No.", SourceCode, 2);
+            CreateDefaultLocationOrder(ProductionOrder, ProductionOrder.Status::Released, Item."No.", SourceCode, 2);
+            PostDefaultLocationOutput(ProductionOrder, Item."No.", 2);
+            OrderNo := ProductionOrder."No.";
+            LibraryManufacturing.ChangeStatusReleasedToFinished(OrderNo);
+            ConfigureDefaultLocation(Location.Code, '');
+            FinishedOrder.Get(FinishedOrder.Status::Finished, OrderNo);
+            FinishedOrder.TestField("Location Code", SourceCode);
+            StatusManagement.ProcessProdOrderForReopen(FinishedOrder);
+            ProductionOrder.Get(ProductionOrder.Status::Released, OrderNo);
+            ProductionOrder.TestField(Reopened, true);
+            AssertDefaultLocationRelations(ProductionOrder, Item."No.", SourceCode, SourceCode, 2);
+            LibraryManufacturing.ChangeStatusReleasedToFinished(OrderNo);
+            FinishedOrder.Get(FinishedOrder.Status::Finished, OrderNo);
+            FinishedOrder.TestField("Location Code", SourceCode);
+            AssertDefaultLocationLedger(Item."No.", OrderNo, SourceCode, Enum::"Item Ledger Entry Type"::Output, 2);
+            AssertDefaultLocationLedger(Component."No.", OrderNo, SourceCode, Enum::"Item Ledger Entry Type"::Consumption, -2);
+        end;
+        SetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure DefaultLocationFamilyPosting()
+    var
+        Items: array[2] of Record Item;
+        Components: array[2] of Record Item;
+        Location: Record Location;
+        Family: Record Family;
+        FamilyLine: Record "Family Line";
+        ProductionOrder: Record "Production Order";
+        SetupStorage: Codeunit "Library - Setup Storage";
+        ItemIndex: Integer;
+        Quantity: Decimal;
+    begin
+        Initialize();
+        SetupStorage.SaveManufacturingSetup();
+        SetupStorage.SaveInventorySetup();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        ConfigureDefaultLocation(Location.Code, '');
+        for ItemIndex := 1 to 2 do
+            CreateDefaultLocationItem(Items[ItemIndex], Components[ItemIndex], Enum::"Flushing Method"::Backward);
+        LibraryManufacturing.CreateFamily(Family);
+        Family.Validate("Routing No.", Items[1]."Routing No.");
+        Family.Modify(true);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", Items[1]."No.", 3);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", Items[2]."No.", 5);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Family, Family."No.", 2);
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+        ProductionOrder.TestField("Location Code", Location.Code);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+        for ItemIndex := 1 to 2 do begin
+            Quantity := 2 * (2 * ItemIndex + 1);
+            AssertDefaultLocationRelations(ProductionOrder, Items[ItemIndex]."No.", Location.Code, Location.Code, Quantity);
+            PostDefaultLocationStock(Components[ItemIndex]."No.", Location.Code, Quantity);
+            PostDefaultLocationOutput(ProductionOrder, Items[ItemIndex]."No.", Quantity);
+            AssertDefaultLocationLedger(Items[ItemIndex]."No.", ProductionOrder."No.", Location.Code, Enum::"Item Ledger Entry Type"::Output, Quantity);
+            AssertDefaultLocationLedger(Components[ItemIndex]."No.", ProductionOrder."No.", Location.Code, Enum::"Item Ledger Entry Type"::Consumption, -Quantity);
+        end;
+        SetupStorage.Restore();
+    end;
+
+    procedure StartDefaultLocationCapture(ConfiguredLocationCode: Code[10]; ExpectedInsertLocationCode: Code[10])
+    begin
+        DefaultLocationConfiguredCode := ConfiguredLocationCode;
+        DefaultLocationExpectedInsertCode := ExpectedInsertLocationCode;
+        DefaultLocationCapturedInserts := 0;
+        DefaultLocationCapturedValidations := 0;
+        DefaultLocationUnexpectedInserts := 0;
+        DefaultLocationCaptureEnabled := true;
+    end;
+
+    procedure AssertDefaultLocationCapture()
+    begin
+        DefaultLocationCaptureEnabled := false;
+        Assert.IsTrue(DefaultLocationCapturedInserts > 0, 'The native header insertion must be observed.');
+        Assert.AreEqual(0, DefaultLocationCapturedValidations, 'An authoritative producer must not validate the configured default.');
+        Assert.AreEqual(0, DefaultLocationUnexpectedInserts, 'Insertion must retain the native pre-source or snapshot location.');
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Production Order", 'OnAfterInsertEvent', '', false, false)]
+    local procedure CaptureDefaultLocationInsert(var Rec: Record "Production Order"; RunTrigger: Boolean)
+    begin
+        if not DefaultLocationCaptureEnabled or Rec.IsTemporary() or not RunTrigger then
+            exit;
+        DefaultLocationCapturedInserts += 1;
+        if Rec."Location Code" <> DefaultLocationExpectedInsertCode then
+            DefaultLocationUnexpectedInserts += 1;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Production Order", 'OnAfterValidateEvent', 'Location Code', false, false)]
+    local procedure CaptureDefaultLocationValidation(var Rec: Record "Production Order"; var xRec: Record "Production Order"; CurrFieldNo: Integer)
+    begin
+        if DefaultLocationCaptureEnabled and not Rec.IsTemporary() and
+           (Rec."Location Code" = DefaultLocationConfiguredCode)
+        then
+            DefaultLocationCapturedValidations += 1;
+    end;
+
+    procedure ConfigureDefaultLocation(LocationCode: Code[10]; ComponentsLocationCode: Code[10])
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        InventorySetup: Record "Inventory Setup";
+    begin
+        ManufacturingSetup.Get();
+        ManufacturingSetup.Validate("Default Location Code", LocationCode);
+        ManufacturingSetup.Validate("Components at Location", ComponentsLocationCode);
+        ManufacturingSetup.Modify(true);
+        InventorySetup.Get();
+        InventorySetup.Validate("Location Mandatory", false);
+        InventorySetup.Modify(true);
+    end;
+
+    procedure CreateDefaultLocationItem(var Item: Record Item; var Component: Record Item; FlushingMethod: Enum "Flushing Method")
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: Record "Work Center";
+        WizardLibrary: Codeunit "Prod. Def. Wiz. Library";
+    begin
+        LibraryInventory.CreateItem(Component);
+        Component.Validate("Flushing Method", FlushingMethod);
+        Component.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, Item."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMLine(
+            ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, Component."No.", 1);
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+        WizardLibrary.CreateAndCalculateWorkCenter(WorkCenter);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(
+            RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingLine.Validate("Run Time", 1);
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        Item.Validate("Routing No.", RoutingHeader."No.");
+        Item.Validate("Include Inventory", false);
+        Item.Validate("Minimum Order Quantity", 0);
+        Item.Validate("Maximum Order Quantity", 0);
+        Item.Validate("Order Multiple", 0);
+        Item.Modify(true);
+    end;
+
+    procedure CreateDefaultLocationOrder(var ProductionOrder: Record "Production Order"; OrderStatus: Enum "Production Order Status"; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal)
+    begin
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, OrderStatus, ProductionOrder."Source Type"::Item, ItemNo, Quantity);
+        ProductionOrder.Validate("Location Code", LocationCode);
+        ProductionOrder.Modify(true);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+    end;
+
+    procedure CreateDefaultLocationSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal)
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Manufacturing Setup", ManufacturingSetup.FieldNo("Released Order Nos."));
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        SalesHeader.Validate("Location Code", '');
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, Quantity);
+        SalesLine.Validate("Location Code", LocationCode);
+        SalesLine.Modify(true);
+    end;
+
+    procedure CreateDefaultLocationSalesOrder(var SalesLine: Record "Sales Line")
+    var
+        CreateProdOrderFromSale: Codeunit "Create Prod. Order from Sale";
+    begin
+        CreateProdOrderFromSale.SetHideValidationDialog(true);
+        CreateProdOrderFromSale.CreateProductionOrder(
+            SalesLine, Enum::"Production Order Status"::Released, Enum::"Create Production Order Type"::ItemOrder);
+    end;
+
+    procedure FindDefaultLocationOrder(var ProductionOrder: Record "Production Order"; SourceNo: Code[20])
+    begin
+        ProductionOrder.Reset();
+        ProductionOrder.SetRange(Status, ProductionOrder.Status::Released);
+        ProductionOrder.SetRange("Source No.", SourceNo);
+        Assert.RecordCount(ProductionOrder, 1);
+        ProductionOrder.FindFirst();
+    end;
+
+    procedure AssertDefaultLocationRelations(ProductionOrder: Record "Production Order"; ItemNo: Code[20]; HeaderLocationCode: Code[10]; ComponentLocationCode: Code[10]; Quantity: Decimal)
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+        ProductionOrder.TestField("Location Code", HeaderLocationCode);
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.SetRange("Item No.", ItemNo);
+        Assert.RecordCount(ProdOrderLine, 1);
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.TestField("Location Code", HeaderLocationCode);
+        ProdOrderLine.TestField(Quantity, Quantity);
+        ProdOrderLine.TestField("Quantity (Base)", Quantity);
+        ProdOrderComponent.SetRange(Status, ProdOrderLine.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
+        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+        Assert.RecordCount(ProdOrderComponent, 1);
+        ProdOrderComponent.FindFirst();
+        ProdOrderComponent.TestField("Location Code", ComponentLocationCode);
+        ProdOrderComponent.TestField("Expected Quantity", Quantity);
+    end;
+
+    procedure AssertDefaultLocationReservation(SalesLine: Record "Sales Line"; ProductionOrder: Record "Production Order"; Quantity: Decimal)
+    var
+        ReservationEntry: Record "Reservation Entry";
+        SupplyEntry: Record "Reservation Entry";
+        ProdOrderLine: Record "Prod. Order Line";
+    begin
+        ReservationEntry.SetRange("Source Type", Database::"Sales Line");
+        ReservationEntry.SetRange("Source Subtype", SalesLine."Document Type".AsInteger());
+        ReservationEntry.SetRange("Source ID", SalesLine."Document No.");
+        ReservationEntry.SetRange("Source Ref. No.", SalesLine."Line No.");
+        ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Reservation);
+        Assert.RecordCount(ReservationEntry, 1);
+        ReservationEntry.FindFirst();
+        ReservationEntry.TestField("Location Code", SalesLine."Location Code");
+        ReservationEntry.TestField("Quantity (Base)", -Quantity);
+        SupplyEntry.Get(ReservationEntry."Entry No.", true);
+        SupplyEntry.TestField("Source Type", Database::"Prod. Order Line");
+        SupplyEntry.TestField("Source Subtype", ProductionOrder.Status.AsInteger());
+        SupplyEntry.TestField("Source ID", ProductionOrder."No.");
+        ProdOrderLine.Get(ProductionOrder.Status, ProductionOrder."No.", SupplyEntry."Source Prod. Order Line");
+        ProdOrderLine.TestField("Item No.", SalesLine."No.");
+        SupplyEntry.TestField("Source Ref. No.", 0);
+        SupplyEntry.TestField("Location Code", SalesLine."Location Code");
+        SupplyEntry.TestField("Quantity (Base)", Quantity);
+    end;
+
+    procedure PostDefaultLocationStock(ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ItemNo, LocationCode, '', Quantity);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    procedure PostDefaultLocationOutput(ProductionOrder: Record "Production Order"; ItemNo: Code[20]; Quantity: Decimal)
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        OutputBatch: Record "Item Journal Batch";
+    begin
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.SetRange("Item No.", ItemNo);
+        Assert.RecordCount(ProdOrderLine, 1);
+        ProdOrderLine.FindFirst();
+        LibraryManufacturing.CreateOutputJournalLine(OutputBatch, ProdOrderLine, WorkDate(), Quantity, 0);
+        LibraryInventory.PostItemJournalLine(OutputBatch."Journal Template Name", OutputBatch.Name);
+        ProdOrderLine.Get(ProdOrderLine.Status, ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No.");
+        ProdOrderLine.TestField("Finished Quantity", Quantity);
+    end;
+
+    procedure AssertDefaultLocationLedger(ItemNo: Code[20]; OrderNo: Code[20]; LocationCode: Code[10]; EntryType: Enum "Item Ledger Entry Type"; Quantity: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", OrderNo);
+        ItemLedgerEntry.SetRange("Entry Type", EntryType);
+        Assert.IsFalse(ItemLedgerEntry.IsEmpty(), 'The real production posting must create ledger entries.');
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(Quantity, ItemLedgerEntry.Quantity, 'The posted production quantity must be preserved.');
+        ItemLedgerEntry.SetRange("Location Code", LocationCode);
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(Quantity, ItemLedgerEntry.Quantity, 'All posted quantity must remain at its persisted location.');
+        ItemLedgerEntry.SetFilter("Location Code", '<>%1', LocationCode);
+        Assert.IsTrue(ItemLedgerEntry.IsEmpty(), 'No production entry may be relocated to the setup default.');
+    end;
+
+    local procedure TransferDefaultLocationOrder(var ProductionOrder: Record "Production Order"; NewStatus: Enum "Production Order Status"; ItemNo: Code[20]; LocationCode: Code[10]; DefaultCode: Code[10])
+    var
+        OldOrder: Record "Production Order";
+        ManufacturingSetup: Record "Manufacturing Setup";
+        Observer: Codeunit "SCM Production Orders";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        OldOrder := ProductionOrder;
+        ManufacturingSetup.Get();
+        case NewStatus of
+            NewStatus::Planned:
+                ManufacturingSetup.Validate("Planned Order Nos.", LibraryERM.CreateNoSeriesCode());
+            NewStatus::"Firm Planned":
+                ManufacturingSetup.Validate("Firm Planned Order Nos.", LibraryERM.CreateNoSeriesCode());
+            NewStatus::Released:
+                ManufacturingSetup.Validate("Released Order Nos.", LibraryERM.CreateNoSeriesCode());
+        end;
+        ManufacturingSetup.Modify(true);
+        Observer.StartDefaultLocationCapture(DefaultCode, LocationCode);
+        BindSubscription(Observer);
+        LibraryManufacturing.ChangeProdOrderStatus(ProductionOrder, NewStatus, WorkDate(), false);
+        UnbindSubscription(Observer);
+        Observer.AssertDefaultLocationCapture();
+        Assert.IsFalse(OldOrder.Get(OldOrder.Status, OldOrder."No."), 'The old status header must be removed.');
+        ProductionOrder.Reset();
+        ProductionOrder.SetRange(Status, NewStatus);
+        ProductionOrder.SetRange("Source No.", ItemNo);
+        Assert.RecordCount(ProductionOrder, 1);
+        ProductionOrder.FindFirst();
+        AssertDefaultLocationRelations(ProductionOrder, ItemNo, LocationCode, LocationCode, 2);
     end;
 
     local procedure Initialize()

@@ -1594,6 +1594,94 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
     end;
 
 
+    [Test]
+    [HandlerFunctions('HandleWizardSimpleFinish')]
+    procedure DefaultLocationSalesSource()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        DefaultLocation: Record Location;
+        SalesLine: Record "Sales Line";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        TempProductionOrder: Record "Production Order" temporary;
+        TempProdOrderLine: Record "Prod. Order Line" temporary;
+        ProdDefManager: Codeunit "Production Definition Manager";
+        TempData: Codeunit "Prod. Definition Temp Data";
+        Observer: Codeunit "SCM Production Orders";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        BOMNo: Code[20];
+        RoutingNo: Code[20];
+        WorkCenterNo: Code[20];
+        SecondWorkCenterNo: Code[20];
+        SourceCode: Code[10];
+        Iteration: Integer;
+    begin
+        Initialize();
+        LibrarySetupStorage.SaveInventorySetup();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DefaultLocation);
+        Observer.ConfigureDefaultLocation(DefaultLocation.Code, '');
+        for Iteration := 1 to 2 do begin
+            WizardFinished := false;
+            SourceCode := '';
+            if Iteration = 1 then
+                SourceCode := ProdDefWizLibrary.CreateLocationCode();
+            BOMNo := ProdDefWizLibrary.CreateBOM(2);
+            RoutingNo := ProdDefWizLibrary.CreateRoutingWithTwoLines(WorkCenterNo, SecondWorkCenterNo);
+            Item.Get(ProdDefWizLibrary.CreateItemWithBOMAndRouting(BOMNo, RoutingNo));
+            LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+            ProdDefWizLibrary.CreateSalesLine(SalesLine, Item."No.", 5, SourceCode, ItemVariant.Code, WorkDate());
+            ProdDefWizSetupLib.ConfigureForBothAvailable(
+                "Prod. Definition Display"::Edit, "Prod. Definition Display"::Edit);
+            Observer.StartDefaultLocationCapture(DefaultLocation.Code, '');
+            BindSubscription(Observer);
+            Commit();
+            ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder, ProductionOrder.Status::Released);
+            UnbindSubscription(Observer);
+            Observer.AssertDefaultLocationCapture();
+            Assert.IsTrue(WizardFinished, 'The native wizard must finish.');
+            ProdDefManager.GetTempData(TempData);
+            TempData.GetGlobalProdOrder(TempProductionOrder);
+            TempData.GetGlobalProdOrderLine(TempProdOrderLine);
+            Assert.IsTrue(TempProductionOrder.FindFirst(), 'The wizard must retain its source header.');
+            Assert.IsTrue(TempProdOrderLine.FindFirst(), 'The wizard must retain its source output line.');
+            TempProductionOrder.TestField("Location Code", SourceCode);
+            TempProdOrderLine.TestField("Location Code", SourceCode);
+            TempProdOrderLine.TestField(Quantity, 5);
+            Observer.FindDefaultLocationOrder(ProductionOrder, Item."No.");
+            ProductionOrder.TestField("Location Code", SourceCode);
+            ProductionOrder.TestField(Quantity, 5);
+            ProdOrderLine.Reset();
+            ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+            ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+            Assert.RecordCount(ProdOrderLine, 1);
+            ProdOrderLine.FindFirst();
+            ProdOrderLine.TestField("Item No.", Item."No.");
+            ProdOrderLine.TestField("Variant Code", ItemVariant.Code);
+            ProdOrderLine.TestField("Location Code", SourceCode);
+            ProdOrderLine.TestField(Quantity, 5);
+            ProdOrderComponent.Reset();
+            ProdOrderComponent.SetRange(Status, ProdOrderLine.Status);
+            ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
+            ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+            Assert.RecordCount(ProdOrderComponent, 2);
+            ProdOrderComponent.FindSet();
+            repeat
+                ProdOrderComponent.TestField("Location Code", SourceCode);
+            until ProdOrderComponent.Next() = 0;
+            ProdOrderRoutingLine.Reset();
+            ProdOrderRoutingLine.SetRange(Status, ProdOrderLine.Status);
+            ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
+            ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
+            Assert.RecordCount(ProdOrderRoutingLine, 2);
+            Observer.AssertDefaultLocationReservation(SalesLine, ProductionOrder, 5);
+        end;
+        LibrarySetupStorage.Restore();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Prod. Def. Wiz. Sales Test");

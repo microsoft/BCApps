@@ -161,7 +161,7 @@ codeunit 99000818 "Mfg. Carry Out Action"
             if ProductionOrder."No. Series" = RequisitionLine."No. Series" then
                 ProductionOrder."No." := RequisitionLine."Ref. Order No.";
             OnInsertProdOrderOnBeforeProdOrderInsert(ProductionOrder, RequisitionLine);
-            ProductionOrder.Insert(true);
+            ProductionOrder.InsertWithLocationCodePreserved();
             OnInsertProdOrderOnAfterProdOrderInsert(ProductionOrder, RequisitionLine);
             ProductionOrder."Source Type" := ProductionOrder."Source Type"::Item;
             ProductionOrder."Source No." := RequisitionLine."No.";

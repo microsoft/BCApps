@@ -45,7 +45,7 @@ codeunit 99001018 "Prod. Order Direct Creator"
         Clear(ProdOrder);
         ProdOrder.Init();
         ProdOrder.Validate(Status, TempProdOrder.Status);
-        ProdOrder.Insert(true);
+        ProdOrder.InsertWithLocationCodePreserved();
         ProdOrderCompRoutingCreated := false;
 
         ProdOrder."Due Date" := TempProdOrder."Due Date";

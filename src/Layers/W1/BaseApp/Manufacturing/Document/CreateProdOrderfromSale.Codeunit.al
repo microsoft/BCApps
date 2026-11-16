@@ -46,7 +46,7 @@ codeunit 99000792 "Create Prod. Order from Sale"
         ProdOrder.Status := ProdOrderStatus;
         ProdOrder."No." := '';
         OnCreateProdOrderOnBeforeProdOrderInsert(ProdOrder, SalesLine);
-        ProdOrder.Insert(true);
+        ProdOrder.InsertWithLocationCodePreserved();
         OnCreateProdOrderOnAfterProdOrderInsert(ProdOrder, SalesLine);
 
         ProdOrder."Starting Date" := WorkDate();

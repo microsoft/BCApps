@@ -3482,6 +3482,47 @@ codeunit 137080 "SCM Planning And Manufacturing"
         ManufacturingSetup.Modify(true);
     end;
 
+    [Test]
+    procedure DefaultLocationPlanningSource()
+    var
+        Item: Record Item;
+        Component: Record Item;
+        DefaultLocation: Record Location;
+        SourceLocation: Record Location;
+        RequisitionLine: Record "Requisition Line";
+        ProductionOrder: Record "Production Order";
+        Observer: Codeunit "SCM Production Orders";
+        SourceCode: Code[10];
+        Iteration: Integer;
+        Direction: Option Forward,Backward;
+    begin
+        Initialize();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DefaultLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SourceLocation);
+        Observer.ConfigureDefaultLocation(DefaultLocation.Code, '');
+        for Iteration := 1 to 2 do begin
+            SourceCode := '';
+            if Iteration = 1 then
+                SourceCode := SourceLocation.Code;
+            Observer.CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Forward);
+            Observer.PostDefaultLocationStock(Component."No.", SourceCode, 1);
+            CreateRequisitionLine(RequisitionLine, Item."No.", 1);
+            RequisitionLine.Validate("Location Code", SourceCode);
+            RequisitionLine.Modify(true);
+            LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Forward, false, true);
+            Observer.StartDefaultLocationCapture(DefaultLocation.Code, '');
+            BindSubscription(Observer);
+            CreateProdOrdersFromPlanWorksheet(RequisitionLine, Enum::"Planning Create Prod. Order"::Released);
+            UnbindSubscription(Observer);
+            Observer.AssertDefaultLocationCapture();
+            Observer.FindDefaultLocationOrder(ProductionOrder, Item."No.");
+            ProductionOrder.TestField(Quantity, 1);
+            Observer.AssertDefaultLocationRelations(ProductionOrder, Item."No.", SourceCode, SourceCode, 1);
+            Observer.AssertDefaultLocationLedger(Component."No.", ProductionOrder."No.", SourceCode, Enum::"Item Ledger Entry Type"::Consumption, -1);
+        end;
+        LibrarySetupStorage.Restore();
+    end;
+
     local procedure Initialize()
     var
         PlanningErrorLog: Record "Planning Error Log";
