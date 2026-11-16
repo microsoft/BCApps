@@ -28,6 +28,8 @@ codeunit 137353 "SCM Inventory Valuation - WIP"
         RevaluationNotPostedErr: Label 'A revaluation must be posted for the reversed consumption entry.';
         ProdOrderRowNotFoundErr: Label 'The production order must be shown in the report.';
         RemainingWIPExpectedErr: Label 'The consumption that was not reversed must leave WIP on the production order.';
+        UninvoicedOutputExpectedErr: Label 'The output must have expected cost that is not yet invoiced.';
+        RevaluationNotPostedToGLErr: Label 'The revaluation of the reversed consumption entry must be posted to G/L.';
 
     [Test]
     [HandlerFunctions('ConfirmHandler,InventoryValuationWIPRequestPageHandler')]
@@ -419,6 +421,64 @@ codeunit 137353 "SCM Inventory Valuation - WIP"
         VerifyWIPBalancesOnInventoryValuationWIPReport(ProductionOrder."No.", ExpectedWIP, 0, ExpectedWIP);
     end;
 
+    [Test]
+    [HandlerFunctions('InventoryValuationWIPRequestPageHandler')]
+    procedure CostPostedToGLExcludesRevaluationOfReversedConsumptionWithUninvoicedOutput()
+    var
+        ParentItem: Record Item;
+        ChildItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ValueEntry: Record "Value Entry";
+        RevalDate: Date;
+        EndDate: Date;
+        ExpectedCostPostedToGL: Decimal;
+        ReversedQty: Integer;
+        KeptQty: Integer;
+    begin
+        // [FEATURE] [Revaluation] [Cost Posted to G/L]
+        // [SCENARIO 658991] With uninvoiced output on the order, "Cost Posted to G/L" must exclude the posted revaluation of a reversed consumption entry, because it is posted to Inventory Adjmt., not WIP.
+        Initialize();
+        LibraryInventory.SetAutomaticCostPosting(true);
+        ReversedQty := LibraryRandom.RandInt(10);
+        KeptQty := LibraryRandom.RandInt(10);
+        RevalDate := WorkDate() + LibraryRandom.RandInt(5);
+        EndDate := RevalDate + LibraryRandom.RandIntInRange(10, 30);
+
+        // [GIVEN] Component "C" purchased and invoiced, and a released production order "PO" for an item that uses "C".
+        SetupInventoryForReportWithoutPurchOrder(
+          ParentItem, ChildItem, ProductionOrder, ProdOrderLine, ParentItem."Costing Method"::FIFO,
+          ChildItem."Costing Method"::FIFO, true, ReversedQty + KeptQty, 1, WorkDate());
+
+        // [GIVEN] Two consumptions of "C" posted from "PO", and only the first one is reversed.
+        PostAndReverseConsumption(ProductionOrder, ProdOrderLine, ChildItem, ReversedQty, KeptQty, WorkDate());
+
+        // [GIVEN] Output posted from "PO" and not invoiced, so its cost is still expected.
+        LibraryManufacturing.POSTOutput(
+          ProdOrderLine, LibraryRandom.RandInt(ReversedQty + KeptQty), WorkDate(), LibraryRandom.RandDecInRange(10, 100, 2));
+        ValueEntry.SetRange("Order Type", ValueEntry."Order Type"::Production);
+        ValueEntry.SetRange("Order No.", ProductionOrder."No.");
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Output);
+        ValueEntry.CalcSums("Cost Amount (Expected)");
+        Assert.AreNotEqual(0, ValueEntry."Cost Amount (Expected)", UninvoicedOutputExpectedErr);
+
+        // [GIVEN] The reversed (positive) consumption entry of "C" is revalued on "RevalDate", and the revaluation is posted to G/L.
+        RevalueReversedConsumption(ProductionOrder."No.", ChildItem, RevalDate);
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Consumption);
+        ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::Revaluation);
+        ValueEntry.CalcSums("Cost Posted to G/L");
+        Assert.AreNotEqual(0, ValueEntry."Cost Posted to G/L", RevaluationNotPostedToGLErr);
+
+        // [GIVEN] The cost posted to the WIP account for "PO" excludes the revaluation.
+        ExpectedCostPostedToGL := GetWIPCostPostedToGLWithoutRevaluation(ProductionOrder."No.");
+
+        // [WHEN] The report is run for a period that includes all entries.
+        RunInventoryValuationWIPReport(ProductionOrder."No.", WorkDate(), EndDate);
+
+        // [THEN] "Cost Posted to G/L" equals the cost posted to the WIP account, without the revaluation.
+        VerifyCostPostedToGLOnInventoryValuationWIPReport(ProductionOrder."No.", ExpectedCostPostedToGL);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -442,6 +502,7 @@ codeunit 137353 "SCM Inventory Valuation - WIP"
         isInitialized := true;
         Commit();
         LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
+        LibrarySetupStorage.Save(DATABASE::"Inventory Setup");
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Inventory Valuation - WIP");
     end;
 
@@ -761,6 +822,35 @@ codeunit 137353 "SCM Inventory Valuation - WIP"
         ValueEntry.SetFilter("Entry Type", '<>%1', ValueEntry."Entry Type"::Revaluation);
         ValueEntry.CalcSums("Cost Amount (Actual)");
         exit(-ValueEntry."Cost Amount (Actual)");
+    end;
+
+    local procedure GetWIPCostPostedToGLWithoutRevaluation(ProductionOrderNo: Code[20]): Decimal
+    var
+        ValueEntry: Record "Value Entry";
+        ConsumptionPostedToGL: Decimal;
+        OutputPostedToGL: Decimal;
+    begin
+        ValueEntry.SetRange("Order Type", ValueEntry."Order Type"::Production);
+        ValueEntry.SetRange("Order No.", ProductionOrderNo);
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Consumption);
+        ValueEntry.SetFilter("Entry Type", '<>%1', ValueEntry."Entry Type"::Revaluation);
+        ValueEntry.CalcSums("Cost Posted to G/L", "Expected Cost Posted to G/L");
+        ConsumptionPostedToGL := ValueEntry."Cost Posted to G/L" + ValueEntry."Expected Cost Posted to G/L";
+
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Output);
+        ValueEntry.SetRange("Entry Type");
+        ValueEntry.CalcSums("Cost Posted to G/L", "Expected Cost Posted to G/L");
+        OutputPostedToGL := ValueEntry."Cost Posted to G/L" + ValueEntry."Expected Cost Posted to G/L";
+
+        exit(-(ConsumptionPostedToGL + OutputPostedToGL));
+    end;
+
+    local procedure VerifyCostPostedToGLOnInventoryValuationWIPReport(ProductionOrderNo: Code[20]; ExpectedCostPostedToGL: Decimal)
+    begin
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('No_ProductionOrder', ProductionOrderNo);
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), ProdOrderRowNotFoundErr);
+        LibraryReportDataset.AssertCurrentRowValueEquals('ValueEntryCostPostedtoGL', ExpectedCostPostedToGL);
     end;
 
     [RequestPageHandler]
