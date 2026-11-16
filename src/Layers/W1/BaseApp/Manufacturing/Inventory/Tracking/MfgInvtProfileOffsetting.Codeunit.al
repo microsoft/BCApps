@@ -436,36 +436,6 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", 'OnBeforeMatchAttributes', '', true, false)]
-    local procedure CheckDemandAndSupplyQuantityAreEqual(var SupplyInvtProfile: Record "Inventory Profile"; var DemandInvtProfile: Record "Inventory Profile"; var SkipMatchingAttributes: Boolean)
-    var
-        TotalDemandQty: Decimal;
-        TotalSupplyQty: Decimal;
-    begin
-        if (SupplyInvtProfile."Source Type" <> 5406) or // Database::"Prod. Order Line"
-           (DemandInvtProfile."Source Type" <> 5407) // Database::"Prod. Order Component"
-        then begin
-            SkipMatchingAttributes := false;
-            exit;
-        end;
-
-        DemandInvtProfile.ReadIsolation(IsolationLevel::ReadUncommitted);
-        DemandInvtProfile.CalcSums(Quantity);
-        TotalDemandQty := DemandInvtProfile.Quantity;
-
-        if (TotalDemandQty <= 0) then begin
-            SkipMatchingAttributes := false;
-            exit;
-        end;
-
-        SupplyInvtProfile.ReadIsolation(IsolationLevel::ReadUncommitted);
-        SupplyInvtProfile.CalcSums(Quantity);
-        TotalSupplyQty := SupplyInvtProfile.Quantity;
-
-        if TotalSupplyQty = TotalDemandQty then
-            SkipMatchingAttributes := true;
-    end;
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTransProdOrderToProfile(var InventoryProfile: Record "Inventory Profile"; var Item: Record Item; ToDate: Date; var IsHandled: Boolean)
     begin
