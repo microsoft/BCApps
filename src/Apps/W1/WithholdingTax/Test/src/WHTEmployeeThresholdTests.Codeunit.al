@@ -301,7 +301,7 @@ codeunit 148323 "WHT Employee Threshold Tests"
 
         // [THEN] Each entry stores 1,500 and the period accumulates 3,000 instead of twice the report net total.
         WithholdingTaxEntry.SetRange("Employee No.", EmployeeNo);
-        WithholdingTaxEntry.SetRange("Threshold Accum. Base Amt.", 1500);
+        WithholdingTaxEntry.SetRange("Threshold Accum. Base Amount", 1500);
         Assert.RecordCount(WithholdingTaxEntry, 2);
         VerifyAccumulatedBase(EmployeeNo, 3000);
     end;
@@ -399,7 +399,7 @@ codeunit 148323 "WHT Employee Threshold Tests"
             WithholdingTaxEntry.FindFirst();
             Assert.AreEqual(-ExpectedWHTAmount, WithholdingTaxEntry.Amount, StrSubstNo(WrongValueErr, WithholdingTaxEntry.FieldCaption(Amount)));
             Assert.AreEqual(ExpectedWHTBase, WithholdingTaxEntry.Base, StrSubstNo(WrongValueErr, WithholdingTaxEntry.FieldCaption(Base)));
-            Assert.AreEqual(EmployeeAmount, WithholdingTaxEntry."Threshold Accum. Base Amt.", StrSubstNo(WrongValueErr, WithholdingTaxEntry.FieldCaption("Threshold Accum. Base Amt.")));
+            Assert.AreEqual(EmployeeAmount, WithholdingTaxEntry."Threshold Accum. Base Amount", StrSubstNo(WrongValueErr, WithholdingTaxEntry.FieldCaption("Threshold Accum. Base Amount")));
         end;
 
         VerifyGLAmount(GLAccountNo, DocumentNo, -(EmployeeAmount - ExpectedWHTAmount));
