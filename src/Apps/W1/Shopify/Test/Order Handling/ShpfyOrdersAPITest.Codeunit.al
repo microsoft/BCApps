@@ -1768,60 +1768,24 @@ codeunit 139608 "Shpfy Orders API Test"
 
     [Test]
     [HandlerFunctions('ExchangeImportHttpHandler')]
-    procedure TestUnverifiedReturnGiftCardCreatesReleasedInvoice()
+    procedure TestUnverifiedReturnGiftCardIsNotExchangeItem()
     var
-        OrderHeader: Record "Shpfy Order Header";
         OrderLine: Record "Shpfy Order Line";
         OrdersToImport: Record "Shpfy Orders to Import";
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        ProcessOrders: Codeunit "Shpfy Process Orders";
         ImportResponses: List of [Text];
     begin
         // [SCENARIO] An unverified POS return is refunded to a gift card that Shopify adds as an exchange line, with no refund to offset it.
         Initialize();
+
+        // [GIVEN] A fulfilled order whose only line is the gift card issued by an unverified return
         ImportResponses := CreateGiftCardExchangeOrder(OrdersToImport, 'UnverifiedReturnLineItem');
 
         // [WHEN] The order is imported
         ImportOrderWithResponses(OrdersToImport, ImportResponses);
 
         // [THEN] The gift card is not an exchange item
-        OrderLine.SetRange("Shopify Order Id", OrdersToImport.Id);
-        OrderLine.FindFirst();
+        GetGiftCardOrderLine(OrdersToImport.Id, OrderLine);
         LibraryAssert.IsFalse(OrderLine."Is Exchange Item", 'An unverified-return gift card must stay on the sales invoice.');
-
-        // [WHEN] An order flagged by an earlier import is imported again
-        OrderLine."Is Exchange Item" := true;
-        OrderLine.Modify();
-        ImportOrderWithResponses(OrdersToImport, ImportResponses);
-
-        // [THEN] The stale flag is cleared
-        OrderLine.Get(OrderLine."Shopify Order Id", OrderLine."Line Id");
-        LibraryAssert.IsFalse(OrderLine."Is Exchange Item", 'Reimport must clear the stale exchange flag.');
-
-        // [WHEN] The order is processed
-        OrderHeader.Get(OrdersToImport.Id);
-        Commit();
-        ProcessOrders.ProcessShopifyOrder(OrderHeader);
-
-        // [THEN] A released invoice with the gift card line is created
-        OrderHeader.Get(OrdersToImport.Id);
-        LibraryAssert.IsFalse(OrderHeader."Has Error", OrderHeader."Error Message");
-        SalesHeader.Get(SalesHeader."Document Type"::Invoice, OrderHeader."Sales Invoice No.");
-        LibraryAssert.AreEqual(SalesHeader.Status::Released, SalesHeader.Status, 'The gift-card invoice must be released.');
-        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
-        SalesLine.SetRange("Document No.", SalesHeader."No.");
-        LibraryAssert.AreEqual(1, SalesLine.Count(), 'The invoice must contain only the gift-card line.');
-        SalesLine.FindFirst();
-        LibraryAssert.AreEqual(SalesLine.Type::"G/L Account", SalesLine.Type, 'The gift card must be invoiced on a G/L account.');
-        LibraryAssert.AreEqual(Shop."Sold Gift Card Account", SalesLine."No.", 'The gift card must use the sold gift-card account.');
-
-        // [WHEN] The processed order is imported again
-        ImportOrderWithResponses(OrdersToImport, ImportResponses);
-
-        // [THEN] The invoiced gift card is not reported as an order edit
-        OrderHeader.Get(OrdersToImport.Id);
-        LibraryAssert.IsFalse(OrderHeader."Has Order State Error", 'Reimporting the invoiced gift card must not flag an order edit.');
     end;
 
     [Test]
@@ -1834,31 +1798,149 @@ codeunit 139608 "Shpfy Orders API Test"
     begin
         // [SCENARIO] A gift card exchanged on a verified return is offset on the credit memo, so it stays off the sales invoice.
         Initialize();
+
+        // [GIVEN] A fulfilled order whose only line is a gift card exchanged on a verified return
         ImportResponses := CreateGiftCardExchangeOrder(OrdersToImport, 'ReturnLineItem');
 
         // [WHEN] The order is imported
         ImportOrderWithResponses(OrdersToImport, ImportResponses);
 
         // [THEN] The gift card remains an exchange item
-        OrderLine.SetRange("Shopify Order Id", OrdersToImport.Id);
-        OrderLine.FindFirst();
+        GetGiftCardOrderLine(OrdersToImport.Id, OrderLine);
         LibraryAssert.IsTrue(OrderLine."Is Exchange Item", 'A gift card on a verified return must remain an exchange item.');
     end;
 
     [Test]
     [HandlerFunctions('ExchangeImportHttpHandler')]
+    procedure TestReimportClearsStaleExchangeFlagOnUnverifiedReturnGiftCard()
+    var
+        OrderLine: Record "Shpfy Order Line";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        ImportResponses: List of [Text];
+    begin
+        // [SCENARIO] Orders imported before the fix have the unverified-return gift card flagged as an exchange item.
+        Initialize();
+
+        // [GIVEN] An imported unverified-return gift card order whose gift card line is flagged as an exchange item
+        ImportResponses := CreateGiftCardExchangeOrder(OrdersToImport, 'UnverifiedReturnLineItem');
+        ImportOrderWithResponses(OrdersToImport, ImportResponses);
+        GetGiftCardOrderLine(OrdersToImport.Id, OrderLine);
+        OrderLine."Is Exchange Item" := true;
+        OrderLine.Modify();
+
+        // [WHEN] The order is imported again
+        ImportOrderWithResponses(OrdersToImport, ImportResponses);
+
+        // [THEN] The exchange flag is cleared
+        OrderLine.Get(OrderLine."Shopify Order Id", OrderLine."Line Id");
+        LibraryAssert.IsFalse(OrderLine."Is Exchange Item", 'Reimport must clear the stale exchange flag.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeImportHttpHandler')]
+    procedure TestUnverifiedReturnGiftCardCreatesReleasedInvoice()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ImportResponses: List of [Text];
+    begin
+        // [SCENARIO] An unverified-return gift card order is invoiced with the gift card, so the invoice can be released.
+        Initialize();
+
+        // [GIVEN] An imported unverified-return gift card order
+        ImportResponses := CreateGiftCardExchangeOrder(OrdersToImport, 'UnverifiedReturnLineItem');
+        ImportOrderWithResponses(OrdersToImport, ImportResponses);
+
+        // [WHEN] The order is processed
+        ProcessImportedOrder(OrdersToImport.Id);
+
+        // [THEN] A released invoice with only the gift card line on the sold gift card account is created
+        OrderHeader.Get(OrdersToImport.Id);
+        LibraryAssert.IsFalse(OrderHeader."Has Error", OrderHeader."Error Message");
+        SalesHeader.Get(SalesHeader."Document Type"::Invoice, OrderHeader."Sales Invoice No.");
+        LibraryAssert.AreEqual(SalesHeader.Status::Released, SalesHeader.Status, 'The gift-card invoice must be released.');
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        LibraryAssert.AreEqual(1, SalesLine.Count(), 'The invoice must contain only the gift-card line.');
+        SalesLine.FindFirst();
+        LibraryAssert.AreEqual(SalesLine.Type::"G/L Account", SalesLine.Type, 'The gift card must be invoiced on a G/L account.');
+        LibraryAssert.AreEqual(Shop."Sold Gift Card Account", SalesLine."No.", 'The gift card must use the sold gift-card account.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeImportHttpHandler')]
+    procedure TestReimportProcessedUnverifiedReturnGiftCardOrderIsNotConflicting()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        ImportResponses: List of [Text];
+    begin
+        // [SCENARIO] The invoiced gift card is still a Shopify exchange line, so reimporting the order must not count as an order edit.
+        Initialize();
+
+        // [GIVEN] An imported and processed unverified-return gift card order
+        ImportResponses := CreateGiftCardExchangeOrder(OrdersToImport, 'UnverifiedReturnLineItem');
+        ImportOrderWithResponses(OrdersToImport, ImportResponses);
+        ProcessImportedOrder(OrdersToImport.Id);
+
+        // [WHEN] The order is imported again
+        ImportOrderWithResponses(OrdersToImport, ImportResponses);
+
+        // [THEN] The processed order is not flagged as edited in Shopify
+        OrderHeader.Get(OrdersToImport.Id);
+        LibraryAssert.IsTrue(OrderHeader.Processed, OrderHeader."Error Message");
+        LibraryAssert.IsFalse(OrderHeader."Has Order State Error", 'Reimporting the invoiced gift card must not flag an order edit.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeImportHttpHandler')]
     procedure TestUnverifiedReturnGiftCardRemovesSyntheticRefundLine()
+    var
+        RefundHeader: Record "Shpfy Refund Header";
+        RefundLine: Record "Shpfy Refund Line";
+        GiftCardLineId: BigInteger;
+        ItemLineId: BigInteger;
     begin
         // [SCENARIO] Refund import must not offset a gift card that order import invoices for an unverified return.
-        VerifyGiftCardExchangeRefundImport("Shpfy Return Line Type"::Unverified, false);
+        Initialize();
+
+        // [GIVEN] A refund for an unverified return that exchanged a gift card and an item, with a gift-card refund line from an earlier import
+        CreateGiftCardExchangeRefund("Shpfy Return Line Type"::Unverified, RefundHeader, GiftCardLineId, ItemLineId);
+
+        // [WHEN] The refund is imported
+        ImportGiftCardExchangeRefund(RefundHeader, GiftCardLineId, ItemLineId);
+
+        // [THEN] The gift-card refund line is removed and the item keeps its negative exchange line
+        LibraryAssert.IsFalse(RefundLine.Get(RefundHeader."Refund Id", -GiftCardLineId), 'An unverified-return gift card must not have a synthetic exchange refund line.');
+        RefundLine.Get(RefundHeader."Refund Id", -ItemLineId);
+        LibraryAssert.AreEqual(-1, RefundLine.Quantity, 'The exchanged item must keep its negative exchange quantity.');
     end;
 
     [Test]
     [HandlerFunctions('ExchangeImportHttpHandler')]
     procedure TestVerifiedReturnGiftCardKeepsSyntheticRefundLine()
+    var
+        RefundHeader: Record "Shpfy Refund Header";
+        RefundLine: Record "Shpfy Refund Line";
+        GiftCardLineId: BigInteger;
+        ItemLineId: BigInteger;
     begin
         // [SCENARIO] Refund import still offsets a gift card exchanged on a verified return.
-        VerifyGiftCardExchangeRefundImport("Shpfy Return Line Type"::Default, true);
+        Initialize();
+
+        // [GIVEN] A refund for a verified return that exchanged a gift card and an item, with a gift-card refund line from an earlier import
+        CreateGiftCardExchangeRefund("Shpfy Return Line Type"::Default, RefundHeader, GiftCardLineId, ItemLineId);
+
+        // [WHEN] The refund is imported
+        ImportGiftCardExchangeRefund(RefundHeader, GiftCardLineId, ItemLineId);
+
+        // [THEN] Both the gift card and the item have negative exchange refund lines
+        RefundLine.Get(RefundHeader."Refund Id", -GiftCardLineId);
+        LibraryAssert.AreEqual(-1, RefundLine.Quantity, 'The verified-return gift card must keep its negative exchange quantity.');
+        RefundLine.Get(RefundHeader."Refund Id", -ItemLineId);
+        LibraryAssert.AreEqual(-1, RefundLine.Quantity, 'The exchanged item must keep its negative exchange quantity.');
     end;
 
     local procedure CreateGiftCardExchangeOrder(var OrdersToImport: Record "Shpfy Orders to Import"; ReturnLineType: Text) ImportResponses: List of [Text]
@@ -1879,6 +1961,8 @@ codeunit 139608 "Shpfy Orders API Test"
         ExchangeLineItemsResponseTok: Label '{"data":{"order":{"returns":{"nodes":[{"id":"gid://shopify/Return/%1","exchangeLineItems":{"nodes":[{"lineItems":[{"id":"%2"}]}]}}],"pageInfo":{"hasNextPage":false}}}}}', Locked = true, Comment = '%1 = Return Id, %2 = Gift card line item GID';
         ReturnResponseTok: Label '{"data":{"return":{"name":"R1","status":"CLOSED","totalQuantity":1,"order":{"legacyResourceId":%1},"reverseFulfillmentOrders":{"nodes":[],"pageInfo":{"hasNextPage":false}},"returnLineItems":{"nodes":[{"__typename":"%2","id":"gid://shopify/%2/%3","quantity":1}],"pageInfo":{"hasNextPage":false}}}}}', Locked = true, Comment = '%1 = Order Id, %2 = Return line type, %3 = Return line Id';
     begin
+        Any.SetDefaultSeed();
+        ReturnId := Any.IntegerInRange(100000, 999999);
         Shop.Get(Shop.Code);
         Shop."Return and Refund Process" := "Shpfy ReturnRefund ProcessType"::"Import Only";
         Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
@@ -1894,9 +1978,11 @@ codeunit 139608 "Shpfy Orders API Test"
 
         // A fulfilled, returned order whose only line is the gift card handed out as the exchange item.
         JOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JOrderLines, false);
+        // The sync report fills Shop Code in production.
+        OrdersToImport."Shop Code" := Shop.Code;
+        OrdersToImport.Modify();
         JOrder.Replace('displayFulfillmentStatus', 'FULFILLED');
         JOrder.Add('returnStatus', 'RETURNED');
-        ReturnId := Any.IntegerInRange(100000, 999999);
         JReturns.ReadFrom(StrSubstNo(OrderReturnsTok, ReturnId));
         JOrder.Add('returns', JReturns);
         JOrderLines.Get(0, JOrderLine);
@@ -1931,21 +2017,31 @@ codeunit 139608 "Shpfy Orders API Test"
         HttpResponses.AssertEmpty();
     end;
 
-    local procedure VerifyGiftCardExchangeRefundImport(ReturnLineType: Enum "Shpfy Return Line Type"; ExpectGiftCardRefundLine: Boolean)
+    local procedure GetGiftCardOrderLine(OrderId: BigInteger; var OrderLine: Record "Shpfy Order Line")
+    begin
+        OrderLine.SetRange("Shopify Order Id", OrderId);
+        OrderLine.SetRange("Gift Card", true);
+        OrderLine.FindFirst();
+    end;
+
+    local procedure ProcessImportedOrder(OrderId: BigInteger)
     var
-        RefundHeader: Record "Shpfy Refund Header";
+        OrderHeader: Record "Shpfy Order Header";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+    begin
+        OrderHeader.Get(OrderId);
+        Commit();
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+    end;
+
+    local procedure CreateGiftCardExchangeRefund(ReturnLineType: Enum "Shpfy Return Line Type"; var RefundHeader: Record "Shpfy Refund Header"; var GiftCardLineId: BigInteger; var ItemLineId: BigInteger)
+    var
         RefundLine: Record "Shpfy Refund Line";
         ReturnLine: Record "Shpfy Return Line";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
-        RefundsAPI: Codeunit "Shpfy Refunds API";
-        JRefund: JsonObject;
-        JRefunds: JsonArray;
-        EmptyResponseTok: Label '{"data":{}}', Locked = true;
-        ExchangeLinesResponseTok: Label '{"data":{"refund":{"return":{"exchangeLineItems":{"pageInfo":{"hasNextPage":false},"nodes":[{"quantity":1,"lineItems":[{"id":"gid://shopify/LineItem/201","isGiftCard":true,"originalUnitPriceSet":{"shopMoney":{"amount":100},"presentmentMoney":{"amount":100}}}]},{"quantity":1,"lineItems":[{"id":"gid://shopify/LineItem/202","isGiftCard":false,"originalUnitPriceSet":{"shopMoney":{"amount":100},"presentmentMoney":{"amount":100}}}]}]}}}}}', Locked = true;
     begin
-        // [GIVEN] A refund for a return that exchanged a gift card (line 201) and an item (line 202)
-        Initialize();
-        CommunicationMgt.SetShop(Shop);
+        Any.SetDefaultSeed();
+        GiftCardLineId := Any.IntegerInRange(100000, 999999);
+        ItemLineId := GiftCardLineId + 1;
         RefundHeader."Refund Id" := Any.IntegerInRange(100000, 999999);
         RefundHeader."Order Id" := Any.IntegerInRange(100000, 999999);
         RefundHeader."Return Id" := Any.IntegerInRange(100000, 999999);
@@ -1958,31 +2054,33 @@ codeunit 139608 "Shpfy Orders API Test"
         ReturnLine.Type := ReturnLineType;
         ReturnLine.Insert();
 
-        // [GIVEN] A synthetic gift-card refund line from an earlier import
         RefundLine."Refund Id" := RefundHeader."Refund Id";
-        RefundLine."Refund Line Id" := -201;
-        RefundLine."Order Line Id" := 201;
+        RefundLine."Refund Line Id" := -GiftCardLineId;
+        RefundLine."Order Line Id" := GiftCardLineId;
         RefundLine."Is Exchange Item" := true;
         RefundLine.Insert();
+    end;
 
-        // [WHEN] The refund is imported
+    local procedure ImportGiftCardExchangeRefund(RefundHeader: Record "Shpfy Refund Header"; GiftCardLineId: BigInteger; ItemLineId: BigInteger)
+    var
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        RefundsAPI: Codeunit "Shpfy Refunds API";
+        JRefund: JsonObject;
+        JRefunds: JsonArray;
+        EmptyResponseTok: Label '{"data":{}}', Locked = true;
+        ExchangeLinesResponseTok: Label '{"data":{"refund":{"return":{"exchangeLineItems":{"pageInfo":{"hasNextPage":false},"nodes":[{"quantity":1,"lineItems":[{"id":"gid://shopify/LineItem/%1","isGiftCard":true,"originalUnitPriceSet":{"shopMoney":{"amount":100},"presentmentMoney":{"amount":100}}}]},{"quantity":1,"lineItems":[{"id":"gid://shopify/LineItem/%2","isGiftCard":false,"originalUnitPriceSet":{"shopMoney":{"amount":100},"presentmentMoney":{"amount":100}}}]}]}}}}}', Locked = true, Comment = '%1 = Gift card line item Id, %2 = Item line item Id';
+    begin
+        CommunicationMgt.SetShop(Shop);
         // Return locations, refund lines and refund shipping lines.
         HttpResponses.Enqueue(EmptyResponseTok);
         HttpResponses.Enqueue(EmptyResponseTok);
         HttpResponses.Enqueue(EmptyResponseTok);
-        HttpResponses.Enqueue(ExchangeLinesResponseTok);
+        HttpResponses.Enqueue(StrSubstNo(ExchangeLinesResponseTok, GiftCardLineId, ItemLineId));
         JRefund.Add('legacyResourceId', RefundHeader."Refund Id");
         JRefund.Add('updatedAt', RefundHeader."Updated At");
         JRefunds.Add(JRefund);
         RefundsAPI.GetRefunds(JRefunds);
         HttpResponses.AssertEmpty();
-
-        // [THEN] Only a verified-return gift card keeps its synthetic refund line; the exchanged item always does
-        LibraryAssert.AreEqual(ExpectGiftCardRefundLine, RefundLine.Get(RefundHeader."Refund Id", -201), 'Only verified-return gift cards may have synthetic exchange-refund lines.');
-        if ExpectGiftCardRefundLine then
-            LibraryAssert.AreEqual(-1, RefundLine.Quantity, 'The verified-return gift card must keep its negative exchange quantity.');
-        RefundLine.Get(RefundHeader."Refund Id", -202);
-        LibraryAssert.AreEqual(-1, RefundLine.Quantity, 'The exchanged item must keep its negative exchange quantity.');
     end;
 
     [HttpClientHandler]
