@@ -11,6 +11,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
+using Microsoft.Sales.Setup;
 using System.TestLibraries.Utilities;
 
 codeunit 144022 "SEPA.02 DD Functional Test"
@@ -24,6 +25,9 @@ codeunit 144022 "SEPA.02 DD Functional Test"
 
     trigger OnRun()
     begin
+#if not CLEAN28
+        BindSubscription(this);
+#endif
     end;
 
     var
@@ -34,7 +38,7 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
-        LibraryXMLRead: Codeunit "Library - XML Read";
+        LibraryXMLReadOnServer: Codeunit "Library - XML Read OnServer";
         SEPA_PartnerType: Option ,Company,Person;
         UnexpectedEmptyNodeErr: Label 'Unexpected empty value for node <%1> of subtree <%2>.', Comment = '%1 = Node Name, %2 = Subtree Root Name';
         OneToManyNotAllowedErr: Label 'You cannot export a SEPA customer payment that is applied to multiple documents.';
@@ -71,6 +75,88 @@ codeunit 144022 "SEPA.02 DD Functional Test"
 
         // Verify.
         VerifyPaymentLines(PaymentHeader, Customer);
+    end;
+
+    [Test]
+    [HandlerFunctions('PaymentClassHandler,ConfirmHandler,SuggestCustPaymentsReqPageHandler')]
+    procedure ExportSuggestedInvoiceAndCreditMemo()
+    var
+        PaymentHeader: Record "Payment Header FR";
+        PaymentLine: Record "Payment Line FR";
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoCustLedgerEntry: Record "Cust. Ledger Entry";
+        Customer: Record Customer;
+        SuggestCustomerPayments: Report "Suggest Cust. Payments";
+        SEPAFilePath: Text;
+    begin
+        // [SCENARIO 644993] A credit memo does not create a separate SEPA direct debit transaction.
+        CreateCustomerWithInvoice(Customer, InvoiceCustLedgerEntry, SEPA_PartnerType::Person);
+        InvoiceCustLedgerEntry.CalcFields("Remaining Amount");
+        CreateCustomerLedgerEntry(
+            CreditMemoCustLedgerEntry, Customer."No.", InvoiceCustLedgerEntry."Direct Debit Mandate ID",
+            CreditMemoCustLedgerEntry."Document Type"::"Credit Memo", -InvoiceCustLedgerEntry."Remaining Amount" / 2);
+        CreatePaymentHeader(PaymentHeader, SEPA_PartnerType::Person);
+
+        SuggestCustomerPayments.SetGenPayLine(PaymentHeader);
+        Customer.SetRange("No.", Customer."No.");
+        SuggestCustomerPayments.SetTableView(Customer);
+        Commit();
+        SuggestCustomerPayments.RunModal();
+
+        PaymentLine.SetRange("No.", PaymentHeader."No.");
+        Assert.RecordCount(PaymentLine, 2);
+#pragma warning disable AA0210
+        PaymentLine.SetFilter("Credit Amount", '>0');
+#pragma warning restore AA0210
+        PaymentLine.FindFirst();
+        SEPAFilePath := ExportSEPAFile(PaymentHeader);
+        Commit();
+        LibraryXMLReadOnServer.Initialize(SEPAFilePath);
+
+        VerifyGroupHeader(PaymentLine);
+        VerifySEPAMandate(InvoiceCustLedgerEntry."Direct Debit Mandate ID", 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('PaymentClassHandler,ConfirmHandler,SuggestCustPaymentsSummarizedReqPageHandler')]
+    procedure ExportSuggestedInvoiceAndCreditMemoSummarized()
+    var
+        PaymentHeader: Record "Payment Header FR";
+        PaymentLine: Record "Payment Line FR";
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoCustLedgerEntry: Record "Cust. Ledger Entry";
+        Customer: Record Customer;
+        SuggestCustomerPayments: Report "Suggest Cust. Payments";
+        ExpectedAmount: Decimal;
+        SEPAFilePath: Text;
+    begin
+        // [SCENARIO 644993] A summarized invoice and credit memo are exported as their net direct debit amount.
+        CreateCustomerWithInvoice(Customer, InvoiceCustLedgerEntry, SEPA_PartnerType::Person);
+        InvoiceCustLedgerEntry.CalcFields("Remaining Amount");
+        CreateCustomerLedgerEntry(
+            CreditMemoCustLedgerEntry, Customer."No.", InvoiceCustLedgerEntry."Direct Debit Mandate ID",
+            CreditMemoCustLedgerEntry."Document Type"::"Credit Memo", -InvoiceCustLedgerEntry."Remaining Amount" / 2);
+        CreditMemoCustLedgerEntry.CalcFields("Remaining Amount");
+        ExpectedAmount := InvoiceCustLedgerEntry."Remaining Amount" + CreditMemoCustLedgerEntry."Remaining Amount";
+        CreatePaymentHeader(PaymentHeader, SEPA_PartnerType::Person);
+
+        SuggestCustomerPayments.SetGenPayLine(PaymentHeader);
+        Customer.SetRange("No.", Customer."No.");
+        SuggestCustomerPayments.SetTableView(Customer);
+        Commit();
+        SuggestCustomerPayments.RunModal();
+
+        PaymentLine.SetRange("No.", PaymentHeader."No.");
+        PaymentLine.FindFirst();
+        Assert.RecordCount(PaymentLine, 1);
+        PaymentLine.TestField("Credit Amount", ExpectedAmount);
+        PaymentLine.TestField("Direct Debit Mandate ID", InvoiceCustLedgerEntry."Direct Debit Mandate ID");
+        SEPAFilePath := ExportSEPAFile(PaymentHeader);
+        Commit();
+        LibraryXMLReadOnServer.Initialize(SEPAFilePath);
+
+        VerifyGroupHeader(PaymentLine);
+        VerifySEPAMandate(InvoiceCustLedgerEntry."Direct Debit Mandate ID", 1);
     end;
 
     [Test]
@@ -166,7 +252,7 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         // Exercise.
         SEPAFilePath := ExportSEPAFile(PaymentHeader);
         Commit();
-        LibraryXMLRead.Initialize(SEPAFilePath);
+        LibraryXMLReadOnServer.Initialize(SEPAFilePath);
 
         // Verify.
         VerifySEPADDXmlFile(PaymentHeader, PaymentLine, GetMessageToRecipient(CustLedgerEntry));
@@ -200,7 +286,7 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         // Exercise.
         SEPAFilePath := ExportSEPAFile(PaymentHeader);
         Commit();
-        LibraryXMLRead.Initialize(SEPAFilePath);
+        LibraryXMLReadOnServer.Initialize(SEPAFilePath);
 
         // Verify.
         VerifySEPADDXmlFile(PaymentHeader, PaymentLine, GetMessageToRecipient(CustLedgerEntry));
@@ -522,7 +608,7 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         // Exercise.
         SEPAFilePath := ExportSEPAFile(PaymentHeader);
         Commit();
-        LibraryXMLRead.Initialize(SEPAFilePath);
+        LibraryXMLReadOnServer.Initialize(SEPAFilePath);
 
         // Verify.
         VerifySEPADDXmlFile(PaymentHeader, PaymentLine, GetMessageToRecipient(CustLedgerEntry));
@@ -589,7 +675,7 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         // [GIVEN] Export SEPA file of second payment slip
         SEPAFilePath := ExportSEPAFile(PaymentHeader[2]);
         Commit();
-        LibraryXMLRead.Initialize(SEPAFilePath);
+        LibraryXMLReadOnServer.Initialize(SEPAFilePath);
 
         // [VERIFY] Verify file exported successfully
         VerifySEPADDXmlFile(PaymentHeader[2], PaymentLine[2], GetMessageToRecipient(CustLedgerEntry[2]));
@@ -710,6 +796,24 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         CustLedgerEntry.FindLast();
     end;
 
+    local procedure CreateCustomerLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; CustomerNo: Code[20]; SEPADirectDebitMandateID: Code[35]; DocumentType: Enum "Gen. Journal Document Type"; Amount: Decimal)
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+          DocumentType, GenJournalLine."Account Type"::Customer, CustomerNo, Amount);
+        GenJournalLine."Direct Debit Mandate ID" := SEPADirectDebitMandateID;
+        GenJournalLine."Payment Method Code" := '';
+        GenJournalLine.Modify();
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        CustLedgerEntry.SetRange("Customer No.", GenJournalLine."Account No.");
+        CustLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        CustLedgerEntry.FindLast();
+    end;
+
     local procedure CreateCustomerAddress(var Customer: Record Customer)
     begin
         Customer.Validate(Address, LibraryUtility.GenerateRandomCode(Customer.FieldNo(Address), DATABASE::Customer));
@@ -720,7 +824,14 @@ codeunit 144022 "SEPA.02 DD Functional Test"
     end;
 
     local procedure CreateDirectDebitMandate(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; CustomerNo: Code[20]; CustomerBankAccountCode: Code[20])
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
+        SalesReceivablesSetup.Get();
+        if SalesReceivablesSetup."Direct Debit Mandate Nos." = '' then
+            LibraryUtility.UpdateSetupNoSeriesCode(
+                Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Direct Debit Mandate Nos."));
+
         SEPADirectDebitMandate.Init();
         SEPADirectDebitMandate."Customer No." := CustomerNo;
         SEPADirectDebitMandate."Customer Bank Account Code" := CustomerBankAccountCode;
@@ -759,8 +870,8 @@ codeunit 144022 "SEPA.02 DD Functional Test"
 
     local procedure VerifyXmlFileDeclarationAndVersion()
     begin
-        LibraryXMLRead.VerifyXMLDeclaration('1.0', 'UTF-8', 'no');
-        LibraryXMLRead.VerifyAttributeValue('Document', 'xmlns', 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02');
+        LibraryXMLReadOnServer.VerifyXMLDeclaration('1.0', 'UTF-8', 'no');
+        LibraryXMLReadOnServer.VerifyAttributeValue('Document', 'xmlns', 'urn:iso:std:iso:20022:tech:xsd:pain.008.001.02');
     end;
 
     local procedure VerifyGroupHeader(PaymentLine: Record "Payment Line FR")
@@ -768,8 +879,8 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         // Mandatory/required elements
         VerifyNodeExistsAndNotEmpty('GrpHdr', 'MsgId');
         VerifyNodeExistsAndNotEmpty('GrpHdr', 'CreDtTm');
-        LibraryXMLRead.VerifyNodeValueInSubtree('GrpHdr', 'NbOfTxs', '1');
-        LibraryXMLRead.VerifyNodeValueInSubtree('GrpHdr', 'CtrlSum', Format(PaymentLine."Credit Amount", 0, 9));
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('GrpHdr', 'NbOfTxs', '1');
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('GrpHdr', 'CtrlSum', Format(PaymentLine."Credit Amount", 0, 9));
     end;
 
     local procedure VerifyInitiatingParty()
@@ -778,7 +889,7 @@ codeunit 144022 "SEPA.02 DD Functional Test"
     begin
         CompanyInformation.Get();
         VerifyCompanyNameAndPostalAddress(CompanyInformation, 'InitgPty');
-        LibraryXMLRead.VerifyNodeValueInSubtree('InitgPty', 'Id', CompanyInformation."VAT Registration No.");
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('InitgPty', 'Id', CompanyInformation."VAT Registration No.");
     end;
 
     local procedure VerifyCompanyNameAndPostalAddress(CompanyInformation: Record "Company Information"; SubtreeRootNodeName: Text)
@@ -791,16 +902,16 @@ codeunit 144022 "SEPA.02 DD Functional Test"
     local procedure VerifyPaymentInformationHeader(PaymentLine: Record "Payment Line FR")
     begin
         // Mandatory elements
-        LibraryXMLRead.VerifyNodeValueInSubtree('PmtInf', 'PmtMtd', 'DD'); // Hardcoded to 'TRF' by the FR SEPA standard
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('PmtInf', 'PmtMtd', 'DD'); // Hardcoded to 'TRF' by the FR SEPA standard
 
         // Optional element
-        LibraryXMLRead.VerifyNodeValueInSubtree('PmtInf', 'BtchBookg', 'false');
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('PmtInf', 'BtchBookg', 'false');
         // PmtTpInf/InstrPrty removed due to BUG: 267559
-        LibraryXMLRead.VerifyElementAbsenceInSubtree('PmtTpInf', 'InstrPrty');
+        LibraryXMLReadOnServer.VerifyElementAbsenceInSubtree('PmtTpInf', 'InstrPrty');
 
         // Mandatory element
-        LibraryXMLRead.VerifyNodeValueInSubtree('PmtInf', 'ReqdColltnDt', PaymentLine."Posting Date");
-        LibraryXMLRead.VerifyNodeValueInSubtree('PmtInf', 'ChrgBr', 'SLEV'); // Hardcoded by FR SEPA standard    
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('PmtInf', 'ReqdColltnDt', PaymentLine."Posting Date");
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('PmtInf', 'ChrgBr', 'SLEV'); // Hardcoded by FR SEPA standard
     end;
 
     local procedure VerifyCreditor(PaymentHeader: Record "Payment Header FR"; MsgToRecipient: Text)
@@ -810,12 +921,12 @@ codeunit 144022 "SEPA.02 DD Functional Test"
     begin
         BankAccount.Get(PaymentHeader."Account No.");
         CompanyInformation.Get();
-        LibraryXMLRead.VerifyNodeValueInSubtree('CdtrAcct', 'IBAN', BankAccount.IBAN);
-        LibraryXMLRead.VerifyNodeValueInSubtree('CdtrAgt', 'BIC', BankAccount."SWIFT Code");
-        LibraryXMLRead.VerifyNodeValueInSubtree('Othr', 'Id', BankAccount."Creditor No.");
-        LibraryXMLRead.VerifyNodeValueInSubtree('SchmeNm', 'Prtry', 'SEPA');
-        LibraryXMLRead.VerifyNodeValueInSubtree('Cdtr', 'Nm', CompanyInformation.Name);
-        LibraryXMLRead.VerifyNodeValue('Ustrd', MsgToRecipient);
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('CdtrAcct', 'IBAN', BankAccount.IBAN);
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('CdtrAgt', 'BIC', BankAccount."SWIFT Code");
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('Othr', 'Id', BankAccount."Creditor No.");
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('SchmeNm', 'Prtry', 'SEPA');
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('Cdtr', 'Nm', CompanyInformation.Name);
+        LibraryXMLReadOnServer.VerifyNodeValue('Ustrd', MsgToRecipient);
     end;
 
     local procedure VerifyDebitor(PaymentLine: Record "Payment Line FR")
@@ -831,29 +942,29 @@ codeunit 144022 "SEPA.02 DD Functional Test"
         VerifyNameAndPostalAddress(
           'DrctDbtTxInf', Customer.Name, Customer.Address, Customer."Post Code", Customer.City, Customer."Country/Region Code");
         // DrctDbtTxInf/PmtTpInf removed due to BUG: 267559
-        LibraryXMLRead.VerifyNodeAbsenceInSubtree('DrctDbtTxInf', 'PmtTpInf');
-        LibraryXMLRead.VerifyNodeValueInSubtree('DrctDbtTxInf', 'InstdAmt', PaymentLine."Credit Amount");
-        LibraryXMLRead.VerifyAttributeValueInSubtree('DrctDbtTxInf', 'InstdAmt', 'Ccy', 'EUR');
-        LibraryXMLRead.VerifyNodeValueInSubtree('DrctDbtTx', 'MndtId', SEPADirectDebitMandate.ID);
-        LibraryXMLRead.VerifyNodeValueInSubtree('DrctDbtTx', 'DtOfSgntr', SEPADirectDebitMandate."Date of Signature");
-        LibraryXMLRead.VerifyNodeValueInSubtree('Dbtr', 'BICOrBEI', CustomerBankAccount."SWIFT Code");
-        LibraryXMLRead.VerifyNodeValueInSubtree('DbtrAcct', 'IBAN', CustomerBankAccount.IBAN);
-        LibraryXMLRead.VerifyNodeValueInSubtree('DbtrAgt', 'BIC', CustomerBankAccount."SWIFT Code");
+        LibraryXMLReadOnServer.VerifyNodeAbsenceInSubtree('DrctDbtTxInf', 'PmtTpInf');
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('DrctDbtTxInf', 'InstdAmt', PaymentLine."Credit Amount");
+        LibraryXMLReadOnServer.VerifyAttributeValueInSubtree('DrctDbtTxInf', 'InstdAmt', 'Ccy', 'EUR');
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('DrctDbtTx', 'MndtId', SEPADirectDebitMandate.ID);
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('DrctDbtTx', 'DtOfSgntr', SEPADirectDebitMandate."Date of Signature");
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('Dbtr', 'BICOrBEI', CustomerBankAccount."SWIFT Code");
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('DbtrAcct', 'IBAN', CustomerBankAccount.IBAN);
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree('DbtrAgt', 'BIC', CustomerBankAccount."SWIFT Code");
     end;
 
     local procedure VerifyNameAndPostalAddress(SubtreeRootNodeName: Text; Name: Text; Address: Text; PostCode: Text; City: Text; CountryRegionCode: Text)
     begin
-        LibraryXMLRead.VerifyNodeValueInSubtree(SubtreeRootNodeName, 'Nm', Name);
-        LibraryXMLRead.VerifyNodeValueInSubtree(SubtreeRootNodeName, 'StrtNm', Address);
-        LibraryXMLRead.VerifyNodeValueInSubtree(SubtreeRootNodeName, 'PstCd', PostCode);
-        LibraryXMLRead.VerifyNodeValueInSubtree(SubtreeRootNodeName, 'TwnNm', City);
-        LibraryXMLRead.VerifyNodeValueInSubtree(SubtreeRootNodeName, 'Ctry', CountryRegionCode);
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree(SubtreeRootNodeName, 'Nm', Name);
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree(SubtreeRootNodeName, 'StrtNm', Address);
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree(SubtreeRootNodeName, 'PstCd', PostCode);
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree(SubtreeRootNodeName, 'TwnNm', City);
+        LibraryXMLReadOnServer.VerifyNodeValueInSubtree(SubtreeRootNodeName, 'Ctry', CountryRegionCode);
     end;
 
     local procedure VerifyNodeExistsAndNotEmpty(SubtreeRootName: Text[30]; NodeName: Text[30])
     begin
         Assert.AreNotEqual(
-          '', LibraryXMLRead.GetNodeValueInSubtree(SubtreeRootName, NodeName), StrSubstNo(UnexpectedEmptyNodeErr, NodeName, SubtreeRootName));
+          '', LibraryXMLReadOnServer.GetNodeValueInSubtree(SubtreeRootName, NodeName), StrSubstNo(UnexpectedEmptyNodeErr, NodeName, SubtreeRootName));
     end;
 
     local procedure VerifyPaymentErrors(SourceTableID: Integer; PaymentDocNo: Code[20]; LineNo: Integer; ExpErrorText: Text; ExpCount: Integer)
@@ -946,6 +1057,16 @@ codeunit 144022 "SEPA.02 DD Functional Test"
     procedure SuggestCustPaymentsReqPageHandler(var SuggestCustomerPayments: TestRequestPage "Suggest Cust. Payments")
     begin
         SuggestCustomerPayments.LastPaymentDate.SetValue(WorkDate());
+        SuggestCustomerPayments.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure SuggestCustPaymentsSummarizedReqPageHandler(var SuggestCustomerPayments: TestRequestPage "Suggest Cust. Payments")
+    var
+        SummarizePer: Option " ",Customer,"Due date";
+    begin
+        SuggestCustomerPayments.LastPaymentDate.SetValue(WorkDate());
+        SuggestCustomerPayments.Summarize_Per.SetValue(SummarizePer::Customer);
         SuggestCustomerPayments.OK().Invoke();
     end;
 
