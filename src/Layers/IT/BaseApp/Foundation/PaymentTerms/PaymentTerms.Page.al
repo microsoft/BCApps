@@ -41,6 +41,18 @@ page 4 "Payment Terms"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the payment terms for Fattura payments.';
                 }
+                field("Has Installments"; Rec."Has Installments")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Has Installments"; Rec."Has Installments")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Has Installments"; Rec."Has Installments")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field("Coupled to Dataverse"; CDSIsCoupledToRecord)
                 {
                     ApplicationArea = All;
@@ -79,6 +91,15 @@ page 4 "Payment Terms"
                 RunPageLink = Type = const("Payment Terms"),
                               Code = field(Code);
                 ToolTip = 'View or edit the conditions of the current payment term.';
+            }
+            action(InstallmentLines)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Installment Lines';
+                Image = Payment;
+                RunObject = Page "Payment Term Installments";
+                RunPageLink = "Payment Terms Code" = field(Code);
+                ToolTip = 'View or edit global installment rules. Supported standalone sales invoices post one receivable per installment.';
             }
             action("T&ranslation")
             {
@@ -201,6 +222,9 @@ page 4 "Payment Terms"
                 Caption = 'Payment Terms';
 
                 actionref("&Calculation_Promoted"; "&Calculation")
+                {
+                }
+                actionref(InstallmentLines_Promoted; InstallmentLines)
                 {
                 }
                 actionref("T&ranslation_Promoted"; "T&ranslation")

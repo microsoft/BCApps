@@ -3,6 +3,7 @@ namespace System.Security.AccessControl;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Journal;
@@ -39,6 +40,8 @@ permissionset 552 "Payables Req Worksheet - Edit"
                   tabledata "Entry Summary" = RIMD,
                   tabledata "G/L Account" = R,
                   tabledata Item = R,
+                  tabledata "Installment Plan" = R,
+                  tabledata "Installment Plan Line" = R,
                   tabledata "Item Journal Line" = Rm,
                   tabledata "Item Ledger Entry" = Rm,
                   tabledata "Item Translation" = R,

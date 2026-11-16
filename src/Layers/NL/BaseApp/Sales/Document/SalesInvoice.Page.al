@@ -286,6 +286,16 @@ page 43 "Sales Invoice"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
+                    Visible = not HasInstallmentPlan;
+                }
+                field(FirstInstallmentDueDate; Rec."Due Date")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'First Installment Due Date';
+                    ToolTip = 'Specifies the first scheduled due date as a summary. View the Installment Schedule for all due dates and payment discount conditions.';
+                    Importance = Promoted;
+                    Editable = false;
+                    Visible = HasInstallmentPlan;
                 }
                 field("Incoming Document Entry No."; Rec."Incoming Document Entry No.")
                 {
@@ -471,6 +481,14 @@ page 43 "Sales Invoice"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
+
+                    trigger OnValidate()
+                    begin
+                        if HasInstallmentPlan or not IsNullGuid(Rec."Installment Plan ID") then begin
+                            HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
+                            CurrPage.Update(false);
+                        end;
+                    end;
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
@@ -533,12 +551,14 @@ page 43 "Sales Invoice"
                 field("Payment Discount %"; Rec."Payment Discount %")
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = not HasInstallmentPlan;
                     ToolTip = 'Specifies the payment discount percentage granted if the customer pays on or before the date entered in the Pmt. Discount Date field.';
                 }
                 field("Pmt. Discount Date"; Rec."Pmt. Discount Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
+                    Editable = not HasInstallmentPlan;
                 }
                 field("Journal Templ. Name"; Rec."Journal Templ. Name")
                 {
@@ -1107,6 +1127,23 @@ page 43 "Sales Invoice"
                     ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
                     RunObject = Page "Sales Statistics";
                     RunPageOnRec = true;
+                }
+                action(InstallmentSchedule)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    ToolTip = 'Preview installments using the document rule snapshot and current invoice totals. Posting recalculates amounts and creates one receivable per installment for supported standalone sales invoices.';
+                    Image = Payment;
+                    Enabled = HasInstallmentPlan;
+
+                    trigger OnAction()
+                    var
+                        SalesInstallmentMgt: Codeunit "Sales Installment Mgt.";
+                    begin
+                        CurrPage.SaveRecord();
+                        SalesInstallmentMgt.ShowSchedule(Rec);
+                        CurrPage.Update(false);
+                    end;
                 }
                 action(CustomerStatistics)
                 {
@@ -1713,6 +1750,9 @@ page 43 "Sales Invoice"
             {
                 Caption = 'Prepare', Comment = 'Generated from the PromotedActionCategories property index 5.';
 
+                actionref(InstallmentSchedule_Promoted; InstallmentSchedule)
+                {
+                }
                 actionref(CopyDocument_Promoted; CopyDocument)
                 {
                 }
@@ -1951,6 +1991,7 @@ page 43 "Sales Invoice"
         WorkDescription: Text;
         StatusStyleTxt: Text;
         HasIncomingDocument: Boolean;
+        HasInstallmentPlan: Boolean;
         DocNoVisible: Boolean;
         ExternalDocNoMandatory: Boolean;
         OpenApprovalEntriesExistForCurrUser: Boolean;
@@ -2138,6 +2179,7 @@ page 43 "Sales Invoice"
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         WorkflowWebhookMgt: Codeunit "Workflow Webhook Management";
     begin
+        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
         HasIncomingDocument := Rec."Incoming Document Entry No." <> 0;
         ShowQuoteNo := Rec."Quote No." <> '';
         SetExtDocNoMandatoryCondition();

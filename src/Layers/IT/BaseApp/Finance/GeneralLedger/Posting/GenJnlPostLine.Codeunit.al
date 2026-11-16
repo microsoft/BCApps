@@ -42,7 +42,9 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
+using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
@@ -114,6 +116,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     var
+        GlobalInstallmentsNotSupportedErr: Label 'Posting global installment schedules is not supported in the Italian application yet. The legacy Italian installment posting remains available.';
         GLSetup: Record "General Ledger Setup";
         GlobalGLEntry: Record "G/L Entry";
         GlobalGLTransaction: Record "G/L Transaction";
@@ -298,12 +301,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     local procedure "Code"(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean)
     var
+        InstallmentPosting: Codeunit "Installment Posting";
         xGLEntryNo: Integer;
         xVATEntryNo: Integer;
         Balancing: Boolean;
         IsTransactionConsistent: Boolean;
         IsPosted: Boolean;
     begin
+        InstallmentPosting.CheckJournalLine(GenJnlLine);
         IsPosted := false;
         OnBeforeCode(GenJnlLine, CheckLine, IsPosted, GLReg, GLEntryNo);
         if IsPosted then
@@ -1509,6 +1514,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnAfterPostGLAcc(GenJnlLine, TempGLEntryBuf, NextEntryNo, NextTransactionNo, Balancing, GLEntry, VATPostingSetup, TempGLEntryVATEntryLink);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Installment Posting", 'OnCheckSalesPosting', '', false, false)]
+    local procedure CheckGlobalInstallmentsInItaly(SalesHeader: Record "Sales Header")
+    begin
+        if not IsNullGuid(SalesHeader."Installment Plan ID") then
+            Error(GlobalInstallmentsNotSupportedErr);
+    end;
+
     local procedure PostCust(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean)
     var
         LineFeeNoteOnReportHist: Record "Line Fee Note on Report Hist.";
@@ -1524,6 +1536,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         ShouldCheckDocNo: Boolean;
         IsHandled: Boolean;
     begin
+        if not IsNullGuid(GenJournalLine."Installment Plan ID") then
+            Error(GlobalInstallmentsNotSupportedErr);
         IsHandled := false;
         OnBeforePostCust(GenJournalLine, Balancing, IsHandled);
         if not IsHandled then begin

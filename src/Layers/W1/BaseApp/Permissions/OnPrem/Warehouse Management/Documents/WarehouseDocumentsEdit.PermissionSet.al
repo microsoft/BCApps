@@ -1,5 +1,6 @@
 namespace System.Security.AccessControl;
 
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
@@ -34,6 +35,8 @@ permissionset 5888 "Warehouse Documents - Edit"
     Permissions = tabledata "Bin Content" = RI,
                   tabledata "Entry Summary" = RIMD,
                   tabledata Item = R,
+                  tabledata "Installment Plan" = R,
+                  tabledata "Installment Plan Line" = R,
                   tabledata "Item Application Entry" = RIMD,
                   tabledata "Item Ledger Entry" = R,
                   tabledata "Item Tracking Code" = R,

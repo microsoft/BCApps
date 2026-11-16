@@ -29,6 +29,7 @@ codeunit 1256 "Post Late Gen. Journal Lines"
                 GenJournalLine.SetRange("Account No.", SalesInvoiceHeader."Bill-to Customer No.");
                 GenJournalLine.SetRange(Description, SalesInvoiceHeader."Pre-Assigned No.");
                 if GenJournalLine.FindFirst() then begin
+                    SalesInstallmentHistory.CheckLatePosting(SalesInvoiceHeader);
                     SalesInvoiceHeader.CalcFields("Remaining Amount");
                     GenJournalLine.Validate("Document No.", SalesInvoiceHeader."No.");
                     GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
@@ -51,5 +52,6 @@ codeunit 1256 "Post Late Gen. Journal Lines"
         GenJournalLine: Record "Gen. Journal Line";
         XLATETxt: Label 'LATE', Comment = 'Late';
         GLAccount: Record "G/L Account";
+        SalesInstallmentHistory: Codeunit "Sales Installment History";
 }
 

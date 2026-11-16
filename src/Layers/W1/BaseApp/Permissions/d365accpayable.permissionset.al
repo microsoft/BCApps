@@ -10,6 +10,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Inventory.Analysis;
@@ -71,6 +72,8 @@ permissionset 5289 "D365 ACC. PAYABLE"
                   tabledata "Exch. Rate Adjmt. Reg." = Rimd,
                   tabledata "Exch. Rate Adjmt. Ledg. Entry" = Rimd,
                   tabledata "General Ledger Setup" = RM,
+                  tabledata "Installment Plan" = Rimd,
+                  tabledata "Installment Plan Line" = Rimd,
                   tabledata "Item Analysis View" = RM,
                   tabledata "Item Analysis View Entry" = RIM,
                   tabledata "Item Charge Assignment (Purch)" = RIMD,

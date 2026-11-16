@@ -121,6 +121,7 @@ permissionset 7371 "Vendor - Edit"
                   tabledata Opportunity = R,
                   tabledata "Order Address" = RIMD,
                   tabledata "Payment Method" = R,
+                  tabledata "Payment Term Installment" = R,
                   tabledata "Payment Terms" = R,
                   tabledata "Posted Matched Order Line" = rm,
                   tabledata "Price Asset" = Rid,

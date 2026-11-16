@@ -33,6 +33,7 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Intercompany.Partner;
@@ -42,6 +43,8 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
@@ -277,12 +280,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     local procedure "Code"(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean)
     var
+        InstallmentPosting: Codeunit "Installment Posting";
         xGLEntryNo: Integer;
         xVATEntryNo: Integer;
         Balancing: Boolean;
         IsTransactionConsistent: Boolean;
         IsPosted: Boolean;
     begin
+        InstallmentPosting.CheckJournalLine(GenJnlLine);
         IsPosted := false;
         OnBeforeCode(GenJnlLine, CheckLine, IsPosted, GLReg, GLEntryNo);
         if IsPosted then
@@ -1399,22 +1404,24 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnAfterPostGLAcc(GenJnlLine, TempGLEntryBuf, NextEntryNo, NextTransactionNo, Balancing, GLEntry, VATPostingSetup, TempGLEntryVATEntryLink);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Installment Posting", 'OnCheckSalesPosting', '', false, false)]
+    local procedure CheckGlobalInstallmentWithholding(SalesHeader: Record "Sales Header")
+    begin
+        SalesHeader.TestField("WHT Business Posting Group", '');
+    end;
+
     local procedure PostCust(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean)
     var
-        LineFeeNoteOnReportHist: Record "Line Fee Note on Report Hist.";
         Cust: Record Customer;
         CustPostingGr: Record "Customer Posting Group";
         CustLedgEntry: Record "Cust. Ledger Entry";
-        CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
-        TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
+        TempPlanLine: Record "Installment Plan Line" temporary;
+        InstallmentGenJournalLine: Record "Gen. Journal Line";
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         SalesSetup: Record "Sales & Receivables Setup";
-        WHTPostingSetup: Record "WHT Posting Setup";
-        WHTAmount: Decimal;
-        WHTAmountLCY: Decimal;
+        InstallmentPosting: Codeunit "Installment Posting";
         ReceivablesAccount: Code[20];
-        DtldLedgEntryInserted: Boolean;
-        ShouldCheckDocNo: Boolean;
+        InstallmentCount: Integer;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -1438,97 +1445,130 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
             DtldCustLedgEntry.LockTable();
             CustLedgEntry.LockTable();
-            OnPostCustOnBeforeInitCustLedgEntry(GenJournalLine, CustLedgEntry, CVLedgEntryBuf, TempDtldCVLedgEntryBuf, CustPostingGr);
-            InitCustLedgEntry(GenJournalLine, CustLedgEntry);
-            OnPostCustOnAfterInitCustLedgEntry(GenJournalLine, CustLedgEntry, Cust, CustPostingGr);
-
-            CalcCustWHT(GenJournalLine, WHTPostingSetup, WHTAmountLCY, WHTAmount);
-            CustLedgEntry."Amount to Apply" := GenJournalLine.Amount;
-
-            if not Cust."Block Payment Tolerance" then
-                CalcPmtTolerancePossible(
-                    GenJournalLine, CustLedgEntry."Pmt. Discount Date", CustLedgEntry."Pmt. Disc. Tolerance Date",
-                    CustLedgEntry."Max. Payment Tolerance");
-
-            TempDtldCVLedgEntryBuf.DeleteAll();
-            TempDtldCVLedgEntryBuf.Init();
-            OnPostCustOnBeforeTempDtldCVLedgEntryBufCopyFromGenJnlLine(GenJournalLine, CustLedgEntry, Cust, GLReg, CVLedgEntryBuf);
-            TempDtldCVLedgEntryBuf.CopyFromGenJnlLine(GenJournalLine);
-            OnPostCustOnAfterTempDtldCVLedgEntryBufCopyFromGenJnlLine(GenJournalLine, TempDtldCVLedgEntryBuf);
-            TempDtldCVLedgEntryBuf."CV Ledger Entry No." := CustLedgEntry."Entry No.";
-            TempDtldCVLedgEntryBuf.Amount := TempDtldCVLedgEntryBuf.Amount - ExchangeAmtLCYToFCY2(WHTAmount);
-            TempDtldCVLedgEntryBuf."Amount (LCY)" := TempDtldCVLedgEntryBuf."Amount (LCY)" - WHTAmountLCY;
-            TempDtldCVLedgEntryBuf."Additional-Currency Amount" := GenJournalLine.Amount;
-            OnPostCustOnBeforeCopyFromCustLedgEntry(CVLedgEntryBuf, GenJournalLine, Cust);
-            CVLedgEntryBuf.CopyFromCustLedgEntry(CustLedgEntry);
-
-            IsHandled := false;
-            OnPostCustOnBeforeInsertDtldCVLedgEntry(GenJournalLine, TempDtldCVLedgEntryBuf, CVLedgEntryBuf, CustLedgEntry, IsHandled);
-            if not IsHandled then
-                TempDtldCVLedgEntryBuf.InsertDtldCVLedgEntry(TempDtldCVLedgEntryBuf, CVLedgEntryBuf, true);
-            CVLedgEntryBuf.Open := CVLedgEntryBuf."Remaining Amount" <> 0;
-            CVLedgEntryBuf.Positive := CVLedgEntryBuf."Remaining Amount" > 0;
-            OnPostCustOnAfterCopyCVLedgEntryBuf(CVLedgEntryBuf, GenJournalLine, Cust, CustLedgEntry, TempDtldCVLedgEntryBuf);
-
-            CalcPmtDiscPossible(GenJournalLine, CVLedgEntryBuf);
-
-            if GenJournalLine."Currency Code" <> '' then begin
-                GenJournalLine.TestField("Currency Factor");
-                CVLedgEntryBuf."Original Currency Factor" := GenJournalLine."Currency Factor"
+            if InstallmentPosting.PreparePosting(GenJournalLine, Balancing, TempPlanLine) then begin
+                InstallmentCount := TempPlanLine.Count();
+                repeat
+                    InstallmentPosting.SetJournalLine(GenJournalLine, TempPlanLine, InstallmentGenJournalLine);
+                    Clear(CustLedgEntry);
+                    PostCustEntry(
+                        InstallmentGenJournalLine, Cust, CustPostingGr, SalesSetup, CustLedgEntry,
+                        TempPlanLine, InstallmentCount, TempPlanLine."Installment No." = 1);
+                    InstallmentPosting.RecordPostedLine(TempPlanLine, CustLedgEntry, InstallmentCount);
+                until TempPlanLine.Next() = 0;
+                InstallmentPosting.CompletePosting(GenJournalLine, InstallmentCount);
             end else
-                CVLedgEntryBuf."Original Currency Factor" := 1;
-            CVLedgEntryBuf."Adjusted Currency Factor" := CVLedgEntryBuf."Original Currency Factor";
-            OnPostCustOnAfterAssignCurrencyFactors(CVLedgEntryBuf, GenJournalLine);
-
-            // Check the document no.
-            if GenJournalLine."Recurring Method" = GenJournalLine."Recurring Method"::" " then begin
-                ShouldCheckDocNo := IsNotPayment(GenJournalLine."Document Type");
-                OnPostCustOnAfterCalcShouldCheckDocNo(GenJournalLine, ShouldCheckDocNo);
-                if ShouldCheckDocNo then begin
-                    GenJnlCheckLine.CheckSalesDocNoIsNotUsed(GenJournalLine);
-                    CheckSalesExtDocNo(GenJournalLine);
-                end;
-            end;
-
-            // Post application
-            ApplyCustLedgEntry(CVLedgEntryBuf, TempDtldCVLedgEntryBuf, GenJournalLine, Cust);
-
-            // Post customer entry
-            CustLedgEntry.CopyFromCVLedgEntryBuffer(CVLedgEntryBuf);
-            IsHandled := false;
-            OnPostCustOnBeforeResetCustLedgerEntryAppliesToFields(CustLedgEntry, IsHandled);
-            if not IsHandled then begin
-                CustLedgEntry."Amount to Apply" := 0;
-                CustLedgEntry."Applies-to Doc. No." := '';
-                CustLedgEntry."Applies-to ID" := '';
-            end;
-            if SalesSetup."Copy Customer Name to Entries" then
-                CustLedgEntry."Customer Name" := Cust.Name;
-            CustLedgEntry."G/L Register No." := GLReg."No.";
-            CustLedgEntry.TestField("G/L Register No.");
-            OnBeforeCustLedgEntryInsert(CustLedgEntry, GenJournalLine, GLReg, TempDtldCVLedgEntryBuf, NextEntryNo);
-            CustLedgEntry.Insert(true);
-
-            CustLedgEntry.CopyLinks(GenJournalLine);
-
-            // Post detailed customer entries
-            DtldLedgEntryInserted := PostDtldCustLedgEntries(GenJournalLine, TempDtldCVLedgEntryBuf, CustPostingGr, true);
-
-            OnAfterCustLedgEntryInsert(CustLedgEntry, GenJournalLine, DtldLedgEntryInserted, PreviewMode);
-            // Post Reminder Terms - Note About Line Fee on Report
-            LineFeeNoteOnReportHist.Save(CustLedgEntry);
-
-            if DtldLedgEntryInserted then
-                if IsTempGLEntryBufEmpty() then
-                    DtldCustLedgEntry.SetZeroTransNo(NextTransactionNo);
-
-            PostCustWHT(GenJournalLine, CustLedgEntry, WHTPostingSetup, WHTAmountLCY);
+                PostCustEntry(GenJournalLine, Cust, CustPostingGr, SalesSetup, CustLedgEntry, TempPlanLine, 0, true);
 
             DeferralPosting(GenJournalLine."Deferral Code", GenJournalLine."Source Code", ReceivablesAccount, GenJournalLine, Balancing);
 
             OnMoveGenJournalLine(GenJournalLine, CustLedgEntry.RecordId);
         end;
         OnAfterPostCust(GenJournalLine, Balancing, TempGLEntryBuf, NextEntryNo, NextTransactionNo);
+    end;
+
+    local procedure PostCustEntry(var GenJournalLine: Record "Gen. Journal Line"; Cust: Record Customer; CustPostingGr: Record "Customer Posting Group"; SalesSetup: Record "Sales & Receivables Setup"; var CustLedgEntry: Record "Cust. Ledger Entry"; PlanLine: Record "Installment Plan Line"; InstallmentCount: Integer; CheckDocumentNo: Boolean)
+    var
+        LineFeeNoteOnReportHist: Record "Line Fee Note on Report Hist.";
+        CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
+        TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
+        DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        WHTPostingSetup: Record "WHT Posting Setup";
+        WHTAmount: Decimal;
+        WHTAmountLCY: Decimal;
+        DtldLedgEntryInserted: Boolean;
+        ShouldCheckDocNo: Boolean;
+        IsHandled: Boolean;
+    begin
+        OnPostCustOnBeforeInitCustLedgEntry(GenJournalLine, CustLedgEntry, CVLedgEntryBuf, TempDtldCVLedgEntryBuf, CustPostingGr);
+        InitCustLedgEntry(GenJournalLine, CustLedgEntry);
+        if InstallmentCount <> 0 then begin
+            CustLedgEntry."Installment Plan ID" := PlanLine."Plan ID";
+            CustLedgEntry."Installment No." := PlanLine."Installment No.";
+            CustLedgEntry."No. of Installments" := InstallmentCount;
+        end;
+        OnPostCustOnAfterInitCustLedgEntry(GenJournalLine, CustLedgEntry, Cust, CustPostingGr);
+
+        CalcCustWHT(GenJournalLine, WHTPostingSetup, WHTAmountLCY, WHTAmount);
+        CustLedgEntry."Amount to Apply" := GenJournalLine.Amount;
+
+        if not Cust."Block Payment Tolerance" then
+            CalcPmtTolerancePossible(
+                GenJournalLine, CustLedgEntry."Pmt. Discount Date", CustLedgEntry."Pmt. Disc. Tolerance Date",
+                CustLedgEntry."Max. Payment Tolerance");
+
+        TempDtldCVLedgEntryBuf.DeleteAll();
+        TempDtldCVLedgEntryBuf.Init();
+        OnPostCustOnBeforeTempDtldCVLedgEntryBufCopyFromGenJnlLine(GenJournalLine, CustLedgEntry, Cust, GLReg, CVLedgEntryBuf);
+        TempDtldCVLedgEntryBuf.CopyFromGenJnlLine(GenJournalLine);
+        OnPostCustOnAfterTempDtldCVLedgEntryBufCopyFromGenJnlLine(GenJournalLine, TempDtldCVLedgEntryBuf);
+        TempDtldCVLedgEntryBuf."CV Ledger Entry No." := CustLedgEntry."Entry No.";
+        TempDtldCVLedgEntryBuf.Amount := TempDtldCVLedgEntryBuf.Amount - ExchangeAmtLCYToFCY2(WHTAmount);
+        TempDtldCVLedgEntryBuf."Amount (LCY)" := TempDtldCVLedgEntryBuf."Amount (LCY)" - WHTAmountLCY;
+        TempDtldCVLedgEntryBuf."Additional-Currency Amount" := GenJournalLine.Amount;
+        OnPostCustOnBeforeCopyFromCustLedgEntry(CVLedgEntryBuf, GenJournalLine, Cust);
+        CVLedgEntryBuf.CopyFromCustLedgEntry(CustLedgEntry);
+
+        IsHandled := false;
+        OnPostCustOnBeforeInsertDtldCVLedgEntry(GenJournalLine, TempDtldCVLedgEntryBuf, CVLedgEntryBuf, CustLedgEntry, IsHandled);
+        if not IsHandled then
+            TempDtldCVLedgEntryBuf.InsertDtldCVLedgEntry(TempDtldCVLedgEntryBuf, CVLedgEntryBuf, true);
+        CVLedgEntryBuf.Open := CVLedgEntryBuf."Remaining Amount" <> 0;
+        CVLedgEntryBuf.Positive := CVLedgEntryBuf."Remaining Amount" > 0;
+        OnPostCustOnAfterCopyCVLedgEntryBuf(CVLedgEntryBuf, GenJournalLine, Cust, CustLedgEntry, TempDtldCVLedgEntryBuf);
+
+        CalcPmtDiscPossible(GenJournalLine, CVLedgEntryBuf);
+
+        if GenJournalLine."Currency Code" <> '' then begin
+            GenJournalLine.TestField("Currency Factor");
+            CVLedgEntryBuf."Original Currency Factor" := GenJournalLine."Currency Factor"
+        end else
+            CVLedgEntryBuf."Original Currency Factor" := 1;
+        CVLedgEntryBuf."Adjusted Currency Factor" := CVLedgEntryBuf."Original Currency Factor";
+        OnPostCustOnAfterAssignCurrencyFactors(CVLedgEntryBuf, GenJournalLine);
+
+        // Check the document no.
+        if CheckDocumentNo and (GenJournalLine."Recurring Method" = GenJournalLine."Recurring Method"::" ") then begin
+            ShouldCheckDocNo := IsNotPayment(GenJournalLine."Document Type");
+            OnPostCustOnAfterCalcShouldCheckDocNo(GenJournalLine, ShouldCheckDocNo);
+            if ShouldCheckDocNo then begin
+                GenJnlCheckLine.CheckSalesDocNoIsNotUsed(GenJournalLine);
+                CheckSalesExtDocNo(GenJournalLine);
+            end;
+        end;
+
+        // Post application
+        ApplyCustLedgEntry(CVLedgEntryBuf, TempDtldCVLedgEntryBuf, GenJournalLine, Cust);
+
+        // Post customer entry
+        CustLedgEntry.CopyFromCVLedgEntryBuffer(CVLedgEntryBuf);
+        IsHandled := false;
+        OnPostCustOnBeforeResetCustLedgerEntryAppliesToFields(CustLedgEntry, IsHandled);
+        if not IsHandled then begin
+            CustLedgEntry."Amount to Apply" := 0;
+            CustLedgEntry."Applies-to Doc. No." := '';
+            CustLedgEntry."Applies-to ID" := '';
+        end;
+        if SalesSetup."Copy Customer Name to Entries" then
+            CustLedgEntry."Customer Name" := Cust.Name;
+        CustLedgEntry."G/L Register No." := GLReg."No.";
+        CustLedgEntry.TestField("G/L Register No.");
+        OnBeforeCustLedgEntryInsert(CustLedgEntry, GenJournalLine, GLReg, TempDtldCVLedgEntryBuf, NextEntryNo);
+        CustLedgEntry.Insert(true);
+
+        CustLedgEntry.CopyLinks(GenJournalLine);
+
+        // Post detailed customer entries
+        DtldLedgEntryInserted := PostDtldCustLedgEntries(GenJournalLine, TempDtldCVLedgEntryBuf, CustPostingGr, true);
+
+        OnAfterCustLedgEntryInsert(CustLedgEntry, GenJournalLine, DtldLedgEntryInserted, PreviewMode);
+        // Post Reminder Terms - Note About Line Fee on Report
+        LineFeeNoteOnReportHist.Save(CustLedgEntry);
+
+        if DtldLedgEntryInserted then
+            if IsTempGLEntryBufEmpty() then
+                DtldCustLedgEntry.SetZeroTransNo(NextTransactionNo);
+
+        PostCustWHT(GenJournalLine, CustLedgEntry, WHTPostingSetup, WHTAmountLCY);
     end;
 
     local procedure PostVend(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean)

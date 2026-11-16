@@ -60,6 +60,14 @@ table 3 "Payment Terms"
             Caption = 'Last Modified Date Time';
             Editable = false;
         }
+        field(9; "Has Installments"; Boolean)
+        {
+            Caption = 'Has Installments';
+            ToolTip = 'Specifies whether global installment rules are set up for these payment terms. Supported standalone sales invoices post one receivable per installment.';
+            FieldClass = FlowField;
+            CalcFormula = exist("Payment Term Installment" where("Payment Terms Code" = field(Code)));
+            Editable = false;
+        }
 #if not CLEANSCHEMA26
         field(720; "Coupled to CRM"; Boolean)
         {
@@ -117,9 +125,14 @@ table 3 "Payment Terms"
     trigger OnDelete()
     var
         PaymentTermsTranslation: Record "Payment Term Translation";
+        PaymentTermInstallment: Record "Payment Term Installment";
     begin
         PaymentTermsTranslation.SetRange("Payment Term", Code);
         PaymentTermsTranslation.DeleteAll();
+        if not IsTemporary() then begin
+            PaymentTermInstallment.SetRange("Payment Terms Code", Code);
+            PaymentTermInstallment.DeleteAll();
+        end;
         FilterPaymentLines();
         if PaymentTermsLine.Find('-') then
             PaymentTermsLine.DeleteAll(true);

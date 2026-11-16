@@ -643,6 +643,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         GenJnlLine: Record "Gen. Journal Line";
         Bill: Record Bill;
         PaymentMethod: Record "Payment Method";
+        InstallmentPosting: Codeunit "Installment Posting";
         IsHandled: Boolean;
     begin
         SalesHeader := SalesHeaderVar;
@@ -685,6 +686,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 
         SalesPostInvoiceEvents.RunOnPostLedgerEntryOnBeforeGenJnlPostLine(
             GenJnlLine, SalesHeader, TotalSalesLine, TotalSalesLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
+        InstallmentPosting.PrepareJournalLine(SalesHeader, GenJnlLine);
         GenJnlPostLine.RunWithCheck(GenJnlLine);
         SalesPostInvoiceEvents.RunOnPostLedgerEntryOnAfterGenJnlPostLine(
             GenJnlLine, SalesHeader, TotalSalesLine, TotalSalesLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);

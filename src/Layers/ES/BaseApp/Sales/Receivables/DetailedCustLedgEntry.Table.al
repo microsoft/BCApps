@@ -383,6 +383,12 @@ table 379 "Detailed Cust. Ledg. Entry"
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
+        field(8843; "Invoice Entry No."; Integer)
+        {
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the customer entry that identifies the invoice balance group.';
+        }
         field(10700; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
@@ -455,6 +461,10 @@ table 379 "Detailed Cust. Ledg. Entry"
         key(Key13; "Initial Document Type", "Initial Entry Due Date")
         {
             SumIndexFields = "Amount (LCY)";
+        }
+        key(Invoice; "Invoice Entry No.")
+        {
+            SumIndexFields = Amount, "Amount (LCY)";
         }
         key(Key14; "Customer No.", "Initial Entry Due Date")
         {

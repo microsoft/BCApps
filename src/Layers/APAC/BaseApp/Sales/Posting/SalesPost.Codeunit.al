@@ -6295,6 +6295,7 @@ codeunit 80 "Sales-Post"
     local procedure UpdateSalesHeader(var CustLedgerEntry: Record "Cust. Ledger Entry"; var SalesHeader: Record "Sales Header")
     var
         GenJnlLine: Record "Gen. Journal Line";
+        InstallmentPosting: Codeunit "Installment Posting";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -6305,7 +6306,10 @@ codeunit 80 "Sales-Post"
         case GenJnlLineDocType of
             GenJnlLine."Document Type"::Invoice:
                 begin
-                    FindCustLedgEntry(GenJnlLineDocType, GenJnlLineDocNo, CustLedgerEntry);
+                    if IsNullGuid(SalesInvHeader."Installment Plan ID") then
+                        FindCustLedgEntry(GenJnlLineDocType, GenJnlLineDocNo, CustLedgerEntry)
+                    else
+                        InstallmentPosting.GetFinalCustomerEntry(SalesInvHeader, CustLedgerEntry);
                     SalesInvHeader."Cust. Ledger Entry No." := CustLedgerEntry."Entry No.";
                     SalesInvHeader.Modify();
                 end;

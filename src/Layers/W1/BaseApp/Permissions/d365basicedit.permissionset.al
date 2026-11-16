@@ -170,6 +170,8 @@ permissionset 208 "D365 Basic - Edit"
                   tabledata Field = imd,
                   tabledata File = imd,
                   tabledata Integer = imd,
+                  tabledata "Installment Plan" = rimd,
+                  tabledata "Installment Plan Line" = rimd,
                   tabledata "Intelligent Cloud" = imd,
                   tabledata "Intelligent Cloud Status" = imd,
                   tabledata Key = imd,

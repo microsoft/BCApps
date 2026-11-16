@@ -1088,7 +1088,7 @@ table 112 "Sales Invoice Header"
         /// </summary>
         field(1302; Closed; Boolean)
         {
-            CalcFormula = - exist("Cust. Ledger Entry" where("Entry No." = field("Cust. Ledger Entry No."),
+            CalcFormula = - exist("Cust. Ledger Entry" where("Invoice Entry No." = field("Cust. Ledger Entry No."),
                                                              Open = filter(true)));
             Caption = 'Closed';
             ToolTip = 'Specifies if the posted invoice is paid. The check box will also be selected if a credit memo for the remaining amount has been applied.';
@@ -1102,7 +1102,7 @@ table 112 "Sales Invoice Header"
         {
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
-            CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Cust. Ledger Entry No." = field("Cust. Ledger Entry No.")));
+            CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Invoice Entry No." = field("Cust. Ledger Entry No.")));
             Caption = 'Remaining Amount';
             ToolTip = 'Specifies the amount that remains to be paid on the sales invoices that are due next week.';
             Editable = false;
@@ -1277,6 +1277,13 @@ table 112 "Sales Invoice Header"
             begin
                 UpdateDisputeStatus();
             end;
+        }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            TableRelation = "Installment Plan";
+            Editable = false;
+            ToolTip = 'Specifies the posted global installment schedule for this invoice.';
         }
         field(12400; "External Document Text"; Text[100])
         {
@@ -1738,6 +1745,10 @@ table 112 "Sales Invoice Header"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin
+        if not IsNullGuid("Installment Plan ID") then begin
+            CalcFields("Remaining Amount");
+            exit("Remaining Amount");
+        end;
         CustLedgerEntry.SetRange("Customer No.", "Bill-to Customer No.");
         CustLedgerEntry.SetRange("Posting Date", "Posting Date");
         CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);

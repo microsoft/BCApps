@@ -19,6 +19,7 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -1068,6 +1069,31 @@ table 21 "Cust. Ledger Entry"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the date on which the customer have promised to pay this invoice.';
         }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            TableRelation = "Installment Plan";
+            Editable = false;
+            ToolTip = 'Specifies the posted global installment plan.';
+        }
+        field(8841; "Installment No."; Integer)
+        {
+            Caption = 'Installment No.';
+            Editable = false;
+            ToolTip = 'Specifies the sequence number within the installment plan.';
+        }
+        field(8842; "No. of Installments"; Integer)
+        {
+            Caption = 'No. of Installments';
+            Editable = false;
+            ToolTip = 'Specifies the number of receivables in the installment plan.';
+        }
+        field(8843; "Invoice Entry No."; Integer)
+        {
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the customer entry that identifies the invoice balance group. Ordinary entries identify themselves.';
+        }
         field(10015; "Tax Exemption No."; Text[30])
         {
             Caption = 'Tax Exemption No.';
@@ -1262,6 +1288,12 @@ table 21 "Cust. Ledger Entry"
         key(Key37; "Applies-to ID")
         {
             IncludedFields = "Accepted Payment Tolerance";
+        }
+        key(Installment; "Installment Plan ID", "Installment No.")
+        {
+        }
+        key(Invoice; "Invoice Entry No.", Open)
+        {
         }
     }
 

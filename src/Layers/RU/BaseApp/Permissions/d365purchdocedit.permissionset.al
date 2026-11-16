@@ -79,6 +79,7 @@ permissionset 5807 "D365 PURCH DOC, EDIT"
                   tabledata "No. Series Line" = RIMD,
                   tabledata "Notification Entry" = RIMD,
                   tabledata "Order Address" = RIMD,
+                  tabledata "Payment Term Installment" = RMD,
                   tabledata "Payment Terms" = RMD,
                   tabledata "Planning Component" = RIm,
                   tabledata "Posted Matched Order Line" = R,

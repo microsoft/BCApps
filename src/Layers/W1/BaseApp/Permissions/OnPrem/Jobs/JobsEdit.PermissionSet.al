@@ -6,6 +6,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Comment;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
@@ -47,6 +48,8 @@ permissionset 6719 "Jobs - Edit"
                   tabledata "Gen. Journal Line" = r,
                   tabledata "General Ledger Setup" = RM,
                   tabledata "VAT Setup" = RM,
+                  tabledata "Installment Plan" = r,
+                  tabledata "Installment Plan Line" = r,
                   tabledata Job = RIMD,
                   tabledata "Job Assigned Resource" = RIMD,
                   tabledata "Job G/L Account Price" = RIMD,

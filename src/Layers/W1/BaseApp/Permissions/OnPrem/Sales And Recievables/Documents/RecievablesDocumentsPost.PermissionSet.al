@@ -18,6 +18,7 @@ using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.BatchProcessing;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
@@ -104,6 +105,8 @@ permissionset 2529 "Recievables Documents - Post"
                   tabledata "IC Outbox Transaction" = RIMD,
                   tabledata "IC Partner" = R,
                   tabledata "IC Setup" = R,
+                  tabledata "Installment Plan" = Rimd,
+                  tabledata "Installment Plan Line" = Rimd,
                   tabledata "Inventory Posting Group" = r,
                   tabledata "Inventory Posting Setup" = r,
                   tabledata Item = rm,

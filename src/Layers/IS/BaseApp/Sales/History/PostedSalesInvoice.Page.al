@@ -740,6 +740,21 @@ page 132 "Posted Sales Invoice"
             {
                 Caption = '&Invoice';
                 Image = Invoice;
+                action(InstallmentSchedule)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    Image = PaymentPeriod;
+                    Enabled = not IsNullGuid(Rec."Installment Plan ID");
+                    ToolTip = 'View the original installment schedule, current unpaid amounts, and linked customer entries.';
+
+                    trigger OnAction()
+                    var
+                        SalesInstallmentHistory: Codeunit "Sales Installment History";
+                    begin
+                        SalesInstallmentHistory.ShowSchedule(Rec);
+                    end;
+                }
                 action(Statistics)
                 {
                     ApplicationArea = Suite;

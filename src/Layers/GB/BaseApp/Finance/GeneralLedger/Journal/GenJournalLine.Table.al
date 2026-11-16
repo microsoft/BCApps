@@ -3877,6 +3877,18 @@ table 81 "Gen. Journal Line"
                 UpdateVendorNo();
             end;
         }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            TableRelation = "Installment Plan";
+            Editable = false;
+        }
+        field(8841; "Sales Invoice Source SystemId"; Guid)
+        {
+            Caption = 'Sales Invoice Source SystemId';
+            Editable = false;
+            DataClassification = SystemMetadata;
+        }
 #if not CLEANSCHEMA26
         field(10500; "Invoice Receipt Date"; Date)
         {

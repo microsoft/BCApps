@@ -12,6 +12,7 @@ using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
@@ -53,6 +54,8 @@ permissionset 7071 "Recievables - Edit"
                   tabledata "Gen. Journal Template" = R,
                   tabledata "General Ledger Setup" = rm,
                   tabledata "General Posting Setup" = r,
+                  tabledata "Installment Plan" = R,
+                  tabledata "Installment Plan Line" = R,
                   tabledata "Issued Fin. Charge Memo Header" = Rimd,
                   tabledata "Issued Fin. Charge Memo Line" = Rimd,
                   tabledata "Issued Reminder Header" = Rimd,

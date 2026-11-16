@@ -74,6 +74,7 @@ permissionset 8824 "Payables Journals - Edit"
                   tabledata "Payment Jnl. Export Error Text" = RIMD,
                   tabledata "Payment Matching Details" = RIMD,
                   tabledata "Payment Method" = R,
+                  tabledata "Payment Term Installment" = R,
                   tabledata "Payment Terms" = R,
                   tabledata "Reason Code" = R,
                   tabledata "Referenced XML Schema" = RIMD,

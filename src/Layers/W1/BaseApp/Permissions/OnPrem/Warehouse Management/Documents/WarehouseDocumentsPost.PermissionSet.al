@@ -1,5 +1,6 @@
 namespace System.Security.AccessControl;
 
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -25,6 +26,8 @@ permissionset 9425 "Warehouse Documents - Post"
 
     Permissions = tabledata Bin = M,
                   tabledata Item = R,
+                  tabledata "Installment Plan" = Rimd,
+                  tabledata "Installment Plan Line" = Rimd,
                   tabledata "Item Ledger Entry" = RIMD,
                   tabledata "Item Tracking Code" = R,
                   tabledata "Item Tracking Comment" = RIMD,

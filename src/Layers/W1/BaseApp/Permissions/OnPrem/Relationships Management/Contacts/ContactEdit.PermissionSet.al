@@ -14,6 +14,7 @@ using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
@@ -51,6 +52,8 @@ permissionset 257 "Contact - Edit"
                   tabledata "Delivery Sorter" = RIMD,
                   tabledata "Duplicate Search String Setup" = R,
                   tabledata "Industry Group" = R,
+                  tabledata "Installment Plan" = Rimd,
+                  tabledata "Installment Plan Line" = Rimd,
                   tabledata "Inter. Log Entry Comment Line" = RIMD,
                   tabledata "Interaction Group" = R,
                   tabledata "Interaction Log Entry" = RIM,

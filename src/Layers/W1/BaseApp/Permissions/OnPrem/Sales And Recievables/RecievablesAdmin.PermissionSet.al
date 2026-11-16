@@ -44,6 +44,7 @@ permissionset 3723 "Recievables - Admin"
                   tabledata "Item Charge" = RIMD,
                   tabledata "Line Fee Note on Report Hist." = RIMD,
                   tabledata "Payment Method" = RIMD,
+                  tabledata "Payment Term Installment" = RIMD,
                   tabledata "Payment Terms" = RIMD,
                   tabledata "Reason Code" = R,
                   tabledata "Reminder Attachment Text" = RIMD,
