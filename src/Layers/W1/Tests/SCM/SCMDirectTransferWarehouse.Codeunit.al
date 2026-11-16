@@ -1449,6 +1449,26 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
 
     [Test]
     [Scope('OnPrem')]
+    procedure TransferFromRoutePreservesNonDirectTransit()
+    begin
+        // [SCENARIO 650215] Changing the source before the destination preserves non-direct line transit through a missing route.
+        Initialize();
+
+        ChangeNonDirectTransferRouteWithExistingLine(true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TransferToRoutePreservesNonDirectTransit()
+    begin
+        // [SCENARIO 650215] Changing the destination before the source preserves non-direct line transit through a missing route.
+        Initialize();
+
+        ChangeNonDirectTransferRouteWithExistingLine(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure TransferFromRouteSetsShipmentReceiptTransit()
     var
         TransferRoute: Record "Transfer Route";
@@ -2571,6 +2591,53 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         TransferLine.CalcFields("Reserved Qty. Inbnd. (Base)", "Reserved Qty. Outbnd. (Base)");
         TransferLine.TestField("Reserved Qty. Inbnd. (Base)", 0);
         TransferLine.TestField("Reserved Qty. Outbnd. (Base)", 0);
+    end;
+
+    local procedure ChangeNonDirectTransferRouteWithExistingLine(TransferFromFirst: Boolean)
+    var
+        LocationFrom: array[2] of Record Location;
+        LocationTo: array[2] of Record Location;
+        LocationInTransit: Record Location;
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Index: Integer;
+    begin
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+        for Index := 1 to 2 do begin
+            LibraryWarehouse.CreateLocation(LocationFrom[Index]);
+            LibraryWarehouse.CreateLocation(LocationTo[Index]);
+            LibraryWarehouse.CreateAndUpdateTransferRoute(
+                TransferRoute, LocationFrom[Index].Code, LocationTo[Index].Code, LocationInTransit.Code, '', '');
+        end;
+        LibraryInventory.CreateTransferHeader(TransferHeader, LocationFrom[1].Code, LocationTo[1].Code, LocationInTransit.Code);
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, LibraryInventory.CreateItemNo(), 1);
+        TransferHeader.SetHideValidationDialog(true);
+
+        if TransferFromFirst then
+            TransferHeader.Validate("Transfer-from Code", LocationFrom[2].Code)
+        else
+            TransferHeader.Validate("Transfer-to Code", LocationTo[2].Code);
+        TransferHeader.Modify(true);
+
+        TransferHeader.TestField("In-Transit Code", '');
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.TestField("In-Transit Code", LocationInTransit.Code);
+
+        if TransferFromFirst then
+            TransferHeader.Validate("Transfer-to Code", LocationTo[2].Code)
+        else
+            TransferHeader.Validate("Transfer-from Code", LocationFrom[2].Code);
+        TransferHeader.Modify(true);
+
+        TransferHeader.TestField("Direct Transfer", false);
+        TransferHeader.TestField("In-Transit Code", LocationInTransit.Code);
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.TestField("Transfer-from Code", LocationFrom[2].Code);
+        TransferLine.TestField("Transfer-to Code", LocationTo[2].Code);
+        TransferLine.TestField("In-Transit Code", LocationInTransit.Code);
+        TransferLine.TestField("Qty. to Ship", 1);
+        TransferLine.TestField("Qty. to Receive", 0);
     end;
 
     local procedure CreateShipmentReceiptRouteWithTransit(var TransferRoute: Record "Transfer Route")
