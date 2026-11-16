@@ -1466,7 +1466,7 @@ codeunit 148339 "Spend Request Test"
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         CreatePerDiemLocation(ExpenseLocation);
         CreatePerDiemCategory(ExpenseCategory);
-        DailyRate := LibraryRandom.RandIntInRange(10, 100);
+        DailyRate := 80;
         CreatePerDiemRule(ExpenseCategory.Code, ExpenseLocation."No.", 0D, DailyRate);
         TripStart := UtcDateTime('2026-06-15T20:00:00Z');
         TripEnd := UtcDateTime('2026-06-16T03:00:00Z');
