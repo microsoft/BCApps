@@ -195,7 +195,7 @@ codeunit 30163 "Shpfy Order Mapping"
 
     internal procedure PersistMappingErrorUnlessUnrelated(var OrderHeader: Record "Shpfy Order Header"; MissingIssues: List of [Text])
     begin
-        if OrderHeader."Has Error" and not OrderHeader."Has Mapping Error" then
+        if OrderHeader."Has Error" and not OwnsMappingError(OrderHeader) then
             exit;
 
         PersistMappingError(OrderHeader, MissingIssues);
@@ -224,7 +224,7 @@ codeunit 30163 "Shpfy Order Mapping"
     begin
         if OrderHeader."Has Order State Error" then
             exit;
-        if not OrderHeader."Has Mapping Error" then
+        if not OwnsMappingError(OrderHeader) then
             exit;
 
         OrderHeader."Has Error" := false;
@@ -236,6 +236,30 @@ codeunit 30163 "Shpfy Order Mapping"
     internal procedure IsMappingError(ErrorMessage: Text): Boolean
     begin
         exit(ErrorMessage.StartsWith(MappingErr));
+    end;
+
+    local procedure OwnsMappingError(OrderHeader: Record "Shpfy Order Header"): Boolean
+    begin
+        if OrderHeader."Has Mapping Error" then
+            exit(true);
+
+        exit(OrderHeader."Has Error" and IsLegacyMappingError(OrderHeader."Error Message"));
+    end;
+
+    local procedure IsLegacyMappingError(ErrorMessage: Text): Boolean
+    var
+        ErrorTime: Time;
+        TimePrefix: Text;
+    begin
+        ErrorMessage := ErrorMessage.TrimEnd();
+        if not ErrorMessage.EndsWith(MappingErr) then
+            exit(false);
+
+        TimePrefix := CopyStr(ErrorMessage, 1, StrLen(ErrorMessage) - StrLen(MappingErr)).TrimEnd();
+        if TimePrefix = '' then
+            exit(false);
+
+        exit(Evaluate(ErrorTime, TimePrefix));
     end;
 
     local procedure GetLineBreak(): Text

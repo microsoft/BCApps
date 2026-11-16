@@ -370,6 +370,26 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    procedure Completeness_FindMappingsRecoversUpgradedOrder()
+    var
+        OrderId: BigInteger;
+        Outcomes: JsonArray;
+    begin
+        // [SCENARIO] An order upgraded from a version without the mapping ownership flag keeps its generic mapping error with the flag unset.
+        // Find Mappings recognises that error as mapping-owned, replaces it with the detailed diagnostics and clears it once all mappings are complete.
+        this.Initialize();
+
+        // [GIVEN] An incomplete order whose error was persisted by the previous version: a timestamped generic mapping message without the ownership flag.
+        OrderId := this.PrepareUpgradedMappingOrder();
+
+        // [WHEN] Find Mappings runs before and after the mappings are corrected.
+        this.ExerciseUpgradedMappingRecovery(OrderId, Outcomes);
+
+        // [THEN] The generic error is replaced by the detailed diagnostics and then cleared; no sales document is created.
+        this.VerifyMappingOutcomes(Outcomes, 2);
+    end;
+
+    [Test]
     [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure Completeness_AutomaticUpdateFailurePersistsMappingError()
     var
@@ -1974,8 +1994,7 @@ codeunit 139608 "Shpfy Orders API Test"
         MappingTipTok: Label 'TipAccount', Locked = true;
     begin
         this.Shop := this.CreateIncompleteMappingShop();
-        this.Shop.Validate(Code, CopyStr(this.Any.AlphabeticText(20), 1, MaxStrLen(this.Shop.Code)));
-        this.Shop.Insert(false);
+        this.InsertIncompleteMappingShop();
         this.CreateIncompleteMappingOrder(OrderHeader);
         Customer := this.InitializeTest.GetDummyCustomer();
         if not MissingSellTo then
@@ -2123,8 +2142,7 @@ codeunit 139608 "Shpfy Orders API Test"
         CaseNames.Add('Mapping');
         CaseNames.Add('Unrelated');
         foreach CaseName in CaseNames do begin
-            this.Shop.Validate(Code, CopyStr(this.Any.AlphabeticText(20), 1, MaxStrLen(this.Shop.Code)));
-            this.Shop.Insert(false);
+            this.InsertIncompleteMappingShop();
             this.CreateIncompleteMappingOrder(OrderHeader);
             this.CreateUnmappedItemLine(OrderHeader."Shopify Order Id", OrderHeader."Shopify Order Id" * 10 + 1, false);
             this.CreateUnmappedItemLine(OrderHeader."Shopify Order Id", OrderHeader."Shopify Order Id" * 10 + 5, true);
@@ -2136,6 +2154,34 @@ codeunit 139608 "Shpfy Orders API Test"
             end;
             Cases.Add(CaseName, OrderHeader."Shopify Order Id");
         end;
+    end;
+
+    local procedure PrepareUpgradedMappingOrder(): BigInteger
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        MappingPrefixTok: Label 'Not everything can be mapped.', Locked = true;
+    begin
+        this.Shop := this.CreateIncompleteMappingShop();
+        this.InsertIncompleteMappingShop();
+        this.CreateIncompleteMappingOrder(OrderHeader);
+        this.CreateUnmappedItemLine(OrderHeader."Shopify Order Id", OrderHeader."Shopify Order Id" * 10 + 1, false);
+        this.CreateUnmappedItemLine(OrderHeader."Shopify Order Id", OrderHeader."Shopify Order Id" * 10 + 5, true);
+        this.SetOrderError(OrderHeader, Format(Time) + ' ' + MappingPrefixTok, false);
+        exit(OrderHeader."Shopify Order Id");
+    end;
+
+    local procedure ExerciseUpgradedMappingRecovery(OrderId: BigInteger; var Outcomes: JsonArray)
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        MappingOwnershipErr: Label 'Find Mappings must take ownership of a mapping error persisted before the ownership flag existed.';
+    begin
+        this.RunMappingPath(OrderId, 'FindMappings');
+        OrderHeader.Get(OrderId);
+        this.LibraryAssert.IsTrue(OrderHeader."Has Mapping Error", MappingOwnershipErr);
+        this.CaptureMappingOutcome(OrderId, this.ExpectedMappingDetails(OrderId, true), true, false, false, 0, Outcomes);
+        this.CorrectMappingOrder(OrderId);
+        this.RunMappingPath(OrderId, 'FindMappings');
+        this.CaptureMappingOutcome(OrderId, '', false, false, false, 0, Outcomes);
     end;
 
     local procedure ExerciseMappingEntryPaths(Cases: Dictionary of [Text, BigInteger]; var Outcomes: JsonArray)
@@ -2822,6 +2868,18 @@ codeunit 139608 "Shpfy Orders API Test"
         ShopLcl.Validate("Tip Account", '');
         ShopLcl.Validate("Sold Gift Card Account", '');
         exit(ShopLcl);
+    end;
+
+    local procedure InsertIncompleteMappingShop()
+    var
+        ExistingShop: Record "Shpfy Shop";
+        ShopCode: Code[20];
+    begin
+        repeat
+            ShopCode := CopyStr(this.Any.AlphabeticText(MaxStrLen(ShopCode)), 1, MaxStrLen(ShopCode));
+        until not ExistingShop.Get(ShopCode);
+        this.Shop.Validate(Code, ShopCode);
+        this.Shop.Insert(false);
     end;
 
     local procedure CreateIncompleteMappingOrder(var OrderHeader: Record "Shpfy Order Header")
