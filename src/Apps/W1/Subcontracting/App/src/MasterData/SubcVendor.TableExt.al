@@ -19,14 +19,12 @@ tableextension 20507 "Subc. Vendor" extends Vendor
             DataClassification = CustomerContent;
             TableRelation = Location where("Use As In-Transit" = const(false));
             trigger OnValidate()
-            var
-                Location: Record Location;
 #if not CLEAN28
 #pragma warning disable AL0432
+            var
                 SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
-                ErrorInfo: ErrorInfo;
             begin
 #if not CLEAN28
 #pragma warning disable AL0432
@@ -36,16 +34,7 @@ tableextension 20507 "Subc. Vendor" extends Vendor
 #endif
                 if "Subc. Location Code" = '' then
                     exit;
-                Location.Get("Subc. Location Code");
-                if Location."Bin Mandatory" or Location."Require Pick" or Location."Require Put-away" or Location."Require Receive" or Location."Require Shipment" then begin
-                    ErrorInfo.Title := CannotUseLocationLbl;
-                    ErrorInfo.Message := StrSubstNo(BinWarehouseEnabledOnLocationErr, "Subc. Location Code");
-                    ErrorInfo.Verbosity := ErrorInfo.Verbosity::Error;
-                    ErrorInfo.PageNo := Page::"Location Card";
-                    ErrorInfo.RecordId := Location.RecordId;
-                    ErrorInfo.AddNavigationAction(ShowLocationCardLbl);
-                    Error(ErrorInfo);
-                end;
+                CheckBinWarehouseEnabledOnLocation();
             end;
         }
         field(20516; "Subc. Linked to Work Center"; Boolean)
@@ -72,4 +61,30 @@ tableextension 20507 "Subc. Vendor" extends Vendor
         CannotUseLocationLbl: Label 'Cannot use the location for subcontracting';
         ShowLocationCardLbl: Label 'Show Location Card';
         BinWarehouseEnabledOnLocationErr: Label 'Location %1 cannot be used as a subcontracting location because Bin Mandatory or warehouse handling is enabled on the location.', Comment = '%1 = Location Code';
+
+    local procedure CheckBinWarehouseEnabledOnLocation()
+    var
+        Location: Record Location;
+        ErrorInfo: ErrorInfo;
+        IsHandled: Boolean;
+    begin
+        OnBeforeCheckBinWarehouseEnabledOnLocation(Rec, IsHandled);
+        if IsHandled then
+            exit;
+        Location.Get("Subc. Location Code");
+        if Location."Bin Mandatory" or Location."Require Pick" or Location."Require Put-away" or Location."Require Receive" or Location."Require Shipment" then begin
+            ErrorInfo.Title := CannotUseLocationLbl;
+            ErrorInfo.Message := StrSubstNo(BinWarehouseEnabledOnLocationErr, "Subc. Location Code");
+            ErrorInfo.Verbosity := ErrorInfo.Verbosity::Error;
+            ErrorInfo.PageNo := Page::"Location Card";
+            ErrorInfo.RecordId := Location.RecordId;
+            ErrorInfo.AddNavigationAction(ShowLocationCardLbl);
+            Error(ErrorInfo);
+        end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckBinWarehouseEnabledOnLocation(var Vendor: Record Vendor; var IsHandled: Boolean)
+    begin
+    end;
 }
