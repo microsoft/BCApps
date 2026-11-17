@@ -63,6 +63,8 @@ codeunit 139821 "APIV2 - Ret. Earnings E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 

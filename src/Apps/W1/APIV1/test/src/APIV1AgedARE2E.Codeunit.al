@@ -4,6 +4,7 @@ codeunit 139720 "APIV1 - Aged AR E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -61,6 +62,7 @@ codeunit 139720 "APIV1 - Aged AR E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
 

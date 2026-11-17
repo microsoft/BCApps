@@ -555,6 +555,14 @@ table 179 "Reversal Entry"
     /// <summary>
     /// Validates all entries in the reversal list for reversal eligibility and business rule compliance.
     /// </summary>
+    procedure CheckEntries()
+    begin
+        CheckEntries(false);
+    end;
+
+    /// <summary>
+    /// Validates all entries in the reversal list for reversal eligibility and business rule compliance.
+    /// </summary>
     procedure CheckEntries(IsVATAllocOnCost: Boolean)
     var
         GLAccount: Record "G/L Account";
@@ -1045,6 +1053,15 @@ table 179 "Reversal Entry"
             GlobalMaintenanceLedgerEntry.SetCurrentKey("G/L Entry No.");
             GlobalMaintenanceLedgerEntry.SetRange("G/L Entry No.", GlobalGLRegister."From Entry No.", GlobalGLRegister."To Entry No.");
             GlobalVATEntry.SetRange("Entry No.", GlobalGLRegister."From VAT Entry No.", GlobalGLRegister."To VAT Entry No.");
+            // With concurrent posting, entry no. ranges of different registers can interleave; restrict to entries owned by this register (0 = entries posted before the register no. was stored).
+            GlobalGLEntry.SetFilter("G/L Register No.", '0|%1', GlobalGLRegister."No.");
+            GlobalCustLedgerEntry.SetFilter("G/L Register No.", '0|%1', GlobalGLRegister."No.");
+            GlobalVendorLedgerEntry.SetFilter("G/L Register No.", '0|%1', GlobalGLRegister."No.");
+            GlobalEmployeeLedgerEntry.SetFilter("G/L Register No.", '0|%1', GlobalGLRegister."No.");
+            GlobalVATEntry.SetFilter("G/L Register No.", '0|%1', GlobalGLRegister."No.");
+            GlobalBankAccountLedgerEntry.SetFilter("G/L Register No.", '0|%1', GlobalGLRegister."No.");
+            GlobalFALedgerEntry.SetFilter("G/L Register No.", '0|%1', GlobalGLRegister."No.");
+            GlobalMaintenanceLedgerEntry.SetFilter("G/L Register No.", '0|%1', GlobalGLRegister."No.");
             FromValueEntryNo := 0;
             ToValueEntryNo := 0;
             if VATAllocOnCost then begin

@@ -4,6 +4,7 @@ codeunit 139701 "APIV1 - Accounts E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -20,6 +21,7 @@ codeunit 139701 "APIV1 - Accounts E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
 

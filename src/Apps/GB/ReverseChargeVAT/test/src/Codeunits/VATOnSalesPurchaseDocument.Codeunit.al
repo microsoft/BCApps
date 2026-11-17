@@ -18,6 +18,7 @@ codeunit 144013 "VAT On Sales/Purchase Document"
 
     trigger OnRun()
     begin
+        // [FEATURE] [Sales] [Reverse Charge]
     end;
 
     var
@@ -161,6 +162,7 @@ codeunit 144013 "VAT On Sales/Purchase Document"
         SalesLine.TestField("Reverse Charge Item GB", false);
     end;
 
+
     local procedure Initialize()
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
@@ -250,4 +252,3 @@ codeunit 144013 "VAT On Sales/Purchase Document"
         VATEntry.TestField("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
     end;
 }
-

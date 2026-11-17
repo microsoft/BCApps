@@ -27,6 +27,8 @@ codeunit 139712 "APIV1 - UofM E2E"
     begin
         // [SCENARIO] User can get the units of measure.
 
+        Initialize();
+
         // [GIVEN] Units of measure.
         GenerateUnitsOfMeasure(UnitOfMeasure, 5);
 
@@ -46,6 +48,8 @@ codeunit 139712 "APIV1 - UofM E2E"
         OldDescription: Text;
     begin
         // [SCENARIO] User can update a unit of measure.
+
+        Initialize();
 
         // [GIVEN] Units of measure.
         GenerateUnitsOfMeasure(UnitOfMeasure, 5);
@@ -76,6 +80,8 @@ codeunit 139712 "APIV1 - UofM E2E"
     begin
         // [SCENARIO] User can delete a unit of measure.
 
+        Initialize();
+
         // [GIVEN] Units of measure.
         GenerateUnitsOfMeasure(UnitOfMeasure, 5);
 
@@ -97,6 +103,8 @@ codeunit 139712 "APIV1 - UofM E2E"
     begin
         // [SCENARIO] User can insert a unit of measure.
 
+        Initialize();
+
         // [GIVEN] A new unit of measure.
         GenerateUnitOfMeasure(UnitOfMeasure);
         Request := CreateInsertUnitOfMeasureRequest(UnitOfMeasure);
@@ -110,6 +118,11 @@ codeunit 139712 "APIV1 - UofM E2E"
         UnitOfMeasure.GET(Code);
 
         ValidateUnitOfMeasure(UnitOfMeasure, Response);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     local procedure GenerateUnitsOfMeasure(var UnitOfMeasure: Record "Unit of Measure"; "Count": Integer)

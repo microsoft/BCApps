@@ -46,7 +46,7 @@
       "to": 13690
     }
   ],
-  "target": "OnPrem",
+  "target": "Cloud",
   "resourceExposurePolicy": {
     "allowDebugging": true,
     "allowDownloadingSource": false,

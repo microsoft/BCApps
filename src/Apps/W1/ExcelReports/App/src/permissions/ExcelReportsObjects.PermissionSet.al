@@ -28,6 +28,7 @@ permissionset 4401 "Excel Reports - Objects"
                   report "EXR Vendor Top List" = X,
                   codeunit "EXT Top Cust. Caption Handler" = X,
                   codeunit "EXT Top Vendor Caption Handler" = X,
+                  query "EXR Trial Bal by Period" = X,
                   query "EXR Trial Balance BU" = X,
                   query "EXR Trial Balance Budget" = X,
                   query "EXR Top Customer Balance" = X,

@@ -63,6 +63,8 @@ codeunit 139817 "APIV2 - CashFlow Statement E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 

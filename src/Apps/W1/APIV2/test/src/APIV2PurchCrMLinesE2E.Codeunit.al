@@ -4,6 +4,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
 
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -31,6 +32,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on the lines without providing a parent Credit Memo ID.
         // [GIVEN] the credit memo API exposedSetAutoCalcFields
 
@@ -40,9 +43,10 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
             Page::"APIV2 - Purchase Credit Memos",
             CreditMemoServiceNameTxt,
             CreditMemoServiceLinesNameTxt);
-        asserterror LibraryGraphMgt.GetFromWebService(ResponseText, TargetURL);
+        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 404);
 
-        // [THEN] the response text should be empty
+        // [THEN] the URL is rejected as not found because the lines can only be reached through a parent document, and the response text is empty
+        Assert.ExpectedError('Response code is 404 (NotFound)');
         Assert.AreEqual('', ResponseText, 'Response JSON should be blank');
     end;
 
@@ -57,6 +61,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         LineNo: Integer;
         SequenceValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on the Line of a credit memo
         // [GIVEN] a credit memo with a line.SetAutoCalcFields
         CreditMemoId := CreatePurchaseCreditMemoWithLines(PurchaseHeader);
@@ -87,6 +93,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         LineNo1: Text;
         LineNo2: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on the Lines of a unposted Credit Memo
         // [GIVEN] An credit memo with lines.SetAutoCalcFields
         CreditMemoID := CreatePurchaseCreditMemoWithLines(PurchaseHeader);
@@ -116,6 +124,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         LineNo1: Text;
         LineNo2: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on the Lines of a credit memo
         // [GIVEN] a credit memo with lines.SetAutoCalcFields
         CreditMemoId := CreatePurchaseCreditMemoWithLines(PurchaseHeader);
@@ -145,6 +155,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         LineNo1: Text;
         LineNo2: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on the Lines of a posted Credit Memo
         // [GIVEN] A posted credit memo with lines.SetAutoCalcFields
         CreditMemoID := CreatePostedPurchaseCreditMemoWithLines(PurchCrMemoHdr);
@@ -173,6 +185,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         CreditMemoID: Text;
         LineNo: Integer;
     begin
+        Initialize();
+
         // [SCENARIO] POST a new line to an unposted Credit Memo
         // [GIVEN] An existing unposted credit memo and a valid JSON describing the new credit memo lineSetAutoCalcFields
         CreditMemoID := CreatePurchaseCreditMemoWithLines(PurchaseHeader);
@@ -204,6 +218,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         CreditMemoID: Text;
         LineNo: Integer;
     begin
+        Initialize();
+
         // [SCENARIO] POST a new line to an unposted Credit Memo with a sequence number
         // [GIVEN] An existing unposted credit memo and a valid JSON describing the new credit memo lineSetAutoCalcFields
         CreditMemoID := CreatePurchaseCreditMemoWithLines(PurchaseHeader);
@@ -242,6 +258,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         PurchaseQuantity: Integer;
         PurchaseQuantityFromJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO] PATCH a line of an unposted Credit Memo
         // [GIVEN] An unposted credit memo with lines and a valid JSON describing the fields that we want to changeSetAutoCalcFields
         CreditMemoID := CreatePurchaseCreditMemoWithLines(PurchaseHeader);
@@ -279,6 +297,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         CreditMemoId: Text;
         NewSequence: Integer;
     begin
+        Initialize();
+
         // [SCENARIO] PATCH a line of a credit memo will fail if sequence is modified
         // [GIVEN] A credit memo with lines and a valid JSON describing the fields that we want to changeSetAutoCalcFields
         CreditMemoId := CreatePurchaseCreditMemoWithLines(PurchaseHeader);
@@ -319,6 +339,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         CreditMemoID: Text;
         LineNo: Integer;
     begin
+        Initialize();
+
         // [SCENARIO] DELETE a line from an unposted Credit Memo
         // [GIVEN] An unposted credit memo with linesSetAutoCalcFields
         CreditMemoID := CreatePurchaseCreditMemoWithLines(PurchaseHeader);
@@ -349,6 +371,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         CreditMemoID: Text;
         LineNo: Integer;
     begin
+        Initialize();
+
         // [SCENARIO] Call DELETE on a line of a posted Credit Memo
         // [GIVEN] A posted credit memo with linesSetAutoCalcFields
         CreditMemoID := CreatePostedPurchaseCreditMemoWithLines(PurchCrMemoHdr);
@@ -385,6 +409,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         ItemNo: Code[20];
         VendorNo: Code[20];
     begin
+        Initialize();
+
         // [SCENARIO] Create an credit memo both through the client UI and through the API and compare their final values.
         // [GIVEN] An unposted credit memo and a JSON describing the line we want to create
         LibraryPurchase.CreateVendor(Vendor);
@@ -423,6 +449,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         ResponseText: Text;
         LinesJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Getting a line through API lists all possible types
         // [GIVEN] An credit memo with lines of different typesSetAutoCalcFields
         CreateCreditMemoWithDifferentLineTypes(PurchaseHeader, ExpectedNumberOfLines);
@@ -448,6 +476,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         ResponseText: Text;
         CreditMemoLineJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Posting a line with description only will get a type item
         // [GIVEN] A post request with description onlySetAutoCalcFields
         CreatePurchaseCreditMemoWithLines(PurchaseHeader);
@@ -483,6 +513,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         ResponseText: Text;
         CreditMemoLineJSON: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Comment]
         // [SCENARIO] Posting a line with Type Comment and description will make a comment line
         // [GIVEN] A post request with type and descriptionSetAutoCalcFields
@@ -521,6 +553,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         CreditMemoLineJSON: Text;
         CreditMemoID: Text;
     begin
+        Initialize();
+
         // [SCENARIO] PATCH a Type on a line of an unposted Credit Memo
         // [GIVEN] An unposted credit memo with lines and a valid JSON describing the fields that we want to changeSetAutoCalcFields
         CreditMemoID := CreatePurchaseCreditMemoWithLines(PurchaseHeader);
@@ -552,6 +586,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         CreditMemoLineJSON: Text;
         CreditMemoLineID: Text;
     begin
+        Initialize();
+
         // [SCENARIO] PATCH a Type on a line of an unposted Credit Memo
         // [GIVEN] An unposted credit memo with lines and a valid JSON describing the fields that we want to changeSetAutoCalcFields
         CreateCreditMemoWithDifferentLineTypes(PurchaseHeader, ExpectedNumberOfLines);
@@ -589,6 +625,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         CreditMemoLineJSON: Text;
         CreditMemoID: Text;
     begin
+        Initialize();
+
         // [SCENARIO] PATCH a Type on a line of an unposted Credit Memo
         // [GIVEN] An unposted credit memo with lines and a valid JSON describing the fields that we want to changeSetAutoCalcFields
         CreditMemoID := CreatePurchaseCreditMemoWithLines(PurchaseHeader);
@@ -623,6 +661,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         CreditMemoID: Text;
         LineNo: Integer;
     begin
+        Initialize();
+
         // [SCENARIO] POST a new line to an unposted Credit Memo with item variant
         // [GIVEN] An existing unposted credit memo and a valid JSON describing the new credit memo line with item variantSetAutoCalcFields
         CreditMemoID := CreatePurchaseCreditMemoWithLines(PurchaseHeader);
@@ -659,6 +699,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         CreditMemoLineJSON: Text;
         CreditMemoID: Text;
     begin
+        Initialize();
+
         // [SCENARIO] POST a new line to an unposted Credit Memo with wrong item variant
         // [GIVEN] An existing unposted credit memo and a valid JSON describing the new credit memo line with item variantSetAutoCalcFields
         CreditMemoID := CreatePurchaseCreditMemoWithLines(PurchaseHeader);
@@ -950,5 +992,10 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
         PurchaseLineComment.Type := PurchaseLineComment.Type::" ";
         PurchaseLineComment.Description := 'Thank you for your business!';
         PurchaseLineComment.Modify();
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 }

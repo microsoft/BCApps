@@ -23,9 +23,6 @@ codeunit 134094 "ERM VAT Reports Archive"
         ReportText: Text;
         BigString: BigText;
         VATReportNo: Code[20];
-#if not CLEAN27         
-        DummyGuid: Guid;
-#endif        
     begin
         // [SCENARIO] When VAT Report is submitted to Tax Authority's service, the submission message is archived
 
@@ -39,11 +36,7 @@ codeunit 134094 "ERM VAT Reports Archive"
 
         // [WHEN] The message is archived
         LibraryLowerPermissions.SetO365Basic();
-#if not CLEAN27        
-        VATReportArchive.ArchiveSubmissionMessage(VATReportArchive."VAT Report Type"::"VAT Return".AsInteger(), VATReportNo, TempBlob, DummyGuid);
-#else
         VATReportArchive.ArchiveSubmissionMessage(VATReportArchive."VAT Report Type"::"VAT Return".AsInteger(), VATReportNo, TempBlob);
-#endif
         // [THEN] User can open it from VAT Report List page
         VATReportArchive.Get(VATReportArchive."VAT Report Type"::"VAT Return", VATReportNo);
         Assert.IsTrue(VATReportArchive."Submission Message BLOB".HasValue, 'The VAT Report submission archive is empty.');
@@ -61,9 +54,6 @@ codeunit 134094 "ERM VAT Reports Archive"
         ReportText: Text;
         BigString: BigText;
         VATReportNo: Code[20];
-#if not CLEAN27        
-        DummyGuid: Guid;
-#endif        
     begin
         // [SCENARIO] When VAT Report response is received from Tax Authority's service, the response message is archived
 
@@ -77,13 +67,8 @@ codeunit 134094 "ERM VAT Reports Archive"
 
         // [WHEN] The message is archived
         LibraryLowerPermissions.SetO365Basic();
-#if not CLEAN27        
-        VATReportArchive.ArchiveSubmissionMessage(VATReportArchive."VAT Report Type"::"VAT Return".AsInteger(), VATReportNo, TempBlob, DummyGuid);
-        VATReportArchive.ArchiveResponseMessage(VATReportArchive."VAT Report Type"::"VAT Return".AsInteger(), VATReportNo, TempBlob, DummyGuid);
-#else
         VATReportArchive.ArchiveSubmissionMessage(VATReportArchive."VAT Report Type"::"VAT Return".AsInteger(), VATReportNo, TempBlob);
         VATReportArchive.ArchiveResponseMessage(VATReportArchive."VAT Report Type"::"VAT Return".AsInteger(), VATReportNo, TempBlob);
-#endif
 
         // [THEN] User can open it
         VATReportArchive.Get(VATReportArchive."VAT Report Type"::"VAT Return", VATReportNo);

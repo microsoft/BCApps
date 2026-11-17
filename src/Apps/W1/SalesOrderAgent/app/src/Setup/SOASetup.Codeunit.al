@@ -484,7 +484,7 @@ codeunit 4400 "SOA Setup"
 
     internal procedure GetDefaultEmailSignatureAsTxt(): Text
     begin
-        exit(StrSubstNo(EmailSignatureLbl, SignatureClosingLbl, CompanyName(), SignatureNoteLbl));
+        exit(StrSubstNo(EmailSignatureLbl, SignatureClosingLbl, CompanyProperty.DisplayName(), SignatureNoteLbl));
     end;
 
     internal procedure UpdateInstructions(var TempSOASetup: Record "SOA Setup" temporary)

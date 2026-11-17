@@ -150,7 +150,7 @@ page 10843 "Payment Slip FR"
                 SubPageLink = "Document No." = field("No."),
                               "Journal Line No." = field("Line No."),
                               "Journal Template Name" = const(''),
-                              "Journal Batch Name" = const('10865');
+                              "Journal Batch Name" = const('10835');
             }
         }
     }

@@ -27,20 +27,6 @@ codeunit 2114 "O365 HTML Templ. Mgt."
         InvoiceFromTitleTxt: Label 'Invoice from %1', Comment = 'This is a mail title. %1 - company name';
         EstimateFromTitleTxt: Label 'Estimate from %1', Comment = 'This is a mail title. %1 - company name';
 
-#if not CLEAN27
-    [Obsolete('Replaced with CreateEmailBodyFromReportSelections that accepts a TempBlob as additional parameter.', '27.0')]
-    procedure CreateEmailBodyFromReportSelections(ReportSelections: Record "Report Selections"; RecordVariant: Variant; MailTo: Text; MailText: Text) OutputFileName: Text[250]
-    var
-        FileMgt: Codeunit "File Management";
-        HTMLText: Text;
-    begin
-        OutputFileName := CopyStr(FileMgt.ServerTempFileName('html'), 1, 250);
-
-        HTMLText := CreateHTMLTextFromReportSelections(ReportSelections, RecordVariant, MailTo, MailText);
-
-        SaveHTML(OutputFileName, HTMLText);
-    end;
-#endif
 
     /// <summary>
     /// Creates an email body from the report selections into TempBlob.

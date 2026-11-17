@@ -156,6 +156,7 @@ codeunit 139714 "Payment Methods E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
 

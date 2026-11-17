@@ -4,9 +4,10 @@
               Description="Shopify Tax Matching - Tests"
               Dataset="TMA-Setup.yaml"
               Capability="Shopify Tax Matching Agent"
-              Frequency="Daily"
               TestRunnerId="130451"
               TestType="Copilot">
+        <Language Tag="en-US"
+                  Frequency="Daily" />
         <Line CodeunitID="134717"
               Description="Jurisdiction Matching (J1-J8, F1-F2)"
               Dataset="TMA-TS-JurisdictionMatch.yaml" />

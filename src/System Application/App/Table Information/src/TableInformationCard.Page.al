@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.DataAdministration;
 
+using System.Database;
 using System.Diagnostics;
 using System.Environment;
 using System.Reflection;
@@ -93,6 +94,44 @@ page 8705 "Table Information Card"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(UpdateTableStatistics)
+            {
+                Caption = 'Update table statistics';
+                Image = Refresh;
+                ToolTip = 'Update the database statistics for all indexes of this table in the selected company.';
+
+                trigger OnAction()
+                var
+                    TableInformation: Record "Table Information";
+                    IndexManagement: Codeunit "Index Management";
+                begin
+                    if not Dialog.Confirm(UpdateTableStatisticsQst, false, Rec.Name) then
+                        exit;
+
+                    TableInformation.Get(SetCompanyName, Rec.ID);
+                    IndexManagement.UpdateStatistics(TableInformation);
+
+                    CurrPage.IndexLines.Page.SetCompanyFilter(SetCompanyName); // Refresh the index list to show the new statistics update time.
+                    Message(UpdateTableStatisticsCompletedMsg, Rec.Name);
+                    CurrPage.Update(false);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                actionref(UpdateTableStatistics_Promoted; UpdateTableStatistics)
+                {
+                }
+            }
+        }
+    }
+
     trigger OnOpenPage()
     begin
         SetBasedOnCompanyName(Rec.CurrentCompany());
@@ -168,4 +207,6 @@ page 8705 "Table Information Card"
         NoTableSelectedErr: Label 'No table selected. Please select a table to view its information.';
         SelectTableLbl: Label 'Select Table';
         TableNotFoundErr: Label 'Table %1 could not be found.', Comment = '%1 = table ID';
+        UpdateTableStatisticsQst: Label 'Updating statistics may temporarily affect database performance. Do you want to update statistics for table %1?', Comment = '%1 = table name';
+        UpdateTableStatisticsCompletedMsg: Label 'Database statistics for table %1 were updated.', Comment = '%1 = table name';
 }

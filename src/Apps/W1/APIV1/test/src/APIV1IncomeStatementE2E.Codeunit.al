@@ -63,6 +63,7 @@ codeunit 139716 "APIV1 - Income Statement E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
 

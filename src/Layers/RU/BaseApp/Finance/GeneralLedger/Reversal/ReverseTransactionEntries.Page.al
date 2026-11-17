@@ -548,8 +548,7 @@ page 183 "Reverse Transaction Entries"
                 GenJnlLine."Posting Date" := PostingDate;
                 GenJnlCheckLine.CheckDateAllowed(GenJnlLine);
 
-                Rec.ModifyAll("Corrected Period Date", Rec."Posting Date");
-                Rec.ModifyAll("Posting Date", PostingDate);
+                Rec.ModifyAll("Corrected Period Date", Rec."Posting Date", "Posting Date", PostingDate);
                 Rec.FindFirst();
                 ReversalEntry := Rec;
             end;

@@ -26,6 +26,8 @@ codeunit 139822 "APIV2 - Employees E2E"
     var
         LibraryApplicationArea: Codeunit "Library - Application Area";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         LibraryApplicationArea.EnableBasicHRSetup();
 
         // Lazy Setup.

@@ -220,10 +220,7 @@ table 10676 "SAF-T Mapping Range"
         SAFTGLAccountMapping.SetRange("Mapping Range Code", Code);
         case UpdateFieldNo of
             FieldNo("Mapping Category No."):
-                begin
-                    SAFTGLAccountMapping.ModifyAll("Category No.", "Mapping Category No.");
-                    SAFTGLAccountMapping.ModifyAll("No.", '');
-                end;
+                SAFTGLAccountMapping.ModifyAll("Category No.", "Mapping Category No.", "No.", '');
             FieldNo("Mapping No."):
                 SAFTGLAccountMapping.ModifyAll("No.", "Mapping No.");
         end;

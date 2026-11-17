@@ -427,10 +427,7 @@ page 130401 "CAL Test Tool"
         if CALTestSuite.Name <> '' then
             CALTestLine.SetRange("Test Suite", CALTestSuite.Name);
 
-        CALTestLine.ModifyAll(Result, Rec.Result::" ");
-        CALTestLine.ModifyAll("First Error", '');
-        CALTestLine.ModifyAll("Start Time", 0DT);
-        CALTestLine.ModifyAll("Finish Time", 0DT);
+        CALTestLine.ModifyAll(Result, Rec.Result::" ", "First Error", '', "Start Time", 0DT, "Finish Time", 0DT);
     end;
 
     local procedure FindError(Which: Code[10])
