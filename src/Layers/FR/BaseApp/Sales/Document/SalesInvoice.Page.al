@@ -1955,6 +1955,7 @@ page 43 "Sales Invoice"
         CheckShowBackgrValidationNotification();
         RejectICSalesInvoiceEnabled := ICInboxOutboxMgt.IsSalesHeaderFromIncomingIC(Rec);
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
+        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean

@@ -31,8 +31,13 @@ codeunit 134492 "ERM Installment Draft"
         Plan: Record "Installment Plan";
         PlanLine: Record "Installment Plan Line";
     begin
+        // [FEATURE] [Installments] [Draft]
+        // [SCENARIO] Selecting installment terms creates an invoice-owned draft snapshot without caching calculated values.
+        // [GIVEN] A sales invoice and payment terms containing two equal installment rules.
+        // [WHEN] The installment terms are selected on the invoice.
         CreateInvoiceWithPlan(SalesHeader, PaymentTerms);
 
+        // [THEN] The invoice owns both snapshotted rules and summarizes the first due date without storing calculated line values.
         Plan.Get(SalesHeader."Installment Plan ID");
         Assert.AreEqual(SalesHeader.SystemId, Plan."Source SystemId", 'The invoice must own its plan.');
         Assert.AreEqual(SalesHeader.RecordId(), Plan."Source Record ID", 'The source must identify the typed sales document.');
@@ -55,6 +60,9 @@ codeunit 134492 "ERM Installment Draft"
         PlanLine: Record "Installment Plan Line";
         PlanID: Guid;
     begin
+        // [FEATURE] [Installments] [Draft]
+        // [SCENARIO] Changing the document date retains the owned rule snapshot even when reusable rules have changed.
+        // [GIVEN] An installment invoice whose reusable payment percentage and due-date formula are subsequently changed.
         CreateInvoiceWithPlan(SalesHeader, PaymentTerms);
         PlanID := SalesHeader."Installment Plan ID";
         Rule.Get(PaymentTerms.Code, 10000);
@@ -62,9 +70,11 @@ codeunit 134492 "ERM Installment Draft"
         Evaluate(Rule."Due Date Calculation", '<120D>');
         Rule.Modify();
 
+        // [WHEN] The document date is moved forward by one day.
         SalesHeader.Validate("Document Date", CalcDate('<1D>', SalesHeader."Document Date"));
         SalesHeader.Modify(true);
 
+        // [THEN] The same plan and original percentage are retained, and the due date uses the snapshotted formula.
         Assert.AreEqual(PlanID, SalesHeader."Installment Plan ID", 'Date validation must retain the existing snapshot.');
         Assert.AreEqual(CalcDate('<30D>', SalesHeader."Document Date"), SalesHeader."Due Date", 'Dates must use the snapshotted formula.');
         PlanLine.Get(PlanID, 10000);
@@ -81,13 +91,18 @@ codeunit 134492 "ERM Installment Draft"
         PlanLine: Record "Installment Plan Line";
         OldPlanID: Guid;
     begin
+        // [FEATURE] [Installments] [Draft]
+        // [SCENARIO] Explicitly changing installment terms replaces the invoice's owned draft snapshot.
+        // [GIVEN] An installment invoice and another set of installment payment terms.
         CreateInvoiceWithPlan(SalesHeader, PaymentTerms);
         OldPlanID := SalesHeader."Installment Plan ID";
         CreateRules(ReplacementTerms);
 
+        // [WHEN] The replacement terms are selected on the invoice.
         SalesHeader.Validate("Payment Terms Code", ReplacementTerms.Code);
         SalesHeader.Modify(true);
 
+        // [THEN] A new snapshot identifies the replacement terms, and the old draft header and lines are removed.
         Assert.AreNotEqual(OldPlanID, SalesHeader."Installment Plan ID", 'Explicitly changing terms must create a new snapshot.');
         Assert.IsFalse(Plan.Get(OldPlanID), 'The replaced draft header must be removed.');
         PlanLine.SetRange("Plan ID", OldPlanID);
@@ -106,13 +121,18 @@ codeunit 134492 "ERM Installment Draft"
         PlanLine: Record "Installment Plan Line";
         OldPlanID: Guid;
     begin
+        // [FEATURE] [Installments] [Draft]
+        // [SCENARIO] Switching to ordinary payment terms removes the invoice's draft installment plan.
+        // [GIVEN] An installment invoice and payment terms without installment rules.
         CreateInvoiceWithPlan(SalesHeader, PaymentTerms);
         OldPlanID := SalesHeader."Installment Plan ID";
         LibraryERM.CreatePaymentTerms(OrdinaryTerms);
 
+        // [WHEN] The ordinary payment terms are selected on the invoice.
         SalesHeader.Validate("Payment Terms Code", OrdinaryTerms.Code);
         SalesHeader.Modify(true);
 
+        // [THEN] The plan link, owned draft header, and draft lines are removed.
         Assert.IsTrue(IsNullGuid(SalesHeader."Installment Plan ID"), 'Ordinary terms must remove the plan link.');
         Assert.IsFalse(Plan.Get(OldPlanID), 'The unused draft plan must be removed.');
         PlanLine.SetRange("Plan ID", OldPlanID);
@@ -126,15 +146,20 @@ codeunit 134492 "ERM Installment Draft"
         PaymentTerms: Record "Payment Terms";
         OrdinaryTerms: Record "Payment Terms";
     begin
+        // [FEATURE] [Installments] [Draft]
+        // [SCENARIO] Adding reusable installment rules does not implicitly activate an existing ordinary invoice.
+        // [GIVEN] An invoice using ordinary terms to which installment rules are subsequently added.
         CreateInvoiceWithPlan(SalesHeader, PaymentTerms);
         LibraryERM.CreatePaymentTerms(OrdinaryTerms);
         SalesHeader.Validate("Payment Terms Code", OrdinaryTerms.Code);
         SalesHeader.Modify(true);
         CreateRuleLines(OrdinaryTerms.Code);
 
+        // [WHEN] The existing invoice's document date is revalidated.
         SalesHeader.Validate("Document Date", CalcDate('<1D>', SalesHeader."Document Date"));
         SalesHeader.Modify(true);
 
+        // [THEN] The invoice remains without a plan and retains native payment-term due-date calculation.
         Assert.IsTrue(IsNullGuid(SalesHeader."Installment Plan ID"), 'Adding reusable setup must not implicitly activate an existing ordinary invoice.');
         Assert.AreEqual(
             CalcDate(OrdinaryTerms."Due Date Calculation", SalesHeader."Document Date"), SalesHeader."Due Date",
@@ -151,6 +176,9 @@ codeunit 134492 "ERM Installment Draft"
         Plan: Record "Installment Plan";
         OldPlanID: Guid;
     begin
+        // [FEATURE] [Installments] [Draft]
+        // [SCENARIO] Changing the bill-to customer applies that customer's ordinary terms and removes the old draft plan.
+        // [GIVEN] An installment invoice and another customer using ordinary payment terms.
         CreateInvoiceWithPlan(SalesHeader, PaymentTerms);
         OldPlanID := SalesHeader."Installment Plan ID";
         LibraryERM.CreatePaymentTerms(OrdinaryTerms);
@@ -158,9 +186,11 @@ codeunit 134492 "ERM Installment Draft"
         Customer.Validate("Payment Terms Code", OrdinaryTerms.Code);
         Customer.Modify(true);
 
+        // [WHEN] The invoice's bill-to customer is changed.
         SalesHeader.Validate("Bill-to Customer No.", Customer."No.");
         SalesHeader.Modify(true);
 
+        // [THEN] The new customer's terms replace the old terms, and the old owned draft is removed.
         Assert.AreEqual(OrdinaryTerms.Code, SalesHeader."Payment Terms Code", 'Bill-to changes must use the new customer terms.');
         Assert.IsTrue(IsNullGuid(SalesHeader."Installment Plan ID"), 'An ordinary bill-to customer must remove the old global plan.');
         Assert.IsFalse(Plan.Get(OldPlanID), 'Bill-to changes must not leave the old owned draft.');
@@ -179,6 +209,9 @@ codeunit 134492 "ERM Installment Draft"
         CopyDocumentMgt: Codeunit "Copy Document Mgt.";
         ReplacedPlanID: Guid;
     begin
+        // [FEATURE] [Installments] [Draft]
+        // [SCENARIO] Copying and then deleting an invoice preserves the source's independently owned rule snapshot.
+        // [GIVEN] Source and target invoices with owned plans, and reusable source rules changed after snapshot creation.
         CreateInvoiceWithPlan(SourceHeader, PaymentTerms);
         CreateInvoiceWithPlan(TargetHeader, TargetTerms);
         ReplacedPlanID := TargetHeader."Installment Plan ID";
@@ -187,8 +220,10 @@ codeunit 134492 "ERM Installment Draft"
         Rule.Modify();
         CopyDocumentMgt.SetProperties(true, false, false, false, true, false, false);
 
+        // [WHEN] The source invoice is copied over the target invoice.
         CopyDocumentMgt.CopySalesDoc("Sales Document Type From"::Invoice, SourceHeader."No.", TargetHeader);
 
+        // [THEN] The target owns an independent copy of the source snapshot, and its previous plan is removed.
         TargetHeader.Get(TargetHeader."Document Type", TargetHeader."No.");
         Assert.AreNotEqual(SourceHeader."Installment Plan ID", TargetHeader."Installment Plan ID", 'Copied invoices must not share mutable plans.');
         Plan.Get(TargetHeader."Installment Plan ID");
@@ -197,8 +232,10 @@ codeunit 134492 "ERM Installment Draft"
         PlanLine.Get(TargetHeader."Installment Plan ID", 10000);
         Assert.AreEqual(50, PlanLine."Payment %", 'Copy Document must copy the source snapshot, not changed reusable setup.');
 
+        // [WHEN] The copied target invoice is subsequently deleted.
         TargetHeader.Delete(false);
 
+        // [THEN] The source invoice's plan still exists.
         Assert.IsTrue(Plan.Get(SourceHeader."Installment Plan ID"), 'Deleting a copy must not remove the source plan.');
     end;
 
@@ -209,20 +246,27 @@ codeunit 134492 "ERM Installment Draft"
         PaymentTerms: Record "Payment Terms";
         Plan: Record "Installment Plan";
     begin
+        // [FEATURE] [Installments] [Draft]
+        // [SCENARIO] Validating and then inserting a new invoice defers plan ownership until its SystemId is assigned.
+        // [GIVEN] Installment payment terms and a sales invoice header that has not been inserted.
         CreateRules(PaymentTerms);
         SalesHeader."Document Type" := SalesHeader."Document Type"::Invoice;
         SalesHeader."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesHeader."No."));
         SalesHeader."Document Date" := WorkDate();
         SalesHeader."Posting Date" := WorkDate();
 
+        // [WHEN] Installment payment terms are validated before the invoice is inserted.
         SalesHeader.Validate("Payment Terms Code", PaymentTerms.Code);
 
+        // [THEN] No orphan plan or premature ownership link is persisted.
         Plan.SetRange("Payment Terms Code", PaymentTerms.Code);
         Assert.IsTrue(Plan.IsEmpty(), 'Validation before insertion must not persist a plan.');
         Assert.IsTrue(IsNullGuid(SalesHeader."Installment Plan ID"), 'An unsaved invoice must not claim ownership of a plan.');
 
+        // [WHEN] The same invoice header is subsequently inserted.
         SalesHeader.Insert(false);
 
+        // [THEN] The new snapshot is owned by the invoice's assigned SystemId.
         Plan.Get(SalesHeader."Installment Plan ID");
         Assert.AreEqual(SalesHeader.SystemId, Plan."Source SystemId", 'Insertion must bind the snapshot to the assigned SystemId.');
     end;
@@ -236,11 +280,16 @@ codeunit 134492 "ERM Installment Draft"
         PlanLine: Record "Installment Plan Line";
         PlanID: Guid;
     begin
+        // [FEATURE] [Installments] [Draft]
+        // [SCENARIO] Deleting an invoice without its table trigger still removes its owned draft plan.
+        // [GIVEN] An invoice with an owned installment plan.
         CreateInvoiceWithPlan(SalesHeader, PaymentTerms);
         PlanID := SalesHeader."Installment Plan ID";
 
+        // [WHEN] The invoice is deleted with RunTrigger set to false.
         SalesHeader.Delete(false);
 
+        // [THEN] Neither the draft header nor its lines remain.
         Assert.IsFalse(Plan.Get(PlanID), 'Deletion must remove the draft even when RunTrigger is false.');
         PlanLine.SetRange("Plan ID", PlanID);
         Assert.IsTrue(PlanLine.IsEmpty(), 'Deletion must not leave draft lines.');
@@ -257,6 +306,9 @@ codeunit 134492 "ERM Installment Draft"
         SalesSetup: Record "Sales & Receivables Setup";
         DiscountByType: Codeunit "Sales - Calc Discount By Type";
     begin
+        // [FEATURE] [Installments] [Draft]
+        // [SCENARIO] Opening and reopening preview recalculates live invoice totals without persisting calculated amounts.
+        // [GIVEN] An installment invoice with VAT and an applied invoice discount, with automatic discounting and rounding disabled.
         CreateInvoiceWithPlan(SalesHeader, PaymentTerms);
         SalesSetup.Get();
         SalesSetup."Invoice Rounding" := false;
@@ -268,18 +320,23 @@ codeunit 134492 "ERM Installment Draft"
         SalesLine.Modify(true);
         DiscountByType.ApplyInvDiscBasedOnAmt(10, SalesHeader);
 
+        // [WHEN] The installment schedule is previewed.
         SalesInstallmentMgt.CalculatePreview(SalesHeader, TempPlanLine);
 
+        // [THEN] The preview reconciles to the current VAT-inclusive discounted total in document currency and LCY.
         SalesHeader.CalcFields("Amount Including VAT");
         TempPlanLine.CalcSums(Amount, "Amount (LCY)");
         Assert.AreEqual(SalesHeader."Amount Including VAT", TempPlanLine.Amount, 'Preview must include current VAT and invoice discounts.');
         Assert.AreEqual(TempPlanLine.Amount, TempPlanLine."Amount (LCY)", 'LCY documents must reconcile in both columns.');
+        // [GIVEN] The invoice quantity is subsequently increased.
         SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
         SalesLine.Validate(Quantity, 3);
         SalesLine.Modify(true);
 
+        // [WHEN] The schedule is previewed again.
         SalesInstallmentMgt.CalculatePreview(SalesHeader, TempPlanLine);
 
+        // [THEN] The preview uses the changed total, and no calculated monetary amounts are stored on draft lines.
         SalesHeader.CalcFields("Amount Including VAT");
         TempPlanLine.CalcSums(Amount);
         Assert.AreEqual(SalesHeader."Amount Including VAT", TempPlanLine.Amount, 'Reopening preview must use changed line totals.');
@@ -294,10 +351,15 @@ codeunit 134492 "ERM Installment Draft"
         SalesHeader: Record "Sales Header";
         PaymentTerms: Record "Payment Terms";
     begin
+        // [FEATURE] [Installments] [Draft]
+        // [SCENARIO] The invoice header due date cannot override the installment schedule's first due date.
+        // [GIVEN] An invoice with an owned installment plan.
         CreateInvoiceWithPlan(SalesHeader, PaymentTerms);
 
+        // [WHEN] The header due date is changed independently of the schedule.
         asserterror SalesHeader.Validate("Due Date", CalcDate('<1D>', SalesHeader."Due Date"));
 
+        // [THEN] Validation rejects the change because the header date is only the first installment summary.
         Assert.ExpectedError('first installment summary');
     end;
 
@@ -307,10 +369,15 @@ codeunit 134492 "ERM Installment Draft"
         SalesHeader: Record "Sales Header";
         PaymentTerms: Record "Payment Terms";
     begin
+        // [FEATURE] [Installments] [Draft]
+        // [SCENARIO] Header payment discount conditions cannot override installment-level conditions.
+        // [GIVEN] An invoice with an owned installment plan.
         CreateInvoiceWithPlan(SalesHeader, PaymentTerms);
 
+        // [WHEN] A header payment discount date is entered.
         asserterror SalesHeader.Validate("Pmt. Discount Date", SalesHeader."Document Date");
 
+        // [THEN] Validation rejects the nonzero header payment discount condition.
         Assert.ExpectedError('header payment discount conditions must be zero');
     end;
 
@@ -323,6 +390,9 @@ codeunit 134492 "ERM Installment Draft"
         PaymentTerms: Record "Payment Terms";
         ScheduleErrorInfo: ErrorInfo;
     begin
+        // [FEATURE] [Installments] [Draft]
+        // [SCENARIO] The header-condition error action opens the saved invoice's calculated installment schedule.
+        // [GIVEN] An installment invoice with a priced line and error context identifying that invoice.
         CreateInvoiceWithPlan(SalesHeader, PaymentTerms);
         LibrarySales.CreateSalesLine(
             SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 2);
@@ -333,7 +403,9 @@ codeunit 134492 "ERM Installment Draft"
         ExpectedScheduleAmount := SalesHeader."Amount Including VAT" / 2;
         ScheduleErrorInfo.RecordId(SalesHeader.RecordId());
 
+        // [WHEN] The error's schedule action is invoked.
         SalesInstallmentMgt.ShowScheduleFromError(ScheduleErrorInfo);
+        // [THEN] The page handler verifies the invoice number, both calculated amounts, and that no other installments appear.
     end;
 
     [PageHandler]

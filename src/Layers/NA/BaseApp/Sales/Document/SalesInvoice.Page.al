@@ -2131,6 +2131,7 @@ page 43 "Sales Invoice"
         CheckShowBackgrValidationNotification();
         RejectICSalesInvoiceEnabled := ICInboxOutboxMgt.IsSalesHeaderFromIncomingIC(Rec);
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
+        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
 
         SalesTaxStatisticsVisible := Rec."Tax Area Code" <> '';
     end;

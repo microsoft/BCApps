@@ -95,13 +95,13 @@ codeunit 8843 "Sales Installment History"
         Page.Run(Page::"Posted Installment Schedule", PlanLine);
     end;
 
-    procedure CheckPaymentService(PlanID: Guid)
+    internal procedure CheckPaymentService(PlanID: Guid)
     begin
         if not IsNullGuid(PlanID) then
             Error(PaymentServiceErr);
     end;
 
-    procedure CheckLatePosting(SalesInvoiceHeader: Record "Sales Invoice Header")
+    internal procedure CheckLatePosting(SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
         if not IsNullGuid(SalesInvoiceHeader."Installment Plan ID") then
             Error(LatePostingErr);

@@ -57,7 +57,7 @@ page 8840 "Payment Term Installments"
             action(ValidateRules)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Validate Rules';
+                Caption = 'Validate rules';
                 Image = Check;
                 ToolTip = 'Check that the installment rules form a complete allocation and contain the required date formulas. Calculated dates and amounts are checked when calculating a schedule.';
 

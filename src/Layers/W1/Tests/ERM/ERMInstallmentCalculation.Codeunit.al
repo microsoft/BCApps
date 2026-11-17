@@ -81,12 +81,12 @@ codeunit 134491 "ERM Installment Calculation"
     end;
 
     [Test]
-    procedure UsesWholeUnitAndThreeDecimalPrecisions()
+    procedure UsesWholeUnitDocumentCurrencyAndThreeDecimalLCYPrecisions()
     var
         TempPlanLine: Record "Installment Plan Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
-        // [SCENARIO] Each currency uses its own whole-unit or three-decimal rounding precision.
+        // [SCENARIO] Document currency uses whole-unit precision independently of three-decimal LCY precision.
         // [GIVEN] Two equal percentage rules.
         AddPercentageRule(TempPlanLine, 10000, 50, '<30D>');
         AddPercentageRule(TempPlanLine, 20000, 50, '<60D>');
@@ -96,10 +96,22 @@ codeunit 134491 "ERM Installment Calculation"
         // [THEN] Each currency is rounded to its own precision and the final line balances the total.
         AssertLine(TempPlanLine, 10000, 51, 0.501, DMY2Date(31, 1, 2026));
         AssertLine(TempPlanLine, 20000, 50, 0.5, DMY2Date(2, 3, 2026));
+    end;
 
-        // [WHEN] The currencies' rounding precisions are reversed.
+    [Test]
+    procedure UsesThreeDecimalDocumentCurrencyAndWholeUnitLCYPrecisions()
+    var
+        TempPlanLine: Record "Installment Plan Line" temporary;
+    begin
+        // [FEATURE] [Installments] [Calculation]
+        // [SCENARIO] Document currency uses three-decimal precision independently of whole-unit LCY precision.
+        // [GIVEN] Two equal percentage rules.
+        AddPercentageRule(TempPlanLine, 10000, 50, '<30D>');
+        AddPercentageRule(TempPlanLine, 20000, 50, '<60D>');
+
+        // [WHEN] Document currency uses three decimal places and LCY uses whole units.
         Calculate(TempPlanLine, 1.001, 101, 0.001, 1);
-        // [THEN] Each currency still follows its own precision.
+        // [THEN] Each currency is rounded to its own precision and the final line balances the total.
         AssertLine(TempPlanLine, 10000, 0.501, 51, DMY2Date(31, 1, 2026));
         AssertLine(TempPlanLine, 20000, 0.5, 50, DMY2Date(2, 3, 2026));
     end;
@@ -124,7 +136,7 @@ codeunit 134491 "ERM Installment Calculation"
             TempPlanLine, DMY2Date(1, 1, 2026), DMY2Date(16, 1, 2026), 100, 100, 0.01, 0.01, GracePeriod);
 
         // [THEN] Discount dates use the document date and both line-specific discounts remain eligible.
-        TempPlanLine.FindFirst();
+        TempPlanLine.FindSet();
         Assert.AreEqual(DMY2Date(11, 1, 2026), TempPlanLine."Pmt. Discount Date", 'Discount date must use the document date.');
         Assert.AreEqual(1, TempPlanLine."Original Pmt. Disc. Possible", 'The last grace day must remain eligible.');
         TempPlanLine.Next();
@@ -135,7 +147,7 @@ codeunit 134491 "ERM Installment Calculation"
             TempPlanLine, DMY2Date(1, 1, 2026), DMY2Date(17, 1, 2026), 100, 100, 0.01, 0.01, GracePeriod);
 
         // [THEN] The expired discount is cleared while the later discount remains eligible.
-        TempPlanLine.FindFirst();
+        TempPlanLine.FindSet();
         Assert.AreEqual(0, TempPlanLine."Original Pmt. Disc. Possible", 'Expired eligibility must be cleared on recalculation.');
         TempPlanLine.Next();
         Assert.AreEqual(0.5, TempPlanLine."Original Pmt. Disc. Possible", 'Later discount eligibility must be retained.');
@@ -158,7 +170,7 @@ codeunit 134491 "ERM Installment Calculation"
         Calculate(TempPlanLine, 100, 0.01, 0.01, 0.01);
 
         // [THEN] Only the installment with a nonzero LCY allocation has a possible discount.
-        TempPlanLine.FindFirst();
+        TempPlanLine.FindSet();
         Assert.AreEqual(0.01, TempPlanLine."Amount (LCY)", 'LCY must be allocated independently.');
         Assert.AreEqual(1, TempPlanLine."Original Pmt. Disc. Possible", 'A nonzero LCY allocation can be eligible.');
         TempPlanLine.Next();

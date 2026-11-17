@@ -133,6 +133,9 @@ table 8841 "Installment Plan Line"
         key(Installment; "Plan ID", "Installment No.")
         {
         }
+        key(CustLedgerEntry; "Plan ID", "Cust. Ledger Entry No.")
+        {
+        }
     }
 
     internal procedure CopyFromPaymentTermInstallment(PaymentTermInstallment: Record "Payment Term Installment")

@@ -98,7 +98,7 @@ page 8841 "Sales Installment Schedule"
         SourceDocumentNo: Code[20];
         DocumentCurrencyCode: Code[10];
 
-    procedure SetSchedule(SalesHeader: Record "Sales Header"; var TempPlanLine: Record "Installment Plan Line" temporary)
+    internal procedure SetSchedule(SalesHeader: Record "Sales Header"; var TempPlanLine: Record "Installment Plan Line" temporary)
     begin
         Rec.Copy(TempPlanLine, true);
         Rec.Reset();

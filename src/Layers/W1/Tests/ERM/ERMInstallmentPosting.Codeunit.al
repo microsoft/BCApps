@@ -847,7 +847,7 @@ codeunit 134493 "ERM Installment Posting"
         asserterror PostLateGenJournalLines.Run();
 
         Assert.ExpectedError('Late journal posting is not supported for global installment invoices');
-        GenJournalLine.Find();
+        GenJournalLine.Get(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", GenJournalLine."Line No.");
         Assert.AreEqual('', GenJournalLine."Applies-to Doc. No.", 'The guard must run before setting journal application fields.');
         VerifyInvoiceBalance(SalesInvoiceHeader, 125, false);
     end;
