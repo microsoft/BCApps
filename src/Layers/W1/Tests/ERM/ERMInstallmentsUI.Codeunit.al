@@ -1,0 +1,57 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.PaymentTerms;
+
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+
+codeunit 134494 "ERM Installments UI"
+{
+    Subtype = Test;
+    TestPermissions = NonRestrictive;
+
+    var
+        Assert: Codeunit Assert;
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryInstallments: Codeunit "Library - ERM Installments";
+        SalesInstallmentHistory: Codeunit "Sales Installment History";
+
+    [Test]
+    procedure PostedScheduleShowsOriginalRulesAndCurrentEntryBalances()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PlanLine: Record "Installment Plan Line";
+        Rule: Record "Payment Term Installment";
+        PostedSchedule: TestPage "Posted Installment Schedule";
+    begin
+        // [FEATURE] [Installments] [UI]
+        // [SCENARIO] The posted schedule shows snapshotted rules and current installment balances as read-only.
+        // [GIVEN] A posted invoice with changed reusable rules and a partially paid final installment.
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        Rule.Get(SalesInvoiceHeader."Payment Terms Code", 30000);
+        Rule."Discount %" := 9;
+        Evaluate(Rule."Discount Date Calculation", '<10D>');
+        Rule.Modify(true);
+        LibraryInstallments.PayInstallment(SalesInvoiceHeader."Installment Plan ID", 3, 10);
+        PlanLine.SetRange("Plan ID", SalesInvoiceHeader."Installment Plan ID");
+        PlanLine.SetRange("Installment No.", 3);
+        PlanLine.FindFirst();
+        PostedSchedule.Trap();
+
+        // [WHEN] The posted installment schedule is opened.
+        SalesInstallmentHistory.ShowSchedule(SalesInvoiceHeader);
+
+        // [THEN] The page shows the original allocation and discount, the current balance, and a read-only amount.
+        PostedSchedule.GoToRecord(PlanLine);
+        PostedSchedule.Amount.AssertEquals(41.66);
+        PostedSchedule.RemainingAmount.AssertEquals(31.66);
+        PostedSchedule."Discount %".AssertEquals(0);
+        Assert.IsFalse(PostedSchedule.Amount.Editable(), 'The posted allocation must remain read-only.');
+        PostedSchedule.Close();
+    end;
+}

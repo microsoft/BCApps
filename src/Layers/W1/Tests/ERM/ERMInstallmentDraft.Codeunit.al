@@ -6,7 +6,6 @@ namespace Microsoft.Foundation.PaymentTerms;
 
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
-using Microsoft.Sales.Posting;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 
@@ -21,6 +20,8 @@ codeunit 134492 "ERM Installment Draft"
         LibrarySales: Codeunit "Library - Sales";
         LibraryUtility: Codeunit "Library - Utility";
         SalesInstallmentMgt: Codeunit "Sales Installment Mgt.";
+        ExpectedScheduleInvoiceNo: Code[20];
+        ExpectedScheduleAmount: Decimal;
 
     [Test]
     procedure SelectingTermsCreatesOwnedRuleSnapshot()
@@ -314,18 +315,36 @@ codeunit 134492 "ERM Installment Draft"
     end;
 
     [Test]
-    procedure InstallmentInvoiceCannotApplyDuringPosting()
+    [HandlerFunctions('InstallmentScheduleHandler')]
+    procedure HeaderConditionErrorActionOpensTheSavedInvoiceSchedule()
     var
         SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
         PaymentTerms: Record "Payment Terms";
-        SalesPost: Codeunit "Sales-Post";
+        ScheduleErrorInfo: ErrorInfo;
     begin
         CreateInvoiceWithPlan(SalesHeader, PaymentTerms);
-        SalesHeader."Applies-to ID" := 'INSTALLMENT';
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 2);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Modify(true);
+        SalesHeader.CalcFields("Amount Including VAT");
+        ExpectedScheduleInvoiceNo := SalesHeader."No.";
+        ExpectedScheduleAmount := SalesHeader."Amount Including VAT" / 2;
+        ScheduleErrorInfo.RecordId(SalesHeader.RecordId());
 
-        asserterror SalesPost.Run(SalesHeader);
+        SalesInstallmentMgt.ShowScheduleFromError(ScheduleErrorInfo);
+    end;
 
-        Assert.ExpectedError('Applies-to ID');
+    [PageHandler]
+    procedure InstallmentScheduleHandler(var SalesInstallmentSchedule: TestPage "Sales Installment Schedule")
+    begin
+        SalesInstallmentSchedule.SourceDocumentNo.AssertEquals(ExpectedScheduleInvoiceNo);
+        Assert.IsTrue(SalesInstallmentSchedule.First(), 'The action must open the calculated schedule.');
+        SalesInstallmentSchedule.Amount.AssertEquals(ExpectedScheduleAmount);
+        Assert.IsTrue(SalesInstallmentSchedule.Next(), 'Both installments must be shown.');
+        SalesInstallmentSchedule.Amount.AssertEquals(ExpectedScheduleAmount);
+        Assert.IsFalse(SalesInstallmentSchedule.Next(), 'The schedule must contain only this invoice''s installments.');
     end;
 
     local procedure CreateInvoiceWithPlan(var SalesHeader: Record "Sales Header"; var PaymentTerms: Record "Payment Terms")

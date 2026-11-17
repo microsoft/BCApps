@@ -20,6 +20,7 @@ codeunit 8843 "Sales Installment History"
         PaymentServiceErr: Label 'Payment services are not supported for global installment invoices.';
         AutomaticApplicationErr: Label 'Use Applies-to ID to select installment entries. Automatic Apply to Oldest is not supported for global installments.';
         LatePostingErr: Label 'Late journal posting is not supported for global installment invoices.';
+        IncompleteBackfillMsg: Label 'Installment invoice grouping could not be completed because a posted invoice or customer ledger anchor is missing or inconsistent. The upgrade tag was not set.', Locked = true;
 
     internal procedure SetInvoiceGroup(PlanID: Guid; InvoiceEntryNo: Integer)
     var
@@ -43,33 +44,41 @@ codeunit 8843 "Sales Installment History"
             until CustLedgerEntry.Next() = 0;
     end;
 
-    internal procedure BackfillInvoiceGroups()
+    internal procedure BackfillInvoiceGroups() Complete: Boolean
     var
-        CustLedgerEntry: Record "Cust. Ledger Entry";
-        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         Plan: Record "Installment Plan";
-        SalesInvoiceHeader: Record "Sales Invoice Header";
     begin
-        // Detailed balances must be ready before customer-entry changes refresh API status.
-        DetailedCustLedgEntry.SetRange("Invoice Entry No.", 0);
-        if DetailedCustLedgEntry.FindSet(true) then
-            repeat
-                DetailedCustLedgEntry."Invoice Entry No." := DetailedCustLedgEntry."Cust. Ledger Entry No.";
-                DetailedCustLedgEntry.Modify();
-            until DetailedCustLedgEntry.Next() = 0;
-        CustLedgerEntry.SetRange("Invoice Entry No.", 0);
-        if CustLedgerEntry.FindSet(true) then
-            repeat
-                CustLedgerEntry."Invoice Entry No." := CustLedgerEntry."Entry No.";
-                CustLedgerEntry.Modify();
-            until CustLedgerEntry.Next() = 0;
+        Complete := true;
         Plan.SetRange(Status, Plan.Status::Posted);
         if Plan.FindSet() then
             repeat
-                SalesInvoiceHeader.Get(Plan."Posted Invoice No.");
-                SalesInvoiceHeader.TestField(SystemId, Plan."Posted Invoice SystemId");
-                SetInvoiceGroup(Plan.ID, SalesInvoiceHeader."Cust. Ledger Entry No.");
+                if not BackfillInvoiceGroup(Plan) then
+                    Complete := false;
             until Plan.Next() = 0;
+        if not Complete then
+            Session.LogMessage('InstallmentGroupBackfillIncomplete', IncompleteBackfillMsg, Verbosity::Warning,
+                DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL SaaS Upgrade');
+    end;
+
+    local procedure BackfillInvoiceGroup(Plan: Record "Installment Plan"): Boolean
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        AnchorEntry: Record "Cust. Ledger Entry";
+    begin
+        if IsNullGuid(Plan.ID) then
+            exit(false);
+        if not SalesInvoiceHeader.Get(Plan."Posted Invoice No.") then
+            exit(false);
+        if (SalesInvoiceHeader.SystemId <> Plan."Posted Invoice SystemId") or
+           (SalesInvoiceHeader."Installment Plan ID" <> Plan.ID)
+        then
+            exit(false);
+        if not AnchorEntry.Get(SalesInvoiceHeader."Cust. Ledger Entry No.") then
+            exit(false);
+        if AnchorEntry."Installment Plan ID" <> Plan.ID then
+            exit(false);
+        SetInvoiceGroup(Plan.ID, AnchorEntry."Entry No.");
+        exit(true);
     end;
 
     procedure ShowSchedule(SalesInvoiceHeader: Record "Sales Invoice Header")
@@ -113,6 +122,12 @@ codeunit 8843 "Sales Installment History"
         if Rec.IsTemporary() then
             exit;
         Rec."Invoice Entry No." := Rec."Cust. Ledger Entry No.";
+        // Initial entries are grouped when installment posting completes.
+        if (Rec."Entry Type" = Rec."Entry Type"::"Initial Entry") or
+           (Rec."Initial Document Type" <> Rec."Initial Document Type"::Invoice)
+        then
+            exit;
+        CustLedgerEntry.SetLoadFields("Invoice Entry No.");
         if CustLedgerEntry.Get(Rec."Cust. Ledger Entry No.") then
             if CustLedgerEntry."Invoice Entry No." <> 0 then
                 Rec."Invoice Entry No." := CustLedgerEntry."Invoice Entry No.";

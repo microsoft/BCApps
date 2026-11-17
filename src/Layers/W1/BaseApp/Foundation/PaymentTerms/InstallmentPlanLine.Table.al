@@ -135,7 +135,7 @@ table 8841 "Installment Plan Line"
         }
     }
 
-    procedure CopyFromPaymentTermInstallment(PaymentTermInstallment: Record "Payment Term Installment")
+    internal procedure CopyFromPaymentTermInstallment(PaymentTermInstallment: Record "Payment Term Installment")
     begin
         "Line No." := PaymentTermInstallment."Line No.";
         "Allocation Type" := PaymentTermInstallment."Allocation Type";
@@ -146,7 +146,7 @@ table 8841 "Installment Plan Line"
         Description := PaymentTermInstallment.Description;
     end;
 
-    procedure CopyRulesFromPlanLine(PlanLine: Record "Installment Plan Line")
+    internal procedure CopyRulesFromPlanLine(PlanLine: Record "Installment Plan Line")
     begin
         "Line No." := PlanLine."Line No.";
         "Allocation Type" := PlanLine."Allocation Type";

@@ -22,6 +22,7 @@ codeunit 8841 "Sales Installment Mgt."
         TemporaryResultErr: Label 'Installment preview requires a temporary plan line record.';
         EmptyPlanErr: Label 'The installment rule snapshot is empty.';
         HeaderConditionsErr: Label 'The due date is the first installment summary, and header payment discount conditions must be zero. Use the Installment Schedule to view the conditions.';
+        ViewScheduleLbl: Label 'View Installment Schedule';
         PlanLinkErr: Label 'The installment plan must belong to this invoice and match its payment terms. Change the payment terms to replace or remove the plan.';
         DiscountPolicyErr: Label 'Installment preview with payment discounts does not yet support Pmt. Disc. Excl. VAT or Adjust for Payment Disc. in General Ledger Setup.';
 
@@ -33,6 +34,17 @@ codeunit 8841 "Sales Installment Mgt."
         CalculatePreview(SalesHeader, TempPlanLine);
         Schedule.SetSchedule(SalesHeader, TempPlanLine);
         Schedule.Run();
+    end;
+
+    procedure ShowScheduleFromError(ErrorInfo: ErrorInfo)
+    var
+        SalesHeader: Record "Sales Header";
+        SalesHeaderRef: RecordRef;
+    begin
+        SalesHeaderRef := ErrorInfo.RecordId.GetRecord();
+        SalesHeaderRef.SetTable(SalesHeader);
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        ShowSchedule(SalesHeader);
     end;
 
     procedure CalculatePreview(var SalesHeader: Record "Sales Header"; var TempPlanLine: Record "Installment Plan Line" temporary)
@@ -207,7 +219,17 @@ codeunit 8841 "Sales Installment Mgt."
         if (SalesHeader."Due Date" <> DueDate) or (SalesHeader."Payment Discount %" <> 0) or
            (SalesHeader."Pmt. Discount Date" <> 0D) or (SalesHeader."VAT Base Discount %" <> 0)
         then
-            Error(HeaderConditionsErr);
+            RaiseHeaderConditionsError(SalesHeader);
+    end;
+
+    local procedure RaiseHeaderConditionsError(SalesHeader: Record "Sales Header")
+    var
+        HeaderConditionsErrorInfo: ErrorInfo;
+    begin
+        HeaderConditionsErrorInfo := ErrorInfo.Create(HeaderConditionsErr);
+        HeaderConditionsErrorInfo.RecordId(SalesHeader.RecordId());
+        HeaderConditionsErrorInfo.AddAction(ViewScheduleLbl, Codeunit::"Sales Installment Mgt.", 'ShowScheduleFromError');
+        Error(HeaderConditionsErrorInfo);
     end;
 
     local procedure GetOwnedDraft(SalesHeader: Record "Sales Header"; var Plan: Record "Installment Plan")
@@ -349,7 +371,7 @@ codeunit 8841 "Sales Installment Mgt."
         if SavedHeader."Installment Plan ID" <> Rec."Installment Plan ID" then
             DeleteOwnedDraft(SavedHeader);
         if (Rec."Payment Discount %" <> 0) or (Rec."Pmt. Discount Date" <> 0D) or (Rec."VAT Base Discount %" <> 0) then
-            Error(HeaderConditionsErr);
+            RaiseHeaderConditionsError(Rec);
         if SavedHeader."Document Date" <> Rec."Document Date" then begin
             LoadRules(Plan.ID, TempPlanLine);
             SetHeaderSummary(Rec, TempPlanLine);

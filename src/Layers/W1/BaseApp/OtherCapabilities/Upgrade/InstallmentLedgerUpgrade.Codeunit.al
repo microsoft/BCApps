@@ -27,7 +27,28 @@ codeunit 8844 "Installment Ledger Upgrade"
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetInstallmentInvoiceGroupUpgradeTag()) then
             exit;
-        SalesInstallmentHistory.BackfillInvoiceGroups();
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetInstallmentInvoiceGroupUpgradeTag());
+        InitializeInvoiceGroups();
+        if SalesInstallmentHistory.BackfillInvoiceGroups() then
+            UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetInstallmentInvoiceGroupUpgradeTag());
+    end;
+
+    local procedure InitializeInvoiceGroups()
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        DetailedEntryDataTransfer: DataTransfer;
+        CustomerEntryDataTransfer: DataTransfer;
+    begin
+        DetailedEntryDataTransfer.SetTables(Database::"Detailed Cust. Ledg. Entry", Database::"Detailed Cust. Ledg. Entry");
+        DetailedEntryDataTransfer.AddSourceFilter(DetailedCustLedgEntry.FieldNo("Invoice Entry No."), '=%1', 0);
+        DetailedEntryDataTransfer.AddFieldValue(DetailedCustLedgEntry.FieldNo("Cust. Ledger Entry No."), DetailedCustLedgEntry.FieldNo("Invoice Entry No."));
+        DetailedEntryDataTransfer.UpdateAuditFields := false;
+        DetailedEntryDataTransfer.CopyFields();
+
+        CustomerEntryDataTransfer.SetTables(Database::"Cust. Ledger Entry", Database::"Cust. Ledger Entry");
+        CustomerEntryDataTransfer.AddSourceFilter(CustLedgerEntry.FieldNo("Invoice Entry No."), '=%1', 0);
+        CustomerEntryDataTransfer.AddFieldValue(CustLedgerEntry.FieldNo("Entry No."), CustLedgerEntry.FieldNo("Invoice Entry No."));
+        CustomerEntryDataTransfer.UpdateAuditFields := false;
+        CustomerEntryDataTransfer.CopyFields();
     end;
 }

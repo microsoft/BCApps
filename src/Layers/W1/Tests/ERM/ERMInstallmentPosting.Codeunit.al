@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
-using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Setup;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -12,15 +11,12 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
-using Microsoft.Finance.VAT.Setup;
-using Microsoft.Foundation.Enums;
 using Microsoft.Integration.Entity;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
-using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 
 codeunit 134493 "ERM Installment Posting"
@@ -34,6 +30,7 @@ codeunit 134493 "ERM Installment Posting"
         LibraryERM: Codeunit "Library - ERM";
         LibrarySales: Codeunit "Library - Sales";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryInstallments: Codeunit "Library - ERM Installments";
         InstallmentPosting: Codeunit "Installment Posting";
         SalesInstallmentHistory: Codeunit "Sales Installment History";
         FailureSequence: Integer;
@@ -56,7 +53,7 @@ codeunit 134493 "ERM Installment Posting"
         LibraryDimension: Codeunit "Library - Dimension";
         SalesInstallmentMgt: Codeunit "Sales Installment Mgt.";
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         LibraryDimension.CreateDimWithDimValue(DimensionValue);
         SalesHeader.Validate(
             "Dimension Set ID", LibraryDimension.CreateDimSet(0, DimensionValue."Dimension Code", DimensionValue.Code));
@@ -110,7 +107,7 @@ codeunit 134493 "ERM Installment Posting"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         CurrencyFactor: Decimal;
     begin
-        CreateInvoice(SalesHeader, SalesLine, LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 0.3, 0.3));
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 0.3, 0.3));
         SalesLine.Validate("Unit Price", 100.03);
         SalesLine.Modify(true);
         Plan.Get(SalesHeader."Installment Plan ID");
@@ -133,7 +130,7 @@ codeunit 134493 "ERM Installment Posting"
     end;
 
     [Test]
-    procedure PostingRecalculatesToleranceCapsPerEntryAndHonorsCustomerBlock()
+    procedure PostingRecalculatesToleranceCapsPerEntry()
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -143,7 +140,10 @@ codeunit 134493 "ERM Installment Posting"
         Customer: Record Customer;
         GLSetup: Record "General Ledger Setup";
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        // [FEATURE] [Installments] [Posting]
+        // [SCENARIO] Payment tolerance caps and discount grace dates are calculated per installment.
+        // [GIVEN] An unblocked customer and installments with different amounts and nonzero tolerance settings.
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         GLSetup.Get();
         GLSetup."Payment Tolerance %" := 2;
         GLSetup."Max. Payment Tolerance Amount" := 0.5;
@@ -159,8 +159,10 @@ codeunit 134493 "ERM Installment Posting"
         PlanLine."Payment %" := 20;
         PlanLine.Modify(true);
 
+        // [WHEN] The installment invoice is posted.
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
+        // [THEN] Each entry has its own percentage-based tolerance, capped amount, and discount grace date.
         VerifyPostedSchedule(SalesInvoiceHeader, SalesInvoiceHeader."Installment Plan ID");
         CustLedgerEntry.SetRange("Installment Plan ID", SalesInvoiceHeader."Installment Plan ID");
         CustLedgerEntry.FindSet();
@@ -176,14 +178,35 @@ codeunit 134493 "ERM Installment Posting"
                     CalcDate(GLSetup."Payment Discount Grace Period", CustLedgerEntry."Pmt. Discount Date"),
                     CustLedgerEntry."Pmt. Disc. Tolerance Date", 'Each installment must retain its own grace-period date.');
         until CustLedgerEntry.Next() = 0;
+    end;
 
-        CreateInvoice(SalesHeader, SalesLine, '');
+    [Test]
+    procedure PostingHonorsCustomerPaymentToleranceBlock()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Customer: Record Customer;
+        GLSetup: Record "General Ledger Setup";
+    begin
+        // [FEATURE] [Installments] [Posting]
+        // [SCENARIO] A customer payment tolerance block suppresses tolerance on every installment.
+        // [GIVEN] An installment invoice with nonzero tolerance settings and a customer blocking payment tolerance.
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
+        GLSetup.Get();
+        GLSetup."Payment Tolerance %" := 2;
+        GLSetup."Max. Payment Tolerance Amount" := 0.5;
+        Evaluate(GLSetup."Payment Discount Grace Period", '<5D>');
+        GLSetup.Modify();
         Customer.Get(SalesHeader."Bill-to Customer No.");
         Customer."Block Payment Tolerance" := true;
         Customer.Modify(true);
 
+        // [WHEN] The installment invoice is posted.
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
+        // [THEN] All installment entries have zero payment tolerance and no discount tolerance date.
         VerifyPostedSchedule(SalesInvoiceHeader, SalesInvoiceHeader."Installment Plan ID");
         CustLedgerEntry.SetRange("Installment Plan ID", SalesInvoiceHeader."Installment Plan ID");
         CustLedgerEntry.FindSet();
@@ -199,8 +222,8 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalLine: Record "Gen. Journal Line";
         TempPlanLine: Record "Installment Plan Line" temporary;
     begin
-        Initialize();
-        CreateTemporaryRules(TempPlanLine);
+        LibraryInstallments.Initialize();
+        LibraryInstallments.CreateTemporaryRules(TempPlanLine);
         GenJournalLine."Document Date" := WorkDate();
         GenJournalLine."Posting Date" := WorkDate();
         GenJournalLine.Amount := 100.01;
@@ -232,8 +255,8 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalLine: Record "Gen. Journal Line";
         TempPlanLine: Record "Installment Plan Line" temporary;
     begin
-        Initialize();
-        CreateTemporaryRules(TempPlanLine);
+        LibraryInstallments.Initialize();
+        LibraryInstallments.CreateTemporaryRules(TempPlanLine);
         GenJournalLine."Document Date" := WorkDate();
         GenJournalLine."Posting Date" := WorkDate();
         GenJournalLine.Amount := 100;
@@ -259,7 +282,7 @@ codeunit 134493 "ERM Installment Posting"
         PlanID: Guid;
         PostingNo: Code[20];
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         PreparePostingAttempt(SalesHeader);
         PlanID := SalesHeader."Installment Plan ID";
         PostingNo := SalesHeader."Posting No.";
@@ -294,7 +317,7 @@ codeunit 134493 "ERM Installment Posting"
         PlanID: Guid;
         PostingNo: Code[20];
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         PreparePostingAttempt(SalesHeader);
         PlanID := SalesHeader."Installment Plan ID";
         PostingNo := SalesHeader."Posting No.";
@@ -316,16 +339,15 @@ codeunit 134493 "ERM Installment Posting"
         OriginalRule: Record "Payment Term Installment";
         Rule: Record "Payment Term Installment";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesPost: Codeunit "Sales-Post";
         PostedNo: Code[20];
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         PreparePostingAttempt(SalesHeader);
         SalesPost.SetSuppressCommit(true);
         SalesPost.Run(SalesHeader);
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         OriginalRule.SetRange("Payment Terms Code", SalesHeader."Payment Terms Code");
         LibraryERM.CreatePaymentTerms(PaymentTerms);
         SalesHeader.Validate("Payment Terms Code", PaymentTerms.Code);
@@ -347,15 +369,6 @@ codeunit 134493 "ERM Installment Posting"
         CustLedgerEntry.FindFirst();
         Assert.IsTrue(IsNullGuid(CustLedgerEntry."Installment Plan ID"), 'No installment context may leak into an ordinary invoice.');
         Assert.AreEqual(CustLedgerEntry."Entry No.", CustLedgerEntry."Invoice Entry No.", 'An ordinary entry must identify only itself.');
-        CustLedgerEntry."Invoice Entry No." := 0;
-        CustLedgerEntry.Modify();
-        DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
-        DetailedCustLedgEntry.ModifyAll("Invoice Entry No.", 0);
-
-        SalesInstallmentHistory.BackfillInvoiceGroups();
-
-        CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
-        Assert.AreEqual(CustLedgerEntry."Entry No.", CustLedgerEntry."Invoice Entry No.", 'Backfill must preserve the ordinary single-entry group.');
         SalesInvoiceHeader.Get(PostedNo);
         CustLedgerEntry.CalcFields("Remaining Amount");
         VerifyInvoiceBalance(SalesInvoiceHeader, CustLedgerEntry."Remaining Amount", false);
@@ -370,10 +383,10 @@ codeunit 134493 "ERM Installment Posting"
         PlanLine: Record "Installment Plan Line";
         PlanID: Guid;
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         PlanID := SalesHeader."Installment Plan ID";
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         Commit();
 
         Plan.Get(PlanID);
@@ -404,13 +417,13 @@ codeunit 134493 "ERM Installment Posting"
         SourcePlanID: Guid;
         PostedNo: Code[20];
     begin
-        CreateInvoice(SourceHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SourceHeader, SalesLine, '');
         SourcePlanID := SourceHeader."Installment Plan ID";
         Rule.Get(SourceHeader."Payment Terms Code", 10000);
         PostedNo := LibrarySales.PostSalesDocument(SourceHeader, true, true);
         Rule."Payment %" := 20;
         Rule.Modify();
-        CreateInvoice(TargetHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(TargetHeader, SalesLine, '');
         CopyDocumentMgt.SetProperties(true, false, false, false, true, false, false);
 
         CopyDocumentMgt.CopySalesDoc("Sales Document Type From"::"Posted Invoice", PostedNo, TargetHeader);
@@ -437,7 +450,7 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalLine: Record "Gen. Journal Line";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         GenJournalLine."Account Type" := GenJournalLine."Account Type"::Customer;
         GenJournalLine."Account No." := SalesHeader."Bill-to Customer No.";
         GenJournalLine."Document Type" := GenJournalLine."Document Type"::Invoice;
@@ -458,6 +471,28 @@ codeunit 134493 "ERM Installment Posting"
     end;
 
     [Test]
+    procedure InstallmentInvoiceCannotApplyDuringPosting()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesPost: Codeunit "Sales-Post";
+    begin
+        // [FEATURE] [Installments] [Posting]
+        // [SCENARIO] An installment invoice cannot apply customer entries during posting.
+        // [GIVEN] A complete installment invoice with a sales line and posting setup.
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
+        PreparePostingAttempt(SalesHeader);
+        SalesHeader."Applies-to ID" := 'INSTALLMENT';
+        SalesHeader.Modify(true);
+
+        // [WHEN] The invoice is posted with an Applies-to ID.
+        asserterror SalesPost.Run(SalesHeader);
+
+        // [THEN] Posting is rejected specifically because of the Applies-to ID.
+        Assert.ExpectedError('Applies-to ID');
+    end;
+
+    [Test]
     procedure InstallmentInvoiceCannotBeAppliedByDocumentNumber()
     var
         SalesHeader: Record "Sales Header";
@@ -467,7 +502,7 @@ codeunit 134493 "ERM Installment Posting"
         CustomerNo: Code[20];
         PostedNo: Code[20];
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         CustomerNo := SalesHeader."Bill-to Customer No.";
         PostedNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
         GenJournalLine."Account Type" := GenJournalLine."Account Type"::Customer;
@@ -494,7 +529,7 @@ codeunit 134493 "ERM Installment Posting"
         PlanID: Guid;
         ApplicationID: Code[50];
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         PlanID := SalesHeader."Installment Plan ID";
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
         CustLedgerEntry.SetRange("Installment Plan ID", PlanID);
@@ -537,7 +572,7 @@ codeunit 134493 "ERM Installment Posting"
     begin
         BindSubscription(APIMockEvents);
         APIMockEvents.SetIsAPIEnabled(true);
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         PlanID := SalesHeader."Installment Plan ID";
         SourceID := SalesHeader.SystemId;
         PlanLine.SetRange("Plan ID", PlanID);
@@ -549,16 +584,16 @@ codeunit 134493 "ERM Installment Posting"
         until PlanLine.Next() = 0;
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         VerifyInvoiceBalance(SalesInvoiceHeader, 125, false);
-        PayInstallment(PlanID, 1, 41.67);
+        LibraryInstallments.PayInstallment(PlanID, 1, 41.67);
         VerifyInvoiceBalance(SalesInvoiceHeader, 83.33, false);
-        PayInstallment(PlanID, 3, 41.66);
+        LibraryInstallments.PayInstallment(PlanID, 3, 41.66);
         VerifyInvoiceBalance(SalesInvoiceHeader, 41.67, false);
         Aggregate.Get(SalesInvoiceHeader."No.", true);
         Assert.AreEqual(SourceID, Aggregate.Id, 'The API identity must remain the original draft identity.');
         Assert.AreEqual(Aggregate.Status::Open, Aggregate.Status, 'Paying the anchor must not mark the invoice paid.');
-        PayInstallment(PlanID, 2, 10);
+        LibraryInstallments.PayInstallment(PlanID, 2, 10);
         VerifyInvoiceBalance(SalesInvoiceHeader, 31.67, false);
-        PayInstallment(PlanID, 2, 31.67);
+        LibraryInstallments.PayInstallment(PlanID, 2, 31.67);
         VerifyInvoiceBalance(SalesInvoiceHeader, 0, true);
         Aggregate.Get(SalesInvoiceHeader."No.", true);
         Assert.AreEqual(Aggregate.Status::Paid, Aggregate.Status, 'A non-anchor settlement must refresh API status.');
@@ -577,7 +612,7 @@ codeunit 134493 "ERM Installment Posting"
         SummaryDueDate: Date;
         EntryDueDate: Date;
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         SummaryDueDate := SalesInvoiceHeader."Due Date";
         CustLedgerEntry.SetRange("Installment Plan ID", SalesInvoiceHeader."Installment Plan ID");
@@ -613,7 +648,7 @@ codeunit 134493 "ERM Installment Posting"
         SalesInvHeaderEdit: Codeunit "Sales Inv. Header - Edit";
         AnchorDueDate: Date;
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         CustLedgerEntry.Get(SalesInvoiceHeader."Cust. Ledger Entry No.");
         AnchorDueDate := CustLedgerEntry."Due Date";
@@ -639,7 +674,7 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalTemplate: Record "Gen. Journal Template";
         GenJournalBatch: Record "Gen. Journal Batch";
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         Customer.Get(SalesInvoiceHeader."Bill-to Customer No.");
         Customer.Validate("Application Method", Customer."Application Method"::"Apply to Oldest");
@@ -665,7 +700,7 @@ codeunit 134493 "ERM Installment Posting"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         PaymentServiceSetup: Record "Payment Service Setup";
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         Assert.IsFalse(PaymentServiceSetup.CanChangePaymentService(SalesInvoiceHeader), 'Payment-service actions must not be offered for global plans.');
 
@@ -683,7 +718,7 @@ codeunit 134493 "ERM Installment Posting"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         CustLedgerEntry.SetRange("Installment Plan ID", SalesInvoiceHeader."Installment Plan ID");
         CustLedgerEntry.FindSet();
@@ -694,8 +729,8 @@ codeunit 134493 "ERM Installment Posting"
             DetailedCustLedgEntry.ModifyAll("Invoice Entry No.", 0);
         until CustLedgerEntry.Next() = 0;
 
-        SalesInstallmentHistory.BackfillInvoiceGroups();
-        SalesInstallmentHistory.BackfillInvoiceGroups();
+        Assert.IsTrue(SalesInstallmentHistory.BackfillInvoiceGroups(), 'Valid posted plans must complete the backfill.');
+        Assert.IsTrue(SalesInstallmentHistory.BackfillInvoiceGroups(), 'Repeating a completed backfill must succeed.');
 
         VerifyInvoiceBalance(SalesInvoiceHeader, 125, false);
         CustLedgerEntry.FindSet();
@@ -710,6 +745,82 @@ codeunit 134493 "ERM Installment Posting"
     end;
 
     [Test]
+    procedure BackfillReportsMissingPostedInvoiceWithoutFailing()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesInvoiceHeader.Delete();
+
+        Assert.IsFalse(SalesInstallmentHistory.BackfillInvoiceGroups(), 'A missing posted invoice must leave the backfill incomplete.');
+    end;
+
+    [Test]
+    procedure BackfillReportsMissingLedgerAnchorWithoutFailing()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        CustLedgerEntry.Get(SalesInvoiceHeader."Cust. Ledger Entry No.");
+        CustLedgerEntry.Delete();
+
+        Assert.IsFalse(SalesInstallmentHistory.BackfillInvoiceGroups(), 'A missing ledger anchor must leave the backfill incomplete.');
+    end;
+
+    [Test]
+    procedure BackfillReportsReplacedPostedInvoiceWithoutFailing()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesInvoiceHeader.Delete();
+        Clear(SalesInvoiceHeader.SystemId);
+        SalesInvoiceHeader.Insert();
+
+        Assert.IsFalse(SalesInstallmentHistory.BackfillInvoiceGroups(), 'A replaced posted invoice must leave the backfill incomplete.');
+    end;
+
+    [Test]
+    procedure BackfillReportsMismatchedAnchorAndContinuesWithValidPlans()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        OtherSalesInvoiceHeader: Record "Sales Invoice Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
+        OtherSalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesInvoiceHeader."Cust. Ledger Entry No." := OtherSalesInvoiceHeader."Cust. Ledger Entry No.";
+        SalesInvoiceHeader.Modify();
+        CustLedgerEntry.SetRange("Installment Plan ID", OtherSalesInvoiceHeader."Installment Plan ID");
+        CustLedgerEntry.FindSet();
+        repeat
+            CustLedgerEntry."Invoice Entry No." := 0;
+            CustLedgerEntry.Modify();
+            DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
+            DetailedCustLedgEntry.ModifyAll("Invoice Entry No.", 0);
+        until CustLedgerEntry.Next() = 0;
+
+        Assert.IsFalse(SalesInstallmentHistory.BackfillInvoiceGroups(), 'A mismatched anchor must leave the backfill incomplete.');
+
+        VerifyInvoiceBalance(OtherSalesInvoiceHeader, 125, false);
+    end;
+
+    [Test]
     procedure LateJournalPostingRejectsAnInstallmentTargetBeforeChangingTheJournal()
     var
         SalesHeader: Record "Sales Header";
@@ -720,7 +831,7 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalBatch: Record "Gen. Journal Batch";
         PostLateGenJournalLines: Codeunit "Post Late Gen. Journal Lines";
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         SalesInvoiceHeader."Your Reference" := 'LATE';
         SalesInvoiceHeader.Modify(true);
@@ -742,38 +853,6 @@ codeunit 134493 "ERM Installment Posting"
     end;
 
     [Test]
-    procedure PostedScheduleShowsOriginalRulesAndCurrentEntryBalances()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        PlanLine: Record "Installment Plan Line";
-        Rule: Record "Payment Term Installment";
-        PostedSchedule: TestPage "Posted Installment Schedule";
-    begin
-        CreateInvoice(SalesHeader, SalesLine, '');
-        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
-        Rule.Get(SalesInvoiceHeader."Payment Terms Code", 30000);
-        Rule."Discount %" := 9;
-        Evaluate(Rule."Discount Date Calculation", '<10D>');
-        Rule.Modify(true);
-        PayInstallment(SalesInvoiceHeader."Installment Plan ID", 3, 10);
-        PlanLine.SetRange("Plan ID", SalesInvoiceHeader."Installment Plan ID");
-        PlanLine.SetRange("Installment No.", 3);
-        PlanLine.FindFirst();
-        PostedSchedule.Trap();
-
-        SalesInstallmentHistory.ShowSchedule(SalesInvoiceHeader);
-
-        PostedSchedule.GoToRecord(PlanLine);
-        PostedSchedule.Amount.AssertEquals(41.66);
-        PostedSchedule.RemainingAmount.AssertEquals(31.66);
-        PostedSchedule."Discount %".AssertEquals(0);
-        Assert.IsFalse(PostedSchedule.Amount.Editable(), 'The posted allocation must remain read-only.');
-        PostedSchedule.Close();
-    end;
-
-    [Test]
     procedure CorrectiveCopyAndNotificationRejectInstallmentInvoices()
     var
         SalesHeader: Record "Sales Header";
@@ -784,13 +863,13 @@ codeunit 134493 "ERM Installment Posting"
         InvoiceNotification: Notification;
         UnsupportedCorrectionErr: Label 'Automatic correction, cancellation, and reversal of installment invoices are not supported.', Locked = true;
     begin
-        CreateInvoice(SalesHeader, SalesLine, '');
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
         asserterror CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, CorrectionHeader);
 
         Assert.ExpectedError(UnsupportedCorrectionErr);
-        PayInstallment(SalesInvoiceHeader."Installment Plan ID", 3, 10);
+        LibraryInstallments.PayInstallment(SalesInvoiceHeader."Installment Plan ID", 3, 10);
         InvoiceNotification.Id := CreateGuid();
         InvoiceNotification.SetData(SalesInvoiceHeader.FieldName("No."), SalesInvoiceHeader."No.");
 
@@ -798,32 +877,6 @@ codeunit 134493 "ERM Installment Posting"
 
         Assert.ExpectedError(UnsupportedCorrectionErr);
         VerifyInvoiceBalance(SalesInvoiceHeader, 115, false);
-    end;
-
-    local procedure PayInstallment(PlanID: Guid; Sequence: Integer; Amount: Decimal)
-    var
-        CustLedgerEntry: Record "Cust. Ledger Entry";
-        GenJournalLine: Record "Gen. Journal Line";
-        GenJournalTemplate: Record "Gen. Journal Template";
-        GenJournalBatch: Record "Gen. Journal Batch";
-        ApplicationID: Code[50];
-    begin
-        CustLedgerEntry.SetRange("Installment Plan ID", PlanID);
-        CustLedgerEntry.SetRange("Installment No.", Sequence);
-        CustLedgerEntry.FindFirst();
-        ApplicationID := LibraryUtility.GenerateGUID();
-        CustLedgerEntry."Applies-to ID" := ApplicationID;
-        CustLedgerEntry."Amount to Apply" := Amount;
-        CustLedgerEntry.Modify(true);
-        LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
-        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
-        LibraryERM.CreateGeneralJnlLineWithBalAcc(
-            GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
-            GenJournalLine."Account Type"::Customer, CustLedgerEntry."Customer No.",
-            GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -Amount);
-        GenJournalLine.Validate("Applies-to ID", ApplicationID);
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
     local procedure VerifyInvoiceBalance(SalesInvoiceHeader: Record "Sales Invoice Header"; ExpectedRemaining: Decimal; ExpectedClosed: Boolean)
@@ -840,99 +893,6 @@ codeunit 134493 "ERM Installment Posting"
         Assert.IsFalse(FilteredInvoice.IsEmpty(), 'The existing Open/Paid filter must include the correct invoice.');
         FilteredInvoice.SetRange(Closed, not ExpectedClosed);
         Assert.IsTrue(FilteredInvoice.IsEmpty(), 'The opposite Open/Paid filter must not include the invoice.');
-    end;
-
-    local procedure Initialize()
-    var
-        GLSetup: Record "General Ledger Setup";
-        SalesSetup: Record "Sales & Receivables Setup";
-    begin
-        GLSetup.Get();
-        GLSetup."Amount Rounding Precision" := 0.01;
-        GLSetup."Additional Reporting Currency" := '';
-        GLSetup."Pmt. Disc. Excl. VAT" := false;
-        GLSetup."Adjust for Payment Disc." := false;
-        GLSetup.Modify();
-        SalesSetup.Get();
-        SalesSetup."Invoice Rounding" := false;
-        SalesSetup."Calc. Inv. Discount" := false;
-        SalesSetup."Discount Posting" := SalesSetup."Discount Posting"::"No Discounts";
-        SalesSetup.Modify();
-    end;
-
-    local procedure CreateInvoice(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CurrencyCode: Code[10])
-    var
-        Customer: Record Customer;
-        PaymentTerms: Record "Payment Terms";
-        PaymentMethod: Record "Payment Method";
-        VATPostingSetup: Record "VAT Posting Setup";
-        TempPlanLine: Record "Installment Plan Line" temporary;
-        Rule: Record "Payment Term Installment";
-    begin
-        Initialize();
-        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 25);
-        LibraryERM.CreatePaymentTerms(PaymentTerms);
-        LibraryERM.CreatePaymentMethod(PaymentMethod);
-        LibrarySales.CreateCustomer(Customer);
-        Customer.Validate("Payment Terms Code", PaymentTerms.Code);
-        Customer.Validate("Payment Method Code", PaymentMethod.Code);
-        Customer.Validate("Application Method", Customer."Application Method"::Manual);
-        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
-        Customer.Modify(true);
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
-        SalesHeader.Validate("Document Date", WorkDate());
-        SalesHeader.Validate("Posting Date", WorkDate());
-        SalesHeader.Validate("Prices Including VAT", false);
-        if CurrencyCode <> '' then
-            SalesHeader.Validate("Currency Code", CurrencyCode);
-        SalesHeader.Modify(true);
-        CreateTemporaryRules(TempPlanLine);
-        TempPlanLine.FindSet();
-        repeat
-            Rule.Init();
-            Rule."Payment Terms Code" := PaymentTerms.Code;
-            Rule."Line No." := TempPlanLine."Line No.";
-            Rule."Allocation Type" := TempPlanLine."Allocation Type";
-            Rule."Payment %" := TempPlanLine."Payment %";
-            Rule."Due Date Calculation" := TempPlanLine."Due Date Calculation";
-            Rule."Discount Date Calculation" := TempPlanLine."Discount Date Calculation";
-            Rule."Discount %" := TempPlanLine."Discount %";
-            Rule.Insert(true);
-        until TempPlanLine.Next() = 0;
-        SalesHeader.Validate("Payment Terms Code", PaymentTerms.Code);
-        SalesHeader.Modify(true);
-        LibrarySales.CreateSalesLine(
-            SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
-            LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, Enum::"General Posting Type"::Sale), 1);
-        SalesLine.Validate("Unit Price", 100);
-        SalesLine.Modify(true);
-    end;
-
-    local procedure CreateTemporaryRules(var TempPlanLine: Record "Installment Plan Line" temporary)
-    var
-        PlanID: Guid;
-    begin
-        PlanID := CreateGuid();
-        TempPlanLine.Init();
-        TempPlanLine."Plan ID" := PlanID;
-        TempPlanLine."Line No." := 10000;
-        TempPlanLine."Payment %" := 33.33333;
-        TempPlanLine."Discount %" := 2;
-        Evaluate(TempPlanLine."Due Date Calculation", '<30D>');
-        Evaluate(TempPlanLine."Discount Date Calculation", '<10D>');
-        TempPlanLine.Insert();
-        TempPlanLine."Line No." := 20000;
-        TempPlanLine."Discount %" := 1;
-        Evaluate(TempPlanLine."Due Date Calculation", '<60D>');
-        Evaluate(TempPlanLine."Discount Date Calculation", '<20D>');
-        TempPlanLine.Insert();
-        TempPlanLine."Line No." := 30000;
-        TempPlanLine."Allocation Type" := TempPlanLine."Allocation Type"::"Remaining Amount";
-        TempPlanLine."Payment %" := 0;
-        TempPlanLine."Discount %" := 0;
-        Evaluate(TempPlanLine."Due Date Calculation", '<90D>');
-        Clear(TempPlanLine."Discount Date Calculation");
-        TempPlanLine.Insert();
     end;
 
     local procedure PreparePostingAttempt(var SalesHeader: Record "Sales Header")

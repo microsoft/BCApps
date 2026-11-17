@@ -1404,7 +1404,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnAfterPostGLAcc(GenJnlLine, TempGLEntryBuf, NextEntryNo, NextTransactionNo, Balancing, GLEntry, VATPostingSetup, TempGLEntryVATEntryLink);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Installment Posting", 'OnCheckSalesPosting', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Installment Posting", 'OnAfterCheckSalesPosting', '', false, false)]
     local procedure CheckGlobalInstallmentWithholding(SalesHeader: Record "Sales Header")
     begin
         SalesHeader.TestField("WHT Business Posting Group", '');

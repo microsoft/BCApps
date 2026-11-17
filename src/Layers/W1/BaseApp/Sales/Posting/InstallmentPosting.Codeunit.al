@@ -30,7 +30,7 @@ codeunit 8842 "Installment Posting"
         PostedPlanErr: Label 'Posted installment schedules cannot be changed or deleted.';
         CorrectionErr: Label 'Automatic correction, cancellation, and reversal of installment invoices are not supported.';
 
-    procedure CheckSalesPosting(SalesHeader: Record "Sales Header")
+    internal procedure CheckSalesPosting(SalesHeader: Record "Sales Header")
     var
         Plan: Record "Installment Plan";
         SalesLine: Record "Sales Line";
@@ -51,7 +51,7 @@ codeunit 8842 "Installment Posting"
            (Plan."Document Date" <> SalesHeader."Document Date") or
            (Plan."Currency Code" <> SalesHeader."Currency Code")
         then
-            Error(SourceErr);
+            RaiseInternalError(SourceErr);
         SalesHeader.TestField("Applies-to Doc. No.", '');
         SalesHeader.TestField("Applies-to ID", '');
         SalesHeader.TestField("Bal. Account No.", '');
@@ -94,10 +94,10 @@ codeunit 8842 "Installment Posting"
                         VATPostingSetup.TestField("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::" ");
                 end;
             until SalesLine.Next() = 0;
-        OnCheckSalesPosting(SalesHeader);
+        OnAfterCheckSalesPosting(SalesHeader);
     end;
 
-    procedure PrepareJournalLine(SalesHeader: Record "Sales Header"; var GenJournalLine: Record "Gen. Journal Line")
+    internal procedure PrepareJournalLine(SalesHeader: Record "Sales Header"; var GenJournalLine: Record "Gen. Journal Line")
     begin
         CheckSalesPosting(SalesHeader);
         GenJournalLine."Installment Plan ID" := SalesHeader."Installment Plan ID";
@@ -106,7 +106,7 @@ codeunit 8842 "Installment Posting"
             GenJournalLine."Sales Invoice Source SystemId" := SalesHeader.SystemId;
     end;
 
-    procedure CheckJournalLine(GenJournalLine: Record "Gen. Journal Line")
+    internal procedure CheckJournalLine(GenJournalLine: Record "Gen. Journal Line")
     var
         Rule: Record "Payment Term Installment";
         SalesHeader: Record "Sales Header";
@@ -165,7 +165,7 @@ codeunit 8842 "Installment Posting"
         Error(UnsupportedProducerErr);
     end;
 
-    procedure PreparePosting(GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean; var TempPlanLine: Record "Installment Plan Line" temporary): Boolean
+    internal procedure PreparePosting(GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean; var TempPlanLine: Record "Installment Plan Line" temporary): Boolean
     var
         Plan: Record "Installment Plan";
         PlanLine: Record "Installment Plan Line";
@@ -182,9 +182,9 @@ codeunit 8842 "Installment Posting"
         Plan.Get(GenJournalLine."Installment Plan ID");
         Plan.TestField(Status, Plan.Status::Draft);
         if not SalesHeader.GetBySystemId(GenJournalLine."Sales Invoice Source SystemId") then
-            Error(SourceErr);
+            RaiseInternalError(SourceErr);
         if SalesHeader."Installment Plan ID" <> Plan.ID then
-            Error(SourceErr);
+            RaiseInternalError(SourceErr);
         CheckSalesPosting(SalesHeader);
         SalesInvoiceHeader.Get(GenJournalLine."Document No.");
         SalesInvoiceHeader.TestField("Installment Plan ID", Plan.ID);
@@ -217,7 +217,7 @@ codeunit 8842 "Installment Posting"
         TempPlanLine.DeleteAll();
         PlanLine.SetRange("Plan ID", Plan.ID);
         if not PlanLine.FindSet() then
-            Error(SourceErr);
+            RaiseInternalError(SourceErr);
         repeat
             TempPlanLine.Init();
             TempPlanLine."Plan ID" := Plan.ID;
@@ -229,7 +229,7 @@ codeunit 8842 "Installment Posting"
         exit(true);
     end;
 
-    procedure CalculatePostingLines(GenJournalLine: Record "Gen. Journal Line"; var TempPlanLine: Record "Installment Plan Line" temporary)
+    internal procedure CalculatePostingLines(GenJournalLine: Record "Gen. Journal Line"; var TempPlanLine: Record "Installment Plan Line" temporary)
     var
         GLSetup: Record "General Ledger Setup";
         Currency: Record Currency;
@@ -243,7 +243,7 @@ codeunit 8842 "Installment Posting"
     begin
         CheckTemporary(TempPlanLine);
         if TempPlanLine.IsEmpty() then
-            Error(SourceErr);
+            RaiseInternalError(SourceErr);
         GLSetup.Get();
         Currency.Initialize(GenJournalLine."Currency Code", true);
         InstallmentCalculation.Calculate(
@@ -270,7 +270,7 @@ codeunit 8842 "Installment Posting"
         until TempPlanLine.Next() = 0;
     end;
 
-    procedure SetJournalLine(TotalGenJournalLine: Record "Gen. Journal Line"; PlanLine: Record "Installment Plan Line"; var GenJournalLine: Record "Gen. Journal Line")
+    internal procedure SetJournalLine(TotalGenJournalLine: Record "Gen. Journal Line"; PlanLine: Record "Installment Plan Line"; var GenJournalLine: Record "Gen. Journal Line")
     begin
         GenJournalLine := TotalGenJournalLine;
         GenJournalLine.Amount := PlanLine.Amount;
@@ -286,7 +286,7 @@ codeunit 8842 "Installment Posting"
         GenJournalLine."Credit Amount" := 0;
     end;
 
-    procedure RecordPostedLine(PlanLine: Record "Installment Plan Line"; CustLedgerEntry: Record "Cust. Ledger Entry"; InstallmentCount: Integer)
+    internal procedure RecordPostedLine(PlanLine: Record "Installment Plan Line"; CustLedgerEntry: Record "Cust. Ledger Entry"; InstallmentCount: Integer)
     var
         SavedPlanLine: Record "Installment Plan Line";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
@@ -303,7 +303,7 @@ codeunit 8842 "Installment Posting"
         CustLedgerEntry.TestField("Inv. Discount (LCY)", PlanLine."Inv. Discount (LCY)");
         DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
         if DetailedCustLedgEntry.Count() <> 1 then
-            Error(ReconciliationErr);
+            RaiseInternalError(ReconciliationErr);
         DetailedCustLedgEntry.FindFirst();
         DetailedCustLedgEntry.TestField("Entry Type", DetailedCustLedgEntry."Entry Type"::"Initial Entry");
         DetailedCustLedgEntry.TestField(Amount, PlanLine.Amount);
@@ -316,7 +316,7 @@ codeunit 8842 "Installment Posting"
         SavedPlanLine.Modify(true);
     end;
 
-    procedure CompletePosting(GenJournalLine: Record "Gen. Journal Line"; InstallmentCount: Integer)
+    internal procedure CompletePosting(GenJournalLine: Record "Gen. Journal Line"; InstallmentCount: Integer)
     var
         Plan: Record "Installment Plan";
         PlanLine: Record "Installment Plan Line";
@@ -327,10 +327,10 @@ codeunit 8842 "Installment Posting"
         Plan.TestField(Status, Plan.Status::Draft);
         PlanLine.SetRange("Plan ID", Plan.ID);
         if PlanLine.Count() <> InstallmentCount then
-            Error(ReconciliationErr);
+            RaiseInternalError(ReconciliationErr);
         PlanLine.SetRange("Cust. Ledger Entry No.", 0);
         if not PlanLine.IsEmpty() then
-            Error(ReconciliationErr);
+            RaiseInternalError(ReconciliationErr);
         PlanLine.SetRange("Cust. Ledger Entry No.");
         PlanLine.CalcSums(Amount, "Amount (LCY)", "Source Currency Amount", "Sales (LCY)", "Profit (LCY)", "Inv. Discount (LCY)");
         if (PlanLine.Amount <> GenJournalLine.Amount) or (PlanLine."Amount (LCY)" <> GenJournalLine."Amount (LCY)") or
@@ -339,7 +339,7 @@ codeunit 8842 "Installment Posting"
            (PlanLine."Profit (LCY)" <> GenJournalLine."Profit (LCY)") or
            (PlanLine."Inv. Discount (LCY)" <> GenJournalLine."Inv. Discount (LCY)")
         then
-            Error(ReconciliationErr);
+            RaiseInternalError(ReconciliationErr);
         SalesInvoiceHeader.Get(GenJournalLine."Document No.");
         SalesInvoiceHeader.TestField("Installment Plan ID", Plan.ID);
         PlanLine.SetCurrentKey("Plan ID", "Installment No.");
@@ -355,7 +355,7 @@ codeunit 8842 "Installment Posting"
         Plan.Modify(true);
     end;
 
-    procedure GetFinalCustomerEntry(SalesInvoiceHeader: Record "Sales Invoice Header"; var CustLedgerEntry: Record "Cust. Ledger Entry")
+    internal procedure GetFinalCustomerEntry(SalesInvoiceHeader: Record "Sales Invoice Header"; var CustLedgerEntry: Record "Cust. Ledger Entry")
     var
         Plan: Record "Installment Plan";
         PlanLine: Record "Installment Plan Line";
@@ -371,6 +371,17 @@ codeunit 8842 "Installment Posting"
         CustLedgerEntry.TestField("Installment No.", PlanLine."Installment No.");
         CustLedgerEntry.TestField("Document No.", SalesInvoiceHeader."No.");
         CustLedgerEntry.TestField("Customer No.", SalesInvoiceHeader."Bill-to Customer No.");
+    end;
+
+    local procedure RaiseInternalError(ErrorMessage: Text)
+    var
+        InternalErrorInfo: ErrorInfo;
+    begin
+        InternalErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        InternalErrorInfo.ErrorType := ErrorType::Internal;
+        InternalErrorInfo.Verbosity := Verbosity::Error;
+        InternalErrorInfo.Message := ErrorMessage;
+        Error(InternalErrorInfo);
     end;
 
     local procedure Allocate(Total: Decimal; var Remaining: Decimal; Percentage: Decimal; LastLine: Boolean; Precision: Decimal) Amount: Decimal
@@ -499,7 +510,7 @@ codeunit 8842 "Installment Posting"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCheckSalesPosting(SalesHeader: Record "Sales Header")
+    local procedure OnAfterCheckSalesPosting(SalesHeader: Record "Sales Header")
     begin
     end;
 }

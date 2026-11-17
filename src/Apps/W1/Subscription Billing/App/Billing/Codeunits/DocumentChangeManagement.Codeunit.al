@@ -19,7 +19,7 @@ codeunit 8074 "Document Change Management"
         LineCannotBeChangedErr: Label 'You cannot make this change because the line is linked to contract %1. If you still want to change the field, first delete this document or document line and then make the change to the corresponding contract line.', Comment = '%1 = Contract No.';
         LineDimCannotBeChangedErr: Label 'You cannot change the dimensions because the line %2 %3 %4 is linked to contract %1. If you still want to change the dimensions, first delete this document or document line and then change the dimensions on the corresponding contract line.', Comment = '%1 = Contract No., %2 = Document Type, %3 = Document No., %4 = Line No.';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Installment Posting", OnCheckSalesPosting, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Installment Posting", OnAfterCheckSalesPosting, '', false, false)]
     local procedure CheckInstallmentPostingSource(SalesHeader: Record "Sales Header")
     begin
         SalesHeader.TestField("Recurring Billing", false);
