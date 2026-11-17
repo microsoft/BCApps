@@ -461,7 +461,7 @@ table 6906 "Expense Report Header"
             Caption = 'Pending Approval By';
             FieldClass = FlowFilter;
             TableRelation = "Expense User"."No.";
-            ObsoleteReason = 'This field is no longer used';
+            ObsoleteReason = 'Filter on the Approver Expense User No. field instead.';
             ObsoleteTag = '30.0';
 #if not CLEAN30
             ObsoleteState = Pending;
