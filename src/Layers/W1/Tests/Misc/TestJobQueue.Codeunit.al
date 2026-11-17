@@ -1405,14 +1405,29 @@ codeunit 139026 "Test Job Queue"
         FinanceChargeMemoHeader: Record "Finance Charge Memo Header";
         FinanceChargeMemoLine: Record "Finance Charge Memo Line";
         FinanceChargeTerms: Record "Finance Charge Terms";
+        GeneralPostingSetup: Record "General Posting Setup";
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        GLAccount: Record "G/L Account";
+        VATPostingSetup: Record "VAT Posting Setup";
     begin
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
+        GenProductPostingGroup.Get(GeneralPostingSetup."Gen. Prod. Posting Group");
+        GenProductPostingGroup.Validate("Def. VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GenProductPostingGroup.Validate("Auto Insert Default", true);
+        GenProductPostingGroup.Modify(true);
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.UpdateGLAccountWithPostingSetup(GLAccount, GLAccount."Gen. Posting Type"::Sale, GeneralPostingSetup, VATPostingSetup);
+
         LibraryERM.CreateFinanceChargeTerms(FinanceChargeTerms);
         LibraryERM.CreateFinanceChargeMemoHeader(FinanceChargeMemoHeader, CustomerNo);
         FinanceChargeMemoHeader.Validate("Fin. Charge Terms Code", FinanceChargeTerms.Code);
+        FinanceChargeMemoHeader.Validate("Gen. Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group");
+        FinanceChargeMemoHeader.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
         FinanceChargeMemoHeader.Modify(true);
         LibraryERM.CreateFinanceChargeMemoLine(
           FinanceChargeMemoLine, FinanceChargeMemoHeader."No.", FinanceChargeMemoLine.Type::"G/L Account");
-        FinanceChargeMemoLine.Validate("No.", LibraryERM.CreateGLAccountWithSalesSetup());
+        FinanceChargeMemoLine.Validate("No.", GLAccount."No.");
         FinanceChargeMemoLine.Validate(Amount, LibraryRandom.RandInt(100));
         FinanceChargeMemoLine.Modify(true);
         FinanceChargeMemoNo := FinanceChargeMemoHeader."No.";

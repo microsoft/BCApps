@@ -850,6 +850,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Concurrent Gen.Jnl.Posting");
         LibrarySetupStorage.Restore();
+        LibraryERMCountryData.UpdateLocalData();
         if IsInitialized then
             exit;
 

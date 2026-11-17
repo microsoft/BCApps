@@ -424,6 +424,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     local procedure RunVATSettlementWithConcurrentPosting(VATCalculationType: Enum "Tax Calculation Type"; PostSettlement: Boolean)
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
+        PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
         VATPostingSetup: Record "VAT Posting Setup";
@@ -440,6 +441,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         EnableConcurrentPosting(true);
 
         // The Italian report derives its settlement period from this setup when opening the request page.
+        PeriodicVATSettlementEntry.DeleteAll();
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup."VAT Settlement Period" := GeneralLedgerSetup."VAT Settlement Period"::Month;
         GeneralLedgerSetup."Last Settlement Date" := CalcDate('<-CM-1D>', WorkDate());
