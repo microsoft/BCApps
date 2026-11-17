@@ -70,6 +70,9 @@ codeunit 12184 "Fattura Doc. Helper"
         MissingLinesErr: Label 'The document must contain lines in order to be sent through FatturaPA.';
         MissingForeignFiscalIdentifierErr: Label 'A foreign customer must have either VAT Registration No. or Fiscal Code before an invoice or credit memo can be posted and sent through FatturaPA.';
         InvalidISOCountryCodeErr: Label 'The Country/Region must have a two-character ISO Code for FatturaPA.';
+        InvalidISOCountryCodeTitleLbl: Label 'Invalid FatturaPA country code';
+        InvalidISOCountryCodeDetailsLbl: Label 'Enter a two-character ISO Code on Country/Region %1 before exporting the FatturaPA document.', Comment = '%1 = Country/Region code';
+        ShowCountryRegionLbl: Label 'Show Country/Region';
         TxtTok: Label 'TXT%1', Locked = true;
         ExemptionDataMsg: Label '%1 del %2.', Locked = true;
         VATExemptionPrefixTok: Label 'Dich.Intento n.', Locked = true;
@@ -420,6 +423,10 @@ codeunit 12184 "Fattura Doc. Helper"
         TaxRepresentativeVendor: Record Vendor;
         TransmissionIntermediaryVendor: Record Vendor;
         PaymentTermsAndPaymentMethodExists: Boolean;
+        CompanyCountryIsValid: Boolean;
+        CustomerCountryIsValid: Boolean;
+        CountryCodesAreValid: Boolean;
+        CustomerIsForeign: Boolean;
     begin
         Initialize();
         Customer.Get(Format(HeaderRecRef.Field(CustomerNoFieldNo).Value()));
@@ -428,12 +435,18 @@ codeunit 12184 "Fattura Doc. Helper"
           PaymentTerms.Get(Format(HeaderRecRef.Field(PaymentTermsCodeFieldNo).Value()));
 
         CheckCompanyInformationFields(ErrorMessage);
-        CheckFatturaPAISOCountryCode(
+        CompanyCountryIsValid := CheckFatturaPAISOCountryCode(
           CompanyInformation."Country/Region Code", CompanyInformation, CompanyInformation.FieldNo("Country/Region Code"), ErrorMessage);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Country/Region Code"), ErrorMessage."Message Type"::Error);
-        CheckFatturaPAISOCountryCode(Customer."Country/Region Code", Customer, Customer.FieldNo("Country/Region Code"), ErrorMessage);
+        CustomerCountryIsValid := CheckFatturaPAISOCountryCode(
+          Customer."Country/Region Code", Customer, Customer.FieldNo("Country/Region Code"), ErrorMessage);
+        CountryCodesAreValid := CompanyCountryIsValid and CustomerCountryIsValid;
+        // Keep collecting setup errors without assigning a domestic/foreign classification to an invalid country.
+        if CountryCodesAreValid then
+            CustomerIsForeign := IsForeignCustomer(Customer);
+
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo(Address), ErrorMessage."Message Type"::Error);
-        if not IsForeignCustomer(Customer) then
+        if CountryCodesAreValid and (not CustomerIsForeign) then
             ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo(City), ErrorMessage."Message Type"::Error);
         if Customer."Individual Person" then begin
@@ -441,13 +454,13 @@ codeunit 12184 "Fattura Doc. Helper"
               Customer, Customer.FieldNo("Last Name"), ErrorMessage."Message Type"::Error);
             ErrorMessage.LogIfEmpty(
               Customer, Customer.FieldNo("First Name"), ErrorMessage."Message Type"::Error);
-            if not IsForeignCustomer(Customer) then
+            if CountryCodesAreValid and (not CustomerIsForeign) then
                 ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Error);
         end else
             ErrorMessage.LogIfEmpty(
               Customer, Customer.FieldNo(Name), ErrorMessage."Message Type"::Error);
 
-        if IsForeignCustomer(Customer) and not HasForeignFiscalIdentifier(Customer) then
+        if CountryCodesAreValid and CustomerIsForeign and (not HasForeignFiscalIdentifier(Customer)) then
             ErrorMessage.LogMessage(
               Customer, Customer.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Error, MissingForeignFiscalIdentifierErr);
 
@@ -477,18 +490,9 @@ codeunit 12184 "Fattura Doc. Helper"
     end;
 
     local procedure IsForeignCustomer(Customer: Record Customer): Boolean
-    var
-        CustomerCountryRegion: Record "Country/Region";
-        CompanyCountryRegion: Record "Country/Region";
     begin
-        // Invalid country setup is logged by mandatory-field validation.
-        if not CustomerCountryRegion.Get(Customer."Country/Region Code") then
-            exit(false);
-        if not CompanyCountryRegion.Get(CompanyInformation."Country/Region Code") then
-            exit(false);
-        if (StrLen(CustomerCountryRegion."ISO Code") <> 2) or (StrLen(CompanyCountryRegion."ISO Code") <> 2) then
-            exit(false);
-        exit(CustomerCountryRegion."ISO Code" <> CompanyCountryRegion."ISO Code");
+        // The ISO resolver fails for missing or invalid country setup; never classify it as domestic.
+        exit(not IsSameISOCountry(Customer."Country/Region Code", CompanyInformation."Country/Region Code"));
     end;
 
     local procedure HasForeignFiscalIdentifier(Customer: Record Customer): Boolean
@@ -517,10 +521,19 @@ codeunit 12184 "Fattura Doc. Helper"
     internal procedure GetISOCountryCode(CountryRegionCode: Code[10]): Code[2]
     var
         CountryRegion: Record "Country/Region";
+        InvalidISOCountryCodeErrorInfo: ErrorInfo;
     begin
         CountryRegion.Get(CountryRegionCode);
-        if StrLen(CountryRegion."ISO Code") <> 2 then
-            Error(InvalidISOCountryCodeErr);
+        if StrLen(CountryRegion."ISO Code") <> 2 then begin
+            InvalidISOCountryCodeErrorInfo.Title := InvalidISOCountryCodeTitleLbl;
+            InvalidISOCountryCodeErrorInfo.Message := InvalidISOCountryCodeErr;
+            InvalidISOCountryCodeErrorInfo.DetailedMessage := StrSubstNo(InvalidISOCountryCodeDetailsLbl, CountryRegion.Code);
+            InvalidISOCountryCodeErrorInfo.RecordId := CountryRegion.RecordId;
+            InvalidISOCountryCodeErrorInfo.FieldNo := CountryRegion.FieldNo("ISO Code");
+            InvalidISOCountryCodeErrorInfo.PageNo := Page::"Countries/Regions";
+            InvalidISOCountryCodeErrorInfo.AddNavigationAction(ShowCountryRegionLbl);
+            Error(InvalidISOCountryCodeErrorInfo);
+        end;
         exit(CountryRegion."ISO Code");
     end;
 
@@ -529,18 +542,22 @@ codeunit 12184 "Fattura Doc. Helper"
         exit(GetISOCountryCode(FirstCountryRegionCode) = GetISOCountryCode(SecondCountryRegionCode));
     end;
 
-    local procedure CheckFatturaPAISOCountryCode(CountryRegionCode: Code[10]; SourceRecord: Variant; SourceFieldNo: Integer; var ErrorMessage: Record "Error Message")
+    local procedure CheckFatturaPAISOCountryCode(CountryRegionCode: Code[10]; SourceRecord: Variant; SourceFieldNo: Integer; var ErrorMessage: Record "Error Message"): Boolean
     var
         CountryRegion: Record "Country/Region";
     begin
+        // A blank value is already logged by the calling mandatory-field checks.
         if CountryRegionCode = '' then
-            exit;
+            exit(false);
         if not CountryRegion.Get(CountryRegionCode) then begin
             ErrorMessage.LogMessage(SourceRecord, SourceFieldNo, ErrorMessage."Message Type"::Error, InvalidISOCountryCodeErr);
-            exit;
+            exit(false);
         end;
-        if StrLen(CountryRegion."ISO Code") <> 2 then
+        if StrLen(CountryRegion."ISO Code") <> 2 then begin
             ErrorMessage.LogMessage(SourceRecord, SourceFieldNo, ErrorMessage."Message Type"::Error, InvalidISOCountryCodeErr);
+            exit(false);
+        end;
+        exit(true);
     end;
 
     local procedure CheckFatturaPANos(var ErrorMessage: Record "Error Message")
