@@ -1776,23 +1776,32 @@ codeunit 137350 "SCM Inventory Reports - III"
     var
         Item: Record Item;
         ProductionOrder: Record "Production Order";
+        RevaluationDate: Date;
+        ConsumptionRevaluationAmount: Decimal;
     begin
         // [SCENARIO 658991] The WIP report does not include an output revaluation posted before the Starting Date in opening or ending WIP.
         Initialize();
 
-        // [GIVEN] A released production order with an actual-cost output revaluation.
+        // [GIVEN] A released production order with an actual-cost output revaluation "O".
         Item.Get(SetupProductionItem(Item."Costing Method"::FIFO, Item."Replenishment System"::"Prod. Order", 0));
         LibraryManufacturing.CreateProductionOrder(
           ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 1);
+        RevaluationDate := CalcDate('<1M>', WorkDate());
         MockProductionRevaluationValueEntry(
-          Item."No.", ProductionOrder."No.", CalcDate('<1M>', WorkDate()), Enum::"Item Ledger Entry Type"::Output, 1,
+          Item."No.", ProductionOrder."No.", RevaluationDate, Enum::"Item Ledger Entry Type"::Output, 1,
           LibraryRandom.RandDecInRange(1, 10, 2));
+
+        // [GIVEN] A consumption revaluation "C" on the same production order and date that belongs to WIP.
+        ConsumptionRevaluationAmount := LibraryRandom.RandDecInRange(11, 20, 2);
+        MockProductionRevaluationValueEntry(
+          Item."No.", ProductionOrder."No.", RevaluationDate, Enum::"Item Ledger Entry Type"::Consumption, -1,
+          -ConsumptionRevaluationAmount);
 
         // [WHEN] The report period starts after the revaluation date.
         RunReleasedInventoryValuationWIPReport(ProductionOrder."No.");
 
-        // [THEN] The output revaluation is excluded from opening and ending WIP.
-        VerifyWIPValuesOnGeneratedReport(ProductionOrder."No.", 0);
+        // [THEN] Opening and ending WIP include only the consumption revaluation "C"; the output revaluation "O" is excluded.
+        VerifyWIPValuesOnGeneratedReport(ProductionOrder."No.", ConsumptionRevaluationAmount);
     end;
 
     [Test]
