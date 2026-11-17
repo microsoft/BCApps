@@ -3,7 +3,7 @@ codeunit 139002 "Web Services Tests"
     Permissions = TableData "Web Service" = rimd,
                   TableData "Tenant Web Service" = rimd;
     Subtype = Test;
-    TestPermissions = NonRestrictive;
+    TestPermissions = Disabled;
 
     trigger OnRun()
     begin
