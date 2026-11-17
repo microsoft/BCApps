@@ -1010,7 +1010,7 @@ codeunit 13916 "Export XRechnung Document"
         ActualDeliveryDate := SalesInvoiceHeader."Shipment Date";
         DeliveryGLN := GetDeliveryGLN(SalesInvoiceHeader."Sell-to Customer No.", SalesInvoiceHeader."Ship-to Code");
 
-        OnBeforeInsertSalesInvDelivery(SalesInvoiceHeader, ActualDeliveryDate, DeliveryAddress, DeliveryGLN);
+        OnInsertDeliveryOnBeforeCreateSalesInvDeliveryElement(SalesInvoiceHeader, ActualDeliveryDate, DeliveryAddress, DeliveryGLN);
 
         if not CreateDeliveryElement(DeliveryElement, ActualDeliveryDate, DeliveryAddress, DeliveryGLN) then
             exit;
@@ -1035,7 +1035,7 @@ codeunit 13916 "Export XRechnung Document"
         ActualDeliveryDate := SalesCrMemoHeader."Shipment Date";
         DeliveryGLN := GetDeliveryGLN(SalesCrMemoHeader."Sell-to Customer No.", SalesCrMemoHeader."Ship-to Code");
 
-        OnBeforeInsertSalesCrMemoDelivery(SalesCrMemoHeader, ActualDeliveryDate, DeliveryAddress, DeliveryGLN);
+        OnInsertDeliveryOnBeforeCreateSalesCrMemoDeliveryElement(SalesCrMemoHeader, ActualDeliveryDate, DeliveryAddress, DeliveryGLN);
 
         if not CreateDeliveryElement(DeliveryElement, ActualDeliveryDate, DeliveryAddress, DeliveryGLN) then
             exit;
@@ -1529,7 +1529,7 @@ codeunit 13916 "Export XRechnung Document"
         ReportSelections.FindEmailBodyUsageForCust("Report Selection Usage"::"S.Invoice", SalesInvoiceHeader."Bill-to Customer No.", TempBodyReportSelections);
         ContactEMail := ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Invoice".AsInteger(), SalesInvoiceHeader, SalesInvoiceHeader."Bill-to Customer No.", TempBodyReportSelections);
 
-        OnBeforeInsertSalesInvCustomerParty(SalesInvoiceHeader, VATRegNo, CustomerGLN, CustomerRegistrationNo, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
+        OnInsertAccountingCustomerPartyOnBeforeCreateSalesInvoiceElement(SalesInvoiceHeader, VATRegNo, CustomerGLN, CustomerRegistrationNo, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
 
         AccountingCustomerParty := XmlElement.Create('AccountingCustomerParty', XmlNamespaceCAC);
         InsertCustomerParty(AccountingCustomerParty, VATRegNo, CustomerGLN, CustomerRegistrationNo, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
@@ -1569,7 +1569,7 @@ codeunit 13916 "Export XRechnung Document"
         ReportSelections.FindEmailBodyUsageForCust("Report Selection Usage"::"S.Cr.Memo", SalesCrMemoHeader."Bill-to Customer No.", TempBodyReportSelections);
         ContactEMail := ReportSelections.GetEmailAddressExt("Report Selection Usage"::"S.Cr.Memo".AsInteger(), SalesCrMemoHeader, SalesCrMemoHeader."Bill-to Customer No.", TempBodyReportSelections);
 
-        OnBeforeInsertSalesCrMemoCustomerParty(SalesCrMemoHeader, VATRegNo, CustomerGLN, CustomerRegistrationNo, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
+        OnInsertAccountingCustomerPartyOnBeforeCreateSalesCrMemoElement(SalesCrMemoHeader, VATRegNo, CustomerGLN, CustomerRegistrationNo, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
 
         AccountingCustomerParty := XmlElement.Create('AccountingCustomerParty', XmlNamespaceCAC);
         InsertCustomerParty(AccountingCustomerParty, VATRegNo, CustomerGLN, CustomerRegistrationNo, PartyName, BillToAddress, CustomerName, ContactName, ContactEMail);
@@ -2525,7 +2525,7 @@ codeunit 13916 "Export XRechnung Document"
     /// Fires before the buyer (BG-7) is created for a sales invoice. Subscribe to override its values.
     /// </summary>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertSalesInvCustomerParty(SalesInvoiceHeader: Record "Sales Invoice Header"; var VATRegNo: Text[20]; var CustomerGLN: Code[13]; var CustomerRegistrationNo: Text[50]; var PartyName: Text[100]; var PostalAddress: Record "Standard Address"; var CustomerName: Text[100]; var ContactName: Text[100]; var ContactEMail: Text[250])
+    local procedure OnInsertAccountingCustomerPartyOnBeforeCreateSalesInvoiceElement(SalesInvoiceHeader: Record "Sales Invoice Header"; var VATRegNo: Text[20]; var CustomerGLN: Code[13]; var CustomerRegistrationNo: Text[50]; var PartyName: Text[100]; var PostalAddress: Record "Standard Address"; var CustomerName: Text[100]; var ContactName: Text[100]; var ContactEMail: Text[250])
     begin
     end;
 
@@ -2533,7 +2533,7 @@ codeunit 13916 "Export XRechnung Document"
     /// Fires before the buyer (BG-7) is created for a sales credit memo. Subscribe to override its values.
     /// </summary>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertSalesCrMemoCustomerParty(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var VATRegNo: Text[20]; var CustomerGLN: Code[13]; var CustomerRegistrationNo: Text[50]; var PartyName: Text[100]; var PostalAddress: Record "Standard Address"; var CustomerName: Text[100]; var ContactName: Text[100]; var ContactEMail: Text[250])
+    local procedure OnInsertAccountingCustomerPartyOnBeforeCreateSalesCrMemoElement(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var VATRegNo: Text[20]; var CustomerGLN: Code[13]; var CustomerRegistrationNo: Text[50]; var PartyName: Text[100]; var PostalAddress: Record "Standard Address"; var CustomerName: Text[100]; var ContactName: Text[100]; var ContactEMail: Text[250])
     begin
     end;
 
@@ -2541,7 +2541,7 @@ codeunit 13916 "Export XRechnung Document"
     /// Fires before the delivery information (BG-13) is created for a sales invoice. Subscribe to override its values.
     /// </summary>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertSalesInvDelivery(SalesInvoiceHeader: Record "Sales Invoice Header"; var ActualDeliveryDate: Date; var DeliveryAddress: Record "Standard Address"; var DeliveryGLN: Code[13])
+    local procedure OnInsertDeliveryOnBeforeCreateSalesInvDeliveryElement(SalesInvoiceHeader: Record "Sales Invoice Header"; var ActualDeliveryDate: Date; var DeliveryAddress: Record "Standard Address"; var DeliveryGLN: Code[13])
     begin
     end;
 
@@ -2549,7 +2549,7 @@ codeunit 13916 "Export XRechnung Document"
     /// Fires before the delivery information (BG-13) is created for a sales credit memo. Subscribe to override its values.
     /// </summary>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertSalesCrMemoDelivery(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ActualDeliveryDate: Date; var DeliveryAddress: Record "Standard Address"; var DeliveryGLN: Code[13])
+    local procedure OnInsertDeliveryOnBeforeCreateSalesCrMemoDeliveryElement(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ActualDeliveryDate: Date; var DeliveryAddress: Record "Standard Address"; var DeliveryGLN: Code[13])
     begin
     end;
 

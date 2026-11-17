@@ -2662,7 +2662,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
 
         // [GIVEN] Subscribers pass back a buyer name, a registration name, an actual delivery date, a deliver-to city and the order references
-        GenerateEventOverrideValues(PartyName, CustomerName, ActualDeliveryDate, DeliveryCity, OrderReferenceID, SalesOrderID);
+        GenerateEventOverrideValues(SalesInvoiceHeader."Shipment Date", PartyName, CustomerName, ActualDeliveryDate, DeliveryCity, OrderReferenceID, SalesOrderID);
         LibraryEDocDE.ClearXRechnungOverrides();
         LibraryEDocDE.SetXRechnungValueOverrides(PartyName, CustomerName, ActualDeliveryDate, DeliveryCity, OrderReferenceID, SalesOrderID);
 
@@ -2723,7 +2723,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
 
         // [GIVEN] Subscribers pass back a buyer name, a registration name, an actual delivery date, a deliver-to city and the order references
-        GenerateEventOverrideValues(PartyName, CustomerName, ActualDeliveryDate, DeliveryCity, OrderReferenceID, SalesOrderID);
+        GenerateEventOverrideValues(SalesCrMemoHeader."Shipment Date", PartyName, CustomerName, ActualDeliveryDate, DeliveryCity, OrderReferenceID, SalesOrderID);
         LibraryEDocDE.ClearXRechnungOverrides();
         LibraryEDocDE.SetXRechnungValueOverrides(PartyName, CustomerName, ActualDeliveryDate, DeliveryCity, OrderReferenceID, SalesOrderID);
 
@@ -5449,11 +5449,14 @@ codeunit 13918 "XRechnung XML Document Tests"
         Assert.AreEqual(ServiceCrMemoHeader."Bill-to City", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
-    local procedure GenerateEventOverrideValues(var PartyName: Text[100]; var CustomerName: Text[100]; var ActualDeliveryDate: Date; var DeliveryCity: Text[30]; var OrderReferenceID: Text[35]; var SalesOrderID: Code[20])
+    local procedure GenerateEventOverrideValues(DocumentShipmentDate: Date; var PartyName: Text[100]; var CustomerName: Text[100]; var ActualDeliveryDate: Date; var DeliveryCity: Text[30]; var OrderReferenceID: Text[35]; var SalesOrderID: Code[20])
     begin
         PartyName := CopyStr(LibraryUtility.GenerateRandomText(50), 1, MaxStrLen(PartyName));
         CustomerName := CopyStr(LibraryUtility.GenerateRandomText(50), 1, MaxStrLen(CustomerName));
-        ActualDeliveryDate := LibraryRandom.RandDate(30);
+        // Always later than the document's shipment date, so the export can only contain it if the event override was applied
+        if DocumentShipmentDate = 0D then
+            DocumentShipmentDate := WorkDate();
+        ActualDeliveryDate := DocumentShipmentDate + LibraryRandom.RandInt(30);
         DeliveryCity := CopyStr(LibraryUtility.GenerateRandomText(20), 1, MaxStrLen(DeliveryCity));
         OrderReferenceID := LibraryUtility.GenerateGUID();
         SalesOrderID := LibraryUtility.GenerateGUID();

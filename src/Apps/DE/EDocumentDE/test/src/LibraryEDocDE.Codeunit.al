@@ -154,26 +154,26 @@ codeunit 13925 "Library - E-Doc DE"
         AddedDespatchDocumentID := DespatchDocumentID;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnBeforeInsertSalesInvCustomerParty, '', false, false)]
-    local procedure OverrideXRechnungOnBeforeInsertSalesInvCustomerParty(var PartyName: Text[100]; var CustomerName: Text[100])
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnInsertAccountingCustomerPartyOnBeforeCreateSalesInvoiceElement, '', false, false)]
+    local procedure OverrideXRechnungOnInsertAccountingCustomerPartyOnBeforeCreateSalesInvoiceElement(var PartyName: Text[100]; var CustomerName: Text[100])
     begin
         OverrideCustomerPartyValues(PartyName, CustomerName);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnBeforeInsertSalesCrMemoCustomerParty, '', false, false)]
-    local procedure OverrideXRechnungOnBeforeInsertSalesCrMemoCustomerParty(var PartyName: Text[100]; var CustomerName: Text[100])
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnInsertAccountingCustomerPartyOnBeforeCreateSalesCrMemoElement, '', false, false)]
+    local procedure OverrideXRechnungOnInsertAccountingCustomerPartyOnBeforeCreateSalesCrMemoElement(var PartyName: Text[100]; var CustomerName: Text[100])
     begin
         OverrideCustomerPartyValues(PartyName, CustomerName);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnBeforeInsertSalesInvDelivery, '', false, false)]
-    local procedure OverrideXRechnungOnBeforeInsertSalesInvDelivery(var ActualDeliveryDate: Date; var DeliveryAddress: Record "Standard Address")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnInsertDeliveryOnBeforeCreateSalesInvDeliveryElement, '', false, false)]
+    local procedure OverrideXRechnungOnInsertDeliveryOnBeforeCreateSalesInvDeliveryElement(var ActualDeliveryDate: Date; var DeliveryAddress: Record "Standard Address")
     begin
         OverrideDeliveryValues(ActualDeliveryDate, DeliveryAddress);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnBeforeInsertSalesCrMemoDelivery, '', false, false)]
-    local procedure OverrideXRechnungOnBeforeInsertSalesCrMemoDelivery(var ActualDeliveryDate: Date; var DeliveryAddress: Record "Standard Address")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", OnInsertDeliveryOnBeforeCreateSalesCrMemoDeliveryElement, '', false, false)]
+    local procedure OverrideXRechnungOnInsertDeliveryOnBeforeCreateSalesCrMemoDeliveryElement(var ActualDeliveryDate: Date; var DeliveryAddress: Record "Standard Address")
     begin
         OverrideDeliveryValues(ActualDeliveryDate, DeliveryAddress);
     end;
