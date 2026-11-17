@@ -20,13 +20,18 @@ reportextension 99000836 "Mfg. Get Outbound Source Docs" extends "Get Outbound S
                 dataitem("Prod. Order Component"; "Prod. Order Component")
                 {
                     DataItemLink = Status = field(Status), "Prod. Order No." = field("No.");
-                    DataItemTableView = sorting(Status, "Prod. Order No.", "Prod. Order Line No.", "Line No.") where("Planning Level Code" = const(0));
+                    DataItemTableView = sorting(Status, "Prod. Order No.", "Prod. Order Line No.", "Line No.");
 
                     trigger OnAfterGetRecord()
                     var
                         ProdOrderWarehouseMgt: Codeunit "Prod. Order Warehouse Mgt.";
                         ToBinCode: Code[20];
                     begin
+                        if not "Prod. Order Component".IsEligibleForWarehousePick() then begin
+                            CurrReport.Skip();
+                            exit;
+                        end;
+
                         if ("Flushing Method" = "Flushing Method"::"Pick + Forward") and ("Routing Link Code" = '') then
                             CurrReport.Skip();
 

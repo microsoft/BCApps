@@ -144,7 +144,7 @@ page 99000768 "Manufacturing Setup"
                     ApplicationArea = Manufacturing;
                 }
             }
-#if not CLEAN27
+#if not CLEAN28
             group(Subcontracting)
             {
                 ObsoleteReason = 'Preparation for replacement by Subcontracting app';

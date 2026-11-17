@@ -3,7 +3,8 @@ codeunit 134907 "ERM Invoice and Reminder"
     Permissions = TableData "Issued Reminder Header" = rimd,
                   TableData "Issued Reminder Line" = rimd,
                   TableData "Cust. Ledger Entry" = rimd,
-                  TableData "Detailed Cust. Ledg. Entry" = rimd;
+                  TableData "Detailed Cust. Ledg. Entry" = rimd,
+                  TableData "G/L Entry" = ri;
     Subtype = Test;
     TestPermissions = NonRestrictive;
     EventSubscriberInstance = Manual;
@@ -861,7 +862,7 @@ codeunit 134907 "ERM Invoice and Reminder"
         CustLedgerEntry.ModifyAll("On Hold", 'YES');
 
         // [WHEN] Run Create Reminders with Include Entries On Hold = true
-        RunCreateRemindersWithIncludeEntriesOnHold(Customer, ReminderPostingDate);
+        RunCreateRemindersWithIncludeEntriesOnHold(Customer, ReminderPostingDate, false);
 
         // [THEN] Reminder is created for customer "C"
         ReminderHeader.SetRange("Customer No.", Customer."No.");
@@ -877,6 +878,33 @@ codeunit 134907 "ERM Invoice and Reminder"
         // [THEN] No chargeable reminder lines are created for the on-hold entries (no duplicates, no line fees)
         ReminderLine.SetRange("Line Type", ReminderLine."Line Type"::"Reminder Line");
         Assert.RecordIsEmpty(ReminderLine);
+    end;
+
+    [Test]
+    procedure CreateReminderWhenAllEntriesOnHoldWithZeroFeeAndNoTexts()
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Customer: Record Customer;
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 655944] Create Reminders does not fail when all overdue entries are on hold and the reminder level has no fee and no texts.
+        Initialize();
+
+        // [GIVEN] Create Customer with Reminder Terms having one level with zero fee and no beginning/ending texts.
+        CreateCustomerWithReminderTermsWithoutFee(Customer);
+
+        // [GIVEN] Posted sales invoice for customer whose customer ledger entry is On Hold.
+        InvoiceNo := PostSalesInvoice(Customer."No.", WorkDate());
+        CustLedgerEntry.SetRange("Customer No.", Customer."No.");
+        CustLedgerEntry.SetRange(Open, true);
+        CustLedgerEntry.ModifyAll("On Hold", 'YES');
+
+        // [WHEN] Run Create Reminders with Only Entries with Overdue Amounts = true and Include Entries On Hold = true after the invoice is overdue.
+        RunCreateRemindersWithIncludeEntriesOnHold(Customer, CalcDate('<3W+1D>', WorkDate()), true);
+
+        // [THEN] Verify Reminder for the customer contains only the On Hold line for the invoice, without reminder or additional fee lines.
+        VerifyReminderHasOnlyOnHoldLineForDocument(Customer."No.", InvoiceNo);
     end;
 
     [Test]
@@ -1064,6 +1092,29 @@ codeunit 134907 "ERM Invoice and Reminder"
         CreateReminderLevelDueDateCalculation(ReminderTerms.Code, WeekDateFormula, WeekDateFormula, FeeAmount);
         CreateReminderLevelDueDateCalculation(ReminderTerms.Code, BlankDateFormula, WeekDateFormula, FeeAmount * 2);
         CreateReminderLevelDueDateCalculation(ReminderTerms.Code, BlankDateFormula, WeekDateFormula, FeeAmount * 3);
+
+        LibraryERM.CreatePaymentTerms(PaymentTerms);
+        PaymentTerms.Validate("Due Date Calculation", WeekDateFormula);
+        PaymentTerms.Modify(true);
+
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Payment Terms Code", PaymentTerms.Code);
+        Customer.Validate("Reminder Terms Code", ReminderTerms.Code);
+        Customer.Modify(true);
+
+        Customer.SetRecFilter();
+    end;
+
+    local procedure CreateCustomerWithReminderTermsWithoutFee(var Customer: Record Customer)
+    var
+        ReminderTerms: Record "Reminder Terms";
+        PaymentTerms: Record "Payment Terms";
+        BlankDateFormula: DateFormula;
+        WeekDateFormula: DateFormula;
+    begin
+        Evaluate(WeekDateFormula, '<1W>');
+        LibraryERM.CreateReminderTerms(ReminderTerms);
+        CreateReminderLevelDueDateCalculation(ReminderTerms.Code, BlankDateFormula, WeekDateFormula, 0);
 
         LibraryERM.CreatePaymentTerms(PaymentTerms);
         PaymentTerms.Validate("Due Date Calculation", WeekDateFormula);
@@ -1313,14 +1364,14 @@ codeunit 134907 "ERM Invoice and Reminder"
         CreateReminders.Run();
     end;
 
-    local procedure RunCreateRemindersWithIncludeEntriesOnHold(var Customer: Record Customer; ReminderPostingDate: Date)
+    local procedure RunCreateRemindersWithIncludeEntriesOnHold(var Customer: Record Customer; ReminderPostingDate: Date; OverdueEntriesOnly: Boolean)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         CreateReminders: Report "Create Reminders";
     begin
         CreateReminders.SetTableView(CustLedgerEntry);
         CreateReminders.SetTableView(Customer);
-        CreateReminders.InitializeRequest(ReminderPostingDate, ReminderPostingDate, false, false, true);
+        CreateReminders.InitializeRequest(ReminderPostingDate, ReminderPostingDate, OverdueEntriesOnly, false, true);
         CreateReminders.UseRequestPage(false);
         CreateReminders.Run();
     end;
@@ -1362,6 +1413,27 @@ codeunit 134907 "ERM Invoice and Reminder"
         Assert.RecordIsEmpty(ReminderLine);
     end;
 
+    local procedure VerifyReminderHasOnlyOnHoldLineForDocument(CustomerNo: Code[20]; DocumentNo: Code[20])
+    var
+        ReminderHeader: Record "Reminder Header";
+        ReminderLine: Record "Reminder Line";
+    begin
+        ReminderHeader.SetRange("Customer No.", CustomerNo);
+        Assert.RecordCount(ReminderHeader, 1);
+        ReminderHeader.FindFirst();
+
+        ReminderLine.SetRange("Reminder No.", ReminderHeader."No.");
+        ReminderLine.SetRange(Type, ReminderLine.Type::"Customer Ledger Entry");
+        ReminderLine.SetRange("Line Type", ReminderLine."Line Type"::"On Hold");
+        ReminderLine.SetRange("Document No.", DocumentNo);
+        Assert.RecordCount(ReminderLine, 1);
+
+        ReminderLine.SetRange(Type);
+        ReminderLine.SetRange("Document No.");
+        ReminderLine.SetFilter("Line Type", '%1|%2', ReminderLine."Line Type"::"Reminder Line", ReminderLine."Line Type"::"Additional Fee");
+        Assert.RecordIsEmpty(ReminderLine);
+    end;
+
     local procedure VerifyAmtDueTextAndRemaininAmt(IssuedReminderHeader: Record "Issued Reminder Header")
     begin
         LibraryReportDataset.LoadDataSetFile();
@@ -1387,12 +1459,22 @@ codeunit 134907 "ERM Invoice and Reminder"
 
     local procedure MockCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; CustomerNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type"; LastIssuedReminderLevel: Integer; DueDate: Date)
     var
-        LastEntryNo: Integer;
+        GLEntry: Record "G/L Entry";
+        EntryNo: Integer;
     begin
-        if CustLedgerEntry.FindLast() then
-            LastEntryNo := CustLedgerEntry."Entry No.";
+        // Posted Cust. Ledger Entries take their Entry No. from G/L Entry, so reserve the number with a placeholder G/L Entry
+        // to prevent later postings in this codeunit from colliding with the mocked entry.
+        EntryNo := GLEntry.GetLastEntryNo();
+        if CustLedgerEntry.GetLastEntryNo() > EntryNo then
+            EntryNo := CustLedgerEntry.GetLastEntryNo();
+        EntryNo += 1;
+        GLEntry.Init();
+        GLEntry."Entry No." := EntryNo;
+        GLEntry."Posting Date" := WorkDate();
+        GLEntry.Insert();
+
         CustLedgerEntry.Init();
-        CustLedgerEntry."Entry No." := LastEntryNo + 1;
+        CustLedgerEntry."Entry No." := EntryNo;
         CustLedgerEntry."Customer No." := CustomerNo;
         CustLedgerEntry."Posting Date" := WorkDate();
         CustLedgerEntry."Document Type" := DocumentType;

@@ -14,7 +14,7 @@ using System.Reflection;
 
 codeunit 20559 "Subc. ProdO. Factbox Mgmt."
 {
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -35,7 +35,7 @@ codeunit 20559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -78,7 +78,7 @@ codeunit 20559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -106,7 +106,7 @@ codeunit 20559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -141,7 +141,7 @@ codeunit 20559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -166,7 +166,7 @@ codeunit 20559 "Subc. ProdO. Factbox Mgmt."
         RoutingNo: Code[20];
         ProdOrderLineNo: Integer;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

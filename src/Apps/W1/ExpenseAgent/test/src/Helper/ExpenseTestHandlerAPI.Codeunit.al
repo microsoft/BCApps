@@ -11,6 +11,8 @@ using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Customer;
 using System.Agents;
+using System.Environment.Configuration;
+using System.Security.AccessControl;
 
 codeunit 148307 "Expense Test Handler API"
 {
@@ -28,26 +30,109 @@ codeunit 148307 "Expense Test Handler API"
     end;
 
     /// <summary>
-    /// Explicitly provisions and enables Expense Agent setup for E2E tests.
+    /// Explicitly provisions and enables Expense Agent setup for E2E tests, and returns the identity
+    /// that the Expense Agent service must use to call Business Central.
+    /// Example: curl.exe -X POST "http://localhost:7047/Navision_NAV/ODataV4/ExpenseTestHandler_Configure?company=4d77b30a-3dc5-f011-9c12-7ced8d9e45e7" -u username:password -H "Content-Type: application/json" -H "Accept: application/json" -d "{}"
     /// </summary>
-    /// <returns>A completion message after the Expense Agent setup is configured.</returns>
+    /// <returns>
+    /// A JSON object with the completion status and a serviceIdentity object. The serviceIdentity holds
+    /// the user name and web service access key of the Expense Agent Microsoft Entra application user.
+    /// </returns>
     [ServiceEnabled]
-    procedure Configure(): Text[30]
+    procedure Configure(): Text
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
         CreateExpenseGLAccount: Codeunit "Create Expense GL Account";
         LibraryExpense: Codeunit "Library - Expense";
+        Response: JsonObject;
+        ServiceIdentity: JsonObject;
+        ResponseText: Text;
     begin
-        if ExpenseAgentSetupIsComplete() then
-            exit('Configure completed');
+        if not ExpenseAgentSetupIsComplete() then begin
+            CreateExpenseAgentSetup.Run();
+            CreateExpenseGLAccount.Run();
+            ExpenseAgentSetup.Get();
+            ExpenseAgentSetup.CreateDefaultSettings();
+            LibraryExpense.EnsureExpenseAgentEnabled();
+        end;
+        // Outside the setup block, so databases set up before the Entra application was enabled here get it too.
+        EnableEntraApplication();
 
-        CreateExpenseAgentSetup.Run();
-        CreateExpenseGLAccount.Run();
-        ExpenseAgentSetup.Get();
-        ExpenseAgentSetup.CreateDefaultSettings();
-        LibraryExpense.EnsureExpenseAgentEnabled();
-        exit('Configure completed');
+        GetServiceIdentity(ServiceIdentity);
+        Response.Add('status', 'Configure completed');
+        Response.Add('serviceIdentity', ServiceIdentity);
+        Response.WriteTo(ResponseText);
+        exit(ResponseText);
+    end;
+
+    /// <summary>
+    /// Enables the Expense Agent Microsoft Entra application for the current company, as activating the agent in the
+    /// setup wizard does. This creates its application user and grants it the Expense Agent permission set for the company.
+    /// </summary>
+    internal procedure EnableEntraApplication()
+    var
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        EnsureAadApplicationUser();
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
+        Commit();
+    end;
+
+    /// <summary>
+    /// Returns a web service access key for the enabled Expense Agent Microsoft Entra application user. On-premises,
+    /// the Expense Agent service uses this identity to call Business Central with the same least-privilege permissions
+    /// it has as an S2S application in SaaS. The key does not expire and is reused, so services that already use it keep
+    /// working when Configure is called again.
+    /// </summary>
+    /// <param name="ServiceIdentity">Receives the userName and webServicesKey properties.</param>
+    internal procedure GetServiceIdentity(var ServiceIdentity: JsonObject)
+    var
+        User: Record User;
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+        ServiceUserId: Guid;
+    begin
+        ServiceUserId := ExpenseAgentEntraApp.GetEnabledExpenseAgentUserId();
+        User.Get(ServiceUserId);
+
+        Clear(ServiceIdentity);
+        ServiceIdentity.Add('userName', User."User Name");
+        ServiceIdentity.Add('webServicesKey', GetOrCreateWebServicesKey(ServiceUserId));
+    end;
+
+    local procedure EnsureAadApplicationUser()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        // Enabling the Entra app creates its user through the platform and then reads it in the same transaction,
+        // which fails in multitenant containers. Create the user and commit first; UserExists also repairs a stale user ID.
+        if not AadApplication.Get(ExpenseAgentEntraApp.GetAadAppId()) then
+            exit;
+        if AadApplication.UserExists() then
+            exit;
+
+        // An enabled app without its user must be disabled first, so enabling it again completes the setup.
+        AadApplication.State := AadApplication.State::Disabled;
+        AadApplication.CreateUserFromAADApplication();
+        Commit();
+    end;
+
+    local procedure GetOrCreateWebServicesKey(ServiceUserId: Guid): Text
+    var
+        IdentityManagement: Codeunit "Identity Management";
+        WebServicesKey: Text;
+    begin
+        // A key without expiry has expiry date 0DT. A failed lookup returns the error text as key and the current time
+        // as expiry, so checking for 0DT ensures that only an existing key is reused; otherwise a key is created, which
+        // reports any error.
+        if IdentityManagement.GetWebServiceExpiryDate(ServiceUserId) = 0DT then begin
+            WebServicesKey := IdentityManagement.GetWebServicesKey(ServiceUserId);
+            if WebServicesKey <> '' then
+                exit(WebServicesKey);
+        end;
+
+        exit(IdentityManagement.CreateWebServicesKeyNoExpiry(ServiceUserId));
     end;
 
     local procedure ExpenseAgentSetupIsComplete(): Boolean

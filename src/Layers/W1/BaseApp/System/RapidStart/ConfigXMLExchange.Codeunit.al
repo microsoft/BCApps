@@ -54,6 +54,8 @@ codeunit 8614 "Config. XML Exchange"
         ProgressStatusTxt: Label '%1: %2 records out of %3', Comment = '%1 = table name; %2 = number of processed records (integer); %3 = total number records (integer).';
         ImportedTableContentTxt: Label 'Table: %1, records: %2, total table fields: %3, imported fields: %4.', Locked = true;
         ExportedTableContentTxt: Label 'Table: %1, records: %2, exported fields: %3.', Locked = true;
+        PackageImportStartMsg: Label 'Import of RS package started.', Locked = true;
+        PackageImportFinishMsg: Label 'Import of RS package finished. Duration: %1 milliseconds. File size: %2.', Comment = '%1 = duration in milliseconds, %2 = file size in bytes', Locked = true;
         PackageImportStartScopeAllMsg: Label 'Configuration package import started: %1', Comment = '%1 - package code', Locked = true;
         PackageImportFinishScopeAllMsg: Label 'Configuration package imported successfully: %1', Comment = '%1 - package code', Locked = true;
         PackageExportStartScopeAllMsg: Label 'Configuration package export started: %1', Comment = '%1 - package code', Locked = true;
@@ -1117,8 +1119,6 @@ codeunit 8614 "Config. XML Exchange"
         TableNode: DotNet XmlNode;
         OutStream: OutStream;
         Value: Text;
-        PackageImportStartMsg: Label 'Import of RS package started.', Locked = true;
-        PackageImportFinishMsg: Label 'Import of RS package finished. Duration: %1 milliseconds. File size: %2.', Locked = true;
         StartTime: DateTime;
         TableID: Integer;
         NodeCount: Integer;
@@ -1291,8 +1291,6 @@ codeunit 8614 "Config. XML Exchange"
         TableNode: XmlNode;
         OutStream: OutStream;
         Value: Text;
-        PackageImportStartMsg: Label 'Import of RS package started.', Locked = true;
-        PackageImportFinishMsg: Label 'Import of RS package finished. Duration: %1 milliseconds. File size: %2.', Comment = '%1 = duration in milliseconds, %2 = file size in bytes', Locked = true;
         StartTime: DateTime;
         TableID: Integer;
         Confirmed: Boolean;
