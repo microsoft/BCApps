@@ -3887,8 +3887,9 @@ codeunit 134123 "Price List Line UT"
         CreatePriceListHeaderForOData(PriceListHeader, "Price Type"::Sale, true);
 
         // [WHEN] Post a new line via OData: "Price List Code" = 'PL', "Starting Date" = 'SD', "Ending Date" = 'ED', "Product No." = 'I'
-        StartingDate := WorkDate();
-        EndingDate := StartingDate + LibraryRandom.RandIntInRange(10, 100);
+        // Dates sent via OData are checked against the license date interval, so keep them within the work date month
+        StartingDate := CalcDate('<-CM>', WorkDate());
+        EndingDate := CalcDate('<CM>', WorkDate());
         RequestBody.Add('Price_List_Code', PriceListHeader.Code);
         RequestBody.Add('StartingDate', Format(StartingDate, 0, 9));
         RequestBody.Add('EndingDate', Format(EndingDate, 0, 9));
@@ -3896,7 +3897,7 @@ codeunit 134123 "Price List Line UT"
         PostPriceListLineViaOData(RequestBody);
 
         // [THEN] Line is inserted in 'PL' with "Starting Date" = 'SD' and "Ending Date" = 'ED'
-        FindSinglePriceListLine(PriceListLine, PriceListHeader.Code);
+        FindSinglePriceListLineAndDeleteViaOData(PriceListLine, PriceListHeader.Code);
         PriceListLine.TestField("Asset No.", Item."No.");
         PriceListLine.TestField("Starting Date", StartingDate);
         PriceListLine.TestField("Ending Date", EndingDate);
@@ -3929,13 +3930,14 @@ codeunit 134123 "Price List Line UT"
         CreatePriceListHeaderForOData(PriceListHeader, "Price Type"::Sale, true);
         LibraryPriceCalculation.CreatePriceListLine(
             PriceListLine, PriceListHeader, "Price Amount Type"::Price, "Price Asset Type"::Item, Item."No.");
-        PriceListLine.Validate("Starting Date", WorkDate());
-        PriceListLine.Validate("Ending Date", WorkDate() + LibraryRandom.RandIntInRange(10, 100));
+        PriceListLine.Validate("Starting Date", CalcDate('<-CM>', WorkDate()));
+        PriceListLine.Validate("Ending Date", CalcDate('<-CM+10D>', WorkDate()));
         PriceListLine.Modify(true);
         ExpectedPriceListLine := PriceListLine;
 
         // [WHEN] Patch line 'L' via OData: "Unit of Measure Code" = 'UOM', "Ending Date" = 'ED2'
-        NewEndingDate := PriceListLine."Ending Date" + LibraryRandom.RandIntInRange(10, 100);
+        // Dates sent via OData are checked against the license date interval, so keep them within the work date month
+        NewEndingDate := CalcDate('<CM>', WorkDate());
         RequestBody.Add('Unit_of_Measure_Code_Lookup', ItemUnitofMeasure.Code);
         RequestBody.Add('EndingDate', Format(NewEndingDate, 0, 9));
         RequestBody.WriteTo(RequestBodyText);
@@ -3980,7 +3982,7 @@ codeunit 134123 "Price List Line UT"
         PostPriceListLineViaOData(RequestBody);
 
         // [THEN] Line is inserted in 'PL' with "Asset No." = 'I', "Product No." = 'I' and "Unit of Measure Code" = 'UOM'
-        FindSinglePriceListLine(PriceListLine, PriceListHeader.Code);
+        FindSinglePriceListLineAndDeleteViaOData(PriceListLine, PriceListHeader.Code);
         PriceListLine.TestField("Asset Type", "Price Asset Type"::Item);
         PriceListLine.TestField("Asset No.", Item."No.");
         PriceListLine.TestField("Product No.", Item."No.");
@@ -4019,11 +4021,29 @@ codeunit 134123 "Price List Line UT"
         exit(LibraryGraphMgt.CreateTargetURL(RecordKey, Page::"Price List Lines", PriceListLinesServiceNameTxt));
     end;
 
-    local procedure FindSinglePriceListLine(var PriceListLine: Record "Price List Line"; PriceListCode: Code[20])
+    local procedure FindSinglePriceListLineAndDeleteViaOData(var PriceListLine: Record "Price List Line"; PriceListCode: Code[20])
+    var
+        TempPriceListLine: Record "Price List Line" temporary;
+        ResponseText: Text;
     begin
+        // Lines inserted via OData are committed by the OData session and are not rolled back by the test isolation,
+        // so keep a copy for verification and delete them via OData to not affect other tests
         PriceListLine.SetRange("Price List Code", PriceListCode);
-        Assert.RecordCount(PriceListLine, 1);
-        PriceListLine.FindFirst();
+        if PriceListLine.FindSet() then
+            repeat
+                TempPriceListLine := PriceListLine;
+                TempPriceListLine.Insert();
+            until PriceListLine.Next() = 0;
+
+        if TempPriceListLine.FindSet() then
+            repeat
+                LibraryGraphMgt.DeleteFromWebServiceAndCheckResponseCode(
+                    GetPriceListLinesODataURL(TempPriceListLine."Price List Code", TempPriceListLine."Line No."), '', ResponseText, 204);
+            until TempPriceListLine.Next() = 0;
+
+        Assert.RecordCount(TempPriceListLine, 1);
+        TempPriceListLine.FindFirst();
+        PriceListLine := TempPriceListLine;
     end;
 
     local procedure Initialize()
