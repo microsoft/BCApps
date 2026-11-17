@@ -299,45 +299,42 @@ codeunit 148343 "Expense Activity Log API Test"
     end;
 
     [Test]
-    procedure PagedActivityHistoryReturnsSameEntriesAsUnpagedRead()
+    procedure PagedSubmitterHistoryReturnsSameEntriesAsUnpagedRead()
     var
         ExpenseUser: array[2] of Record "Expense User";
         ExpenseReportHeader: array[2] of Record "Expense Report Header";
-        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
         TargetURL: Text;
     begin
-        // [SCENARIO] Following @odata.nextLink with a small server page size returns every entry of the unpaged read.
-        // [GIVEN] A submitter with two reports, one of which carries submitter and approver activity.
+        // [SCENARIO] Following @odata.nextLink on user-scoped submitter history returns every entry of the unpaged read.
+        // [GIVEN] A submitter with four history entries across two reports.
         Initialize();
-        CreateTestExpenseUser(ExpenseUser[1]);
-        CreateTestExpenseUser(ExpenseUser[2]);
-        CreateTestExpenseReport(ExpenseReportHeader[1], ExpenseUser[1]."No.");
-        CreateTestExpenseReport(ExpenseReportHeader[2], ExpenseUser[1]."No.");
-        ExpenseActivityLogMgt.LogExpenseReportEvent(
-            ExpenseReportHeader[1], Enum::"Expense Activity Event Type"::Created,
-            Enum::"Expense Activity Initiator"::User, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser[1]."No.", '');
-        ExpenseActivityLogMgt.LogExpenseReportEvent(
-            ExpenseReportHeader[1], Enum::"Expense Activity Event Type"::Submitted,
-            Enum::"Expense Activity Initiator"::User, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser[1]."No.", '');
-        ExpenseActivityLogMgt.LogExpenseReportEvent(
-            ExpenseReportHeader[1], Enum::"Expense Activity Event Type"::Approved,
-            Enum::"Expense Activity Initiator"::User, Enum::"Expense Activity Actor Role"::Approver, ExpenseUser[2]."No.", '');
-        ExpenseActivityLogMgt.LogExpenseReportEvent(
-            ExpenseReportHeader[2], Enum::"Expense Activity Event Type"::Submitted,
-            Enum::"Expense Activity Initiator"::User, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser[1]."No.", '');
-        Commit();
-
-        // [WHEN] Submitter history is read unpaged and with a page size of one.
-        // [THEN] The paged read follows nextLink across several pages and returns the same entries.
+        CreatePagingActivity(ExpenseUser, ExpenseReportHeader);
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             Format(ExpenseUser[1].SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ServiceNameTok);
         TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(TargetURL, '$filter=historyActorRole eq ''Submitter''');
-        VerifyPagedReadMatchesUnpagedRead(TargetURL, 4);
 
-        // [WHEN] Report-scoped activity is read unpaged and with a page size of one.
-        // [THEN] The paged read returns the same entries.
+        // [WHEN] Submitter history is read unpaged and with a page size of one.
+        // [THEN] The paged read spans several pages and returns exactly the unpaged entries.
+        VerifyPagedReadMatchesUnpagedRead(TargetURL, 4);
+        CompleteTest();
+    end;
+
+    [Test]
+    procedure PagedReportActivityReturnsSameEntriesAsUnpagedRead()
+    var
+        ExpenseUser: array[2] of Record "Expense User";
+        ExpenseReportHeader: array[2] of Record "Expense Report Header";
+        TargetURL: Text;
+    begin
+        // [SCENARIO] Following @odata.nextLink on report-scoped activity returns every entry of the unpaged read.
+        // [GIVEN] A report with three activity entries.
+        Initialize();
+        CreatePagingActivity(ExpenseUser, ExpenseReportHeader);
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             Format(ExpenseReportHeader[1].SystemId), Page::"Expense Reports API", ExpenseReportsServiceNameTok, ServiceNameTok);
+
+        // [WHEN] Report-scoped activity is read unpaged and with a page size of one.
+        // [THEN] The paged read spans several pages and returns exactly the unpaged entries.
         VerifyPagedReadMatchesUnpagedRead(TargetURL, 3);
         CompleteTest();
     end;
@@ -645,10 +642,34 @@ codeunit 148343 "Expense Activity Log API Test"
         exit(Value.AsValue().AsDecimal());
     end;
 
+    local procedure CreatePagingActivity(var ExpenseUser: array[2] of Record "Expense User"; var ExpenseReportHeader: array[2] of Record "Expense Report Header")
+    var
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+    begin
+        CreateTestExpenseUser(ExpenseUser[1]);
+        CreateTestExpenseUser(ExpenseUser[2]);
+        CreateTestExpenseReport(ExpenseReportHeader[1], ExpenseUser[1]."No.");
+        CreateTestExpenseReport(ExpenseReportHeader[2], ExpenseUser[1]."No.");
+        ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader[1], Enum::"Expense Activity Event Type"::Created,
+            Enum::"Expense Activity Initiator"::User, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser[1]."No.", '');
+        ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader[1], Enum::"Expense Activity Event Type"::Submitted,
+            Enum::"Expense Activity Initiator"::User, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser[1]."No.", '');
+        ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader[1], Enum::"Expense Activity Event Type"::Approved,
+            Enum::"Expense Activity Initiator"::User, Enum::"Expense Activity Actor Role"::Approver, ExpenseUser[2]."No.", '');
+        ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader[2], Enum::"Expense Activity Event Type"::Submitted,
+            Enum::"Expense Activity Initiator"::User, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser[1]."No.", '');
+        Commit();
+    end;
+
     local procedure VerifyPagedReadMatchesUnpagedRead(TargetURL: Text; ExpectedCount: Integer)
     var
         UnpagedIds: List of [Text];
         PagedIds: List of [Text];
+        DistinctPagedIds: List of [Text];
         EntryId: Text;
         NextLink: Text;
         PageCount: Integer;
@@ -665,6 +686,10 @@ codeunit 148343 "Expense Activity Log API Test"
         until NextLink = '';
 
         Assert.IsTrue(PageCount > 1, 'The server must honor the page size so that the read spans several pages.');
+        foreach EntryId in PagedIds do begin
+            Assert.IsFalse(DistinctPagedIds.Contains(EntryId), 'The paged read returned entry ' + EntryId + ' more than once.');
+            DistinctPagedIds.Add(EntryId);
+        end;
         Assert.AreEqual(UnpagedIds.Count(), PagedIds.Count(), 'The paged read must return as many entries as the unpaged read.');
         foreach EntryId in UnpagedIds do
             Assert.IsTrue(PagedIds.Contains(EntryId), 'The paged read is missing entry ' + EntryId + '.');
