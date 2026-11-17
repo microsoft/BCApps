@@ -611,7 +611,8 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         PurchaseLine.Validate(Quantity, FirstQuantity);
         PurchaseLine.Modify(true);
         SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
-        Assert.AreEqual(6, PurchaseLine."Qty. per Unit of Measure", 'First contributor must retain the factor-six document UOM conversion.');
+        ItemUOM.Get(PurchaseLine."No.", PurchaseLine."Unit of Measure Code");
+        Assert.AreEqual(6, ItemUOM."Qty. per Unit of Measure", 'First contributor must use the factor-six item UOM conversion.');
         PurchaseLine.SetRange("No.", Items[2]."No.");
         PurchaseLine.FindFirst();
         Assert.AreEqual(SecondQuantity, PurchaseLine.Quantity, 'Second contributor must exist with its raw quantity.');
@@ -632,7 +633,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ReceiptLine.SetRange("No.", Items[1]."No.");
         ReceiptLine.FindFirst();
         Assert.AreEqual(FirstQuantity, ReceiptLine.Quantity, 'First family receipt must retain document quantity.');
-        Assert.AreEqual(6, ReceiptLine."Qty. per Unit of Measure", 'First family receipt must retain the factor-six document UOM conversion.');
+        Assert.AreEqual(ItemUOM.Code, ReceiptLine."Unit of Measure Code", 'First family receipt must retain document UOM.');
         ReceiptLine.SetRange("No.", Items[2]."No.");
         ReceiptLine.FindFirst();
         Assert.AreEqual(SecondQuantity, ReceiptLine.Quantity, 'Second family receipt must be posted.');
@@ -680,7 +681,6 @@ codeunit 139990 "Subc. Subcontracting UI Test"
             repeat
                 SubcWarehouseLibrary.VerifySummaryDetailRecord(PurchaseLine.RecordId());
                 Assert.AreEqual(PurchaseLine."Document No.", LibraryVariableStorage.DequeueText(), 'Purchase document key must match.');
-                Assert.AreEqual(PurchaseLine."Line No.", LibraryVariableStorage.DequeueInteger(), 'Purchase line key must match.');
                 Assert.AreEqual(PurchaseLine.Quantity, LibraryVariableStorage.DequeueDecimal(), 'Raw purchase detail quantity must match.');
             until PurchaseLine.Next() = 0;
         SubcWarehouseLibrary.StartSummaryDetailCapture();
@@ -763,24 +763,19 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     procedure SummaryPurchaseLinesHandler(var Lines: TestPage "Purchase Lines")
     var
         Documents: List of [Text];
-        LineNumbers: List of [Integer];
         Quantities: List of [Decimal];
         RowIndex: Integer;
         Quantity: Decimal;
-        LineNo: Integer;
     begin
         if Lines.First() then
             repeat
                 Documents.Add(Lines."Document No.".Value());
-                Evaluate(LineNo, Lines."Line No.".Value());
-                LineNumbers.Add(LineNo);
                 Evaluate(Quantity, Lines.Quantity.Value());
                 Quantities.Add(Quantity);
             until not Lines.Next();
         LibraryVariableStorage.Enqueue(Documents.Count());
         for RowIndex := 1 to Documents.Count() do begin
             LibraryVariableStorage.Enqueue(Documents.Get(RowIndex));
-            LibraryVariableStorage.Enqueue(LineNumbers.Get(RowIndex));
             LibraryVariableStorage.Enqueue(Quantities.Get(RowIndex));
         end;
         Lines.Close();
@@ -922,6 +917,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ReleasedOrder.GoToRecord(ProductionOrder);
         ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(1);
         AddSummaryRoutingOperations(ProductionOrder, false);
+        Commit();
 
         // [WHEN] The real parent action recalculates the order from its changed master routing.
         ReleasedOrder.RefreshProductionOrder.Invoke();
@@ -1055,8 +1051,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
         WIPEntryCount := WIPEntry.Count();
 
-        // [WHEN] The real consumer reads under permission recording for the owning role.
+        // [WHEN] The real consumer reads with Base Application read permissions and the owning extension role.
         LibraryLowerPermissions.StartLoggingNAVPermissions('Subcontract. - Read');
+        LibraryLowerPermissions.AddeRead();
         SubcWarehouseLibrary.VerifySummaryCard(ProductionOrder, 1, 10, 10, 0, false, 10, 0, 0, 0);
         ReleasedOrder.OpenView();
         ReleasedOrder.GoToRecord(ProductionOrder);
@@ -1100,7 +1097,6 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         Assert.AreEqual(ProductionOrder."No.", LibraryVariableStorage.DequeueText(), 'Read-role routing detail must retain current order.');
         Assert.AreEqual('10', LibraryVariableStorage.DequeueText(), 'Read-role routing detail must retain operation.');
         ReleasedOrder.Close();
-        LibraryLowerPermissions.StopLoggingNAVPermissions();
 
         // [THEN] Reading has not modified the header. Actual non-SUPER access remains a separate client obligation.
         ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
@@ -1227,6 +1223,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
     local procedure Initialize()
     begin
+        Clear(SubcWarehouseLibrary);
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting UI Test");
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();

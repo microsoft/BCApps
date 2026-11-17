@@ -113,7 +113,7 @@ codeunit 149914 "Subc. WIP Adjustment Test"
 
         // [THEN] The native target guard rejects it without adding entries.
         Assert.ExpectedError('must not be negative');
-        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedErrorCode('TestValidation');
         Assert.AreEqual(EntryCount, WIPEntry.Count(), 'Rejected negative target must not append entries.');
         ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(8);
         ReleasedOrder.Close();
@@ -147,7 +147,7 @@ codeunit 149914 "Subc. WIP Adjustment Test"
 
         // [THEN] The native upper guard rejects it and the persisted card balance stays eight.
         Assert.ExpectedError('must not exceed');
-        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedErrorCode('TestValidation');
         Assert.AreEqual(EntryCount, WIPEntry.Count(), 'Rejected excessive target must not append entries.');
         ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(8);
         ReleasedOrder.Close();

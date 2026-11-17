@@ -262,7 +262,6 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
         FinishedCard.OpenView();
         FinishedCard.GoToRecord(FinishedOrder);
         FinishedCard.ReopenFinishedProdOrder.Invoke();
-        FinishedCard.Close();
         ReopenedOrder.Get(ReopenedOrder.Status::Released, FinishedOrder."No.");
         SubcWarehouseLibrary.VerifySummaryWIP(ReopenedOrder, 10, 0);
         Assert.AreEqual(0, SummaryMgmt.GetWIPQuantity(FinishedOrder, false), 'Old Finished identity must no longer match after native reopen.');
