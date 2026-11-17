@@ -69,6 +69,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true, Comment = '%1 = XML attribute name, %2 = XML element XPath';
         SellerContactReasonErr: Label 'must be filled in. It is required for the seller contact (BG-6) of the electronic document', Locked = true;
         UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
+        NodeNotFoundErr: Label 'Node not found: %1', Locked = true, Comment = '%1 = XML element XPath';
+        NoFollowingSiblingErr: Label 'Node %1 has no following sibling', Locked = true, Comment = '%1 = XML element XPath';
         DocumentAllowanceChargeTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeAllowanceCharge', Locked = true;
         InvoiceLineTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
         InvoiceLineAllowanceChargeTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeAllowanceCharge', Locked = true;
@@ -5620,7 +5622,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ExternalDocumentNo := LibraryUtility.GenerateGUID();
         ShipToName := CopyStr(LibraryUtility.GenerateRandomText(50), 1, MaxStrLen(ShipToName));
         ShipToCity := CopyStr(LibraryUtility.GenerateRandomText(20), 1, MaxStrLen(ShipToCity));
-        ActualDeliveryDate := LibraryRandom.RandDate(30);
+        // A fixed date before the work date, so it differs from the shipment date of the posted document.
+        ActualDeliveryDate := CalcDate('<-5D>', WorkDate());
     end;
 
     local procedure VerifyEventOverrideValues(var TempXMLBuffer: Record "XML Buffer" temporary; CustomerName: Text; ExternalDocumentNo: Code[35]; ShipToName: Text; ShipToCity: Text; ActualDeliveryDate: Date)
@@ -5659,7 +5662,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         LibraryEDocDE.GetCapturedZUGFeRDTradeHeaderRecordIds(TradeAgreementHeaderRecordId, TradeDeliveryValuesHeaderRecordId, TradeDeliveryElementHeaderRecordId);
         Assert.AreEqual(ExpectedHeaderRecordId, TradeAgreementHeaderRecordId, 'OnInsertApplicableHeaderTradeAgreementOnBeforeCreateElement carried the wrong header');
         Assert.AreEqual(ExpectedHeaderRecordId, TradeDeliveryValuesHeaderRecordId, 'OnInsertApplicableHeaderTradeDeliveryOnBeforeCreateElement carried the wrong header');
-        Assert.AreEqual(ExpectedHeaderRecordId, TradeDeliveryElementHeaderRecordId, 'OnAfterInsertApplicableHeaderTradeDelivery carried the wrong header');
+        Assert.AreEqual(ExpectedHeaderRecordId, TradeDeliveryElementHeaderRecordId, 'OnInsertApplicableHeaderTradeDeliveryOnBeforeAddToRoot carried the wrong header');
     end;
 
     local procedure GetNextSiblingPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
@@ -5671,7 +5674,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
         TempXMLBuffer.SetRange(Path, XPath);
         if not TempXMLBuffer.FindFirst() then
-            Error('Node not found: %1', XPath);
+            Error(NodeNotFoundErr, XPath);
         ParentEntryNo := TempXMLBuffer."Parent Entry No.";
         EntryNo := TempXMLBuffer."Entry No.";
 
@@ -5680,7 +5683,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         TempXMLBuffer.SetRange("Parent Entry No.", ParentEntryNo);
         TempXMLBuffer.SetFilter("Entry No.", '>%1', EntryNo);
         if not TempXMLBuffer.FindFirst() then
-            Error('Node %1 has no following sibling', XPath);
+            Error(NoFollowingSiblingErr, XPath);
         exit(TempXMLBuffer.Path);
     end;
 

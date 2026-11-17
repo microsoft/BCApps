@@ -222,7 +222,7 @@ codeunit 13925 "Library - E-Doc DE"
     /// </summary>
     /// <param name="TradeAgreementHeaderRecordId">The header carried by OnInsertApplicableHeaderTradeAgreementOnBeforeCreateElement.</param>
     /// <param name="TradeDeliveryValuesHeaderRecordId">The header carried by OnInsertApplicableHeaderTradeDeliveryOnBeforeCreateElement.</param>
-    /// <param name="TradeDeliveryElementHeaderRecordId">The header carried by OnAfterInsertApplicableHeaderTradeDelivery.</param>
+    /// <param name="TradeDeliveryElementHeaderRecordId">The header carried by OnInsertApplicableHeaderTradeDeliveryOnBeforeAddToRoot.</param>
     procedure GetCapturedZUGFeRDTradeHeaderRecordIds(var TradeAgreementHeaderRecordId: RecordId; var TradeDeliveryValuesHeaderRecordId: RecordId; var TradeDeliveryElementHeaderRecordId: RecordId)
     begin
         TradeAgreementHeaderRecordId := CapturedTradeAgreementHeaderRecordId;
@@ -252,8 +252,8 @@ codeunit 13925 "Library - E-Doc DE"
             ActualDeliveryDate := OverrideZUGFeRDActualDeliveryDate;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export ZUGFeRD Document", OnAfterInsertApplicableHeaderTradeDelivery, '', false, false)]
-    local procedure AddZUGFeRDDespatchAdviceOnAfterInsertApplicableHeaderTradeDelivery(var DeliveryElement: XmlElement; HeaderRecordRef: RecordRef)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export ZUGFeRD Document", OnInsertApplicableHeaderTradeDeliveryOnBeforeAddToRoot, '', false, false)]
+    local procedure AddZUGFeRDDespatchAdviceOnInsertApplicableHeaderTradeDeliveryOnBeforeAddToRoot(var DeliveryElement: XmlElement; HeaderRecordRef: RecordRef)
     var
         DespatchAdviceElement: XmlElement;
     begin

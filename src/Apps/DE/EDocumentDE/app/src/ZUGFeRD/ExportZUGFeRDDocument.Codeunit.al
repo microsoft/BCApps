@@ -834,7 +834,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         end;
 
         if HasSourceRecordRef then
-            OnAfterInsertApplicableHeaderTradeDelivery(DeliveryElement, SourceRecordRef);
+            OnInsertApplicableHeaderTradeDeliveryOnBeforeAddToRoot(DeliveryElement, SourceRecordRef);
         RootXMLNode.Add(DeliveryElement);
     end;
 
@@ -2370,7 +2370,7 @@ codeunit 13917 "Export ZUGFeRD Document"
     /// <param name="DeliveryElement">The ram:ApplicableHeaderTradeDelivery element.</param>
     /// <param name="HeaderRecordRef">The source document: Sales Invoice, Sales Cr.Memo, Service Invoice or Service Cr.Memo Header.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertApplicableHeaderTradeDelivery(var DeliveryElement: XmlElement; HeaderRecordRef: RecordRef)
+    local procedure OnInsertApplicableHeaderTradeDeliveryOnBeforeAddToRoot(var DeliveryElement: XmlElement; HeaderRecordRef: RecordRef)
     begin
     end;
 
