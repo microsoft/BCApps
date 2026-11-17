@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Setup;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -19,6 +20,7 @@ codeunit 8843 "Sales Installment History"
         EditErr: Label 'Changing posted installment payment conditions is not supported.';
         PaymentServiceErr: Label 'Payment services are not supported for global installment invoices.';
         AutomaticApplicationErr: Label 'Automatic application to global installments is supported only for customer receipts. Select other applications using Applies-to ID.';
+        ReconciliationSelectionErr: Label 'Invoice %1 has more than one open installment. Select the customer ledger entries manually on payment reconciliation statement line %2.', Comment = '%1 = Invoice number, %2 = Statement line number';
         LatePostingErr: Label 'Late journal posting is not supported for global installment invoices.';
         IncompleteBackfillMsg: Label 'Installment invoice grouping could not be completed because a posted invoice or customer ledger anchor is missing or inconsistent. The upgrade tag was not set.', Locked = true;
 
@@ -261,6 +263,24 @@ codeunit 8843 "Sales Installment History"
              (GenJournalLine."Document Type" = GenJournalLine."Document Type"::Payment) and
              (GenJournalLine.Amount < 0) and IsNullGuid(GenJournalLine."Installment Plan ID") and
              (GenJournalLine."Applies-to ID" = '') and (GenJournalLine."Applies-to Doc. No." = ''));
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Applied Payment Entry", 'OnApplyFromBankStmtMatchingBufOnBeforeInsert', '', false, false)]
+    local procedure CheckAutomaticReconciliation(BankAccReconLine: Record "Bank Acc. Reconciliation Line"; BankStmtMatchingBuffer: Record "Bank Statement Matching Buffer"; EntryNo: Integer)
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        OpenInstallment: Record "Cust. Ledger Entry";
+    begin
+        if (BankStmtMatchingBuffer."Account Type" <> BankStmtMatchingBuffer."Account Type"::Customer) or (EntryNo <= 0) then
+            exit;
+        CustLedgerEntry.Get(EntryNo);
+        if IsNullGuid(CustLedgerEntry."Installment Plan ID") then
+            exit;
+        OpenInstallment.SetRange("Installment Plan ID", CustLedgerEntry."Installment Plan ID");
+        OpenInstallment.SetRange(Open, true);
+        if OpenInstallment.Find('-') then
+            if OpenInstallment.Next() <> 0 then
+                Error(ReconciliationSelectionErr, CustLedgerEntry."Document No.", BankAccReconLine."Statement Line No.");
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Payment Service Setup", 'OnCanChangePaymentServiceOnAfterGetRecordRef', '', false, false)]

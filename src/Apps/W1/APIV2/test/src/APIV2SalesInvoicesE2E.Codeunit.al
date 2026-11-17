@@ -1207,6 +1207,134 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         Assert.AreNotEqual('', ResponseText, 'Response JSON should not be blank');
     end;
 
+    [Test]
+    procedure InstallmentInvoiceAPIReopensAfterNonAnchorUnapply()
+    var
+        Invoice: Record "Sales Invoice Header";
+        Entry: Record "Cust. Ledger Entry";
+        PaymentEntry: Record "Cust. Ledger Entry";
+        DetailedEntry: Record "Detailed Cust. Ledg. Entry";
+        TempParameters: Record "Apply Unapply Parameters";
+        LibraryInstallments: Codeunit "Library - ERM Installments";
+        CustEntryApplyPostedEntries: Codeunit "CustEntry-Apply Posted Entries";
+        APIMockEvents: Codeunit "API Mock Events";
+        PublicID: Guid;
+        EntryNo: Integer;
+    begin
+        Initialize();
+        BindSubscription(APIMockEvents);
+        APIMockEvents.SetIsAPIEnabled(true);
+        LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
+        PublicID := Invoice."Draft Invoice SystemId";
+        LibraryInstallments.GetInstallment(Entry, Invoice."Installment Plan ID", 2);
+        EntryNo := Entry."Entry No.";
+        VerifyInstallmentInvoiceAPI(PublicID, Invoice."No.", 125, 'Open');
+
+        LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 41.67);
+        LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 3, 41.66);
+        VerifyInstallmentInvoiceAPI(PublicID, Invoice."No.", 41.67, 'Open');
+        LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 2, 41.67);
+        VerifyInstallmentInvoiceAPI(PublicID, Invoice."No.", 0, 'Paid');
+        DetailedEntry.Get(CustEntryApplyPostedEntries.FindLastApplEntry(EntryNo));
+        LibraryERM.FindCustomerLedgerEntry(PaymentEntry, PaymentEntry."Document Type"::Payment, DetailedEntry."Document No.");
+        TempParameters."Document No." := DetailedEntry."Document No.";
+        TempParameters."Posting Date" := WorkDate();
+
+        CustEntryApplyPostedEntries.PostUnApplyCustomerCommit(DetailedEntry, TempParameters, false);
+
+        VerifyInstallmentInvoiceAPI(PublicID, Invoice."No.", 41.67, 'Open');
+        LibraryInstallments.GetInstallment(Entry, Invoice."Installment Plan ID", 2);
+        Assert.AreEqual(EntryNo, Entry."Entry No.", 'Unapply must preserve the original non-anchor entry.');
+        PaymentEntry.Get(PaymentEntry."Entry No.");
+        PaymentEntry.CalcFields("Remaining Amount");
+        LibraryERM.SetApplyCustomerEntry(PaymentEntry, PaymentEntry."Remaining Amount");
+        Entry.Validate("Amount to Apply", 41.67);
+        Entry.Modify(true);
+        Entry.SetRecFilter();
+        LibraryERM.SetAppliestoIdCustomer(Entry);
+        LibraryERM.PostCustLedgerApplication(PaymentEntry);
+        VerifyInstallmentInvoiceAPI(PublicID, Invoice."No.", 0, 'Paid');
+        UnbindSubscription(APIMockEvents);
+    end;
+
+    [Test]
+    procedure InstallmentInvoiceAPIIncludesSelectedCreditAndEarlierPayment()
+    var
+        Invoice: Record "Sales Invoice Header";
+        LibraryInstallments: Codeunit "Library - ERM Installments";
+        APIMockEvents: Codeunit "API Mock Events";
+        PublicID: Guid;
+    begin
+        Initialize();
+        BindSubscription(APIMockEvents);
+        APIMockEvents.SetIsAPIEnabled(true);
+        LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
+        PublicID := Invoice."Draft Invoice SystemId";
+        LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 3, 10);
+        VerifyInstallmentInvoiceAPI(PublicID, Invoice."No.", 115, 'Open');
+
+        LibraryInstallments.CreditInstallment(Invoice, 2, 20, WorkDate());
+
+        VerifyInstallmentInvoiceAPI(PublicID, Invoice."No.", 95, 'Open');
+        UnbindSubscription(APIMockEvents);
+    end;
+
+    [Test]
+    procedure InstallmentInvoiceAPICorrectionKeepsOriginalAndReplacementIdentities()
+    var
+        Invoice: Record "Sales Invoice Header";
+        ReplacementInvoice: Record "Sales Invoice Header";
+        Replacement: Record "Sales Header";
+        LibraryInstallments: Codeunit "Library - ERM Installments";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        APIMockEvents: Codeunit "API Mock Events";
+        OriginalID: Guid;
+        ReplacementID: Guid;
+    begin
+        Initialize();
+        BindSubscription(APIMockEvents);
+        APIMockEvents.SetIsAPIEnabled(true);
+        LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
+        OriginalID := Invoice."Draft Invoice SystemId";
+        VerifyInstallmentInvoiceAPI(OriginalID, Invoice."No.", 125, 'Open');
+
+        CorrectPostedSalesInvoice.CancelPostedInvoiceCreateNewInvoice(Invoice, Replacement);
+
+        ReplacementID := Replacement.SystemId;
+        Assert.AreNotEqual(OriginalID, ReplacementID, 'The replacement must have its own public invoice identity.');
+        Assert.AreNotEqual(Invoice."Installment Plan ID", Replacement."Installment Plan ID", 'The replacement must own its schedule.');
+        VerifyInstallmentInvoiceAPI(OriginalID, Invoice."No.", 0, 'Canceled');
+        ReplacementInvoice.Get(LibrarySales.PostSalesDocument(Replacement, true, true));
+        VerifyInstallmentInvoiceAPI(ReplacementID, ReplacementInvoice."No.", 125, 'Open');
+        VerifyInstallmentInvoiceAPI(OriginalID, Invoice."No.", 0, 'Canceled');
+        UnbindSubscription(APIMockEvents);
+    end;
+
+    local procedure VerifyInstallmentInvoiceAPI(PublicID: Guid; InvoiceNo: Code[20]; RemainingAmount: Decimal; Status: Text)
+    var
+        Response: JsonObject;
+        Value: JsonToken;
+        ResponseText: Text;
+        TargetURL: Text;
+        ResponseID: Guid;
+    begin
+        Commit();
+        TargetURL := LibraryGraphMgt.CreateTargetURL(PublicID, Page::"APIV2 - Sales Invoices", InvoiceServiceNameTxt);
+        LibraryGraphMgt.GetFromWebService(ResponseText, TargetURL);
+        Response.ReadFrom(ResponseText);
+        Response.Get('id', Value);
+        Evaluate(ResponseID, Value.AsValue().AsText());
+        Assert.AreEqual(PublicID, ResponseID, 'The existing invoice endpoint must retain its public identity.');
+        Response.Get('number', Value);
+        Assert.AreEqual(InvoiceNo, Value.AsValue().AsText(), 'The API identity must resolve to the owning invoice.');
+        Response.Get('remainingAmount', Value);
+        Assert.AreEqual(RemainingAmount, Value.AsValue().AsDecimal(), 'The API must include every installment balance.');
+        Response.Get('totalAmountIncludingTax', Value);
+        Assert.AreEqual(125, Value.AsValue().AsDecimal(), 'Settlement and correction must not rewrite the original invoice total.');
+        Response.Get('status', Value);
+        Assert.AreEqual(Status, Value.AsValue().AsText(), 'The API status must describe the entire invoice.');
+    end;
+
     local procedure GetAPIId(ResponseText: Text): Text
     var
         APIId: Text;

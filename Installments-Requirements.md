@@ -1903,10 +1903,12 @@ or additional reporting currency as a side effect of this increment.
 | M2-D01: Partial-payment discounts | **User approved: native.** Follow existing BC eligibility per installment. A partial receipt does not earn a new proportional discount; eligible settlement of that installment can realize its remaining native discount independently of other installments. No new discount-mode setting. | First increment discount contract. |
 | M2-D02: Unpaid correction model | **User approved on 2026-11-17.** Use one native corrective credit, explicitly allocated/applied across all original installment entries; a replacement invoice owns a new independent schedule. Do not create a second installment calculator or mirror-credit schedule. | M2-03 posting, cancellation, and navigation work. |
 | M2-D03: Partly paid corrective-credit allocation | **User approved on 2026-11-17.** Start with explicit manual allocation to selected open installments, preserving paid amounts and native automatic-cancellation restrictions. Add automatic earliest/latest/proportional policies only by a separate agreed requirement. | M2-03 credit allocation and user interaction. |
+| M2-D04: Payment reconciliation matching | **User approved on 2026-11-17.** Require manual entry selection while an invoice has multiple open installments, including uniquely sized installments and exact full-invoice receipts. Preserve native matching for the last open installment and ordinary invoices. | M2-04 automatic matching guard and exact-entry settlement cases. |
+| M2-D05: Cash Flow Forecast date overrides | **User approved on 2026-11-17.** Preserve native behavior: use installment dates by default; when Consider CF Payment Terms is explicitly enabled, retain the customer's separate forecast terms calculated from the original invoice date. Forecast options must not rewrite posted installment obligations. | M2-05 forecast-date and immutable-ledger cases. |
 
-M2-D01, M2-D02, and M2-D03 are approved. Reconciliation matching and
-collection/forecast details remain package-specific contract gates; approval of
-these three policies is not full M2 sign-off.
+M2-D01, M2-D02, M2-D03, M2-D04, and M2-D05 are approved. Further automatic matching
+policies and collection/forecast details remain package-specific contract gates;
+approval of these policies is not full M2 sign-off.
 
 ### 22.9. First settlement increment: source cases and validation status
 
@@ -2209,3 +2211,215 @@ generated layout edits were removed; layout development remains deferred.
 This validates the local W1 installment suite, not FCY correction, every country
 runtime, or the full broader M2 matrix. Printed invoices, layouts, and new API
 delivery remain deferred.
+
+### 22.12. M2-04: collections and payment reconciliation
+
+**Status (2026-11-17):** Source implemented and locally compiled. At this
+package's validation gate the user authorized **compilation only**. M2-04 has
+not been published or runtime-tested; the accepted server baseline remains
+the 80-test M2-03 result above.
+
+**Approved matching boundary and implementation**
+
+M2-D04 requires explicit manual customer-entry selection whenever the original
+invoice still has more than one open installment. A different residual amount
+does not identify the user's intended obligation, and a receipt equal to the
+full invoice does not bypass this first-increment boundary.
+
+`Sales Installment History` subscribes to
+`Applied Payment Entry.OnApplyFromBankStmtMatchingBufOnBeforeInsert`.
+Both native single-candidate and one-to-many automatic applications use this
+shared point. A customer candidate belonging to a plan with multiple open
+entries raises an explicit invoice/statement-line error directing the user to
+manual selection. Matching is stopped rather than silently accepting the first
+due entry, assigning confidence to an ambiguous choice, or redirecting the
+receipt to a lower-ranked candidate. The native matching transaction rolls
+back; the user must select the exact entries before retrying. This is a batch
+error, not an automatically skipped line.
+
+Native manual application creates exact `Applies-to Entry No.` selections and
+does not use this automatic-application event. The existing reconciliation
+posting code applies those entries through Applies-to ID and the native customer
+application engine. The last open installment and ordinary invoices retain
+native matching; vendor, employee, and bank-ledger candidates are unchanged.
+No new matching engine, allocation policy, or financial cache is introduced.
+
+**Native collection paths retained**
+
+- `Standard Statement` already reads each original detailed/customer entry,
+  retaining the shared invoice document number, separate due dates, and
+  entry-specific as-of remaining balances. Logical invoice grouping must sum
+  those obligations, not repeat the header total per row. No dataset or layout
+  change is needed for this boundary.
+- `Reminder-Make` selects open entries by their own due dates and reminder
+  history. Native not-yet-due lines remain informational when requested; they
+  are not accelerated obligations or new reminder levels.
+- `FinChrgMemo-Make` and `Finance Charge Memo Line` calculate eligibility and
+  interest from each selected entry. Existing finance-charge methods, grace
+  periods, fees, and issuing policies are retained rather than replaced.
+  The new focused fixture uses Open Entries and Balance Due interest to isolate
+  overdue, paid, and future-installment behavior.
+
+**Focused source cases**
+
+New codeunit 134497 `ERM Installment Collections` contains nine cases:
+
+| Case | Assertions to validate at runtime |
+| --- | --- |
+| `OverdueReminderCollectsOnlyTheRemainingDueInstallment` | A 10 receipt leaves 31.67 collectible on the first installment; the future 41.67/41.66 obligations are not demanded. |
+| `InformationalFutureLinesDoNotAdvanceInstallmentReminderLevels` | Future lines are Not Due with no interest/reminder count; issuing advances only the due entry. Later suggestions produce entry-specific levels and exclude a settled installment. |
+| `FinanceChargesUseOnlyOverdueRemainingBalances` | At 12% Balance Due, interest is 3.80 on 31.67; after settlement only the newly overdue 41.67 entry incurs 5.00. Future entries are not charged. |
+| `StatementPreservesLogicalInvoiceTotalsAndSeparateDueBalances` | Native in-memory statement data contains three obligations for the same invoice, original total 125, remaining total 115, and overdue balance 31.67 without repeated header amounts. |
+| `AutomaticReconciliationRequiresSelectionForSharedInvoiceReferences` | Equal-installment, unique-residual, and exact-full-invoice receipt amounts all require selection while multiple installments remain open; no application or partial line update survives rejection. |
+| `DuplicateExternalReferencesCannotChooseAnInstallment` | A reference shared by two invoices cannot silently select an invoice/installment. |
+| `ManualReconciliationPostsOnlySelectedInstallments` | One 83.34 receipt settles the two selected entries; a prior 10 receipt against the third remains intact, leaving 31.66 invoice-wide. |
+| `LastOpenInstallmentRetainsNativeAutomaticMatching` | Native matching identifies and settles the remaining exact entry once the other installments are closed. |
+| `OrdinaryInvoiceRetainsNativeAutomaticReconciliation` | A non-installment invoice keeps one native automatic application and closes normally. |
+
+These are compiled source cases, **not passing runtime evidence**. The complete
+installment suite now has 89 tests. The session artifact
+`erm-installments-m2-04-testgroups.json` selects all six installment codeunits
+for a future authorized run.
+
+**Compilation evidence and remaining gates**
+
+Local compilation used `C:\Depot\master\Run\ALDevEnv\bin\alc.exe`
+(30.0.46.29347), each project's existing valid assembly probing directories,
+and the private `erm-symbols` package cache:
+
+```powershell
+& $compiler "/project:$project" "/out:$output" `
+    "/packagecachepath:$root\erm-symbols" `
+    "/assemblyprobingpaths:$($paths -join ',')" /maxdegreeofparallelism:4
+```
+
+Base Application also used the configured CodeCop, AppSourceCop,
+PerTenantExtensionCop, and UICop DLLs through
+`"/analyzer:$($analyzers -join ',')"` and
+`/ruleset:C:\depot\master\app\BCApps\src\rulesets\base.ruleset.json`.
+Result: passed, zero errors; all 11,746 normalized warning signatures match the
+baseline, with no added or removed warnings. Tests-ERM passed with zero errors
+and zero warnings. Logs are `m2-04-base-compile.log` and
+`m2-04-erm-compile.log`; compiled packages use the `m2-04-` prefix in session
+artifacts and were not deployed.
+
+Runtime acceptance must execute these cases and the existing installment
+regressions before this package is accepted. FCY reconciliation, additional
+finance-charge methods/fees, country runtime behavior, realistic-volume checks,
+and broader M2 integration remain unverified gates, not implied compatibility.
+Existing unsupported-producer, correction/reversal, and IT activation boundaries
+remain in force. Printed invoices, layouts, and new API delivery remain deferred.
+
+### 22.13. M2-05: aging and Cash Flow Forecast
+
+**Status (2026-11-17):** Native calculation paths reviewed; eleven focused source
+cases added and affected projects locally compiled. The user authorized
+**compilation only** for this package. No M2-05 packages were published, no
+runtime cases were executed, and the server remains at the accepted M2-03
+baseline. M2-04 runtime acceptance is also still pending.
+
+**Calculation contract and implementation boundary**
+
+No production adapter is required for the reviewed paths. The current
+`EXR Aged Accounts Rec Excel` report (4402) reads exact customer ledger entries,
+sets both Posting Date and Date Filter through its cutoff, calculates remaining
+document/LCY balances, and keys its temporary buffer by Entry No. It deliberately
+does not filter by today's Open state, so an installment settled after the
+cutoff can still appear in historical aging. `EXR Aging Report Buffer` (4401)
+uses each entry's selected aging date and the native period boundaries. Tests
+exercise this current data engine rather than the obsolete report 120, and
+export only in-memory XML: no workbook rendering or layout edits are included.
+
+`Suggest Worksheet Lines` (840) selects open, nonzero customer entries and
+copies each entry's remaining LCY, due date, discount dates, and discount amount.
+Each temporary worksheet insertion receives a separate line number even when
+Source No. and Document No. are shared. Its grouping option affects order lines,
+not receivable installments. Native worksheet registration copies each line's
+date and amount into a separate forecast entry; it does not need another invoice
+total or an installment financial cache.
+
+M2-D05 preserves explicitly enabled native customer cash-flow terms, including
+their original-document-date basis. Without that option, the native forecast
+uses the original installment due dates. Native Consider Discount and Overdue
+CF Dates to Work Date options also remain forecast projections, not changes to
+posted ledger dates or immutable original plan amounts. Changing an exchange
+rate alone must not replace the ledger's remaining LCY balance with a fresh
+conversion; native revaluation remains the separate accounting operation.
+
+**Focused source cases**
+
+| Location/case | Assertions to validate at runtime |
+| --- | --- |
+| 134498 `ForecastAndRegistrationRetainSeparateInstallmentObligations` | Both grouping settings retain three 30/60/90-day receivable lines totaling 125; native registration retains three dates and the same forecast total. |
+| 134498 `ForecastExcludesSettledAndReducesPartlyPaidInstallments` | Closing the anchor and paying 10 against the third leaves two forecast obligations totaling 73.33; full settlement removes all forecast lines for the invoice. |
+| 134498 `ForecastReflectsSelectedCreditWithoutMirroringCreditSchedule` | An explicit 20 credit to installment two and a prior 10 receipt on installment three leave 95 at the original installment dates; the fully applied credit is not forecast again. |
+| 134498 `ForeignCurrencyForecastUsesRemainingLedgerLCYNotCurrentExchangeRate` | Partial/full FCY receipts reduce the correct entries. A later exchange-rate record without revaluation does not change the remaining ledger LCY used by the forecast. |
+| 134498 `ForecastDiscountsFollowIndividualDatesAndAmounts` | Eligible first/second discounts use their own dates and amounts, producing expected receipts of 123.75; the undiscounted third installment keeps its due date. |
+| 134498 `ForecastPreservesExplicitCustomerPaymentTermOverride` | Customer forecast terms are ignored when disabled, may project all three receipts onto document date +45D when enabled, and revert to installment dates when disabled again without changing ledger due dates or the 125 total. |
+| 134498 `OverdueForecastDateOptionDoesNotRewriteInstallmentDueDates` | Only the overdue forecast line moves to Work Date when requested; future lines and the original overdue ledger due date remain unchanged. |
+| 139555 `InstallmentAgingRetainsSeparateEntriesAcrossBucketBoundaries` | Exact Entry No. identities, original/remaining amounts, due/reporting dates, and native aging periods remain distinct across the +90/+91-day boundary. |
+| 139555 `InstallmentAgingReconstructsBalancesBeforeLaterPaymentAndCredit` | After a receipt dated +45D and selected credit dated +75D, historical cutoffs reconstruct 125, 115, and 95 rather than using today's remaining balances. |
+| 139555 `InstallmentAgingIncludesEntriesClosedAfterTheCutoff` | A fully settled invoice still contributes all entries at the earlier cutoff; anchor settlement removes only the anchor from later aging, and final settlement removes all obligations. |
+| 139555 `ForeignCurrencyInstallmentAgingReconcilesOriginalAndRemainingLCY` | Original per-entry document/LCY allocations stay immutable; as-of FCY and LCY balances reconcile to the exact entries and customer at both cutoffs. |
+
+Shared fixtures remain in codeunit 134495 `Library - ERM Installments`.
+New helpers post the known 125 invoice with optional installment discounts,
+resolve exact entries through the posted plan, and apply a native selected
+corrective credit. A date-aware payment overload uses the target entry's currency;
+existing three-argument callers continue to use Work Date.
+
+The M2-04 statement case was also corrected to select native XML DataItem/Column
+nodes. `Library - Report Dataset.SetRange` requires the older embedded preview
+schema and cannot filter `Report.SaveAs` XML loaded without that schema.
+The aging cases likewise use native XML selection and invariant value parsing.
+This is a test-fixture correction, not a statement or layout behavior change.
+
+**Actual compilation evidence**
+
+Compiler: `C:\Depot\master\Run\ALDevEnv\bin\alc.exe`
+(30.0.46.29347). All outputs and dependency symbol updates were confined to the
+session artifact directory/private `erm-symbols` cache. Application Test Library
+and ERM used their existing valid assembly probing paths and configured
+analysis-disabled settings:
+
+```powershell
+& $compiler "/project:$project" "/out:$output" `
+    "/packagecachepath:$root\erm-symbols" `
+    "/assemblyprobingpaths:$($paths -join ',')" /maxdegreeofparallelism:4
+```
+
+The missing Excel Reports dependency and its tests used:
+
+```powershell
+& $compiler "/project:$project" "/out:$output" `
+    "/packagecachepath:$root\erm-symbols" /maxdegreeofparallelism:4
+```
+
+| Project | Result | Session log |
+| --- | --- | --- |
+| Application Test Library | Passed; zero errors; six existing obsolescence warnings, normalized signatures identical to the earlier library baseline. | `m2-05-library-compile.log` |
+| Dynamics BC Excel Reports (unchanged source dependency) | Passed; zero errors/warnings. | `m2-05-excel-app-compile.log` |
+| Tests-ERM | Passed; zero errors/warnings. | `m2-05-erm-compile.log` |
+| Dynamics BC Excel Reports Tests | Passed; zero errors/warnings. | `m2-05-excel-tests-compile.log` |
+
+There are now **100 installment-focused source cases**: 96 across the seven ERM
+codeunits and four added to aging codeunit 139555. Prepared session selections
+are `erm-installments-m2-05-testgroups.json` and
+`excel-installments-m2-05-testgroups.json`. The latter runs all 18 cases in the
+existing aging codeunit, including 14 pre-existing non-installment regressions;
+the combined selections therefore contain 114 tests, not 100.
+
+**Remaining acceptance gates**
+
+Compilation is not runtime acceptance. A future authorized validation must
+deploy compatible shared-library/ERM/Excel Reports packages and the pending
+M2-04 Base change before executing the full selections. No new object ownership
+move, uninstall, schema force synchronization, or environment repair is part of
+this package.
+
+Historical FCY revaluation/realized gain-loss combinations, three-decimal and
+whole-unit aging/forecast matrices, discount/tolerance option combinations,
+additional aging modes and consumers, country runtime behavior, permissions,
+and realistic-volume behavior remain broader validation gates. M2-06 integration
+review and the existing unsupported-path/IT boundaries remain in force. Printed
+invoices, layouts, and new schedule API delivery remain deferred.

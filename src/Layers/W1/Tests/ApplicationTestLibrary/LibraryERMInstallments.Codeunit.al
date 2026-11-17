@@ -11,8 +11,10 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Enums;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
+using Microsoft.Utilities;
 
 codeunit 134495 "Library - ERM Installments"
 {
@@ -115,7 +117,43 @@ codeunit 134495 "Library - ERM Installments"
         TempPlanLine.Insert();
     end;
 
+    procedure CreatePostedInvoice(var Invoice: Record "Sales Invoice Header"; CurrencyCode: Code[10]; WithDiscounts: Boolean)
+    var
+        Header: Record "Sales Header";
+        Line: Record "Sales Line";
+        PlanLine: Record "Installment Plan Line";
+    begin
+        CreateInvoice(Header, Line, CurrencyCode);
+        Header.Validate("External Document No.", LibraryUtility.GenerateGUID());
+        Header.Modify(true);
+        if not WithDiscounts then begin
+            PlanLine.SetRange("Plan ID", Header."Installment Plan ID");
+            PlanLine.FindSet(true);
+            repeat
+                PlanLine."Discount %" := 0;
+                Clear(PlanLine."Discount Date Calculation");
+                PlanLine.Modify(true);
+            until PlanLine.Next() = 0;
+        end;
+        Invoice.Get(LibrarySales.PostSalesDocument(Header, true, true));
+    end;
+
+    procedure GetInstallment(var Entry: Record "Cust. Ledger Entry"; PlanID: Guid; Sequence: Integer)
+    var
+        PlanLine: Record "Installment Plan Line";
+    begin
+        PlanLine.SetRange("Plan ID", PlanID);
+        PlanLine.SetRange("Installment No.", Sequence);
+        PlanLine.FindFirst();
+        Entry.Get(PlanLine."Cust. Ledger Entry No.");
+    end;
+
     procedure PayInstallment(PlanID: Guid; Sequence: Integer; Amount: Decimal)
+    begin
+        PayInstallment(PlanID, Sequence, Amount, WorkDate());
+    end;
+
+    procedure PayInstallment(PlanID: Guid; Sequence: Integer; Amount: Decimal; PostingDate: Date)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         GenJournalLine: Record "Gen. Journal Line";
@@ -123,9 +161,7 @@ codeunit 134495 "Library - ERM Installments"
         GenJournalBatch: Record "Gen. Journal Batch";
         ApplicationID: Code[50];
     begin
-        CustLedgerEntry.SetRange("Installment Plan ID", PlanID);
-        CustLedgerEntry.SetRange("Installment No.", Sequence);
-        CustLedgerEntry.FindFirst();
+        GetInstallment(CustLedgerEntry, PlanID, Sequence);
         ApplicationID := LibraryUtility.GenerateGUID();
         CustLedgerEntry."Applies-to ID" := ApplicationID;
         CustLedgerEntry."Amount to Apply" := Amount;
@@ -136,8 +172,42 @@ codeunit 134495 "Library - ERM Installments"
             GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
             GenJournalLine."Account Type"::Customer, CustLedgerEntry."Customer No.",
             GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -Amount);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        if CustLedgerEntry."Currency Code" <> '' then
+            GenJournalLine.Validate("Currency Code", CustLedgerEntry."Currency Code");
         GenJournalLine.Validate("Applies-to ID", ApplicationID);
         GenJournalLine.Modify(true);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    procedure CreditInstallment(Invoice: Record "Sales Invoice Header"; Sequence: Integer; Amount: Decimal; PostingDate: Date): Code[20]
+    var
+        Header: Record "Sales Header";
+        Line: Record "Sales Line";
+        Entry: Record "Cust. Ledger Entry";
+        CopyDocumentMgt: Codeunit "Copy Document Mgt.";
+        ApplicationID: Code[50];
+    begin
+        LibrarySales.CreateSalesHeader(Header, Header."Document Type"::"Credit Memo", Invoice."Bill-to Customer No.");
+        CopyDocumentMgt.SetPropertiesForCorrectiveCreditMemo(true);
+        CopyDocumentMgt.CopySalesDocForInvoiceCancelling(Invoice."No.", Header);
+        Header.Validate("Posting Date", PostingDate);
+        Header.Validate("Document Date", PostingDate);
+        Header.Modify(true);
+        Line.SetRange("Document Type", Header."Document Type");
+        Line.SetRange("Document No.", Header."No.");
+        Line.SetRange(Type, Line.Type::"G/L Account");
+        Line.FindFirst();
+        Line.Validate("Unit Price", Amount / (1 + Line."VAT %" / 100));
+        Line.Modify(true);
+        Header.Validate("Applies-to Doc. No.", '');
+        GetInstallment(Entry, Invoice."Installment Plan ID", Sequence);
+        ApplicationID := LibraryUtility.GenerateGUID();
+        Entry."Applies-to ID" := ApplicationID;
+        Entry."Amount to Apply" := Amount;
+        Entry.Modify(true);
+        Header.Validate("Applies-to ID", ApplicationID);
+        Header.Modify(true);
+        exit(LibrarySales.PostSalesDocument(Header, true, true));
     end;
 }
