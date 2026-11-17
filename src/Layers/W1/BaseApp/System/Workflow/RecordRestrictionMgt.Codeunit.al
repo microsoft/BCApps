@@ -265,8 +265,8 @@ codeunit 1550 "Record Restriction Mgt."
         if FAJournalLine.IsTemporary then
             exit;
 
-
         if FAJournalBatch.Get(FAJournalLine."Journal Template Name", FAJournalLine."Journal Batch Name") then begin
+            FAJournalBatch.CalcFields(Recurring);
             if FAJournalBatch.Recurring then
                 exit;
 
@@ -959,4 +959,3 @@ codeunit 1550 "Record Restriction Mgt."
     begin
     end;
 }
-
