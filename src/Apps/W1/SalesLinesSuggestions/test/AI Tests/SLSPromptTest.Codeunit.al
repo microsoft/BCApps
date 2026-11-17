@@ -272,6 +272,8 @@ codeunit 133516 "SLS Prompt Test"
                 else
                     Result := Format(System.Date2DMY(Today(), 3)) + '-02-01';
             'LAST_CHRISTMAS':
+                Result := Format(System.Date2DMY(Today(), 3) - 1) + '-12-25';
+            'BEFORE_LAST_CHRISTMAS':
                 Result := Format(System.Date2DMY(Today(), 3) - 1) + '-12-24'
             else
                 Result := DateDescription;
