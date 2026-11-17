@@ -8934,6 +8934,7 @@ codeunit 137079 "SCM Production Order III"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        ItemLineCount: Integer;
     begin
         CreateItem(Item);
         CreateWorkCenter(FirstWorkCenter, true);
@@ -8976,7 +8977,12 @@ codeunit 137079 "SCM Production Order III"
         PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
 
         PurchRcptLine.SetRange("Document No.", PurchaseHeader."Last Receiving No.");
-        Assert.RecordCount(PurchRcptLine, 2);
+        PurchRcptLine.FindSet();
+        repeat
+            if PurchRcptLine.Type = PurchRcptLine.Type::Item then
+                ItemLineCount += 1;
+        until PurchRcptLine.Next() = 0;
+        Assert.AreEqual(2, ItemLineCount, 'Both subcontracting operations must be received on one receipt.');
         exit(PurchaseHeader."Last Receiving No.");
     end;
 
