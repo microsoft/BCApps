@@ -1469,6 +1469,15 @@ codeunit 139611 "Shpfy Order Refund Test"
         RestoreExchangeShopSettings(OriginalShop);
         Commit();
         SourceSalesHeader.TestField("No.");
+        SalesLine.SetRange("Document Type", SourceSalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SourceSalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        SalesLine.SetRange("No.", BlockedItem."No.");
+        LibraryAssert.IsTrue(SalesLine.FindFirst(), 'The source must contain the blocked replacement item.');
+        SalesLine.TestField("Shpfy Order Line Id", BlockedExchangeOrderLineId);
+        SalesLine.TestField(Quantity, -2);
+        BlockedItem.Get(BlockedItem."No.");
+        BlockedItem.TestField("Sales Blocked", true);
 
         // [WHEN] Warning notifications are disabled and the blocked item causes an error.
         CopyDocumentMgt.SetProperties(true, false, true, true, true, false, false);
@@ -1476,6 +1485,7 @@ codeunit 139611 "Shpfy Order Refund Test"
         asserterror CopyDocumentMgt.CopySalesDoc(
             "Sales Document Type From"::"Return Order", SourceSalesHeader."No.", TargetSalesHeader, true);
         CopyError := GetLastErrorText(false);
+        SalesLine.Reset();
         SalesLine.SetRange("Document Type", SourceSalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SourceSalesHeader."No.");
 #pragma warning disable AA0210
