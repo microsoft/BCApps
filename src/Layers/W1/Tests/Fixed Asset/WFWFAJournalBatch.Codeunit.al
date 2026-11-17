@@ -1040,7 +1040,6 @@ codeunit 134244 "WFW FA Journal Batch"
         FAJournalBatch: Record "FA Journal Batch";
         FAJournalLine: Record "FA Journal Line";
         NewFAJournalLine: Record "FA Journal Line";
-        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
     begin
         // [SCENARIO 440258] Inserting a fresh line into a batch pending the current user's approval is blocked.
         Initialize();
