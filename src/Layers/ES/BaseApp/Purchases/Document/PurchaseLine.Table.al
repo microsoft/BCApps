@@ -10373,6 +10373,9 @@ table 39 "Purchase Line"
         if not ("Copied From Posted Doc." and IsCreditDocType()) then
             exit;
 
+        if "Return Shipment No." <> '' then
+            exit;
+
         if not IsNonInventoriableItem() then
             exit;
 
