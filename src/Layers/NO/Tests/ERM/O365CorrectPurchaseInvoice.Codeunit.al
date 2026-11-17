@@ -1789,6 +1789,58 @@ codeunit 138025 "O365 Correct Purchase Invoice"
 
     [Test]
     [Scope('OnPrem')]
+    procedure GetReturnShipmentLinesOnCreditMemoForNonInventoryItemCopiedFromPostedInvoice()
+    var
+        Vendor: Record Vendor;
+        Item: Record Item;
+        PurchInvHeader: Record "Purch. Inv. Header";
+        ReturnOrderPurchaseHeader: Record "Purchase Header";
+        CreditMemoPurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReturnShipmentLine: Record "Return Shipment Line";
+        CopyDocumentMgt: Codeunit "Copy Document Mgt.";
+        PurchGetReturnShipments: Codeunit "Purch.-Get Return Shipments";
+        OriginalQty: Decimal;
+        ReturnShipmentNo: Code[20];
+    begin
+        // [FEATURE] [Corrective Credit Memo] [Return Order]
+        // [SCENARIO 659545] "Get Return Shipment Lines" on a purchase credit memo works for a Non-Inventory item when the return order was copied from a posted invoice.
+        Initialize();
+
+        // [GIVEN] A posted purchase invoice for a Non-Inventory item
+        OriginalQty := LibraryRandom.RandIntInRange(2, 10);
+        CreateAndPostPurchaseInvForNewItemAndVendor(Item, Item.Type::"Non-Inventory", Vendor, LibraryRandom.RandDecInRange(10, 100, 2), OriginalQty, PurchInvHeader);
+
+        // [GIVEN] A purchase return order copied from the posted invoice and posted as shipped only
+        LibraryPurchase.CreatePurchHeader(ReturnOrderPurchaseHeader, ReturnOrderPurchaseHeader."Document Type"::"Return Order", Vendor."No.");
+        CopyDocumentMgt.SetProperties(true, false, false, false, true, false, false);
+        CopyDocumentMgt.CopyPurchDoc("Purchase Document Type From"::"Posted Invoice", PurchInvHeader."No.", ReturnOrderPurchaseHeader);
+        ReturnOrderPurchaseHeader.Find();
+        ReturnOrderPurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryUtility.GenerateGUID());
+        ReturnOrderPurchaseHeader.Modify(true);
+        ReturnShipmentNo := LibraryPurchase.PostPurchaseDocument(ReturnOrderPurchaseHeader, true, false);
+
+        // [GIVEN] A new purchase credit memo for the same vendor
+        LibraryPurchase.CreatePurchHeader(CreditMemoPurchaseHeader, CreditMemoPurchaseHeader."Document Type"::"Credit Memo", Vendor."No.");
+
+        // [WHEN] Running "Get Return Shipment Lines" for the posted return shipment
+        ReturnShipmentLine.SetRange("Document No.", ReturnShipmentNo);
+        ReturnShipmentLine.SetRange(Type, ReturnShipmentLine.Type::Item);
+        PurchGetReturnShipments.SetPurchHeader(CreditMemoPurchaseHeader);
+        PurchGetReturnShipments.CreateInvLines(ReturnShipmentLine);
+
+        // [THEN] The credit memo line is created with the shipped quantity and no error is raised
+        PurchaseLine.SetRange("Document Type", CreditMemoPurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", CreditMemoPurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.FindFirst();
+        PurchaseLine.TestField("No.", Item."No.");
+        PurchaseLine.TestField(Quantity, OriginalQty);
+        PurchaseLine.TestField("Return Shipment No.", ReturnShipmentNo);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ManualCreditMemoQtyIncreaseAllowed()
     var
         Vendor: Record Vendor;
