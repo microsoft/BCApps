@@ -353,6 +353,7 @@ codeunit 137926 "SCM Assembly Item Tracking"
         ReservEntry: Record "Reservation Entry";
         SalesOrderHeader: Record "Sales Header";
         BOMComponent: Record "BOM Component";
+        VATPostingSetup: Record "VAT Posting Setup";
         SalesQuoteToOrder: Codeunit "Sales-Quote to Order";
         LibrarySales: Codeunit "Library - Sales";
         SNChild: Code[20];
@@ -379,6 +380,8 @@ codeunit 137926 "SCM Assembly Item Tracking"
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Quote, '20000');
         SalesHeader.Validate("Shipment Date", WorkDate2);
         SalesHeader.Modify(true);
+        if not VATPostingSetup.Get(SalesHeader."VAT Bus. Posting Group", ItemParent."VAT Prod. Posting Group") then
+            LibraryERM.CreateVATPostingSetup(VATPostingSetup, SalesHeader."VAT Bus. Posting Group", ItemParent."VAT Prod. Posting Group");
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemParent."No.", 1);
 
         // Add SN to Asm Quote Comp
