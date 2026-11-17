@@ -1513,8 +1513,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CVLedgEntryBuf.Positive := CVLedgEntryBuf."Remaining Amount" > 0;
         OnPostCustOnAfterCopyCVLedgEntryBuf(CVLedgEntryBuf, GenJournalLine, Cust, CustLedgEntry, TempDtldCVLedgEntryBuf);
 
-        if InstallmentCount <> 0 then
-            CalcPmtDiscPossible(GenJournalLine, CVLedgEntryBuf);
+        if InstallmentCount <> 0 then begin
+            CVLedgEntryBuf."Original Pmt. Disc. Possible" := PlanLine."Original Pmt. Disc. Possible";
+            CVLedgEntryBuf."Remaining Pmt. Disc. Possible" := PlanLine."Original Pmt. Disc. Possible";
+        end;
 
         if GenJournalLine."Currency Code" <> '' then begin
             GenJournalLine.TestField("Currency Factor");

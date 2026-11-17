@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Posting;
