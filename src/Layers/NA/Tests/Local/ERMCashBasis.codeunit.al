@@ -1046,6 +1046,9 @@
     procedure PartialSalesCrMemoRealizesGeneralJournalInvoiceVAT()
     begin
         // [SCENARIO 648925] A sales credit memo realizes matching VAT on a journal invoice without posted sales lines.
+        // [GIVEN] A journal invoice and a sales credit memo for half its amount with matching Cash Basis VAT groups.
+        // [WHEN] The sales credit memo is applied to the invoice.
+        // [THEN] Half the invoice VAT and base remain, and the realization entries offset without VAT G/L transfers.
         VerifySalesCrMemoRealizesGeneralJournalInvoiceVAT(0.5);
     end;
 
@@ -1053,6 +1056,9 @@
     procedure FullSalesCrMemoRealizesGeneralJournalInvoiceVAT()
     begin
         // [SCENARIO 648925] A full sales credit memo clears matching unrealized VAT and base on a journal invoice.
+        // [GIVEN] A journal invoice and a sales credit memo for its full amount with matching Cash Basis VAT groups.
+        // [WHEN] The sales credit memo is applied to the invoice.
+        // [THEN] No unrealized VAT or base remain, and the realization entries offset without VAT G/L transfers.
         VerifySalesCrMemoRealizesGeneralJournalInvoiceVAT(1);
     end;
 
@@ -1060,6 +1066,9 @@
     procedure ApplyingInvoiceToHalfJournalCrMemoRealizesProportionalVAT()
     begin
         // [SCENARIO 648925] An applying LCY invoice realizes half of each VAT group against a journal credit memo.
+        // [GIVEN] An LCY invoice with two Cash Basis VAT groups and a journal credit memo for half its total.
+        // [WHEN] The invoice is selected as the applying entry against the journal credit memo.
+        // [THEN] Half of each group's VAT and base are realized with the corresponding VAT G/L transfers.
         VerifyApplyingInvoiceToGeneralJournalCrMemoVAT(0.5);
     end;
 
@@ -1067,6 +1076,9 @@
     procedure ApplyingInvoiceToQuarterJournalCrMemoRealizesProportionalVAT()
     begin
         // [SCENARIO 648925] An applying LCY invoice realizes one quarter of each VAT group against a journal credit memo.
+        // [GIVEN] An LCY invoice with two Cash Basis VAT groups and a journal credit memo for one quarter of its total.
+        // [WHEN] The invoice is selected as the applying entry against the journal credit memo.
+        // [THEN] One quarter of each group's VAT and base are realized with the corresponding VAT G/L transfers.
         VerifyApplyingInvoiceToGeneralJournalCrMemoVAT(0.25);
     end;
 
@@ -1543,6 +1555,100 @@
         Assert.RecordCount(TempDocumentVATPostingSetup, 1);
         Assert.AreEqual(InvoiceVATPostingSetup."VAT Bus. Posting Group", InvoiceVATBusPostingGroup, 'Cached invoice VAT business group must match');
         Assert.AreEqual(InvoiceVATPostingSetup."VAT Prod. Posting Group", InvoiceVATProdPostingGroup, 'Cached invoice VAT product group must match');
+    end;
+
+    [Test]
+    procedure JournalInvoiceVATGroupMappingCachesExactAndEquivalentGroups()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        InvoiceVATPostingSetup: array[2] of Record "VAT Posting Setup";
+        TempDocumentVATPostingSetup: Record "VAT Posting Setup" temporary;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        VATEntry: Record "VAT Entry";
+        CreditMemoDocumentNo: Code[20];
+        InvoiceVATBusPostingGroup: Code[20];
+        InvoiceVATProdPostingGroup: Code[20];
+        InvoiceVATGroupsLoaded: Boolean;
+        GroupIndex: Integer;
+    begin
+        // [SCENARIO 648925] An exact journal invoice mapping caches all groups for a later equivalent mapping.
+        Initialize();
+
+        // [GIVEN] Credit memo groups at 16% and 21%, and an equivalent but different invoice group at 21%.
+        CreditMemoDocumentNo := CreateCrMemoWithOffsettingVATLines(VATPostingSetup, 116);
+        VATPostingSetup[2].Validate("VAT %", 21);
+        VATPostingSetup[2].Modify(true);
+        InvoiceVATPostingSetup[1] := VATPostingSetup[1];
+        InvoiceVATPostingSetup[2]."VAT Bus. Posting Group" := VATPostingSetup[2]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(InvoiceVATPostingSetup[2], 21);
+        InvoiceVATPostingSetup[2].Validate("Sales VAT Account", VATPostingSetup[2]."Sales VAT Account");
+        InvoiceVATPostingSetup[2].Validate("Sales VAT Unreal. Account", VATPostingSetup[2]."Sales VAT Unreal. Account");
+        InvoiceVATPostingSetup[2].Modify(true);
+
+        // [GIVEN] Original invoice VAT entries for bases of 1000 and 2000, with half remaining unrealized.
+        CustLedgerEntry."Document Type" := CustLedgerEntry."Document Type"::Invoice;
+        CustLedgerEntry."Document No." :=
+          LibraryUtility.GenerateRandomCode(CustLedgerEntry.FieldNo("Document No."), DATABASE::"Cust. Ledger Entry");
+        for GroupIndex := 1 to ArrayLen(InvoiceVATPostingSetup) do begin
+            VATEntry.Init();
+            VATEntry."Entry No." := VATEntry.GetNextEntryNo();
+            if GroupIndex = 1 then
+                CustLedgerEntry."Transaction No." := VATEntry."Entry No.";
+            VATEntry."Transaction No." := CustLedgerEntry."Transaction No.";
+            VATEntry."Document Type" := VATEntry."Document Type"::Invoice;
+            VATEntry."Document No." := CustLedgerEntry."Document No.";
+            VATEntry.Type := VATEntry.Type::Sale;
+            VATEntry."VAT Bus. Posting Group" := InvoiceVATPostingSetup[GroupIndex]."VAT Bus. Posting Group";
+            VATEntry."VAT Prod. Posting Group" := InvoiceVATPostingSetup[GroupIndex]."VAT Prod. Posting Group";
+            VATEntry."Unrealized Base" := -1000 * GroupIndex;
+            VATEntry."Unrealized Amount" := VATEntry."Unrealized Base" * InvoiceVATPostingSetup[GroupIndex]."VAT %" / 100;
+            VATEntry."Remaining Unrealized Base" := VATEntry."Unrealized Base" / 2;
+            VATEntry."Remaining Unrealized Amount" := VATEntry."Unrealized Amount" / 2;
+            VATEntry.Insert();
+        end;
+
+        // [WHEN] The first credit memo group exactly matches an invoice group.
+        Assert.IsTrue(
+          CustLedgerEntry.GetInvoiceVATPostingGroupForCreditMemoVATGroup(
+            CreditMemoDocumentNo, VATPostingSetup[1]."VAT Bus. Posting Group", VATPostingSetup[1]."VAT Prod. Posting Group",
+            InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup, TempDocumentVATPostingSetup, InvoiceVATGroupsLoaded),
+          'The exact journal invoice VAT group must be found');
+
+        // [THEN] Both groups are cached, and their original amounts are used rather than the whole invoice or remaining amounts.
+        Assert.IsTrue(InvoiceVATGroupsLoaded, 'An exact match must also load the operation-scoped invoice groups');
+        Assert.RecordCount(TempDocumentVATPostingSetup, 2);
+        Assert.AreEqual(VATPostingSetup[1]."VAT Prod. Posting Group", InvoiceVATProdPostingGroup, 'The exact match must take priority');
+        Assert.AreEqual(
+          1160, CustLedgerEntry.GetInvoicePartAmountByVAT(
+            CustLedgerEntry."Document Type", GenJournalLine,
+            InvoiceVATPostingSetup[1]."VAT Bus. Posting Group", InvoiceVATPostingSetup[1]."VAT Prod. Posting Group"),
+          'The first group amount must include its original VAT and base');
+        Assert.AreEqual(
+          2420, CustLedgerEntry.GetInvoicePartAmountByVAT(
+            CustLedgerEntry."Document Type", GenJournalLine,
+            InvoiceVATPostingSetup[2]."VAT Bus. Posting Group", InvoiceVATPostingSetup[2]."VAT Prod. Posting Group"),
+          'The second group amount must include its original VAT and base');
+
+        // [GIVEN] The invoice VAT entries are removed to detect a repeated read instead of cache reuse.
+        VATEntry.Reset();
+        VATEntry.SetRange("Transaction No.", CustLedgerEntry."Transaction No.");
+        VATEntry.SetRange("Document No.", CustLedgerEntry."Document No.");
+        VATEntry.DeleteAll();
+
+        // [WHEN] The next credit memo group has a different but equivalent invoice group.
+        Assert.IsTrue(
+          CustLedgerEntry.GetInvoiceVATPostingGroupForCreditMemoVATGroup(
+            CreditMemoDocumentNo, VATPostingSetup[2]."VAT Bus. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group",
+            InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup, TempDocumentVATPostingSetup, InvoiceVATGroupsLoaded),
+          'The equivalent journal invoice VAT group must be found in the cache');
+
+        // [THEN] The mapping reuses the cached second group without reloading invoice data.
+        Assert.AreEqual(
+          InvoiceVATPostingSetup[2]."VAT Bus. Posting Group", InvoiceVATBusPostingGroup, 'The cached VAT business group must match');
+        Assert.AreEqual(
+          InvoiceVATPostingSetup[2]."VAT Prod. Posting Group", InvoiceVATProdPostingGroup, 'The cached VAT product group must match');
+        Assert.RecordCount(TempDocumentVATPostingSetup, 2);
     end;
 
     local procedure CreateCrMemoWithOffsettingVATLines(var VATPostingSetup: array[2] of Record "VAT Posting Setup"; LineAmount: Decimal): Code[20]

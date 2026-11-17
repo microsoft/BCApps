@@ -1767,6 +1767,7 @@ table 21 "Cust. Ledger Entry"
     local procedure InsertTempVATPostingSetupFromInvoice(var TempVATPostingSetup: Record "VAT Posting Setup"; DocumentNo: Code[20])
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
+        VATEntry: Record "VAT Entry";
     begin
         SalesInvoiceLine.SetRange("Document No.", DocumentNo);
         SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
@@ -1775,7 +1776,27 @@ table 21 "Cust. Ledger Entry"
             repeat
                 InsertTempVATPostingSetup(
                   TempVATPostingSetup, SalesInvoiceLine."VAT Bus. Posting Group", SalesInvoiceLine."VAT Prod. Posting Group");
-            until SalesInvoiceLine.Next() = 0;
+            until SalesInvoiceLine.Next() = 0
+        else begin
+            // Journal and service invoices have VAT entries, but no posted sales invoice lines.
+            SetInvoiceVATEntryFilters(VATEntry, DocumentNo);
+            VATEntry.SetLoadFields("VAT Bus. Posting Group", "VAT Prod. Posting Group");
+            if VATEntry.FindSet() then
+                repeat
+                    InsertTempVATPostingSetup(
+                      TempVATPostingSetup, VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
+                until VATEntry.Next() = 0;
+        end;
+    end;
+
+    local procedure SetInvoiceVATEntryFilters(var VATEntry: Record "VAT Entry"; DocumentNo: Code[20])
+    begin
+        VATEntry.SetCurrentKey("Transaction No.");
+        VATEntry.SetRange("Transaction No.", Rec."Transaction No.");
+        VATEntry.SetRange("Document No.", DocumentNo);
+        VATEntry.SetRange(Type, VATEntry.Type::Sale);
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
+        VATEntry.SetRange("Unrealized VAT Entry No.", 0);
     end;
 
     local procedure InsertTempVATPostingSetupFromCreditMemo(var TempVATPostingSetup: Record "VAT Posting Setup"; DocumentNo: Code[20])
@@ -1807,6 +1828,7 @@ table 21 "Cust. Ledger Entry"
                                                      VATProdPostingGroup: Code[20]) InvoicePartAmount: Decimal
     var
         SalesInvLine: Record "Sales Invoice Line";
+        VATEntry: Record "VAT Entry";
         BaseInvoicePartAmount: Decimal;
     begin
         BaseInvoicePartAmount := Rec."Amount (LCY)";
@@ -1823,8 +1845,17 @@ table 21 "Cust. Ledger Entry"
                     exit;
                 end;
             until SalesInvLine.Next() = 0
-        else
-            InvoicePartAmount := BaseInvoicePartAmount;
+        else begin
+            SetInvoiceVATEntryFilters(VATEntry, Rec."Document No.");
+            VATEntry.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
+            VATEntry.SetRange("VAT Prod. Posting Group", VATProdPostingGroup);
+            if VATEntry.IsEmpty() then
+                InvoicePartAmount := BaseInvoicePartAmount
+            else begin
+                VATEntry.CalcSums("Unrealized Amount", "Unrealized Base");
+                InvoicePartAmount := -(VATEntry."Unrealized Amount" + VATEntry."Unrealized Base");
+            end;
+        end;
     end;
 
     internal procedure GetCreditMemoPartAmountByVAT(CreditMemoDocumentNo: Code[20]; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; SettledAmount: Decimal) CreditMemoPartAmount: Decimal
@@ -1968,9 +1999,7 @@ table 21 "Cust. Ledger Entry"
     var
         InvoiceVATPostingSetup: Record "VAT Posting Setup";
         CreditMemoVATPostingSetup: Record "VAT Posting Setup";
-        SalesInvoiceLine: Record "Sales Invoice Line";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
-        VATEntry: Record "VAT Entry";
         CandidateVATBusPostingGroup: Code[20];
         CandidateVATProdPostingGroup: Code[20];
         EquivalentVATGroupCount: Integer;
@@ -1985,28 +2014,13 @@ table 21 "Cust. Ledger Entry"
         if SalesCrMemoLine.IsEmpty() then
             exit(false);
 
-        SalesInvoiceLine.SetRange("Document No.", Rec."Document No.");
-        SalesInvoiceLine.SetRange("VAT Bus. Posting Group", CreditMemoVATBusPostingGroup);
-        SalesInvoiceLine.SetRange("VAT Prod. Posting Group", CreditMemoVATProdPostingGroup);
-        SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
-        if not SalesInvoiceLine.IsEmpty() then begin
-            InvoiceVATBusPostingGroup := CreditMemoVATBusPostingGroup;
-            InvoiceVATProdPostingGroup := CreditMemoVATProdPostingGroup;
-            exit(true);
+        TempDocumentVATPostingSetup.Reset();
+        if not InvoiceVATGroupsLoaded then begin
+            TempDocumentVATPostingSetup.DeleteAll();
+            InsertTempVATPostingSetupFromInvoice(TempDocumentVATPostingSetup, Rec."Document No.");
+            InvoiceVATGroupsLoaded := true;
         end;
-
-        SalesInvoiceLine.SetRange("VAT Bus. Posting Group");
-        SalesInvoiceLine.SetRange("VAT Prod. Posting Group");
-        if (not InvoiceVATGroupsLoaded) and SalesInvoiceLine.IsEmpty() then begin
-            // Journal and service invoices have VAT entries, but no posted sales invoice lines.
-            VATEntry.SetCurrentKey("Transaction No.");
-            VATEntry.SetRange("Transaction No.", Rec."Transaction No.");
-            VATEntry.SetRange(Type, VATEntry.Type::Sale);
-            VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
-            VATEntry.SetRange("VAT Bus. Posting Group", CreditMemoVATBusPostingGroup);
-            VATEntry.SetRange("VAT Prod. Posting Group", CreditMemoVATProdPostingGroup);
-            if VATEntry.IsEmpty() then
-                exit(false);
+        if TempDocumentVATPostingSetup.Get(CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup) then begin
             InvoiceVATBusPostingGroup := CreditMemoVATBusPostingGroup;
             InvoiceVATProdPostingGroup := CreditMemoVATProdPostingGroup;
             exit(true);
@@ -2014,12 +2028,6 @@ table 21 "Cust. Ledger Entry"
 
         CreditMemoVATPostingSetup.Get(CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup);
 
-        TempDocumentVATPostingSetup.Reset();
-        if not InvoiceVATGroupsLoaded then begin
-            TempDocumentVATPostingSetup.DeleteAll();
-            InsertTempVATPostingSetupFromInvoice(TempDocumentVATPostingSetup, Rec."Document No.");
-            InvoiceVATGroupsLoaded := true;
-        end;
         if TempDocumentVATPostingSetup.FindSet() then
             repeat
                 InvoiceVATPostingSetup.Get(
