@@ -50,7 +50,7 @@ codeunit 6912 "Expense Auto Population"
         ExpenseLineNo: Integer;
     begin
         ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
-        // Days are split in the agent time zone, so the same trip gives the same rows regardless of the session time zone.
+        // Days are split in the agent time zone for Expense Agent service calls, and in the session time zone for users.
         StartDate := ExpensePerDiemCalculation.GetAgentDate(Expense."Starting Date and Time");
         EndDate := ExpensePerDiemCalculation.GetAgentDate(Expense."Ending Date and Time");
 
@@ -131,7 +131,7 @@ codeunit 6912 "Expense Auto Population"
         PerDiemDetailsChanged: Boolean;
     begin
         ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
-        // Days are split in the agent time zone, so the same trip gives the same rows regardless of the session time zone.
+        // Days are split in the agent time zone for Expense Agent service calls, and in the session time zone for users.
         StartDate := ExpensePerDiemCalculation.GetAgentDate(ExpenseReportLine."Starting Date and Time");
         EndDate := ExpensePerDiemCalculation.GetAgentDate(ExpenseReportLine."Ending Date and Time");
 

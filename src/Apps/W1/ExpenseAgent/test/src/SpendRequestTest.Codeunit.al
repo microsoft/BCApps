@@ -1452,15 +1452,18 @@ codeunit 148339 "Spend Request Test"
         ExpenseLocation: Record "Expense Location";
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
+        ExpenseAgentServiceCall: Codeunit "Library - Expense";
         TripStart, TripEnd : DateTime;
         DailyRate: Decimal;
     begin
-        // [SCENARIO 659478] The per diem line of an approved travel request is dated in the agent time zone, whatever the session time zone is.
+        // [SCENARIO 659478] For Expense Agent service calls, the per diem line of an approved travel request is dated in the agent time zone, whatever the session time zone is.
         Initialize();
         SetFullRatePerDiemCalculation();
 
-        // [GIVEN] The agent works in Eastern time.
+        // [GIVEN] The agent works in Eastern time and the call comes from the Expense Agent service.
         LibraryExpense.SetAgentTimeZone(EasternTimeZoneTok);
+        ExpenseAgentServiceCall.SetExpenseAgentServiceCallSimulated(true);
+        BindSubscription(ExpenseAgentServiceCall);
 
         // [GIVEN] A travel request with per diem from 20:00Z to 03:00Z the next UTC day, which is 16:00 to 23:00 EDT on 2026-06-15.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
@@ -1492,6 +1495,48 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
+    procedure PerDiemLineFromTravelRequestUsesSessionDatesForUserCall()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseLocation: Record "Expense Location";
+        ExpenseReportLine: Record "Expense Report Line";
+        TripStart, TripEnd : DateTime;
+        DailyRate: Decimal;
+    begin
+        // [SCENARIO 659478] When a user releases a travel request, the per diem line is dated in the user's session time zone, not the agent's.
+        Initialize();
+        SetFullRatePerDiemCalculation();
+
+        // [GIVEN] The agent works in Eastern time, but the call is made by a user.
+        LibraryExpense.SetAgentTimeZone(EasternTimeZoneTok);
+
+        // [GIVEN] A travel request with per diem from 20:00Z to 03:00Z the next UTC day, which is 16:00 to 23:00 EDT on 2026-06-15.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreatePerDiemLocation(ExpenseLocation);
+        CreatePerDiemCategory(ExpenseCategory);
+        DailyRate := 80;
+        CreatePerDiemRule(ExpenseCategory.Code, ExpenseLocation."No.", 0D, DailyRate);
+        TripStart := UtcDateTime('2026-06-15T20:00:00Z');
+        TripEnd := UtcDateTime('2026-06-16T03:00:00Z');
+        SetPerDiemDetailsWithTrip(SpendRequest, ExpenseLocation."No.", TripStart, TripEnd);
+
+        // [WHEN] The travel request is released and approved automatically.
+        ReleaseAndApproveTravelRequest(SpendRequest);
+
+        // [THEN] The per diem line is dated and priced by the session dates of the trip.
+        ExpenseReportLine.SetRange("Document No.", GetTravelerExpenseReport(SpendRequest, ExpenseUser)."No.");
+        ExpenseReportLine.FindFirst();
+        Assert.AreEqual(DT2Date(TripStart), ExpenseReportLine."Expense Date", 'The expense date must be the trip start date in the session time zone.');
+        Assert.AreEqual(GetTripDays(SpendRequest) * DailyRate, ExpenseReportLine.Amount, 'The trip days must follow the session time zone.');
+
+        // [THEN] The trip instants are copied without shifting.
+        Assert.AreEqual(TripStart, ExpenseReportLine."Starting Date and Time", 'The per diem line must start with the trip.');
+        Assert.AreEqual(TripEnd, ExpenseReportLine."Ending Date and Time", 'The per diem line must end with the trip.');
+    end;
+
+    [Test]
     procedure TravelRequestPerDiemRuleIsCheckedOnTripStartInAgentTimeZone()
     var
         SpendRequest: Record "Spend Request";
@@ -1499,13 +1544,16 @@ codeunit 148339 "Spend Request Test"
         ExpenseCategory: Record "Expense Category";
         ExpenseLocation: Record "Expense Location";
         ExpenseReportLine: Record "Expense Report Line";
+        ExpenseAgentServiceCall: Codeunit "Library - Expense";
     begin
-        // [SCENARIO 659478] The per diem rule on the trip start date is found using the agent's date, not the session's.
+        // [SCENARIO 659478] For Expense Agent service calls, the per diem rule on the trip start date is found using the agent's date, not the session's.
         Initialize();
         SetFullRatePerDiemCalculation();
 
-        // [GIVEN] The agent works in Tokyo time (UTC+9).
+        // [GIVEN] The agent works in Tokyo time (UTC+9) and the call comes from the Expense Agent service.
         LibraryExpense.SetAgentTimeZone(TokyoTimeZoneTok);
+        ExpenseAgentServiceCall.SetExpenseAgentServiceCallSimulated(true);
+        BindSubscription(ExpenseAgentServiceCall);
 
         // [GIVEN] A per diem rule that takes effect on 2026-07-01.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);

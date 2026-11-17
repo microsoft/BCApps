@@ -9208,14 +9208,17 @@ codeunit 148301 "Expense Rule Test"
         ExpenseRuleHeader: Record "Expense Rule Header";
         ExpenseRuleCondition: Record "Expense Rule Condition";
         PostCode: Record "Post Code";
+        ExpenseAgentServiceCall: Codeunit "Library - Expense";
         TripStart, TripEnd : DateTime;
         ConditionValue: Decimal;
     begin
-        // [SCENARIO 659478] The same UTC trip gives the same per diem rows for the agent, the API (UTC session) and web users.
+        // [SCENARIO 659478] For Expense Agent service calls, the same UTC trip gives the same per diem rows whatever the session time zone is.
         Initialize();
 
-        // [GIVEN] The agent works in Eastern time.
+        // [GIVEN] The agent works in Eastern time and the call comes from the Expense Agent service.
         LibraryExpense.SetAgentTimeZone(EasternTimeZoneTok);
+        ExpenseAgentServiceCall.SetExpenseAgentServiceCallSimulated(true);
+        BindSubscription(ExpenseAgentServiceCall);
         LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 50, 0, 0);
         LibraryERM.FindPostCode(PostCode);
         ConditionValue := 100;
@@ -9246,10 +9249,56 @@ codeunit 148301 "Expense Rule Test"
     end;
 
     [Test]
+    procedure PerDiemEveningTripUsesSessionTimeZoneForUserCall()
+    var
+        Expense: Record Expense;
+        ExpensePerDiem: Record "Expense Per Diem";
+        ExpenseUser: Record "Expense User";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+        PostCode: Record "Post Code";
+        TripStart, TripEnd : DateTime;
+        ConditionValue: Decimal;
+    begin
+        // [SCENARIO 659478] Calls that do not come from the Expense Agent service split days in the user's session time zone, not the agent's.
+        Initialize();
+
+        // [GIVEN] The agent works in Eastern time, but the call is made by a user.
+        LibraryExpense.SetAgentTimeZone(EasternTimeZoneTok);
+        LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 50, 0, 0);
+        LibraryERM.FindPostCode(PostCode);
+        ConditionValue := 100;
+
+        // [GIVEN] A trip from 20:00Z to 03:00Z the next UTC day, which is 16:00 to 23:00 EDT on 2026-06-15.
+        TripStart := UtcDateTime('2026-06-15T20:00:00Z');
+        TripEnd := UtcDateTime('2026-06-16T03:00:00Z');
+
+        // [WHEN] The per diem expense is released.
+        CreateAndReleaseExpenseWithPerDiemRule(
+            Expense, ExpenseUser, ExpenseRuleHeader, ExpenseRuleCondition, PostCode."Country/Region Code",
+            PostCode.City, '', 0, DMY2Date(1, 1, 2020), TripStart, TripEnd,
+            "Expense Detail Needed"::"Per Diem", ExpenseRuleHeader."Justification Required"::" ",
+            Expense."Reimbursement Type"::"Employee Paid", '', ExpenseRuleCondition."Condition Type"::"Daily Rate",
+            true, ConditionValue);
+
+        // [THEN] The per diem days follow the session dates of the trip.
+        ExpensePerDiem.SetRange("Expense No.", Expense."No.");
+        Assert.RecordCount(ExpensePerDiem, DT2Date(TripEnd) - DT2Date(TripStart) + 1);
+        ExpensePerDiem.FindFirst();
+        Assert.AreEqual(DT2Date(TripStart), ExpensePerDiem.Date, 'Per diem date in session time zone');
+
+        // [THEN] The stored trip instants are not shifted.
+        Expense.Get(Expense."No.");
+        Assert.AreEqual(TripStart, Expense."Starting Date and Time", 'Stored starting instant');
+        Assert.AreEqual(TripEnd, Expense."Ending Date and Time", 'Stored ending instant');
+    end;
+
+    [Test]
     procedure PerDiemUsesSessionTimeZoneWhenNoAgentIsConfigured()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+        ExpenseAgentServiceCall: Codeunit "Library - Expense";
         AgentTimeZoneId: Text[180];
         UnresolvedReason: Text;
         TripStart: DateTime;
@@ -9258,6 +9307,8 @@ codeunit 148301 "Expense Rule Test"
         // [SCENARIO 659478] Without an agent, days are split in the session time zone as before.
         Initialize();
         TripStart := UtcDateTime('2026-06-15T20:00:00Z');
+        ExpenseAgentServiceCall.SetExpenseAgentServiceCallSimulated(true);
+        BindSubscription(ExpenseAgentServiceCall);
 
         // [GIVEN] No agent is configured.
         ExpenseAgentSetup.Get();
@@ -9280,6 +9331,7 @@ codeunit 148301 "Expense Rule Test"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+        ExpenseAgentServiceCall: Codeunit "Library - Expense";
         AgentTimeZoneId: Text[180];
         UnresolvedReason: Text;
         TripStart: DateTime;
@@ -9288,6 +9340,8 @@ codeunit 148301 "Expense Rule Test"
         // [SCENARIO 659478] With a blank agent time zone, days are split in the session time zone as before.
         Initialize();
         TripStart := UtcDateTime('2026-06-15T20:00:00Z');
+        ExpenseAgentServiceCall.SetExpenseAgentServiceCallSimulated(true);
+        BindSubscription(ExpenseAgentServiceCall);
 
         // [GIVEN] The agent has a blank time zone.
         LibraryExpense.SetAgentTimeZone('');

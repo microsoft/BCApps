@@ -34,6 +34,24 @@ codeunit 148300 "Library - Expense"
         AttachmentRetrievalFailureEnabled: Boolean;
         CorpCardDraftFailureEnabled: Boolean;
         CorpCardDraftFailedErr: Label 'Corporate card draft creation failed after inserting the expense.', Locked = true;
+        ExpenseAgentServiceCallSimulated: Boolean;
+
+    /// <summary>
+    /// Makes per diem calculations behave as if called by the Expense Agent service through the APIs, while this instance is bound.
+    /// </summary>
+    internal procedure SetExpenseAgentServiceCallSimulated(Simulated: Boolean)
+    begin
+        ExpenseAgentServiceCallSimulated := Simulated;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Expense Per Diem Calculation", OnBeforeIsExpenseAgentServiceCall, '', false, false)]
+    local procedure SimulateExpenseAgentServiceCall(var IsServiceCall: Boolean; var IsHandled: Boolean)
+    begin
+        if not ExpenseAgentServiceCallSimulated then
+            exit;
+        IsServiceCall := true;
+        IsHandled := true;
+    end;
 
     internal procedure SetCorpCardDraftFailureEnabled(Enabled: Boolean)
     begin
@@ -497,7 +515,7 @@ codeunit 148300 "Library - Expense"
     end;
 
     /// <summary>
-    /// Makes the current user act as the agent user with the given time zone, which per diem days are split in.
+    /// Makes the current user act as the agent user with the given time zone, which per diem days are split in for Expense Agent service calls.
     /// </summary>
     internal procedure SetAgentTimeZone(TimeZoneId: Text[180])
     var

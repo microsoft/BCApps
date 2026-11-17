@@ -22,6 +22,12 @@ codeunit 6911 "Expense Per Diem Calculation"
         UnresolvedReason: Text;
     begin
         ExpenseAgentSetup := NewExpenseAgentSetup;
+        // Only the Expense Agent service, calling through the APIs, uses the agent time zone. Users keep their own time zone.
+        if not IsExpenseAgentServiceCall() then begin
+            SetTimeZone('');
+            exit;
+        end;
+
         if ExpenseAgentSetup.GetAgentTimeZone(ResolvedTimeZoneId, UnresolvedReason) then begin
             SetTimeZone(ResolvedTimeZoneId);
             exit;
@@ -32,6 +38,21 @@ codeunit 6911 "Expense Per Diem Calculation"
         TelemetryDimensions.Add('FeatureName', ExpenseAgentSetup.GetFeatureName());
         TelemetryDimensions.Add('Reason', UnresolvedReason);
         Session.LogMessage('0000WPD', TimeZoneFallbackLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+    end;
+
+    local procedure IsExpenseAgentServiceCall(): Boolean
+    var
+        ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
+        IsServiceCall: Boolean;
+        IsHandled: Boolean;
+    begin
+        OnBeforeIsExpenseAgentServiceCall(IsServiceCall, IsHandled);
+        if IsHandled then
+            exit(IsServiceCall);
+
+        if not (CurrentClientType() in [ClientType::ODataV4, ClientType::Api]) then
+            exit(false);
+        exit(ExpenseAgentAPIValidation.IsCurrentUserExpenseAgent());
     end;
 
     /// <summary>
@@ -366,5 +387,10 @@ codeunit 6911 "Expense Per Diem Calculation"
     begin
         if Hours <> 0 then
             exit(Hours * 0.01); // 1% tolerance to avoid comparison issues ex- 5.98 Hours with 6 Hours
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnBeforeIsExpenseAgentServiceCall(var IsServiceCall: Boolean; var IsHandled: Boolean)
+    begin
     end;
 }
