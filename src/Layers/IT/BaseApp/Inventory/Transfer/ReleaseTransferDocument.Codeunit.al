@@ -5,7 +5,6 @@
 namespace Microsoft.Inventory.Transfer;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Setup;
 #if not CLEAN28
 using Microsoft.Manufacturing.Setup;
 #endif

@@ -5,7 +5,6 @@
 namespace Microsoft.Inventory.Transfer;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Setup;
 
 codeunit 5708 "Release Transfer Document"
 {
