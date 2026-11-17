@@ -257,6 +257,22 @@ table 6316 "Power BI Deployment"
         PBIDeploymentEvents.OnAfterDeleteAllDeploymentRecords(InCompany);
     end;
 
+    internal procedure DeleteRecords(ReportId: Enum "Power BI Deployable Report")
+    var
+        PowerBIDeployment: Record "Power BI Deployment";
+        PowerBIDeploymentState: Record "Power BI Deployment State";
+        PBIDeploymentEvents: Codeunit "PBI Deployment Events";
+    begin
+        PowerBIDeploymentState.SetRange("Report Id", ReportId);
+        PowerBIDeploymentState.DeleteAll();
+
+        if not PowerBIDeployment.Get(ReportId) then
+            exit;
+        PowerBIDeployment.Delete();
+
+        PBIDeploymentEvents.OnAfterDeleteDeploymentRecord(PowerBIDeployment);
+    end;
+
     /// <summary>
     /// Creates a new state record for the given status.
     /// </summary>
