@@ -84,6 +84,7 @@ report 5084 "Email Merge"
             Caption = 'EMail Merge (RDLC)';
             Summary = 'The EMail Merge (RDLC) provides a detailed layout.';
         }
+#if not CLEAN30
         layout("DefaultEmailMergeDoc.docx")
         {
             Type = Word;
@@ -94,6 +95,7 @@ report 5084 "Email Merge"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
+#endif
         layout("DefaultEmailMergeDocBody.docx")
         {
             Type = Word;
