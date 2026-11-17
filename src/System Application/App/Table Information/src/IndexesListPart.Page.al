@@ -190,7 +190,6 @@ page 8704 "Indexes List Part"
                 trigger OnAction()
                 var
                     IndexManagement: Codeunit "Index Management";
-                    RecordIDOfCurrentPosition: RecordId;
                     IndexName: Text;
                 begin
                     IndexName := Rec."Index Name";
@@ -199,15 +198,8 @@ page 8704 "Indexes List Part"
 
                     IndexManagement.UpdateIndexStatistics(Rec);
 
-                    RecordIDOfCurrentPosition := Rec.RecordId;
-
-                    Rec.DeleteAll();
-                    BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to show the new statistics update time.
-
-                    if Rec.Get(RecordIDOfCurrentPosition) then;
-
+                    RefreshIndexList();
                     Message(UpdateIndexStatisticsCompletedMsg, IndexName);
-                    CurrPage.Update(false);
                 end;
             }
             action(TurnIndexOff)
@@ -220,26 +212,13 @@ page 8704 "Indexes List Part"
                 trigger OnAction()
                 var
                     IndexManagement: Codeunit "Index Management";
-                    RecordIDOfCurrentPosition: RecordId;
-                    IsMetadataDefined: Boolean;
                 begin
-                    IsMetadataDefined := Rec."Metadata Defined";
-
-                    if not IsMetadataDefined then
-                        if not Dialog.Confirm(TurnOffIndexWarningQst) then
-                            exit;
+                    if not ConfirmTurnIndexOff() then
+                        exit;
 
                     IndexManagement.DisableIndex(Rec);
 
-                    RecordIDOfCurrentPosition := Rec.RecordId; // Save the current position to be able to return to it after refreshing the data.
-
-                    Rec.DeleteAll(); // Clear the temporary table to make sure the disabled index is not shown.
-                    BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to get the updated index status.
-
-                    if IsMetadataDefined then
-                        if Rec.Get(RecordIDOfCurrentPosition) then; // Done to avoid throwing an error, returning to the right position is of secondary importance.
-
-                    CurrPage.Update(false);
+                    RefreshIndexList();
                 end;
             }
             action(TurnIndexOffInAllCompanies)
@@ -254,16 +233,9 @@ page 8704 "Indexes List Part"
                     Company: Record Company;
                     DatabaseIndex: Record "Database Index";
                     IndexManagement: Codeunit "Index Management";
-                    RecordIDOfCurrentPosition: RecordId;
-                    IsMetadataDefined: Boolean;
                 begin
-                    IsMetadataDefined := Rec."Metadata Defined";
-
-                    if not IsMetadataDefined then
-                        if not Dialog.Confirm(TurnOffIndexWarningQst) then
-                            exit;
-
-                    RecordIDOfCurrentPosition := Rec.RecordId; // Save the current position to be able to return to it after refreshing the data.
+                    if not ConfirmTurnIndexOff() then
+                        exit;
 
                     if Company.FindSet() then
                         repeat
@@ -271,13 +243,7 @@ page 8704 "Indexes List Part"
                                 IndexManagement.DisableIndex(DatabaseIndex);
                         until Company.Next() = 0;
 
-                    Rec.DeleteAll(); // Clear the temporary table to make sure the disabled index is not shown.
-                    BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to get the updated index status.
-
-                    if IsMetadataDefined then
-                        if Rec.Get(RecordIDOfCurrentPosition) then; // Done to avoid throwing an error, returning to the right position is of secondary importance.
-
-                    CurrPage.Update(false);
+                    RefreshIndexList();
                 end;
             }
             action(TurnOnIndex)
@@ -424,6 +390,32 @@ page 8704 "Indexes List Part"
                         InsertDisabledIndex(KeyRec, true);
                 end;
             until KeyRec.Next() = 0;
+    end;
+
+    local procedure RefreshIndexList()
+    var
+        CurrentPosition: RecordId;
+        CurrentTableId: Integer;
+    begin
+        CurrentPosition := Rec.RecordId;
+        CurrentTableId := Rec.TableId;
+
+        Rec.DeleteAll();
+        BuildInMemoryList(CurrentTableId);
+
+        // Return to the previous position if the index is still listed (e.g. a dropped non-AL index is not), otherwise go to the first index, if any.
+        if not Rec.Get(CurrentPosition) then
+            if Rec.FindFirst() then;
+
+        CurrPage.Update(false);
+    end;
+
+    local procedure ConfirmTurnIndexOff(): Boolean
+    begin
+        if Rec."Metadata Defined" then
+            exit(true);
+
+        exit(Dialog.Confirm(TurnOffIndexWarningQst));
     end;
 
     local procedure InsertDisabledIndex(KeyRec: Record "Key"; IsSift: Boolean)
