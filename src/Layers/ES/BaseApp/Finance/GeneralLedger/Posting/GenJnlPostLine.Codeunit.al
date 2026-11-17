@@ -1478,9 +1478,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 GenJournalLine, CustLedgEntry."Pmt. Discount Date", CustLedgEntry."Pmt. Disc. Tolerance Date",
                 CustLedgEntry."Max. Payment Tolerance");
 
-        if InstallmentCount = 0 then begin
+        if InstallmentCount = 0 then
             if GLSetup."Payment Discount Type" =
-            GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines"
+               GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines"
             then
                 CustLedgEntry."Pmt. Disc. Given (LCY)" := GenJournalLine."Pmt. Discount Given/Rec. (LCY)"
             else
@@ -1490,11 +1490,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     else
                         CustLedgEntry."Original Pmt. Disc. Possible" := GenJournalLine.Amount;
                     CustLedgEntry."Original Pmt. Disc. Possible" :=
-                    Round(
-                        CustLedgEntry."Original Pmt. Disc. Possible" * GenJournalLine."Payment Discount %" / 100, AmountRoundingPrecision);
+                        Round(
+                            CustLedgEntry."Original Pmt. Disc. Possible" * GenJournalLine."Payment Discount %" / 100, AmountRoundingPrecision);
                     CustLedgEntry."Remaining Pmt. Disc. Possible" := CustLedgEntry."Original Pmt. Disc. Possible";
                 end;
-        end;
 
         TempDtldCVLedgEntryBuf.DeleteAll();
         TempDtldCVLedgEntryBuf.Init();
