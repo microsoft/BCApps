@@ -16,6 +16,7 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Utilities;
 
@@ -182,6 +183,7 @@ table 6900 Expense
         field(10; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code of the amount.';
             TableRelation = "Currency";
 
             trigger OnValidate()
@@ -726,6 +728,9 @@ table 6900 Expense
         {
             Clustered = true;
         }
+        key(CreditCardFeedNo; "Credit Card Feed No.")
+        {
+        }
     }
     fieldgroups
     {
@@ -794,6 +799,7 @@ table 6900 Expense
         CannotModifyWithParticipantsErr: Label 'You cannot modify %1 field of expense %2 because it has associated participants.', Comment = '%1 = Field Name, %2 = Expense No.';
         CannotModifyWithItemizationErr: Label 'You cannot modify %1 field of expense %2 because it has associated itemizations.', Comment = '%1 = Field Name, %2 = Expense No.';
         DeleteAssociatedRecordsQst: Label 'If you change %1, the existing %2 details will be deleted.\\Do you want to continue?', Comment = '%1 = Field Name, %2 = Expense Detail Required';
+        SubcategoryBlankedMsg: Label 'The expense category of expense %1 was changed, so the subcategories on its itemizations were cleared. Review the itemizations and select a subcategory that matches the new category.', Comment = '%1 = Expense No.';
         OnlyUseExpenseLocationWithPerDiemErr: Label 'The selected Expense Location %1 and Expense Category %2 can only be used with per diem expenses on Expense No. %3.', Comment = '%1 = Expense Location, %2 = Expense Category, %3 = Expense No.';
         InvalidEndingDateErr: Label 'Ending Date and Time cannot be earlier than Starting Date and Time.';
         NonRefundableAmountGreaterThanAmountErr: Label '%1 cannot be greater than Amount.', Comment = '%1 = Field Caption';
@@ -801,6 +807,7 @@ table 6900 Expense
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 = Expense User No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
         ModifyOrDeleteErr: Label 'Modifications and delete are not allowed for records created by the Expense Agent API.';
+        ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
 
     procedure AssistEdit() Result: Boolean
     begin
@@ -1010,30 +1017,36 @@ table 6900 Expense
 
     local procedure ConfirmAndDeleteAssociatedRecords(FieldCaption: Text)
     var
+        ExpenseCategory: Record "Expense Category";
         ConfirmManagement: Codeunit "Confirm Management";
+        KeepItemization: Boolean;
     begin
-        if not HasAssociatedRecords() then
-            exit;
+        if Rec."Expense Category" <> '' then
+            if ExpenseCategory.Get(Rec."Expense Category") then
+                KeepItemization := ExpenseCategory.IsItemizationRequired();
 
-        if not HideValidationDialog then
+        if HasAssociatedRecords(KeepItemization) and not HideValidationDialog then
             if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(DeleteAssociatedRecordsQst, FieldCaption, Rec."Expense Detail Required"), true) then
                 Error('');
 
-        DeleteAssociatedRecords();
+        DeleteAssociatedRecords(KeepItemization);
     end;
 
-    local procedure HasAssociatedRecords(): Boolean
+    local procedure HasAssociatedRecords(KeepItemization: Boolean): Boolean
     var
         ExpenseParticipant: Record "Expense Participant";
         ExpenseItemization: Record "Expense Itemization";
         ExpensePerDiem: Record "Expense Per Diem";
     begin
+        if not KeepItemization then begin
+            ExpenseItemization.SetRange("Expense No.", Rec."No.");
+            if not ExpenseItemization.IsEmpty() then
+                exit(true);
+        end;
+
         case Rec."Expense Detail Required" of
             Rec."Expense Detail Required"::Itemize:
-                begin
-                    ExpenseItemization.SetRange("Expense No.", Rec."No.");
-                    exit(not ExpenseItemization.IsEmpty());
-                end;
+                exit(false);
             Rec."Expense Detail Required"::Participants:
                 begin
                     ExpenseParticipant.SetRange("Expense No.", Rec."No.");
@@ -1047,11 +1060,45 @@ table 6900 Expense
         end;
     end;
 
-    local procedure DeleteAssociatedRecords()
+    local procedure DeleteAssociatedRecords(KeepItemization: Boolean)
     begin
         DeleteExpenseParticipant();
-        DeleteExpenseItemization();
         DeleteExpensePerDiem();
+
+        if KeepItemization then
+            ClearItemizationSubcategory()
+        else
+            DeleteExpenseItemization();
+    end;
+
+    local procedure ClearItemizationSubcategory()
+    var
+        ExpenseItemization: Record "Expense Itemization";
+    begin
+        ExpenseItemization.SetRange("Expense No.", Rec."No.");
+        ExpenseItemization.SetFilter("Expense Subcategory Code", '<>%1', '');
+        if not ExpenseItemization.IsEmpty() and not HideValidationDialog then
+            SendSubcategoryBlankedNotification();
+
+        ExpenseItemization.SetRange("Expense Subcategory Code");
+        ExpenseItemization.ModifyAll("Expense Category Code", Rec."Expense Category", false);
+        ExpenseItemization.ModifyAll("Expense Subcategory Code", '', false);
+    end;
+
+    local procedure SendSubcategoryBlankedNotification()
+    var
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        NotificationToSend: Notification;
+    begin
+        NotificationToSend.Id := GetSubcategoryBlankedNotificationId();
+        NotificationToSend.Recall();
+        NotificationToSend.Message(StrSubstNo(SubcategoryBlankedMsg, Rec."No."));
+        NotificationLifecycleMgt.SendNotification(NotificationToSend, Rec.RecordId);
+    end;
+
+    local procedure GetSubcategoryBlankedNotificationId(): Guid
+    begin
+        exit('c3f1d6a2-7b84-4e0f-9a35-5d2e8b1f4c71');
     end;
 
     procedure ApplyRule(ApplyAndValidateRuleOnExpense: Boolean; ValidateRuleOnly: Boolean)
@@ -1157,7 +1204,10 @@ table 6900 Expense
     end;
 
     procedure UpdateAmount()
+    var
+        ExpenseCurrency: Record Currency;
     begin
+        ExpenseCurrency.Initialize(Rec."Currency Code");
         GeneralLedgerSetup.GetRecordOnce();
         UpdateCurrencyFactor();
 
@@ -1227,7 +1277,7 @@ table 6900 Expense
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, Rec."Currency Code") then
                 Rec."Currency Factor" := CurrExchRate.ExchangeRate(CurrencyDate, Rec."Currency Code")
             else
-                UpdateCurrencyExchangeRates.ShowMissingExchangeRatesNotification("Currency Code");
+                Error(ReceiptDatedBeforeExchRateErr, CurrencyDate, Rec."Currency Code");
         end else
             Rec."Currency Factor" := 0;
     end;
@@ -1252,6 +1302,8 @@ table 6900 Expense
             exit;
         end;
 
+        Rec.Validate("Expense Detail Required", ExpenseCategory."Expense Detail Required");
+
         if ExpenseCategory."Expense Detail Required" <> ExpenseCategory."Expense Detail Required"::"Per Diem" then
             Rec.Validate("Expense Location", '');
 
@@ -1262,8 +1314,6 @@ table 6900 Expense
         Rec.Validate("Reimbursement Type", ExpenseCategory."Reimbursement Type");
         if ExpenseCategory."Default Payment Method" <> '' then
             Rec.Validate("Payment Method Code", ExpenseCategory."Default Payment Method");
-
-        Rec.Validate("Expense Detail Required", ExpenseCategory."Expense Detail Required");
 
         ExpenseAgentSetup.GetRecordOnce();
         if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage then begin
@@ -1394,5 +1444,30 @@ table 6900 Expense
                 ExpenseVATSpec := TempExpenseVATSpec;
                 ExpenseVATSpec.Insert();
             until TempExpenseVATSpec.Next() = 0;
+    end;
+
+    internal procedure IsItemizationRequired(): Boolean
+    begin
+        if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize then
+            exit(true);
+
+        exit(Rec.IsEnforcedItemizationRequired());
+    end;
+
+    internal procedure IsEnforcedItemizationRequired(): Boolean
+    var
+        ExpensePolicy: Record "Expense Policy";
+    begin
+        if (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or
+           (Rec."Expense Category" = '')
+        then
+            exit(false);
+
+        ExpensePolicy.SetRange("Expense Category Code", Rec."Expense Category");
+        ExpensePolicy.SetRange(Enabled, true);
+        ExpensePolicy.SetFilter("Policy Text", '<>%1', '');
+        exit(not ExpensePolicy.IsEmpty());
     end;
 }

@@ -77,9 +77,8 @@ codeunit 139740 "VAT Group Submit To Repr. Test"
     [HandlerFunctions('HttpClientHandler')]
     procedure TestSuccessfulSend()
     var
+        ErrorMessage: Record "Error Message";
         VATReportHeader: Record "VAT Report Header";
-        VATGroupSubmissionHeader: Record "VAT Group Submission Header";
-        VATGroupSubmissionLine: Record "VAT Group Submission Line";
     begin
         // [SCENARIO 374187] Successful Send
         Initialize();
@@ -103,11 +102,9 @@ codeunit 139740 "VAT Group Submit To Repr. Test"
         // [THEN] The Status should be Submitted
         Assert.AreEqual(VATReportHeader.Status, VATReportHeader.Status::Submitted, 'Status should be Submitted');
 
-        // [THEN] There should be submissions in the VAT Group Submission table and lines.
-        Assert.RecordIsNotEmpty(VATGroupSubmissionHeader);
-
-        VATGroupSubmissionLine.SetFilter("VAT Group Submission No.", VATReportHeader."No.");
-        Assert.RecordIsNotEmpty(VATGroupSubmissionLine);
+        // [THEN] No errors are logged for the VAT Report. The submission records are created by the representative, which is mocked here.
+        ErrorMessage.SetRange("Context Record ID", VATReportHeader.RecordId());
+        Assert.RecordIsEmpty(ErrorMessage);
     end;
 
     local procedure Initialize()

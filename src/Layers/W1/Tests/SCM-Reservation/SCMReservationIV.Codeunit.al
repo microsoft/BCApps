@@ -2899,8 +2899,7 @@ codeunit 137271 "SCM Reservation IV"
         // [GIVEN] Set "Qty. to Handle" = 0 for lot "L1".
         WarehouseActivityLine.SetRange("Item No.", Item."No.");
         WarehouseActivityLine.SetRange("Lot No.", LotNos[1]);
-        WarehouseActivityLine.ModifyAll("Qty. to Handle", 0);
-        WarehouseActivityLine.ModifyAll("Qty. to Handle (Base)", 0);
+        WarehouseActivityLine.ModifyAll("Qty. to Handle", 0, "Qty. to Handle (Base)", 0);
 
         // [WHEN] Partially register the pick (1 of 2 pcs).
         RegisterWarehouseActivity(

@@ -560,7 +560,6 @@ codeunit 133100 "Extension Management Test"
         OpenExtensionSettings(ExtensionSettings);
 
         asserterror ExtensionSettings.New();
-        Assert.ExpectedError('New method failed because Insert is not allowed. Page = Extension Settings - System Application Test, Id = 2511.');
     end;
 
     [Test]

@@ -32,8 +32,7 @@ report 1130 "Delete Cost Entries"
                 if Source = Source::Allocation then begin
                     CostEntry.SetCurrentKey("Allocated with Journal No.");
                     CostEntry.SetRange("Allocated with Journal No.", "No.");
-                    CostEntry.ModifyAll(Allocated, false);
-                    CostEntry.ModifyAll("Allocated with Journal No.", 0);
+                    CostEntry.ModifyAll(Allocated, false, "Allocated with Journal No.", 0);
                 end;
 
                 CostEntry.Reset();

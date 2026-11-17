@@ -50,6 +50,12 @@ page 99000766 Routing
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Manufacturing;
+                    StyleExpr = StatusStyleTxt;
+
+                    trigger OnValidate()
+                    begin
+                        SetStatusStyle();
+                    end;
                 }
                 field("Search Description"; Rec."Search Description")
                 {
@@ -244,10 +250,21 @@ page 99000766 Routing
         }
     }
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        SetStatusStyle();
+    end;
+
     trigger OnAfterGetRecord()
     begin
         RefreshActiveVersionCode();
         UpdateRoutingLineParallelFieldsVisibility();
+        SetStatusStyle();
+    end;
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        SetStatusStyle();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -283,6 +300,19 @@ page 99000766 Routing
 
     var
         ActiveVersionCode: Code[20];
+        StatusStyleTxt: Text;
+
+    local procedure SetStatusStyle()
+    begin
+        case Rec.Status of
+            Rec.Status::Certified:
+                StatusStyleTxt := 'Strong';
+            Rec.Status::New, Rec.Status::"Under Development":
+                StatusStyleTxt := 'Favorable';
+            else
+                StatusStyleTxt := '';
+        end;
+    end;
 
     local procedure LastDateModifiedOnAfterValidate()
     begin

@@ -23,6 +23,37 @@ codeunit 148333 "Expense Agent Setup API Test"
         EmailAddressTok: Label 'emailAddress', Locked = true;
 
     [Test]
+    procedure NewSetupEnablesPolicyEvaluationWithoutSubmitterEvaluation()
+    var
+        TempExpenseAgentSetup: Record "Expense Agent Setup" temporary;
+    begin
+        TempExpenseAgentSetup.Init();
+        Assert.IsTrue(TempExpenseAgentSetup."Evaluate Policies", 'New setups should enable policy evaluation by default.');
+        Assert.IsFalse(TempExpenseAgentSetup."Submitter-run Evaluation", 'New setups should not enable submitter-run evaluation.');
+
+        TempExpenseAgentSetup.InitRecord();
+        TempExpenseAgentSetup.Get();
+        Assert.IsTrue(TempExpenseAgentSetup."Evaluate Policies", 'Setup creation should retain the enabled policy evaluation default.');
+        Assert.IsFalse(TempExpenseAgentSetup."Submitter-run Evaluation", 'Setup creation should leave submitter-run evaluation disabled.');
+    end;
+
+    [Test]
+    procedure SetupInitializationPreservesExistingEvaluationSettings()
+    var
+        TempExpenseAgentSetup: Record "Expense Agent Setup" temporary;
+    begin
+        TempExpenseAgentSetup.InitRecord();
+        TempExpenseAgentSetup."Evaluate Policies" := false;
+        TempExpenseAgentSetup."Submitter-run Evaluation" := true;
+        TempExpenseAgentSetup.Modify();
+
+        TempExpenseAgentSetup.Init();
+        TempExpenseAgentSetup.InitRecord();
+        Assert.IsFalse(TempExpenseAgentSetup."Evaluate Policies", 'Setup initialization should preserve disabled policy evaluation.');
+        Assert.IsTrue(TempExpenseAgentSetup."Submitter-run Evaluation", 'Setup initialization should preserve the existing submitter-run evaluation setting.');
+    end;
+
+    [Test]
     procedure EmailAddressFieldIsExposedThroughAPI()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";

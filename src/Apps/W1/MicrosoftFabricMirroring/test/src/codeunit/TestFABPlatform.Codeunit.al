@@ -5,6 +5,7 @@ using Microsoft.Utilities;
 using System.Fabric;
 using System.Reflection;
 
+//[FEATURE] Fabric platform management
 codeunit 140012 "Test FAB Platform"
 {
     Subtype = Test;
@@ -25,6 +26,8 @@ codeunit 140012 "Test FAB Platform"
         TableResetMsg: Label 'Table %1 was reset. The next synchronization run will send a full snapshot.', Comment = '%1 = table id';
         TableNothingToResetMsg: Label 'Table %1 has no completed synchronization to reset. The next run will send a full snapshot.', Comment = '%1 = table id';
         UnexpectedEndWatermarkErr: Label 'Unexpected End Watermark for company %1, table %2.', Comment = '%1 = company name, %2 = table id';
+        WorkspaceRoleAssignmentsUrlLbl: Label 'https://api.fabric.microsoft.com/v1/workspaces/11111111-1111-1111-1111-111111111111/roleAssignments', Locked = true;
+        WorkspaceRoleAssignmentsNextPageUrlLbl: Label 'https://api.fabric.microsoft.com/v1/workspaces/11111111-1111-1111-1111-111111111111/roleAssignments?continuationToken=next%3D', Locked = true;
 
     local procedure Initialize()
     var
@@ -48,7 +51,7 @@ codeunit 140012 "Test FAB Platform"
         PlatformTestSub.Reset();
         LookupState.ClearFabricApiToken();
         // Isolated Storage is not rolled back between tests, unlike table data.
-        CredMgt.SetLastEnableRequestedAt(0DT);
+        CredMgt.ClearEnvironmentCredentials();
         if IsInitialized then
             exit;
         IsInitialized := true;
@@ -60,18 +63,59 @@ codeunit 140012 "Test FAB Platform"
         TenantFabricSetup: Record "Tenant Fabric Setup";
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
     begin
-        //[SCENARIO] The adapter reads/creates the platform setup singleton (Story 1)
-        //[GIVEN] Initialize
-        Initialize();
-        //[GIVEN] Lower permissions
-        LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[SCENARIO] EnsureSetup initializes a new Fabric setup record
+        //[GIVEN] Initialized
+        this.Initialize();
+        //[GIVEN] Lowered permissions
+        this.CreateFabricPermissionContext();
 
         //[WHEN] EnsureSetup is called
         FabricPlatformMgt.EnsureSetup(TenantFabricSetup);
 
-        //[THEN] Exactly one platform setup record exists
-        Assert.AreEqual(1, TenantFabricSetup.Count(), 'Expected exactly one Tenant Fabric Setup record.');
+        //[THEN] Platform setup has its default lowercase namespaces
+        this.VerifySetupDefaults(TenantFabricSetup);
+    end;
+
+    [Test]
+    procedure NormalizeNamespaceConvertsUppercaseToLowercase()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        Namespace: Text[250];
+    begin
+        //[SCENARIO] Normalize a namespace containing uppercase characters
+        //[GIVEN] Initialized
+        this.Initialize();
+        //[GIVEN] Namespace contains uppercase characters
+        Namespace := 'BusinessCentral';
+        //[GIVEN] Lowered permissions
+        this.CreateFabricPermissionContext();
+
+        //[WHEN] Namespace is normalized
+        FabricPlatformMgt.NormalizeNamespace(Namespace);
+
+        //[THEN] Namespace is lowercase
+        this.VerifyNamespaceEquals('businesscentral', Namespace);
+    end;
+
+    [Test]
+    procedure NormalizeNamespaceLeavesLowercaseUnchanged()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        Namespace: Text[250];
+    begin
+        //[SCENARIO] Normalize a namespace that is already lowercase
+        //[GIVEN] Initialized
+        this.Initialize();
+        //[GIVEN] Namespace is already lowercase
+        Namespace := 'businesscentral_log';
+        //[GIVEN] Lowered permissions
+        this.CreateFabricPermissionContext();
+
+        //[WHEN] Namespace is normalized
+        FabricPlatformMgt.NormalizeNamespace(Namespace);
+
+        //[THEN] Namespace remains lowercase and unchanged
+        this.VerifyNamespaceEquals('businesscentral_log', Namespace);
     end;
 
     [Test]
@@ -92,6 +136,24 @@ codeunit 140012 "Test FAB Platform"
 
         //[THEN] The row exists in the platform table
         Assert.IsTrue(TenantFabricTables.Get(Database::"Tenant Fabric Setup"), 'Expected the added table row in Tenant Fabric Tables.');
+    end;
+
+    local procedure VerifySetupDefaults(var TenantFabricSetup: Record "Tenant Fabric Setup")
+    begin
+        Assert.AreEqual(1, TenantFabricSetup.Count(), 'Expected exactly one Tenant Fabric Setup record.');
+        Assert.AreEqual('businesscentral', TenantFabricSetup."Fabric Data Namespace", 'Expected the Fabric Data Namespace to be lowercase.');
+        Assert.AreEqual('businesscentral_log', TenantFabricSetup."Fabric Logging Namespace", 'Expected the Fabric Logging Namespace to be lowercase.');
+    end;
+
+    local procedure CreateFabricPermissionContext()
+    begin
+        this.LibraryLowerPermissions.SetOutsideO365Scope();
+        this.LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+    end;
+
+    local procedure VerifyNamespaceEquals(ExpectedNamespace: Text[250]; ActualNamespace: Text[250])
+    begin
+        Assert.AreEqual(ExpectedNamespace, ActualNamespace, 'Expected namespace values to match.');
     end;
 
     [Test]
@@ -524,6 +586,7 @@ codeunit 140012 "Test FAB Platform"
         //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
         FabricPrivacyNotice.Approve();
         //[GIVEN] No client ID configured
+        CredMgt.SetCustomAppEnabled(true);
         CredMgt.SetClientId('');
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
@@ -549,6 +612,7 @@ codeunit 140012 "Test FAB Platform"
         //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
         FabricPrivacyNotice.Approve();
         //[GIVEN] A non-GUID client ID is configured
+        CredMgt.SetCustomAppEnabled(true);
         CredMgt.SetClientId('not-a-guid');
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
@@ -574,6 +638,7 @@ codeunit 140012 "Test FAB Platform"
         //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
         FabricPrivacyNotice.Approve();
         //[GIVEN] A valid Client ID but no Client Secret configured
+        CredMgt.SetCustomAppEnabled(true);
         CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
@@ -664,6 +729,7 @@ codeunit 140012 "Test FAB Platform"
         //[SCENARIO] A Client ID stored through Credential Mgt is returned unchanged
         //[GIVEN] Initialize
         Initialize();
+        CredMgt.SetCustomAppEnabled(true);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
@@ -672,7 +738,55 @@ codeunit 140012 "Test FAB Platform"
         CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
 
         //[THEN] The same client ID is returned
-        Assert.AreEqual('11111111-1111-1111-1111-111111111111', CredMgt.GetClientId(), 'Expected the stored client ID to be returned.');
+        Assert.AreEqual('11111111-1111-1111-1111-111111111111', CredMgt.GetCustomClientId(), 'Expected the stored client ID to be returned.');
+    end;
+
+    [Test]
+    procedure SetupPagesHideCustomCredentialsForFirstParty()
+    begin
+        VerifySetupAuthenticationFieldsVisible(false);
+    end;
+
+    [Test]
+    procedure SetupPagesShowCustomCredentialsForCustomApp()
+    begin
+        VerifySetupAuthenticationFieldsVisible(true);
+    end;
+
+    local procedure VerifySetupAuthenticationFieldsVisible(UseCustomApp: Boolean)
+    var
+        CredMgt: Codeunit "Fabric Platform Credential Mgt";
+        SetupPage: TestPage "Fabric Platform Setup";
+        SetupWizard: TestPage "Fabric Platform Setup Wizard";
+    begin
+        Initialize();
+        CredMgt.SetCustomAppEnabled(UseCustomApp);
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        SetupPage.OpenEdit();
+        Assert.AreEqual(UseCustomApp, SetupPage.ClientId.Visible(), 'Unexpected Client ID visibility on the setup page.');
+        Assert.AreEqual(UseCustomApp, SetupPage.ClientSecret.Visible(), 'Unexpected Client Secret visibility on the setup page.');
+        Assert.IsTrue(SetupPage.PrincipalId.Visible(), 'Principal ID must be visible for both authentication modes.');
+        SetupPage.Close();
+
+        SetupWizard.OpenEdit();
+        Assert.IsFalse(SetupWizard.PrincipalId.Visible(), 'Welcome must not show authentication fields.');
+        SetupWizard.ActionNext.Invoke();
+        Assert.IsTrue(SetupWizard.PrincipalId.Visible(), 'Principal ID must be visible on the authentication step for both modes.');
+        Assert.AreEqual(UseCustomApp, SetupWizard.ClientId.Visible(), 'Unexpected Client ID visibility in the setup wizard.');
+        Assert.AreEqual(UseCustomApp, SetupWizard.ClientSecret.Visible(), 'Unexpected Client Secret visibility in the setup wizard.');
+        Assert.IsFalse(SetupWizard."Fabric Workspace Name".Visible(), 'Both modes must show authentication before workspace selection.');
+        SetupWizard.ActionNext.Invoke();
+        Assert.IsTrue(SetupWizard."Fabric Workspace Name".Visible(), 'Authentication must be followed by workspace selection.');
+        SetupWizard.ActionBack.Invoke();
+        Assert.IsTrue(SetupWizard.PrincipalId.Visible(), 'Back must return to authentication for both modes.');
+        Assert.AreEqual(UseCustomApp, SetupWizard.ClientId.Visible(), 'Unexpected custom credentials when returning to authentication.');
+        SetupWizard.ActionBack.Invoke();
+        Assert.IsFalse(SetupWizard.ActionBack.Enabled(), 'Back from authentication must return to Welcome.');
+        Assert.IsFalse(SetupWizard.PrincipalId.Visible(), 'Authentication fields must not be shown when returning to Welcome.');
+        SetupWizard.Close();
+        Assert.AreEqual(UseCustomApp, CredMgt.IsCustomAppEnabled(), 'Opening setup must not change the authentication mode.');
     end;
 
     [Test]
@@ -807,6 +921,32 @@ codeunit 140012 "Test FAB Platform"
     end;
 
     [Test]
+    procedure GetWorkspacesShowsHttpFailureMessage()
+    var
+        TempBuffer: Record "Name/Value Buffer" temporary;
+        AdminClient: Codeunit "Fabric Platform Admin Client";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+        SampleTokenLbl: Label 'sample-token0', Locked = true;
+        Token: SecretText;
+    begin
+        Initialize();
+        FabricPrivacyNotice.Approve();
+        Token := SecretStrSubstNo(SampleTokenLbl);
+        LookupState.SetFabricApiToken(Token, 3600);
+        PlatformTestSub.AddMockHttpResponse(403, '{}', 'GET', 'https://api.fabric.microsoft.com/v1/workspaces');
+        BindSubscription(PlatformTestSub);
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        asserterror AdminClient.GetWorkspaces(TempBuffer);
+
+        Assert.ExpectedError('Failed to retrieve workspaces. Contact your administrator if the problem persists.');
+        PlatformTestSub.AssertHttpRequestsComplete();
+        UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
     procedure GetWorkspacesErrorsOnMalformedResponse()
     var
         TempBuffer: Record "Name/Value Buffer" temporary;
@@ -911,37 +1051,140 @@ codeunit 140012 "Test FAB Platform"
     end;
 
     [Test]
-    procedure AddServicePrincipalToWorkspaceFailsWhenAlreadyMember()
+    procedure AddConnectionRequiresPrincipalIdForFirstParty()
+    begin
+        VerifyAddConnectionRequiresPrincipalId(false);
+    end;
+
+    [Test]
+    procedure AddConnectionRequiresPrincipalIdForCustomApp()
+    begin
+        VerifyAddConnectionRequiresPrincipalId(true);
+    end;
+
+    local procedure VerifyAddConnectionRequiresPrincipalId(UseCustomApp: Boolean)
     var
         AdminClient: Codeunit "Fabric Platform Admin Client";
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
-        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
-        SampleTokenLbl: Label 'sample-token0', Locked = true;
-        Token: SecretText;
     begin
-        //[SCENARIO] AddServicePrincipalToWorkspace reports a friendly error on HTTP 409
-        //[GIVEN] Initialize
         Initialize();
-        //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
+        CredMgt.SetCustomAppEnabled(UseCustomApp);
         FabricPrivacyNotice.Approve();
-        //[GIVEN] A cached Fabric API token so no real OAuth flow is triggered
-        CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
-        Token := SecretStrSubstNo(SampleTokenLbl);
-        LookupState.SetFabricApiToken(Token, 3600);
-        //[GIVEN] The HTTP handler is mocked to return a 409 conflict response
-        BindSubscription(PlatformTestSub);
-        PlatformTestSub.SetMockHttpResponse(409, '{}');
-        //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
-        //[WHEN] The service principal is added to the workspace
+        asserterror AdminClient.AddConnectionToWorkspace('11111111-1111-1111-1111-111111111111');
+
+        Assert.ExpectedError('Principal ID is missing');
+    end;
+
+    [Test]
+    procedure AddServicePrincipalToWorkspaceSucceedsWhenAlreadyContributor()
+    var
+        AdminClient: Codeunit "Fabric Platform Admin Client";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+    begin
+        //[GIVEN] The principal already has Contributor access
+        InitializeWorkspaceRoleConflict(PlatformTestSub);
+        PlatformTestSub.AddMockHttpResponse(200, GetWorkspaceRoleResponse('22222222-2222-2222-2222-222222222222', 'Contributor', ''), 'GET', WorkspaceRoleAssignmentsUrlLbl);
+
+        //[WHEN] Adding the principal returns a conflict
+        AdminClient.AddServicePrincipalToWorkspace('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222');
+
+        //[THEN] Existing access is verified before reporting success
+        PlatformTestSub.AssertHttpRequestsComplete();
+        UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
+    procedure AddServicePrincipalToWorkspaceFailsForExistingViewer()
+    var
+        AdminClient: Codeunit "Fabric Platform Admin Client";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+    begin
+        //[GIVEN] The principal only has Viewer access
+        InitializeWorkspaceRoleConflict(PlatformTestSub);
+        PlatformTestSub.AddMockHttpResponse(200, GetWorkspaceRoleResponse('22222222-2222-2222-2222-222222222222', 'Viewer', ''), 'GET', WorkspaceRoleAssignmentsUrlLbl);
+
+        //[WHEN] Adding the principal returns a conflict
         asserterror AdminClient.AddServicePrincipalToWorkspace('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222');
 
-        //[THEN] The already-a-member conflict is reported
-        Assert.ExpectedError('already a member');
+        //[THEN] Contributor-or-higher access is required
+        Assert.ExpectedError('Contributor, Member, or Admin');
+        PlatformTestSub.AssertHttpRequestsComplete();
         UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
+    procedure AddServicePrincipalToWorkspaceChecksRolesOnNextPage()
+    var
+        AdminClient: Codeunit "Fabric Platform Admin Client";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+    begin
+        //[GIVEN] Another principal is on the first page and this principal is an Admin on the next
+        InitializeWorkspaceRoleConflict(PlatformTestSub);
+        PlatformTestSub.AddMockHttpResponse(200, GetWorkspaceRoleResponse('33333333-3333-3333-3333-333333333333', 'Contributor', WorkspaceRoleAssignmentsNextPageUrlLbl), 'GET', WorkspaceRoleAssignmentsUrlLbl);
+        PlatformTestSub.AddMockHttpResponse(200, GetWorkspaceRoleResponse('22222222-2222-2222-2222-222222222222', 'Admin', ''), 'GET', WorkspaceRoleAssignmentsNextPageUrlLbl);
+
+        //[WHEN] Adding the principal returns a conflict
+        AdminClient.AddServicePrincipalToWorkspace('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222');
+
+        //[THEN] All pages are checked and higher access is accepted
+        PlatformTestSub.AssertHttpRequestsComplete();
+        UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
+    procedure AddServicePrincipalToWorkspaceFailsWhenRoleLookupFails()
+    var
+        AdminClient: Codeunit "Fabric Platform Admin Client";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+    begin
+        //[GIVEN] Existing workspace roles cannot be read
+        InitializeWorkspaceRoleConflict(PlatformTestSub);
+        PlatformTestSub.AddMockHttpResponse(403, '{}', 'GET', WorkspaceRoleAssignmentsUrlLbl);
+
+        //[WHEN] Adding the principal returns a conflict
+        asserterror AdminClient.AddServicePrincipalToWorkspace('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222');
+
+        //[THEN] Failure to verify access is not treated as success
+        Assert.ExpectedError('Failed to verify the existing workspace role');
+        PlatformTestSub.AssertHttpRequestsComplete();
+        UnbindSubscription(PlatformTestSub);
+    end;
+
+    local procedure InitializeWorkspaceRoleConflict(var PlatformTestSub: Codeunit "Fabric Platform Test Sub")
+    var
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
+        Token: SecretText;
+        SampleTokenLbl: Label 'sample-token0', Locked = true;
+    begin
+        Initialize();
+        FabricPrivacyNotice.Approve();
+        Token := SecretStrSubstNo(SampleTokenLbl);
+        LookupState.SetFabricApiToken(Token, 3600);
+        PlatformTestSub.SetMockHttpResponse(409, '{}');
+        BindSubscription(PlatformTestSub);
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+    end;
+
+    local procedure GetWorkspaceRoleResponse(PrincipalId: Text; Role: Text; ContinuationUri: Text) ResponseBody: Text
+    var
+        RootObj: JsonObject;
+        AssignmentObj: JsonObject;
+        PrincipalObj: JsonObject;
+        Assignments: JsonArray;
+    begin
+        PrincipalObj.Add('id', PrincipalId);
+        AssignmentObj.Add('principal', PrincipalObj);
+        AssignmentObj.Add('role', Role);
+        Assignments.Add(AssignmentObj);
+        RootObj.Add('value', Assignments);
+        if ContinuationUri <> '' then
+            RootObj.Add('continuationUri', ContinuationUri);
+        RootObj.WriteTo(ResponseBody);
     end;
 
     [TryFunction]

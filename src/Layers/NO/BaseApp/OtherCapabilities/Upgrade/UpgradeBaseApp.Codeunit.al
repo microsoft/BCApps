@@ -227,6 +227,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeICGLAccountNoInStandardGeneralJournalLine();
         UpgradeBankExportImportSetup();
         UpgradePurchasesPayablesAndSalesReceivablesSetups();
+        UpgradeRestoreOrderQtyOnReturnInSalesAndPurchasesSetup();
         UpgradeLocationBinPolicySetups();
         UpgradeInventorySetupAllowInvtAdjmt();
 #if not CLEAN29       
@@ -3396,6 +3397,28 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetPurchasesPayablesAndSalesReceivablesSetupsUpgradeTag());
     end;
 
+    local procedure UpgradeRestoreOrderQtyOnReturnInSalesAndPurchasesSetup()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetRestoreOrderQtyOnReturnInSalesAndPurchasesSetupUpgradeTag()) then
+            exit;
+
+        if PurchasesPayablesSetup.Get() then begin
+            PurchasesPayablesSetup.Validate("Restore Order Qty. on Return", true);
+            PurchasesPayablesSetup.Modify();
+        end;
+        if SalesReceivablesSetup.Get() then begin
+            SalesReceivablesSetup.Validate("Restore Order Qty. on Return", true);
+            SalesReceivablesSetup.Modify();
+        end;
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetRestoreOrderQtyOnReturnInSalesAndPurchasesSetupUpgradeTag());
+    end;
+
     local procedure UpgradeLocationBinPolicySetups()
     var
         Location: Record Location;
@@ -3502,8 +3525,14 @@ codeunit 104000 "Upgrade - BaseApp"
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetDirectTransferOnTransferOrderUpgradeTag()) then
             exit;
 
-        InventorySetup.GetRecordOnce();
-        DirectTransferPostingType := InventorySetup."Direct Transfer Posting Type";
+        TransferHeader.SetRange("Direct Transfer", true);
+        if TransferHeader.IsEmpty() then begin
+            UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDirectTransferOnTransferOrderUpgradeTag());
+            exit;
+        end;
+
+        if InventorySetup.Get() then
+            DirectTransferPostingType := InventorySetup."Direct Transfer Posting Type";
         if DirectTransferPostingType = DirectTransferPostingType::" " then
             DirectTransferPostingType := DirectTransferPostingType::"Shipment and Receipt";
 
