@@ -1997,7 +1997,7 @@ table 21 "Cust. Ledger Entry"
 
         SalesInvoiceLine.SetRange("VAT Bus. Posting Group");
         SalesInvoiceLine.SetRange("VAT Prod. Posting Group");
-        if SalesInvoiceLine.IsEmpty() then begin
+        if (not InvoiceVATGroupsLoaded) and SalesInvoiceLine.IsEmpty() then begin
             // Journal and service invoices have VAT entries, but no posted sales invoice lines.
             VATEntry.SetCurrentKey("Transaction No.");
             VATEntry.SetRange("Transaction No.", Rec."Transaction No.");
