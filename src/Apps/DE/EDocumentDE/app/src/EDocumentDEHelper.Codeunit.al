@@ -35,6 +35,7 @@ codeunit 11038 "E-Document DE Helper"
            (SalesCrMemoHeader."Applies-to Doc. No." = '')
         then
             exit(false);
+        SalesInvoiceHeader.SetLoadFields("No.");
         if not SalesInvoiceHeader.Get(SalesCrMemoHeader."Applies-to Doc. No.") then
             exit(false);
 
@@ -51,6 +52,7 @@ codeunit 11038 "E-Document DE Helper"
            (ServiceCrMemoHeader."Applies-to Doc. No." = '')
         then
             exit(false);
+        ServiceInvoiceHeader.SetLoadFields("No.");
         if not ServiceInvoiceHeader.Get(ServiceCrMemoHeader."Applies-to Doc. No.") then
             exit(false);
 
