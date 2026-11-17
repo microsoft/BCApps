@@ -66,7 +66,7 @@
               },
               "quantity": {
                 "type": "number",
-                "description": "The quantity they need for that item"
+                "description": "The quantity explicitly requested for this item, preserving zero and fractional quantities. If no quantity is specified for this item, return 1; do not use 0 as an unspecified-quantity marker. A couple of chairs means 2 chairs. Apply quantities only to the items they qualify, not to other items mentioned in the request."
               },
               "unit_of_measure": {
                 "enum": [

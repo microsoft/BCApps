@@ -725,6 +725,50 @@ codeunit 133513 "Search Item Test"
     end;
 
     [Test]
+    procedure TestSearchItemQuantityDefaults()
+    var
+        Item: Record Item;
+        TempSalesLineAISuggestion: Record "Sales Line AI Suggestions" temporary;
+        SLSSearch: Codeunit Search;
+        ItemResults: JsonArray;
+        NameTerms: JsonArray;
+        MissingQuantityItem: JsonObject;
+        ZeroQuantityItem: JsonObject;
+        ExplicitQuantityItem: JsonObject;
+    begin
+        Initialize();
+        LibraryInventory.CreateItem(Item);
+        NameTerms.Add(Item."No.");
+
+        MissingQuantityItem.Add('name', Item."No.");
+        MissingQuantityItem.Add('split_name_terms', NameTerms);
+        ItemResults.Add(MissingQuantityItem);
+
+        ZeroQuantityItem.Add('name', Item."No.");
+        ZeroQuantityItem.Add('split_name_terms', NameTerms);
+        ZeroQuantityItem.Add('quantity', 0);
+        ItemResults.Add(ZeroQuantityItem);
+
+        ExplicitQuantityItem.Add('name', Item."No.");
+        ExplicitQuantityItem.Add('split_name_terms', NameTerms);
+        ExplicitQuantityItem.Add('quantity', 2.5);
+        ItemResults.Add(ExplicitQuantityItem);
+        ItemResults.Add(MissingQuantityItem);
+
+        Assert.IsTrue(SLSSearch.SearchMultiple(ItemResults, Enum::"Search Style"::Balanced, '', '', 1, 25, false, false, TempSalesLineAISuggestion, ''), 'Item search failed.');
+
+        Assert.RecordCount(TempSalesLineAISuggestion, 4);
+        TempSalesLineAISuggestion.FindFirst();
+        Assert.AreEqual(1, TempSalesLineAISuggestion.Quantity, 'Missing quantity must default to one.');
+        TempSalesLineAISuggestion.Next();
+        Assert.AreEqual(0, TempSalesLineAISuggestion.Quantity, 'Explicit zero quantity must be preserved.');
+        TempSalesLineAISuggestion.Next();
+        Assert.AreEqual(2.5, TempSalesLineAISuggestion.Quantity, 'Explicit fractional quantity must be preserved.');
+        TempSalesLineAISuggestion.Next();
+        Assert.AreEqual(1, TempSalesLineAISuggestion.Quantity, 'Missing quantity must not inherit the previous quantity.');
+    end;
+
+    [Test]
     procedure TestMinimumSearchConfidence()
     var
         ItemEntitySearch: Codeunit "Item Entity Search";

@@ -172,7 +172,8 @@ codeunit 7282 "Search"
                 if (QuantityToken.IsValue() and (QuantityToken.AsValue().AsText() <> '')) then
                     if not JsonValueAsDecimal(QuantityToken.AsValue(), Quantity) then
                         Quantity := 0;
-            end;
+            end else
+                Quantity := 1;
 
             if ItemToken.AsObject().Get('unit_of_measure', UOMToken) then begin
                 ItemTokenForQueryIndex.AsObject().Remove('unit_of_measure');
