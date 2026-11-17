@@ -26,6 +26,7 @@ codeunit 6980 "Release Expense Document"
     local procedure "Code"()
     var
         NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
         if Expense.Status = Expense.Status::Released then
             exit;
@@ -37,6 +38,7 @@ codeunit 6980 "Release Expense Document"
             Expense.TestField("Job Task No.");
 
         Expense.ApplyRule(false, true);
+        CorpCardSelectionMgt.ValidateExpenseCard(Expense, true);
 
         if Expense."No Receipt Type" = Expense."No Receipt Type"::"Lost Receipt" then begin
             if NoReceiptDeclarationMgt.HasOriginalReceipt(Expense) then
