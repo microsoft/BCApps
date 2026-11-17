@@ -21,10 +21,10 @@ report 1320 "Notification Email"
     Caption = 'Notification Email';
 #if not CLEAN30
     DefaultRenderingLayout = "NotificationEmail.docx";
-#endif
 #else
     DefaultRenderingLayout = "NotificationEmailBody.docx";
-    
+#endif
+
 dataset
     {
         dataitem("Integer"; "Integer")
