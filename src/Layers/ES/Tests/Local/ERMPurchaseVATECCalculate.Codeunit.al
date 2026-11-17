@@ -334,7 +334,7 @@ codeunit 144122 "ERM Purchase VAT EC Calculate"
           VATPostingSetup."VAT Bus. Posting Group", CurrencyCode);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         CurrencyFactor := FindCurrencyFactor(CurrencyCode, PurchaseHeader."Currency Factor");
-        VATAmount := Round(PurchaseLine.Amount / CurrencyFactor) - Round(PurchaseLine."Amount Including VAT" / CurrencyFactor);
+        VATAmount := -PurchaseLine.Amount / CurrencyFactor * VATPostingSetup."VAT+EC %" / 100;
 
         // Exercise.
         PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
@@ -834,6 +834,8 @@ codeunit 144122 "ERM Purchase VAT EC Calculate"
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
+        LibraryPriceCalculation.DisableExtendedPriceCalculation();
+        Clear(LibraryPriceCalculation);
     end;
 
     local procedure CreateGeneralPostingSetup(var GeneralPostingSetup: Record "General Posting Setup")
@@ -964,6 +966,8 @@ codeunit 144122 "ERM Purchase VAT EC Calculate"
         Item: Record Item;
         PriceListLine: Record "Price List Line";
     begin
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
         LibraryInventory.CreateItem(Item);
         Item.Validate("Gen. Prod. Posting Group", GenProdPostingGroup);
         Item.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
