@@ -9,7 +9,8 @@ permissionset 6905 "Expense Mgmt. Admin"
     Assignable = true;
     Caption = 'Expense Management - Admin';
 
-    IncludedPermissionSets = "Expense Mgmt. Edit";
+    IncludedPermissionSets = "Expense Mgmt. Edit",
+                             EACorpCardAdmin;
 
     Permissions =
         tabledata "Expense Agent Access Control" = RIMD,
@@ -22,8 +23,13 @@ permissionset 6905 "Expense Mgmt. Admin"
         tabledata "Expense Category" = IMD,
         tabledata "Expense Group" = IMD,
         tabledata "Expense Location" = IMD,
+        tabledata "Expense Vehicle Type" = IMD,
+        tabledata "Mileage Rate Setup" = IMD,
         tabledata "Expense Agent Setup" = IMD,
         tabledata "Expense Agent Status" = IMD,
+        tabledata "Expense User" = IMD,
+        tabledata "Expense Team" = IMD,
+        tabledata "Expense Approval Setup" = IMD,
         tabledata "Expense Rule Condition" = IMD,
         tabledata "Expense Rule Header" = IMD,
         tabledata "Expense Policy" = IMD,

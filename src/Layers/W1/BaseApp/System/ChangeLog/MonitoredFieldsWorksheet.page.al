@@ -12,6 +12,8 @@ page 1369 "Monitored Fields Worksheet"
     RefreshOnActivate = true;
     AccessByPermission = tabledata "Field Monitoring Setup" = m;
     Caption = 'Monitored Fields Worksheet';
+    AboutTitle = 'Choose the fields you want to monitor';
+    AboutText = 'Select the fields that are most important to your business and compliance requirements. Consider monitoring data where unexpected changes could introduce financial risk, affect reporting accuracy, or alter payment and approval processes, such as bank account information, posting groups, or approval settings.';
 
     layout
     {

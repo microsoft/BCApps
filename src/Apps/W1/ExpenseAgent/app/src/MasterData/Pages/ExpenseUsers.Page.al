@@ -85,7 +85,7 @@ page 6951 "Expense Users"
             }
             action(ImportExpenseUsers)
             {
-                Caption = 'Import Expense Users';
+                Caption = 'Import expense users';
                 ApplicationArea = All;
                 Image = Import;
                 ToolTip = 'Imports employees from your organization as expense users.';
@@ -101,19 +101,22 @@ page 6951 "Expense Users"
             action(CreateEmployee)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Create Employee';
+                Caption = 'Create employee';
                 Image = Create;
                 ToolTip = 'Checks for an existing employee by email and creates an employee if no match exists.';
                 Visible = IsCreateEmployeeVisible;
 
                 trigger OnAction()
+                var
+                    ExpenseUser: Record "Expense User";
                 begin
-                    Rec.CreateEmployeeFromExpenseUser();
+                    CurrPage.SetSelectionFilter(ExpenseUser);
+                    Rec.CreateEmployeesFromExpenseUsers(ExpenseUser);
                 end;
             }
             action("Send Welcome Email")
             {
-                Caption = 'Send Welcome Email';
+                Caption = 'Send welcome email';
                 ApplicationArea = Basic, Suite;
                 Image = Email;
                 ToolTip = 'Sends a welcome email to the selected expense user.';
@@ -127,11 +130,39 @@ page 6951 "Expense Users"
                 end;
             }
         }
+        area(Navigation)
+        {
+            action(ApprovalSetup)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Approval Setup';
+                ToolTip = 'Opens the Expense Approval Setup page for this expense user.';
+                Image = Approvals;
+
+                trigger OnAction()
+                var
+                    ExpenseApprovalMgmt: Codeunit "Expense Approval Helper";
+                begin
+                    ExpenseApprovalMgmt.OpenApprovalSetupPage(Rec);
+                end;
+            }
+            action("Alternate Approvers")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Alternate Approvers';
+                Image = UserSetup;
+                RunObject = Page "Expense Alternate Approvers";
+                RunPageLink = "Primary Approver No." = field("No.");
+                RunPageMode = Edit;
+                Visible = Rec."Can Approve";
+                ToolTip = 'Configure planned alternate approvers and their coverage dates.';
+            }
+        }
         area(Promoted)
         {
             group(Category_Process)
             {
-                Caption = 'Create Expense Users';
+                Caption = 'Process';
 
                 actionref(AddExistingEmployees_Promo; AddExistingEmployees)
                 {
@@ -144,6 +175,19 @@ page 6951 "Expense Users"
                 }
                 actionref(SendWelcomeEmail_Promoted; "Send Welcome Email")
                 {
+                }
+
+                group(Category_Approval)
+                {
+                    Caption = 'Approval';
+                    ShowAs = Standard;
+
+                    actionref(ApprovalSetup_Promoted; ApprovalSetup)
+                    {
+                    }
+                    actionref(AlternateApprovers_Promoted; "Alternate Approvers")
+                    {
+                    }
                 }
             }
         }

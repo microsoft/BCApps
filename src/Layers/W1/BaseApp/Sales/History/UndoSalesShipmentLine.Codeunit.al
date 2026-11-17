@@ -410,6 +410,7 @@ codeunit 5815 "Undo Sales Shipment Line"
         ItemJournalLine."Document Date" := SalesShipmentHeader."Document Date";
         ItemJournalLine."Unit of Measure Code" := SalesShipmentLine2."Unit of Measure Code";
         ItemJournalLine.Description := SalesShipmentLine2.Description;
+        ItemJournalLine."Drop Shipment" := SalesShipmentLine2."Drop Shipment";
 
         OnAfterCopyItemJnlLineFromSalesShpt(ItemJournalLine, SalesShipmentHeader, SalesShipmentLine2, TempWarehouseJournalLine, WhseUndoQuantity, ItemLedgEntryNo, NextLineNo, TempGlobalItemLedgerEntry, TempGlobalItemEntryRelation, IsHandled);
         if IsHandled then

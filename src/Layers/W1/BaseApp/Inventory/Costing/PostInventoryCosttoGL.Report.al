@@ -233,8 +233,17 @@ report 1002 "Post Inventory Cost to G/L"
                     }
 
                     trigger OnAfterGetRecord()
+                    var
+                        CostFullyPostedToGL: Boolean;
                     begin
-                        GetItemValueEntry("Value Entry No.");
+                        if not GetItemValueEntry("Value Entry No.") then begin
+                            // The value entry no longer exists, so there is nothing to post for this entry.
+                            AddPostValueEntryToDelete("Value Entry No.");
+                            CurrReport.Skip();
+                        end;
+                        // Evaluate before buffering, because BufferInvtPosting updates the posted amounts of ItemValueEntry in memory.
+                        CostFullyPostedToGL := IsCostFullyPostedToGL(ItemValueEntry);
+
                         if ItemValueEntry."Item Ledger Entry No." = 0 then begin
                             TempCapValueEntry."Entry No." := ItemValueEntry."Entry No.";
                             TempCapValueEntry."Order Type" := ItemValueEntry."Order Type";
@@ -245,16 +254,21 @@ report 1002 "Post Inventory Cost to G/L"
                         if (ItemValueEntry."Item Ledger Entry No." = 0) or not ItemValueEntry.Inventoriable or
                            ((ItemValueEntry."Cost Amount (Actual)" = 0) and (ItemValueEntry."Cost Amount (Expected)" = 0) and
                             (ItemValueEntry."Cost Amount (Actual) (ACY)" = 0) and (ItemValueEntry."Cost Amount (Expected) (ACY)" = 0))
-                        then
+                        then begin
+                            if (ItemValueEntry."Item Ledger Entry No." <> 0) and CostFullyPostedToGL then
+                                AddPostValueEntryToDelete("Value Entry No.");
                             CurrReport.Skip();
+                        end;
 
                         if not InvtPostToGL.BufferInvtPosting(ItemValueEntry) then begin
                             InsertValueEntryNoBuf(ItemValueEntry);
+                            if CostFullyPostedToGL then
+                                AddPostValueEntryToDelete("Value Entry No.");
                             CurrReport.Skip();
                         end;
 
                         UpdateAmounts();
-                        Mark(true);
+                        AddPostValueEntryToDelete("Value Entry No.");
                         if Post and (PostMethod = PostMethod::"per Entry") then
                             PostEntryToGL(ItemValueEntry);
 
@@ -266,10 +280,8 @@ report 1002 "Post Inventory Cost to G/L"
 
                     trigger OnPostDataItem()
                     begin
-                        if Post then begin
-                            MarkedOnly(true);
-                            DeleteAll();
-                        end;
+                        if Post then
+                            DeletePostValueEntriesToGL();
                         if GuiAllowed then
                             Window.Close();
                     end;
@@ -354,17 +366,22 @@ report 1002 "Post Inventory Cost to G/L"
                     }
 
                     trigger OnAfterGetRecord()
+                    var
+                        CostFullyPostedToGL: Boolean;
                     begin
                         CapValueEntry.Get(TempCapValueEntry."Entry No.");
                         if TempCapValueEntry.Next() = 0 then;
+                        // Evaluate before buffering, because BufferInvtPosting updates the posted amounts of CapValueEntry in memory.
+                        CostFullyPostedToGL := IsCostFullyPostedToGL(CapValueEntry);
                         if not InvtPostToGL.BufferInvtPosting(CapValueEntry) then begin
                             InsertValueEntryNoBuf(CapValueEntry);
+                            if CostFullyPostedToGL then
+                                AddPostValueEntryToDelete(CapValueEntry."Entry No.");
                             CurrReport.Skip();
                         end;
 
                         UpdateAmounts();
-                        PostValueEntryToGL.Get(CapValueEntry."Entry No.");
-                        PostValueEntryToGL.Mark(true);
+                        AddPostValueEntryToDelete(CapValueEntry."Entry No.");
                         if Post and (PostMethod = PostMethod::"per Entry") then
                             PostEntryToGL(CapValueEntry);
 
@@ -377,10 +394,8 @@ report 1002 "Post Inventory Cost to G/L"
                     trigger OnPostDataItem()
                     begin
                         TempCapValueEntry.DeleteAll();
-                        if Post then begin
-                            PostValueEntryToGL.MarkedOnly(true);
-                            PostValueEntryToGL.DeleteAll();
-                        end;
+                        if Post then
+                            DeletePostValueEntriesToGL();
                     end;
 
                     trigger OnPreDataItem()
@@ -748,6 +763,7 @@ report 1002 "Post Inventory Cost to G/L"
         TempInvtPostBuf: Record "Invt. Posting Buffer" temporary;
         TempCapValueEntry: Record "Value Entry" temporary;
         TempValueEntry: Record "Value Entry" temporary;
+        TempPostValueEntryToGLToDelete: Record "Post Value Entry to G/L" temporary;
         ItemValueEntry: Record "Value Entry";
         CapValueEntry: Record "Value Entry";
         GenJnlBatch: Record "Gen. Journal Batch";
@@ -841,31 +857,64 @@ report 1002 "Post Inventory Cost to G/L"
         NewPost := Post;
     end;
 
-    local procedure GetItemValueEntry(EntryNo: Integer)
+    local procedure GetItemValueEntry(EntryNo: Integer): Boolean
     begin
-        ItemValueEntry.Get(EntryNo);
+        if not ItemValueEntry.Get(EntryNo) then
+            exit(false);
         OnAfterGetItemValueEntry(ItemValueEntry);
+        exit(true);
+    end;
+
+    local procedure IsCostFullyPostedToGL(ValueEntry: Record "Value Entry"): Boolean
+    var
+        PostValueEntryToGLCheck: Record "Post Value Entry to G/L";
+    begin
+        exit(PostValueEntryToGLCheck.IsFullyPostedToGL(ValueEntry, InvtSetup."Expected Cost Posting to G/L"));
+    end;
+
+    local procedure AddPostValueEntryToDelete(ValueEntryNo: Integer)
+    begin
+        if TempPostValueEntryToGLToDelete.Get(ValueEntryNo) then
+            exit;
+        TempPostValueEntryToGLToDelete.Init();
+        TempPostValueEntryToGLToDelete."Value Entry No." := ValueEntryNo;
+        TempPostValueEntryToGLToDelete.Insert();
+    end;
+
+    local procedure DeletePostValueEntriesToGL()
+    var
+        PostValueEntryToGLToDelete: Record "Post Value Entry to G/L";
+        ValueEntryNoFilters: List of [Text];
+        ValueEntryNoFilter: Text;
+    begin
+        // Marks are not used, because DeleteAll on many marked records can skip records. The processed entries are deleted by filters instead.
+        PostValueEntryToGLToDelete.GetValueEntryNoFilters(TempPostValueEntryToGLToDelete, ValueEntryNoFilters);
+        foreach ValueEntryNoFilter in ValueEntryNoFilters do begin
+            PostValueEntryToGLToDelete.SetFilter("Value Entry No.", ValueEntryNoFilter);
+            PostValueEntryToGLToDelete.DeleteAll();
+        end;
+        TempPostValueEntryToGLToDelete.DeleteAll();
     end;
 
     local procedure GetDimText(var DimSetEntry: Record "Dimension Set Entry")
     var
-        OldDimText: Text[250];
+        OldDimText: Text;
     begin
         DimText := '';
 
         if DimSetEntry.FindSet() then
             repeat
-                OldDimText := DimText;
                 if DimText = '' then
-                    DimText := StrSubstNo('%1 - %2', DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code")
+                    OldDimText := StrSubstNo('%1 - %2', DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code")
                 else
-                    DimText :=
-                      StrSubstNo(
-                        '%1; %2 - %3', DimText, DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code");
-                if StrLen(DimText) > MaxStrLen(OldDimText) then begin
-                    DimText := OldDimText;
-                    exit;
-                end;
+                    if StrLen(StrSubstNo('%1; %2 - %3', DimText, DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code")) > MaxStrLen(DimText) then
+                        exit
+                    else
+                        OldDimText :=
+                            StrSubstNo(
+                                '%1; %2 - %3', DimText, DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code");
+                DimText := CopyStr(OldDimText, 1, MaxStrLen(DimText));
+
             until DimSetEntry.Next() = 0;
     end;
 

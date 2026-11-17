@@ -2,8 +2,10 @@ namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Deferral;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -28,6 +30,7 @@ codeunit 139912 "Customer Deferrals Test"
         CustomerContractDeferral: Record "Cust. Sub. Contract Deferral";
         SalesCrMemoDeferral: Record "Cust. Sub. Contract Deferral";
         SalesInvoiceDeferral: Record "Cust. Sub. Contract Deferral";
+        GLAccount: Record "G/L Account";
         GLSetup: Record "General Ledger Setup";
         GeneralPostingSetup: Record "General Posting Setup";
         Item: Record Item;
@@ -77,6 +80,9 @@ codeunit 139912 "Customer Deferrals Test"
         NumberOfDaysRemainingMismatchErr: Label 'Number of Days should equal remaining days in month.';
         NumberOfDaysScheduleMismatchErr: Label 'Number of Days should equal actual schedule days, not full month.';
         NumberOfDaysDateRangeMismatchErr: Label 'Number of Days should equal actual date range days.';
+        DeferralsMissingLineGLAccountErr: Label 'Every deferral entry must carry the G/L account from the contract line.';
+        ReleasedAmountNotPostedToLineGLAccountErr: Label 'Releasing the contract deferrals must post to the G/L account selected on the contract line.';
+        RevenueNotPostedToLineGLAccountErr: Label 'The revenue must be posted directly to the G/L account selected on the contract line when no contract deferrals are created.';
     #region Tests
 
     [Test]
@@ -863,8 +869,7 @@ codeunit 139912 "Customer Deferrals Test"
         // [GIVEN] All deferral amounts are set to 0 (simulating zero-amount service commitments)
         CustomerContractDeferral.Reset();
         CustomerContractDeferral.SetRange("Document No.", PostedDocumentNo);
-        CustomerContractDeferral.ModifyAll(Amount, 0, false);
-        CustomerContractDeferral.ModifyAll("Discount Amount", 0, false);
+        CustomerContractDeferral.ModifyAll(Amount, 0, "Discount Amount", 0, false);
         CustomerContractDeferral.FindFirst();
 
         // [WHEN] Release deferrals is run
@@ -1145,6 +1150,168 @@ codeunit 139912 "Customer Deferrals Test"
         Assert.AreEqual(ExpectedLastMonthDays, CustomerContractDeferral."Number of Days", LastPartialMonthDaysMismatchErr);
     end;
 
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure GLAccountContractLinePostsToLineGLAccountWithoutDeferrals()
+    var
+        GLEntry: Record "G/L Entry";
+        ExpectedAmount: Decimal;
+    begin
+        // [SCENARIO] When a contract line of type G/L Account is invoiced without contract deferrals,
+        // the revenue is posted directly to the G/L account selected on the contract line instead of
+        // the Customer Subscription Contract Account from the General Posting Setup.
+        Initialize();
+
+        // [GIVEN] A customer contract with a G/L Account contract line and contract deferrals disabled
+        CreateCustomerContractWithGLAccountLine('<2M-CM>');
+        ContractTestLibrary.DisableDeferralsForCustomerContract(CustomerContract, false);
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+
+        // [GIVEN] The Customer Subscription Contract Account is not set in the General Posting Setup
+        GeneralPostingSetup.Get(Customer."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group");
+        GeneralPostingSetup."Cust. Sub. Contract Account" := '';
+        GeneralPostingSetup.Modify(false);
+
+        // [WHEN] The contract invoice is posted
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::"G/L Account");
+        SalesLine.CalcSums(Amount);
+        ExpectedAmount := SalesLine.Amount;
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] No deferrals are created and the revenue is posted to the G/L account from the contract line
+        CustomerContractDeferral.SetRange("Document No.", PostedDocumentNo);
+        Assert.RecordIsEmpty(CustomerContractDeferral);
+        GLEntry.SetRange("Document No.", PostedDocumentNo);
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(-ExpectedAmount, GLEntry.Amount, RevenueNotPostedToLineGLAccountErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
+    procedure GLAccountContractLineReleasesDeferralsToLineGLAccount()
+    var
+        GLEntry: Record "G/L Entry";
+        ContractDeferralsRelease: Report "Contract Deferrals Release";
+        TotalDeferralCount: Integer;
+    begin
+        // [SCENARIO] When a contract line of type G/L Account is invoiced with contract deferrals,
+        // the deferral entries carry the G/L account from the contract line and releasing them posts
+        // to that account instead of the Customer Subscription Contract Account from the General Posting Setup.
+        Initialize();
+        SetPostingAllowTo(0D);
+
+        // [GIVEN] A customer contract with a G/L Account contract line and contract deferrals enabled
+        CreateCustomerContractWithGLAccountLine('<2M-CM>');
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+
+        // [GIVEN] The Customer Subscription Contract Account is not set in the General Posting Setup
+        GeneralPostingSetup.Get(Customer."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group");
+        GeneralPostingSetup."Cust. Sub. Contract Account" := '';
+        GeneralPostingSetup.Modify(false);
+
+        // [WHEN] The contract invoice is posted
+        PostSalesDocumentAndFetchDeferrals();
+
+        // [THEN] Every deferral entry carries the G/L account from the contract line
+        TotalDeferralCount := CustomerContractDeferral.Count();
+        CustomerContractDeferral.SetRange("G/L Account No.", GLAccount."No.");
+        Assert.RecordCount(CustomerContractDeferral, TotalDeferralCount);
+        Assert.AreNotEqual(0, TotalDeferralCount, DeferralsMissingLineGLAccountErr);
+        CustomerContractDeferral.FindFirst();
+
+        // [THEN] The invoice posting does not post to the G/L account from the contract line
+        GLEntry.SetRange("Document No.", PostedDocumentNo);
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+        Assert.RecordIsEmpty(GLEntry);
+
+        // [WHEN] The contract deferrals are released for the first deferral posting date
+        PostingDate := CustomerContractDeferral."Posting Date";
+        Commit(); // close transaction before report is called
+        ContractDeferralsRelease.Run(); // ContractDeferralsReleaseRequestPageHandler
+
+        // [THEN] The released amount is posted to the G/L account from the contract line
+        CustomerContractDeferral.SetRange("G/L Account No.");
+        CustomerContractDeferral.SetRange(Released, true);
+        CustomerContractDeferral.CalcSums(Amount);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(CustomerContractDeferral.Amount, GLEntry.Amount, ReleasedAmountNotPostedToLineGLAccountErr);
+        Assert.AreNotEqual(0, GLEntry.Amount, ReleasedAmountNotPostedToLineGLAccountErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler,ExchangeRateSelectionModalPageHandler')]
+    procedure TestReleasingCustomerContractDeferralsKeepsSourceCurrency()
+    var
+        Currency: Record Currency;
+        GLEntry: Record "G/L Entry";
+        PostedSalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SourceCodeSetup: Record "Source Code Setup";
+        ContractDeferralsRelease: Report "Contract Deferrals Release";
+        ExpectedSourceCurrencyAmount: Decimal;
+        TotalSourceCurrencyAmount: Decimal;
+    begin
+        // [SCENARIO 653146] Customer contract deferral release entries retain the source currency of the originating invoice.
+        Initialize();
+        SetPostingAllowTo(0D);
+
+        // [GIVEN] A foreign-currency customer contract invoice with contract deferrals.
+        CreateCustomerContractWithDeferrals('<2M-CM>', false);
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+        PostSalesDocumentAndFetchDeferrals();
+        SalesInvoiceHeader.Get(PostedDocumentNo);
+        Currency.Get(SalesInvoiceHeader."Currency Code");
+
+        // [WHEN] The first customer contract deferral is released.
+        PostingDate := CustomerContractDeferral."Posting Date";
+        Commit();
+        ContractDeferralsRelease.Run(); // ContractDeferralsReleaseRequestPageHandler
+
+        // [THEN] Both release entries contain balanced source amounts based on the invoice currency factor.
+        GLEntry.SetRange("Document No.", PostedDocumentNo);
+        GLEntry.SetRange("Posting Date", PostingDate);
+        GLEntry.SetRange("Subscription Contract No.", CustomerContractDeferral."Subscription Contract No.");
+        Assert.RecordCount(GLEntry, 2);
+        GLEntry.FindSet();
+        repeat
+            GLEntry.TestField("Source Currency Code", SalesInvoiceHeader."Currency Code");
+            ExpectedSourceCurrencyAmount :=
+                Round(
+                    CurrExchRate.ExchangeAmtLCYToFCY(
+                        SalesInvoiceHeader."Posting Date", SalesInvoiceHeader."Currency Code", GLEntry.Amount, SalesInvoiceHeader."Currency Factor"),
+                    Currency."Amount Rounding Precision");
+            Assert.AreEqual(ExpectedSourceCurrencyAmount, GLEntry."Source Currency Amount", 'The source currency amount must use the originating invoice currency factor.');
+            TotalSourceCurrencyAmount += GLEntry."Source Currency Amount";
+        until GLEntry.Next() = 0;
+        Assert.AreEqual(0, TotalSourceCurrencyAmount, 'The released source currency amounts must balance.');
+
+        // [WHEN] A foreign-currency credit memo is posted for the invoice.
+        PostSalesCreditMemo();
+        PostedSalesCrMemoHeader.Get(CorrectedDocumentNo);
+
+        // [THEN] Its deferral release entries contain balanced source amounts based on the credit memo currency factor.
+        Clear(TotalSourceCurrencyAmount);
+        SourceCodeSetup.Get();
+        GLEntry.Reset();
+        GLEntry.SetRange("Document No.", CorrectedDocumentNo);
+        GLEntry.SetRange("Source Code", SourceCodeSetup."Sub. Contr. Deferrals Release");
+        GLEntry.SetRange("Subscription Contract No.", CustomerContractDeferral."Subscription Contract No.");
+        Assert.RecordIsNotEmpty(GLEntry);
+        GLEntry.FindSet();
+        repeat
+            GLEntry.TestField("Source Currency Code", PostedSalesCrMemoHeader."Currency Code");
+            ExpectedSourceCurrencyAmount :=
+                Round(
+                    CurrExchRate.ExchangeAmtLCYToFCY(
+                        PostedSalesCrMemoHeader."Posting Date", PostedSalesCrMemoHeader."Currency Code", GLEntry.Amount, PostedSalesCrMemoHeader."Currency Factor"),
+                    Currency."Amount Rounding Precision");
+            Assert.AreEqual(ExpectedSourceCurrencyAmount, GLEntry."Source Currency Amount", 'The source currency amount must use the originating credit memo currency factor.');
+            TotalSourceCurrencyAmount += GLEntry."Source Currency Amount";
+        until GLEntry.Next() = 0;
+        Assert.AreEqual(0, TotalSourceCurrencyAmount, 'The released source currency amounts must balance.');
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -1155,7 +1322,6 @@ codeunit 139912 "Customer Deferrals Test"
         ClearAll();
         GLSetup.Get();
         ContractTestLibrary.InitContractsApp();
-
         if IsInitialized then
             exit;
 
@@ -1230,6 +1396,28 @@ codeunit 139912 "Customer Deferrals Test"
         ServiceObject.InsertServiceCommitmentsFromServCommPackage(CalcDate(BillingDateFormula, WorkDate()), ServiceCommitmentPackage);
 
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
+    end;
+
+    local procedure CreateCustomerContractWithGLAccountLine(BillingDateFormula: Text)
+    var
+        TempServiceCommitment: Record "Subscription Line" temporary;
+    begin
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
+        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        ContractTestLibrary.CreateServiceObjectForGLAccountWithServiceCommitments(ServiceObject, GLAccount, 1, 0, '<1M>', '<1M>', CalcDate(BillingDateFormula, WorkDate()), 1200);
+        ServiceObject.SetHideValidationDialog(true);
+        ServiceObject.Validate("End-User Customer No.", Customer."No.");
+        ServiceObject.Modify(false);
+
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+        ContractTestLibrary.FillTempServiceCommitment(TempServiceCommitment, ServiceObject, CustomerContract);
+        CustomerContract.CreateCustomerContractLinesFromServiceCommitments(TempServiceCommitment);
+        ContractTestLibrary.SetGeneralPostingSetup(Customer."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group", false, Enum::"Service Partner"::Customer);
+        GeneralPostingSetup.Get(Customer."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group");
+        if GeneralPostingSetup."Sales Line Disc. Account" = '' then begin
+            GeneralPostingSetup."Sales Line Disc. Account" := LibraryERM.CreateGLAccountNo();
+            GeneralPostingSetup.Modify(false);
+        end;
     end;
 
     local procedure CreateSalesDocumentsFromCustomerContractWODeferrals()
@@ -1353,8 +1541,13 @@ codeunit 139912 "Customer Deferrals Test"
     end;
 
     local procedure PostSalesCreditMemo()
+    var
+        ReasonCode: Record "Reason Code";
     begin
         CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, SalesCrMemoHeader);
+        LibraryERM.CreateReasonCode(ReasonCode);
+        SalesCrMemoHeader.Validate("Reason Code", ReasonCode.Code);
+        SalesCrMemoHeader.Modify(true);
         CorrectedDocumentNo := LibrarySales.PostSalesDocument(SalesCrMemoHeader, true, true);
     end;
 

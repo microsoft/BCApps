@@ -495,8 +495,7 @@ codeunit 135097 "Incoming Document Status Tests"
         ApprovalEntry: Record "Approval Entry";
     begin
         LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, IncomingDocument.RecordId);
-        ApprovalEntry.ModifyAll("Sender ID", UserSetup."Approver ID", true);
-        ApprovalEntry.ModifyAll("Approver ID", UserSetup."User ID", true);
+        ApprovalEntry.ModifyAll("Sender ID", UserSetup."Approver ID", "Approver ID", UserSetup."User ID", true);
     end;
 
     [MessageHandler]

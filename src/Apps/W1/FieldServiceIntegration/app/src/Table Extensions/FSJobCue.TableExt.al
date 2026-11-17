@@ -12,6 +12,7 @@ tableextension 6613 "FS Job Cue" extends "Job Cue"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve existing field IDs for compatibility.
         field(12000; "Coupled Data Sync Errors"; Integer)
         {
             CalcFormula = count("CRM Integration Record" where(Skipped = const(true)));
@@ -24,5 +25,6 @@ tableextension 6613 "FS Job Cue" extends "Job Cue"
             Caption = 'Field Service Integration Errors';
             FieldClass = FlowField;
         }
+#pragma warning restore AS0099
     }
 }

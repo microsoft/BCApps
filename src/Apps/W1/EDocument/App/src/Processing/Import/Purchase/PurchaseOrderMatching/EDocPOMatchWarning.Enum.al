@@ -25,4 +25,7 @@ enum 6111 "E-Doc PO Match Warning"
     value(5; OverReceipt)
     {
     }
+    value(6; AmountMismatch)
+    {
+    }
 }

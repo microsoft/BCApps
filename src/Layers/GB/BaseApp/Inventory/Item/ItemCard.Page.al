@@ -398,6 +398,13 @@ page 30 "Item Card"
                         Enabled = IsInventoriable;
                         Importance = Additional;
                     }
+                    field("Overhead Rate"; Rec."Overhead Rate")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Enabled = IsInventoriable;
+                        Importance = Additional;
+                        ToolTip = 'Specifies the item''s indirect cost as an absolute amount.';
+                    }
                     field("Last Direct Cost"; Rec."Last Direct Cost")
                     {
                         ApplicationArea = Basic, Suite;
@@ -673,16 +680,6 @@ page 30 "Item Card"
                     ApplicationArea = Advanced;
                     ToolTip = 'Specifies the VAT business posting group for customers for whom you want the sales price including VAT to apply.';
                 }
-#if not CLEAN27
-                field("Reverse Charge Applies"; Rec."Reverse Charge Applies")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-                    ObsoleteTag = '27.0';
-                    ToolTip = 'Specifies if this item is subject to reverse charge.';
-                }
-#endif
             }
             group(Replenishment)
             {

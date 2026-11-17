@@ -456,7 +456,9 @@ codeunit 148182 "Library - Sustainability"
         SustainabilityJnlTemplate: Record "Sustainability Jnl. Template";
         SustainabilityJnlBatch: Record "Sustainability Jnl. Batch";
         SustainabilityJnlLine: Record "Sustainability Jnl. Line";
+        SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
         SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
         SustainabilityValueEntry: Record "Sustainability Value Entry";
         SustainabilityAccount: Record "Sustainability Account";
         SustainabilityAccountCategory: Record "Sustain. Account Category";
@@ -480,7 +482,9 @@ codeunit 148182 "Library - Sustainability"
         SustainabilityJnlTemplate.DeleteAll();
         SustainabilityJnlBatch.DeleteAll();
         SustainabilityJnlLine.DeleteAll();
+        SustJnlLineGLEntry.DeleteAll();
         SustainabilityLedgerEntry.DeleteAll();
+        SustGLSustLedgerRel.DeleteAll();
         SustainabilityValueEntry.DeleteAll();
         SustainabilityAccount.DeleteAll();
         SustainabilityAccountCategory.DeleteAll();

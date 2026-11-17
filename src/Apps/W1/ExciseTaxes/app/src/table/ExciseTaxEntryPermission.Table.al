@@ -79,6 +79,9 @@ table 7414 "Excise Tax Entry Permission"
         CreatePermissionRecord(TaxTypeCode, "Excise Entry Type"::"Negative Adjmt.");
         CreatePermissionRecord(TaxTypeCode, "Excise Entry Type"::Output);
         CreatePermissionRecord(TaxTypeCode, "Excise Entry Type"::"Assembly Output");
+        CreatePermissionRecord(TaxTypeCode, "Excise Entry Type"::"Transfer Shipment");
+        CreatePermissionRecord(TaxTypeCode, "Excise Entry Type"::"Transfer Receipt");
+        CreatePermissionRecord(TaxTypeCode, "Excise Entry Type"::Consumption);
     end;
 
     local procedure CreatePermissionRecord(TaxTypeCode: Code[20]; EntryType: Enum "Excise Entry Type")

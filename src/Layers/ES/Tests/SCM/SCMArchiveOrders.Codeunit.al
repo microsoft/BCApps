@@ -799,6 +799,46 @@ codeunit 137207 "SCM Archive Orders"
         RunArchivedPurchOrderReport(PurchaseHeader3);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesReturnOrderArchiveShowsStoredReturnQuantities()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ArchiveManagement: Codeunit ArchiveManagement;
+    begin
+        // [FEATURE] [Sales] [Return Order] [UI]
+        // [SCENARIO 650778] Archived return order lines display the selected snapshot's return and invoice quantities.
+        Initialize();
+
+        // [GIVEN] A return order line for two items archived before receipt.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Return Order", '');
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, '', 2);
+        SalesLine.Validate("Return Qty. to Receive", 2);
+        SalesLine.Modify(true);
+        ArchiveManagement.ArchSalesDocumentNoConfirm(SalesHeader);
+
+        // [WHEN] The first archived version is opened.
+        // [THEN] Return quantities are 2/0 and invoice quantities are 2/0.
+        VerifyArchivedSalesReturnQuantities(SalesHeader, SalesLine."Line No.", 1, 2, 0);
+
+        // [GIVEN] Model the received quantities without posting; this test covers stored snapshots and their page bindings.
+        SalesLine."Return Qty. to Receive" := 0;
+        SalesLine."Return Qty. to Receive (Base)" := 0;
+        SalesLine."Return Qty. Received" := 2;
+        SalesLine."Return Qty. Received (Base)" := 2;
+        SalesLine.Modify();
+
+        // [WHEN] A second version is archived and opened.
+        ArchiveManagement.ArchSalesDocumentNoConfirm(SalesHeader);
+
+        // [THEN] Return quantities are 0/2 while invoice quantities remain 2/0.
+        VerifyArchivedSalesReturnQuantities(SalesHeader, SalesLine."Line No.", 2, 0, 2);
+
+        // [THEN] Reopening the first version still shows the original stored quantities, not the current line's values.
+        VerifyArchivedSalesReturnQuantities(SalesHeader, SalesLine."Line No.", 1, 2, 0);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -821,6 +861,29 @@ codeunit 137207 "SCM Archive Orders"
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Archive Orders");
+    end;
+
+    local procedure VerifyArchivedSalesReturnQuantities(SalesHeader: Record "Sales Header"; LineNo: Integer; VersionNo: Integer; ReturnQtyToReceive: Decimal; ReturnQtyReceived: Decimal)
+    var
+        SalesLineArchive: Record "Sales Line Archive";
+        SalesReturnOrderArcSubform: TestPage "Sales Return Order Arc Subform";
+    begin
+        SalesLineArchive.Get(
+            SalesHeader."Document Type", SalesHeader."No.", SalesHeader."Doc. No. Occurrence", VersionNo, LineNo);
+        SalesLineArchive.TestField("Return Qty. to Receive", ReturnQtyToReceive);
+        SalesLineArchive.TestField("Return Qty. Received", ReturnQtyReceived);
+        SalesLineArchive.TestField("Qty. to Invoice", 2);
+        SalesLineArchive.TestField("Quantity Invoiced", 0);
+
+        SalesReturnOrderArcSubform.OpenView();
+        SalesReturnOrderArcSubform.GoToRecord(SalesLineArchive);
+        Assert.IsTrue(SalesReturnOrderArcSubform."Return Qty. to Receive".Visible(), 'Return Qty. to Receive must be visible.');
+        Assert.IsTrue(SalesReturnOrderArcSubform."Return Qty. Received".Visible(), 'Return Qty. Received must be visible.');
+        SalesReturnOrderArcSubform."Return Qty. to Receive".AssertEquals(SalesLineArchive."Return Qty. to Receive");
+        SalesReturnOrderArcSubform."Return Qty. Received".AssertEquals(SalesLineArchive."Return Qty. Received");
+        SalesReturnOrderArcSubform."Qty. to Invoice".AssertEquals(SalesLineArchive."Qty. to Invoice");
+        SalesReturnOrderArcSubform."Quantity Invoiced".AssertEquals(SalesLineArchive."Quantity Invoiced");
+        SalesReturnOrderArcSubform.Close();
     end;
 
     local procedure CreateBlanketPurchOrderAndReceiptForIt(var PurchaseHeader: Record "Purchase Header"; var PurchaseHeaderOrder: Record "Purchase Header")

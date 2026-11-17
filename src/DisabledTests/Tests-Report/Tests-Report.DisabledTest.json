@@ -1635,36 +1635,5 @@
     "codeunitId": 135549,
     "codeunitName": "Report Inbox API E2E",
     "method": "TestPostReportInboxCompaniesNotAllowed"
-  },
-  {
-    "codeunitId": 134619,
-    "codeunitName": "Composite Layout Tests",
-    "method": "LayoutLevelAssignmentResolvesAsThisLayout",
-    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
-  }
-  ,
-  {
-    "codeunitId": 134619,
-    "codeunitName": "Composite Layout Tests",
-    "method": "HeaderAndThemeResolveIndependently",
-    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
-  },
-  {
-    "codeunitId": 134619,
-    "codeunitName": "Composite Layout Tests",
-    "method": "MoreSpecificLevelWinsOverGlobal",
-    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
-  },
-  {
-    "codeunitId": 134619,
-    "codeunitName": "Composite Layout Tests",
-    "method": "PageShowsDecodedPartNamesNotComposite",
-    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
-  },
-  {
-    "codeunitId": 134619,
-    "codeunitName": "Composite Layout Tests",
-    "method": "ShowInfoReportsPartDetailsAndUsage",
-    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
   }
 ]

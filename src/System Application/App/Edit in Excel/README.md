@@ -4,6 +4,8 @@ This module can be used to:
 - Enable Edit in Excel functionality on new pages
 - Modify the behaviour of the Edit in Excel functionality
 
+Edit in Excel is not supported for pages whose source table is the User table, because publishing changes to users through OData can break user authentication.
+
 ### How to download an Edit in Excel file
 ```
 procedure Example()

@@ -23,6 +23,9 @@ codeunit 134619 "Composite Layout Tests"
         CompanySourceTok: Label 'Company', Locked = true;
         GlobalDefaultSourceTok: Label 'Global default', Locked = true;
         DocumentReportExperienceTok: Label 'DocumentReportExperience', Locked = true;
+        ExtensionLayoutTok: Label 'MYLAYOUT', Locked = true;
+        ActingCompanyTok: Label 'Layout Status Test Co', Locked = true;
+        MissingCompanyTok: Label 'Removed Test Company', Locked = true;
         TestReportID: Integer;
         BodyReportID: Integer;
         PartsReportID: Integer;
@@ -100,13 +103,17 @@ codeunit 134619 "Composite Layout Tests"
     procedure LayoutLevelAssignmentResolvesAsThisLayout()
     var
         HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource : Text;
+        BodyKey: Text;
     begin
         // [SCENARIO] Parts assigned at the report+layout level resolve with source 'This layout'.
         Initialize();
-        InsertCfg(TestReportID, 'Body', '', CreatePart('MyHF', Enum::"Report Layout Subtype"::HeaderFooter), CreatePart('MyTheme', Enum::"Report Layout Subtype"::Theme));
+
+        // [GIVEN] Both parts assigned to one body layout of a report, keyed by the composite reference to that layout.
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'ResolveBody', Enum::"Report Layout Subtype"::Body);
+        InsertCfg(BodyReportID, BodyKey, '', CreatePart('MyHF', Enum::"Report Layout Subtype"::HeaderFooter), CreatePart('MyTheme', Enum::"Report Layout Subtype"::Theme));
 
         // [WHEN] Resolving the parts for that layout.
-        LookupHelper.GetResolvedPartDisplays(TestReportID, 'Body', HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
+        LookupHelper.GetResolvedPartDisplays(BodyReportID, BodyKey, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
 
         // [THEN] The decoded part names and the 'This layout' source are returned.
         Assert.AreEqual('MyHF', HeaderDisplay, 'Header part name.');
@@ -180,15 +187,18 @@ codeunit 134619 "Composite Layout Tests"
     procedure HeaderAndThemeResolveIndependently()
     var
         HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource : Text;
+        BodyKey: Text;
     begin
         // [SCENARIO] The header and theme are resolved independently, so each can come from a different level.
         Initialize();
-        // Header only at the layout level; theme only at the global level.
-        InsertCfg(TestReportID, 'Body', '', CreatePart('LayoutHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
+
+        // [GIVEN] The header assigned only to one body layout of a report; the theme assigned only globally.
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'IndependentBody', Enum::"Report Layout Subtype"::Body);
+        InsertCfg(BodyReportID, BodyKey, '', CreatePart('LayoutHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
         InsertCfg(0, '', '', '', CreatePart('GlobalTheme', Enum::"Report Layout Subtype"::Theme));
 
         // [WHEN] Resolving the parts.
-        LookupHelper.GetResolvedPartDisplays(TestReportID, 'Body', HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
+        LookupHelper.GetResolvedPartDisplays(BodyReportID, BodyKey, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
 
         // [THEN] The header resolves from the layout level and the theme from the global level.
         Assert.AreEqual('LayoutHF', HeaderDisplay, 'Header part name.');
@@ -202,14 +212,18 @@ codeunit 134619 "Composite Layout Tests"
     procedure MoreSpecificLevelWinsOverGlobal()
     var
         HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource : Text;
+        BodyKey: Text;
     begin
         // [SCENARIO] When a part is configured at both the layout level and globally, the layout level wins.
         Initialize();
+
+        // [GIVEN] One header/footer part assigned globally and another to one body layout of a report.
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'SpecificBody', Enum::"Report Layout Subtype"::Body);
         InsertCfg(0, '', '', CreatePart('GlobalHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
-        InsertCfg(TestReportID, 'Body', '', CreatePart('LayoutHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
+        InsertCfg(BodyReportID, BodyKey, '', CreatePart('LayoutHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
 
         // [WHEN] Resolving the parts.
-        LookupHelper.GetResolvedPartDisplays(TestReportID, 'Body', HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
+        LookupHelper.GetResolvedPartDisplays(BodyReportID, BodyKey, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
 
         // [THEN] The more specific (layout) configuration is used.
         Assert.AreEqual('LayoutHF', HeaderDisplay, 'The layout-level part should win over the global default.');
@@ -222,19 +236,21 @@ codeunit 134619 "Composite Layout Tests"
     var
         TenantReportLayoutCfgPage: TestPage "Tenant Report Layout Cfg";
         HeaderComposite: Text;
+        BodyKey: Text;
     begin
         // [SCENARIO 645022] The Tenant Report Layout Configuration page displays the plain header/footer and theme part
         // names, not the raw <guid>::<name> composite reference stored in the Header/Theme Part Name columns.
         Initialize();
         EnableDocumentReportExperience();
 
-        // [GIVEN] A configuration row whose parts are stored as composite references (<guid>::<name>).
+        // [GIVEN] A layout-scoped configuration row whose parts are stored as composite references (<guid>::<name>).
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'PageBody', Enum::"Report Layout Subtype"::Body);
         HeaderComposite := CreatePart('PageHF', Enum::"Report Layout Subtype"::HeaderFooter);
-        InsertCfg(TestReportID, 'Body', '', HeaderComposite, CreatePart('PageTheme', Enum::"Report Layout Subtype"::Theme));
+        InsertCfg(BodyReportID, BodyKey, '', HeaderComposite, CreatePart('PageTheme', Enum::"Report Layout Subtype"::Theme));
 
         // [WHEN] Opening the page on that row.
         TenantReportLayoutCfgPage.OpenView();
-        TenantReportLayoutCfgPage.Filter.SetFilter("Report ID", Format(TestReportID));
+        TenantReportLayoutCfgPage.Filter.SetFilter("Report ID", Format(BodyReportID));
         Assert.IsTrue(TenantReportLayoutCfgPage.First(), 'The configured row should be shown on the page.');
 
         // [THEN] The columns show the decoded part names, not the stored composite value.
@@ -284,14 +300,16 @@ codeunit 134619 "Composite Layout Tests"
         ReportThemePage: TestPage "Report Theme and Header/Footer";
         Composite: Text;
         ActualMessage: Text;
+        BodyKey: Text;
     begin
         // [SCENARIO 645022] Show info reports the part details and how many report configurations use it.
         Initialize();
         EnableDocumentReportExperience();
 
-        // [GIVEN] A tenant theme part assigned in exactly one report configuration.
+        // [GIVEN] A tenant theme part assigned in exactly one report configuration, scoped to one body layout.
         Composite := CreatePart('ThemeInfo', Enum::"Report Layout Subtype"::Theme);
-        InsertCfg(TestReportID, 'Body', '', '', Composite);
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'InfoBody', Enum::"Report Layout Subtype"::Body);
+        InsertCfg(BodyReportID, BodyKey, '', '', Composite);
 
         // [WHEN] Invoking Show info on that part.
         ReportThemePage.OpenView();
@@ -914,6 +932,220 @@ codeunit 134619 "Composite Layout Tests"
         RestoreDocumentReportExperience();
     end;
 
+    [Test]
+    [HandlerFunctions('PartInfoMessageHandler')]
+    [Scope('OnPrem')]
+    procedure ShowLayoutPartsReportsAReportDefaultAssignment()
+    var
+        ActualMessage: Text;
+    begin
+        // [SCENARIO 648842] Show layout parts on the Report Layout Selection page reports a report-level assignment
+        // with the 'Report default' source, resolved through the layout the report actually uses.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        // [GIVEN] A report-level assignment (this report, all layouts) and no layout-scoped assignment.
+        InsertCfg(BodyReportID, '', '', CreatePart('SelectionRepHF', Enum::"Report Layout Subtype"::HeaderFooter), CreatePart('SelectionRepTheme', Enum::"Report Layout Subtype"::Theme));
+
+        // [WHEN] Invoking Show layout parts for that report.
+        InvokeShowLayoutParts(BodyReportID);
+
+        // [THEN] Both parts are reported as coming from the report default.
+        ActualMessage := LibraryVariableStorage.DequeueText();
+        Assert.ExpectedMessage('SelectionRepHF (from ' + ReportDefaultSourceTok + ')', ActualMessage);
+        Assert.ExpectedMessage('SelectionRepTheme (from ' + ReportDefaultSourceTok + ')', ActualMessage);
+        LibraryVariableStorage.AssertEmpty();
+
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [HandlerFunctions('PartInfoMessageHandler')]
+    [Scope('OnPrem')]
+    procedure ShowLayoutPartsPrefersTheAssignmentOnTheDefaultLayout()
+    var
+        ActualMessage: Text;
+        BodyKey: Text;
+    begin
+        // [SCENARIO 648842] When the default layout of the report carries its own header/footer assignment, Show
+        // layout parts reports that assignment - not the report-level one it would otherwise fall back to. Before
+        // the fix the action always resolved with an empty layout name, so the layout-scoped row was never seen.
+        Initialize();
+        EnableDocumentReportExperience();
+
+        // [GIVEN] A layout that is the default for the report, with a header assigned on the layout itself, and a
+        // different header assigned at the report level.
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'SelectionBody', Enum::"Report Layout Subtype"::Body);
+        SetDefaultLayout(BodyReportID, 'SelectionBody');
+        InsertCfg(BodyReportID, '', '', CreatePart('LosingRepHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
+        InsertCfg(BodyReportID, BodyKey, '', CreatePart('WinningLayoutHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
+
+        // [WHEN] Invoking Show layout parts for that report.
+        InvokeShowLayoutParts(BodyReportID);
+
+        // [THEN] The assignment on the default layout wins and is reported as 'This layout'.
+        ActualMessage := LibraryVariableStorage.DequeueText();
+        Assert.ExpectedMessage('WinningLayoutHF (from ' + ThisLayoutSourceTok + ')', ActualMessage);
+        Assert.AreEqual(0, StrPos(ActualMessage, 'LosingRepHF'), 'The report-level assignment must not win over the one on the default layout.');
+        LibraryVariableStorage.AssertEmpty();
+
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure StatusOfTheDefaultLayoutCannotBeChanged()
+    begin
+        // [SCENARIO 649379] A layout that is the default for the report in this company cannot be moved out of
+        // Approved, because that would leave the report with an unapproved default.
+        Initialize();
+
+        // [GIVEN] An approved layout that is the default for the report in this company.
+        CreateLayoutOnReport(BodyReportID, 'CurrentDefaultBody', Enum::"Report Layout Subtype"::Body);
+        SetLayoutStatusTo(BodyReportID, 'CurrentDefaultBody', Enum::"Report Layout Status"::Approved);
+        SetDefaultLayout(BodyReportID, 'CurrentDefaultBody');
+
+        // [WHEN] Setting its status to Draft.
+        asserterror SetLayoutStatusBatchAs(ThisCompany(), BodyReportID, 'CurrentDefaultBody', Enum::"Report Layout Status"::Draft);
+
+        // [THEN] The status change is refused and the message names the layout.
+        Assert.ExpectedError('while it is the default layout');
+        Assert.ExpectedError('CurrentDefaultBody');
+
+        ClearDefaultLayoutSelections();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure StatusChangeIgnoresADefaultLeftBehindByADeletedCompany()
+    var
+        UpdateCount: Integer;
+    begin
+        // [SCENARIO 649379] A selection row can outlive the company it names. Treating one as a blocker would
+        // strand the layout, with an error telling the user to choose another default in a company they cannot open.
+        Initialize();
+
+        // [GIVEN] An approved global layout recorded as the default for a company that does not exist.
+        CreateLayoutOnReport(BodyReportID, 'StaleDefaultBody', Enum::"Report Layout Subtype"::Body);
+        SetLayoutStatusTo(BodyReportID, 'StaleDefaultBody', Enum::"Report Layout Status"::Approved);
+        SelectDefaultLayoutInCompany(BodyReportID, 'StaleDefaultBody', MissingCompanyTok);
+
+        // [WHEN] Setting its status to Draft.
+        UpdateCount := SetLayoutStatusBatchAs(ThisCompany(), BodyReportID, 'StaleDefaultBody', Enum::"Report Layout Status"::Draft);
+
+        // [THEN] The stale row is ignored and the status change goes through.
+        Assert.AreEqual(1, UpdateCount, 'A default left behind by a deleted company should not block the change.');
+
+        ClearDefaultLayoutSelections();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure StatusOfADefaultThatIsAlreadyUnapprovedCanStillChange()
+    var
+        UpdateCount: Integer;
+    begin
+        // [SCENARIO 649379] The guard protects an approved default. One that is already unapproved loses nothing
+        // by moving between the other statuses, so the approval flow must stay open to it.
+        Initialize();
+
+        // [GIVEN] A draft layout that is the default for the report.
+        CreateLayoutOnReport(BodyReportID, 'DraftDefaultBody', Enum::"Report Layout Subtype"::Body);
+        SetLayoutStatusTo(BodyReportID, 'DraftDefaultBody', Enum::"Report Layout Status"::Draft);
+        SetDefaultLayout(BodyReportID, 'DraftDefaultBody');
+
+        // [WHEN] Moving it on to Pending Approval.
+        UpdateCount := SetLayoutStatusBatchAs(ThisCompany(), BodyReportID, 'DraftDefaultBody', Enum::"Report Layout Status"::"Pending Approval");
+
+        // [THEN] The status change goes through.
+        Assert.AreEqual(1, UpdateCount, 'An already unapproved default should still be able to change status.');
+
+        ClearDefaultLayoutSelections();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure StatusOfALayoutThatIsDefaultInAnotherCompanyCannotBeChanged()
+    begin
+        // [SCENARIO 649379] The status of a global layout is written once for every company, so a default selected
+        // in another company has to be checked too - otherwise that company is left with exactly the unapproved
+        // default this guard exists to prevent.
+        Initialize();
+
+        // [GIVEN] An approved global layout that is the default in this company.
+        CreateLayoutOnReport(BodyReportID, 'OtherCompanyDefaultBody', Enum::"Report Layout Subtype"::Body);
+        SetLayoutStatusTo(BodyReportID, 'OtherCompanyDefaultBody', Enum::"Report Layout Status"::Approved);
+        SelectDefaultLayoutInCompany(BodyReportID, 'OtherCompanyDefaultBody', ThisCompany());
+
+        // [WHEN] Setting its status to Draft while the action runs as a different company.
+        // The roles are the way round they are so the test does not depend on how many companies the test database
+        // has: the action runs as a company that holds no default, which leaves this company - a real one, which is
+        // what the guard requires before it treats a company as affected - playing the other company.
+        asserterror SetLayoutStatusBatchAs(ActingCompanyTok, BodyReportID, 'OtherCompanyDefaultBody', Enum::"Report Layout Status"::Draft);
+
+        // [THEN] The status change is refused and the message names the company that would lose its default.
+        Assert.ExpectedError('the status applies to all companies');
+        Assert.ExpectedError(CompanyName());
+
+        ClearDefaultLayoutSelections();
+    end;
+
+    [Test]
+    [HandlerFunctions('FallbackNotificationHandler')]
+    [Scope('OnPrem')]
+    procedure CompanyScopedStatusChangeIgnoresADefaultInAnotherCompany()
+    var
+        UpdateCount: Integer;
+    begin
+        // [SCENARIO 649379] A layout whose status is overridden per company changes in this company only, so a
+        // default selected in another company is untouched by it and must not block the change.
+        Initialize();
+
+        // [GIVEN] An extension-installed layout whose status is overridden for the company the action runs as,
+        // and which is the default in another company.
+        SeedCompanyScopedStatusOverride(BodyReportID, ExtensionLayoutTok, ActingCompanyTok);
+        SelectDefaultLayoutInCompany(BodyReportID, ExtensionLayoutTok, ThisCompany());
+
+        // [WHEN] Setting its status to Draft.
+        UpdateCount := SetLayoutStatusBatchAs(ActingCompanyTok, BodyReportID, ExtensionLayoutTok, Enum::"Report Layout Status"::Draft);
+
+        // [THEN] The change goes through, because it only applies to this company.
+        Assert.AreEqual(1, UpdateCount, 'The company-scoped status change should be applied.');
+
+        // [THEN] This company is told that the report now falls back to a layout that is no longer approved.
+        Assert.ExpectedMessage(ExtensionLayoutTok, LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.AssertEmpty();
+
+        ClearDefaultLayoutSelections();
+    end;
+
+    [Test]
+    [HandlerFunctions('FallbackNotificationHandler')]
+    [Scope('OnPrem')]
+    procedure StatusChangeIsAllowedWhenTheOtherCompanyKeepsItsOwnStatus()
+    var
+        UpdateCount: Integer;
+    begin
+        // [SCENARIO 649379] A company that keeps its own status for the layout is not reached by a global status
+        // write, so its default must not block the change either.
+        Initialize();
+
+        // [GIVEN] An extension-installed layout that another company has as its default and overrides the status of.
+        SeedCompanyScopedStatusOverride(BodyReportID, ExtensionLayoutTok, ThisCompany());
+        SelectDefaultLayoutInCompany(BodyReportID, ExtensionLayoutTok, ThisCompany());
+
+        // [WHEN] Setting its status to Draft, acting as a company that keeps no status of its own, so the change
+        // applies to all companies.
+        UpdateCount := SetLayoutStatusBatchAs(ActingCompanyTok, BodyReportID, ExtensionLayoutTok, Enum::"Report Layout Status"::Draft);
+
+        // [THEN] The change goes through, and this company is told about the fallback.
+        Assert.AreEqual(1, UpdateCount, 'The global status change should be applied.');
+        Assert.ExpectedMessage(ExtensionLayoutTok, LibraryVariableStorage.DequeueText());
+        LibraryVariableStorage.AssertEmpty();
+
+        ClearDefaultLayoutSelections();
+    end;
+
     local procedure ReportLayoutsNewLayout()
     var
         ReportLayoutsPage: TestPage "Report Layouts";
@@ -1023,6 +1255,12 @@ codeunit 134619 "Composite Layout Tests"
         LibraryVariableStorage.Enqueue(Message);
     end;
 
+    [SendNotificationHandler]
+    procedure FallbackNotificationHandler(var FallbackNotification: Notification): Boolean
+    begin
+        LibraryVariableStorage.Enqueue(FallbackNotification.Message);
+    end;
+
     local procedure Initialize()
     var
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
@@ -1034,13 +1272,16 @@ codeunit 134619 "Composite Layout Tests"
 
         // These tests run in a non-isolated (Legacy) bucket against a shared company, so rows are not rolled back
         // between test methods. Clear every configuration row this suite can create before each test. Without this,
-        // the layout-level row left by LayoutLevelAssignmentResolvesAsThisLayout (report 50000, layout 'Body') leaks
-        // into the report/company/global-default tests and wins resolution ahead of the row they set up, and the
-        // report-0 wildcard rows leak out as global/company defaults that affect other tests sharing the company.
+        // the report-level rows the assignment tests leave on the body-layout report resolve as 'Report default' for
+        // the layout-scoped resolution tests on that same report - ApplyToAllLayoutsWidensTheRowAndKeepsItsParts
+        // widens its row to cover every layout, and ApplyToAllLayoutsIsRefusedWhenTheWiderRowAlreadyExists keeps the
+        // wider row it set up - and the report-0 wildcard rows leak out as global/company defaults that affect other
+        // tests sharing the company.
         TenantReportLayoutCfg.SetRange("Report ID", TestReportID);
         TenantReportLayoutCfg.DeleteAll(true);
         TenantReportLayoutCfg.SetRange("Report ID", BodyReportID);
         TenantReportLayoutCfg.DeleteAll(true);
+        ClearDefaultLayoutSelections();
         ClearTestReportLayouts();
         ClearWildcardCfg('');                                                                     // global default: report 0, all companies
         ClearWildcardCfg(CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutCfg."Company Name"))); // company default: report 0, this company
@@ -1113,6 +1354,114 @@ codeunit 134619 "Composite Layout Tests"
         else
             FeatureKey.Enabled := FeatureKey.Enabled::None;
         FeatureKey.Modify();
+    end;
+
+    local procedure InvokeShowLayoutParts(ReportID: Integer)
+    var
+        ReportLayoutSelectionPage: TestPage "Report Layout Selection";
+    begin
+        ReportLayoutSelectionPage.OpenEdit();
+        ReportLayoutSelectionPage.Filter.SetFilter("Report ID", Format(ReportID));
+        Assert.IsTrue(ReportLayoutSelectionPage.First(), 'The report should be listed on the Report Layout Selection page.');
+        ReportLayoutSelectionPage.ShowLayoutParts.Invoke();
+        ReportLayoutSelectionPage.Close();
+    end;
+
+    local procedure SetLayoutStatusTo(ReportID: Integer; LayoutName: Text; NewStatus: Enum "Report Layout Status")
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+    begin
+        FindLayout(ReportID, LayoutName, ReportLayoutList);
+        ReportLayoutsImpl.SetSelectedCompany(CompanyName());
+        ReportLayoutsImpl.SetLayoutStatus(ReportLayoutList, NewStatus);
+    end;
+
+    local procedure SetLayoutStatusBatchAs(ActingCompany: Text[30]; ReportID: Integer; LayoutName: Text; NewStatus: Enum "Report Layout Status"): Integer
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+    begin
+        // SetSelectedCompany is what decides the company the status change runs in, the same way the pages set it.
+        ReportLayoutList.SetRange("Report ID", ReportID);
+        ReportLayoutList.SetRange(Name, CopyStr(LayoutName, 1, 250));
+        ReportLayoutsImpl.SetSelectedCompany(ActingCompany);
+        exit(ReportLayoutsImpl.SetLayoutStatusBatch(ReportLayoutList, NewStatus));
+    end;
+
+    local procedure ThisCompany(): Text[30]
+    begin
+        exit(CopyStr(CompanyName(), 1, 30));
+    end;
+
+    local procedure SetDefaultLayout(ReportID: Integer; LayoutName: Text)
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+    begin
+        FindLayout(ReportID, LayoutName, ReportLayoutList);
+        ReportLayoutsImpl.SetSelectedCompany(CompanyName());
+        ReportLayoutsImpl.SetDefaultReportLayoutSelection(ReportLayoutList, false);
+    end;
+
+    local procedure SelectDefaultLayoutInCompany(ReportID: Integer; LayoutName: Text; CompanyToSelectIn: Text[30])
+    var
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        EmptyGuid: Guid;
+    begin
+        // Writes the same row the Report Layout Selection page writes when a default is picked, but for another
+        // company. The guard reads this table, so no second company has to be created for it to be exercised.
+        FindLayout(ReportID, LayoutName, ReportLayoutList);
+
+        TenantReportLayoutSelection."Report ID" := ReportID;
+        TenantReportLayoutSelection."Company Name" := CompanyToSelectIn;
+        TenantReportLayoutSelection."User ID" := EmptyGuid;
+        TenantReportLayoutSelection."Layout Name" := ReportLayoutList.Name;
+        TenantReportLayoutSelection."App ID" := ReportLayoutList."Application ID";
+        if not TenantReportLayoutSelection.Insert(true) then
+            TenantReportLayoutSelection.Modify(true);
+    end;
+
+    local procedure SeedCompanyScopedStatusOverride(ReportID: Integer; LayoutName: Text; OverrideCompanyName: Text[30])
+    var
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+    begin
+        // An "Override Layout Status" row is what makes the status of an extension-installed layout company-scoped;
+        // the UI no longer writes one, so the test seeds it the way an older version or a vendor install codeunit would.
+        FindLayout(ReportID, LayoutName, ReportLayoutList);
+
+        if not TenantReportLayoutOverride.Get(ReportID, ReportLayoutList.Name, ReportLayoutList."Runtime Package ID", OverrideCompanyName) then begin
+            TenantReportLayoutOverride.Init();
+            TenantReportLayoutOverride."Report ID" := ReportID;
+            TenantReportLayoutOverride.Name := ReportLayoutList.Name;
+            TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
+            TenantReportLayoutOverride."Company Name" := OverrideCompanyName;
+            TenantReportLayoutOverride.Insert(true);
+        end;
+
+        TenantReportLayoutOverride."Layout Status" := Enum::"Report Layout Status"::Approved;
+        TenantReportLayoutOverride."Override Layout Status" := true;
+        TenantReportLayoutOverride.Modify(true);
+    end;
+
+    local procedure ClearDefaultLayoutSelections()
+    var
+        ReportLayoutSelection: Record "Report Layout Selection";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+    begin
+        // Default selections and status overrides are keyed by company, so clear every company's rows for the test
+        // report - the suite runs in a non-isolated bucket and the cross-company tests write rows for other companies.
+        TenantReportLayoutSelection.SetRange("Report ID", BodyReportID);
+        TenantReportLayoutSelection.DeleteAll();
+
+        TenantReportLayoutOverride.SetRange("Report ID", BodyReportID);
+        TenantReportLayoutOverride.DeleteAll();
+
+        ReportLayoutSelection.SetRange("Report ID", BodyReportID);
+        ReportLayoutSelection.DeleteAll();
     end;
 
     local procedure CreatePart(PartName: Text; Subtype: Enum "Report Layout Subtype"): Text

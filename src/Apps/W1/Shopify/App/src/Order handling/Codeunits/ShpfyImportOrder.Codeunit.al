@@ -95,6 +95,7 @@ codeunit 30161 "Shpfy Import Order"
         UpdatingOrderHeader: Boolean;
         JOrder: JsonObject;
         DataCaptureDict: Dictionary of [BigInteger, JsonToken];
+        ExchangeLineIds: List of [BigInteger];
         Redundancy: Integer;
     begin
         if OrderId = 0 then
@@ -109,9 +110,11 @@ codeunit 30161 "Shpfy Import Order"
             exit;
 
         RetrieveAndSetOrderLines(OrderId, TempOrderLine, DataCaptureDict);
+        ExchangeLineIds := GetExchangeItemLineIds(OrderHeader."Shopify Order Id", JOrder);
+
         if OrderHeader.IsProcessed() then
             if not OrderHeader."Has Order State Error" then
-                if IsImportedOrderConflictingExistingOrder(JOrder, OrderHeader, TempOrderLine) then
+                if IsImportedOrderConflictingExistingOrder(JOrder, OrderHeader, TempOrderLine, ExchangeLineIds) then
                     SetOrderAsConflicting(OrderHeader);
 
         if not SetOrderHeaderValuesFromJson(JOrder, UpdatingOrderHeader, OrderHeader) then
@@ -120,12 +123,12 @@ codeunit 30161 "Shpfy Import Order"
         SetAndCreateRelatedRecords(JOrder, OrderHeader);
         OrderHeader.Modify();
         OrderEvents.OnAfterImportShopifyOrderHeader(OrderHeader, not UpdatingOrderHeader);
-        InsertOrderLinesAndRelatedRecords(TempOrderLine, DataCaptureDict, Redundancy);
+        InsertOrderLinesAndRelatedRecords(TempOrderLine, DataCaptureDict, Redundancy, ExchangeLineIds);
         OrderHeader."Line Items Redundancy Code" := Redundancy;
         OrderHeader.Modify();
         OrderFulfillments.GetFulfillments(Shop, OrderHeader."Shopify Order Id");
 
-        MarkExchangeItemOrderLines(OrderHeader);
+        MarkExchangeItemOrderLines(OrderHeader, ExchangeLineIds);
         ConsiderRefundsInQuantityAndAmounts(OrderHeader);
         DeleteZeroQuantityLines(OrderHeader);
 
@@ -151,7 +154,7 @@ codeunit 30161 "Shpfy Import Order"
         OrderHeader.Modify()
     end;
 
-    local procedure InsertOrderLinesAndRelatedRecords(var TempOrderLine: Record "Shpfy Order Line" temporary; var DataCaptureDict: Dictionary of [BigInteger, JsonToken]; var Redundancy: Integer)
+    local procedure InsertOrderLinesAndRelatedRecords(var TempOrderLine: Record "Shpfy Order Line" temporary; var DataCaptureDict: Dictionary of [BigInteger, JsonToken]; var Redundancy: Integer; ExchangeLineIds: List of [BigInteger])
     var
         OrderLine: Record "Shpfy Order Line";
         DataCapture: Record "Shpfy Data Capture";
@@ -165,7 +168,8 @@ codeunit 30161 "Shpfy Import Order"
         if not TempOrderLine.FindSet() then
             exit;
         repeat
-            LineIds += '|' + Format(TempOrderLine."Line Id");
+            if not ExchangeLineIds.Contains(TempOrderLine."Line Id") then
+                LineIds += '|' + Format(TempOrderLine."Line Id");
             JOrderLine := DataCaptureDict.Get(TempOrderLine."Line Id");
             if OrderLine.Get(TempOrderLine."Shopify Order Id", TempOrderLine."Line Id") then begin
                 Clear(OrderLine);
@@ -233,6 +237,8 @@ codeunit 30161 "Shpfy Import Order"
                         SetOrderAsConflicting(OrderHeader);
 
             RefundLine.CalcSums(Quantity, Amount, "Presentment Amount", "Subtotal Amount", "Presentment Subtotal Amount", "Total Tax Amount", "Presentment Total Tax Amount");
+            OrderLine."Discount Amount" -= (OrderLine."Unit Price" * RefundLine.Quantity) - RefundLine."Subtotal Amount";
+            OrderLine."Presentment Discount Amount" -= (OrderLine."Presentment Unit Price" * RefundLine.Quantity) - RefundLine."Presentment Subtotal Amount";
             OrderLine.Quantity -= RefundLine.Quantity;
             OrderLine.Modify();
             OrderHeader."Total Amount" -= RefundLine."Subtotal Amount" + RefundLine."Total Tax Amount";
@@ -246,11 +252,28 @@ codeunit 30161 "Shpfy Import Order"
         OrderHeader.Modify();
     end;
 
-    internal procedure MarkExchangeItemOrderLines(var OrderHeader: Record "Shpfy Order Header")
+    internal procedure MarkExchangeItemOrderLines(var OrderHeader: Record "Shpfy Order Header"; ExchangeLineIds: List of [BigInteger])
     var
         OrderLine: Record "Shpfy Order Line";
+    begin
+        if ExchangeLineIds.Count() = 0 then
+            exit;
+
+        OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        OrderLine.SetLoadFields("Line Id", "Is Exchange Item");
+        if OrderLine.FindSet() then
+            repeat
+                if ExchangeLineIds.Contains(OrderLine."Line Id") and (not OrderLine."Is Exchange Item") then begin
+                    OrderLine."Is Exchange Item" := true;
+                    OrderLine.Modify();
+                end;
+            until OrderLine.Next() = 0;
+    end;
+
+    local procedure GetExchangeItemLineIds(ShopifyOrderId: BigInteger; JOrder: JsonObject) ExchangeLineIds: List of [BigInteger]
+    var
         IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
-        ExchangeLineIds: List of [BigInteger];
+        ReturnStatus: Enum "Shpfy Order Return Status";
         ExchangeLineId: BigInteger;
         GraphQLType: Enum "Shpfy GraphQL Type";
         Parameters: Dictionary of [Text, Text];
@@ -267,10 +290,11 @@ codeunit 30161 "Shpfy Import Order"
             exit;
 
         // Exchange line items only exist on orders that have a return. Skip the API call for the common case of no return.
-        if OrderHeader."Return Status" in [OrderHeader."Return Status"::" ", OrderHeader."Return Status"::"No Return"] then
+        ReturnStatus := ConvertToOrderReturnStatus(JsonHelper.GetValueAsText(JOrder, 'returnStatus'));
+        if ReturnStatus in [ReturnStatus::" ", ReturnStatus::"No Return"] then
             exit;
 
-        Parameters.Add('OrderId', Format(OrderHeader."Shopify Order Id"));
+        Parameters.Add('OrderId', Format(ShopifyOrderId));
         GraphQLType := "Shpfy GraphQL Type"::Orders_GetOrderExchangeLineItems;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -293,38 +317,33 @@ codeunit 30161 "Shpfy Import Order"
                 end;
             end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.order.returns.pageInfo.hasNextPage');
-
-        if ExchangeLineIds.Count() = 0 then
-            exit;
-
-        OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
-        OrderLine.SetLoadFields("Line Id", "Is Exchange Item");
-        if OrderLine.FindSet() then
-            repeat
-                if ExchangeLineIds.Contains(OrderLine."Line Id") and (not OrderLine."Is Exchange Item") then begin
-                    OrderLine."Is Exchange Item" := true;
-                    OrderLine.Modify();
-                end;
-            until OrderLine.Next() = 0;
     end;
 
-    local procedure IsImportedOrderConflictingExistingOrder(JOrder: JsonObject; OrderHeader: Record "Shpfy Order Header"; var TempOrderLine: Record "Shpfy Order Line" temporary): Boolean
+    internal procedure IsImportedOrderConflictingExistingOrder(JOrder: JsonObject; OrderHeader: Record "Shpfy Order Header"; var TempOrderLine: Record "Shpfy Order Line" temporary; ExchangeLineIds: List of [BigInteger]): Boolean
     var
         Hash: Codeunit "Shpfy Hash";
         LineIds: Text;
+        CurrentItemsQuantity: Decimal;
+        ExchangeItemsQuantity: Decimal;
         Redundancy: Integer;
     begin
-        if OrderHeader."Current Total Items Quantity" <> 0 then
-            if OrderHeader."Current Total Items Quantity" < JsonHelper.GetValueAsDecimal(JOrder, 'currentSubtotalLineItemsQuantity') then
+        TempOrderLine.SetCurrentKey("Line Id");
+        TempOrderLine.SetAscending("Line Id", true);
+        if TempOrderLine.FindSet() then
+            repeat
+                if ExchangeLineIds.Contains(TempOrderLine."Line Id") then
+                    ExchangeItemsQuantity += TempOrderLine.Quantity
+                else
+                    LineIds += '|' + Format(TempOrderLine."Line Id");
+            until TempOrderLine.Next() = 0;
+
+        if OrderHeader."Current Total Items Quantity" <> 0 then begin
+            CurrentItemsQuantity := JsonHelper.GetValueAsDecimal(JOrder, 'currentSubtotalLineItemsQuantity') - ExchangeItemsQuantity;
+            if OrderHeader."Current Total Items Quantity" < CurrentItemsQuantity then
                 exit(true);
+        end;
 
         if OrderHeader."Line Items Redundancy Code" <> 0 then begin
-            TempOrderLine.SetCurrentKey("Line Id");
-            TempOrderLine.SetAscending("Line Id", true);
-            if TempOrderLine.FindSet() then
-                repeat
-                    LineIds += '|' + Format(TempOrderLine."Line Id");
-                until TempOrderLine.Next() = 0;
             Redundancy := Hash.CalcHash(LineIds);
             if Redundancy <> OrderHeader."Line Items Redundancy Code" then
                 exit(true);

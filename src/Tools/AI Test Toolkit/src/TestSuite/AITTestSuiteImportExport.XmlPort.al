@@ -78,6 +78,16 @@ xmlport 149031 "AIT Test Suite Import/Export"
                 {
                     Occurrence = Optional;
                 }
+                textattribute(FeatureNameAttr)
+                {
+                    XmlName = 'FeatureName';
+                    Occurrence = Optional;
+                }
+                textattribute(PreparationScriptAttr)
+                {
+                    XmlName = 'PreparationScript';
+                    Occurrence = Optional;
+                }
                 textattribute(ValidationAttr)
                 {
                     XmlName = 'Validation';

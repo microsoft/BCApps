@@ -331,7 +331,10 @@ page 4362 "Agent Task Log Entry Instr"
         User: Record User;
         AgentTask: Codeunit "Agent Task";
     begin
-        DetailsTxt := AgentTask.GetLogEntryDetails(Rec);
+        if Rec.ID = 0 then
+            Clear(DetailsTxt)
+        else
+            DetailsTxt := AgentTask.GetTaskLogEntryDetailsText(Rec."Task ID", Rec.ID);
         case Rec.Level of
             Rec.Level::Error:
                 TypeStyle := Format(PageStyle::Unfavorable);

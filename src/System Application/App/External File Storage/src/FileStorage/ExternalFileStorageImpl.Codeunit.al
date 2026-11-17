@@ -246,6 +246,8 @@ codeunit 9455 "External File Storage Impl."
         InvalidChars := '"''<>\|';
         foreach InvalidChar in InvalidChars do
             CheckPath(Path, InvalidChar);
+
+        CheckPathSegments(Path);
     end;
 
     local procedure CheckPath(Path: Text; InvalidChar: Char)
@@ -254,5 +256,15 @@ codeunit 9455 "External File Storage Impl."
     begin
         if Path.Contains(InvalidChar) then
             Error(InvalidPathErr, Path, InvalidChar);
+    end;
+
+    local procedure CheckPathSegments(Path: Text)
+    var
+        Segment: Text;
+        PathContainsRelativeSegmentErr: Label 'The path %1 contains the relative path segment %2, which is not allowed.', Comment = '%1 - Path, %2 - Path segment';
+    begin
+        foreach Segment in Path.Split(PathSeparator()) do
+            if Segment in ['.', '..'] then
+                Error(PathContainsRelativeSegmentErr, Path, Segment);
     end;
 }

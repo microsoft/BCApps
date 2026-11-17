@@ -79,6 +79,7 @@ codeunit 3904 "Apply Retention Policy Impl."
             TotalNumberOfRecordsDeleted := Rec."Number Of Records Deleted";
             ApplyRetentionPolicy(RetentionPolicySetup, false, false);
             Rec."Number Of Records Deleted" := TotalNumberOfRecordsDeleted;
+            Rec."End Current Run" := EndCurrentRun;
         end;
     end;
 
@@ -192,6 +193,7 @@ codeunit 3904 "Apply Retention Policy Impl."
             exit
         end;
         TotalNumberOfRecordsDeleted := TempRetentionPolicySetup."Number Of Records Deleted";
+        EndCurrentRun := TempRetentionPolicySetup."End Current Run";
     end;
 
     local procedure CanApplyRetentionPolicy(var RetentionPolicySetup: Record "Retention Policy Setup"; Manual: Boolean): Boolean

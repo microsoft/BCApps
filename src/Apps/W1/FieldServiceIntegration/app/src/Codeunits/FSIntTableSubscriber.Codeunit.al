@@ -284,12 +284,14 @@ codeunit 6610 "FS Int. Table Subscriber"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Rec. Synch. Invoke", 'OnAfterTransferRecordFields', '', true, false)]
-    local procedure OnAfterTransferRecordFields(SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef; var AdditionalFieldsWereModified: Boolean)
+    local procedure OnAfterTransferRecordFields(SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef; var AdditionalFieldsWereModified: Boolean; DestinationIsInserted: Boolean)
     var
         FSConnectionSetup: Record "FS Connection Setup";
         FSWorkOrderProduct: Record "FS Work Order Product";
         FSWorkOrderService: Record "FS Work Order Service";
         FSBookableResourceBooking: Record "FS Bookable Resource Booking";
+        CRMProduct: Record "CRM Product";
+        ExistingCRMProduct: Record "CRM Product";
         ServiceLine: Record "Service Line";
         SourceDestCode: Text;
     begin
@@ -299,6 +301,17 @@ codeunit 6610 "FS Int. Table Subscriber"
         SourceDestCode := GetSourceDestCode(SourceRecordRef, DestinationRecordRef);
 
         case SourceDestCode of
+            'Item-CRM Product':
+                begin
+                    if not DestinationIsInserted then
+                        exit;
+
+                    DestinationRecordRef.SetTable(CRMProduct);
+                    ExistingCRMProduct.SetLoadFields(ConvertToCustomerAsset);
+                    ExistingCRMProduct.Get(CRMProduct.ProductId);
+                    if ExistingCRMProduct.ConvertToCustomerAsset then
+                        AdditionalFieldsWereModified := true;
+                end;
             'FS Work Order Product-Service Line':
                 begin
                     SourceRecordRef.SetTable(FSWorkOrderProduct);
@@ -617,12 +630,16 @@ codeunit 6610 "FS Int. Table Subscriber"
     end;
 
     internal procedure UpdateQuantities(var FSWorkOrderService: Record "FS Work Order Service"; var ServiceLine: Record "Service Line"; ToFieldService: Boolean)
+    var
+        UOMMgt: Codeunit "Unit of Measure Management";
+        RoundedMaxQuantity: Decimal;
+        RoundedDurationToBill: Decimal;
     begin
         if FSWorkOrderService.LineStatus = FSWorkOrderService.LineStatus::Estimated then begin
             if ToFieldService then
                 FSWorkOrderService.EstimateDuration := ServiceLine.Quantity * 60
             else
-                ServiceLine.Validate(Quantity, FSWorkOrderService.EstimateDuration / 60);
+                ServiceLine.Validate(Quantity, UOMMgt.RoundQty(FSWorkOrderService.EstimateDuration / 60, ServiceLine."Qty. Rounding Precision"));
 
             ServiceLine.Validate("Qty. to Ship", 0);
             ServiceLine.Validate("Qty. to Invoice", 0);
@@ -631,17 +648,21 @@ codeunit 6610 "FS Int. Table Subscriber"
             if ToFieldService then
                 ServiceLine.Modify(true);
         end else begin
-            ServiceLine.Validate(Quantity, GetMaxQuantity(FSWorkOrderService.Duration, FSWorkOrderService.DurationToBill) / 60);
-            ServiceLine.Validate("Qty. to Ship", GetMaxQuantity(FSWorkOrderService.Duration, FSWorkOrderService.DurationToBill) / 60 - ServiceLine."Quantity Shipped");
-            ServiceLine.Validate("Qty. to Invoice", FSWorkOrderService.DurationToBill / 60 - ServiceLine."Quantity Invoiced");
+            RoundedMaxQuantity := UOMMgt.RoundQty(GetMaxQuantity(FSWorkOrderService.Duration, FSWorkOrderService.DurationToBill) / 60, ServiceLine."Qty. Rounding Precision");
+            RoundedDurationToBill := UOMMgt.RoundQty(FSWorkOrderService.DurationToBill / 60, ServiceLine."Qty. Rounding Precision");
+            ServiceLine.Validate(Quantity, RoundedMaxQuantity);
+            ServiceLine.Validate("Qty. to Ship", RoundedMaxQuantity - ServiceLine."Quantity Shipped");
+            ServiceLine.Validate("Qty. to Invoice", RoundedDurationToBill - ServiceLine."Quantity Invoiced");
         end;
     end;
 
     internal procedure UpdateQuantities(FSBookableResourceBooking: Record "FS Bookable Resource Booking"; var ServiceLine: Record "Service Line")
+    var
+        UOMMgt: Codeunit "Unit of Measure Management";
     begin
         if ServiceLine."Qty. to Consume" <> 0 then
             ServiceLine.Validate("Qty. to Consume", 0);
-        ServiceLine.Validate(Quantity, FSBookableResourceBooking.Duration / 60);
+        ServiceLine.Validate(Quantity, UOMMgt.RoundQty(FSBookableResourceBooking.Duration / 60, ServiceLine."Qty. Rounding Precision"));
         ServiceLine.Validate("Qty. to Consume", ServiceLine.Quantity - ServiceLine."Quantity Consumed");
     end;
 
@@ -1046,6 +1067,9 @@ codeunit 6610 "FS Int. Table Subscriber"
 
         FSWorkOrderIncident.Reset();
         FSWorkOrderIncident.SetRange(WorkOrder, FSWorkOrder.WorkOrderId);
+        CRMSalesorderdetailRecordRef.GetTable(FSWorkOrderIncident);
+        ApplyIntegrationTableFilter(CRMSalesorderdetailRecordRef, Database::"Service Item Line");
+        CRMSalesorderdetailRecordRef.SetTable(FSWorkOrderIncident);
         if FSWorkOrderIncident.FindSet() then begin
             repeat
                 if not SkipReimport(FSWorkOrderIncident.WorkOrderIncidentId, FSWorkOrderIncident.ModifiedOn) then
@@ -1114,6 +1138,9 @@ codeunit 6610 "FS Int. Table Subscriber"
 
         FSWorkOrderProduct.Reset();
         FSWorkOrderProduct.SetRange(WorkOrder, FSWorkOrder.WorkOrderId);
+        FSWorkOrderProductRecordRef.GetTable(FSWorkOrderProduct);
+        ApplyIntegrationTableFilter(FSWorkOrderProductRecordRef, Database::"Service Line");
+        FSWorkOrderProductRecordRef.SetTable(FSWorkOrderProduct);
         if FSWorkOrderProduct.FindSet() then begin
             repeat
                 if not SkipReimport(FSWorkOrderProduct.WorkOrderProductId, FSWorkOrderProduct.ModifiedOn) then
@@ -1171,6 +1198,9 @@ codeunit 6610 "FS Int. Table Subscriber"
 
         FSWorkOrderService.Reset();
         FSWorkOrderService.SetRange(WorkOrder, FSWorkOrder.WorkOrderId);
+        FSWorkOrderServiceRecordRef.GetTable(FSWorkOrderService);
+        ApplyIntegrationTableFilter(FSWorkOrderServiceRecordRef, Database::"Service Line");
+        FSWorkOrderServiceRecordRef.SetTable(FSWorkOrderService);
         if FSWorkOrderService.FindSet() then begin
             repeat
                 if not SkipReimport(FSWorkOrderService.WorkOrderServiceId, FSWorkOrderService.ModifiedOn) then
@@ -1231,6 +1261,9 @@ codeunit 6610 "FS Int. Table Subscriber"
         FSBookableResourceBooking.Reset();
         FSBookableResourceBooking.SetRange(WorkOrder, FSWorkOrder.WorkOrderId);
         FSBookableResourceBooking.SetRange(BookingStatus, FSIntegrationMgt.GetBookingStatusCompleted());
+        FSBookableResourceBookingRecordRef.GetTable(FSBookableResourceBooking);
+        ApplyIntegrationTableFilter(FSBookableResourceBookingRecordRef, Database::"Service Line");
+        FSBookableResourceBookingRecordRef.SetTable(FSBookableResourceBooking);
         if FSBookableResourceBooking.FindSet() then begin
             repeat
                 if not SkipReimport(FSBookableResourceBooking.BookableResourceBookingId, FSBookableResourceBooking.ModifiedOn) then
@@ -1241,10 +1274,57 @@ codeunit 6610 "FS Int. Table Subscriber"
                 FSBookableResourceBookingIdFilter += FSBookableResourceBookingId + '|';
             FSBookableResourceBookingIdFilter := FSBookableResourceBookingIdFilter.TrimEnd('|');
 
-            FSBookableResourceBooking2.SetFilter(BookableResourceBookingId, FSBookableResourceBookingIdFilter);
-            FSBookableResourceBookingRecordRef.GetTable(FSBookableResourceBooking2);
-            CRMIntegrationTableSynch.SynchRecordsFromIntegrationTable(FSBookableResourceBookingRecordRef, Database::"Service Line", false, false);
+            if FSBookableResourceBookingIdFilter <> '' then begin
+                FSBookableResourceBooking2.SetFilter(BookableResourceBookingId, FSBookableResourceBookingIdFilter);
+                FSBookableResourceBookingRecordRef.GetTable(FSBookableResourceBooking2);
+                CRMIntegrationTableSynch.SynchRecordsFromIntegrationTable(FSBookableResourceBookingRecordRef, Database::"Service Line", false, false);
+            end;
         end;
+    end;
+
+    local procedure ApplyIntegrationTableFilter(var IntegrationRecordRef: RecordRef; TableNo: Integer)
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        NoMappingErr: Label 'There is no integration table mapping for %1.', Comment = '%1 = table name';
+    begin
+        if not IntegrationTableMapping.FindMapping(TableNo, IntegrationRecordRef.Number()) then begin
+            if IntegrationRecordRef.IsEmpty() then
+                exit;
+            Error(NoMappingErr, IntegrationRecordRef.Name());
+        end;
+
+#pragma warning disable AA0214
+        ApplyMappingFilter(IntegrationRecordRef, IntegrationTableMapping.GetIntegrationTableFilter());
+#pragma warning restore AA0214
+    end;
+
+    local procedure ApplyMappingFilter(var RecordsToSynchRecordRef: RecordRef; MappingFilter: Text)
+    var
+        MappingRecordRef: RecordRef;
+        MappingFieldRef: FieldRef;
+        CandidateFieldRef: FieldRef;
+        PreviousFilterGroup: Integer;
+        FieldIndex: Integer;
+        FieldFilter: Text;
+        CombinedFilterTok: Label '(%1)&(%2)', Locked = true, Comment = '%1 = existing candidate filter, %2 = integration mapping filter';
+    begin
+        // Keep mapping filters separate so they cannot replace the parent or candidate scope.
+        MappingRecordRef.Open(RecordsToSynchRecordRef.Number());
+        MappingRecordRef.SetView(MappingFilter);
+        PreviousFilterGroup := RecordsToSynchRecordRef.FilterGroup();
+        RecordsToSynchRecordRef.FilterGroup(2);
+        for FieldIndex := 1 to MappingRecordRef.FieldCount() do begin
+            MappingFieldRef := MappingRecordRef.FieldIndex(FieldIndex);
+            FieldFilter := MappingFieldRef.GetFilter();
+            if FieldFilter <> '' then begin
+                CandidateFieldRef := RecordsToSynchRecordRef.Field(MappingFieldRef.Number());
+                if CandidateFieldRef.GetFilter() <> '' then
+                    FieldFilter := StrSubstNo(CombinedFilterTok, CandidateFieldRef.GetFilter(), FieldFilter);
+                CandidateFieldRef.SetFilter(FieldFilter);
+            end;
+        end;
+        RecordsToSynchRecordRef.FilterGroup(PreviousFilterGroup);
+        MappingRecordRef.Close();
     end;
 
     local procedure SkipReimport(CRMId: Guid; CurrentModifyTimeStamp: DateTime): Boolean
@@ -1269,6 +1349,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceHeader: Record "Service Header";
         FSWorkOrder: Record "FS Work Order";
         ServiceItemLine: Record "Service Item Line";
+        IntegrationTableMapping: Record "Integration Table Mapping";
         CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
         ServiceItemLineRecordRef: RecordRef;
     begin
@@ -1280,7 +1361,12 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceItemLine.SetRange("FS Bookings", false);
         if not ServiceItemLine.IsEmpty() then begin
             ServiceItemLineRecordRef.GetTable(ServiceItemLine);
-            CRMIntegrationTableSynch.SynchRecordsToIntegrationTable(ServiceItemLineRecordRef, false, false);
+            if IntegrationTableMapping.FindMappingForTable(Database::"Service Item Line") then
+#pragma warning disable AA0214
+                ApplyMappingFilter(ServiceItemLineRecordRef, IntegrationTableMapping.GetTableFilter());
+#pragma warning restore AA0214
+            if not ServiceItemLineRecordRef.IsEmpty() then
+                CRMIntegrationTableSynch.SynchRecordsToIntegrationTable(ServiceItemLineRecordRef, false, false);
         end;
     end;
 
@@ -1299,10 +1385,8 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceLine.SetRange("Document No.", ServiceHeader."No.");
         ServiceLine.SetRange("Type", ServiceLine.Type::Item);
         ServiceLine.SetFilter("Item Type", '%1|%2', ServiceLine."Item Type"::Inventory, ServiceLine."Item Type"::"Non-Inventory");
-        if not ServiceLine.IsEmpty() then begin
-            ServiceLineRecordRef.GetTable(ServiceLine);
-            SynchRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Product", false, false);
-        end;
+        ServiceLineRecordRef.GetTable(ServiceLine);
+        SynchFilteredRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Product", false, false);
     end;
 
     local procedure ResetFSWorkOrderServiceFromServiceOrderLine(SourceRecordRef: RecordRef; DestinationRecordRef: RecordRef)
@@ -1320,13 +1404,21 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceLine.SetRange("Document No.", ServiceHeader."No.");
         ServiceLine.SetRange("Type", ServiceLine.Type::Item);
         ServiceLine.SetRange("Item Type", ServiceLine."Item Type"::Service);
-        if not ServiceLine.IsEmpty() then begin
-            ServiceLineRecordRef.GetTable(ServiceLine);
-            SynchRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Service", false, false);
-        end;
+        ServiceLineRecordRef.GetTable(ServiceLine);
+        SynchFilteredRecordsToIntegrationTable(ServiceLineRecordRef, Database::"FS Work Order Service", false, false);
     end;
 
-    procedure SynchRecordsToIntegrationTable(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean) JobID: Guid
+    procedure SynchRecordsToIntegrationTable(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean): Guid
+    begin
+        exit(SynchRecordsToIntegrationTableImpl(RecordsToSynchRecordRef, TargetTable, IgnoreChanges, IgnoreSynchOnlyCoupledRecords, false));
+    end;
+
+    internal procedure SynchFilteredRecordsToIntegrationTable(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean): Guid
+    begin
+        exit(SynchRecordsToIntegrationTableImpl(RecordsToSynchRecordRef, TargetTable, IgnoreChanges, IgnoreSynchOnlyCoupledRecords, true));
+    end;
+
+    local procedure SynchRecordsToIntegrationTableImpl(var RecordsToSynchRecordRef: RecordRef; TargetTable: Integer; IgnoreChanges: Boolean; IgnoreSynchOnlyCoupledRecords: Boolean; ApplyTableFilter: Boolean) JobID: Guid
     var
         IntegrationTableMapping: Record "Integration Table Mapping";
         IntegrationTableSynch: Codeunit "Integration Table Synch.";
@@ -1336,12 +1428,23 @@ codeunit 6610 "FS Int. Table Subscriber"
         IntegrationTableMapping.SetRange("Table ID", RecordsToSynchRecordRef.Number);
         IntegrationTableMapping.SetRange("Integration Table ID", TargetTable);
         IntegrationTableMapping.SetRange("Delete After Synchronization", false);
-        if not IntegrationTableMapping.FindFirst() then
+        if not IntegrationTableMapping.FindFirst() then begin
+            if ApplyTableFilter then
+                if RecordsToSynchRecordRef.IsEmpty() then
+                    exit;
             Error(SynchronizeEmptySetErr);
+        end;
 
+#pragma warning disable AA0214
+        if ApplyTableFilter then
+            ApplyMappingFilter(RecordsToSynchRecordRef, IntegrationTableMapping.GetTableFilter());
+#pragma warning restore AA0214
         RecordsToSynchRecordRef.Ascending(false);
-        if not RecordsToSynchRecordRef.FindSet() then
+        if not RecordsToSynchRecordRef.FindSet() then begin
+            if ApplyTableFilter then
+                exit;
             Error(SynchronizeEmptySetErr);
+        end;
 
         JobID :=
           IntegrationTableSynch.BeginIntegrationSynchJob(
@@ -1383,6 +1486,8 @@ codeunit 6610 "FS Int. Table Subscriber"
         SourceDestCode := GetSourceDestCode(SourceRecordRef, DestinationRecordRef);
 
         case SourceDestCode of
+            'Item-CRM Product':
+                DisableCustomerAssetConversion(DestinationRecordRef);
             'FS Work Order Service-Job Journal Line':
                 UpdateCorrelatedJobJournalLine(SourceRecordRef, DestinationRecordRef);
             'Service Header-FS Work Order':
@@ -1444,7 +1549,7 @@ codeunit 6610 "FS Int. Table Subscriber"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"CRM Setup Defaults", 'OnResetItemProductMappingOnAfterInsertFieldsMapping', '', false, false)]
-    local procedure AddFieldServiceProductTypeFieldMapping(var Sender: Codeunit "CRM Setup Defaults"; IntegrationTableMappingName: Code[20])
+    local procedure AddFieldServiceProductMappings(var Sender: Codeunit "CRM Setup Defaults"; IntegrationTableMappingName: Code[20])
     var
         FSConnectionSetup: Record "FS Connection Setup";
         Item: Record Item;
@@ -1461,6 +1566,14 @@ codeunit 6610 "FS Int. Table Subscriber"
           CRMProduct.FieldNo(FieldServiceProductType),
           IntegrationFieldMapping.Direction::ToIntegrationTable,
           '', false, false);
+
+        // Business Central service items are the source for Field Service customer assets.
+        Sender.InsertIntegrationFieldMapping(
+            IntegrationTableMappingName,
+            0,
+            CRMProduct.FieldNo(ConvertToCustomerAsset),
+            IntegrationFieldMapping.Direction::ToIntegrationTable,
+            'false', false, false);
     end;
 
     local procedure UpdateCorrelatedJobJournalLine(var SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef)
@@ -1627,7 +1740,7 @@ codeunit 6610 "FS Int. Table Subscriber"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Rec. Synch. Invoke", 'OnBeforeInsertRecord', '', true, false)]
-    local procedure HandleOnBeforeInsertRecord(SourceRecordRef: RecordRef; DestinationRecordRef: RecordRef)
+    local procedure HandleOnBeforeInsertRecord(SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef)
     var
         FSProjectTask: Record "FS Project Task";
         Customer: Record Customer;
@@ -1662,6 +1775,8 @@ codeunit 6610 "FS Int. Table Subscriber"
         SourceDestCode := GetSourceDestCode(SourceRecordRef, DestinationRecordRef);
 
         case SourceDestCode of
+            'Item-CRM Product':
+                DisableCustomerAssetConversion(DestinationRecordRef);
             'Location-FS Warehouse':
                 SetCompanyId(DestinationRecordRef);
             'Service Item-FS Customer Asset':
@@ -2063,7 +2178,11 @@ codeunit 6610 "FS Int. Table Subscriber"
             ServiceHeaderToSync.SetRange("Document Type", ServiceHeaderToSync."Document Type"::Order);
             ServiceHeaderToSync.SetRange("No.", ServiceOrderNo);
             ServiceOrderRecordRef.GetTable(ServiceHeaderToSync);
-            CRMIntegrationTableSynch.SynchRecordsToIntegrationTable(ServiceOrderRecordRef, false, false);
+#pragma warning disable AA0214
+            ApplyMappingFilter(ServiceOrderRecordRef, IntegrationTableMapping.GetTableFilter());
+#pragma warning restore AA0214
+            if not ServiceOrderRecordRef.IsEmpty() then
+                CRMIntegrationTableSynch.SynchRecordsToIntegrationTable(ServiceOrderRecordRef, false, false);
         end;
     end;
 
@@ -2518,8 +2637,6 @@ codeunit 6610 "FS Int. Table Subscriber"
                 IgnoreArchievedServiceOrdersOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
             Database::"FS Work Order":
                 IgnoreArchievedCRMWorkOrdersOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
-            Database::"Service Item":
-                IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef, IgnoreRecord);
         end;
 
         if FSConnectionSetup.IsEnabled() then
@@ -2685,6 +2802,8 @@ codeunit 6610 "FS Int. Table Subscriber"
                 IgnoreRecord := true;
     end;
 
+#pragma warning disable AS0105
+    [Obsolete('Remove calls to this procedure. Service items are always synchronized to Field Service customer assets; item-product synchronization disables customer asset conversion.', '30.0')]
     internal procedure IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
     var
         FSConnectionSetup: Record "FS Connection Setup";
@@ -2718,6 +2837,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         if not CRMProduct.ConvertToCustomerAsset then
             IgnoreRecord := true;
     end;
+#pragma warning restore AS0105
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Table Synch.", 'OnAfterInitSynchJob', '', true, true)]
     local procedure LogTelemetryOnAfterInitSynchJob(ConnectionType: TableConnectionType; IntegrationTableID: Integer)
@@ -2778,6 +2898,15 @@ codeunit 6610 "FS Int. Table Subscriber"
         if (SourceRecordRef.Number() <> 0) and (DestinationRecordRef.Number() <> 0) then
             exit(SourceRecordRef.Name() + '-' + DestinationRecordRef.Name());
         exit('');
+    end;
+
+    local procedure DisableCustomerAssetConversion(var DestinationRecordRef: RecordRef)
+    var
+        CRMProduct: Record "CRM Product";
+    begin
+        DestinationRecordRef.SetTable(CRMProduct);
+        CRMProduct.ConvertToCustomerAsset := false;
+        DestinationRecordRef.GetTable(CRMProduct);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Service Mgt. Setup", 'OnBeforeValidateEvent', 'One Service Item Line/Order', true, false)]

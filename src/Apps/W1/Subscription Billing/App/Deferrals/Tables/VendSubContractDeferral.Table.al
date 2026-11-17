@@ -1,6 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Purchases.Document;
@@ -136,6 +137,14 @@ table 8072 "Vend. Sub. Contract Deferral"
         {
             Caption = 'Currency Code';
         }
+        field(27; "G/L Account No."; Code[20])
+        {
+            Caption = 'G/L Account No.';
+            ToolTip = 'Specifies the G/L account selected on the Subscription Contract line. If it is filled, releasing the deferral posts to this account instead of the Vendor Subscription Contract Account from the General Posting Setup.';
+            DataClassification = CustomerContent;
+            Editable = false;
+            TableRelation = "G/L Account";
+        }
         field(74; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
@@ -199,6 +208,8 @@ table 8072 "Vend. Sub. Contract Deferral"
         Rec."Currency Code" := PurchaseLine."Currency Code";
         Rec."Gen. Bus. Posting Group" := PurchaseLine."Gen. Bus. Posting Group";
         Rec."Gen. Prod. Posting Group" := PurchaseLine."Gen. Prod. Posting Group";
+        if PurchaseLine.Type = PurchaseLine.Type::"G/L Account" then
+            Rec."G/L Account No." := PurchaseLine."No.";
         OnAfterInitFromPurchaseLine(Rec, PurchaseLine, Sign);
     end;
 

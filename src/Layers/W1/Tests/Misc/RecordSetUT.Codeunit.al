@@ -1139,6 +1139,60 @@ codeunit 134235 "Record Set UT"
 
     [Test]
     [Scope('OnPrem')]
+    procedure TestGettingSetWithRemovedTableReturnsBlankValue()
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        Initialize();
+
+        TableMetadata.SetRange(ObsoleteState, TableMetadata.ObsoleteState::Removed);
+        TableMetadata.FindFirst();
+
+        VerifyGettingSetWithStaleTable(TableMetadata.ID, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGettingSetWithMissingTableReturnsBlankValue()
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        Initialize();
+
+        TableMetadata.FindLast();
+
+        VerifyGettingSetWithStaleTable(TableMetadata.ID + 1, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGettingMixedSetSkipsRemovedTable()
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        Initialize();
+
+        TableMetadata.SetRange(ObsoleteState, TableMetadata.ObsoleteState::Removed);
+        TableMetadata.FindFirst();
+
+        VerifyGettingSetWithStaleTable(TableMetadata.ID, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGettingMixedSetSkipsMissingTable()
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        Initialize();
+
+        TableMetadata.FindLast();
+
+        VerifyGettingSetWithStaleTable(TableMetadata.ID + 1, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure TestGettingExistingSet()
     var
         TempRecordSetBuffer: Record "Record Set Buffer" temporary;
@@ -2660,6 +2714,45 @@ codeunit 134235 "Record Set UT"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Record Set UT");
     end;
 
+    local procedure VerifyGettingSetWithStaleTable(TableNo: Integer; IncludeValidRecords: Boolean)
+    var
+        TempCustomer: Record Customer temporary;
+        TempRecordSetBuffer: Record "Record Set Buffer" temporary;
+        RecordSetDefinition: Record "Record Set Definition";
+        RecordSetTree: Record "Record Set Tree";
+        RecordSetManagement: Codeunit "Record Set Management";
+        SetID: Integer;
+        DefinitionCount: Integer;
+        TreeCount: Integer;
+    begin
+        CreateTestCustomers(TempCustomer, NoOfRecordsPerSet);
+        if IncludeValidRecords then
+            SetID := RecordSetManagement.SaveSetSingleTable(TempCustomer);
+
+        // A live RecordID makes an accidental dereference observable without opening an unavailable table.
+        TempCustomer.FindFirst();
+        RecordSetTree."Table No." := TableNo;
+        RecordSetTree.Value := TempCustomer.RecordId;
+        RecordSetTree.Insert(true);
+        RecordSetDefinition."Table No." := TableNo;
+        RecordSetDefinition."Set ID" := SetID;
+        RecordSetDefinition."Node ID" := RecordSetTree."Node ID";
+        RecordSetDefinition.Insert(true);
+        SetID := RecordSetDefinition."Set ID";
+        DefinitionCount := RecordSetDefinition.Count();
+        TreeCount := RecordSetTree.Count();
+
+        RecordSetManagement.GetSet(TempRecordSetBuffer, SetID);
+
+        if IncludeValidRecords then
+            VerifySetWasLoadedCorrectly(TempRecordSetBuffer, TempCustomer)
+        else
+            Assert.IsTrue(TempRecordSetBuffer.IsEmpty(), 'A set containing only stale tables should be empty.');
+        Assert.AreEqual(DefinitionCount, RecordSetDefinition.Count(), 'Loading a set must not delete its definitions.');
+        Assert.AreEqual(TreeCount, RecordSetTree.Count(), 'Loading a set must not delete its tree nodes.');
+        Assert.IsTrue(RecordSetDefinition.Get(TableNo, SetID, RecordSetTree."Node ID"), 'The stale membership must be preserved.');
+    end;
+
     local procedure CreateMixedTablesTestItems(var TempRecordSetBuffer: Record "Record Set Buffer" temporary; NumberOfCustomers: Integer; NumberOfItems: Integer)
     var
         TempItem: Record Item temporary;
@@ -2998,4 +3091,3 @@ codeunit 134235 "Record Set UT"
         TempRecordSetBuffer.FindSet();
     end;
 }
-

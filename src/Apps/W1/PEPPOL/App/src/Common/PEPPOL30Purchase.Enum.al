@@ -6,8 +6,10 @@ namespace Microsoft.Peppol;
 
 enum 37201 "PEPPOL 3.0 Purchase" implements "PEPPOL Purchase Attachment Provider",
                                                     "PEPPOL Purchase Delivery Info Provider",
+                                                    "PEPPOL PO Delivery Period",
                                                     "PEPPOL Purchase Document Info Provider",
                                                     "PEPPOL Purchase Line Info Provider",
+                                                    "PEPPOL PO Line Delivery Period",
                                                     "PEPPOL Purchase Monetary Info Provider",
                                                     "PEPPOL Purchase Party Info Provider",
                                                     "PEPPOL Purchase Payment Info Provider",
@@ -16,8 +18,10 @@ enum 37201 "PEPPOL 3.0 Purchase" implements "PEPPOL Purchase Attachment Provider
 {
     DefaultImplementation = "PEPPOL Purchase Attachment Provider" = "PEPPOL30",
                             "PEPPOL Purchase Delivery Info Provider" = "PEPPOL30",
+                            "PEPPOL PO Delivery Period" = "PEPPOL30",
                             "PEPPOL Purchase Document Info Provider" = "PEPPOL30",
                             "PEPPOL Purchase Line Info Provider" = "PEPPOL30",
+                            "PEPPOL PO Line Delivery Period" = "PEPPOL30",
                             "PEPPOL Purchase Monetary Info Provider" = "PEPPOL30",
                             "PEPPOL Purchase Party Info Provider" = "PEPPOL30",
                             "PEPPOL Purchase Payment Info Provider" = "PEPPOL30",
@@ -25,8 +29,10 @@ enum 37201 "PEPPOL 3.0 Purchase" implements "PEPPOL Purchase Attachment Provider
                             "PEPPOL Remit. Advice Info Provider" = "PEPPOL30";
     UnknownValueImplementation = "PEPPOL Purchase Attachment Provider" = "PEPPOL30",
                                  "PEPPOL Purchase Delivery Info Provider" = "PEPPOL30",
+                                 "PEPPOL PO Delivery Period" = "PEPPOL30",
                                  "PEPPOL Purchase Document Info Provider" = "PEPPOL30",
                                  "PEPPOL Purchase Line Info Provider" = "PEPPOL30",
+                                 "PEPPOL PO Line Delivery Period" = "PEPPOL30",
                                  "PEPPOL Purchase Monetary Info Provider" = "PEPPOL30",
                                  "PEPPOL Purchase Party Info Provider" = "PEPPOL30",
                                  "PEPPOL Purchase Payment Info Provider" = "PEPPOL30",

@@ -6,6 +6,7 @@ codeunit 139527 "Recommended Apps Tests"
 
     var
         Assert: Codeunit Assert;
+        MarketplaceURLNotFoundErr: Label 'Marketplace URL';
 
     [Test]
     procedure TestInsertAppWhenURLAppInfoAreWrong()
@@ -190,7 +191,7 @@ codeunit 139527 "Recommended Apps Tests"
             URL,
             // URL is decoded
             'https://appsource.microsoft.com/en-us/product/dynamics-365-business-central/PUBID.thetasystemslimited|AID.bc_excel_importer|PAPPID.24466323-aee9-4049-a66d-a1af24466323?tab=Overview',
-            'The AppSource URL is wrong.'
+            'The Marketplace URL is wrong.'
         );
     end;
 
@@ -210,7 +211,7 @@ codeunit 139527 "Recommended Apps Tests"
         asserterror RecommendedApps.GetAppURL(CreateGuid());
 
         // [THEN] Am error is thrown
-        Assert.ExpectedError('Cannot get the AppSource URL.');
+        Assert.ExpectedError(MarketplaceURLNotFoundErr);
     end;
 
     local procedure InsertSingleApp(): Guid

@@ -395,6 +395,21 @@ page 4050 "GP Migration Configuration"
                             until GPCompanyAdditionalSettings.Next() = 0;
                     end;
                 }
+                field("Migrate Inactive Alloc. Accts."; Rec."Migrate Inactive Alloc. Accts.")
+                {
+                    Caption = 'Inactive Allocation Accounts';
+                    ToolTip = 'Specifies whether to migrate inactive allocation accounts.';
+                    ApplicationArea = All;
+
+                    trigger OnValidate()
+                    begin
+                        if PrepSettingsForFieldUpdate() then
+                            repeat
+                                GPCompanyAdditionalSettings.Validate("Migrate Inactive Alloc. Accts.", Rec."Migrate Inactive Alloc. Accts.");
+                                GPCompanyAdditionalSettings.Modify();
+                            until GPCompanyAdditionalSettings.Next() = 0;
+                    end;
+                }
 
                 field("Migrate Inactive Items"; Rec."Migrate Inactive Items")
                 {
@@ -571,6 +586,7 @@ page 4050 "GP Migration Configuration"
                                 Rec.Validate("Migrate Hist. AP Trx.", EnableDisableAllHistTrx);
                                 Rec.Validate("Migrate Hist. Inv. Trx.", EnableDisableAllHistTrx);
                                 Rec.Validate("Migrate Hist. Purch. Trx.", EnableDisableAllHistTrx);
+                                Rec.Validate("Migrate Hist. Payroll Detail", EnableDisableAllHistTrx);
 
                                 repeat
                                     GPCompanyAdditionalSettings.Validate("Migrate Hist. GL Trx.", EnableDisableAllHistTrx);
@@ -578,6 +594,7 @@ page 4050 "GP Migration Configuration"
                                     GPCompanyAdditionalSettings.Validate("Migrate Hist. AP Trx.", EnableDisableAllHistTrx);
                                     GPCompanyAdditionalSettings.Validate("Migrate Hist. Inv. Trx.", EnableDisableAllHistTrx);
                                     GPCompanyAdditionalSettings.Validate("Migrate Hist. Purch. Trx.", EnableDisableAllHistTrx);
+                                    GPCompanyAdditionalSettings.Validate("Migrate Hist. Payroll Detail", EnableDisableAllHistTrx);
                                     GPCompanyAdditionalSettings.Modify();
                                 until GPCompanyAdditionalSettings.Next() = 0;
                             end;
@@ -660,6 +677,21 @@ page 4050 "GP Migration Configuration"
                             if PrepSettingsForFieldUpdate() then
                                 repeat
                                     GPCompanyAdditionalSettings.Validate("Migrate Hist. Purch. Trx.", Rec."Migrate Hist. Purch. Trx.");
+                                    GPCompanyAdditionalSettings.Modify();
+                                until GPCompanyAdditionalSettings.Next() = 0;
+                        end;
+                    }
+                    field("Migrate Hist. Payroll Detail"; Rec."Migrate Hist. Payroll Detail")
+                    {
+                        Caption = 'Payroll Details on GL Transactions';
+                        ToolTip = 'Specify whether to migrate historical payroll details on transactions.';
+                        ApplicationArea = All;
+
+                        trigger OnValidate()
+                        begin
+                            if PrepSettingsForFieldUpdate() then
+                                repeat
+                                    GPCompanyAdditionalSettings.Validate("Migrate Hist. Payroll Detail", Rec."Migrate Hist. Payroll Detail");
                                     GPCompanyAdditionalSettings.Modify();
                                 until GPCompanyAdditionalSettings.Next() = 0;
                         end;
@@ -798,6 +830,7 @@ page 4050 "GP Migration Configuration"
                     GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Inactive Vendors", Rec."Migrate Inactive Vendors");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Temporary Vendors", Rec."Migrate Temporary Vendors");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Inactive Checkbooks", Rec."Migrate Inactive Checkbooks");
+                    GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Inactive Alloc. Accts.", Rec."Migrate Inactive Alloc. Accts.");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Inactive Items", Rec."Migrate Inactive Items");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Kit Items", Rec."Migrate Kit Items");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Item Desc. 2 Source", Rec."Item Desc. 2 Source");
@@ -824,6 +857,7 @@ page 4050 "GP Migration Configuration"
                     GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Hist. AP Trx.", Rec."Migrate Hist. AP Trx.");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Hist. Inv. Trx.", Rec."Migrate Hist. Inv. Trx.");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Hist. Purch. Trx.", Rec."Migrate Hist. Purch. Trx.");
+                    GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Hist. Payroll Detail", Rec."Migrate Hist. Payroll Detail");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Skip Posting Account Batches", Rec."Skip Posting Account Batches");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Skip Posting Bank Batches", Rec."Skip Posting Bank Batches");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Skip Posting Customer Batches", Rec."Skip Posting Customer Batches");
@@ -869,6 +903,7 @@ page 4050 "GP Migration Configuration"
         Rec.Validate("Migrate Inactive Vendors", GPCompanyAdditionalSettingsInit."Migrate Inactive Vendors");
         Rec.Validate("Migrate Temporary Vendors", GPCompanyAdditionalSettingsInit."Migrate Temporary Vendors");
         Rec.Validate("Migrate Inactive Checkbooks", GPCompanyAdditionalSettingsInit."Migrate Inactive Checkbooks");
+        Rec.Validate("Migrate Inactive Alloc. Accts.", GPCompanyAdditionalSettingsInit."Migrate Inactive Alloc. Accts.");
         Rec.Validate("Migrate Inactive Items", GPCompanyAdditionalSettingsInit."Migrate Inactive Items");
         Rec.Validate("Migrate Kit Items", GPCompanyAdditionalSettingsInit."Migrate Kit Items");
         Rec.Validate("Item Desc. 2 Source", GPCompanyAdditionalSettingsInit."Item Desc. 2 Source");
@@ -894,6 +929,7 @@ page 4050 "GP Migration Configuration"
         Rec.Validate("Migrate Hist. AP Trx.", GPCompanyAdditionalSettingsInit."Migrate Hist. AP Trx.");
         Rec.Validate("Migrate Hist. Inv. Trx.", GPCompanyAdditionalSettingsInit."Migrate Hist. Inv. Trx.");
         Rec.Validate("Migrate Hist. Purch. Trx.", GPCompanyAdditionalSettingsInit."Migrate Hist. Purch. Trx.");
+        Rec.Validate("Migrate Hist. Payroll Detail", GPCompanyAdditionalSettingsInit."Migrate Hist. Payroll Detail");
         Rec.Validate("Skip Posting Account Batches", GPCompanyAdditionalSettingsInit."Skip Posting Account Batches");
         Rec.Validate("Skip Posting Bank Batches", GPCompanyAdditionalSettingsInit."Skip Posting Bank Batches");
         Rec.Validate("Skip Posting Customer Batches", GPCompanyAdditionalSettingsInit."Skip Posting Customer Batches");

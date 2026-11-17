@@ -79,8 +79,7 @@ codeunit 10862 "Fiscal Year-FiscalClose"
         AccountingPeriod.SetRange("Starting Date", FiscalYearStartDate, FiscalYearEndDate);
         AccountingPeriod.SetRange("Fiscally Closed", false);
 
-        AccountingPeriod.ModifyAll("Fiscal Closing Date", Today);
-        AccountingPeriod.ModifyAll("Fiscally Closed", true);
+        AccountingPeriod.ModifyAll("Fiscal Closing Date", Today, "Fiscally Closed", true);
 #if not CLEAN28
         // update allowed posting range
         AccountingPeriod.UpdateGLSetup(FiscalYearEndDate);

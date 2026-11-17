@@ -193,6 +193,60 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
     end;
 #pragma warning restore AA0139
 
+    internal procedure GetDocumentTypeCode(SourceJsonObject: JsonObject): Text
+    var
+        TypeCode: Text;
+    begin
+        GetString(SourceJsonObject, 'invoice_type_code', 10, TypeCode);
+        exit(DelChr(TypeCode, '<>', ' '));
+    end;
+
+    internal procedure IsCreditNote(SourceJsonObject: JsonObject): Boolean
+    begin
+        exit(GetDocumentTypeCode(SourceJsonObject) = CreditNoteTypeCodeTok);
+    end;
+
+    internal procedure GetDocumentTypeCodeForTelemetry(SourceJsonObject: JsonObject): Text
+    var
+        TypeCode: Text;
+    begin
+        TypeCode := GetDocumentTypeCode(SourceJsonObject);
+        if TypeCode in [InvoiceTypeCodeTok, CreditNoteTypeCodeTok] then
+            exit(TypeCode);
+        if TypeCode = '' then
+            exit('None');
+        exit('Other');
+    end;
+
+    internal procedure GetInvoiceReferences(SourceJsonObject: JsonObject; OwnDocumentNo: Text) InvoiceReferences: List of [Text]
+    var
+        ReferencesToken: JsonToken;
+        ReferenceToken: JsonToken;
+        ReferencesArray: JsonArray;
+        DocumentReferenceObj: JsonObject;
+        Reference: Text;
+    begin
+        if not SourceJsonObject.Get('billing_reference', ReferencesToken) then
+            exit;
+        if ReferencesToken.IsArray() then
+            ReferencesArray := ReferencesToken.AsArray()
+        else
+            if ReferencesToken.IsObject() then
+                ReferencesArray.Add(ReferencesToken)
+            else
+                exit;
+
+        foreach ReferenceToken in ReferencesArray do
+            if ReferenceToken.IsObject() then
+                if GetNestedObject(ReferenceToken.AsObject(), 'invoice_document_reference', DocumentReferenceObj) then begin
+                    Clear(Reference);
+                    GetString(DocumentReferenceObj, 'id', 250, Reference);
+                    Reference := DelChr(Reference, '<>', ' ');
+                    if (Reference <> '') and (Reference <> OwnDocumentNo) and not InvoiceReferences.Contains(Reference) then
+                        InvoiceReferences.Add(Reference);
+                end;
+    end;
+
     local procedure GetString(JsonObj: JsonObject; PropertyName: Text; MaxLen: Integer; var FieldValue: Text)
     var
         JsonToken: JsonToken;
@@ -305,4 +359,8 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
 
         CurrencyCode := CopyStr(UpperCase(CurrencyText), 1, MaxStrLen(CurrencyCode));
     end;
+
+    var
+        CreditNoteTypeCodeTok: Label '381', Locked = true;
+        InvoiceTypeCodeTok: Label '380', Locked = true;
 }

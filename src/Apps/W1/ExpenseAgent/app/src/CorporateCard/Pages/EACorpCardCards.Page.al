@@ -1,0 +1,109 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.ExpenseAgent;
+
+page 7431 "EA Corp Card Cards"
+{
+    ApplicationArea = Basic, Suite;
+    Caption = 'Corporate Cards';
+    PageType = List;
+    PopulateAllFields = true;
+    UsageCategory = Lists;
+    SourceTable = "EA Corp Card";
+
+    layout
+    {
+        area(Content)
+        {
+            repeater(General)
+            {
+                field(CorporateCard; CorpCardSelectionMgt.GetCardDisplay(Rec, Rec."Provider Short Name"))
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Corporate Card';
+                    Editable = false;
+                    ToolTip = 'Specifies the provider short name followed by the last four digits of the corporate card.';
+                }
+                field("Card Id"; Rec."Card Id")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the internal card identifier.';
+                }
+                field("Provider Code"; Rec."Provider Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the transaction feed provider for this card.';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.CalcFields("Provider Short Name");
+                    end;
+                }
+                field("External Card Ref"; Rec."External Card Ref")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the provider external card reference.';
+                }
+                field("Masked Card No."; Rec."Masked Card No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Expense User No."; Rec."Expense User No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the expense user linked to this card.';
+                }
+                field(Blocked; Rec.Blocked)
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies whether this card is blocked from new imports.';
+                }
+            }
+
+        }
+    }
+
+    actions
+    {
+        area(Navigation)
+        {
+            action(Transactions)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Transactions';
+                Image = Ledger;
+                ToolTip = 'Shows imported transactions for the selected corporate card.';
+
+                trigger OnAction()
+                var
+                    CorpCardTrans: Record "EA Corp Card Trans";
+                begin
+                    CorpCardTrans.SetRange("Provider Code", Rec."Provider Code");
+                    CorpCardTrans.SetRange("Card Id", Rec."Card Id");
+                    Page.RunModal(Page::"EA Corp Card Trans List", CorpCardTrans);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Card)
+            {
+                Caption = 'Card';
+
+                actionref(Transactions_Promoted; Transactions)
+                {
+                }
+            }
+        }
+    }
+
+    trigger OnOpenPage()
+    begin
+        Rec.SetAutoCalcFields("Provider Short Name");
+    end;
+
+    var
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+}

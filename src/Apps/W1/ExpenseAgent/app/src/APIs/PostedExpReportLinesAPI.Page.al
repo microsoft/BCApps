@@ -183,11 +183,11 @@ page 6913 "Posted Exp. Report Lines API"
                 }
                 field(spendRequestNo; Rec."Spend Request No.")
                 {
-                    Caption = 'Spend Request No.';
+                    Caption = 'Travel Request No.';
                 }
                 field(spendRequestClose; Rec."Spend Request Close")
                 {
-                    Caption = 'Spend Request Close';
+                    Caption = 'Travel Request Close';
                 }
                 field(purchaseInvoice; Rec."Purchase Invoice")
                 {
@@ -259,6 +259,12 @@ page 6913 "Posted Exp. Report Lines API"
                 field(creditCardFeedNo; Rec."Credit Card Feed No.")
                 {
                     Caption = 'Credit Card Feed No.';
+                    Editable = false;
+                }
+                field(corporateCardId; Rec."Corporate Card Id")
+                {
+                    Caption = 'Corporate Card Id';
+                    Editable = false;
                 }
                 field(expenseExtDocNo; Rec."Expense Ext. Doc. No.")
                 {

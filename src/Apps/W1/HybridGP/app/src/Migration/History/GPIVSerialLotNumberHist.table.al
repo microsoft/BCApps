@@ -82,6 +82,9 @@ table 4038 "GPIVSerialLotNumberHist"
         {
             Clustered = false;
         }
+        key(Key2; IVDOCTYP, DOCNUMBR, LNSEQNBR)
+        {
+        }
     }
 
     fieldgroups

@@ -5,7 +5,7 @@
 
 namespace System.Agents;
 
-using System.Agents.TaskPane;
+using System.Agents.Troubleshooting;
 
 page 4300 "Agent Task List"
 {
@@ -37,9 +37,9 @@ page 4300 "Agent Task List"
 
                     trigger OnDrillDown()
                     var
-                        TaskPane: Codeunit "Task Pane";
+                        AgentTaskImpl: Codeunit "Agent Task Impl.";
                     begin
-                        TaskPane.ShowTask(Rec);
+                        AgentTaskImpl.ShowTask(Rec);
                     end;
                 }
                 field(Title; Rec.Title)
@@ -92,9 +92,9 @@ page 4300 "Agent Task List"
 
                     trigger OnDrillDown()
                     var
-                        TaskPane: Codeunit "Task Pane";
+                        AgentImpl: Codeunit "Agent Impl.";
                     begin
-                        TaskPane.ShowAgent(Rec."Agent User Security ID");
+                        AgentImpl.ShowAgent(Rec."Agent User Security ID");
                     end;
                 }
                 field(AgentSubstate; Rec."Agent Substate")
@@ -165,6 +165,22 @@ page 4300 "Agent Task List"
                     AgentTaskImpl: Codeunit "Agent Task Impl.";
                 begin
                     AgentTaskImpl.ShowTaskLogEntries(Rec);
+                end;
+            }
+            action(ExportTaskLogEntries)
+            {
+                ApplicationArea = All;
+                Caption = 'Export log entries';
+                ToolTip = 'Download all log entries and related troubleshooting memory for the selected task as a JSON file.';
+                Enabled = TaskSelected;
+                Image = ExportFile;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    AgentTaskLogExport: Codeunit "Agent Task Log Export";
+                begin
+                    AgentTaskLogExport.ExportTaskToJsonFile(Rec.ID);
                 end;
             }
             action(Stop)
@@ -269,8 +285,16 @@ page 4300 "Agent Task List"
                 actionref(ViewTaskMessage_Promoted; ViewTaskMessage)
                 {
                 }
-                actionref(ViewTaskLogEntries_Promoted; ViewTaskLogEntries)
+                group(TaskLogEntries)
                 {
+                    ShowAs = SplitButton;
+
+                    actionref(ViewTaskLogEntries_Promoted; ViewTaskLogEntries)
+                    {
+                    }
+                    actionref(ExportTaskLogEntries_Promoted; ExportTaskLogEntries)
+                    {
+                    }
                 }
             }
         }

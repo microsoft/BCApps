@@ -91,8 +91,14 @@ table 5741 "Transfer Line"
                 "Description 2" := Item."Description 2";
                 Validate("Gen. Prod. Posting Group", Item."Gen. Prod. Posting Group");
                 Validate("Inventory Posting Group", Item."Inventory Posting Group");
-                Validate(Quantity, xRec.Quantity);
-                Validate("Unit of Measure Code", Item."Base Unit of Measure");
+                if ("Item No." = xRec."Item No.") and ("Direct Transfer" <> xRec."Direct Transfer") then begin
+                    // Restore the UOM before validating quantity to preserve existing reservations.
+                    Quantity := xRec.Quantity;
+                    Validate("Unit of Measure Code", TempTransferLine."Unit of Measure Code");
+                end else begin
+                    Validate(Quantity, xRec.Quantity);
+                    Validate("Unit of Measure Code", Item."Base Unit of Measure");
+                end;
                 "Item Category Code" := Item."Item Category Code";
 
                 OnAfterAssignItemValues(Rec, Item, TransHeader);

@@ -177,6 +177,13 @@ tableextension 6214 "Sust. Purch. Inv. Line" extends "Purch. Inv. Line"
             MaxValue = 1;
             DataClassification = CustomerContent;
         }
+        field(6242; "EUDR Relevant"; Boolean)
+        {
+            Caption = 'EUDR';
+            Editable = false;
+            ToolTip = 'Indicates that the item on the posted purchase invoice line is subject to the EU Deforestation Regulation.';
+            DataClassification = CustomerContent;
+        }
         field(6250; "CBAM Reported"; Boolean)
         {
             DataClassification = CustomerContent;
