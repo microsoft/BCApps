@@ -386,6 +386,7 @@ page 315 "VAT Entries"
 
                     CurrPage.SetSelectionFilter(VATEntry);
                     VATEntry.SetCurrentKey("Entry No.");
+                    VATEntry.Ascending(true);
                     VATEntry.SetLoadFields("Entry No.");
                     if not VATEntry.FindFirst() then
                         exit;
