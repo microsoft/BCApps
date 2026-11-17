@@ -19,7 +19,7 @@ using System.Utilities;
 report 1320 "Notification Email"
 {
     Caption = 'Notification Email';
-    DefaultRenderingLayout = "NotificationEmailBody.docx";
+    DefaultRenderingLayout = "NotificationEmail.docx";
     dataset
     {
         dataitem("Integer"; "Integer")
