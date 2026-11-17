@@ -38,6 +38,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         GeneralLedgerSetup: Record "General Ledger Setup";
         EDocumentService: Record "E-Document Service";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        PEPPOLMgt: Codeunit "PEPPOL30";
         PeppolVATHelper: Codeunit "PEPPOL VAT Helper";
         EDocumentDEHelper: Codeunit "E-Document DE Helper";
         EDocItemChargeMapping: Codeunit "E-Doc. Item Charge Mapping";
@@ -426,9 +427,11 @@ codeunit 13917 "Export ZUGFeRD Document"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         TempSalesCrMemoLine: Record "Sales Cr.Memo Line" temporary;
         ServiceCrMemoLine: Record "Service Cr.Memo Line";
+        ProcessedDocType: Option Sale,Service;
         Currency: Record Currency;
         CurrencyCode: Code[10];
-        ReferencedInvoiceNo: Code[20];
+        ReferencedInvoiceNo: Text;
+        ReferencedInvoiceIssueDate: Text;
         RootXMLNode: XmlElement;
         XMLDoc: XmlDocument;
         XMLDocText: Text;
@@ -467,7 +470,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         CalculateLineAmounts(SalesCrMemoHeader, TempSalesCrMemoLine, Currency, LineAmounts);
         InsertVATAmounts(TempSalesCrMemoLine, LineVATAmount, LineAmount, LineDiscAmount, SalesCrMemoHeader."Prices Including VAT", Currency);
         InsertHeaderData(RootXMLNode, SalesCrMemoHeader);
-        EDocumentDEHelper.TryGetReferencedInvoiceNo(ServiceCrMemoHeader, ReferencedInvoiceNo);
+        PEPPOLMgt.GetCrMemoBillingReferenceInfo(SalesCrMemoHeader, ReferencedInvoiceNo, ReferencedInvoiceIssueDate, ProcessedDocType::Service);
         InsertSupplyChainTradeTransaction(RootXMLNode, SalesCrMemoHeader, TempSalesCrMemoLine, CurrencyCode, Currency, LineAmount, LineVATAmount, LineAmounts, LineDiscAmount, ReferencedInvoiceNo);
         OnCreateXMLOnBeforeSalesCrMemoXmlDocumentWriteToFile(XMLDoc, SalesCrMemoHeader);
         XMLDoc.WriteTo(XMLDocText);
@@ -916,7 +919,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         RootXMLNode.Add(SettlementElement);
     end;
 
-    local procedure InsertApplicableHeaderTradeSettlement(var RootXMLNode: XmlElement; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; CurrencyCode: Code[10]; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal]; ReferencedInvoiceNo: Code[20])
+    local procedure InsertApplicableHeaderTradeSettlement(var RootXMLNode: XmlElement; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; CurrencyCode: Code[10]; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal]; ReferencedInvoiceNo: Text)
     var
         SettlementElement, MonetarySummationElement, InvoiceReferencedDocumentElement : XmlElement;
         ItemChargeTotalAmount: Decimal;
@@ -1179,13 +1182,14 @@ codeunit 13917 "Export ZUGFeRD Document"
 
     procedure InsertSupplyChainTradeTransaction(var RootXMLNode: XmlElement; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; CurrencyCode: Code[10]; Currency: Record Currency; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal])
     var
-        ReferencedInvoiceNo: Code[20];
+        ReferencedInvoiceNo: Text;
+        ReferencedInvoiceIssueDate: Text;
     begin
-        EDocumentDEHelper.TryGetReferencedInvoiceNo(SalesCrMemoHeader, ReferencedInvoiceNo);
+        PEPPOLMgt.GetCrMemoBillingReferenceInfo(SalesCrMemoHeader, ReferencedInvoiceNo, ReferencedInvoiceIssueDate);
         InsertSupplyChainTradeTransaction(RootXMLNode, SalesCrMemoHeader, SalesCrMemoLine, CurrencyCode, Currency, LineAmount, LineVATAmount, LineAmounts, LineDiscAmount, ReferencedInvoiceNo);
     end;
 
-    local procedure InsertSupplyChainTradeTransaction(var RootXMLNode: XmlElement; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; CurrencyCode: Code[10]; Currency: Record Currency; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal]; ReferencedInvoiceNo: Code[20])
+    local procedure InsertSupplyChainTradeTransaction(var RootXMLNode: XmlElement; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; CurrencyCode: Code[10]; Currency: Record Currency; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal]; ReferencedInvoiceNo: Text)
     var
         SupplyChainTradeTransactionElement: XmlElement;
     begin

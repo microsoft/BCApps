@@ -1268,6 +1268,18 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Gets billing reference information from a normalized sales or service credit memo header.
+    /// </summary>
+    /// <param name="SalesCrMemoHeader">The posted credit memo header represented as a sales credit memo.</param>
+    /// <param name="InvoiceDocRefID">Returns the invoice document reference ID.</param>
+    /// <param name="InvoiceDocRefIssueDate">Returns the invoice document reference issue date.</param>
+    /// <param name="ProcessedDocType">The original document type being processed (Sale or Service).</param>
+    procedure GetCrMemoBillingReferenceInfo(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var InvoiceDocRefID: Text; var InvoiceDocRefIssueDate: Text; ProcessedDocType: Option Sale,Service)
+    begin
+        PEPPOLManagementImpl.GetCrMemoBillingReferenceInfo(SalesCrMemoHeader, InvoiceDocRefID, InvoiceDocRefIssueDate, ProcessedDocType);
+    end;
+
+    /// <summary>
     /// Gets totals and calculates VAT amount lines from the sales line information.
     /// </summary>
     /// <param name="SalesLine">The sales line record to calculate totals from.</param>

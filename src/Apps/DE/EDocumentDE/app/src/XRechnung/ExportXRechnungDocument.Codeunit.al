@@ -228,7 +228,8 @@ codeunit 13916 "Export XRechnung Document"
         XMLDoc: XmlDocument;
         XMLDocText: Text;
         CurrencyCode: Code[10];
-        ReferencedInvoiceNo: Code[20];
+        ReferencedInvoiceNo: Text;
+        ReferencedInvoiceIssueDate: Text;
         LineAmounts: Dictionary of [Text, Decimal];
         LineVATAmount: Dictionary of [Decimal, Decimal];
         LineAmount: Dictionary of [Decimal, Decimal];
@@ -251,7 +252,8 @@ codeunit 13916 "Export XRechnung Document"
 
         InsertHeaderData(RootXMLNode, SalesCrMemoHeader, CurrencyCode);
         InsertOrderReference(RootXMLNode, SalesCrMemoHeader);
-        if EDocumentDEHelper.TryGetReferencedInvoiceNo(SalesCrMemoHeader, ReferencedInvoiceNo) then
+        PEPPOLMgt.GetCrMemoBillingReferenceInfo(SalesCrMemoHeader, ReferencedInvoiceNo, ReferencedInvoiceIssueDate);
+        if ReferencedInvoiceNo <> '' then
             InsertBillingReference(RootXMLNode, ReferencedInvoiceNo);
         InsertEmbeddedDocument(RootXMLNode, SalesCrMemoHeader);
         InsertAttachment(RootXMLNode, Database::"Sales Cr.Memo Header", SalesCrMemoHeader."No.");
@@ -343,11 +345,13 @@ codeunit 13916 "Export XRechnung Document"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         TempSalesCrMemoLine: Record "Sales Cr.Memo Line" temporary;
         ServiceCrMemoLine: Record "Service Cr.Memo Line";
+        ProcessedDocType: Option Sale,Service;
         RootXMLNode: XmlElement;
         XMLDoc: XmlDocument;
         XMLDocText: Text;
         CurrencyCode: Code[10];
-        ReferencedInvoiceNo: Code[20];
+        ReferencedInvoiceNo: Text;
+        ReferencedInvoiceIssueDate: Text;
         LineAmounts: Dictionary of [Text, Decimal];
         LineVATAmount: Dictionary of [Decimal, Decimal];
         LineAmount: Dictionary of [Decimal, Decimal];
@@ -379,7 +383,8 @@ codeunit 13916 "Export XRechnung Document"
 
         InsertHeaderData(RootXMLNode, SalesCrMemoHeader, CurrencyCode);
         InsertOrderReference(RootXMLNode, SalesCrMemoHeader);
-        if EDocumentDEHelper.TryGetReferencedInvoiceNo(ServiceCrMemoHeader, ReferencedInvoiceNo) then
+        PEPPOLMgt.GetCrMemoBillingReferenceInfo(SalesCrMemoHeader, ReferencedInvoiceNo, ReferencedInvoiceIssueDate, ProcessedDocType::Service);
+        if ReferencedInvoiceNo <> '' then
             InsertBillingReference(RootXMLNode, ReferencedInvoiceNo);
         InsertEmbeddedDocument(RootXMLNode, SalesCrMemoHeader);
         InsertAttachment(RootXMLNode, Database::"Service Cr.Memo Header", SalesCrMemoHeader."No.");
@@ -1787,7 +1792,7 @@ codeunit 13916 "Export XRechnung Document"
         RootXMLNode.Add(LegalMonetaryTotalElement);
     end;
 
-    local procedure InsertBillingReference(var RootElement: XmlElement; InvoiceNo: Code[20])
+    local procedure InsertBillingReference(var RootElement: XmlElement; InvoiceNo: Text)
     var
         BillingReferenceElement, InvoiceDocumentReferenceElement : XmlElement;
     begin

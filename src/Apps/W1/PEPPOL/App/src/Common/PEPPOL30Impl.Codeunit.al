@@ -25,6 +25,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Service.Document;
+using Microsoft.Service.History;
 using System.Telemetry;
 using System.Text;
 using System.Utilities;
@@ -46,6 +47,7 @@ codeunit 37201 "PEPPOL30 Impl."
         LocalPaymentSchemeIDTxt: Label 'LOCAL', Locked = true;
         MultiplyTxt: Label 'Multiply', Locked = true;
         NoUnitOfMeasureErr: Label 'The %1 %2 contains lines on which the %3 field is empty.', Comment = '%1: document type, %2: document no, %3 Unit of Measure Code';
+        UnsupportedProcessingTypeErr: Label 'The document processing type is not supported for PEPPOL credit memo billing references.';
         PaymentMeansFundsTransferCodeTxt: Label '31', Locked = true;
         PeppolTelemetryTok: Label 'PEPPOL', Locked = true;
         SalespersonTxt: Label 'Salesperson';
@@ -1399,14 +1401,43 @@ codeunit 37201 "PEPPOL30 Impl."
 
     procedure GetCrMemoBillingReferenceInfo(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var InvoiceDocRefID: Text; var InvoiceDocRefIssueDate: Text)
     var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ProcessedDocType: Option Sale,Service;
     begin
-        if (SalesCrMemoHeader."Applies-to Doc. Type" = SalesCrMemoHeader."Applies-to Doc. Type"::Invoice) and
-           SalesInvoiceHeader.Get(SalesCrMemoHeader."Applies-to Doc. No.")
-        then begin
-            InvoiceDocRefID := SalesInvoiceHeader."No.";
-            InvoiceDocRefIssueDate := Format(SalesInvoiceHeader."Posting Date", 0, 9);
+        GetCrMemoBillingReferenceInfo(SalesCrMemoHeader, InvoiceDocRefID, InvoiceDocRefIssueDate, ProcessedDocType::Sale);
+    end;
+
+    procedure GetCrMemoBillingReferenceInfo(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var InvoiceDocRefID: Text; var InvoiceDocRefIssueDate: Text; ProcessedDocType: Option Sale,Service)
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        InvoicePostingDate: Date;
+    begin
+        Clear(InvoiceDocRefID);
+        Clear(InvoiceDocRefIssueDate);
+        if (SalesCrMemoHeader."Applies-to Doc. Type" <> SalesCrMemoHeader."Applies-to Doc. Type"::Invoice) or
+           (SalesCrMemoHeader."Applies-to Doc. No." = '')
+        then
+            exit;
+
+        case ProcessedDocType of
+            ProcessedDocType::Sale:
+                begin
+                    if not SalesInvoiceHeader.Get(SalesCrMemoHeader."Applies-to Doc. No.") then
+                        exit;
+                    InvoiceDocRefID := SalesInvoiceHeader."No.";
+                    InvoicePostingDate := SalesInvoiceHeader."Posting Date";
+                end;
+            ProcessedDocType::Service:
+                begin
+                    if not ServiceInvoiceHeader.Get(SalesCrMemoHeader."Applies-to Doc. No.") then
+                        exit;
+                    InvoiceDocRefID := ServiceInvoiceHeader."No.";
+                    InvoicePostingDate := ServiceInvoiceHeader."Posting Date";
+                end;
+            else
+                Error(UnsupportedProcessingTypeErr);
         end;
+        InvoiceDocRefIssueDate := Format(InvoicePostingDate, 0, 9);
     end;
 
     local procedure GetCountryISOCode(CountryRegionCode: Code[10]): Code[2]
