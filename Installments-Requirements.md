@@ -2423,3 +2423,165 @@ additional aging modes and consumers, country runtime behavior, permissions,
 and realistic-volume behavior remain broader validation gates. M2-06 integration
 review and the existing unsupported-path/IT boundaries remain in force. Printed
 invoices, layouts, and new schedule API delivery remain deferred.
+
+### 22.14. M2-06: integration, permissions, country, and batch review
+
+**Status (2026-11-17):** Seven focused integration source cases added and locally
+compiled with the user's **compile-only** authorization. No production changes,
+permission elevation, guard removal, publication, or runtime execution are part
+of this package. The accepted server baseline remains M2-03; M2-04/M2-05 and
+the cases below still require runtime acceptance.
+
+**Existing invoice API contract**
+
+`APIV2 - Sales Invoices` (30012) retains its existing public invoice resource.
+`Sales Invoice Aggregator.GetSalesInvoiceHeaderId` uses the original draft
+SystemId when available, falling back to the posted SystemId. For a global
+invoice, the posted header's remaining amount sums detailed entries by Invoice
+Entry No.; Closed tests for any open entry in that group. The API therefore
+reads the whole invoice, not just its final/anchor installment.
+
+The aggregator resolves installment-entry updates through the owning posted
+plan, retaining the Plan.Status = Posted guard while initial posting is still
+splitting and grouping entries. Native status precedence remains Canceled,
+Corrective, Paid, then Open. A correction does not recycle the original public
+identity or schedule for the replacement invoice.
+
+An existing native limitation remains explicit: partial settlement that leaves
+status Open does not necessarily modify the entity aggregate's SystemModifiedAt
+or ETag, although a fresh GET calculates the new remaining amount. This also
+affects ordinary invoices. This package does not change native change-tracking
+semantics or certify conditional reads/delta synchronization as a financial
+change feed. The deferred schedule API still needs its separate ownership,
+company/parent scoping, filtering/paging, denied-write, and conditional-read
+contract before delivery.
+
+**Permissions and compatibility review**
+
+`D365 BASIC` includes `D365 Basic - Edit`, which includes `D365 Basic - Read`;
+the latter already grants direct read access to Installment Plan and Installment
+Plan Line. `D365 READ` also grants those reads. The standard test-library journal
+composition adds BASIC to `D365 JOURNALS, POST`, so its API status subscriber can
+read the posted plan without adding plan write rights to the journal role or
+removing the posting-state guard. Read-only and journal-posting execution are
+covered by new source cases, not yet by runtime evidence.
+
+This conclusion does not certify arbitrary custom or OnPrem component-role
+compositions: Customer - View, Recievables Documents - View, and standalone
+journal components must be evaluated with their actual supplemental grants.
+They must not be assumed to inherit BASIC merely from their names. No broad
+elevated table permission was introduced to mask missing caller authorization.
+
+The Italian `Gen. Jnl.-Post Line` retains explicit global-feature rejection at
+the Installment Posting check event, the correction check event, and customer
+journal posting. Its separate legacy installment engine is not enabled for
+global plans. Subscription Billing's existing posting subscriber still rejects
+Recurring Billing and Auto Contract Billing sources. Ordinary invoices continue
+to take the native null-plan branches; existing ordinary-invoice regressions
+remain in the future selections.
+
+The following boundaries remain in force: standalone full sales invoices only;
+no order/shipment/project/service/subscription producer enablement; no generic
+invoice/credit journal producer; no document-number-only installment application;
+no invoice-posting balancing payment, direct debit, or payment service; no
+additional reporting currency, unsupported sales-tax/unrealized-VAT or
+VAT-adjusting discount combinations; no posted payment-condition edits, late
+posting, or direct ledger reversal. The supported native selected-credit adapter
+is not permission to bypass those other boundaries.
+
+**Focused source cases**
+
+| Location/case | Assertions to validate at runtime |
+| --- | --- |
+| 139809 `InstallmentInvoiceAPIReopensAfterNonAnchorUnapply` | Real existing-endpoint GETs retain public identity and original total 125 after anchor-first settlement, final non-anchor settlement, unapply, and reapply. Remaining/status transitions are 125/Open, 41.67/Open, 0/Paid, 41.67/Open, 0/Paid. |
+| 139809 `InstallmentInvoiceAPIIncludesSelectedCreditAndEarlierPayment` | GET includes the earlier 10 receipt and selected 20 credit, reporting 115 then 95 remaining, without changing public identity, original total, or Open status. |
+| 139809 `InstallmentInvoiceAPICorrectionKeepsOriginalAndReplacementIdentities` | The original remains addressable as Canceled with zero remaining; posting the independently owned replacement preserves its own draft identity and reports 125/Open. |
+| 134499 `ReadRoleCanReadPostedScheduleAndLiveBalances` | D365 READ resolves the posted owner, all three original schedule lines, and live ledger balances totaling 115. |
+| 134499 `ReadRoleCannotModifyDraftSchedule` | A direct draft-plan Modify(false) under D365 READ fails with the native TableData permission error, rather than a posted-immutability error. |
+| 134499 `JournalPostingRoleUpdatesNonAnchorInvoiceAPIStatus` | With the other two obligations settled, standard journal-posting plus BASIC permissions settle installment two and update grouped Closed/remaining/API Paid status. |
+| 134499 `BatchOfTwelveInstallmentInvoicesKeepsGroupsAndOriginalAllocations` | Ten invoices for one customer create 120 obligations. Twenty exact-entry receipts settle every anchor and partly pay each first installment. Each invoice retains twelve grouped entries, original sales statistics, and 109.62 remaining; all original links, dates, document/LCY allocations, customer balance, and receivables control balance reconcile. |
+
+The API tests follow the existing HTTP test codeunit's non-isolated convention:
+fixture changes are committed before GET so the service session can see them.
+They require an explicitly authorized test company and enabled existing API
+endpoint; they must not be treated as isolated source-only tests. Permission
+tests explicitly start the existing mock and leave it active for the native
+runner's after-test hook.
+
+**Query and volume boundary**
+
+The existing Invoice key on customer entries covers Invoice Entry No./Open;
+the detailed-entry Invoice key has SIFT for Amount/Amount (LCY). The Plan ID
+prefix supports installment lookup, and plan lines have plan/sequence and
+plan/customer-entry keys. The reconciliation guard only needs to detect a
+second open obligation. No second balance cache, redundant schedule store,
+new index, or speculative ordinary-invoice performance rewrite was introduced.
+
+The 120-obligation fixture is a bounded batch regression, not production-volume
+certification. No timings, SQL counts, query plans, concurrent-user behavior,
+or performance SLO have been measured. Representative deployment data and an
+agreed performance baseline remain required before volume acceptance.
+
+**Local validation and future selections**
+
+Compiler: `C:\Depot\master\Run\ALDevEnv\bin\alc.exe` (30.0.46.29347).
+The following command used the session-private `erm-symbols` cache, distinct
+`m2-06-` outputs, and existing valid assembly probing directories:
+
+```powershell
+& $compiler "/project:$project" "/out:$output" `
+    "/packagecachepath:$root\erm-symbols" `
+    "/assemblyprobingpaths:$($paths -join ',')" /maxdegreeofparallelism:4
+```
+
+Tests-ERM passed with zero errors/warnings. The unchanged missing `_Exclude_APIV2_`
+dependency also compiled with zero errors/warnings and was copied only into
+the private symbol cache. API tests used the same command plus their four
+configured analyzers through `"/analyzer:$($analyzers -join ',')"` and
+`/ruleset:C:\depot\master\app\BCApps\src\rulesets\base.ruleset.json`.
+They passed with zero errors and 118 existing warnings. An untouched HEAD
+archive of the API test project compiled with the same dependencies/analyzers:
+all 118 warning signatures match after normalizing project paths and diagnostic
+positions, with no added or removed warnings. Logs are
+`m2-06-erm-compile.log`, `m2-06-api-app-compile.log`,
+`m2-06-api-tests-compile.log`, `m2-06-api-tests-baseline.log`, and
+`m2-06-api-warning-comparison.log`.
+
+Country propagation validation passed for the full initial feature selection
+of 210 AL paths, plus a separate successful check of the two new M2-06 paths:
+212 distinct paths in total. The full selection used:
+
+```powershell
+Import-Module '.\build\scripts\Miapp\MicroSnapApp.psm1' -DisableNameChecking
+$base = git merge-base HEAD origin/main
+$files = @(
+    @(git diff --name-only "$base...HEAD" -- src) +
+    @(git diff --name-only -- src) +
+    @(git diff --cached --name-only -- src) +
+    @(git ls-files --others --exclude-standard -- src) |
+        Where-Object { $_ -like '*.al' } | Sort-Object -Unique
+)
+Invoke-MiSnapApp -Files $files
+```
+
+Result: `SUCCESS: No missing files`. The follow-up `Invoke-MiSnapApp -Files`
+selection contained `APIV2SalesInvoicesE2E.Codeunit.al` and
+`ERMInstallmentIntegration.Codeunit.al` at their repository-relative paths and
+also passed. `git diff --check` and `git diff --cached --check` passed.
+This proves propagation-path coverage, not country compilation or runtime
+behavior. No DOCX/RDLC layouts were changed by this package.
+
+There are now **107 installment-focused source cases**: 100 in eight ERM
+codeunits, four in aging codeunit 139555, and three in API codeunit 139809.
+`erm-installments-m2-06-testgroups.json` selects all 100 ERM cases;
+`excel-installments-m2-05-testgroups.json` retains all 18 aging cases, including
+14 native regressions; `api-installments-m2-06-testgroups.json` selects exactly
+the three new API methods, not the whole HTTP codeunit. Together these prepared
+selections contain 121 tests. They have not been executed for M2-06.
+
+Before M2-07 sign-off, deploy compatible pending Base/library/test packages with
+explicit authorization, run the focused selections and relevant native
+regressions, verify actual permission-role compositions and country isolation,
+and record representative volume evidence. M2 is not runtime-accepted merely
+because this source/compile review is complete. Printed invoices, layouts, and
+new schedule API delivery remain deferred.

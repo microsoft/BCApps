@@ -5,6 +5,7 @@
 namespace Microsoft.Foundation.PaymentTerms;
 
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Integration.Entity;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -128,6 +129,8 @@ codeunit 134499 "ERM Installment Integration"
         TempOriginalLine: Record "Installment Plan Line" temporary;
         Entry: Record "Cust. Ledger Entry";
         Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        GLEntry: Record "G/L Entry";
         Aggregate: Record "Sales Invoice Entity Aggregate";
         APIMockEvents: Codeunit "API Mock Events";
         CustomerNo: Code[20];
@@ -203,6 +206,12 @@ codeunit 134499 "ERM Installment Integration"
         Customer.Get(CustomerNo);
         Customer.CalcFields("Balance (LCY)");
         Assert.AreEqual(RemainingAmount, Customer."Balance (LCY)", 'Customer balance must reconcile to all residual obligations.');
+        CustomerPostingGroup.Get(Customer."Customer Posting Group");
+        GLEntry.SetRange("G/L Account No.", CustomerPostingGroup."Receivables Account");
+        GLEntry.SetRange("Source Type", GLEntry."Source Type"::Customer);
+        GLEntry.SetRange("Source No.", CustomerNo);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(RemainingAmount, GLEntry.Amount, 'The receivables control balance must reconcile to the batch.');
         UnbindSubscription(APIMockEvents);
     end;
 
