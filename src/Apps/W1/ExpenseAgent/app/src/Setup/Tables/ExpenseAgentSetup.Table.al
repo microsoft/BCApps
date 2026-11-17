@@ -25,7 +25,9 @@ table 6930 "Expense Agent Setup"
     InherentEntitlements = RIMDX;
     InherentPermissions = rimdX;
     DataClassification = CustomerContent;
-    Permissions = tabledata "Expense Agent Setup" = ri;
+    Permissions = tabledata "Expense Agent Setup" = ri,
+                  tabledata User = r,
+                  tabledata "User Personalization" = r;
 
     fields
     {
@@ -820,7 +822,6 @@ table 6930 "Expense Agent Setup"
         CannotDisableApprovalWorkflowErr: Label 'You cannot disable approval workflow because there are expense reports pending approval. Please complete or cancel the approval process for those expense reports before disabling this feature.';
         FeatureNameLbl: Label 'Expense Agent', Locked = true;
         NoAgentTok: Label 'NoAgent', Locked = true;
-        SettingsLookupFailedTok: Label 'SettingsLookupFailed', Locked = true;
         BlankTimeZoneTok: Label 'BlankTimeZone', Locked = true;
         InvalidTimeZoneTok: Label 'InvalidTimeZone', Locked = true;
         ClearNoreplyAccountQst: Label 'Do you want to clear the no-reply email account? The agent will no longer send welcome, reimbursement, approval or reminder emails until you configure one.';
@@ -958,27 +959,44 @@ table 6930 "Expense Agent Setup"
         TempUserSettings: Record "User Settings" temporary;
     begin
         Clear(AgentTimeZoneId);
-        Clear(UnresolvedReason);
-        // Agent.GetUserSettings returns the current user's settings for an empty ID.
-        if IsNullGuid(Rec."User Security ID") then begin
-            UnresolvedReason := NoAgentTok;
+        if not GetAgentUserSettings(TempUserSettings, UnresolvedReason) then
             exit(false);
-        end;
-        if not TryGetAgentUserSettings(Rec."User Security ID", TempUserSettings) then begin
-            UnresolvedReason := SettingsLookupFailedTok;
-            exit(false);
-        end;
         exit(GetAgentTimeZoneFromUserSettings(TempUserSettings, AgentTimeZoneId, UnresolvedReason));
     end;
 
     /// <summary>
-    /// Resolves the agent time zone from user settings already loaded with Agent.GetUserSettings for this agent.
+    /// Loads the user settings of the Expense Agent user.
+    /// </summary>
+    /// <param name="UnresolvedReason">When the settings can't be loaded, the reason, without customer data.</param>
+    /// <returns>True if the settings of the agent user were loaded.</returns>
+    internal procedure GetAgentUserSettings(var TempUserSettings: Record "User Settings" temporary; var UnresolvedReason: Text): Boolean
+    var
+        User: Record User;
+        UserPersonalization: Record "User Personalization";
+    begin
+        Clear(UnresolvedReason);
+        if IsNullGuid(Rec."User Security ID") or not User.Get(Rec."User Security ID") then begin
+            UnresolvedReason := NoAgentTok;
+            exit(false);
+        end;
+        // Read directly: Agent.GetUserSettings requires agent management rights, which the users and sessions that
+        // calculate per diems may not have, and User Settings inserts default settings, which a read must not do.
+        if not UserPersonalization.Get(Rec."User Security ID") then
+            Clear(UserPersonalization);
+        TempUserSettings."User Security ID" := Rec."User Security ID";
+        TempUserSettings."Language ID" := UserPersonalization."Language ID";
+        TempUserSettings."Locale ID" := UserPersonalization."Locale ID";
+        TempUserSettings."Time Zone" := UserPersonalization."Time Zone";
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Resolves the agent time zone from user settings already loaded with GetAgentUserSettings for this agent.
     /// </summary>
     internal procedure GetAgentTimeZoneFromUserSettings(var TempUserSettings: Record "User Settings" temporary; var AgentTimeZoneId: Text[180]; var UnresolvedReason: Text): Boolean
     begin
         Clear(AgentTimeZoneId);
         Clear(UnresolvedReason);
-        // Agent.GetUserSettings returns the current user's settings for an empty ID or when the agent no longer exists.
         if IsNullGuid(Rec."User Security ID") or (TempUserSettings."User Security ID" <> Rec."User Security ID") then begin
             UnresolvedReason := NoAgentTok;
             exit(false);
@@ -993,14 +1011,6 @@ table 6930 "Expense Agent Setup"
         end;
         AgentTimeZoneId := TempUserSettings."Time Zone";
         exit(true);
-    end;
-
-    [TryFunction]
-    local procedure TryGetAgentUserSettings(AgentUserSecurityID: Guid; var TempUserSettings: Record "User Settings" temporary)
-    var
-        Agent: Codeunit Agent;
-    begin
-        Agent.GetUserSettings(AgentUserSecurityID, TempUserSettings);
     end;
 
     [TryFunction]

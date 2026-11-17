@@ -504,7 +504,7 @@ codeunit 148300 "Library - Expense"
         ExpenseAgentSetup: Record "Expense Agent Setup";
         UserPersonalization: Record "User Personalization";
     begin
-        // Agent.GetUserSettings falls back to the current user, so the current user's settings stand in for the agent's.
+        // The current user stands in for the agent user, so its settings are read as the agent's.
         if not UserPersonalization.Get(UserSecurityId()) then begin
             UserPersonalization.Init();
             UserPersonalization."User SID" := UserSecurityId();
