@@ -221,8 +221,8 @@ codeunit 6912 "Expense Auto Population"
         if Expense."Expense Detail Required" <> Expense."Expense Detail Required"::Mileage then begin
             Expense.Validate(Mileage, 0);
             Expense."Round Trip" := false;
-            Expense.SetStartingPoint('');
-            Expense.SetEndingPoint('');
+            Expense."Starting Point" := '';
+            Expense."Ending Point" := '';
         end;
 
         if Expense."Expense Detail Required" = Expense."Expense Detail Required"::"Per Diem" then
@@ -264,8 +264,8 @@ codeunit 6912 "Expense Auto Population"
         if ExpenseReportLine."Expense Detail Required" <> ExpenseReportLine."Expense Detail Required"::Mileage then begin
             ExpenseReportLine.Validate(Mileage, 0);
             ExpenseReportLine."Round Trip" := false;
-            ExpenseReportLine.SetStartingPoint('');
-            ExpenseReportLine.SetEndingPoint('');
+            ExpenseReportLine."Starting Point" := '';
+            ExpenseReportLine."Ending Point" := '';
         end;
 
         if ExpenseReportLine."Expense Detail Required" = ExpenseReportLine."Expense Detail Required"::"Per Diem" then

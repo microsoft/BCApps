@@ -5249,7 +5249,7 @@ codeunit 148306 "Expense Report Test"
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
         Amount: Decimal;
         CurrencyCode: Code[10];
-        NewStartingPoint: Text;
+        NewStartingPoint: Text[50];
     begin
         // [SCENARIO 617013] Verify Starting Point can be updated in Expense Report Line When Expense Report is created from Expense and Starting Point is blank in Expense.
         Initialize();
@@ -5279,15 +5279,13 @@ codeunit 148306 "Expense Report Test"
         NewStartingPoint := CopyStr(LibraryRandom.RandText(50), 1, 50);
 
         // [WHEN] Update "Starting Point" in Expense Report Line.
-        ExpenseReportLine.SetStartingPoint(NewStartingPoint);
-        ExpenseReportLine.Modify();
+        ExpenseReportLine.Validate("Starting Point", NewStartingPoint);
 
         // [THEN] Verify that "Starting Point" can be updated in Expense Report Line When Expense Report is created from Expense and Starting Point is blank in Expense.
-        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual(
             NewStartingPoint,
-            ExpenseReportLine.GetStartingPoint(),
-            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Starting Point Description"), NewStartingPoint, ExpenseReportLine.TableCaption()));
+            ExpenseReportLine."Starting Point",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Starting Point"), NewStartingPoint, ExpenseReportLine.TableCaption()));
     end;
 
     [Test]
@@ -5301,7 +5299,7 @@ codeunit 148306 "Expense Report Test"
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
         Amount: Decimal;
         CurrencyCode: Code[10];
-        NewEndingPoint: Text;
+        NewEndingPoint: Text[50];
     begin
         // [SCENARIO 617013] Verify Ending Point can be updated in Expense Report Line When Expense Report is created from Expense and Ending Point is blank in Expense.
         Initialize();
@@ -5331,15 +5329,13 @@ codeunit 148306 "Expense Report Test"
         NewEndingPoint := CopyStr(LibraryRandom.RandText(50), 1, 50);
 
         // [WHEN] Update "Ending Point" in Expense Report Line.
-        ExpenseReportLine.SetEndingPoint(NewEndingPoint);
-        ExpenseReportLine.Modify();
+        ExpenseReportLine.Validate("Ending Point", NewEndingPoint);
 
         // [THEN] Verify that "Ending Point" can be updated in Expense Report Line When Expense Report is created from Expense and Ending Point is blank in Expense.
-        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual(
             NewEndingPoint,
-            ExpenseReportLine.GetEndingPoint(),
-            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Ending Point Description"), NewEndingPoint, ExpenseReportLine.TableCaption()));
+            ExpenseReportLine."Ending Point",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Ending Point"), NewEndingPoint, ExpenseReportLine.TableCaption()));
     end;
 
     [Test]
@@ -7129,10 +7125,10 @@ codeunit 148306 "Expense Report Test"
             else
                 ExpectedAmountPerMileage := 0;
 
-            LibraryReportDataset.AssertCurrentRowValueEquals(MileageStartingPointLbl, ExpenseReportLine.GetStartingPoint());
+            LibraryReportDataset.AssertCurrentRowValueEquals(MileageStartingPointLbl, ExpenseReportLine."Starting Point");
             LibraryReportDataset.AssertCurrentRowValueEquals(DocumentNoMileageLineLbl, ExpenseReportLine."Document No.");
             LibraryReportDataset.AssertCurrentRowValueEquals(MileageLineNoLbl, ExpenseReportLine."Line No.");
-            LibraryReportDataset.AssertCurrentRowValueEquals(MileageEndingPointLbl, ExpenseReportLine.GetEndingPoint());
+            LibraryReportDataset.AssertCurrentRowValueEquals(MileageEndingPointLbl, ExpenseReportLine."Ending Point");
             LibraryReportDataset.AssertCurrentRowValueEquals(MileageMileageLbl, MileageValue);
             LibraryReportDataset.AssertCurrentRowValueEquals(MileageUOMLbl, ExpenseReportLine."Unit of Measure Code");
             LibraryReportDataset.AssertCurrentRowValueEquals(MileageAmountPerMileageLbl, ExpectedAmountPerMileage);

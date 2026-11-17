@@ -176,25 +176,13 @@ page 6927 "Expenses API"
                 {
                     Caption = 'Unit of Measure Code';
                 }
-                field(startingPoint; StartingPoint)
+                field(startingPoint; Rec."Starting Point")
                 {
                     Caption = 'Starting Point';
-
-                    trigger OnValidate()
-                    begin
-                        Rec.TestStatusOpen();
-                        Rec.SetStartingPoint(StartingPoint);
-                    end;
                 }
-                field(endingPoint; EndingPoint)
+                field(endingPoint; Rec."Ending Point")
                 {
                     Caption = 'Ending Point';
-
-                    trigger OnValidate()
-                    begin
-                        Rec.TestStatusOpen();
-                        Rec.SetEndingPoint(EndingPoint);
-                    end;
                 }
                 field(roundTrip; Rec."Round Trip")
                 {
@@ -359,8 +347,6 @@ page 6927 "Expenses API"
         CurrencyLCYDisplay: Code[10];
         ExpenseUserSystemId: Guid;
         TotalMileage: Decimal;
-        StartingPoint: Text;
-        EndingPoint: Text;
         JobDescription: Text[100];
         JobTaskDescription: Text[100];
         ExpenseCreatedLbl: Label 'Expense created via API.', Locked = true;
@@ -387,8 +373,6 @@ page 6927 "Expenses API"
         XCurrencyCodeDisplay := CurrencyCodeDisplay;
         ExpenseUserSystemId := ExpenseUser.GetSystemIdByExpenseUserNo(Rec."Expense User No.");
         TotalMileage := ExpenseAutoPopulation.GetEffectiveDistance(Rec.Mileage, Rec."Round Trip");
-        StartingPoint := Rec.GetStartingPoint();
-        EndingPoint := Rec.GetEndingPoint();
 
         JobDescription := '';
         JobTaskDescription := '';
@@ -408,8 +392,6 @@ page 6927 "Expenses API"
     begin
         CurrencyCodeDisplay := '';
         XCurrencyCodeDisplay := '';
-        StartingPoint := '';
-        EndingPoint := '';
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
