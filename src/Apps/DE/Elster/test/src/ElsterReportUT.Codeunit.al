@@ -144,6 +144,68 @@ codeunit 148164 "Elster Report UT"
 
     [Test]
     [HandlerFunctions('MessageHandler')]
+    procedure CreateXMLFile2026MonthlyNamespace()
+    var
+        SalesVATAdvanceNotif: Record "Sales VAT Advance Notif.";
+    begin
+        // [SCENARIO 659662] Monthly 2026 filings use the 2026 namespace on every element.
+        Initialize();
+
+        CreateXMLFileAndVerifyNamespace(
+            DMY2Date(1, 1, 2026), SalesVATAdvanceNotif.Period::Month,
+            'http://finkonsens.de/elster/elsteranmeldung/ustva/v2026', '01');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure CreateXMLFile2026QuarterlyNamespace()
+    var
+        SalesVATAdvanceNotif: Record "Sales VAT Advance Notif.";
+    begin
+        // [SCENARIO 659662] Quarterly 2026 filings use the 2026 namespace on every element.
+        Initialize();
+
+        CreateXMLFileAndVerifyNamespace(
+            DMY2Date(1, 10, 2026), SalesVATAdvanceNotif.Period::Quarter,
+            'http://finkonsens.de/elster/elsteranmeldung/ustva/v2026', '44');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure CreateXMLFilePriorYearNamespaces()
+    var
+        SalesVATAdvanceNotif: Record "Sales VAT Advance Notif.";
+        Year: Integer;
+    begin
+        // [SCENARIO 659662] Prior-year filings retain their namespace regardless of the current date.
+        Initialize();
+
+        for Year := 2023 to 2025 do begin
+            CreateXMLFileAndVerifyNamespace(
+                DMY2Date(1, 12, Year), SalesVATAdvanceNotif.Period::Month,
+                'http://finkonsens.de/elster/elsteranmeldung/ustva/v2023', '12');
+            CreateXMLFileAndVerifyNamespace(
+                DMY2Date(1, 10, Year), SalesVATAdvanceNotif.Period::Quarter,
+                'http://finkonsens.de/elster/elsteranmeldung/ustva/v2023', '44');
+        end;
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure CreateXMLFileFutureYearNamespace()
+    var
+        SalesVATAdvanceNotif: Record "Sales VAT Advance Notif.";
+    begin
+        // [SCENARIO 659662] Later filings retain the latest supported namespace without inventing a future schema.
+        Initialize();
+
+        CreateXMLFileAndVerifyNamespace(
+            DMY2Date(1, 1, 2027), SalesVATAdvanceNotif.Period::Month,
+            'http://finkonsens.de/elster/elsteranmeldung/ustva/v2026', '01');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
     procedure CreateXMLFile_KZ37_Kz50()
     var
         VATEntry: Record "VAT Entry";
@@ -339,19 +401,26 @@ codeunit 148164 "Elster Report UT"
         SalesVATAdvanceNotif: Record "Sales VAT Advance Notif.";
         VATProdPostingGroup: Code[20];
     begin
-        // [SCENARIO 468885] Report 11016 "Create XML-File VAT Adv.Notif." exports "Kz90" (VAT Base type)
+        // [SCENARIO 659662] Report 11016 exports "Kz90" (VAT Base type) after "Kz91" and "Kz93" for 2026.
         Initialize();
 
-        // [GIVEN] VAT Statement setup for "Kz90" (VAT Base type)
+        // [GIVEN] VAT Statement setup for "Kz90", "Kz91" and "Kz93" (VAT Base type)
         VATProdPostingGroup := LibraryUtility.GenerateGUID();
         CreateVATStatementName(VATStatementName);
         CreateVATStatementLine(VATStatementName, '90', VATStatementLine."Amount Type"::Base, VATProdPostingGroup);
+        CreateVATStatementLine(VATStatementName, '91', VATStatementLine."Amount Type"::Base, VATProdPostingGroup);
+        CreateVATStatementLine(VATStatementName, '93', VATStatementLine."Amount Type"::Base, VATProdPostingGroup);
 
         // [GIVEN] Posted VAT Entry with Base "A"
         MockVATEntry(VATEntry, VATProdPostingGroup);
+        VATEntry."Posting Date" := DMY2Date(1, 1, 2026);
+        VATEntry."VAT Reporting Date" := VATEntry."Posting Date";
+        VATEntry.Modify();
 
-        // [GIVEN] Sales VAT Advance notification entry
+        // [GIVEN] Sales VAT Advance notification entry for January 2026
         CreateSalesVATAdvanceNotif(SalesVATAdvanceNotif, SalesVATAdvanceNotif.Period::Month, VATStatementName.Name);
+        SalesVATAdvanceNotif.Validate("Starting Date", DMY2Date(1, 1, 2026));
+        SalesVATAdvanceNotif.Modify(true);
 
         // [WHEN] Run "Create XML File" action from sales VAT advance notification
         Report.Run(Report::"Create XML-File VAT Adv.Notif.", false, false, SalesVATAdvanceNotif);
@@ -362,6 +431,10 @@ codeunit 148164 "Elster Report UT"
             Format(VATEntry.Base, 0, '<Sign><Integer>'),
             LibraryXPathXMLReader.GetXmlElementValue('//ns:Steuerfall/ns:Umsatzsteuervoranmeldung/ns:Kz90'),
             'Kz90');
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath(
+            '//ns:Steuerfall/ns:Umsatzsteuervoranmeldung/ns:Kz90/preceding-sibling::ns:Kz91', 1);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath(
+            '//ns:Steuerfall/ns:Umsatzsteuervoranmeldung/ns:Kz90/preceding-sibling::ns:Kz93', 1);
 
         // Tear down
         VATStatementName.Delete(true);
@@ -483,13 +556,44 @@ codeunit 148164 "Elster Report UT"
         CreateXMLFileVATAdvNotif.OK().Invoke();
     end;
 
+    local procedure CreateXMLFileAndVerifyNamespace(StartingDate: Date; Period: Option; ExpectedNamespace: Text; ExpectedPeriod: Text)
+    var
+        VATStatementName: Record "VAT Statement Name";
+        SalesVATAdvanceNotif: Record "Sales VAT Advance Notif.";
+    begin
+        CreateVATStatementName(VATStatementName);
+        CreateSalesVATAdvanceNotif(SalesVATAdvanceNotif, Period, VATStatementName.Name);
+        SalesVATAdvanceNotif.Validate("Starting Date", StartingDate);
+        SalesVATAdvanceNotif.Modify(true);
+
+        Report.Run(Report::"Create XML-File VAT Adv.Notif.", false, false, SalesVATAdvanceNotif);
+
+        LoadXMLFromSalesVATAdvanceNotif(SalesVATAdvanceNotif);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath(
+            StrSubstNo('//*[namespace-uri() != "%1"]', ExpectedNamespace), 0);
+        LibraryXPathXMLReader.VerifyXmlAttributeValue(
+            '/ns:Anmeldungssteuern', 'version', Format(Date2DMY(StartingDate, 3)));
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
+            '/ns:Anmeldungssteuern/ns:Steuerfall/ns:Umsatzsteuervoranmeldung/ns:Jahr', Format(Date2DMY(StartingDate, 3)));
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
+            '/ns:Anmeldungssteuern/ns:Steuerfall/ns:Umsatzsteuervoranmeldung/ns:Zeitraum', ExpectedPeriod);
+
+        VATStatementName.Delete(true);
+    end;
+
     local procedure LoadXMLFromSalesVATAdvanceNotif(SalesVATAdvanceNotif: Record "Sales VAT Advance Notif.")
     var
         TempBlob: Codeunit "Temp Blob";
+        XmlDoc: XmlDocument;
+        XmlRootElem: XmlElement;
+        XmlInStream: InStream;
     begin
         SalesVATAdvanceNotif.CalcFields("XML Submission Document");
         TempBlob.FromRecord(SalesVATAdvanceNotif, SalesVATAdvanceNotif.FieldNo("XML Submission Document"));
-        LibraryXPathXMLReader.InitializeXml(TempBlob, 'ns', 'http://finkonsens.de/elster/elsteranmeldung/ustva/v2023');
+        TempBlob.CreateInStream(XmlInStream);
+        XmlDocument.ReadFrom(XmlInStream, XmlDoc);
+        XmlDoc.GetRoot(XmlRootElem);
+        LibraryXPathXMLReader.InitializeXml(TempBlob, 'ns', XmlRootElem.NamespaceUri());
     end;
 
     [RequestPageHandler]
