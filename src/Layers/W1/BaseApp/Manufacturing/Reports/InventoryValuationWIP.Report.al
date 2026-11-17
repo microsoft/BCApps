@@ -241,7 +241,9 @@ report 5802 "Inventory Valuation - WIP"
                                 ValueOfWIP := ValueOfExpOutput1 + ValueOfInvOutput1;
                             end;
 
-                            if ("Entry Type" = "Entry Type"::Revaluation) and ("Cost Amount (Actual)" <> 0) then
+                            if ("Entry Type" = "Entry Type"::Revaluation) and ("Cost Amount (Actual)" <> 0) and
+                                not IsProductionCost("Value Entry")
+                            then
                                 ValueOfWIP := 0;
                         end else
                             case "Item Ledger Entry Type" of

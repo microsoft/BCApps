@@ -1742,6 +1742,34 @@ codeunit 137350 "SCM Inventory Reports - III"
     end;
 
     [Test]
+    [HandlerFunctions('InventoryValuationWIPRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure InvValuationWIPIncludesRevaluationAfterReversedConsumption()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        RevaluationDate: Date;
+        ExpectedRevaluationWIP: Decimal;
+    begin
+        // [SCENARIO 658991] The WIP report includes the production consumption revaluation when the reporting period starts after the revaluation date.
+        Initialize();
+
+        // [GIVEN] A released production order with matching original and reversed consumption revaluations.
+        Item.Get(SetupProductionItem(Item."Costing Method"::FIFO, Item."Replenishment System"::"Prod. Order", 0));
+        LibraryManufacturing.CreateProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 1);
+        RevaluationDate := CalcDate('<1M>', WorkDate());
+        ExpectedRevaluationWIP := CreateProductionConsumptionRevaluationEntries(
+            Item."No.", ProductionOrder."No.", RevaluationDate);
+
+        // [WHEN] The report period starts after the revaluation date.
+        RunReleasedInventoryValuationWIPReport(ProductionOrder."No.");
+
+        // [THEN] Only the original consumption revaluation is included in opening and ending WIP.
+        VerifyWIPValuesOnGeneratedReport(ProductionOrder."No.", ExpectedRevaluationWIP);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure ItemSubstitutionDescriptionWithInterchangeableChecked()
     var
@@ -2427,6 +2455,16 @@ codeunit 137350 "SCM Inventory Reports - III"
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
     end;
 
+    local procedure CreateProductionConsumptionRevaluationEntries(ItemNo: Code[20]; ProductionOrderNo: Code[20]; PostingDate: Date): Decimal
+    var
+        RevaluationAmount: Decimal;
+    begin
+        RevaluationAmount := LibraryRandom.RandDecInRange(1, 10, 2);
+        MockProductionConsumptionRevaluationValueEntry(ItemNo, ProductionOrderNo, PostingDate, -1, -RevaluationAmount);
+        MockProductionConsumptionRevaluationValueEntry(ItemNo, ProductionOrderNo, PostingDate, 1, RevaluationAmount);
+        exit(RevaluationAmount);
+    end;
+
     local procedure CreateAndPostPurchaseOrder(ItemNo: Code[20]; Quantity: Decimal; UnitCost: Decimal)
     var
         PurchaseLine: Record "Purchase Line";
@@ -2887,6 +2925,23 @@ codeunit 137350 "SCM Inventory Reports - III"
         ItemJournalLine.Modify(true);
     end;
 
+    local procedure MockProductionConsumptionRevaluationValueEntry(ItemNo: Code[20]; ProductionOrderNo: Code[20]; PostingDate: Date; ItemLedgerEntryQuantity: Decimal; CostAmount: Decimal)
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.Init();
+        ValueEntry."Entry No." := LibraryUtility.GetNewRecNo(ValueEntry, ValueEntry.FieldNo("Entry No."));
+        ValueEntry."Item No." := ItemNo;
+        ValueEntry."Posting Date" := PostingDate;
+        ValueEntry."Item Ledger Entry Type" := ValueEntry."Item Ledger Entry Type"::Consumption;
+        ValueEntry."Item Ledger Entry Quantity" := ItemLedgerEntryQuantity;
+        ValueEntry."Entry Type" := ValueEntry."Entry Type"::Revaluation;
+        ValueEntry."Order Type" := ValueEntry."Order Type"::Production;
+        ValueEntry."Order No." := ProductionOrderNo;
+        ValueEntry."Cost Amount (Actual)" := CostAmount;
+        ValueEntry.Insert();
+    end;
+
     local procedure RunCalculateInventoryReport(ItemJournalBatch: Record "Item Journal Batch"; No: Code[20]; LocationCode: Code[10]; PostingDate: Date)
     var
         Item: Record Item;
@@ -3098,6 +3153,18 @@ codeunit 137350 "SCM Inventory Reports - III"
         LibraryVariableStorage.Enqueue(CalcDate(StrSubstNo('<%1M>', LibraryRandom.RandInt(5)), WorkDate()));
         Commit();
         ProductionOrder.SetRange(Status, ProductionOrder.Status::Finished);
+        ProductionOrder.SetRange("No.", ProductionOrderNo);
+        REPORT.Run(REPORT::"Inventory Valuation - WIP", true, false, ProductionOrder);
+    end;
+
+    local procedure RunReleasedInventoryValuationWIPReport(ProductionOrderNo: Code[20])
+    var
+        ProductionOrder: Record "Production Order";
+    begin
+        // Start the period at least one month after the revaluation date, because the request page handler reports whole months.
+        LibraryVariableStorage.Enqueue(CalcDate(StrSubstNo('<%1M>', LibraryRandom.RandIntInRange(2, 5)), WorkDate()));
+        Commit();
+        ProductionOrder.SetRange(Status, ProductionOrder.Status::Released);
         ProductionOrder.SetRange("No.", ProductionOrderNo);
         REPORT.Run(REPORT::"Inventory Valuation - WIP", true, false, ProductionOrder);
     end;
@@ -3391,6 +3458,15 @@ codeunit 137350 "SCM Inventory Reports - III"
             LibraryReportDataset.AssertCurrentRowValueEquals('ValueEntryCostPostedtoGL', 0);
             LibraryReportDataset.AssertCurrentRowValueEquals('ValueOfOutput', 0);
         end;
+    end;
+
+    local procedure VerifyWIPValuesOnGeneratedReport(ProductionOrderNo: Code[20]; ExpectedWIP: Decimal)
+    begin
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('No_ProductionOrder', ProductionOrderNo);
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), 'The report must include the production order.');
+        LibraryReportDataset.AssertCurrentRowValueEquals('LastWIP', ExpectedWIP);
+        LibraryReportDataset.AssertCurrentRowValueEquals('AtLastDate', ExpectedWIP);
     end;
 
     local procedure VerifyDescriptionOnItemSubstitution(ItemNo: Code[20]; Desc: Text[100])
