@@ -286,9 +286,9 @@ report 1700 "Deferral Summary - G/L"
             Type = Word;
             LayoutFile = './Finance/Deferral/DeferralSummaryGL.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+#if CLEAN30
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-#if CLEAN30
             ObsoleteTag = '30.0';
 #endif
         }
