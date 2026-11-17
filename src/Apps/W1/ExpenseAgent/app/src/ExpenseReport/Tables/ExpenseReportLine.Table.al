@@ -615,6 +615,7 @@ table 6907 "Expense Report Line"
                 ApplyRule();
             end;
         }
+#pragma warning disable AS0086
         field(36; "Starting Point"; Text[2048])
         {
             Caption = 'Starting Point';
@@ -633,6 +634,7 @@ table 6907 "Expense Report Line"
                 TestStatusOpen();
             end;
         }
+#pragma warning restore AS0086
         field(38; "Non-Refundable Amount (LCY)"; Decimal)
         {
             AutoFormatExpression = '';

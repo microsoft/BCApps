@@ -430,6 +430,7 @@ table 6900 Expense
                 ApplyRule();
             end;
         }
+#pragma warning disable AS0086
         field(28; "Starting Point"; Text[2048])
         {
             Caption = 'Starting Point';
@@ -448,6 +449,7 @@ table 6900 Expense
                 TestStatusOpen();
             end;
         }
+#pragma warning restore AS0086
         field(53; "Round Trip"; Boolean)
         {
             Caption = 'Round Trip';
