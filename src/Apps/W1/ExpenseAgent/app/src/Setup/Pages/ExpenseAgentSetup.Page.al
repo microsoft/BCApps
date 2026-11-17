@@ -230,6 +230,9 @@ page 6996 "Expense Agent Setup"
             {
                 Caption = 'Corporate Card';
 
+                field("Require Corporate Card"; Rec."Require Corporate Card")
+                {
+                }
                 field("Corp Card Default Provider"; Rec."Corp Card Default Provider")
                 {
                 }
@@ -564,7 +567,7 @@ page 6996 "Expense Agent Setup"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Create corp card CSV sample scenario';
                     Image = Import;
-                    ToolTip = 'Imports the 60 sample CSV transactions, creates and posts their expense reports, and creates and posts the settlement between CORPCARD and a local-currency bank account with a configured posting group.';
+                    ToolTip = 'Imports the 60 sample CSV transactions, creates and posts their expense reports, and creates and posts the settlement between CORPCARD and a local-currency bank account with a configured posting group. Also enables Require Corporate Card for this company, including existing unposted credit-card documents.';
 
                     trigger OnAction()
                     var
@@ -574,6 +577,8 @@ page 6996 "Expense Agent Setup"
                             exit;
 
                         CreateCorpCardSetup.CreateCsvSampleScenario();
+                        Rec.Get();
+                        CurrPage.Update(false);
                         Message(CorpCardCsvSampleScenarioCreatedMsg);
                     end;
                 }
@@ -637,7 +642,7 @@ page 6996 "Expense Agent Setup"
 
     var
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
-        CreateCorpCardCsvSampleScenarioQst: Label 'This action imports and posts the corporate card CSV sample transactions, expense reports, and bank settlement. Do you want to continue?';
+        CreateCorpCardCsvSampleScenarioQst: Label 'This action enables Require Corporate Card for the whole company, including existing unposted credit-card expenses and report lines, and imports and posts the sample transactions, expense reports, and bank settlement. Do you want to continue?';
         CorpCardCsvSampleScenarioCreatedMsg: Label 'The corporate card CSV sample scenario was created and posted.';
 #if not CLEAN29
         ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';
