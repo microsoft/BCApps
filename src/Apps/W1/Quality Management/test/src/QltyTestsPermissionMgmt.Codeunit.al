@@ -15,6 +15,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     Subtype = Test;
     TestPermissions = Restrictive;
     TestType = UnitTest;
+    TestHandlers = "Qlty. Permission Fixture";
 
     var
         TestUser: Record User;
@@ -32,7 +33,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     begin
         // [SCENARIO] A quality inspector can select destination bins with the additional bin lookup role.
         LibraryLowerPermissions.AddPermissionSet(InspectorRoleIDTok);
-        LibraryLowerPermissions.AddPermissionSet(BinLookupRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet('Qlty. Test Bin Exec');
 
         VerifyCanSelectDestinationBin();
     end;
@@ -42,7 +43,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     begin
         // [SCENARIO] A quality supervisor can select destination bins with the additional bin lookup role.
         LibraryLowerPermissions.AddPermissionSet(AdminSupervisorRoleIDTok);
-        LibraryLowerPermissions.AddPermissionSet(BinLookupRoleIDTok);
+        LibraryLowerPermissions.AddPermissionSet('Qlty. Test Bin Exec');
 
         VerifyCanSelectDestinationBin();
     end;
@@ -184,12 +185,69 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         LibraryAssert.IsTrue(QltyInspectionUtility.CanChangeSourceQuantity(TestUser."User Security ID"), 'allowed with SUPER');
     end;
 
+    [Test]
+    [TestPermissions(TestPermissions::NonRestrictive)]
+    procedure VerifyFixturePreparationIsIdempotent()
+    var
+        QltyPermissionTestFixture: Codeunit "Qlty. Permission Test Fixture";
+        Context: TestHandlerContext;
+        InspectorSecurityId: Guid;
+        AdminSecurityId: Guid;
+        SuperSecurityId: Guid;
+    begin
+        InspectorSecurityId := QltyPermissionTestFixture.GetUserSecurityId(InspectorRoleIDTok);
+        AdminSecurityId := QltyPermissionTestFixture.GetUserSecurityId(AdminSupervisorRoleIDTok);
+        SuperSecurityId := QltyPermissionTestFixture.GetUserSecurityId(SuperRoleIDTok);
+
+        QltyPermissionTestFixture.OnBeforeTestCodeunitRun(Context);
+        QltyPermissionTestFixture.OnBeforeTestCodeunitRun(Context);
+
+        LibraryAssert.AreEqual(InspectorSecurityId, QltyPermissionTestFixture.GetUserSecurityId(InspectorRoleIDTok), 'Preparing the fixture again must reuse the inspector.');
+        LibraryAssert.AreEqual(AdminSecurityId, QltyPermissionTestFixture.GetUserSecurityId(AdminSupervisorRoleIDTok), 'Preparing the fixture again must reuse the administrator.');
+        LibraryAssert.AreEqual(SuperSecurityId, QltyPermissionTestFixture.GetUserSecurityId(SuperRoleIDTok), 'Preparing the fixture again must reuse the SUPER user.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::NonRestrictive)]
+    procedure VerifyFixtureUsersHaveExpectedRoles()
+    var
+        QltyPermissionTestFixture: Codeunit "Qlty. Permission Test Fixture";
+        InspectorSecurityId: Guid;
+        AdminSecurityId: Guid;
+        SuperSecurityId: Guid;
+    begin
+        InspectorSecurityId := QltyPermissionTestFixture.GetUserSecurityId(InspectorRoleIDTok);
+        AdminSecurityId := QltyPermissionTestFixture.GetUserSecurityId(AdminSupervisorRoleIDTok);
+        SuperSecurityId := QltyPermissionTestFixture.GetUserSecurityId(SuperRoleIDTok);
+
+        LibraryAssert.AreNotEqual(InspectorSecurityId, AdminSecurityId, 'The fixture roles must have distinct users.');
+        LibraryAssert.AreNotEqual(InspectorSecurityId, SuperSecurityId, 'The fixture roles must have distinct users.');
+        LibraryAssert.AreNotEqual(AdminSecurityId, SuperSecurityId, 'The fixture roles must have distinct users.');
+        VerifyFixtureUserRole(InspectorSecurityId, InspectorRoleIDTok);
+        VerifyFixtureUserRole(AdminSecurityId, AdminSupervisorRoleIDTok);
+        VerifyFixtureUserRole(SuperSecurityId, SuperRoleIDTok);
+    end;
+
+    local procedure VerifyFixtureUserRole(TestUserSecurityId: Guid; RoleID: Code[20])
+    var
+        FixtureUser: Record User;
+        AccessControl: Record "Access Control";
+    begin
+        LibraryAssert.IsTrue(FixtureUser.Get(TestUserSecurityId), 'The fixture user must exist outside the individual test transaction.');
+        AccessControl.SetRange("User Security ID", TestUserSecurityId);
+        AccessControl.SetRange("Role ID", RoleID);
+        LibraryAssert.IsFalse(AccessControl.IsEmpty(), 'The fixture user must have the requested permission set.');
+    end;
+
     local procedure VerifyCanSelectDestinationBin()
     var
         Bin: Record Bin;
         BinList: TestPage "Bin List";
     begin
+        LibraryAssert.IsFalse(Bin.ReadPermission(), 'The quality role and test execution permissions alone should not grant read permission on bins.');
+        LibraryLowerPermissions.AddPermissionSet(BinLookupRoleIDTok);
         LibraryAssert.IsTrue(Bin.ReadPermission(), 'The bin lookup role should grant read permission on bins.');
+        LibraryAssert.IsFalse(Bin.WritePermission(), 'The bin lookup role should not grant write permission on bins.');
         BinList.OpenView();
         BinList.Close();
     end;

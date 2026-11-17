@@ -7,6 +7,7 @@ namespace System.Test.Security.AccessControl;
 
 using System.Security.AccessControl;
 using System.Security.User;
+using System.Test;
 using System.TestLibraries.Environment;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
@@ -571,6 +572,65 @@ codeunit 139146 "User Permissions Test"
         Assert.ExpectedError('There should be at least one enabled ''SUPER'' user.');
 
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+    end;
+
+    [Test]
+    procedure PermissionsMockStartsAutomatically()
+    begin
+        Assert.IsTrue(PermissionsMock.IsStarted(), 'Permissions Mock must be initialized before a test method.');
+        PermissionsMock.ClearAssignments();
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::NonRestrictive)]
+    procedure PermissionsMockStartsForNonRestrictiveTests()
+    begin
+        Assert.IsTrue(PermissionsMock.IsStarted(), 'Nonrestrictive tests must also initialize Permissions Mock.');
+        PermissionsMock.ClearAssignments();
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    procedure PermissionsMockStartsForDisabledTests()
+    begin
+        Assert.IsTrue(PermissionsMock.IsStarted(), 'Tests with disabled permission checks must also initialize Permissions Mock.');
+        PermissionsMock.ClearAssignments();
+    end;
+
+    [Test]
+    procedure PermissionsMockDoesNotIgnoreInvalidAssignments()
+    begin
+        Assert.IsTrue(PermissionsMock.IsStarted(), 'Permission assignments must not silently skip an uninitialized helper.');
+        asserterror PermissionsMock.Assign('No Such Mock Role');
+        Assert.ExpectedError('Permission Set does not exist');
+    end;
+
+    [Test]
+    procedure PermissionsMockCanBeStoppedExplicitly()
+    begin
+        Assert.IsTrue(PermissionsMock.IsStarted(), 'Permissions Mock must be initialized before a test method.');
+        PermissionsMock.Stop();
+        Assert.IsFalse(PermissionsMock.IsStarted(), 'An explicit stop must leave Permissions Mock stopped.');
+    end;
+
+    [Test]
+    procedure PermissionsMockCanBeRestartedExplicitly()
+    begin
+        PermissionsMock.Stop();
+        PermissionsMock.Start();
+        Assert.IsTrue(PermissionsMock.IsStarted(), 'Explicit callers must retain control of the helper lifecycle.');
+        PermissionsMock.ClearAssignments();
+        PermissionsMock.Stop();
+        Assert.IsFalse(PermissionsMock.IsStarted(), 'An explicit stop must leave Permissions Mock stopped.');
+    end;
+
+    [TestDataSource(Codeunit::"Permissions Mock Test Cases", 'PermissionsMock')]
+    procedure PermissionsMockStartsForEachCase(Context: Interface ITestContext)
+    begin
+        Assert.IsTrue(PermissionsMock.IsStarted(), 'Permissions Mock must be initialized before each test case.');
+        PermissionsMock.ClearAssignments();
+        PermissionsMock.Stop();
+        Assert.IsFalse(PermissionsMock.IsStarted(), 'An explicit stop must leave Permissions Mock stopped.');
     end;
 
     local procedure DeleteAllUsersAndPermissions()

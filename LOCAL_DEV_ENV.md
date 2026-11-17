@@ -41,6 +41,16 @@ Running the above will
 * Set up launch.jsons and settings.jsons in your VSCode
 * Compile and publish all AL apps that match `.\src\System Application\`
 
+## Minimal native test verification experiment
+
+The verification branch runs only the W1 UnitTests, IntegrationTests and UncategorizedTests lanes. Legacy tests are excluded. It preserves canonical bucket, disabled-test and required-isolation selection, with coverage disabled and source-built Test Runner and Permissions Mock packages installed before native execution.
+
+The custom dev ALTool must be the newly built minimal codeunit-renewal candidate, not an earlier combined bundle or a released tool. `build\scripts\Prepare-VerificationAlTool.ps1` verifies `build\tools\altool-dev-net10.zip` against `build\scripts\VerificationAlTool.json`, including archive and binary SHA256 values, embedded source scope/provenance/patch hashes, source-to-binary pin mapping, version and both renewal help options. Identical version strings do not establish binary identity. Missing or mismatched inputs stop the experiment; there is no BCH fallback.
+
+The adapter passes `--renewsession` for one fresh session per ordered codeunit group, preserving method fixture state within that group. `--renewsession-per-method` is a separate, mutually exclusive stricter mode and is not used by this experiment. Committed database state is not reset by either renewal mode.
+
+Historical BCH main test outcomes are an observational per-test baseline, not causal proof. Keep run SHA, platform/application versions, common identities, failures, skips and exclusions separate from results for this candidate. No native run or successful CI result is implied by preparing this branch.
+
 ## GDL development (layers and views)
 
 Anything that ships in multiple localizations (the **Base Application** and the application layers) lives under `src/Layers`, organized by country/region. Each country's app is composed by overlapping multiple **layers** in order: a `W1` ("worldwide") base, optional regional layers, and the country layer. For example, the `US` app is composed of `W1` + `NA` + `US`, where each layer either introduces new objects or replaces objects from a base layer.

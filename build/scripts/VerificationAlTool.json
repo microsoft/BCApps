@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "archiveSha256": "2BA2009908D3EB5596AC02D085318751513EC81F9A1877355ED35261FD24F96F",
+  "exeSha256": "1DEB7EC857668259FE7A21281DA5BDDC47C29D7A5635F835E53CA9BA55F94A95",
+  "dllSha256": "8AA8C61EB37B2271E195A0113382030F29CDA80DEEB0EE0743219B6F620722A6",
+  "languageModelToolsSha256": "7486BE13B3F81049CA9BE5A94219AF7D863FBB63912127B8F9183CDFC896B324",
+  "version": "1.0.0+122c0780342781605402d18f2d897ac58eea8308",
+  "renewSessionScope": "codeunit",
+  "sourceBaseCommit": "122c0780342781605402d18f2d897ac58eea8308",
+  "stagedSourcePatchSha256": "CBED806FDAFCBCB7DA5D94B1D2F9A26176A013342414AE0D66C9429C08A3AA46",
+  "sourceProvenanceSha256": "2AB359A5D495692223971BE79375A3C487D1F02E396DDFC64DED07E638370AC1",
+  "sourceScopeSha256": "0904ECC61DF3BB23909FCD4744AF7F2C446DDD94E765209BF9C36975656124CA",
+  "sourceStagedTree": "a7fa0a251669dbdc3b4b5f892165f903ef43918f",
+  "sourceFileCount": 11,
+  "binaryFileCount": 147,
+  "coverageEnabled": false,
+  "qualification": "Development-only renewal candidate. Exact extracted archive passed nine renewal controls, not the BCApps suite. Independent hub, completeness, partial-result, trace and coverage-transport changes are excluded."
+}

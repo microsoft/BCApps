@@ -2,6 +2,10 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/a946346885b3c762fcbadb265823e70150c3e2f1/Actions/.Modules/settings.schema.json",
   "type": "PTE",
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
+  "projects": [
+    "build\\projects\\Apps W1",
+    "build\\projects\\Test Apps W1"
+  ],
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
   "cacheImageName": "",
@@ -24,6 +28,61 @@
     "parallelism": -1
   },
   "conditionalSettings": [
+    {
+      "projects": [
+        "build/projects/Test Apps W1",
+        "build\\projects\\Test Apps W1"
+      ],
+      "settings": {
+        "useSeparateTestAction": {
+          "enabled": true,
+          "codeCoverageEnabled": false,
+          "codeCoverageSummary": "none"
+        }
+      }
+    },
+    {
+      "projects": [
+        "build/projects/Test Apps W1",
+        "build\\projects\\Test Apps W1"
+      ],
+      "buildModes": [
+        "UnitTests"
+      ],
+      "settings": {
+        "useSeparateTestAction": {
+          "testType": "UnitTest"
+        }
+      }
+    },
+    {
+      "projects": [
+        "build/projects/Test Apps W1",
+        "build\\projects\\Test Apps W1"
+      ],
+      "buildModes": [
+        "IntegrationTests"
+      ],
+      "settings": {
+        "useSeparateTestAction": {
+          "testType": "IntegrationTest"
+        }
+      }
+    },
+    {
+      "projects": [
+        "build/projects/Test Apps W1",
+        "build\\projects\\Test Apps W1"
+      ],
+      "buildModes": [
+        "UncategorizedTests"
+      ],
+      "settings": {
+        "useSeparateTestAction": {
+          "testType": "Uncategorized"
+        }
+      }
+    },
     {
       "buildModes": [
         "Clean"

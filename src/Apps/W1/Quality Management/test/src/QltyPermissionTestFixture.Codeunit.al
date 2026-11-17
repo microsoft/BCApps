@@ -2,49 +2,80 @@ namespace Microsoft.Test.QualityManagement;
 
 using System.Security.AccessControl;
 using System.Security.User;
+using System.Testability;
 using System.TestTools.TestRunner;
 
-codeunit 139979 "Qlty. Permission Test Fixture"
+codeunit 139979 "Qlty. Permission Test Fixture" implements ITestHandler
 {
     Access = Internal;
     SingleInstance = true;
 
     var
         UserSecurityIds: Dictionary of [Code[20], Guid];
+        UsersPrepared: Boolean;
 
     procedure GetUserSecurityId(RoleID: Code[20]): Guid
     begin
         exit(UserSecurityIds.Get(RoleID));
     end;
 
+    procedure OnBeforeTestCodeunitRun(Context: TestHandlerContext)
+    begin
+        PrepareUsers();
+    end;
+
+    procedure OnAfterTestCodeunitRun(Context: TestHandlerContext)
+    begin
+        RemoveUsers();
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeCodeunitRun', '', false, false)]
-    local procedure PrepareUsers(var TestMethodLine: Record "Test Method Line")
+    local procedure PrepareUsersBeforeCodeunit(var TestMethodLine: Record "Test Method Line")
     begin
         if TestMethodLine."Test Codeunit" <> Codeunit::"Qlty. Tests - Permission Mgmt." then
             exit;
 
-        Clear(UserSecurityIds);
+        PrepareUsers();
+    end;
+
+    local procedure PrepareUsers()
+    begin
+        // The legacy event and native handler can prepare the same codeunit.
+        if UsersPrepared then
+            exit;
+
+        RemoveUsers();
         CreateUser('QltyMgmt - Inspector');
         CreateUser('QltyMgmt - Admin');
         CreateUser('SUPER');
         Commit();
+        UsersPrepared := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterCodeunitRun', '', false, false)]
-    local procedure RemoveUsers(var TestMethodLine: Record "Test Method Line")
+    local procedure RemoveUsersAfterCodeunit(var TestMethodLine: Record "Test Method Line")
+    begin
+        if TestMethodLine."Test Codeunit" <> Codeunit::"Qlty. Tests - Permission Mgmt." then
+            exit;
+
+        RemoveUsers();
+    end;
+
+    local procedure RemoveUsers()
     var
         TestUser: Record User;
         AccessControl: Record "Access Control";
         TestUserSecurityId: Guid;
     begin
-        if TestMethodLine."Test Codeunit" <> Codeunit::"Qlty. Tests - Permission Mgmt." then
+        UsersPrepared := false;
+        if UserSecurityIds.Count() = 0 then
             exit;
 
         foreach TestUserSecurityId in UserSecurityIds.Values() do begin
             AccessControl.SetRange("User Security ID", TestUserSecurityId);
             AccessControl.DeleteAll(true);
-            TestUser.Get(TestUserSecurityId);
-            TestUser.Delete(true);
+            if TestUser.Get(TestUserSecurityId) then
+                TestUser.Delete(true);
         end;
         Clear(UserSecurityIds);
         Commit();
@@ -58,11 +89,12 @@ codeunit 139979 "Qlty. Permission Test Fixture"
         UserPermissions: Codeunit "User Permissions";
     begin
         LibraryPermissions.CreateUser(TestUser, '', false);
+        // Retain the user ID even if the following permission assignment fails.
+        UserSecurityIds.Add(RoleID, TestUser."User Security ID");
         AggregatePermissionSet.SetRange(Scope, AggregatePermissionSet.Scope::System);
         AggregatePermissionSet.SetRange("Role ID", RoleID);
         AggregatePermissionSet.FindFirst();
         AggregatePermissionSet.SetRecFilter();
         UserPermissions.AssignPermissionSets(TestUser."User Security ID", '', AggregatePermissionSet);
-        UserSecurityIds.Add(RoleID, TestUser."User Security ID");
     end;
 }

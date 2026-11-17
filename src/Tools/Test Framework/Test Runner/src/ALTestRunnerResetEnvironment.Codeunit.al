@@ -6,8 +6,9 @@
 namespace System.TestTools.TestRunner;
 
 using System.Reflection;
+using System.Testability;
 
-codeunit 130453 "ALTestRunner Reset Environment"
+codeunit 130453 "ALTestRunner Reset Environment" implements ITestHandler
 {
     SingleInstance = true;
 
@@ -20,11 +21,21 @@ codeunit 130453 "ALTestRunner Reset Environment"
         CurrentWorkDate := WorkDate();
     end;
 
+    procedure OnBeforeTestProcedureRun(Context: TestHandlerContext)
+    begin
+        ResetApplicationArea();
+    end;
+
+    procedure OnBeforeTestCaseRun(Context: TestHandlerContext)
+    begin
+        ResetApplicationArea();
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeTestMethodRun', '', false, false)]
     local procedure BeforeTestMethod(CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; var CurrentTestMethodLine: Record "Test Method Line")
     begin
         ClearLastError();
-        ApplicationArea('');
+        ResetApplicationArea();
         if FunctionName = 'OnRun' then
             exit;
 
@@ -36,6 +47,11 @@ codeunit 130453 "ALTestRunner Reset Environment"
     local procedure AfterTestMethod(var TestMethodLine: Record "Test Method Line")
     begin
         WorkDate(CurrentWorkDate);
+        ResetApplicationArea();
+    end;
+
+    local procedure ResetApplicationArea()
+    begin
         ApplicationArea('');
     end;
 

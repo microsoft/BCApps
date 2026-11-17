@@ -6,11 +6,12 @@
 namespace System.TestLibraries.Security.AccessControl;
 
 using System.Security.AccessControl;
+using System.Testability;
 
 /// <summary>
 /// "Permissions Mock" provides functions that let you simulate any permission set assignment for the current user.
 /// </summary>
-codeunit 131006 "Permissions Mock"
+codeunit 131006 "Permissions Mock" implements ITestHandler
 {
     SingleInstance = true;
 
@@ -25,12 +26,57 @@ codeunit 131006 "Permissions Mock"
     var
         PermissionTestHelper: DotNet PermissionTestHelper;
         Started: Boolean;
+        AutomaticallyStarted: Boolean;
+
+    procedure OnAfterTestCodeunitRun(Context: TestHandlerContext)
+    begin
+        StopAutomaticMock();
+    end;
+
+    procedure OnBeforeTestProcedureRun(Context: TestHandlerContext)
+    begin
+        StartAutomaticMock();
+    end;
+
+    procedure OnAfterTestProcedureRun(Context: TestHandlerContext)
+    begin
+        StopAutomaticMock();
+    end;
+
+    procedure OnBeforeTestCaseRun(Context: TestHandlerContext)
+    begin
+        StartAutomaticMock();
+    end;
+
+    procedure OnAfterTestCaseRun(Context: TestHandlerContext)
+    begin
+        StopAutomaticMock();
+    end;
+
+    local procedure StartAutomaticMock()
+    begin
+        StopAutomaticMock();
+        if Started then
+            exit;
+
+        Start();
+        AutomaticallyStarted := true;
+    end;
+
+    local procedure StopAutomaticMock()
+    begin
+        if not AutomaticallyStarted then
+            exit;
+
+        Stop();
+    end;
 
     /// <summary>
     /// Start mocking Permission Sets.
     /// </summary>
     procedure Start()
     begin
+        AutomaticallyStarted := false;
         PermissionTestHelper := PermissionTestHelper.PermissionTestHelper();
         Started := true;
     end;
@@ -40,6 +86,7 @@ codeunit 131006 "Permissions Mock"
     /// </summary>
     procedure Stop()
     begin
+        AutomaticallyStarted := false;
         if not Started then
             exit;
         Started := false;

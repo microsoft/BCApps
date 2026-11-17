@@ -1,0 +1,42 @@
+{
+  "succeeded": false,
+  "message": "No test result was returned for method \u0027MethodThatDoesNotExist\u0027 in codeunit 52980. Verify the explicit method name with listtests before retrying session renewal.",
+  "data": {
+    "success": true,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "total": 1,
+    "results": [
+      {
+        "codeunitId": 52980,
+        "methodName": "LeaveSingletonState",
+        "status": "passed",
+        "output": "",
+        "durationMs": 1
+      }
+    ]
+  },
+  "nextSteps": [],
+  "errorDetails": {
+    "code": "CommandExecutionFailed",
+    "description": "Command execution failed",
+    "possibleCauses": [
+      "Extension internal error",
+      "Command not available",
+      "Prerequisites not met"
+    ],
+    "suggestedActions": [
+      "Try the operation again",
+      "Restart VS Code",
+      "Check AL extension output for details"
+    ],
+    "alternatives": [],
+    "missingPrerequisites": [],
+    "diagnosticHints": [
+      "Check the AL Language extension output panel for details"
+    ],
+    "retryable": true
+  },
+  "warnings": []
+}

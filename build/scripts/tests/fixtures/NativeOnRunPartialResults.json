@@ -1,0 +1,56 @@
+{
+  "succeeded": false,
+  "message": "No test result was returned for method \u0027MethodThatDoesNotExist\u0027 in codeunit 132508. Verify the explicit method name with listtests before retrying session renewal.",
+  "data": {
+    "success": true,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "total": 3,
+    "results": [
+      {
+        "codeunitId": 132508,
+        "methodName": "OnRun",
+        "status": "passed",
+        "output": "",
+        "durationMs": 1
+      },
+      {
+        "codeunitId": 132508,
+        "methodName": "TestReadNote",
+        "status": "passed",
+        "output": "",
+        "durationMs": 3
+      },
+      {
+        "codeunitId": 132508,
+        "methodName": "OnRun",
+        "status": "passed",
+        "output": "",
+        "durationMs": 1
+      }
+    ]
+  },
+  "nextSteps": [],
+  "errorDetails": {
+    "code": "CommandExecutionFailed",
+    "description": "Command execution failed",
+    "possibleCauses": [
+      "Extension internal error",
+      "Command not available",
+      "Prerequisites not met"
+    ],
+    "suggestedActions": [
+      "Try the operation again",
+      "Restart VS Code",
+      "Check AL extension output for details"
+    ],
+    "alternatives": [],
+    "missingPrerequisites": [],
+    "diagnosticHints": [
+      "Check the AL Language extension output panel for details"
+    ],
+    "retryable": true
+  },
+  "warnings": []
+}
