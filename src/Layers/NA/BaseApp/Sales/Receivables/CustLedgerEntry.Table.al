@@ -1758,12 +1758,9 @@ table 21 "Cust. Ledger Entry"
 
     local procedure InsertTempVATPostingSetup(var TempVATPostingSetup: Record "VAT Posting Setup"; DocumentType: Enum "Gen. Journal Document Type"; DocumentNo: Code[20])
     begin
-        case DocumentType of
-            DocumentType::Invoice:
-                InsertTempVATPostingSetupFromInvoice(TempVATPostingSetup, DocumentNo);
-            DocumentType::"Credit Memo":
-                InsertTempVATPostingSetupFromCreditMemo(TempVATPostingSetup, DocumentNo);
-        end;
+        // Only posted credit memo lines supply allocations; otherwise realize the whole invoice proportionally.
+        if DocumentType = DocumentType::"Credit Memo" then
+            InsertTempVATPostingSetupFromCreditMemo(TempVATPostingSetup, DocumentNo);
     end;
 
     local procedure InsertTempVATPostingSetupFromInvoice(var TempVATPostingSetup: Record "VAT Posting Setup"; DocumentNo: Code[20])
@@ -1972,6 +1969,7 @@ table 21 "Cust. Ledger Entry"
         CreditMemoVATPostingSetup: Record "VAT Posting Setup";
         SalesInvoiceLine: Record "Sales Invoice Line";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        VATEntry: Record "VAT Entry";
         CandidateVATBusPostingGroup: Code[20];
         CandidateVATProdPostingGroup: Code[20];
         EquivalentVATGroupCount: Integer;
@@ -1991,6 +1989,23 @@ table 21 "Cust. Ledger Entry"
         SalesInvoiceLine.SetRange("VAT Prod. Posting Group", CreditMemoVATProdPostingGroup);
         SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
         if not SalesInvoiceLine.IsEmpty() then begin
+            InvoiceVATBusPostingGroup := CreditMemoVATBusPostingGroup;
+            InvoiceVATProdPostingGroup := CreditMemoVATProdPostingGroup;
+            exit(true);
+        end;
+
+        SalesInvoiceLine.SetRange("VAT Bus. Posting Group");
+        SalesInvoiceLine.SetRange("VAT Prod. Posting Group");
+        if SalesInvoiceLine.IsEmpty() then begin
+            // Journal and service invoices have VAT entries, but no posted sales invoice lines.
+            VATEntry.SetCurrentKey("Transaction No.");
+            VATEntry.SetRange("Transaction No.", Rec."Transaction No.");
+            VATEntry.SetRange(Type, VATEntry.Type::Sale);
+            VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
+            VATEntry.SetRange("VAT Bus. Posting Group", CreditMemoVATBusPostingGroup);
+            VATEntry.SetRange("VAT Prod. Posting Group", CreditMemoVATProdPostingGroup);
+            if VATEntry.IsEmpty() then
+                exit(false);
             InvoiceVATBusPostingGroup := CreditMemoVATBusPostingGroup;
             InvoiceVATProdPostingGroup := CreditMemoVATProdPostingGroup;
             exit(true);
