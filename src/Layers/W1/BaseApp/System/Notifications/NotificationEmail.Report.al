@@ -131,6 +131,7 @@ report 1320 "Notification Email"
 
     rendering
     {
+#if not CLEAN30
         layout("NotificationEmail.docx")
         {
             Type = Word;
@@ -138,7 +139,9 @@ report 1320 "Notification Email"
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
+
         }
+#endif
         layout("NotificationEmailBody.docx")
         {
             Type = Word;
