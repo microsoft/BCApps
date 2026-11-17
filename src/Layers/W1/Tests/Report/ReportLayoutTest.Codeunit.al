@@ -22,7 +22,9 @@ codeunit 134600 "Report Layout Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
+#if not CLEAN30
         LibraryTablesUT: Codeunit "Library - Tables UT";
+#endif
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
