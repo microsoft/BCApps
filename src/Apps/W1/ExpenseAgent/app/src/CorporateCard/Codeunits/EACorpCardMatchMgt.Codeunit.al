@@ -38,6 +38,8 @@ codeunit 7421 "EA Corp Card Match Mgt"
         Expense.SetRange("Expense User No.", ExpenseUserNo);
         Expense.SetRange("Status", Expense."Status"::Open);
         Expense.SetRange("Credit Card Feed No.", 0);
+        Expense.SetRange("Reimbursement Type", Expense."Reimbursement Type"::"Credit Card");
+        Expense.SetFilter("Corporate Card Id", '%1|%2', '', CorpCardTrans."Card Id");
         Expense.SetRange("Currency Code", CorpCardTrans."Currency Code");
         Expense.SetFilter("Expense Date", '%1..%2', CorpCardTrans."Trans Date" - DateWindow, CorpCardTrans."Trans Date" + DateWindow);
         Expense.SetFilter("Amount", '%1..%2', CorpCardTrans.Amount - AmountTolerance, CorpCardTrans.Amount + AmountTolerance);

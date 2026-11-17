@@ -148,13 +148,6 @@ codeunit 11365 "Create VAT Posting Group BE"
             until VatPostingSetup.Next() = 0;
     end;
 
-#if not CLEAN27
-    [Obsolete('Use G0() instead', '27.0')]
-    procedure NOVAT(): Code[20]
-    begin
-        exit(G0Tok);
-    end;
-#endif
 
     procedure G0(): Code[20]
     begin

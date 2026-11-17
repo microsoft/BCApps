@@ -8090,7 +8090,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                            DtldCVLedgEntryBuf."Entry Type"::"Payment Discount Tolerance (VAT Excl.)"]);
     end;
 
-#if not CLEAN27
+#if not CLEAN28
     local procedure RealizeDelayedUnrealizedVAT(GenJnlLine: Record "Gen. Journal Line")
     begin
         if FeatureKeyManagement.IsPaymentManagementEnabled() then

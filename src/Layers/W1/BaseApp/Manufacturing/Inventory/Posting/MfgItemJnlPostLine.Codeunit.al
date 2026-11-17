@@ -594,6 +594,9 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         else
             sender.InsertCapLedgEntry(ItemJnlLine, CapLedgEntry, ValuedQty, ValuedQty);
 
+        if ItemJnlLine."Operation No." <> '' then
+            UpdateSuccessorsQtyReadyToStart(ItemJnlLine);
+
         ShouldFlushOperation := ItemJnlLine."Output Quantity" >= 0;
         OnBeforeCallFlushOperation(ItemJnlLine, ShouldFlushOperation);
         if ShouldFlushOperation then
@@ -657,6 +660,21 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         LastOperation := (not NextOperationExist(ProdOrderRtngLine));
         OnPostOutputOnBeforeProdOrderRtngLineModify(ProdOrderRtngLine, ProdOrderLine, ItemJnlLine, LastOperation);
         ProdOrderRtngLine.Modify();
+    end;
+
+    local procedure UpdateSuccessorsQtyReadyToStart(ItemJnlLine: Record "Item Journal Line")
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        QtyReadyToStartMgt: Codeunit "Qty. Ready to Start Mgt.";
+    begin
+        ProdOrderRoutingLine.SetLoadFields("Next Operation No.", "Routing Status");
+        if not ProdOrderRoutingLine.Get(
+             ProdOrderRoutingLine.Status::Released, ItemJnlLine."Order No.",
+             ItemJnlLine."Routing Reference No.", ItemJnlLine."Routing No.", ItemJnlLine."Operation No.")
+        then
+            exit;
+
+        QtyReadyToStartMgt.UpdateSuccessorsQtyReadyToStart(ProdOrderRoutingLine);
     end;
 
     local procedure NextOperationExist(var ProdOrderRtngLine: Record "Prod. Order Routing Line"): Boolean

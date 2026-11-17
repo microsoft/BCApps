@@ -176,25 +176,6 @@ page 6322 "Power BI WS Report Selection"
                     HyperLink(PowerBIServiceMgt.GetContentPacksServicesUrl());
                 end;
             }
-#if not CLEAN27
-            action(CleanDeployments)
-            {
-                ApplicationArea = All;
-                Caption = 'Default Reports';
-                Image = Setup;
-                ToolTip = 'Manage your deployed default reports.';
-                Visible = false;
-                ObsoleteReason = 'This functionality is no longer supported.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-
-                trigger OnAction()
-                begin
-                    Page.RunModal(Page::"Power BI Deployments");
-                    // TODO: Set this button's visibility to equal "IsSaaS" so it's not visible for on-prem, where we won't have OOB uploads anyways.
-                end;
-            }
-#endif
         }
         area(Promoted)
         {
@@ -208,17 +189,6 @@ page 6322 "Power BI WS Report Selection"
                 actionref(DisableReport_Promoted; DisableReport)
                 {
                 }
-#if not CLEAN27
-#pragma warning disable AL0432
-                actionref(CleanDeployments_Promoted; CleanDeployments)
-#pragma warning restore AL0432
-                {
-                    Visible = false;
-                    ObsoleteReason = 'This functionality is no longer supported.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#endif
             }
             group(Category_Category5)
             {

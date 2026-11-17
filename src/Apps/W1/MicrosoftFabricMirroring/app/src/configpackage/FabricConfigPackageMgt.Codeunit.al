@@ -14,6 +14,9 @@ codeunit 48521 "Fabric Config Package Mgt"
         TablesKeptByOtherPackageMsg: Label '%1 table(s) were not removed because they are also included in at least one other active package.', Comment = '%1 = number of tables retained';
         ImportMissingCodeErr: Label 'The package file does not contain a package code.';
         InvalidPackageFileErr: Label 'The file could not be read as a valid package definition.';
+        InvalidPackageValueErr: Label 'The package property %1 must contain a single, non-null value.', Comment = '%1 = JSON property name';
+        InvalidPackageTablesErr: Label 'The package property tables must contain an array of table IDs.';
+        InvalidPackageTableIdErr: Label 'Each entry in the package tables array must contain a single, non-null table ID.';
         PackageActivatedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 (v%2) activated.', Comment = '%1 = package code, %2 = version', Locked = true;
         PackageDeactivatedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 deactivated.', Comment = '%1 = package code', Locked = true;
         PackageReappliedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 reapplied (v%2).', Comment = '%1 = package code, %2 = version', Locked = true;
@@ -285,39 +288,69 @@ codeunit 48521 "Fabric Config Package Mgt"
 
     internal procedure ImportPackageFromStream(var InStream: InStream)
     var
-        JsonObj: JsonObject;
-        JsonArr: JsonArray;
-        TablesToken: JsonToken;
-        FieldToken: JsonToken;
-        TableElem: JsonToken;
-        TableIds: List of [Integer];
-        PackageCode: Code[20];
-        Description: Text[100];
-        Version: Code[10];
         JsonTextBuilder: TextBuilder;
-        JsonText: Text;
         Line: Text;
     begin
         while not InStream.EOS() do begin
             InStream.ReadText(Line);
             JsonTextBuilder.Append(Line);
         end;
-        JsonText := JsonTextBuilder.ToText();
+        ImportPackageFromJson(JsonTextBuilder.ToText());
+    end;
+
+    internal procedure ImportPackageFromJson(JsonText: Text) PackageCode: Code[20]
+    var
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
+        TablesToken: JsonToken;
+        TableElem: JsonToken;
+        TableIds: List of [Integer];
+        Description: Text[100];
+        Version: Code[10];
+    begin
         if not JsonObj.ReadFrom(JsonText) then
             Error(InvalidPackageFileErr);
-        if JsonObj.Get('code', FieldToken) then
-            PackageCode := CopyStr(FieldToken.AsValue().AsText(), 1, MaxStrLen(PackageCode));
-        if JsonObj.Get('description', FieldToken) then
-            Description := CopyStr(FieldToken.AsValue().AsText(), 1, MaxStrLen(Description));
-        if JsonObj.Get('version', FieldToken) then
-            Version := CopyStr(FieldToken.AsValue().AsText(), 1, MaxStrLen(Version));
+        PackageCode := CopyStr(GetPackageText(JsonObj, 'code'), 1, MaxStrLen(PackageCode));
+        Description := CopyStr(GetPackageText(JsonObj, 'description'), 1, MaxStrLen(Description));
+        Version := CopyStr(GetPackageText(JsonObj, 'version'), 1, MaxStrLen(Version));
         if PackageCode = '' then
             Error(ImportMissingCodeErr);
         if JsonObj.Get('tables', TablesToken) then begin
+            if not TablesToken.IsArray() then
+                Error(InvalidPackageTablesErr);
             JsonArr := TablesToken.AsArray();
-            foreach TableElem in JsonArr do
+            foreach TableElem in JsonArr do begin
+                if not TableElem.IsValue() then
+                    Error(InvalidPackageTableIdErr);
+                if TableElem.AsValue().IsNull() then
+                    Error(InvalidPackageTableIdErr);
                 TableIds.Add(TableElem.AsValue().AsInteger());
+            end;
         end;
         RegisterPackage(PackageCode, Description, Version, TableIds);
+    end;
+
+    internal procedure ImportPackageFromApi(PackageJson: Text; var ActionContext: WebServiceActionContext)
+    var
+        FabricConfigPackage: Record "Fabric Config Package";
+    begin
+        FabricConfigPackage.Get(ImportPackageFromJson(PackageJson));
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Fabric API Config Packages");
+        ActionContext.AddEntityKey(FabricConfigPackage.FieldNo(SystemId), FabricConfigPackage.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Created);
+    end;
+
+    local procedure GetPackageText(JsonObj: JsonObject; PropertyName: Text): Text
+    var
+        FieldToken: JsonToken;
+    begin
+        if not JsonObj.Get(PropertyName, FieldToken) then
+            exit('');
+        if not FieldToken.IsValue() then
+            Error(InvalidPackageValueErr, PropertyName);
+        if FieldToken.AsValue().IsNull() then
+            Error(InvalidPackageValueErr, PropertyName);
+        exit(FieldToken.AsValue().AsText());
     end;
 }

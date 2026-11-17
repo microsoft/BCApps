@@ -92,23 +92,6 @@ table 10 "Shipment Method"
             ShipmentMethod.Description := ShipmentMethodTranslation.Description;
     end;
 
-#if not CLEAN27
-    [Obsolete('Pending removal - the check is not relevant anymore.', '27.0')]
-    [Scope('OnPrem')]
-    procedure ValidateShipmentMethod(): Boolean
-    var
-        I: Integer;
-    begin
-        if StrLen(Code) <> 4 then
-            exit(true);
-        for I := 1 to 3 do
-            if Code[I] in ['a' .. 'z', 'A' .. 'Z'] = false then
-                exit(true);
-        if Code[4] in ['0' .. '9'] = false then
-            exit(true);
-        exit(false);
-    end;
-#endif
     local procedure SetLastModifiedDateTime()
     begin
         "Last Modified Date Time" := CurrentDateTime;
