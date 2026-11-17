@@ -124,7 +124,6 @@ codeunit 30110 "Shpfy Create Customer"
             AddCountryTemplateCandidates(TemplateCandidates, ShopifyShop.Code, ShopifyCountryCode, CountryCode, true);
             TemplateCandidates.Add(ShopifyShop."Company Templ. Code");
             AddCountryTemplateCandidates(TemplateCandidates, ShopifyShop.Code, ShopifyCountryCode, CountryCode, false);
-            TemplateCandidates.Add(ShopifyShop."Customer Templ. Code");
             Clear(AutomaticTemplateCode);
             foreach CandidateTemplateCode in TemplateCandidates do
                 if (AutomaticTemplateCode = '') and (CandidateTemplateCode <> '') then

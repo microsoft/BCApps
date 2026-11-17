@@ -614,7 +614,9 @@ codeunit 139647 "Shpfy Company Import Test"
         TestShop: Record "Shpfy Shop";
         TemplateEvents: Codeunit "Shpfy Company Import Test";
         OverrideTemplateCode: Code[20];
+        ShopCustomerTemplateCode: Code[20];
         OverridePaymentTermsCode: Code[10];
+        ShopCustomerPaymentTermsCode: Code[10];
     begin
         //[SCENARIO] An unhandled before-event template is preserved when country templates are blank.
 
@@ -635,8 +637,9 @@ codeunit 139647 "Shpfy Company Import Test"
         TestShop := InitializedShop;
         //[GIVEN] The test shop company template is blank.
         TestShop."Company Templ. Code" := '';
-        //[GIVEN] The test shop customer template is blank.
-        TestShop."Customer Templ. Code" := '';
+        //[GIVEN] A distinct shop customer template remains configured as the final fallback.
+        ShopCustomerTemplateCode := CreateCustomerTemplate(InitializedShop, ShopCustomerPaymentTermsCode);
+        TestShop."Customer Templ. Code" := ShopCustomerTemplateCode;
         //[GIVEN] The before event supplies an override template without handling selection.
         OverrideTemplateCode := CreateCustomerTemplate(InitializedShop, OverridePaymentTermsCode);
         TemplateEvents.ConfigureTemplateEvents(TestShop.Code, CountryRegion.Code, OverrideTemplateCode, false, '');
