@@ -60,6 +60,9 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
         BankExportImportSetup: Record "Bank Export/Import Setup";
         MessageID: Code[20];
         IsHandled: Boolean;
+#if not CLEAN30
+        ForceNormalPriority: Boolean;
+#endif
     begin
         TempGenJnlLine.CopyFilters(GenJnlLine);
         CODEUNIT.Run(CODEUNIT::"SEPA CT-Prepare Source", TempGenJnlLine);
@@ -76,7 +79,6 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
             if TempGenJnlLine."Bal. Account No." <> BankAccount."No." then
                 TempGenJnlLine.InsertPaymentFileError(SameBankErr);
         until TempGenJnlLine.Next() = 0;
-
         if TempGenJnlLine.HasPaymentFileErrorsInBatch() then begin
             Commit();
             Error(HasErrorsErr);
@@ -107,7 +109,6 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
                 PaymentExportData."Currency Code" := GeneralLedgerSetup."LCY Code"
             else
                 PaymentExportData."Currency Code" := TempGenJnlLine."Currency Code";
-
             case TempGenJnlLine."Account Type" of
                 TempGenJnlLine."Account Type"::Customer:
                     begin
@@ -137,12 +138,16 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
                 else
                     OnFillExportBufferOnSetAsRecipient(GenJnlLine, PaymentExportData, TempGenJnlLine, CreditTransferRegister);
             end;
+
             IsHandled := false;
-            OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority(IsHandled);
-            if IsHandled or (not GeneralLedgerSetup."Local SEPA Instr. Priority") then
-                PaymentExportData.Validate(PaymentExportData."SEPA Instruction Priority", PaymentExportData."SEPA Instruction Priority"::NORMAL)
-            else
-                PaymentExportData.CollectDataFromLocalSource(TempGenJnlLine);
+#if not CLEAN30
+            ForceNormalPriority := false;
+            OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority(ForceNormalPriority);
+            if not ForceNormalPriority then
+#endif
+                OnBeforeSetSEPAInstructionPriority(PaymentExportData, TempGenJnlLine, IsHandled);
+            if not IsHandled then
+                PaymentExportData.Validate(PaymentExportData."SEPA Instruction Priority", PaymentExportData."SEPA Instruction Priority"::NORMAL);
 
             PaymentExportData.Validate(PaymentExportData."SEPA Payment Method", PaymentExportData."SEPA Payment Method"::TRF);
             if GeneralLedgerSetup."SEPA Non-Euro Export" then
@@ -151,7 +156,6 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
                 PaymentExportData.Validate(PaymentExportData."SEPA Charge Bearer", PaymentExportData."SEPA Charge Bearer"::SLEV);
             PaymentExportData."SEPA Batch Booking" := false;
             PaymentExportData.SetCreditTransferIDs(MessageID);
-
             if PaymentExportData."Applies-to Ext. Doc. No." <> '' then
                 PaymentExportData.AddRemittanceText(StrSubstNo(RemitMsg, TempGenJnlLine."Applies-to Doc. Type", PaymentExportData."Applies-to Ext. Doc. No."))
             else
@@ -427,9 +431,16 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
     local procedure OnGetAppliesToDocEntryNumbersCaseElse(var GenJournalLine: Record "Gen. Journal Line"; var TempInteger: Record Integer temporary; AccNo: Code[20])
     begin
     end;
+#if not CLEAN30
+    [IntegrationEvent(false, false)]
+    [Obsolete('Use OnBeforeSetSEPAInstructionPriority instead.', '30.0')]
+    local procedure OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority(var IsHandled: Boolean)
+    begin
+    end;
+#endif
 
     [IntegrationEvent(false, false)]
-    local procedure OnFillExportBufferOnBeforeValidateNormalSEPAInstructionPriority(var IsHandled: Boolean)
+    local procedure OnBeforeSetSEPAInstructionPriority(var PaymentExportData: Record "Payment Export Data"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; var IsHandled: Boolean)
     begin
     end;
 }

@@ -1,0 +1,16 @@
+[
+  "src/Layers/APAC/BaseApp/Foundation/Company/CompanyInformation.Table.al",
+  "src/Layers/BE/BaseApp/Foundation/Company/CompanyInformation.Table.al",
+  "src/Layers/DACH/BaseApp/Foundation/Company/CompanyInformation.Table.al",
+  "src/Layers/AT/BaseApp/Foundation/Company/CompanyInformation.Table.al",
+  "src/Layers/CH/BaseApp/Foundation/Company/CompanyInformation.Table.al",
+  "src/Layers/ES/BaseApp/Foundation/Company/CompanyInformation.Table.al",
+  "src/Layers/FI/BaseApp/Foundation/Company/CompanyInformation.Table.al",
+  "src/Layers/FR/BaseApp/Foundation/Company/CompanyInformation.Table.al",
+  "src/Layers/GB/BaseApp/Foundation/Company/CompanyInformation.Table.al",
+  "src/Layers/IT/BaseApp/Foundation/Company/CompanyInformation.Table.al",
+  "src/Layers/NA/BaseApp/Foundation/Company/CompanyInformation.Table.al",
+  "src/Layers/NO/BaseApp/Foundation/Company/CompanyInformation.Table.al",
+  "src/Layers/RU/BaseApp/Foundation/Company/CompanyInformation.Table.al",
+  "src/Layers/SE/BaseApp/Foundation/Company/CompanyInformation.Table.al"
+]
