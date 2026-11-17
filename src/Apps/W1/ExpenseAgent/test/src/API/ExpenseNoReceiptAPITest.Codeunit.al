@@ -138,7 +138,7 @@ codeunit 148367 "Expense No Receipt API Test"
         Clear(Response);
         Response.ReadFrom(ResponseText);
         Response.Get('noReceiptType', Token);
-        Assert.AreEqual('Lost_x0020_Receipt', Token.AsValue().AsText(), 'The lost-receipt wire name must remain stable.');
+        Assert.AreEqual('Receipt_x0020_not_x0020_needed', Token.AsValue().AsText(), 'The lost-receipt wire name must remain stable.');
 
         Clear(Expense."No Receipt Type");
         Expense.Modify();

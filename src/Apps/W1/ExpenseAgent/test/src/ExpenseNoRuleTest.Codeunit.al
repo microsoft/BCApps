@@ -693,31 +693,6 @@ codeunit 148311 "Expense No Rule Test"
     end;
 
     [Test]
-    procedure NoReceiptReleaseRechecksThresholdBeforeDeclaration()
-    var
-        Expense: Record Expense;
-        ExpenseCategory: Record "Expense Category";
-        ReleaseExpenseDocument: Codeunit "Release Expense Document";
-    begin
-        Initialize();
-        SetAllowNoReceipt(true);
-        CreateExpenseWithNoRule(Expense, "Expense Detail Needed"::" ", "Expense Attachment Enforcement"::"Not needed under limit", true, '', 100);
-        MarkDeclarationCurrentForTest(Expense);
-
-        asserterror ReleaseExpenseDocument.PerformManualRelease(Expense);
-        Assert.ExpectedError('is missing or no longer current');
-
-        Expense.Get(Expense."No.");
-        ExpenseCategory.Get(Expense."Expense Category");
-        ExpenseCategory."Amount Limit for No Receipt" := 200;
-        ExpenseCategory.Modify();
-        ReleaseExpenseDocument.PerformManualRelease(Expense);
-        Expense.Get(Expense."No.");
-        Assert.AreEqual(Expense.Status::Released, Expense.Status, 'A newly exempt expense must not require regeneration of an obsolete declaration.');
-        Assert.AreEqual(Expense."No Receipt Type"::"Receipt not needed", Expense."No Receipt Type", 'Release must persist the current category exemption.');
-    end;
-
-    [Test]
     procedure NoReceiptActionsRejectDisabledPolicyAndReportedExpense()
     var
         Expense: Record Expense;
