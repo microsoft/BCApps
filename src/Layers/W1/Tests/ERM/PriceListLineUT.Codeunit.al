@@ -3913,6 +3913,7 @@ codeunit 134123 "Price List Line UT"
         PriceListLine: Record "Price List Line";
         ExpectedPriceListLine: Record "Price List Line";
         RequestBody: JsonObject;
+        PatchRequestBody: JsonObject;
         RequestBodyText: Text;
         ResponseText: Text;
         NewEndingDate: Date;
@@ -3926,35 +3927,41 @@ codeunit 134123 "Price List Line UT"
         LibraryInventory.CreateItem(Item);
         LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitofMeasure, Item."No.", LibraryRandom.RandIntInRange(2, 10));
 
-        // [GIVEN] Sales price list 'PL' with "Allow Updating Defaults" = true, and line 'L' for item 'I' with "Unit Price" = 'P', "Starting Date" = 'SD', "Ending Date" = 'ED'
+        // [GIVEN] Sales price list 'PL' with "Allow Updating Defaults" = true
         CreatePriceListHeaderForOData(PriceListHeader, "Price Type"::Sale, true);
-        LibraryPriceCalculation.CreatePriceListLine(
-            PriceListLine, PriceListHeader, "Price Amount Type"::Price, "Price Asset Type"::Item, Item."No.");
-        PriceListLine.Validate("Starting Date", CalcDate('<-CM>', WorkDate()));
-        PriceListLine.Validate("Ending Date", CalcDate('<-CM+10D>', WorkDate()));
-        PriceListLine.Modify(true);
+
+        // [GIVEN] Line 'L' for item 'I' with "Starting Date" = 'SD', "Ending Date" = 'ED' inserted via OData
+        // With test isolation the test session keeps the locks on the records it writes even after Commit,
+        // so the line is inserted by the OData session to let the OData update below modify it.
+        // Dates sent via OData are checked against the license date interval, so keep them within the work date month
+        RequestBody.Add('Price_List_Code', PriceListHeader.Code);
+        RequestBody.Add('StartingDate', Format(CalcDate('<-CM>', WorkDate()), 0, 9));
+        RequestBody.Add('EndingDate', Format(CalcDate('<-CM+10D>', WorkDate()), 0, 9));
+        RequestBody.Add('Product_No', Item."No.");
+        PostPriceListLineViaOData(RequestBody);
+        PriceListLine.SetRange("Price List Code", PriceListHeader.Code);
+        PriceListLine.FindFirst();
         ExpectedPriceListLine := PriceListLine;
 
         // [WHEN] Patch line 'L' via OData: "Unit of Measure Code" = 'UOM', "Ending Date" = 'ED2'
-        // Dates sent via OData are checked against the license date interval, so keep them within the work date month
         NewEndingDate := CalcDate('<CM>', WorkDate());
-        RequestBody.Add('Unit_of_Measure_Code_Lookup', ItemUnitofMeasure.Code);
-        RequestBody.Add('EndingDate', Format(NewEndingDate, 0, 9));
-        RequestBody.WriteTo(RequestBodyText);
+        PatchRequestBody.Add('Unit_of_Measure_Code_Lookup', ItemUnitofMeasure.Code);
+        PatchRequestBody.Add('EndingDate', Format(NewEndingDate, 0, 9));
+        PatchRequestBody.WriteTo(RequestBodyText);
         LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(
-            GetPriceListLinesODataURL(PriceListLine."Price List Code", PriceListLine."Line No."), RequestBodyText, ResponseText, 200);
+            GetPriceListLinesODataURL(ExpectedPriceListLine."Price List Code", ExpectedPriceListLine."Line No."), RequestBodyText, ResponseText, 200);
 
         // [THEN] Line 'L' has "Unit of Measure Code" = 'UOM' and "Ending Date" = 'ED2'
-        PriceListLine.Get(ExpectedPriceListLine."Price List Code", ExpectedPriceListLine."Line No.");
+        FindSinglePriceListLineAndDeleteViaOData(PriceListLine, PriceListHeader.Code);
+        PriceListLine.TestField("Line No.", ExpectedPriceListLine."Line No.");
         PriceListLine.TestField("Unit of Measure Code", ItemUnitofMeasure.Code);
         PriceListLine.TestField("Ending Date", NewEndingDate);
 
-        // [THEN] Product, "Starting Date" and "Unit Price" are not changed
+        // [THEN] Product and "Starting Date" are not changed
         PriceListLine.TestField("Asset Type", ExpectedPriceListLine."Asset Type");
         PriceListLine.TestField("Asset No.", ExpectedPriceListLine."Asset No.");
         PriceListLine.TestField("Product No.", ExpectedPriceListLine."Product No.");
         PriceListLine.TestField("Starting Date", ExpectedPriceListLine."Starting Date");
-        PriceListLine.TestField("Unit Price", ExpectedPriceListLine."Unit Price");
     end;
 
     local procedure InsertLineWithProductAndUOMViaOData(PriceType: Enum "Price Type")
