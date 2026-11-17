@@ -724,16 +724,11 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     local procedure SeedDemoGenerationRules()
-    var
-        Item: Record Item;
-        ItemFilter: Text[2048];
     begin
         InsertDemoTemplate(BeansTemplateCodeTok, BeansTemplateDescTok);
         InsertDemoTemplate(ReceiveTemplateCodeTok, ReceiveTemplateDescTok);
-        Item.SetRange("Item Category Code", BeansCategoryTok);
-        ItemFilter := CopyStr(Item.GetView(false), 1, MaxStrLen(ItemFilter));
-        InsertDemoGenerationRule(3, 30, BeansTemplateCodeTok, BeansTemplateDescTok, ItemFilter);
-        InsertDemoGenerationRule(4, 40, ReceiveTemplateCodeTok, ReceiveTemplateDescTok, '');
+        QltyInspectionUtility.InsertItemCategoryGenerationRule(3, 30, Enum::"Qlty. Gen. Rule Intent"::Purchase, BeansTemplateCodeTok, Database::"Purchase Line", '', BeansTemplateDescTok, Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual or Automatic", BeansCategoryTok);
+        InsertDemoGenerationRule(4, 40, ReceiveTemplateCodeTok, ReceiveTemplateDescTok);
     end;
 
     local procedure InsertDemoTemplate(TemplateCode: Code[20]; TemplateDescription: Text[100])
@@ -748,7 +743,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionTemplateHdr.Insert(true);
     end;
 
-    local procedure InsertDemoGenerationRule(EntryNo: Integer; SortOrder: Integer; TemplateCode: Code[20]; RuleDescription: Text[100]; ItemFilter: Text[2048])
+    local procedure InsertDemoGenerationRule(EntryNo: Integer; SortOrder: Integer; TemplateCode: Code[20]; RuleDescription: Text[100])
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
@@ -762,8 +757,6 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionGenRule.Validate("Source Table No.", Database::"Purchase Line");
         QltyInspectionGenRule.Validate(Description, RuleDescription);
         QltyInspectionGenRule.Validate("Activation Trigger", QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic");
-        if ItemFilter <> '' then
-            QltyInspectionGenRule.Validate("Item Filter", ItemFilter);
         QltyInspectionGenRule.Insert(true);
     end;
 
