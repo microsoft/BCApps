@@ -1411,8 +1411,7 @@ codeunit 426 "Payment Tolerance Management"
             AppliedCustLedgEntry.SetRange("Customer No.", CustledgEntry."Customer No.");
             AppliedCustLedgEntry.SetRange(Open, true);
             AppliedCustLedgEntry.SetRange("Applies-to ID", CustEntryApplID);
-            AppliedCustLedgEntry.ModifyAll("Accepted Payment Tolerance", 0);
-            AppliedCustLedgEntry.ModifyAll("Accepted Pmt. Disc. Tolerance", false);
+            AppliedCustLedgEntry.ModifyAll("Accepted Payment Tolerance", 0, "Accepted Pmt. Disc. Tolerance", false);
             if not SuppressCommit then
                 Commit();
         end;
@@ -1441,8 +1440,7 @@ codeunit 426 "Payment Tolerance Management"
             AppliedVendLedgEntry.SetRange("Vendor No.", VendLedgEntry."Vendor No.");
             AppliedVendLedgEntry.SetRange(Open, true);
             AppliedVendLedgEntry.SetRange("Applies-to ID", VendEntryApplID);
-            AppliedVendLedgEntry.ModifyAll("Accepted Payment Tolerance", 0);
-            AppliedVendLedgEntry.ModifyAll("Accepted Pmt. Disc. Tolerance", false);
+            AppliedVendLedgEntry.ModifyAll("Accepted Payment Tolerance", 0, "Accepted Pmt. Disc. Tolerance", false);
             if not SuppressCommit then
                 Commit();
         end;
@@ -1733,8 +1731,7 @@ codeunit 426 "Payment Tolerance Management"
             AppliedCustLedgEntry.SetRange(Open, true);
             AppliedCustLedgEntry.SetRange("Document No.", DocumentNo);
             AppliedCustLedgEntry.ReadIsolation(IsolationLevel::UpdLock);
-            AppliedCustLedgEntry.ModifyAll("Accepted Payment Tolerance", 0);
-            AppliedCustLedgEntry.ModifyAll("Accepted Pmt. Disc. Tolerance", false);
+            AppliedCustLedgEntry.ModifyAll("Accepted Payment Tolerance", 0, "Accepted Pmt. Disc. Tolerance", false);
             if not SuppressCommit then
                 Commit();
         end else
@@ -1744,8 +1741,7 @@ codeunit 426 "Payment Tolerance Management"
                 AppliedVendLedgEntry.SetRange(Open, true);
                 AppliedVendLedgEntry.SetRange("Document No.", DocumentNo);
                 AppliedVendLedgEntry.ReadIsolation(IsolationLevel::UpdLock);
-                AppliedVendLedgEntry.ModifyAll("Accepted Payment Tolerance", 0);
-                AppliedVendLedgEntry.ModifyAll("Accepted Pmt. Disc. Tolerance", false);
+                AppliedVendLedgEntry.ModifyAll("Accepted Payment Tolerance", 0, "Accepted Pmt. Disc. Tolerance", false);
 
                 if not SuppressCommit then
                     Commit();

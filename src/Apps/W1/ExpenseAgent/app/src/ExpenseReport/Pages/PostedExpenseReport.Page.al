@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.Finance.SpendRequest;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Navigate;
 
@@ -174,7 +173,7 @@ page 6998 "Posted Expense Report"
             part(Activity; "Expense Activity Log FactBox")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Activity Log';
+                Caption = 'History';
                 SubPageLink = "Source Table ID" = const(Database::"Posted Expense Report Header"),
                               "Source Record System ID" = field(SystemId);
                 Visible = Rec."No." <> '';
@@ -263,9 +262,9 @@ page 6998 "Posted Expense Report"
                 {
                     ApplicationArea = Basic, Suite;
                     Image = ProjectExpense;
-                    Caption = 'Spend Request';
-                    ToolTip = 'View the details of the spend request associated with this posted expense report.';
-                    RunObject = Page "Spend Request Card";
+                    Caption = 'Travel Request';
+                    ToolTip = 'View the details of the travel request associated with this posted expense report.';
+                    RunObject = Page "Travel Request Card";
                     RunPageLink = "No." = field("Spend Request No.");
                     Visible = Rec."Spend Request No." <> '';
                 }

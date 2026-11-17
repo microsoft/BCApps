@@ -22,8 +22,11 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
 
     var
         PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
-        MissingCompInfGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. in %1.', Comment = '%1=Company Information';
+        MissingCompInfIdentifierErr: Label 'You must specify either GLN, VAT Registration No., or Registration No. in %1.', Comment = '%1=Company Information';
+        MissingCompInfIdentifierTitleErr: Label 'Company information is incomplete';
+        MissingCompInfIdentifierDetailedErr: Label 'Specify a GLN, VAT Registration No., or Registration No. in Company Information, and then try again.';
         MissingCustGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. for Customer %1.', Comment = '%1 = Customer No.';
+        ShowCompanyInformationLbl: Label 'Show Company Information';
         UnsupportedDocumentErr: Label 'The posted sales document type is not supported for PEPPOL 3.0 validation.';
 
     trigger OnRun()
@@ -99,6 +102,7 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
         GLSetup: Record "General Ledger Setup";
         ResponsibilityCenter: Record "Responsibility Center";
         DEContext: Codeunit "PEPPOL30 DE Context";
+        MissingCompanyIdentifierError: ErrorInfo;
     begin
         CompanyInfo.Get();
         GLSetup.Get();
@@ -122,8 +126,17 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
         CompanyInfo.TestField("Country/Region Code");
         PEPPOL30SalesValidation.CheckCountryRegionCode(CompanyInfo."Country/Region Code");
 
-        if CompanyInfo.GLN + CompanyInfo."VAT Registration No." = '' then
-            Error(MissingCompInfGLNOrVATRegNoErr, CompanyInfo.TableCaption());
+        if (CompanyInfo.GLN + CompanyInfo."VAT Registration No." = '') and
+           not (CompanyInfo."Use Reg. No. in E-Document" and (CompanyInfo."Registration No." <> ''))
+        then begin
+            MissingCompanyIdentifierError.Title := MissingCompInfIdentifierTitleErr;
+            MissingCompanyIdentifierError.Message := StrSubstNo(MissingCompInfIdentifierErr, CompanyInfo.TableCaption());
+            MissingCompanyIdentifierError.DetailedMessage := MissingCompInfIdentifierDetailedErr;
+            MissingCompanyIdentifierError.RecordId := CompanyInfo.RecordId;
+            MissingCompanyIdentifierError.PageNo := Page::"Company Information";
+            MissingCompanyIdentifierError.AddNavigationAction(ShowCompanyInformationLbl);
+            Error(MissingCompanyIdentifierError);
+        end;
 
         SalesHeader.TestField("Bill-to Name");
         SalesHeader.TestField("Bill-to Address");
@@ -140,7 +153,9 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
             if (SalesHeader."Document Type" in [SalesHeader."Document Type"::Invoice, SalesHeader."Document Type"::Order, SalesHeader."Document Type"::"Credit Memo"]) and
                Customer.Get(SalesHeader."Bill-to Customer No.")
             then
-                if (Customer.GLN + Customer."VAT Registration No.") = '' then
+                if ((Customer.GLN + Customer."VAT Registration No.") = '') and
+                   not (Customer."Use Reg. No. in E-Document" and (Customer."Registration Number" <> ''))
+                then
                     Error(MissingCustGLNOrVATRegNoErr, Customer."No.");
 
         if SalesHeader."Document Type" = SalesHeader."Document Type"::"Credit Memo" then

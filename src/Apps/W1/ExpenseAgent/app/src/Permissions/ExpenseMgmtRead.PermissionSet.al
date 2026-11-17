@@ -10,7 +10,8 @@ permissionset 6907 "Expense Mgmt. Read"
     Access = Public;
     Assignable = true;
 
-    IncludedPermissionSets = "Expense Management - Objects";
+    IncludedPermissionSets = "Expense Management - Objects",
+                             EACorpCardRead;
 
     Permissions =
         tabledata "Expense Vendor" = R,
@@ -22,6 +23,8 @@ permissionset 6907 "Expense Mgmt. Read"
         tabledata "Expense Group" = R,
         tabledata "Expense Itemization" = R,
         tabledata "Expense Location" = R,
+        tabledata "Expense Vehicle Type" = R,
+        tabledata "Mileage Rate Setup" = R,
         tabledata "Expense Agent Setup" = R,
         tabledata "Expense Agent Status" = R,
 #if not CLEAN29
@@ -40,6 +43,7 @@ permissionset 6907 "Expense Mgmt. Read"
         tabledata "Expense Report Line Particip." = R,
         tabledata "Expense Report Line Per Diem" = R,
         tabledata "Expense Subcategory" = R,
+        tabledata "EA Expense Management Cue" = RI,
         tabledata "Expense Per Diem" = R,
         tabledata "Posted Expense Report Header" = R,
         tabledata "Posted Expense Report Line" = R,
@@ -48,6 +52,7 @@ permissionset 6907 "Expense Mgmt. Read"
         tabledata "Expense Ledger Entry" = R,
         tabledata "Expense Team" = R,
         tabledata "Expense Approval Setup" = R,
+        tabledata "Expense Alternate Approver" = R,
         tabledata "Expense Rule Violation" = R,
         tabledata "Expense Policy" = R,
         tabledata "Expense Policy Evaluation" = R,
@@ -62,5 +67,6 @@ permissionset 6907 "Expense Mgmt. Read"
         tabledata "Expense VAT Specification" = R,
         tabledata "Expense Report Line VAT Spec." = R,
         tabledata "Expense Activity Log Entry" = R,
+        tabledata "Expense Activities Cue" = R,
         tabledata "Posted Exp. Rep. Line VAT Spec" = R;
 }

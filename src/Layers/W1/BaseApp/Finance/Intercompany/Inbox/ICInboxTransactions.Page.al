@@ -78,7 +78,7 @@ page 615 "IC Inbox Transactions"
                 {
                     ApplicationArea = Intercompany;
                     Caption = 'Show Line Action';
-                    OptionCaption = 'All,No Action,Accept,Return to IC Partner';
+                    OptionCaption = 'All,No Action,Accept,Return to IC Partner,Cancel';
                     ToolTip = 'Specifies how you want to filter the lines shown in the window. You can choose to see all lines, or only lines with a specific option in the Line Action field.';
 
                     trigger OnValidate()
@@ -111,18 +111,6 @@ page 615 "IC Inbox Transactions"
                     ApplicationArea = Intercompany;
                     ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
                 }
-#if not CLEAN27
-                field("Source Type"; Rec."Source Type")
-                {
-                    ApplicationArea = Intercompany;
-                    Editable = false;
-                    Visible = false;
-                    ToolTip = 'Specifies whether the transaction was created in a journal, a sales document, or a purchase document.';
-                    ObsoleteReason = 'Replaced with IC Source Type for consistent naming.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#endif
                 field("IC Source Type"; Rec."IC Source Type")
                 {
                     ApplicationArea = Intercompany;

@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA33
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,8 +13,18 @@ table 7413 "Excise Tax Item/FA Rate"
 {
     Caption = 'Excise Duty Rate';
     DataClassification = CustomerContent;
+#if not CLEAN30
     LookupPageId = "Excise Tax Item/FA Rates";
     DrillDownPageId = "Excise Tax Item/FA Rates";
+#endif
+    ObsoleteReason = 'Replaced by the Excise Tax Rate table, which supports item category and calculation type based rates.';
+#if not CLEAN30
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '33.0';
+#endif
 
     fields
     {
@@ -170,3 +181,4 @@ table 7413 "Excise Tax Item/FA Rate"
         exit("Excise Source Type"::" ");
     end;
 }
+#endif

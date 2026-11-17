@@ -9,13 +9,15 @@ codeunit 31119 "EET Send Entries To Serv. CZL"
     Permissions = tabledata "EET Entry CZL" = r;
 
     trigger OnRun()
+    var
+        EETManagementCZL: Codeunit "EET Management CZL";
     begin
         EETEntryCZL.SetCurrentKey(EETEntryCZL."Status");
         EETEntryCZL.SetFilterToSending();
         if EETEntryCZL.FindSet() then
             repeat
                 OutgoingEETEntryCZL.Get(EETEntryCZL."Entry No.");
-                OutgoingEETEntryCZL.Send(false);
+                EETManagementCZL.SendEntryToService(OutgoingEETEntryCZL, false);
             until EETEntryCZL.Next() = 0;
     end;
 

@@ -81,6 +81,7 @@ codeunit 47025 "SL Populate Hist. Tables"
         PopulatePayables();
         PopulateItems();
         PopulatePurchaseReceivables();
+        PopulateHistoricalProjectTransactions();
         SLHistMigrationStatusMgmt.SetStatusFinished();
         Commit();
     end;

@@ -11,6 +11,7 @@ tableextension 6615 "FS Service Header" extends "Service Header"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve the existing field ID for compatibility.
         field(12001; "Coupled to FS"; Boolean)
         {
             FieldClass = FlowField;
@@ -18,5 +19,6 @@ tableextension 6615 "FS Service Header" extends "Service Header"
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Service Header")));
         }
+#pragma warning restore AS0099
     }
 }

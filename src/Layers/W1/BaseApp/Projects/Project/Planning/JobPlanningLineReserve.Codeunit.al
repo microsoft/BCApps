@@ -782,6 +782,7 @@ codeunit 1032 "Job Planning Line-Reserve"
         JobPlanningLine.SetAutoCalcFields("Reserved Qty. (Base)");
         JobPlanningLine.FilterLinesForReservation(
           CalcReservEntry, ReservSummEntryNo - 131, sender.GetAvailabilityFilter(AvailabilityDate), Positive);
+#pragma warning disable AA0181, AA0233 // Positional Find() paired with Next(); suppression tracked for follow-up
         if JobPlanningLine.Find(Search) then
             repeat
                 QtyThisLine := JobPlanningLine."Remaining Qty.";
@@ -802,6 +803,7 @@ codeunit 1032 "Job Planning Line-Reserve"
                     RemainingQtyToReserve, RemainingQtyToReserveBase, ReservQty,
                     Description, JobPlanningLine."Planning Date", QtyThisLine, QtyThisLineBase, CallTrackingSpecification);
             until (JobPlanningLine.Next(NextStep) = 0) or (RemainingQtyToReserveBase = 0);
+#pragma warning restore AA0181, AA0233
     end;
 
     local procedure CheckItemType(CalcReservEntry: Record "Reservation Entry")
@@ -859,13 +861,6 @@ codeunit 1032 "Job Planning Line-Reserve"
             StopReservation := CalcReservEntry."Source Subtype" <> 2;
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetSourceForReservationOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; JobPlanningLine: Record "Job Planning Line")
-    begin
-    end;
-#endif
     // codeunit Create Reserv. Entry
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Reserv. Entry", 'OnCheckSourceTypeSubtype', '', false, false)]

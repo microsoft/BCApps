@@ -46,6 +46,11 @@ using System.Utilities;
 codeunit 6620 "Copy Document Mgt."
 {
 
+    Permissions =
+        tabledata "Assembly Header" = rim,
+        tabledata "Assembly Line" = rim,
+        tabledata "Assemble-to-Order Link" = rim;
+
     trigger OnRun()
     begin
     end;
@@ -437,6 +442,7 @@ codeunit 6620 "Copy Document Mgt."
         OnAfterCopySalesDocument(
           FromDocType.AsInteger(), FromDocNo, ToSalesHeader, FromDocOccurrenceNo, FromDocVersionNo, IncludeHeader, RecalculateLines, MoveNegLines);
     end;
+
 
     procedure CopySalesDocSalesLine(FromSalesHeader: Record "Sales Header"; var ToSalesHeader: Record "Sales Header"; var LinesNotCopied: Integer; NextLineNo: Integer)
     var

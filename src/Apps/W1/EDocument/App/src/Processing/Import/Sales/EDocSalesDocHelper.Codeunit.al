@@ -51,6 +51,7 @@ codeunit 6427 "E-Doc. Sales Doc. Helper"
         SalesLine.Validate("Unit Price", EDocSalesLine."Unit Price");
         if EDocSalesLine."Line Discount Amount" > 0 then
             SalesLine.Validate("Line Discount Amount", EDocSalesLine."Line Discount Amount");
+        SalesLine.Validate("Requested Delivery Date", EDocSalesLine."Requested Delivery Date");
 
         SalesLineCombinedDimensions[1] := SalesLine."Dimension Set ID";
         SalesLineCombinedDimensions[2] := EDocSalesLine."[BC] Dimension Set ID";
@@ -59,6 +60,10 @@ codeunit 6427 "E-Doc. Sales Doc. Helper"
         SalesLine.Validate("Shortcut Dimension 2 Code", EDocSalesLine."[BC] Shortcut Dimension 2 Code");
         SalesLine.Insert(true);
         EDocRecordLink.InsertEDocumentSalesLineLink(EDocSalesLine, SalesLine);
+
+        EDocSalesLine."Created Shipment Date" := SalesLine."Shipment Date";
+        EDocSalesLine."Created Planned Delivery Date" := SalesLine."Planned Delivery Date";
+        EDocSalesLine.Modify();
     end;
 
     /// <summary>

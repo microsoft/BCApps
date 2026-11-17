@@ -874,8 +874,7 @@ codeunit 1000 "Job Calculate WIP"
             repeat
                 PostWIPGL(JobWIPGLEntry, true, DocNo, SourceCodeSetup."Job G/L WIP", PostingDate);
             until JobWIPGLEntry.Next() = 0;
-        JobWIPGLEntry.ModifyAll("Reverse Date", PostingDate);
-        JobWIPGLEntry.ModifyAll(Reversed, true);
+        JobWIPGLEntry.ModifyAll("Reverse Date", PostingDate, Reversed, true);
 
         JobTask.SetRange("Job No.", Job."No.");
         if JobTask.FindSet() then

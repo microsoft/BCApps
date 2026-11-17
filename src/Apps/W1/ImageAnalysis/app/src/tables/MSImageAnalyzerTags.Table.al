@@ -32,7 +32,9 @@ table 2028 "MS - Image Analyzer Tags"
         {
         }
 
+#pragma warning disable AL0468 // Accepted: renaming the table field would be a breaking change.
         field(5; "Newly Created Item Category Code"; boolean)
+#pragma warning restore AL0468
         {
         }
 

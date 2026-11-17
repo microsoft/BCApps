@@ -54,10 +54,6 @@ page 28092 "Post Dated Checks-Purchases"
                         Text := VendorList.GetSelectionFilter();
                         exit(true);
 
-                        UpdateVendor();
-                        Rec.SetFilter("Check Date", DateFilter);
-                        if not Rec.FindFirst() then
-                            UpdateBalance();
                     end;
 
                     trigger OnValidate()

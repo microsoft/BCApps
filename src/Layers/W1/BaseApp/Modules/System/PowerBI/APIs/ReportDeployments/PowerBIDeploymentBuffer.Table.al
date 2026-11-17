@@ -1,9 +1,7 @@
 namespace System.Integration.PowerBI;
 
 /// <summary>
-/// Temporary table used by the Power BI Report Deployments page to display
-/// the list of deployable reports with their current status.
-/// All population and status-derivation logic is in table procedures.
+/// Temporary table used by the Power BI Report Deployments page to display the list of deployable reports with their current status.
 /// </summary>
 table 6318 "Power BI Deployment Buffer"
 {
@@ -54,6 +52,16 @@ table 6318 "Power BI Deployment Buffer"
             Caption = 'Uploaded Report ID';
             DataClassification = SystemMetadata;
         }
+        field(9; "Deployed Workspace Name"; Text[200])
+        {
+            Caption = 'Deployed Workspace Name';
+            DataClassification = CustomerContent;
+        }
+        field(10; Outcome; Enum "Power BI Deployment Outcome")
+        {
+            Caption = 'Outcome';
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys
@@ -66,66 +74,89 @@ table 6318 "Power BI Deployment Buffer"
 
     procedure LoadReports()
     var
-        PowerBIDeployment: Record "Power BI Deployment";
-        LatestState: Record "Power BI Deployment State";
-        DeployableReport: Interface "Power BI Deployable Report";
         ReportEnum: Enum "Power BI Deployable Report";
         Ordinals: List of [Integer];
         OrdinalValue: Integer;
-        HasDeploymentRecord: Boolean;
     begin
+        Rec.Reset();
         Rec.DeleteAll();
         Ordinals := Enum::"Power BI Deployable Report".Ordinals();
 
         foreach OrdinalValue in Ordinals do begin
             ReportEnum := Enum::"Power BI Deployable Report".FromInteger(OrdinalValue);
-            DeployableReport := ReportEnum;
-
-            Rec.Init();
-            Rec."Report Id" := ReportEnum;
-            Rec."Report Name" := DeployableReport.GetReportName();
-            Rec."Available Version" := DeployableReport.GetVersion();
-
-            HasDeploymentRecord := PowerBIDeployment.Get(ReportEnum);
-            if HasDeploymentRecord then begin
-                if PowerBIDeployment."Deployed Version" <> 0 then
-                    Rec."Deployed Version" := Format(PowerBIDeployment."Deployed Version");
-
-                Rec."Uploaded Report ID" := PowerBIDeployment."Uploaded Report ID";
-                Rec."Last Deployed" := PowerBIDeployment.GetLatestCompletedState()."Reached At";
-                if PowerBIDeployment.GetLatestStateRecord(LatestState) then
-                    Rec."Current Step" := Format(LatestState."Status Reached");
-            end;
-            Rec."Deployment Status" := DeriveDeploymentStatus(PowerBIDeployment, HasDeploymentRecord);
+            LoadReport(ReportEnum);
             Rec.Insert();
         end;
 
         if Rec.FindFirst() then;
     end;
 
-    local procedure DeriveDeploymentStatus(PowerBIDeployment: Record "Power BI Deployment"; HasDeploymentRecord: Boolean): Enum "Power BI Deployment Status"
+    procedure LoadSelection(var SelectedDeploymentBuffer: Record "Power BI Deployment Buffer")
     var
-        UploadStatus: Enum "Power BI Upload Status";
+        TempSourceBuffer: Record "Power BI Deployment Buffer";
     begin
-        if not HasDeploymentRecord then
-            exit(Enum::"Power BI Deployment Status"::"Not Installed");
+        Rec.Reset();
+        Rec.DeleteAll();
 
-        UploadStatus := PowerBIDeployment.GetUploadStatus();
+        TempSourceBuffer.Copy(SelectedDeploymentBuffer, true);
+        if TempSourceBuffer.FindSet() then
+            repeat
+                LoadReport(TempSourceBuffer."Report Id");
+                Rec.Insert();
+            until TempSourceBuffer.Next() = 0;
 
-        if UploadStatus = Enum::"Power BI Upload Status"::Failed then
-            exit(Enum::"Power BI Deployment Status"::Error);
+        Rec.Reset();
+        if Rec.FindFirst() then;
+    end;
 
-        if PowerBIDeployment."Deployed Version" = 0 then
-            case UploadStatus of
-                Enum::"Power BI Upload Status"::NotStarted:
-                    exit(Enum::"Power BI Deployment Status"::Queued);
-                else
-                    exit(Enum::"Power BI Deployment Status"::Installing);
-            end;
+    procedure CountForOutcome(OutcomeToCount: Enum "Power BI Deployment Outcome"): Integer
+    var
+        TempDeploymentBuffer: Record "Power BI Deployment Buffer";
+    begin
+        TempDeploymentBuffer.Copy(Rec, true);
+        TempDeploymentBuffer.Reset();
+        TempDeploymentBuffer.SetRange(Outcome, OutcomeToCount);
+        exit(TempDeploymentBuffer.Count());
+    end;
 
-        if Rec."Available Version" > PowerBIDeployment."Deployed Version" then
-            exit(Enum::"Power BI Deployment Status"::"Update Available");
+    internal procedure RemoveOutcome(OutcomeToRemove: Enum "Power BI Deployment Outcome")
+    var
+        TempDeploymentBuffer: Record "Power BI Deployment Buffer";
+    begin
+        TempDeploymentBuffer.Copy(Rec, true);
+        TempDeploymentBuffer.Reset();
+        TempDeploymentBuffer.SetRange(Outcome, OutcomeToRemove);
+        TempDeploymentBuffer.DeleteAll();
+    end;
 
-        exit(Enum::"Power BI Deployment Status"::"Up to Date");
+    local procedure LoadReport(ReportEnum: Enum "Power BI Deployable Report")
+    var
+        PowerBIDeployment: Record "Power BI Deployment";
+        LatestState: Record "Power BI Deployment State";
+        DeployableReport: Interface "Power BI Deployable Report";
+        HasDeploymentRecord: Boolean;
+    begin
+        DeployableReport := ReportEnum;
+
+        Rec.Init();
+        Rec."Report Id" := ReportEnum;
+        Rec."Report Name" := DeployableReport.GetReportName();
+        Rec."Available Version" := DeployableReport.GetVersion();
+
+        Clear(PowerBIDeployment);
+        HasDeploymentRecord := PowerBIDeployment.Get(ReportEnum);
+        if HasDeploymentRecord then begin
+            if PowerBIDeployment."Deployed Version" <> 0 then
+                Rec."Deployed Version" := Format(PowerBIDeployment."Deployed Version");
+
+            Rec."Uploaded Report ID" := PowerBIDeployment."Uploaded Report ID";
+            Rec."Deployed Workspace Name" := PowerBIDeployment."Deployed Workspace Name";
+            Rec."Last Deployed" := PowerBIDeployment.GetLatestCompletedState()."Reached At";
+            if PowerBIDeployment.GetLatestStateRecord(LatestState) then
+                Rec."Current Step" := Format(LatestState."Status Reached");
+        end;
+
+        Rec."Deployment Status" := PowerBIDeployment.GetDeploymentStatus();
+        Rec.Outcome := PowerBIDeployment.GetDeploymentOutcome(Rec."Deployment Status");
     end;
 }

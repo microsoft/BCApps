@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,6 +13,9 @@ page 7412 "Excise Tax Item/FA Rates"
     DataCaptionExpression = GetCaption();
     Caption = 'Excise Duty Rates';
     DelayedInsert = true;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by the Excise Tax Rates page, which shows item category and calculation type based rates.';
+    ObsoleteTag = '30.0';
 
     layout
     {
@@ -54,3 +58,4 @@ page 7412 "Excise Tax Item/FA Rates"
         exit(StrSubstNo(EntryPermissionsCaptionLbl, Rec.TableCaption, Rec."Excise Tax Type Code"));
     end;
 }
+#endif

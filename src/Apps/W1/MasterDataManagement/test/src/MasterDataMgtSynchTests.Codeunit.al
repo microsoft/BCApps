@@ -174,6 +174,96 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
 
     [Test]
     [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure SynchronizingBlankedDateAndDateTimeClearsDestination()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        DestinationFieldRef: FieldRef;
+        NeedsConversion: Boolean;
+        IsValueFound: Boolean;
+        NewValue: Variant;
+        TransferredDate: Date;
+        TransferredDateTime: DateTime;
+    begin
+        // [FEATURE] [AI test 0.4]
+        Initialize();
+
+        // [GIVEN] a coupled pair whose source Date/DateTime are blank and destination Date/DateTime are set
+        SourceRecord."Primary Key" := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert(); // Test Date / Test DateTime left blank (0D / 0DT)
+        DestinationRecord."Primary Key" := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Date" := Today();
+        DestinationRecord."Test DateTime" := CurrentDateTime();
+        DestinationRecord.Insert();
+        MasterDataMgtCoupling."Integration System ID" := SourceRecord.SystemId;
+        MasterDataMgtCoupling."Local System ID" := DestinationRecord.SystemId;
+        MasterDataMgtCoupling."Table ID" := Database::"MDM Test Table A";
+        MasterDataMgtCoupling."Last Synch. Modified On" := DestinationRecord.SystemModifiedAt;
+        MasterDataMgtCoupling.Insert();
+
+        SourceRecordRef.Open(Database::"MDM Test Table A");
+        SourceRecordRef.GetTable(SourceRecord);
+        DestinationRecordRef.Open(Database::"MDM Test Table A");
+        DestinationRecordRef.GetTable(DestinationRecord);
+
+        // [WHEN] synch transfers the blanked Date [THEN] the blank is transferred (bug 648540: BaseApp skips it)
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test Date"));
+        DestinationFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Date"));
+        LibraryMasterDataMgt.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
+        Assert.AreEqual(true, IsValueFound, 'The blanked Date must be transferred, not skipped');
+        Assert.AreEqual(false, NeedsConversion, '');
+        TransferredDate := NewValue;
+        Assert.AreEqual(0D, TransferredDate, 'The destination Date must be cleared to match the source');
+
+        // [WHEN] synch transfers the blanked DateTime [THEN] the blank is transferred
+        Clear(NewValue);
+        IsValueFound := false;
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test DateTime"));
+        DestinationFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test DateTime"));
+        LibraryMasterDataMgt.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
+        Assert.AreEqual(true, IsValueFound, 'The blanked DateTime must be transferred, not skipped');
+        Assert.AreEqual(false, NeedsConversion, '');
+        TransferredDateTime := NewValue;
+        Assert.AreEqual(0DT, TransferredDateTime, 'The destination DateTime must be cleared to match the source');
+
+        MasterDataMgtCoupling.Delete();
+        SourceRecord.Delete();
+        DestinationRecord.Delete();
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure DeletionConflictErrorIdentifiesSourceRecord()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        SourceCustomer: Record Customer;
+        SourceRecordRef: RecordRef;
+        DeletionConflictHandled: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] An unresolved deletion conflict fails with an error that names the specific source record, not just its table (bug 647736).
+        Initialize();
+
+        // [GIVEN] a mapping whose Deletion-Conflict Resolution is None (the default); Initialize() has enabled MDM
+        IntegrationTableMapping.Init();
+        IntegrationTableMapping.Type := IntegrationTableMapping.Type::"Master Data Management";
+        IntegrationTableMapping."Table ID" := Database::Customer;
+        IntegrationTableMapping."Integration Table ID" := Database::Customer;
+        LibrarySales.CreateCustomer(SourceCustomer);
+        SourceRecordRef.GetTable(SourceCustomer);
+
+        // [WHEN] the deletion-conflict subscriber runs and cannot resolve the conflict
+        // [THEN] the error identifies the specific source record (its number), not just the table
+        asserterror LibraryMasterDataMgt.HandleOnDeletionConflictDetected(IntegrationTableMapping, SourceRecordRef, DeletionConflictHandled);
+        Assert.ExpectedError(SourceCustomer."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
     procedure SynchronizingPrimaryKeyChange()
     var
         SourceCustomer: Record Customer;
@@ -720,6 +810,199 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         // [THEN] Both rows still exist - the older one was not silently deleted
         Assert.IsTrue(IntegrationSynchJobErrorsFirst.Get(IntegrationSynchJobErrorsFirst."No."), 'The first error row should still exist; the legacy cleanup subscriber must be gone');
         Assert.IsTrue(IntegrationSynchJobErrorsSecond.Get(IntegrationSynchJobErrorsSecond."No."), 'The newly inserted error row should exist');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure LocalDataSourceFetchesSourceRecordByCouplingSystemId()
+    var
+        SourceCustomer: Record Customer;
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        IntegrationRecordRef: RecordRef;
+        Found: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] The local data source (IMDM Data Source.GetBySystemId) fetches the source record for a coupling.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] a source customer coupled by its SystemId
+        LibrarySales.CreateCustomer(SourceCustomer);
+        MasterDataMgtCoupling.Init();
+        MasterDataMgtCoupling."Integration System ID" := SourceCustomer.SystemId;
+        MasterDataMgtCoupling."Local System ID" := CreateGuid();
+        MasterDataMgtCoupling."Table ID" := Database::Customer;
+        MasterDataMgtCoupling.Insert();
+
+        // [WHEN] the coupling-based GetIntegrationRecordRef is invoked
+        Found := LibraryMasterDataMgt.GetIntegrationRecordRefByCoupling(Database::Customer, MasterDataMgtCoupling, IntegrationRecordRef);
+
+        // [THEN] the local data source returns the source customer
+        Assert.IsTrue(Found, 'GetBySystemId should find the source record');
+        Assert.AreEqual(SourceCustomer.SystemId, IntegrationRecordRef.Field(IntegrationRecordRef.SystemIdNo()).Value(), 'Wrong record fetched by GetBySystemId');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure LocalDataSourceFetchesSourceRecordById()
+    var
+        SourceCustomer: Record Customer;
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        IntegrationRecordRef: RecordRef;
+        Found: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] The local data source (IMDM Data Source.GetById) fetches the source record by its SystemId.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] a source customer
+        LibrarySales.CreateCustomer(SourceCustomer);
+        GetCustomerMapping(IntegrationTableMapping);
+
+        // [WHEN] GetIntegrationRecordRef by id (GUID) is invoked
+        Found := LibraryMasterDataMgt.GetIntegrationRecordRefById(IntegrationTableMapping, SourceCustomer.SystemId, IntegrationRecordRef);
+
+        // [THEN] the local data source returns the source customer
+        Assert.IsTrue(Found, 'GetById should find the source record');
+        Assert.AreEqual(SourceCustomer.SystemId, IntegrationRecordRef.Field(IntegrationRecordRef.SystemIdNo()).Value(), 'Wrong record fetched by GetById');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure LocalDataSourceFetchesSourceRecordsByUidFilter()
+    var
+        SourceCustomer: Record Customer;
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        SourceRecordRef: RecordRef;
+        Found: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] The local data source (IMDM Data Source.GetByUidFilter) returns records matching a UID (SystemId) filter.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] a source customer
+        LibrarySales.CreateCustomer(SourceCustomer);
+        GetCustomerMapping(IntegrationTableMapping);
+
+        // [WHEN] GetByUidFilter is invoked with the customer's SystemId as the filter
+        Found := LibraryMasterDataMgt.DataSourceGetByUidFilter(IntegrationTableMapping, Format(SourceCustomer.SystemId), SourceRecordRef);
+
+        // [THEN] the local data source returns the source customer
+        Assert.IsTrue(Found, 'GetByUidFilter should find the source record');
+        Assert.AreEqual(SourceCustomer.SystemId, SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value(), 'Wrong record fetched by GetByUidFilter');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure LocalDataSourceReturnsModifiedSet()
+    var
+        SourceCustomer: Record Customer;
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        SourceRecordRef: RecordRef;
+        Found: Boolean;
+        FoundOurs: Boolean;
+        RecSystemId: Guid;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] The local data source (IMDM Data Source.GetModifiedSet) returns the source records for the mapping.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] a source customer
+        LibrarySales.CreateCustomer(SourceCustomer);
+        GetCustomerMapping(IntegrationTableMapping);
+
+        // [WHEN] GetModifiedSet is invoked
+        Found := LibraryMasterDataMgt.DataSourceGetModifiedSet(IntegrationTableMapping, '', SourceRecordRef);
+
+        // [THEN] the created source customer is in the returned set
+        Assert.IsTrue(Found, 'GetModifiedSet should return source records');
+        if SourceRecordRef.FindSet() then
+            repeat
+                RecSystemId := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
+                if RecSystemId = SourceCustomer.SystemId then
+                    FoundOurs := true;
+            until (SourceRecordRef.Next() = 0) or FoundOurs;
+        Assert.IsTrue(FoundOurs, 'The created source customer should be in the modified set');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure ReadFailsWhenSourceEnvironmentNameIsSet()
+    var
+        SourceCustomer: Record Customer;
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        IntegrationRecordRef: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Setting Source Environment Name routes reads to the cross-environment source, which fails until a connection is configured.
+        Initialize();
+
+        // [GIVEN] a coupled source customer and a source environment name set on the setup
+        LibrarySales.CreateCustomer(SourceCustomer);
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup."Source Environment Name" := 'CONTOSOENV';
+        MasterDataManagementSetup.Modify(false);
+        MasterDataMgtCoupling.Init();
+        MasterDataMgtCoupling."Integration System ID" := SourceCustomer.SystemId;
+        MasterDataMgtCoupling."Local System ID" := CreateGuid();
+        MasterDataMgtCoupling."Table ID" := Database::Customer;
+        MasterDataMgtCoupling.Insert();
+
+        // [WHEN] a read that resolves the data source is invoked
+        asserterror LibraryMasterDataMgt.GetIntegrationRecordRefByCoupling(Database::Customer, MasterDataMgtCoupling, IntegrationRecordRef);
+
+        // [THEN] it fails because the cross-environment connection to the source is not configured yet
+        Assert.ExpectedError('The cross-environment connection to the source is not configured yet');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure FindMappingByIntegrationRecordIdRespectsIntegrationTableFilter()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        CustomerInFilter: Record Customer;
+        CustomerOutsideFilter: Record Customer;
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        CustomerRecRef: RecordRef;
+    begin
+        // [SCENARIO] FindMappingByIntegrationRecordId matches a mapping only when the source record is within the
+        //            mapping's integration table filter - GetBySystemId is a key lookup that ignores the filter.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] two source customers, and the Customer mapping's integration table filter includes only the first
+        LibrarySales.CreateCustomer(CustomerInFilter);
+        LibrarySales.CreateCustomer(CustomerOutsideFilter);
+        GetCustomerMapping(IntegrationTableMapping);
+        CustomerRecRef.Open(Database::Customer);
+        CustomerRecRef.Field(CustomerInFilter.FieldNo("No.")).SetRange(CustomerInFilter."No.");
+        IntegrationTableMapping.SetIntegrationTableFilter(CustomerRecRef.GetView());
+        CustomerRecRef.Close();
+        IntegrationTableMapping.Modify();
+
+        // [WHEN] resolving the mapping for the in-filter record [THEN] it matches
+        Clear(MasterDataMgtCoupling);
+        MasterDataMgtCoupling."Integration System ID" := CustomerInFilter.SystemId;
+        Assert.IsTrue(LibraryMasterDataMgt.FindMappingByIntegrationRecordId(IntegrationTableMapping, MasterDataMgtCoupling), 'A source record within the integration table filter should match its mapping.');
+
+        // [WHEN] resolving the mapping for the out-of-filter record [THEN] it does not match (the filter is enforced)
+        Clear(IntegrationTableMapping);
+        Clear(MasterDataMgtCoupling);
+        MasterDataMgtCoupling."Integration System ID" := CustomerOutsideFilter.SystemId;
+        Assert.IsFalse(LibraryMasterDataMgt.FindMappingByIntegrationRecordId(IntegrationTableMapping, MasterDataMgtCoupling), 'A source record outside the integration table filter must not match the mapping.');
+    end;
+
+    local procedure GetCustomerMapping(var IntegrationTableMapping: Record "Integration Table Mapping")
+    begin
+        IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
+        IntegrationTableMapping.SetRange("Table ID", Database::Customer);
+        IntegrationTableMapping.SetRange("Integration Table ID", Database::Customer);
+        IntegrationTableMapping.SetRange("Delete After Synchronization", false);
+        IntegrationTableMapping.FindFirst();
     end;
 
     local procedure CreateCoupledCustomers(var SourceCustomer: Record Customer; var DestinationCustomer: Record Customer; var MasterDataMgtCoupling: Record "Master Data Mgt. Coupling")

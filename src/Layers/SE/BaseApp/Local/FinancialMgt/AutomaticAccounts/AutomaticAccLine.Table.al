@@ -66,7 +66,9 @@ table 11204 "Automatic Acc. Line"
                 Rec.ValidateShortcutDimCode(2, "Shortcut Dimension 2 Code");
             end;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(7; Description; Text[50])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup("G/L Account".Name where("No." = field("G/L Account No.")));
             Caption = 'Description';

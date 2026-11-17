@@ -46,7 +46,7 @@ codeunit 132220 "Library - Utility OnPrem"
         Editable: Text[30];
     begin
         // Find and return the Editable property for a page control. Generate an error if page control does not exists.
-        Editable := GetPropertyValueForControl(ObjectNo, FieldNo, 'Editable="', true);
+        Editable := UpperCase(GetPropertyValueForControl(ObjectNo, FieldNo, 'Editable="', true));
         if Editable = 'FALSE' then
             exit(false);
         if (Editable = '') or (Editable = 'TRUE') then
@@ -69,7 +69,7 @@ codeunit 132220 "Library - Utility OnPrem"
     var
         Visible: Text[30];
     begin
-        Visible := GetPropertyValueForControl(ObjectNo, FieldNo, 'Visible="', true);
+        Visible := UpperCase(GetPropertyValueForControl(ObjectNo, FieldNo, 'Visible="', true));
         if Visible = 'FALSE' then
             exit(false);
         if (Visible = '') or (Visible = 'TRUE') then
@@ -101,7 +101,7 @@ codeunit 132220 "Library - Utility OnPrem"
         AllObj: Record AllObj;
         MetaDataInstream: InStream;
         ControlFound: Boolean;
-        TestString: Text[1024];
+        TestString: Text;
     begin
         AllObj.Get(ObjectType, ObjectNo);
         AppObjectMetadata.Get(AllObj."App Runtime Package ID", ObjectType, ObjectNo);

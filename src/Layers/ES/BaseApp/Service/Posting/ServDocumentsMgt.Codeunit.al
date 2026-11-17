@@ -2209,51 +2209,6 @@ codeunit 5988 "Serv-Documents Mgt."
         ServiceOrderAllocationRec.DeleteAll();
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit ServicePostingSubscrES', '27.0')]
-    [Scope('OnPrem')]
-    procedure TestSalesEfects(ServiceHeader: Record "Service Header"; Cust: Record Customer)
-    var
-        CustLedgEntry: Record Microsoft.Sales.Receivables."Cust. Ledger Entry";
-        ShowError: Boolean;
-        Text1100000: Label 'At least one document of %1 No. %2 is closed or in a Bill Group.';
-        Text1100001: Label 'This will avoid the document to be settled.\';
-        Text1100002: Label 'The posting process of %3 No. %4 will not settle any document.\';
-        Text1100003: Label 'Due this customer is using Apply to Oldest Application Method, please remove the lines for the Bill Group before posting.';
-    begin
-        ShowError := false;
-        if ServiceHeader."Document Type" = ServiceHeader."Document Type"::"Credit Memo" then begin
-            CustLedgEntry.SetCurrentKey("Document No.", "Document Type", "Customer No.");
-            CustLedgEntry.SetFilter("Document Type", '%1|%2', CustLedgEntry."Document Type"::Invoice,
-              CustLedgEntry."Document Type"::Bill);
-            CustLedgEntry.SetFilter("Document Situation", '<>%1', CustLedgEntry."Document Situation"::" ");
-            CustLedgEntry.SetRange("Customer No.", ServiceHeader."Bill-to Customer No.");
-            CustLedgEntry.SetRange(Open, true);
-
-            if CustLedgEntry.Find('-') then
-                repeat
-                    if CustLedgEntry."Document Situation" <> CustLedgEntry."Document Situation"::Cartera then
-                        if not ((CustLedgEntry."Document Situation" in
-                                 [CustLedgEntry."Document Situation"::"Closed Documents",
-                                  CustLedgEntry."Document Situation"::"Closed BG/PO"]) and
-                                (CustLedgEntry."Document Status" = CustLedgEntry."Document Status"::Rejected))
-                        then
-                            ShowError := true;
-                until CustLedgEntry.Next() = 0;
-
-            if ShowError then
-                Error(Text1100000 +
-                  Text1100001 +
-                  Text1100002 +
-                  Text1100003,
-                  Format(CustLedgEntry."Document Type"),
-                  Format(CustLedgEntry."Document No."),
-                  Format(ServiceHeader."Document Type"),
-                  Format(ServiceHeader."No."));
-        end;
-    end;
-#endif
-
     local procedure FinalizeWarrantyLedgerEntries(var ServiceHeader: Record "Service Header"; CloseCondition: Boolean)
     var
         WarrantyLedgerEntry: Record "Warranty Ledger Entry";

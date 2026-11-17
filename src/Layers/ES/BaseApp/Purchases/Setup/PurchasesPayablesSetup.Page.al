@@ -68,20 +68,15 @@ page 460 "Purchases & Payables Setup"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+                field("Restore Order Qty. on Return"; Rec."Restore Order Qty. on Return")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                }
                 field(DefaultGLAccountQuantity; Rec."Default G/L Account Quantity")
                 {
                     ApplicationArea = Basic, Suite;
                 }
-#if not CLEAN27                
-                field("Create Item from Item No."; Rec."Create Item from Item No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                    ObsoleteReason = 'Discontinued functionality';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#endif                
                 field("Copy Vendor Name to Entries"; Rec."Copy Vendor Name to Entries")
                 {
                     ApplicationArea = Basic, Suite;
@@ -471,4 +466,3 @@ page 460 "Purchases & Payables Setup"
         ExtendedPriceEnabled: Boolean;
         JnlTemplateNameVisible: Boolean;
 }
-

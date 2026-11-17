@@ -563,7 +563,7 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Default G/L Account Quantity';
             ToolTip = 'Specifies that Quantity is set to 1 on lines of type G/L Account.';
         }
-#if not CLEANSCHEMA29
+#if not CLEANSCHEMA30
         /// <summary>
         /// Contains a discontinued setting that previously controlled item creation from item numbers on sales lines.
         /// </summary>
@@ -572,13 +572,8 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Create Item from Item No.';
             ToolTip = 'Specifies if the system will suggest to create a new item when no item matches the number that you enter in the No. Field on sales lines.';
             ObsoleteReason = 'Discontinued function';
-#if CLEAN27
             ObsoleteState = Removed;
-            ObsoleteTag = '29.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
+            ObsoleteTag = '30.0';
         }
 #endif
         /// <summary>
@@ -613,6 +608,16 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Skip Manual Reservation';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies that the reservation confirmation message is not shown on sales lines. This is useful to avoid noise when you are processing many lines.';
+        }
+        /// <summary>
+        /// Indicates whether posting a sales credit memo or return order restores the reversed quantities on the related sales order.
+        /// </summary>
+        field(70; "Restore Order Qty. on Return"; Boolean)
+        {
+            Caption = 'Restore Order quantities on Credit Memo or Return Order posting';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether posting a sales credit memo or sales return order restores quantities on the related sales order. When enabled, Qty. to Ship, Qty. to Invoice, and the shipped and invoiced quantities on the original sales order are updated based on the reversed quantity.';
+            InitValue = true;
         }
         /// <summary>
         /// Indicates whether customer name changes on open sales documents apply only to the document without searching for matching customers.

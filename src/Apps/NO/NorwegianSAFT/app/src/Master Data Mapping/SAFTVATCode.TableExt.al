@@ -6,7 +6,9 @@ namespace Microsoft.Finance.AuditFileExport;
 
 using Microsoft.Finance.VAT.Setup;
 
+#pragma warning disable AL0520 // Accepted: the base table is obsolete but this extension must remain for upgrade compatibility.
 tableextension 10675 "SAF-T VAT Code" extends "VAT Code"
+#pragma warning restore AL0520
 {
     fields
     {

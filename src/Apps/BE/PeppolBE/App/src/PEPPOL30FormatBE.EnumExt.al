@@ -13,13 +13,17 @@ enumextension 37310 "PEPPOL 3.0 Format BE" extends "PEPPOL 3.0 Format"
         Caption = 'PEPPOL 3.0 - Belgium Sales Format';
         Implementation = "PEPPOL30 Validation" = "PEPPOL30 BE Sales Validation",
                         "PEPPOL Posted Document Iterator" = "PEPPOL30 Sales Iterator",
-                        "PEPPOL Tax Info Provider" = "PEPPOL30 BE Tax Info";
+                        "PEPPOL Tax Info Provider" = "PEPPOL30 BE Tax Info",
+                        "PEPPOL Payment Info Provider" = "PEPPOL30 BE Payment Info",
+                        "PEPPOL Monetary Info Provider" = "PEPPOL30 BE Monetary Info";
     }
     value(37311; "PEPPOL 3.0 - BE Service")
     {
         Caption = 'PEPPOL 3.0 - Belgium Service Format';
         Implementation = "PEPPOL30 Validation" = "PEPPOL30 BE Service Validation",
                         "PEPPOL Posted Document Iterator" = "PEPPOL30 Services Iterator",
-                        "PEPPOL Tax Info Provider" = "PEPPOL30 BE Tax Info";
+                        "PEPPOL Tax Info Provider" = "PEPPOL30 BE Tax Info",
+                        "PEPPOL Payment Info Provider" = "PEPPOL30 BE Payment Info",
+                        "PEPPOL Monetary Info Provider" = "PEPPOL30 BE Monetary Info";
     }
 }

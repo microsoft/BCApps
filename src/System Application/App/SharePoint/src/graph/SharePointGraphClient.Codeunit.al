@@ -244,7 +244,7 @@ codeunit 9119 "SharePoint Graph Client"
     /// <param name="FieldsJsonObject">JSON object containing the fields to update.</param>
     /// <param name="GraphListItem">Record to store the updated item details. If it already contains an item with the same ID from the same list, that item is refreshed; if that item belongs to a different list, the operation fails.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
-    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. The record is populated from the PATCH response and contains Id, ListId, Title, and the field values; use GetListItem to also retrieve web URL, content type, and timestamps.</remarks>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. The PATCH response is a fieldValueSet, so only Title and the field values are refreshed. If the record already held the item, ContentType, WebUrl, CreatedDateTime and LastModifiedDateTime keep their previous values; otherwise they are blank. Use GetListItem to retrieve current values for those fields.</remarks>
     procedure UpdateListItem(ListId: Text; ItemId: Text; FieldsJsonObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.UpdateListItem(ListId, ItemId, FieldsJsonObject, GraphListItem));

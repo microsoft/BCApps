@@ -58,7 +58,9 @@ table 6124 "E-Document Log"
             ObsoleteReason = 'Replaced by Service Integration V2.';
 #if CLEAN26
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #else
             ObsoleteState = Pending;
             ObsoleteTag = '26.0';
@@ -114,7 +116,9 @@ table 6124 "E-Document Log"
             ObsoleteReason = 'Replaced by Key4.';
 #if CLEAN26
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #else
             ObsoleteState = Pending;
             ObsoleteTag = '26.0';
