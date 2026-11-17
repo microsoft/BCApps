@@ -15,7 +15,7 @@ pageextension 139982 "Subc. TST WizProdRtng" extends "Temp Prod. Ord. Rtng List"
             action("Subc. TestDelete")
             {
                 ApplicationArea = All;
-                Caption = 'Test Delete';
+                Caption = 'Test delete';
                 Tooltip = 'Test Delete';
                 Image = Delete;
 

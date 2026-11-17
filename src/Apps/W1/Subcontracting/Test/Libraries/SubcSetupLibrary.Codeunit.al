@@ -34,10 +34,7 @@ codeunit 139988 "Subc. Setup Library"
                 GeneralPostingSetup.Modify();
             end;
         end else begin
-            GeneralPostingSetup.Init();
-            GeneralPostingSetup."Gen. Bus. Posting Group" := GenBusPostingGroup;
-            GeneralPostingSetup."Gen. Prod. Posting Group" := GenProdPostingGroup;
-            GeneralPostingSetup.Insert();
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusPostingGroup, GenProdPostingGroup);
             GeneralPostingSetup.SuggestSetupAccounts();
         end;
 
