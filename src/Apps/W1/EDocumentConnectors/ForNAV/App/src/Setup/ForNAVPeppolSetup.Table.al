@@ -63,14 +63,6 @@ table 6414 "ForNAV Peppol Setup"
             ToolTip = 'Specifies the Oauth Client Id. You can get this from your ForNAV partner.';
             DataClassification = EndUserPseudonymousIdentifiers;
             Access = Internal;
-
-            trigger OnValidate()
-            var
-                PeppolOauth: Codeunit "ForNAV Peppol Oauth";
-            begin
-                if not IsTemporary() then
-                    PeppolOauth.ValidateClientID("Client Id");
-            end;
         }
         field(11; "Endpoint"; Text[20])
         {

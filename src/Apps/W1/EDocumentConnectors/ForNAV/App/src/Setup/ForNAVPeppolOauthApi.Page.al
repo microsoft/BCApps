@@ -90,7 +90,7 @@ page 6411 "ForNAV Peppol Oauth API"
     begin
         Setup.FindFirst();
         PeppolCrypto.TestHash(Hash, Rec."Client Id", ClientSecret);
-        Setup.Validate("Client Id", Rec."Client Id");
+        PeppolOauth.ValidateClientID(Rec."Client Id");
         PeppolOauth.ValidateSecret(ClientSecret);
         PeppolOauth.ValidateSecretValidTo(SecretValidTo);
         PeppolOauth.ValidateForNAVTenantID(TenantId);
