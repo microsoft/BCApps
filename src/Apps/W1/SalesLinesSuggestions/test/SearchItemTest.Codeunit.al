@@ -724,6 +724,48 @@ codeunit 133513 "Search Item Test"
         CheckSalesLineContent(SalesHeader."No.");
     end;
 
+    [Test]
+    procedure TestMinimumSearchConfidence()
+    var
+        ItemEntitySearch: Codeunit "Item Entity Search";
+        ExpectedItem: JsonObject;
+    begin
+        ExpectedItem.ReadFrom('{"Minimum Confidence":"Medium"}');
+
+        ItemEntitySearch.AssertConfidence(ExpectedItem, Enum::"Search Confidence"::Medium);
+        ItemEntitySearch.AssertConfidence(ExpectedItem, Enum::"Search Confidence"::High);
+
+        asserterror ItemEntitySearch.AssertConfidence(ExpectedItem, Enum::"Search Confidence"::Low);
+        Assert.ExpectedError('Confidence is below the minimum.');
+    end;
+
+    [Test]
+    procedure TestExactSearchConfidence()
+    var
+        ItemEntitySearch: Codeunit "Item Entity Search";
+        ExpectedItem: JsonObject;
+    begin
+        ExpectedItem.ReadFrom('{"Confidence":"High"}');
+
+        ItemEntitySearch.AssertConfidence(ExpectedItem, Enum::"Search Confidence"::High);
+
+        asserterror ItemEntitySearch.AssertConfidence(ExpectedItem, Enum::"Search Confidence"::Medium);
+        Assert.ExpectedError('Confidence does not match');
+    end;
+
+    [Test]
+    procedure TestSearchConfidenceBoundaries()
+    var
+        SLSSearch: Codeunit Search;
+    begin
+        Assert.AreEqual(Enum::"Search Confidence"::None, SLSSearch.GetConfidence(0.2499), 'Score below 0.25 must have no confidence.');
+        Assert.AreEqual(Enum::"Search Confidence"::Low, SLSSearch.GetConfidence(0.25), 'Score 0.25 must have Low confidence.');
+        Assert.AreEqual(Enum::"Search Confidence"::Low, SLSSearch.GetConfidence(0.4499), 'Score below 0.45 must have Low confidence.');
+        Assert.AreEqual(Enum::"Search Confidence"::Medium, SLSSearch.GetConfidence(0.45), 'Score 0.45 must have Medium confidence.');
+        Assert.AreEqual(Enum::"Search Confidence"::Medium, SLSSearch.GetConfidence(0.5499), 'Score below 0.55 must have Medium confidence.');
+        Assert.AreEqual(Enum::"Search Confidence"::High, SLSSearch.GetConfidence(0.55), 'Score 0.55 must have High confidence.');
+    end;
+
     local procedure CreateSalesOrderWithSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     var
         Customer: Record Customer;

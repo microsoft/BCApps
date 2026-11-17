@@ -339,7 +339,7 @@ codeunit 7282 "Search"
         exit(SearchKeywords);
     end;
 
-    local procedure GetConfidence(Score: Decimal): Enum "Search Confidence"
+    internal procedure GetConfidence(Score: Decimal): Enum "Search Confidence"
     begin
         if Score >= 0.55 then
             exit("Search Confidence"::High);
