@@ -107,6 +107,8 @@ codeunit 149914 "Subc. WIP Adjustment Test"
         WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
         EntryCount := WIPEntry.Count();
         SetHandlerValues(-1, 'INVALID', 'Invalid negative target', '');
+        // Preserve the accepted baseline across the expected validation rollback.
+        Commit();
 
         // [WHEN] A negative target is attempted through the same actual dialog.
         asserterror ReleasedOrder."WIP Adjustment".Invoke();
@@ -141,6 +143,8 @@ codeunit 149914 "Subc. WIP Adjustment Test"
         WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
         EntryCount := WIPEntry.Count();
         SetHandlerValues(11, 'INVALID', 'Invalid excessive target', '');
+        // Preserve the accepted baseline across the expected validation rollback.
+        Commit();
 
         // [WHEN] A target above the real production line quantity is attempted.
         asserterror ReleasedOrder."WIP Adjustment".Invoke();
