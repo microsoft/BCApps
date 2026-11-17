@@ -3160,9 +3160,10 @@ codeunit 137350 "SCM Inventory Reports - III"
     local procedure RunReleasedInventoryValuationWIPReport(ProductionOrderNo: Code[20])
     var
         ProductionOrder: Record "Production Order";
+        MonthOffsetFormulaTok: Label '<%1M>', Locked = true;
     begin
         // Start the period at least one month after the revaluation date, because the request page handler reports whole months.
-        LibraryVariableStorage.Enqueue(CalcDate(StrSubstNo('<%1M>', LibraryRandom.RandIntInRange(2, 5)), WorkDate()));
+        LibraryVariableStorage.Enqueue(CalcDate(StrSubstNo(MonthOffsetFormulaTok, LibraryRandom.RandIntInRange(2, 5)), WorkDate()));
         Commit();
         ProductionOrder.SetRange(Status, ProductionOrder.Status::Released);
         ProductionOrder.SetRange("No.", ProductionOrderNo);
