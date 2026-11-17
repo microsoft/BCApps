@@ -108,6 +108,7 @@ report 5084 "Email Merge"
 
     labels
     {
+        ClosingLbl = 'Sincerely,';
     }
 
     protected var
