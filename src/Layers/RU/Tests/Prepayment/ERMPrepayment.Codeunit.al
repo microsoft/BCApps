@@ -4521,6 +4521,80 @@
         TearDownVATPostingSetup(SalesHeader."VAT Bus. Posting Group");
     end;
 
+    [Test]
+    procedure CancelInvoiceReversesPrepmtDeductionToPostedPrepmtAccount()
+    var
+        GenPostingSetup: Record "General Posting Setup";
+        GenProdPostingGroup: Record "Gen. Product Posting Group";
+        GLEntry: Record "G/L Entry";
+        LineGLAccount: Record "G/L Account";
+        PrepmtGLAccount: Record "G/L Account";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesLine: Record "Sales Line";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        PrepmtAccountNo: Code[20];
+    begin
+        // [SCENARIO 657966] Cancelling the final invoice reverses the prepayment deduction to the prepayment account posted on the invoice
+        Initialize();
+
+        // [GIVEN] Prepayment account "P" with Gen. Prod. Posting Group "GP" that differs from the item's group "IP"
+        PrepmtAccountNo := CreatePrepmtVATSetup(LineGLAccount, LineGLAccount."Gen. Posting Type"::Sale);
+        PrepmtGLAccount.Get(PrepmtAccountNo);
+        LibraryERM.CreateGenProdPostingGroup(GenProdPostingGroup);
+        GenProdPostingGroup."Def. VAT Prod. Posting Group" := PrepmtGLAccount."VAT Prod. Posting Group";
+        GenProdPostingGroup.Modify();
+        PrepmtGLAccount.Validate("Gen. Prod. Posting Group", GenProdPostingGroup.Code);
+        PrepmtGLAccount.Modify(true);
+
+        // [GIVEN] General Posting Setup for "IP" has the accounts needed to cancel the invoice
+        GenPostingSetup.Get(LineGLAccount."Gen. Bus. Posting Group", LineGLAccount."Gen. Prod. Posting Group");
+        LibraryERM.SetGeneralPostingSetupInvtAccounts(GenPostingSetup);
+        LibraryERM.SetGeneralPostingSetupSalesAccounts(GenPostingSetup);
+        GenPostingSetup.Modify(true);
+
+        // [GIVEN] Sales Order with 50% prepayment for an item with group "IP" and a posted prepayment invoice
+        CustomerNo := CreateCustomerWithPostingSetup(LineGLAccount);
+        CreateSalesHeaderWithPrepaymentPercentage(SalesHeader, CustomerNo);
+        SalesHeader.Validate("Prepayment %", 50);
+        SalesHeader.Modify(true);
+        CreateSalesLinesWithQtyToShip(SalesLine, SalesHeader, LineGLAccount);
+        LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+
+        // [GIVEN] Posted final invoice with a prepayment deduction line on "P" with group "GP"
+        LibraryERM.CreateGeneralPostingSetup(GenPostingSetup, SalesHeader."Gen. Bus. Posting Group", GenProdPostingGroup.Code);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [GIVEN] General Posting Setups for "GP" and "IP" now have a different Sales Prepayments Account "X"
+        GenPostingSetup."Sales Prepayments Account" := LineGLAccount."No.";
+        GenPostingSetup.Modify();
+        GenPostingSetup.Get(LineGLAccount."Gen. Bus. Posting Group", LineGLAccount."Gen. Prod. Posting Group");
+        GenPostingSetup."Sales Prepayments Account" := LineGLAccount."No.";
+        GenPostingSetup.Modify();
+        Commit();
+
+        // [WHEN] Cancel the posted final invoice
+        CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvoiceHeader);
+
+        // [THEN] The credit memo prepayment line uses "P"
+        SalesCrMemoHeader.SetRange("Sell-to Customer No.", CustomerNo);
+        SalesCrMemoHeader.FindFirst();
+        SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
+        SalesCrMemoLine.SetRange(Type, SalesCrMemoLine.Type::"G/L Account");
+        SalesCrMemoLine.SetRange("Prepayment Line", true);
+        SalesCrMemoLine.FindFirst();
+        SalesCrMemoLine.TestField("No.", PrepmtAccountNo);
+
+        // [THEN] The credit memo posts nothing to "X"
+        GLEntry.SetRange("Document No.", SalesCrMemoHeader."No.");
+        GLEntry.SetRange("G/L Account No.", LineGLAccount."No.");
+        Assert.RecordIsEmpty(GLEntry);
+
+        TearDownVATPostingSetup(SalesHeader."VAT Bus. Posting Group");
+    end;
+
     local procedure InitSalesPrepaymentScenario(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; PriceIncludingVAT: Boolean; PrepaymentPercent: Decimal; CurrencyCode: Code[10])
     var
         LineGLAccount: Record "G/L Account";

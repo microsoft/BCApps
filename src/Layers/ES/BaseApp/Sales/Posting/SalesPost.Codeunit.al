@@ -12035,7 +12035,6 @@ codeunit 80 "Sales-Post"
         GLAccount: Record "G/L Account";
         SalesLine: Record "Sales Line";
         SalesInvoiceLine: Record "Sales Invoice Line";
-        GeneralPostingSetup: Record "General Posting Setup";
         TempPrepmtSalesLine: Record "Sales Line" temporary;
         TempExtendedTextLine: Record "Extended Text Line" temporary;
         TransferExtendedText: Codeunit "Transfer Extended Text";
@@ -12058,10 +12057,10 @@ codeunit 80 "Sales-Post"
         if SalesInvoiceLine.FindSet() then
             repeat
                 IsHandled := false;
-                GeneralPostingSetup.Get(SalesInvoiceLine."Gen. Bus. Posting Group", SalesInvoiceLine."Gen. Prod. Posting Group");
                 OnCreatePrepaymentLineForCreditMemoOnBeforeGetSalesPrepmtAccount(GLAccount, SalesInvoiceLine, IsHandled);
+                // Reverse to the account posted on the invoice; its posting groups need not map back to the same Sales Prepayments Account.
                 if not IsHandled then
-                    GLAccount.Get(GeneralPostingSetup.GetSalesPrepmtAccount());
+                    GLAccount.Get(SalesInvoiceLine."No.");
 
                 TempPrepmtSalesLine.Init();
                 TempPrepmtSalesLine."Document Type" := SalesHeader."Document Type";
