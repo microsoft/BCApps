@@ -838,6 +838,7 @@ codeunit 333 "Req. Wksh.-Make Order"
         RequisitionLine.CheckPurchaseOrderTarget();
         PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, RequisitionLine."Ref. Order No.");
         LastPurchaseLine.Reset();
+        LastPurchaseLine.SetLoadFields("Line No.");
         LastPurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         LastPurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         NextLineNo := 0;
