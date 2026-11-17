@@ -6,6 +6,7 @@ namespace Microsoft.Assembly.Test;
 
 using Microsoft.Assembly.Document;
 using Microsoft.Assembly.History;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.BOM;
@@ -347,6 +348,7 @@ codeunit 137926 "SCM Assembly Item Tracking"
         ReservEntry: Record "Reservation Entry";
         SalesOrderHeader: Record "Sales Header";
         BOMComponent: Record "BOM Component";
+        VATPostingSetup: Record "VAT Posting Setup";
         SalesQuoteToOrder: Codeunit "Sales-Quote to Order";
         LibrarySales: Codeunit "Library - Sales";
         SNChild: Code[20];
@@ -359,6 +361,8 @@ codeunit 137926 "SCM Assembly Item Tracking"
         CreateItems(ItemParent, ItemTrackingCode, ItemChild, ItemTrackingCode);
         ItemParent.Validate("Replenishment System", ItemParent."Replenishment System"::Assembly);
         ItemParent.Validate("Assembly Policy", ItemParent."Assembly Policy"::"Assemble-to-Order");
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
+        ItemParent.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
         ItemParent.Modify(true);
 
         // Add child to parent BOM
@@ -370,7 +374,9 @@ codeunit 137926 "SCM Assembly Item Tracking"
         AddItemToInventory(ItemChild, 1, SNChild, '');
 
         // Create Sales Quote
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Quote, '20000');
+        LibrarySales.CreateSalesHeader(
+            SalesHeader, SalesHeader."Document Type"::Quote,
+            LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
         SalesHeader.Validate("Shipment Date", WorkDate2);
         SalesHeader.Modify(true);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemParent."No.", 1);

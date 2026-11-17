@@ -1308,6 +1308,11 @@ codeunit 137023 "SCM Reservation Worksheet"
     end;
 
     local procedure Initialize()
+    var
+        CustomerVATPostingSetup: Record "VAT Posting Setup";
+        ItemVATPostingSetup: Record "VAT Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        LibraryERM: Codeunit "Library - ERM";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Reservation Worksheet");
         LibrarySetupStorage.Restore();
@@ -1318,6 +1323,12 @@ codeunit 137023 "SCM Reservation Worksheet"
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"SCM Reservation Worksheet");
+
+        LibraryERM.FindVATPostingSetup(CustomerVATPostingSetup, CustomerVATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        LibraryERM.FindVATPostingSetupInvt(ItemVATPostingSetup);
+        if not VATPostingSetup.Get(CustomerVATPostingSetup."VAT Bus. Posting Group", ItemVATPostingSetup."VAT Prod. Posting Group") then
+            LibraryERM.CreateVATPostingSetup(
+                VATPostingSetup, CustomerVATPostingSetup."VAT Bus. Posting Group", ItemVATPostingSetup."VAT Prod. Posting Group");
 
         isInitialized := true;
         Commit();
@@ -1744,4 +1755,3 @@ codeunit 137023 "SCM Reservation Worksheet"
         Assert.IsTrue(StrPos(Message, ExpectedMessage) > 0, Message);
     end;
 }
-
