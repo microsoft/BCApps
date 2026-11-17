@@ -1138,10 +1138,13 @@ codeunit 139400 "Permissions Test"
     end;
 
     local procedure AssertPermOverviewObjPerm(var PermissionsOverview: TestPage "Permissions Overview"; TenantPermissionExpected: Record "Tenant Permission"; TenantPermissionUnexpected: Record "Tenant Permission")
+    var
+        PermNotFoundLbl: Label 'Expected permission %1 %2 not found', Comment = '%1 = Object Type, %2 = Object ID';
+        PermUnexpectedLbl: Label 'Unexpected permission %1 %2 found', Comment = '%1 = Object Type, %2 = Object ID';
     begin
         PermissionsOverview.ObjTypeFilter.SetValue(TenantPermissionExpected."Object Type" + 1);
         PermissionsOverview.ObjIDFilter.SetValue(TenantPermissionExpected."Object ID");
-        Assert.IsTrue(PermissionsOverview.First(), StrSubstNo('Expected permission %1 %2 not found', TenantPermissionExpected."Object Type", TenantPermissionExpected."Object ID"));
+        Assert.IsTrue(PermissionsOverview.First(), StrSubstNo(PermNotFoundLbl, TenantPermissionExpected."Object Type", TenantPermissionExpected."Object ID"));
         PermissionsOverview.ReadPermission.AssertEquals(TenantPermissionExpected."Read Permission");
         PermissionsOverview.InsertPermission.AssertEquals(TenantPermissionExpected."Insert Permission");
         PermissionsOverview.ModifyPermission.AssertEquals(TenantPermissionExpected."Modify Permission");
@@ -1150,7 +1153,7 @@ codeunit 139400 "Permissions Test"
         if TenantPermissionUnexpected."Object ID" <> 0 then begin
             PermissionsOverview.ObjTypeFilter.SetValue(TenantPermissionUnexpected."Object Type" + 1);
             PermissionsOverview.ObjIDFilter.SetValue(TenantPermissionUnexpected."Object ID");
-            Assert.IsFalse(PermissionsOverview.First(), StrSubstNo('Unexpected permission %1 %2 found', TenantPermissionUnexpected."Object Type", TenantPermissionUnexpected."Object ID"));
+            Assert.IsFalse(PermissionsOverview.First(), StrSubstNo(PermUnexpectedLbl, TenantPermissionUnexpected."Object Type", TenantPermissionUnexpected."Object ID"));
         end;
     end;
 
