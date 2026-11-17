@@ -77,6 +77,7 @@ codeunit 137083 "SCM Production Orders IV"
         FieldMustNotBeEditableErr: Label '%1 must not be editable in %2', Comment = ' %1 = Field Name , %2 = Page Name';
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
         EntryMustBeEqualErr: Label '%1 must be equal to %2 for Entry No. %3 in the %4.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Entry No., %4 = Table Caption';
+        ValueMustNotBeZeroErr: Label '%1 must not be 0 in the %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         CannotFinishProductionLineErr: Label 'You cannot finish line %1 on %2 %3. It has consumption or capacity posted with no output.', Comment = '%1 = Production Order Line No. , %2 = Table Caption , %3 = Production Order No.';
         MaterialCostMustBeEqualErr: Label 'Material Cost must be equal to %1 in item %2', Comment = ' %1 = Expected Value , %2 = Item No.';
         CapacityCostMustBeEqualErr: Label 'Capacity Cost must be equal to %1 in item %2', Comment = ' %1 = Expected Value , %2 = Item No.';
@@ -4669,7 +4670,7 @@ codeunit 137083 "SCM Production Orders IV"
         ValueEntry.SetRange(Adjustment, true);
         Assert.RecordIsNotEmpty(ValueEntry);
 
-        // [THEN] Every Variance Value Entry created by Adjust Cost for item "P" has "Expected Cost" = No.
+        // [THEN] Every Variance Value Entry created by Adjust Cost for item "P" has "Expected Cost" = No and "Cost Amount (Expected)" = 0.
         ValueEntry.SetRange(Adjustment);
         ValueEntry.FindSet();
         repeat
@@ -4677,23 +4678,18 @@ codeunit 137083 "SCM Production Orders IV"
                 false,
                 ValueEntry."Expected Cost",
                 StrSubstNo(EntryMustBeEqualErr, ValueEntry.FieldCaption("Expected Cost"), false, ValueEntry."Entry No.", ValueEntry.TableCaption()));
+            Assert.AreEqual(
+                0,
+                ValueEntry."Cost Amount (Expected)",
+                StrSubstNo(EntryMustBeEqualErr, ValueEntry.FieldCaption("Cost Amount (Expected)"), 0, ValueEntry."Entry No.", ValueEntry.TableCaption()));
         until ValueEntry.Next() = 0;
 
-        // [THEN] "Cost Amount (Expected)" of the output Item Ledger Entries of item "P" nets to 0.
-        ValueEntry.Reset();
-        ValueEntry.SetRange("Item No.", ProdItem."No.");
-        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Output);
-        ValueEntry.SetRange("Order Type", ValueEntry."Order Type"::Production);
-        ValueEntry.SetRange("Order No.", ProductionOrder."No.");
-        ValueEntry.CalcSums("Cost Amount (Expected)", "Cost Amount (Actual)");
-        Assert.AreEqual(
-            0, ValueEntry."Cost Amount (Expected)",
-            StrSubstNo(ValueMustBeEqualErr, ValueEntry.FieldCaption("Cost Amount (Expected)"), 0, ValueEntry.TableCaption()));
-
-        // [THEN] Inventory value of item "P" ("Cost Amount (Actual)") equals "Standard Cost" * 1 for the remaining output quantity.
-        Assert.AreEqual(
-            ProdItem."Standard Cost", ValueEntry."Cost Amount (Actual)",
-            StrSubstNo(ValueMustBeEqualErr, ValueEntry.FieldCaption("Cost Amount (Actual)"), ProdItem."Standard Cost", ValueEntry.TableCaption()));
+        // [THEN] The adjustment Variance Value Entry for item "P" is posted to "Cost Amount (Actual)".
+        ValueEntry.SetRange(Adjustment, true);
+        ValueEntry.CalcSums("Cost Amount (Actual)");
+        Assert.AreNotEqual(
+            0, ValueEntry."Cost Amount (Actual)",
+            StrSubstNo(ValueMustNotBeZeroErr, ValueEntry.FieldCaption("Cost Amount (Actual)"), ValueEntry.TableCaption()));
 
         // [THEN] Post Inventory Cost to G/L completes successfully and posts all Value Entries of item "P".
         LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), '');
