@@ -280,18 +280,18 @@ report 1700 "Deferral Summary - G/L"
             LayoutFile = './Finance/Deferral/DeferralSummaryGL.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Deferral Summary G/L Word';
             Type = Word;
             LayoutFile = './Finance/Deferral/DeferralSummaryGL.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
-#if CLEAN30
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
-#endif
         }
+#endif
 
         layout(WordBody)
         {
