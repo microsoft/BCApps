@@ -1311,6 +1311,7 @@ codeunit 137023 "SCM Reservation Worksheet"
     var
         CustomerVATPostingSetup: Record "VAT Posting Setup";
         ItemVATPostingSetup: Record "VAT Posting Setup";
+        SalesVATPostingSetup: Record "VAT Posting Setup";
         VATPostingSetup: Record "VAT Posting Setup";
         LibraryERM: Codeunit "Library - ERM";
     begin
@@ -1324,11 +1325,17 @@ codeunit 137023 "SCM Reservation Worksheet"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"SCM Reservation Worksheet");
 
+        // Customer and item libraries can select different VAT setups, depending on the localization.
         LibraryERM.FindVATPostingSetup(CustomerVATPostingSetup, CustomerVATPostingSetup."VAT Calculation Type"::"Normal VAT");
         LibraryERM.FindVATPostingSetupInvt(ItemVATPostingSetup);
+        LibraryERM.SetSearchGenPostingTypeSales();
+        LibraryERM.FindVATPostingSetupInvt(SalesVATPostingSetup);
         if not VATPostingSetup.Get(CustomerVATPostingSetup."VAT Bus. Posting Group", ItemVATPostingSetup."VAT Prod. Posting Group") then
             LibraryERM.CreateVATPostingSetup(
                 VATPostingSetup, CustomerVATPostingSetup."VAT Bus. Posting Group", ItemVATPostingSetup."VAT Prod. Posting Group");
+        if not VATPostingSetup.Get(SalesVATPostingSetup."VAT Bus. Posting Group", ItemVATPostingSetup."VAT Prod. Posting Group") then
+            LibraryERM.CreateVATPostingSetup(
+                VATPostingSetup, SalesVATPostingSetup."VAT Bus. Posting Group", ItemVATPostingSetup."VAT Prod. Posting Group");
 
         isInitialized := true;
         Commit();
