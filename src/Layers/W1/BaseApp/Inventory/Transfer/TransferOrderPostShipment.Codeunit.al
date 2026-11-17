@@ -7,6 +7,7 @@ namespace Microsoft.Inventory.Transfer;
 using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
@@ -796,8 +797,9 @@ codeunit 5704 "TransferOrder-Post Shipment"
     local procedure LockTables(AutoCostPosting: Boolean)
     var
         GLEntry: Record "G/L Entry";
+        GLSetup: Record "General Ledger Setup";
     begin
-        if AutoCostPosting then begin
+        if AutoCostPosting and not GLSetup.UseConcurrentPosting() then begin
             GLEntry.LockTable();
             GLEntry.GetLastEntryNo();
         end;

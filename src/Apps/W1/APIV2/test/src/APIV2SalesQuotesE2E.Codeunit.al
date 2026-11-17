@@ -336,7 +336,7 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         Initialize();
 
         // [SCENARIO] Create a quote both through the client UI and through the API and compare them. They should be the same and have the same fields autocompleted wherever needed.
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
+        LibraryGraphMgt.AlignWorkDateWithApiSession();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         // [GIVEN] a customer
@@ -786,6 +786,9 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         LibrarySmallBusiness.CreateCustomer(Customer);
         LibrarySmallBusiness.CreateItem(Item);
         LibrarySmallBusiness.CreateSalesQuoteHeaderWithLines(SalesHeader, Customer, Item, 1, 1);
+        SalesHeader.Validate("Posting Date", WorkDate());
+        SalesHeader.Validate("Document Date", WorkDate());
+        SalesHeader.Modify(true);
     end;
 
     local procedure FindSalesHeader(var SalesHeader: Record "Sales Header"; CustomerNo: Text; QuoteNumber: Text): Boolean

@@ -6148,7 +6148,7 @@ codeunit 80 "Sales-Post"
         PurchOrderLine.LockTable();
         PurchOrderHeader.LockTable();
         GetGLSetup();
-        if InventorySetup.UseLegacyPosting() and not InventorySetup.OptimGLEntLockForMultiuserEnv() then begin
+        if InventorySetup.UseLegacyPosting() and not InventorySetup.OptimGLEntLockForMultiuserEnv() and not GLSetup.UseConcurrentPosting() then begin
             GLEntry.LockTable();
             GLEntry.GetLastEntryNo();
         end;
@@ -7343,6 +7343,9 @@ codeunit 80 "Sales-Post"
         PurchRcptLine."Qty. Invoiced (Base)" := 0;
         PurchRcptLine."Order No." := PurchOrderLine."Document No.";
         PurchRcptLine."Order Line No." := PurchOrderLine."Line No.";
+        PurchRcptLine."Vendor Order No." := PurchRcptHeader."Vendor Order No.";
+        PurchRcptLine."Vendor Shipment No." := PurchRcptHeader."Vendor Shipment No.";
+        PurchRcptLine."Your Reference" := PurchRcptHeader."Your Reference";
         PurchRcptLine."Qty. Rcd. Not Invoiced" := PurchRcptLine.Quantity - PurchRcptLine."Quantity Invoiced";
         if PurchRcptLine.Quantity <> 0 then begin
             PurchRcptLine."Item Rcpt. Entry No." := DropShptPostBuffer."Item Shpt. Entry No.";
@@ -13429,13 +13432,6 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterGetAmountsForDeferral(SalesLine: Record "Sales Line"; var AmtToDefer: Decimal; var AmtToDeferACY: Decimal; var DeferralAccount: Code[20])
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnPostJobContractLineBeforeTestFields(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -13641,19 +13637,6 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
-#if not CLEAN27
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer used.', '27.0')]
-    local procedure OnSetPostingPreviewDocumentNo(var PreviewDocumentNo: Code[20]; var SalesHeader: Record "Sales Header")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer used.', '27.0')]
-    local procedure OnGetPostingPreviewDocumentNos(var PreviewDocumentNos: List of [Code[20]])
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnPostInvoiceOnAfterPostLines(var SalesHeader: Record "Sales Header"; SrcCode: Code[10]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
