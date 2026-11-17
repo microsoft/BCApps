@@ -387,8 +387,10 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         TransferHeader.TestField("Direct Transfer", true);
         TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Direct Transfer");
 
-        // [WHEN] The transfer order is released and an inventory put-away is created
+        // [GIVEN] The transfer order is released
         LibraryInventory.ReleaseTransferOrder(TransferHeader);
+
+        // [WHEN] An inventory put-away is created
         LibraryWarehouse.CreateInvtPutPickMovement(
             "Warehouse Request Source Document"::"Inbound Transfer",
             TransferHeader."No.", true, false, false);
