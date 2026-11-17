@@ -2196,6 +2196,122 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmOnlyUndoShipment,HandleTransferOrder')]
+    [Scope('OnPrem')]
+    procedure UndoPartialWIPShipmentReversesInTransitWIP()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        InTransitCode: Code[10];
+        ProdOrderNo: Code[20];
+        SubcLocationCode: Code[10];
+        PartialQty: Decimal;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 655848] Undo of an outbound WIP transfer shipment reverses the in-transit WIP, so a later ship and receive leaves no phantom WIP in transit.
+        Initialize();
+
+        // [GIVEN] WIP-only outbound transfer "TO" of quantity "Q" to the subcontractor location via an in-transit location.
+        CreateWIPOnlyTransfer(PurchaseHeader, TransferHeader, TransferLine);
+        ProdOrderNo := TransferLine."Subc. Prod. Order No.";
+        SubcLocationCode := TransferHeader."Transfer-to Code";
+        InTransitCode := TransferHeader."In-Transit Code";
+        Assert.AreNotEqual('', InTransitCode, 'The WIP transfer must use an in-transit location.');
+        Quantity := TransferLine.Quantity;
+        PartialQty := Quantity - 1;
+
+        // [GIVEN] Partial quantity "Q - 1" is shipped.
+        TransferLine.Validate("Qty. to Ship", PartialQty);
+        TransferLine.Modify(true);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+        Assert.AreEqual(PartialQty, GetWIPQtyBase(ProdOrderNo, InTransitCode, true), 'Shipped WIP must be in transit.');
+
+        // [WHEN] Undo the transfer shipment.
+        LibraryInventory.UndoTransferShipments(TransferHeader."No.");
+
+        // [THEN] In-transit WIP is reversed and nothing is at the subcontractor.
+        Assert.AreEqual(0, GetWIPQtyBase(ProdOrderNo, InTransitCode, true), 'Undo must reverse the in-transit WIP.');
+        Assert.AreEqual(0, GetWIPQtyBase(ProdOrderNo, SubcLocationCode, false), 'Undo must not create WIP at the subcontractor.');
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        Assert.AreEqual(0, TransferLine."Qty. in Transit", 'The transfer line must have nothing in transit after undo.');
+
+        // [WHEN] Ship and receive the full quantity "Q".
+        TransferHeader.Get(TransferHeader."No.");
+        TransferLine.Validate("Qty. to Ship", Quantity);
+        TransferLine.Modify(true);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, false, true);
+
+        // [THEN] WIP is "Q" at the subcontractor and 0 in transit.
+        Assert.AreEqual(0, GetWIPQtyBase(ProdOrderNo, InTransitCode, true), 'No phantom WIP may remain in transit.');
+        Assert.AreEqual(Quantity, GetWIPQtyBase(ProdOrderNo, SubcLocationCode, false), 'Received WIP must be at the subcontractor.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmOnlyUndoShipment,HandleTransferOrder')]
+    [Scope('OnPrem')]
+    procedure UndoWIPReturnShipmentRestoresWIPAtSubcontractor()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        ReturnTransferHeader: Record "Transfer Header";
+        ReturnTransferLine: Record "Transfer Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        SubcPurchaseHeaderExt: Codeunit "Subc. Purchase Header Ext";
+        ProdOrderNo: Code[20];
+        SubcLocationCode: Code[10];
+        Quantity: Decimal;
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 655848] Undo of a WIP return shipment restores WIP at the subcontractor, so a duplicate outbound WIP transfer is refused.
+        Initialize();
+
+        // [GIVEN] WIP quantity "Q" shipped and received at the subcontractor location.
+        CreateWIPOnlyTransfer(PurchaseHeader, TransferHeader, TransferLine);
+        ProdOrderNo := TransferLine."Subc. Prod. Order No.";
+        SubcLocationCode := TransferHeader."Transfer-to Code";
+        Quantity := TransferLine.Quantity;
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, false, true);
+        Assert.AreEqual(Quantity, GetWIPQtyBase(ProdOrderNo, SubcLocationCode, false), 'Received WIP must be at the subcontractor.');
+
+        // [GIVEN] Return transfer from the subcontractor via an in-transit location is created and shipped.
+        CreateAndUpdateTransferRoute(SubcLocationCode, TransferHeader."Transfer-from Code");
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+        PurchaseOrder.CreateReturnFromSubcontractor.Invoke();
+        PurchaseOrder.Close();
+        ReturnTransferLine.SetRange("Subc. Prod. Order No.", ProdOrderNo);
+#pragma warning disable AA0210
+        ReturnTransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        ReturnTransferLine.SetRange("Subc. Return Order", true);
+        ReturnTransferLine.FindFirst();
+        ReturnTransferHeader.Get(ReturnTransferLine."Document No.");
+        Assert.AreNotEqual('', ReturnTransferHeader."In-Transit Code", 'The WIP return must use an in-transit location.');
+        LibraryWarehouse.PostTransferOrder(ReturnTransferHeader, true, false);
+        Assert.AreEqual(0, GetWIPQtyBase(ProdOrderNo, SubcLocationCode, false), 'Shipped return must leave the subcontractor.');
+        Assert.AreEqual(Quantity, GetWIPQtyBase(ProdOrderNo, ReturnTransferHeader."In-Transit Code", true), 'Shipped return must be in transit.');
+
+        // [WHEN] Undo the return shipment.
+        LibraryInventory.UndoTransferShipments(ReturnTransferHeader."No.");
+
+        // [THEN] WIP is back at the subcontractor and nothing is in transit.
+        Assert.AreEqual(Quantity, GetWIPQtyBase(ProdOrderNo, SubcLocationCode, false), 'Undo must restore WIP at the subcontractor.');
+        Assert.AreEqual(0, GetWIPQtyBase(ProdOrderNo, ReturnTransferHeader."In-Transit Code", true), 'Undo must reverse the in-transit WIP.');
+
+        // [WHEN] Attempting to create another outbound WIP transfer.
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+        asserterror PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [THEN] The demand is reported as covered and no duplicate is created.
+        Assert.ExpectedError(SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo(PurchaseHeader).Message);
+        PurchaseOrder.Close();
+    end;
+
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
@@ -2448,6 +2564,17 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    local procedure GetWIPQtyBase(ProdOrderNo: Code[20]; LocationCode: Code[10]; InTransit: Boolean): Decimal
+    var
+        WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+    begin
+        WIPLedgerEntry.SetRange("Prod. Order No.", ProdOrderNo);
+        WIPLedgerEntry.SetRange("Location Code", LocationCode);
+        WIPLedgerEntry.SetRange("In Transit", InTransit);
+        WIPLedgerEntry.CalcSums("Quantity (Base)");
+        exit(WIPLedgerEntry."Quantity (Base)");
+    end;
+
     [PageHandler]
     procedure CaptureReturnOrderCard(var TransferOrder: TestPage "Transfer Order")
     begin
@@ -2472,6 +2599,12 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         foreach DocumentNo in DocumentNumbers do
             LibraryVariableStorage.Enqueue(DocumentNo);
         TransferOrders.OK().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmOnlyUndoShipment(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := Question.Contains('undo');
     end;
 
     var
