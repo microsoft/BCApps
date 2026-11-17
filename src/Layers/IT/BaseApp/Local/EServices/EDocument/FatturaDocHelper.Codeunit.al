@@ -542,7 +542,7 @@ codeunit 12184 "Fattura Doc. Helper"
         exit(GetISOCountryCode(FirstCountryRegionCode) = GetISOCountryCode(SecondCountryRegionCode));
     end;
 
-    local procedure CheckFatturaPAISOCountryCode(CountryRegionCode: Code[10]; SourceRecord: Variant; SourceFieldNo: Integer; var ErrorMessage: Record "Error Message"): Boolean
+    local procedure CheckFatturaPAISOCountryCode(CountryRegionCode: Code[10]; SourceRecord: Variant; SourceFieldNo: Integer; var ValidationErrorMessage: Record "Error Message"): Boolean
     var
         CountryRegion: Record "Country/Region";
     begin
@@ -550,11 +550,11 @@ codeunit 12184 "Fattura Doc. Helper"
         if CountryRegionCode = '' then
             exit(false);
         if not CountryRegion.Get(CountryRegionCode) then begin
-            ErrorMessage.LogMessage(SourceRecord, SourceFieldNo, ErrorMessage."Message Type"::Error, InvalidISOCountryCodeErr);
+            ValidationErrorMessage.LogMessage(SourceRecord, SourceFieldNo, ValidationErrorMessage."Message Type"::Error, InvalidISOCountryCodeErr);
             exit(false);
         end;
         if StrLen(CountryRegion."ISO Code") <> 2 then begin
-            ErrorMessage.LogMessage(SourceRecord, SourceFieldNo, ErrorMessage."Message Type"::Error, InvalidISOCountryCodeErr);
+            ValidationErrorMessage.LogMessage(SourceRecord, SourceFieldNo, ValidationErrorMessage."Message Type"::Error, InvalidISOCountryCodeErr);
             exit(false);
         end;
         exit(true);

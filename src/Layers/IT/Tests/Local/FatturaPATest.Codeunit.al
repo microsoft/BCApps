@@ -1649,8 +1649,8 @@ codeunit 144200 "FatturaPA Test"
         TempXMLBuffer: Record "XML Buffer" temporary;
         Customer: Record Customer;
         TempBlob: Codeunit "Temp Blob";
-        InStr: InStream;
         DocumentRecRef: RecordRef;
+        InStr: InStream;
         ClientFileName: Text[250];
     begin
         // [FEATURE] [Sales] [Invoice] [FatturaPA]
@@ -1692,8 +1692,8 @@ codeunit 144200 "FatturaPA Test"
         TempXMLBuffer: Record "XML Buffer" temporary;
         Customer: Record Customer;
         TempBlob: Codeunit "Temp Blob";
-        InStr: InStream;
         DocumentRecRef: RecordRef;
+        InStr: InStream;
         ClientFileName: Text[250];
         PECEmailAddress: Text[80];
     begin
@@ -1740,8 +1740,8 @@ codeunit 144200 "FatturaPA Test"
         CurrCustomer: Record Customer;
         CountryRegion: Record "Country/Region";
         TempBlob: Codeunit "Temp Blob";
-        InStr: InStream;
         DocumentRecRef: RecordRef;
+        InStr: InStream;
         ClientFileName: Text[250];
     begin
         // [FEATURE] [Sales] [Invoice] [FatturaPA]
@@ -1800,8 +1800,8 @@ codeunit 144200 "FatturaPA Test"
         CurrCustomer: Record Customer;
         CountryRegion: Record "Country/Region";
         TempBlob: Codeunit "Temp Blob";
-        InStr: InStream;
         DocumentRecRef: RecordRef;
+        InStr: InStream;
         ClientFileName: Text[250];
         VATRegistrationNo: Text[20];
     begin
@@ -1857,8 +1857,8 @@ codeunit 144200 "FatturaPA Test"
         CurrCustomer: Record Customer;
         CountryRegion: Record "Country/Region";
         TempBlob: Codeunit "Temp Blob";
-        InStr: InStream;
         DocumentRecRef: RecordRef;
+        InStr: InStream;
         ClientFileName: Text[250];
         FiscalCode: Code[20];
     begin
