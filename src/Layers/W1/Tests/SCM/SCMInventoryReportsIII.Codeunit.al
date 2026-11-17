@@ -1770,6 +1770,32 @@ codeunit 137350 "SCM Inventory Reports - III"
     end;
 
     [Test]
+    [HandlerFunctions('InventoryValuationWIPRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure InvValuationWIPExcludesOutputRevaluationBeforeStartingDate()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+    begin
+        // [SCENARIO 658991] The WIP report does not include an output revaluation posted before the Starting Date in opening or ending WIP.
+        Initialize();
+
+        // [GIVEN] A released production order with an actual-cost output revaluation.
+        Item.Get(SetupProductionItem(Item."Costing Method"::FIFO, Item."Replenishment System"::"Prod. Order", 0));
+        LibraryManufacturing.CreateProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 1);
+        MockProductionRevaluationValueEntry(
+          Item."No.", ProductionOrder."No.", CalcDate('<1M>', WorkDate()), Enum::"Item Ledger Entry Type"::Output, 1,
+          LibraryRandom.RandDecInRange(1, 10, 2));
+
+        // [WHEN] The report period starts after the revaluation date.
+        RunReleasedInventoryValuationWIPReport(ProductionOrder."No.");
+
+        // [THEN] The output revaluation is excluded from opening and ending WIP.
+        VerifyWIPValuesOnGeneratedReport(ProductionOrder."No.", 0);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure ItemSubstitutionDescriptionWithInterchangeableChecked()
     var
@@ -2460,8 +2486,10 @@ codeunit 137350 "SCM Inventory Reports - III"
         RevaluationAmount: Decimal;
     begin
         RevaluationAmount := LibraryRandom.RandDecInRange(1, 10, 2);
-        MockProductionConsumptionRevaluationValueEntry(ItemNo, ProductionOrderNo, PostingDate, -1, -RevaluationAmount);
-        MockProductionConsumptionRevaluationValueEntry(ItemNo, ProductionOrderNo, PostingDate, 1, RevaluationAmount);
+        MockProductionRevaluationValueEntry(
+          ItemNo, ProductionOrderNo, PostingDate, Enum::"Item Ledger Entry Type"::Consumption, -1, -RevaluationAmount);
+        MockProductionRevaluationValueEntry(
+          ItemNo, ProductionOrderNo, PostingDate, Enum::"Item Ledger Entry Type"::Consumption, 1, RevaluationAmount);
         exit(RevaluationAmount);
     end;
 
@@ -2925,7 +2953,7 @@ codeunit 137350 "SCM Inventory Reports - III"
         ItemJournalLine.Modify(true);
     end;
 
-    local procedure MockProductionConsumptionRevaluationValueEntry(ItemNo: Code[20]; ProductionOrderNo: Code[20]; PostingDate: Date; ItemLedgerEntryQuantity: Decimal; CostAmount: Decimal)
+    local procedure MockProductionRevaluationValueEntry(ItemNo: Code[20]; ProductionOrderNo: Code[20]; PostingDate: Date; ItemLedgerEntryType: Enum "Item Ledger Entry Type"; ItemLedgerEntryQuantity: Decimal; CostAmount: Decimal)
     var
         ValueEntry: Record "Value Entry";
     begin
@@ -2933,7 +2961,7 @@ codeunit 137350 "SCM Inventory Reports - III"
         ValueEntry."Entry No." := LibraryUtility.GetNewRecNo(ValueEntry, ValueEntry.FieldNo("Entry No."));
         ValueEntry."Item No." := ItemNo;
         ValueEntry."Posting Date" := PostingDate;
-        ValueEntry."Item Ledger Entry Type" := ValueEntry."Item Ledger Entry Type"::Consumption;
+        ValueEntry."Item Ledger Entry Type" := ItemLedgerEntryType;
         ValueEntry."Item Ledger Entry Quantity" := ItemLedgerEntryQuantity;
         ValueEntry."Entry Type" := ValueEntry."Entry Type"::Revaluation;
         ValueEntry."Order Type" := ValueEntry."Order Type"::Production;
