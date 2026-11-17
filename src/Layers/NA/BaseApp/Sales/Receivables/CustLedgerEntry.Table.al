@@ -14,6 +14,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.ReceivablesPayables;
+using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.Attachment;
@@ -2043,6 +2044,7 @@ table 21 "Cust. Ledger Entry"
           (InvoiceVATPostingSetup."VAT Bus. Posting Group" = CreditMemoVATPostingSetup."VAT Bus. Posting Group") and
           (InvoiceVATPostingSetup."VAT Calculation Type" = CreditMemoVATPostingSetup."VAT Calculation Type") and
           (InvoiceVATPostingSetup."VAT %" = CreditMemoVATPostingSetup."VAT %") and
+          (InvoiceVATPostingSetup."EU Service" = CreditMemoVATPostingSetup."EU Service") and
           (InvoiceVATPostingSetup."Unrealized VAT Type" = InvoiceVATPostingSetup."Unrealized VAT Type"::"Cash Basis") and
           (CreditMemoVATPostingSetup."Unrealized VAT Type" = CreditMemoVATPostingSetup."Unrealized VAT Type"::"Cash Basis") and
           (InvoiceVATPostingSetup."Sales VAT Account" = CreditMemoVATPostingSetup."Sales VAT Account") and
