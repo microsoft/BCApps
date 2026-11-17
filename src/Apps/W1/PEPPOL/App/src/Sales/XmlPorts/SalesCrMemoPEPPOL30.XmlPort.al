@@ -46,6 +46,16 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
             {
                 NamespacePrefix = 'cbc';
             }
+            textelement(TaxPointDate)
+            {
+                NamespacePrefix = 'cbc';
+
+                trigger OnBeforePassVariable()
+                begin
+                    if TaxPointDate = '' then
+                        currXMLport.Skip();
+                end;
+            }
             textelement(CreditNoteTypeCode)
             {
                 NamespacePrefix = 'cbc';
@@ -62,16 +72,6 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
                 trigger OnBeforePassVariable()
                 begin
                     if Note = '' then
-                        currXMLport.Skip();
-                end;
-            }
-            textelement(TaxPointDate)
-            {
-                NamespacePrefix = 'cbc';
-
-                trigger OnBeforePassVariable()
-                begin
-                    if TaxPointDate = '' then
                         currXMLport.Skip();
                 end;
             }
