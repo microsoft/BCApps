@@ -73,6 +73,7 @@ table 8842 "Installment Plan"
         field(13; "Amount (LCY)"; Decimal)
         {
             Caption = 'Amount (LCY)';
+            AutoFormatExpression = '';
             AutoFormatType = 1;
             Editable = false;
         }

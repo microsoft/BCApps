@@ -101,16 +101,19 @@ table 8841 "Installment Plan Line"
         field(19; "Sales (LCY)"; Decimal)
         {
             Caption = 'Sales (LCY)';
+            AutoFormatExpression = '';
             AutoFormatType = 1;
         }
         field(20; "Profit (LCY)"; Decimal)
         {
             Caption = 'Profit (LCY)';
+            AutoFormatExpression = '';
             AutoFormatType = 1;
         }
         field(21; "Inv. Discount (LCY)"; Decimal)
         {
             Caption = 'Inv. Discount (LCY)';
+            AutoFormatExpression = '';
             AutoFormatType = 1;
         }
         field(22; "Cust. Ledger Entry No."; Integer)
