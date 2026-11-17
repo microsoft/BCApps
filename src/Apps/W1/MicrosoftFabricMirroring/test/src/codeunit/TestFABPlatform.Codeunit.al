@@ -5,6 +5,7 @@ using Microsoft.Utilities;
 using System.Fabric;
 using System.Reflection;
 
+//[FEATURE] Fabric platform management
 codeunit 140012 "Test FAB Platform"
 {
     Subtype = Test;
@@ -40,6 +41,8 @@ codeunit 140012 "Test FAB Platform"
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         PlatformTestSub: Codeunit "Fabric Platform Test Sub";
     begin
+        // Required selections persist across cleanup.
+        TenantFabricTables.SetFilter("Table ID", '<>%1&<>%2', Database::"Tenant Fabric Export Details", Database::"Tenant Fabric Export Summary");
         TenantFabricTables.DeleteAll(false);
         TenantFabricTableFields.DeleteAll(false);
         TenantFabricSetup.DeleteAll(false);
@@ -62,18 +65,59 @@ codeunit 140012 "Test FAB Platform"
         TenantFabricSetup: Record "Tenant Fabric Setup";
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
     begin
-        //[SCENARIO] The adapter reads/creates the platform setup singleton (Story 1)
-        //[GIVEN] Initialize
-        Initialize();
-        //[GIVEN] Lower permissions
-        LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[SCENARIO] EnsureSetup initializes a new Fabric setup record
+        //[GIVEN] Initialized
+        this.Initialize();
+        //[GIVEN] Lowered permissions
+        this.CreateFabricPermissionContext();
 
         //[WHEN] EnsureSetup is called
         FabricPlatformMgt.EnsureSetup(TenantFabricSetup);
 
-        //[THEN] Exactly one platform setup record exists
-        Assert.AreEqual(1, TenantFabricSetup.Count(), 'Expected exactly one Tenant Fabric Setup record.');
+        //[THEN] Platform setup has its default lowercase namespaces
+        this.VerifySetupDefaults(TenantFabricSetup);
+    end;
+
+    [Test]
+    procedure NormalizeNamespaceConvertsUppercaseToLowercase()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        Namespace: Text[250];
+    begin
+        //[SCENARIO] Normalize a namespace containing uppercase characters
+        //[GIVEN] Initialized
+        this.Initialize();
+        //[GIVEN] Namespace contains uppercase characters
+        Namespace := 'BusinessCentral';
+        //[GIVEN] Lowered permissions
+        this.CreateFabricPermissionContext();
+
+        //[WHEN] Namespace is normalized
+        FabricPlatformMgt.NormalizeNamespace(Namespace);
+
+        //[THEN] Namespace is lowercase
+        this.VerifyNamespaceEquals('businesscentral', Namespace);
+    end;
+
+    [Test]
+    procedure NormalizeNamespaceLeavesLowercaseUnchanged()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        Namespace: Text[250];
+    begin
+        //[SCENARIO] Normalize a namespace that is already lowercase
+        //[GIVEN] Initialized
+        this.Initialize();
+        //[GIVEN] Namespace is already lowercase
+        Namespace := 'businesscentral_log';
+        //[GIVEN] Lowered permissions
+        this.CreateFabricPermissionContext();
+
+        //[WHEN] Namespace is normalized
+        FabricPlatformMgt.NormalizeNamespace(Namespace);
+
+        //[THEN] Namespace remains lowercase and unchanged
+        this.VerifyNamespaceEquals('businesscentral_log', Namespace);
     end;
 
     [Test]
@@ -96,6 +140,24 @@ codeunit 140012 "Test FAB Platform"
         Assert.IsTrue(TenantFabricTables.Get(Database::"Tenant Fabric Setup"), 'Expected the added table row in Tenant Fabric Tables.');
     end;
 
+    local procedure VerifySetupDefaults(var TenantFabricSetup: Record "Tenant Fabric Setup")
+    begin
+        Assert.AreEqual(1, TenantFabricSetup.Count(), 'Expected exactly one Tenant Fabric Setup record.');
+        Assert.AreEqual('businesscentral', TenantFabricSetup."Fabric Data Namespace", 'Expected the Fabric Data Namespace to be lowercase.');
+        Assert.AreEqual('businesscentral_log', TenantFabricSetup."Fabric Logging Namespace", 'Expected the Fabric Logging Namespace to be lowercase.');
+    end;
+
+    local procedure CreateFabricPermissionContext()
+    begin
+        this.LibraryLowerPermissions.SetOutsideO365Scope();
+        this.LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+    end;
+
+    local procedure VerifyNamespaceEquals(ExpectedNamespace: Text[250]; ActualNamespace: Text[250])
+    begin
+        Assert.AreEqual(ExpectedNamespace, ActualNamespace, 'Expected namespace values to match.');
+    end;
+
     [Test]
     procedure AddTableRejectedAtLimit()
     var
@@ -108,7 +170,7 @@ codeunit 140012 "Test FAB Platform"
         Initialize();
         //[GIVEN] 1000 table rows already exist
         // IDs beyond any real table are not validated, so existing virtual or external tables cannot reject the insert.
-        for i := 1 to FabricPlatformMgt.MaxTableCount() do begin
+        for i := 1 to FabricPlatformMgt.MaxTableCount() - FabricPlatformMgt.SelectedTableCount() do begin
             TenantFabricTables.Init();
             TenantFabricTables."Table ID" := 900000000 + i;
             TenantFabricTables.Insert(false);

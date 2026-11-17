@@ -301,6 +301,20 @@
     ]
   },
   {
+    "name": "Tests-Concurrent Posting",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
     "name": "Tests-ERM",
     "groups": [
       {
@@ -879,6 +893,19 @@
       },
       {
         "name": "TestFramework"
+      }
+    ]
+  },
+  {
+    "name": "Test Runner Tests",
+    "groups": [
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
       }
     ]
   },
@@ -1856,6 +1883,47 @@
   },
   {
     "name": "FI Core Tests",
+    "groups": [
+      {
+        "name": "LocalBaseExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Depreciation Differences FI",
+    "groups": [
+      {
+        "name": "LocalBaseExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Depreciation Differences FI Demo Data",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Depreciation Differences FI Tests",
     "groups": [
       {
         "name": "LocalBaseExtensions"
@@ -3370,6 +3438,9 @@
       },
       {
         "name": "OnPremExtensions"
+      },
+      {
+        "name": "Internal"
       }
     ]
   },
@@ -3410,6 +3481,9 @@
       },
       {
         "name": "OnPremExtensions"
+      },
+      {
+        "name": "Internal"
       }
     ]
   },
@@ -7364,13 +7438,16 @@
     "name": "Create Product Information With Copilot",
     "groups": [
       {
-        "name": "AllExtensions"
+        "name": "AllExtensions",
+        "doNotInstall": true
       },
       {
-        "name": "Financials"
+        "name": "Financials",
+        "doNotInstall": true
       },
       {
-        "name": "FinancialsExtensions"
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
       },
       {
         "name": "OnPrem",
@@ -9222,6 +9299,23 @@
       },
       {
         "name": "Internal"
+      }
+    ]
+  },
+  {
+    "name": "Payables Agent Unit Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
       }
     ]
   },

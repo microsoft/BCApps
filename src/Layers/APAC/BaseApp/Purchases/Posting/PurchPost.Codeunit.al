@@ -1073,6 +1073,11 @@ codeunit 90 "Purch.-Post"
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
         SearchPurchCrMemoLine: Record "Purch. Cr. Memo Line";
         CostBaseAmount: Decimal;
+        JobFullLineDiscAmount: Decimal;
+        JobFullLineInvDiscAmount: Decimal;
+        JobUnitCostToInvoice: Decimal;
+        JobUnitCostToInvoiceLCY: Decimal;
+        UseJobUnitCostToInvoice: Boolean;
         IsHandled: Boolean;
         AmountsOnly: Boolean;
     begin
@@ -1106,15 +1111,26 @@ codeunit 90 "Purch.-Post"
                 end;
             IsHandled := false;
             OnPostPurchLineOnBeforeDivideAmount(PurchHeader, PurchLine, TempVATAmountLine, TempVATAmountLineRemainder, IsHandled);
-            if not IsHandled then
+            if not IsHandled then begin
+                JobFullLineDiscAmount := PurchLine."Line Discount Amount";
+                JobFullLineInvDiscAmount := PurchLine."Inv. Discount Amount";
                 DivideAmount(PurchHeader, PurchLine, 1, PurchLine."Qty. to Invoice", TempVATAmountLine, TempVATAmountLineRemainder);
+                UseJobUnitCostToInvoice :=
+                    UseJobUnitCostForInvDiscToInvoice(PurchHeader, PurchLine, JobFullLineDiscAmount, JobFullLineInvDiscAmount);
+            end;
         end else
             if not AmountsOnly then
                 PurchLine.TestField(Amount, 0);
 
         CheckItemReservDisruption(PurchLine);
         OnPostPurchLineOnBeforeRoundAmount(PurchHeader, PurchLine, PurchInvHeader, PurchCrMemoHeader, SrcCode);
+        // The project unit cost follows the final line amounts: in document currency before RoundAmount
+        // and in LCY after RoundAmount, which balances the LCY amounts of the lines against the document total.
+        if UseJobUnitCostToInvoice then
+            JobUnitCostToInvoice := CalcJobUnitCostFromDividedAmount(PurchHeader, PurchLine);
         RoundAmount(PurchHeader, PurchLine, PurchLine."Qty. to Invoice");
+        if UseJobUnitCostToInvoice then
+            JobUnitCostToInvoiceLCY := CalcJobUnitCostFromDividedAmount(PurchHeader, PurchLine);
 
         if PurchLine.IsCreditDocType() then begin
             ReverseAmount(PurchLine);
@@ -1132,7 +1148,7 @@ codeunit 90 "Purch.-Post"
         OnPostPurchLineOnBeforePostByType(PurchHeader, PurchInvHeader, PurchCrMemoHeader, PurchLine, PurchLineACY, SrcCode);
         case PurchLine.Type of
             PurchLine.Type::"G/L Account":
-                PostGLAccICLine(PurchHeader, PurchLine, ICGenJnlLineNo);
+                PostGLAccICLine(PurchHeader, PurchLine, ICGenJnlLineNo, UseJobUnitCostToInvoice, JobUnitCostToInvoice, JobUnitCostToInvoiceLCY);
             PurchLine.Type::Item:
                 PostItemLine(PurchHeader, PurchLine, TempDropShptPostBuffer);
             PurchLine.Type::Resource:
@@ -1318,7 +1334,7 @@ codeunit 90 "Purch.-Post"
         OnAfterPostInvoice(PurchHeader, GenJnlPostLine, TotalPurchLine, TotalPurchLineLCY, SuppressCommit, VendLedgEntry);
     end;
 
-    local procedure PostGLAccICLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer)
+    local procedure PostGLAccICLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer; UseJobUnitCostToInvoice: Boolean; JobUnitCostToInvoice: Decimal; JobUnitCostToInvoiceLCY: Decimal)
     var
         IsHandled: Boolean;
     begin
@@ -1333,7 +1349,7 @@ codeunit 90 "Purch.-Post"
                 IsHandled := false;
                 OnPostGLAccICLineOnBeforeCreateJobPurchLine(PurchHeader, PurchLine, IsHandled);
                 if not IsHandled then begin
-                    CreateJobPurchLine(JobPurchLine, PurchLine, PurchHeader."Prices Including VAT");
+                    CreateJobPurchLineWithInvDiscToInvoice(JobPurchLine, PurchLine, PurchHeader, UseJobUnitCostToInvoice, JobUnitCostToInvoice, JobUnitCostToInvoiceLCY);
                     OnPostGLAccICLineOnAfterCreateJobPurchLine(PurchHeader);
                     InvoicePostingInterface.PrepareJobLine(PurchHeader, JobPurchLine, PurchLineACY);
                 end;
@@ -6373,7 +6389,8 @@ codeunit 90 "Purch.-Post"
 
         PurchLine.LockTable();
         SalesLine.LockTable();
-        if InventorySetup.UseLegacyPosting() and not InventorySetup.OptimGLEntLockForMultiuserEnv() then begin
+        GetGLSetup();
+        if InventorySetup.UseLegacyPosting() and not InventorySetup.OptimGLEntLockForMultiuserEnv() and not GLSetup.UseConcurrentPosting() then begin
             GLEntry.LockTable();
             GLEntry.GetLastEntryNo();
         end;
@@ -6398,14 +6415,87 @@ codeunit 90 "Purch.-Post"
     /// <param name="PricesIncludingVAT">Specifies if the purchase document that is being posted has prices with VAT</param>
     procedure CreateJobPurchLine(var JobPurchLine2: Record "Purchase Line"; PurchLine2: Record "Purchase Line"; PricesIncludingVAT: Boolean)
     begin
+        InitJobPurchLine(JobPurchLine2, PurchLine2, PricesIncludingVAT);
+        OnAfterCreateJobPurchLine(JobPurchLine2, PurchLine2);
+    end;
+
+    local procedure CreateJobPurchLineWithInvDiscToInvoice(var JobPurchLine2: Record "Purchase Line"; PurchLine2: Record "Purchase Line"; PurchHeader: Record "Purchase Header"; UseJobUnitCostToInvoice: Boolean; JobUnitCostToInvoice: Decimal; JobUnitCostToInvoiceLCY: Decimal)
+    begin
+        InitJobPurchLine(JobPurchLine2, PurchLine2, PurchHeader."Prices Including VAT");
+        if UseJobUnitCostToInvoice then
+            UpdateJobPurchLineUnitCostForInvDiscToInvoice(JobPurchLine2, JobUnitCostToInvoice, JobUnitCostToInvoiceLCY);
+        OnAfterCreateJobPurchLine(JobPurchLine2, PurchLine2);
+    end;
+
+    local procedure InitJobPurchLine(var JobPurchLine2: Record "Purchase Line"; PurchLine2: Record "Purchase Line"; PricesIncludingVAT: Boolean)
+    begin
         JobPurchLine2 := PurchLine2;
         if PricesIncludingVAT then
             if JobPurchLine2."VAT Calculation Type" = JobPurchLine2."VAT Calculation Type"::"Full VAT" then
                 JobPurchLine2."Direct Unit Cost" := 0
             else
                 JobPurchLine2."Direct Unit Cost" := JobPurchLine2."Direct Unit Cost" / (1 + JobPurchLine2."VAT %" / 100);
+    end;
 
-        OnAfterCreateJobPurchLine(JobPurchLine2, PurchLine2);
+    local procedure UseJobUnitCostForInvDiscToInvoice(PurchHeader: Record "Purchase Header"; PurchLine2: Record "Purchase Line"; FullLineDiscAmount: Decimal; FullLineInvDiscAmount: Decimal): Boolean
+    var
+        FullLineDiscAmountPerQty: Decimal;
+    begin
+        if (PurchLine2.Type <> PurchLine2.Type::"G/L Account") or (PurchLine2."Job No." = '') or PurchLine2."Prepayment Line" then
+            exit(false);
+        if not PurchLine2."Allow Invoice Disc." or (PurchLine2.Quantity = 0) or (PurchLine2."Qty. to Invoice" = 0) then
+            exit(false);
+        if PurchLine2."VAT Calculation Type" = PurchLine2."VAT Calculation Type"::"Full VAT" then
+            exit(false);
+        // Unit Cost reflects the full line invoice discount; only adjust when the invoiced discount differs from its proportional share.
+        // PurchLine2 is the divided line, so "Inv. Discount Amount" holds the discount actually posted for "Qty. to Invoice".
+        if PurchLine2."Inv. Discount Amount" =
+           Round(FullLineInvDiscAmount * PurchLine2."Qty. to Invoice" / PurchLine2.Quantity, Currency."Amount Rounding Precision")
+        then
+            exit(false);
+
+        // Only replace Unit Cost when it is derived from the full line discounts the line was divided from.
+        // Otherwise, for example when an extension changed it, the existing Unit Cost is kept.
+        GetGLSetup();
+        FullLineDiscAmountPerQty :=
+            Round((FullLineDiscAmount + FullLineInvDiscAmount) / PurchLine2.Quantity, GLSetup."Unit-Amount Rounding Precision");
+        // UpdateUnitCost of the purchase line deducts the whole "VAT Difference" from "Unit Cost", so the baseline does the same.
+        if PurchLine2."Unit Cost" <>
+           Round(
+               CalcJobUnitCostFromDiscAmountPerQty(PurchHeader, PurchLine2, FullLineDiscAmountPerQty, PurchLine2."VAT Difference"),
+               Currency."Unit-Amount Rounding Precision")
+        then
+            exit(false);
+
+        exit(true);
+    end;
+
+    local procedure CalcJobUnitCostFromDividedAmount(PurchHeader: Record "Purchase Header"; PurchLine2: Record "Purchase Line"): Decimal
+    var
+        InvoicedVATDifference: Decimal;
+    begin
+        // PurchLine2.Amount is the net amount posted to G/L for "Qty. to Invoice", in LCY once RoundAmount has run. With prices including VAT, DivideAmount
+        // allocates the VAT of the VAT group, including its rounding and "VAT Difference", between the lines.
+        // As in UpdateUnitCost of the purchase line, "Indirect Cost %" does not apply to the VAT difference, which is deducted once.
+        if PurchHeader."Prices Including VAT" then
+            InvoicedVATDifference := PurchLine2."VAT Difference";
+        exit(
+            ((PurchLine2.Amount + InvoicedVATDifference) * (1 + PurchLine2."Indirect Cost %" / 100) - InvoicedVATDifference) /
+            PurchLine2."Qty. to Invoice");
+    end;
+
+    local procedure CalcJobUnitCostFromDiscAmountPerQty(PurchHeader: Record "Purchase Header"; PurchLine2: Record "Purchase Line"; DiscountAmountPerQty: Decimal; UnitCostVATDifference: Decimal) UnitCost: Decimal
+    begin
+        // Mirrors "Unit Cost" calculation in UpdateUnitCost of the purchase line; the VAT difference only applies to prices including VAT
+        UnitCost := (PurchLine2."Direct Unit Cost" - DiscountAmountPerQty) * (1 + PurchLine2."Indirect Cost %" / 100);
+        if PurchHeader."Prices Including VAT" then
+            UnitCost := UnitCost / (1 + PurchLine2.GetVATPct() / 100) - UnitCostVATDifference;
+    end;
+
+    local procedure UpdateJobPurchLineUnitCostForInvDiscToInvoice(var JobPurchLine2: Record "Purchase Line"; JobUnitCostToInvoice: Decimal; JobUnitCostToInvoiceLCY: Decimal)
+    begin
+        JobPurchLine2."Unit Cost" := JobUnitCostToInvoice;
+        JobPurchLine2."Unit Cost (LCY)" := JobUnitCostToInvoiceLCY;
     end;
 
     local procedure RevertWarehouseEntry(var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; JobNo: Code[20]; PostJobConsumptionBeforePurch: Boolean): Boolean
@@ -7274,6 +7364,8 @@ codeunit 90 "Purch.-Post"
         SalesShptLine."Qty. Invoiced (Base)" := 0;
         SalesShptLine."Order No." := SalesOrderLine."Document No.";
         SalesShptLine."Order Line No." := SalesOrderLine."Line No.";
+        SalesShptLine."External Document No." := SalesShptHeader."External Document No.";
+        SalesShptLine."Your Reference" := SalesShptHeader."Your Reference";
         SalesShptLine."Qty. Shipped Not Invoiced" :=
           SalesShptLine.Quantity - SalesShptLine."Quantity Invoiced";
         if SalesShptLine.Quantity <> 0 then begin
@@ -7818,6 +7910,8 @@ codeunit 90 "Purch.-Post"
                                 SalesShptLine."Document No." := SalesShptHeader."No.";
                                 SalesShptLine."Order No." := SalesOrderLine."Document No.";
                                 SalesShptLine."Order Line No." := SalesOrderLine."Line No.";
+                                SalesShptLine."External Document No." := SalesShptHeader."External Document No.";
+                                SalesShptLine."Your Reference" := SalesShptHeader."Your Reference";
                                 Clear(IsHandled);
                                 OnBeforeSalesShptLineInsert(SalesShptLine, SalesShptHeader, SalesOrderLine, SuppressCommit, TempDropShptPostBuffer, IsHandled);
                                 if not IsHandled then
@@ -9656,18 +9750,6 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line"; PurchRcptHeader2: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; CommitIsSupressed: Boolean; QtyToBeInvoiced: Decimal)
-    begin
-        OnAfterPostItemJnlLineCopyProdOrder(ItemJnlLine, PurchLine, PurchRcptHeader2, QtyToBeReceived, CommitIsSupressed, QtyToBeInvoiced);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPurchPost', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line"; PurchRcptHeader: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; CommitIsSupressed: Boolean; QtyToBeInvoiced: Decimal)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemJnlLineItemCharges(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line")
@@ -10199,18 +10281,6 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforePostItemJnlLineCopyProdOrder(PurchLine: Record "Purchase Line"; var ItemJnlLine: Record "Item Journal Line"; QtyToBeReceived: Decimal; QtyToBeInvoiced: Decimal; CommitIsSupressed: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforePostItemJnlLineCopyProdOrder(PurchLine, ItemJnlLine, QtyToBeReceived, QtyToBeInvoiced, CommitIsSupressed, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPurchPost', '27.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnBeforePostItemJnlLineCopyProdOrder(PurchLine: Record "Purchase Line"; var ItemJnlLine: Record "Item Journal Line"; QtyToBeReceived: Decimal; QtyToBeInvoiced: Decimal; CommitIsSupressed: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostPurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; CommitIsSupressed: Boolean; var HideProgressWindow: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var IsHandled: Boolean)
@@ -11739,19 +11809,6 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN27
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer used.', '27.0')]
-    local procedure OnSetPostingPreviewDocumentNo(var PreviewDocumentNo: Code[20])
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer used.', '27.0')]
-    local procedure OnGetPostingPreviewDocumentNos(var PreviewDocumentNos: List of [Code[20]])
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedHeadersOnAfterInvoice(var PurchaseHeader: Record "Purchase Header"; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlLineDocType: Enum "Gen. Journal Document Type"; var GenJnlLineDocNo: Code[20]; var GenJnlLineExtDocNo: Code[35]; var IsHandled: Boolean)
     begin

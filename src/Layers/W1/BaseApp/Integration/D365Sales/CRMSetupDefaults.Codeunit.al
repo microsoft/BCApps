@@ -2779,13 +2779,6 @@ codeunit 5334 "CRM Setup Defaults"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnGetTableIDCRMEntityNameMappingOnAfterAddFSEntityTableMapping(var TempNameValueBuffer: Record "Name/Value Buffer" temporary)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnResetSalesPriceProductPricelevelMappingOnAfterInsertFieldsMapping(IntegrationTableMappingName: Code[20])
