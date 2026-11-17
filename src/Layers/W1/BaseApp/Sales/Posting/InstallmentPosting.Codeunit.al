@@ -28,7 +28,7 @@ codeunit 8842 "Installment Posting"
         ReconciliationErr: Label 'The posted installment entries do not reconcile with the final invoice schedule.';
         TemporaryRecordErr: Label 'Installment posting calculation requires a temporary plan line record.';
         PostedPlanErr: Label 'Posted installment schedules cannot be changed or deleted.';
-        CorrectionErr: Label 'Automatic correction, cancellation, and reversal of installment invoices are not supported.';
+        CorrectionErr: Label 'Ledger reversal of installment invoices is not supported. Use a sales credit memo or the invoice correction actions.';
 
     internal procedure CheckSalesPosting(SalesHeader: Record "Sales Header")
     var
@@ -98,12 +98,15 @@ codeunit 8842 "Installment Posting"
     end;
 
     internal procedure PrepareJournalLine(SalesHeader: Record "Sales Header"; var GenJournalLine: Record "Gen. Journal Line")
+    var
+        SalesInstallmentCorrection: Codeunit "Sales Installment Correction";
     begin
         CheckSalesPosting(SalesHeader);
         GenJournalLine."Installment Plan ID" := SalesHeader."Installment Plan ID";
         Clear(GenJournalLine."Sales Invoice Source SystemId");
         if SalesHeader."Document Type" = SalesHeader."Document Type"::Invoice then
             GenJournalLine."Sales Invoice Source SystemId" := SalesHeader.SystemId;
+        SalesInstallmentCorrection.PrepareCreditApplication(SalesHeader, GenJournalLine);
     end;
 
     internal procedure CheckJournalLine(GenJournalLine: Record "Gen. Journal Line")
@@ -146,6 +149,8 @@ codeunit 8842 "Installment Posting"
         Rule.SetRange("Payment Terms Code", GenJournalLine."Payment Terms Code");
         if Rule.IsEmpty() then
             exit;
+        if IsSalesCreditMemoJournal(GenJournalLine) then
+            exit;
         // Existing ordinary invoices do not acquire a plan when reusable setup is changed.
         if not IsNullGuid(GenJournalLine."Sales Invoice Source SystemId") then
             if SalesHeader.GetBySystemId(GenJournalLine."Sales Invoice Source SystemId") then
@@ -163,6 +168,30 @@ codeunit 8842 "Installment Posting"
                         then
                             exit;
         Error(UnsupportedProducerErr);
+    end;
+
+    local procedure IsSalesCreditMemoJournal(GenJournalLine: Record "Gen. Journal Line"): Boolean
+    var
+        SalesHeader: Record "Sales Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+    begin
+        if (GenJournalLine."Account Type" <> GenJournalLine."Account Type"::Customer) or
+           (GenJournalLine."Document Type" <> GenJournalLine."Document Type"::"Credit Memo") or
+           not GenJournalLine."System-Created Entry" or (GenJournalLine."Journal Template Name" <> '')
+        then
+            exit(false);
+        if not SalesCrMemoHeader.Get(GenJournalLine."Document No.") then
+            exit(false);
+        if IsNullGuid(SalesCrMemoHeader."Draft Cr. Memo SystemId") then
+            exit(false);
+        if not SalesHeader.GetBySystemId(SalesCrMemoHeader."Draft Cr. Memo SystemId") then
+            exit(false);
+        exit((SalesHeader."Document Type" = SalesHeader."Document Type"::"Credit Memo") and
+             IsNullGuid(SalesHeader."Installment Plan ID") and
+             (SalesHeader."Payment Terms Code" = GenJournalLine."Payment Terms Code") and
+             (SalesHeader."Bill-to Customer No." = GenJournalLine."Account No.") and
+             (SalesHeader."Currency Code" = GenJournalLine."Currency Code") and
+             (SalesCrMemoHeader."Bill-to Customer No." = GenJournalLine."Account No."));
     end;
 
     internal procedure PreparePosting(GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean; var TempPlanLine: Record "Installment Plan Line" temporary): Boolean
@@ -464,42 +493,6 @@ codeunit 8842 "Installment Posting"
     begin
         if not Rec.IsTemporary() then
             CheckPlanEditable(Rec."Plan ID");
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Sales Invoice", 'OnBeforeCreateCorrectiveSalesCrMemo', '', false, false)]
-    local procedure CheckCorrectiveInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header")
-    begin
-        if not IsNullGuid(SalesInvoiceHeader."Installment Plan ID") then
-            Error(CorrectionErr);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Sales Invoice", 'OnBeforeCreateCreditMemoCopyDocument', '', false, false)]
-    local procedure CheckCreditMemoCopy(SalesInvoiceHeader: Record "Sales Invoice Header")
-    begin
-        CheckCorrectiveInvoice(SalesInvoiceHeader);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Sales Invoice", 'OnBeforeSalesHeaderInsert', '', false, false)]
-    local procedure CheckCorrectiveDocumentCreation(SalesInvoiceHeader: Record "Sales Invoice Header")
-    begin
-        CheckCorrectiveInvoice(SalesInvoiceHeader);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Sales Invoice", 'OnBeforeUnapplyCostApplication', '', false, false)]
-    local procedure CheckCorrectionBeforeCostUnapplication(InvNo: Code[20])
-    var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-    begin
-        if SalesInvoiceHeader.Get(InvNo) then
-            if not IsNullGuid(SalesInvoiceHeader."Installment Plan ID") then
-                Error(CorrectionErr);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Sales Invoice", 'OnAfterTestCorrectInvoiceIsAllowed', '', false, false)]
-    local procedure CheckInvoiceCorrection(var SalesInvoiceHeader: Record "Sales Invoice Header")
-    begin
-        if not IsNullGuid(SalesInvoiceHeader."Installment Plan ID") then
-            Error(CorrectionErr);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Reversal Entry", 'OnBeforeCheckCust', '', false, false)]

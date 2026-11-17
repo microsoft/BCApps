@@ -298,6 +298,8 @@ page 61 "Applied Customer Entries"
     end;
 
     trigger OnOpenPage()
+    var
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
     begin
         Rec.Reset();
         SetControlVisibility();
@@ -310,24 +312,20 @@ page 61 "Applied Customer Entries"
                 Heading := Format(CreateCustLedgEntry."Document Type");
             Heading := Heading + ' ' + CreateCustLedgEntry."Document No.";
 
-            FindApplnEntriesDtldtLedgEntry();
-            Rec.SetCurrentKey("Entry No.");
-            Rec.SetRange("Entry No.");
-
-            if CreateCustLedgEntry."Closed by Entry No." <> 0 then begin
-                Rec."Entry No." := CreateCustLedgEntry."Closed by Entry No.";
-                Rec.Mark(true);
+            if InvoiceEntryNo = 0 then
+                MarkAppliedEntries()
+            else begin
+                CreateCustLedgEntry.TestField("Installment Plan ID");
+                CreateCustLedgEntry.TestField("Invoice Entry No.", InvoiceEntryNo);
+                InvoiceCustLedgerEntry.SetRange("Installment Plan ID", CreateCustLedgEntry."Installment Plan ID");
+                InvoiceCustLedgerEntry.SetRange("Invoice Entry No.", InvoiceEntryNo);
+                InvoiceCustLedgerEntry.SetRange("Customer No.", CreateCustLedgEntry."Customer No.");
+                if InvoiceCustLedgerEntry.FindSet() then
+                    repeat
+                        CreateCustLedgEntry := InvoiceCustLedgerEntry;
+                        MarkAppliedEntries();
+                    until InvoiceCustLedgerEntry.Next() = 0;
             end;
-
-            Rec.SetCurrentKey("Closed by Entry No.");
-            Rec.SetRange("Closed by Entry No.", CreateCustLedgEntry."Entry No.");
-            if Rec.Find('-') then
-                repeat
-                    Rec.Mark(true);
-                until Rec.Next() = 0;
-
-            Rec.SetCurrentKey("Entry No.");
-            Rec.SetRange("Closed by Entry No.");
         end;
 
         Rec.MarkedOnly(true);
@@ -342,10 +340,35 @@ page 61 "Applied Customer Entries"
         DimVisible1: Boolean;
         DimVisible2: Boolean;
         HasDocumentAttachment: Boolean;
+        InvoiceEntryNo: Integer;
 
 #pragma warning disable AA0074
         Text000: Label 'Document';
 #pragma warning restore AA0074
+
+    internal procedure SetInvoiceEntryNo(NewInvoiceEntryNo: Integer)
+    begin
+        InvoiceEntryNo := NewInvoiceEntryNo;
+    end;
+
+    local procedure MarkAppliedEntries()
+    begin
+        FindApplnEntriesDtldtLedgEntry();
+        Rec.SetCurrentKey("Entry No.");
+        Rec.SetRange("Entry No.");
+        if CreateCustLedgEntry."Closed by Entry No." <> 0 then begin
+            Rec."Entry No." := CreateCustLedgEntry."Closed by Entry No.";
+            Rec.Mark(true);
+        end;
+        Rec.SetCurrentKey("Closed by Entry No.");
+        Rec.SetRange("Closed by Entry No.", CreateCustLedgEntry."Entry No.");
+        if Rec.Find('-') then
+            repeat
+                Rec.Mark(true);
+            until Rec.Next() = 0;
+        Rec.SetCurrentKey("Entry No.");
+        Rec.SetRange("Closed by Entry No.");
+    end;
 
     local procedure FindApplnEntriesDtldtLedgEntry()
     var

@@ -1901,13 +1901,12 @@ or additional reporting currency as a side effect of this increment.
 | Decision | Contract / approval status | Dependent work |
 | --- | --- | --- |
 | M2-D01: Partial-payment discounts | **User approved: native.** Follow existing BC eligibility per installment. A partial receipt does not earn a new proportional discount; eligible settlement of that installment can realize its remaining native discount independently of other installments. No new discount-mode setting. | First increment discount contract. |
-| M2-D02: Unpaid correction model | Use one native corrective credit, explicitly allocated/applied across all original installment entries; a replacement invoice owns a new independent schedule. Do not create a second installment calculator or mirror-credit schedule unless required by the chosen contract. | M2-03 schema, posting, cancellation, and navigation work. |
-| M2-D03: Partly paid corrective-credit allocation | Start with explicit manual allocation to selected open installments, preserving paid amounts and native automatic-cancellation restrictions. Add automatic earliest/latest/proportional policies only by a separate agreed requirement. | M2-03 credit allocation and user interaction. |
+| M2-D02: Unpaid correction model | **User approved on 2026-11-17.** Use one native corrective credit, explicitly allocated/applied across all original installment entries; a replacement invoice owns a new independent schedule. Do not create a second installment calculator or mirror-credit schedule. | M2-03 posting, cancellation, and navigation work. |
+| M2-D03: Partly paid corrective-credit allocation | **User approved on 2026-11-17.** Start with explicit manual allocation to selected open installments, preserving paid amounts and native automatic-cancellation restrictions. Add automatic earliest/latest/proportional policies only by a separate agreed requirement. | M2-03 credit allocation and user interaction. |
 
-M2-D02 and M2-D03 remain recommendations, not approved behavior. They do not
-block the independent settlement increment now that M2-D01 is resolved. Oldest-first
-ordering, reconciliation matching, and collection/forecast details remain
-package-specific contract gates; the initial inventory is not full M2 sign-off.
+M2-D01, M2-D02, and M2-D03 are approved. Reconciliation matching and
+collection/forecast details remain package-specific contract gates; approval of
+these three policies is not full M2 sign-off.
 
 ### 22.9. First settlement increment: source cases and validation status
 
@@ -2069,3 +2068,144 @@ new W1 objects have no country copies. `git diff --check` passed.
 
 This package does not start M2-03 corrective posting or resolve M2-D02/M2-D03.
 Printed invoice schedules, layouts, and new API delivery remain deferred.
+
+### 22.11. M2-03: credits and corrections
+
+**Status (2026-11-17):** Implemented, locally compiled, published, and
+runtime-validated under the user-approved M2-D02/M2-D03 policies. All 80
+installment tests passed on the native `Navision_master` development server.
+This section supersedes the earlier correction rejection boundary; it is not
+full M2 sign-off. The user confirmed the preceding shared-library move and
+71-test baseline.
+
+**Accounting and application contract**
+
+- An unpaid installment invoice can use native cancellation, correction, or
+  corrective copying. One native credit is applied to the exact original
+  installment entries; no mirrored credit schedule is created. The adapter
+  validates posted-plan ownership, ledger links, original amounts, currency,
+  dates, sequence, and invoice totals before automatic application.
+- A replacement invoice owns an independent draft copied from the original
+  frozen rules, not subsequently changed reusable payment terms. Posting creates
+  independent receivables; the original posted snapshot remains unchanged.
+- Partial document-linked credits require explicit Applies-to ID selection.
+  Corrective copies of partly paid invoices do not automatically select an
+  entry. Manual allocation uses the native application/unapplication engine;
+  previously paid amounts are preserved. Credits do not introduce a new cash
+  discount policy. Automatic cancellation/correction retains the native
+  fully-or-partly-paid restriction.
+- Full document-linked credits retain the header's original invoice link for
+  native cancellation tracking, but their posting journal applies through a
+  unique ID across all owned installments. Automatic correction suppresses both
+  the outer pre-post commit and the posting codeunit's commits, including
+  date-ordered number series, so posting and cancellation tracking share a
+  transaction.
+- The correction notification's applied-entry action shows the union of native
+  applications across the invoice group. Ordinary per-entry navigation remains
+  unchanged. W1 changes are propagated to APAC, ES, and RU where applicable.
+- Ledger reversal, unsupported invoice producers, and document-number-only
+  payment ambiguity remain guarded. Ordinary sales credit memos can retain
+  installment payment-term codes without acquiring a plan; the journal guard
+  verifies native posted-credit/draft provenance rather than enabling generic
+  credit journals. Italy retains its global-feature rejection.
+
+**Source coverage and validation**
+
+Codeunit 134496 `ERM Installment Correction` adds nine cases: unpaid cancellation
+and single revenue/VAT reversal; independent replacement schedule; selected
+partial credit/unapply preserving earlier payment and discount terms; native
+paid-invoice rejection; explicit selection for partial unpaid credits;
+mid-application rollback; cancellation-tracking failure with date-ordered number
+series; non-anchor applied-payment navigation; and generic credit-journal
+rejection. The former corrective-copy rejection case in codeunit 134493 now
+checks successful posting of one credit across all original installments.
+The complete installment suite now contains 80 tests; all passed in the final
+runtime run below.
+
+Local validation used `C:\Depot\master\Run\ALDevEnv\bin\alc.exe`
+(30.0.46.29347), the session-private `erm-symbols` package cache, and each
+project's existing assembly probing paths with nonexistent directories excluded:
+
+```powershell
+& $compiler "/project:$project" "/out:$output" `
+    "/packagecachepath:$root\erm-symbols" `
+    "/assemblyprobingpaths:$($paths -join ',')" /maxdegreeofparallelism:4
+```
+
+Result: Base Application passed with zero errors and 337 existing warnings;
+Tests-ERM passed with zero errors and zero warnings. New packages use the
+`m2-03-` prefix in session artifacts; the compiled Base package was copied only
+to the private symbol cache for ERM compilation.
+
+The same Base command with
+`"/analyzer:$($analyzers -join ',')"` and
+`/ruleset:C:\depot\master\app\BCApps\src\rulesets\base.ruleset.json`
+passed for the configured CodeCop, AppSourceCop, PerTenantExtensionCop, and
+UICop DLLs. All 11,746 warning signatures match `base-fix-analyzers.log` after
+normalizing diagnostic line/column positions: zero added or removed warnings.
+Evidence is retained in `m2-03-base-compile.log`,
+`m2-03-base-analyzers.log`, and `m2-03-erm-compile.log`.
+
+**Runtime validation and correction (2026-11-17)**
+
+At the user's request, the compiled Base Application and Tests-ERM packages
+were published to the existing native development server using normal
+`Synchronize`. No container, ForceSync, or manual application uninstall was used.
+The initial run passed 79 tests and failed the replacement-invoice case:
+customer validation attempted to calculate changed reusable rules before the
+posted invoice's frozen rules were transferred.
+
+The copy adapter now establishes and saves an independently owned draft from
+the original frozen plan before native customer/payment-term validation.
+Subsequent field transfer replaces that draft through the existing ownership
+mechanism, retaining the unique Source SystemId invariant. The original
+regression case remains unchanged: reusable terms have a descending due-date
+sequence, while correction must still use the valid original snapshot.
+No date validation was weakened.
+
+The corrected Base package compiled with the four configured analyzers:
+zero errors and the same 11,746 normalized warning signatures as the baseline.
+Evidence is in `m2-03-base-runtime-fix-compile.log`; the corrected package was
+republished successfully, recorded in `m2-03-base-runtime-fix-publish.log`.
+The original successful publications are recorded in
+`m2-03-base-publish.log` and `m2-03-erm-publish.log`.
+
+Publish command (`$tool` is
+`C:\Depot\master\Run\ALDevEnv\bin\altool.exe`; `$package` and `$project`
+select the compiled Base or ERM package and its corresponding project):
+
+```powershell
+& $tool publishapp $package --project $project `
+    --server http://localhost --serverinstance Navision_master --port 7049 `
+    --environmenttype OnPrem --authentication Windows --tenant default `
+    --schemaupdatemode Synchronize
+```
+
+Final executed test command (`$root` is the session artifact directory; the
+test-group JSON includes all five codeunits below):
+
+```powershell
+& $tool runtests --testgroups "$root\erm-installments-m2-03-testgroups.json" `
+    --project 'C:\depot\master\app\BCApps\src\Layers\W1\Tests\ERM' `
+    --server http://localhost --serverinstance Navision_master --port 7049 `
+    --environmenttype OnPrem --authentication Windows --tenant default
+```
+
+Result: passed, exit code 0. Structured results and individual case evidence
+are retained in `erm-installments-m2-03-tests-fixed.log`; the initial failure
+and call stack remain in `erm-installments-m2-03-tests.log`.
+
+| Codeunit | Passed | Failed | Skipped |
+| --- | ---: | ---: | ---: |
+| 134491 ERM Installment Calculation | 19 | 0 | 0 |
+| 134492 ERM Installment Draft | 13 | 0 | 0 |
+| 134493 ERM Installment Posting | 38 | 0 | 0 |
+| 134494 ERM Installments UI | 1 | 0 | 0 |
+| 134496 ERM Installment Correction | 9 | 0 | 0 |
+| Total | 80 | 0 | 0 |
+
+Country propagation validation passed for all 12 changed AL paths. Compiler-
+generated layout edits were removed; layout development remains deferred.
+This validates the local W1 installment suite, not FCY correction, every country
+runtime, or the full broader M2 matrix. Printed invoices, layouts, and new API
+delivery remain deferred.

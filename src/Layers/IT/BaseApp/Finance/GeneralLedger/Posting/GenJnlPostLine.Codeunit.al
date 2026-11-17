@@ -1521,6 +1521,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
             Error(GlobalInstallmentsNotSupportedErr);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Installment Correction", 'OnAfterCheckInvoice', '', false, false)]
+    local procedure CheckGlobalInstallmentCorrectionsInItaly(SalesInvoiceHeader: Record "Sales Invoice Header")
+    begin
+        if not IsNullGuid(SalesInvoiceHeader."Installment Plan ID") then
+            Error(GlobalInstallmentsNotSupportedErr);
+    end;
+
     local procedure PostCust(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean)
     var
         LineFeeNoteOnReportHist: Record "Line Fee Note on Report Hist.";

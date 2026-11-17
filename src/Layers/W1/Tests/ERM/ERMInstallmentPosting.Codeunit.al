@@ -1215,30 +1215,29 @@ codeunit 134493 "ERM Installment Posting"
     end;
 
     [Test]
-    procedure CorrectiveCopyAndNotificationRejectInstallmentInvoices()
+    procedure CorrectiveCreditCopyPostsOneCreditAcrossAllInstallments()
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CorrectionHeader: Record "Sales Header";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
-        InvoiceNotification: Notification;
-        UnsupportedCorrectionErr: Label 'Automatic correction, cancellation, and reversal of installment invoices are not supported.', Locked = true;
+        CreditEntry: Record "Cust. Ledger Entry";
+        CreditNo: Code[20];
     begin
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
-        asserterror CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, CorrectionHeader);
+        Assert.IsTrue(
+            CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, CorrectionHeader),
+            'An unpaid installment invoice must support a native corrective credit copy.');
+        Assert.IsTrue(IsNullGuid(CorrectionHeader."Installment Plan ID"), 'A credit memo must not own or borrow an installment schedule.');
+        CreditNo := LibrarySales.PostSalesDocument(CorrectionHeader, true, true);
 
-        Assert.ExpectedError(UnsupportedCorrectionErr);
-        LibraryInstallments.PayInstallment(SalesInvoiceHeader."Installment Plan ID", 3, 10);
-        InvoiceNotification.Id := CreateGuid();
-        InvoiceNotification.SetData(SalesInvoiceHeader.FieldName("No."), SalesInvoiceHeader."No.");
-
-        asserterror CorrectPostedSalesInvoice.CreateCorrectiveCreditMemo(InvoiceNotification);
-
-        Assert.ExpectedError(UnsupportedCorrectionErr);
-        VerifyInvoiceBalance(SalesInvoiceHeader, 115, false);
+        LibraryERM.FindCustomerLedgerEntry(CreditEntry, CreditEntry."Document Type"::"Credit Memo", CreditNo);
+        Assert.IsTrue(IsNullGuid(CreditEntry."Installment Plan ID"), 'The credit must remain one native customer entry.');
+        Assert.IsFalse(CreditEntry.Open, 'The full credit must close against all original installments.');
+        VerifyInvoiceBalance(SalesInvoiceHeader, 0, true);
     end;
 
     local procedure CreateSettlementInvoice(var SalesHeader: Record "Sales Header"; CurrencyCode: Code[10])

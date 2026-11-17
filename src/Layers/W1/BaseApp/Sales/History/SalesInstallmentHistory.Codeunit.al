@@ -101,6 +101,22 @@ codeunit 8843 "Sales Installment History"
             Error(PaymentServiceErr);
     end;
 
+    internal procedure ShowAppliedEntries(SalesInvoiceHeader: Record "Sales Invoice Header"): Boolean
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        SalesInstallmentCorrection: Codeunit "Sales Installment Correction";
+        AppliedCustomerEntries: Page "Applied Customer Entries";
+    begin
+        if IsNullGuid(SalesInvoiceHeader."Installment Plan ID") then
+            exit(false);
+        SalesInstallmentCorrection.CheckInvoice(SalesInvoiceHeader, false);
+        CustLedgerEntry.Get(SalesInvoiceHeader."Cust. Ledger Entry No.");
+        AppliedCustomerEntries.SetRecord(CustLedgerEntry);
+        AppliedCustomerEntries.SetInvoiceEntryNo(CustLedgerEntry."Invoice Entry No.");
+        AppliedCustomerEntries.RunModal();
+        exit(true);
+    end;
+
     internal procedure CheckLatePosting(SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
         if not IsNullGuid(SalesInvoiceHeader."Installment Plan ID") then

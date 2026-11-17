@@ -101,7 +101,8 @@ codeunit 8841 "Sales Installment Mgt."
             exit(false);
         if SalesHeader."Document Type" <> SalesHeader."Document Type"::Invoice then begin
             if not IsNullGuid(SalesHeader."Installment Plan ID") or
-               (not UpdateDocumentDate and HasRules(SalesHeader."Payment Terms Code"))
+               ((SalesHeader."Document Type" <> SalesHeader."Document Type"::"Credit Memo") and
+                not UpdateDocumentDate and HasRules(SalesHeader."Payment Terms Code"))
             then
                 Error(InvoiceOnlyErr);
             exit(false);
