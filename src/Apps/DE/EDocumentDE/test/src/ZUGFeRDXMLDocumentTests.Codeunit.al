@@ -4920,7 +4920,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ServiceInvoiceHeader: Record "Service Invoice Header";
     begin
         LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
-        ServiceInvoiceHeader.FindLast();
+        LibraryService.FindServiceInvoiceHeader(ServiceInvoiceHeader, ServiceHeader."No.");
         exit(ServiceInvoiceHeader."No.");
     end;
 
