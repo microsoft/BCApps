@@ -411,10 +411,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         CreditLine: Record "Purch. Cr. Memo Line";
         ReturnLine: Record "Return Shipment Line";
         LibraryUtility: Codeunit "Library - Utility";
-        SummaryMgmt: Codeunit "Subc. Order Summary Mgmt.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 636866] Calculation-only named signed sources exclude purchase credit and return populations.
+        // [SCENARIO 636866] The actual card and drilldowns retain signed named sources and exclude credit and return populations.
         InitializeSummaryPurchasing();
 
         // [GIVEN] Named signed receipt/invoice rows net to four; excluded sources have unmatched quantities.
@@ -435,17 +434,14 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ReturnLine."Prod. Order No." := ProductionOrder."No.";
         ReturnLine.Quantity := 400;
         ReturnLine.Insert();
-        Assert.AreEqual(4, SummaryMgmt.GetReceiptQuantity(ProductionOrder), 'Named signed receipts must total four.');
-        Assert.AreEqual(4, SummaryMgmt.GetInvoiceQuantity(ProductionOrder), 'Excluded sources must not affect named invoices.');
-        Assert.IsTrue(SummaryMgmt.IsFullyInvoiced(ProductionOrder), 'Excluded credit/return sources must not affect the proxy.');
+        SubcWarehouseLibrary.VerifySummaryCard(ProductionOrder, 1, 0, 4, 4, true, 0, 0, 0, 0);
         VerifySummaryPurchaseDetails(ProductionOrder);
 
         // [WHEN] A further correction is added to the named invoice source.
         SubcWarehouseLibrary.InsertSummaryInvoice(ProductionOrder."No.", -0.5);
 
         // [THEN] Its sign is retained and exact equality is lost.
-        Assert.AreEqual(3.5, SummaryMgmt.GetInvoiceQuantity(ProductionOrder), 'Signed named correction must be included.');
-        Assert.IsFalse(SummaryMgmt.IsFullyInvoiced(ProductionOrder), 'Unequal named totals must block Yes.');
+        SubcWarehouseLibrary.VerifySummaryCard(ProductionOrder, 1, 0, 4, 3.5, false, 0, 0, 0, 0);
         VerifySummaryPurchaseDetails(ProductionOrder);
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -1018,10 +1014,14 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     procedure SummaryReadPermissionsContract()
     var
         ProductionOrder: Record "Production Order";
+        OtherOrder: Record "Production Order";
         WorkCenter: Record "Work Center";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
+        OtherPurchaseHeader: Record "Purchase Header";
+        OtherPurchaseLine: Record "Purchase Line";
         ReceiptLine: Record "Purch. Rcpt. Line";
+        InvoiceLine: Record "Purch. Inv. Line";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         RoutingLine: Record "Prod. Order Routing Line";
@@ -1051,6 +1051,16 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
         WIPEntryCount := WIPEntry.Count();
 
+        // [GIVEN] A different order has a real posted invoice, while the current order has none.
+        SubcWarehouseLibrary.CreateSummaryOrder(3, OtherOrder, WorkCenter);
+        SubcWarehouseLibrary.CreateSummaryPurchase(OtherOrder, WorkCenter, OtherPurchaseHeader, OtherPurchaseLine);
+        LibraryPurchase.PostPurchaseDocument(OtherPurchaseHeader, true, false);
+        SubcWarehouseLibrary.PostSummaryInvoice(OtherPurchaseHeader, OtherPurchaseLine, 3);
+#pragma warning disable AA0210 // Bounded foreign-order invoice fixture.
+        InvoiceLine.SetRange("Prod. Order No.", OtherOrder."No.");
+#pragma warning restore AA0210
+        Assert.RecordIsNotEmpty(InvoiceLine);
+
         // [WHEN] The real consumer reads with Base Application read permissions and the owning extension role.
         LibraryLowerPermissions.StartLoggingNAVPermissions('Subcontract. - Read');
         LibraryLowerPermissions.AddeRead();
@@ -1073,7 +1083,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ReceiptLine.FindFirst();
         SubcWarehouseLibrary.VerifySummaryDetailRecordCount(1);
         SubcWarehouseLibrary.VerifySummaryDetailRecord(ReceiptLine.RecordId());
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
         ReleasedOrder.SubcontractingSummary.InvoiceQuantity.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(0);
         SubcWarehouseLibrary.StartSummaryDetailCapture();
         BindSubscription(SubcWarehouseLibrary);
         ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.DrillDown();
@@ -1200,7 +1214,12 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
     [PageHandler]
     procedure SummaryReadInvoiceHandler(var Lines: TestPage "Subc. Summary Invoice Lines")
+    var
+        HasRecord: Boolean;
     begin
+        HasRecord := Lines.First();
+        while HasRecord do
+            HasRecord := Lines.Next();
         Lines.Close();
     end;
 
