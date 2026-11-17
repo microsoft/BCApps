@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-enum 6925 "Expense No Receipt Type"
+enum 6927 "Expense No Receipt Type"
 {
     Access = Internal;
     Caption = 'No Receipt Type';
