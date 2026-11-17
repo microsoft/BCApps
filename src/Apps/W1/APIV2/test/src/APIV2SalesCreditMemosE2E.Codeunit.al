@@ -305,7 +305,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         // [SCENARIO] Create an credit memo both through the client UI and through the API
         // [SCENARIO] and compare them. They should be the same and have the same fields autocompleted wherever needed.
         // [GIVEN] An unposted credit memo
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
+        LibraryGraphMgt.AlignWorkDateWithApiSession();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         LibrarySales.CreateCustomer(SellToCustomer);

@@ -39,7 +39,8 @@ codeunit 6906 "Expense Capabilities Provider"
             Capability::ActivityLog,
             Capability::MileageRateSetup,
             Capability::ApprovalConversation,
-            Capability::TravelRequest:
+            Capability::TravelRequest,
+            Capability::CreditCardFeed:
                 exit(true);
         end;
         exit(false);
