@@ -1267,13 +1267,10 @@ codeunit 10695 "Generate SAF-T 1.4 File"
 
     local procedure GetSoftwareVersion(): Text
     var
-        ApplicationSystemConstants: Codeunit "Application System Constants";
-        VersionString: Text;
+        AppInfo: ModuleInfo;
     begin
-        VersionString := ApplicationSystemConstants.ApplicationVersion();
-        if StrLen(VersionString) > 4 then
-            VersionString := CopyStr(VersionString, StrLen(VersionString) - 3, 4);
-        exit(VersionString);
+        NavApp.GetCurrentModuleInfo(AppInfo);
+        exit(StrSubstNo('%1.%2', AppInfo.AppVersion.Major(), AppInfo.AppVersion.Minor()));
     end;
 
     [IntegrationEvent(false, false)]
