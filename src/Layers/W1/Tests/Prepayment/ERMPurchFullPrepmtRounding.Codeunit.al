@@ -855,6 +855,63 @@
         PurchOrderLine.TestField("Prepmt Amt Deducted", PurchOrderLine."Prepmt. Amt. Inv.");
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PrepmtLineAmountStaysAlignedAfterPartialInvoicesWithInvDiscRecalc()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VendorInvoiceDisc: Record "Vendor Invoice Disc.";
+        DirectUnitCostOffset: Integer;
+        ExpectedLineAmount: Decimal;
+        i: Integer;
+    begin
+        // [FEATURE] [Rounding] [Invoice Discount]
+        // [SCENARIO 656844] "Prepmt. Line Amount" does not drift below "Prepmt. Amt. Inv." after several partial invoices of a 100% prepaid order
+        Initialize();
+
+        // [GIVEN] "Calc. Inv. Discount" is enabled and the vendor has an invoice discount with "Discount %" = 0
+        LibraryPurchase.SetCalcInvDiscount(true);
+        PreparePurchOrder(PurchaseHeader);
+        LibraryERM.CreateInvDiscForVendor(VendorInvoiceDisc, PurchaseHeader."Invoice Disc. Code", '', 0);
+
+        // [GIVEN] Purchase order line with 100% prepayment, Quantity = 25, "Direct Unit Cost" = 98.802 + X, "Line Amount" = 2470.05 + 25 * X
+        DirectUnitCostOffset := LibraryRandom.RandInt(100);
+        ExpectedLineAmount := 2470.05 + 25 * DirectUnitCostOffset;
+        AddPurchOrderLine(PurchaseLine, PurchaseHeader, 25, 98.802 + DirectUnitCostOffset, 100, 0);
+        PurchaseLine.TestField("Line Amount", ExpectedLineAmount);
+
+        // [GIVEN] Posted prepayment invoice
+        PostPurchPrepmtInvoice(PurchaseHeader);
+
+        // [GIVEN] Four partial receipts and invoices of 2 units, each deducting a prepayment rounded down by 0.004 (197.60 + 2 * X instead of 197.604 + 2 * X)
+        for i := 1 to 4 do begin
+            UpdateQtysInLine(PurchaseLine, 2, 2);
+            PurchaseHeader.Find();
+            InvoicePurchaseDoc(PurchaseHeader);
+        end;
+
+        // [WHEN] Release the order, which recalculates the invoice discount and the prepayment amounts
+        PurchaseHeader.Find();
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [THEN] "Prepmt. Line Amount" still equals "Prepmt. Amt. Inv." = 2470.05 + 25 * X
+        PurchaseLine.Find();
+        PurchaseLine.TestField("Prepmt. Amt. Inv.", ExpectedLineAmount);
+        PurchaseLine.TestField("Prepmt. Line Amount", PurchaseLine."Prepmt. Amt. Inv.");
+
+        // [WHEN] Reopen the order and receive and invoice the remaining 17 units
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+        UpdateQtysInLine(PurchaseLine, 17, 17);
+        PurchaseLine.Find();
+        PurchaseLine.TestField("Prepmt Amt to Deduct", PurchaseLine."Prepmt. Amt. Inv." - PurchaseLine."Prepmt Amt Deducted");
+        PurchaseHeader.Find();
+        InvoicePurchaseDoc(PurchaseHeader);
+
+        // [THEN] The remaining prepayment is fully deducted and the final invoice balance is zero
+        VerifyZeroVendorAccEntry();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Purch Full Prepmt Rounding");
