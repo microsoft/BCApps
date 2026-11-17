@@ -217,6 +217,7 @@ table 6916 "Posted Expense Report Line"
             AutoFormatType = 1;
             Caption = 'Non-Refundable Amount';
         }
+#pragma warning disable AS0086
         field(36; "Starting Point"; Text[2048])
         {
             Caption = 'Starting Point';
@@ -225,6 +226,7 @@ table 6916 "Posted Expense Report Line"
         {
             Caption = 'Ending Point';
         }
+#pragma warning restore AS0086
         field(38; "Non-Refundable Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
