@@ -206,8 +206,8 @@ codeunit 6983 "Create Expense Report"
         ExpenseReportLine.Validate(Mileage, Expense.Mileage);
         ExpenseReportLine.Validate("Round Trip", Expense."Round Trip");
         ExpenseReportLine.Validate("Vehicle Type", Expense."Vehicle Type");
-        ExpenseReportLine.SetStartingPoint(Expense.GetStartingPoint());
-        ExpenseReportLine.SetEndingPoint(Expense.GetEndingPoint());
+        ExpenseReportLine."Starting Point" := Expense."Starting Point";
+        ExpenseReportLine."Ending Point" := Expense."Ending Point";
         ExpenseReportLine."Credit Card Feed No." := Expense."Credit Card Feed No.";
         ExpenseReportLine."Corporate Card Id" := Expense."Corporate Card Id";
         ExpenseReportLine.Validate("Reimbursement Type", Expense."Reimbursement Type");

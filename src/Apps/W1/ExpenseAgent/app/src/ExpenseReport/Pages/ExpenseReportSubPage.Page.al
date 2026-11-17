@@ -255,31 +255,25 @@ page 6999 "Expense Report SubPage"
                         CurrPage.Update();
                     end;
                 }
-                field("Starting Point"; StartingPoint)
+                field("Starting Point"; Rec."Starting Point")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Starting Point';
                     ToolTip = 'Specifies the starting point for mileage calculations. Available when the expense requires mileage details.';
                     Editable = IsMileageCategory;
 
                     trigger OnValidate()
                     begin
-                        Rec.TestStatusOpen();
-                        Rec.SetStartingPoint(StartingPoint);
                         CurrPage.Update();
                     end;
                 }
-                field("Ending Point"; EndingPoint)
+                field("Ending Point"; Rec."Ending Point")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Ending Point';
                     ToolTip = 'Specifies the ending point for mileage calculations. Available when the expense requires mileage details.';
                     Editable = IsMileageCategory;
 
                     trigger OnValidate()
                     begin
-                        Rec.TestStatusOpen();
-                        Rec.SetEndingPoint(EndingPoint);
                         CurrPage.Update();
                     end;
                 }
@@ -668,16 +662,8 @@ page 6999 "Expense Report SubPage"
 
     trigger OnAfterGetRecord()
     begin
-        StartingPoint := Rec.GetStartingPoint();
-        EndingPoint := Rec.GetEndingPoint();
         ValidateHeaderAmountField();
         UpdateControls();
-    end;
-
-    trigger OnNewRecord(BelowxRec: Boolean)
-    begin
-        StartingPoint := '';
-        EndingPoint := '';
     end;
 
     trigger OnFindRecord(Which: Text): Boolean
@@ -697,8 +683,6 @@ page 6999 "Expense Report SubPage"
         CardDisplayDocumentNo: Code[20];
         CorporateCardDisplay: Text[150];
         CorporateCardMandatory: Boolean;
-        StartingPoint: Text;
-        EndingPoint: Text;
         TotalAmountLCY: Decimal;
         TotalVATAmountLCY: Decimal;
         TotalAmountWithoutVATLCY: Decimal;

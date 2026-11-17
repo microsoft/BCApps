@@ -311,8 +311,8 @@ codeunit 8205 "Contoso Expense Agent"
         Expense."Non-Refundable Amount" := NonRefundableAmount;
         if Mileage <> 0 then
             Expense."Mileage" := Mileage;
-        Expense.SetStartingPoint(StartingPoint);
-        Expense.SetEndingPoint(EndingPoint);
+        Expense."Starting Point" := StartingPoint;
+        Expense."Ending Point" := EndingPoint;
         Expense."Expense Ext. Doc. No." := ExpenseExtDocNo;
         Expense."Job No." := JobNo;
         Expense."Job Task No." := JobTaskNo;
