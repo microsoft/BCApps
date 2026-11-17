@@ -310,7 +310,7 @@ codeunit 148343 "Expense Activity Log API Test"
         CreatePagingActivity(ExpenseUser, ExpenseReportHeader);
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             Format(ExpenseUser[1].SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ServiceNameTok);
-        TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(TargetURL, '$filter=historyActorRole eq ''Submitter''');
+        TargetURL += '?$filter=historyActorRole eq ''Submitter''';
 
         // [WHEN] Submitter history is read unpaged and with a page size of one.
         // [THEN] The paged read spans several pages and returns exactly the unpaged entries.
