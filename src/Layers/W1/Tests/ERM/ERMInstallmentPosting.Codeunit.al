@@ -5,12 +5,15 @@
 namespace Microsoft.Foundation.PaymentTerms;
 
 using Microsoft.Bank.Setup;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Integration.Entity;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -448,14 +451,20 @@ codeunit 134493 "ERM Installment Posting"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         GenJournalLine: Record "Gen. Journal Line";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
     begin
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
-        GenJournalLine."Account Type" := GenJournalLine."Account Type"::Customer;
-        GenJournalLine."Account No." := SalesHeader."Bill-to Customer No.";
-        GenJournalLine."Document Type" := GenJournalLine."Document Type"::Invoice;
+        LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
+            GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::Customer, SalesHeader."Bill-to Customer No.",
+            GenJournalLine."Bal. Account Type"::"G/L Account", SalesLine."No.", 100);
         GenJournalLine."Payment Terms Code" := SalesHeader."Payment Terms Code";
-        GenJournalLine.Amount := 100;
+        GenJournalLine.Modify(true);
+        Commit();
 
         asserterror GenJnlPostLine.RunWithCheck(GenJournalLine);
 
@@ -464,6 +473,8 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalLine."Account No." := SalesLine."No.";
         GenJournalLine."Bal. Account Type" := GenJournalLine."Bal. Account Type"::Customer;
         GenJournalLine."Bal. Account No." := SalesHeader."Bill-to Customer No.";
+        GenJournalLine.Amount := -100;
+        GenJournalLine."Amount (LCY)" := -100;
 
         asserterror GenJnlPostLine.RunWithCheck(GenJournalLine);
 
@@ -523,9 +534,6 @@ codeunit 134493 "ERM Installment Posting"
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         OtherCustLedgerEntry: Record "Cust. Ledger Entry";
-        GenJournalLine: Record "Gen. Journal Line";
-        GenJournalTemplate: Record "Gen. Journal Template";
-        GenJournalBatch: Record "Gen. Journal Batch";
         PlanID: Guid;
         ApplicationID: Code[50];
     begin
@@ -540,22 +548,166 @@ codeunit 134493 "ERM Installment Posting"
         CustLedgerEntry."Applies-to ID" := ApplicationID;
         CustLedgerEntry."Amount to Apply" := CustLedgerEntry."Remaining Amount";
         CustLedgerEntry.Modify(true);
-        LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
-        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
-        LibraryERM.CreateGeneralJnlLineWithBalAcc(
-            GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
-            GenJournalLine."Account Type"::Customer, CustLedgerEntry."Customer No.",
-            GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -CustLedgerEntry."Remaining Amount");
-        GenJournalLine.Validate("Applies-to ID", ApplicationID);
-        GenJournalLine.Modify(true);
-
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        PostPaymentWithAppliesToID(CustLedgerEntry, ApplicationID, CustLedgerEntry."Remaining Amount", WorkDate());
 
         CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
         Assert.IsFalse(CustLedgerEntry.Open, 'Only the explicitly selected installment must be paid.');
         OtherCustLedgerEntry.SetRange("Installment Plan ID", PlanID);
         OtherCustLedgerEntry.SetRange(Open, true);
         Assert.AreEqual(2, OtherCustLedgerEntry.Count(), 'The other installments must remain open.');
+    end;
+
+    [Test]
+    procedure PartialPaymentDiscountSettlementAndUnapplyPreserveSchedule()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PlanLine: Record "Installment Plan Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        CustomerPostingGroup: Record "Customer Posting Group";
+        GLEntry: Record "G/L Entry";
+        ApplyUnapplyParameters: Record "Apply Unapply Parameters";
+        CustEntryApplyPostedEntries: Codeunit "CustEntry-Apply Posted Entries";
+    begin
+        // [FEATURE] [Installments] [Application] [Payment Discount]
+        // [SCENARIO] Native discount eligibility belongs to an installment, not each partial receipt or the whole invoice.
+        // [GIVEN] A posted installment of 41.67 with an eligible 0.83 discount and two later installments.
+        CreateSettlementInvoice(SalesHeader, '');
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        PlanLine.Get(SalesInvoiceHeader."Installment Plan ID", 10000);
+        CustLedgerEntry.Get(PlanLine."Cust. Ledger Entry No.");
+
+        // [WHEN] A receipt pays only 10 of that installment.
+        LibraryInstallments.PayInstallment(PlanLine."Plan ID", 1, 10);
+
+        // [THEN] No proportional discount is granted and the original discount remains available.
+        CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(31.67, CustLedgerEntry."Remaining Amount", 'A partial receipt must reduce only the selected balance.');
+        Assert.AreEqual(0.83, CustLedgerEntry."Remaining Pmt. Disc. Possible", 'A partial receipt must preserve native discount eligibility.');
+        FilterLastApplicationDetails(DetailedCustLedgEntry, CustLedgerEntry);
+        DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::"Payment Discount");
+        Assert.IsTrue(DetailedCustLedgEntry.IsEmpty(), 'The partial receipt must not grant a proportional discount.');
+        VerifyInvoiceBalance(SalesInvoiceHeader, 115, false);
+
+        // [WHEN] Another eligible receipt settles the remaining liability less the original discount.
+        LibraryInstallments.PayInstallment(PlanLine."Plan ID", 1, 30.84);
+
+        // [THEN] This installment closes with its native discount while later installments remain open.
+        CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.IsFalse(CustLedgerEntry.Open, 'Discount eligibility must not depend on settling later installments.');
+        Assert.AreEqual(0, CustLedgerEntry."Remaining Amount", 'The receipt and discount must close the selected installment.');
+        FilterLastApplicationDetails(DetailedCustLedgEntry, CustLedgerEntry);
+        DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::"Payment Discount");
+        DetailedCustLedgEntry.CalcSums(Amount);
+        Assert.AreEqual(-0.83, DetailedCustLedgEntry.Amount, 'Only the selected installment discount must be realized.');
+        CustomerPostingGroup.Get(CustLedgerEntry."Customer Posting Group");
+        GLEntry.SetRange("G/L Account No.", CustomerPostingGroup."Payment Disc. Debit Acc.");
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(0.83, GLEntry.Amount, 'Native discount expense must reconcile to the installment discount.');
+        VerifyInvoiceBalance(SalesInvoiceHeader, 83.33, false);
+        PlanLine.Get(PlanLine."Plan ID", PlanLine."Line No.");
+        Assert.AreEqual(41.67, PlanLine.Amount, 'Settlement must not rewrite the original obligation.');
+        Assert.AreEqual(0.83, PlanLine."Original Pmt. Disc. Possible", 'Settlement must not rewrite the original discount.');
+
+        // [WHEN] The final receipt application and its discount are unapplied.
+        DetailedCustLedgEntry.Reset();
+        DetailedCustLedgEntry.Get(CustEntryApplyPostedEntries.FindLastApplEntry(CustLedgerEntry."Entry No."));
+        ApplyUnapplyParameters."Document No." := DetailedCustLedgEntry."Document No.";
+        ApplyUnapplyParameters."Posting Date" := WorkDate();
+        CustEntryApplyPostedEntries.PostUnApplyCustomerCommit(DetailedCustLedgEntry, ApplyUnapplyParameters, false);
+
+        // [THEN] The earlier partial receipt remains applied and the original discount becomes available again.
+        CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.IsTrue(CustLedgerEntry.Open, 'Unapplication must reopen the discounted installment.');
+        Assert.AreEqual(31.67, CustLedgerEntry."Remaining Amount", 'Unapplication must preserve the earlier partial receipt.');
+        Assert.AreEqual(0.83, CustLedgerEntry."Remaining Pmt. Disc. Possible", 'Unapplication must restore the native discount.');
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(0, GLEntry.Amount, 'Unapplication must reverse the discount expense.');
+        VerifyInvoiceBalance(SalesInvoiceHeader, 115, false);
+    end;
+
+    [Test]
+    procedure MultiInstallmentReceiptUnapplyAndReapplyPreservesSchedule()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PlanLine: Record "Installment Plan Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        PaymentEntry: Record "Cust. Ledger Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        ApplyUnapplyParameters: Record "Apply Unapply Parameters";
+        CustEntryApplyPostedEntries: Codeunit "CustEntry-Apply Posted Entries";
+        ApplicationID: Code[50];
+        PaymentNo: Code[20];
+    begin
+        // [FEATURE] [Installments] [Application] [Unapplication]
+        // [SCENARIO] One receipt spanning all installments can be unapplied and reapplied without changing their identities.
+        // [GIVEN] A posted invoice with three installments and no payment discounts.
+        CreateSettlementInvoice(SalesHeader, '');
+        PlanLine.SetRange("Plan ID", SalesHeader."Installment Plan ID");
+        PlanLine.FindSet(true);
+        repeat
+            PlanLine."Discount %" := 0;
+            PlanLine.Modify(true);
+        until PlanLine.Next() = 0;
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        ApplicationID := LibraryUtility.GenerateGUID();
+        PlanLine.FindSet();
+        repeat
+            CustLedgerEntry.Get(PlanLine."Cust. Ledger Entry No.");
+            CustLedgerEntry."Applies-to ID" := ApplicationID;
+            CustLedgerEntry."Amount to Apply" := PlanLine.Amount;
+            CustLedgerEntry.Modify(true);
+        until PlanLine.Next() = 0;
+        PaymentNo := PostPaymentWithAppliesToID(CustLedgerEntry, ApplicationID, 125, WorkDate());
+        VerifyInvoiceBalance(SalesInvoiceHeader, 0, true);
+        LibraryERM.FindCustomerLedgerEntry(PaymentEntry, PaymentEntry."Document Type"::Payment, PaymentNo);
+        DetailedCustLedgEntry.Get(CustEntryApplyPostedEntries.FindLastApplEntry(PaymentEntry."Entry No."));
+        ApplyUnapplyParameters."Document No." := PaymentNo;
+        ApplyUnapplyParameters."Posting Date" := WorkDate();
+
+        // [WHEN] The native application transaction is unapplied through the posted-entry service.
+        CustEntryApplyPostedEntries.PostUnApplyCustomerCommit(DetailedCustLedgEntry, ApplyUnapplyParameters, false);
+
+        // [THEN] Every installment reopens on its original ledger link and the invoice balance is restored.
+        VerifyInvoiceBalance(SalesInvoiceHeader, 125, false);
+        PlanLine.FindSet();
+        repeat
+            CustLedgerEntry.Get(PlanLine."Cust. Ledger Entry No.");
+            CustLedgerEntry.CalcFields("Remaining Amount");
+            Assert.IsTrue(CustLedgerEntry.Open, 'Unapplication must reopen every installment in the application transaction.');
+            Assert.AreEqual(PlanLine."Plan ID", CustLedgerEntry."Installment Plan ID", 'Unapplication must retain plan ownership.');
+            Assert.AreEqual(PlanLine."Installment No.", CustLedgerEntry."Installment No.", 'Unapplication must retain the installment sequence.');
+            Assert.AreEqual(PlanLine."Due Date", CustLedgerEntry."Due Date", 'Unapplication must retain the original due date.');
+            Assert.AreEqual(PlanLine.Amount, CustLedgerEntry."Remaining Amount", 'Unapplication must restore each original balance.');
+        until PlanLine.Next() = 0;
+        PaymentEntry.Get(PaymentEntry."Entry No.");
+        PaymentEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(-125, PaymentEntry."Remaining Amount", 'Unapplication must restore the original receipt.');
+
+        // [WHEN] The same receipt is explicitly reapplied to the same installment entries.
+        LibraryERM.SetApplyCustomerEntry(PaymentEntry, PaymentEntry."Remaining Amount");
+        PlanLine.FindSet();
+        repeat
+            CustLedgerEntry.Get(PlanLine."Cust. Ledger Entry No.");
+            CustLedgerEntry.Validate("Amount to Apply", PlanLine.Amount);
+            CustLedgerEntry.Modify(true);
+            CustLedgerEntry.SetRecFilter();
+            LibraryERM.SetAppliestoIdCustomer(CustLedgerEntry);
+        until PlanLine.Next() = 0;
+        LibraryERM.PostCustLedgerApplication(PaymentEntry);
+
+        // [THEN] The original invoice closes again without creating replacement installments.
+        VerifyInvoiceBalance(SalesInvoiceHeader, 0, true);
+        CustLedgerEntry.Reset();
+        CustLedgerEntry.SetRange("Installment Plan ID", SalesInvoiceHeader."Installment Plan ID");
+        Assert.AreEqual(3, CustLedgerEntry.Count(), 'Reapplication must reuse the three original receivables.');
+        CustLedgerEntry.SetRange(Open, true);
+        Assert.IsTrue(CustLedgerEntry.IsEmpty(), 'The reapplied receipt must close every selected installment.');
     end;
 
     [Test]
@@ -664,7 +816,7 @@ codeunit 134493 "ERM Installment Posting"
     end;
 
     [Test]
-    procedure ImplicitOldestApplicationRejectsInstallments()
+    procedure ImplicitNonPaymentApplicationStillRejectsInstallments()
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -674,6 +826,9 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalTemplate: Record "Gen. Journal Template";
         GenJournalBatch: Record "Gen. Journal Batch";
     begin
+        // [FEATURE] [Installments] [Application] [Posting Guard]
+        // [SCENARIO] Enabling oldest-first receipts does not enable implicit applications from other document types.
+        // [GIVEN] An oldest-first customer with a posted installment invoice.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         Customer.Get(SalesInvoiceHeader."Bill-to Customer No.");
@@ -682,14 +837,220 @@ codeunit 134493 "ERM Installment Posting"
         LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
         LibraryERM.CreateGeneralJnlLineWithBalAcc(
-            GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
+            GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
             GenJournalLine."Account Type"::Customer, Customer."No.",
             GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -125);
 
+        // [WHEN] A blank-document-type journal line tries to apply implicitly.
         asserterror LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
-        Assert.ExpectedError('Automatic Apply to Oldest is not supported');
+        // [THEN] The unsupported application is rejected without reducing the invoice balance.
+        Assert.ExpectedError('supported only for customer receipts');
         VerifyInvoiceBalance(SalesInvoiceHeader, 125, false);
+    end;
+
+    [Test]
+    procedure OldestReceiptUsesInstallmentSequenceAndMixedInvoiceDueDates()
+    var
+        SalesHeader: Record "Sales Header";
+        OrdinarySalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        OrdinaryInvoice: Record "Sales Invoice Header";
+        PlanLine: Record "Installment Plan Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        // [FEATURE] [Installments] [Application] [Apply to Oldest]
+        // [SCENARIO] Oldest-first receipts respect sequence for equal due dates and due dates across ordinary invoices.
+        // [GIVEN] Two installments due on day 30, an ordinary invoice due on day 45, and a final installment due on day 90.
+        CreateSettlementInvoice(SalesHeader, '');
+        ClearInstallmentDiscounts(SalesHeader."Installment Plan ID");
+        PlanLine.Get(SalesHeader."Installment Plan ID", 20000);
+        Evaluate(PlanLine."Due Date Calculation", '<30D>');
+        PlanLine.Modify(true);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::"G/L Account");
+        SalesInvoiceLine.FindFirst();
+        LibrarySales.CreateSalesHeader(OrdinarySalesHeader, OrdinarySalesHeader."Document Type"::Invoice, SalesInvoiceHeader."Bill-to Customer No.");
+        OrdinarySalesHeader.Validate("Payment Terms Code", '');
+        OrdinarySalesHeader.Validate("Prices Including VAT", false);
+        OrdinarySalesHeader.Validate("Due Date", WorkDate() + 45);
+        OrdinarySalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(
+            SalesLine, OrdinarySalesHeader, SalesLine.Type::"G/L Account", SalesInvoiceLine."No.", 1);
+        SalesLine.Validate("Unit Price", 8);
+        SalesLine.Modify(true);
+        OrdinaryInvoice.Get(LibrarySales.PostSalesDocument(OrdinarySalesHeader, true, true));
+        EnableOldestApplication(SalesInvoiceHeader."Bill-to Customer No.");
+        PlanLine.Get(SalesInvoiceHeader."Installment Plan ID", 10000);
+        CustLedgerEntry.Get(PlanLine."Cust. Ledger Entry No.");
+
+        // [WHEN] An implicit receipt covers the first installment.
+        PostPaymentWithAppliesToID(CustLedgerEntry, '', 41.67, WorkDate());
+
+        // [THEN] Sequence one closes before the installment with the same due date.
+        CustLedgerEntry.Get(PlanLine."Cust. Ledger Entry No.");
+        Assert.IsFalse(CustLedgerEntry.Open, 'Equal due dates must be resolved by installment sequence.');
+        PlanLine.Get(SalesInvoiceHeader."Installment Plan ID", 20000);
+        CustLedgerEntry.Get(PlanLine."Cust. Ledger Entry No.");
+        Assert.IsTrue(CustLedgerEntry.Open, 'The second installment must remain open after the first receipt.');
+
+        // [WHEN] Another receipt covers the second installment and the ordinary invoice.
+        PostPaymentWithAppliesToID(CustLedgerEntry, '', 51.67, WorkDate());
+
+        // [THEN] The ordinary invoice closes before the final, later-due installment.
+        CustLedgerEntry.Get(PlanLine."Cust. Ledger Entry No.");
+        Assert.IsFalse(CustLedgerEntry.Open, 'The next installment must be settled first.');
+        VerifyInvoiceBalance(OrdinaryInvoice, 0, true);
+        VerifyInvoiceBalance(SalesInvoiceHeader, 41.66, false);
+        PlanLine.Get(SalesInvoiceHeader."Installment Plan ID", 30000);
+        CustLedgerEntry.Get(PlanLine."Cust. Ledger Entry No.");
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(41.66, CustLedgerEntry."Remaining Amount", 'The later installment must not take precedence over the ordinary invoice.');
+    end;
+
+    [Test]
+    procedure OldestReceiptLeavesExcessUnappliedAfterAllInstallmentsClose()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PlanLine: Record "Installment Plan Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        PaymentEntry: Record "Cust. Ledger Entry";
+        PaymentNo: Code[20];
+    begin
+        // [FEATURE] [Installments] [Application] [Apply to Oldest]
+        // [SCENARIO] Overpayment closes the invoice without inventing another installment.
+        // [GIVEN] An oldest-first customer with a 125 invoice and no installment discounts.
+        CreateSettlementInvoice(SalesHeader, '');
+        ClearInstallmentDiscounts(SalesHeader."Installment Plan ID");
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        EnableOldestApplication(SalesInvoiceHeader."Bill-to Customer No.");
+        PlanLine.Get(SalesInvoiceHeader."Installment Plan ID", 10000);
+        CustLedgerEntry.Get(PlanLine."Cust. Ledger Entry No.");
+
+        // [WHEN] An implicit receipt pays 140.
+        PaymentNo := PostPaymentWithAppliesToID(CustLedgerEntry, '', 140, WorkDate());
+
+        // [THEN] All installments close and 15 remains on the original receipt.
+        VerifyInvoiceBalance(SalesInvoiceHeader, 0, true);
+        LibraryERM.FindCustomerLedgerEntry(PaymentEntry, PaymentEntry."Document Type"::Payment, PaymentNo);
+        PaymentEntry.CalcFields("Remaining Amount");
+        Assert.IsTrue(PaymentEntry.Open, 'Excess cash must remain available for native application.');
+        Assert.AreEqual(-15, PaymentEntry."Remaining Amount", 'Overpayment must not be absorbed into an installment.');
+        CustLedgerEntry.SetRange("Installment Plan ID", SalesInvoiceHeader."Installment Plan ID");
+        Assert.AreEqual(3, CustLedgerEntry.Count(), 'Overpayment must not create another installment entry.');
+    end;
+
+    [Test]
+    procedure OldestReceiptDoesNotGrantExpiredInstallmentDiscount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PlanLine: Record "Installment Plan Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        // [FEATURE] [Installments] [Application] [Payment Discount]
+        // [SCENARIO] Automatic application cannot grant an expired installment discount.
+        // [GIVEN] An oldest-first customer and a first installment whose 0.83 discount has expired.
+        CreateSettlementInvoice(SalesHeader, '');
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        EnableOldestApplication(SalesInvoiceHeader."Bill-to Customer No.");
+        PlanLine.Get(SalesInvoiceHeader."Installment Plan ID", 10000);
+        CustLedgerEntry.Get(PlanLine."Cust. Ledger Entry No.");
+
+        // [WHEN] A receipt pays the discounted amount after the installment's due date.
+        PostPaymentWithAppliesToID(CustLedgerEntry, '', 40.84, WorkDate() + 31);
+
+        // [THEN] The expired discount remains payable and later installments are unchanged.
+        CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.IsTrue(CustLedgerEntry.Open, 'An expired discount must not close the installment.');
+        Assert.AreEqual(0.83, CustLedgerEntry."Remaining Amount", 'The unpaid discount amount must remain outstanding.');
+        DetailedCustLedgEntry.SetCurrentKey("Cust. Ledger Entry No.", "Entry Type");
+        DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
+        DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::"Payment Discount");
+        Assert.IsTrue(DetailedCustLedgEntry.IsEmpty(), 'No expired payment discount may be posted.');
+        VerifyInvoiceBalance(SalesInvoiceHeader, 84.16, false);
+    end;
+
+    [Test]
+    procedure ForeignCurrencyOldestReceiptGainCanBeUnappliedAndReapplied()
+    begin
+        // [FEATURE] [Installments] [Application] [Currency]
+        // [SCENARIO] A realized gain belongs to the applied installment throughout its application lifecycle.
+        // [GIVEN] A foreign-currency invoice at rate 1.
+        // [WHEN] An oldest-first receipt at rate 0.5 is applied, unapplied, and reapplied.
+        // [THEN] The 41.67 realized gain reverses and reposts without changing the original schedule.
+        VerifyForeignCurrencySettlement(0.5, 41.67);
+    end;
+
+    [Test]
+    procedure ForeignCurrencyOldestReceiptLossCanBeUnappliedAndReapplied()
+    begin
+        // [FEATURE] [Installments] [Application] [Currency]
+        // [SCENARIO] A realized loss belongs to the applied installment throughout its application lifecycle.
+        // [GIVEN] A foreign-currency invoice at rate 1.
+        // [WHEN] An oldest-first receipt at rate 2 is applied, unapplied, and reapplied.
+        // [THEN] The rounded 20.83 realized loss reverses and reposts without changing the original schedule.
+        VerifyForeignCurrencySettlement(2, -20.83);
+    end;
+
+    [Test]
+    procedure InstallmentUnderpaymentWithinToleranceClosesOnlySelectedEntry()
+    begin
+        // [FEATURE] [Installments] [Application] [Payment Tolerance]
+        // [SCENARIO] Accepted native tolerance is evaluated per selected installment.
+        // [GIVEN] A 41.67 installment with a 0.50 tolerance cap and an unblocked customer.
+        // [WHEN] A selected-entry receipt pays 41.17.
+        // [THEN] The 0.50 tolerance closes only that installment.
+        VerifyInstallmentUnderpayment(false, 41.17, 0);
+    end;
+
+    [Test]
+    procedure CustomerToleranceBlockPreservesInstallmentUnderpayment()
+    begin
+        // [FEATURE] [Installments] [Application] [Payment Tolerance]
+        // [SCENARIO] A customer's tolerance block is respected during actual installment settlement.
+        // [GIVEN] The same tolerance setup but a customer blocking payment tolerance.
+        // [WHEN] A selected-entry receipt pays 41.17 of a 41.67 installment.
+        // [THEN] The 0.50 shortfall remains outstanding without tolerance entries.
+        VerifyInstallmentUnderpayment(true, 41.17, 0.5);
+    end;
+
+    [Test]
+    procedure InstallmentUnderpaymentAboveToleranceRemainsOutstanding()
+    begin
+        // [FEATURE] [Installments] [Application] [Payment Tolerance]
+        // [SCENARIO] An invoice-wide tolerance must not override an individual installment's cap.
+        // [GIVEN] A 41.67 installment with a 0.50 tolerance cap.
+        // [WHEN] A selected-entry receipt leaves a 0.52 shortfall, beyond the cap and native rounding allowance.
+        // [THEN] The installment remains open and no tolerance is posted.
+        VerifyInstallmentUnderpayment(false, 41.15, 0.52);
+    end;
+
+    [Test]
+    procedure OldestCustomerCannotApplyDuringInstallmentInvoicePosting()
+    var
+        SalesHeader: Record "Sales Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        // [FEATURE] [Installments] [Application] [Posting Guard]
+        // [SCENARIO] Later receipt support does not enable automatic application during installment invoice posting.
+        // [GIVEN] An unposted installment invoice whose customer uses Apply to Oldest.
+        CreateSettlementInvoice(SalesHeader, '');
+        EnableOldestApplication(SalesHeader."Bill-to Customer No.");
+
+        // [WHEN] The installment invoice is posted.
+        asserterror LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The existing customer application-method guard prevents financial posting.
+        Assert.ExpectedError('Application Method');
+        CustLedgerEntry.SetRange("Installment Plan ID", SalesHeader."Installment Plan ID");
+        Assert.IsTrue(CustLedgerEntry.IsEmpty(), 'The unsupported invoice-time application must not post installments.');
     end;
 
     [Test]
@@ -843,6 +1204,7 @@ codeunit 134493 "ERM Installment Posting"
             GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -125);
         GenJournalLine.Description := SalesInvoiceHeader."Pre-Assigned No.";
         GenJournalLine.Modify(true);
+        Commit();
 
         asserterror PostLateGenJournalLines.Run();
 
@@ -877,6 +1239,203 @@ codeunit 134493 "ERM Installment Posting"
 
         Assert.ExpectedError(UnsupportedCorrectionErr);
         VerifyInvoiceBalance(SalesInvoiceHeader, 115, false);
+    end;
+
+    local procedure CreateSettlementInvoice(var SalesHeader: Record "Sales Header"; CurrencyCode: Code[10])
+    var
+        SalesLine: Record "Sales Line";
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+    begin
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, CurrencyCode);
+        LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup);
+        Customer.Get(SalesHeader."Bill-to Customer No.");
+        Customer.Validate("Customer Posting Group", CustomerPostingGroup.Code);
+        Customer.Validate("Block Payment Tolerance", true);
+        Customer.Modify(true);
+        SalesHeader.Validate("Customer Posting Group", CustomerPostingGroup.Code);
+        SalesHeader.Modify(true);
+    end;
+
+    local procedure PostPaymentWithAppliesToID(CustLedgerEntry: Record "Cust. Ledger Entry"; ApplicationID: Code[50]; Amount: Decimal; PostingDate: Date): Code[20]
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+    begin
+        LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
+            GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Customer, CustLedgerEntry."Customer No.",
+            GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -Amount);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        if CustLedgerEntry."Currency Code" <> '' then
+            GenJournalLine.Validate("Currency Code", CustLedgerEntry."Currency Code");
+        GenJournalLine.Validate("Applies-to ID", ApplicationID);
+        if ApplicationID <> '' then
+            PaymentToleranceMgt.PmtTolGenJnl(GenJournalLine);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        exit(GenJournalLine."Document No.");
+    end;
+
+    local procedure ClearInstallmentDiscounts(PlanID: Guid)
+    var
+        PlanLine: Record "Installment Plan Line";
+    begin
+        PlanLine.SetRange("Plan ID", PlanID);
+        PlanLine.FindSet(true);
+        repeat
+            PlanLine."Discount %" := 0;
+            Clear(PlanLine."Discount Date Calculation");
+            PlanLine.Modify(true);
+        until PlanLine.Next() = 0;
+    end;
+
+    local procedure EnableOldestApplication(CustomerNo: Code[20])
+    var
+        Customer: Record Customer;
+    begin
+        Customer.Get(CustomerNo);
+        Customer.Validate("Application Method", Customer."Application Method"::"Apply to Oldest");
+        Customer.Modify(true);
+    end;
+
+    local procedure SelectInstallment(var CustLedgerEntry: Record "Cust. Ledger Entry"; PlanID: Guid; Sequence: Integer) ApplicationID: Code[50]
+    begin
+        CustLedgerEntry.SetRange("Installment Plan ID", PlanID);
+        CustLedgerEntry.SetRange("Installment No.", Sequence);
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        ApplicationID := LibraryUtility.GenerateGUID();
+        CustLedgerEntry."Applies-to ID" := ApplicationID;
+        CustLedgerEntry."Amount to Apply" := CustLedgerEntry."Remaining Amount";
+        CustLedgerEntry.Modify(true);
+    end;
+
+    local procedure FilterLastApplicationDetails(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; CustLedgerEntry: Record "Cust. Ledger Entry")
+    var
+        CustEntryApplyPostedEntries: Codeunit "CustEntry-Apply Posted Entries";
+    begin
+        DetailedCustLedgEntry.Reset();
+        DetailedCustLedgEntry.Get(CustEntryApplyPostedEntries.FindLastApplEntry(CustLedgerEntry."Entry No."));
+        DetailedCustLedgEntry.TestField("Transaction No.");
+        DetailedCustLedgEntry.SetRange("Customer No.", CustLedgerEntry."Customer No.");
+        DetailedCustLedgEntry.SetRange("Transaction No.", DetailedCustLedgEntry."Transaction No.");
+    end;
+
+    local procedure VerifyForeignCurrencySettlement(PaymentExchangeRate: Decimal; ExpectedAdjustment: Decimal)
+    var
+        Currency: Record Currency;
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        OriginalPlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Installment Plan Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        PaymentEntry: Record "Cust. Ledger Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        GLEntry: Record "G/L Entry";
+        ApplyUnapplyParameters: Record "Apply Unapply Parameters";
+        CustEntryApplyPostedEntries: Codeunit "CustEntry-Apply Posted Entries";
+        PaymentNo: Code[20];
+        ApplicationID: Code[50];
+    begin
+        CreateSettlementInvoice(SalesHeader, LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1));
+        ClearInstallmentDiscounts(SalesHeader."Installment Plan ID");
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        OriginalPlanLine.Get(SalesInvoiceHeader."Installment Plan ID", 10000);
+        CustLedgerEntry.Get(OriginalPlanLine."Cust. Ledger Entry No.");
+        EnableOldestApplication(SalesInvoiceHeader."Bill-to Customer No.");
+        LibraryERM.CreateExchangeRate(SalesInvoiceHeader."Currency Code", WorkDate() + 1, PaymentExchangeRate, 1);
+
+        PaymentNo := PostPaymentWithAppliesToID(CustLedgerEntry, '', OriginalPlanLine.Amount, WorkDate() + 1);
+
+        CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
+        Assert.IsFalse(CustLedgerEntry.Open, 'The foreign-currency receipt must close the oldest installment.');
+        VerifyInvoiceBalance(SalesInvoiceHeader, 83.33, false);
+        FilterLastApplicationDetails(DetailedCustLedgEntry, CustLedgerEntry);
+        DetailedCustLedgEntry.SetFilter("Entry Type", '%1|%2',
+            DetailedCustLedgEntry."Entry Type"::"Realized Gain", DetailedCustLedgEntry."Entry Type"::"Realized Loss");
+        DetailedCustLedgEntry.CalcSums("Amount (LCY)");
+        Assert.AreEqual(ExpectedAdjustment, DetailedCustLedgEntry."Amount (LCY)", 'Currency effects must use the selected installment, not the invoice total.');
+        Currency.Get(SalesInvoiceHeader."Currency Code");
+        GLEntry.SetRange("G/L Account No.", Currency."Realized Gains Acc.");
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(-ExpectedAdjustment, GLEntry.Amount, 'Realized currency G/L postings must reconcile.');
+        LibraryERM.FindCustomerLedgerEntry(PaymentEntry, PaymentEntry."Document Type"::Payment, PaymentNo);
+        DetailedCustLedgEntry.Reset();
+        DetailedCustLedgEntry.Get(CustEntryApplyPostedEntries.FindLastApplEntry(PaymentEntry."Entry No."));
+        ApplyUnapplyParameters."Document No." := PaymentNo;
+        ApplyUnapplyParameters."Posting Date" := WorkDate() + 1;
+
+        CustEntryApplyPostedEntries.PostUnApplyCustomerCommit(DetailedCustLedgEntry, ApplyUnapplyParameters, false);
+
+        CustLedgerEntry.Get(OriginalPlanLine."Cust. Ledger Entry No.");
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(OriginalPlanLine.Amount, CustLedgerEntry."Remaining Amount", 'Unapplication must restore the installment in document currency.');
+        VerifyInvoiceBalance(SalesInvoiceHeader, 125, false);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(0, GLEntry.Amount, 'Unapplication must reverse the realized currency posting.');
+        ApplicationID := SelectInstallment(CustLedgerEntry, OriginalPlanLine."Plan ID", 1);
+        PaymentEntry.Get(PaymentEntry."Entry No.");
+        PaymentEntry.CalcFields("Remaining Amount");
+        PaymentEntry.Validate("Applying Entry", true);
+        PaymentEntry.Validate("Applies-to ID", ApplicationID);
+        PaymentEntry.Validate("Amount to Apply", PaymentEntry."Remaining Amount");
+        PaymentEntry.Modify(true);
+        Assert.IsTrue(CustEntryApplyPostedEntries.Apply(PaymentEntry, ApplyUnapplyParameters), 'The original foreign-currency receipt must be reapplied.');
+
+        VerifyInvoiceBalance(SalesInvoiceHeader, 83.33, false);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(-ExpectedAdjustment, GLEntry.Amount, 'Reapplication must restore the native realized currency posting.');
+        PlanLine.Get(OriginalPlanLine."Plan ID", OriginalPlanLine."Line No.");
+        Assert.AreEqual(OriginalPlanLine.SystemId, PlanLine.SystemId, 'The original schedule identity must survive the currency lifecycle.');
+        Assert.AreEqual(OriginalPlanLine.Amount, PlanLine.Amount, 'Original document-currency allocations must remain immutable.');
+        Assert.AreEqual(OriginalPlanLine."Amount (LCY)", PlanLine."Amount (LCY)", 'Original LCY allocations must remain immutable.');
+        Assert.AreEqual(OriginalPlanLine."Cust. Ledger Entry No.", PlanLine."Cust. Ledger Entry No.", 'Reapplication must use the original ledger link.');
+    end;
+
+    local procedure VerifyInstallmentUnderpayment(BlockTolerance: Boolean; ReceiptAmount: Decimal; ExpectedRemaining: Decimal)
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        GLSetup: Record "General Ledger Setup";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        ApplicationID: Code[50];
+    begin
+        CreateSettlementInvoice(SalesHeader, '');
+        ClearInstallmentDiscounts(SalesHeader."Installment Plan ID");
+        GLSetup.Get();
+        GLSetup."Payment Tolerance %" := 2;
+        GLSetup."Max. Payment Tolerance Amount" := 0.5;
+        GLSetup."Payment Tolerance Warning" := false;
+        GLSetup."Pmt. Disc. Tolerance Warning" := false;
+        GLSetup."Payment Tolerance Posting" := GLSetup."Payment Tolerance Posting"::"Payment Tolerance Accounts";
+        GLSetup.Modify(true);
+        Customer.Get(SalesHeader."Bill-to Customer No.");
+        Customer.Validate("Block Payment Tolerance", BlockTolerance);
+        Customer.Modify(true);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        ApplicationID := SelectInstallment(CustLedgerEntry, SalesInvoiceHeader."Installment Plan ID", 1);
+
+        PostPaymentWithAppliesToID(CustLedgerEntry, ApplicationID, ReceiptAmount, WorkDate());
+
+        CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(ExpectedRemaining, CustLedgerEntry."Remaining Amount", 'The selected installment must honor its own tolerance and customer block.');
+        Assert.AreEqual(ExpectedRemaining <> 0, CustLedgerEntry.Open, 'Only accepted native tolerance can close the shortfall.');
+        FilterLastApplicationDetails(DetailedCustLedgEntry, CustLedgerEntry);
+        DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::"Payment Tolerance");
+        DetailedCustLedgEntry.CalcSums(Amount);
+        if ExpectedRemaining = 0 then
+            Assert.AreEqual(-0.5, DetailedCustLedgEntry.Amount, 'The accepted installment shortfall must post once as native tolerance.')
+        else
+            Assert.AreEqual(0, DetailedCustLedgEntry.Amount, 'Blocked or excessive shortfalls must not post tolerance.');
+        VerifyInvoiceBalance(SalesInvoiceHeader, 83.33 + ExpectedRemaining, false);
     end;
 
     local procedure VerifyInvoiceBalance(SalesInvoiceHeader: Record "Sales Invoice Header"; ExpectedRemaining: Decimal; ExpectedClosed: Boolean)

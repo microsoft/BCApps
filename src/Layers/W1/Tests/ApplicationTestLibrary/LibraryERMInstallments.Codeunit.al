@@ -16,8 +16,6 @@ using Microsoft.Sales.Setup;
 
 codeunit 134495 "Library - ERM Installments"
 {
-    Access = Internal;
-
     var
         LibraryERM: Codeunit "Library - ERM";
         LibrarySales: Codeunit "Library - Sales";
@@ -86,6 +84,7 @@ codeunit 134495 "Library - ERM Installments"
             SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
             LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, Enum::"General Posting Type"::Sale), 1);
         SalesLine.Validate("Unit Price", 100);
+        SalesLine.Validate("Allow Invoice Disc.", true);
         SalesLine.Modify(true);
     end;
 

@@ -327,13 +327,21 @@ codeunit 8841 "Sales Installment Mgt."
         SavedHeader: Record "Sales Header";
         Plan: Record "Installment Plan";
         TempPlanLine: Record "Installment Plan Line" temporary;
+        SavedPlanExists: Boolean;
     begin
         if Rec.IsTemporary() then
             exit;
         SavedHeader.Get(Rec."Document Type", Rec."No.");
         if not IsNullGuid(SavedHeader."Installment Plan ID") then begin
-            Plan.Get(SavedHeader."Installment Plan ID");
-            if Plan.Status = Plan.Status::Posted then begin
+            SavedPlanExists := Plan.Get(SavedHeader."Installment Plan ID");
+            // Term validation may already have replaced or removed the owned draft.
+            if not SavedPlanExists then
+                if not IsNullGuid(Rec."Installment Plan ID") then
+                    GetOwnedDraft(Rec, Plan)
+                else
+                    if Rec."Payment Terms Code" = SavedHeader."Payment Terms Code" then
+                        Error(PlanLinkErr);
+            if SavedPlanExists and (Plan.Status = Plan.Status::Posted) then begin
                 Rec.TestField("Installment Plan ID", SavedHeader."Installment Plan ID");
                 CheckPostedSource(Rec, Plan);
                 CheckHeaderConditions(Rec);

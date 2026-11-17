@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
@@ -187,6 +188,7 @@ codeunit 134492 "ERM Installment Draft"
         Customer.Modify(true);
 
         // [WHEN] The invoice's bill-to customer is changed.
+        SalesHeader.SetHideValidationDialog(true);
         SalesHeader.Validate("Bill-to Customer No.", Customer."No.");
         SalesHeader.Modify(true);
 
@@ -317,6 +319,7 @@ codeunit 134492 "ERM Installment Draft"
         LibrarySales.CreateSalesLine(
             SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 2);
         SalesLine.Validate("Unit Price", 100);
+        SalesLine.Validate("Allow Invoice Disc.", true);
         SalesLine.Modify(true);
         DiscountByType.ApplyInvDiscBasedOnAmt(10, SalesHeader);
 

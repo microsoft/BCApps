@@ -243,8 +243,9 @@ The supplied specification notes that existing BC normally calculates discounts
 only when the document is fully applied. Define and verify compatibility when
 each installment becomes its own entry.
 
-**Decision required:** Determine whether discount eligibility for partial
-payments within an installment is configurable or follows existing BC rules.
+**M2 decision approved:** Discount eligibility for partial payments within an
+installment follows existing BC rules. Do not introduce a configurable or
+proportional partial-payment discount policy.
 
 ## 6. Corrections, credit memos, and reversals
 
@@ -1647,37 +1648,64 @@ assistant. No commit was created. Step 6 environment acceptance remains open;
 the milestone is not signed off and unrestricted production activation remains
 outside M1.
 
-## 22. M2 implementation plan: invoice output and read-only schedule API
+## 22. M2 implementation plan: complete receivables business logic
 
 ### 22.1. Objective, scope, and dependency on M1
 
-**Scope confirmed by the user:** Finish Slice 1 with printed sales-invoice
-schedules and a read-only posted-installment API. M2 is not the broader
-receivables Slice 2.
+**Revised direction confirmed by the user:** Prioritize the broader receivables
+Slice 2 business logic. Move printed invoices and layouts to the end of
+development, rather than making them the next milestone.
 
-Make the existing W1 posted schedule consumable by invoice recipients and
-integrations without introducing another calculator, another financial source
-of truth, or new posting/application behavior.
+Complete installment settlement, corrections, collections, reconciliation,
+aging, and cash-flow behavior on top of the existing W1 posting model. Reuse
+native ledger/application accounting; do not introduce another calculator or
+financial source of truth. This supersedes the earlier output/API-only M2 plan.
 
 M1 verification continues independently. M2 planning and contract investigation
 can proceed now; M2 acceptance requires an accepted M1 baseline and resolution
-of any M1 defects affecting output/API correctness. Neither milestone by itself
+of any M1 defects affecting receivables correctness. Neither milestone by itself
 authorizes unrestricted production activation.
 
 | Included | Explicitly excluded |
 | --- | --- |
-| Configurable summary/detailed schedule on posted sales-invoice output. | Draft/order/pro forma output and additional invoice producers. |
-| Original posted amounts, dates, and installment discount terms. | Recalculation from current Payment Terms or manual posted-schedule editing. |
-| A read-only API for posted global installment lines and live balances. | Draft schedule APIs, API writes, schedule overrides, payment initiation, or new settlement policies. |
-| Compatibility with existing invoice API identity, totals/status, and PDF delivery. | Changing existing invoice API identities or replacing standard invoice resources. |
-| Report/layout, API, permission, and country compatibility checks. | Corrections, unapplication, collections, aging, cash-flow, payables, and IT migration/global activation. |
+| Per-installment application/unapplication, discounts, tolerances, and currency effects. | New payment services, payment initiation, and unrelated application-policy changes. |
+| Sales credit memos, correction/cancellation, and their allocation and navigation rules. | Payables, additional invoice producers, renegotiation, and advanced terms. |
+| Statements, overdue-only reminders/finance charges, and payment reconciliation business logic. | Printed invoice schedules, report presentation/layouts, PDF/email delivery work, and custom-layout adaptation until the final delivery phase. |
+| Per-installment aging and Cash Flow Forecast calculations and source data. | Recalculation from current Payment Terms or manual rewriting of posted obligations. |
+| Existing invoice aggregate status/API compatibility, country regression, and guard review. | New schedule API implementation as an M2 prerequisite, API writes, and IT migration/global activation. |
 
-Existing M1 unsupported-path guards remain in force. Legacy IT invoices must
-not acquire synthetic global schedules or be routed through global posting.
+New read-only schedule API work follows the business logic; its contract remains
+to be finalized separately. Printed invoice schedules and all layout/presentation
+work are the final development phase. Statement grouping, reminder selection,
+aging buckets, and forecast calculations belong in M2 even when their visual
+presentation is deferred.
+
+Remove an M1 unsupported-path guard only for a specifically implemented and
+verified replacement path. Other guards remain in force. Legacy IT invoices
+must not acquire synthetic global schedules or be routed through global posting.
 
 ### 22.2. Source anchors and design constraints
 
-The following canonical files were inspected for planning:
+Business-logic contracts to freeze before their dependent implementation:
+
+- Apply to exact linked entries; preserve plan/line identities, immutable posted
+  dates/amounts, and invoice-wide aggregate status through settlement/unapply.
+- Define partial-payment discount eligibility, tolerances, credit-memo discount
+  reduction, and supported VAT/discount combinations using native accounting.
+- Select the unpaid-invoice correction approach and the permitted allocation
+  policies for partly paid invoices from section 6. These are open decisions,
+  not approval to implement every alternative. Do not reopen settled amounts
+  without explicit unapplication.
+- Define deterministic matching for multi-entry invoice numbers and external
+  references. Ambiguous reconciliation must not silently choose an installment.
+- Evaluate overdue amounts, reminder levels, aging, and forecasts per entry's
+  own due date and balance; do not accelerate future installments.
+- Inventory single-entry assumptions and shared entry points before lifting
+  guards. Ordinary invoices and existing invoice API identity/status remain
+  compatible; country changes preserve local behavior.
+
+The following previously inspected output/API anchors are retained for the
+deferred delivery work, not as prerequisites for starting M2 business logic:
 
 | Source | Planning consequence |
 | --- | --- |
@@ -1694,16 +1722,18 @@ The following canonical files were inspected for planning:
 Base App remains the owner of installment business/read logic. The API app can
 consume that logic; Base App must not depend on the API app.
 
-### 22.3. Proposed output and API contracts
+### 22.3. Deferred output and API contracts
 
-These are recommended defaults to finalize in M2-01, not additional approved
-product decisions.
+These preserve the earlier delivery requirements. They are recommended defaults
+to finalize in the later delivery contract review, not M2 business-logic
+prerequisites or additional approved product decisions. API work follows the
+business logic; printed invoices and layouts remain the final phase.
 
 **Invoice output**
 
 - Support Detailed and Summary modes. Recommend Detailed by default for global
   installment invoices, with an explicit summary alternative. Freeze setting
-  ownership, unattended defaults, and any request-page override in M2-01.
+  ownership, unattended defaults, and any request-page override in that review.
   Ordinary invoices retain their native presentation.
 - Detailed output shows installment number/count, original due date, original
   document-currency amount, and applicable discount percentage/date/eligibility.
@@ -1736,7 +1766,8 @@ product decisions.
 - Proposed fields: stable line ID, public sales-invoice ID, plan ID, installment
   number/count, due date, currency, original amount/LCY amount, remaining
   amount/LCY amount, open flag, original discount terms/eligibility, and a stable
-  customer-ledger-entry identifier. Final public names/types belong to M2-01.
+  customer-ledger-entry identifier. Final public names/types belong to the later
+  API contract review.
 - Obtain current balances/open state from each exact linked customer entry.
   Remaining LCY may change through native exchange adjustments; do not treat it
   as a recalculated original amount or infer cash paid by simple subtraction.
@@ -1758,51 +1789,283 @@ product decisions.
 
 | Package | Prerequisites | Work and deliverable | Completion evidence |
 | --- | --- | --- | --- |
-| M2-01: Freeze output/API contracts | M2 scope confirmed; M1 results tracked. | Trace report selections, PDF/email paths, six layouts and country variants; finalize display defaults, API schema/identity/read-model approach, supported queries, permissions, and object/field allocation. Record explicit supported/custom-layout boundaries. | Reviewed contract and acceptance fixtures; no unresolved decision that would change schema or output semantics. |
-| M2-02: Shared posted read model and presentation configuration | M2-01. | Reuse or minimally extract posted ownership/link validation; provide original lines plus optional live balances to consumers. Add only required configuration with defined defaults. Avoid a second schedule store, recalculation, or financial cache. | Focused source tests for ownership, immutable original values, current balances, and ordinary/no-plan behavior; configuration/upgrade impact documented. |
-| M2-03: Invoice report datasets, layouts, and delivery | M2-02. | Add one schedule section per invoice to report 1306; implement summary/detail in the certified RDLC/Word layouts; correct global-plan due/discount labels. Cover preview, PDF, email and API PDF through their actual selected-report paths. | Dataset assertions plus rendered-output review for every certified layout and delivery path. Shared changes propagated and local differences retained. |
-| M2-04: Read-only posted schedule API | M2-02; API contract from M2-01. | Add the approved API resource/navigation using native public invoice identity, stable line IDs, exact ledger links, explicit parent scoping, and least-privilege reads. No new write operations. | API tests for payloads, identity, live updates, paging/filtering, permissions/company boundaries, unsupported writes, and existing invoice/PDF compatibility. |
-| M2-05: Integration and regression review | M2-03 and M2-04. | Complete W1/country propagation review; check ordinary invoices, legacy IT, custom-layout guidance, numeric/date localization, batching, and realistic output/API volumes. Resolve tightly coupled defects. | MiSnap/source evidence, layout coverage inventory, targeted regression results and recorded remaining release gates. |
-| M2-06: Designated-environment acceptance and sign-off | M2-05 and accepted M1 baseline. | Run the acceptance matrix below; capture report samples, API requests/results, country scope, permissions, and performance evidence. | M2 acceptance passed; limitations and deferred V1 gates remain explicit. |
+| M2-01: Receivables contracts and consumer inventory | Revised M2 scope; M1 results tracked. | Trace settlement/unapply, discount/tax, credit/correction, collections, reconciliation, aging, and forecast paths. Classify single-entry assumptions and guards. Record policy decisions, supported combinations, and focused accounting fixtures. | Reviewed behavior/guard map; unresolved policy choices block only their dependent implementation. No report/layout inventory required to start. |
+| M2-02: Application, unapplication, and discounts | Relevant M2-01 settlement decisions. | Preserve explicit-entry and multi-installment settlement, deterministic oldest-first behavior, partial/overpayments, discounts/tolerances, realized currency effects, and unapply/reapply identity. Keep aggregate invoice status correct. Reuse native posting and shared ownership validation. | Focused accounting cases reconcile detailed/customer/control entries; supported discount/tax combinations and remaining guards are explicit. |
+| M2-03: Sales credits, corrections, and cancellation | M2-02 and M2-01 correction/allocation decisions. | Implement the selected unpaid and partly paid correction paths, credit allocation and discount effects, complete document navigation, and transactional rollback. Replace only covered correction guards at shared business entry points. | Unpaid/partly paid/full-settlement scenarios follow the selected policy without reopening settled amounts or duplicating revenue/VAT. |
+| M2-04: Collections and payment reconciliation | M2-02 and relevant M2-01 matching/collection decisions. | Make statements logically group the invoice, reminders/finance charges select only eligible overdue installments, and reconciliation identify exact entries or reject ambiguity. Keep printed presentation deferred. | Due/future mixtures, reminder levels, partial settlement, multi-installment receipts, duplicate references, and ordinary controls behave correctly. |
+| M2-05: Aging and Cash Flow Forecast | M2-02 and M2-01 calculation contracts. | Audit/adapt entry selection, bucket calculations, forecast dates/amounts, and settled/credited balances. Reuse native entry-based behavior where already correct; do not redesign layouts. | Per-installment due dates and remaining balances reconcile to invoice and customer totals across as-of dates and currencies. |
+| M2-06: Integration, country, and regression review | M2-03, M2-04, and M2-05. | Review cross-feature interactions, existing invoice API identity/status, permissions, propagation, ordinary invoices, and legacy IT isolation. Inventory remaining guards and deferred delivery/release gates. | Focused regression/accounting evidence, country propagation review, and realistic-volume checks; no new financial cache or schedule store. |
+| M2-07: Designated-environment acceptance and sign-off | M2-06 and accepted M1 baseline. | Run the business-logic acceptance matrix below and capture supported policies, accounting results, country scope, and remaining limitations. | M2 business logic accepted; deferred API/output work and production-release gates remain explicit. |
 
-M2-03 and M2-04 can proceed independently after M2-02. Do not expand either into
-settlement/correction implementation. Follow repository practice: the user
-performs compilation, publishing, and container-backed runtime validation.
+M2-03, M2-04, and M2-05 can proceed independently after their prerequisites;
+integration covers their combined behavior. The user performs compilation,
+publishing, and container-backed runtime validation.
+
+After business-logic acceptance, deliver the read-only schedule API under its
+reviewed contract. Finish development with the invoice datasets, all six
+certified W1 report 1306 layouts, country adaptations, summary/detail settings,
+and print/preview/PDF/email/API-PDF delivery acceptance. Reuse validated posted
+reads and native public invoice identity; do not add another schedule store.
 
 ### 22.5. Focused M2 acceptance matrix
 
 | ID | Scenario | Required assertion |
 | --- | --- | --- |
-| M2-AT-01 | Print/email/API-PDF an ordinary invoice. | Native amounts, dates, layout behavior, API responses, and payment behavior remain unchanged; no empty schedule section. |
-| M2-AT-02 | Detailed output for a three-installment VAT invoice with invoice discount. | Exactly one schedule per invoice; amounts/dates/discount terms match the posted snapshot and sum to the original invoice total. |
-| M2-AT-03 | Summary mode and unattended output. | Truthful installment summary, deterministic configured defaults, and no misleading single-date/zero-discount representation. |
-| M2-AT-04 | Reprint after reusable setup edits and partial/full settlement. | Original schedule remains unchanged; any current balance/paid text is separately identified and reflects the whole invoice. |
-| M2-AT-05 | Foreign currency, whole-unit/three-decimal precision, and LCY exchange adjustments. | Correct currency/date formatting; original document/LCY allocations remain distinct from current remaining amounts. |
-| M2-AT-06 | Multiple invoices, ordinary/global mixture, long schedule, and multiple copies. | No cross-document leakage, duplicate totals, lost rows, broken grouping, or unintended blank sections/pages. |
-| M2-AT-07 | Every certified layout and selected print/PDF/email/API-PDF path. | Required content is visibly rendered, not merely present in the dataset; local legal content survives propagation. |
-| M2-AT-08 | GET a posted global schedule repeatedly and after setup changes. | Stable line/public parent identities, deterministic sequence, and immutable original values matching printed output. |
-| M2-AT-09 | Retrieve after non-anchor, anchor, partial, and final settlement. | Exact per-entry balances/open flags and truthful existing invoice totals/status; no premature Paid state. |
-| M2-AT-10 | Public invoice ID differs from posted header SystemId. | Existing API ID resolves the correct schedule; no accidental assumption that plan source ID is always the public ID. |
-| M2-AT-11 | Parent scoping, supported filters, pagination, and expansion. | Correct rows/counts and stable identities across pages; a client filter cannot escape its authorized parent. |
-| M2-AT-12 | Ordinary/draft parent, wrong parent, inaccessible company/invoice, and denied permissions. | No posted schedule for ordinary/draft invoices; other cases follow native authorization/error behavior without leaking rows. |
-| M2-AT-13 | POST/PATCH/DELETE and malformed or broken ledger links. | Writes are rejected; invalid provenance is reported explicitly; GET does not repair/create plans or financial records. |
-| M2-AT-14 | Ledger update followed by conditional/fresh GET. | No falsely unchanged financial response based only on immutable plan timestamps; approved caching contract is honored. |
-| M2-AT-15 | Legacy IT output/API controls and global activation safeguards. | Legacy behavior remains intact; no synthetic global schedule, IT activation, or second split. |
-| M2-AT-16 | Representative invoice batch/API volume and M1 regression. | Acceptable measured execution/query behavior, no persistent balance cache, and no regression of the accepted M1 contract. |
+| M2-AT-01 | Partial, full, later-installment, and multi-installment receipt application. | Only selected/eligible entries close; remaining balances and aggregate invoice status are correct, including when the anchor settles first. |
+| M2-AT-02 | Oldest-first application and overpayment. | Due-date/sequence ordering is deterministic; excess follows native unapplied/next-entry rules without ambiguous invoice-number selection. |
+| M2-AT-03 | Eligible/late discounts, partial payments, and payment tolerance. | Per-entry amounts follow the approved policy and native supported discount/tax accounting; later installments do not lose eligibility incorrectly. |
+| M2-AT-04 | Unapply and reapply after partial/full settlement. | Plan, line, and ledger identities persist; balances, discounts, tolerances, and currency effects reverse/repost correctly. |
+| M2-AT-05 | FCY settlement/revaluation and whole-unit/three-decimal precision. | Native realized/unrealized effects and rounding reconcile; original posted document/LCY allocations remain immutable. |
+| M2-AT-06 | Correct/cancel an unpaid multi-entry invoice. | Selected whole-invoice correction policy covers every installment, preserves navigation, and posts revenue/VAT only as required by the correction. |
+| M2-AT-07 | Credit a partly paid invoice or attempt automatic cancellation. | Approved allocation affects only permitted amounts; native paid-invoice restrictions remain; settled amounts are not reopened without unapply. |
+| M2-AT-08 | Credit application and its unapplication with payment discounts. | Credit allocation and discount reductions reconcile; reversal restores the correct balances and eligibility. |
+| M2-AT-09 | Failure during multi-entry correction/application. | Transaction rolls back without partial correction, orphaned ownership, or inconsistent aggregate status. |
+| M2-AT-10 | Statements and reminders/finance charges with due and future installments. | Logical invoice grouping is correct; only eligible overdue balances are collected and reminder levels remain entry-specific. |
+| M2-AT-11 | Payment reconciliation with shared invoice/external references. | Exact entries can be identified; ambiguous matches require explicit resolution, not silent selection or duplicated application. |
+| M2-AT-12 | Aging across due-date boundaries and as-of dates. | Each installment contributes its appropriate remaining amount to its own bucket; totals reconcile, including subsequent applications/credits. |
+| M2-AT-13 | Cash Flow Forecast before/after partial payments and credits. | Dates and outstanding amounts reflect individual installments without duplicate invoice totals or forecasting settled obligations. |
+| M2-AT-14 | Existing invoice API after anchor/non-anchor settlement, correction, and unapply. | Public invoice identity remains stable; current totals/status reflect the whole invoice, with native corrected-document behavior. |
+| M2-AT-15 | Ordinary invoices, legacy IT, permissions, and unsupported paths. | Native behavior and authorization remain; guards are lifted only for verified paths; no IT global activation or second split. |
+| M2-AT-16 | Combined lifecycle and representative volume. | M1 invariants, customer/detailed/control balances, ownership, country behavior, and acceptable execution/query behavior are preserved. |
 
-Use focused Base App read-model/report tests and API-app E2E tests, reusing
-existing libraries. Keep rendered Word/RDLC/PDF inspection as explicit acceptance
-evidence; dataset tests cannot establish pagination, readability, or email layout
-correctness.
+Use focused existing Base App accounting/integration test libraries. Presentation
+and rendered-layout acceptance belong to the final delivery phase, not this
+business-logic matrix. Deferred API acceptance must still cover stable identity,
+parent/company scoping, live balances, queries/paging, denied writes, broken
+ownership, and conditional reads before that resource is delivered.
 
 ### 22.6. Exit criteria and first executable step
 
-M2 is complete only when the agreed output/API contracts are implemented,
-certified layouts/delivery paths and API cases pass, country propagation is
-reviewed, and the M1 prerequisite is accepted. Record exact validation commands,
-results, versions/country scope, and remaining limitations during implementation.
-No M2 implementation, compilation, deployment, or runtime validation has begun.
+M2 is complete only when the approved receivables policies are implemented,
+the business-logic acceptance cases pass, country propagation is reviewed, and
+the M1 prerequisite is accepted. Printed schedules, layouts, and the new schedule
+API are deferred delivery requirements, not removed requirements or evidence of
+full product readiness. Record exact validation commands, results, country scope,
+remaining guards, and release limitations during implementation.
 
-**First executable step: M2-01.** Produce the concrete report/layout/delivery
-inventory, public API contract, read-model/identity mapping, and configuration
-decisions before creating AL objects or changing layouts.
+This revision changes the plan only; it does not implement or validate M2 logic.
+
+**First executable step: M2-01.** Inventory the application/unapplication and
+discount paths first, map existing guards and single-entry assumptions, and
+present the settlement/correction policy decisions before dependent code changes.
+
+### 22.7. M2-01 initial source inventory
+
+The following records the baseline at the initial investigation, not runtime
+certification. Paths in the table are relative to `src\Layers\W1\BaseApp` unless
+explicitly prefixed with `Tests`. Section 22.10 supersedes the blanket later
+receipt rejection described here; other guard dispositions remain in force.
+
+| Area and source | Verified current behavior | M2 disposition |
+| --- | --- | --- |
+| `Sales\Posting\InstallmentPosting.Codeunit.al:33-95`, `CheckSalesPosting`. | Invoice creation requires Manual customer application, no initial application/balancing payment, no additional reporting currency, and the supported realized gross-discount VAT setup. | Keep these producer/tax boundaries in the first settlement increment. Later receipt application is a separate contract from application during invoice posting. |
+| `Sales\Posting\InstallmentPosting.Codeunit.al:109-130`, `CheckJournalLine`. | A customer-side Applies-to Doc. No. matching a global installment entry raises an explicit error. | Retain document-number ambiguity protection; do not replace it with a first-match lookup. |
+| `Finance\GeneralLedger\Posting\GenJnlPostLine.Codeunit.al:3880-4009`, `ApplyCustLedgEntry`. | Native posting processes the selected temporary entries individually through `PostApply`, updates each original entry, and posts native discount/currency effects. | Reuse this pipeline for selected-entry and multi-installment settlement; no parallel installment application engine. |
+| `Finance\GeneralLedger\Posting\GenJnlPostLine.Codeunit.al:4154-4274`, `PrepareTempCustLedgEntry`. | Document-number application uses `FindFirst`; Applies-to ID builds an entry set. Oldest-first uses the customer/applies-to/open/sign/due-date key, which has no explicit installment-sequence field. | Verify explicit-entry selection independently. Before enabling automatic application, specify equal-date and mixed-invoice ordering and preserve native sign/currency handling. |
+| `Sales\History\SalesInstallmentHistory.Codeunit.al:214-222`, `CheckAutomaticApplication`. | A candidate with a global plan is rejected when both application identifiers are blank, including later Apply to Oldest receipts. | This guard is an actual M2 enablement gap, not evidence that native oldest-first behavior is certified. Replace only after its ordering contract is implemented. |
+| `Finance\ReceivablesPayables\PaymentToleranceManagement.Codeunit.al:2117-2155`, `CheckCalcPmtDisc`; `Finance\GeneralLedger\Posting\GenJnlPostLine.Codeunit.al:2847-2913`, `CalcPmtDisc`. | Native eligibility compares the payment/application amount with the selected entry's remaining liability less its available discount. It does not require the other installment entries to close. | Recommend native discount eligibility per installment, not a new proportional discount for every partial receipt. Approval remains required under section 5.2. |
+| `Finance\GeneralLedger\Posting\GenJnlPostLine.Codeunit.al:2947-2979`, `CalcPmtDiscIfAdjVAT`. | Discount adjustment factors use the individual old entry's original LCY amount, while VAT selection is by transaction number. | Keep VAT-adjusting discount combinations guarded pending a dedicated invoice-tax allocation design; removing the setup guard alone is unsafe. |
+| `Sales\Receivables\CustEntryApplyPostedEntries.Codeunit.al:357-453`, `PostUnApplyCustomerCommit`; `Finance\GeneralLedger\Posting\GenJnlPostLine.Codeunit.al:6164-6330`, `UnapplyCustLedgEntry`. | Unapplication selects detailed records by application/transaction and customer, reverses application effects, and supports suppressing the commit. It is not necessarily restricted to one installment when one application covers several entries. | Preserve native application-transaction scope; verify multi-installment unapply/reapply, balances, discounts, currency effects, and unchanged original schedule. Do not equate application unapply with the separately guarded document reversal. |
+| `Sales\History\SalesInstallmentHistory.Codeunit.al:118-179`, detailed grouping and condition checks; `Integration\Entity\SalesInvoiceAggregator.Codeunit.al:615-645`, `SetStatusOptionFromCustLedgerEntry`. | Later invoice detailed entries inherit invoice grouping; posted payment conditions are protected; API status resolves plan entries to the owning posted invoice. | Reuse these invariants and verify reopening/status after unapply, including non-anchor updates. Do not rewrite posted plan lines during settlement. |
+| `Sales\Posting\InstallmentPosting.Codeunit.al:469-509`, correction/reversal subscribers; `Sales\History\CorrectPostedSalesInvoice.Codeunit.al:209-278,553-566`. | Shared guards block correction creation, cancellation, and ledger reversal. Native corrective-copy and applied-entry navigation still use the legacy invoice link in places; the paid test uses the aggregate remaining amount. | Do not remove all correction subscribers together. Implement the selected whole-invoice allocation/navigation contract before opening each entry point. |
+| `Sales\Reminder\ReminderMake.Codeunit.al:344-421`, candidate selection; `Sales\FinanceCharge\FinChrgMemoMake.Codeunit.al:190-258`, `MakeLines`/`MakeLines2`. | Selection and charges operate on customer entries and their dates. Reminder settings can also include not-yet-due entries for information. | Verify overdue collection amounts and entry-specific levels without accelerating future installments. Distinguish informational lines from amounts actually demanded or charged; layout changes stay deferred. |
+| `Bank\Reconciliation\MatchBankPayments.Codeunit.al:1150-1194,1845-1878`. | Matching candidates retain individual ledger entries; closing-document lookup also searches shared document/type/date references. | Trace the complete matching/application path before enablement. Shared invoice numbers alone are not unique installment identifiers. |
+| `Sales\Customer\StandardStatement.Report.al:435-492`; `Sales\Reports\AgedAccountsReceivable.Report.al:438-521`. | Statement amounts use entry-specific as-of date filters; aging rebuilds remaining amounts from detailed entries and buckets by each entry's due date when requested. | Preserve native as-of accounting; verify invoice grouping and no duplicated totals rather than replacing these entry-based calculations. Visual grouping/layouts remain deferred. |
+| `CashFlow\Worksheet\SuggestWorksheetLines.Report.al:871-916`, `InsertCFLineForCustLedgerEntry`. | Forecast source amounts, due/discount dates, and tolerances come from each entry, but source/document numbers are shared and optional customer cash-flow terms can override dates. | Verify worksheet insertion/aggregation and configured forecast-date semantics before claiming per-installment forecast compatibility. |
+
+Existing M1 focused source coverage is in
+`src\Layers\W1\Tests\ERM\ERMInstallmentPosting.Codeunit.al`:
+`ManualPaymentUsingAppliesToIDClosesOnlyTheSelectedInstallment`,
+`InvoiceBalancesFiltersAndAPIStatusFollowEveryInstallment`, and
+the original `ImplicitOldestApplicationRejectsInstallments` (replaced by the
+M2-02 receipt/guard cases below). These M1 cases do not establish
+multi-entry unapplication, actual discount realization/reversal, or automatic
+oldest-first success. `LibraryERMInstallments.Codeunit.al:118-147` currently
+provides a one-entry LCY payment helper; extend only as required by the focused
+settlement cases, not into a separate test posting engine.
+
+### 22.8. Proposed first business-logic increment and decision gates
+
+**First increment:** M2-02 selected-entry settlement, actual per-installment
+discount realization, and native application/unapplication lifecycle. Cover
+one receipt spanning selected installments, a partial receipt followed by
+eligible final settlement, and unapply/reapply of the affected application.
+Assert original plan/ledger identities and dates, exact entry balances,
+invoice-wide status, and native detailed/G/L accounting. Change production
+logic only where the verified contract requires it.
+
+Do not enable initial invoice application, implicit oldest-first application,
+document-number-only settlement, corrective posting, VAT-adjusting discounts,
+or additional reporting currency as a side effect of this increment.
+
+| Decision | Contract / approval status | Dependent work |
+| --- | --- | --- |
+| M2-D01: Partial-payment discounts | **User approved: native.** Follow existing BC eligibility per installment. A partial receipt does not earn a new proportional discount; eligible settlement of that installment can realize its remaining native discount independently of other installments. No new discount-mode setting. | First increment discount contract. |
+| M2-D02: Unpaid correction model | Use one native corrective credit, explicitly allocated/applied across all original installment entries; a replacement invoice owns a new independent schedule. Do not create a second installment calculator or mirror-credit schedule unless required by the chosen contract. | M2-03 schema, posting, cancellation, and navigation work. |
+| M2-D03: Partly paid corrective-credit allocation | Start with explicit manual allocation to selected open installments, preserving paid amounts and native automatic-cancellation restrictions. Add automatic earliest/latest/proportional policies only by a separate agreed requirement. | M2-03 credit allocation and user interaction. |
+
+M2-D02 and M2-D03 remain recommendations, not approved behavior. They do not
+block the independent settlement increment now that M2-D01 is resolved. Oldest-first
+ordering, reconciliation matching, and collection/forecast details remain
+package-specific contract gates; the initial inventory is not full M2 sign-off.
+
+### 22.9. First settlement increment: source cases and validation status
+
+The existing native application engine is retained. Two focused cases were added
+to `src\Layers\W1\Tests\ERM\ERMInstallmentPosting.Codeunit.al`:
+
+- `PartialPaymentDiscountSettlementAndUnapplyPreserveSchedule`: an initial
+  partial receipt earns no proportional discount; an eligible final receipt
+  realizes the installment's discount while later installments remain open.
+  Unapplying that final application restores the discount and remaining balance,
+  preserves the earlier receipt, and reverses the discount expense.
+- `MultiInstallmentReceiptUnapplyAndReapplyPreservesSchedule`: one receipt closes
+  all three explicitly selected installments; native transaction unapplication
+  reopens the original entries; the same receipt is reapplied to those entries.
+  Invoice-wide balance/closure and original plan links, sequence, and due dates
+  are checked.
+
+Fixtures use a test-owned customer posting group with discount accounts and
+block payment tolerance so the assertions isolate discounts/application rather
+than depend on ambient tolerance setup. Payment-journal creation is shared with
+the existing selected-entry payment test; native posted-entry services handle
+unapplication and reapplication.
+
+The user confirmed runtime validation of this settlement increment on
+2026-11-17. Exact commands, environment/version, and country coverage were not
+supplied. Compilation, publishing, and container-backed execution remain with
+the user. No production guards had been removed at that checkpoint; this confirmation does not
+certify the full M2-02 currency/tolerance matrix, automatic oldest-first behavior,
+or M2 correction policies. Printed invoices, layouts, and new API delivery
+remain deferred.
+
+### 22.10. M2-02: oldest-first receipts and settlement edge cases
+
+**Implementation status:** Compiled, published, and runtime-validated on the
+local `Navision_master` development server on 2026-11-17. All 71 installment
+tests passed, including the expanded M2-02 cases and earlier settlement cases.
+This is local W1-source validation, not certification of every country or the
+broader M2 acceptance matrix.
+
+**Receipt boundary and ordering**
+
+- `Sales Installment History.CheckAutomaticApplication` now permits implicit
+  application only for negative customer Payment journal lines without a new
+  installment posting context. Native customer Application Method and Allow
+  Application checks still decide whether automatic application runs.
+- Native candidate selection, currency compatibility, positive/negative-entry
+  handling, discount calculation, and financial posting are retained. The change
+  does not implement another application engine.
+- For an implicit receipt whose eligible temporary candidates include global
+  installments, order by due date, then the stable Invoice Entry No. group,
+  then installment sequence; the primary entry number remains the final key
+  tiebreaker. Thus invoice groups deterministically resolve equal dates across
+  invoices, and sequence resolves equal dates within a plan. Different due dates
+  always take priority over grouping or sequence.
+- Explicit Applies-to ID selection and ordinary-only candidate sets keep native
+  ordering. A global automatic candidate must have its existing invoice-group
+  metadata; a missing group raises a field error rather than silently guessing.
+- The new customer-ledger ordering key has `MaintainSQLIndex = false` and is
+  selected on the temporary candidate table only. It adds no persistent SQL
+  index, balance cache, new financial fields, or data-backfill requirement.
+- Invoice-time automatic application, document-number-only global application,
+  implicit non-payment application, correction/reversal, payment-service/late
+  posting, additional reporting currency, and unsupported VAT/discount paths
+  remain guarded. The existing M1 invoice-group upgrade requirement is unchanged.
+
+**Focused source coverage**
+
+All cases are in
+`src\Layers\W1\Tests\ERM\ERMInstallmentPosting.Codeunit.al`, using the native
+posting/application services and the existing installment libraries.
+
+| Case | Contract exercised |
+| --- | --- |
+| `OldestReceiptUsesInstallmentSequenceAndMixedInvoiceDueDates` | Equal-date installment sequence; an intervening ordinary invoice is paid before a later-due installment. |
+| `OldestReceiptLeavesExcessUnappliedAfterAllInstallmentsClose` | One receipt closes the complete invoice and retains excess cash as an unapplied native payment balance. |
+| `OldestReceiptDoesNotGrantExpiredInstallmentDiscount` | A late receipt cannot realize an expired discount or prematurely close the installment. |
+| `ForeignCurrencyOldestReceiptGainCanBeUnappliedAndReapplied` | A 41.67 realized gain reconciles at entry/G/L level, reverses on unapply, and reposts on reapply of the same receipt. |
+| `ForeignCurrencyOldestReceiptLossCanBeUnappliedAndReapplied` | A rounded 20.83 realized loss follows the same lifecycle; original document/LCY allocations and schedule/ledger identities remain unchanged. |
+| `InstallmentUnderpaymentWithinToleranceClosesOnlySelectedEntry` | Native accepted tolerance closes the selected installment without closing later installments. |
+| `CustomerToleranceBlockPreservesInstallmentUnderpayment` | A customer block prevents tolerance from absorbing the shortfall. |
+| `InstallmentUnderpaymentAboveToleranceRemainsOutstanding` | A shortfall beyond the entry cap and native rounding allowance remains outstanding. |
+| `OldestCustomerCannotApplyDuringInstallmentInvoicePosting` | The initial invoice-posting application-method guard remains enforced before financial writes. |
+| `ImplicitNonPaymentApplicationStillRejectsInstallments` | The former blanket receipt-rejection case now checks the remaining unsupported non-payment boundary. |
+
+Receipt fixtures now explicitly validate posting date and document currency.
+Explicit-entry receipts invoke native tolerance management, matching the native
+journal application flow; no accepted-tolerance amounts are fabricated by tests.
+Tolerance fixtures isolate percentage/cap/warning/posting setup and customer
+blocking. Foreign-currency cases retain a fixed adjustment rate while changing
+the payment exchange rate, separating realized settlement effects from an
+independently configured revaluation scenario.
+
+**Propagation and evidence**
+
+- `Invoke-Miapp -SkipSync -SkipFileStatus -NoMergeTool -FileNameFilter '(^|[\\/])CustLedgerEntry\.Table\.al$'`
+  stopped at an APAC merge conflict because interactive resolution was
+  unavailable. It left no unresolved tracked files. The identical four-line key
+  was applied manually to all nine existing country copies, preserving local
+  keys and behavior.
+- `git diff --check`: passed.
+- Ordering-key consistency check: passed for all ten shared/country table copies,
+  including `MaintainSQLIndex = false`.
+- `Invoke-MiSnapApp -Files $files`, where `$files` contains all changed layer AL
+  paths from `git diff HEAD --name-only`: passed, `SUCCESS: No missing files`
+  (12 layer paths, including all ten customer-ledger table copies).
+- Compilation and publishing: after explicit user authorization, the assistant
+  compiled and published Base Application and Tests-ERM 30.0.0.0 to
+  `Navision_master`, tenant `default`, using normal schema synchronization.
+  Base Application compiled with zero errors and the same 337 compiler warnings
+  as the earlier build (normalized diagnostics unchanged); Tests-ERM compiled
+  with zero errors and zero warnings.
+- Runtime: the initial local run exposed 15 failures. After the corrections
+  below, all 71 installment tests passed with no failures or skipped tests.
+  The native local server was used directly, not a BC container.
+
+**Runtime corrections and final evidence (2026-11-17)**
+
+- The sales-header modify guard now validates an already-replaced owned draft
+  or explicit payment-term removal instead of assuming the previous draft
+  still exists. Immediate replacement retains the unique Source SystemId
+  invariant; posted-plan and replacement-ownership guards remain enforced.
+- Temporary-only calculation/posting guard helpers now take their record by
+  reference, so a by-value temporary copy cannot hide a persistent caller.
+- Discount fixtures explicitly permit invoice discounting; the bill-to change
+  fixture explicitly accepts native confirmation. Journal guard fixtures now
+  supply valid posting data and commit the baseline that must survive the
+  expected rollback.
+- Discount, tolerance, and realized-FX detail assertions now inspect the native
+  application transaction, including receipt-side entries. Exact expected
+  amounts, selected-installment balances, G/L reconciliation, and
+  unapply/reapply assertions are retained.
+
+| Codeunit | Passed | Failed | Skipped |
+| --- | ---: | ---: | ---: |
+| 134491 ERM Installment Calculation | 19 | 0 | 0 |
+| 134492 ERM Installment Draft | 13 | 0 | 0 |
+| 134493 ERM Installment Posting | 38 | 0 | 0 |
+| 134494 ERM Installments UI | 1 | 0 | 0 |
+| Total | 71 | 0 | 0 |
+
+Executed test command (`$tool` is
+`C:\Depot\master\Run\ALDevEnv\bin\altool.exe`; `$root` is the session artifact
+directory, containing the four-codeunit test-group JSON):
+
+```powershell
+& $tool runtests --testgroups (Join-Path $root 'erm-installments-testgroups.json') `
+    --project 'C:\depot\master\app\BCApps\src\Layers\W1\Tests\ERM' `
+    --server 'http://localhost' --serverinstance Navision_master --port 7049 `
+    --environmenttype OnPrem --authentication Windows --tenant default
+```
+
+Result: passed, exit code 0; structured results and call stacks are retained in
+`erm-installments-tests-fixed.log` in the session artifacts.
+The configured CodeCop, AppSourceCop, PerTenantExtensionCop, and UICop analyzers
+also passed with `src\rulesets\base.ruleset.json`: zero errors, 11,746 warnings
+project-wide, and no diagnostics in the three changed production codeunits.
+`Invoke-MiSnapApp -Files $files` passed for the six corrected AL paths; these
+new W1 objects have no country copies. `git diff --check` passed.
+
+This package does not start M2-03 corrective posting or resolve M2-D02/M2-D03.
+Printed invoice schedules, layouts, and new API delivery remain deferred.

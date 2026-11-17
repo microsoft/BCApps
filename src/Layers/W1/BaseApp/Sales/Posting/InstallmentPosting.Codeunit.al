@@ -393,7 +393,7 @@ codeunit 8842 "Installment Posting"
         Remaining -= Amount;
     end;
 
-    local procedure CheckTemporary(TempPlanLine: Record "Installment Plan Line" temporary)
+    local procedure CheckTemporary(var TempPlanLine: Record "Installment Plan Line" temporary)
     begin
         if not TempPlanLine.IsTemporary() then
             Error(TemporaryRecordErr);

@@ -1235,6 +1235,10 @@ table 21 "Cust. Ledger Entry"
         key(Invoice; "Invoice Entry No.", Open)
         {
         }
+        key(InstallmentApplication; "Customer No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.")
+        {
+            MaintainSQLIndex = false;
+        }
         key(Key12401; "Prepmt. Diff. Cust. Entry No.", "Prepmt. Diff. Appln. Entry No.")
         {
         }

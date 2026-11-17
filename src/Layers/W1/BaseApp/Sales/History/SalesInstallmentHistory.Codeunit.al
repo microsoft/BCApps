@@ -18,7 +18,7 @@ codeunit 8843 "Sales Installment History"
     var
         EditErr: Label 'Changing posted installment payment conditions is not supported.';
         PaymentServiceErr: Label 'Payment services are not supported for global installment invoices.';
-        AutomaticApplicationErr: Label 'Use Applies-to ID to select installment entries. Automatic Apply to Oldest is not supported for global installments.';
+        AutomaticApplicationErr: Label 'Automatic application to global installments is supported only for customer receipts. Select other applications using Applies-to ID.';
         LatePostingErr: Label 'Late journal posting is not supported for global installment invoices.';
         IncompleteBackfillMsg: Label 'Installment invoice grouping could not be completed because a posted invoice or customer ledger anchor is missing or inconsistent. The upgrade tag was not set.', Locked = true;
 
@@ -214,10 +214,37 @@ codeunit 8843 "Sales Installment History"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnPrepareTempCustLedgEntryOnBeforeTempOldCustLedgEntryInsert', '', false, false)]
     local procedure CheckAutomaticApplication(var CustLedgerEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin
-        if not IsNullGuid(CustLedgerEntry."Installment Plan ID") and
-           (GenJournalLine."Applies-to ID" = '') and (GenJournalLine."Applies-to Doc. No." = '')
+        if IsNullGuid(CustLedgerEntry."Installment Plan ID") or
+           (GenJournalLine."Applies-to ID" <> '') or (GenJournalLine."Applies-to Doc. No." <> '')
         then
+            exit;
+        if not IsAutomaticReceipt(GenJournalLine) then
             Error(AutomaticApplicationErr);
+        CustLedgerEntry.TestField("Invoice Entry No.");
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnPrepareTempCustLedgEntryOnBeforeExit', '', false, false)]
+    local procedure OrderAutomaticInstallmentApplication(var GenJournalLine: Record "Gen. Journal Line"; var TempOldCustLedgEntry: Record "Cust. Ledger Entry" temporary)
+    var
+        TempInstallmentEntry: Record "Cust. Ledger Entry" temporary;
+        EmptyGuid: Guid;
+    begin
+        if not IsAutomaticReceipt(GenJournalLine) then
+            exit;
+        TempInstallmentEntry.Copy(TempOldCustLedgEntry, true);
+        TempInstallmentEntry.SetFilter("Installment Plan ID", '<>%1', EmptyGuid);
+        if TempInstallmentEntry.IsEmpty() then
+            exit;
+        TempOldCustLedgEntry.SetCurrentKey(
+            "Customer No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.");
+    end;
+
+    local procedure IsAutomaticReceipt(GenJournalLine: Record "Gen. Journal Line"): Boolean
+    begin
+        exit((GenJournalLine."Account Type" = GenJournalLine."Account Type"::Customer) and
+             (GenJournalLine."Document Type" = GenJournalLine."Document Type"::Payment) and
+             (GenJournalLine.Amount < 0) and IsNullGuid(GenJournalLine."Installment Plan ID") and
+             (GenJournalLine."Applies-to ID" = '') and (GenJournalLine."Applies-to Doc. No." = ''));
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Payment Service Setup", 'OnCanChangePaymentServiceOnAfterGetRecordRef', '', false, false)]
