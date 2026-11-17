@@ -77,6 +77,8 @@ codeunit 136102 "Service Contracts"
         DimensionNotChangeableServiceEntriesExistErr: Label 'You cannot change the dimension because there are service entries connected to this line.';
         DimensionEditableErr: Label 'Dimension Code field must be editable.';
         DimensionNonEditableErr: Label 'Dimension Code field must not be editable.';
+        DimensionSetIDMsg: Label 'Dimension set id matches.';
+        ShortcutDimension2CodeMsg: Label 'Shortcut dimension 2 code matches.';
         ServiceTemplateMsg: Label 'Do you want to create the contract using a contract template?';
         ServiceContractErr: Label '%1 in Service Contract is not correct.';
         GLEntryErr: Label '%1 in GL Entry is not correct.';
@@ -3760,6 +3762,46 @@ codeunit 136102 "Service Contracts"
         WorkDate := CurrentWorkDate;
     end;
 
+    [Test]
+    [HandlerFunctions('SignContractConfirmHandler,MsgHandler,ServContrctTemplateListHandler')]
+    procedure ServiceOrderDimensionsCodeFromServiceContract()
+    var
+        Dimension: Record Dimension;
+        DimensionValue: Record "Dimension Value";
+        GlobalDimensionValue: Record "Dimension Value";
+        ServiceContractHeader: Record "Service Contract Header";
+        ServiceContractLine: Record "Service Contract Line";
+        ServiceHeader: Record "Service Header";
+    begin
+        // [SCENARIO 654757] Test Dimension on Service Order Created from Service Contract.
+
+        // [Given] Create Dimension, Service Contract, Update dimension on
+        // Service Contract Header and Sign the Service Contract.
+        Initialize();
+        LibraryDimension.CreateDimension(Dimension);
+        LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
+        LibraryDimension.CreateDimensionValue(GlobalDimensionValue, LibraryERM.GetGlobalDimensionCode(2));
+
+        CreateServiceContract(ServiceContractHeader, ServiceContractLine, ServiceContractHeader."Contract Type"::Contract);
+        ModifyServiceContractHeader(ServiceContractHeader, ServiceContractHeader."Service Period");
+        ServiceContractHeader.Validate("Dimension Set ID",
+          LibraryDimension.CreateDimSet(ServiceContractHeader."Dimension Set ID", Dimension.Code, DimensionValue.Code));
+        ServiceContractHeader.Validate("Dimension Set ID",
+          LibraryDimension.CreateDimSet(
+            ServiceContractHeader."Dimension Set ID", GlobalDimensionValue."Dimension Code", GlobalDimensionValue.Code));
+        ServiceContractHeader.Modify(true);
+        SignServContractDoc.SignContract(ServiceContractHeader);
+
+        // [When] Create Service Order from Service Contract.
+        CreateServiceContractOrder(ServiceContractHeader);
+
+        // [Then] Verify Dimension on Service Order for Service Header and Service Item Line.
+        FindServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Order, ServiceContractHeader."Contract No.");
+        Assert.AreEqual(ServiceHeader."Dimension Set ID", ServiceContractHeader."Dimension Set ID", DimensionSetIDMsg);
+        Assert.AreEqual(
+          GlobalDimensionValue.Code, ServiceHeader."Shortcut Dimension 2 Code", ShortcutDimension2CodeMsg);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -3770,7 +3812,6 @@ codeunit 136102 "Service Contracts"
         LibrarySetupStorage.Restore();
         Clear(LibraryService);
         WorkDate := InitialWorkDate;
-
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Service Contracts");
@@ -5554,7 +5595,6 @@ codeunit 136102 "Service Contracts"
         ServiceHeader.SetRange("Document Type", ServiceHeader."Document Type"::Invoice);
         if ServiceHeader.FindLast() then
             InvoiceNo := ServiceHeader."No.";
-
     end;
 
     local procedure CreateServiceContractwithCustomer(var ServiceContractHeader: Record "Service Contract Header";
@@ -5835,7 +5875,6 @@ codeunit 136102 "Service Contracts"
         FoundGLAccount := false;
         EndOfRecords := false;
         GLAccount := LibraryVariableStorage.DequeueText();
-
         while not EndOfRecords do begin
             if AnalysisByDimensionMatrix.Code.Value = GLAccount then begin
                 FoundGLAccount := true;

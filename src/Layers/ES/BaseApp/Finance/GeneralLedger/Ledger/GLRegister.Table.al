@@ -23,7 +23,8 @@ table 45 "G/L Register"
 {
     Caption = 'G/L Register';
     LookupPageID = "G/L Registers";
-    Permissions = TableData "G/L Register" = rimd;
+    Permissions = TableData "G/L Entry" = m,
+                  TableData "G/L Register" = rimd;
     DataClassification = CustomerContent;
 
     fields
@@ -191,6 +192,10 @@ table 45 "G/L Register"
         exit(GetLastEntryNo() + 1);
     end;
 
+    /// <summary>
+    /// Retrieves the next sequential register number from the G/L Register table.
+    /// </summary>
+    /// <returns>Integer: The next sequential register number.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Register", 'r')]
     procedure GetNextEntryNo(): Integer
     var

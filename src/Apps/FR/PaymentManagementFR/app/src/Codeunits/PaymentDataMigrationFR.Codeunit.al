@@ -5,18 +5,22 @@
 namespace Microsoft.Bank.Payment;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.DirectDebit;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Reflection;
+using System.Upgrade;
 
 /// <summary>
 /// Copies the French payment data from the base application into the Payment Management FR app.
 /// This is the single implementation shared by the data update that is started from Feature Management
 /// (codeunit "Feature - PaymentMgt FR") and by the forced upgrade to version 31 (codeunit
 /// "Upgrade Payment Management FR"), so that both scenarios migrate exactly the same data.
-/// The legacy base application objects are referenced by ID because they are obsolete and are removed
-/// in version 31.
+/// The legacy base application objects are referenced by ID because they are obsolete. The journal
+/// context fields, delayed-VAT buffer and direct-debit source fields remain in SQL until CLEANSCHEMA33
+/// and have separately tagged migrations for enabled companies.
 /// </summary>
 codeunit 10844 "Payment Data Migration FR"
 {
@@ -41,6 +45,69 @@ codeunit 10844 "Payment Data Migration FR"
         TransferBankAccountFields(Database::"Bank Account");
         TransferBankAccountFields(Database::"Customer Bank Account");
         TransferBankAccountFields(Database::"Vendor Bank Account");
+
+        MigratePaymentVATJournalFields();
+        MigratePaymentVATBuffer();
+        MigrateDirectDebitSourceFields();
+    end;
+
+    /// <summary>
+    /// Copies the three payment context fields on both journal tables once per company.
+    /// Activation, installation, company initialization and upgrades share this separately tagged migration.
+    /// </summary>
+    internal procedure MigratePaymentVATJournalFields()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgTagPayment: Codeunit "Upg. Tag Payment Management FR";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgTagPayment.GetPaymentVATJournalFieldsUpgradeTag()) then
+            exit;
+
+#if not CLEANSCHEMA33
+        TransferPaymentVATJournalFields(Database::"Gen. Journal Line");
+        TransferPaymentVATJournalFields(Database::"Posted Gen. Journal Line");
+#endif
+
+        UpgradeTag.SetUpgradeTag(UpgTagPayment.GetPaymentVATJournalFieldsUpgradeTag());
+    end;
+
+    /// <summary>
+    /// Copies delayed-VAT applications into the app without overwriting app records on retry.
+    /// A separate tag also covers companies that already completed the original payment migration.
+    /// </summary>
+    internal procedure MigratePaymentVATBuffer()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgTagPayment: Codeunit "Upg. Tag Payment Management FR";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgTagPayment.GetPaymentVATBufferUpgradeTag()) then
+            exit;
+
+#if not CLEANSCHEMA33
+        TransferRecords(10871, Database::"Unreal. CV Ledg. Buffer FR");
+#endif
+
+        UpgradeTag.SetUpgradeTag(UpgTagPayment.GetPaymentVATBufferUpgradeTag());
+    end;
+
+    /// <summary>
+    /// Migrates collection origins and payment-slip export errors once per company, including companies
+    /// that enabled Payment Management before these fields were extracted.
+    /// </summary>
+    internal procedure MigrateDirectDebitSourceFields()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgTagPayment: Codeunit "Upg. Tag Payment Management FR";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgTagPayment.GetDirectDebitSourceFieldsUpgradeTag()) then
+            exit;
+
+#if not CLEANSCHEMA33
+        TransferDirectDebitSourceFields();
+        TransferPaymentFileErrors();
+#endif
+
+        UpgradeTag.SetUpgradeTag(UpgTagPayment.GetDirectDebitSourceFieldsUpgradeTag());
     end;
 
     /// <summary>
@@ -106,6 +173,13 @@ codeunit 10844 "Payment Data Migration FR"
         InsertDocumentEntry(TempDocumentEntry, Database::"Bank Account");
         InsertDocumentEntry(TempDocumentEntry, Database::"Customer Bank Account");
         InsertDocumentEntry(TempDocumentEntry, Database::"Vendor Bank Account");
+        InsertDocumentEntry(TempDocumentEntry, Database::"Gen. Journal Line");
+        InsertDocumentEntry(TempDocumentEntry, Database::"Posted Gen. Journal Line");
+#if not CLEANSCHEMA33
+        InsertDocumentEntry(TempDocumentEntry, 10871); // Legacy Unreal. CV Ledg. Entry Buffer
+#endif
+        InsertDocumentEntry(TempDocumentEntry, Database::"Direct Debit Collection");
+        InsertDocumentEntry(TempDocumentEntry, Database::"Payment Jnl. Export Error Text");
     end;
 
     local procedure GetTableMapping(var LegacyTableIds: List of [Integer]; var AppTableIds: List of [Integer])
@@ -237,6 +311,64 @@ codeunit 10844 "Payment Data Migration FR"
             until RecRef.Next() = 0;
         RecRef.Close();
     end;
+
+#if not CLEANSCHEMA33
+    local procedure TransferDirectDebitSourceFields()
+    var
+        DirectDebitCollection: Record "Direct Debit Collection";
+        CollectionRef: RecordRef;
+        SourceTableField: FieldRef;
+    begin
+        if DirectDebitCollection.FindSet(true) then
+            repeat
+                CollectionRef.GetTable(DirectDebitCollection);
+                SourceTableField := CollectionRef.Field(10800);
+                DirectDebitCollection."Source Table ID FR" := SourceTableField.Value;
+                if DirectDebitCollection."Source Table ID FR" = 10865 then // Legacy Payment Header
+                    DirectDebitCollection."Source Table ID FR" := Database::"Payment Header FR";
+                DirectDebitCollection.Modify(false);
+            until DirectDebitCollection.Next() = 0;
+    end;
+
+    local procedure TransferPaymentFileErrors()
+    var
+        LegacyPaymentError: Record "Payment Jnl. Export Error Text";
+        PaymentError: Record "Payment Jnl. Export Error Text";
+        GenJnlLine: Record "Gen. Journal Line";
+    begin
+        // Failed exports can already have deleted their transient collection. Migrate their errors
+        // independently, appending to any app errors rather than colliding with their primary keys.
+        LegacyPaymentError.SetRange("Journal Template Name", '');
+        LegacyPaymentError.SetRange("Journal Batch Name", '10865');
+        if LegacyPaymentError.FindSet(true) then
+            repeat
+                GenJnlLine."Journal Batch Name" := Format(Database::"Payment Header FR");
+                GenJnlLine."Document No." := LegacyPaymentError."Document No.";
+                GenJnlLine."Line No." := LegacyPaymentError."Journal Line No.";
+                Clear(PaymentError);
+                PaymentError.CreateNew(GenJnlLine, LegacyPaymentError."Error Text",
+                    LegacyPaymentError."Additional Information", LegacyPaymentError."Support URL");
+                LegacyPaymentError.Delete();
+            until LegacyPaymentError.Next() = 0;
+    end;
+
+    local procedure TransferPaymentVATJournalFields(TableId: Integer)
+    var
+        RecRef: RecordRef;
+    begin
+        // Removed legacy fields remain in SQL until CLEANSCHEMA33. Read their IDs without validating
+        // either field, including false and blank values; the company tag protects subsequent app edits.
+        RecRef.Open(TableId, false);
+        if RecRef.FindSet(true) then
+            repeat
+                CopyFieldValue(RecRef, 10862, 10831);
+                CopyFieldValue(RecRef, 10863, 10832);
+                CopyFieldValue(RecRef, 10864, 10833);
+                RecRef.Modify(false);
+            until RecRef.Next() = 0;
+        RecRef.Close();
+    end;
+#endif
 
     local procedure CopyFieldValue(var RecRef: RecordRef; SourceFieldNo: Integer; TargetFieldNo: Integer)
     var

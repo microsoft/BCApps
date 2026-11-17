@@ -661,7 +661,7 @@ codeunit 550 "VAT Rate Change Conversion"
                 NewSalesLine.Validate("Qty. to Invoice", 0);
             SalesHeader.Get(NewSalesLine."Document Type", NewSalesLine."Document No.");
             RoundingPrecision := GetRoundingPrecision(SalesHeader."Currency Code");
-            if SalesHeader."Prices Including VAT" then
+            if SalesHeader."Prices Including VAT" and (NewSalesLine.Type <> NewSalesLine.Type::Item) then
                 NewSalesLine.Validate("Unit Price", Round(SalesLine."Unit Price" * (100 + NewSalesLine."VAT %") / (100 + SalesLine."VAT %"), RoundingPrecision))
             else
                 NewSalesLine.Validate("Unit Price", SalesLine."Unit Price");

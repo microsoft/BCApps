@@ -41,9 +41,6 @@ codeunit 31016 "Upgrade Tag Definitions CZL"
         PerCompanyUpgradeTags.Add(GetVATStatementReportExtensionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetAllowVATPostingUpgradeTag());
         PerCompanyUpgradeTags.Add(GetOriginalVATAmountsInVATEntriesUpgradeTag());
-#if not CLEAN27        
-        PerCompanyUpgradeTags.Add(GetFunctionalCurrencyUpgradeTag());
-#endif
         PerCompanyUpgradeTags.Add(GetEnableNonDeductibleVATCZUpgradeTag());
         PerCompanyUpgradeTags.Add(GetVATReportUpgradeTag());
         PerCompanyUpgradeTags.Add(SetEnableNonDeductibleVATCZUpgradeTag());
@@ -52,6 +49,8 @@ codeunit 31016 "Upgrade Tag Definitions CZL"
         PerCompanyUpgradeTags.Add(GetOriginalVATAmountsACYInVATEntriesUpgradeTag());
         PerCompanyUpgradeTags.Add(GetChangeDefaultDraftInvoiceAndProformaReportLayoutsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetStatutoryReportingSetupOfficialFullNameUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetEETTaxpayerCertificateCodeUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetEETBusinessPremisesExtendedDescriptionUpgradeTag());
     end;
 
     procedure GetDataVersion174PerDatabaseUpgradeTag(): Code[250]
@@ -188,13 +187,6 @@ codeunit 31016 "Upgrade Tag Definitions CZL"
     begin
         exit('CZL-539623-OriginalVATAmountsInVATEntriesUpgradeTag-20240627');
     end;
-#if not CLEAN27
-    [Obsolete('This function will be removed in a future version.', '27.0')]
-    procedure GetFunctionalCurrencyUpgradeTag(): Code[250]
-    begin
-        exit('CZL-542349-FunctionalCurrencyUpgradeTag-20240718');
-    end;
-#endif
 
     procedure GetEnableNonDeductibleVATCZUpgradeTag(): Code[250]
     begin
@@ -234,5 +226,15 @@ codeunit 31016 "Upgrade Tag Definitions CZL"
     internal procedure GetStatutoryReportingSetupOfficialFullNameUpgradeTag(): Code[250]
     begin
         exit('CZL-652254-StatutoryReportingSetupOfficialFullNameUpgradeTag-20260930');
+    end;
+
+    procedure GetEETTaxpayerCertificateCodeUpgradeTag(): Code[250]
+    begin
+        exit('CZL-624913-EETTaxpayerCertificateCodeTag-20261012');
+    end;
+
+    procedure GetEETBusinessPremisesExtendedDescriptionUpgradeTag(): Code[250]
+    begin
+        exit('CZL-624913-EETBusinessPremisesExtendedDescriptionTag-20261013');
     end;
 }

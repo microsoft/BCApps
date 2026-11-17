@@ -18,7 +18,7 @@ codeunit 20504 "Subc. Transfer Management"
     var
         ManufacturingSetup: Record "Manufacturing Setup";
         TempGlobalReservationEntry: Record "Reservation Entry" temporary;
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -34,7 +34,7 @@ codeunit 20504 "Subc. Transfer Management"
 
     procedure CalcReceiptDateFromProdCompDueDateWithCompTransferLeadTime(ProdOrderComponent: Record "Prod. Order Component") ReceiptDate: Date
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -51,7 +51,7 @@ codeunit 20504 "Subc. Transfer Management"
 
     procedure CheckDirectTransferIsAllowedForTransferHeader(TransferHeader: Record "Transfer Header")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -65,7 +65,7 @@ codeunit 20504 "Subc. Transfer Management"
         ReservationEntry: Record "Reservation Entry";
         ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -101,7 +101,7 @@ codeunit 20504 "Subc. Transfer Management"
 
     procedure ComponentHasExcessReservations(ProdOrderComponent: Record "Prod. Order Component"; MaxQtyBase: Decimal): Boolean
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -116,7 +116,7 @@ codeunit 20504 "Subc. Transfer Management"
         ProdOrderCompReserve: Codeunit "Prod. Order Comp.-Reserve";
         TotalReservedQtyBase: Decimal;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -141,7 +141,7 @@ codeunit 20504 "Subc. Transfer Management"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         CreateReservEntry: Codeunit "Create Reserv. Entry";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -205,7 +205,7 @@ codeunit 20504 "Subc. Transfer Management"
         QtyToReserveBase: Decimal;
         AvailableToReserveBase: Decimal;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -285,7 +285,7 @@ codeunit 20504 "Subc. Transfer Management"
         ProdOrderComponent: Record "Prod. Order Component";
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

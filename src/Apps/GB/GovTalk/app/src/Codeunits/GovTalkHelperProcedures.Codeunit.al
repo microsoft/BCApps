@@ -70,11 +70,15 @@ codeunit 10561 "GovTalk Helper Procedures"
     begin
         RecRef.Open(TableId, false);
         SourceFieldRef := RecRef.Field(SourceFieldNo);
-        SourceFieldRef.SetFilter('<>%1', '');
+        TargetFieldRef := RecRef.Field(TargetFieldNo);
+        if (SourceFieldRef.Class <> FieldClass::Normal) or (TargetFieldRef.Class <> FieldClass::Normal) then
+            exit;
+
+        if SourceFieldRef.Type in [FieldType::Text, FieldType::Code] then
+            SourceFieldRef.SetFilter('<>%1', '');
 
         if RecRef.FindSet() then
             repeat
-                TargetFieldRef := RecRef.Field(TargetFieldNo);
                 TargetFieldRef.VALUE := SourceFieldRef.VALUE;
                 RecRef.Modify(false);
             until RecRef.Next() = 0;
