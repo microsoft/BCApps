@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
 
 codeunit 148232 "Banking FI Posting Tests"
 {
@@ -278,11 +279,13 @@ codeunit 148232 "Banking FI Posting Tests"
         Entry: Record "Vendor Ledger Entry";
         Journal: Record "Gen. Journal Line";
         Bank: Record "Bank Account";
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
     begin
-        EnableFeature();
+        Assert.IsFalse(FeatureManagementFacade.IsEnabled('BankingAndPaymentsFI'), 'Feature-off integration tests require an inactive installation, not an unsafe rollback after migration.');
+        LibraryBanking.SetFeatureEnabled(false);
+        BindSubscription(LibraryBanking);
         CreateSuggestionInvoice(Entry, Journal, Bank);
         CreateExport(Entry, Bank."No.", WorkDate() + 3, 37, true, false);
-        LibraryBanking.SetFeatureEnabled(false);
         RunSuggestion(Entry, Journal, Bank."No.", false, false, false, false);
         Entry.CalcFields("Remaining Amount");
         AssertSuggestedLine(Journal, -Entry."Remaining Amount", WorkDate() + 1);
@@ -305,6 +308,11 @@ codeunit 148232 "Banking FI Posting Tests"
         Header.Validate("Currency Code", '');
         Header.Validate("Payment Discount %", 0);
         Header."Payment Message" := 'Report instance payment';
+#if not CLEAN30
+#pragma warning disable AL0432
+        Header."Invoice Message" := 'Report instance payment';
+#pragma warning restore AL0432
+#endif
         Header.Validate("Due Date", WorkDate());
         Header.Modify(true);
         InvoiceNo := LibraryPurchase.PostPurchaseDocument(Header, true, true);
@@ -481,6 +489,7 @@ codeunit 148232 "Banking FI Posting Tests"
 
     local procedure EnableFeature()
     begin
+        LibraryBanking.SetCompletedFeatureFixture();
 #if not CLEAN30
         LibraryBanking.SetFeatureEnabled(true);
         BindSubscription(LibraryBanking);

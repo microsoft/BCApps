@@ -104,7 +104,9 @@ report 13403 "Export SEPA Payment File"
     trigger OnInitReport()
     var
         SEPARefPmtExported: Record "Ref. Payment - Exported";
+        Feature: Codeunit "FI Banking Payment Feature";
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         SEPARefPmtExported.Reset();
         SEPARefPmtExported.SetCurrentKey("Payment Date", "Vendor No.", "Entry No.");
         SEPARefPmtExported.SetRange(Transferred, false);

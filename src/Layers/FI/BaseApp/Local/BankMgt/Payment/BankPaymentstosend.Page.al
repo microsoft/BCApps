@@ -328,7 +328,10 @@ page 32000006 "Bank Payments to send"
     end;
 
     trigger OnOpenPage()
+    var
+        Feature: Codeunit "FI Banking Payment Feature";
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         UpdateBalance();
         PurchSetup.Get();
         PurchSetup.TestField("Bank Batch Nos.");

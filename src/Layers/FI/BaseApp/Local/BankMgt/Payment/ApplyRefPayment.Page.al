@@ -106,7 +106,10 @@ page 32000002 "Apply Ref. Payment"
     }
 
     trigger OnInit()
+    var
+        Feature: Codeunit "FI Banking Payment Feature";
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         CurrPage.LookupMode := true;
     end;
 }

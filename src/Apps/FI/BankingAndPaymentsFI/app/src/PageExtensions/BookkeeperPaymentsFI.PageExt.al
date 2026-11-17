@@ -43,6 +43,14 @@ pageextension 13563 "Bookkeeper Payments FI" extends "Bookkeeper Role Center"
 {
     actions
     {
+#if not CLEAN30
+#pragma warning disable AL0432
+        modify("Bank payments to send")
+        {
+            Visible = not FeatureEnabled;
+        }
+#pragma warning restore AL0432
+#endif
         addlast(Sections)
         {
             action("Bank payments to send FI")
@@ -52,7 +60,23 @@ pageextension 13563 "Bookkeeper Payments FI" extends "Bookkeeper Role Center"
                 Image = VendorPayment;
                 RunObject = Page "Bank Payments to send FI";
                 ToolTip = 'View the payments that will be registered to the vendors.';
+#if not CLEAN30
+                Visible = FeatureEnabled;
+#endif
             }
+
         }
     }
+
+#if not CLEAN30
+    trigger OnOpenPage()
+    var
+        Feature: Codeunit "Banking Payments Feature FI";
+    begin
+        FeatureEnabled := Feature.IsEnabled();
+    end;
+
+    var
+        FeatureEnabled: Boolean;
+#endif
 }

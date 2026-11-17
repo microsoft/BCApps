@@ -134,7 +134,7 @@ codeunit 13580 "Banking Payments References FI"
         CopyPostedReference(GenJnlLine);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post Prepayments", 'OnBeforeRunGenJnlPostLine', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post Prepayments", 'OnBeforePostCustomerEntry', '', false, false)]
     local procedure CopyPrepaymentReferenceToJournal(var GenJnlLine: Record "Gen. Journal Line")
     begin
 #if not CLEAN30

@@ -19,7 +19,10 @@ codeunit 13403 "Export SEPA Payment File"
     TableNo = "Gen. Journal Line";
 
     trigger OnRun()
+    var
+        Feature: Codeunit "FI Banking Payment Feature";
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         if (Rec.GetFilter("Journal Template Name") <> '') and (Rec.GetFilter("Journal Batch Name") <> '') and (Rec.GetFilter("Document No.") <> '') then
             Error(ExportRefPmtErr);
 

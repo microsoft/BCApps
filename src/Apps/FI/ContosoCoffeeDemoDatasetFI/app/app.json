@@ -13,6 +13,12 @@
   "logo": "./ExtensionLogo.png",
   "dependencies": [
     {
+      "id": "7899cd5a-e428-4835-a1cc-261472c5dcdf",
+      "name": "Banking and Payments FI",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
       "id": "5a0b41e9-7a42-4123-d521-2265186cfb31",
       "name": "Contoso Coffee Demo Dataset",
       "publisher": "Microsoft",

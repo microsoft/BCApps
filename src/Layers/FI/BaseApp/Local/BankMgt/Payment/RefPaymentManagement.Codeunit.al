@@ -26,6 +26,7 @@ codeunit 32000000 "Ref. Payment Management"
 
     trigger OnRun()
     begin
+        Feature.EnsureLegacyProcessingAllowed();
     end;
 
     var
@@ -39,6 +40,7 @@ codeunit 32000000 "Ref. Payment Management"
         GenJnlTemplate: Record "Gen. Journal Template";
         VendLedgEntry: Record "Vendor Ledger Entry";
         NoSeriesBatch: Codeunit "No. Series - Batch";
+        Feature: Codeunit "FI Banking Payment Feature";
         ApplyVendLedgEntry: Page "Apply Vendor Entries";
         LineNro: Integer;
         LastDocNro: Code[20];
@@ -51,6 +53,7 @@ codeunit 32000000 "Ref. Payment Management"
     var
         LineNoIncrement: Integer;
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         LineNoIncrement := 10000;
         GLSetup.Get();
         GenJnlTemplate.Get(JnlTemplateName);
@@ -118,6 +121,7 @@ codeunit 32000000 "Ref. Payment Management"
     [Scope('OnPrem')]
     procedure GetNroSeries(JnlBatchName: Code[20]; JnlTemplateName: Code[20])
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         LineNro := 10000;
         GenJnlBatch.SetFilter("Journal Template Name", JnlTemplateName);
         GenJnlBatch.SetFilter(Name, JnlBatchName);
@@ -129,6 +133,7 @@ codeunit 32000000 "Ref. Payment Management"
     var
         NoMatchLines: Boolean;
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         RefPmtImport.Reset();
         RefPmtImport.SetRange("Record ID", 3, 5);
         RefPmtImport.SetRange("Posted to G/L", false);
@@ -168,6 +173,7 @@ codeunit 32000000 "Ref. Payment Management"
         Vendor: Record Vendor;
         LastLineNo: Integer;
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         RefPmtExported.SetCurrentKey(Transferred, "Applied Payments");
         RefPmtExported.SetRange(Transferred, false);
         RefPmtExported.SetRange("Applied Payments", false);
@@ -230,6 +236,7 @@ codeunit 32000000 "Ref. Payment Management"
     [Scope('OnPrem')]
     procedure VendPaymApply(VendNo: Code[20])
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         VendLedgEntry.SetFilter("Vendor No.", VendNo);
         VendLedgEntry.SetFilter("Document Type", '%1|%2', 2, 3);
         VendLedgEntry.SetRange(Open, true);
@@ -342,6 +349,7 @@ codeunit 32000000 "Ref. Payment Management"
         CustLedgerEntryPmt: Record "Cust. Ledger Entry";
         CountEntries: Integer;
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         CustLedgEntry.Reset();
         CustLedgEntry.SetCurrentKey("Document No.");
         CustLedgEntry.SetRange("Document Type", GenJnlLine2."Applies-to Doc. Type");
@@ -374,6 +382,7 @@ codeunit 32000000 "Ref. Payment Management"
     [Scope('OnPrem')]
     procedure UpdateDiscountPossible(var GenJnlLine2: Record "Gen. Journal Line"; PaymentAmount: Decimal)
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         if CustLedgEntry."Disreg. Pmt. Disc. at Full Pmt" and
             (GenJnlLine2."Posting Date" <= CustLedgEntry."Pmt. Disc. Tolerance Date") and
             (CustLedgEntry."Remaining Pmt. Disc. Possible" <> 0)

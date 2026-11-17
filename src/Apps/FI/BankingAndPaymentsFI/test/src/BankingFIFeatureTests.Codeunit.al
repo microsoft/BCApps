@@ -19,6 +19,84 @@ codeunit 148236 "Banking FI Feature Tests"
 
 #if not CLEAN30
     [Test]
+    procedure MigratedPaymentCannotBeExportedFromRetainedLegacyCopy()
+    var
+#pragma warning disable AL0432
+        LegacyPayment: Record "Ref. Payment - Exported";
+#pragma warning restore AL0432
+        ReplacementPayment: Record "Ref. Payment - Exported FI";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        Tags: Codeunit "Banking Payments Tags FI";
+        Assert: Codeunit Assert;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Retained legacy data cannot be re-exported after the replacement has transferred the payment.
+        RemoveMigrationTag();
+
+        // [GIVEN] A stale legacy row and its already transferred replacement, without executing migration.
+#pragma warning disable AL0432
+        LegacyPayment."No." := 9197001;
+        LegacyPayment.Transferred := false;
+        LegacyPayment.Insert();
+#pragma warning restore AL0432
+        ReplacementPayment."No." := 9197001;
+        ReplacementPayment.Transferred := true;
+        ReplacementPayment.Insert();
+        UpgradeTag.SetUpgradeTag(Tags.GetMigrationTag());
+
+        // [WHEN] A caller invokes the legacy table's public export entry point directly.
+#pragma warning disable AL0432
+        asserterror LegacyPayment.ExportToFile();
+#pragma warning restore AL0432
+
+        // [THEN] Rejection occurs before even resolving the old bank setup.
+        Assert.ExpectedError('Legacy Finnish banking processing is unavailable after cutover');
+        Assert.ExpectedErrorCode('Dialog');
+#pragma warning disable AL0432
+        LegacyPayment.Get(ReplacementPayment."No.");
+        Assert.IsFalse(LegacyPayment.Transferred, 'Rejection must not mutate retained legacy history.');
+#pragma warning restore AL0432
+        ReplacementPayment.Get(ReplacementPayment."No.");
+        Assert.IsTrue(ReplacementPayment.Transferred, 'The replacement transfer state must remain unchanged.');
+    end;
+
+    [Test]
+    procedure LegacyExportReportsRejectDirectInvocationAfterCutover()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        Tags: Codeunit "Banking Payments Tags FI";
+        Assert: Codeunit Assert;
+    begin
+        RemoveMigrationTag();
+        UpgradeTag.SetUpgradeTag(Tags.GetMigrationTag());
+
+        asserterror Report.Run(32000006, false, false);
+        Assert.ExpectedError('Legacy Finnish banking processing is unavailable after cutover');
+        asserterror Report.Run(32000004, false, false);
+        Assert.ExpectedError('Legacy Finnish banking processing is unavailable after cutover');
+        asserterror Report.Run(13403, false, false);
+        Assert.ExpectedError('Legacy Finnish banking processing is unavailable after cutover');
+        asserterror Report.Run(13413, false, false);
+        Assert.ExpectedError('Legacy Finnish banking processing is unavailable after cutover');
+    end;
+
+    [Test]
+    procedure LegacyImportAndSuggestionRejectDirectInvocationAfterCutover()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        Tags: Codeunit "Banking Payments Tags FI";
+        Assert: Codeunit Assert;
+    begin
+        RemoveMigrationTag();
+        UpgradeTag.SetUpgradeTag(Tags.GetMigrationTag());
+
+        asserterror Report.Run(32000000, false, false);
+        Assert.ExpectedError('Legacy Finnish banking processing is unavailable after cutover');
+        asserterror Report.Run(32000003, false, false);
+        Assert.ExpectedError('Legacy Finnish banking processing is unavailable after cutover');
+    end;
+
+    [Test]
     procedure RepeatedInactiveInstallDoesNotClassifyExistingCompanyAsFresh()
     var
         FeatureKey: Record "Feature Key";

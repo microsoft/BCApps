@@ -151,6 +151,13 @@ report 32000004 "Export Ref. Payment -  LUM"
     {
     }
 
+    trigger OnInitReport()
+    var
+        Feature: Codeunit "FI Banking Payment Feature";
+    begin
+        Feature.EnsureLegacyProcessingAllowed();
+    end;
+
     trigger OnPostReport()
     begin
         if CreatedLines then begin
@@ -229,7 +236,10 @@ report 32000004 "Export Ref. Payment -  LUM"
 
     [Scope('OnPrem')]
     procedure CreatePaymentRecord()
+    var
+        Feature: Codeunit "FI Banking Payment Feature";
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         if RefPmtExport.FindSet() then
             repeat
                 RefPmtExport.TestField("Vendor No.");

@@ -113,6 +113,13 @@ report 32000006 "Export Ref. Payment -  LMP"
     {
     }
 
+    trigger OnInitReport()
+    var
+        Feature: Codeunit "FI Banking Payment Feature";
+    begin
+        Feature.EnsureLegacyProcessingAllowed();
+    end;
+
     trigger OnPostReport()
     begin
         if CreatedLines then begin
@@ -188,7 +195,9 @@ report 32000006 "Export Ref. Payment -  LMP"
     procedure CreateHeaderLines()
     var
         NoSeries: Codeunit "No. Series";
+        Feature: Codeunit "FI Banking Payment Feature";
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         UniqueBatchID := NoSeries.GetNextNo(PurchSetup."Bank Batch Nos.");
         UniqueBatchID2 := TextSpaceFormat(UniqueBatchID, 35, 1, ' ');
         DueDate := Format(RefPmtExport."Payment Date", 0, '<Year,2><Month,2><Day,2>');
@@ -201,7 +210,10 @@ report 32000006 "Export Ref. Payment -  LMP"
     end;
 
     procedure CreateTransactionlines()
+    var
+        Feature: Codeunit "FI Banking Payment Feature";
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         if RefPmtExport.FindSet() then
             repeat
                 if (PrevPaymDate <> 0D) and (PrevPaymDate <> RefPmtExport."Payment Date") then begin
@@ -291,7 +303,10 @@ report 32000006 "Export Ref. Payment -  LMP"
     end;
 
     procedure CreateDetailLines(Rec: Record "Vendor Ledger Entry"; EntryNo: Integer)
+    var
+        Feature: Codeunit "FI Banking Payment Feature";
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         Rec.Get(EntryNo);
         Rec.SetRange(Open, false);
         Rec.SetRange("Closed by Entry No.", RefPmtExport."Entry No.");
@@ -344,7 +359,9 @@ report 32000006 "Export Ref. Payment -  LMP"
         Len: Integer;
         Msg1: Text[175];
         Msg2: Text[175];
+        Feature: Codeunit "FI Banking Payment Feature";
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         Spare11 := TextSpaceFormat(' ', 20, 1, ' ');
         Spare12 := TextSpaceFormat(' ', 21, 1, ' ');
 
@@ -397,7 +414,10 @@ report 32000006 "Export Ref. Payment -  LMP"
 
     [Scope('OnPrem')]
     procedure CreateSumLines()
+    var
+        Feature: Codeunit "FI Banking Payment Feature";
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         Spare7 := TextSpaceFormat(' ', 6, 0, ' ');
         Spare8 := TextSpaceFormat(' ', 13, 0, ' ');
         Spare9 := TextSpaceFormat(' ', 6, 0, ' ');

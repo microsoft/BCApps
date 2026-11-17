@@ -205,6 +205,13 @@ report 32000000 "Import Ref. Payment"
     {
     }
 
+    trigger OnInitReport()
+    var
+        Feature: Codeunit "FI Banking Payment Feature";
+    begin
+        Feature.EnsureLegacyProcessingAllowed();
+    end;
+
     var
         BankAccount: Record "Bank Account";
         FileSetup: Record "Reference File Setup";

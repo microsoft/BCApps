@@ -1,9 +1,5 @@
-#if not CLEAN30
 codeunit 160900 "Create Reference File Setup"
 {
-    ObsoleteState = Pending;
-    ObsoleteTag = '30.0';
-    ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
     trigger OnRun()
     begin
@@ -15,11 +11,24 @@ codeunit 160900 "Create Reference File Setup"
 
     procedure InsertData("No.": Code[20])
     var
+#if not CLEAN30
         "Reference File Setup": Record "Reference File Setup";
+        BankingDemo: Codeunit "Banking Payments Demo FI";
+#endif
+        ReplacementSetup: Record Microsoft.Bank.Setup."Reference File Setup FI";
     begin
-        "Reference File Setup".Init();
-        "Reference File Setup".Validate("No.", "No.");
-        "Reference File Setup".Insert();
+#if not CLEAN30
+        if not BankingDemo.IsEnabled() then begin
+#pragma warning disable AL0432
+            "Reference File Setup".Init();
+            "Reference File Setup".Validate("No.", "No.");
+            "Reference File Setup".Insert();
+#pragma warning restore AL0432
+            exit;
+        end;
+#endif
+        ReplacementSetup.Init();
+        ReplacementSetup.Validate("No.", "No.");
+        ReplacementSetup.Insert();
     end;
 }
-#endif

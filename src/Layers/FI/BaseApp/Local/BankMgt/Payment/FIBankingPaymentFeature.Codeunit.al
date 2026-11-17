@@ -6,6 +6,7 @@ namespace Microsoft.Bank.Payment;
 
 #if not CLEAN30
 using System.Environment.Configuration;
+using System.Upgrade;
 #endif
 
 codeunit 32000003 "FI Banking Payment Feature"
@@ -25,8 +26,21 @@ codeunit 32000003 "FI Banking Payment Feature"
 #endif
     end;
 
+#if not CLEAN30
+    procedure EnsureLegacyProcessingAllowed()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if IsEnabled() or UpgradeTag.HasUpgradeTag(MigrationTagTok) then
+            Error(LegacyProcessingErr);
+    end;
+#endif
+
     var
 #if not CLEAN30
         FeatureIdTok: Label 'BankingAndPaymentsFI', Locked = true;
+        // Keep this shared cutover marker aligned with Banking Payments Tags FI.
+        MigrationTagTok: Label 'MS-BankingAndPaymentsFIUpgradeTag-20261110', Locked = true;
+        LegacyProcessingErr: Label 'Legacy Finnish banking processing is unavailable after cutover. Use the Banking and Payments FI app. Retained legacy entries are for history only.';
 #endif
 }

@@ -222,7 +222,10 @@ table 287 "Customer Bank Account"
             trigger OnValidate()
             begin
                 PostCode.CheckClearPostCodeCityCounty(City, "Post Code", County, "Country/Region Code", xRec."Country/Region Code");
-                Validate("Bank Account No.");
+#if not CLEAN30
+                if not FIBankingPaymentFeature.IsEnabled() then
+                    Validate("Bank Account No.");
+#endif
             end;
         }
         /// <summary>

@@ -524,7 +524,14 @@ table 32000002 "Ref. Payment - Exported"
     end;
 
     procedure UpdateLines()
+#if not CLEAN30
+    var
+        Feature: Codeunit "FI Banking Payment Feature";
+#endif
     begin
+#if not CLEAN30
+        Feature.EnsureLegacyProcessingAllowed();
+#endif
         if FindSet(true) then
             repeat
                 VendLedgEntry.Get("Entry No.");
@@ -539,7 +546,14 @@ table 32000002 "Ref. Payment - Exported"
     end;
 
     procedure UpdateRemittanceInfo()
+#if not CLEAN30
+    var
+        Feature: Codeunit "FI Banking Payment Feature";
+#endif
     begin
+#if not CLEAN30
+        Feature.EnsureLegacyProcessingAllowed();
+#endif
         case "Message Type" of
             "Message Type"::"Reference No.",
           "Message Type"::"Tax Message":
@@ -602,7 +616,13 @@ table 32000002 "Ref. Payment - Exported"
     procedure MarkAffiliatedAsTransferred()
     var
         RefPaymentExported: Record "Ref. Payment - Exported";
+#if not CLEAN30
+        Feature: Codeunit "FI Banking Payment Feature";
+#endif
     begin
+#if not CLEAN30
+        Feature.EnsureLegacyProcessingAllowed();
+#endif
         if ("Entry No." = 0) and ("Affiliated to Line" <> 0) then begin
             RefPaymentExported.SetFilter("No.", '<>%1', "No.");
             RefPaymentExported.SetRange("Affiliated to Line", "Affiliated to Line");
@@ -614,7 +634,13 @@ table 32000002 "Ref. Payment - Exported"
     var
         GenJnlLine: Record "Gen. Journal Line";
         BankAccount: Record "Bank Account";
+#if not CLEAN30
+        Feature: Codeunit "FI Banking Payment Feature";
+#endif
     begin
+#if not CLEAN30
+        Feature.EnsureLegacyProcessingAllowed();
+#endif
         BankAccount.Get("Payment Account");
         GenJnlLine."Bal. Account No." := BankAccount."No.";
         GenJnlLine.SetRange("Journal Template Name", '');

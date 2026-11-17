@@ -64,6 +64,10 @@ codeunit 101038 "Create Purchase Header"
         XBANKTxt: Label 'BANK', Comment = 'Has to be translated exactly the same as global constant 1005 (XBANK) from COD101289 (Create Payment Method)';
 
     procedure InsertData("Document Type": Integer; "Buy-from Vendor No.": Code[20]; "Posting Date": Date; "Vendor Invoice No.": Code[20]; "Payment Method": Code[10]; "Message Type": Option; "Invoice Message": Text[250])
+#if not CLEAN30
+    var
+        BankingDemo: Codeunit "Banking Payments Demo FI";
+#endif
     begin
         Clear("Purchase Header");
         "Purchase Header".Validate("Document Type", "Document Type");
@@ -77,11 +81,17 @@ codeunit 101038 "Create Purchase Header"
         "Purchase Header".Validate("Document Date", CA.AdjustDate("Posting Date"));
         //+JK MSFI NAVISION 4.0 FI
 #if not CLEAN30
+        if not BankingDemo.IsEnabled() then begin
 #pragma warning disable AL0432
-        "Purchase Header"."Message Type" := "Message Type";
-        "Purchase Header"."Invoice Message" := "Invoice Message";
+            "Purchase Header"."Message Type" := "Message Type";
+            "Purchase Header"."Invoice Message" := "Invoice Message";
 #pragma warning restore AL0432
+        end else
 #endif
+        begin
+            "Purchase Header"."Bank Message Type" := "Message Type";
+            "Purchase Header"."Payment Message" := "Invoice Message";
+        end;
         //-JK MSFI NAVISION 4.0 FI
         case "Document Type" of
             1:

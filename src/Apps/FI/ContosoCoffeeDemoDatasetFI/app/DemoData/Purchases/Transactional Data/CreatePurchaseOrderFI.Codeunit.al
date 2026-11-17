@@ -7,6 +7,7 @@ namespace Microsoft.DemoData.Purchases;
 
 using Microsoft.DemoData.Foundation;
 using Microsoft.Purchases.Document;
+using System.Environment.Configuration;
 
 codeunit 13435 "Create Purchase Order FI"
 {
@@ -23,15 +24,24 @@ codeunit 13435 "Create Purchase Order FI"
         PurchHeader: Record "Purchase Header";
         CreateVendor: Codeunit "Create Vendor";
         CreatePaymentTerms: Codeunit "Create Payment Terms";
+#if not CLEAN30
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+#endif
     begin
         if PurchHeader.FindSet() then
             repeat
 #if not CLEAN30
+                if not FeatureManagementFacade.IsEnabled('BankingAndPaymentsFI') then begin
 #pragma warning disable AL0432
-                PurchHeader.Validate("Message Type", PurchHeader."Message Type"::Message);
-                PurchHeader.Validate("Invoice Message", PurchHeader."No.");
+                    PurchHeader.Validate("Message Type", PurchHeader."Message Type"::Message);
+                    PurchHeader.Validate("Invoice Message", PurchHeader."No.");
 #pragma warning restore AL0432
+                end else
 #endif
+                begin
+                    PurchHeader.Validate("Bank Message Type", PurchHeader."Bank Message Type"::Message);
+                    PurchHeader.Validate("Payment Message", PurchHeader."No.");
+                end;
 
                 if PurchHeader."Buy-from Vendor No." = CreateVendor.DomesticFirstUp() then
                     PurchHeader.Validate("Payment Terms Code", CreatePaymentTerms.PaymentTermsDAYS30());

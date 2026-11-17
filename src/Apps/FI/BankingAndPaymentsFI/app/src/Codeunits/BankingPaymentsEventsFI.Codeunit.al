@@ -79,6 +79,36 @@ codeunit 13578 "Banking Payments Events FI"
             ValidateDomesticAccount(VendorBankAccount."Bank Account No.", VendorBankAccount."Country/Region Code", VendorBankAccount.Code, VendorBankAccount.FieldCaption("Bank Account No."));
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Bank Account", 'OnAfterValidateEvent', 'Country/Region Code', false, false)]
+    local procedure ValidateBankCountry(var Rec: Record "Bank Account")
+    begin
+#if not CLEAN30
+        if not Feature.IsEnabled() then
+            exit;
+#endif
+        Rec.Validate("Bank Account No.");
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Customer Bank Account", 'OnAfterValidateEvent', 'Country/Region Code', false, false)]
+    local procedure ValidateCustomerBankCountry(var Rec: Record "Customer Bank Account")
+    begin
+#if not CLEAN30
+        if not Feature.IsEnabled() then
+            exit;
+#endif
+        Rec.Validate("Bank Account No.");
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Bank Account", 'OnAfterValidateEvent', 'Country/Region Code', false, false)]
+    local procedure ValidateVendorBankCountry(var Rec: Record "Vendor Bank Account")
+    begin
+#if not CLEAN30
+        if not Feature.IsEnabled() then
+            exit;
+#endif
+        Rec.Validate("Bank Account No.");
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SEPA CT-Prepare Source", 'OnAfterCreateTempJnlLines', '', false, false)]
     local procedure CreateSEPAJournalLines(var TempGenJnlLine: Record "Gen. Journal Line" temporary)
     var

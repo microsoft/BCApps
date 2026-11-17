@@ -29,8 +29,9 @@ codeunit 101931 "Create Local RapidStart Pack"
         BankAccount: Record "Bank Account";
         CustomerBankAccount: Record "Customer Bank Account";
         VendorBankAccount: Record "Vendor Bank Account";
-#if not CLEAN30
         PurchaseHeader: Record "Purchase Header";
+#if not CLEAN30
+        BankingDemo: Codeunit "Banking Payments Demo FI";
 #endif
     begin
         case TableID of
@@ -46,15 +47,21 @@ codeunit 101931 "Create Local RapidStart Pack"
                     CreateConfigPackageHelper.ValidateField(VendorBankAccount.FieldNo("Bank Account No."), false);
                     CreateConfigPackageHelper.ValidateField(VendorBankAccount.FieldNo("Country/Region Code"), false);
                 end;
-#if not CLEAN30
             DATABASE::"Purchase Header":
                 begin
+#if not CLEAN30
+                    if not BankingDemo.IsEnabled() then begin
 #pragma warning disable AL0432
-                    CreateConfigPackageHelper.IncludeField(PurchaseHeader.FieldNo("Message Type"), true);
-                    CreateConfigPackageHelper.IncludeField(PurchaseHeader.FieldNo("Invoice Message"), true);
+                        CreateConfigPackageHelper.IncludeField(PurchaseHeader.FieldNo("Message Type"), true);
+                        CreateConfigPackageHelper.IncludeField(PurchaseHeader.FieldNo("Invoice Message"), true);
 #pragma warning restore AL0432
-                end;
+                    end else
 #endif
+                    begin
+                        CreateConfigPackageHelper.IncludeField(PurchaseHeader.FieldNo("Bank Message Type"), true);
+                        CreateConfigPackageHelper.IncludeField(PurchaseHeader.FieldNo("Payment Message"), true);
+                    end;
+                end;
         end;
     end;
 }

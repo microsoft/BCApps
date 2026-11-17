@@ -39,6 +39,9 @@ codeunit 122003 "Create Purchase Document"
     var
         VendorInvoiceNo: Code[35];
         YourReference: Text[35];
+#if not CLEAN30
+        BankingDemo: Codeunit "Banking Payments Demo FI";
+#endif
     begin
         YourReference := PurchaseHeader."Your Reference";
         VendorInvoiceNo := PurchaseHeader."Vendor Invoice No.";
@@ -61,11 +64,17 @@ codeunit 122003 "Create Purchase Document"
         else
             PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
 #if not CLEAN30
+        if not BankingDemo.IsEnabled() then begin
 #pragma warning disable AL0432
-        PurchaseHeader.Validate("Message Type", PurchaseHeader."Message Type"::Message);
-        PurchaseHeader.Validate("Invoice Message", PurchaseHeader."No.");
+            PurchaseHeader.Validate("Message Type", PurchaseHeader."Message Type"::Message);
+            PurchaseHeader.Validate("Invoice Message", PurchaseHeader."No.");
 #pragma warning restore AL0432
+        end else
 #endif
+        begin
+            PurchaseHeader.Validate("Bank Message Type", PurchaseHeader."Bank Message Type"::Message);
+            PurchaseHeader.Validate("Payment Message", PurchaseHeader."No.");
+        end;
         PurchaseHeader.Modify();
     end;
 

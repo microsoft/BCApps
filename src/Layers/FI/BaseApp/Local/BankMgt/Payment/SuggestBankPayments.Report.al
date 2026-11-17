@@ -187,6 +187,13 @@ report 32000003 "Suggest Bank Payments"
     {
     }
 
+    trigger OnInitReport()
+    var
+        Feature: Codeunit "FI Banking Payment Feature";
+    begin
+        Feature.EnsureLegacyProcessingAllowed();
+    end;
+
     var
         RefPmtLines: Record "Ref. Payment - Exported";
         Vend2: Record Vendor;
@@ -228,7 +235,10 @@ report 32000003 "Suggest Bank Payments"
 
     [Scope('OnPrem')]
     procedure GetVendLedgEntries(Positive: Boolean; Future: Boolean)
+    var
+        Feature: Codeunit "FI Banking Payment Feature";
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         VendLedgEntry.Reset();
         VendLedgEntry.SetCurrentKey("Vendor No.", Open, Positive, "Due Date");
         VendLedgEntry.SetRange("Vendor No.", Vendor."No.");
@@ -277,7 +287,9 @@ report 32000003 "Suggest Bank Payments"
     var
         CurrencyBalance: Decimal;
         PrevCurrency: Code[10];
+        Feature: Codeunit "FI Banking Payment Feature";
     begin
+        Feature.EnsureLegacyProcessingAllowed();
         PayableVendLedgEntry.SetRange("Vendor No.", Vendor."No.");
         PayableVendLedgEntry.SetRange(Future, Future);
         if PayableVendLedgEntry.FindSet() then begin

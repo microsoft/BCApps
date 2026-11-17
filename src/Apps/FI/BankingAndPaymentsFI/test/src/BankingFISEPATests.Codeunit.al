@@ -26,7 +26,76 @@ codeunit 148234 "Banking FI SEPA Tests"
         CapturedXml: Text;
         Assert: Codeunit Assert;
         LibraryBanking: Codeunit "Library - Banking FI";
+        LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
         Subscribers: Codeunit "Banking FI SEPA Tests";
+
+    [Test]
+    procedure Legacy02GroupsSameDateAndSkipsIneligiblePayments()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] The .02 exporter groups equal payment dates without re-exporting or applying excluded rows.
+        Initialize();
+
+        // [GIVEN] Two eligible payments for the same date and three ineligible payments.
+        CreateGroupingPayments(WorkDate());
+
+        // [WHEN] The production .02 report exports the payments.
+        RunGroupingExport(Report::"Export SEPA Payment File FI");
+
+        // [THEN] One payment group contains only the two eligible transfers.
+        VerifyGroupingAndTransferStates('urn:iso:std:iso:20022:tech:xsd:pain.001.001.02', 1);
+    end;
+
+    [Test]
+    procedure Current09GroupsSameDateAndSkipsIneligiblePayments()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] The .09 exporter groups equal payment dates without re-exporting or applying excluded rows.
+        Initialize();
+
+        // [GIVEN] Two eligible payments for the same date and three ineligible payments.
+        CreateGroupingPayments(WorkDate());
+
+        // [WHEN] The production .09 report exports the payments.
+        RunGroupingExport(Report::"SEPA CT pain.001.001.09 FI");
+
+        // [THEN] One payment group contains only the two eligible transfers.
+        VerifyGroupingAndTransferStates('urn:iso:std:iso:20022:tech:xsd:pain.001.001.09', 1);
+    end;
+
+    [Test]
+    procedure Legacy02SeparatesDifferentPaymentDates()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Different scheduled dates must remain separate in the .02 bank file.
+        Initialize();
+
+        // [GIVEN] Two eligible payments with different dates and three ineligible payments.
+        CreateGroupingPayments(WorkDate() + 1);
+
+        // [WHEN] The production .02 report exports the payments.
+        RunGroupingExport(Report::"Export SEPA Payment File FI");
+
+        // [THEN] Each scheduled date has its own payment group.
+        VerifyGroupingAndTransferStates('urn:iso:std:iso:20022:tech:xsd:pain.001.001.02', 2);
+    end;
+
+    [Test]
+    procedure Current09SeparatesDifferentPaymentDates()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Different scheduled dates must remain separate in the .09 bank file.
+        Initialize();
+
+        // [GIVEN] Two eligible payments with different dates and three ineligible payments.
+        CreateGroupingPayments(WorkDate() + 1);
+
+        // [WHEN] The production .09 report exports the payments.
+        RunGroupingExport(Report::"SEPA CT pain.001.001.09 FI");
+
+        // [THEN] Each scheduled date has its own payment group.
+        VerifyGroupingAndTransferStates('urn:iso:std:iso:20022:tech:xsd:pain.001.001.09', 2);
+    end;
 
     [Test]
     procedure InitializedBankFormatsIncludeReplacement02Exporter()
@@ -171,6 +240,70 @@ codeunit 148234 "Banking FI SEPA Tests"
         exit(CapturedXml);
     end;
 
+    local procedure Initialize()
+    begin
+        LibraryBanking.SetCompletedFeatureFixture();
+        CreateExportFixture();
+    end;
+
+    local procedure CreateGroupingPayments(SecondPaymentDate: Date)
+    var
+        Payment: Record "Ref. Payment - Exported FI";
+    begin
+        Payment.Get(1);
+        Payment."No." := 2;
+        Payment."Document No." := 'INV-GROUP-2';
+        Payment."Payment Date" := SecondPaymentDate;
+        Payment.Insert();
+
+        Payment."No." := 3;
+        Payment."Document No." := 'INV-ALREADY-SENT';
+        Payment.Transferred := true;
+        Payment."Batch Code" := 'ORIGINAL-BATCH';
+        Payment.Insert();
+
+        Payment."No." := 4;
+        Payment."Document No." := 'INV-APPLIED';
+        Payment.Transferred := false;
+        Payment."Batch Code" := '';
+        Payment."Applied Payments" := true;
+        Payment.Insert();
+
+        Payment."No." := 5;
+        Payment."Document No." := 'INV-NON-SEPA';
+        Payment."Applied Payments" := false;
+        Payment."SEPA Payment" := false;
+        Payment.Insert();
+    end;
+
+    local procedure RunGroupingExport(ReportId: Integer)
+    begin
+        BindSubscription(Subscribers);
+        Report.Run(ReportId, false, false);
+        UnbindSubscription(Subscribers);
+    end;
+
+    local procedure VerifyGroupingAndTransferStates(Namespace: Text; ExpectedGroups: Integer)
+    var
+        Payment: Record "Ref. Payment - Exported FI";
+    begin
+        LibraryXPathXMLReader.InitializeXml(Subscribers.GetCapturedXml(), Namespace);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//ns:PmtInf', ExpectedGroups);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//ns:CdtTrfTxInf', 2);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//ns:GrpHdr/ns:NbOfTxs', '2');
+        Payment.Get(1);
+        Assert.IsTrue(Payment.Transferred, 'The first eligible payment must be transferred.');
+        Payment.Get(2);
+        Assert.IsTrue(Payment.Transferred, 'The second eligible payment must be transferred.');
+        Assert.AreEqual(Payment."Payment Date", Payment."Payment Execution Date", 'Export must retain the scheduled execution date.');
+        Payment.Get(3);
+        Assert.AreEqual('ORIGINAL-BATCH', Payment."Batch Code", 'An already transferred payment must not be re-exported.');
+        Payment.Get(4);
+        Assert.IsFalse(Payment.Transferred, 'An applied payment must not be exported.');
+        Payment.Get(5);
+        Assert.IsFalse(Payment.Transferred, 'A non-SEPA payment must not be exported by a SEPA report.');
+    end;
+
     local procedure VerifyPayload(Xml: Text)
     var
         Exported: Record "Ref. Payment - Exported FI";
@@ -282,6 +415,7 @@ codeunit 148234 "Banking FI SEPA Tests"
 
     local procedure EnableFeature()
     begin
+        LibraryBanking.SetCompletedFeatureFixture();
 #if not CLEAN30
         LibraryBanking.SetFeatureEnabled(true);
         BindSubscription(LibraryBanking);

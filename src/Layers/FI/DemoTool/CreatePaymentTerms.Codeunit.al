@@ -43,6 +43,9 @@ codeunit 101003 "Create Payment Terms"
     procedure InsertData("Code": Code[10]; "Due Date Calculation": Text[30]; "Discount Date Calculation": Text[30]; "Discount %": Decimal; Description: Text[50])
     var
         "Payment Terms": Record "Payment Terms";
+#if not CLEAN30
+        BankingDemo: Codeunit "Banking Payments Demo FI";
+#endif
     begin
         "Payment Terms".Init();
         "Payment Terms".Validate(Code, Code);
@@ -57,11 +60,15 @@ codeunit 101003 "Create Payment Terms"
         "Payment Terms".Validate(Description, Description);
 
 #if not CLEAN30
+        if not BankingDemo.IsEnabled() then begin
 #pragma warning disable AL0432
-        if "Discount %" > 0 then
-            "Payment Terms"."Disreg. Pmt. Disc. at Full Pmt" := true;
+            if "Discount %" > 0 then
+                "Payment Terms"."Disreg. Pmt. Disc. at Full Pmt" := true;
 #pragma warning restore AL0432
+        end else
 #endif
+            if "Discount %" > 0 then
+                "Payment Terms"."Disreg. Full Payment Discount" := true;
 
         "Payment Terms".Insert();
     end;

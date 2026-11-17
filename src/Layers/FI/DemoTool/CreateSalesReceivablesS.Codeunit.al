@@ -42,12 +42,19 @@ codeunit 101311 "Create Sales & Receivables S."
         "Sales & Receivables Setup"."Appln. between Currencies" := "Sales & Receivables Setup"."Appln. between Currencies"::All;
         "Sales & Receivables Setup"."Document Default Line Type" := "Sales & Receivables Setup"."Document Default Line Type"::Item;
 #if not CLEAN30
+        if not BankingDemo.IsEnabled() then begin
 #pragma warning disable AL0432
-        "Sales & Receivables Setup"."Invoice No." := true;
-        "Sales & Receivables Setup"."Customer No." := true;
-        "Sales & Receivables Setup"."Print Reference No." := true;
+            "Sales & Receivables Setup"."Invoice No." := true;
+            "Sales & Receivables Setup"."Customer No." := true;
+            "Sales & Receivables Setup"."Print Reference No." := true;
 #pragma warning restore AL0432
+        end else
 #endif
+        begin
+            "Sales & Receivables Setup"."Use Invoice No. in Reference" := true;
+            "Sales & Receivables Setup"."Use Customer No. in Reference" := true;
+            "Sales & Receivables Setup"."Print Payment Reference" := true;
+        end;
         "Sales & Receivables Setup".Modify();
     end;
 
@@ -55,6 +62,9 @@ codeunit 101311 "Create Sales & Receivables S."
         DemoDataSetup: Record "Demo Data Setup";
         "Sales & Receivables Setup": Record "Sales & Receivables Setup";
         "Create No. Series": Codeunit "Create No. Series";
+#if not CLEAN30
+        BankingDemo: Codeunit "Banking Payments Demo FI";
+#endif
         XCUST: Label 'CUST';
         XCustomer: Label 'Customer';
         X10: Label '10';
@@ -138,12 +148,19 @@ codeunit 101311 "Create Sales & Receivables S."
         "Sales & Receivables Setup"."VAT Bus. Posting Gr. (Price)" := CreateVATBusPostingGr.GetDomesticVATGroup();
         "Sales & Receivables Setup"."Document Default Line Type" := "Sales & Receivables Setup"."Document Default Line Type"::Item;
 #if not CLEAN30
+        if not BankingDemo.IsEnabled() then begin
 #pragma warning disable AL0432
-        "Sales & Receivables Setup"."Invoice No." := true;
-        "Sales & Receivables Setup"."Customer No." := true;
-        "Sales & Receivables Setup"."Print Reference No." := true;
+            "Sales & Receivables Setup"."Invoice No." := true;
+            "Sales & Receivables Setup"."Customer No." := true;
+            "Sales & Receivables Setup"."Print Reference No." := true;
 #pragma warning restore AL0432
+        end else
 #endif
+        begin
+            "Sales & Receivables Setup"."Use Invoice No. in Reference" := true;
+            "Sales & Receivables Setup"."Use Customer No. in Reference" := true;
+            "Sales & Receivables Setup"."Print Payment Reference" := true;
+        end;
         "Sales & Receivables Setup".Modify();
     end;
 

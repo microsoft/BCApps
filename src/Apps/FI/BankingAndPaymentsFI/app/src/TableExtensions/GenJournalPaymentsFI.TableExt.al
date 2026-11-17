@@ -87,7 +87,8 @@ tableextension 13536 "Gen. Journal Payments FI" extends "Gen. Journal Line"
                 if not Feature.IsEnabled() then
                     exit;
 #endif
-                Rec."Planned Payment Date" := Rec."Due Date";
+                if Rec."Planned Payment Date" = 0D then
+                    Rec."Planned Payment Date" := Rec."Due Date";
             end;
         }
         field(13511; "Payment Reference No."; Code[20])

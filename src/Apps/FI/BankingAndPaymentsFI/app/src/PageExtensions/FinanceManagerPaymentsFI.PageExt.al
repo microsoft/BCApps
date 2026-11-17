@@ -99,6 +99,22 @@ pageextension 13564 "Finance Manager Payments FI" extends "Finance Manager Role 
 {
     actions
     {
+#if not CLEAN30
+#pragma warning disable AL0432
+        modify("Bank Reference Payments")
+        {
+            Visible = not FeatureEnabled;
+        }
+        modify(Transferfiles)
+        {
+            Visible = not FeatureEnabled;
+        }
+        modify("Payment Method Codes")
+        {
+            Visible = not FeatureEnabled;
+        }
+#pragma warning restore AL0432
+#endif
         addlast(Sections)
         {
             action("Bank Reference Payments FI")
@@ -106,19 +122,41 @@ pageextension 13564 "Finance Manager Payments FI" extends "Finance Manager Role 
                         ApplicationArea = Basic, Suite;
                         Caption = 'Bank Payments to Send';
                         RunObject = page "Bank Payments to send FI";
+#if not CLEAN30
+                        Visible = FeatureEnabled;
+#endif
                     }
             action("Transferfiles FI")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Bank Reference File Setup';
                         RunObject = page "Bank Reference File Setup FI";
+#if not CLEAN30
+                        Visible = FeatureEnabled;
+#endif
                     }
             action("Payment Method Codes FI")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Payment Method Codes';
                         RunObject = page "Payment Method Codes FI";
+#if not CLEAN30
+                        Visible = FeatureEnabled;
+#endif
                     }
+
         }
     }
+
+#if not CLEAN30
+    trigger OnOpenPage()
+    var
+        Feature: Codeunit "Banking Payments Feature FI";
+    begin
+        FeatureEnabled := Feature.IsEnabled();
+    end;
+
+    var
+        FeatureEnabled: Boolean;
+#endif
 }

@@ -8,9 +8,8 @@ namespace Microsoft.DemoData.Localization;
 using Microsoft.DemoData.Finance;
 using Microsoft.DemoTool;
 using Microsoft.eServices.EDocument.DemoData;
-#if not CLEAN30
 using Microsoft.Purchases.Document;
-#endif
+using System.Environment.Configuration;
 
 codeunit 13439 "EDoc. Demodata FI"
 {
@@ -27,17 +26,27 @@ codeunit 13439 "EDoc. Demodata FI"
             DefineLocalGLAccountInEDocumentsModuleSetup();
     end;
 
-#if not CLEAN30
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create E-Doc. Sample Invoices", OnUpdateRequiredDataInPurchaseHeaderForPosting, '', false, false)]
     local procedure OnUpdateRequiredDataInPurchaseHeaderForPosting(var PurchaseHeader: Record "Purchase Header")
+#if not CLEAN30
+    var
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+#endif
     begin
+#if not CLEAN30
+        if not FeatureManagementFacade.IsEnabled('BankingAndPaymentsFI') then begin
 #pragma warning disable AL0432
-        PurchaseHeader.Validate("Message Type", PurchaseHeader."Message Type"::Message);
-        PurchaseHeader.Validate("Invoice Message", PurchaseHeader."No.");
+            PurchaseHeader.Validate("Message Type", PurchaseHeader."Message Type"::Message);
+            PurchaseHeader.Validate("Invoice Message", PurchaseHeader."No.");
 #pragma warning restore AL0432
+        end else
+#endif
+        begin
+            PurchaseHeader.Validate("Bank Message Type", PurchaseHeader."Bank Message Type"::Message);
+            PurchaseHeader.Validate("Payment Message", PurchaseHeader."No.");
+        end;
         PurchaseHeader.Modify(true);
     end;
-#endif
 
     local procedure DefineLocalGLAccountInEDocumentsModuleSetup()
     var

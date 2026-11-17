@@ -1735,6 +1735,22 @@
     ]
   },
   {
+    "name": "Banking and Payments FI",
+    "groups": [
+      {
+        "name": "LocalBaseExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Banking and Payments FI Tests",
+    "groups": [
+      {
+        "name": "LocalBaseExtensions"
+      }
+    ]
+  },
+  {
     "name": "FI Core",
     "groups": [
       {

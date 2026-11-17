@@ -5,6 +5,8 @@
 namespace Microsoft.Bank.Payment;
 
 using Microsoft.Sales.Setup;
+using System.Environment.Configuration;
+using System.Upgrade;
 
 codeunit 148238 "Library - Banking FI"
 {
@@ -31,6 +33,31 @@ codeunit 148238 "Library - Banking FI"
         SalesSetup."Default Reference Number" := '';
         SalesSetup."Print Payment Reference" := true;
         SalesSetup.Modify();
+    end;
+
+    procedure SetCompletedFeatureFixture()
+#if not CLEAN30
+    var
+        FeatureKey: Record "Feature Key";
+        Status: Record "Feature Data Update Status";
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        Tags: Codeunit "Banking Payments Tags FI";
+#endif
+    begin
+#if not CLEAN30
+        // Functional fixture only: this does not execute or prove data migration.
+        FeatureKey.Get('BankingAndPaymentsFI');
+        FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
+        FeatureKey.Modify();
+        FeatureKey.TestField("Data Update Required", true);
+        FeatureManagementFacade.GetFeatureDataUpdateStatus(FeatureKey, Status);
+        Status."Data Update Required" := true;
+        Status."Feature Status" := Status."Feature Status"::Complete;
+        Status.Modify();
+        if not UpgradeTag.HasUpgradeTag(Tags.GetMigrationTag()) then
+            UpgradeTag.SetUpgradeTag(Tags.GetMigrationTag());
+#endif
     end;
 
 #if not CLEAN30

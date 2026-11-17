@@ -13,6 +13,12 @@
     "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2206603",
     "dependencies": [
         {
+            "id": "7899cd5a-e428-4835-a1cc-261472c5dcdf",
+            "name": "Banking and Payments FI",
+            "publisher": "Microsoft",
+            "version": "29.0.0.0"
+        },
+        {
             "id": "e1d97edc-c239-46b4-8d84-6368bdf67c8b",
             "name": "E-Document Core",
             "publisher": "Microsoft",

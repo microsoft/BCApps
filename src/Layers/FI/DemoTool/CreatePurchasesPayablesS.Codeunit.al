@@ -22,11 +22,7 @@ codeunit 101312 "Create Purchases & Payables S."
         "Create No. Series".InitBaseSeries("Purchases & Payables Setup"."Price List Nos.", XPPL, XPurchasePriceList, XP00001, XP99999, '', '', 1, Enum::"No. Series Implementation"::Sequence);
         "Create No. Series".InitFinalSeries("Purchases & Payables Setup"."Posted Return Shpt. Nos.", XPShpt, XPostedPurchaseShipment, 5);
         "Create No. Series".InitFinalSeries("Purchases & Payables Setup"."Posted Credit Memo Nos.", XPCRPLUS, XPostedPurchaseCreditMemo, 9);
-#if not CLEAN30
-#pragma warning disable AL0432
-        "Create No. Series".InitBaseSeries("Purchases & Payables Setup"."Bank Batch Nos.", XASIAK, XBankBatchNo, XBB0000, XBB9999, '', '', 1);
-#pragma warning restore AL0432
-#endif
+        InitializeBankBatchNos();
         "Purchases & Payables Setup"."Invoice Nos." := "Purchases & Payables Setup"."Posted Invoice Nos.";
         "Purchases & Payables Setup"."Credit Memo Nos." := "Purchases & Payables Setup"."Posted Credit Memo Nos.";
         "Purchases & Payables Setup"."Appln. between Currencies" := "Purchases & Payables Setup"."Appln. between Currencies"::All;
@@ -66,12 +62,10 @@ codeunit 101312 "Create Purchases & Payables S."
         XPostedPurchaseShipment: Label 'Posted Purchase Shipment';
         XPCRPLUS: Label 'P-CR+';
         XPostedPurchaseCreditMemo: Label 'Posted Purchase Credit Memo';
-#if not CLEAN30
         XBankBatchNo: Label 'Bank Batch No.';
         XBB0000: Label 'BB0000';
         XBB9999: Label 'BB9999';
         XASIAK: Label 'ASIAK';
-#endif
 
     procedure InsertMiniAppData()
     begin
@@ -109,6 +103,23 @@ codeunit 101312 "Create Purchases & Payables S."
         "Purchases & Payables Setup"."Posted Prepmt. Inv. Nos." := XPINVPLUS;
         "Purchases & Payables Setup"."Posted Prepmt. Cr. Memo Nos." := XPCRPLUS;
         "Purchases & Payables Setup".Modify();
+    end;
+
+    local procedure InitializeBankBatchNos()
+#if not CLEAN30
+    var
+        BankingDemo: Codeunit "Banking Payments Demo FI";
+#endif
+    begin
+#if not CLEAN30
+        if not BankingDemo.IsEnabled() then begin
+#pragma warning disable AL0432
+            "Create No. Series".InitBaseSeries("Purchases & Payables Setup"."Bank Batch Nos.", XASIAK, XBankBatchNo, XBB0000, XBB9999, '', '', 1);
+#pragma warning restore AL0432
+            exit;
+        end;
+#endif
+        "Create No. Series".InitBaseSeries("Purchases & Payables Setup"."Payment Batch Nos.", XASIAK, XBankBatchNo, XBB0000, XBB9999, '', '', 1);
     end;
 }
 

@@ -7,6 +7,7 @@ namespace Microsoft.DemoData.Sales;
 
 using Microsoft.DemoData.Foundation;
 using Microsoft.Sales.Setup;
+using System.Environment.Configuration;
 
 codeunit 13456 "Create Sales Recv. Setup FI"
 {
@@ -24,25 +25,29 @@ codeunit 13456 "Create Sales Recv. Setup FI"
         ValidateRecordFields(CreateJobQueueCategory.SalesPurchasePosting(), true, true, true);
     end;
 
-#if CLEAN30
-#pragma warning disable AA0137 // InvoiceNo, CustomerNo and PrintReferenceNo are only consumed by pre-CLEAN30 code below
-#endif
     local procedure ValidateRecordFields(JobQueueCategoryCode: Code[10]; InvoiceNo: Boolean; CustomerNo: Boolean; PrintReferenceNo: Boolean)
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
-    begin
-#if CLEAN30
-#pragma warning restore AA0137
+#if not CLEAN30
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
 #endif
+    begin
         SalesReceivablesSetup.Get();
         SalesReceivablesSetup.Validate("Job Queue Category Code", JobQueueCategoryCode);
 #if not CLEAN30
+        if not FeatureManagementFacade.IsEnabled('BankingAndPaymentsFI') then begin
 #pragma warning disable AL0432
-        SalesReceivablesSetup.Validate("Invoice No.", InvoiceNo);
-        SalesReceivablesSetup.Validate("Customer No.", CustomerNo);
-        SalesReceivablesSetup.Validate("Print Reference No.", PrintReferenceNo);
+            SalesReceivablesSetup.Validate("Invoice No.", InvoiceNo);
+            SalesReceivablesSetup.Validate("Customer No.", CustomerNo);
+            SalesReceivablesSetup.Validate("Print Reference No.", PrintReferenceNo);
 #pragma warning restore AL0432
+        end else
 #endif
+        begin
+            SalesReceivablesSetup.Validate("Use Invoice No. in Reference", InvoiceNo);
+            SalesReceivablesSetup.Validate("Use Customer No. in Reference", CustomerNo);
+            SalesReceivablesSetup.Validate("Print Payment Reference", PrintReferenceNo);
+        end;
         SalesReceivablesSetup.Modify(true);
     end;
 }
