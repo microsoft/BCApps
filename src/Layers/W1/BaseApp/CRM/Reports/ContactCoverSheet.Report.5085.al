@@ -230,6 +230,7 @@ report 5085 "Contact Cover Sheet"
             LayoutFile = './CRM/Reports/ContactCoverSheet.5085.rdlc';
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
+#if not CLEAN30
         layout(WordLayout)
         {
             Type = Word;
@@ -239,6 +240,7 @@ report 5085 "Contact Cover Sheet"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
+#endif
         layout(WordLayoutBody)
         {
             Type = Word;
