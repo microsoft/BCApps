@@ -16,7 +16,7 @@ codeunit 163540 "Create EET Busin. Premises CZL"
     begin
         EETBusinessPremisesCZL.Init();
         EETBusinessPremisesCZL.Code := Code;
-        EETBusinessPremisesCZL.Description := Description;
+        EETBusinessPremisesCZL."Extended Description" := Description;
         EETBusinessPremisesCZL.Identification := Identification;
         EETBusinessPremisesCZL.Insert();
     end;

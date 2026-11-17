@@ -158,15 +158,9 @@ table 746 "VAT Reports Configuration"
         field(10500; "Content Max Lines"; Integer)
         {
             Caption = 'Content Max Lines';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to GovTalk app';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-            ObsoleteReason = 'Moved to GovTalk app';
-#endif
         }
 #endif
     }

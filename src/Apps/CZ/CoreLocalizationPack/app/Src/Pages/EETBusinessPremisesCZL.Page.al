@@ -6,9 +6,10 @@ namespace Microsoft.Finance;
 
 page 31143 "EET Business Premises CZL"
 {
-    Caption = 'EET Business Premises';
+    Caption = 'EET Registrating Units';
     PageType = List;
     SourceTable = "EET Business Premises CZL";
+    ApplicationArea = Basic, Suite;
 
     layout
     {
@@ -18,23 +19,30 @@ page 31143 "EET Business Premises CZL"
             {
                 field("Code"; Rec.Code)
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code of the premises.';
+                    ShowMandatory = true;
                 }
-                field(Description; Rec.Description)
+                field(Description; Rec."Extended Description")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the description of the premises.';
                 }
                 field(Identification; Rec.Identification)
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the identification number of the promises.';
+                    Visible = false;
+                    Enabled = false;
                 }
-                field("Certificate Code"; Rec."Certificate Code")
+                field("Unit ID"; Rec."Unit ID")
                 {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the certificate needed to register sales.';
+                }
+                field("Taxpayer ID"; Rec."Taxpayer ID")
+                {
+                }
+                field("Certificate Code"; Rec."Taxpayer Certificate Code")
+                {
+                }
+                field("Authorizing Taxpayer ID"; Rec."Authorizing Taxpayer ID")
+                {
+                }
+                field("Multiple Taxpayer Auth."; Rec."Multiple Taxpayer Auth.")
+                {
                 }
             }
         }
@@ -46,12 +54,11 @@ page 31143 "EET Business Premises CZL"
         {
             action("Cash Registers")
             {
-                ApplicationArea = Basic, Suite;
                 Caption = 'Cash Registers';
                 Image = ElectronicPayment;
                 RunObject = page "EET Cash Registers CZL";
                 RunPageLink = "Business Premises Code" = field(Code);
-                ToolTip = 'Displays a list of POS devices assigned to the promises.';
+                ToolTip = 'Displays a list of PoS devices assigned to the registrating unit.';
             }
         }
         area(Promoted)

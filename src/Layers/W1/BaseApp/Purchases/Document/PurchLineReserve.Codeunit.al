@@ -13,6 +13,7 @@ using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.Document;
+using Microsoft.Warehouse.Document;
 
 codeunit 99000834 "Purch. Line-Reserve"
 {
@@ -525,6 +526,8 @@ codeunit 99000834 "Purch. Line-Reserve"
         ItemTrackingLines: Page "Item Tracking Lines";
     begin
         InitFromPurchLine(TrackingSpecification, PurchaseLine);
+        if SecondSourceQuantityArray[1] = Database::"Warehouse Shipment Line" then
+            TrackingSpecification."Bin Code" := '';
         ItemTrackingLines.SetSourceSpec(TrackingSpecification, PurchaseLine."Expected Receipt Date");
         ItemTrackingLines.SetSecondSourceQuantity(SecondSourceQuantityArray);
         OnCallItemTrackingOnBeforeItemTrackingFormRunModal(PurchaseLine, ItemTrackingLines);
@@ -1159,13 +1162,6 @@ codeunit 99000834 "Purch. Line-Reserve"
             ActionMessageEntry."Source Type" := Database::"Purchase Line";
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetSourceForReservationOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; PurchLine: Record "Purchase Line")
-    begin
-    end;
-#endif
     // codeunit Create Reserv. Entry
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Reserv. Entry", 'OnCheckSourceTypeSubtype', '', false, false)]
