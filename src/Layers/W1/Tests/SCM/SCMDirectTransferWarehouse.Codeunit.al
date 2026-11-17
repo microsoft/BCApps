@@ -350,6 +350,7 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
     [Scope('OnPrem')]
     procedure DirectTransferRouteCreatesInboundInventoryPutaway()
     var
