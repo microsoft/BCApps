@@ -37,7 +37,7 @@ codeunit 6911 "Expense Per Diem Calculation"
         TelemetryDimensions.Add('Category', ExpenseAuditSubscribers.TelemetryCategory());
         TelemetryDimensions.Add('FeatureName', ExpenseAgentSetup.GetFeatureName());
         TelemetryDimensions.Add('Reason', UnresolvedReason);
-        Session.LogMessage('0000WPD', TimeZoneFallbackLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+        Session.LogMessage('0000WPD', TimeZoneFallbackLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
     end;
 
     local procedure IsExpenseAgentServiceCall(): Boolean
