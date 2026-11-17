@@ -3481,12 +3481,10 @@ codeunit 144200 "FatturaPA Test"
                     'Descrizione':
                         DescriptionEntryNo := TempChildren."Entry No.";
                     'AltriDatiGestionali':
-                        begin
-                            if GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'TipoDato') = 'RYRTEST' then begin
-                                AdditionalDataCount += 1;
-                                AdditionalDataEntryNo := TempChildren."Entry No.";
-                                Assert.AreEqual(ExpectedLineNo, GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'RiferimentoTesto'), 'Incorrect trailing line-specific data.');
-                            end;
+                        if GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'TipoDato') = 'RYRTEST' then begin
+                            AdditionalDataCount += 1;
+                            AdditionalDataEntryNo := TempChildren."Entry No.";
+                            Assert.AreEqual(ExpectedLineNo, GetFatturaPAXMLChildValue(TempXMLBuffer, TempChildren."Entry No.", 'RiferimentoTesto'), 'Incorrect trailing line-specific data.');
                         end;
                 end;
             until TempChildren.Next() = 0;
