@@ -71,6 +71,8 @@ table 5645 "FA Date Type"
             "FA Entry" := false;
             "G/L Entry" := true;
             InsertRec(10, FADepreciationBook.FieldNo("G/L Acquisition Date"), FADepreciationBook.FieldCaption("G/L Acquisition Date"));
+            "FA Entry" := true;
+            InsertRec(11, FADepreciationBook.FieldNo("Last Derogatory"), FADepreciationBook.FieldCaption("Last Derogatory"));
         end else begin
             SetCurrentKey("Entry No.");
             Find('-');
@@ -144,6 +146,13 @@ table 5645 "FA Date Type"
                     then begin
                         Delete();
                         InsertRec(10, FADepreciationBook.FieldNo("G/L Acquisition Date"), FADepreciationBook.FieldCaption("G/L Acquisition Date"));
+                    end;
+                if "Entry No." = 11 then
+                    if ("FA Date Type No." <> FADepreciationBook.FieldNo("Last Derogatory")) or
+                       ("FA Date Type Name" <> FADepreciationBook.FieldCaption("Last Derogatory"))
+                    then begin
+                        Delete();
+                        InsertRec(11, FADepreciationBook.FieldNo("Last Derogatory"), FADepreciationBook.FieldCaption("Last Derogatory"));
                     end;
             until Next() = 0;
         end;

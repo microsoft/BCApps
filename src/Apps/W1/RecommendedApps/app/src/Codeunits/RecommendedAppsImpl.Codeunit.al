@@ -21,7 +21,7 @@ codeunit 4751 "Recommended Apps Impl."
         CatalogApiUrlNotReachableErrLbl: Label 'Cannot add the recommended app with ID %1. The Marketplace Catalog API cannot be reached, and the HTTP status code is %2. Are you sure that the information about the app is correct?',
             Comment = '%1 = App Id; %2 = Http StatusCode';
         CatalogApiUrlLbl: Label 'https://catalogapi.azure.com/products/PUBID.%1|AID.%2|PAPPID.%3?market=US&api-version=2023-05-01-preview&language=en', Locked = true;
-        AppSourceURLNotFoundErrLbl: Label 'Cannot get the AppSource URL.';
+        AppSourceURLNotFoundErrLbl: Label 'Cannot get the Marketplace URL.';
         CatalogApiKeyVaultSecretNameLbl: Label 'MarketplaceCatalogApi-Key', Locked = true;
         CannotGetApiKeyFromKeyVaultErrLbl: Label 'Cannot retrieve the Marketplace Catalog API key from Azure Key Vault.', Locked = true;
 

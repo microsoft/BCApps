@@ -8,7 +8,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using System.Reflection;
 using System.Utilities;
 
-codeunit 5281 "Audit Data Handling SAF-T" implements "Audit File Export Data Handling"
+codeunit 5281 "Audit Data Handling SAF-T" implements "Audit File Export Data Handling", "Audit File Export Page Visibility"
 {
     Access = Public;
 
@@ -16,6 +16,11 @@ codeunit 5281 "Audit Data Handling SAF-T" implements "Audit File Export Data Han
         MasterDataTxt: label 'Master Data';
         GLEntriesTxt: label 'General Ledger Entries from %1 to %2', Comment = '%1, %2 - starting and ending date';
         SourceDocumentsTxt: label 'Source Documents';
+
+    procedure GetUIVisibility(var FieldVisibility: Dictionary of [Text, Boolean]; var ActionVisibility: Dictionary of [Text, Boolean])
+    begin
+        FieldVisibility.Set('Contact', false);
+    end;
 
     procedure LoadStandardAccounts(StandardAccountType: Enum "Standard Account Type") Result: Boolean
     var

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.SpendRequest;
+
 page 7122 "Expense Activity Log API"
 {
     APIGroup = 'expense';
@@ -23,7 +25,7 @@ page 7122 "Expense Activity Log API"
     ModifyAllowed = false;
     DeleteAllowed = false;
     Extensible = false;
-    AboutText = 'Provides activity history when scoped through an expense report, posted expense report, or expense user. Direct unscoped access is not allowed. Expense user history requires the historyActorRole filter.';
+    AboutText = 'Provides activity history when scoped through an expense report, posted expense report, travel request, or expense user. Direct unscoped access is not allowed. Expense user history requires the historyActorRole filter. Use sourceTableId to distinguish expense report entries from travel request entries.';
 
     layout
     {
@@ -143,6 +145,16 @@ page 7122 "Expense Activity Log API"
                 {
                     Caption = 'Expense Count';
                 }
+                field(totalExpectedAmountCurrencyCode; TotalExpectedAmountCurrencyCode)
+                {
+                    Caption = 'Total Expected Amount Currency Code';
+                    ToolTip = 'Specifies the currency of the travel request total expected amount at the time of submission. The local currency is represented by its currency code in the API.';
+                }
+                field(totalExpectedAmount; Rec."Total Expected Amount")
+                {
+                    Caption = 'Total Expected Amount';
+                    ToolTip = 'Specifies the travel request total expected amount at the time of submission.';
+                }
                 field(historyActorRole; Rec."History Actor Role Filter")
                 {
                     Caption = 'History Actor Role';
@@ -172,8 +184,9 @@ page 7122 "Expense Activity Log API"
         CurrencyLCY: Code[10];
         HistoryScopeApplied: Boolean;
         ReimbursementCurrencyCode: Code[10];
+        TotalExpectedAmountCurrencyCode: Code[10];
         HistoryActorRoleRequiredErr: Label 'The historyActorRole filter must be specified as Submitter or Approver.';
-        ActivityScopeRequiredErr: Label 'Activity log entries must be requested through an expense report, posted expense report, or expense user.';
+        ActivityScopeRequiredErr: Label 'Activity log entries must be requested through an expense report, posted expense report, travel request, or expense user.';
 
     trigger OnInit()
     var
@@ -185,16 +198,21 @@ page 7122 "Expense Activity Log API"
     trigger OnOpenPage()
     begin
         // Avoid JIT load consistency errors by including fields read in OnAfterGetRecord in the initial record buffer.
-        Rec.AddLoadFields("Reimbursement Currency Code");
+        Rec.AddLoadFields("Reimbursement Currency Code", "Total Expected Amt. Cur. Code");
     end;
 
     trigger OnAfterGetRecord()
     begin
         Clear(CurrencyLCY);
         Clear(ReimbursementCurrencyCode);
+        Clear(TotalExpectedAmountCurrencyCode);
         if Rec."Event Type" in [Rec."Event Type"::Submitted, Rec."Event Type"::Resubmitted, Rec."Event Type"::Posted] then begin
             CurrencyLCY := CurrencyHelper.GetCurrencyCodeForAPI('');
-            ReimbursementCurrencyCode := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Reimbursement Currency Code");
+            // Travel requests capture their total expected amount; expense reports capture a reimbursement currency.
+            if Rec."Source Table ID" = Database::"Spend Request" then
+                TotalExpectedAmountCurrencyCode := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Total Expected Amt. Cur. Code")
+            else
+                ReimbursementCurrencyCode := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Reimbursement Currency Code");
         end;
     end;
 

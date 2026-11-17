@@ -30,19 +30,30 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
                     MultiLine = true;
                     Importance = Additional;
                 }
+#if not CLEAN29
                 field("International Travel"; Rec."International Travel")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
+                    ObsoleteReason = 'Replaced by the Expense Location field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
                 field("Origin Country"; Rec."Origin Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
+                    ObsoleteReason = 'Replaced by the Expense Location field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
                 field("Destination Country"; Rec."Dest. Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
+                    ObsoleteReason = 'Replaced by the Expense Location field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 field(Restrictions; Rec.Restrictions)
                 {
                     ApplicationArea = Basic, Suite;

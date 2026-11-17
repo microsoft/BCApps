@@ -28,16 +28,20 @@ codeunit 6975 "Create Expense VAT Rates"
 
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        RatesSkipped: Boolean;
 
     /// <summary>
     /// Inserts all default EU VAT rate rows. Skips rows whose
     /// (Country/Region Code + Expense Category + Expense Subcategory) combination already exists.
+    /// Returns false when a country has defaults but the VAT business posting group is not configured yet.
     /// </summary>
-    procedure InsertDefaultRates()
+    procedure InsertDefaultRates(): Boolean
     var
         CompanyInfo: Record "Company Information";
         GLAccount: Record "G/L Account";
     begin
+        RatesSkipped := false;
+        ExpenseAgentSetup.GetRecordOnce();
         if not GLAccount.Get(XEXPENSEVATTok) then begin
             GLAccount.Init();
             GLAccount."No." := XEXPENSEVATTok;
@@ -118,6 +122,7 @@ codeunit 6975 "Create Expense VAT Rates"
             'UA':
                 CreateVATRatesUA();
         end;
+        exit(not RatesSkipped);
     end;
 
     local procedure InsertRate(CategoryCode: Code[20]; SubcategoryCode: Code[20]; VATProdPostingGroup: Code[20]; VATPercent: Decimal; NewDescription: Text[100])
@@ -127,6 +132,12 @@ codeunit 6975 "Create Expense VAT Rates"
         VATProductPostingGroup: Record "VAT Product Posting Group";
         VATPostingSetup: Record "VAT Posting Setup";
     begin
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Default VAT Bus. Posting Group" = '' then begin
+            RatesSkipped := true;
+            exit;
+        end;
+
         if not VATProductPostingGroup.Get(VATProdPostingGroup) then begin
             VATProductPostingGroup.Init();
             VATProductPostingGroup."Code" := VATProdPostingGroup;
@@ -134,7 +145,6 @@ codeunit 6975 "Create Expense VAT Rates"
             VATProductPostingGroup.Insert();
         end;
 
-        ExpenseAgentSetup.GetRecordOnce();
         if not VATPostingSetup.Get(ExpenseAgentSetup."Default VAT Bus. Posting Group", VATProdPostingGroup) then begin
             VATPostingSetup.Init();
             VATPostingSetup.Validate("VAT Bus. Posting Group", ExpenseAgentSetup."Default VAT Bus. Posting Group");

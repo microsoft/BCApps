@@ -146,7 +146,7 @@ table 256 "VAT Statement Line"
 
             trigger OnValidate()
             begin
-                if "Amount Type" <> "Amount Type"::Amount then
+                if not ("Amount Type" in ["Amount Type"::Amount, "Amount Type"::Base]) then
                     "Incl. Non Deductible VAT" := false;
             end;
         }

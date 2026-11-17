@@ -5,7 +5,9 @@
 namespace Microsoft.Bank.Payment;
 
 using Microsoft.Finance.FinancialReports;
+#if not CLEAN30
 using Microsoft.Finance.ReceivablesPayables;
+#endif
 using Microsoft.Sales.Document;
 
 codeunit 144005 "Cloud Mig Country Tables"
@@ -26,6 +28,11 @@ codeunit 144005 "Cloud Mig Country Tables"
         ListOfTablesToMigrate.Add(Database::"Payment Step Ledger FR");
         ListOfTablesToMigrate.Add(Database::"Payment Step FR");
         ListOfTablesToMigrate.Add(Database::"Shipment Invoiced");
+        ListOfTablesToMigrate.Add(Database::"Unreal. CV Ledg. Buffer FR");
+#if not CLEAN30
+#pragma warning disable AL0432
         ListOfTablesToMigrate.Add(Database::"Unreal. CV Ledg. Entry Buffer");
+#pragma warning restore AL0432
+#endif
     end;
 }

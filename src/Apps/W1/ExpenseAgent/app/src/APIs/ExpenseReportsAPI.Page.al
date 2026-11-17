@@ -178,6 +178,21 @@ page 6928 "Expense Reports API"
                     Caption = 'Final Approver Name';
                     Editable = false;
                 }
+                field(primaryFinalApproverNo; Rec."Primary Final Approver No.")
+                {
+                    Caption = 'Primary Final Approver No.';
+                    Editable = false;
+                }
+                field(alternateApproverNo; Rec."Alternate Approver No.")
+                {
+                    Caption = 'Alternate Approver No.';
+                    Editable = false;
+                }
+                field(alternateApproverName; Rec."Alternate Approver Name")
+                {
+                    Caption = 'Alternate Approver Name';
+                    Editable = false;
+                }
                 field(interimApproverNo; Rec."Interim Approver No.")
                 {
                     Caption = 'Interim Approver No.';
@@ -186,6 +201,11 @@ page 6928 "Expense Reports API"
                 field(interimApproverName; Rec."Interim Approver Name")
                 {
                     Caption = 'Interim Approver Name';
+                    Editable = false;
+                }
+                field(primaryInterimApproverNo; Rec."Primary Interim Approver No.")
+                {
+                    Caption = 'Primary Interim Approver No.';
                     Editable = false;
                 }
                 field(reimbursementCurrencyCode; ReimbursementCurrencyCodeDisplay)
@@ -235,9 +255,22 @@ page 6928 "Expense Reports API"
                 {
                     Caption = 'Travel Request No.';
                 }
+                field(travelRequestId; Rec."Travel Request SystemId")
+                {
+                    Caption = 'Travel Request Id';
+                    Editable = false;
+                }
                 field(spendRequestClose; Rec."Spend Request Close")
                 {
                     Caption = 'Travel Request Close';
+                }
+                part(travelRequest; "Travel Requests API")
+                {
+                    Caption = 'Travel Request';
+                    EntityName = 'travelRequest';
+                    EntitySetName = 'travelRequests';
+                    Multiplicity = ZeroOrOne;
+                    SubPageLink = SystemId = field("Travel Request SystemId");
                 }
                 part(expenseReportLines; "Expense Report Lines API")
                 {
@@ -522,6 +555,17 @@ page 6928 "Expense Reports API"
     procedure AssignInterimApprover(var ActionContext: WebServiceActionContext; InterimApproverExpenseUserNo: Code[20]; ActorExpenseUserNo: Code[20])
     begin
         Rec.AssignInterimApprover(InterimApproverExpenseUserNo, ActorExpenseUserNo);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
+    procedure AssignAlternateApprover(var ActionContext: WebServiceActionContext; ActorExpenseUserNo: Code[20])
+    begin
+        Rec.AssignAlternateApprover(ActorExpenseUserNo);
 
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Reports API");

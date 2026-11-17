@@ -20,6 +20,9 @@ page 7099 "Spend Requests API"
     ODataKeyFields = SystemId;
     SourceTable = "Spend Request";
     AboutText = 'Provides access to data from the Spend Request table';
+    Permissions = tabledata "Spend Request" = rimd,
+                  tabledata "Spend Request Detail" = rmd,
+                  tabledata "Spend Request To G/L Link" = rd;
 
     layout
     {
@@ -39,6 +42,7 @@ page 7099 "Spend Requests API"
                 field(requestedBy; Rec."Requested By")
                 {
                     Caption = 'Requested By';
+                    ToolTip = 'Specifies the employee who created the request. For travel requests, this value can be set only when creating the request.';
                 }
                 field(status; Rec.Status)
                 {
@@ -114,18 +118,29 @@ page 7099 "Spend Requests API"
                 {
                     Caption = 'Travel Policy Acknowledgment';
                 }
+#if not CLEAN29
                 field(internationalTravel; Rec."International Travel")
                 {
                     Caption = 'International Travel';
+                    ObsoleteReason = 'Replaced by the Expense Location field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
                 field(originCountry; Rec."Origin Country/Region Code")
                 {
                     Caption = 'Origin Country';
+                    ObsoleteReason = 'Replaced by the Expense Location field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
                 field(destinationCountry; Rec."Dest. Country/Region Code")
                 {
                     Caption = 'Destination Country';
+                    ObsoleteReason = 'Replaced by the Expense Location field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 field(restrictions; Rec.Restrictions)
                 {
                     Caption = 'Restrictions';
@@ -166,4 +181,28 @@ page 7099 "Spend Requests API"
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    begin
+        // Checked on save rather than per field, so that the order of the fields in the request does not matter.
+        Rec.CheckActualDateTimes();
+        exit(true);
+    end;
+
+    trigger OnModifyRecord(): Boolean
+    begin
+        // Protect travel request ownership while the legacy endpoint remains available before CLEAN29.
+        if Rec."Document Type" = Rec."Document Type"::"Travel Request" then begin
+            if Rec."Requested By" <> xRec."Requested By" then
+                Rec.FieldError("Requested By", RequestedByCannotBeChangedErr);
+            if Rec."Requested For" <> xRec."Requested For" then
+                Rec.FieldError("Requested For", RequestedByCannotBeChangedErr);
+        end;
+        Rec.CheckActualDateTimes();
+
+        exit(true);
+    end;
+
+    var
+        RequestedByCannotBeChangedErr: Label 'cannot be changed';
 }

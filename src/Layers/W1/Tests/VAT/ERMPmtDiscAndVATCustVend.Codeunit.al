@@ -611,6 +611,121 @@ codeunit 134090 "ERM Pmt Disc And VAT Cust/Vend"
         VerifyVATEntry(GenJournalLine."Document No.", -0.16, -0.02);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesPmtDiscountVATWithHistoricalRegister()
+    begin
+        PaymentDiscountVATUsesPaymentRegister("Gen. Journal Account Type"::Customer, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesPmtDiscountVATWithOriginalRegister()
+    begin
+        PaymentDiscountVATUsesPaymentRegister("Gen. Journal Account Type"::Customer, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PurchPmtDiscountVATWithHistoricalRegister()
+    begin
+        PaymentDiscountVATUsesPaymentRegister("Gen. Journal Account Type"::Vendor, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PurchPmtDiscountVATWithOriginalRegister()
+    begin
+        PaymentDiscountVATUsesPaymentRegister("Gen. Journal Account Type"::Vendor, false);
+    end;
+
+    local procedure PaymentDiscountVATUsesPaymentRegister(AccountType: Enum "Gen. Journal Account Type"; ClearSourceRegister: Boolean)
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        SourceVATEntry: Record "VAT Entry";
+        VATEntry: Record "VAT Entry";
+        GLEntry: Record "G/L Entry";
+        GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        AccountNo: Code[20];
+        GLAccountNo: Code[20];
+        InvoiceNo: Code[20];
+        DiscountPct: Decimal;
+        InvoiceSign: Integer;
+        SourceRegisterNo: Integer;
+        PaymentRegisterNo: Integer;
+    begin
+        Initialize();
+        LibraryPmtDiscSetup.SetAdjustForPaymentDisc(true);
+        CreateNormalVATPostingSetupWithPmtDiscount(VATPostingSetup);
+        VATPostingSetup.Validate("VAT %", 19);
+        VATPostingSetup.Modify(true);
+        if AccountType = AccountType::Customer then begin
+            AccountNo := CreateCustomer(VATPostingSetup."VAT Bus. Posting Group", DiscountPct);
+            GLAccountNo := VATPostingSetup."Sales VAT Account";
+            InvoiceSign := 1;
+        end else begin
+            AccountNo := CreateVendor(VATPostingSetup."VAT Bus. Posting Group", DiscountPct);
+            GLAccountNo := VATPostingSetup."Purchase VAT Account";
+            InvoiceSign := -1;
+        end;
+
+        PrepareGenJnlLine(GenJournalLine);
+        InvoiceNo := CreateGenJnlLine(
+            GenJournalLine, '', GenJournalLine."Document Type"::Invoice, AccountType, AccountNo, InvoiceSign * 1190);
+        GenJournalLine.Validate("Payment Discount %", 2);
+        GenJournalLine.Validate("Pmt. Discount Date", WorkDate());
+        GenJournalLine.Modify(true);
+        CreateGLAccountInvoiceGenJnlLine(GenJournalLine, GLAccountNo, -InvoiceSign * 1190);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        SourceVATEntry.SetRange("Document No.", InvoiceNo);
+        Assert.RecordCount(SourceVATEntry, 1);
+        SourceVATEntry.FindFirst();
+        SourceVATEntry.TestField("Document Type", SourceVATEntry."Document Type"::Invoice);
+        SourceVATEntry.TestField("G/L Register No.");
+        if ClearSourceRegister then begin
+            // Simulate an invoice posted before VAT entries stored their G/L register.
+            SourceVATEntry."G/L Register No." := 0;
+            SourceVATEntry.Modify();
+        end;
+        SourceRegisterNo := SourceVATEntry."G/L Register No.";
+
+        if AccountType = AccountType::Customer then
+            CreatePostCustomerPaymentGenJnlLine(GenJournalLine, AccountNo, -1166.20)
+        else
+            CreatePostVendorPaymentGenJnlLine(GenJournalLine, AccountNo, 1166.20);
+
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.FindFirst();
+        GLEntry.TestField("Document Type", GLEntry."Document Type"::Payment);
+        GLEntry.TestField("G/L Register No.");
+        PaymentRegisterNo := GLEntry."G/L Register No.";
+        Assert.AreNotEqual(SourceRegisterNo, PaymentRegisterNo, 'The payment must use a new G/L register.');
+        VATEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        Assert.RecordCount(VATEntry, 1);
+        VATEntry.FindFirst();
+        VATEntry.TestField("G/L Register No.", PaymentRegisterNo);
+        VerifyVATEntry(GenJournalLine."Document No.", InvoiceSign * 20, InvoiceSign * 3.80);
+        GLEntryVATEntryLink.SetRange("VAT Entry No.", VATEntry."Entry No.");
+        GLEntryVATEntryLink.FindFirst();
+        GLEntry.Get(GLEntryVATEntryLink."G/L Entry No.");
+        GLEntry.TestField("G/L Register No.", PaymentRegisterNo);
+
+        SourceVATEntry.Get(SourceVATEntry."Entry No.");
+        SourceVATEntry.TestField("G/L Register No.", SourceRegisterNo);
+        VerifyVATEntry(InvoiceNo, -InvoiceSign * 1000, -InvoiceSign * 190);
+        if AccountType = AccountType::Customer then begin
+            LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice, InvoiceNo);
+            CustLedgerEntry.TestField(Open, false);
+        end else begin
+            LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Invoice, InvoiceNo);
+            VendorLedgerEntry.TestField(Open, false);
+        end;
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

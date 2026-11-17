@@ -60,4 +60,9 @@ codeunit 130131 "MCP Config Test Library"
     begin
         exit(MCPConfigImplementation.EncodeForMCPHeaderIfNonAscii(Value));
     end;
+
+    procedure ConfirmDataQueryToolsOnImport(EnableDataQueryTools: Boolean): Boolean
+    begin
+        exit(MCPConfigImplementation.ConfirmDataQueryToolsOnImport(EnableDataQueryTools));
+    end;
 }

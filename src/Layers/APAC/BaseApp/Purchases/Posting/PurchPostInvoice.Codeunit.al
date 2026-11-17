@@ -42,6 +42,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         TempInvoicePostingBufferGST: Record "Invoice Posting Buffer" temporary;
         TotalPurchLine: Record "Purchase Line";
         TotalPurchLineLCY: Record "Purchase Line";
+        ACYCurrency: Record Currency;
         DeferralUtilities: Codeunit "Deferral Utilities";
         DimensionManagement: Codeunit DimensionManagement;
         JobPostLine: Codeunit "Job Post-Line";
@@ -151,6 +152,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
         PurchPostInvoiceEvents.RunOnPrepareLineOnBeforePreparePurchase(PurchHeader, PurchLine, GenPostingSetup);
         PrepareInvoicePostingBuffer(PurchLine, InvoicePostingBuffer);
+        InvoicePostingBuffer."VAT Difference (ACY)" := 0;
 
         InitTotalAmounts(
             PurchLine, PurchLineACY, TotalVAT, TotalVATACY, TotalAmount, TotalAmountACY,
@@ -279,6 +281,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
             DeferralUtilities.AdjustTotalAmountForDeferralsNoBase(
               PurchLine."Deferral Code", AmtToDefer, AmtToDeferACY, TotalAmount, TotalAmountACY, PurchLine."Inv. Discount Amount" + PurchLine."Line Discount Amount", PurchLineACY."Inv. Discount Amount" + PurchLineACY."Line Discount Amount");
 
+        InvoicePostingBuffer."VAT Difference (ACY)" := PurchLine."VAT Difference (ACY)";
         IsHandled := false;
         PurchPostInvoiceEvents.RunOnPrepareLineOnBeforeSetAmounts(
             PurchLine, PurchLineACY, InvoicePostingBuffer,
@@ -574,9 +577,12 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
     procedure PostLines(DocumentHeaderVar: Variant; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var Window: Dialog; var TotalAmount: Decimal)
     var
-        PurchHeader: Record "Purchase Header";
         GenJnlLine: Record "Gen. Journal Line";
         JobPurchLine: Record "Purchase Line";
+        PurchHeader: Record "Purchase Header";
+        TempJobSourcePurchLine: Record "Purchase Line" temporary;
+        JobLineViews: Dictionary of [Integer, List of [Text]];
+        JobLineGLEntryNos: Dictionary of [Integer, List of [Integer]];
         GLEntryNo: Integer;
         LineCount: Integer;
     begin
@@ -610,13 +616,12 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
                 if (TempInvoicePostingBuffer."Job No." <> '') and
                    (TempInvoicePostingBuffer.Type = TempInvoicePostingBuffer.Type::"G/L Account")
-                then begin
-                    SetJobLineFilters(JobPurchLine, TempInvoicePostingBuffer);
-                    JobPostLine.PostJobPurchaseLines(JobPurchLine.GetView(), GLEntryNo);
-                end;
-
+                then
+                    PostJobLine(TempInvoicePostingBuffer, GLEntryNo, JobPurchLine, TempJobSourcePurchLine, JobLineViews, JobLineGLEntryNos);
                 InsertGST(PurchHeader, TempInvoicePostingBuffer, GenJnlPostLine.GetVATEntryNo());
             until TempInvoicePostingBuffer.Next(-1) = 0;
+
+        PostDeferredJobLines(TempJobSourcePurchLine, JobLineViews, JobLineGLEntryNos);
 
         TempInvoicePostingBuffer.CalcSums(Amount);
         TotalAmount := TempInvoicePostingBuffer.Amount;
@@ -642,10 +647,22 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         InvoicePostingBuffer.CopyToGenJnlLine(GenJnlLine);
         GenJnlLine."WHT Business Posting Group" := InvoicePostingBuffer."WHT Business Posting Group";
         GenJnlLine."WHT Product Posting Group" := InvoicePostingBuffer."WHT Product Posting Group";
-        GenJnlLine."VAT Base (ACY)" := InvoicePostingBuffer."VAT Base (ACY)";
-        GenJnlLine."VAT Amount (ACY)" := InvoicePostingBuffer."VAT Amount(ACY)";
-        GenJnlLine."VAT Difference (ACY)" := InvoicePostingBuffer."VAT Difference (ACY)";
-        GenJnlLine."Amount Including VAT (ACY)" := InvoicePostingBuffer."Amount Including VAT (ACY)";
+        if GLSetup."Additional Reporting Currency" = '' then begin
+            GenJnlLine."VAT Base (ACY)" := InvoicePostingBuffer."VAT Base (ACY)";
+            GenJnlLine."VAT Amount (ACY)" := InvoicePostingBuffer."VAT Amount(ACY)";
+            GenJnlLine."VAT Difference (ACY)" := InvoicePostingBuffer."VAT Difference (ACY)";
+            GenJnlLine."Amount Including VAT (ACY)" := InvoicePostingBuffer."Amount Including VAT (ACY)";
+        end else
+            if UseVendorExchangeRateACY(PurchHeader) then
+                SetVendorExchangeRateACYAmounts(PurchHeader, InvoicePostingBuffer, GenJnlLine)
+            else begin
+                GenJnlLine."VAT Base (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Base Amount");
+                GenJnlLine."VAT Difference (ACY)" := InvoicePostingBuffer."VAT Difference (ACY)";
+                GenJnlLine."VAT Amount (ACY)" :=
+                    VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Amount" - InvoicePostingBuffer."VAT Difference") +
+                    GenJnlLine."VAT Difference (ACY)";
+                GenJnlLine."Amount Including VAT (ACY)" := GenJnlLine."VAT Base (ACY)" + GenJnlLine."VAT Amount (ACY)";
+            end;
         PurchPostInvoiceEvents.RunOnPrepareGenJnlLineOnAfterCopyToGenJnlLine(GenJnlLine, PurchHeader, InvoicePostingBuffer);
         if GLSetup."Journal Templ. Name Mandatory" then
             GenJnlLine."Journal Template Name" := InvoicePostingBuffer."Journal Templ. Name";
@@ -994,6 +1011,66 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
             end;
             UpdateInvoicePostingBufferGST(PurchLine, InvoicePostingBuffer);
         end;
+    end;
+
+    local procedure VATExchangeAmtLCYToACY(PostingDate: Date; AmountLCY: Decimal): Decimal
+    begin
+        if AmountLCY = 0 then
+            exit(0);
+        if not GetACYCurrency() then
+            exit(0);
+        exit(
+            Round(
+                CurrExchRate.ExchangeAmtLCYToFCY(
+                    PostingDate, ACYCurrency.Code, AmountLCY,
+                    CurrExchRate.ExchangeRate(PostingDate, ACYCurrency.Code)),
+                ACYCurrency."Amount Rounding Precision", ACYCurrency.VATRoundingDirection()));
+    end;
+
+    local procedure SetVendorExchangeRateACYAmounts(PurchHeader: Record "Purchase Header"; InvoicePostingBuffer: Record "Invoice Posting Buffer"; var GenJnlLine: Record "Gen. Journal Line")
+    var
+        Factor: Decimal;
+    begin
+        GetACYCurrency();
+        Factor := CurrExchRate.ExchangeRateFactorFRS21(GenJnlLine."Posting Date", ACYCurrency.Code, PurchHeader."Vendor Exchange Rate (ACY)");
+        GenJnlLine."VAT Base (ACY)" := VendorExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Base Amount", Factor);
+        GenJnlLine."VAT Difference (ACY)" := InvoicePostingBuffer."VAT Difference (ACY)";
+        GenJnlLine."VAT Amount (ACY)" :=
+            Round(GenJnlLine."VAT Base (ACY)" * InvoicePostingBuffer."VAT %" / 100, ACYCurrency."Amount Rounding Precision") +
+            GenJnlLine."VAT Difference (ACY)";
+        GenJnlLine."Amount Including VAT (ACY)" := GenJnlLine."VAT Base (ACY)" + GenJnlLine."VAT Amount (ACY)";
+    end;
+
+    local procedure VendorExchangeAmtLCYToACY(PostingDate: Date; AmountLCY: Decimal; Factor: Decimal): Decimal
+    begin
+        if AmountLCY = 0 then
+            exit(0);
+        exit(
+            Round(
+                CurrExchRate.ExchangeAmtLCYToFCY(PostingDate, ACYCurrency.Code, AmountLCY, Factor),
+                ACYCurrency."Amount Rounding Precision"));
+    end;
+
+    local procedure UseVendorExchangeRateACY(PurchHeader: Record "Purchase Header"): Boolean
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        // Purchase Line applies the vendor rate to ACY only for documents in LCY.
+        if (PurchHeader."Vendor Exchange Rate (ACY)" = 0) or (PurchHeader."Currency Code" <> '') then
+            exit(false);
+        PurchasesPayablesSetup.Get();
+        exit(PurchasesPayablesSetup."Enable Vendor GST Amount (ACY)");
+    end;
+
+    local procedure GetACYCurrency(): Boolean
+    begin
+        GLSetup.Get();
+        if GLSetup."Additional Reporting Currency" = '' then
+            exit(false);
+        GLSetup.TestField("Additional Reporting Currency");
+        ACYCurrency.Get(GLSetup."Additional Reporting Currency");
+        ACYCurrency.TestField("Amount Rounding Precision");
+        exit(true);
     end;
 
     local procedure UpdateInvoicePostingBufferGST(PurchLine: Record "Purchase Line"; InvoicePostingBuffer: Record "Invoice Posting Buffer")
@@ -1705,6 +1782,51 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
                     FADeprBook2.Insert(true);
                 until FADeprBook.Next() = 0;
         end;
+    end;
+
+    local procedure PostJobLine(InvoicePostingBuffer: Record "Invoice Posting Buffer"; GLEntryNo: Integer; var JobPurchLine: Record "Purchase Line"; var TempJobSourcePurchLine: Record "Purchase Line" temporary; var JobLineViews: Dictionary of [Integer, List of [Text]]; var JobLineGLEntryNos: Dictionary of [Integer, List of [Integer]])
+    var
+        Views: List of [Text];
+        GLEntryNos: List of [Integer];
+        SourceLineNo: Integer;
+    begin
+        SetJobLineFilters(JobPurchLine, InvoicePostingBuffer);
+
+        SourceLineNo := InvoicePostingBuffer."Fixed Asset Line No.";
+        if SourceLineNo <> 0 then
+            PurchSetup.Get();
+        if (SourceLineNo = 0) or not PurchSetup."Copy Line Descr. to G/L Entry" then begin
+            JobPostLine.PostJobPurchaseLines(JobPurchLine.GetView(), GLEntryNo);
+            exit;
+        end;
+
+        // The posting buffer is processed in descending key order, so project posting is deferred to follow the source line order.
+        if JobLineViews.ContainsKey(SourceLineNo) then begin
+            Views := JobLineViews.Get(SourceLineNo);
+            GLEntryNos := JobLineGLEntryNos.Get(SourceLineNo);
+        end else begin
+            TempJobSourcePurchLine."Line No." := SourceLineNo;
+            TempJobSourcePurchLine.Insert();
+        end;
+        Views.Add(JobPurchLine.GetView());
+        GLEntryNos.Add(GLEntryNo);
+        JobLineViews.Set(SourceLineNo, Views);
+        JobLineGLEntryNos.Set(SourceLineNo, GLEntryNos);
+    end;
+
+    local procedure PostDeferredJobLines(var TempJobSourcePurchLine: Record "Purchase Line" temporary; JobLineViews: Dictionary of [Integer, List of [Text]]; JobLineGLEntryNos: Dictionary of [Integer, List of [Integer]])
+    var
+        Views: List of [Text];
+        GLEntryNos: List of [Integer];
+        Index: Integer;
+    begin
+        if TempJobSourcePurchLine.FindSet() then
+            repeat
+                Views := JobLineViews.Get(TempJobSourcePurchLine."Line No.");
+                GLEntryNos := JobLineGLEntryNos.Get(TempJobSourcePurchLine."Line No.");
+                for Index := 1 to Views.Count() do
+                    JobPostLine.PostJobPurchaseLines(Views.Get(Index), GLEntryNos.Get(Index));
+            until TempJobSourcePurchLine.Next() = 0;
     end;
 
     [IntegrationEvent(false, false)]

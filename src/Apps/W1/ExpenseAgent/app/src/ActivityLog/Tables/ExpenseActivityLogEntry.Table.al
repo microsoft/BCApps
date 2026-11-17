@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.SpendRequest;
 using System.Security.AccessControl;
 
 table 7100 "Expense Activity Log Entry"
@@ -33,7 +35,9 @@ table 7100 "Expense Activity Log Entry"
             DataClassification = SystemMetadata;
             TableRelation = if ("Source Table ID" = const(Database::"Expense Report Header")) "Expense Report Header".SystemId
                             else
-                            if ("Source Table ID" = const(Database::"Posted Expense Report Header")) "Posted Expense Report Header".SystemId;
+                            if ("Source Table ID" = const(Database::"Posted Expense Report Header")) "Posted Expense Report Header".SystemId
+                            else
+                            if ("Source Table ID" = const(Database::"Spend Request")) "Spend Request".SystemId;
             ToolTip = 'Specifies the immutable SystemId of the source document that currently owns the activity entry.';
         }
         field(4; "Subject Table ID"; Integer)
@@ -108,53 +112,68 @@ table 7100 "Expense Activity Log Entry"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount (LCY)';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(16; "Non-Refundable Amount (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Non-Refundable Amount (LCY)';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(17; "Reimbursable Amount"; Decimal)
         {
             AutoFormatExpression = "Reimbursement Currency Code";
             AutoFormatType = 1;
             Caption = 'Reimbursable Amount';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(18; "Reimbursable Amount (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Reimbursable Amount (LCY)';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(19; "Refundable Amount"; Decimal)
         {
             AutoFormatExpression = "Reimbursement Currency Code";
             AutoFormatType = 1;
             Caption = 'Refundable Amount';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(20; "Refundable Amount (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Refundable Amount (LCY)';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(21; "Reimbursement Currency Code"; Code[10])
         {
             Caption = 'Reimbursement Currency Code';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
         }
         field(22; "Reimbursement Currency Factor"; Decimal)
         {
             Caption = 'Reimbursement Currency Factor';
-            DataClassification = AccountData;
+            DataClassification = CustomerContent;
             DecimalPlaces = 0 : 15;
+        }
+        field(23; "Total Expected Amount"; Decimal)
+        {
+            AutoFormatExpression = "Total Expected Amt. Cur. Code";
+            AutoFormatType = 1;
+            Caption = 'Total Expected Amount';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the total expected amount of the travel request at the time it was submitted or resubmitted. Blank for other activities.';
+        }
+        field(24; "Total Expected Amt. Cur. Code"; Code[10])
+        {
+            Caption = 'Total Expected Amount Currency Code';
+            DataClassification = CustomerContent;
+            TableRelation = Currency;
+            ToolTip = 'Specifies the currency of the total expected amount of the travel request at the time it was submitted or resubmitted. Blank for the local currency and for other activities.';
         }
         field(50; Comment; Text[2048])
         {
