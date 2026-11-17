@@ -2420,7 +2420,7 @@ codeunit 7312 "Create Pick"
                         TotalAvailQtyToPickBase := Minimum(TotalAvailQtyToPickBase, QtyCanBePicked);
 
                         // Without breakbulk only bin contents in the requested unit of measure can be picked, so the lot must not get more than that.
-                        if IsPickByExactRequestedUnitOfMeasure() then
+                        if IsPickByExactRequestedUnitOfMeasure(ItemNo, VariantCode, UnitofMeasureCode) then
                             TotalAvailQtyToPickBase :=
                                 Minimum(
                                     TotalAvailQtyToPickBase,
