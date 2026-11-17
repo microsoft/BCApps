@@ -725,6 +725,74 @@ codeunit 133513 "Search Item Test"
     end;
 
     [Test]
+    procedure TestExtractionStructuredContracts()
+    var
+        PromptTest: Codeunit "SLS Prompt Test";
+        ExpectedItems: JsonArray;
+        ActualItems: JsonArray;
+        Mapping: JsonArray;
+        IdentifierTerms: JsonArray;
+        ActualItem: JsonToken;
+    begin
+        ExpectedItems.ReadFrom('[{"split_name_terms":["bike"],"quantity":2,"unit_of_measure":"BOX"},{"split_name_terms":["987651"],"quantity":1}]');
+        ActualItems.ReadFrom('[{"name":"987651","split_name_terms":["987651"],"quantity":1},{"name":"bicycle","split_name_terms":["bicycle"],"quantity":2,"unit_of_measure":"box"}]');
+        Mapping.ReadFrom('[1,0]');
+        PromptTest.AssertSearchItemContracts(ExpectedItems, ActualItems, Mapping);
+
+        ActualItems.Get(1, ActualItem);
+        ActualItem.AsObject().Replace('quantity', 3);
+        asserterror PromptTest.AssertSearchItemContracts(ExpectedItems, ActualItems, Mapping);
+        Assert.ExpectedError('"quantity" property is incorrect');
+        ActualItem.AsObject().Replace('quantity', 2);
+
+        ActualItem.AsObject().Replace('unit_of_measure', 'PCS');
+        asserterror PromptTest.AssertSearchItemContracts(ExpectedItems, ActualItems, Mapping);
+        Assert.ExpectedError('"unit_of_measure" property is incorrect');
+        ActualItem.AsObject().Replace('unit_of_measure', 'BOX');
+
+        ActualItems.Get(0, ActualItem);
+        ActualItem.AsObject().Replace('name', '987652');
+        IdentifierTerms.Add('987652');
+        ActualItem.AsObject().Replace('split_name_terms', IdentifierTerms);
+        asserterror PromptTest.AssertSearchItemContracts(ExpectedItems, ActualItems, Mapping);
+        Assert.ExpectedError('Item identifier is incorrect.');
+    end;
+
+    [Test]
+    procedure TestExtractionMappingMustBeOneToOne()
+    var
+        PromptTest: Codeunit "SLS Prompt Test";
+        ExpectedItems: JsonArray;
+        ActualItems: JsonArray;
+        Mapping: JsonArray;
+    begin
+        ExpectedItems.ReadFrom('[{"quantity":1},{"quantity":1}]');
+        ActualItems.ReadFrom('[{"name":"chair","split_name_terms":["chair"],"quantity":1},{"name":"desk","split_name_terms":["desk"],"quantity":1}]');
+        Mapping.ReadFrom('[0,0]');
+        asserterror PromptTest.AssertSearchItemContracts(ExpectedItems, ActualItems, Mapping);
+        Assert.ExpectedError('Semantic evaluator returned a duplicate item mapping.');
+
+        Mapping.ReadFrom('[0]');
+        asserterror PromptTest.AssertSearchItemContracts(ExpectedItems, ActualItems, Mapping);
+        Assert.ExpectedError('Semantic evaluator item mapping is incomplete.');
+    end;
+
+    [Test]
+    procedure TestExtractionRequiresQuantity()
+    var
+        PromptTest: Codeunit "SLS Prompt Test";
+        ExpectedItems: JsonArray;
+        ActualItems: JsonArray;
+        Mapping: JsonArray;
+    begin
+        ExpectedItems.ReadFrom('[{"quantity":1}]');
+        ActualItems.ReadFrom('[{"name":"chair","split_name_terms":["chair"]}]');
+        Mapping.ReadFrom('[0]');
+        asserterror PromptTest.AssertSearchItemContracts(ExpectedItems, ActualItems, Mapping);
+        Assert.ExpectedError('Search item quantity is missing.');
+    end;
+
+    [Test]
     procedure TestSearchItemQuantityDefaults()
     var
         Item: Record Item;
