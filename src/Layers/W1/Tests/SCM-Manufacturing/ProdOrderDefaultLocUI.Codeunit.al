@@ -78,7 +78,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
         // [WHEN] The user enters an item and quantity and saves the order.
         ReleasedProductionOrder."Source No.".SetValue(Item."No.");
         ReleasedProductionOrder.Quantity.SetValue(2);
-        OrderNo := ReleasedProductionOrder."No.".Value();
+        OrderNo := CopyStr(ReleasedProductionOrder."No.".Value(), 1, MaxStrLen(OrderNo));
         ReleasedProductionOrder.Close();
         // [THEN] The saved order retains the location and quantity.
         ProductionOrder.Get(ProductionOrder.Status::Released, OrderNo);
@@ -122,7 +122,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
             ReleasedProductionOrder."Source No.".SetValue(Item."No.");
             ReleasedProductionOrder."Variant Code".SetValue(ItemVariant.Code);
             ReleasedProductionOrder.Quantity.SetValue(2);
-            OrderNo := ReleasedProductionOrder."No.".Value();
+            OrderNo := CopyStr(ReleasedProductionOrder."No.".Value(), 1, MaxStrLen(OrderNo));
             ReleasedProductionOrder.Close();
             // [THEN] The saved order respects the user's location and variant.
             ProductionOrder.Get(ProductionOrder.Status::Released, OrderNo);
@@ -165,7 +165,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
             ReleasedProductionOrder."Source No.".SetValue(Item."No.");
             ReleasedProductionOrder."Variant Code".SetValue(ItemVariant.Code);
             ReleasedProductionOrder.Quantity.SetValue(2);
-            OrderNo := ReleasedProductionOrder."No.".Value();
+            OrderNo := CopyStr(ReleasedProductionOrder."No.".Value(), 1, MaxStrLen(OrderNo));
             ReleasedProductionOrder.Close();
             ProductionOrder.Get(ProductionOrder.Status::Released, OrderNo);
             // [WHEN] The user reopens the existing order.
@@ -213,7 +213,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
                         SimulatedProductionOrder."Location Code".AssertEquals(Location.Code);
                         SimulatedProductionOrder."Source No.".SetValue(Item."No.");
                         SimulatedProductionOrder.Quantity.SetValue(2);
-                        OrderNo := SimulatedProductionOrder."No.".Value();
+                        OrderNo := CopyStr(SimulatedProductionOrder."No.".Value(), 1, MaxStrLen(OrderNo));
                         SimulatedProductionOrder.Close();
                     end;
                 OrderStatus::Planned:
@@ -222,7 +222,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
                         PlannedProductionOrder."Location Code".AssertEquals(Location.Code);
                         PlannedProductionOrder."Source No.".SetValue(Item."No.");
                         PlannedProductionOrder.Quantity.SetValue(2);
-                        OrderNo := PlannedProductionOrder."No.".Value();
+                        OrderNo := CopyStr(PlannedProductionOrder."No.".Value(), 1, MaxStrLen(OrderNo));
                         PlannedProductionOrder.Close();
                     end;
                 OrderStatus::"Firm Planned":
@@ -231,7 +231,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
                         FirmPlannedProductionOrder."Location Code".AssertEquals(Location.Code);
                         FirmPlannedProductionOrder."Source No.".SetValue(Item."No.");
                         FirmPlannedProductionOrder.Quantity.SetValue(2);
-                        OrderNo := FirmPlannedProductionOrder."No.".Value();
+                        OrderNo := CopyStr(FirmPlannedProductionOrder."No.".Value(), 1, MaxStrLen(OrderNo));
                         FirmPlannedProductionOrder.Close();
                     end;
             end;

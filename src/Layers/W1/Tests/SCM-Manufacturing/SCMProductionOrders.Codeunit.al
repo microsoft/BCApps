@@ -5681,7 +5681,6 @@ codeunit 137069 "SCM Production Orders"
         OldOrder: Record "Production Order";
         ManufacturingSetup: Record "Manufacturing Setup";
         Observer: Codeunit "SCM Production Orders";
-        LibraryERM: Codeunit "Library - ERM";
     begin
         OldOrder := ProductionOrder;
         ManufacturingSetup.Get();

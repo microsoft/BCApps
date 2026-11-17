@@ -998,8 +998,8 @@ codeunit 132202 "Library - Manufacturing"
     procedure RefreshProdOrder(var ProductionOrder: Record "Production Order"; Forward: Boolean; CalcLines: Boolean; CalcRoutings: Boolean; CalcComponents: Boolean; CreateInbRqst: Boolean)
     var
         TmpProductionOrder: Record "Production Order";
-        InstructionMgt: Codeunit "Instruction Mgt.";
         RefreshProductionOrder: Report "Refresh Production Order";
+        InstructionMgt: Codeunit "Instruction Mgt.";
         TempTransactionType: TransactionType;
         Direction: Option Forward,Backward;
         BlankLocationWarningEnabled: Boolean;
