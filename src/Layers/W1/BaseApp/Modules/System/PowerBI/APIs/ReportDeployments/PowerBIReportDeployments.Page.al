@@ -221,15 +221,27 @@ page 6347 "Power BI Report Deployments"
                     ApplicationArea = All;
                     Caption = 'Clear Deployment Records';
                     Image = ClearLog;
-                    ToolTip = 'Deletes all data in Business Central about Power BI deployments (shown in this list). Reports already uploaded to the Power BI workspace are not removed.';
+                    ToolTip = 'Deletes the data in Business Central about the Power BI deployment of the selected reports. Reports already uploaded to the Power BI workspace are not removed.';
 
                     trigger OnAction()
                     var
+                        SelectedBuffer: Record "Power BI Deployment Buffer";
                         PowerBIDeployment: Record "Power BI Deployment";
                     begin
-                        if not Confirm(ClearDeploymentRecordsQst) then
+                        GetSelectedReports(SelectedBuffer);
+                        SelectedBuffer.SetFilter("Deployment Status", '<>%1', Enum::"Power BI Deployment Status"::"Not Installed");
+                        if SelectedBuffer.IsEmpty() then begin
+                            Message(NothingToClearMsg);
                             exit;
-                        PowerBIDeployment.DeleteAllRecords();
+                        end;
+
+                        if not Confirm(ClearDeploymentRecordsQst, false, SelectedBuffer.Count()) then
+                            exit;
+
+                        SelectedBuffer.FindSet();
+                        repeat
+                            PowerBIDeployment.DeleteRecords(SelectedBuffer."Report Id");
+                        until SelectedBuffer.Next() = 0;
                         RefreshReports();
                     end;
                 }
@@ -278,31 +290,30 @@ page 6347 "Power BI Report Deployments"
         }
         area(Promoted)
         {
+            actionref(Deploy_Promoted; Deploy)
+            {
+            }
+            actionref(Update_Promoted; Update)
+            {
+            }
+            actionref(Retry_Promoted; Retry)
+            {
+            }
+            actionref(DownloadPbix_Promoted; DownloadPbix)
+            {
+            }
+            actionref(Refresh_Promoted; Refresh)
+            {
+            }
+            actionref(ClearDeploymentRecords_Promoted; ClearDeploymentRecords)
+            {
+            }
+            actionref(OpenInPowerBI_Promoted; OpenInPowerBI)
+            {
+            }
             group(Category_Process)
             {
                 Caption = 'Deployment';
-
-                actionref(Deploy_Promoted; Deploy)
-                {
-                }
-                actionref(Update_Promoted; Update)
-                {
-                }
-                actionref(Retry_Promoted; Retry)
-                {
-                }
-                actionref(DownloadPbix_Promoted; DownloadPbix)
-                {
-                }
-                actionref(Refresh_Promoted; Refresh)
-                {
-                }
-                actionref(ClearDeploymentRecords_Promoted; ClearDeploymentRecords)
-                {
-                }
-                actionref(OpenInPowerBI_Promoted; OpenInPowerBI)
-                {
-                }
             }
             group(Category_Category2)
             {
@@ -362,7 +373,8 @@ page 6347 "Power BI Report Deployments"
         NothingToDeployMsg: Label 'None of the selected reports can be deployed.';
         DownloadDialogTitleLbl: Label 'Download Power BI Report';
         PbixFileFilterLbl: Label 'Power BI Files (*.pbix)|*.pbix';
-        ClearDeploymentRecordsQst: Label 'This will wipe all local Power BI deployment tracking data for this company. Reports already in your Power BI workspace will not be removed. Continue?';
+        ClearDeploymentRecordsQst: Label 'This will wipe the local Power BI deployment tracking data for the %1 selected report(s) in this company. Reports already in your Power BI workspace will not be removed.\Do you want to continue?', Comment = '%1 = the number of selected reports that have deployment data';
+        NothingToClearMsg: Label 'There is no deployment data to clear for the selected reports.';
 
     local procedure RefreshReports()
     begin
