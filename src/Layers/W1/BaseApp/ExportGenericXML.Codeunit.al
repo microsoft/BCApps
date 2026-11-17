@@ -53,10 +53,8 @@ codeunit 1283 "Export Generic XML"
                             Codeunit.Run(DataExchMapping."Pre-Mapping Codeunit", DataExch);
 
                         Codeunit.Run(DataExchMapping."Mapping Codeunit", DataExch);
-
                         if DataExchMapping."Post-Mapping Codeunit" > 0 then
                             Codeunit.Run(DataExchMapping."Post-Mapping Codeunit", DataExch);
-
                         if DataExchLineDef."Line Type" = DataExchLineDef."Line Type"::Detail then
                             ProcessDetails(DataExch, xmlDoc)
                         else
@@ -138,7 +136,6 @@ codeunit 1283 "Export Generic XML"
                 repeat
                     ProcessDataExchColumnDef(DataExchColumnDef, GetDataExchFieldValue(TempDataExchField, DataExch."Entry No.", i, DataExchColumnDef."Column No."), xmlElem, xmlElemSubRoot, isSubRoot);
                 until DataExchColumnDef.Next() = 0;
-
                 if xmlElemSubRoot.Name <> uniqueNodeLbl then
                     xmlElemRoot.Add(xmlElemSubRoot);
                 Clear(xmlDocPerLine);
@@ -187,7 +184,6 @@ codeunit 1283 "Export Generic XML"
                     xmlNodeFound := xmlDoc.SelectSingleNode(DataExchLineDef."Data Line Tag".Replace('/', '/' + DefNameSpacePrefixLbl + ':'), xmlNamespaceManager, xmlNode)
                 else
                     xmlNodeFound := xmlDoc.SelectSingleNode(DataExchLineDef."Data Line Tag", xmlNamespaceManager, xmlNode);
-
                 if not xmlNodeFound then
                     exit;
 
@@ -201,7 +197,6 @@ codeunit 1283 "Export Generic XML"
                 repeat
                     ProcessDataExchColumnDef(DataExchColumnDef, GetDataExchFieldValue(DataExch."Entry No.", 1, DataExchColumnDef."Column No."), xmlElem, xmlElemSubRoot, isSubRoot);
                 until DataExchColumnDef.Next() = 0;
-
                 if xmlElemSubRoot.Name <> uniqueNodeLbl then
                     xmlElemRoot.Add(xmlElemSubRoot);
             end else begin
@@ -232,7 +227,6 @@ codeunit 1283 "Export Generic XML"
                 xmlDoc.Add(xmlElem);
                 if DataExchColumnDef.Next() = 0 then
                     exit;
-
                 repeat
                     ProcessDataExchColumnDef(DataExchColumnDef, GetDataExchFieldValue(DataExch."Entry No.", 1, DataExchColumnDef."Column No."), xmlElem, xmlElemSubRoot, isSubRoot);
                     xmlDoc.GetRoot(xmlElem);
@@ -267,8 +261,8 @@ codeunit 1283 "Export Generic XML"
             Window.Open(ReadingProgressMsg);
             Window.Update(2, LineCount);
         end;
-
         // Read all values in one query instead of one Get per line and column.
+        LastLineNo := 0;
         DataExchField.SetRange("Data Exch. No.", DataExchEntryNo);
         DataExchField.SetLoadFields(Value, "Value BLOB");
         if DataExchField.FindSet() then
