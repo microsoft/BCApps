@@ -96,15 +96,15 @@ page 6347 "Power BI Report Deployments"
 
                     trigger OnAction()
                     var
-                        SelectedBuffer: Record "Power BI Deployment Buffer";
+                        TempSelectedBuffer: Record "Power BI Deployment Buffer";
                         TempSelection: Record "Power BI Deployment Buffer" temporary;
                         PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
                         InProgressCount: Integer;
                         ReplaceCount: Integer;
                     begin
                         PowerBIWorkspaceMgt.CheckTargetWorkspaceAllowsDeployment();
-                        GetSelectedReports(SelectedBuffer);
-                        TempSelection.LoadSelection(SelectedBuffer);
+                        GetSelectedReports(TempSelectedBuffer);
+                        TempSelection.LoadSelection(TempSelectedBuffer);
 
                         InProgressCount := TempSelection.CountForOutcome(Enum::"Power BI Deployment Outcome"::"In Progress");
                         if InProgressCount > 0 then
@@ -137,13 +137,13 @@ page 6347 "Power BI Report Deployments"
 
                     trigger OnAction()
                     var
-                        SelectedBuffer: Record "Power BI Deployment Buffer";
+                        TempSelectedBuffer: Record "Power BI Deployment Buffer";
                         TempSelection: Record "Power BI Deployment Buffer" temporary;
                         PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
                     begin
                         PowerBIWorkspaceMgt.CheckTargetWorkspaceAllowsDeployment();
-                        GetSelectedReports(SelectedBuffer);
-                        TempSelection.LoadSelection(SelectedBuffer);
+                        GetSelectedReports(TempSelectedBuffer);
+                        TempSelection.LoadSelection(TempSelectedBuffer);
 
                         TempSelection.SetRange("Deployment Status", Enum::"Power BI Deployment Status"::"Update Available");
 
@@ -166,13 +166,13 @@ page 6347 "Power BI Report Deployments"
 
                     trigger OnAction()
                     var
-                        SelectedBuffer: Record "Power BI Deployment Buffer";
+                        TempSelectedBuffer: Record "Power BI Deployment Buffer";
                         TempSelection: Record "Power BI Deployment Buffer" temporary;
                         PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
                     begin
                         PowerBIWorkspaceMgt.CheckTargetWorkspaceAllowsDeployment();
-                        GetSelectedReports(SelectedBuffer);
-                        TempSelection.LoadSelection(SelectedBuffer);
+                        GetSelectedReports(TempSelectedBuffer);
+                        TempSelection.LoadSelection(TempSelectedBuffer);
 
                         TempSelection.SetRange(Outcome, Enum::"Power BI Deployment Outcome"::Failed);
 
@@ -225,23 +225,23 @@ page 6347 "Power BI Report Deployments"
 
                     trigger OnAction()
                     var
-                        SelectedBuffer: Record "Power BI Deployment Buffer";
+                        TempSelectedBuffer: Record "Power BI Deployment Buffer";
                         PowerBIDeployment: Record "Power BI Deployment";
                     begin
-                        GetSelectedReports(SelectedBuffer);
-                        SelectedBuffer.SetFilter("Deployment Status", '<>%1', Enum::"Power BI Deployment Status"::"Not Installed");
-                        if SelectedBuffer.IsEmpty() then begin
+                        GetSelectedReports(TempSelectedBuffer);
+                        TempSelectedBuffer.SetFilter("Deployment Status", '<>%1', Enum::"Power BI Deployment Status"::"Not Installed");
+                        if TempSelectedBuffer.IsEmpty() then begin
                             Message(NothingToClearMsg);
                             exit;
                         end;
 
-                        if not Confirm(ClearDeploymentRecordsQst, false, SelectedBuffer.Count()) then
+                        if not Confirm(ClearDeploymentRecordsQst, false, TempSelectedBuffer.Count()) then
                             exit;
 
-                        SelectedBuffer.FindSet();
+                        TempSelectedBuffer.FindSet();
                         repeat
-                            PowerBIDeployment.DeleteRecords(SelectedBuffer."Report Id");
-                        until SelectedBuffer.Next() = 0;
+                            PowerBIDeployment.DeleteRecords(TempSelectedBuffer."Report Id");
+                        until TempSelectedBuffer.Next() = 0;
                         RefreshReports();
                     end;
                 }
@@ -397,11 +397,11 @@ page 6347 "Power BI Report Deployments"
         PowerBIServiceMgt.SynchronizeReportsInBackground('');
     end;
 
-    local procedure GetSelectedReports(var SelectedBuffer: Record "Power BI Deployment Buffer")
+    local procedure GetSelectedReports(var TempSelectedBuffer: Record "Power BI Deployment Buffer")
     begin
-        SelectedBuffer.Copy(Rec, true);
-        CurrPage.SetSelectionFilter(SelectedBuffer);
-        if not SelectedBuffer.FindSet() then
+        TempSelectedBuffer.Copy(Rec, true);
+        CurrPage.SetSelectionFilter(TempSelectedBuffer);
+        if not TempSelectedBuffer.FindSet() then
             Error(NoReportSelectedErr);
     end;
 
