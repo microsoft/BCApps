@@ -6,16 +6,18 @@
 namespace System.TestLibraries.Security.AccessControl;
 
 using System.Security.AccessControl;
+using System.Testability;
 
 /// <summary>
 /// "Permissions Mock" provides functions that let you simulate any permission set assignment for the current user.
 /// </summary>
-codeunit 131006 "Permissions Mock"
+codeunit 131006 "Permissions Mock" implements ITestHandler
 {
     SingleInstance = true;
 
     trigger OnRun()
     begin
+        LegacyRunnerActive := true;
         if Started then
             Stop()
         else
@@ -25,12 +27,16 @@ codeunit 131006 "Permissions Mock"
     var
         PermissionTestHelper: DotNet PermissionTestHelper;
         Started: Boolean;
+        LegacyRunnerActive: Boolean;
 
     /// <summary>
     /// Start mocking Permission Sets.
     /// </summary>
     procedure Start()
     begin
+        if Started then
+            exit;
+
         PermissionTestHelper := PermissionTestHelper.PermissionTestHelper();
         Started := true;
     end;
@@ -110,6 +116,50 @@ codeunit 131006 "Permissions Mock"
     procedure IsStarted(): Boolean
     begin
         exit(Started);
+    end;
+
+    procedure OnBeforeTestCodeunitRun(Context: TestHandlerContext)
+    begin
+        LegacyRunnerActive := false;
+        Stop();
+    end;
+
+    procedure OnAfterTestCodeunitRun(Context: TestHandlerContext)
+    begin
+        // A skipped procedure or case does not receive its after hook.
+        Stop();
+        LegacyRunnerActive := false;
+    end;
+
+    procedure OnBeforeTestProcedureRun(Context: TestHandlerContext)
+    begin
+        // The legacy runner starts the mock before its setup subscribers run.
+        if LegacyRunnerActive then
+            exit;
+
+        Stop();
+        Start();
+    end;
+
+    procedure OnAfterTestProcedureRun(Context: TestHandlerContext)
+    begin
+        if not LegacyRunnerActive then
+            Stop();
+    end;
+
+    procedure OnBeforeTestCaseRun(Context: TestHandlerContext)
+    begin
+        if LegacyRunnerActive then
+            exit;
+
+        Start();
+        ClearAssignments();
+    end;
+
+    procedure OnAfterTestCaseRun(Context: TestHandlerContext)
+    begin
+        if not LegacyRunnerActive then
+            Stop();
     end;
 }
 
