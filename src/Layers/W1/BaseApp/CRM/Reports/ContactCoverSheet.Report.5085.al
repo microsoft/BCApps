@@ -15,7 +15,7 @@ using System.Email;
 report 5085 "Contact Cover Sheet"
 #pragma warning restore AA0215
 {
-    Caption = 'Contact Cover Sheet';
+    Caption = 'Cover Sheet';
     PreviewMode = PrintLayout;
     WordMergeDataItem = TempSegmentLine;
     DefaultRenderingLayout = WordLayout;
