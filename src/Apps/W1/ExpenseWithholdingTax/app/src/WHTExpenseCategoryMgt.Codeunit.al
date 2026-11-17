@@ -8,6 +8,7 @@ using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Utilities;
 using Microsoft.WithholdingTax;
 using Microsoft.WithholdingTax.Employee;
 
@@ -15,6 +16,14 @@ codeunit 7056 "WHT Expense Category Mgt."
 {
     var
         NoPostingSetupErr: Label 'Withholding Tax Posting Setup does not exist for Business Posting Group %1, Product Posting Group %2.', Comment = '%1 = Bus. Post. Group, %2 = Prod. Post. Group';
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", OnCreateEvaluationDataOnAfterClassifyTablesToNormal, '', true, true)]
+    local procedure ClassifyExpenseWithholdingTax()
+    var
+        DataClassificationEvalData: Codeunit "Data Classification Eval. Data";
+    begin
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"WHT Exp. Report Buffer");
+    end;
 
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnAfterValidateEvent, 'Expense Category', false, false)]
     local procedure OnAfterExpenseCategoryValidateEmployee(var Rec: Record "Gen. Journal Line")
