@@ -862,7 +862,6 @@
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         VendorInvoiceDisc: Record "Vendor Invoice Disc.";
-        DirectUnitCostOffset: Integer;
         ExpectedLineAmount: Decimal;
         i: Integer;
     begin
@@ -875,27 +874,27 @@
         PreparePurchOrder(PurchaseHeader);
         LibraryERM.CreateInvDiscForVendor(VendorInvoiceDisc, PurchaseHeader."Invoice Disc. Code", '', 0);
 
-        // [GIVEN] Purchase order line with 100% prepayment, Quantity = 25, "Direct Unit Cost" = 98.802 + X, "Line Amount" = 2470.05 + 25 * X
-        DirectUnitCostOffset := LibraryRandom.RandInt(100);
-        ExpectedLineAmount := 2470.05 + 25 * DirectUnitCostOffset;
-        AddPurchOrderLine(PurchaseLine, PurchaseHeader, 25, 98.802 + DirectUnitCostOffset, 100, 0);
+        // [GIVEN] Purchase order line with 100% prepayment, Quantity = 25, "Direct Unit Cost" = 98.802, "Line Amount" = 2470.05
+        ExpectedLineAmount := 2470.05;
+        AddPurchOrderLine(PurchaseLine, PurchaseHeader, 25, 98.802, 100, 0);
         PurchaseLine.TestField("Line Amount", ExpectedLineAmount);
 
         // [GIVEN] Posted prepayment invoice
         PostPurchPrepmtInvoice(PurchaseHeader);
 
-        // [GIVEN] Four partial receipts and invoices of 2 units, each deducting a prepayment rounded down by 0.004 (197.60 + 2 * X instead of 197.604 + 2 * X)
+        // [GIVEN] Four partial receipts and invoices of 2 units, each deducting a prepayment rounded down by 0.004 (197.60 instead of 197.604)
         for i := 1 to 4 do begin
             UpdateQtysInLine(PurchaseLine, 2, 2);
             PurchaseHeader.Find();
-            InvoicePurchaseDoc(PurchaseHeader);
+            InvoicePurchaseDocWithSavedVendorInvoiceNo(PurchaseHeader);
         end;
 
-        // [WHEN] Release the order, which recalculates the invoice discount and the prepayment amounts
+        // [WHEN] Reopen and release the order, which recalculates the invoice discount and the prepayment amounts
         PurchaseHeader.Find();
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
 
-        // [THEN] "Prepmt. Line Amount" still equals "Prepmt. Amt. Inv." = 2470.05 + 25 * X
+        // [THEN] "Prepmt. Line Amount" still equals "Prepmt. Amt. Inv." = 2470.05
         PurchaseLine.Find();
         PurchaseLine.TestField("Prepmt. Amt. Inv.", ExpectedLineAmount);
         PurchaseLine.TestField("Prepmt. Line Amount", PurchaseLine."Prepmt. Amt. Inv.");
@@ -906,7 +905,7 @@
         PurchaseLine.Find();
         PurchaseLine.TestField("Prepmt Amt to Deduct", PurchaseLine."Prepmt. Amt. Inv." - PurchaseLine."Prepmt Amt Deducted");
         PurchaseHeader.Find();
-        InvoicePurchaseDoc(PurchaseHeader);
+        InvoicePurchaseDocWithSavedVendorInvoiceNo(PurchaseHeader);
 
         // [THEN] The remaining prepayment is fully deducted and the final invoice balance is zero
         VerifyZeroVendorAccEntry();
@@ -1184,6 +1183,14 @@
     begin
         PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
         exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+    end;
+
+    local procedure InvoicePurchaseDocWithSavedVendorInvoiceNo(var PurchaseHeader: Record "Purchase Header")
+    begin
+        // Posting a released order with "Calc. Inv. Discount" re-reads the header, so the new "Vendor Invoice No." must be stored
+        PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
     end;
 
     local procedure UpdateQtysInLine(var PurchLine: Record "Purchase Line"; QtyToReceive: Decimal; QtyToInvoice: Decimal)

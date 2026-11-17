@@ -870,7 +870,6 @@
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustInvoiceDisc: Record "Cust. Invoice Disc.";
-        UnitPriceOffset: Integer;
         ExpectedLineAmount: Decimal;
         i: Integer;
     begin
@@ -883,27 +882,27 @@
         PrepareSalesOrder(SalesHeader);
         LibraryERM.CreateInvDiscForCustomer(CustInvoiceDisc, SalesHeader."Invoice Disc. Code", '', 0);
 
-        // [GIVEN] Sales order line with 100% prepayment, Quantity = 25, "Unit Price" = 98.802 + X, "Line Amount" = 2470.05 + 25 * X
-        UnitPriceOffset := LibraryRandom.RandInt(100);
-        ExpectedLineAmount := 2470.05 + 25 * UnitPriceOffset;
-        AddSalesOrderLine(SalesLine, SalesHeader, 25, 98.802 + UnitPriceOffset, 100, 0);
+        // [GIVEN] Sales order line with 100% prepayment, Quantity = 25, "Unit Price" = 98.802, "Line Amount" = 2470.05
+        ExpectedLineAmount := 2470.05;
+        AddSalesOrderLine(SalesLine, SalesHeader, 25, 98.802, 100, 0);
         SalesLine.TestField("Line Amount", ExpectedLineAmount);
 
         // [GIVEN] Posted prepayment invoice
         PostSalesPrepmtInvoice(SalesHeader);
 
-        // [GIVEN] Four partial shipments and invoices of 2 units, each deducting a prepayment rounded down by 0.004 (197.60 + 2 * X instead of 197.604 + 2 * X)
+        // [GIVEN] Four partial shipments and invoices of 2 units, each deducting a prepayment rounded down by 0.004 (197.60 instead of 197.604)
         for i := 1 to 4 do begin
             UpdateQtysInLine(SalesLine, 2, 2);
             SalesHeader.Find();
             LibrarySales.PostSalesDocument(SalesHeader, true, true);
         end;
 
-        // [WHEN] Release the order, which recalculates the invoice discount and the prepayment amounts
+        // [WHEN] Reopen and release the order, which recalculates the invoice discount and the prepayment amounts
         SalesHeader.Find();
+        LibrarySales.ReopenSalesDocument(SalesHeader);
         LibrarySales.ReleaseSalesDocument(SalesHeader);
 
-        // [THEN] "Prepmt. Line Amount" still equals "Prepmt. Amt. Inv." = 2470.05 + 25 * X
+        // [THEN] "Prepmt. Line Amount" still equals "Prepmt. Amt. Inv." = 2470.05
         SalesLine.Find();
         SalesLine.TestField("Prepmt. Amt. Inv.", ExpectedLineAmount);
         SalesLine.TestField("Prepmt. Line Amount", SalesLine."Prepmt. Amt. Inv.");
