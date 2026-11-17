@@ -426,7 +426,7 @@ codeunit 13915 "Import XRechnung Document"
             '/' + DocumentType + '/cac:AdditionalDocumentReference/cac:Attachment/cbc:EmbeddedDocumentBinaryObject':
                 AddEmbeddedObject(DocumentAttachmentData, TempXMLBuffer.Value, TempXMLBuffer);
             '/' + DocumentType + '/cac:AdditionalDocumentReference/cac:Attachment/cbc:EmbeddedDocumentBinaryObject/@mimeCode':
-                DocumentAttachment.Validate("File Extension", EDocumentImportHelper.DetermineFileType(TempXMLBuffer.Value));
+                DocumentAttachment.Validate("File Extension", CopyStr(EDocumentImportHelper.DetermineFileType(TempXMLBuffer.Value), 1, MaxStrLen(DocumentAttachment."File Extension")));
             '/' + DocumentType + '/cac:AdditionalDocumentReference/cac:Attachment/cbc:EmbeddedDocumentBinaryObject/@filename':
                 DocumentAttachment."File Name" := CopyStr(TempXMLBuffer.Value.Split('.').Get(1), 1, MaxStrLen(DocumentAttachment."File Name"));
         end;
@@ -563,7 +563,7 @@ codeunit 13915 "Import XRechnung Document"
             '/' + DocumentType + '/cac:AdditionalDocumentReference/cac:Attachment/cbc:EmbeddedDocumentBinaryObject':
                 AddEmbeddedObject(DocumentAttachmentData, TempXMLBuffer.Value, TempXMLBuffer);
             '/' + DocumentType + '/cac:AdditionalDocumentReference/cac:Attachment/cbc:EmbeddedDocumentBinaryObject/@mimeCode':
-                DocumentAttachment.Validate("File Extension", EDocumentImportHelper.DetermineFileType(TempXMLBuffer.Value));
+                DocumentAttachment.Validate("File Extension", CopyStr(EDocumentImportHelper.DetermineFileType(TempXMLBuffer.Value), 1, MaxStrLen(DocumentAttachment."File Extension")));
             '/' + DocumentType + '/cac:AdditionalDocumentReference/cac:Attachment/cbc:EmbeddedDocumentBinaryObject/@filename':
                 DocumentAttachment."File Name" := CopyStr(TempXMLBuffer.Value.Split('.').Get(1), 1, MaxStrLen(DocumentAttachment."File Name"));
         end;
