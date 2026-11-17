@@ -20,6 +20,10 @@ codeunit 135161 "Cloud Mig Country Tables"
         ListOfTablesToMigrate.Add(Database::"Payment Step");
 #endif        
         ListOfTablesToMigrate.Add(Database::"Shipment Invoiced");
+#if not CLEAN30
+#pragma warning disable AL0432
         ListOfTablesToMigrate.Add(Database::"Unreal. CV Ledg. Entry Buffer");
+#pragma warning restore AL0432
+#endif
     end;
 }

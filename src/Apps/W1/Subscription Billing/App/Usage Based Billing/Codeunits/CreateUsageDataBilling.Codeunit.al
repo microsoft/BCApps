@@ -36,7 +36,7 @@ codeunit 8023 "Create Usage Data Billing"
         UsageDataProcessing.CreateBillingData(UsageDataImport);
     end;
 
-    internal procedure CollectServiceCommitments(var TempServiceCommitment: Record "Subscription Line" temporary; ServiceObjectNo: Code[20]; SubscriptionEndDate: Date)
+    procedure CollectServiceCommitments(var TempServiceCommitment: Record "Subscription Line" temporary; ServiceObjectNo: Code[20]; SubscriptionEndDate: Date)
     begin
         FillTempServiceCommitment(TempServiceCommitment, ServiceObjectNo, SubscriptionEndDate);
         OnAfterCollectServiceCommitments(TempServiceCommitment, ServiceObjectNo, SubscriptionEndDate);

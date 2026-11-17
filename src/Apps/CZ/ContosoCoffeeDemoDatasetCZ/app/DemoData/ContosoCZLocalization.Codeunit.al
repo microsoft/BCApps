@@ -70,6 +70,7 @@ codeunit 31215 "Contoso CZ Localization"
                     Codeunit.Run(Codeunit::"Create No. Series CZ");
                     Codeunit.Run(Codeunit::"Create Post Code CZ");
                     Codeunit.Run(Codeunit::"Create Custom Report Layout CZ");
+                    Codeunit.Run(Codeunit::"Create Cue Setup CZ");
                     CreateStatRepSetupCZ.CreateSetupStatutoryReportingSetup();
                 end;
             Enum::"Contoso Demo Data Level"::"Master Data":

@@ -457,7 +457,7 @@ function Reset-BcTestTenant {
                 Start-Sleep -Seconds $retryDelaySeconds
             }
         }
-        Mount-NAVTenant -ServerInstance $ServerInstance -Id $tenant -DatabaseServer "." -DatabaseName $tenantDatabaseName -OverwriteTenantIdInDatabase -Force | Out-Null
+        Mount-NAVTenant -ServerInstance $ServerInstance -Id $tenant -DatabaseServer "." -DatabaseName $tenantDatabaseName -OverwriteTenantIdInDatabase -AllowAppDatabaseWrite -Force | Out-Null
 
         $maxWaitSeconds = 300
         while ((Get-NAVTenant -ServerInstance $ServerInstance -Tenant $tenant).State -eq "Mounting") {

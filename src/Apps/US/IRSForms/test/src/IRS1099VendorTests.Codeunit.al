@@ -168,7 +168,7 @@ codeunit 148011 "IRS 1099 Vendor Tests"
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VendorLedgerEntriesPage: TestPage "Vendor Ledger Entries";
-        NewPeriodNo, FormNo, NewFormNo, FormBoxNo, NewFormBoxNo : Code[20];
+        VendNo, NewPeriodNo, FormNo, NewFormNo, FormBoxNo, NewFormBoxNo : Code[20];
         IRSAmount: Decimal;
         NewDate: Date;
     begin
@@ -187,7 +187,13 @@ codeunit 148011 "IRS 1099 Vendor Tests"
         NewPeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(NewDate);
         NewFormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(NewDate);
         NewFormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(NewDate, NewFormNo);
-        IRSAmount := IRSAmount / 3;
+        // [GIVEN] The entry belongs to a vendor set up for IRS 1099 reporting in both periods
+        VendNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBox(WorkDate(), FormNo, FormBoxNo);
+        LibraryIRS1099FormBox.AssignFormBoxForVendorInPeriod(VendNo, NewDate, NewDate, NewFormNo, NewFormBoxNo);
+        VendorLedgerEntry."Vendor No." := VendNo;
+        VendorLedgerEntry.Modify();
+
+        IRSAmount := Round(IRSAmount / 3);
         // [GIVEN] Vendor Ledger Entries page opened and filtered by Entry No.
         VendorLedgerEntriesPage.OpenEdit();
         VendorLedgerEntriesPage.Filter.SetFilter("Entry No.", Format(VendorLedgerEntry."Entry No."));

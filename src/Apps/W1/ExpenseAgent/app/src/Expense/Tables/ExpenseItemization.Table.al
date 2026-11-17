@@ -105,11 +105,16 @@ table 6902 "Expense Itemization"
             AutoFormatType = 1;
 
             trigger OnValidate()
+            var
+                Expense: Record Expense;
             begin
                 TestStatusOpenOfExpense();
 
-                if Rec."Daily Rate" <> 0 then
-                    Rec.TestField("Expense Subcategory Code");
+                if Rec."Daily Rate" <> 0 then begin
+                    Expense.Get(Rec."Expense No.");
+                    if not Expense.IsEnforcedItemizationRequired() then
+                        Rec.TestField("Expense Subcategory Code");
+                end;
                 Rec."Daily Rate" := RoundAmount(Rec."Daily Rate");
 
                 Rec.Validate("Amount", Quantity * "Daily Rate");
@@ -147,16 +152,25 @@ table 6902 "Expense Itemization"
     trigger OnInsert()
     begin
         Expense.Get("Expense No.");
-        if not (Expense."Expense Detail Required" = Expense."Expense Detail Required"::Itemize) then
+        if not Expense.IsItemizationRequired() then
             Error(CannotAddItemizationErr, Expense."No.");
 
         Rec.TestField("Expense No.");
         Rec.TestField("Expense Category Code");
-        Rec.TestField("Expense Subcategory Code");
+        if not Expense.IsEnforcedItemizationRequired() then
+            Rec.TestField("Expense Subcategory Code");
+
         "Currency Code" := Expense."Currency Code";
         "Expense Category Code" := Expense."Expense Category";
         if Description = '' then
             Description := Expense.Description;
+    end;
+
+    trigger OnModify()
+    begin
+        Expense.Get(Rec."Expense No.");
+        if not Expense.IsEnforcedItemizationRequired() then
+            Rec.TestField("Expense Subcategory Code");
     end;
 
     trigger OnDelete()
@@ -182,6 +196,8 @@ table 6902 "Expense Itemization"
         ExpenseItemization: Record "Expense Itemization";
     begin
         Expense.Get(Rec."Expense No.");
+        if Expense.IsEnforcedItemizationRequired() then
+            exit;
 
         ExpenseItemization.SetRange("Expense No.", Expense."No.");
         ExpenseItemization.SetFilter("Line No.", '<>%1', Rec."Line No.");

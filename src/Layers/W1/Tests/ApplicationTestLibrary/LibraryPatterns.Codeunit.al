@@ -91,11 +91,6 @@ codeunit 132212 "Library - Patterns"
     procedure SETNoSeries()
     var
         InventorySetup: Record "Inventory Setup";
-#if not CLEAN27
-#pragma warning disable AL0801
-        ManufacturingSetup: Record "Manufacturing Setup";
-#pragma warning restore AL0801
-#endif
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
         MarketingSetup: Record "Marketing Setup";
         NoSeries: Code[20];
@@ -112,27 +107,6 @@ codeunit 132212 "Library - Patterns"
             InventorySetup.Modify();
         end;
 
-#if not CLEAN27
-#pragma warning disable AL0801
-        ManufacturingSetup.Get();
-        if ManufacturingSetup."Simulated Order Nos." <> NoSeries then begin
-            ManufacturingSetup."Simulated Order Nos." := NoSeries;
-            ManufacturingSetup.Modify();
-        end;
-        if ManufacturingSetup."Planned Order Nos." <> NoSeries then begin
-            ManufacturingSetup."Planned Order Nos." := NoSeries;
-            ManufacturingSetup.Modify();
-        end;
-        if ManufacturingSetup."Firm Planned Order Nos." <> NoSeries then begin
-            ManufacturingSetup."Firm Planned Order Nos." := NoSeries;
-            ManufacturingSetup.Modify();
-        end;
-        if ManufacturingSetup."Released Order Nos." <> NoSeries then begin
-            ManufacturingSetup."Released Order Nos." := NoSeries;
-            ManufacturingSetup.Modify();
-        end;
-#pragma warning restore AL0801
-#endif
 
         SalesReceivablesSetup.Get();
         if SalesReceivablesSetup."Quote Nos." <> NoSeries then begin
