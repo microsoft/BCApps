@@ -288,7 +288,9 @@ report 1700 "Deferral Summary - G/L"
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+#if CLEAN30
             ObsoleteTag = '30.0';
+#endif
         }
 
         layout(WordBody)
