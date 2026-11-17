@@ -1,8 +1,10 @@
 namespace Microsoft.Tests_Fixed_Asset;
 
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
+using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.NoSeries;
 using System.Automation;
 using System.Security.User;
@@ -43,6 +45,7 @@ codeunit 134244 "WFW FA Journal Batch"
         ApprovalCommentWasNotDeletedErr: Label 'The approval comment for this approval entry was not deleted.';
         PreventDeleteRecordWithOpenApprovalEntryForCurrUserMsg: Label 'You can''t delete a record that has open approval entries. To delete a record, you can Reject approval and document requested changes in approval comment lines.';
         PreventModifyRecordWithOpenApprovalEntryMsg: Label 'You can''t modify a record pending approval. Add a comment or reject the approval to modify the record.';
+        PreventInsertRecordWithOpenApprovalEntryForCurrUserMsg: Label 'You can''t insert a record for active batch approval request. To insert a record, you can Reject approval and document requested changes in approval comment lines.';
         ImposedRestrictionLbl: Label 'Imposed restriction';
         SendApprovalRequestJournalBatchActionMustBeDisabledLbl: Label 'Send Approval Request Journal Batch action must be disabled';
         CancelApprovalRequestJournalBatchActionMustBeDisabledLbl: Label 'Cancel Approval Request Journal Batch action must be disabled';
@@ -1029,6 +1032,154 @@ codeunit 134244 "WFW FA Journal Batch"
         Assert.IsTrue(FixedAssetJournal.Reject.Visible(), RejectActionMustBeVisibleLbl);
         Assert.IsTrue(FixedAssetJournal.Delegate.Visible(), DelegateActionMustBeVisibleLbl);
         FixedAssetJournal.Close();
+    end;
+
+    [Test]
+    procedure TestInsertFreshFAJournalLineIsBlockedForApprover()
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+        FAJournalLine: Record "FA Journal Line";
+        NewFAJournalLine: Record "FA Journal Line";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+    begin
+        // [SCENARIO 440258] Inserting a fresh line into a batch pending the current user's approval is blocked.
+        Initialize();
+        CreateFAJournalBatchWithOneJournalLine(FAJournalBatch, FAJournalLine);
+        CreateOpenApprovalEntryForCurrentUser(FAJournalBatch.RecordId());
+
+        // [WHEN] A fresh record is inserted without calling SetUpNewLine.
+        NewFAJournalLine."Journal Template Name" := FAJournalBatch."Journal Template Name";
+        NewFAJournalLine."Journal Batch Name" := FAJournalBatch.Name;
+        NewFAJournalLine."Line No." := FAJournalLine."Line No." + 10000;
+        asserterror NewFAJournalLine.Insert(true);
+
+        // [THEN] The line is not inserted and the approval remains open.
+        Assert.ExpectedError(PreventInsertRecordWithOpenApprovalEntryForCurrUserMsg);
+        Assert.IsFalse(NewFAJournalLine.Get(FAJournalBatch."Journal Template Name", FAJournalBatch.Name, FAJournalLine."Line No." + 10000), 'The journal line must not be inserted.');
+    end;
+
+    [Test]
+    procedure TestApprovalActionsResetWhenFAJournalBatchChanges()
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+        OtherFAJournalBatch: Record "FA Journal Batch";
+        FAJournalLine: Record "FA Journal Line";
+        FixedAssetJournal: TestPage "Fixed Asset Journal";
+    begin
+        // [SCENARIO 440258] Approval actions disappear when switching to a batch without an approval for the user.
+        Initialize();
+        CreateFAJournalBatchWithOneJournalLine(FAJournalBatch, FAJournalLine);
+        LibraryFixedAsset.CreateFAJournalBatch(OtherFAJournalBatch, FAJournalBatch."Journal Template Name");
+        CreateOpenApprovalEntryForCurrentUser(FAJournalBatch.RecordId());
+
+        FixedAssetJournal.OpenEdit();
+        FixedAssetJournal.CurrentJnlBatchName.SetValue(FAJournalBatch.Name);
+        Assert.IsTrue(FixedAssetJournal.Approve.Visible(), ApproveActionMustBeVisibleLbl);
+        Assert.IsTrue(FixedAssetJournal.Reject.Visible(), RejectActionMustBeVisibleLbl);
+        Assert.IsTrue(FixedAssetJournal.Delegate.Visible(), DelegateActionMustBeVisibleLbl);
+
+        // [WHEN] The batch is changed without closing the page.
+        FixedAssetJournal.CurrentJnlBatchName.SetValue(OtherFAJournalBatch.Name);
+
+        // [THEN] The approver actions are no longer visible.
+        Assert.IsFalse(FixedAssetJournal.Approve.Visible(), ApproveActionMustNotBeVisibleLbl);
+        Assert.IsFalse(FixedAssetJournal.Reject.Visible(), RejectActionMustNotBeVisibleLbl);
+        Assert.IsFalse(FixedAssetJournal.Delegate.Visible(), DelegateActionMustNotBeVisibleLbl);
+        FixedAssetJournal.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure TestFAJournalApprovalIgnoresGeneralJournalLineApproval()
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+        FAJournalLine: Record "FA Journal Line";
+        GenJournalLine: Record "Gen. Journal Line";
+        ApprovalEntry: Record "Approval Entry";
+        Workflow: Record Workflow;
+        ApproverUserSetup: Record "User Setup";
+        RequestorUserSetup: Record "User Setup";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+    begin
+        // [SCENARIO 440258] An unrelated general journal line approval does not prevent an FA batch approval request.
+        Initialize();
+        CreateApprovalSetup(ApproverUserSetup, RequestorUserSetup);
+        CreateDirectApprovalEnabledWorkflow(Workflow);
+        CreateFAJournalBatchWithOneJournalLine(FAJournalBatch, FAJournalLine);
+
+        // [GIVEN] A general journal line with matching template and batch names has an open approval.
+        GenJournalLine."Journal Template Name" := FAJournalBatch."Journal Template Name";
+        GenJournalLine."Journal Batch Name" := FAJournalBatch.Name;
+        GenJournalLine."Line No." := 10000;
+        GenJournalLine.Insert();
+        CreateOpenApprovalEntryForCurrentUser(GenJournalLine.RecordId());
+        Assert.IsTrue(ApprovalsMgmt.HasAnyOpenJournalLineApprovalEntries(FAJournalBatch."Journal Template Name", FAJournalBatch.Name), 'The matching general journal line must have an open approval.');
+        Commit();
+
+        // [WHEN] The FA batch is sent for approval.
+        SendApprovalRequestForFAJournal(FAJournalBatch.Name);
+
+        // [THEN] Both approvals are open independently.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, FAJournalBatch.RecordId());
+        VerifyApprovalEntryIsOpen(ApprovalEntry);
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, GenJournalLine.RecordId());
+        VerifyApprovalEntryIsOpen(ApprovalEntry);
+    end;
+
+    [Test]
+    procedure TestRecurringFAJournalIsNotRestrictedByBatchWorkflow()
+    var
+        Workflow: Record Workflow;
+        FAJournalTemplate: Record "FA Journal Template";
+        FAJournalBatch: Record "FA Journal Batch";
+        FAJournalLine: Record "FA Journal Line";
+        FixedAsset: Record "Fixed Asset";
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FALedgerEntry: Record "FA Ledger Entry";
+        RecurringFrequency: DateFormula;
+        JournalLineNo: Integer;
+    begin
+        // [SCENARIO 440258] Recurring FA lines remain usable when the default FA batch approval workflow is enabled.
+        Initialize();
+        CreateDirectApprovalEnabledWorkflow(Workflow);
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateJournalSetupDepreciation(DepreciationBook);
+        CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code);
+        LibraryFixedAsset.CreateJournalTemplate(FAJournalTemplate);
+        FAJournalTemplate.Validate(Recurring, true);
+        FAJournalTemplate.Modify(true);
+        LibraryFixedAsset.CreateFAJournalBatch(FAJournalBatch, FAJournalTemplate.Name);
+        FAJournalBatch.Validate("Posting No. Series", LibraryUtility.GetGlobalNoSeriesCode());
+        FAJournalBatch.Modify(true);
+
+        // [WHEN] A recurring line is inserted.
+        LibraryFixedAsset.CreateFAJournalLine(FAJournalLine, FAJournalTemplate.Name, FAJournalBatch.Name);
+        VerifyNoRestrictionRecordExists(FAJournalBatch.RecordId());
+
+        // [WHEN] The line is populated and modified.
+        FAJournalLine.Validate("Document No.", CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(FAJournalLine."Document No.")));
+        FAJournalLine.Validate("Recurring Method", FAJournalLine."Recurring Method"::"F Fixed");
+        Evaluate(RecurringFrequency, '<1M>');
+        FAJournalLine.Validate("Recurring Frequency", RecurringFrequency);
+        FAJournalLine.Validate("Posting Date", WorkDate());
+        FAJournalLine.Validate("FA Posting Date", WorkDate());
+        FAJournalLine.Validate("FA Posting Type", FAJournalLine."FA Posting Type"::"Acquisition Cost");
+        FAJournalLine.Validate("FA No.", FixedAsset."No.");
+        FAJournalLine.Validate(Amount, LibraryRandom.RandIntInRange(1000, 2000));
+        FAJournalLine.Validate("Depreciation Book Code", DepreciationBook.Code);
+        FAJournalLine.Modify(true);
+        VerifyNoRestrictionRecordExists(FAJournalBatch.RecordId());
+        JournalLineNo := FAJournalLine."Line No.";
+        Commit();
+
+        // [THEN] Posting succeeds and advances the recurring line.
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+        FALedgerEntry.SetRange("FA No.", FixedAsset."No.");
+        FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::"Acquisition Cost");
+        Assert.RecordIsNotEmpty(FALedgerEntry);
+        FAJournalLine.Get(FAJournalTemplate.Name, FAJournalBatch.Name, JournalLineNo);
+        FAJournalLine.TestField("FA Posting Date", CalcDate(RecurringFrequency, WorkDate()));
     end;
 
     local procedure Initialize()
