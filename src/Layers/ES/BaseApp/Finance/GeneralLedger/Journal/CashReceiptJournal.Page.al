@@ -108,12 +108,6 @@ page 255 "Cash Receipt Journal"
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
                 }
-                field("Bill No."; Rec."Bill No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a number for this bill generated from the journal.';
-                    Visible = false;
-                }
                 field("Incoming Document Entry No."; Rec."Incoming Document Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
@@ -325,11 +319,6 @@ page 255 "Cash Receipt Journal"
                 field("Applies-to Doc. No."; Rec."Applies-to Doc. No.")
                 {
                     ApplicationArea = Basic, Suite;
-                }
-                field("Applies-to Bill No."; Rec."Applies-to Bill No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the bill to be settled.';
                 }
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {

@@ -437,46 +437,6 @@ table 92 "Customer Posting Group"
             Caption = 'View All Accounts on Lookup';
             ToolTip = 'Specifies that all possible accounts are shown when you look up from a field. If the check box is not selected, then only accounts related to the involved account category are shown.';
         }
-        field(7000000; "Bills Account"; Code[20])
-        {
-            Caption = 'Bills Account';
-            TableRelation = "G/L Account";
-        }
-        field(7000001; "Discted. Bills Acc."; Code[20])
-        {
-            Caption = 'Discted. Bills Acc.';
-            TableRelation = "G/L Account";
-        }
-        field(7000002; "Bills on Collection Acc."; Code[20])
-        {
-            Caption = 'Bills on Collection Acc.';
-            TableRelation = "G/L Account";
-        }
-        field(7000003; "Rejected Bills Acc."; Code[20])
-        {
-            Caption = 'Rejected Bills Acc.';
-            TableRelation = "G/L Account";
-        }
-        field(7000004; "Finance Income Acc."; Code[20])
-        {
-            Caption = 'Finance Income Acc.';
-            TableRelation = "G/L Account";
-        }
-        field(7000005; "Factoring for Collection Acc."; Code[20])
-        {
-            Caption = 'Factoring for Collection Acc.';
-            TableRelation = "G/L Account";
-        }
-        field(7000006; "Factoring for Discount Acc."; Code[20])
-        {
-            Caption = 'Factoring for Discount Acc.';
-            TableRelation = "G/L Account";
-        }
-        field(7000007; "Rejected Factoring Acc."; Code[20])
-        {
-            Caption = 'Rejected Factoring Acc.';
-            TableRelation = "G/L Account";
-        }
     }
 
     keys
@@ -622,24 +582,6 @@ table 92 "Customer Posting Group"
         exit("Credit Curr. Appln. Rndg. Acc.");
     end;
 
-    [Scope('OnPrem')]
-    procedure GetBillsAccount(Rejected: Boolean): Code[20]
-    begin
-        if Rejected then begin
-            TestField("Rejected Bills Acc.");
-            exit("Rejected Bills Acc.");
-        end;
-        TestField("Bills Account");
-        exit("Bills Account");
-    end;
-
-    [Scope('OnPrem')]
-    procedure GetBillsOnCollAccount(): Code[20]
-    begin
-        TestField("Bills on Collection Acc.");
-        exit("Bills on Collection Acc.");
-    end;
-
     /// <summary>
     /// Gets the invoice rounding G/L account and validates its posting group.
     /// </summary>
@@ -744,38 +686,6 @@ table 92 "Customer Posting Group"
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetReceivablesAccount(var CustomerPostingGroup: Record "Customer Posting Group"; var Result: Code[20])
     begin
-    end;
-
-    procedure GetRejectedFactoringAcc(): Code[20]
-    begin
-        if "Rejected Factoring Acc." = '' then
-            PostingSetupMgt.LogCustPostingGroupFieldError(Rec, FieldNo("Rejected Factoring Acc."));
-
-        exit("Rejected Factoring Acc.");
-    end;
-
-    procedure GetFactoringForDiscountAcc(): Code[20]
-    begin
-        if "Factoring for Discount Acc." = '' then
-            PostingSetupMgt.LogCustPostingGroupFieldError(Rec, FieldNo("Factoring for Discount Acc."));
-
-        exit("Factoring for Discount Acc.");
-    end;
-
-    procedure GetFactoringForCollectionAcc(): Code[20]
-    begin
-        if "Factoring for Collection Acc." = '' then
-            PostingSetupMgt.LogCustPostingGroupFieldError(Rec, FieldNo("Factoring for Collection Acc."));
-
-        exit("Factoring for Collection Acc.");
-    end;
-
-    procedure GetDiscountedBillsAcc(): Code[20]
-    begin
-        if "Discted. Bills Acc." = '' then
-            PostingSetupMgt.LogCustPostingGroupFieldError(Rec, FieldNo("Discted. Bills Acc."));
-
-        exit("Discted. Bills Acc.");
     end;
 }
 

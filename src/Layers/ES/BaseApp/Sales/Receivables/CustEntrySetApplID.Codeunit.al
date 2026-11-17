@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Receivables;
 
-using Microsoft.Finance.ReceivablesPayables;
-
 /// <summary>
 /// Manages the Applies-to ID field on customer ledger entries to mark entries for application during payment processing.
 /// </summary>
@@ -18,8 +16,6 @@ codeunit 101 "Cust. Entry-SetAppl.ID"
     end;
 
     var
-        CannotBeAppliedErr: Label '%1 cannot be applied, since it is included in a bill group.', Comment = '%1 = Description';
-        CannotBeAppliedTryAgainErr: Label '%1 cannot be applied, since it is included in a bill group. Remove it from its bill group and try again.', Comment = '%1 = Description';
         CustEntryApplID: Code[50];
 
     /// <summary>
@@ -65,8 +61,6 @@ codeunit 101 "Cust. Entry-SetAppl.ID"
     local procedure UpdateCustLedgerEntry(var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary; ApplyingCustLedgerEntry: Record "Cust. Ledger Entry"; AppliesToID: Code[50])
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        CarteraDoc: Record "Cartera Doc.";
-        CarteraSetup: Record "Cartera Setup";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -76,19 +70,6 @@ codeunit 101 "Cust. Entry-SetAppl.ID"
 
         CustLedgerEntry.Copy(TempCustLedgerEntry);
         CustLedgerEntry.TestField(Open, true);
-        if CustLedgerEntry."Document Situation" = CustLedgerEntry."Document Situation"::"Posted BG/PO" then
-            Error(CannotBeAppliedErr, CustLedgerEntry.Description);
-        if ApplyingCustLedgerEntry."Document Situation" = ApplyingCustLedgerEntry."Document Situation"::"Posted BG/PO" then
-            Error(CannotBeAppliedErr, ApplyingCustLedgerEntry.Description);
-
-        if CarteraSetup.ReadPermission then
-            if ((CustLedgerEntry."Document Type" = CustLedgerEntry."Document Type"::Bill) or
-                (CustLedgerEntry."Document Type" = CustLedgerEntry."Document Type"::Invoice))
-            then
-                if CarteraDoc.Get(CarteraDoc.Type::Receivable, CustLedgerEntry."Entry No.") then
-                    if CarteraDoc."Bill Gr./Pmt. Order No." <> '' then
-                        Error(CannotBeAppliedTryAgainErr, CustLedgerEntry.Description);
-
         CustLedgerEntry."Applies-to ID" := CustEntryApplID;
         if CustLedgerEntry."Applies-to ID" = '' then begin
             CustLedgerEntry."Accepted Pmt. Disc. Tolerance" := false;

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.ReceivablesPayables;
 
-using Microsoft;
 using Microsoft.Bank.BankAccount;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
@@ -682,33 +681,6 @@ table 382 "CV Ledger Entry Buffer"
             Editable = false;
             TableRelation = "Dimension Set Entry";
         }
-        field(7000000; "Bill No."; Code[20])
-        {
-            Caption = 'Bill No.';
-            DataClassification = SystemMetadata;
-        }
-        field(7000001; "Document Situation"; Enum "ES Document Situation")
-        {
-            Caption = 'Document Situation';
-            DataClassification = SystemMetadata;
-        }
-        field(7000002; "Applies-to Bill No."; Code[20])
-        {
-            Caption = 'Applies-to Bill No.';
-            DataClassification = SystemMetadata;
-        }
-        field(7000003; "Document Status"; Enum "ES Document Status")
-        {
-            Caption = 'Document Status';
-            DataClassification = SystemMetadata;
-        }
-        field(7000004; "CV Ledger Entry Type"; Option)
-        {
-            Caption = 'CV Ledger Entry Type';
-            DataClassification = SystemMetadata;
-            OptionCaption = 'Customer,Vendor';
-            OptionMembers = Customer,Vendor;
-        }
     }
 
     keys
@@ -811,10 +783,6 @@ table 382 "CV Ledger Entry Buffer"
         "Pmt. Tolerance (LCY)" := VendLedgEntry."Pmt. Tolerance (LCY)";
         "Amount to Apply" := VendLedgEntry."Amount to Apply";
         Prepayment := VendLedgEntry.Prepayment;
-        "Bill No." := VendLedgEntry."Bill No.";
-        "Document Situation" := VendLedgEntry."Document Situation";
-        "Applies-to Bill No." := VendLedgEntry."Applies-to Bill No.";
-        "Document Status" := VendLedgEntry."Document Status";
 
         OnAfterCopyFromVendLedgerEntry(Rec, VendLedgEntry);
     end;

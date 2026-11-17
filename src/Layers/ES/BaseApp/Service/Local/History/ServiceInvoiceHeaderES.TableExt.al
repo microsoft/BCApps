@@ -6,8 +6,6 @@ namespace Microsoft.Service.History;
 
 using Microsoft.EServices.EDocument;
 using Microsoft.Sales.Customer;
-using Microsoft.Sales.Receivables;
-
 
 tableextension 10792 "Service Invoice Header ES" extends "Service Invoice Header"
 {
@@ -129,7 +127,6 @@ tableextension 10792 "Service Invoice Header ES" extends "Service Invoice Header
         {
             Caption = 'Pay-at Code';
             DataClassification = CustomerContent;
-            TableRelation = "Customer Pmt. Address".Code where("Customer No." = field("Bill-to Customer No."));
             ObsoleteReason = 'Address is taken from the fields Bill-to Address, Bill-to City, etc.';
             ObsoleteState = Removed;
             ObsoleteTag = '25.0';
