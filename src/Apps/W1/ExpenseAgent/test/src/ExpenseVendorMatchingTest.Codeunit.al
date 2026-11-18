@@ -665,8 +665,11 @@ codeunit 148337 "Expense Vendor Matching Test"
     // =========================================================================
 
     local procedure Initialize()
+    var
+        ExpenseVendor: Record "Expense Vendor";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Vendor Matching Test");
+        ExpenseVendor.DeleteAll();
         LibraryExpense.UpdateEnableAgentInAgentSetup(false);
         LibraryExpense.UpdateUseRulesInAgentSetup(false);
         if IsInitialized then
