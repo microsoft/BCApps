@@ -1491,6 +1491,7 @@ codeunit 134982 "ERM Financial Reports"
             GenJournalLine."Account Type"::"G/L Account",
             GLAccount."No.",
             LibraryRandom.RandDec(100, 2));
+        GenJournalLine."Bal. Account No." := LibraryERM.CreateGLAccountNoWithDirectPosting();
         GenJournalLine.Validate("Posting Date", WorkDate());
         GenJournalLine.Modify(true);
 

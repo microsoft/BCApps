@@ -496,9 +496,14 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
             SettlementVATEntry.SetRange("Document No.", SettlementDocNo);
             SettlementVATEntry.SetRange(Type, SettlementVATEntry.Type::Settlement);
             SettlementVATEntry.FindLast();
+            Assert.AreNotEqual(0, VATEntry."Closed by Entry No.", 'The settled input entry must reference a posted settlement VAT entry.');
+            SettlementVATEntry.SetRange("Entry No.", VATEntry."Closed by Entry No.");
+            SettlementVATEntry.FindFirst();
             VATEntry.TestField("Closed by Entry No.", SettlementVATEntry."Entry No.");
             SettlementVATEntry.TestField("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
             SettlementVATEntry.TestField("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+            SettlementVATEntry.SetRange("Entry No.");
+            SettlementVATEntry.FindLast();
             AssertSettlementVATEntryNoInReport(SettlementVATEntry."Entry No.");
         end else begin
             // [THEN] Preview leaves the input open and the sequence unchanged, and displays a simulated number.
