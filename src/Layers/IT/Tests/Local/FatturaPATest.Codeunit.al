@@ -1291,6 +1291,228 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure GetISOCountryCodeRejectsInvalidISOCode()
+    var
+        CountryRegion: Record "Country/Region";
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        // [SCENARIO] An existing Country/Region with an invalid ISO Code cannot be used for FatturaPA.
+        Initialize();
+
+        // [GIVEN] An existing Country/Region with a one-character ISO code
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'X';
+        CountryRegion.Modify();
+
+        // [WHEN] The country is resolved for FatturaPA
+        asserterror FatturaDocHelper.GetISOCountryCode(CountryRegion.Code);
+
+        // [THEN] The invalid country setup is rejected
+        Assert.ExpectedError('The Country/Region must have a two-character ISO Code for FatturaPA.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GetISOCountryCodeRejectsMissingCountryRegion()
+    var
+        CountryRegion: Record "Country/Region";
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        // [SCENARIO] A nonexistent country record cannot silently be resolved as a domestic recipient.
+        Initialize();
+
+        // [GIVEN] A Country/Region reference whose record has been deleted
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion.Delete();
+
+        // [WHEN] The missing country is resolved for FatturaPA
+        asserterror FatturaDocHelper.GetISOCountryCode(CountryRegion.Code);
+
+        // [THEN] Country lookup fails instead of selecting domestic routing
+        Assert.ExpectedError('Country/Region');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure IsSameISOCountryRejectsInvalidISOCode()
+    var
+        CompanyInformation: Record "Company Information";
+        CountryRegion: Record "Country/Region";
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        // [SCENARIO] Invalid customer country setup cannot be classified as domestic.
+        Initialize();
+
+        // [GIVEN] A customer country with a blank ISO Code
+        CompanyInformation.Get();
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := '';
+        CountryRegion.Modify();
+
+        // [WHEN] Customer and company countries are compared
+        asserterror FatturaDocHelper.IsSameISOCountry(CountryRegion.Code, CompanyInformation."Country/Region Code");
+
+        // [THEN] The invalid country is rejected
+        Assert.ExpectedError('The Country/Region must have a two-character ISO Code for FatturaPA.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure IsSameISOCountryRejectsInvalidCompanyISOCode()
+    var
+        CompanyInformation: Record "Company Information";
+        Customer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+    begin
+        // [SCENARIO] Invalid company country setup cannot be classified as domestic.
+        Initialize();
+
+        // [GIVEN] Company Information has a Country/Region with an invalid ISO Code
+        CompanyInformation.Get();
+        Customer.Get(CreateCustomer());
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'X';
+        CountryRegion.Modify();
+        CompanyInformation."Country/Region Code" := CountryRegion.Code;
+        CompanyInformation.Modify();
+
+        // [WHEN] Customer and company countries are compared
+        asserterror FatturaDocHelper.IsSameISOCountry(Customer."Country/Region Code", CompanyInformation."Country/Region Code");
+
+        // [THEN] The invalid company country is rejected
+        Assert.ExpectedError('The Country/Region must have a two-character ISO Code for FatturaPA.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CheckMandatoryFieldsLogsInvalidCustomerISOCountryCode()
+    var
+        Customer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempErrorMessage: Record "Error Message" temporary;
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+        DocumentRecRef: RecordRef;
+        DocumentNo: Code[20];
+    begin
+        // [SCENARIO] Invalid country setup is logged against the customer instead of being classified as domestic.
+        Initialize();
+
+        // [GIVEN] A posted invoice whose customer has an invalid country ISO Code
+        Customer.Get(CreateCustomer());
+        DocumentNo := CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No.");
+        SalesInvoiceHeader.Get(DocumentNo);
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'X';
+        CountryRegion.Modify();
+        Customer."Country/Region Code" := CountryRegion.Code;
+        Customer.Modify(true);
+
+        DocumentRecRef.GetTable(SalesInvoiceHeader);
+        // [WHEN] FatturaPA mandatory fields are checked
+        FatturaDocHelper.CheckMandatoryFields(DocumentRecRef, TempErrorMessage);
+
+        // [THEN] The validation message is attributed to the customer's country field
+        AssertInvalidISOCountryError(
+          TempErrorMessage, Customer.RecordId, Customer.FieldNo("Country/Region Code"));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CheckMandatoryFieldsLogsInvalidCompanyISOCountryCode()
+    var
+        CompanyInformation: Record "Company Information";
+        Customer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempErrorMessage: Record "Error Message" temporary;
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+        DocumentRecRef: RecordRef;
+        DocumentNo: Code[20];
+    begin
+        // [SCENARIO] Invalid company country setup is logged against Company Information.
+        Initialize();
+
+        // [GIVEN] A posted invoice whose company has an invalid country ISO Code
+        Customer.Get(CreateCustomer());
+        DocumentNo := CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No.");
+        SalesInvoiceHeader.Get(DocumentNo);
+        CompanyInformation.Get();
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'X';
+        CountryRegion.Modify();
+        CompanyInformation."Country/Region Code" := CountryRegion.Code;
+        CompanyInformation.Modify();
+
+        DocumentRecRef.GetTable(SalesInvoiceHeader);
+        // [WHEN] FatturaPA mandatory fields are checked
+        FatturaDocHelper.CheckMandatoryFields(DocumentRecRef, TempErrorMessage);
+
+        // [THEN] The validation message is attributed to the company's country field
+        AssertInvalidISOCountryError(
+          TempErrorMessage, CompanyInformation.RecordId, CompanyInformation.FieldNo("Country/Region Code"));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceTreatsMatchingISOCountriesAsDomestic()
+    var
+        CompanyInformation: Record "Company Information";
+        CompanyCountryRegion: Record "Country/Region";
+        AlternateCountryRegion: Record "Country/Region";
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+        FiscalCode: Code[20];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Different Country/Region keys with the same ISO Code are treated as the same country
+        Initialize();
+
+        // [GIVEN] Company and Customer use different Country/Region keys for the same ISO country
+        CompanyInformation.Get();
+        CompanyCountryRegion.Get(CompanyInformation."Country/Region Code");
+        CreateCountryRegionWithISOCode(AlternateCountryRegion, CompanyCountryRegion."ISO Code");
+
+        Customer.Get(CreateCustomer());
+        Customer."Country/Region Code" := AlternateCountryRegion.Code;
+        FiscalCode := LibraryITLocalization.GetFiscalCode();
+        Customer."Fiscal Code" := FiscalCode;
+        Customer.Modify(true);
+
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] Domestic routing and fields are used even though the BC record keys differ
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/CodiceDestinatario',
+          Customer."PA Code");
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/FormatoTrasmissione',
+          'FPA12');
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/DatiAnagrafici/CodiceFiscale',
+          FiscalCode);
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/Sede/CAP',
+          Customer."Post Code");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportSalesInvoiceForLocalCustomer()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -1338,7 +1560,7 @@ codeunit 144200 "FatturaPA Test"
         Initialize();
 
         // [GIVEN] Posted Sales Invoice for a foreign customer
-        LibraryERM.CreateCountryRegion(CountryRegion);
+        CreateCountryRegionWithISOCode(CountryRegion, 'GB');
         CustomerNo := CreateForeignCustomer(CountryRegion.Code);
         SalesInvoiceHeader.SetRange("No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CustomerNo));
 
@@ -1431,6 +1653,267 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithoutPACodeUsesDefaultRecipientCode()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Customer: Record Customer;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        InStr: InStream;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Domestic customer without PA Code uses default recipient routing
+        Initialize();
+
+        // [GIVEN] A domestic customer without PA Code or PEC address
+        Customer.Get(CreateCustomer());
+        Customer."PA Code" := '';
+        Customer."PEC E-Mail Address" := '';
+        Customer.Modify(true);
+
+        SalesInvoiceHeader.SetRange(
+            "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+            TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] CodiceDestinatario defaults to 0000000 and no PEC node is emitted
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/CodiceDestinatario',
+            '0000000');
+        AssertElementDoesNotExist(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/PECDestinatario');
+
+        TempBlob.CreateInStream(InStr);
+        VerifyXSDSchemaForStream(InStr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithoutPACodeUsesPEC()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Customer: Record Customer;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        InStr: InStream;
+        ClientFileName: Text[250];
+        PECEmailAddress: Text[80];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Domestic customer without PA Code can be routed through PEC
+        Initialize();
+
+        // [GIVEN] A domestic customer without PA Code and with a PEC address
+        PECEmailAddress := 'customer@examplepec.it';
+        Customer.Get(CreateCustomer());
+        Customer."PA Code" := '';
+        Customer."PEC E-Mail Address" := PECEmailAddress;
+        Customer.Modify(true);
+
+        SalesInvoiceHeader.SetRange(
+            "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+            TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] Default routing is used and PEC is exported
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/CodiceDestinatario',
+            '0000000');
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/PECDestinatario',
+            PECEmailAddress);
+
+        TempBlob.CreateInStream(InStr);
+        VerifyXSDSchemaForStream(InStr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithForeignCustomerUsesForeignRecipientCode()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Customer: Record Customer;
+        CurrCustomer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        InStr: InStream;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Foreign customer routing does not depend on PA Code
+        Initialize();
+
+        // [GIVEN] A foreign public-company customer with a six-character PA Code
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'DE';
+        CountryRegion.Modify();
+        Customer.Get(CreateCustomer());
+        CurrCustomer := Customer;
+        Customer.Validate("Country/Region Code", CountryRegion.Code);
+        Customer.Validate(City, CurrCustomer.City);
+        Customer.Validate(County, CurrCustomer.County);
+        Customer.Modify(true);
+
+        SalesInvoiceHeader.SetRange(
+            "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+            TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] The foreign-recipient routing constant is exported
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/FormatoTrasmissione',
+            'FPR12');
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/DatiTrasmissione/CodiceDestinatario',
+            'XXXXXXX');
+
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/DatiAnagrafici/IdFiscaleIVA/IdPaese',
+            CountryRegion."ISO Code");
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/Sede/Nazione',
+            CountryRegion."ISO Code");
+
+        TempBlob.CreateInStream(InStr);
+        VerifyXSDSchemaForStream(InStr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithForeignIndividualIncludesVATIdentification()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Customer: Record Customer;
+        CurrCustomer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        InStr: InStream;
+        ClientFileName: Text[250];
+        VATRegistrationNo: Text[20];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Foreign natural person can expose foreign fiscal identification
+        Initialize();
+
+        // [GIVEN] A foreign individual customer with VAT Registration No. but no Fiscal Code
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'DE';
+        CountryRegion.Modify();
+        VATRegistrationNo := 'DE123456789';
+        Customer.Get(CreateCustomer());
+        CurrCustomer := Customer;
+        Customer."VAT Registration No." := '';
+        Customer.Validate("Country/Region Code", CountryRegion.Code);
+        Customer.Validate("Post Code", CurrCustomer."Post Code");
+        Customer.Validate(City, CurrCustomer.City);
+        Customer.Validate(County, CurrCustomer.County);
+        Customer."PA Code" := '';
+        Customer."Individual Person" := true;
+        Customer."First Name" := 'Max';
+        Customer."Last Name" := 'Mustermann';
+        Customer."Fiscal Code" := '';
+        Customer."VAT Registration No." := VATRegistrationNo;
+        Customer.Modify(true);
+
+        SalesInvoiceHeader.SetRange(
+            "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+            TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] Individual-person representation does not suppress IdFiscaleIVA
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/DatiAnagrafici/IdFiscaleIVA/IdCodice',
+            VATRegistrationNo);
+
+        TempBlob.CreateInStream(InStr);
+        VerifyXSDSchemaForStream(InStr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithForeignIndividualIncludesFiscalCodeIdentification()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Customer: Record Customer;
+        CurrCustomer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        InStr: InStream;
+        ClientFileName: Text[250];
+        FiscalCode: Code[20];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Foreign natural person can use Fiscal Code when VAT Registration No. is unavailable
+        Initialize();
+
+        // [GIVEN] A foreign individual customer with Fiscal Code but no VAT Registration No.
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := 'DE';
+        CountryRegion.Modify();
+        FiscalCode := 'FOREIGN-TAX-ID';
+        Customer.Get(CreateCustomer());
+        CurrCustomer := Customer;
+        Customer.Validate("Country/Region Code", CountryRegion.Code);
+        Customer.Validate("Post Code", CurrCustomer."Post Code");
+        Customer.Validate(City, CurrCustomer.City);
+        Customer.Validate(County, CurrCustomer.County);
+        Customer."PA Code" := '';
+        Customer."Individual Person" := true;
+        Customer."First Name" := 'Max';
+        Customer."Last Name" := 'Mustermann';
+        Customer."VAT Registration No." := '';
+        Customer."Fiscal Code" := FiscalCode;
+        Customer.Modify(true);
+
+        SalesInvoiceHeader.SetRange(
+            "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+            TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] The Fiscal Code is emitted as the available foreign fiscal identifier
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+            TempXMLBuffer,
+            '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/DatiAnagrafici/IdFiscaleIVA/IdCodice',
+            FiscalCode);
+        TempBlob.CreateInStream(InStr);
+        VerifyXSDSchemaForStream(InStr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportSalesInvoiceWithForeignCustomer()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -1450,7 +1933,7 @@ codeunit 144200 "FatturaPA Test"
 
         // [GIVEN]  "Country/Region Code" code is "IT" in Company Information
         // [GIVEN] A posted Sales Invoice with customer that has "Country/Region Code" = "GB" and "Fiscal Code" = "Y"
-        LibraryERM.CreateCountryRegion(CountryRegion);
+        CreateCountryRegionWithISOCode(CountryRegion, 'GB');
         Customer.Get(CreateCustomer());
         CurrCustomer := Customer;
         Customer.Validate("Country/Region Code", CountryRegion.Code);
@@ -2136,6 +2619,34 @@ codeunit 144200 "FatturaPA Test"
         exit(
           LibraryITLocalization.CreateFatturaCustomerNo(
             CopyStr(LibraryUtility.GenerateRandomCode(Customer.FieldNo("PA Code"), DATABASE::Customer), 1, 6)));
+    end;
+
+    local procedure AssertInvalidISOCountryError(var TempErrorMessage: Record "Error Message" temporary; SourceRecordID: RecordId; SourceFieldNo: Integer)
+    var
+        MatchingErrorCount: Integer;
+    begin
+        TempErrorMessage.Reset();
+        TempErrorMessage.SetRange("Record ID", SourceRecordID);
+        TempErrorMessage.SetRange("Message Type", TempErrorMessage."Message Type"::Error);
+
+        if TempErrorMessage.FindSet() then
+            repeat
+                if TempErrorMessage."Field Number" = SourceFieldNo then begin
+                    MatchingErrorCount += 1;
+                    Assert.AreEqual(
+                      'The Country/Region must have a two-character ISO Code for FatturaPA.',
+                      TempErrorMessage.Message, 'Unexpected FatturaPA ISO country validation error.');
+                end;
+            until TempErrorMessage.Next() = 0;
+
+        Assert.AreEqual(1, MatchingErrorCount, 'Expected exactly one ISO country error for the source field.');
+    end;
+
+    local procedure CreateCountryRegionWithISOCode(var CountryRegion: Record "Country/Region"; ISOCode: Code[2])
+    begin
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion.Validate("ISO Code", ISOCode);
+        CountryRegion.Modify(true);
     end;
 
     local procedure CreateForeignCustomer(CountryRegionCode: Code[10]): Code[20]
@@ -3137,7 +3648,6 @@ codeunit 144200 "FatturaPA Test"
 
     local procedure AssertCustomerErrorMessages(Customer: Record Customer)
     begin
-        LibraryErrorMessage.AssertLogIfMessageExists(Customer, Customer.FieldNo("PA Code"), ErrorMessage."Message Type"::Error);
         // LibraryErrorMessage.AssertLogIfMessageExists(Customer,Customer.FIELDNO("Country/Region Code"),ErrorMessage."Message Type"::Error);
         LibraryErrorMessage.AssertLogIfMessageExists(Customer, Customer.FieldNo(Address), ErrorMessage."Message Type"::Error);
         LibraryErrorMessage.AssertLogIfMessageExists(Customer, Customer.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
