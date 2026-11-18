@@ -18,7 +18,7 @@ table 5811 "Post Value Entry to G/L"
 
     fields
     {
-        field(1; "Value Entry No."; Integer)
+        field(1; "Value Entry No."; BigInteger)
         {
             Caption = 'Value Entry No.';
             ToolTip = 'Specifies the number of the value entry whose cost is waiting to be posted to the general ledger.';

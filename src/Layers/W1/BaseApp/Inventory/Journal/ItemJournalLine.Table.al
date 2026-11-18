@@ -651,7 +651,7 @@ table 83 "Item Journal Line"
                     end;
             end;
         }
-        field(32; "Item Shpt. Entry No."; Integer)
+        field(32; "Item Shpt. Entry No."; BigInteger)
         {
             Caption = 'Item Shpt. Entry No.';
             Editable = false;
@@ -886,7 +886,7 @@ table 83 "Item Journal Line"
                 PhysInvtEntered := false;
             end;
         }
-        field(55; "Last Item Ledger Entry No."; Integer)
+        field(55; "Last Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Last Item Ledger Entry No.';
             Editable = false;

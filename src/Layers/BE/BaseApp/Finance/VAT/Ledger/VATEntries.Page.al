@@ -316,8 +316,8 @@ page 315 "VAT Entries"
                     Window: Dialog;
                     BucketIndex: Integer;
                     SizeOfBucket: Integer;
-                    FirstEntryNo: Integer;
-                    LastEntryNo: Integer;
+                    FirstEntryNo: BigInteger;
+                    LastEntryNo: BigInteger;
                     NoOfBuckets: Integer;
                 begin
                     SizeOfBucket := 1000;
