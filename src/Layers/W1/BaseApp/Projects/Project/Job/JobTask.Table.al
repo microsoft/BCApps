@@ -2009,7 +2009,7 @@ table 1001 "Job Task"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnValidateBillToCustomerNoOnBeforeCheckBlockedCustOnDocs(var JobTask: Record "Job Task"; var Cust: Record Customer; var IsHandled: Boolean)
+    local procedure OnValidateBillToCustomerNoOnBeforeCheckBlockedCustOnDocs(var JobTask: Record "Job Task"; var Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 

@@ -3406,7 +3406,7 @@ table 167 Job
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnValidateBillToCustomerNoOnBeforeCheckBlockedCustOnDocs(var Job: Record Job; var Cust: Record Customer; var IsHandled: Boolean)
+    local procedure OnValidateBillToCustomerNoOnBeforeCheckBlockedCustOnDocs(var Job: Record Job; var Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
