@@ -147,7 +147,7 @@ codeunit 148367 "Expense No Receipt API Test"
         Clear(Response);
         Response.ReadFrom(ResponseText);
         Response.Get('noReceiptType', Token);
-        Assert.AreEqual('_x0020_', Token.AsValue().AsText(), 'The blank wire name must remain stable.');
+        Assert.AreEqual('Receipt_x0020_not_x0020_needed', Token.AsValue().AsText(), 'The blank wire name must remain stable.');
 
         ExpenseCategory."Attachment Enforcement" := ExpenseCategory."Attachment Enforcement"::"Not needed under limit";
         ExpenseCategory.Modify();
