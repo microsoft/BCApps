@@ -210,6 +210,7 @@ table 6934 "Posted Exp. Rep. Line VAT Spec"
         }
         field(40; Source; Enum "Expense VAT Spec Source")
         {
+            Access = Internal;
             Caption = 'Source';
             ToolTip = 'Specifies the source of this VAT specification line, indicating how it was generated (e.g., from the original expense report line, from a correction, etc.). This can be used for tracking and reporting purposes to understand the origin of each VAT specification line.';
         }

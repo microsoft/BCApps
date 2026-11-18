@@ -223,6 +223,7 @@ table 6918 "Expense VAT Specification"
         }
         field(40; Source; Enum "Expense VAT Spec Source")
         {
+            Access = Internal;
             Caption = 'Source';
             Editable = false;
             DataClassification = SystemMetadata;

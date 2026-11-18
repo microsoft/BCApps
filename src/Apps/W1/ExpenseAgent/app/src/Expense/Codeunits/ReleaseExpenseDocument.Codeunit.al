@@ -55,7 +55,7 @@ codeunit 6980 "Release Expense Document"
     end;
 
     /// <summary>
-    /// Releases the expense as the current user after checking that the required fields are filled in and that the expense complies with the expense rules.
+    /// Releases the expense as the current user after checking that the required fields are filled in. The expense rules are re-evaluated and any violations are recorded, but violations do not block the release.
     /// </summary>
     /// <param name="ExpenseRecord">The expense to release. The record is updated with the new status.</param>
     procedure PerformManualRelease(var ExpenseRecord: Record Expense)

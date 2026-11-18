@@ -1117,6 +1117,7 @@ table 6907 "Expense Report Line"
         }
         field(102; "Policies Evaluated At"; DateTime)
         {
+            Access = Internal;
             Caption = 'Policies Evaluated At';
             DataClassification = CustomerContent;
             Editable = false;
@@ -2372,7 +2373,7 @@ table 6907 "Expense Report Line"
     /// Initializes the expense report line with the specified expense report header and clears the cached currencies.
     /// </summary>
     /// <param name="NewExpenseReportHeader">The expense report header that the line belongs to.</param>
-    procedure Initialize(NewExpenseReportHeader: Record "Expense Report Header")
+    internal procedure Initialize(NewExpenseReportHeader: Record "Expense Report Header")
     begin
         Clear(ReimbursementCurrency);
         Clear(ExpenseCurrency);

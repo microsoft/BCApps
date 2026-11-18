@@ -1261,6 +1261,7 @@ table 6900 Expense
     /// <summary>
     /// Initializes the dimensions for the Expense.
     /// </summary>
+    /// <param name="FieldNo">The number of the field whose value change triggers the default dimension update.</param>
     procedure CreateDimFromDefaultDim(FieldNo: Integer)
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
