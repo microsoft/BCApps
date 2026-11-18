@@ -897,7 +897,7 @@ table 83 "Item Journal Line"
                 PhysInvtEntered := false;
             end;
         }
-        field(55; "Last Item Ledger Entry No."; Integer)
+        field(55; "Last Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Last Item Ledger Entry No.';
             Editable = false;
