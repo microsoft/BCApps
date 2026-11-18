@@ -13,7 +13,7 @@ page 9652 "Report Layout Selection"
 {
     AdditionalSearchTerms = 'customization,document layout';
     ApplicationArea = Basic, Suite;
-    Caption = 'Report Layout Selection';
+    Caption = 'Report Layout Selection (Obsoleted)';
     DeleteAllowed = false;
     InsertAllowed = false;
     PageType = List;
