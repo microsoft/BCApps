@@ -1025,6 +1025,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
 
     /// <summary>
     /// Updates the related sales order lines when a credit memo exists for the specified credit memo number.
+    /// Credit memo quantities are converted to the unit of measure of each sales order line.
     /// </summary>
     /// <param name="SalesCreditMemoNo">Specifies the posted sales credit memo number.</param>
     internal procedure UpdateSalesOrderLineIfExist(SalesCreditMemoNo: Code[20])
@@ -1063,6 +1064,8 @@ codeunit 1303 "Correct Posted Sales Invoice"
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         SalesLine: Record "Sales Line";
         UndoPostingManagement: Codeunit "Undo Posting Management";
+        UOMMgt: Codeunit "Unit of Measure Management";
+        CancelledQuantity: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -1077,7 +1080,10 @@ codeunit 1303 "Correct Posted Sales Invoice"
             if SalesLine.Type = SalesLine.Type::Item then
                 SalesInvoiceLine.GetItemLedgEntries(TempItemLedgerEntry, false);
 
-            UpdateSalesOrderLineInvoicedQuantity(SalesLine, GetCancelledQtyInOrderLineUOM(SalesLine, SalesCrMemoLine), SalesCrMemoLine."Quantity (Base)");
+            CancelledQuantity := SalesCrMemoLine.Quantity;
+            if SalesLine."Qty. per Unit of Measure" <> SalesCrMemoLine."Qty. per Unit of Measure" then
+                CancelledQuantity := UOMMgt.CalcQtyFromBase(SalesCrMemoLine."Quantity (Base)", SalesLine."Qty. per Unit of Measure");
+            UpdateSalesOrderLineInvoicedQuantity(SalesLine, CancelledQuantity, SalesCrMemoLine."Quantity (Base)");
         end;
 
         UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine);
@@ -1210,22 +1216,6 @@ codeunit 1303 "Correct Posted Sales Invoice"
         SalesLine.Modify();
 
         OnAfterUpdateSalesOrderLineInvoicedQuantity(SalesLine, CancelledQuantity, CancelledQtyBase);
-    end;
-
-    local procedure GetCancelledQtyInOrderLineUOM(SalesLine: Record "Sales Line"; SalesCrMemoLine: Record "Sales Cr.Memo Line"): Decimal
-    var
-        UOMMgt: Codeunit "Unit of Measure Management";
-    begin
-        if (SalesLine.Type <> SalesLine.Type::Item) or
-           (SalesCrMemoLine."Qty. per Unit of Measure" = SalesLine."Qty. per Unit of Measure") or
-           (SalesLine."Qty. per Unit of Measure" = 0)
-        then
-            exit(SalesCrMemoLine.Quantity);
-
-        exit(
-            UOMMgt.CalcQtyFromBase(
-                SalesLine."No.", SalesLine."Variant Code", SalesLine."Unit of Measure Code",
-                SalesCrMemoLine."Quantity (Base)", SalesLine."Qty. per Unit of Measure"));
     end;
 
     local procedure TestWMSLocation(SalesInvoiceLine: Record "Sales Invoice Line")
