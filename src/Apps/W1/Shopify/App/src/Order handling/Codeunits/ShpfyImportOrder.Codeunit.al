@@ -95,7 +95,7 @@ codeunit 30161 "Shpfy Import Order"
         UpdatingOrderHeader: Boolean;
         JOrder: JsonObject;
         DataCaptureDict: Dictionary of [BigInteger, JsonToken];
-        ExchangeLineIds: List of [BigInteger];
+        ExchangeLineReturnIds: Dictionary of [BigInteger, BigInteger];
         Redundancy: Integer;
     begin
         if OrderId = 0 then
@@ -110,11 +110,11 @@ codeunit 30161 "Shpfy Import Order"
             exit;
 
         RetrieveAndSetOrderLines(OrderId, TempOrderLine, DataCaptureDict);
-        ExchangeLineIds := GetExchangeItemLineIds(OrderHeader."Shopify Order Id", JOrder);
+        ExchangeLineReturnIds := GetExchangeItemLineIds(OrderHeader."Shopify Order Id", JOrder);
 
         if OrderHeader.IsProcessed() then
             if not OrderHeader."Has Order State Error" then
-                if IsImportedOrderConflictingExistingOrder(JOrder, OrderHeader, TempOrderLine, ExchangeLineIds) then
+                if IsImportedOrderConflictingExistingOrder(JOrder, OrderHeader, TempOrderLine, ExchangeLineReturnIds.Keys()) then
                     SetOrderAsConflicting(OrderHeader);
 
         if not SetOrderHeaderValuesFromJson(JOrder, UpdatingOrderHeader, OrderHeader) then
@@ -123,12 +123,11 @@ codeunit 30161 "Shpfy Import Order"
         SetAndCreateRelatedRecords(JOrder, OrderHeader);
         OrderHeader.Modify();
         OrderEvents.OnAfterImportShopifyOrderHeader(OrderHeader, not UpdatingOrderHeader);
-        InsertOrderLinesAndRelatedRecords(TempOrderLine, DataCaptureDict, Redundancy, ExchangeLineIds);
+        InsertOrderLinesAndRelatedRecords(TempOrderLine, DataCaptureDict, Redundancy, ExchangeLineReturnIds);
         OrderHeader."Line Items Redundancy Code" := Redundancy;
         OrderHeader.Modify();
         OrderFulfillments.GetFulfillments(Shop, OrderHeader."Shopify Order Id");
 
-        MarkExchangeItemOrderLines(OrderHeader, ExchangeLineIds);
         ConsiderRefundsInQuantityAndAmounts(OrderHeader);
         DeleteZeroQuantityLines(OrderHeader);
 
@@ -154,22 +153,29 @@ codeunit 30161 "Shpfy Import Order"
         OrderHeader.Modify()
     end;
 
-    local procedure InsertOrderLinesAndRelatedRecords(var TempOrderLine: Record "Shpfy Order Line" temporary; var DataCaptureDict: Dictionary of [BigInteger, JsonToken]; var Redundancy: Integer; ExchangeLineIds: List of [BigInteger])
+    local procedure InsertOrderLinesAndRelatedRecords(var TempOrderLine: Record "Shpfy Order Line" temporary; var DataCaptureDict: Dictionary of [BigInteger, JsonToken]; var Redundancy: Integer; ExchangeLineReturnIds: Dictionary of [BigInteger, BigInteger])
     var
         OrderLine: Record "Shpfy Order Line";
         DataCapture: Record "Shpfy Data Capture";
         OrderTaxLine: Record "Shpfy Order Tax Line";
         Hash: Codeunit "Shpfy Hash";
+        ReturnsAPI: Codeunit "Shpfy Returns API";
         JOrderLine: JsonToken;
         LineIds: Text;
+        ReturnId: BigInteger;
     begin
         TempOrderLine.SetCurrentKey("Line Id");
         TempOrderLine.SetAscending("Line Id", true);
         if not TempOrderLine.FindSet() then
             exit;
         repeat
-            if not ExchangeLineIds.Contains(TempOrderLine."Line Id") then
+            // Exchange lines stay out of the hash even when invoiced, matching IsImportedOrderConflictingExistingOrder.
+            if ExchangeLineReturnIds.Get(TempOrderLine."Line Id", ReturnId) then
+                TempOrderLine."Is Exchange Item" := not ReturnsAPI.IsUnverifiedReturnGiftCard(ReturnId, TempOrderLine."Gift Card")
+            else begin
+                TempOrderLine."Is Exchange Item" := false;
                 LineIds += '|' + Format(TempOrderLine."Line Id");
+            end;
             JOrderLine := DataCaptureDict.Get(TempOrderLine."Line Id");
             if OrderLine.Get(TempOrderLine."Shopify Order Id", TempOrderLine."Line Id") then begin
                 Clear(OrderLine);
@@ -252,29 +258,12 @@ codeunit 30161 "Shpfy Import Order"
         OrderHeader.Modify();
     end;
 
-    internal procedure MarkExchangeItemOrderLines(var OrderHeader: Record "Shpfy Order Header"; ExchangeLineIds: List of [BigInteger])
-    var
-        OrderLine: Record "Shpfy Order Line";
-    begin
-        if ExchangeLineIds.Count() = 0 then
-            exit;
-
-        OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
-        OrderLine.SetLoadFields("Line Id", "Is Exchange Item");
-        if OrderLine.FindSet() then
-            repeat
-                if ExchangeLineIds.Contains(OrderLine."Line Id") and (not OrderLine."Is Exchange Item") then begin
-                    OrderLine."Is Exchange Item" := true;
-                    OrderLine.Modify();
-                end;
-            until OrderLine.Next() = 0;
-    end;
-
-    local procedure GetExchangeItemLineIds(ShopifyOrderId: BigInteger; JOrder: JsonObject) ExchangeLineIds: List of [BigInteger]
+    local procedure GetExchangeItemLineIds(ShopifyOrderId: BigInteger; JOrder: JsonObject) ExchangeLineReturnIds: Dictionary of [BigInteger, BigInteger]
     var
         IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
         ReturnStatus: Enum "Shpfy Order Return Status";
         ExchangeLineId: BigInteger;
+        ReturnId: BigInteger;
         GraphQLType: Enum "Shpfy GraphQL Type";
         Parameters: Dictionary of [Text, Text];
         JResponse: JsonToken;
@@ -306,13 +295,14 @@ codeunit 30161 "Shpfy Import Order"
                 Parameters.Add('After', JsonHelper.GetValueAsText(JResponse, 'data.order.returns.pageInfo.endCursor'));
 
             foreach JReturn in JReturns do begin
+                ReturnId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JReturn, 'id'));
                 JExchangeLineItems := JsonHelper.GetJsonArray(JReturn, 'exchangeLineItems.nodes');
                 foreach JExchangeLineItem in JExchangeLineItems do begin
                     JLineItems := JsonHelper.GetJsonArray(JExchangeLineItem, 'lineItems');
                     foreach JLineItem in JLineItems do begin
                         ExchangeLineId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLineItem, 'id'));
-                        if (ExchangeLineId <> 0) and not ExchangeLineIds.Contains(ExchangeLineId) then
-                            ExchangeLineIds.Add(ExchangeLineId);
+                        if (ExchangeLineId <> 0) and not ExchangeLineReturnIds.ContainsKey(ExchangeLineId) then
+                            ExchangeLineReturnIds.Add(ExchangeLineId, ReturnId);
                     end;
                 end;
             end;

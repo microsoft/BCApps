@@ -336,7 +336,7 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         Initialize();
 
         // [SCENARIO] Create a quote both through the client UI and through the API and compare them. They should be the same and have the same fields autocompleted wherever needed.
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
+        LibraryGraphMgt.AlignWorkDateWithApiSession();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         // [GIVEN] a customer

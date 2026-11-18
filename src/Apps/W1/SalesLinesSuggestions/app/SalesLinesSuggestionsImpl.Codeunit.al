@@ -155,6 +155,7 @@ codeunit 7275 "Sales Lines Suggestions Impl."
 
         StartDateTime := CurrentDateTime();
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
+        OnAICallOnAfterGenerateChatCompletion(SearchQuery, false, AOAIOperationResponse);
         DurationAsBigInt := CurrentDateTime() - StartDateTime;
         TelemetryCD.Add('Response time', Format(DurationAsBigInt));
 
@@ -227,6 +228,7 @@ codeunit 7275 "Sales Lines Suggestions Impl."
 
         StartDateTime := CurrentDateTime();
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
+        OnAICallOnAfterGenerateChatCompletion(SearchQuery, true, AOAIOperationResponse);
         DurationAsBigInt := CurrentDateTime() - StartDateTime;
         TelemetryCD.Add('Response time', Format(DurationAsBigInt));
 
@@ -266,6 +268,11 @@ codeunit 7275 "Sales Lines Suggestions Impl."
         end;
 
         exit(FileHandlerResult);
+    end;
+
+    [InternalEvent(false)]
+    internal procedure OnAICallOnAfterGenerateChatCompletion(SearchQuery: Text; IsAttachment: Boolean; OperationResponse: Codeunit "AOAI Operation Response")
+    begin
     end;
 
     procedure RegisterCapability()
