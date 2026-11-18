@@ -826,7 +826,7 @@ codeunit 133513 "Search Item Test"
         Assert.IsTrue(SLSSearch.SearchMultiple(ItemResults, Enum::"Search Style"::Balanced, '', '', 1, 25, false, false, TempSalesLineAISuggestion, ''), 'Item search failed.');
 
         Assert.RecordCount(TempSalesLineAISuggestion, 4);
-        TempSalesLineAISuggestion.FindFirst();
+        TempSalesLineAISuggestion.FindSet();
         Assert.AreEqual(1, TempSalesLineAISuggestion.Quantity, 'Missing quantity must default to one.');
         TempSalesLineAISuggestion.Next();
         Assert.AreEqual(0, TempSalesLineAISuggestion.Quantity, 'Explicit zero quantity must be preserved.');

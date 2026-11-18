@@ -138,6 +138,7 @@ codeunit 133516 "SLS Prompt Test"
         PropertyName: Text;
         ArrayProperties: List of [Text];
         ValueText: Text;
+        ArrayPropertyErr: Label '%1 must be an array.', Comment = '%1 = Json property name';
     begin
         ArrayProperties.Add('split_name_terms');
         ArrayProperties.Add('features');
@@ -158,7 +159,7 @@ codeunit 133516 "SLS Prompt Test"
             Assert.IsTrue(Value.AsArray().Count() > 0, 'Search item name terms are empty.');
             foreach PropertyName in ArrayProperties do
                 if Item.AsObject().Get(PropertyName, Value) then begin
-                    Assert.IsTrue(Value.IsArray(), StrSubstNo('%1 must be an array.', PropertyName));
+                    Assert.IsTrue(Value.IsArray(), StrSubstNo(ArrayPropertyErr, PropertyName));
                     foreach Term in Value.AsArray() do
                         AssertJsonText(Term);
                 end;
