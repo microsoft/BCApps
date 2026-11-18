@@ -38,21 +38,16 @@ codeunit 4402 "SOA Output Message Setup"
                 Error('');
             exit;
         end;
-
         if StrPos(SignatureAsTxt, ImagePlaceHolderLbl) > 0 then
             Error(ImagePlaceHolderErr);
-
         if GetSignatureImagesTotalSize(SignatureAsTxt) > 40000 then //around 10000 tokens
             Error(TooBigImagesErr);
-
         if not CheckMailTemplate(SignatureAsTxt, IsValid, IsHarmful, InvalidReason) then begin
             LogTelemetryError('0000Q9G', 'CheckMailSignature');
             Error(UnsuccessfulSignatureCheckErr);
         end;
-
         if IsHarmful then
             Error(ContainsHarmfulLbl);
-
         if not IsValid then
             if not Confirm(StrSubstNo(NotCompleteLbl, InvalidReason), false) then
                 Error('');
@@ -75,7 +70,6 @@ codeunit 4402 "SOA Output Message Setup"
         SOASetup.GetBasedOnAgentUserSecurityID(AgentTaskMessage."Agent User Security ID", true);
         if not SOASetup."Configure Email Template" then
             exit;
-
         if not AddSignatureToMessageBody(AgentTaskMessage) then
             LogTelemetryError('0000Q9G', 'AppendSignatureToMessageBody');
     end;
@@ -92,7 +86,7 @@ codeunit 4402 "SOA Output Message Setup"
         SOAMailTemplateValidation: Codeunit "SOA Email Template Validation";
         SystemInstructions: SecretText;
     begin
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT56CeresLatest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Sales Order Agent");
 
         SystemInstructions := GetMailTemplateCheckSystemInstructions();
@@ -108,19 +102,15 @@ codeunit 4402 "SOA Output Message Setup"
         AOAIChatCompletionParams.SetTemperature(0);
 
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
-
         if not AOAIOperationResponse.IsSuccess() then
             exit(false);
-
         if not AOAIOperationResponse.IsFunctionCall() then
             exit(false);
-
         foreach AOAIFunctionResponse in AOAIOperationResponse.GetFunctionResponses() do
             IsValid := SOAMailTemplateValidation.Execute(AOAIFunctionResponse.GetArguments());
 
         InvalidReason := SOAMailTemplateValidation.GetInvalidReason();
         IsHarmful := SOAMailTemplateValidation.GetIsHarmful();
-
         if IsValid then
             InvalidReason := '';
 
@@ -140,7 +130,7 @@ codeunit 4402 "SOA Output Message Setup"
         SystemInstructions: SecretText;
         NewMessageContent: Text;
     begin
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT56CeresLatest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Sales Order Agent");
 
         SystemInstructions := GetAddSignatureSystemInstructions();
@@ -157,20 +147,16 @@ codeunit 4402 "SOA Output Message Setup"
         AOAIChatCompletionParams.SetTemperature(0);
 
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
-
         if not AOAIOperationResponse.IsSuccess() then begin
             LogTelemetryError('0000Q9G', 'AddSignatureToMessageBody');
             exit(false);
         end;
-
         if not AOAIOperationResponse.IsFunctionCall() then
             exit(false);
-
         foreach AOAIFunctionResponse in AOAIOperationResponse.GetFunctionResponses() do
             NewMessageContent := SOAOutputMessageValidation.Execute(AOAIFunctionResponse.GetArguments());
 
         ReturnImagesToSignature(NewMessageContent, Images);
-
         if NewMessageContent <> '' then
             DoUpdateAgentTaskMessageContent(OutputAgentTaskMessage, NewMessageContent);
 

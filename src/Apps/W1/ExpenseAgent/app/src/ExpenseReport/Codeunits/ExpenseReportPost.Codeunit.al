@@ -69,6 +69,8 @@ codeunit 6987 "Expense Report-Post"
         DisableNonDeductibleVATAfterPost: Boolean;
         AmountToEmployee: Decimal;
         AmountToEmployeeLCY: Decimal;
+        LinkedSpendRequestNos: List of [Code[20]];
+        ClosedByPostedExpenseReportTxt: Label 'Closed by posted expense report %1.', Comment = '%1 = Posted expense report number';
         CanPostExpenseReportQst: Label 'Do you want to post Expense Report %1?', Comment = '%1 = Expense Report No.';
         ExpenseReportWithStatusErr: Label 'Expense Report %1 cannot be posted because its status is %2.', Comment = '%1 = Document No., %2 = Status';
         SpendRequestStatusNotPostableErr: Label 'Expense report %1 cannot be posted because travel request %2 has status %3. The travel request must be approved.', Comment = '%1 = Expense Report No., %2 = Travel Request No., %3 = Travel Request Status';
@@ -182,8 +184,23 @@ codeunit 6987 "Expense Report-Post"
         InsertPstdExpReportHeaderVATSpecs(ExpenseReportHeader."No.", PostedExpenseReportHeader."No.");
         if AmountToEmployee <> 0 then
             PostEmployeeEntry(ExpenseReportHeader);
-        if not PreviewMode then
+        if not PreviewMode then begin
             ExpenseActivityLogMgt.ReassignExpenseReportEntriesToPosted(ExpenseReportHeader, PostedExpenseReportHeader);
+            LogTravelRequestsClosedByPosting();
+        end;
+    end;
+
+    local procedure LogTravelRequestsClosedByPosting()
+    var
+        SpendRequest: Record "Spend Request";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+        SpendRequestNo: Code[20];
+    begin
+        // Posting only accepts approved travel requests, so a travel request that is closed now was closed by this posting.
+        foreach SpendRequestNo in LinkedSpendRequestNos do
+            if (SpendRequestNo <> '') and SpendRequest.Get(SpendRequestNo) then
+                TravelRequestApproval.LogTravelRequestClosed(
+                    SpendRequest, StrSubstNo(ClosedByPostedExpenseReportTxt, PostedExpenseReportHeader."No."));
     end;
 
     local procedure ValidateExpenseReportForPosting(var ExpenseReportHeader: Record "Expense Report Header")
@@ -273,19 +290,20 @@ codeunit 6987 "Expense Report-Post"
     local procedure ValidateExpenseReportLineForPosting(ExpenseReportHeader: Record "Expense Report Header")
     var
         ExpenseReportLine: Record "Expense Report Line";
-        CheckedSpendRequestNos: List of [Code[20]];
     begin
+        // The travel requests linked to the report are kept to log the ones that this posting closes.
+        Clear(LinkedSpendRequestNos);
         CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportHeader."Spend Request No.");
-        CheckedSpendRequestNos.Add(ExpenseReportHeader."Spend Request No.");
+        LinkedSpendRequestNos.Add(ExpenseReportHeader."Spend Request No.");
 
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
         if ExpenseReportLine.FindSet() then
             repeat
                 CheckMandatoryFields(ExpenseReportLine);
-                ValidateVATSpecLinesForPosting(ExpenseReportLine);
-                if not CheckedSpendRequestNos.Contains(ExpenseReportLine."Spend Request No.") then begin
+                ValidateVATSpecLinesForPosting(ExpenseReportLine, ExpenseReportHeader);
+                if not LinkedSpendRequestNos.Contains(ExpenseReportLine."Spend Request No.") then begin
                     CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportLine."Spend Request No.");
-                    CheckedSpendRequestNos.Add(ExpenseReportLine."Spend Request No.");
+                    LinkedSpendRequestNos.Add(ExpenseReportLine."Spend Request No.");
                 end;
             until ExpenseReportLine.Next() = 0
         else
@@ -319,7 +337,7 @@ codeunit 6987 "Expense Report-Post"
         exit(SpendRequestNotPostableError);
     end;
 
-    local procedure ValidateVATSpecLinesForPosting(ExpenseReportLine: Record "Expense Report Line")
+    local procedure ValidateVATSpecLinesForPosting(ExpenseReportLine: Record "Expense Report Line"; ExpenseReportHeader: Record "Expense Report Header")
     var
         ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
     begin
@@ -330,7 +348,25 @@ codeunit 6987 "Expense Report-Post"
                 ValidateVATSpecMasterRecords(ExpenseReportLineVATSpec);
                 if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::"Pending" then
                     Error(GetPendingVATSpecErrorInfo(ExpenseReportLineVATSpec));
-            until ExpenseReportLineVATSpec.Next() = 0;
+                if ExpenseReportLineVATSpec."Reclaim Status" = ExpenseReportLineVATSpec."Reclaim Status"::Approved then begin
+                    ExpenseReportLineVATSpec.TestField("VAT Bus. Posting Group");
+                    ExpenseReportLineVATSpec.TestField("VAT Prod. Posting Group");
+                    CheckVATPostingSetup(ExpenseReportLineVATSpec."VAT Bus. Posting Group", ExpenseReportLineVATSpec."VAT Prod. Posting Group");
+                end;
+            until ExpenseReportLineVATSpec.Next() = 0
+        else begin
+            ExpenseReportLine.TestField("VAT Bus. Posting Group", ExpenseReportHeader."VAT Bus. Posting Group");
+            if ExpenseReportLine."VAT Prod. Posting Group" <> '' then
+                CheckVATPostingSetup(ExpenseReportLine."VAT Bus. Posting Group", ExpenseReportLine."VAT Prod. Posting Group");
+        end;
+    end;
+
+    local procedure CheckVATPostingSetup(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup);
+        VATPostingSetup.TestField("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
     end;
 
     local procedure ValidateVATSpecMasterRecords(ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.")

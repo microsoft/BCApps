@@ -31,6 +31,8 @@ codeunit 137301 "SCM Inventory Reports - I"
         QuantityErr: Label 'Quantity Must Be %1 for %2  Document No. %3';
         SetupBlockedErr: Label 'Setup is blocked in %1 for %2 %3 and %4 %5.', Comment = '%1 - General/Inventory Posting Setup, %2 %3 %4 %5 - posting groups.';
         ValueEntriesWerePostedTxt: Label 'value entries have been posted to the general ledger.';
+        CustomerSalesRowCountErr: Label 'Expected two customer rows and one item subtotal, without empty ledger entry rows.';
+        CustomerSalesAggregatedRowCountErr: Label 'Expected one aggregated row per item/customer.';
 
     [Test]
     [HandlerFunctions('InvtCostAndPriceListRepRequestPageHandler')]
@@ -1584,6 +1586,69 @@ codeunit 137301 "SCM Inventory Reports - I"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists('DimText', ExpectedDimText);
     end;
+
+    [Test]
+    [HandlerFunctions('InvtCustomerSalesRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure InventoryCustomerSalesAggregatedRows()
+    var
+        Item: Record Item;
+        Customer: array[2] of Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        CustomerIndex: Integer;
+        EntryIndex: Integer;
+    begin
+        // [SCENARIO 658349] Multiple ledger entries produce one dataset row per item/customer without empty detail rows.
+        Initialize();
+        CreateItem(Item);
+        for CustomerIndex := 1 to ArrayLen(Customer) do
+            LibrarySales.CreateCustomer(Customer[CustomerIndex]);
+
+        // [GIVEN] Three sales entries for the first customer and one for the last customer in report sorting order.
+        if Customer[1]."No." > Customer[2]."No." then begin
+            Customer[1].SetFilter("No.", '%1|%2', Customer[1]."No.", Customer[2]."No.");
+            Customer[1].FindFirst();
+            Customer[2].Copy(Customer[1]);
+            Customer[2].FindLast();
+        end;
+        for CustomerIndex := 1 to ArrayLen(Customer) do
+            for EntryIndex := 1 to 5 - 2 * CustomerIndex do begin
+                Clear(SalesHeader);
+                LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer[CustomerIndex]."No.");
+                LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 2);
+                SalesLine.Validate("Unit Price", 100);
+                SalesLine.Validate("Line Discount %", 10);
+                SalesLine.Modify(true);
+                LibrarySales.PostSalesDocument(SalesHeader, true, true);
+            end;
+
+        // [WHEN] Export the report dataset.
+        Item.SetRange("No.", Item."No.");
+        REPORT.Run(REPORT::"Inventory - Customer Sales", true, false, Item);
+        LibraryReportDataset.LoadDataSetFile();
+
+        // [THEN] Only two customer rows and the item subtotal row contain the item number.
+        LibraryReportDataset.SetRange('No_Item', Item."No.");
+        Assert.AreEqual(3, LibraryReportDataset.RowCount(), CustomerSalesRowCountErr);
+
+        for CustomerIndex := 1 to ArrayLen(Customer) do begin
+            LibraryReportDataset.SetRange('SourceNo_ItemLedgEntry', Customer[CustomerIndex]."No.");
+            Assert.AreEqual(1, LibraryReportDataset.RowCount(), CustomerSalesAggregatedRowCountErr);
+            LibraryReportDataset.GetNextRow();
+            LibraryReportDataset.AssertCurrentRowValueEquals('InvQty_ItemLedgEntry', 2 * (5 - 2 * CustomerIndex));
+            LibraryReportDataset.AssertCurrentRowValueEquals('SalesAmtActual_ItemLedgEntry', 180 * (5 - 2 * CustomerIndex));
+            LibraryReportDataset.AssertCurrentRowValueEquals('DiscountAmount', 20 * (5 - 2 * CustomerIndex));
+        end;
+
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.AssertElementWithValueExists('SubTotals_InvQty', 8);
+        LibraryReportDataset.AssertElementWithValueExists('SubTotals_SalesAmtActual', 720);
+        LibraryReportDataset.AssertElementWithValueExists('SubTotals_DiscountAmount', 80);
+        LibraryReportDataset.AssertElementWithValueExists('Totals_SalesAmtActual', 720);
+        LibraryReportDataset.AssertElementWithValueExists('Totals_DiscountAmount', 80);
+    end;
+
 
     local procedure Initialize()
     var

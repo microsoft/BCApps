@@ -2641,6 +2641,82 @@ codeunit 137413 "SCM Item Attributes"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure FindingDecimalZeroExcludesBlankAttributeValue()
+    var
+        ItemAttribute: Record "Item Attribute";
+        BlankItemAttributeValue: Record "Item Attribute Value";
+        ZeroItemAttributeValue: Record "Item Attribute Value";
+        ItemAttributeValue: Record "Item Attribute Value";
+        ItemAttributeValueSelection: Record "Item Attribute Value Selection";
+    begin
+        // [SCENARIO 657351] A blank decimal attribute value must not match an explicit zero.
+        Initialize();
+
+        LibraryInventory.CreateItemAttribute(ItemAttribute, ItemAttribute.Type::Decimal, '');
+        BlankItemAttributeValue."Attribute ID" := ItemAttribute.ID;
+        BlankItemAttributeValue.Insert(true);
+        ItemAttributeValueSelection."Attribute ID" := ItemAttribute.ID;
+        ItemAttributeValueSelection.Value := '0';
+
+        Assert.IsFalse(ItemAttributeValueSelection.FindAttributeValue(ItemAttributeValue), 'A blank value must not match decimal zero.');
+
+        LibraryInventory.CreateItemAttributeValue(ZeroItemAttributeValue, ItemAttribute.ID, '0');
+        Assert.IsTrue(ItemAttributeValueSelection.FindAttributeValue(ItemAttributeValue), 'The explicit zero value must be found.');
+        ItemAttributeValue.TestField(ID, ZeroItemAttributeValue.ID);
+        ItemAttributeValue.TestField(Value, '0');
+
+        ItemAttributeValueSelection.Value := '';
+        Assert.IsTrue(ItemAttributeValueSelection.FindAttributeValue(ItemAttributeValue), 'The blank value must still be found.');
+        ItemAttributeValue.TestField(ID, BlankItemAttributeValue.ID);
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemAttributeValueChangeValueEditor')]
+    [Scope('OnPrem')]
+    procedure DecimalAttributeZeroAfterClearingValue()
+    var
+        Item: Record Item;
+        ItemAttribute: Record "Item Attribute";
+        ItemAttributeValue: Record "Item Attribute Value";
+        ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
+        ItemCard: TestPage "Item Card";
+    begin
+        // [SCENARIO 657351] Decimal zero can be saved after clearing the value and reopening the editor.
+        Initialize();
+
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemAttribute(ItemAttribute, ItemAttribute.Type::Decimal, '');
+        LibraryInventory.CreateItemAttributeValue(ItemAttributeValue, ItemAttribute.ID, '0');
+        SetItemAttributeValue(Item, ItemAttributeValue);
+
+        ItemCard.OpenEdit();
+        ItemCard.GotoRecord(Item);
+        LibraryVariableStorage.Enqueue('');
+        ItemCard.Attributes.Invoke();
+        ItemCard.Close();
+        ItemAttributeValueMapping.Get(Database::Item, Item."No.", ItemAttribute.ID);
+        ItemAttributeValue.Get(ItemAttribute.ID, ItemAttributeValueMapping."Item Attribute Value ID");
+        ItemAttributeValue.TestField(Value, '');
+
+        ItemCard.OpenEdit();
+        ItemCard.GotoRecord(Item);
+        LibraryVariableStorage.Enqueue('0');
+        ItemCard.Attributes.Invoke();
+        ItemCard.Close();
+
+        ItemAttributeValueMapping.Get(Database::Item, Item."No.", ItemAttribute.ID);
+        ItemAttributeValue.Get(ItemAttribute.ID, ItemAttributeValueMapping."Item Attribute Value ID");
+        ItemAttributeValue.TestField(Value, '0');
+        ItemAttributeValue.TestField("Numeric Value", 0);
+        ItemCard.OpenView();
+        ItemCard.GotoRecord(Item);
+        ItemCard.ItemAttributesFactbox.Value.AssertEquals('0');
+        ItemCard.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         ItemAttribute: Record "Item Attribute";
@@ -3289,4 +3365,3 @@ codeunit 137413 "SCM Item Attributes"
     begin
     end;
 }
-
