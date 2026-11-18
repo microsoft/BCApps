@@ -55,6 +55,8 @@ codeunit 9660 "Report Layouts Impl."
         CannotChangeStatusOfDefaultInCompanyErr: Label 'You cannot set "%1" to %2 because it is the default layout for report "%3" in company "%4", and the status applies to all companies. Select another default layout in that company first.', Comment = '%1 = Layout Name, %2 = New Status, %3 = Report Name, %4 = Company Name';
         DefaultFallbackTxt: Label '"%1" is the layout that report "%2" falls back to, and it is no longer approved. The report keeps using it until you select another default layout.', Comment = '%1 = Layout Name, %2 = Report Name';
         CompositePartCannotBeSelectedErr: Label '"%1" is a %2 part and cannot be selected as a report layout. Assign theme and header/footer parts to reports in the report layout configuration instead.', Comment = '%1 = Layout Name, %2 = Layout Subtype';
+        CompanyDoesNotExistErr: Label 'The company "%1" does not exist.', Comment = '%1 = Company Name';
+        LayoutSpecificToOtherCompanyErr: Label 'The layout "%1" is only available in company "%2" and cannot be selected in another company.', Comment = '%1 = Layout Name, %2 = Company Name';
 
     internal procedure SetSelectedCompany(NewCompanyName: Text)
     begin
@@ -504,6 +506,28 @@ codeunit 9660 "Report Layouts Impl."
     begin
         if ReportLayoutList."Layout Subtype" in [ReportLayoutList."Layout Subtype"::HeaderFooter, ReportLayoutList."Layout Subtype"::Theme] then
             Error(CompositePartCannotBeSelectedErr, ReportLayoutList.Name, Format(ReportLayoutList."Layout Subtype"));
+    end;
+
+    /// <summary>
+    /// Raises an error if the company does not exist, or if the layout is a user-defined layout that belongs to another company.
+    /// Mirrors the Report Layout Selection page, which only offers layouts of the selected company or of all companies.
+    /// </summary>
+    internal procedure ErrorIfLayoutCannotBeSelectedInCompany(ReportLayoutList: Record "Report Layout List"; TargetCompanyName: Text[30])
+    var
+        Company: Record Company;
+        TenantReportLayout: Record "Tenant Report Layout";
+    begin
+        if not Company.Get(TargetCompanyName) then
+            Error(CompanyDoesNotExistErr, TargetCompanyName);
+
+        if not ReportLayoutList."User Defined" then
+            exit;
+        if not TenantReportLayout.Get(ReportLayoutList."Report ID", ReportLayoutList.Name, EmptyGuid) then
+            exit;
+        if TenantReportLayout."Company Name" in ['', TargetCompanyName] then
+            exit;
+
+        Error(LayoutSpecificToOtherCompanyErr, ReportLayoutList.Name, TenantReportLayout."Company Name");
     end;
 
     internal procedure InsertNewLayout(ReportID: Integer; LayoutName: Text[250]; LayoutDescription: Text[250]; LayoutFormat: Option; LayoutIsGlobal: Boolean; CreateEmptyLayout: Boolean; ExcelSheetConfiguration: Enum "Excel Sheet Configuration"; var ReturnReportID: Integer; var ReturnLayoutName: Text)

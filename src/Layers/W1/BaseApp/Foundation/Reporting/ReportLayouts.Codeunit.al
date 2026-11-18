@@ -27,8 +27,23 @@ codeunit 9661 "Report Layouts"
     /// <error>The layout is a theme or header/footer part. Parts are assigned to reports through the report layout configuration and cannot be selected as a report layout.</error>
     procedure SetDefaultReportLayoutSelection(ReportLayoutList: Record "Report Layout List")
     begin
+        SetDefaultReportLayoutSelection(ReportLayoutList, CurrentCompanyName());
+    end;
+
+    /// <summary>
+    /// Sets the report layout as the default layout of its report in the specified company.
+    /// Updates both the Tenant Report Layout Selection and the Report Layout Selection tables.
+    /// </summary>
+    /// <param name="ReportLayoutList">The report layout to set as default.</param>
+    /// <param name="ForCompanyName">The name of the company in which the layout is set as default.</param>
+    /// <error>The layout is a theme or header/footer part. Parts are assigned to reports through the report layout configuration and cannot be selected as a report layout.</error>
+    /// <error>The company does not exist.</error>
+    /// <error>The layout is a user-defined layout that is only available in another company.</error>
+    procedure SetDefaultReportLayoutSelection(ReportLayoutList: Record "Report Layout List"; ForCompanyName: Text[30])
+    begin
         ReportLayoutsImpl.ErrorIfLayoutIsCompositePart(ReportLayoutList);
-        ReportLayoutsImpl.SetSelectedCompany(CompanyName());
+        ReportLayoutsImpl.ErrorIfLayoutCannotBeSelectedInCompany(ReportLayoutList, ForCompanyName);
+        ReportLayoutsImpl.SetSelectedCompany(ForCompanyName);
         ReportLayoutsImpl.SetDefaultReportLayoutSelection(ReportLayoutList, false);
     end;
 
@@ -48,10 +63,10 @@ codeunit 9661 "Report Layouts"
     /// <param name="ReportLayoutList">The report layout to select.</param>
     /// <error>The layout is a theme or header/footer part. Parts are assigned to reports through the report layout configuration and cannot be selected as a report layout.</error>
     procedure AddLayoutSelection(ReportLayoutList: Record "Report Layout List")
+    var
+        EmptyGuid: Guid;
     begin
-        ReportLayoutsImpl.ErrorIfLayoutIsCompositePart(ReportLayoutList);
-        ReportLayoutsImpl.SetSelectedCompany(CompanyName());
-        ReportLayoutsImpl.AddLayoutSelection(ReportLayoutList);
+        AddLayoutSelection(ReportLayoutList, CurrentCompanyName(), EmptyGuid);
     end;
 
     /// <summary>
@@ -62,9 +77,44 @@ codeunit 9661 "Report Layouts"
     /// <error>The layout is a theme or header/footer part. Parts are assigned to reports through the report layout configuration and cannot be selected as a report layout.</error>
     procedure AddLayoutSelection(ReportLayoutList: Record "Report Layout List"; ForUserId: Guid)
     begin
+        AddLayoutSelection(ReportLayoutList, CurrentCompanyName(), ForUserId);
+    end;
+
+    /// <summary>
+    /// Adds or updates the selection of the report layout in the Tenant Report Layout Selection table for the specified company.
+    /// </summary>
+    /// <param name="ReportLayoutList">The report layout to select.</param>
+    /// <param name="ForCompanyName">The name of the company in which the layout is selected.</param>
+    /// <error>The layout is a theme or header/footer part. Parts are assigned to reports through the report layout configuration and cannot be selected as a report layout.</error>
+    /// <error>The company does not exist.</error>
+    /// <error>The layout is a user-defined layout that is only available in another company.</error>
+    procedure AddLayoutSelection(ReportLayoutList: Record "Report Layout List"; ForCompanyName: Text[30])
+    var
+        EmptyGuid: Guid;
+    begin
+        AddLayoutSelection(ReportLayoutList, ForCompanyName, EmptyGuid);
+    end;
+
+    /// <summary>
+    /// Adds or updates the selection of the report layout in the Tenant Report Layout Selection table for a user in the specified company.
+    /// </summary>
+    /// <param name="ReportLayoutList">The report layout to select.</param>
+    /// <param name="ForCompanyName">The name of the company in which the layout is selected.</param>
+    /// <param name="ForUserId">The security ID of the user that the layout is selected for. An empty GUID selects the layout for all users of the company.</param>
+    /// <error>The layout is a theme or header/footer part. Parts are assigned to reports through the report layout configuration and cannot be selected as a report layout.</error>
+    /// <error>The company does not exist.</error>
+    /// <error>The layout is a user-defined layout that is only available in another company.</error>
+    procedure AddLayoutSelection(ReportLayoutList: Record "Report Layout List"; ForCompanyName: Text[30]; ForUserId: Guid)
+    begin
         ReportLayoutsImpl.ErrorIfLayoutIsCompositePart(ReportLayoutList);
-        ReportLayoutsImpl.SetSelectedCompany(CompanyName());
+        ReportLayoutsImpl.ErrorIfLayoutCannotBeSelectedInCompany(ReportLayoutList, ForCompanyName);
+        ReportLayoutsImpl.SetSelectedCompany(ForCompanyName);
         ReportLayoutsImpl.AddLayoutSelection(ReportLayoutList, ForUserId);
+    end;
+
+    local procedure CurrentCompanyName(): Text[30]
+    begin
+        exit(CopyStr(CompanyName(), 1, 30));
     end;
 
     /// <summary>

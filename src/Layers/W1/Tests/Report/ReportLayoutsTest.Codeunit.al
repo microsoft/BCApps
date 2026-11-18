@@ -2383,6 +2383,114 @@ codeunit 139595 "Report Layouts Test"
     end;
 
     [Test]
+    [HandlerFunctions('NewLayoutModalHandler')]
+    procedure TestReportLayoutsFacadeSetDefaultLayoutSelectionInOtherCompany()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        ReportLayoutSelection: Record "Report Layout Selection";
+        ReportLayouts: Codeunit "Report Layouts";
+        OtherCompanyName: Text[30];
+        EmptyGuid: Guid;
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] SetDefaultReportLayoutSelection with a company name selects the layout as the default in that company
+        // [GIVEN] A layout for all companies and a second company
+        CreateNewLayoutForTestReport(ReportLayoutList);
+        OtherCompanyName := GetOrCreateOtherCompany();
+
+        // [WHEN] The layout is set as default in the other company through the facade
+        ReportLayouts.SetDefaultReportLayoutSelection(ReportLayoutList, OtherCompanyName);
+
+        // [THEN] Tenant Report Layout Selection and Report Layout Selection of the other company point to the layout
+        Assert.IsTrue(TenantReportLayoutSelection.Get(Report::TestReportLayoutsReport, OtherCompanyName, EmptyGuid), 'A Tenant Report Layout Selection should exist for the other company.');
+        Assert.AreEqual(NewLayoutNameTxt, TenantReportLayoutSelection."Layout Name", 'The Tenant Report Layout Selection should point to the layout.');
+        Assert.IsTrue(ReportLayoutSelection.Get(Report::TestReportLayoutsReport, OtherCompanyName), 'A Report Layout Selection should exist for the other company.');
+
+        // The selections would point the other company to a deleted layout once the layouts are cleaned.
+        TenantReportLayoutSelection.Delete();
+        ReportLayoutSelection.Delete();
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler')]
+    procedure TestReportLayoutsFacadeAddLayoutSelectionForUserInOtherCompany()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        ReportLayouts: Codeunit "Report Layouts";
+        OtherCompanyName: Text[30];
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] AddLayoutSelection with a company name and a user selects the layout for that user in that company
+        // [GIVEN] A layout for all companies and a second company
+        CreateNewLayoutForTestReport(ReportLayoutList);
+        OtherCompanyName := GetOrCreateOtherCompany();
+
+        // [WHEN] The layout is selected for the current user in the other company through the facade
+        ReportLayouts.AddLayoutSelection(ReportLayoutList, OtherCompanyName, UserSecurityId());
+
+        // [THEN] A user specific Tenant Report Layout Selection of the other company points to the layout
+        Assert.IsTrue(TenantReportLayoutSelection.Get(Report::TestReportLayoutsReport, OtherCompanyName, UserSecurityId()), 'A Tenant Report Layout Selection should exist for the user in the other company.');
+        Assert.AreEqual(NewLayoutNameTxt, TenantReportLayoutSelection."Layout Name", 'The Tenant Report Layout Selection should point to the layout.');
+
+        TenantReportLayoutSelection.Delete();
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler')]
+    procedure TestReportLayoutsFacadeRejectsUnknownCompany()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayouts: Codeunit "Report Layouts";
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] A layout cannot be selected in a company that does not exist
+        // [GIVEN] A layout for all companies
+        CreateNewLayoutForTestReport(ReportLayoutList);
+
+        // [WHEN] The layout is set as default and selected in a company that does not exist
+        // [THEN] An error states that the company does not exist
+        asserterror ReportLayouts.SetDefaultReportLayoutSelection(ReportLayoutList, UnknownCompanyNameTxt);
+        Assert.ExpectedError(CompanyDoesNotExistTxt);
+
+        asserterror ReportLayouts.AddLayoutSelection(ReportLayoutList, UnknownCompanyNameTxt);
+        Assert.ExpectedError(CompanyDoesNotExistTxt);
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandlerCurrentCompany')]
+    procedure TestReportLayoutsFacadeRejectsCompanySpecificLayoutInOtherCompany()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        ReportLayouts: Codeunit "Report Layouts";
+        OtherCompanyName: Text[30];
+        EmptyGuid: Guid;
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] A layout that is only available in the current company cannot be selected in another company
+        // [GIVEN] A layout for the current company only and a second company
+        CreateNewLayoutForTestReport(ReportLayoutList);
+        OtherCompanyName := GetOrCreateOtherCompany();
+
+        // [WHEN] The layout is set as default and selected in the other company
+        // [THEN] An error states that the layout belongs to another company
+        asserterror ReportLayouts.SetDefaultReportLayoutSelection(ReportLayoutList, OtherCompanyName);
+        Assert.ExpectedError(LayoutSpecificToOtherCompanyTxt);
+
+        asserterror ReportLayouts.AddLayoutSelection(ReportLayoutList, OtherCompanyName, UserSecurityId());
+        Assert.ExpectedError(LayoutSpecificToOtherCompanyTxt);
+
+        // [THEN] The layout can still be selected in its own company
+        ReportLayouts.AddLayoutSelection(ReportLayoutList, CopyStr(CompanyName(), 1, 30));
+        Assert.IsTrue(TenantReportLayoutSelection.Get(Report::TestReportLayoutsReport, CompanyName(), EmptyGuid), 'The layout should be selectable in its own company.');
+        Assert.AreEqual(NewLayoutNameTxt, TenantReportLayoutSelection."Layout Name", 'The Tenant Report Layout Selection should point to the layout.');
+
+        TenantReportLayoutSelection.Delete();
+    end;
+
+    [Test]
     procedure TestReportLayoutsFacadeSetDefaultRejectsHeaderFooterPart()
     var
         ReportLayoutList: Record "Report Layout List";
@@ -2488,6 +2596,19 @@ codeunit 139595 "Report Layouts Test"
         ReportLayoutList.Get(Report::TestReportLayoutsReport, NewLayoutNameTxt, EmptyGuid);
     end;
 
+    local procedure GetOrCreateOtherCompany(): Text[30]
+    var
+        Company: Record Company;
+    begin
+        // The layout selection tables are shared by all companies, so the company only has to exist.
+        if not Company.Get(OtherCompanyNameTxt) then begin
+            Company.Init();
+            Company.Name := OtherCompanyNameTxt;
+            Company.Insert();
+        end;
+        exit(Company.Name);
+    end;
+
     local procedure CreateHeaderFooterPart(): Text
     var
         ReportLayoutList: Record "Report Layout List";
@@ -2585,6 +2706,10 @@ codeunit 139595 "Report Layouts Test"
         HeaderFooterPartNameTxt: Label 'ReportLayoutsTestHeaderFooter', Locked = true;
         CustomLayoutInvalidTxt: Label 'The custom layout is not valid.', Locked = true;
         CompositePartCannotBeSelectedTxt: Label 'cannot be selected as a report layout', Locked = true;
+        OtherCompanyNameTxt: Label 'Report Layouts Test Co', Locked = true;
+        UnknownCompanyNameTxt: Label 'Report Layouts Missing Co', Locked = true;
+        CompanyDoesNotExistTxt: Label 'does not exist', Locked = true;
+        LayoutSpecificToOtherCompanyTxt: Label 'cannot be selected in another company', Locked = true;
         InsertedLayoutContextTxt: Text;
         UploadedLayoutFileName: Text;
         ExportedLayoutFileName: Text;
