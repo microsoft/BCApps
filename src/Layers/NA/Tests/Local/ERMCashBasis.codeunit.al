@@ -1198,6 +1198,107 @@
     end;
 
     [Test]
+    procedure RepeatedJournalInvoiceApplicationsClearRoundingRemainder()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoCustLedgerEntry: Record "Cust. Ledger Entry";
+        InvoiceVATEntry: Record "VAT Entry";
+        RealizedVATEntry: Record "VAT Entry";
+        CustomerNo: Code[20];
+        InvoiceNo: Code[20];
+        CreditMemoNo: Code[20];
+        ApplicationAmounts: array[3] of Decimal;
+        LineIndex: Integer;
+        ApplicationIndex: Integer;
+    begin
+        // [SCENARIO 648925] Final settlement clears rounding remainders after repeated partial applications to one VAT group.
+        Initialize();
+
+        // [GIVEN] A journal invoice for 232 with two original VAT entries, each with base 100 and 16 Cash Basis VAT.
+        CreateCashBasisVATPostingSetup(VATPostingSetup, 16);
+        CustomerNo := CreateCustomer('', VATPostingSetup."VAT Bus. Posting Group");
+        CreateGenJournalBatch(GenJournalBatch, GenJournalBatch."Template Type"::General);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+          GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Customer, CustomerNo, 232);
+        InvoiceNo := GenJournalLine."Document No.";
+        for LineIndex := 1 to 2 do begin
+            LibraryERM.CreateGeneralJnlLine(
+              GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+              GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::"G/L Account",
+              LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GenJournalLine."Gen. Posting Type"::Sale), -116);
+            GenJournalLine.Validate("Document No.", InvoiceNo);
+            GenJournalLine.Modify(true);
+        end;
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        LibraryERM.FindCustomerLedgerEntry(InvoiceCustLedgerEntry, InvoiceCustLedgerEntry."Document Type"::Invoice, InvoiceNo);
+        InvoiceVATEntry.SetRange("Transaction No.", InvoiceCustLedgerEntry."Transaction No.");
+        InvoiceVATEntry.SetRange("Document No.", InvoiceNo);
+        InvoiceVATEntry.SetRange("Document Type", InvoiceVATEntry."Document Type"::Invoice);
+        InvoiceVATEntry.SetRange("Unrealized VAT Entry No.", 0);
+        Assert.RecordCount(InvoiceVATEntry, 2);
+        InvoiceVATEntry.FindSet();
+        repeat
+            InvoiceVATEntry.TestField("Remaining Unrealized Amount", -16);
+            InvoiceVATEntry.TestField("Remaining Unrealized Base", -100);
+        until InvoiceVATEntry.Next() = 0;
+
+        // [GIVEN] Credit memos for 77.33, 77.33 and 77.34; the first two are applied and the last is ready to apply.
+        ApplicationAmounts[1] := 77.33;
+        ApplicationAmounts[2] := 77.33;
+        ApplicationAmounts[3] := 77.34;
+        for ApplicationIndex := 1 to ArrayLen(ApplicationAmounts) do begin
+            CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", CustomerNo);
+            SalesHeader.Validate("Prices Including VAT", true);
+            SalesHeader.Modify(true);
+            LibrarySales.CreateSalesLine(
+              SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(VATPostingSetup."VAT Prod. Posting Group"), 1);
+            SalesLine.Validate("Unit Price", ApplicationAmounts[ApplicationIndex]);
+            SalesLine.Modify(true);
+            CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+            LibraryERM.FindCustomerLedgerEntry(
+              CreditMemoCustLedgerEntry, CreditMemoCustLedgerEntry."Document Type"::"Credit Memo", CreditMemoNo);
+            CreditMemoCustLedgerEntry.CalcFields("Remaining Amount");
+            Assert.AreEqual(
+              -ApplicationAmounts[ApplicationIndex], CreditMemoCustLedgerEntry."Remaining Amount",
+              'Each credit memo must have the exact gross application amount');
+            LibraryERM.SetApplyCustomerEntry(CreditMemoCustLedgerEntry, CreditMemoCustLedgerEntry."Remaining Amount");
+            InvoiceCustLedgerEntry.Get(InvoiceCustLedgerEntry."Entry No.");
+            LibraryERM.SetAppliestoIdCustomer(InvoiceCustLedgerEntry);
+            if ApplicationIndex < ArrayLen(ApplicationAmounts) then
+                LibraryERM.PostCustLedgerApplication(CreditMemoCustLedgerEntry);
+        end;
+        InvoiceVATEntry.CalcSums("Remaining Unrealized Amount", "Remaining Unrealized Base");
+        Assert.AreEqual(-10.68, InvoiceVATEntry."Remaining Unrealized Amount", 'Partial applications must leave the rounded remaining VAT');
+        Assert.AreEqual(-66.68, InvoiceVATEntry."Remaining Unrealized Base", 'Partial applications must leave the rounded remaining base');
+        InvoiceCustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(77.34, InvoiceCustLedgerEntry."Remaining Amount", 'Only the last application must fully settle the invoice');
+
+        // [WHEN] The final credit memo for 77.34 fully settles the invoice.
+        LibraryERM.PostCustLedgerApplication(CreditMemoCustLedgerEntry);
+
+        // [THEN] Every original invoice VAT entry is fully realized, including its rounding remainder.
+        InvoiceCustLedgerEntry.Get(InvoiceCustLedgerEntry."Entry No.");
+        InvoiceCustLedgerEntry.CalcFields("Remaining Amount");
+        InvoiceCustLedgerEntry.TestField("Remaining Amount", 0);
+        InvoiceCustLedgerEntry.TestField(Open, false);
+        InvoiceVATEntry.FindSet();
+        repeat
+            InvoiceVATEntry.TestField("Remaining Unrealized Amount", 0);
+            InvoiceVATEntry.TestField("Remaining Unrealized Base", 0);
+            RealizedVATEntry.SetRange("Unrealized VAT Entry No.", InvoiceVATEntry."Entry No.");
+            RealizedVATEntry.CalcSums(Amount, Base);
+            Assert.AreEqual(-16, RealizedVATEntry.Amount, 'All original invoice VAT must be realized');
+            Assert.AreEqual(-100, RealizedVATEntry.Base, 'All original invoice base must be realized');
+        until InvoiceVATEntry.Next() = 0;
+    end;
+
+    [Test]
     procedure ApplyingInvoiceToHalfJournalCrMemoRealizesProportionalVAT()
     begin
         // [SCENARIO 648925] An applying LCY invoice realizes half of each VAT group against a journal credit memo.

@@ -4661,10 +4661,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         CreditMemoVATGroupAmounts, CreditMemoTotalAmount, CreditMemoAmountsLoaded);
                 if (CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::Invoice) and
                    (VATPostingSetup."Unrealized VAT Type" = VATPostingSetup."Unrealized VAT Type"::"Cash Basis")
-                then
-                    // Combine prior group realizations with this group's current settlement, not whole-invoice payments.
-                    PaidAmountByVAT -= Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor())
-                else
+                then begin
+                    // Rounded VAT/base realizations can differ from actual payments at final settlement.
+                    if Abs(PaidAmount) = Abs(CustLedgEntry2."Amount (LCY)") then
+                        PaidAmountByVAT := InvoicePartAmountByVAT
+                    else
+                        PaidAmountByVAT -= Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor());
+                end else
                     PaidAmountByVAT := PaidAmount;
             end;
             LastConnectionNo := 0;
@@ -4838,7 +4841,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     end;
 
                     OnCustUnrealizedVATOnBeforePostUnrealVATEntry(GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, GLEntryNo, VATPart);
-                    PostUnrealVATEntry(
+                    PostUnrealVATEntryWithPostingGroups(
                       GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, GLEntryNo,
                        RealizedVATAmount, RealizedVATBase, RealizedVATAmountAddCurr, RealizedVATBaseAddCurr,
                        CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup);
@@ -6358,12 +6361,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// <param name="GLEntryNo">Associated G/L entry number for cross-reference</param>
     procedure PostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; GLEntryNo: BigInteger; RealizedVATAmount: Decimal; RealizedVATBase: Decimal; RealizedVATAmountAddCurr: Decimal; RealizedVATBaseAddCurr: Decimal)
     begin
-        PostUnrealVATEntry(
+        PostUnrealVATEntryWithPostingGroups(
           GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, GLEntryNo,
           RealizedVATAmount, RealizedVATBase, RealizedVATAmountAddCurr, RealizedVATBaseAddCurr, '', '');
     end;
 
-    local procedure PostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; VATGLEntryNo: Integer; RealizedVATAmount: Decimal; RealizedVATBase: Decimal; RealizedVATAmountAddCurr: Decimal; RealizedVATBaseAddCurr: Decimal; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
+    local procedure PostUnrealVATEntryWithPostingGroups(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; VATGLEntryNo: BigInteger; RealizedVATAmount: Decimal; RealizedVATBase: Decimal; RealizedVATAmountAddCurr: Decimal; RealizedVATBaseAddCurr: Decimal; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
     begin
         OnBeforePostUnrealVATEntry(GenJnlLine, VATEntry);
         if not GLSetup.UseConcurrentPosting() then
