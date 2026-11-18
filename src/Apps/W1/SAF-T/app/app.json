@@ -27,13 +27,16 @@
     }
   ],
   "screenshots": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "application": "30.0.0.0",
   "idRanges": [
     {
       "from": 5280,
       "to": 5299
     }
+  ],
+  "features": [
+    "TranslationFile"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,

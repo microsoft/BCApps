@@ -7,9 +7,11 @@ codeunit 139096 "Power BI Mock Service Provider" implements "Power BI Service Pr
 
     end;
 
-    procedure StartImport(BlobInStream: Instream; ReportName: Text; Overwrite: Boolean; var ImportId: Guid; var OperationResult: DotNet OperationResult)
+    procedure StartImport(BlobInStream: Instream; ReportName: Text; Overwrite: Boolean; WorkspaceId: Guid; var ImportId: Guid; var OperationResult: DotNet OperationResult)
     begin
         CheckFailStep();
+
+        LastTargetWorkspaceId := WorkspaceId;
 
         if FailStep = FailStep::StartImport then begin
             OperationFail(OperationResult);
@@ -33,9 +35,11 @@ codeunit 139096 "Power BI Mock Service Provider" implements "Power BI Service Pr
         OperationSuccess(OperationResult);
     end;
 
-    procedure GetImport(ImportID: Guid; var ImportState: Text; var ReturnedReport: DotNet ReturnedReport; var OperationResult: DotNet OperationResult)
+    procedure GetImport(ImportID: Guid; WorkspaceId: Guid; var ImportState: Text; var ReturnedReport: DotNet ReturnedReport; var OperationResult: DotNet OperationResult)
     begin
         CheckFailStep();
+
+        LastTargetWorkspaceId := WorkspaceId;
 
         if FailStep = FailStep::GetImport then begin
             OperationFail(OperationResult);
@@ -53,9 +57,11 @@ codeunit 139096 "Power BI Mock Service Provider" implements "Power BI Service Pr
         ReturnedReport := ReturnedReport.ReturnedReport(GeneratedReportId, 'https://powerbi.com/report/foobar', 'Report Name', GeneratedDatasetId);
     end;
 
-    procedure UpdateDatasetParameters(DatasetId: Text; Parameters: Dictionary of [Text, Text]; var OperationResult: DotNet OperationResult)
+    procedure UpdateDatasetParameters(DatasetId: Text; Parameters: Dictionary of [Text, Text]; WorkspaceId: Guid; var OperationResult: DotNet OperationResult)
     begin
         CheckFailStep();
+
+        LastTargetWorkspaceId := WorkspaceId;
 
         if FailStep = FailStep::UpdateParams then begin
             OperationFail(OperationResult);
@@ -68,9 +74,11 @@ codeunit 139096 "Power BI Mock Service Provider" implements "Power BI Service Pr
         OperationSuccess(OperationResult);
     end;
 
-    procedure GetDatasource(DatasetId: Text; var DataSourceId: Guid; var GatewayId: Guid; var OperationResult: DotNet OperationResult)
+    procedure GetDatasource(DatasetId: Text; WorkspaceId: Guid; var DataSourceId: Guid; var GatewayId: Guid; var OperationResult: DotNet OperationResult)
     begin
         CheckFailStep();
+
+        LastTargetWorkspaceId := WorkspaceId;
 
         if FailStep = FailStep::GetDataSource then begin
             OperationFail(OperationResult);
@@ -106,9 +114,11 @@ codeunit 139096 "Power BI Mock Service Provider" implements "Power BI Service Pr
         OperationSuccess(OperationResult);
     end;
 
-    procedure RefreshDataset(DatasetId: Text; var OperationResult: DotNet OperationResult)
+    procedure RefreshDataset(DatasetId: Text; WorkspaceId: Guid; var OperationResult: DotNet OperationResult)
     begin
         CheckFailStep();
+
+        LastTargetWorkspaceId := WorkspaceId;
 
         if FailStep = FailStep::RefreshDataset then begin
             OperationFail(OperationResult);
@@ -132,8 +142,18 @@ codeunit 139096 "Power BI Mock Service Provider" implements "Power BI Service Pr
     end;
 
     procedure GetWorkspaces(var ReturnedWorkspaceList: DotNet ReturnedWorkspaceList; var OperationResult: DotNet OperationResult)
+    var
+        ReturnedWorkspace: DotNet ReturnedWorkspace;
+        Index: Integer;
     begin
-        Error('Not implemented yet');
+        ReturnedWorkspaceList := ReturnedWorkspaceList.ReturnedWorkspaceList();
+
+        for Index := 1 to WorkspaceIds.Count() do begin
+            ReturnedWorkspace := ReturnedWorkspace.ReturnedWorkspace(WorkspaceIds.Get(Index), WorkspaceNames.Get(Index));
+            ReturnedWorkspaceList.Add(ReturnedWorkspace);
+        end;
+
+        OperationSuccess(OperationResult);
     end;
 
     procedure SetFailAtStep(InputStep: Option)
@@ -175,6 +195,23 @@ codeunit 139096 "Power BI Mock Service Provider" implements "Power BI Service Pr
         exit(GeneratedReportId);
     end;
 
+    procedure GetLastTargetWorkspaceId(): Guid
+    begin
+        exit(LastTargetWorkspaceId);
+    end;
+
+    procedure AddWorkspace(WorkspaceId: Guid; WorkspaceName: Text)
+    begin
+        WorkspaceIds.Add(WorkspaceId);
+        WorkspaceNames.Add(WorkspaceName);
+    end;
+
+    procedure ClearWorkspaces()
+    begin
+        Clear(WorkspaceIds);
+        Clear(WorkspaceNames);
+    end;
+
     local procedure CheckFailStep()
     begin
         if FailStep = FailStep::NotSet then
@@ -191,6 +228,9 @@ codeunit 139096 "Power BI Mock Service Provider" implements "Power BI Service Pr
         GeneratedDatasetId: Text;
         GeneratedGatewayId: Guid;
         GeneratedDatasourceId: Guid;
+        LastTargetWorkspaceId: Guid;
+        WorkspaceIds: List of [Guid];
+        WorkspaceNames: List of [Text];
         RetryAfter: DateTime;
 
 }

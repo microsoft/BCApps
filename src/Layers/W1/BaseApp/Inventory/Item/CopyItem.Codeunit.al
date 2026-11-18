@@ -378,7 +378,13 @@ codeunit 730 "Copy Item"
     var
         NewPriceListLine: Record "Price List Line";
         PriceListLine: Record "Price List Line";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCopyItemPriceListLines2(FromItemNo, ToItemNo, PriceType, AmountType, IsHandled);
+        if IsHandled then
+            exit;
+
         PriceListLine.SetRange("Price Type", PriceType);
         PriceListLine.SetRange("Amount Type", AmountType);
         PriceListLine.SetRange("Asset Type", PriceListLine."Asset Type"::Item);
@@ -547,6 +553,11 @@ codeunit 730 "Copy Item"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyItemPriceListLines(FromItemNo: Code[20]; ToItemNo: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCopyItemPriceListLines2(FromItemNo: Code[20]; ToItemNo: Code[20]; PriceType: Enum "Price Type"; AmountType: Enum "Price Amount Type"; var IsHandled: Boolean)
     begin
     end;
 

@@ -161,13 +161,14 @@ codeunit 4591 "SOA Item Search"
 
         Msg := StrSubstNo(NotificationMsg, Item.Description);
 
-        if SOASetup."Incl. Capable to Promise" then begin
-            SOAShipmentDateMgt.SetParamenters(Item."No.", SalesLine."Variant Code", SalesLine."Location Code", SalesLine."Unit of Measure Code", SalesLine."Shipment Date", SalesLine.Quantity);
-            SOAShipmentDateMgt.Run();
-            if SOAShipmentDateMgt.GetEarliestShipmentDate() <= SalesLine."Shipment Date" then
-                exit;
-            Msg += StrSubstNo(NotificationCTPDateMsg, SOAShipmentDateMgt.GetEarliestShipmentDate());
-        end;
+        if SOASetup."Incl. Capable to Promise" then
+            if SOAShipmentDateMgt.OrderPromisingSetupConfigured() then begin
+                SOAShipmentDateMgt.SetParamenters(Item."No.", SalesLine."Variant Code", SalesLine."Location Code", SalesLine."Unit of Measure Code", SalesLine."Shipment Date", SalesLine.Quantity);
+                SOAShipmentDateMgt.Run();
+                if SOAShipmentDateMgt.GetEarliestShipmentDate() <= SalesLine."Shipment Date" then
+                    exit;
+                Msg += StrSubstNo(NotificationCTPDateMsg, SOAShipmentDateMgt.GetEarliestShipmentDate());
+            end;
 
         NotificationLifecycleMgt.RecallNotificationsForRecordWithAdditionalContext(SalesLine.RecordId, GetQuoteItemAvailabilityNotificationId(), true);
         QuoteAvailabilityCheckNotification.Id(CreateGuid());
@@ -226,6 +227,7 @@ codeunit 4591 "SOA Item Search"
             exit;
         CrossColumnSearchFilter := SearchFilter;
         Clear(ResolvedItemVariants);
+        Rec.SetRange(SystemId);
         if SearchFilter = '=''<>*''' then //If the search filter is empty, clear the previous search state without running a new search
             exit;
 

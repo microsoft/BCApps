@@ -4846,8 +4846,7 @@ codeunit 137155 "SCM Warehouse - Shipping II"
     begin
         WarehouseActivityLine.SetRange("Action Type", ActionType);
         FindWarehouseActivityLine(WarehouseActivityLine, SourceDocument, SourceNo, ActivityType);
-        WarehouseActivityLine.ModifyAll("Zone Code", Bin."Zone Code", true);
-        WarehouseActivityLine.ModifyAll("Bin Code", Bin.Code, true);
+        WarehouseActivityLine.ModifyAll("Zone Code", Bin."Zone Code", "Bin Code", Bin.Code, true);
     end;
 
     local procedure UpdateZoneAndBinCodeInWarehouseActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; BinIndex: Integer)

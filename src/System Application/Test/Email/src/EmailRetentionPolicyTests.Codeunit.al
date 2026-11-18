@@ -7,6 +7,8 @@ namespace System.Test.Email;
 
 using System.DataAdministration;
 using System.Email;
+using System.TestLibraries.DataAdministration;
+using System.TestLibraries.Email;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 codeunit 134706 "Email Retention Policy Tests"
@@ -14,7 +16,8 @@ codeunit 134706 "Email Retention Policy Tests"
     Subtype = Test;
     TestPermissions = Restrictive;
     Permissions = tabledata "Sent Email" = rimd,
-                  tabledata "Email Outbox" = rimd;
+                  tabledata "Email Outbox" = rimd,
+                  tabledata "Email Inbox" = rimd;
 
     var
         LibraryAssert: Codeunit "Library Assert";
@@ -70,6 +73,82 @@ codeunit 134706 "Email Retention Policy Tests"
 
         // Verify
         LibraryAssert.TableIsEmpty(Database::"Sent Email");
+    end;
+
+    [HandlerFunctions('ConfirmApplyRetentionPolicy')]
+    [Test]
+    procedure EmailInboxRetentionPolicyWithoutFiltersTest()
+    var
+        EmailInbox: Record "Email Inbox";
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+        EmailMessage: Codeunit "Email Message";
+        MessageId: Guid;
+    begin
+        // Init
+        Initialize();
+
+        // Setup
+        CreateEmailInboxRecord(CreateDateTime(CalcDate('<-1Y>', Today), Time()), MessageId);
+        CreateRetentionPolicySetup(RetentionPolicySetup, Database::"Email Inbox", EmailInbox.FieldNo("Received DateTime"), CreateOrFindRetentionPeriod(enum::"Retention Period Enum"::"1 Month"));
+        LibraryAssert.IsFalse(EmailInbox.IsEmpty(), 'Email Inbox must contain a record before applying the retention policy.');
+
+        // Exercise
+        PermissionsMock.Set('Email - Edit');
+        ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, true);
+
+        // Verify
+        LibraryAssert.IsTrue(EmailInbox.IsEmpty(), 'Email Inbox must be empty after applying the retention policy.');
+        LibraryAssert.IsFalse(EmailMessage.Get(MessageId), 'The Email Message linked to the expired Email Inbox entry must be deleted.');
+        PermissionsMock.ClearAssignments();
+    end;
+
+    [HandlerFunctions('ConfirmApplyRetentionPolicy')]
+    [Test]
+    procedure EmailInboxRetentionPolicyWithFiltersTest()
+    var
+        EmailInbox: Record "Email Inbox";
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+        EmailMessage: Codeunit "Email Message";
+        MessageId: Guid;
+    begin
+        // Init
+        Initialize();
+
+        // Setup
+        CreateEmailInboxRecord(CreateDateTime(CalcDate('<-1Y>', Today), Time()), MessageId);
+        CreateRetentionPolicySetupWithLine(RetentionPolicySetup, Database::"Email Inbox", EmailInbox.FieldNo("Received DateTime"), CreateOrFindRetentionPeriod(enum::"Retention Period Enum"::"1 Month"));
+        LibraryAssert.IsFalse(EmailInbox.IsEmpty(), 'Email Inbox must contain a record before applying the retention policy.');
+
+        // Exercise
+        PermissionsMock.Set('Email - Edit');
+        ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, true);
+
+        // Verify
+        LibraryAssert.IsTrue(EmailInbox.IsEmpty(), 'Email Inbox must be empty after applying the retention policy.');
+        LibraryAssert.IsFalse(EmailMessage.Get(MessageId), 'The Email Message linked to the expired Email Inbox entry must be deleted.');
+        PermissionsMock.ClearAssignments();
+    end;
+
+    local procedure CreateEmailInboxRecord(ReceivedDateTime: DateTime; var MessageId: Guid)
+    var
+        TempEmailAccount: Record "Email Account";
+        EmailInbox: Record "Email Inbox";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+    begin
+        PermissionsMock.Set('Email Edit');
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(TempEmailAccount);
+        EmailMessage.Create('recipient@contoso.com', 'Expired inbox email', 'Body');
+        MessageId := EmailMessage.GetId();
+        ConnectorMock.CreateEmailInbox(TempEmailAccount."Account Id", TempEmailAccount.Connector, EmailInbox);
+        PermissionsMock.ClearAssignments();
+
+        EmailInbox."Message Id" := MessageId;
+        EmailInbox."Received DateTime" := ReceivedDateTime;
+        EmailInbox.Modify();
     end;
 
     local procedure CreateSentEmailRecord(DatetimeSent: DateTime)
@@ -137,8 +216,12 @@ codeunit 134706 "Email Retention Policy Tests"
     local procedure Initialize()
     var
         SentEmail: Record "Sent Email";
+        EmailInbox: Record "Email Inbox";
+        RetentionPolicyTestLibrary: Codeunit "Retention Policy Test Library";
     begin
         SentEmail.DeleteAll();
+        EmailInbox.DeleteAll();
+        RetentionPolicyTestLibrary.RaiseOnRefreshAllowedTables();
 
         if IsInitialized then
             exit;

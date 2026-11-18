@@ -19,7 +19,7 @@ using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Setup;
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Manufacturing.Document;
 #endif
 using Microsoft.Purchases.Vendor;
@@ -67,9 +67,6 @@ permissionset 1001 "LOCAL"
                   tabledata "Lifo Band" = RIMD,
                   tabledata "Lifo Category" = RIMD,
                   tabledata "Payment Lines" = RIMD,
-#if not CLEAN27
-                  tabledata "Periodic Settlement VAT Entry" = RIMD,
-#endif
                   tabledata "Periodic VAT Settlement Entry" = RIMD,
                   tabledata "Posted Payment Lines" = RIMD,
                   tabledata "Posted Vendor Bill Header" = RIMD,
@@ -77,7 +74,7 @@ permissionset 1001 "LOCAL"
                   tabledata "Reprint Info Fiscal Reports" = RIMD,
                   tabledata "Service Tariff Number" = RIMD,
                   tabledata "Spesometro Appointment" = RIMD,
-#if not CLEAN27
+#if not CLEAN28
                   tabledata "Subcontractor Prices" = RIMD,
 #endif
                   tabledata "Transport Reason Code" = RIMD,

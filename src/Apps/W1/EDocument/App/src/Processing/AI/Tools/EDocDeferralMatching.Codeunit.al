@@ -154,7 +154,7 @@ codeunit 6129 "E-Doc. Deferral Matching" implements "AOAI Function", IEDocAISyst
         exit(ToolDefinition);
     end;
 
-    internal procedure Execute(Arguments: JsonObject): Variant
+    procedure Execute(Arguments: JsonObject): Variant
     var
         TempEDocLineMatchBufferLocal: Record "EDoc Line Match Buffer" temporary;
     begin

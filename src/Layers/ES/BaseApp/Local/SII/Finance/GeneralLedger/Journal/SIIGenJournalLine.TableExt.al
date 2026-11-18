@@ -8,7 +8,8 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.History;
 
-tableextension 7000128 "SII Gen. Journal Line" extends "Gen. Journal Line"
+#pragma warning disable AS0088
+tableextension 7000028 "SII Gen. Journal Line" extends "Gen. Journal Line"
 {
     fields
     {

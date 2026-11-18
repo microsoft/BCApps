@@ -34,10 +34,16 @@
       "name": "Edit in Excel Test Library",
       "publisher": "Microsoft",
       "version": "30.0.0.0"
+    },
+    {
+      "id": "7f850a76-a58c-4ade-a14f-7d7acff97115",
+      "name": "User Selection",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
     }
   ],
   "screenshots": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "idRanges": [
     {
       "from": 132525,

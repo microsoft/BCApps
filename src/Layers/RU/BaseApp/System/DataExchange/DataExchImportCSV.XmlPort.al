@@ -100,7 +100,7 @@ xmlport 1220 "Data Exch. Import - CSV"
 
     var
         DataExchField: Record "Data Exch. Field";
-        DataExchEntryNo: Integer;
+        DataExchEntryNo: BigInteger;
         ImportedLineNo: Integer;
         FileLineNo: Integer;
         HeaderLines: Integer;

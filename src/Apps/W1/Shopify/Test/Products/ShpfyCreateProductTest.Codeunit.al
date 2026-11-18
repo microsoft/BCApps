@@ -23,10 +23,38 @@ codeunit 139601 "Shpfy Create Product Test"
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
         OutboundHttpRequests: Codeunit "Library - Variable Storage";
+        DialogValues: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
         ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
         ExportIsInitialized: Boolean;
         PriceUpdateHttpCallCount: Integer;
+        AddToStoreActiveConfirmLbl: Label 'The item %1 will be added to the %2 store as a new product, and it will be immediately active.', Comment = '%1 - Item description, %2 - Shopify store name';
+        AddToStoreDraftConfirmLbl: Label 'The item %1 will be added to the %2 store as a new product, and it will remain in draft until you activate it.', Comment = '%1 - Item description, %2 - Shopify store name';
+        AddToStoreUnlistedConfirmLbl: Label 'The item %1 will be added to the %2 store as a new product, and it will be unlisted.', Comment = '%1 - Item description, %2 - Shopify store name';
+
+    [Test]
+    [HandlerFunctions('AddItemConfirmHandler')]
+    procedure UnitTestAddItemConfirmationShowsActiveStatus()
+    begin
+        // [SCENARIO] The confirmation reflects the Active product status configured on the shop.
+        VerifyAddItemConfirmation("Shpfy Cr. Prod. Status Value"::Active, AddToStoreActiveConfirmLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('AddItemConfirmHandler')]
+    procedure UnitTestAddItemConfirmationShowsDraftStatus()
+    begin
+        // [SCENARIO] The confirmation reflects the Draft product status configured on the shop.
+        VerifyAddItemConfirmation("Shpfy Cr. Prod. Status Value"::Draft, AddToStoreDraftConfirmLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('AddItemConfirmHandler')]
+    procedure UnitTestAddItemConfirmationShowsUnlistedStatus()
+    begin
+        // [SCENARIO] The confirmation reflects the Unlisted product status configured on the shop.
+        VerifyAddItemConfirmation("Shpfy Cr. Prod. Status Value"::Unlisted, AddToStoreUnlistedConfirmLbl);
+    end;
 
     [Test]
     procedure UnitTestCreateTempProductFromItem()
@@ -3208,6 +3236,45 @@ codeunit 139601 "Shpfy Create Product Test"
         PriceUpdateHttpCallCount += 1;
         Response.Content.WriteFrom(NavApp.GetResourceAsText(ProductVariantsBulkUpdateResponseTok, TextEncoding::UTF8));
         exit(false);
+    end;
+
+    [ModalPageHandler]
+    procedure AddItemConfirmHandler(var AddItemConfirm: TestPage "Shpfy Add Item Confirm")
+    var
+        ActualConfirmation: Text;
+        VisibleConfirmationCount: Integer;
+    begin
+        if AddItemConfirm.ActiveConfirm.Visible() then begin
+            ActualConfirmation := AddItemConfirm.ActiveConfirm.Caption();
+            VisibleConfirmationCount += 1;
+        end;
+        if AddItemConfirm.DraftConfirm.Visible() then begin
+            ActualConfirmation := AddItemConfirm.DraftConfirm.Caption();
+            VisibleConfirmationCount += 1;
+        end;
+
+        LibraryAssert.AreEqual(1, VisibleConfirmationCount, 'Only one product status confirmation should be visible.');
+        LibraryAssert.AreEqual(DialogValues.DequeueText(), ActualConfirmation, 'The product status confirmation is incorrect.');
+        AddItemConfirm.OK().Invoke();
+    end;
+
+    local procedure VerifyAddItemConfirmation(ProductStatus: Enum "Shpfy Cr. Prod. Status Value"; ExpectedConfirmation: Text)
+    var
+        Item: Record Item;
+        Shop: Record "Shpfy Shop";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        SyncProducts: Codeunit "Shpfy Sync Products";
+    begin
+        DialogValues.Clear();
+        Shop := ShpfyInitializeTest.CreateShop();
+        Shop."Status for Created Products" := ProductStatus;
+        Shop.Modify();
+        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        DialogValues.Enqueue(StrSubstNo(ExpectedConfirmation, Item.Description, Shop.Code));
+        Shop.SetRecFilter();
+
+        LibraryAssert.IsTrue(SyncProducts.ConfirmAddItemToShopify(Item, Shop), 'Adding the item to Shopify should be confirmed.');
+        DialogValues.AssertEmpty();
     end;
 
     local procedure InitializeProductExport()

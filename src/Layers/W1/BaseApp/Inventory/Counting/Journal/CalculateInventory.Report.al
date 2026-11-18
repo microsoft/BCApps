@@ -836,7 +836,7 @@ report 790 "Calculate Inventory"
 
     local procedure UpdateBuffer(BinCode: Code[20]; NewQuantity: Decimal; CalledFromItemLedgerEntry: Boolean)
     var
-        DimEntryNo: Integer;
+        DimEntryNo: BigInteger;
     begin
         if not HasNewQuantity(NewQuantity) then
             exit;
@@ -858,7 +858,7 @@ report 790 "Calculate Inventory"
         end;
     end;
 
-    local procedure RetrieveBuffer(BinCode: Code[20]; DimEntryNo: Integer) Result: Boolean
+    local procedure RetrieveBuffer(BinCode: Code[20]; DimEntryNo: BigInteger) Result: Boolean
     var
         IsHandled: Boolean;
     begin
@@ -1026,17 +1026,10 @@ report 790 "Calculate Inventory"
         end;
     end;
 
-    local procedure CreateDimFromDefault() DimEntryNo: Integer
-    var
-        DefaultDimension: Record "Default Dimension";
+    local procedure CreateDimFromDefault() DimEntryNo: BigInteger
     begin
-        DefaultDimension.SetFilter("No.", '%1|%2', TempQuantityOnHandBuffer."Item No.", TempQuantityOnHandBuffer."Location Code");
-        DefaultDimension.SetFilter("Table ID", '%1|%2', DATABASE::Item, DATABASE::Location);
-        DefaultDimension.SetFilter("Dimension Value Code", '<>%1', '');
-        if DefaultDimension.FindSet() then
-            repeat
-                InsertDim(DefaultDimension."Table ID", 0, DefaultDimension."Dimension Code", DefaultDimension."Dimension Value Code");
-            until DefaultDimension.Next() = 0;
+        InsertDefaultDimensions(DATABASE::Item, TempQuantityOnHandBuffer."Item No.");
+        InsertDefaultDimensions(DATABASE::Location, TempQuantityOnHandBuffer."Location Code");
 
         DimEntryNo := DimBufMgt.InsertDimensions(TempDimBufIn);
 
@@ -1044,7 +1037,20 @@ report 790 "Calculate Inventory"
         TempDimBufIn.DeleteAll();
     end;
 
-    local procedure InsertDim(TableID: Integer; EntryNo: Integer; DimCode: Code[20]; DimValueCode: Code[20])
+    local procedure InsertDefaultDimensions(TableID: Integer; No: Code[20])
+    var
+        DefaultDimension: Record "Default Dimension";
+    begin
+        DefaultDimension.SetRange("Table ID", TableID);
+        DefaultDimension.SetRange("No.", No);
+        DefaultDimension.SetFilter("Dimension Value Code", '<>%1', '');
+        if DefaultDimension.FindSet() then
+            repeat
+                InsertDim(DefaultDimension."Table ID", 0, DefaultDimension."Dimension Code", DefaultDimension."Dimension Value Code");
+            until DefaultDimension.Next() = 0;
+    end;
+
+    local procedure InsertDim(TableID: Integer; EntryNo: BigInteger; DimCode: Code[20]; DimValueCode: Code[20])
     begin
         TempDimBufIn.Init();
         TempDimBufIn."Table ID" := TableID;
@@ -1125,7 +1131,7 @@ report 790 "Calculate Inventory"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeRetrieveBuffer(var TempInventoryBuffer: Record "Inventory Buffer" temporary; ItemLedgerEntry: Record "Item Ledger Entry"; BinCode: Code[20]; DimEntryNo: Integer; var Result: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeRetrieveBuffer(var TempInventoryBuffer: Record "Inventory Buffer" temporary; ItemLedgerEntry: Record "Item Ledger Entry"; BinCode: Code[20]; DimEntryNo: BigInteger; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 

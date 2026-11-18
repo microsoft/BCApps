@@ -472,7 +472,7 @@ codeunit 139942 "Qlty. Prod. Order Generator"
         CapacityNo: Code[20];
     begin
         CreateRandomCapacity(CapacityType, CapacityNo);
-        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, RoutingHeader."Version Nos.", CopyStr(LibraryRandom.RandText(MaxStrLen(RoutingLine."Operation No.")), 1, 10), CapacityType, CapacityNo);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', CopyStr(LibraryRandom.RandText(MaxStrLen(RoutingLine."Operation No.")), 1, 10), CapacityType, CapacityNo);
         RoutingLine."Setup Time" := LibraryRandom.RandDecInDecimalRange(SetupTimeMin, SetupTimeMax, DecimalPrecision);
         RoutingLine."Run Time" := LibraryRandom.RandDecInDecimalRange(RunTimeMin, RunTimeMax, DecimalPrecision);
         RoutingLine."Send-Ahead Quantity" := SendAheadQty;

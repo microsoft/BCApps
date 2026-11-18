@@ -144,5 +144,192 @@ codeunit 138041 "O365 Company Information"
         CompanyInformation.Get();
         CompanyInformation.TestField("Registration No.", RegistrationNo);
     end;
-}
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure DescriptionsSupportMultilineText()
+    var
+        CompanyInformation: Record "Company Information";
+        EnvironmentInformation: Codeunit "Environment Information";
+        CompanyDescription: Text;
+        EnvironmentDescription: Text;
+    begin
+        // [SCENARIO] Company and environment descriptions support multiline Unicode text.
+        CompanyDescription := CreateMultilineDescription('Company');
+        EnvironmentDescription := CreateMultilineDescription('Environment');
+
+        // [GIVEN] Multiline descriptions are saved.
+        CompanyInformation.Get();
+        CompanyInformation.SetCompanyDescription(CompanyDescription);
+        EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
+
+        // [THEN] The complete descriptions can be read.
+        CompanyInformation.Get();
+        Assert.AreEqual(CompanyDescription, CompanyInformation.GetCompanyDescription(), 'The company description is incorrect.');
+        Assert.AreEqual(EnvironmentDescription, EnvironmentInformation.GetEnvironmentDescription(), 'The environment description is incorrect.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DescriptionsAreEditableOnCompanyInformationPage()
+    var
+        CompanyInformation: Record "Company Information";
+        EnvironmentInformation: Codeunit "Environment Information";
+        CompanyInformationPage: TestPage "Company Information";
+        CompanyDescription: Text;
+        EnvironmentDescription: Text;
+    begin
+        // [SCENARIO] Company and environment descriptions can be edited on the Company Information page.
+        CompanyDescription := CreateMultilineDescription('Company page');
+        EnvironmentDescription := CreateMultilineDescription('Environment page');
+
+        // [WHEN] The descriptions are entered on the Company Information page.
+        CompanyInformationPage.OpenEdit();
+        CompanyInformationPage.CompanyDescription.SetValue(CompanyDescription);
+        CompanyInformationPage.EnvironmentDescription.SetValue(EnvironmentDescription);
+        CompanyInformationPage.Close();
+
+        // [THEN] Both descriptions are saved to their respective scopes.
+        CompanyInformation.Get();
+        Assert.AreEqual(CompanyDescription, CompanyInformation.GetCompanyDescription(), 'The company description was not saved.');
+        Assert.AreEqual(EnvironmentDescription, EnvironmentInformation.GetEnvironmentDescription(), 'The environment description was not saved.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ClosingCompanyInformationPageDoesNotOverwriteDescriptions()
+    var
+        CompanyInformation: Record "Company Information";
+        EnvironmentInformation: Codeunit "Environment Information";
+        CompanyInformationPage: TestPage "Company Information";
+        CompanyDescription: Text;
+        EnvironmentDescription: Text;
+    begin
+        // [SCENARIO] Closing the Company Information page does not overwrite descriptions changed after the page was opened.
+        CompanyDescription := CreateMultilineDescription('Updated company');
+        EnvironmentDescription := CreateMultilineDescription('Updated environment');
+
+        // [GIVEN] The Company Information page is open with the current descriptions.
+        CompanyInformationPage.OpenEdit();
+
+        // [WHEN] The descriptions are changed without editing their fields on the open page.
+        CompanyInformation.Get();
+        CompanyInformation.SetCompanyDescription(CompanyDescription);
+        EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
+        CompanyInformationPage.Close();
+
+        // [THEN] Closing the page preserves the updated descriptions.
+        CompanyInformation.Get();
+        Assert.AreEqual(CompanyDescription, CompanyInformation.GetCompanyDescription(), 'The company description was overwritten.');
+        Assert.AreEqual(EnvironmentDescription, EnvironmentInformation.GetEnvironmentDescription(), 'The environment description was overwritten.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PlatformReceivesRequestedCompanyDescription()
+    var
+        Company: Record Company;
+        CompanyInformation: Record "Company Information";
+        OtherCompanyInformation: Record "Company Information";
+        SystemActionTriggers: Codeunit "System Action Triggers";
+        CurrentCompanyName: Text;
+        CurrentCompanyDescription: Text;
+        ExpectedDescription: Text;
+        Description: Text;
+    begin
+        // [SCENARIO] The platform receives the requested company's description without changing the session's company.
+        CurrentCompanyName := CompanyName();
+        CurrentCompanyDescription := CreateMultilineDescription('Current company');
+        ExpectedDescription := CreateMultilineDescription('Other company');
+
+        // [GIVEN] The current company and another company have different descriptions.
+        CompanyInformation.Get();
+        CompanyInformation.SetCompanyDescription(CurrentCompanyDescription);
+        Company.Name := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(Company.Name));
+        Company.Insert();
+        OtherCompanyInformation.ChangeCompany(Company.Name);
+        OtherCompanyInformation.Insert();
+        OtherCompanyInformation.SetCompanyDescription(ExpectedDescription);
+
+        // [WHEN] The platform requests the other company's description.
+        SystemActionTriggers.GetCompanyDescription(Company.Name, Description);
+
+        // [THEN] The requested description is returned and the current company is unchanged.
+        Assert.AreEqual(ExpectedDescription, Description, 'The platform should receive the requested company description.');
+        Assert.AreEqual(CurrentCompanyName, CompanyName(), 'Requesting a description should not change the session company.');
+        CompanyInformation.Get();
+        Assert.AreEqual(CurrentCompanyDescription, CompanyInformation.GetCompanyDescription(), 'The current company description should not change.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PlatformReceivesEmptyDescriptionWithoutCompanyInformation()
+    var
+        Company: Record Company;
+        CompanyInformation: Record "Company Information";
+        SystemActionTriggers: Codeunit "System Action Triggers";
+        Description: Text;
+    begin
+        // [SCENARIO] A company without company information does not inherit another company's description.
+        CompanyInformation.Get();
+        CompanyInformation.SetCompanyDescription(CreateMultilineDescription('Current company'));
+        Company.Name := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(Company.Name));
+        Company.Insert();
+        Description := 'Previous description';
+
+        // [WHEN] The platform requests the new company's description.
+        SystemActionTriggers.GetCompanyDescription(Company.Name, Description);
+
+        // [THEN] No stale or current-company description is returned.
+        Assert.AreEqual('', Description, 'The platform should receive an empty description when company information is missing.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PlatformReceivesEmptyDescriptionForUnknownCompany()
+    var
+        CompanyInformation: Record "Company Information";
+        SystemActionTriggers: Codeunit "System Action Triggers";
+        Description: Text;
+    begin
+        // [SCENARIO] A company that does not exist gets an empty description instead of an error or the current company's description.
+        CompanyInformation.Get();
+        CompanyInformation.SetCompanyDescription(CreateMultilineDescription('Current company'));
+        Description := 'Previous description';
+
+        // [WHEN] The platform requests the description of a company that does not exist.
+        SystemActionTriggers.GetCompanyDescription(LibraryUtility.GenerateGUID(), Description);
+
+        // [THEN] An empty description is returned.
+        Assert.AreEqual('', Description, 'The platform should receive an empty description for a company that does not exist.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PlatformReceivesEmptyCompanyDescription()
+    var
+        CompanyInformation: Record "Company Information";
+        SystemActionTriggers: Codeunit "System Action Triggers";
+        Description: Text;
+    begin
+        // [SCENARIO] An empty company description clears a previously returned value.
+        CompanyInformation.Get();
+        CompanyInformation.SetCompanyDescription('');
+        Description := 'Previous description';
+
+        // [WHEN] The platform requests the current company's description.
+        SystemActionTriggers.GetCompanyDescription(CompanyName(), Description);
+
+        // [THEN] The configured empty description is returned.
+        Assert.AreEqual('', Description, 'The platform should receive the configured empty company description.');
+    end;
+
+    local procedure CreateMultilineDescription(DescriptionType: Text): Text
+    var
+        DescriptionBuilder: TextBuilder;
+    begin
+        DescriptionBuilder.AppendLine(DescriptionType + ' description first line');
+        DescriptionBuilder.Append(DescriptionType + ' description second line with Unicode: ÆØÅ');
+        exit(DescriptionBuilder.ToText());
+    end;
+}

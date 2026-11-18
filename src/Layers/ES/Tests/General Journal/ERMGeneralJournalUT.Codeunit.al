@@ -1,6 +1,7 @@
 codeunit 134920 "ERM General Journal UT"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestPermissions = Disabled;
     EventSubscriberInstance = Manual;
 
@@ -45,6 +46,8 @@ codeunit 134920 "ERM General Journal UT"
         RecurringFrequencyNotClearedErr: Label 'The recurring frequency should be cleared.';
         YearlyRecurringFrequencyTok: Label '1Y', Locked = true;
         RecurringFrequencyNotLocalizedErr: Label 'The recurring frequency should be displayed using the localized date formula tokens.';
+        WrongBatchTotalErr: Label 'Wrong Batch Total on the Payment Journal page.';
+        BatchTotalNotShownErr: Label 'Batch Total must be shown.';
         IsInitialized: Boolean;
 
     [Test]
@@ -6153,6 +6156,56 @@ codeunit 134920 "ERM General Journal UT"
     end;
 
     [Test]
+    procedure RecurringFrequencyIsBoundForEditInExcel()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        PageControlField: Record "Page Control Field";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653373] Edit in Excel can bind the recurring frequency table field to its original OData property exactly once.
+        Initialize();
+
+        // [GIVEN] The Recurring General Journal page is used by Edit in Excel.
+        PageControlField.SetRange(PageNo, Page::"Recurring General Journal");
+
+        // [WHEN] The table-backed controls for the recurring frequency field are selected.
+        PageControlField.SetRange(TableNo, Database::"Gen. Journal Line");
+        PageControlField.SetRange(FieldNo, GenJournalLine.FieldNo("Recurring Frequency"));
+
+        // [THEN] One control binds the table field using the original external name.
+        VerifyRecurringFrequencyPageBinding(PageControlField);
+    end;
+
+    [Test]
+    procedure BoundRecurringFrequencyRemainsEditable()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        ExpectedRecurringFrequency: DateFormula;
+        RecurringGeneralJournal: TestPage "Recurring General Journal";
+        DisplayedRecurringFrequency: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653373] Editing the hidden table-backed frequency persists the date formula and refreshes its visible localized control.
+        Initialize();
+
+        // [GIVEN] A recurring journal line "L" is open on the page.
+        CreateRecurringGeneralJournalLine(GenJournalLine, GenJournalTemplate, GenJournalBatch);
+        Evaluate(ExpectedRecurringFrequency, '<+1D>');
+        RecurringGeneralJournal.Trap();
+        Page.Run(Page::"Recurring General Journal", GenJournalLine);
+
+        // [WHEN] The original table-backed control is edited and the line is saved.
+        RecurringGeneralJournal."Recurring Frequency".SetValue(Format(ExpectedRecurringFrequency));
+        DisplayedRecurringFrequency := RecurringGeneralJournal.RecurringFrequencyText.Value;
+        RecurringGeneralJournal.Close();
+
+        // [THEN] The stored date formula and the visible text both reflect the edit.
+        VerifyRecurringFrequencyValue(GenJournalLine, ExpectedRecurringFrequency, DisplayedRecurringFrequency, Format(ExpectedRecurringFrequency));
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure RecurringFrequencyDisplaysFormattedText()
     var
@@ -6176,7 +6229,7 @@ codeunit 134920 "ERM General Journal UT"
         Page.Run(Page::"Recurring General Journal", GenJournalLine);
 
         // [THEN] The field displays the formatted date formula
-        Assert.AreEqual(Format(RecurringFrequency), RecurringGeneralJournal."Recurring Frequency".Value, RecurringFrequencyNotDisplayedErr);
+        Assert.AreEqual(Format(RecurringFrequency), RecurringGeneralJournal.RecurringFrequencyText.Value, RecurringFrequencyNotDisplayedErr);
         RecurringGeneralJournal.Close();
     end;
 
@@ -6200,7 +6253,7 @@ codeunit 134920 "ERM General Journal UT"
         Page.Run(Page::"Recurring General Journal", GenJournalLine);
 
         // [WHEN] A valid recurring frequency is entered
-        RecurringGeneralJournal."Recurring Frequency".SetValue(ValidRecurringFrequencyTok);
+        RecurringGeneralJournal.RecurringFrequencyText.SetValue(ValidRecurringFrequencyTok);
         RecurringGeneralJournal.Close();
 
         // [THEN] The date formula is persisted on the line
@@ -6230,7 +6283,7 @@ codeunit 134920 "ERM General Journal UT"
         Page.Run(Page::"Recurring General Journal", GenJournalLine);
 
         // [WHEN] The recurring frequency is cleared
-        RecurringGeneralJournal."Recurring Frequency".SetValue('');
+        RecurringGeneralJournal.RecurringFrequencyText.SetValue('');
         RecurringGeneralJournal.Close();
 
         // [THEN] The recurring frequency on the line is empty
@@ -6256,7 +6309,7 @@ codeunit 134920 "ERM General Journal UT"
         Page.Run(Page::"Recurring General Journal", GenJournalLine);
 
         // [WHEN] An invalid recurring frequency is entered
-        asserterror RecurringGeneralJournal."Recurring Frequency".SetValue(InvalidRecurringFrequencyTok);
+        asserterror RecurringGeneralJournal.RecurringFrequencyText.SetValue(InvalidRecurringFrequencyTok);
 
         // [THEN] A date formula validation error is raised
         Assert.ExpectedError(StrSubstNo(InvalidRecurringFrequencyErr, InvalidRecurringFrequencyTok));
@@ -6302,29 +6355,160 @@ codeunit 134920 "ERM General Journal UT"
         Assert.AreNotEqual(InvariantRecurringFrequency, LocalizedRecurringFrequency, RecurringFrequencyNotLocalizedErr);
     end;
 
-    [TryFunction]
-    local procedure TryReadLocalizedRecurringFrequency(var GenJournalLine: Record "Gen. Journal Line"; var LocalizedRecurringFrequency: Text; var ExpectedLocalizedRecurringFrequency: Text)
+    [Test]
+    [Scope('OnPrem')]
+    procedure PaymentJournalBatchTotalShowsSumOfLineAmounts()
     var
-        RecurringGeneralJournal: TestPage "Recurring General Journal";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GeneralJournalBatches: TestPage "General Journal Batches";
+        PaymentJournal: TestPage "Payment Journal";
+        ExpectedBatchTotal: Decimal;
     begin
-        RecurringGeneralJournal.Trap();
-        Page.Run(Page::"Recurring General Journal", GenJournalLine);
-        LocalizedRecurringFrequency := RecurringGeneralJournal."Recurring Frequency".Value;
-        RecurringGeneralJournal.Close();
-        ExpectedLocalizedRecurringFrequency := Format(GenJournalLine."Recurring Frequency");
+        // [FEATURE] [Payment] [Batch Total]
+        // [SCENARIO 425446] Batch Total on the Payment Journal page shows the total amount that is selected for payment in the batch.
+        Initialize();
+
+        // [GIVEN] Payment journal batch with three payment lines
+        CreateGenJournalTemplateBatchPayment(GenJournalTemplate, GenJournalBatch);
+        ExpectedBatchTotal := CreatePaymentJournalLines(GenJournalTemplate, GenJournalBatch, 3);
+        PrepareGeneralJournalBatchesPage(GeneralJournalBatches, GenJournalBatch);
+
+        // [WHEN] Payment Journal page is opened on the batch
+        RunEditJournalActionOnPaymentJournalPage(PaymentJournal, GeneralJournalBatches);
+
+        // [THEN] Batch Total is the sum of "Amount (LCY)" of the three lines
+        Assert.AreEqual(ExpectedBatchTotal, PaymentJournal.BatchTotal.AsDecimal(), WrongBatchTotalErr);
+
+        PaymentJournal.Close();
+        GeneralJournalBatches.Close();
     end;
 
-    local procedure CreateRecurringGeneralJournalLine(var GenJournalLine: Record "Gen. Journal Line"; var GenJournalTemplate: Record "Gen. Journal Template"; var GenJournalBatch: Record "Gen. Journal Batch")
+    [Test]
+    [Scope('OnPrem')]
+    procedure PaymentJournalBatchTotalIsZeroForEmptyBatch()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GeneralJournalBatches: TestPage "General Journal Batches";
+        PaymentJournal: TestPage "Payment Journal";
     begin
-        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
-        GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::General);
-        GenJournalTemplate.Modify(true);
-        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
-        LibraryERM.CreateGeneralJnlLine(
-          GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
-          GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), 0);
-        GenJournalLine.Validate("Document No.", LibraryUtility.GenerateGUID());
-        GenJournalLine.Modify(true);
+        // [FEATURE] [Payment] [Batch Total]
+        // [SCENARIO 425446] Batch Total on the Payment Journal page is zero when the batch has no lines.
+        Initialize();
+
+        // [GIVEN] Payment journal batch without lines
+        CreateGenJournalTemplateBatchPayment(GenJournalTemplate, GenJournalBatch);
+        PrepareGeneralJournalBatchesPage(GeneralJournalBatches, GenJournalBatch);
+
+        // [WHEN] Payment Journal page is opened on the batch
+        RunEditJournalActionOnPaymentJournalPage(PaymentJournal, GeneralJournalBatches);
+
+        // [THEN] Batch Total is 0
+        Assert.AreEqual(0, PaymentJournal.BatchTotal.AsDecimal(), WrongBatchTotalErr);
+
+        PaymentJournal.Close();
+        GeneralJournalBatches.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PaymentJournalBatchTotalUpdatedWhenLineAmountIsValidated()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GeneralJournalBatches: TestPage "General Journal Batches";
+        PaymentJournal: TestPage "Payment Journal";
+        InitialBatchTotal: Decimal;
+        OldAmount: Decimal;
+        NewAmount: Decimal;
+    begin
+        // [FEATURE] [Payment] [Batch Total]
+        // [SCENARIO 425446] Batch Total on the Payment Journal page is recalculated when the Amount of a line is changed.
+        Initialize();
+
+        // [GIVEN] Payment Journal page opened on a batch with two payment lines
+        CreateGenJournalTemplateBatchPayment(GenJournalTemplate, GenJournalBatch);
+        InitialBatchTotal := CreatePaymentJournalLines(GenJournalTemplate, GenJournalBatch, 2);
+        PrepareGeneralJournalBatchesPage(GeneralJournalBatches, GenJournalBatch);
+        RunEditJournalActionOnPaymentJournalPage(PaymentJournal, GeneralJournalBatches);
+        PaymentJournal.First();
+        OldAmount := PaymentJournal.Amount.AsDecimal();
+        NewAmount := OldAmount - LibraryRandom.RandDecInRange(100, 1000, 2);
+
+        // [WHEN] Amount is changed on the first line
+        PaymentJournal.Amount.SetValue(NewAmount);
+
+        // [THEN] Batch Total is updated without leaving the line
+        Assert.AreEqual(
+          InitialBatchTotal - OldAmount + NewAmount, PaymentJournal.BatchTotal.AsDecimal(), WrongBatchTotalErr);
+
+        PaymentJournal.Close();
+        GeneralJournalBatches.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PaymentJournalBatchTotalUpdatedWhenBatchIsChanged()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalBatch2: Record "Gen. Journal Batch";
+        GeneralJournalBatches: TestPage "General Journal Batches";
+        PaymentJournal: TestPage "Payment Journal";
+        SecondBatchTotal: Decimal;
+    begin
+        // [FEATURE] [Payment] [Batch Total]
+        // [SCENARIO 425446] Batch Total on the Payment Journal page only covers the lines of the selected batch.
+        Initialize();
+
+        // [GIVEN] Two payment journal batches with lines, in the same template
+        CreateGenJournalTemplateBatchPayment(GenJournalTemplate, GenJournalBatch);
+        CreatePaymentJournalLines(GenJournalTemplate, GenJournalBatch, 2);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch2, GenJournalTemplate.Name);
+        SecondBatchTotal := CreatePaymentJournalLines(GenJournalTemplate, GenJournalBatch2, 3);
+
+        // [GIVEN] Payment Journal page opened on the first batch
+        PrepareGeneralJournalBatchesPage(GeneralJournalBatches, GenJournalBatch);
+        RunEditJournalActionOnPaymentJournalPage(PaymentJournal, GeneralJournalBatches);
+
+        // [WHEN] Batch Name is changed to the second batch
+        PaymentJournal.CurrentJnlBatchName.SetValue(GenJournalBatch2.Name);
+
+        // [THEN] Batch Total is the total of the second batch only
+        Assert.AreEqual(SecondBatchTotal, PaymentJournal.BatchTotal.AsDecimal(), WrongBatchTotalErr);
+
+        PaymentJournal.Close();
+        GeneralJournalBatches.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CalcBatchTotalReturnsSumOfAmountLCYOfFilteredLines()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        ExpectedBatchTotal: Decimal;
+        BatchTotal: Decimal;
+        ShowBatchTotal: Boolean;
+    begin
+        // [FEATURE] [Payment] [Batch Total] [UT]
+        // [SCENARIO 425446] CalcBatchTotal returns the sum of "Amount (LCY)" of the lines that the filters apply to.
+        Initialize();
+
+        // [GIVEN] Payment journal batch with three payment lines
+        CreateGenJournalTemplateBatchPayment(GenJournalTemplate, GenJournalBatch);
+        ExpectedBatchTotal := CreatePaymentJournalLines(GenJournalTemplate, GenJournalBatch, 3);
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+
+        // [WHEN] CalcBatchTotal is called for the filtered lines
+        GenJnlManagement.CalcBatchTotal(GenJournalLine, BatchTotal, ShowBatchTotal);
+
+        // [THEN] The total of the batch is returned and can be shown
+        Assert.IsTrue(ShowBatchTotal, BatchTotalNotShownErr);
+        Assert.AreEqual(ExpectedBatchTotal, BatchTotal, WrongBatchTotalErr);
     end;
 
     local procedure Initialize()
@@ -6346,6 +6530,21 @@ codeunit 134920 "ERM General Journal UT"
         IsInitialized := true;
 
         LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
+    end;
+
+    local procedure CreatePaymentJournalLines(GenJournalTemplate: Record "Gen. Journal Template"; GenJournalBatch: Record "Gen. Journal Batch"; NoOfLines: Integer) TotalAmountLCY: Decimal
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorNo: Code[20];
+        i: Integer;
+    begin
+        VendorNo := LibraryPurchase.CreateVendorNo();
+        for i := 1 to NoOfLines do begin
+            LibraryERM.CreateGeneralJnlLine2(
+              GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
+              GenJournalLine."Account Type"::Vendor, VendorNo, -LibraryRandom.RandDecInRange(100, 1000, 2));
+            TotalAmountLCY += GenJournalLine."Amount (LCY)";
+        end;
     end;
 
     local procedure MockGenJournalLineWithKeepDescription(var GenJnlLine: Record "Gen. Journal Line")
@@ -6674,6 +6873,20 @@ codeunit 134920 "ERM General Journal UT"
         exit(BankAccount."No.");
     end;
 
+    local procedure CreateRecurringGeneralJournalLine(var GenJournalLine: Record "Gen. Journal Line"; var GenJournalTemplate: Record "Gen. Journal Template"; var GenJournalBatch: Record "Gen. Journal Batch")
+    begin
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::General);
+        GenJournalTemplate.Validate(Recurring, true);
+        GenJournalTemplate.Modify(true);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+          GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), 0);
+        GenJournalLine.Validate("Document No.", LibraryUtility.GenerateGUID());
+        GenJournalLine.Modify(true);
+    end;
+
     local procedure PrepareGenJournalTemplateWithTwoBatchesAndGenJournalLines(var GenJournalLine: array[2] of Record "Gen. Journal Line")
     var
         GenJournalTemplate: Record "Gen. Journal Template";
@@ -6808,6 +7021,18 @@ codeunit 134920 "ERM General Journal UT"
         GenJournalLineNew."Journal Template Name" := GenJournalLine."Journal Template Name";
         GenJournalLineNew."Journal Batch Name" := GenJournalLine."Journal Batch Name";
         GenJournalLineNew.SetUpNewLine(GenJournalLine, GenJournalLine."Balance (LCY)", true);
+    end;
+
+    [TryFunction]
+    local procedure TryReadLocalizedRecurringFrequency(var GenJournalLine: Record "Gen. Journal Line"; var LocalizedRecurringFrequency: Text; var ExpectedLocalizedRecurringFrequency: Text)
+    var
+        RecurringGeneralJournal: TestPage "Recurring General Journal";
+    begin
+        RecurringGeneralJournal.Trap();
+        Page.Run(Page::"Recurring General Journal", GenJournalLine);
+        LocalizedRecurringFrequency := RecurringGeneralJournal.RecurringFrequencyText.Value;
+        RecurringGeneralJournal.Close();
+        ExpectedLocalizedRecurringFrequency := Format(GenJournalLine."Recurring Frequency");
     end;
 
     local procedure ValidateAmountAndVerifySalesPurchLCYGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; RecurringMethod: Enum "Gen. Journal Recurring Method"; SystemCreatedEntry: Boolean; DocumentType: Enum "Gen. Journal Document Type"; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; BalAccountType: Enum "Gen. Journal Account Type"; BalAccountNo: Code[20]; ValidateAmount: Decimal; ExpectedValue: Decimal)
@@ -7300,6 +7525,28 @@ codeunit 134920 "ERM General Journal UT"
         Assert.AreEqual(true, PaymentJournal.ShortcutDimCode8.Visible(), WrongFieldVisibilityErr);
     end;
 
+    local procedure VerifyRecurringFrequencyPageBinding(var PageControlField: Record "Page Control Field")
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        EditInExcel: Codeunit "Edit in Excel";
+    begin
+        Assert.RecordCount(PageControlField, 1);
+        PageControlField.FindFirst();
+        Assert.AreEqual(
+          GenJournalLine.FieldName("Recurring Frequency"), PageControlField.ControlName,
+          'The table-backed frequency must retain its original page control name.');
+        Assert.AreEqual(
+          'Recurring_Frequency', EditInExcel.ExternalizeODataObjectName(PageControlField.ControlName),
+          'Edit in Excel must bind the original editable recurring frequency OData property.');
+    end;
+
+    local procedure VerifyRecurringFrequencyValue(var GenJournalLine: Record "Gen. Journal Line"; ExpectedRecurringFrequency: DateFormula; DisplayedRecurringFrequency: Text; ExpectedDisplayedRecurringFrequency: Text)
+    begin
+        GenJournalLine.Get(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", GenJournalLine."Line No.");
+        Assert.AreEqual(ExpectedRecurringFrequency, GenJournalLine."Recurring Frequency", RecurringFrequencyNotPersistedErr);
+        Assert.AreEqual(ExpectedDisplayedRecurringFrequency, DisplayedRecurringFrequency, RecurringFrequencyNotDisplayedErr);
+    end;
+
     local procedure SetShowAmounts(ShowAmounts: Option)
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -7434,4 +7681,3 @@ codeunit 134920 "ERM General Journal UT"
         IsHandled := true;
     end;
 }
-

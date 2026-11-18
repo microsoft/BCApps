@@ -4,6 +4,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
@@ -28,6 +29,7 @@ codeunit 139687 "Recurring Billing Docs Test"
     TestType = Uncategorized;
     TestPermissions = Disabled;
     Access = Internal;
+    EventSubscriberInstance = Manual;
 
     var
         BillingLine: Record "Billing Line";
@@ -68,9 +70,17 @@ codeunit 139687 "Recurring Billing Docs Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
+        HandleContractDescriptionPurchaseLines: Boolean;
+        CountContractDescriptionPurchaseLinesInAfterEvent: Boolean;
+        SetYourReferenceOnPurchaseHeaderFromContract: Boolean;
+        SetYourReferenceOnPurchaseHeaderForVendorNo: Boolean;
+        AfterInsertContractDescriptionPurchaseLinesCount: Integer;
+        ContractDescriptionPurchaseLinesInAfterEvent: Integer;
+        HandledSubscriptionLineEntryNo: Integer;
         NextToDateBeforeFromDateErr: Label 'CalculateNextToDate returned %1 which is before FromDate %2. This would cause billing to get stuck.', Locked = true;
         NoContractLinesFoundErr: Label 'No contract lines were found that can be billed with the specified parameters.', Locked = true;
         ItemDeletedErr: Label 'Item created from catalog item should not be deleted when the billing invoice is deleted.', Locked = true;
+        UnitPriceErr: Label 'The unit price on the sales line does not match the expected value.', Locked = true;
         StrMenuHandlerStep: Integer;
 
     #region Tests
@@ -260,6 +270,59 @@ codeunit 139687 "Recurring Billing Docs Test"
 
         Assert.AreEqual(ExpectedDescription, SalesLine.Description,
             'Billing period description should use the document format region (en-US), not the operator format region (de-DE)');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure IsLineAttachedToBillingLineReturnsPerLineResultWhenSalesLineVariableIsReused()
+    var
+        BillingLineForLine: Record "Billing Line";
+        AttachedLineFound: Boolean;
+        NotAttachedLineFound: Boolean;
+        ExpectedAttached: Boolean;
+        IsLineAttachedMismatchErr: Label 'IsLineAttachedToBillingLine returned the wrong value for line %1 when the Sales Line variable was reused across lines.', Comment = '%1 = Sales Line "Line No."';
+    begin
+        // [SCENARIO] The public IsLineAttachedToBillingLine() returns the correct value for each line when the same
+        // Sales Line record variable is reused across lines without calling InitCachedVar() in between. An external
+        // caller must never receive a cached result belonging to a previously read line.
+        Initialize();
+
+        // [GIVEN] A customer contract with subscription lines and a billing proposal
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+
+        // [GIVEN] Billing documents are created (a Sales Invoice holding both billing lines and non-attached description lines)
+        CreateBillingDocuments();
+
+        // [GIVEN] The created Sales Invoice
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange(Partner, BillingTemplate.Partner);
+        BillingLine.FindFirst();
+        BillingLine.TestField("Document Type", BillingLine."Document Type"::Invoice);
+
+        // [WHEN] Iterating over every line of the document reusing the same Sales Line variable, without calling InitCachedVar()
+        // [THEN] Each line reports its own attachment state (ground truth read directly from the Billing Line table)
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", BillingLine.GetSalesDocumentTypeFromBillingDocumentType());
+        SalesLine.SetRange("Document No.", BillingLine."Document No.");
+        SalesLine.FindSet();
+        repeat
+            BillingLineForLine.Reset();
+            BillingLineForLine.FilterBillingLineOnDocumentLine(BillingLineForLine.GetBillingDocumentTypeFromSalesDocumentType(SalesLine."Document Type"), SalesLine."Document No.", SalesLine."Line No.");
+            ExpectedAttached := not BillingLineForLine.IsEmpty();
+
+            Assert.AreEqual(ExpectedAttached, SalesLine.IsLineAttachedToBillingLine(), StrSubstNo(IsLineAttachedMismatchErr, SalesLine."Line No."));
+
+            if ExpectedAttached then
+                AttachedLineFound := true
+            else
+                NotAttachedLineFound := true;
+        until SalesLine.Next() = 0;
+
+        // [THEN] The scenario actually exercised both an attached and a non-attached line with the reused variable
+        Assert.IsTrue(AttachedLineFound, 'Expected at least one line attached to a billing line.');
+        Assert.IsTrue(NotAttachedLineFound, 'Expected at least one line not attached to a billing line.');
     end;
 
     [Test]
@@ -686,6 +749,29 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CheckSingleContractSalesInvoiceHeaderExternalDocumentNo()
+    var
+        ExternalDocumentNo: Code[35];
+    begin
+        Initialize();
+        LibrarySetupStorage.Save(Database::"Subscription Contract Setup");
+        SetupBasicBillingProposal(Enum::"Service Partner"::Customer);
+        ExternalDocumentNo := CopyStr(LibraryRandom.RandText(MaxStrLen(CustomerContract."External Document No.")), 1, MaxStrLen(CustomerContract."External Document No."));
+        CustomerContract.Validate("External Document No.", ExternalDocumentNo);
+        CustomerContract.Modify(false);
+
+        CreateBillingDocuments();
+
+        BillingLine.FindLast();
+        SalesHeader.Get(Enum::"Sales Document Type"::Invoice, BillingLine."Document No.");
+        SalesHeader.TestField("External Document No.", ExternalDocumentNo);
+
+        PostAndGetSalesInvoiceHeaderFromRecurringBilling();
+        SalesInvoiceHeader.TestField("External Document No.", ExternalDocumentNo);
+    end;
+
+    [Test]
     [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
     procedure PostRecurringBillingInvoiceWithZeroQuantity()
     var
@@ -982,6 +1068,154 @@ codeunit 139687 "Recurring Billing Docs Test"
 
         // [THEN] The Pay-to Vendor matches the contract
         PurchaseHeader.TestField("Pay-to Vendor No.", PayToVendor."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractWithDocumentDatePageHandler,MessageHandler')]
+    procedure PaymentDiscountOnSalesInvoiceIsTakenFromCustomerContractPaymentTerms()
+    var
+        Customer: Record Customer;
+        ContractPaymentTerms: Record "Payment Terms";
+        CustomerPaymentTerms: Record "Payment Terms";
+        NewDocumentDate: Date;
+    begin
+        // [SCENARIO 10095] The payment discount on a sales document created from a Customer Subscription Contract
+        // follows the payment terms stored on the contract, not the ones on the customer
+        Initialize();
+
+        // [GIVEN] A customer with payment terms that grant no discount
+        CreatePaymentTermsWithDiscount(CustomerPaymentTerms, 0);
+        // [GIVEN] Payment terms that grant a discount, set on the contract only
+        CreatePaymentTermsWithDiscount(ContractPaymentTerms, 2);
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
+        Customer.Validate("Payment Terms Code", CustomerPaymentTerms.Code);
+        Customer.Modify(false);
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
+        ContractTestLibrary.DisableDeferralsForCustomerContract(CustomerContract, false);
+        CustomerContract.Validate("Payment Terms Code", ContractPaymentTerms.Code);
+        CustomerContract.Modify(false);
+
+        // [WHEN] Billing documents are created with a document date that differs from the posting date
+        NewDocumentDate := CalcDate('<-1D>', WorkDate());
+        LibraryVariableStorage.Enqueue(NewDocumentDate);
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+        CreateBillingDocuments(false);
+
+        // [THEN] The sales invoice carries the contract's payment terms including their discount
+        GetSalesHeaderFromBillingLines();
+        SalesHeader.TestField("Document Date", NewDocumentDate);
+        SalesHeader.TestField("Payment Terms Code", ContractPaymentTerms.Code);
+        SalesHeader.TestField("Payment Discount %", ContractPaymentTerms."Discount %");
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractWithDocumentDatePageHandler,MessageHandler')]
+    procedure PaymentDiscountOnSalesInvoiceIsRemovedWhenCustomerContractPaymentTermsGrantNone()
+    var
+        Customer: Record Customer;
+        ContractPaymentTerms: Record "Payment Terms";
+        CustomerPaymentTerms: Record "Payment Terms";
+        NewDocumentDate: Date;
+    begin
+        // [SCENARIO 10095] The customer's payment discount is not granted when the contract's payment terms grant none
+        Initialize();
+
+        // [GIVEN] A customer with payment terms that grant a discount
+        CreatePaymentTermsWithDiscount(CustomerPaymentTerms, 3);
+        // [GIVEN] Payment terms without discount, set on the contract only
+        CreatePaymentTermsWithDiscount(ContractPaymentTerms, 0);
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
+        Customer.Validate("Payment Terms Code", CustomerPaymentTerms.Code);
+        Customer.Modify(false);
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
+        ContractTestLibrary.DisableDeferralsForCustomerContract(CustomerContract, false);
+        CustomerContract.Validate("Payment Terms Code", ContractPaymentTerms.Code);
+        CustomerContract.Modify(false);
+
+        // [WHEN] Billing documents are created with a document date that differs from the posting date
+        NewDocumentDate := CalcDate('<-1D>', WorkDate());
+        LibraryVariableStorage.Enqueue(NewDocumentDate);
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+        CreateBillingDocuments(false);
+
+        // [THEN] The sales invoice grants no payment discount
+        GetSalesHeaderFromBillingLines();
+        SalesHeader.TestField("Payment Terms Code", ContractPaymentTerms.Code);
+        SalesHeader.TestField("Payment Discount %", 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractWithDocumentDatePageHandler,MessageHandler')]
+    procedure PaymentDiscountOnPurchaseInvoiceIsTakenFromVendorContractPaymentTerms()
+    var
+        Vendor: Record Vendor;
+        ContractPaymentTerms: Record "Payment Terms";
+        VendorPaymentTerms: Record "Payment Terms";
+        NewDocumentDate: Date;
+    begin
+        // [SCENARIO 10095] The payment discount on a purchase document created from a Vendor Subscription Contract
+        // follows the payment terms stored on the contract, not the ones on the vendor
+        Initialize();
+
+        // [GIVEN] A vendor with payment terms that grant no discount
+        CreatePaymentTermsWithDiscount(VendorPaymentTerms, 0);
+        // [GIVEN] Payment terms that grant a discount, set on the contract only
+        CreatePaymentTermsWithDiscount(ContractPaymentTerms, 2);
+        ContractTestLibrary.CreateVendorInLCY(Vendor);
+        Vendor.Validate("Payment Terms Code", VendorPaymentTerms.Code);
+        Vendor.Modify(false);
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
+        ContractTestLibrary.DisableDeferralsForVendorContract(VendorContract, false);
+        VendorContract.Validate("Payment Terms Code", ContractPaymentTerms.Code);
+        VendorContract.Modify(false);
+
+        // [WHEN] Billing documents are created with a document date that differs from the posting date
+        NewDocumentDate := CalcDate('<-1D>', WorkDate());
+        LibraryVariableStorage.Enqueue(NewDocumentDate);
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
+        CreateBillingDocuments(false);
+
+        // [THEN] The purchase invoice carries the contract's payment terms including their discount
+        GetPurchaseHeaderFromBillingLines();
+        PurchaseHeader.TestField("Document Date", NewDocumentDate);
+        PurchaseHeader.TestField("Payment Terms Code", ContractPaymentTerms.Code);
+        PurchaseHeader.TestField("Payment Discount %", ContractPaymentTerms."Discount %");
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractWithDocumentDatePageHandler,MessageHandler')]
+    procedure PaymentDiscountOnPurchaseInvoiceIsRemovedWhenVendorContractPaymentTermsGrantNone()
+    var
+        Vendor: Record Vendor;
+        ContractPaymentTerms: Record "Payment Terms";
+        VendorPaymentTerms: Record "Payment Terms";
+        NewDocumentDate: Date;
+    begin
+        // [SCENARIO 10095] The vendor's payment discount is not taken when the contract's payment terms grant none
+        Initialize();
+
+        // [GIVEN] A vendor with payment terms that grant a discount
+        CreatePaymentTermsWithDiscount(VendorPaymentTerms, 3);
+        // [GIVEN] Payment terms without discount, set on the contract only
+        CreatePaymentTermsWithDiscount(ContractPaymentTerms, 0);
+        ContractTestLibrary.CreateVendorInLCY(Vendor);
+        Vendor.Validate("Payment Terms Code", VendorPaymentTerms.Code);
+        Vendor.Modify(false);
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
+        ContractTestLibrary.DisableDeferralsForVendorContract(VendorContract, false);
+        VendorContract.Validate("Payment Terms Code", ContractPaymentTerms.Code);
+        VendorContract.Modify(false);
+
+        // [WHEN] Billing documents are created with a document date that differs from the posting date
+        NewDocumentDate := CalcDate('<-1D>', WorkDate());
+        LibraryVariableStorage.Enqueue(NewDocumentDate);
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
+        CreateBillingDocuments(false);
+
+        // [THEN] The purchase invoice grants no payment discount
+        GetPurchaseHeaderFromBillingLines();
+        PurchaseHeader.TestField("Payment Terms Code", ContractPaymentTerms.Code);
+        PurchaseHeader.TestField("Payment Discount %", 0);
     end;
 
     [Test]
@@ -2688,6 +2922,234 @@ codeunit 139687 "Recurring Billing Docs Test"
             StrSubstNo(NextToDateBeforeFromDateErr, NextToDate, FromDate));
     end;
 
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsSellToCustomerPageHandler,MessageHandler')]
+    procedure CreateSalesDocumentPerSellToCustomerUsesContractCurrency()
+    var
+        Customer: Record Customer;
+        ExpectedUnitPrice: Decimal;
+    begin
+        Initialize();
+
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
+        Customer.Get(CustomerContract."Sell-to Customer No.");
+        Customer.Validate("Currency Code", LibraryERM.CreateCurrencyWithRandomExchRates());
+        Customer.Modify(false);
+        CustomerContract.TestField("Currency Code", '');
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+
+        CreateBillingDocuments();
+
+        BillingLine.FindLast();
+        SalesHeader.Get(BillingLine.GetSalesDocumentTypeFromBillingDocumentType(), BillingLine."Document No.");
+        SalesHeader.TestField("Currency Code", CustomerContract."Currency Code");
+        SalesHeader.TestField("Currency Factor", 0);
+        FilterSalesLineOnDocumentLine(SalesHeader."Document Type", BillingLine."Document No.", BillingLine."Document Line No.");
+        SalesLine.FindFirst();
+        BillingLine.Reset();
+        BillingLine.SetRange("Document Type", BillingLine.GetBillingDocumentTypeFromSalesDocumentType(SalesHeader."Document Type"));
+        BillingLine.SetRange("Document No.", SalesHeader."No.");
+        BillingLine.SetRange("Document Line No.", SalesLine."Line No.");
+        if BillingLine.FindSet() then
+            repeat
+                ExpectedUnitPrice += BillingLine."Unit Price";
+            until BillingLine.Next() = 0;
+        Assert.AreEqual(ExpectedUnitPrice, SalesLine."Unit Price", UnitPriceErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CheckIfBillingLinesAreDeletedOnCreateVendorInvoiceWithError()
+    var
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO 652758] Billing lines must be removed when Vendor Subscription Contract invoice creation fails (e.g. no vendor on the contract)
+        Initialize();
+
+        ContractTestLibrary.DeleteAllContractRecords();
+        ContractTestLibrary.CreateVendor(Vendor);
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
+
+        // [GIVEN] The Vendor Subscription Contract has no vendor so the purchase document creation fails
+        VendorContract."Buy-from Vendor No." := '';
+        VendorContract."Pay-to Vendor No." := '';
+        VendorContract.Modify(false);
+        Commit(); // Persist the setup so only the billing lines created below are affected
+
+        // [WHEN] The billing proposal lines are created (same first step the Create Contract Invoice action performs)
+        BillingProposal.CreateBillingProposalForContract("Service Partner"::Vendor, VendorContract."No.", '', VendorContract.GetFilter("Billing Rhythm Filter"), WorkDate(), WorkDate());
+
+        // [THEN] The billing proposal created billing lines for the contract
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", '');
+        BillingLine.SetRange("Subscription Contract No.", VendorContract."No.");
+        Assert.RecordIsNotEmpty(BillingLine);
+
+        // [WHEN] The contract invoice creation fails
+        asserterror BillingProposal.CreateBillingDocument("Service Partner"::Vendor, VendorContract."No.", WorkDate(), WorkDate(), false, false);
+
+        // [THEN] No Billing lines remain for the Vendor Subscription Contract
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", '');
+        BillingLine.SetRange("Subscription Contract No.", VendorContract."No.");
+        Assert.RecordIsEmpty(BillingLine);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure ContractDescriptionPurchaseLinesAreSkippedWhenHandled()
+    begin
+        // [SCENARIO] A subscriber can replace the contract description lines of a purchase document created from a vendor contract
+        Initialize();
+
+        // [GIVEN] A billing proposal for a vendor contract
+        SetupVendorContractBillingProposal();
+
+        // [GIVEN] A subscriber that handles the contract description purchase lines
+        HandleContractDescriptionPurchaseLines := true;
+
+        // [WHEN] Billing documents are created per contract
+        BindSubscription(this);
+        CreateBillingDocuments();
+        UnbindSubscription(this);
+
+        // [THEN] The purchase document contains no contract description lines
+        GetPurchaseHeaderFromBillingLines();
+        FilterContractDescriptionPurchaseLines(PurchaseLine, PurchaseHeader);
+        Assert.RecordIsEmpty(PurchaseLine);
+
+        // [THEN] The purchase line for the billing line is still created
+        PurchaseLine.Get(PurchaseHeader."Document Type", PurchaseHeader."No.", BillingLine."Document Line No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure AfterInsertContractDescriptionPurchaseLinesIsRaisedAfterStandardLines()
+    begin
+        // [SCENARIO] An event is raised after the contract description lines of a purchase document are inserted
+        Initialize();
+
+        // [GIVEN] A billing proposal for a vendor contract
+        SetupVendorContractBillingProposal();
+
+        // [GIVEN] A subscriber that counts the contract description lines when the event is raised
+        CountContractDescriptionPurchaseLinesInAfterEvent := true;
+
+        // [WHEN] Billing documents are created per contract
+        BindSubscription(this);
+        CreateBillingDocuments();
+        UnbindSubscription(this);
+
+        // [THEN] The event is raised once for the contract, after the standard contract description lines exist
+        Assert.AreEqual(1, AfterInsertContractDescriptionPurchaseLinesCount, 'OnAfterInsertContractDescriptionPurchaseLines must be raised once per contract.');
+        Assert.IsTrue(ContractDescriptionPurchaseLinesInAfterEvent > 0, 'OnAfterInsertContractDescriptionPurchaseLines must be raised after the contract description lines are inserted.');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure PurchaseHeaderFromContractCanBeChangedBySubscriber()
+    begin
+        // [SCENARIO] A subscriber can change the purchase header created per vendor contract before it is saved
+        Initialize();
+
+        // [GIVEN] A billing proposal for a vendor contract
+        SetupVendorContractBillingProposal();
+
+        // [GIVEN] A subscriber that sets "Your Reference" to the vendor contract no.
+        SetYourReferenceOnPurchaseHeaderFromContract := true;
+
+        // [WHEN] Billing documents are created per contract
+        BindSubscription(this);
+        CreateBillingDocuments();
+        UnbindSubscription(this);
+
+        // [THEN] The purchase header keeps the value set by the subscriber
+        GetPurchaseHeaderFromBillingLines();
+        PurchaseHeader.TestField("Your Reference", VendorContract."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsPayToVendorPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure PurchaseHeaderForVendorNoCanBeChangedBySubscriber()
+    begin
+        // [SCENARIO] A subscriber can change the purchase header created per vendor before it is saved
+        Initialize();
+
+        // [GIVEN] A billing proposal for a vendor contract
+        SetupVendorContractBillingProposal();
+
+        // [GIVEN] A subscriber that sets "Your Reference" to the contract no. passed with the event
+        SetYourReferenceOnPurchaseHeaderForVendorNo := true;
+
+        // [WHEN] Billing documents are created per Pay-to Vendor
+        BindSubscription(this);
+        CreateBillingDocuments();
+        UnbindSubscription(this);
+
+        // [THEN] The purchase header keeps the value set by the subscriber
+        GetPurchaseHeaderFromBillingLines();
+        PurchaseHeader.TestField("Your Reference", VendorContract."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure SalesLineIsNotCreatedForHandledBillingLine()
+    begin
+        // [SCENARIO] A subscriber can take over the creation of the sales line for a single billing line
+        Initialize();
+
+        // [GIVEN] A billing proposal for a customer contract with two Subscriptions
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+        ContractTestLibrary.AssignServiceObjectForItemToCustomerContract(CustomerContract, ServiceObject2, false);
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+
+        // [GIVEN] A subscriber that handles the billing lines of one Subscription Line
+        SetHandledSubscriptionLineFromBillingProposal(CustomerContract."No.");
+
+        // [WHEN] Billing documents are created
+        BindSubscription(this);
+        CreateBillingDocuments();
+        UnbindSubscription(this);
+
+        // [THEN] No sales line is created for the handled billing lines, while the other billing lines are invoiced
+        VerifyHandledBillingLinesAreNotInvoiced(CustomerContract."No.");
+        BillingLine.SetFilter("Subscription Line Entry No.", '<>%1', HandledSubscriptionLineEntryNo);
+        BillingLine.FindSet();
+        repeat
+            SalesLine.Get(Enum::"Sales Document Type"::Invoice, BillingLine."Document No.", BillingLine."Document Line No.");
+        until BillingLine.Next() = 0;
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure PurchaseLineIsNotCreatedForHandledBillingLine()
+    begin
+        // [SCENARIO] A subscriber can take over the creation of the purchase line for a single billing line
+        Initialize();
+
+        // [GIVEN] A billing proposal for a vendor contract with two Subscriptions
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, '');
+        ContractTestLibrary.AssignServiceObjectForItemToVendorContract(VendorContract, ServiceObject2, false);
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
+
+        // [GIVEN] A subscriber that handles the billing lines of one Subscription Line
+        SetHandledSubscriptionLineFromBillingProposal(VendorContract."No.");
+
+        // [WHEN] Billing documents are created
+        BindSubscription(this);
+        CreateBillingDocuments();
+        UnbindSubscription(this);
+
+        // [THEN] No purchase line is created for the handled billing lines, while the other billing lines are invoiced
+        VerifyHandledBillingLinesAreNotInvoiced(VendorContract."No.");
+        BillingLine.SetFilter("Subscription Line Entry No.", '<>%1', HandledSubscriptionLineEntryNo);
+        BillingLine.FindSet();
+        repeat
+            PurchaseLine.Get(Enum::"Purchase Document Type"::Invoice, BillingLine."Document No.", BillingLine."Document Line No.");
+        until BillingLine.Next() = 0;
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -2824,6 +3286,33 @@ codeunit 139687 "Recurring Billing Docs Test"
         BillingLine.SetRange(Partner, BillingTemplate.Partner);
         Codeunit.Run(Codeunit::"Create Billing Documents", BillingLine);
         Commit(); // retain data after asserterror
+    end;
+
+    local procedure CreatePaymentTermsWithDiscount(var PaymentTerms: Record "Payment Terms"; DiscountPerc: Decimal)
+    begin
+        LibraryERM.CreatePaymentTerms(PaymentTerms);
+        Evaluate(PaymentTerms."Due Date Calculation", '<1M>');
+        Evaluate(PaymentTerms."Discount Date Calculation", '<8D>');
+        PaymentTerms.Validate("Due Date Calculation", PaymentTerms."Due Date Calculation");
+        PaymentTerms.Validate("Discount Date Calculation", PaymentTerms."Discount Date Calculation");
+        PaymentTerms.Validate("Discount %", DiscountPerc);
+        PaymentTerms.Modify(false);
+    end;
+
+    local procedure GetSalesHeaderFromBillingLines()
+    begin
+        BillingLine.Reset();
+        BillingLine.SetFilter("Document No.", '<>%1', '');
+        BillingLine.FindFirst();
+        SalesHeader.Get(Enum::"Sales Document Type"::Invoice, BillingLine."Document No.");
+    end;
+
+    local procedure GetPurchaseHeaderFromBillingLines()
+    begin
+        BillingLine.Reset();
+        BillingLine.SetFilter("Document No.", '<>%1', '');
+        BillingLine.FindFirst();
+        PurchaseHeader.Get(Enum::"Purchase Document Type"::Invoice, BillingLine."Document No.");
     end;
 
     local procedure CreateCustomerContractAndAssignServiceObjects(ItemNo: Code[20])
@@ -3254,6 +3743,45 @@ codeunit 139687 "Recurring Billing Docs Test"
         SubscriptionLine.Insert(true);
     end;
 
+    local procedure FilterContractDescriptionPurchaseLines(var FilteredPurchaseLine: Record "Purchase Line"; SourcePurchaseHeader: Record "Purchase Header")
+    begin
+        FilteredPurchaseLine.Reset();
+        FilteredPurchaseLine.SetRange("Document Type", SourcePurchaseHeader."Document Type");
+        FilteredPurchaseLine.SetRange("Document No.", SourcePurchaseHeader."No.");
+        FilteredPurchaseLine.SetRange(Type, FilteredPurchaseLine.Type::" ");
+        FilteredPurchaseLine.SetRange("Attached to Line No.", 0);
+    end;
+
+    local procedure SetHandledSubscriptionLineFromBillingProposal(ContractNo: Code[20])
+    begin
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange("Subscription Contract No.", ContractNo);
+        BillingLine.FindFirst();
+        HandledSubscriptionLineEntryNo := BillingLine."Subscription Line Entry No.";
+        BillingLine.SetFilter("Subscription Line Entry No.", '<>%1', HandledSubscriptionLineEntryNo);
+        Assert.RecordIsNotEmpty(BillingLine);
+        BillingLine.Reset();
+    end;
+
+    local procedure SetupVendorContractBillingProposal()
+    begin
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, '');
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
+    end;
+
+    local procedure VerifyHandledBillingLinesAreNotInvoiced(ContractNo: Code[20])
+    begin
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange("Subscription Contract No.", ContractNo);
+        BillingLine.SetRange("Subscription Line Entry No.", HandledSubscriptionLineEntryNo);
+        BillingLine.FindSet();
+        repeat
+            BillingLine.TestField("Document No.", '');
+        until BillingLine.Next() = 0;
+    end;
+
     #endregion Procedures
 
     #region Handlers
@@ -3354,6 +3882,13 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [ModalPageHandler]
+    procedure CreateCustomerBillingDocsContractWithDocumentDatePageHandler(var CreateCustomerBillingDocs: TestPage "Create Customer Billing Docs")
+    begin
+        CreateCustomerBillingDocs.DocumentDate.SetValue(LibraryVariableStorage.DequeueDate());
+        CreateCustomerBillingDocs.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
     procedure CreateCustomerBillingDocsModalPageHandler(var CreateCustomerBillingDocsPage: TestPage "Create Customer Billing Docs")
     begin
         CreateCustomerBillingDocsPage.OK().Invoke();
@@ -3389,6 +3924,13 @@ codeunit 139687 "Recurring Billing Docs Test"
     [ModalPageHandler]
     procedure CreateVendorBillingDocsContractPageHandler(var CreateVendorBillingDocs: TestPage "Create Vendor Billing Docs")
     begin
+        CreateVendorBillingDocs.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure CreateVendorBillingDocsContractWithDocumentDatePageHandler(var CreateVendorBillingDocs: TestPage "Create Vendor Billing Docs")
+    begin
+        CreateVendorBillingDocs.DocumentDate.SetValue(LibraryVariableStorage.DequeueDate());
         CreateVendorBillingDocs.OK().Invoke();
     end;
 
@@ -3486,5 +4028,58 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     #endregion Handlers
+
+    #region Subscribers
+#pragma warning disable AA0244
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Billing Documents", OnBeforeInsertContractDescriptionPurchaseLines, '', false, false)]
+    local procedure HandleContractDescriptionPurchaseLinesOnBeforeInsert(var IsHandled: Boolean)
+    begin
+        if HandleContractDescriptionPurchaseLines then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Billing Documents", OnAfterInsertContractDescriptionPurchaseLines, '', false, false)]
+    local procedure CountContractDescriptionPurchaseLinesOnAfterInsert(PurchaseHeader: Record "Purchase Header")
+    var
+        ContractDescriptionPurchaseLine: Record "Purchase Line";
+    begin
+        if not CountContractDescriptionPurchaseLinesInAfterEvent then
+            exit;
+        AfterInsertContractDescriptionPurchaseLinesCount += 1;
+        FilterContractDescriptionPurchaseLines(ContractDescriptionPurchaseLine, PurchaseHeader);
+        ContractDescriptionPurchaseLinesInAfterEvent := ContractDescriptionPurchaseLine.Count();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Billing Documents", OnAfterCreatePurchaseHeaderFromContract, '', false, false)]
+    local procedure SetYourReferenceOnAfterCreatePurchaseHeaderFromContract(VendorSubscriptionContract: Record "Vendor Subscription Contract"; var PurchaseHeader: Record "Purchase Header")
+    begin
+        if SetYourReferenceOnPurchaseHeaderFromContract then
+            PurchaseHeader."Your Reference" := VendorSubscriptionContract."No.";
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Billing Documents", OnAfterCreatePurchaseHeaderForVendorNo, '', false, false)]
+    local procedure SetYourReferenceOnAfterCreatePurchaseHeaderForVendorNo(var PurchaseHeader: Record "Purchase Header"; ContractNo: Code[20])
+    begin
+        if SetYourReferenceOnPurchaseHeaderForVendorNo then
+            PurchaseHeader."Your Reference" := ContractNo;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Billing Documents", OnBeforeInsertSalesLineFromTempBillingLine, '', false, false)]
+    local procedure HandleBillingLineOnBeforeInsertSalesLineFromTempBillingLine(var TempBillingLine: Record "Billing Line" temporary; var IsHandled: Boolean)
+    begin
+        if (HandledSubscriptionLineEntryNo <> 0) and (TempBillingLine."Subscription Line Entry No." = HandledSubscriptionLineEntryNo) then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Billing Documents", OnBeforeInsertPurchaseLineFromTempBillingLine, '', false, false)]
+    local procedure HandleBillingLineOnBeforeInsertPurchaseLineFromTempBillingLine(var TempBillingLine: Record "Billing Line" temporary; var IsHandled: Boolean)
+    begin
+        if (HandledSubscriptionLineEntryNo <> 0) and (TempBillingLine."Subscription Line Entry No." = HandledSubscriptionLineEntryNo) then
+            IsHandled := true;
+    end;
+
+#pragma warning restore AA0244
+    #endregion Subscribers
 }
 #pragma warning restore AA0210

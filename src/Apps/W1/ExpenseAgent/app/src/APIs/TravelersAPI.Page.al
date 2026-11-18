@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.SpendRequest;
+
 page 7103 "Travelers API"
 {
     APIGroup = 'expense';
@@ -19,6 +21,8 @@ page 7103 "Travelers API"
     SourceTable = Traveler;
     AboutText = 'Provides access to data from the Traveler table';
     AutoSplitKey = true;
+    Permissions = tabledata "Spend Request" = r,
+                  tabledata Traveler = rimd;
 
     layout
     {
@@ -34,19 +38,38 @@ page 7103 "Travelers API"
                 field(spendRequestNo; Rec."Spend Request No.")
                 {
                     Caption = 'Travel Request No.';
+                    Editable = false;
                 }
                 field(lineNo; Rec."Line No.")
                 {
                     Caption = 'Line No.';
                 }
+                field(employeeNumber; EmployeeNumber)
+                {
+                    Caption = 'Employee Number';
+                    ToolTip = 'Specifies the employee number of the traveler.';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.ValidateEmployeeNo(EmployeeNumber);
+                    end;
+                }
+#if not CLEAN30
                 field(expenseUserNo; Rec."Expense User No.")
                 {
                     Caption = 'Expense User No.';
+                    ObsoleteReason = 'Use employeeNumber instead. Expense User identifiers are an internal implementation detail.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
                 field(expenseUserName; Rec."Expense User Name")
                 {
                     Caption = 'Expense User Name';
+                    ObsoleteReason = 'Use employeeNumber and the employees navigation instead.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
             }
         }
     }
@@ -57,4 +80,14 @@ page 7103 "Travelers API"
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
+
+    trigger OnAfterGetRecord()
+    begin
+        // The variable-backed API control does not automatically calculate its source FlowField.
+        Rec.CalcFields("Employee No.");
+        EmployeeNumber := Rec."Employee No.";
+    end;
+
+    var
+        EmployeeNumber: Code[20];
 }

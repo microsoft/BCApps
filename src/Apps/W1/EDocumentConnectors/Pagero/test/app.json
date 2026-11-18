@@ -56,11 +56,15 @@
     }
   ],
   "screenshots": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "idRanges": [
     {
       "from": 148191,
       "to": 148199
+    },
+    {
+      "from": 148224,
+      "to": 148224
     }
   ],
   "resourceExposurePolicy": {

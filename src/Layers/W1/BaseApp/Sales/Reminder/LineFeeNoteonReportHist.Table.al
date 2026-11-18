@@ -25,7 +25,7 @@ table 1053 "Line Fee Note on Report Hist."
         /// <summary>
         /// Specifies the customer ledger entry number for which this line fee note was generated.
         /// </summary>
-        field(1; "Cust. Ledger Entry No"; Integer)
+        field(1; "Cust. Ledger Entry No"; BigInteger)
         {
             Caption = 'Cust. Ledger Entry No';
             Editable = false;
@@ -112,7 +112,7 @@ table 1053 "Line Fee Note on Report Hist."
         exit(StrSubstNo(LineFeeNoteOnReport, Format(Round(AdditionalFeePerLine, 0.01), 0, 9), CurrencyCode, DueDate, Format(MarginalPerc, 0, 9)));
     end;
 
-    local procedure InsertRec(ReminderLevel: Record "Reminder Level"; CustLedgerEntryNo: Integer; DueDate: Date; LanguageCode: Code[10]; LineFeeNoteOnReport: Text[200])
+    local procedure InsertRec(ReminderLevel: Record "Reminder Level"; CustLedgerEntryNo: BigInteger; DueDate: Date; LanguageCode: Code[10]; LineFeeNoteOnReport: Text[200])
     var
         LineFeeNoteOnReportHist: Record "Line Fee Note on Report Hist.";
     begin

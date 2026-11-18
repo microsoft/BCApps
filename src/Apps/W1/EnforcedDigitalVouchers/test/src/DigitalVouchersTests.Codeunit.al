@@ -1954,8 +1954,7 @@ codeunit 139515 "Digital Vouchers Tests"
         ReportSelections: Record "Report Selections";
     begin
         ReportSelections.SetRange(Usage, ReportSelections.Usage::"S.Shipment");
-        ReportSelections.ModifyAll("Use for Email Body", false);
-        ReportSelections.ModifyAll("Use for Email Attachment", false);
+        ReportSelections.ModifyAll("Use for Email Body", false, "Use for Email Attachment", false);
     end;
 
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)

@@ -13,14 +13,14 @@
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=857276",
   "dependencies": [],
   "screenshots": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "idRanges": [
     {
       "from": 1,
       "to": 9999
     }
   ],
-  "target": "OnPrem",
+  "target": "Cloud",
   "resourceExposurePolicy": {
     "allowDebugging": false,
     "allowDownloadingSource": true,

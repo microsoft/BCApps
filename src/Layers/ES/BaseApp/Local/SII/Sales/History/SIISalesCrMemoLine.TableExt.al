@@ -6,7 +6,8 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Sales.History;
 
-tableextension 7000124 "SII Sales Cr. Memo Line" extends "Sales Cr.Memo Line"
+#pragma warning disable AS0088
+tableextension 7000024 "SII Sales Cr. Memo Line" extends "Sales Cr.Memo Line"
 {
     fields
     {

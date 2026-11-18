@@ -32,9 +32,10 @@ codeunit 148204 "Continia Reg. Integr. Tests"
     begin
         Initialize();
 
-        // [Given] Team Member + 'E-Doc. Core - Edit' permissions
+        // [Given] Team Member + 'E-Doc. Core - Admin' + connector permissions
         LibraryPermission.SetTeamMember();
-        LibraryPermission.AddPermissionSet('E-Doc. Core - Edit');
+        LibraryPermission.AddPermissionSet('E-Doc. Core - Admin');
+        LibraryPermission.AddPermissionSet('ContEDocConnEdit');
 
         // [When] Open eDocument Service
         EDocServicePage.OpenView();
@@ -311,9 +312,10 @@ codeunit 148204 "Continia Reg. Integr. Tests"
 
         // [Given] Connected Participation
         ConnectorLibrary.PrepareParticipation(Participation);
-        // [Given] Team Member + 'E-Doc. Core - Edit' permissions
+        // [Given] Team Member + 'E-Doc. Core - Admin' + connector permissions
         LibraryPermission.SetTeamMember();
-        LibraryPermission.AddPermissionSet('E-Doc. Core - Edit');
+        LibraryPermission.AddPermissionSet('E-Doc. Core - Admin');
+        LibraryPermission.AddPermissionSet('ContEDocConnEdit');
 
         // [When] Open eDocument Service
         EDocServicePage.OpenView();
@@ -383,9 +385,10 @@ codeunit 148204 "Continia Reg. Integr. Tests"
         // [Given] Connected Participation
         ConnectorLibrary.PrepareParticipation(Participation);
 
-        // [Given] Team Member + 'E-Doc. Core - Edit' permissions
+        // [Given] Team Member + 'E-Doc. Core - Admin' + connector permissions
         LibraryPermission.SetTeamMember();
-        LibraryPermission.AddPermissionSet('E-Doc. Core - Edit');
+        LibraryPermission.AddPermissionSet('E-Doc. Core - Admin');
+        LibraryPermission.AddPermissionSet('ContEDocConnEdit');
 
         // [When] Open eDocument Service
         EDocServicePage.OpenView();
@@ -458,9 +461,10 @@ codeunit 148204 "Continia Reg. Integr. Tests"
         // [Given] Configured Client Credentials
         ConnectorLibrary.InitiateClientCredentials();
 
-        // [Given] Team Member + 'E-Doc. Core - Edit' permissions
+        // [Given] Team Member + 'E-Doc. Core - Admin' + connector permissions
         LibraryPermission.SetTeamMember();
-        LibraryPermission.AddPermissionSet('E-Doc. Core - Edit');
+        LibraryPermission.AddPermissionSet('E-Doc. Core - Admin');
+        LibraryPermission.AddPermissionSet('ContEDocConnEdit');
 
         // [When] Open eDocument Service
         EDocServicePage.OpenView();
@@ -592,9 +596,10 @@ codeunit 148204 "Continia Reg. Integr. Tests"
         // [Given] Configured Client Credentials
         ConnectorLibrary.InitiateClientCredentials();
 
-        // [Given] Team Member + 'E-Doc. Core - Edit' permissions
+        // [Given] Team Member + 'E-Doc. Core - Admin' + connector permissions
         LibraryPermission.SetTeamMember();
-        LibraryPermission.AddPermissionSet('E-Doc. Core - Edit');
+        LibraryPermission.AddPermissionSet('E-Doc. Core - Admin');
+        LibraryPermission.AddPermissionSet('ContEDocConnEdit');
 
         // [When] Open eDocument Service
         EDocServicePage.OpenView();
@@ -726,9 +731,10 @@ codeunit 148204 "Continia Reg. Integr. Tests"
         // [Given] Configured Client Credentials
         ConnectorLibrary.InitiateClientCredentials();
 
-        // [Given] Team Member + 'E-Doc. Core - Edit' permissions
+        // [Given] Team Member + 'E-Doc. Core - Admin' + connector permissions
         LibraryPermission.SetTeamMember();
-        LibraryPermission.AddPermissionSet('E-Doc. Core - Edit');
+        LibraryPermission.AddPermissionSet('E-Doc. Core - Admin');
+        LibraryPermission.AddPermissionSet('ContEDocConnEdit');
 
         // [When] Open eDocument Service
         EDocServicePage.OpenView();
@@ -858,9 +864,10 @@ codeunit 148204 "Continia Reg. Integr. Tests"
         // [Given] Configured Client Credentials
         ConnectorLibrary.InitiateClientCredentials();
 
-        // [Given] Team Member + 'E-Doc. Core - Edit' permissions
+        // [Given] Team Member + 'E-Doc. Core - Admin' + connector permissions
         LibraryPermission.SetTeamMember();
-        LibraryPermission.AddPermissionSet('E-Doc. Core - Edit');
+        LibraryPermission.AddPermissionSet('E-Doc. Core - Admin');
+        LibraryPermission.AddPermissionSet('ContEDocConnEdit');
 
         // [When] Open eDocument Service
         EDocServicePage.OpenView();
@@ -1000,7 +1007,8 @@ codeunit 148204 "Continia Reg. Integr. Tests"
         CompanyInformation.Modify(true);
 
         LibraryPermission.SetTeamMember();
-        LibraryPermission.AddPermissionSet('E-Doc. Core - Edit');
+        LibraryPermission.AddPermissionSet('E-Doc. Core - Admin');
+        LibraryPermission.AddPermissionSet('ContEDocConnEdit');
 
         // [When] Open eDocument Service
         EDocServicePage.OpenView();
@@ -1219,9 +1227,10 @@ codeunit 148204 "Continia Reg. Integr. Tests"
     begin
         Initialize();
 
-        // [Given] Team Member + 'E-Doc. Core - Edit' permissions
+        // [Given] Team Member + 'E-Doc. Core - Admin' + connector permissions
         LibraryPermission.SetTeamMember();
-        LibraryPermission.AddPermissionSet('E-Doc. Core - Edit');
+        LibraryPermission.AddPermissionSet('E-Doc. Core - Admin');
+        LibraryPermission.AddPermissionSet('ContEDocConnEdit');
 
         // [When] Open eDocument Service
         EDocServicePage.OpenView();

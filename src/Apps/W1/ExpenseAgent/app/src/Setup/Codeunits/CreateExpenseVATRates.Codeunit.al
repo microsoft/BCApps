@@ -28,23 +28,19 @@ codeunit 6975 "Create Expense VAT Rates"
 
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        RatesSkipped: Boolean;
 
     /// <summary>
     /// Inserts all default EU VAT rate rows. Skips rows whose
     /// (Country/Region Code + Expense Category + Expense Subcategory) combination already exists.
+    /// Returns false when a country has defaults but the VAT business posting group is not configured yet.
     /// </summary>
-    procedure InsertDefaultRates()
+    procedure InsertDefaultRates(): Boolean
     var
         CompanyInfo: Record "Company Information";
-        GLAccount: Record "G/L Account";
     begin
-        if not GLAccount.Get(XEXPENSEVATTok) then begin
-            GLAccount.Init();
-            GLAccount."No." := XEXPENSEVATTok;
-            GLAccount."Name" := 'Expense VAT';
-            GLAccount.Insert();
-        end;
-
+        RatesSkipped := false;
+        ExpenseAgentSetup.GetRecordOnce();
         CompanyInfo.Get();
         case CompanyInfo."Country/Region Code" of
             'AT':
@@ -87,8 +83,6 @@ codeunit 6975 "Create Expense VAT Rates"
                 CreateVATRatesBG();
             'CY':
                 CreateVATRatesCY();
-            'CZ':
-                CreateVATRatesCZ();
             'EE':
                 CreateVATRatesEE();
             'GR':
@@ -107,10 +101,6 @@ codeunit 6975 "Create Expense VAT Rates"
                 CreateVATRatesSI();
             'SK':
                 CreateVATRatesSK();
-            'AU':
-                CreateVATRatesAU();
-            'NZ':
-                CreateVATRatesNZ();
             'MX':
                 CreateVATRatesMX();
             'IS':
@@ -118,6 +108,37 @@ codeunit 6975 "Create Expense VAT Rates"
             'UA':
                 CreateVATRatesUA();
         end;
+        exit(not RatesSkipped);
+    end;
+
+    local procedure GetPurchaseVATAccount(VATPercent: Decimal): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        GLAccount.SetRange(Name, GetExpenseVATAccountName(VATPercent));
+        GLAccount.SetRange("Account Type", GLAccount."Account Type"::Posting);
+        if GLAccount.FindFirst() then
+            exit(GLAccount."No.");
+    end;
+
+    internal procedure GetExpenseVATAccountName(VATPercent: Decimal): Text[100]
+    begin
+        exit(StrSubstNo(ExpenseVATAccountNameLbl, Format(VATPercent)));
+    end;
+
+    local procedure GetSalesVATAccount(VATPercent: Decimal): Code[20]
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", ExpenseAgentSetup."Default VAT Bus. Posting Group");
+        VATPostingSetup.SetRange("VAT %", VATPercent);
+        VATPostingSetup.SetFilter("Sales VAT Account", '<>%1', '');
+        if VATPostingSetup.FindFirst() then
+            exit(VATPostingSetup."Sales VAT Account");
+
+        VATPostingSetup.SetRange("VAT %");
+        if VATPostingSetup.FindFirst() then
+            exit(VATPostingSetup."Sales VAT Account");
     end;
 
     local procedure InsertRate(CategoryCode: Code[20]; SubcategoryCode: Code[20]; VATProdPostingGroup: Code[20]; VATPercent: Decimal; NewDescription: Text[100])
@@ -126,7 +147,15 @@ codeunit 6975 "Create Expense VAT Rates"
         ExpenseSubcategory: Record "Expense Subcategory";
         VATProductPostingGroup: Record "VAT Product Posting Group";
         VATPostingSetup: Record "VAT Posting Setup";
+        PurchaseVATAccountNo: Code[20];
+        SalesVATAccountNo: Code[20];
     begin
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Default VAT Bus. Posting Group" = '' then begin
+            RatesSkipped := true;
+            exit;
+        end;
+
         if not VATProductPostingGroup.Get(VATProdPostingGroup) then begin
             VATProductPostingGroup.Init();
             VATProductPostingGroup."Code" := VATProdPostingGroup;
@@ -134,25 +163,39 @@ codeunit 6975 "Create Expense VAT Rates"
             VATProductPostingGroup.Insert();
         end;
 
-        ExpenseAgentSetup.GetRecordOnce();
+        PurchaseVATAccountNo := GetPurchaseVATAccount(VATPercent);
+        SalesVATAccountNo := GetSalesVATAccount(VATPercent);
         if not VATPostingSetup.Get(ExpenseAgentSetup."Default VAT Bus. Posting Group", VATProdPostingGroup) then begin
             VATPostingSetup.Init();
             VATPostingSetup.Validate("VAT Bus. Posting Group", ExpenseAgentSetup."Default VAT Bus. Posting Group");
             VATPostingSetup.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
-            VATPostingSetup.Validate("Purchase VAT Account", XEXPENSEVATTok);
+            if SalesVATAccountNo <> '' then
+                VATPostingSetup.Validate("Sales VAT Account", SalesVATAccountNo);
+            if PurchaseVATAccountNo <> '' then
+                VATPostingSetup.Validate("Purchase VAT Account", PurchaseVATAccountNo);
             VATPostingSetup."VAT %" := VATPercent;
             VATPostingSetup.Insert();
+        end else begin
+            if (SalesVATAccountNo <> '') and (VATPostingSetup."Sales VAT Account" = '') then
+                VATPostingSetup.Validate("Sales VAT Account", SalesVATAccountNo);
+            if (PurchaseVATAccountNo <> '') and (VATPostingSetup."Purchase VAT Account" <> PurchaseVATAccountNo) then
+                VATPostingSetup.Validate("Purchase VAT Account", PurchaseVATAccountNo);
+            if VATPostingSetup.IsDirty() then
+                VATPostingSetup.Modify();
         end;
-
         if SubcategoryCode = '' then begin
-            ExpenseCategory.Get(CategoryCode);
+            // Default seeds can be partially present when categories are customer-owned.
+            // In that case, skip missing combinations instead of failing the full setup run.
+            if not ExpenseCategory.Get(CategoryCode) then
+                exit;
             ExpenseCategory.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
             ExpenseCategory.Validate("Default VAT %", VATPostingSetup."VAT %");
             if ExpenseCategory."Default VAT %" <> 0 then
                 ExpenseCategory.Validate("Default VAT Reclaim %", 100);
             ExpenseCategory.Modify();
         end else begin
-            ExpenseSubcategory.Get(CategoryCode, SubcategoryCode);
+            if not ExpenseSubcategory.Get(CategoryCode, SubcategoryCode) then
+                exit;
             ExpenseSubcategory.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
             ExpenseSubcategory.Validate("Default VAT %", VATPostingSetup."VAT %");
             if ExpenseSubcategory."Default VAT %" <> 0 then
@@ -164,7 +207,7 @@ codeunit 6975 "Create Expense VAT Rates"
     var
         CreateExpenseCategories: Codeunit "Create Expense Categories";
 
-        XEXPENSEVATTok: Label 'EXPENSE VAT', Locked = true; // Virtual G/L account used for VAT on expenses
+        ExpenseVATAccountNameLbl: Label 'Expense VAT %1 %', MaxLength = 100, Comment = '%1 = VAT percentage';
 
     local procedure CreateVATRatesAT()
     begin
@@ -180,8 +223,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-20', 20, 'Hotel internet - standard rate (AT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-20', 20, 'Hotel incidents - standard rate (AT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-20', 20, 'Hotel laundry - standard rate (AT)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-20', 20, 'Hotel parking - standard rate (AT)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-20', 20, 'Hotel other - standard rate (AT)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-20', 20, 'Hotel parking - standard rate (AT)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-20', 20, 'Hotel other - standard rate (AT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (AT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (AT)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-10', 10, 'Restaurant / meals - reduced rate (AT)');
@@ -207,8 +250,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-21', 21, 'Hotel internet - standard rate (BE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-21', 21, 'Hotel incidents - standard rate (BE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-21', 21, 'Hotel laundry - standard rate (BE)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-21', 21, 'Hotel parking - standard rate (BE)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-21', 21, 'Hotel other - standard rate (BE)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-21', 21, 'Hotel parking - standard rate (BE)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-21', 21, 'Hotel other - standard rate (BE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (BE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (BE)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-12', 12, 'Restaurant / meals - reduced rate (BE)');
@@ -234,8 +277,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-25', 25, 'Hotel internet - standard rate (DK)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-25', 25, 'Hotel incidents - standard rate (DK)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-25', 25, 'Hotel laundry - standard rate (DK)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-25', 25, 'Hotel parking - standard rate (DK)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-25', 25, 'Hotel other - standard rate (DK)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-25', 25, 'Hotel parking - standard rate (DK)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-25', 25, 'Hotel other - standard rate (DK)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (DK)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (DK)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-STD-25', 25, 'Restaurant / meals - standard rate (DK)');
@@ -261,8 +304,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-255', 25.5, 'Hotel internet - standard rate (FI)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-255', 25.5, 'Hotel incidents - standard rate (FI)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-255', 25.5, 'Hotel laundry - standard rate (FI)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-255', 25.5, 'Hotel parking - standard rate (FI)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-255', 25.5, 'Hotel other - standard rate (FI)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-255', 25.5, 'Hotel parking - standard rate (FI)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-255', 25.5, 'Hotel other - standard rate (FI)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (FI)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (FI)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-14', 13.5, 'Restaurant / meals - reduced rate (FI)');
@@ -288,8 +331,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-20', 20, 'Hotel internet - standard rate (FR)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-20', 20, 'Hotel incidents - standard rate (FR)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-20', 20, 'Hotel laundry - standard rate (FR)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-20', 20, 'Hotel parking - standard rate (FR)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-20', 20, 'Hotel other - standard rate (FR)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-20', 20, 'Hotel parking - standard rate (FR)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-20', 20, 'Hotel other - standard rate (FR)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (FR)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (FR)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-10', 10, 'Restaurant / meals - reduced rate (FR)');
@@ -315,8 +358,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-19', 19, 'Hotel internet - standard rate (DE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-19', 19, 'Hotel incidents - standard rate (DE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-19', 19, 'Hotel laundry - standard rate (DE)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-19', 19, 'Hotel parking - standard rate (DE)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-19', 19, 'Hotel other - standard rate (DE)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-19', 19, 'Hotel parking - standard rate (DE)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-19', 19, 'Hotel other - standard rate (DE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (DE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (DE)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), CreateExpenseCategories.GetFOODTxt(), 'VAT-RED-07', 7, 'Food - reduced rate (DE)');
@@ -343,8 +386,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-27', 27, 'Hotel internet - standard rate (HU)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-27', 27, 'Hotel incidents - standard rate (HU)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-27', 27, 'Hotel laundry - standard rate (HU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-27', 27, 'Hotel parking - standard rate (HU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-27', 27, 'Hotel other - standard rate (HU)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-27', 27, 'Hotel parking - standard rate (HU)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-27', 27, 'Hotel other - standard rate (HU)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (HU)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (HU)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-18', 18, 'Restaurant / meals - reduced rate (HU)');
@@ -370,8 +413,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-23', 23, 'Hotel internet - standard rate (IE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-23', 23, 'Hotel incidents - standard rate (IE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-23', 23, 'Hotel laundry - standard rate (IE)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-23', 23, 'Hotel parking - standard rate (IE)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-23', 23, 'Hotel other - standard rate (IE)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-23', 23, 'Hotel parking - standard rate (IE)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-23', 23, 'Hotel other - standard rate (IE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (IE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (IE)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-09', 9, 'Restaurant / meals - reduced rate (IE)');
@@ -397,8 +440,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-22', 22, 'Hotel internet - standard rate (IT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-22', 22, 'Hotel incidents - standard rate (IT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-22', 22, 'Hotel laundry - standard rate (IT)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-22', 22, 'Hotel parking - standard rate (IT)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-22', 22, 'Hotel other - standard rate (IT)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-22', 22, 'Hotel parking - standard rate (IT)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-22', 22, 'Hotel other - standard rate (IT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (IT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (IT)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-10', 10, 'Restaurant / meals - reduced rate (IT)');
@@ -424,8 +467,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-17', 17, 'Hotel internet - standard rate (LU)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-17', 17, 'Hotel incidents - standard rate (LU)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-17', 17, 'Hotel laundry - standard rate (LU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-17', 17, 'Hotel parking - standard rate (LU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-17', 17, 'Hotel other - standard rate (LU)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-17', 17, 'Hotel parking - standard rate (LU)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-17', 17, 'Hotel other - standard rate (LU)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (LU)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (LU)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-08', 8, 'Restaurant / meals - reduced rate (LU)');
@@ -451,8 +494,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-21', 21, 'Hotel internet - standard rate (NL)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-21', 21, 'Hotel incidents - standard rate (NL)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-21', 21, 'Hotel laundry - standard rate (NL)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-21', 21, 'Hotel parking - standard rate (NL)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-21', 21, 'Hotel other - standard rate (NL)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-21', 21, 'Hotel parking - standard rate (NL)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-21', 21, 'Hotel other - standard rate (NL)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (NL)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (NL)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-09', 9, 'Restaurant / meals - reduced rate (NL)');
@@ -478,8 +521,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-23', 23, 'Hotel internet - standard rate (PL)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-23', 23, 'Hotel incidents - standard rate (PL)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-23', 23, 'Hotel laundry - standard rate (PL)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-23', 23, 'Hotel parking - standard rate (PL)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-23', 23, 'Hotel other - standard rate (PL)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-23', 23, 'Hotel parking - standard rate (PL)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-23', 23, 'Hotel other - standard rate (PL)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (PL)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (PL)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-08', 8, 'Restaurant / meals - reduced rate (PL)');
@@ -505,8 +548,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-23', 23, 'Hotel internet - standard rate (PT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-23', 23, 'Hotel incidents - standard rate (PT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-23', 23, 'Hotel laundry - standard rate (PT)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-23', 23, 'Hotel parking - standard rate (PT)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-23', 23, 'Hotel other - standard rate (PT)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-23', 23, 'Hotel parking - standard rate (PT)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-23', 23, 'Hotel other - standard rate (PT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (PT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (PT)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-13', 13, 'Restaurant / meals - reduced rate (PT)');
@@ -532,8 +575,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-21', 21, 'Hotel internet - standard rate (ES)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-21', 21, 'Hotel incidents - standard rate (ES)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-21', 21, 'Hotel laundry - standard rate (ES)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-21', 21, 'Hotel parking - standard rate (ES)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-21', 21, 'Hotel other - standard rate (ES)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-21', 21, 'Hotel parking - standard rate (ES)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-21', 21, 'Hotel other - standard rate (ES)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (ES)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (ES)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-10', 10, 'Restaurant / meals - reduced rate (ES)');
@@ -559,8 +602,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-25', 25, 'Hotel internet - standard rate (SE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-25', 25, 'Hotel incidents - standard rate (SE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-25', 25, 'Hotel laundry - standard rate (SE)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-25', 25, 'Hotel parking - standard rate (SE)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-25', 25, 'Hotel other - standard rate (SE)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-25', 25, 'Hotel parking - standard rate (SE)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-25', 25, 'Hotel other - standard rate (SE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (SE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (SE)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-12', 12, 'Restaurant / meals - reduced rate (SE)');
@@ -586,8 +629,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-81', 8.1, 'Hotel internet - standard rate (CH)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-81', 8.1, 'Hotel incidents - standard rate (CH)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-81', 8.1, 'Hotel laundry - standard rate (CH)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-81', 8.1, 'Hotel parking - standard rate (CH)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-81', 8.1, 'Hotel other - standard rate (CH)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-81', 8.1, 'Hotel parking - standard rate (CH)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-81', 8.1, 'Hotel other - standard rate (CH)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (CH)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (CH)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-STD-81', 8.1, 'Restaurant / meals - standard rate (CH)');
@@ -613,8 +656,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-20', 20, 'Hotel internet - standard rate (GB)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-20', 20, 'Hotel incidents - standard rate (GB)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-20', 20, 'Hotel laundry - standard rate (GB)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-20', 20, 'Hotel parking - standard rate (GB)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-20', 20, 'Hotel other - standard rate (GB)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-20', 20, 'Hotel parking - standard rate (GB)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-20', 20, 'Hotel other - standard rate (GB)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (GB)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (GB)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-STD-20', 20, 'Restaurant / meals - standard rate (GB)');
@@ -640,8 +683,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-25', 25, 'Hotel internet - standard rate (NO)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-25', 25, 'Hotel incidents - standard rate (NO)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-25', 25, 'Hotel laundry - standard rate (NO)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-25', 25, 'Hotel parking - standard rate (NO)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-25', 25, 'Hotel other - standard rate (NO)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-25', 25, 'Hotel parking - standard rate (NO)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-25', 25, 'Hotel other - standard rate (NO)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (NO)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (NO)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-15', 15, 'Restaurant / meals - food rate (NO)');
@@ -667,8 +710,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-20', 20, 'Hotel internet - standard rate (BG)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-20', 20, 'Hotel incidents - standard rate (BG)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-20', 20, 'Hotel laundry - standard rate (BG)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-20', 20, 'Hotel parking - standard rate (BG)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-20', 20, 'Hotel other - standard rate (BG)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-20', 20, 'Hotel parking - standard rate (BG)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-20', 20, 'Hotel other - standard rate (BG)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (BG)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (BG)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-09', 9, 'Restaurant / meals - reduced rate (BG)');
@@ -694,8 +737,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-19', 19, 'Hotel internet - standard rate (CY)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-19', 19, 'Hotel incidents - standard rate (CY)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-19', 19, 'Hotel laundry - standard rate (CY)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-19', 19, 'Hotel parking - standard rate (CY)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-19', 19, 'Hotel other - standard rate (CY)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-19', 19, 'Hotel parking - standard rate (CY)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-19', 19, 'Hotel other - standard rate (CY)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (CY)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (CY)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-09', 9, 'Restaurant / meals - reduced rate (CY)');
@@ -705,33 +748,6 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetCARTxt(), '', 'VAT-STD-19', 19, 'Fuel / car expenses - standard rate (CY)');
         InsertRate(CreateExpenseCategories.GetEVENTSTxt(), '', 'VAT-STD-19', 19, 'Conferences / events - standard rate (CY)');
         InsertRate(CreateExpenseCategories.GetENTERTAINTxt(), '', 'VAT-STD-19', 19, 'Entertainment - standard rate (CY)');
-    end;
-
-    local procedure CreateVATRatesCZ()
-    begin
-        // ── Czech Republic (CZ) ────────────────────────────────────────────────────
-        // Standard 21 %, reduced 12 % (accommodation, food, transport)
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetROOMTxt(), 'VAT-RED-12', 12, 'Hotel room - accommodation rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetDEPOSITTxt(), 'VAT-RED-12', 12, 'Hotel deposit - accommodation rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetBREAKFASTTxt(), 'VAT-RED-12', 12, 'Hotel breakfast - food rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetROOMSERVICETxt(), 'VAT-RED-12', 12, 'Hotel room service - food rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTRANSPORTTxt(), 'VAT-RED-12', 12, 'Hotel transport - reduced rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetFEETxt(), 'VAT-STD-21', 21, 'Hotel fees - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPHONETxt(), 'VAT-STD-21', 21, 'Hotel phone - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-21', 21, 'Hotel internet - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-21', 21, 'Hotel incidents - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-21', 21, 'Hotel laundry - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-21', 21, 'Hotel parking - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-21', 21, 'Hotel other - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-12', 12, 'Restaurant / meals - reduced rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetAIRLINETxt(), '', 'VAT-ZERO', 0, 'Flights - exempt/zero rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetGROUNDTRANSTxt(), '', 'VAT-RED-12', 12, 'Ground transport - reduced rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetRENTALCARSTxt(), '', 'VAT-STD-21', 21, 'Car rental - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetCARTxt(), '', 'VAT-STD-21', 21, 'Fuel / car expenses - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetEVENTSTxt(), '', 'VAT-STD-21', 21, 'Conferences / events - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetENTERTAINTxt(), '', 'VAT-STD-21', 21, 'Entertainment - standard rate (CZ)');
     end;
 
     local procedure CreateVATRatesEE()
@@ -748,8 +764,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-22', 22, 'Hotel internet - standard rate (EE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-22', 22, 'Hotel incidents - standard rate (EE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-22', 22, 'Hotel laundry - standard rate (EE)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-22', 22, 'Hotel parking - standard rate (EE)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-22', 22, 'Hotel other - standard rate (EE)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-22', 22, 'Hotel parking - standard rate (EE)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-22', 22, 'Hotel other - standard rate (EE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (EE)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (EE)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-STD-22', 22, 'Restaurant / meals - standard rate (EE)');
@@ -775,8 +791,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-24', 24, 'Hotel internet - standard rate (GR)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-24', 24, 'Hotel incidents - standard rate (GR)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-24', 24, 'Hotel laundry - standard rate (GR)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-24', 24, 'Hotel parking - standard rate (GR)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-24', 24, 'Hotel other - standard rate (GR)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-24', 24, 'Hotel parking - standard rate (GR)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-24', 24, 'Hotel other - standard rate (GR)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (GR)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (GR)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-13', 13, 'Restaurant / meals - reduced rate (GR)');
@@ -802,8 +818,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-25', 25, 'Hotel internet - standard rate (HR)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-25', 25, 'Hotel incidents - standard rate (HR)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-25', 25, 'Hotel laundry - standard rate (HR)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-25', 25, 'Hotel parking - standard rate (HR)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-25', 25, 'Hotel other - standard rate (HR)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-25', 25, 'Hotel parking - standard rate (HR)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-25', 25, 'Hotel other - standard rate (HR)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (HR)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (HR)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-13', 13, 'Restaurant / meals - reduced rate (HR)');
@@ -829,8 +845,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-21', 21, 'Hotel internet - standard rate (LT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-21', 21, 'Hotel incidents - standard rate (LT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-21', 21, 'Hotel laundry - standard rate (LT)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-21', 21, 'Hotel parking - standard rate (LT)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-21', 21, 'Hotel other - standard rate (LT)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-21', 21, 'Hotel parking - standard rate (LT)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-21', 21, 'Hotel other - standard rate (LT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (LT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (LT)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-09', 9, 'Restaurant / meals - reduced rate (LT)');
@@ -856,8 +872,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-21', 21, 'Hotel internet - standard rate (LV)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-21', 21, 'Hotel incidents - standard rate (LV)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-21', 21, 'Hotel laundry - standard rate (LV)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-21', 21, 'Hotel parking - standard rate (LV)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-21', 21, 'Hotel other - standard rate (LV)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-21', 21, 'Hotel parking - standard rate (LV)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-21', 21, 'Hotel other - standard rate (LV)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (LV)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (LV)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-STD-21', 21, 'Restaurant / meals - standard rate (LV)');
@@ -883,8 +899,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-18', 18, 'Hotel internet - standard rate (MT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-18', 18, 'Hotel incidents - standard rate (MT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-18', 18, 'Hotel laundry - standard rate (MT)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-18', 18, 'Hotel parking - standard rate (MT)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-18', 18, 'Hotel other - standard rate (MT)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-18', 18, 'Hotel parking - standard rate (MT)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-18', 18, 'Hotel other - standard rate (MT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (MT)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (MT)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-05', 5, 'Restaurant / meals - reduced rate (MT)');
@@ -910,8 +926,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-19', 19, 'Hotel internet - standard rate (RO)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-19', 19, 'Hotel incidents - standard rate (RO)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-19', 19, 'Hotel laundry - standard rate (RO)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-19', 19, 'Hotel parking - standard rate (RO)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-19', 19, 'Hotel other - standard rate (RO)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-19', 19, 'Hotel parking - standard rate (RO)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-19', 19, 'Hotel other - standard rate (RO)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (RO)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (RO)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-09', 9, 'Restaurant / meals - reduced rate (RO)');
@@ -937,8 +953,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-22', 22, 'Hotel internet - standard rate (SI)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-22', 22, 'Hotel incidents - standard rate (SI)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-22', 22, 'Hotel laundry - standard rate (SI)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-22', 22, 'Hotel parking - standard rate (SI)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-22', 22, 'Hotel other - standard rate (SI)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-22', 22, 'Hotel parking - standard rate (SI)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-22', 22, 'Hotel other - standard rate (SI)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (SI)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (SI)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-95', 9.5, 'Restaurant / meals - reduced rate (SI)');
@@ -964,8 +980,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-23', 23, 'Hotel internet - standard rate (SK)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-23', 23, 'Hotel incidents - standard rate (SK)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-23', 23, 'Hotel laundry - standard rate (SK)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-23', 23, 'Hotel parking - standard rate (SK)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-23', 23, 'Hotel other - standard rate (SK)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-23', 23, 'Hotel parking - standard rate (SK)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-23', 23, 'Hotel other - standard rate (SK)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (SK)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (SK)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-10', 10, 'Restaurant / meals - reduced rate (SK)');
@@ -975,60 +991,6 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetCARTxt(), '', 'VAT-STD-23', 23, 'Fuel / car expenses - standard rate (SK)');
         InsertRate(CreateExpenseCategories.GetEVENTSTxt(), '', 'VAT-STD-23', 23, 'Conferences / events - standard rate (SK)');
         InsertRate(CreateExpenseCategories.GetENTERTAINTxt(), '', 'VAT-STD-23', 23, 'Entertainment - standard rate (SK)');
-    end;
-
-    local procedure CreateVATRatesAU()
-    begin
-        // ── Australia (AU) ──────────────────────────────────────────────────────────
-        // GST flat 10 % on all taxable supplies; international flights GST-free
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetROOMTxt(), 'GST-10', 10, 'Hotel room - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetDEPOSITTxt(), 'GST-10', 10, 'Hotel deposit - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetBREAKFASTTxt(), 'GST-10', 10, 'Hotel breakfast - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetROOMSERVICETxt(), 'GST-10', 10, 'Hotel room service - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTRANSPORTTxt(), 'GST-10', 10, 'Hotel transport - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetFEETxt(), 'GST-10', 10, 'Hotel fees - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPHONETxt(), 'GST-10', 10, 'Hotel phone - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'GST-10', 10, 'Hotel internet - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'GST-10', 10, 'Hotel incidents - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'GST-10', 10, 'Hotel laundry - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'GST-10', 10, 'Hotel parking - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'GST-10', 10, 'Hotel other - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (AU)');
-        InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'GST-10', 10, 'Restaurant / meals - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetAIRLINETxt(), '', 'VAT-ZERO', 0, 'International flights - GST-free (AU)');
-        InsertRate(CreateExpenseCategories.GetGROUNDTRANSTxt(), '', 'GST-10', 10, 'Ground transport - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetRENTALCARSTxt(), '', 'GST-10', 10, 'Car rental - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetCARTxt(), '', 'GST-10', 10, 'Fuel / car expenses - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetEVENTSTxt(), '', 'GST-10', 10, 'Conferences / events - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetENTERTAINTxt(), '', 'GST-10', 10, 'Entertainment - GST (AU)');
-    end;
-
-    local procedure CreateVATRatesNZ()
-    begin
-        // ── New Zealand (NZ) ───────────────────────────────────────────────────────
-        // GST flat 15 % on all taxable supplies; international flights zero-rated
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetROOMTxt(), 'GST-15', 15, 'Hotel room - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetDEPOSITTxt(), 'GST-15', 15, 'Hotel deposit - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetBREAKFASTTxt(), 'GST-15', 15, 'Hotel breakfast - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetROOMSERVICETxt(), 'GST-15', 15, 'Hotel room service - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTRANSPORTTxt(), 'GST-15', 15, 'Hotel transport - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetFEETxt(), 'GST-15', 15, 'Hotel fees - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPHONETxt(), 'GST-15', 15, 'Hotel phone - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'GST-15', 15, 'Hotel internet - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'GST-15', 15, 'Hotel incidents - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'GST-15', 15, 'Hotel laundry - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'GST-15', 15, 'Hotel parking - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'GST-15', 15, 'Hotel other - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (NZ)');
-        InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'GST-15', 15, 'Restaurant / meals - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetAIRLINETxt(), '', 'VAT-ZERO', 0, 'International flights - zero-rated (NZ)');
-        InsertRate(CreateExpenseCategories.GetGROUNDTRANSTxt(), '', 'GST-15', 15, 'Ground transport - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetRENTALCARSTxt(), '', 'GST-15', 15, 'Car rental - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetCARTxt(), '', 'GST-15', 15, 'Fuel / car expenses - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetEVENTSTxt(), '', 'GST-15', 15, 'Conferences / events - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetENTERTAINTxt(), '', 'GST-15', 15, 'Entertainment - GST (NZ)');
     end;
 
     local procedure CreateVATRatesMX()
@@ -1045,8 +1007,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'IVA-STD-16', 16, 'Hotel internet - IVA standard rate (MX)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'IVA-STD-16', 16, 'Hotel incidents - IVA standard rate (MX)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'IVA-STD-16', 16, 'Hotel laundry - IVA standard rate (MX)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'IVA-STD-16', 16, 'Hotel parking - IVA standard rate (MX)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'IVA-STD-16', 16, 'Hotel other - IVA standard rate (MX)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'IVA-STD-16', 16, 'Hotel parking - IVA standard rate (MX)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'IVA-STD-16', 16, 'Hotel other - IVA standard rate (MX)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (MX)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (MX)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'IVA-STD-16', 16, 'Restaurant / meals - IVA standard rate (MX)');
@@ -1072,8 +1034,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-24', 24, 'Hotel internet - standard rate (IS)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-24', 24, 'Hotel incidents - standard rate (IS)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-24', 24, 'Hotel laundry - standard rate (IS)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-24', 24, 'Hotel parking - standard rate (IS)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-24', 24, 'Hotel other - standard rate (IS)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-24', 24, 'Hotel parking - standard rate (IS)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-24', 24, 'Hotel other - standard rate (IS)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (IS)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (IS)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-11', 11, 'Restaurant / meals - reduced rate (IS)');
@@ -1099,8 +1061,8 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-20', 20, 'Hotel internet - standard rate (UA)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-20', 20, 'Hotel incidents - standard rate (UA)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-20', 20, 'Hotel laundry - standard rate (UA)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPARKINGTxt(), 'VAT-STD-20', 20, 'Hotel parking - standard rate (UA)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetOTHERTxt(), 'VAT-STD-20', 20, 'Hotel other - standard rate (UA)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-20', 20, 'Hotel parking - standard rate (UA)');
+        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-20', 20, 'Hotel other - standard rate (UA)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (UA)');
         InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (UA)');
         InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-STD-20', 20, 'Restaurant / meals - standard rate (UA)');

@@ -10,10 +10,10 @@ using Microsoft.Utilities;
 using System;
 using System.Azure.KeyVault;
 using System.Environment;
-using System.Integration;
 using System.IO;
 using System.Security.Authentication;
 using System.Telemetry;
+using System.Text;
 using System.Utilities;
 using System.Xml;
 
@@ -28,15 +28,14 @@ codeunit 1410 "Doc. Exch. Service Mgt."
 
     var
         TempBlobResponse: Codeunit "Temp Blob";
-        TempBlobTrace: Codeunit "Temp Blob";
-        Trace: Codeunit Trace;
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
         DocExchLinks: Codeunit "Doc. Exch. Links";
         XMLDOMMgt: Codeunit "XML DOM Management";
         EnvironmentInfo: Codeunit "Environment Information";
+        GLBHttpRequestMessage: HttpRequestMessage;
+        GLBHttpResponseMessage: HttpResponseMessage;
         GLBResponseInStream: InStream;
-        GLBHttpStatusCode: DotNet HttpStatusCode;
-        GLBResponseHeaders: DotNet NameValueCollection;
+        GLBHttpStatusCode: Integer;
+        GLBRequestUrl: Text;
         GLBLastUsedGUID: Text;
         GLBTraceLogEnabled: Boolean;
         NotConfiguredQst: Label 'The connection to the document exchange service is not configured. Do you want to open the %1 page to set it up?', Comment = '%1 - page caption';
@@ -76,6 +75,11 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         EncodingUtf8Txt: Label 'utf-8', Locked = true;
         AcceptEncodingHeaderNameTxt: Label 'Accept-Encoding', Locked = true;
         AuthorizationHeaderNameTxt: Label 'Authorization', Locked = true;
+        BasicAuthorizationCredentialsTxt: Label '%1:%2', Locked = true, Comment = '%1 = user name (client ID); %2 = password (client secret)';
+        BasicAuthorizationSchemeTxt: Label 'Basic %1', Locked = true, Comment = '%1 = Base64-encoded credentials';
+        AcceptHeaderNameTxt: Label 'Accept', Locked = true;
+        ContentTypeHeaderNameTxt: Label 'Content-Type', Locked = true;
+        UserAgentHeaderNameTxt: Label 'User-Agent', Locked = true;
         AuthorizationHeaderValueTxt: Label 'Bearer %1', Locked = true;
         AuthorizationCodeRequestUrlTxt: Label '%1?client_id=%2&redirect_uri=%3&response_type=code&scope=%4&state=%5', Locked = true;
         AuthorizationCodeRequestBodyTxt: label 'grant_type=authorization_code&client_id=%1&client_secret=%2&code=%3&redirect_uri=%4', Locked = true;
@@ -122,7 +126,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         AcquireAuthorizationCodeTxt: Label 'Attempting to acquire an authorization code.', Locked = true;
         AcquireAccessTokenByAuthorizationCodeTxt: Label 'Attempting to acquire an access token by authorization code.', Locked = true;
         AcquireAccessTokenByRefreshTokenTxt: Label 'Attempting to acquire an access token by refresh token.', Locked = true;
-        CannotGetResponseTxt: Label 'Cannot get a response. Status: %1. Message: %2', Comment = '%1 - response status code, %2 - error message';
+        CannotGetResponseTelemetryTxt: Label 'Cannot get a response from the document exchange service.', Locked = true;
         CannotGetResponseWithDetailsTxt: Label 'Cannot get a response. Status: %1. Message: %2. Details: %3', Comment = '%1 - response status code, %2 - error message, %3 - error details';
         CannotParseResponseTxt: Label 'Cannot parse a response.';
         CannotParseIdTokenTxt: Label 'Cannot parse the ID token. %1', Comment = '%1 - error details';
@@ -141,6 +145,29 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         EmptyAccessTokenTxt: Label 'The access token is empty.';
         EmptyRefreshTokenTxt: Label 'The refresh token is empty.';
         EmptyIdTokenTxt: Label 'The ID token is empty.';
+        RemoteServiceErrorMessageErr: Label 'The remote service has returned the following error message:\\%1', Comment = '%1 = The error message returned by the remote service';
+        ConnectionErr: Label 'Connection to the remote service could not be established.\\';
+        RemoteServerReturnedErrorErr: Label 'The remote server returned an error: (%1) %2.', Comment = '%1 = HTTP status code, for example 404; %2 = HTTP reason phrase, for example Not Found';
+        ServiceUrlTxt: Label '\\Service URL: %1.', Comment = '%1 = The URL of the service, for example https://www.contoso.com/';
+        ProcessingWindowMsg: Label 'Please wait while the server is processing your request.\This may take several minutes.';
+        SendRequestFailedTelemetryTxt: Label 'The HTTP request to the document exchange service could not be sent.', Locked = true;
+        PostSalesInvUrlTxt: Label '/documents/dispatcher?documentId=%1&documentProfileId=tradeshift.invoice.ubl.1.0', Locked = true, Comment = '%1 = document ID';
+        PostSalesCrMemoUrlTxt: Label '/documents/dispatcher?documentId=%1&documentProfileId=tradeshift.creditnote.ubl.1.0', Locked = true, Comment = '%1 = document ID';
+        DocumentMetadataUrlTxt: Label '/documents/%1/metadata', Locked = true, Comment = '%1 = document ID';
+        DocumentFileUrlTxt: Label '/documentfiles/%1/file?directory=outbox', Locked = true, Comment = '%1 = file name';
+        DocumentFileDispatcherUrlTxt: Label '/documentfiles/%1/dispatcher?directory=outbox', Locked = true, Comment = '%1 = file name';
+        DocumentFileErrorsUrlTxt: Label '/documentfiles/%1/errors', Locked = true, Comment = '%1 = document ID';
+        RetrieveDocsUrlTxt: Label '/documents?stag=inbox&withouttag=BusinessDelivered&limit=%1', Locked = true, Comment = '%1 = maximum number of documents to retrieve';
+        DocumentUrlTxt: Label '/documents/%1', Locked = true, Comment = '%1 = document ID';
+        OriginalDocumentUrlTxt: Label '/documents/%1/original', Locked = true, Comment = '%1 = document ID';
+        BusinessDeliveredTagUrlTxt: Label '/documents/%1/tags/BusinessDelivered', Locked = true, Comment = '%1 = document ID';
+        ErrorXPathTxt: Label '//%1:Message', Locked = true, Comment = '%1 = XML namespace prefix';
+        StatusXPathTxt: Label '//%1:DeliveryState', Locked = true, Comment = '%1 = XML namespace prefix';
+        DocumentIdXPathTxt: Label './/%1:DocumentId', Locked = true, Comment = '%1 = XML namespace prefix';
+        DocumentTypeXPathTxt: Label './/%1:DocumentType', Locked = true, Comment = '%1 = XML namespace prefix';
+        DescriptionDocumentIdXPathTxt: Label './/%1:ID', Locked = true, Comment = '%1 = XML namespace prefix';
+        EmbeddedDocumentXPathTxt: Label '//%1:EmbeddedDocumentBinaryObject', Locked = true, Comment = '%1 = XML namespace prefix';
+        ExternalDocUrlTxt: Label 'https://%1.tradeshift.com/app/Tradeshift.Migration#::conversation/view/%2::', Locked = true, Comment = '%1 = Tradeshift subdomain, for example www or sandbox; %2 = document ID';
 
 
     procedure IsSandbox(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"): Boolean
@@ -313,35 +340,47 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     [TryFunction]
     local procedure TryAcquireAccessToken(TokenUrl: Text; ClientId: Text; ClientSecret: SecretText; RequestBody: SecretText; var AccessToken: SecretText; var RefreshToken: SecretText; var IdToken: SecretText; var ErrorMessage: Text; ParseIdToken: Boolean)
     var
-        TempBlob: Codeunit "Temp Blob";
-        OutStream: OutStream;
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
-        ResponseBody: Text;
-        ErrorDetails: Text;
-        TokenType: Text;
-        ResponseClientId: Text;
+        HttpClient: HttpClient;
+        HttpContent: HttpContent;
+        HttpContentHeaders: HttpHeaders;
+        HttpRequestHeaders: HttpHeaders;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        Succeeded: Boolean;
         ExpiresIn: Integer;
         HttpStatusCodeNumber: Integer;
+        ErrorDetails: Text;
+        ResponseBody: Text;
+        ResponseClientId: Text;
+        TokenType: Text;
     begin
-        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
-        OutStream.WriteText(RequestBody.Unwrap());
+        HttpContent.WriteFrom(RequestBody);
+        HttpContent.GetHeaders(HttpContentHeaders);
+        SetContentType(HttpContentHeaders, ApplicationFormTxt);
 
-        HttpWebRequestMgt.Initialize(TokenUrl);
-        HttpWebRequestMgt.DisableUI();
-        HttpWebRequestMgt.SetMethod(MethodPostTxt);
-        HttpWebRequestMgt.SetContentType(ApplicationFormTxt);
-        HttpWebRequestMgt.SetContentLength(TempBlob.Length());
-        HttpWebRequestMgt.SetUserAgent(GetUserAgent());
-        HttpWebRequestMgt.SetReturnType(ApplicationJsonTxt);
-        HttpWebRequestMgt.AddHeader(AcceptEncodingHeaderNameTxt, EncodingUtf8Txt);
-        HttpWebRequestMgt.AddBasicAuthentication(ClientId, ClientSecret);
-        HttpWebRequestMgt.AddBodyBlob(TempBlob);
+        HttpRequestMessage.Method(MethodPostTxt);
+        HttpRequestMessage.SetRequestUri(TokenUrl);
+        HttpRequestMessage.Content(HttpContent);
+        HttpRequestMessage.GetHeaders(HttpRequestHeaders);
+        HttpRequestHeaders.TryAddWithoutValidation(UserAgentHeaderNameTxt, GetUserAgent());
+        HttpRequestHeaders.Add(AcceptHeaderNameTxt, ApplicationJsonTxt);
+        HttpRequestHeaders.Add(AcceptEncodingHeaderNameTxt, EncodingUtf8Txt);
+        HttpRequestHeaders.Add(AuthorizationHeaderNameTxt, GetBasicAuthorizationHeaderValue(ClientId, ClientSecret));
 
-        if not HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseBody, ErrorMessage, ErrorDetails, HttpStatusCode, ResponseHeaders) then begin
-            if not IsNull(HttpStatusCode) then
-                HttpStatusCodeNumber := HttpStatusCode;
-            Session.LogMessage('0000EY7', StrSubstNo(CannotGetResponseWithDetailsTxt, HttpStatusCodeNumber, ErrorMessage, ErrorDetails), Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+        HttpClient.Timeout(GetRequestTimeout());
+        if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            HttpStatusCodeNumber := HttpResponseMessage.HttpStatusCode();
+            HttpResponseMessage.Content.ReadAs(ResponseBody);
+            Succeeded := HttpResponseMessage.IsSuccessStatusCode();
+            if not Succeeded then begin
+                ErrorMessage := StrSubstNo(RemoteServerReturnedErrorErr, HttpStatusCodeNumber, HttpResponseMessage.ReasonPhrase());
+                ErrorDetails := ResponseBody;
+            end;
+        end else
+            ErrorMessage := GetLastErrorText();
+
+        if not Succeeded then begin
+            LogCannotGetResponse('0000EY7', HttpStatusCodeNumber);
             Error(CannotGetResponseWithDetailsTxt, HttpStatusCodeNumber, ErrorMessage, ErrorDetails);
         end;
 
@@ -595,8 +634,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         if GuiAllowed() then
             Message(ConnectionSuccessMsg);
 
-        if GLBTraceLogEnabled then
-            Trace.LogStreamToTempFile(GLBResponseInStream, 'checkstatus', TempBlobTrace);
+        TraceLogResponse('checkstatus');
     end;
 
     [Scope('OnPrem')]
@@ -761,7 +799,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         end;
 
         GetServiceSetUp(DocExchServiceSetup);
-        AuthUrl := DocExchServiceSetup."Auth URL".ToLower();
+        AuthUrl := GetValidatedAuthUrl(DocExchServiceSetup).ToLower();
         Sandbox := IsSandbox(DocExchServiceSetup);
         ClientId := GetClientId(Sandbox);
 
@@ -918,13 +956,13 @@ codeunit 1410 "Doc. Exch. Service Mgt."
             Error(FieldNotSpecifiedTxt, DocExchServiceSetup.FieldCaption("Redirect URL"));
         end;
 
-        AuthUrl := DocExchServiceSetup."Auth URL";
+        AuthUrl := GetValidatedAuthUrl(DocExchServiceSetup);
         if AuthUrl = '' then begin
             Session.LogMessage('0000EYT', StrSubstNo(FieldNotSpecifiedTxt, DocExchServiceSetup.FieldCaption("Auth URL")), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             Error(FieldNotSpecifiedTxt, DocExchServiceSetup.FieldCaption("Auth URL"));
         end;
 
-        TokenUrl := DocExchServiceSetup."Token URL";
+        TokenUrl := GetValidatedTokenUrl(DocExchServiceSetup);
         if TokenUrl = '' then begin
             Session.LogMessage('0000EYU', StrSubstNo(FieldNotSpecifiedTxt, DocExchServiceSetup.FieldCaption("Token URL")), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             Error(FieldNotSpecifiedTxt, DocExchServiceSetup.FieldCaption("Token URL"));
@@ -960,15 +998,13 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         if not ExecuteWebServicePutRequest(GetPUTDocURL(DocIdentifier), TempBlob) then
             LogActivityFailedAndError(DocRecRef.RecordId, SendDocTxt, '');
 
-        if not IsNull(GLBHttpStatusCode) then
-            Succeed := GLBHttpStatusCode.Equals(GLBHttpStatusCode.NoContent);
+        Succeed := GLBHttpStatusCode = 204; // No Content
         if not Succeed then
             LogActivityFailedAndError(DocRecRef.RecordId, SendDocTxt, '');
 
         LogActivitySucceeded(DocRecRef.RecordId, SendDocTxt, DocUploadSuccessMsg);
 
-        if GLBTraceLogEnabled then
-            Trace.LogStreamToTempFile(GLBResponseInStream, 'put', TempBlobTrace);
+        TraceLogResponse('put');
     end;
 
     local procedure DispatchDocument(DocOrigIdentifier: Text; DocRecRef: RecordRef)
@@ -981,17 +1017,15 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         if not ExecuteWebServicePostRequest(GetDispatchDocURL(DocOrigIdentifier), TempBlob) then
             LogActivityFailedAndError(DocRecRef.RecordId, DispatchDocTxt, '');
 
-        if not IsNull(GLBHttpStatusCode) then
-            Succeed := GLBHttpStatusCode.Equals(GLBHttpStatusCode.Created);
+        Succeed := GLBHttpStatusCode = 201; // Created
         if not Succeed then begin
             DocExchLinks.UpdateDocumentRecord(DocRecRef, '', DocOrigIdentifier);
             LogActivityFailedAndError(DocRecRef.RecordId, DispatchDocTxt, DocDispatchFailedMsg);
         end;
 
-        if GLBTraceLogEnabled then
-            Trace.LogStreamToTempFile(GLBResponseInStream, 'dispatch', TempBlobTrace);
+        TraceLogResponse('dispatch');
 
-        DocIdentifier := GLBResponseHeaders.Get(GetDocumentIDKey());
+        DocIdentifier := GetResponseHeaderValue(GetDocumentIDKey());
         if not Evaluate(PlaceholderGuid, DocIdentifier) then
             LogActivityFailedAndError(DocRecRef.RecordId, DispatchDocTxt, InvalidHeaderResponseMsg);
         DocExchLinks.UpdateDocumentRecord(DocRecRef, DocIdentifier, DocOrigIdentifier);
@@ -1022,7 +1056,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
 
     local procedure GetDocDispatchErrors(DocRecordID: RecordID; DocIdentifier: Text; var Errors: Text): Boolean
     var
-        XmlDoc: DotNet XmlDocument;
+        XmlDoc: XmlDocument;
     begin
         CheckServiceEnabled();
 
@@ -1031,18 +1065,16 @@ codeunit 1410 "Doc. Exch. Service Mgt."
             exit(false);
         end;
 
-        if not HttpWebRequestMgt.TryLoadXMLResponse(GLBResponseInStream, XmlDoc) then begin
+        if not TryLoadXMLResponse(XmlDoc) then begin
             LogActivityFailed(DocRecordID, GetDocErrorTxt, '');
             exit(false);
         end;
 
-        Errors := XMLDOMMgt.FindNodeTextWithNamespace(XmlDoc.DocumentElement, GetErrorXPath(),
-            GetPrefix(), GetApiNamespace());
+        Errors := FindNodeTextWithNamespace(XmlDoc, GetErrorXPath(), GetPrefix(), GetApiNamespace());
 
         LogActivitySucceeded(DocRecordID, GetDocErrorTxt, Errors);
 
-        if GLBTraceLogEnabled then
-            Trace.LogStreamToTempFile(GLBResponseInStream, 'dispatcherrors', TempBlobTrace);
+        TraceLogResponse('dispatcherrors');
 
         exit(true);
     end;
@@ -1050,7 +1082,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     [Scope('OnPrem')]
     procedure GetDocumentMetadata(DocRecordID: RecordID; DocIdentifier: Text[50]; var NewStatus: Text): Boolean
     var
-        XmlDoc: DotNet XmlDocument;
+        XmlDoc: XmlDocument;
     begin
         CheckServiceEnabled();
         NewStatus := '';
@@ -1060,15 +1092,14 @@ codeunit 1410 "Doc. Exch. Service Mgt."
             exit(false);
         end;
 
-        if not HttpWebRequestMgt.TryLoadXMLResponse(GLBResponseInStream, XmlDoc) then begin
+        if not TryLoadXMLResponse(XmlDoc) then begin
             LogActivityFailed(DocRecordID, GetDocStatusTxt, '');
             exit(false);
         end;
 
-        if GLBTraceLogEnabled then
-            Trace.LogStreamToTempFile(GLBResponseInStream, 'checkstatus', TempBlobTrace);
+        TraceLogResponse('checkstatus');
 
-        NewStatus := XMLDOMMgt.FindNodeTextWithNamespace(XmlDoc.DocumentElement(), GetStatusXPath(), GetPrefix(), GetPublicNamespace());
+        NewStatus := FindNodeTextWithNamespace(XmlDoc, GetStatusXPath(), GetPrefix(), GetPublicNamespace());
         LogActivitySucceeded(DocRecordID, GetDocStatusTxt, StrSubstNo(DocStatusOKMsg, NewStatus));
         exit(true);
     end;
@@ -1076,33 +1107,33 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     [Scope('OnPrem')]
     procedure ReceiveDocuments(ContextRecordID: RecordID)
     var
-        XmlDoc: DotNet XmlDocument;
+        XmlDoc: XmlDocument;
     begin
         CheckServiceEnabled();
 
         if not ExecuteWebServiceGetRequest(GetRetrieveDocsURL()) then
             LogActivityFailedAndError(ContextRecordID, GetDocsTxt, '');
 
-        if not HttpWebRequestMgt.TryLoadXMLResponse(GLBResponseInStream, XmlDoc) then
+        if not TryLoadXMLResponse(XmlDoc) then
             LogActivityFailedAndError(ContextRecordID, GetDocsTxt, '');
 
         ProcessReceivedDocs(ContextRecordID, XmlDoc);
     end;
 
-    local procedure ProcessReceivedDocs(ContextRecordID: RecordID; XmlDocs: DotNet XmlDocument)
+    local procedure ProcessReceivedDocs(ContextRecordID: RecordID; XmlDocs: XmlDocument)
     var
         IncomingDocument: Record "Incoming Document";
-        XMLRootNode: DotNet XmlNode;
-        Node: DotNet XmlNode;
+        XMLRootElement: XmlElement;
+        Node: XmlNode;
         DummyGuid: Guid;
         DocIdentifier: Text;
         Description: Text;
     begin
-        XMLRootNode := XmlDocs.DocumentElement;
+        if not XmlDocs.GetRoot(XMLRootElement) then
+            exit;
 
-        foreach Node in XMLRootNode.ChildNodes do begin
-            DocIdentifier := XMLDOMMgt.FindNodeTextWithNamespace(Node, GetDocumentIDXPath(),
-                GetPrefix(), GetPublicNamespace());
+        foreach Node in XMLRootElement.GetChildElements() do begin
+            DocIdentifier := FindNodeTextWithNamespace(Node, GetDocumentIDXPath(), GetPrefix(), GetPublicNamespace());
 
             if not Evaluate(DummyGuid, DocIdentifier) then
                 LogActivityFailedAndError(ContextRecordID, GetDocsTxt, MalformedGuidErr);
@@ -1154,10 +1185,10 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     local procedure CreateIncomingDocEntry(var IncomingDocument: Record "Incoming Document"; ContextRecordID: RecordID; DocIdentifier: Text; Description: Text)
     var
         IncomingDocumentAttachment: Record "Incoming Document Attachment";
-        XmlDoc: DotNet XmlDocument;
+        XmlDoc: XmlDocument;
     begin
         // Assert response is XML
-        if not HttpWebRequestMgt.TryLoadXMLResponse(GLBResponseInStream, XmlDoc) then
+        if not TryLoadXMLResponse(XmlDoc) then
             LogActivityFailedAndError(ContextRecordID, GetDocsTxt, StrSubstNo(FileInvalidTxt, DocIdentifier));
 
         IncomingDocument.CreateIncomingDocument(
@@ -1168,35 +1199,45 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         ProcessAttachments(IncomingDocument, XmlDoc);
     end;
 
-    local procedure ProcessAttachments(var IncomingDocument: Record "Incoming Document"; XmlDoc: DotNet XmlDocument)
+    local procedure ProcessAttachments(var IncomingDocument: Record "Incoming Document"; XmlDoc: XmlDocument)
     var
-        NodeList: DotNet XmlNodeList;
-        Node: DotNet XmlNode;
+        Node: XmlNode;
+        NodeList: XmlNodeList;
+        RootElement: XmlElement;
     begin
-        XMLDOMMgt.FindNodesWithNamespace(XmlDoc.DocumentElement, GetEmbeddedDocXPath(), GetPrefix(), GetCBCNamespace(),
-          NodeList);
+        if not XmlDoc.GetRoot(RootElement) then
+            exit;
+        if not XMLDOMMgt.FindNodesWithNamespace(RootElement.AsXmlNode(), GetEmbeddedDocXPath(), GetPrefix(), GetCBCNamespace(), NodeList) then
+            exit;
         foreach Node in NodeList do
             ExtractAdditionalAttachment(IncomingDocument, Node);
     end;
 
-    local procedure ExtractAdditionalAttachment(var IncomingDocument: Record "Incoming Document"; Node: DotNet XmlNode)
+    local procedure ExtractAdditionalAttachment(var IncomingDocument: Record "Incoming Document"; Node: XmlNode)
     var
+        IncomingDocumentAttachment: Record "Incoming Document Attachment";
+        Base64Convert: Codeunit "Base64 Convert";
         FileMgt: Codeunit "File Management";
-        Convert: DotNet Convert;
-        TempFile: DotNet File;
-        FilePath: Text;
+        TempBlob: Codeunit "Temp Blob";
+        AttachmentInStream: InStream;
+        AttachmentOutStream: OutStream;
         FileName: Text;
     begin
         FileName := XMLDOMMgt.GetAttributeValue(Node, 'filename');
-        FilePath := FileMgt.ServerTempFileName(FileMgt.GetExtension(FileName));
-        FileMgt.IsAllowedPath(FilePath, false);
-        TempFile.WriteAllBytes(FilePath, Convert.FromBase64String(Node.InnerText));
-        IncomingDocument.AddAttachmentFromServerFile(FileName, FilePath);
+        if FileName = '' then
+            exit;
+
+        TempBlob.CreateOutStream(AttachmentOutStream);
+        Base64Convert.FromBase64(GetNodeInnerText(Node), AttachmentOutStream);
+        TempBlob.CreateInStream(AttachmentInStream);
+        IncomingDocument.AddAttachmentFromStream(IncomingDocumentAttachment, FileName, FileMgt.GetExtension(FileName), AttachmentInStream);
     end;
 
+    [NonDebuggable]
     local procedure Initialize(URL: Text; Method: Text[6]; var TempBlob: Codeunit "Temp Blob")
     var
         DocExchServiceSetup: Record "Doc. Exch. Service Setup";
+        HttpRequestHeaders: HttpHeaders;
         AccessToken: SecretText;
     begin
         CheckCredentials();
@@ -1207,28 +1248,46 @@ codeunit 1410 "Doc. Exch. Service Mgt."
             Error(EmptyAccessTokenTxt);
         end;
 
-        Clear(HttpWebRequestMgt);
-        HttpWebRequestMgt.Initialize(URL);
-        HttpWebRequestMgt.SetMethod(Method);
-        HttpWebRequestMgt.AddHeader(AuthorizationHeaderNameTxt, SecretStrSubstNo(AuthorizationHeaderValueTxt, AccessToken));
+        Clear(GLBHttpRequestMessage);
+        if not EnvironmentInfo.IsSaaS() then
+            OnInitializeOnBeforeSetRequestUri(URL);
+        GLBRequestUrl := URL;
+        GLBHttpRequestMessage.SetRequestUri(URL);
+        GLBHttpRequestMessage.Method(Method);
+        GLBHttpRequestMessage.GetHeaders(HttpRequestHeaders);
+        HttpRequestHeaders.Add(AuthorizationHeaderNameTxt, SecretStrSubstNo(AuthorizationHeaderValueTxt, AccessToken));
 
-        SetDefaults(TempBlob);
+        SetDefaults(Method, TempBlob);
     end;
 
-    local procedure SetDefaults(var TempBlob: Codeunit "Temp Blob")
+    local procedure SetDefaults(Method: Text; var TempBlob: Codeunit "Temp Blob")
     var
         DocExchServiceSetup: Record "Doc. Exch. Service Setup";
+        HttpContent: HttpContent;
+        HttpContentHeaders: HttpHeaders;
+        HttpRequestHeaders: HttpHeaders;
+        BodyInStream: InStream;
     begin
-        HttpWebRequestMgt.SetContentType(TextXmlTxt);
-        HttpWebRequestMgt.SetReturnType(TextXmlTxt);
-        HttpWebRequestMgt.SetUserAgent(GetUserAgent());
-        HttpWebRequestMgt.AddHeader(AcceptEncodingHeaderNameTxt, EncodingUtf8Txt);
-        HttpWebRequestMgt.AddBodyBlob(TempBlob);
+        GLBHttpRequestMessage.GetHeaders(HttpRequestHeaders);
+        HttpRequestHeaders.Add(AcceptHeaderNameTxt, TextXmlTxt);
+        HttpRequestHeaders.TryAddWithoutValidation(UserAgentHeaderNameTxt, GetUserAgent());
+        HttpRequestHeaders.Add(AcceptEncodingHeaderNameTxt, EncodingUtf8Txt);
+
+        // Requests with a body (POST/PUT) always send a text/xml content, even when empty, like the previous HttpWebRequest-based implementation.
+        if TempBlob.HasValue() or (Method <> MethodGetTxt) then begin
+            if TempBlob.HasValue() then begin
+                TempBlob.CreateInStream(BodyInStream);
+                HttpContent.WriteFrom(BodyInStream);
+            end else
+                HttpContent.WriteFrom('');
+            HttpContent.GetHeaders(HttpContentHeaders);
+            SetContentType(HttpContentHeaders, TextXmlTxt);
+            GLBHttpRequestMessage.Content(HttpContent);
+        end;
 
         // Set tracing
         GetServiceSetUp(DocExchServiceSetup);
         GLBTraceLogEnabled := DocExchServiceSetup."Log Web Requests";
-        HttpWebRequestMgt.SetTraceLogEnabled(DocExchServiceSetup."Log Web Requests");
     end;
 
     procedure CheckCredentials()
@@ -1270,17 +1329,13 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         Initialize(URL, Method, TempBlob);
         if ExecuteWebServiceRequest() then
             exit(true);
-        if IsNull(GLBHttpStatusCode) then
-            exit(false);
-        if not GLBHttpStatusCode.Equals(GLBHttpStatusCode.Unauthorized) then
+        if GLBHttpStatusCode <> 401 then // Unauthorized
             exit(false);
         AcquireAccessTokenByRefreshToken();
         Initialize(URL, Method, TempBlob);
         if ExecuteWebServiceRequest() then
             exit(true);
-        if IsNull(GLBHttpStatusCode) then
-            exit(false);
-        if not GLBHttpStatusCode.Equals(GLBHttpStatusCode.Unauthorized) then
+        if GLBHttpStatusCode <> 401 then // Unauthorized
             exit(false);
         ErrorMessage := GetLastErrorText();
         GetServiceSetUp(DocExchServiceSetup);
@@ -1293,26 +1348,176 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     [TryFunction]
     local procedure ExecuteWebServiceRequest()
     var
+        HttpClient: HttpClient;
+        CustomDimensions: Dictionary of [Text, Text];
+        ProcessingWindow: Dialog;
+        ResponseContentInStream: InStream;
+        ResponseOutStream: OutStream;
+        SendSucceeded: Boolean;
         ErrorMessage: Text;
-        HttpStatusCodeNumber: Integer;
     begin
         Clear(GLBHttpStatusCode);
-        Clear(GLBResponseHeaders);
+        Clear(GLBHttpResponseMessage);
         Clear(TempBlobResponse);
         TempBlobResponse.CreateInStream(GLBResponseInStream);
 
-        if not GuiAllowed() then
-            HttpWebRequestMgt.DisableUI();
+        if GuiAllowed() then
+            ProcessingWindow.Open(ProcessingWindowMsg);
 
-        if not HttpWebRequestMgt.GetResponse(GLBResponseInStream, GLBHttpStatusCode, GLBResponseHeaders) then begin
-            if not HttpWebRequestMgt.ProcessFaultXMLResponse('', GetErrorXPath(), GetPrefix(), GetApiNamespace(), GLBHttpStatusCode, GLBResponseHeaders) then
-                ; // catch
-            ErrorMessage := GetLastErrorText();
-            if not IsNull(GLBHttpStatusCode) then
-                HttpStatusCodeNumber := GLBHttpStatusCode;
-            Session.LogMessage('0000EYX', StrSubstNo(CannotGetResponseTxt, HttpStatusCodeNumber, ErrorMessage), Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
-            Error(ErrorMessage); // rethrow
+        HttpClient.Timeout(GetRequestTimeout());
+        SendSucceeded := HttpClient.Send(GLBHttpRequestMessage, GLBHttpResponseMessage);
+
+        if GuiAllowed() then
+            ProcessingWindow.Close();
+
+        if SendSucceeded then begin
+            GLBHttpStatusCode := GLBHttpResponseMessage.HttpStatusCode();
+            if GLBHttpResponseMessage.IsSuccessStatusCode() then begin
+                GLBHttpResponseMessage.Content.ReadAs(ResponseContentInStream);
+                TempBlobResponse.CreateOutStream(ResponseOutStream);
+                CopyStream(ResponseOutStream, ResponseContentInStream);
+                TempBlobResponse.CreateInStream(GLBResponseInStream);
+                exit;
+            end;
+        end else begin
+            CustomDimensions.Add('Category', TelemetryCategoryTok);
+            CustomDimensions.Add('ErrorCode', GetLastErrorCode());
+            Session.LogMessage('0000VWA', SendRequestFailedTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
         end;
+
+        ErrorMessage := GetFaultErrorText(SendSucceeded);
+        LogCannotGetResponse('0000EYX', GLBHttpStatusCode);
+        Error(RemoteServiceErrorMessageErr, ErrorMessage);
+    end;
+
+    local procedure LogCannotGetResponse(EventId: Text; HttpStatusCode: Integer)
+    var
+        CustomDimensions: Dictionary of [Text, Text];
+    begin
+        CustomDimensions.Add('Category', TelemetryCategoryTok);
+        CustomDimensions.Add('HttpStatusCode', Format(HttpStatusCode));
+        Session.LogMessage(EventId, CannotGetResponseTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
+    end;
+
+    local procedure GetFaultErrorText(SendSucceeded: Boolean): Text
+    var
+        TempBlobFaultResponse: Codeunit "Temp Blob";
+        TempBlobFaultTrace: Codeunit "Temp Blob";
+        FaultTrace: Codeunit Trace;
+        FaultResponseInStream: InStream;
+        FaultResponseOutStream: OutStream;
+        XmlDoc: XmlDocument;
+        ErrorText: Text;
+        RemoteServerError: Text;
+        ResponseText: Text;
+    begin
+        if not SendSucceeded then
+            exit(ConnectionErr + GetLastErrorText());
+
+        RemoteServerError := StrSubstNo(RemoteServerReturnedErrorErr, GLBHttpStatusCode, GLBHttpResponseMessage.ReasonPhrase());
+        if not (GLBHttpStatusCode in [302, 500]) then // Found, Internal Server Error
+            ErrorText := ConnectionErr + RemoteServerError + StrSubstNo(ServiceUrlTxt, GLBRequestUrl);
+
+        GLBHttpResponseMessage.Content.ReadAs(ResponseText);
+        if GLBTraceLogEnabled then begin
+            TempBlobFaultResponse.CreateOutStream(FaultResponseOutStream);
+            FaultResponseOutStream.WriteText(ResponseText);
+            TempBlobFaultResponse.CreateInStream(FaultResponseInStream);
+            FaultTrace.LogStreamToTempFile(FaultResponseInStream, 'WebExceptionResponse', TempBlobFaultTrace);
+        end;
+
+        if XmlDocument.ReadFrom(ResponseText, XmlDoc) then
+            ErrorText := FindNodeTextWithNamespace(XmlDoc, GetErrorXPath(), GetPrefix(), GetApiNamespace());
+
+        if ErrorText = '' then
+            ErrorText := RemoteServerError;
+
+        exit(ErrorText);
+    end;
+
+    local procedure TraceLogResponse(Name: Text)
+    var
+        TempBlobTraceLog: Codeunit "Temp Blob";
+        ResponseTrace: Codeunit Trace;
+        ResponseInStream: InStream;
+    begin
+        if not GLBTraceLogEnabled then
+            exit;
+        TempBlobResponse.CreateInStream(ResponseInStream);
+        ResponseTrace.LogStreamToTempFile(ResponseInStream, Name, TempBlobTraceLog);
+    end;
+
+    [TryFunction]
+    local procedure TryLoadXMLResponse(var XmlDoc: XmlDocument)
+    var
+        ResponseInStream: InStream;
+    begin
+        TempBlobResponse.CreateInStream(ResponseInStream);
+        XmlDocument.ReadFrom(ResponseInStream, XmlDoc);
+    end;
+
+    local procedure FindNodeTextWithNamespace(XmlDoc: XmlDocument; NodePath: Text; Prefix: Text; NameSpace: Text): Text
+    var
+        RootElement: XmlElement;
+    begin
+        if not XmlDoc.GetRoot(RootElement) then
+            exit('');
+        exit(FindNodeTextWithNamespace(RootElement.AsXmlNode(), NodePath, Prefix, NameSpace));
+    end;
+
+    local procedure FindNodeTextWithNamespace(Node: XmlNode; NodePath: Text; Prefix: Text; NameSpace: Text): Text
+    var
+        FoundNode: XmlNode;
+    begin
+        if not XMLDOMMgt.FindNodeWithNamespace(Node, NodePath, Prefix, NameSpace, FoundNode) then
+            exit('');
+        exit(GetNodeInnerText(FoundNode));
+    end;
+
+    local procedure GetNodeInnerText(Node: XmlNode): Text
+    begin
+        case true of
+            Node.IsXmlElement():
+                exit(Node.AsXmlElement().InnerText());
+            Node.IsXmlAttribute():
+                exit(Node.AsXmlAttribute().Value());
+            Node.IsXmlText():
+                exit(Node.AsXmlText().Value());
+        end;
+        exit('');
+    end;
+
+    local procedure GetResponseHeaderValue(HeaderName: Text): Text
+    var
+        HeaderValues: List of [Text];
+    begin
+        if not GLBHttpResponseMessage.Headers().Contains(HeaderName) then
+            exit('');
+        if not GLBHttpResponseMessage.Headers().GetValues(HeaderName, HeaderValues) then
+            exit('');
+        if HeaderValues.Count() = 0 then
+            exit('');
+        exit(HeaderValues.Get(1));
+    end;
+
+    local procedure SetContentType(var HttpContentHeaders: HttpHeaders; ContentType: Text)
+    begin
+        if HttpContentHeaders.Contains(ContentTypeHeaderNameTxt) then
+            HttpContentHeaders.Remove(ContentTypeHeaderNameTxt);
+        HttpContentHeaders.Add(ContentTypeHeaderNameTxt, ContentType);
+    end;
+
+    [NonDebuggable]
+    local procedure GetBasicAuthorizationHeaderValue(UserName: Text; Password: SecretText): SecretText
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+    begin
+        exit(SecretStrSubstNo(BasicAuthorizationSchemeTxt, Base64Convert.ToBase64(SecretStrSubstNo(BasicAuthorizationCredentialsTxt, UserName, Password))));
+    end;
+
+    local procedure GetRequestTimeout(): Integer
+    begin
+        exit(60000);
     end;
 
     procedure CheckServiceEnabled()
@@ -1397,7 +1602,44 @@ codeunit 1410 "Doc. Exch. Service Mgt."
             Session.LogMessage('0000EZ1', StrSubstNo(FieldNotSpecifiedTxt, DocExchServiceSetup.FieldCaption("Service URL")), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             Error(FieldNotSpecifiedTxt, DocExchServiceSetup.FieldCaption("Service URL"));
         end;
-        exit(DocExchServiceSetup."Service URL" + PartialURL);
+        exit(GetValidatedServiceUrl(DocExchServiceSetup) + PartialURL);
+    end;
+
+    local procedure GetValidatedServiceUrl(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"): Text
+    begin
+        exit(GetValidatedIntegrationUrl(DocExchServiceSetup, DocExchServiceSetup."Service URL", DefaultServiceUrlProdTxt, DefaultServiceUrlSandboxTxt));
+    end;
+
+    local procedure GetValidatedAuthUrl(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"): Text
+    begin
+        exit(GetValidatedIntegrationUrl(DocExchServiceSetup, DocExchServiceSetup."Auth URL", DefaultAuthUrlProdTxt, DefaultAuthUrlSandboxTxt));
+    end;
+
+    local procedure GetValidatedTokenUrl(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"): Text
+    begin
+        exit(GetValidatedIntegrationUrl(DocExchServiceSetup, DocExchServiceSetup."Token URL", DefaultTokenUrlProdTxt, DefaultTokenUrlSandboxTxt));
+    end;
+
+    local procedure GetValidatedIntegrationUrl(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"; StoredUrl: Text; DefaultProdUrl: Text; DefaultSandboxUrl: Text): Text
+    var
+        URI: Codeunit Uri;
+        ExpectedUrl: Text;
+    begin
+        if StoredUrl = '' then
+            exit(StoredUrl);
+
+        // Only pin the host online (SaaS), where the Client Id/Secret are Microsoft-owned (from Key Vault) and
+        // must not be sent to an untrusted endpoint. On-premises uses the customer's own credentials and may
+        // legitimately point at a non-default (partner-hosted) endpoint, so the stored URL is used as-is.
+        if not EnvironmentInfo.IsSaaSInfrastructure() then
+            exit(StoredUrl);
+
+        if IsSandbox(DocExchServiceSetup) then
+            ExpectedUrl := DefaultSandboxUrl
+        else
+            ExpectedUrl := DefaultProdUrl;
+
+        exit(URI.ValidateIntegrationURL(StoredUrl, ExpectedUrl));
     end;
 
     local procedure GetCheckConnectionURL(): Text
@@ -1424,53 +1666,53 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     procedure GetPostSalesInvURL(): Text
     begin
         exit(
-            GetFullURL(StrSubstNo('/documents/dispatcher?documentId=%1&documentProfileId=tradeshift.invoice.ubl.1.0', GetGUID())));
+            GetFullURL(StrSubstNo(PostSalesInvUrlTxt, GetGUID())));
     end;
 
     procedure GetPostSalesCrMemoURL(): Text
     begin
         exit(
-            GetFullURL(StrSubstNo('/documents/dispatcher?documentId=%1&documentProfileId=tradeshift.creditnote.ubl.1.0', GetGUID())));
+            GetFullURL(StrSubstNo(PostSalesCrMemoUrlTxt, GetGUID())));
     end;
 
     local procedure GetDocStatusURL(DocIdentifier: Text): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documents/%1/metadata', DocIdentifier)));
+        exit(GetFullURL(StrSubstNo(DocumentMetadataUrlTxt, DocIdentifier)));
     end;
 
     local procedure GetPUTDocURL(FileName: Text): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documentfiles/%1/file?directory=outbox', FileName)));
+        exit(GetFullURL(StrSubstNo(DocumentFileUrlTxt, FileName)));
     end;
 
     local procedure GetDispatchDocURL(FileName: Text): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documentfiles/%1/dispatcher?directory=outbox', FileName)));
+        exit(GetFullURL(StrSubstNo(DocumentFileDispatcherUrlTxt, FileName)));
     end;
 
     local procedure GetDispatchErrorsURL(DocIdentifier: Text): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documentfiles/%1/errors', DocIdentifier)));
+        exit(GetFullURL(StrSubstNo(DocumentFileErrorsUrlTxt, DocIdentifier)));
     end;
 
     local procedure GetRetrieveDocsURL(): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documents?stag=inbox&withouttag=BusinessDelivered&limit=%1', GetChunckSize())));
+        exit(GetFullURL(StrSubstNo(RetrieveDocsUrlTxt, GetChunckSize())));
     end;
 
     local procedure GetRetrieveDocIDURL(DocIdentifier: Text): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documents/%1', DocIdentifier)));
+        exit(GetFullURL(StrSubstNo(DocumentUrlTxt, DocIdentifier)));
     end;
 
     local procedure GetRetrieveOriginalDocIDURL(DocIdentifier: Text): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documents/%1/original', DocIdentifier)));
+        exit(GetFullURL(StrSubstNo(OriginalDocumentUrlTxt, DocIdentifier)));
     end;
 
     local procedure GetSetTagURL(DocIdentifier: Text): Text
     begin
-        exit(GetFullURL(StrSubstNo('/documents/%1/tags/BusinessDelivered', DocIdentifier)));
+        exit(GetFullURL(StrSubstNo(BusinessDeliveredTagUrlTxt, DocIdentifier)));
     end;
 
     local procedure GetGUID(): Text
@@ -1517,32 +1759,32 @@ codeunit 1410 "Doc. Exch. Service Mgt."
 
     local procedure GetErrorXPath(): Text
     begin
-        exit(StrSubstNo('//%1:Message', GetPrefix()));
+        exit(StrSubstNo(ErrorXPathTxt, GetPrefix()));
     end;
 
     local procedure GetStatusXPath(): Text
     begin
-        exit(StrSubstNo('//%1:DeliveryState', GetPrefix()));
+        exit(StrSubstNo(StatusXPathTxt, GetPrefix()));
     end;
 
     local procedure GetDocumentIDXPath(): Text
     begin
-        exit(StrSubstNo('.//%1:DocumentId', GetPrefix()));
+        exit(StrSubstNo(DocumentIdXPathTxt, GetPrefix()));
     end;
 
     local procedure GetDocumentTypeXPath(): Text
     begin
-        exit(StrSubstNo('.//%1:DocumentType', GetPrefix()));
+        exit(StrSubstNo(DocumentTypeXPathTxt, GetPrefix()));
     end;
 
     local procedure GetDocumentIDForDescriptionXPath(): Text
     begin
-        exit(StrSubstNo('.//%1:ID', GetPrefix()));
+        exit(StrSubstNo(DescriptionDocumentIdXPathTxt, GetPrefix()));
     end;
 
     local procedure GetEmbeddedDocXPath(): Text
     begin
-        exit(StrSubstNo('//%1:EmbeddedDocumentBinaryObject', GetPrefix()));
+        exit(StrSubstNo(EmbeddedDocumentXPathTxt, GetPrefix()));
     end;
 
     local procedure GetPrefix(): Text
@@ -1556,19 +1798,15 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     end;
 
     [TryFunction]
-    local procedure TryGetDocumentDescription(Node: DotNet XmlNode;
-
+    local procedure TryGetDocumentDescription(Node: XmlNode; var Description: Text)
     var
-        Description: Text)
-    var
-        SrchNode: DotNet XmlNode;
+        SrchNode: XmlNode;
     begin
         Description := '';
-        XMLDOMMgt.FindNodeWithNamespace(Node, GetDocumentTypeXPath(), GetPrefix(),
-          GetPublicNamespace(), SrchNode);
+        if not XMLDOMMgt.FindNodeWithNamespace(Node, GetDocumentTypeXPath(), GetPrefix(), GetPublicNamespace(), SrchNode) then
+            exit;
         Description := MapDocumentType(XMLDOMMgt.GetAttributeValue(SrchNode, 'type'));
-        Description += ' ' + XMLDOMMgt.FindNodeTextWithNamespace(Node, GetDocumentIDForDescriptionXPath(),
-            GetPrefix(), GetPublicNamespace());
+        Description += ' ' + FindNodeTextWithNamespace(Node, GetDocumentIDForDescriptionXPath(), GetPrefix(), GetPublicNamespace());
     end;
 
     local procedure MapDocumentType(DocType: Text): Text
@@ -1676,7 +1914,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         if StrPos(GetFullURL(''), SandboxTxt) > 0 then
             URLPart := SandboxTxt;
 
-        exit(StrSubstNo('https://%1.tradeshift.com/app/Tradeshift.Migration#::conversation/view/%2::', URLPart, DocID));
+        exit(StrSubstNo(ExternalDocUrlTxt, URLPart, DocID));
     end;
 
     procedure VerifyPrerequisites(ShowFailure: Boolean): Boolean
@@ -1742,6 +1980,14 @@ codeunit 1410 "Doc. Exch. Service Mgt."
 
     [IntegrationEvent(true, false)]
     local procedure OnBeforeGetPostSalesURL(DocRecRef: RecordRef; var URL: Text)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised in Initialize before the request URI is set. Allows tests to redirect document exchange service requests to a mock service. Raised only in non-SaaS environments.
+    /// </summary>
+    [InternalEvent(false)]
+    local procedure OnInitializeOnBeforeSetRequestUri(var Url: Text)
     begin
     end;
 }

@@ -199,6 +199,38 @@ page 8041 "Usage Data Imports"
                     Rec.CollectVendorContractsAndCreateInvoices(UsageDataImport);
                 end;
             }
+            action(CloseUsageDataImport)
+            {
+                Caption = 'Close';
+                ToolTip = 'Marks the selected imports as closed. Closed imports are skipped by processing and cannot be processed manually until they are reopened.';
+                Image = Close;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    UsageDataImport: Record "Usage Data Import";
+                begin
+                    CurrPage.SetSelectionFilter(UsageDataImport);
+                    Rec.CloseUsageDataImports(UsageDataImport);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ReopenUsageDataImport)
+            {
+                Caption = 'Reopen';
+                ToolTip = 'Reopens the selected closed imports and sets their processing status based on the imported lines and the usage data billing.';
+                Image = ReOpen;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    UsageDataImport: Record "Usage Data Import";
+                begin
+                    CurrPage.SetSelectionFilter(UsageDataImport);
+                    Rec.ReopenUsageDataImports(UsageDataImport);
+                    CurrPage.Update(false);
+                end;
+            }
         }
         area(Navigation)
         {
@@ -393,6 +425,18 @@ page 8041 "Usage Data Imports"
                 {
                 }
                 actionref(CreateVendorInvoices_Promoted; CreateVendorInvoices)
+                {
+                }
+            }
+            group(Category_Close)
+            {
+                Caption = 'Close';
+                ShowAs = SplitButton;
+
+                actionref(CloseUsageDataImport_Promoted; CloseUsageDataImport)
+                {
+                }
+                actionref(ReopenUsageDataImport_Promoted; ReopenUsageDataImport)
                 {
                 }
             }

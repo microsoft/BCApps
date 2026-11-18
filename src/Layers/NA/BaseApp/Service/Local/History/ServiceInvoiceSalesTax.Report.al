@@ -477,11 +477,7 @@ report 10474 "Service Invoice-Sales Tax"
 
                 trigger OnPreDataItem()
                 begin
-#if not CLEAN27
-                    NoLoops := 1 + Abs(NoCopies) + Customer."Invoice Copies";
-#else
                     NoLoops := 1 + Abs(NoCopies);
-#endif
                     if NoLoops <= 0 then
                         NoLoops := 1;
                     CopyNo := 0;

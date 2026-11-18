@@ -34,6 +34,11 @@ table 7412 "Excise Tax Type"
         {
             Caption = 'Report Caption';
         }
+        field(6; "Bonded Location Treatment"; Enum "Excise Bonded Loc. Treatment")
+        {
+            Caption = 'Bonded Location Treatment';
+            ToolTip = 'Specifies how inventory movements involving bonded locations are treated for excise duty calculations, such as whether excise is ignored, suspended while in bond, or becomes due when goods are released from bond.';
+        }
     }
 
     keys
@@ -47,15 +52,15 @@ table 7412 "Excise Tax Type"
     trigger OnDelete()
     var
         ExciseTaxEntryPermission: Record "Excise Tax Entry Permission";
-        ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
+        ExciseTaxRate: Record "Excise Tax Rate";
     begin
         ExciseTaxEntryPermission.SetRange("Excise Tax Type Code", Code);
         if not ExciseTaxEntryPermission.IsEmpty() then
             Error(CannotDeleteTaxTypeWithRateConfigurationsErr, Code, ExciseTaxEntryPermission.TableCaption());
 
-        ExciseTaxItemFARate.SetRange("Excise Tax Type Code", Code);
-        if not ExciseTaxItemFARate.IsEmpty() then
-            Error(CannotDeleteTaxTypeWithRateConfigurationsErr, Code, ExciseTaxItemFARate.TableCaption());
+        ExciseTaxRate.SetRange("Excise Tax Type Code", Code);
+        if not ExciseTaxRate.IsEmpty() then
+            Error(CannotDeleteTaxTypeWithRateConfigurationsErr, Code, ExciseTaxRate.TableCaption());
     end;
 
     var

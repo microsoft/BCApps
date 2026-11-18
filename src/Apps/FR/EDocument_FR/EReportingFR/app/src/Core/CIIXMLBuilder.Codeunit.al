@@ -160,6 +160,7 @@ codeunit 10978 "CII XML Builder"
 
         AddSellerTradeParty(AgreementElement, CompanyInformation);
         AddBuyerTradeParty(AgreementElement, SourceDocumentHeader);
+        AddInvoiceReferencedDocument(AgreementElement, SourceDocumentHeader);
 
         // BT-13 Purchase order reference
         if FREDocHelpers.FindFieldByName(SourceDocumentHeader, 'Order No.', FieldRefVar) then
@@ -175,6 +176,35 @@ codeunit 10978 "CII XML Builder"
         end;
 
         TransactionElement.Add(AgreementElement);
+    end;
+
+    local procedure AddInvoiceReferencedDocument(var AgreementElement: XmlElement; var SourceDocumentHeader: RecordRef)
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
+        AppliesToDocumentNoFieldRef: FieldRef;
+        DateStringElement: XmlElement;
+        FormattedIssueDateElement: XmlElement;
+        InvoiceReferenceElement: XmlElement;
+        AppliesToDocumentNo: Code[20];
+    begin
+        if SourceDocumentHeader.Number() <> Database::"Sales Cr.Memo Header" then
+            exit;
+        if not FREDocHelpers.FindFieldByName(SourceDocumentHeader, 'Applies-to Doc. No.', AppliesToDocumentNoFieldRef) then
+            exit;
+
+        AppliesToDocumentNo := AppliesToDocumentNoFieldRef.Value();
+        if (AppliesToDocumentNo = '') or not SalesInvoiceHeader.Get(AppliesToDocumentNo) then
+            exit;
+
+        InvoiceReferenceElement := XmlElement.Create('InvoiceReferencedDocument', RamNamespaceTok);
+        InvoiceReferenceElement.Add(XmlElement.Create('IssuerAssignedID', RamNamespaceTok, AppliesToDocumentNo));
+        FormattedIssueDateElement := XmlElement.Create('FormattedIssueDateTime', RamNamespaceTok);
+        DateStringElement := XmlElement.Create('DateTimeString', QdtNamespaceTok, FormatDate(SalesInvoiceHeader."Document Date"));
+        DateStringElement.SetAttribute('format', '102');
+        FormattedIssueDateElement.Add(DateStringElement);
+        InvoiceReferenceElement.Add(FormattedIssueDateElement);
+        AgreementElement.Add(InvoiceReferenceElement);
     end;
 
     local procedure AddSellerTradeParty(var AgreementElement: XmlElement; CompanyInformation: Record "Company Information")
@@ -268,6 +298,31 @@ codeunit 10978 "CII XML Builder"
             AddVATRegistration(BuyerElement, GetVATRegistrationNoWithCountryPrefix(VATRegistrationNo, BuyerCountryCode));
 
         AgreementElement.Add(BuyerElement);
+    end;
+
+    procedure TryGetBuyerElectronicAddress(Customer: Record Customer; var BuyerElectronicAddress: Text): Boolean
+    var
+        VATRegistrationNo: Text;
+    begin
+        if Customer."FR Electronic Address" <> '' then begin
+            BuyerElectronicAddress := Customer."FR Electronic Address";
+            exit(true);
+        end;
+
+        if Customer."Registration Number" <> '' then begin
+            BuyerElectronicAddress := CopyStr(Customer."Registration Number", 1, 14);
+            exit(true);
+        end;
+
+        VATRegistrationNo := UpperCase(DelChr(Customer."VAT Registration No.", '=', ' '));
+        if (StrLen(VATRegistrationNo) = 13) and (CopyStr(VATRegistrationNo, 1, 2) = 'FR') and
+           (DelChr(CopyStr(VATRegistrationNo, 3), '=', '0123456789') = '')
+        then begin
+            BuyerElectronicAddress := CopyStr(VATRegistrationNo, 5, 9);
+            exit(true);
+        end;
+
+        exit(false);
     end;
 
     local procedure GetHeaderFieldText(var SourceDocumentHeader: RecordRef; PrimaryFieldName: Text; FallbackFieldName: Text): Text

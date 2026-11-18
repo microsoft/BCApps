@@ -110,6 +110,11 @@ page 31211 "Posted Cash Document Lines CZP"
                     ToolTip = 'Specifies the value of the EET Transaction field.';
                     Visible = false;
                 }
+                field("Amount Type"; Rec."Amount Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Basic, Suite;

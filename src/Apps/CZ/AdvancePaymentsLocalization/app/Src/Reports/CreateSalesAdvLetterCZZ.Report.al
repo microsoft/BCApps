@@ -7,6 +7,7 @@ namespace Microsoft.Finance.AdvancePayments;
 using Microsoft.Finance.Currency;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Planning;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Posting;
 using System.Utilities;
@@ -405,8 +406,13 @@ report 31012 "Create Sales Adv. Letter CZZ"
     end;
 
     procedure SetSalesHeader(var NewSalesHeader: Record "Sales Header")
+    var
+        Customer: Record Customer;
     begin
         NewSalesHeader.TestField("Document Type", NewSalesHeader."Document Type"::Order);
+        Customer.Get(NewSalesHeader."Bill-to Customer No.");
+        Customer.CheckBlockedCustOnAdvanceLettersCZZ(false);
+
         SourceSalesHeader := NewSalesHeader;
         SalesPost.GetSalesLines(SourceSalesHeader, TempSalesLine, 0);
         TempSalesLine.CalcSums("Amount Including VAT");

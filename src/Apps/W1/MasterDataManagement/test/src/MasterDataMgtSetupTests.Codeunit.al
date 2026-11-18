@@ -17,6 +17,8 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
         InitializeHandled: Boolean;
+        IncorrectTablesListErr: Label 'Synchronization tables list is incorrect.';
+        UnexpectedConfirmErr: Label 'Unexpected confirmation dialog: %1', Locked = true;
 
     [Test]
     [HandlerFunctions('SynchronizationEnabledMessageHandler')]
@@ -96,6 +98,114 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         Initialize();
         MasterDataManagementSetup.Init();
         asserterror MasterDataManagementSetup.Validate("Company Name", CopyStr(CompanyName(), 1, MaxStrLen(MasterDataManagementSetup."Company Name")));
+        Assert.ExpectedError('You are currently signed into this company');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure EnableCrossEnvironmentAllowsSameSourceCompanyName()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        MasterDataMgtSubscriber: Record "Master Data Mgt. Subscriber";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Cross-env enables with a source company whose name equals the current company (different environment),
+        //            and never writes to the source subscriber table.
+        Initialize();
+        MasterDataManagementSetup.Init();
+        MasterDataManagementSetup."Source Environment Name" := 'CONTOSO-PROD';
+        MasterDataManagementSetup."Source Environment URL" := 'https://example/v2.0/contoso-prod';
+        MasterDataManagementSetup."Source Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(MasterDataManagementSetup."Source Company Name"));
+        MasterDataManagementSetup."Source OAuth Client Id" := '11111111-2222-3333-4444-555555555555';
+        MasterDataManagementSetup."Source Client Secret Key" := CreateGuid(); // simulate a stored secret
+        MasterDataManagementSetup.Insert();
+
+        MasterDataManagementSetup.Validate("Is Enabled", true);
+        MasterDataManagementSetup.Modify(true);
+
+        // [THEN] no subscriber row was written for the current company
+        MasterDataMgtSubscriber.SetRange("Company Name", CompanyName());
+        Assert.AreEqual(0, MasterDataMgtSubscriber.Count(), 'Cross-env enable must not write to the source subscriber table');
+
+        // cleanup: disable to remove the detector job
+        MasterDataManagementSetup.Validate("Is Enabled", false);
+        MasterDataManagementSetup.Modify(true);
+    end;
+
+    [Test]
+    procedure EnableCrossEnvironmentRequiresConnectionDetails()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Enabling cross-env without a configured connection is blocked with a clear error.
+        Initialize();
+        MasterDataManagementSetup.Init();
+        MasterDataManagementSetup."Source Environment Name" := 'CONTOSO-PROD'; // env set, but URL/company/client id/secret missing
+        MasterDataManagementSetup.Insert();
+
+        asserterror MasterDataManagementSetup.Validate("Is Enabled", true);
+        Assert.ExpectedError('connection details');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExitNotEnabledConfirmHandler')]
+    procedure SameEnvironmentShowsSourceCompanyHidesCrossEnvFields()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        MasterDataManagementSetupPage: TestPage "Master Data Management Setup";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [Master Data Management] [Setup] [UI]
+        // [SCENARIO 650747] With same-environment setup, the setup page shows the same-environment source company field and hides the cross-environment source fields.
+        Initialize();
+
+        // [GIVEN] A same-environment setup (no source environment configured)
+        MasterDataManagementSetup.Init();
+        MasterDataManagementSetup."Company Name" := CopyStr(LibraryRandom.RandText(30), 1, MaxStrLen(MasterDataManagementSetup."Company Name"));
+        MasterDataManagementSetup.Insert();
+
+        // [WHEN] The setup page is opened
+        MasterDataManagementSetupPage.OpenEdit();
+
+        // [THEN] The same-environment source company field is shown and the cross-environment source fields are hidden
+        Assert.IsTrue(MasterDataManagementSetupPage."Company Name".Visible(), 'Same-environment source company field should be visible.');
+        Assert.IsFalse(MasterDataManagementSetupPage."Source Environment Name".Visible(), 'Cross-environment source environment field should be hidden.');
+        Assert.IsFalse(MasterDataManagementSetupPage."Source Company Name".Visible(), 'Cross-environment source company field should be hidden.');
+
+        MasterDataManagementSetupPage.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('ExitNotEnabledConfirmHandler')]
+    procedure CrossEnvironmentShowsSourceFieldsHidesSameEnvField()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        MasterDataManagementSetupPage: TestPage "Master Data Management Setup";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [FEATURE] [Master Data Management] [Setup] [UI]
+        // [SCENARIO 650747] With cross-environment setup configured, the setup page shows the cross-environment source fields and hides the same-environment source company field when the page is opened.
+        Initialize();
+
+        // [GIVEN] A cross-environment setup with a configured connection
+        MasterDataManagementSetup.Init();
+        MasterDataManagementSetup."Source Environment Name" := 'CONTOSO-PROD';
+        MasterDataManagementSetup."Source Environment URL" := 'https://example/v2.0/contoso-prod';
+        MasterDataManagementSetup."Source Company Name" := CopyStr(LibraryRandom.RandText(30), 1, MaxStrLen(MasterDataManagementSetup."Source Company Name"));
+        MasterDataManagementSetup."Source OAuth Client Id" := '11111111-2222-3333-4444-555555555555';
+        MasterDataManagementSetup."Source Client Secret Key" := CreateGuid(); // simulate a stored secret
+        MasterDataManagementSetup.Insert();
+
+        // [WHEN] The setup page is opened
+        MasterDataManagementSetupPage.OpenEdit();
+
+        // [THEN] The cross-environment source fields are shown and the same-environment source company field is hidden
+        Assert.IsTrue(MasterDataManagementSetupPage."Source Environment Name".Visible(), 'Cross-environment source environment field should be visible.');
+        Assert.IsTrue(MasterDataManagementSetupPage."Source Company Name".Visible(), 'Cross-environment source company field should be visible.');
+        Assert.IsFalse(MasterDataManagementSetupPage."Company Name".Visible(), 'Same-environment source company field should be hidden.');
+
+        MasterDataManagementSetupPage.Close();
     end;
 
     [Test]
@@ -126,6 +236,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         MasterDataMgtCoupling."Local System ID" := EmptyGuid;
         MasterDataMgtCoupling.Insert();
 
+        LibraryVariableStorage.Enqueue('keep the table setup and coupling');
         MasterDataManagementSetup.Validate("Is Enabled", false);
         BindSubscription(MasterDataMgtSetupTests);
         MasterDataManagementSetup.Modify(true);
@@ -140,6 +251,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         Assert.IsTrue(IntegrationTableMapping.Count() > 0, '');
         Assert.IsTrue(IntegrationFieldMapping.Count() > 0, '');
         Assert.AreEqual(1, MasterDataMgtCoupling.Count(), '');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -171,8 +283,10 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
 
         // reset configuration
         MasterDataManagementSetupPage.OpenEdit();
+        LibraryVariableStorage.Enqueue('restore the default synchronization table setup');
         MasterDataManagementSetupPage.ResetConfiguration.Invoke();
         VerifyDefaultSetup();
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -277,6 +391,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         IntegrationFieldMapping.SetRange(Status);
         IntegrationFieldMapping.SetRange("Field Caption", '');
         Assert.IsTrue(IntegrationFieldMapping.Count() = 0, 'All synchronization fields for the added table should have a caption.');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -309,6 +424,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         MasterDataMgtCoupling."Local System ID" := EmptyGuid;
         MasterDataMgtCoupling.Insert();
 
+        LibraryVariableStorage.Enqueue('keep the table setup and coupling');
         MasterDataManagementSetup.Validate("Is Enabled", false);
         BindSubscription(MasterDataMgtSetupTests);
         MasterDataManagementSetup.Modify(true);
@@ -323,6 +439,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         Assert.AreEqual(0, IntegrationTableMapping.Count(), '');
         Assert.AreEqual(0, IntegrationFieldMapping.Count(), '');
         Assert.AreEqual(0, MasterDataMgtCoupling.Count(), '');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -331,7 +448,6 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         SynchTables: List of [Integer];
         RelatedTablesToAdd: List of [Integer];
         TablesToAddText: Text;
-        IncorrectTablesListErr: Label 'Synchronization tables list is incorrect.';
     begin
         // [SCENARIO] When selecting a table that has a self-reference or other reference that create a cycle, duplicate records are not added to the setup list
 
@@ -341,6 +457,83 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
 
         Assert.AreEqual(1, RelatedTablesToAdd.Count, IncorrectTablesListErr);
         Assert.IsTrue(RelatedTablesToAdd.Contains(Database::"MDM Test Table B"), IncorrectTablesListErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure SavingEnabledSetupAgainDoesNotAskToResetConfiguration()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        MasterDataMgtSetupTests: Codeunit "Master Data Mgt. Setup Tests";
+        MappingCount: Integer;
+    begin
+        // [FEATURE] [Master Data Management] [Setup]
+        // [SCENARIO] Saving an enabled setup again without changing whether it is enabled, as the setup page does after the
+        //            connection wizard enabled synchronization, does not enable it again and does not ask to reset the
+        //            synchronization tables that enabling just created.
+        Initialize();
+        DeleteSynchJobQueueEntries();
+
+        // [GIVEN] an enabled setup, which created the default synchronization tables
+        MasterDataManagementSetup.Init();
+        MasterDataManagementSetup."Company Name" := CopyStr(LibraryRandom.RandText(30), 1, MaxStrLen(MasterDataManagementSetup."Company Name"));
+        MasterDataManagementSetup.Validate("Is Enabled", true);
+        BindSubscription(MasterDataMgtSetupTests);
+        MasterDataManagementSetup.Insert(true);
+        IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
+        MappingCount := IntegrationTableMapping.Count();
+        Assert.IsTrue(MappingCount > 0, 'Precondition: enabling should create the default synchronization tables');
+
+        // [WHEN] the enabled setup is read again and saved
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.Modify(true); // an unhandled confirmation fails the test
+
+        // [THEN] the synchronization tables are kept and the setup stays enabled
+        UnbindSubscription(MasterDataMgtSetupTests);
+        Assert.AreEqual(MappingCount, IntegrationTableMapping.Count(), 'The synchronization tables should be kept');
+        MasterDataManagementSetup.Get();
+        Assert.IsTrue(MasterDataManagementSetup."Is Enabled", 'The setup should stay enabled');
+
+        DeleteSynchJobQueueEntries();
+    end;
+
+    [Test]
+    procedure SavingDisabledSetupDoesNotAskToKeepCouplings()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        MasterDataMgtSetupTests: Codeunit "Master Data Mgt. Setup Tests";
+    begin
+        // [FEATURE] [Master Data Management] [Setup]
+        // [SCENARIO] Saving a disabled setup, as the connection wizard does on Test Connection and Finish, does not disable it
+        //            again and does not ask whether to keep the couplings.
+        Initialize();
+
+        // [GIVEN] a disabled setup with an existing coupling
+        BindSubscription(MasterDataMgtSetupTests);
+        MasterDataManagementSetup.Init();
+        MasterDataManagementSetup."Company Name" := CopyStr(LibraryRandom.RandText(30), 1, MaxStrLen(MasterDataManagementSetup."Company Name"));
+        MasterDataManagementSetup.Insert(true);
+        MasterDataMgtCoupling."Integration System ID" := CreateGuid();
+        MasterDataMgtCoupling."Local System ID" := CreateGuid();
+        MasterDataMgtCoupling.Insert();
+
+        // [WHEN] the disabled setup is saved
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.Modify(true); // an unhandled confirmation fails the test
+        UnbindSubscription(MasterDataMgtSetupTests);
+
+        // [THEN] the coupling is kept
+        Assert.AreEqual(1, MasterDataMgtCoupling.Count(), 'The coupling should be kept');
+    end;
+
+    local procedure DeleteSynchJobQueueEntries()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Integration Synch. Job Runner");
+        JobQueueEntry.DeleteAll();
     end;
 
     local procedure Initialize()
@@ -356,6 +549,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
             exit;
 
         LibrarySetupStorage.Restore();
+        LibraryVariableStorage.Clear();
 
         BindSubscription(MasterDataMgtSynchTests);
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
@@ -409,13 +603,22 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
     [ConfirmHandler]
     internal procedure ConfirmHandlerYes(Question: Text; var Reply: Boolean)
     begin
+        Assert.IsTrue(StrPos(Question, LibraryVariableStorage.DequeueText()) > 0, StrSubstNo(UnexpectedConfirmErr, Question));
         Reply := true;
     end;
 
     [ConfirmHandler]
     internal procedure ConfirmHandlerNo(Question: Text; var Reply: Boolean)
     begin
+        Assert.IsTrue(StrPos(Question, LibraryVariableStorage.DequeueText()) > 0, StrSubstNo(UnexpectedConfirmErr, Question));
         Reply := false;
+    end;
+
+    [ConfirmHandler]
+    internal procedure ExitNotEnabledConfirmHandler(Question: Text; var Reply: Boolean)
+    begin
+        // The setup page asks to confirm closing while synchronization is not enabled; accept to let the page close.
+        Reply := true;
     end;
 
     [MessageHandler]

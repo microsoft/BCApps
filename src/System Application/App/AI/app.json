@@ -121,10 +121,10 @@
       "publisher": "Microsoft"
     }
   ],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "idRanges": [
     {
-      "from": 7757,
+      "from": 7754,
       "to": 7789
     }
   ],

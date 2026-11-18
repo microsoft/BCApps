@@ -3286,6 +3286,44 @@ codeunit 136108 "Service Posting - Invoice"
         Error(TestRollbackAfterCommitErr);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostServiceInvoiceWithoutExternalDocNoSalesExtDocMandatory()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceMgtSetup: Record "Service Mgt. Setup";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [External Document No.]
+        // [SCENARIO 650733] Sales setup does not make External Document No. mandatory on a service invoice
+        Initialize();
+
+        // [GIVEN] External Document No. is mandatory in Sales setup but not in Service setup
+        SetSalesSetupExtDocNoMandatory(true);
+        ServiceMgtSetup.Get();
+        ServiceMgtSetup.Validate("Ext. Doc. No. Mandatory", false);
+        ServiceMgtSetup.Modify(true);
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.TestField("Ext. Doc. No. Mandatory", true);
+        ServiceMgtSetup.TestField("Ext. Doc. No. Mandatory", false);
+
+        // [GIVEN] A service invoice with a blank External Document No.
+        CustomerNo := LibrarySales.CreateCustomerNo();
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, CustomerNo);
+        CreateServiceLine(ServiceHeader);
+        ServiceHeader.TestField("External Document No.", '');
+
+        // [WHEN] The service invoice is posted without an error
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+
+        // [THEN] The posted service invoice has a blank External Document No.
+        CustLedgerEntry.SetRange("Customer No.", CustomerNo);
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.TestField("External Document No.", '');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -4172,7 +4210,6 @@ codeunit 136108 "Service Posting - Invoice"
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
         SalesReceivablesSetup.Get();
-
         if LibraryVariableStorage.DequeueBoolean() then begin
             PostBatchForm.PostingDate.SetValue(20200101D);
             PostBatchForm.ReplacePostingDate.SetValue(true);
@@ -4198,7 +4235,6 @@ codeunit 136108 "Service Posting - Invoice"
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
         SalesReceivablesSetup.Get();
-
         if LibraryVariableStorage.DequeueBoolean() then begin
             PostBatchForm.PostingDate.SetValue(20200101D);
             PostBatchForm.ReplacePostingDate.SetValue(true);
@@ -4224,7 +4260,6 @@ codeunit 136108 "Service Posting - Invoice"
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
         SalesReceivablesSetup.Get();
-
         if LibraryVariableStorage.DequeueBoolean() then begin
             PostBatchForm.Ship.SetValue(true);
             PostBatchForm.Invoice.SetValue(true);

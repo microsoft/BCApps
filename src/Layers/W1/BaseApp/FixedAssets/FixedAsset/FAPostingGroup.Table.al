@@ -489,6 +489,62 @@ table 5606 "FA Posting Group"
                 CheckGLAcc("Book Val. Acc. on Disp. (Loss)", false);
             end;
         }
+        field(5865; "Derogatory Acc."; Code[20])
+        {
+            Caption = 'Derogatory Account';
+            TableRelation = "G/L Account";
+            ToolTip = 'Specifies the G/L account number to post derogatory transactions to, for fixed assets in this posting group.';
+
+            trigger OnValidate()
+            begin
+                CheckGLAcc("Derogatory Acc.", false);
+            end;
+        }
+        field(5866; "Derogatory Account (Decrease)"; Code[20])
+        {
+            Caption = 'Derogatory Acc. (Decrease)';
+            TableRelation = "G/L Account";
+            ToolTip = 'Specifies the G/L account number to post derogatory transactions to, when you dispose of fixed assets in this posting group.';
+
+            trigger OnValidate()
+            begin
+                CheckGLAcc("Derogatory Account (Decrease)", false);
+            end;
+        }
+        field(5867; "Derog. Bal. Account (Decrease)"; Code[20])
+        {
+            Caption = 'Derog. Bal. Acc. (Decrease)';
+            TableRelation = "G/L Account";
+            ToolTip = 'Specifies the number of the G/L balancing account to post derogatory transactions of fixed assets to, when you dispose of fixed assets.';
+
+            trigger OnValidate()
+            begin
+                CheckGLAcc("Derog. Bal. Account (Decrease)", true);
+            end;
+        }
+        field(5868; "Derogatory Expense Acc."; Code[20])
+        {
+            Caption = 'Derogatory Expense Account';
+            TableRelation = "G/L Account";
+            ToolTip = 'Specifies the G/L balancing account number to post derogatory transactions to, for fixed assets in this posting group.';
+
+            trigger OnValidate()
+            begin
+                CheckGLAcc("Derogatory Expense Acc.", true);
+            end;
+        }
+        field(5869; "Allocated Derogatory Pct."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
+                                                                    "Allocation Type" = const(Derogatory)));
+            Caption = 'Allocated Derogatory %';
+            DecimalPlaces = 1 : 1;
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the total percentage of derogatory depreciation allocated, when derogatory depreciation is posted for fixed assets.';
+        }
     }
 
     keys
@@ -790,6 +846,44 @@ table 5606 "FA Posting Group"
         OnAfterGetPostingGroup(Rec, DepreciationBookCode, Result);
     end;
 
+    procedure GetDerogatoryAccount(): Code[20]
+    begin
+        TestField("Derogatory Acc.");
+        exit("Derogatory Acc.");
+    end;
+
+    procedure GetDerogatoryAccountDecrease(): Code[20]
+    begin
+        TestField("Derogatory Account (Decrease)");
+        exit("Derogatory Account (Decrease)");
+    end;
+
+    procedure GetDerogatoryBalAccountDecrease(): Code[20]
+    begin
+        TestField("Derog. Bal. Account (Decrease)");
+        exit("Derog. Bal. Account (Decrease)");
+    end;
+
+    procedure GetDerogatoryExpenseAccount(): Code[20]
+    begin
+        TestField("Derogatory Expense Acc.");
+        exit("Derogatory Expense Acc.");
+    end;
+
+    procedure InitializeDepreciationDifferenceAccounts(DepreciationDifferenceAccount: Code[20]; DepreciationDifferenceBalAccount: Code[20])
+    var
+        IsHandled: Boolean;
+    begin
+        OnInitializeDepreciationDifferenceAccounts(Rec, DepreciationDifferenceAccount, DepreciationDifferenceBalAccount, IsHandled);
+        if IsHandled then
+            exit;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInitializeDepreciationDifferenceAccounts(var FAPostingGroup: Record "FA Posting Group"; DepreciationDifferenceAccount: Code[20]; DepreciationDifferenceBalAccount: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetPostingGroup(var FAPostingGroup: Record "FA Posting Group"; DepreciationBookCode: Code[10]; var Result: Boolean)
     begin
@@ -805,4 +899,3 @@ table 5606 "FA Posting Group"
     begin
     end;
 }
-

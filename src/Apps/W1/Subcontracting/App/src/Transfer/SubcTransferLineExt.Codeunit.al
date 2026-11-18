@@ -9,7 +9,7 @@ using Microsoft.Inventory.Transfer;
 
 codeunit 20544 "Subc. Transfer Line Ext."
 {
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -19,7 +19,7 @@ codeunit 20544 "Subc. Transfer Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterGetTransHeader, '', false, false)]
     local procedure OnAfterGetTransHeader(var TransferLine: Record "Transfer Line"; TransferHeader: Record "Transfer Header")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -34,7 +34,7 @@ codeunit 20544 "Subc. Transfer Line Ext."
         if TransferLine.IsTemporary() then
             exit;
 
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -49,7 +49,7 @@ codeunit 20544 "Subc. Transfer Line Ext."
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -69,7 +69,7 @@ codeunit 20544 "Subc. Transfer Line Ext."
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -92,7 +92,7 @@ codeunit 20544 "Subc. Transfer Line Ext."
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -115,7 +115,7 @@ codeunit 20544 "Subc. Transfer Line Ext."
     var
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -136,7 +136,7 @@ codeunit 20544 "Subc. Transfer Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnValidateItemNoOnCopyFromTempTransLine, '', false, false)]
     local procedure OnValidateItemNoOnCopyFromTempTransLine_TransferLine(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -148,7 +148,7 @@ codeunit 20544 "Subc. Transfer Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnValidateUnitofMeasureCodeOnBeforeValidateQuantity, '', false, false)]
     local procedure OnValidateUnitofMeasureCodeOnBeforeValidateQuantity(var TransferLine: Record "Transfer Line"; Item: Record Item; xTransferLine: Record "Transfer Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

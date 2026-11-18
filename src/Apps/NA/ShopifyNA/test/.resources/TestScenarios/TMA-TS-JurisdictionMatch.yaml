@@ -226,6 +226,63 @@ tests:
           jurisdictionCode: NYSTAX
       matchResult: true
 
+  - name: J9-ZeroRateLineMatchesExisting
+    description: A 0% Shopify tax line matches its existing jurisdiction like any other line
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+        - Code: NYCTAX
+          Description: New York City City Tax
+        - Code: MTATAX
+          Description: Metropolitan Commuter Transportation District
+        - Code: NYCOUNTY
+          Description: New York County Tax
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: METROPOLITAN COMMUTER TRANSPORTATION DISTRICT
+              ratePct: 0.375
+              channelLiable: false
+            - lineNo: 2
+              title: NEW YORK CITY CITY TAX
+              ratePct: 4.5
+              channelLiable: false
+            - lineNo: 3
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+            - lineNo: 4
+              title: NEW YORK COUNTY TAX
+              ratePct: 0.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: MTATAX
+        - parentId: 10001
+          lineNo: 2
+          jurisdictionCode: NYCTAX
+        - parentId: 10001
+          lineNo: 3
+          jurisdictionCode: NYSTAX
+        - parentId: 10001
+          lineNo: 4
+          jurisdictionCode: NYCOUNTY
+      matchResult: true
+
   - name: F1-FullAutoCreate
     description: Full auto-create flow — 3 tax lines, new jurisdictions, new tax area
     setup:
@@ -1021,3 +1078,196 @@ tests:
         jurisdictionCode: CATAX
         taxGroupCode: TAXABLE
         count: 1
+
+  - name: H14-MCTDAbbreviation
+    description: METROPOLITAN COMMUTER TRANSPORTATION DISTRICT matches a jurisdiction named by its MCTD abbreviation
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+        - Code: NYCTAX
+          Description: New York City Tax
+        - Code: NYMCTD
+          Description: MCTD Surcharge
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+            - lineNo: 2
+              title: NEW YORK CITY CITY TAX
+              ratePct: 4.5
+              channelLiable: false
+            - lineNo: 3
+              title: METROPOLITAN COMMUTER TRANSPORTATION DISTRICT
+              ratePct: 0.375
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+        - parentId: 10001
+          lineNo: 2
+          jurisdictionCode: NYCTAX
+        - parentId: 10001
+          lineNo: 3
+          jurisdictionCode: NYMCTD
+      matchResult: true
+
+  - name: H15-FrenchJurisdictionNamesQC
+    description: English GST/QST titles match Quebec jurisdictions named with the French abbreviations TPS/TVQ
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CATPS
+          Description: TPS
+          Country/Region Code: CA
+        - Code: QCTVQ
+          Description: TVQ
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: GST
+              ratePct: 5.0
+              channelLiable: false
+            - lineNo: 2
+              title: QST
+              ratePct: 9.975
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: CATPS
+        - parentId: 10001
+          lineNo: 2
+          jurisdictionCode: QCTVQ
+      matchResult: true
+
+  - name: H16-FrenchJurisdictionNameNB
+    description: An English HST title matches a New Brunswick jurisdiction named with the French abbreviation TVH
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NBTVH
+          Description: TVH - NB
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: NB
+        city: Moncton
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: HST
+              ratePct: 15.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NBTVH
+      matchResult: true
+
+  - name: H17-LocalSalesTaxKeepsLevel
+    description: County and city SALES TAX titles map to their own level, not to the state jurisdiction with an official name
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ILROT
+          Description: Illinois Retailers' Occupation Tax
+        - Code: ILCOOK
+          Description: Cook County
+        - Code: ILCHICAGO
+          Description: City of Chicago
+      orderAddress:
+        countryRegionCode: US
+        county: IL
+        city: Chicago
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: ILLINOIS STATE TAX
+              ratePct: 6.25
+              channelLiable: false
+            - lineNo: 2
+              title: COOK COUNTY SALES TAX
+              ratePct: 1.75
+              channelLiable: false
+            - lineNo: 3
+              title: CHICAGO CITY SALES TAX
+              ratePct: 1.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ILROT
+        - parentId: 10001
+          lineNo: 2
+          jurisdictionCode: ILCOOK
+        - parentId: 10001
+          lineNo: 3
+          jurisdictionCode: ILCHICAGO
+      matchResult: true
+
+  - name: H18-GenericHSTNoAutoCreate
+    description: With auto-create disabled and no province HST jurisdiction, a generic HST title matches the existing generic HST jurisdiction
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: HST
+          Description: HST
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: HST
+              ratePct: 15.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: HST
+      matchResult: true

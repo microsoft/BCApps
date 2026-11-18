@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 #pragma warning disable AA0247
 
+#pragma warning disable AS0011 // Accepted: renaming this existing object to add the mandatory affix would break references. Tracked by AB#640773.
 table 11021 "Sales VAT Advance Notif."
+#pragma warning restore AS0011
 {
     DataCaptionFields = "No.", Description;
     LookupPageID = 11017;

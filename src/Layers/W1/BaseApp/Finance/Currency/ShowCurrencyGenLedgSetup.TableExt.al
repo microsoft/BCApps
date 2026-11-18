@@ -35,6 +35,8 @@ tableextension 60 ShowCurrencyGenLedgSetup extends "General Ledger Setup"
             Caption = 'Currency Symbol Position';
             ToolTip = 'Specifies the position of the currency symbol in relation to the amount.';
             DataClassification = SystemMetadata;
+            ValuesAllowed = "Before Amount", "After Amount";
+            InitValue = "Before Amount";
         }
     }
 }

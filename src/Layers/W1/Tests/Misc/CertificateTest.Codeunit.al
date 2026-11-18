@@ -10,11 +10,15 @@ codeunit 134666 "Certificate Test"
     end;
 
     var
-        TestCertTxt: Label 'MIIFMQIBAzCCBPcGCSqGSIb3DQEHAaCCBOgEggTkMIIE4DCCAv8GCSqGSIb3DQEHBqCCAvAwggLsAgEAMIIC5QYJKoZIhvcNAQcBMBwGCiqGSIb3DQEMAQYwDgQInoKB6qoKZIQCAggAgIICuF9ZKEqoyo2dKPmAYqXL+Cf35+SDMgXxhRc89HKDXQ4va5umT+wBsy51FRxRahSiKksHmqRSLfZwTKEcQvSaOTyJdT0pL4uV5WNajrneiqw8JbdJYK57YLqol+92doBECbPMxQwZUuC2oZo3cyWJJBi3ehIqEOeSfYVBcDDCQrGy+ggmKfcYeDwjS9XDCnBO9xgl462J2w02tm/KW1rC1926xyVvmzspTdL0QFSc6t810oZ/f9L4/F04mRdvlbuR7RU09jHFSzLm5D2ybtXJd/B9YhwwGNQkfp/dPxq17Z7b4usEjXJWO7TwJtduOGXadznQJIVihWZBYBsqVI3mABh5FVZWrwdPGhfVOaeDhvAiqpKLA2+aewFuT7unaKSsjoOGHFvHF4RiiTCR/ag+2sHQPqpSUQJdlQjmiZ1F8tbpzuhJdBLY/i5Iqs13sk3zPrwP1oqwv9Xp3gd6hjktHNWyTrI/0LZct9REvJznOeLnKct0EhWuDuY4L24ZRjrMgBqNCgkm4hcUfhiOAlbYaMMVFWbUzA+6dEgwcltIp1gSZbhj8aB8MP/1fT8VjyhJsSE4p6wsqsgTpd27zsenJcLgyu7COjSstmkQ3qeIwNS/x9zuEinxzA7t3II1kROJz0nTqtQi4IgcBjb/2DiD2QwCLD4NvbbR7hWjDrUTOgtmgxrhn3qfsemDe2bQw3/ZJkKZrJO9fJzkhwXQWv7aj+4Nf1wxYIOcxKp30lB3zcKrTlBkNsmZDnVNEU7UwN8qAWkMyvWdyZaBW1TgbVer1D+YSGxXMqPesm7IJ+HBYJBUuC6xyXmOJ8QScNcIWHUDFUpb2Hg2Vw64y7nyPgxdb3C9zquM2TPAKUKEQylOGwTtzgd+73wVvoqLZbo0DXe9ZXrT/GRlac1mFP0lbF1GoAYOGgSbJoWF8jCCAdkGCSqGSIb3DQEHAaCCAcoEggHGMIIBwjCCAb4GCyqGSIb3DQEMCgECoIIBhjCCAYIwHAYKKoZIhvcNAQwBAzAOBAhJN3StWPRixwICCAAEggFg42+YWXJTaw52YnkoBFZMN5zWdMa6HlsJHV4FYbaCKE8NKTuxKibLWU/f0qgOJwo9fxy503Xz22wnEL7xRU2B9JblrlGrHlix0mswt/QU4rjhfzpYIv6kfOIHE8zKacQYdy2zDUXax54gX+Dj8m2dE22l+gCRZHqkYymV1nMdWJsqFRAiV2EsSwGLLZovYqp0/fVUxry7bYUCnu+yj9wkYr53LZ9O4EFUePDoJXMvGasPeB7876xDnVWdzQA6jZne0syZ8tH6q7/0wckPn0SvFfhphYqHFKlCc0FDCk/Nsxjod0A1PZz8HMueHJO1Jo3oODYMktI+HVCAC9UUqcmrW4jBBczEzKtCPyDgZkiP6xYU5AHUcBomHO94KHE5X5mZdgXblTRM1zc0uJS2CrBx4jc59s28S/bWABKduqNcczEnBuLyUsYKxX5/WkTmqSPdaJkU2xrfA/PcOTUodzYJVTElMCMGCSqGSIb3DQEJFTEWBBTxYMwv+lUDqlEPcjZoIfCnM5GzbzAxMCEwCQYFKw4DAhoFAAQU+06w2rleuz30pmANAqG7IHZX8q0ECF8gd+t0FeE8AgIIAA==';
-        TestCertPasswordTxt: Label 'test1234';
         Assert: Codeunit Assert;
+        TestCertBase64: Text;
+        TestCertThumbprint: Text;
+        TestCertPassword: SecretText;
+        TestCertExpiryDate: DateTime;
+        TestCertSubjectTxt: Label 'CN=Certificate Test', Locked = true;
+        SelfSignedCertNotCreatedErr: Label 'The self-signed test certificate was not created.';
+        PasswordProtectedCertNotCreatedErr: Label 'The password-protected test certificate was not created.';
         CertCodeTxt: Label 'CERT';
-        TestCertThumbprintTxt: Label 'F160CC2FFA5503AA510F72366821F0A73391B36F';
         ExpiryDateErr: Label 'Incorrect expiry date for the stored cert.';
         ThumbprintErr: Label 'Incorrect thumbprint for the stored cert.';
         HasPrivateKeyErr: Label 'Can not find the testCert private key.';
@@ -38,17 +42,15 @@ codeunit 134666 "Certificate Test"
     var
         IsolatedCertificate: Record "Isolated Certificate";
         CertificateManagement: Codeunit "Certificate Management";
-        AssertExpiryDate: DateTime;
     begin
-        // [SCENARIO] Use pre-defined testCert and verify the certificate
-        // [GIVEN] Pre-defined testCert
+        // [SCENARIO] Use a runtime-generated, password-protected test certificate and verify the certificate
+        // [GIVEN] Runtime-generated testCert
         // [WHEN] Reading & Verifying the cert
         InsertCertificateWithTestBlob(IsolatedCertificate, CertificateManagement);
 
         // [THEN] Cert values must match the actual cert values
-        AssertExpiryDate := CreateDateTime(20200610D, 031600T);
-        Assert.AreEqual(Format(AssertExpiryDate), Format(IsolatedCertificate."Expiry Date"), ExpiryDateErr);
-        Assert.AreEqual(TestCertThumbprintTxt, IsolatedCertificate.ThumbPrint, ThumbprintErr);
+        Assert.AreEqual(Format(TestCertExpiryDate), Format(IsolatedCertificate."Expiry Date"), ExpiryDateErr);
+        Assert.AreEqual(TestCertThumbprint, IsolatedCertificate.ThumbPrint, ThumbprintErr);
         Assert.IsTrue(IsolatedCertificate."Has Private Key", HasPrivateKeyErr);
 
         // [WHEN] TestSaving Cert and Password to IS
@@ -56,8 +58,8 @@ codeunit 134666 "Certificate Test"
         CertificateManagement.SaveCertToIsolatedStorage(IsolatedCertificate);
         CertificateManagement.SavePasswordToIsolatedStorage(IsolatedCertificate);
 
-        // [THEN] Cert base64 string stored in Isolated storagemust equal to the predefined cert string.
-        Assert.AreEqual(CertificateManagement.GetCertAsBase64String(IsolatedCertificate), TestCertTxt, StoredCertErr);
+        // [THEN] Cert base64 string stored in Isolated storage must equal to the generated cert string.
+        Assert.AreEqual(CertificateManagement.GetCertAsBase64String(IsolatedCertificate), TestCertBase64, StoredCertErr);
     end;
 
     [Scope('OnPrem')]
@@ -169,21 +171,37 @@ codeunit 134666 "Certificate Test"
     end;
 
     local procedure InsertCertificateWithTestBlob(var IsolatedCertificate: Record "Isolated Certificate"; var CertificateManagement: Codeunit "Certificate Management")
-    var
-        Cert: Text;
-        CertPass: Text;
     begin
         InsertCertificate(IsolatedCertificate);
 
-        // Add saved test Password
-        CertPass := TestCertPasswordTxt;
-        CertificateManagement.SetCertPassword(CertPass);
-        Cert := TestCertTxt;
-        CertificateManagement.VerifyCertFromString(IsolatedCertificate, Cert);
+        CreatePasswordProtectedTestCertificate();
+        CertificateManagement.SetCertPassword(TestCertPassword);
+        CertificateManagement.VerifyCertFromString(IsolatedCertificate, TestCertBase64);
 
         // Save to Isolated storage
         CertificateManagement.SaveCertToIsolatedStorage(IsolatedCertificate);
         CertificateManagement.SavePasswordToIsolatedStorage(IsolatedCertificate);
+    end;
+
+    local procedure CreatePasswordProtectedTestCertificate()
+    var
+        CertificateRequest: Codeunit CertificateRequest;
+        X509Certificate2: Codeunit X509Certificate2;
+        PrivateKeyXmlString: SecretText;
+        PublicCertBase64: Text;
+    begin
+        TestCertPassword := Format(CreateGuid());
+        TestCertExpiryDate := CreateDateTime(Today() + 365, 000000T);
+
+        CertificateRequest.InitializeRSA(2048, true, PrivateKeyXmlString);
+        CertificateRequest.InitializeCertificateRequestUsingRSA(TestCertSubjectTxt, Enum::"Hash Algorithm"::SHA256, Enum::"RSA Signature Padding"::Pkcs1);
+        CertificateRequest.CreateSelfSigned(CreateDateTime(Today(), 000000T), TestCertExpiryDate, Enum::"X509 Content Type"::Cert, PublicCertBase64);
+        Assert.AreNotEqual('', PublicCertBase64, SelfSignedCertNotCreatedErr);
+
+        TestCertBase64 := X509Certificate2.CreateFromPemAndExportAsBase64(PublicCertBase64, PrivateKeyXmlString, TestCertPassword);
+        Assert.AreNotEqual('', TestCertBase64, PasswordProtectedCertNotCreatedErr);
+
+        X509Certificate2.GetCertificateThumbprint(TestCertBase64, TestCertPassword, TestCertThumbprint);
     end;
 
     local procedure InsertCertificate(var IsolatedCertificate: Record "Isolated Certificate")

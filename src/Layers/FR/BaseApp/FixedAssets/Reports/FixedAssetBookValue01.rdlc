@@ -2818,7 +2818,7 @@
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=Fields!DeprBookInfo3.Value</Value>
+                                      <Value>=Fields!DerogDeprBookInfo3.Value</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -2852,7 +2852,7 @@
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=Fields!DeprBookInfo4.Value</Value>
+                                      <Value>=Fields!DerogDeprBookInfo4.Value</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -2886,7 +2886,7 @@
                                 <Paragraph>
                                   <TextRuns>
                                     <TextRun>
-                                      <Value>=FormatNumber(Fields!DeprBookInfo5.Value)</Value>
+                                      <Value>=Fields!DerogDeprBookInfo5.Value</Value>
                                       <Style>
                                         <FontFamily>Segoe UI</FontFamily>
                                         <FontSize>8pt</FontSize>
@@ -4800,6 +4800,9 @@
                   <KeepTogether>true</KeepTogether>
                 </TablixMember>
                 <TablixMember>
+                  <Visibility>
+                    <Hidden>=Not(Fields!ShowDerogatoryColumns.Value)</Hidden>
+                  </Visibility>
                   <KeepWithGroup>After</KeepWithGroup>
                   <RepeatOnNewPage>true</RepeatOnNewPage>
                 </TablixMember>
@@ -4843,7 +4846,7 @@
                         </TablixMember>
                         <TablixMember>
                           <Visibility>
-                            <Hidden>=IIF(Fields!PrintDetails.Value = "True",False,True)</Hidden>
+                            <Hidden>=IIF(Fields!PrintDetails.Value = "True" And Fields!ShowDerogatoryColumns.Value,False,True)</Hidden>
                           </Visibility>
                         </TablixMember>
                         <TablixMember>
@@ -4882,7 +4885,7 @@
                     </TablixMember>
                     <TablixMember>
                       <Visibility>
-                        <Hidden>=IIF(Fields!GroupTotals.Value &lt;&gt; " ",False,True)</Hidden>
+                        <Hidden>=IIF(Fields!GroupTotals.Value &lt;&gt; " " And Fields!ShowDerogatoryColumns.Value,False,True)</Hidden>
                       </Visibility>
                       <KeepWithGroup>Before</KeepWithGroup>
                     </TablixMember>
@@ -4918,6 +4921,9 @@
                   <KeepTogether>true</KeepTogether>
                 </TablixMember>
                 <TablixMember>
+                  <Visibility>
+                    <Hidden>=Not(Fields!ShowDerogatoryColumns.Value)</Hidden>
+                  </Visibility>
                   <KeepWithGroup>Before</KeepWithGroup>
                 </TablixMember>
                 <TablixMember>
@@ -5461,6 +5467,9 @@ End Function</Code>
         </Field>
         <Field Name="HasDerogatorySetup">
           <DataField>HasDerogatorySetup</DataField>
+        </Field>
+        <Field Name="ShowDerogatoryColumns">
+          <DataField>ShowDerogatoryColumns</DataField>
         </Field>
         <Field Name="FormatGrpTotGroupHeadLine">
           <DataField>FormatGrpTotGroupHeadLine</DataField>

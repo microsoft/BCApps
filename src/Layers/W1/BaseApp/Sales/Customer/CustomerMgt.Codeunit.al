@@ -25,31 +25,6 @@ codeunit 1302 "Customer Mgt."
     var
         FiscalYearTotals: Boolean;
 
-#if not CLEAN27
-    /// <summary>
-    /// Calculates the average number of days it takes for a customer to pay their invoices.
-    /// </summary>
-    /// <param name="CustNo">Specifies the customer number to calculate the average days to pay for.</param>
-    /// <returns>The average number of days to pay as a decimal value.</returns>
-    [Obsolete('Use procedure CalculatePaymentStats(CustomerNo: Code[20]; var Stats: Dictionary of [Text, Text]) instead.', '27.0')]
-    procedure AvgDaysToPay(CustNo: Code[20]) AverageDaysToPay: Decimal
-    var
-        Stats: Dictionary of [Text, Text];
-    begin
-        CalculatePaymentStats(CustNo, Stats);
-        exit(GetAvgDaysToPay(stats));
-    end;
-
-    local procedure GetAvgDaysToPay(var Stats: Dictionary of [Text, Text]) AverageDaysToPay: Decimal
-    var
-        CustomerCardCalculations: Codeunit "Customer Card Calculations";
-        AverageDaysToPayText: Text;
-    begin
-        if Stats.Get(CustomerCardCalculations.GetAvgDaysToPayLabel(), AverageDaysToPayText) then
-            if Evaluate(AverageDaysToPay, AverageDaysToPayText, 0) then
-                exit(AverageDaysToPay);
-    end;
-#endif
     /// <summary>
     /// Calculates payment statistics for a customer including average days to pay, late payment counts, and overdue invoices.
     /// </summary>

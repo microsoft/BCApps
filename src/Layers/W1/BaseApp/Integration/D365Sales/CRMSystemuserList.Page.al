@@ -387,8 +387,7 @@ page 5340 "CRM Systemuser List"
                 end;
             until TempCRMSystemuser.Next() = 0;
         end;
-        TempCRMSystemuser.ModifyAll(IsSyncWithDirectory, false);
-        TempCRMSystemuser.ModifyAll(IsDisabled, false);
+        TempCRMSystemuser.ModifyAll(IsSyncWithDirectory, false, IsDisabled, false);
     end;
 
     local procedure GetNotInTeamCoupledUsers(var TempSelectedCRMSystemuser: Record "CRM Systemuser" temporary; NewlyCoupledOnly: Boolean)

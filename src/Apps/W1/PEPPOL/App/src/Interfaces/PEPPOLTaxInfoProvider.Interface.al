@@ -141,4 +141,26 @@ interface "PEPPOL Tax Info Provider"
     /// <param name="TaxCategory">The tax category code to check.</param>
     /// <returns>True if the tax category is outside VAT scope, false otherwise.</returns>
     procedure IsOutsideScopeVATCategory(TaxCategory: Code[10]): Boolean;
+
+    /// <summary>
+    /// Called once per document after all lines have been aggregated into the VAT amount line buffer,
+    /// letting a format append synthetic VAT breakdown lines if needed. Needed to add, for example, compensation lines.
+    /// </summary>
+    /// <param name="VATAmtLine">The accumulated VAT amount line buffer to post-process.</param>
+    procedure FinalizeTaxTotals(var VATAmtLine: Record "VAT Amount Line")
+    begin
+    end;
+
+    /// <summary>
+    /// Gets the tax exemption reason text for a given VAT breakdown. Unlike the overload without the VAT amount line,
+    /// this lets a format tell apart breakdowns that share the same tax category.
+    /// </summary>
+    /// <param name="VATAmtLine">The VAT amount line the tax subtotal is written from.</param>
+    /// <param name="VATProductPostingGroupCategory">The VAT product posting group category record.</param>
+    /// <param name="TaxExemptionReasonTxt">Returns the tax exemption reason text.</param>
+    /// <param name="TaxCategoryID">The tax category ID to get exemption reason for.</param>
+    procedure GetTaxExemptionReason(VATAmtLine: Record "VAT Amount Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group"; var TaxExemptionReasonTxt: Text; TaxCategoryID: Text)
+    begin
+        this.GetTaxExemptionReason(VATProductPostingGroupCategory, TaxExemptionReasonTxt, TaxCategoryID);
+    end;
 }

@@ -44,7 +44,7 @@
     }
   ],
   "screenshots": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "application": "30.0.0.0",
   "idRanges": [
     {
@@ -55,6 +55,9 @@
       "from": 139537,
       "to": 139537
     }
+  ],
+  "features": [
+    "TranslationFile"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,

@@ -17,6 +17,9 @@ page 7136 "Travel Request List"
     CardPageId = "Travel Request Card";
     Editable = false;
     RefreshOnActivate = true;
+    Permissions = tabledata "Spend Request" = rd,
+                  tabledata "Spend Request Detail" = rd,
+                  tabledata "Spend Request To G/L Link" = rd;
 
     AboutTitle = 'About travel requests';
     AboutText = 'A travel request captures the intent to travel, its purpose, expected cost, and travelers, so it can be reviewed and approved before any expense is incurred.';
@@ -72,6 +75,36 @@ page 7136 "Travel Request List"
                 RunObject = page "Travelers";
                 RunPageLink = "Spend Request No." = field("No.");
             }
+            action(ExpenseReports)
+            {
+                Image = Document;
+                Caption = 'Expense Reports';
+                ToolTip = 'View the unposted expense reports that are linked to the selected travel request on the report or on any of its lines.';
+                ApplicationArea = Basic, Suite;
+                Enabled = Rec."No." <> '';
+
+                trigger OnAction()
+                var
+                    TravelReqLinkedReports: Codeunit "Travel Req. Linked Reports";
+                begin
+                    TravelReqLinkedReports.ShowExpenseReports(Rec."No.");
+                end;
+            }
+            action(PostedExpenseReports)
+            {
+                Image = PostedOrder;
+                Caption = 'Posted Expense Reports';
+                ToolTip = 'View the posted expense reports that are linked to the selected travel request on the report or on any of its lines. Canceled reports are not included.';
+                ApplicationArea = Basic, Suite;
+                Enabled = Rec."No." <> '';
+
+                trigger OnAction()
+                var
+                    TravelReqLinkedReports: Codeunit "Travel Req. Linked Reports";
+                begin
+                    TravelReqLinkedReports.ShowPostedExpenseReports(Rec."No.");
+                end;
+            }
         }
         area(Promoted)
         {
@@ -80,6 +113,12 @@ page 7136 "Travel Request List"
                 Caption = 'Travel Request';
 
                 actionref(Travelers_Promoted; Travelers)
+                {
+                }
+                actionref(ExpenseReports_Promoted; ExpenseReports)
+                {
+                }
+                actionref(PostedExpenseReports_Promoted; PostedExpenseReports)
                 {
                 }
             }

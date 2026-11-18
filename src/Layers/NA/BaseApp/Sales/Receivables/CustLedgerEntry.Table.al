@@ -46,7 +46,7 @@ table 21 "Cust. Ledger Entry"
         /// <summary>
         /// Specifies the unique sequential number assigned to this customer ledger entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -424,7 +424,7 @@ table 21 "Cust. Ledger Entry"
         /// <summary>
         /// Specifies the entry number of the customer ledger entry that closed this entry through application.
         /// </summary>
-        field(44; "Closed by Entry No."; Integer)
+        field(44; "Closed by Entry No."; BigInteger)
         {
             Caption = 'Closed by Entry No.';
             TableRelation = "Cust. Ledger Entry";
@@ -511,7 +511,7 @@ table 21 "Cust. Ledger Entry"
         /// <summary>
         /// Specifies the transaction number that links all entries posted in the same posting operation.
         /// </summary>
-        field(53; "Transaction No."; Integer)
+        field(53; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
             TableRelation = "G/L Transaction";
@@ -830,7 +830,7 @@ table 21 "Cust. Ledger Entry"
         /// <summary>
         /// Specifies the entry number of the correcting entry that reversed this original entry.
         /// </summary>
-        field(88; "Reversed by Entry No."; Integer)
+        field(88; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
@@ -840,7 +840,7 @@ table 21 "Cust. Ledger Entry"
         /// <summary>
         /// Specifies the entry number of the original entry that was reversed by this correcting entry.
         /// </summary>
-        field(89; "Reversed Entry No."; Integer)
+        field(89; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
@@ -855,7 +855,7 @@ table 21 "Cust. Ledger Entry"
             Caption = 'Prepayment';
             ToolTip = 'Specifies if the related payment is a prepayment.';
         }
-        field(95; "G/L Register No."; Integer)
+        field(95; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             Editable = false;
@@ -1044,12 +1044,19 @@ table 21 "Cust. Ledger Entry"
             var
                 DisputeStatus: Record "Dispute Status";
                 MarkedAsOnHoldLbl: label 'X', Locked = true;
+                NewOnHold: Code[3];
             begin
-                if Rec."Dispute Status" = '' then
-                    exit;
-                if DisputeStatus.get(Rec."Dispute Status") then
-                    if DisputeStatus."Overwrite on hold" then
-                        "On Hold" := MarkedAsOnHoldLbl;
+                NewOnHold := "On Hold";
+                if (xRec."Dispute Status" <> '') and (xRec."Dispute Status" <> Rec."Dispute Status") and (NewOnHold = MarkedAsOnHoldLbl) then
+                    if DisputeStatus.Get(xRec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            NewOnHold := '';
+                if Rec."Dispute Status" <> '' then
+                    if DisputeStatus.Get(Rec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            NewOnHold := MarkedAsOnHoldLbl;
+                if NewOnHold <> "On Hold" then
+                    Validate("On Hold", NewOnHold);
             end;
         }
         /// <summary>
@@ -1284,7 +1291,7 @@ table 21 "Cust. Ledger Entry"
     /// </summary>
     /// <returns>The entry number of the last customer ledger entry.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"Cust. Ledger Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -1790,6 +1797,32 @@ table 21 "Cust. Ledger Entry"
             InvoicePartAmount := BaseInvoicePartAmount;
     end;
 
+    internal procedure GetCreditMemoPartAmountByVAT(CreditMemoDocumentNo: Code[20]; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; SettledAmount: Decimal) CreditMemoPartAmount: Decimal
+    var
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        CreditMemoAmount: Decimal;
+    begin
+        SalesCrMemoLine.SetRange("Document No.", CreditMemoDocumentNo);
+        SalesCrMemoLine.SetLoadFields("Amount Including VAT", "VAT Bus. Posting Group", "VAT Prod. Posting Group");
+        if SalesCrMemoLine.FindSet() then
+            repeat
+                CreditMemoAmount += SalesCrMemoLine."Amount Including VAT";
+                if (SalesCrMemoLine."VAT Bus. Posting Group" = VATBusPostingGroup) and
+                   (SalesCrMemoLine."VAT Prod. Posting Group" = VATProdPostingGroup)
+                then
+                    CreditMemoPartAmount += SalesCrMemoLine."Amount Including VAT";
+            until SalesCrMemoLine.Next() = 0
+        else
+            exit(SettledAmount);
+
+        if CreditMemoAmount = 0 then
+            exit(SettledAmount);
+
+        CreditMemoPartAmount := CreditMemoPartAmount * Abs(SettledAmount) / Abs(CreditMemoAmount);
+        if SettledAmount < 0 then
+            CreditMemoPartAmount := -CreditMemoPartAmount;
+    end;
+
     /// <summary>
     /// Raised after copying customer ledger entry fields from a general journal line.
     /// </summary>
@@ -2029,4 +2062,3 @@ table 21 "Cust. Ledger Entry"
     begin
     end;
 }
-

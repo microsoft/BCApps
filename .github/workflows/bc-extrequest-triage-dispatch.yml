@@ -49,11 +49,10 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
           $marker = "<!-- bc-extrequest-feedback-recorded:$env:COMMENT_ID -->"
-          $comments = gh api `
+          $comments = (gh api `
             "repos/$env:GITHUB_REPOSITORY/issues/${{ github.event.issue.number }}/comments" `
-            --paginate --slurp --jq 'add // [] | map(.body // "")' |
-            ConvertFrom-Json
-          if ($comments | Where-Object { $_.Contains($marker) }) {
+            --paginate --jq '.[].body // ""') -join "`n"
+          if ($comments.Contains($marker)) {
               Add-Content -Path $env:GITHUB_OUTPUT -Value 'process=false'
               Write-Host 'Feedback was already recorded for this comment.'
               exit 0
@@ -76,7 +75,7 @@ jobs:
       - name: Mint token for BCAppsTriage
         if: steps.detect.outputs.process == 'true'
         id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           app-id: ${{ vars.TRIAGE_APP_ID }}
           private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}
@@ -183,7 +182,7 @@ jobs:
 
       - name: Mint token for BCAppsTriage
         id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           app-id: ${{ vars.TRIAGE_APP_ID }}
           private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}

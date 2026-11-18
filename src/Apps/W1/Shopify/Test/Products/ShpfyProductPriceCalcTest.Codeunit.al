@@ -214,6 +214,115 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         LibraryAssert.AreNearlyEqual(ExpectedPriceUpToBoundary, PriceBeforeBoundary, 0.01, 'Price for Work Date before the boundary date');
     end;
 
+    [Test]
+    [HandlerFunctions('ActivateConfirmHandler')]
+    procedure ExplicitZeroDiscountByVariantInV16()
+    begin
+        // [SCENARIO 649151] A variant-specific Discount 0% removes the generic discount from the Shopify selling price.
+        VerifyVariantZeroDiscount("Price Amount Type"::Discount, 100, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ActivateConfirmHandler')]
+    procedure IncidentalZeroDiscountByVariantInV16()
+    begin
+        // [SCENARIO 649151] A variant-specific Price & Discount line with 0% must preserve the generic discount.
+        VerifyVariantZeroDiscount("Price Amount Type"::Any, 70, 100);
+    end;
+
+    local procedure VerifyVariantZeroDiscount(VariantAmountType: Enum "Price Amount Type"; ExpectedPrice: Decimal; ExpectedComparePrice: Decimal)
+    var
+        Shop: Record "Shpfy Shop";
+        TempResetShop: Record "Shpfy Shop" temporary;
+        TempResetCatalog: Record "Shpfy Catalog" temporary;
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        PriceListHeader: Record "Price List Header";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ProductPriceCalculation: Codeunit "Shpfy Product Price Calc.";
+        PriceCalculationLibrary: Codeunit "Library - Price Calculation";
+        LibraryInventory: Codeunit "Library - Inventory";
+        UnitCost: Decimal;
+        Price: Decimal;
+        ComparePrice: Decimal;
+    begin
+        // [GIVEN] A shop with line discounts enabled, LCY and prices excluding VAT.
+        // CreateShop commits its initialization; configure pricing only after those commits.
+        Shop := InitializeTest.CreateShop();
+        Shop."Allow Line Disc." := true;
+        Shop."Currency Code" := '';
+        Shop."Customer Price Group" := '';
+        Shop."Customer Discount Group" := '';
+        Shop."Prices Including VAT" := false;
+        Shop."Tax Liable" := false;
+        Shop.Modify();
+        PriceCalculationLibrary.EnableExtendedPriceCalculation();
+        PriceCalculationLibrary.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Item cost 50, item-card price 125, and a variant. The distinct card price detects a price-list fallback.
+        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", 50, 125);
+        Item.Validate("Sales Unit of Measure", Item."Base Unit of Measure");
+        Item.Modify(true);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+
+        // [GIVEN] One active list: generic Price 100, generic Discount 30%, then the variant-specific zero.
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Sale, PriceListHeader."Source Type"::"All Customers", '');
+        CreateVariantDiscountPriceLine(PriceListHeader, Item, '', "Price Amount Type"::Price, 0);
+        CreateVariantDiscountPriceLine(PriceListHeader, Item, '', "Price Amount Type"::Discount, 30);
+        CreateVariantDiscountPriceLine(PriceListHeader, Item, ItemVariant.Code, VariantAmountType, 0);
+        PriceListHeader.Validate(Status, "Price Status"::Active);
+        PriceListHeader.Modify(true);
+
+        // SetShop does not clear a customer cached by an earlier catalog test. Reset through the catalog API,
+        // using a non-Shopify catalog ID and a blank shop so SetShop must rebuild the actual shop context next.
+        TempResetCatalog.Id := -1;
+        ProductPriceCalculation.SetShopAndCatalog(TempResetShop, TempResetCatalog);
+
+        // [WHEN] The connector calculates the generic item's price, not a manually constructed Sales Line.
+        ProductPriceCalculation.SetShop(Shop);
+        ProductPriceCalculation.CalcPrice(Item, '', Item."Sales Unit of Measure", UnitCost, Price, ComparePrice);
+
+        // [THEN] The generic discount is applicable and produces a discounted selling price and a compare-at price.
+        VerifyCalculatedVariantPrice(UnitCost, Price, ComparePrice, 70, 100);
+
+        // [WHEN] The same calculator prices the variant, retaining the previous outputs to detect failure to clear compare-at.
+        ProductPriceCalculation.CalcPrice(Item, ItemVariant.Code, Item."Sales Unit of Measure", UnitCost, Price, ComparePrice);
+
+        // [THEN] Only an explicit Discount 0% removes the discount and clears the compare-at price.
+        VerifyCalculatedVariantPrice(UnitCost, Price, ComparePrice, ExpectedPrice, ExpectedComparePrice);
+
+        // [WHEN] The same calculator prices the generic item again.
+        ProductPriceCalculation.CalcPrice(Item, '', Item."Sales Unit of Measure", UnitCost, Price, ComparePrice);
+
+        // [THEN] The variant exception has not leaked into the generic calculation.
+        VerifyCalculatedVariantPrice(UnitCost, Price, ComparePrice, 70, 100);
+        PriceCalculationLibrary.DisableExtendedPriceCalculation();
+    end;
+
+    local procedure CreateVariantDiscountPriceLine(PriceListHeader: Record "Price List Header"; Item: Record Item; VariantCode: Code[10]; AmountType: Enum "Price Amount Type"; DiscountPct: Decimal)
+    var
+        PriceListLine: Record "Price List Line";
+    begin
+        LibraryPriceCalculation.CreatePriceListLine(PriceListLine, PriceListHeader, AmountType, "Price Asset Type"::Item, Item."No.");
+        PriceListLine.Validate("Variant Code", VariantCode);
+        PriceListLine.Validate("Unit of Measure Code", Item."Sales Unit of Measure");
+        if AmountType in ["Price Amount Type"::Price, "Price Amount Type"::Any] then begin
+            PriceListLine.Validate("Unit Price", 100);
+            PriceListLine.Validate("Allow Line Disc.", true);
+        end;
+        if AmountType in ["Price Amount Type"::Discount, "Price Amount Type"::Any] then
+            PriceListLine.Validate("Line Discount %", DiscountPct);
+        PriceListLine.Modify(true);
+    end;
+
+    local procedure VerifyCalculatedVariantPrice(UnitCost: Decimal; Price: Decimal; ComparePrice: Decimal; ExpectedPrice: Decimal; ExpectedComparePrice: Decimal)
+    begin
+        LibraryAssert.AreEqual(50, UnitCost, 'The Shopify unit cost must remain unchanged.');
+        LibraryAssert.AreEqual(ExpectedPrice, Price, 'The Shopify selling price must reflect the applicable line discount.');
+        LibraryAssert.AreEqual(ExpectedComparePrice, ComparePrice, 'The Shopify compare-at price must be cleared when there is no discount.');
+    end;
+
     [ConfirmHandler]
     procedure ActivateConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin

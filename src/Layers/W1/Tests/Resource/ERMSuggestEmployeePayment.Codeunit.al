@@ -1322,8 +1322,7 @@ codeunit 134116 "ERM Suggest Employee Payment"
     local procedure UpdateGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; EmployeeNo: Code[20])
     begin
         FindGeneralJournalLines(GenJournalLine);
-        GenJournalLine.ModifyAll("Bal. Account Type", GenJournalLine."Bal. Account Type"::Employee, true);
-        GenJournalLine.ModifyAll("Bal. Account No.", EmployeeNo, true);
+        GenJournalLine.ModifyAll("Bal. Account Type", GenJournalLine."Bal. Account Type"::Employee, "Bal. Account No.", EmployeeNo, true);
         UpdateDimensionOnGeneralJournalLine(GenJournalLine);
     end;
 

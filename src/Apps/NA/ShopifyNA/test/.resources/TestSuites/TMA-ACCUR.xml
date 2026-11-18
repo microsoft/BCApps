@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <Root>
     <AITSuite Code="TMA-ACCUR"
-              Description="Shopify Tax Matching Agent - Accuracy (generated, large)"
+              Description="Shopify Tax Matching - Accuracy (generated, large)"
               Dataset="TMA-Setup.yaml"
               Capability="Shopify Tax Matching Agent"
-              Frequency="Weekly"
               TestRunnerId="130451"
               TestType="Copilot">
+        <Language Tag="en-US"
+                  Frequency="Weekly" />
         <Line CodeunitID="134717"
               Description="Accuracy - US jurisdictions (generated, batch 1)"
               Dataset="TMA-TS-AccUS-1.yaml" />

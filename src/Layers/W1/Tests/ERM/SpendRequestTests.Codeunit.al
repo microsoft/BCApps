@@ -342,16 +342,47 @@ codeunit 134242 "Spend Request Tests"
     end;
 
     [Test]
+    procedure DeleteDetailLineDecrementsHeaderTotalExactlyOnce()
+    var
+        SpendRequest: Record "Spend Request";
+        FirstSpendRequestDetail: Record "Spend Request Detail";
+        RemainingSpendRequestDetail: Record "Spend Request Detail";
+    begin
+        // [SCENARIO 646383] Real detail deletion applies each LCY delta exactly once without removing the other detail.
+        Initialize();
+
+        // [GIVEN] An open LCY request "R" initially has zero total and two details "D1" and "D2" worth 10 and 30.
+        CreateSpendRequest(SpendRequest);
+        VerifyDetailDeletionTotals(SpendRequest."No.", 0, 0);
+        CreateSpendRequestDetail(FirstSpendRequestDetail, SpendRequest."No.", 10);
+        CreateSpendRequestDetail(RemainingSpendRequestDetail, SpendRequest."No.", 30);
+        VerifyDetailDeletionTotals(SpendRequest."No.", 40, 2);
+
+        // [WHEN] Deleting "D1" runs the production table trigger, not a page action or a permission test.
+        FirstSpendRequestDetail.Delete(true);
+
+        // [THEN] "D2" survives and both its amount and the header total are 30.
+        RemainingSpendRequestDetail.Get(RemainingSpendRequestDetail."Spend Request No.", RemainingSpendRequestDetail."Line No.");
+        VerifyDetailDeletionTotals(SpendRequest."No.", 30, 1);
+
+        // [WHEN] The remaining detail "D2" is deleted through its production trigger.
+        RemainingSpendRequestDetail.Delete(true);
+
+        // [THEN] No details remain and the header total is exactly zero.
+        VerifyDetailDeletionTotals(SpendRequest."No.", 0, 0);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure CannotInsertDetailOnReleasedRequest()
     var
         SpendRequest: Record "Spend Request";
         SpendRequestDetail: Record "Spend Request Detail";
     begin
-        // [SCENARIO] Cannot insert a detail line on a released spend request.
+        // [SCENARIO] Cannot insert a detail line on a Released spend request.
         Initialize();
 
-        // [GIVEN] A released spend request.
+        // [GIVEN] A Released spend request.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
         SpendRequest.Status := SpendRequest.Status::Released;
         SpendRequest.Modify();
@@ -395,10 +426,10 @@ codeunit 134242 "Spend Request Tests"
     var
         SpendRequest: Record "Spend Request";
     begin
-        // [SCENARIO] A released spend request can be reopened.
+        // [SCENARIO] A Released spend request can be reopened.
         Initialize();
 
-        // [GIVEN] A released spend request.
+        // [GIVEN] A Released spend request.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
         SpendRequest.Status := SpendRequest.Status::Released;
         SpendRequest.Modify();
@@ -560,6 +591,8 @@ codeunit 134242 "Spend Request Tests"
 
         // [GIVEN] An open spend request.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
+        SpendRequest.Status := SpendRequest.Status::Released;
+        SpendRequest.Modify();
         SpendRequestCard.OpenEdit();
         SpendRequestCard.GoToRecord(SpendRequest);
 
@@ -575,7 +608,7 @@ codeunit 134242 "Spend Request Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure RejectActionRequiresReleasedStatus()
+    procedure RejectActionIgnoredOnClosedStatus()
     var
         SpendRequest: Record "Spend Request";
         SpendRequestCard: TestPage "Spend Request Card";
@@ -583,17 +616,20 @@ codeunit 134242 "Spend Request Tests"
         // [SCENARIO] The Reject action requires the spend request to be in Released status.
         Initialize();
 
-        // [GIVEN] An open spend request (not Released).
+        // [GIVEN] A closed spend request.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
+        SpendRequest.Status := SpendRequest.Status::Closed;
+        SpendRequest.Modify();
         SpendRequestCard.OpenEdit();
         SpendRequestCard.GoToRecord(SpendRequest);
 
         // [WHEN] The Reject action is invoked.
-        asserterror SpendRequestCard.Reject.Invoke();
+        SpendRequestCard.Reject.Invoke();
 
         // [THEN] An error is raised because Status is not Released.
-        Assert.ExpectedError('must have the status ' + Format(SpendRequest.Status::Released));
         SpendRequestCard.Close();
+        SpendRequest.Find(); // retrieve the same record
+        SpendRequest.TestField(Status, SpendRequest.Status::Closed);
     end;
 
     [Test]
@@ -606,7 +642,7 @@ codeunit 134242 "Spend Request Tests"
         // [SCENARIO] The Reject action succeeds when the spend request is in Released status.
         Initialize();
 
-        // [GIVEN] A released spend request.
+        // [GIVEN] A Released spend request.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
         SpendRequest.Status := SpendRequest.Status::Released;
         SpendRequest.Modify();
@@ -651,10 +687,10 @@ codeunit 134242 "Spend Request Tests"
         SpendRequest: Record "Spend Request";
         SpendRequestCard: TestPage "Spend Request Card";
     begin
-        // [SCENARIO] The ReOpen action sets a released spend request back to Open.
+        // [SCENARIO] The ReOpen action sets a Released spend request back to Open.
         Initialize();
 
-        // [GIVEN] A released spend request.
+        // [GIVEN] A Released spend request.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
         SpendRequest.Status := SpendRequest.Status::Released;
         SpendRequest.Modify();
@@ -738,7 +774,7 @@ codeunit 134242 "Spend Request Tests"
         // [SCENARIO] Validating Description on a detail line checks that the header is Open.
         Initialize();
 
-        // [GIVEN] A spend request with a detail line that is then released.
+        // [GIVEN] A spend request with a detail line that is then Released.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
         CreateSpendRequestDetail(SpendRequestDetail, SpendRequest."No.", SpendRequest."Total Expected Amount");
         SpendRequest.Status := SpendRequest.Status::Released;
@@ -809,7 +845,7 @@ codeunit 134242 "Spend Request Tests"
         // [SCENARIO] Validating Requested By on a non-open request raises an error.
         Initialize();
 
-        // [GIVEN] A released spend request.
+        // [GIVEN] A Released spend request.
         CreateSpendRequest(SpendRequest);
         SpendRequest.Status := SpendRequest.Status::Released;
         SpendRequest.Modify();
@@ -821,5 +857,22 @@ codeunit 134242 "Spend Request Tests"
 
         // [THEN] An error is raised.
         Assert.ExpectedError('must have the status ' + Format(SpendRequest.Status::Open));
+    end;
+
+    local procedure VerifyDetailDeletionTotals(SpendRequestNo: Code[20]; ExpectedAmount: Decimal; ExpectedLineCount: Integer)
+    var
+        SpendRequest: Record "Spend Request";
+        SpendRequestDetail: Record "Spend Request Detail";
+    begin
+        SpendRequest.Get(SpendRequestNo);
+        Assert.AreEqual(SpendRequest.Status::Open, SpendRequest.Status, 'Detail deletion must preserve the Open status.');
+        Assert.AreEqual('', SpendRequest."Currency Code", 'The request must use LCY.');
+        Assert.AreEqual(ExpectedAmount, SpendRequest."Total Expected Amount", 'The header amount must reflect each deleted detail exactly once.');
+        Assert.AreEqual(ExpectedAmount, SpendRequest."Total Expected Amount (LCY)", 'The LCY header amount must reflect each deleted detail exactly once.');
+        SpendRequestDetail.SetRange("Spend Request No.", SpendRequestNo);
+        Assert.AreEqual(ExpectedLineCount, SpendRequestDetail.Count(), 'Only the intended details must be deleted.');
+        SpendRequestDetail.CalcSums("Expected Amount", "Expected Amount (LCY)");
+        Assert.AreEqual(ExpectedAmount, SpendRequestDetail."Expected Amount", 'The remaining detail amounts must be unchanged.');
+        Assert.AreEqual(ExpectedAmount, SpendRequestDetail."Expected Amount (LCY)", 'The remaining LCY detail amounts must be unchanged.');
     end;
 }

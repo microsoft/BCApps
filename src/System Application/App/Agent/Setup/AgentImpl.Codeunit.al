@@ -67,11 +67,35 @@ codeunit 4301 "Agent Impl."
         if Agent.Substate = Agent.Substate::Archived then
             exit; // Archiving is terminal; idempotent no-op avoids the platform "archived agent cannot be modified" error on re-archive.
 
+        if not IsArchivingSupported(Agent) then
+            Error(ArchivingNotSupportedErr, Agent."Agent Metadata Provider");
+
         if Agent.State <> Agent.State::Disabled then
             Error(DeactivateBeforeArchivingErr);
 
         Agent.Substate := Agent.Substate::Archived;
         Agent.Modify(true);
+    end;
+
+    procedure IsArchivingSupported(AgentUserSecurityID: Guid): Boolean
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        exit(IsArchivingSupported(Agent));
+    end;
+
+    local procedure IsArchivingSupported(Agent: Record Agent): Boolean
+    var
+        AgentArchiving: Interface IAgentArchiving;
+    begin
+        if IsNullGuid(Agent."User Security ID") then
+            exit(false);
+
+        AgentArchiving := Agent."Agent Metadata Provider";
+
+        exit(AgentArchiving.IsArchivingSupported());
     end;
 
     procedure IsArchived(AgentUserSecurityID: Guid): Boolean
@@ -644,6 +668,7 @@ codeunit 4301 "Agent Impl."
         AgentDoesNotExistErr: Label 'Agent does not exist.';
         AgentArchivedCannotBeModifiedErr: Label 'The agent is archived and cannot be modified.';
         DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.';
+        ArchivingNotSupportedErr: Label 'Archiving agents of type ''%1'' is not supported.', Comment = '%1 = the type of the agent.';
         AutoLbl: Label 'Auto';
         NoActiveAgentsErr: Label 'There are no active agents setup on the system.';
         NoAgentsAvailableNotificationLbl: Label 'Business Central agents are currently not available in your country.';

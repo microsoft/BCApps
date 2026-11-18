@@ -126,7 +126,7 @@ codeunit 5708 "Release Transfer Document"
 #if not CLEAN28
             "WIP Quantity",
 #endif
-            "Item No.", "Variant Code");
+            "Item No.", "Variant Code", "Unit of Measure Code");
         TransLine.SetRange("Document No.", TransHeader."No.");
         TransLine.SetFilter(Quantity, '<>0');
 #if not CLEAN28

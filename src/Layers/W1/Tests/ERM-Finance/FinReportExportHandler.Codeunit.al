@@ -5,6 +5,7 @@ codeunit 135006 "Fin. Report Export Handler"
 
     var
         TempBlob: Codeunit "Temp Blob";
+        OutputFileName: Text;
 
     procedure GetStream() InStr: InStream
     begin
@@ -14,6 +15,18 @@ codeunit 135006 "Fin. Report Export Handler"
     procedure GetBlob(var Blob: Codeunit "Temp Blob")
     begin
         Blob := TempBlob;
+    end;
+
+    procedure GetOutputFileName(): Text
+    begin
+        exit(OutputFileName);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", GetFilename, '', false, false)]
+    local procedure OnGetFilename(ReportID: Integer; Caption: Text[250]; ObjectPayload: JsonObject; FileExtension: Text[30]; ReportRecordRef: RecordRef; var Filename: Text; var Success: Boolean)
+    begin
+        if (ReportID = Report::"Account Schedule") and Success then
+            OutputFileName := Filename;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Financial Report Export Job", OnBeforeSavePdf, '', true, true)]

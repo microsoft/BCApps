@@ -160,6 +160,11 @@ table 5624 "FA Reclass. Journal Line"
             Caption = 'Calc. DB1 Depr. Amount';
             ToolTip = 'Specifies that the Reclassify function fills in the Temp. Ending Date and Temp. Fixed Depr. Amount fields on the FA depreciation book.';
         }
+        field(5865; "Reclass. Derogatory"; Boolean)
+        {
+            Caption = 'Reclassify Derogatory';
+            ToolTip = 'Specifies that you want to reclassify the accumulated derogatory depreciation in the FA No. field to the fixed asset in the New FA No. field.';
+        }
     }
 
     keys

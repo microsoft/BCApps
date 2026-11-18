@@ -188,7 +188,7 @@ report 295 "Combine Shipments"
             trigger OnPreDataItem()
             begin
                 if GetFilter("Operation Type") <> '' then
-                    Error(MissingFilterErr, FieldName("Operation Type"));
+                    Error(MissingFilterErr, FieldCaption("Operation Type"));
 
                 SetRange("Operation Type", OperationType.Code);
 
