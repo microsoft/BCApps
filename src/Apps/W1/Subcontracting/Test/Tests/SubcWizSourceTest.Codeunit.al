@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
 
-codeunit 140001 "Subc. Wiz. Source Test"
+codeunit 149928 "Subc. Wiz. Source Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;

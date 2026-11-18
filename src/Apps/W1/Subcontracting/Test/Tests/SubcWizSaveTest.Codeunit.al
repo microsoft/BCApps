@@ -14,7 +14,7 @@ using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
 
-codeunit 140002 "Subc. Wiz. Save Test"
+codeunit 149929 "Subc. Wiz. Save Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;

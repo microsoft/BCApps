@@ -63,6 +63,285 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
+    procedure CreateProductionOrderFromPurchaseOrder_PurchPrice()
+    var
+        Location, Location2 : Record Location;
+        ProdOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchLine: Record "Purchase Line";
+        RoutingLink: Record "Routing Link";
+        SubcontractorPrices, SubcontractorPrices2 : Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        ItemNo, ItemNoOriginPurchLine : Code[20];
+        PurchOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO] Create Production Order from Purchase Order from scratch
+        Initialize();
+
+        // [GIVEN] Create Item for Production include Routing and Prod. BOM
+        SubCreateProdOrdWizLibrary.CreateAndCalculateNeededWorkCenter(WorkCenter, false);
+        UpdateDefaultCommonWorkCenter(WorkCenter."No.");
+        LibraryManufacturing.CreateRoutingLink(RoutingLink);
+        UpdateSubMgmtRoutingLink(RoutingLink.Code);
+
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryWarehouse.CreateLocation(Location2);
+        ItemNo := LibraryInventory.CreateItemNo();
+
+        LibraryPurchase.CreateVendor(Vendor);
+        WorkCenter."Subcontractor No." := Vendor."No.";
+        WorkCenter.Modify();
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
+        SubcontractorPrices."Direct Unit Cost" := 99;
+        SubcontractorPrices.Modify();
+        Vendor."Subc. Location Code" := Location2.Code;
+        Vendor.Modify();
+
+        LibraryPurchase.CreateVendor(Vendor);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
+        SubcontractorPrices2."Direct Unit Cost" := 11;
+        SubcontractorPrices2.Modify();
+        Vendor."Subc. Location Code" := Location2.Code;
+        Vendor.Modify();
+
+        LibraryPurchase.CreatePurchaseOrderWithLocation(PurchaseHeader, Vendor."No.", Location.Code);
+        LibraryPurchase.CreatePurchaseLine(PurchLine, PurchaseHeader, PurchLine.Type::Item, ItemNo, LibraryRandom.RandInt(100));
+        PurchLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(1, 100, 2));
+        ItemNoOriginPurchLine := PurchLine."No.";
+        PurchLine.Modify(true);
+
+        // [WHEN] Create Prod Order from scratch
+        Commit();
+        PurchOrder.OpenEdit();
+        PurchOrder.GoToRecord(PurchaseHeader);
+        PurchOrder.PurchLines."Subc. CreateProdOrder".Invoke();
+
+        // [THEN]
+        PurchLine.Reset();
+        PurchLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchLine.SetRange("No.", ItemNoOriginPurchLine);
+        Assert.RecordCount(PurchLine, 1);
+        PurchLine.FindFirst();
+        PurchLine.TestField("Direct Unit Cost", SubcontractorPrices2."Direct Unit Cost");
+        PurchLine.TestField("Line Amount", PurchLine.Quantity * 11);
+
+        // [TEARDOWN]
+        PurchLine.SetRange("No.", ItemNoOriginPurchLine);
+        PurchLine.FindFirst();
+        ProdOrder.Get("Production Order Status"::Released, PurchLine."Prod. Order No.");
+        PurchLine."Prod. Order No." := '';
+        PurchLine.Modify();
+        ProdOrder.Delete(true);
+        UpdateDefaultCommonWorkCenter('');
+        UpdateSubMgmtRoutingLink('');
+    end;
+
+    [Test]
+    procedure CreateProductionOrderFromPurchaseOrder_PurchPrice_Variant()
+    var
+        ItemVariant: Record "Item Variant";
+        Location, Location2 : Record Location;
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        ProdOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchLine: Record "Purchase Line";
+        RoutingLink: Record "Routing Link";
+        SubcontractorPrices2: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        VariantCode: Code[10];
+        ItemNo, ItemNoOriginPurchLine : Code[20];
+        PurchOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO] Create Production Order from Purchase Order from scratch
+        IsInitialized := false;
+        Initialize();
+
+        // [GIVEN] Create Item for Production include Routing and Prod. BOM
+        SubCreateProdOrdWizLibrary.CreateAndCalculateNeededWorkCenter(WorkCenter, false);
+        UpdateDefaultCommonWorkCenter(WorkCenter."No.");
+        LibraryManufacturing.CreateRoutingLink(RoutingLink);
+        UpdateSubMgmtRoutingLink(RoutingLink.Code);
+
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryWarehouse.CreateLocation(Location2);
+        ItemNo := LibraryInventory.CreateItemNo();
+        VariantCode := LibraryInventory.CreateItemVariant(ItemVariant, ItemNo);
+
+        LibraryPurchase.CreateVendor(Vendor);
+        WorkCenter."Subcontractor No." := Vendor."No.";
+        WorkCenter.Modify();
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', ItemVariant.Code, WorkDate(), '', 0, Vendor."Currency Code");
+        SubcontractorPrices2."Direct Unit Cost" := 11;
+        SubcontractorPrices2.Modify();
+        Vendor."Subc. Location Code" := Location2.Code;
+        Vendor.Modify();
+
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
+        SubcontractorPrices2."Direct Unit Cost" := 8;
+        SubcontractorPrices2.Modify();
+
+        LibraryPurchase.CreatePurchaseOrderWithLocation(PurchaseHeader, Vendor."No.", Location.Code);
+        LibraryPurchase.CreatePurchaseLine(PurchLine, PurchaseHeader, PurchLine.Type::Item, ItemNo, LibraryRandom.RandInt(100));
+        PurchLine.Validate("Variant Code", ItemVariant.Code);
+        PurchLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(1, 100, 2));
+        ItemNoOriginPurchLine := PurchLine."No.";
+        PurchLine.Modify(true);
+
+        // [WHEN] Create Prod Order from scratch
+        Commit();
+        PurchOrder.OpenEdit();
+        PurchOrder.GoToRecord(PurchaseHeader);
+        PurchOrder.PurchLines."Subc. CreateProdOrder".Invoke();
+
+        // [THEN]
+        PurchLine.Reset();
+        PurchLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchLine.SetRange("No.", ItemNoOriginPurchLine);
+        Assert.RecordCount(PurchLine, 1);
+        PurchLine.FindFirst();
+        ProdOrder.Get("Production Order Status"::Released, PurchLine."Prod. Order No.");
+        ProdOrderRtngLine.SetRange(Status, ProdOrder.Status);
+        ProdOrderRtngLine.SetRange("Prod. Order No.", ProdOrder."No.");
+        ProdOrderRtngLine.SetRange("Work Center No.", PurchLine."Work Center No.");
+        ProdOrderRtngLine.FindFirst();
+        PurchLine.TestField("Direct Unit Cost", ProdOrderRtngLine."Direct Unit Cost");
+        PurchLine.TestField("Line Amount", PurchLine.Quantity * 11);
+
+        // [TEARDOWN]
+        PurchLine.SetRange("No.", ItemNoOriginPurchLine);
+        PurchLine.FindFirst();
+        ProdOrder.Get("Production Order Status"::Released, PurchLine."Prod. Order No.");
+        PurchLine."Prod. Order No." := '';
+        PurchLine.Modify();
+        ProdOrder.Delete(true);
+        UpdateDefaultCommonWorkCenter('');
+        UpdateSubMgmtRoutingLink('');
+    end;
+
+    [Test]
+    procedure CreateProductionOrderFromPurchaseOrderWithDropShipment()
+    var
+        Location, Location2 : Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchLine: Record "Purchase Line";
+        RoutingLink: Record "Routing Link";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        PurchOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO] Create Production Order from Purchase Order from scratch
+        Initialize();
+
+        // [GIVEN] Create Item for Production include Routing and Prod. BOM
+        SubCreateProdOrdWizLibrary.CreateAndCalculateNeededWorkCenter(WorkCenter, false);
+        UpdateDefaultCommonWorkCenter(WorkCenter."No.");
+        LibraryManufacturing.CreateRoutingLink(RoutingLink);
+        UpdateSubMgmtRoutingLink(RoutingLink.Code);
+
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryWarehouse.CreateLocation(Location2);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor."Subc. Location Code" := Location2.Code;
+        Vendor.Modify();
+
+        LibraryPurchase.CreatePurchaseOrderWithLocation(PurchaseHeader, Vendor."No.", Location.Code);
+        LibraryPurchase.CreatePurchaseLine(PurchLine, PurchaseHeader, PurchLine.Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(100));
+        PurchLine.Validate("Drop Shipment", true);
+        PurchLine.Modify(true);
+
+        // [WHEN] Create Prod Order from scratch
+        Commit();
+        PurchOrder.OpenEdit();
+        PurchOrder.GoToRecord(PurchaseHeader);
+        asserterror PurchOrder.PurchLines."Subc. CreateProdOrder".Invoke();
+
+        // [THEN] Error occurs as drop shipment is not supported
+        Assert.ExpectedError('Drop Shipment');
+
+        // [TEARDOWN]
+        UpdateDefaultCommonWorkCenter('');
+        UpdateSubMgmtRoutingLink('');
+    end;
+
+    [Test]
+    procedure TestQuantitySynchronizationAfterCreateProductionOrderFromPurchaseOrder()
+    var
+        ItemUOM: Record "Item Unit of Measure";
+        Location, Location2 : Record Location;
+        ProdOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchLine, PurchLine2 : Record "Purchase Line";
+        RoutingLink: Record "Routing Link";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SynchMgmt: Codeunit "Subc. Synchronize Management";
+        ItemNoOriginPurchLine: Code[20];
+        PurchOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO] Create Production Order from Purchase Order from scratch and test Quantity synchronization
+        Initialize();
+
+        // [GIVEN] Create Item for Production include Routing and Prod. BOM
+        SubCreateProdOrdWizLibrary.CreateAndCalculateNeededWorkCenter(WorkCenter, false);
+        UpdateDefaultCommonWorkCenter(WorkCenter."No.");
+        LibraryManufacturing.CreateRoutingLink(RoutingLink);
+        UpdateSubMgmtRoutingLink(RoutingLink.Code);
+
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryWarehouse.CreateLocation(Location2);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor."Subc. Location Code" := Location2.Code;
+        Vendor.Modify();
+        LibraryPurchase.CreatePurchaseOrderWithLocation(PurchaseHeader, Vendor."No.", Location.Code);
+        LibraryPurchase.CreatePurchaseLine(PurchLine, PurchaseHeader, "Purchase Line Type"::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(100));
+        PurchLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(1, 100, 2));
+        ItemNoOriginPurchLine := PurchLine."No.";
+        PurchLine.Modify(true);
+
+        // [WHEN] Create Prod Order from scratch
+        Commit();
+        PurchOrder.OpenEdit();
+        PurchOrder.GoToRecord(PurchaseHeader);
+        PurchOrder.PurchLines."Subc. CreateProdOrder".Invoke();
+
+        // [THEN]
+        PurchLine.Reset();
+        PurchLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchLine.SetRange("No.", ItemNoOriginPurchLine);
+        Assert.RecordCount(PurchLine, 1);
+        PurchLine.FindFirst();
+        PurchLine.TestField("Prod. Order No.");
+
+        PurchLine2.Get(PurchLine."Document Type", PurchLine."Document No.", PurchLine."Line No.");
+
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUOM, PurchLine."No.", 3);
+        PurchLine2.Validate("Unit of Measure Code", ItemUOM.Code);
+        PurchLine2.Modify();
+        SynchMgmt.SynchronizeQuantity(PurchLine2, PurchLine);
+
+        ProdOrder.Get("Production Order Status"::Released, PurchLine."Prod. Order No.");
+        Assert.AreEqual(PurchLine.Quantity * 3, ProdOrder.Quantity, 'Quantity of Prod. Order must be equal to Quantity of Purchase Line');
+
+        // [TEARDOWN]
+        PurchLine.SetRange("No.", ItemNoOriginPurchLine);
+        PurchLine.FindFirst();
+        ProdOrder.Get("Production Order Status"::Released, PurchLine."Prod. Order No.");
+        PurchLine."Prod. Order No." := '';
+        PurchLine.Modify();
+        ProdOrder.Delete(true);
+        UpdateDefaultCommonWorkCenter('');
+        UpdateSubMgmtRoutingLink('');
+    end;
+
+    [Test]
     procedure SubcontractingAssistedSetupIsRegistered()
     var
         AssistedSetupTestLibrary: Codeunit "Assisted Setup Test Library";
@@ -1660,6 +1939,24 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         Vendor.Modify(true);
     end;
 
+    local procedure UpdateDefaultCommonWorkCenter(WorkCenterNo: Code[20])
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Def. Wiz. Work Center No." := WorkCenterNo;
+        ManufacturingSetup.Modify();
+    end;
+
+    local procedure UpdateSubMgmtRoutingLink(RtngLink: Code[10])
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Subc. Rtng. Link Purch Prov" := RtngLink;
+        ManufacturingSetup.Modify();
+    end;
+
     local procedure GetNextItemLedgerEntryNo(): Integer
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -1679,6 +1976,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
@@ -1686,6 +1986,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+        SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
