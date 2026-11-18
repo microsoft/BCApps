@@ -85,7 +85,7 @@ codeunit 1710 "Exp. User Feedback Pos. Pay"
             exit(PositivePayEntry."Upload Date-Time");
     end;
 
-    local procedure CreatePosPayEntryDetail(var PositivePayEntry: Record "Positive Pay Entry"; EntryNo: Integer; BankAccNo: Code[20])
+    local procedure CreatePosPayEntryDetail(var PositivePayEntry: Record "Positive Pay Entry"; EntryNo: BigInteger; BankAccNo: Code[20])
     var
         PositivePayEntryDetail: Record "Positive Pay Entry Detail";
         PositivePayDetail: Record "Positive Pay Detail";

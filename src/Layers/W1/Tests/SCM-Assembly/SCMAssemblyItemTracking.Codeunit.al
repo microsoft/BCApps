@@ -6,6 +6,7 @@ namespace Microsoft.Assembly.Test;
 
 using Microsoft.Assembly.Document;
 using Microsoft.Assembly.History;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.BOM;
@@ -205,6 +206,7 @@ codeunit 137926 "SCM Assembly Item Tracking"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         PlanningItem: Record Item;
+        VATPostingSetup: Record "VAT Posting Setup";
         LibrarySales: Codeunit "Library - Sales";
         SerialNoPrefix: Code[10];
         SerialNo: Code[20];
@@ -217,12 +219,14 @@ codeunit 137926 "SCM Assembly Item Tracking"
         Initialize();
         AssemblyQty := LibraryRandom.RandIntInRange(5, 10);
         DemandQty := LibraryRandom.RandInt(AssemblyQty - 1);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
 
         // [GIVEN] A lot-for-lot assembly item with a specifically tracked purchase component.
         LibraryInventory.CreateItem(ParentItem);
         ParentItem.Validate("Replenishment System", ParentItem."Replenishment System"::Assembly);
         ParentItem.Validate("Assembly Policy", ParentItem."Assembly Policy"::"Assemble-to-Stock");
         ParentItem.Validate("Reordering Policy", ParentItem."Reordering Policy"::"Lot-for-Lot");
+        ParentItem.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
         ParentItem.Modify(true);
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, SerialTracking, not SerialTracking);
         LibraryInventory.CreateItem(ComponentItem);
@@ -244,7 +248,9 @@ codeunit 137926 "SCM Assembly Item Tracking"
         // [GIVEN] Sales demand for the assembly item and a tracked assembly order exceeding that demand.
         if CancelAssembly then
             AddItemToInventory(ParentItem, LibraryRandom.RandIntInRange(DemandQty, DemandQty + 100), '', '');
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesHeader(
+            SalesHeader, SalesHeader."Document Type"::Order,
+            LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ParentItem."No.", DemandQty);
         SalesLine.Validate("Shipment Date", WorkDate2);
         SalesLine.Modify(true);
