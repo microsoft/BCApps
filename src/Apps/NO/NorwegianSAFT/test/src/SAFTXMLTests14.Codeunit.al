@@ -296,12 +296,12 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         VATEntry.SetRange("Document No.", DocumentNo);
         VATEntry.SetRange(Type, VATEntry.Type::Sale);
         VATEntry.FindFirst();
-        if UseForeignCurrency then begin
-            // Posting does not populate these VAT entry fields; provide the foreign-currency tax scenario explicitly.
-            VATEntry."Source Currency Code" := Currency.Code;
-            VATEntry."Source Currency VAT Amount" := VATEntry.Amount * SalesHeader."Currency Factor";
-            VATEntry.Modify();
-        end;
+
+        // Posting does not populate these VAT entry fields; provide the foreign-currency tax scenario explicitly.
+        VATEntry."Source Currency Code" := Currency.Code;
+        VATEntry."Source Currency VAT Amount" := VATEntry.Amount * SalesHeader."Currency Factor";
+        VATEntry.Modify();
+
         Assert.AreEqual(UseForeignCurrency ? 50 : 25, Abs(VATEntry.Amount), 'Unexpected posted tax amount.');
         Assert.AreEqual(UseForeignCurrency ? 200 : 100, Abs(VATEntry.Base), 'Unexpected posted tax base.');
 
