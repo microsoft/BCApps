@@ -5,7 +5,7 @@
 
 namespace System.AI.BusinessSkills;
 
-/// <summary>Ranks active business skills using native semantic search with privacy approval and freshness checks.</summary>
+/// <summary>Ranks active business skills using native semantic search with privacy approval and current-identity lookup.</summary>
 codeunit 4168 "Business Skill Search"
 {
     InherentEntitlements = X;
@@ -17,14 +17,6 @@ codeunit 4168 "Business Skill Search"
         Impl: Codeunit "Business Skill Search Impl.";
     begin
         exit(Impl.Search(Query, Top));
-    end;
-
-    /// <summary>Validates a semantic query and result limit without performing a search.</summary>
-    procedure ValidateRequest(Query: Text; Top: Integer)
-    var
-        Projection: Codeunit "Business Skill Search Proj.";
-    begin
-        Projection.ValidateRequest(Query, Top);
     end;
 
     /// <summary>Returns the candidate fields used for semantic ranking.</summary>

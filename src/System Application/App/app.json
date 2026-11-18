@@ -13,6 +13,11 @@
   "dependencies": [],
   "internalsVisibleTo": [
     {
+      "id": "8e362160-8fc5-4b6f-b694-324bceeb2450",
+      "name": "Business Skills Test",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "0d60b215-6ee1-4789-8e53-866cfa50c23c",
       "name": "System Application Test",
       "publisher": "Microsoft"

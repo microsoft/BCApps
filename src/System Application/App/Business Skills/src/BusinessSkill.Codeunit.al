@@ -20,60 +20,32 @@ codeunit 4160 "Business Skill" implements IBusinessSkillDiscovery
     /// </summary>
     /// <param name="Query">Literal, case-insensitive text matched against active skill titles and descriptions only.</param>
     /// <returns>A serialized JSON array of matching skills.</returns>
-    procedure GetRelevantSkills(Query: Text): Text
+    procedure GetRelevantSkills(Query: Text): SecretText
     var
         Management: Codeunit "Business Skill Management";
-        Skills: JsonArray;
-        Result: Text;
     begin
-        Skills := Management.SearchSkills(Query);
-        Skills.WriteTo(Result);
-        exit(Result);
+        exit(Management.SearchSkills(Query));
     end;
 
     /// <summary>
     /// Returns an active skill by its internal numeric identifier.
     /// </summary>
     /// <param name="SkillId">Internal numeric identifier of the skill.</param>
-    /// <returns>A JSON object containing the skill.</returns>
+    /// <returns>A protected serialized JSON object containing the skill.</returns>
     /// <remarks>An error is raised when the skill does not exist or is inactive.</remarks>
-    procedure GetSkill(SkillId: BigInteger): JsonObject
+    procedure GetSkill(SkillId: BigInteger): SecretText
     var
         Management: Codeunit "Business Skill Management";
     begin
         exit(Management.GetSkillById(SkillId));
     end;
 
-    /// <summary>Creates an active manual skill and its initial text history without committing.</summary>
-    procedure CreateSkill(Title: Text[250]; SkillText: Text): BigInteger
-    var
-        Management: Codeunit "Business Skill Management";
-    begin
-        exit(Management.CreateSkill(Title, SkillText));
-    end;
-
-    /// <summary>Creates an active manual skill with a description and initial text history without committing.</summary>
-    procedure CreateSkill(Title: Text[250]; Description: Text[2048]; SkillText: Text): BigInteger
-    var
-        Management: Codeunit "Business Skill Management";
-    begin
-        exit(Management.CreateSkill(Title, Description, SkillText));
-    end;
-
     /// <summary>Updates manual skill metadata and text using the supplied record's identity and revision.</summary>
-    procedure UpdateSkillRecord(SkillId: BigInteger; var SourceSkill: Record "Business Skill"; SkillText: Text): Boolean
+    procedure UpdateSkillRecord(SkillId: BigInteger; var SourceSkill: Record "Business Skill"; SkillText: SecretText): Boolean
     var
         Management: Codeunit "Business Skill Management";
     begin
         exit(Management.UpdateSkillRecord(SkillId, SourceSkill, SkillText));
-    end;
-
-    /// <summary>Creates an active manual skill from the supplied metadata and text without committing.</summary>
-    procedure CreateSkillRecord(var SourceSkill: Record "Business Skill"; SkillText: Text): BigInteger
-    var
-        Management: Codeunit "Business Skill Management";
-    begin
-        exit(Management.CreateSkillRecord(SourceSkill, SkillText));
     end;
 
     /// <summary>Activates a skill after validating its title and text.</summary>
@@ -118,11 +90,28 @@ codeunit 4160 "Business Skill" implements IBusinessSkillDiscovery
         Management.SetAvailableSkillsFilter(Skill);
     end;
 
-    /// <summary>Updates manual skill text and its history only if the expected identity and revision still match.</summary>
-    procedure SetSkillText(SkillId: BigInteger; SkillText: Text; ExpectedSystemId: Guid; ExpectedRevision: BigInteger)
+    /// <summary>
+    /// Updates manual content and its version/history only if the expected identity and revision still match, without committing.
+    /// </summary>
+    [CommitBehavior(CommitBehavior::Error)]
+    procedure SetNewContentAndUpdateVersion(SkillId: BigInteger; Content: SecretText; ExpectedSystemId: Guid; ExpectedRevision: BigInteger)
     var
         Management: Codeunit "Business Skill Management";
     begin
-        Management.SetSkillText(SkillId, SkillText, ExpectedSystemId, ExpectedRevision);
+        Management.SetSkillText(SkillId, Content, ExpectedSystemId, ExpectedRevision);
+    end;
+
+    /// <summary>
+    /// Updates the calling app's skill identified by its code, preserving its status and other metadata.
+    /// Changed content requires a nonblank version different from the saved version. Version-only changes fail.
+    /// </summary>
+    [CommitBehavior(CommitBehavior::Error)]
+    procedure SetNewContentAndUpdateVersion(SkillCode: Code[100]; Content: SecretText; ContentVersion: Text[50])
+    var
+        Management: Codeunit "Business Skill Management";
+        CallerModule: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModule);
+        Management.SetNewContentAndUpdateVersion(CallerModule.Id, SkillCode, Content, ContentVersion);
     end;
 }

@@ -25,7 +25,7 @@ codeunit 4166 "Business Skill Text History"
     /// <summary>
     /// Writes the new text to the skill BLOB and records a version when the text changed.
     /// </summary>
-    procedure SetSkillText(SkillId: BigInteger; NewText: Text)
+    procedure SetSkillText(SkillId: BigInteger; NewText: SecretText)
     var
         SkillManagement: Codeunit "Business Skill Management";
     begin
@@ -67,15 +67,15 @@ codeunit 4166 "Business Skill Text History"
     /// <summary>
     /// Compatibility read helper. The skill record owns current text; history is not its source.
     /// </summary>
-    procedure GetSkillText(SkillId: BigInteger): Text
+    procedure GetSkillText(SkillId: BigInteger): SecretText
     var
         Skill: Record "Business Skill";
         TextHelper: Codeunit "Business Skill Text";
     begin
         if SkillId = 0 then
-            exit('');
+            exit;
         if not Skill.Get(SkillId) then
-            exit('');
+            exit;
         exit(TextHelper.GetSkillText(Skill));
     end;
 
@@ -91,7 +91,7 @@ codeunit 4166 "Business Skill Text History"
         FileName: Text;
     begin
         TempBlob.CreateOutStream(OutStr, TextHelper.GetEncoding());
-        OutStr.WriteText(TextVersion.GetText());
+        TextHelper.WriteText(OutStr, TextVersion.GetText());
         TempBlob.CreateInStream(InStr, TextHelper.GetEncoding());
         FileName := StrSubstNo(FileNameLbl, TextVersion."Skill ID", TextVersion."Entry No.");
         DownloadFromStream(InStr, DownloadDialogLbl, '', AllFilesFilterLbl, FileName);
@@ -100,7 +100,7 @@ codeunit 4166 "Business Skill Text History"
     /// <summary>
     /// HTML-encodes text for safe injection into the WebPageViewer add-in.
     /// </summary>
-    procedure EncodeContent(Content: Text): Text
+    procedure EncodeContent(Content: SecretText): SecretText
     var
         TextHelper: Codeunit "Business Skill Text";
     begin

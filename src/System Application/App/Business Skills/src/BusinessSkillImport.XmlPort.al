@@ -42,11 +42,8 @@ xmlport 4161 "Business Skill Import"
                     fieldelement(SkillVersion; TempSkill.Version) { XmlName = 'Version'; MinOccurs = Zero; }
                     textelement(SkillText) { TextType = BigText; }
                     trigger OnBeforeInsertRecord()
-                    var
-                        Value: Text;
                     begin
-                        SkillText.GetSubText(Value, 1, SkillText.Length());
-                        Port.ImportSkillElement(TempSkill, Value);
+                        Port.ImportSkillElement(TempSkill, GetImportContent());
                         Clear(TempSkill.Description);
                         Clear(TempSkill.Version);
                         Clear(SkillText);
@@ -59,6 +56,15 @@ xmlport 4161 "Business Skill Import"
     internal procedure SetPort(PortCodeunit: Codeunit "Business Skill Port")
     begin
         Port := PortCodeunit;
+    end;
+
+    [NonDebuggable]
+    local procedure GetImportContent(): SecretText
+    var
+        Value: Text;
+    begin
+        SkillText.GetSubText(Value, 1, SkillText.Length());
+        exit(Value);
     end;
 
     var

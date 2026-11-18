@@ -40,13 +40,12 @@ xmlport 4160 "Business Skill Export"
                         var
                             PersistedSkill: Record "Business Skill";
                             SkillManagement: Codeunit "Business Skill Management";
-                            TextHelper: Codeunit "Business Skill Text";
                         begin
                             Clear(SkillText);
                             PersistedSkill.Get(Skill.ID);
                             if not SkillManagement.IsManualSkill(PersistedSkill) then
                                 Error(ManualSkillsOnlyErr);
-                            SkillText.AddText(TextHelper.GetSkillText(PersistedSkill));
+                            SetExportContent(PersistedSkill);
                         end;
 
                     }
@@ -58,6 +57,14 @@ xmlport 4160 "Business Skill Export"
     internal procedure SetBuffer(var TempSkill: Record "Business Skill" temporary)
     begin
         Skill.Copy(TempSkill, true);
+    end;
+
+    [NonDebuggable]
+    local procedure SetExportContent(var PersistedSkill: Record "Business Skill")
+    var
+        TextHelper: Codeunit "Business Skill Text";
+    begin
+        SkillText.AddText(TextHelper.GetSkillText(PersistedSkill).Unwrap());
     end;
 
     var

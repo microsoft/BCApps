@@ -113,8 +113,18 @@ page 4160 "Business Skills"
     }
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    var
+        Builder: Codeunit "Business Skill Builder";
+        TextHelper: Codeunit "Business Skill Text";
     begin
-        SkillManagement.InsertSkillRecord(Rec);
+        Builder.Initialize('', Rec.Title, TextHelper.GetSkillText(Rec, false))
+            .SetManual(true)
+            .SetDescription(Rec.Description)
+            .SetContentLocked(Rec."Read-Only")
+            .SetActive(Rec.Status = Rec.Status::Active);
+        if Rec.Version <> '' then
+            Builder.SetContentVersion(Rec.Version);
+        Rec.Get(Builder.Create());
         exit(false);
     end;
 

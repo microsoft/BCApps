@@ -45,7 +45,7 @@ page 4163 "Business Skill Text Part"
                         SkillManagement.SetSkillText(SkillId, SkillTextValue, SkillSystemId, SkillRevision);
                         Skill.Get(SkillId);
                         SkillRevision := Skill.SystemRowVersion;
-                        SkillTextValue := TextHelper.GetSkillText(Skill);
+                        LoadSkillSnapshot();
                         CurrPage.Update(false);
                     end;
                 }
@@ -127,14 +127,16 @@ page 4163 "Business Skill Text Part"
     /// <summary>
     /// Displays arbitrary read-only text (used to preview a historic version).
     /// </summary>
-    procedure SetReadOnlyText(NewText: Text)
+    [NonDebuggable]
+    procedure SetReadOnlyText(NewText: SecretText)
     begin
         SkillId := 0;
         IsReadOnly := true;
-        SkillTextValue := NewText;
+        SkillTextValue := NewText.Unwrap();
         CurrPage.Update(false);
     end;
 
+    [NonDebuggable]
     local procedure LoadSkillSnapshot()
     var
         Skill: Record "Business Skill";
@@ -145,7 +147,7 @@ page 4163 "Business Skill Text Part"
         if Skill.Get(SkillId) then begin
             SkillSystemId := Skill.SystemId;
             SkillRevision := Skill.SystemRowVersion;
-            SkillTextValue := TextHelper.GetSkillText(Skill);
+            SkillTextValue := TextHelper.GetSkillText(Skill).Unwrap();
         end;
     end;
 
@@ -154,6 +156,7 @@ page 4163 "Business Skill Text Part"
         SkillId: BigInteger;
         SkillSystemId: Guid;
         SkillRevision: BigInteger;
+        [NonDebuggable]
         SkillTextValue: Text;
         IsReadOnly: Boolean;
         ReadOnlyModeErr: Label 'This skill text is read-only.';

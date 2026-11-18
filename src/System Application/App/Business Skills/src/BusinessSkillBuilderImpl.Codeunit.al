@@ -11,31 +11,48 @@ codeunit 4162 "Business Skill Builder Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    procedure Initialize(OwnerAppId: Guid; SkillCode: Code[100]; DisplayName: Text[250]; Content: Text)
+    procedure Initialize(OwnerAppId: Guid; SkillCode: Code[100]; DisplayName: Text[250]; Content: SecretText)
+    var
+        TempNewSkill: Record "Business Skill" temporary;
     begin
         VerifyNew();
-        TempBusinessSkill."Owning App ID" := OwnerAppId;
-        TempBusinessSkill."Skill ID" := SkillCode;
-        TempBusinessSkill.TestField("Skill ID");
-        TempBusinessSkill.TestField("Owning App ID");
-        TempBusinessSkill."Read-Only" := true;
-        TempBusinessSkill.Title := DisplayName;
-        TextHelper.SetSkillText(TempBusinessSkill, Content);
-        TempBusinessSkill.Status := TempBusinessSkill.Status::Inactive;
+        TempNewSkill."Owning App ID" := OwnerAppId;
+        TempNewSkill."Skill ID" := SkillCode;
+        TempNewSkill."Read-Only" := true;
+        TempNewSkill.Title := DisplayName;
+        TextHelper.SetSkillText(TempNewSkill, Content);
+        TempNewSkill.Status := TempNewSkill.Status::Inactive;
+        TempBusinessSkill := TempNewSkill;
+        CallingAppId := OwnerAppId;
         Initialized := true;
+    end;
+
+    procedure SetManual(Manual: Boolean)
+    begin
+        VerifyReady();
+        TempBusinessSkill.Manual := Manual;
+        if Manual then
+            Clear(TempBusinessSkill."Owning App ID")
+        else
+            TempBusinessSkill."Owning App ID" := CallingAppId;
+        if not ContentLockedSpecified then
+            TempBusinessSkill."Read-Only" := not Manual;
     end;
 
     procedure SetContentLocked(ContentLocked: Boolean)
     begin
         VerifyReady();
         TempBusinessSkill."Read-Only" := ContentLocked;
+        ContentLockedSpecified := true;
     end;
 
     procedure SetContentVersion(ContentVersion: Text[50])
     begin
         VerifyReady();
+        if ContentVersion = '' then
+            Error(VersionRequiredErr);
         TempBusinessSkill.Version := ContentVersion;
-        TempBusinessSkill.TestField(Version);
+        ContentVersionSpecified := true;
     end;
 
     procedure SetDisplayName(DisplayName: Text[250])
@@ -48,9 +65,10 @@ codeunit 4162 "Business Skill Builder Impl."
     begin
         VerifyReady();
         TempBusinessSkill.Description := Description;
+        DescriptionSpecified := true;
     end;
 
-    procedure SetContent(Content: Text)
+    procedure SetContent(Content: SecretText)
     begin
         VerifyReady();
         TextHelper.SetSkillText(TempBusinessSkill, Content);
@@ -63,19 +81,23 @@ codeunit 4162 "Business Skill Builder Impl."
             TempBusinessSkill.Status := TempBusinessSkill.Status::Active
         else
             TempBusinessSkill.Status := TempBusinessSkill.Status::Inactive;
+        ActiveSpecified := true;
     end;
 
     [CommitBehavior(CommitBehavior::Error)]
     procedure Create(): BigInteger
     var
         Skill: Record "Business Skill";
-        SkillText: Text;
+        SkillText: SecretText;
     begin
         VerifyReady();
+        VerifyOwnership();
+        if TempBusinessSkill.Manual then
+            TempBusinessSkill.TestField("Skill ID", '');
         SkillManagement.ValidateSkillInsert(TempBusinessSkill);
         SkillText := TextHelper.GetSkillText(TempBusinessSkill, false);
         Skill."Skill ID" := TempBusinessSkill."Skill ID";
-        Skill.Manual := false;
+        Skill.Manual := TempBusinessSkill.Manual;
         Skill."Read-Only" := TempBusinessSkill."Read-Only";
         Skill.Version := TempBusinessSkill.Version;
         Skill.Title := TempBusinessSkill.Title;
@@ -92,33 +114,73 @@ codeunit 4162 "Business Skill Builder Impl."
     procedure CreateOrUpdate(): BigInteger
     var
         Skill: Record "Business Skill";
-        SkillText: Text;
-        TextChanged: Boolean;
     begin
         VerifyReady();
+        VerifyOwnership();
+        if TempBusinessSkill.Manual and (TempBusinessSkill."Skill ID" = '') then
+            exit(Create());
+        TempBusinessSkill.TestField("Skill ID");
         Skill.SetRange("Owning App ID", TempBusinessSkill."Owning App ID");
         Skill.SetRange("Skill ID", TempBusinessSkill."Skill ID");
-        if not Skill.FindFirst() then
+        if not Skill.FindFirst() then begin
+            if TempBusinessSkill.Manual then
+                Error(ManualSkillNotFoundErr);
             exit(Create());
+        end;
+        exit(Update(Skill));
+    end;
 
+    [CommitBehavior(CommitBehavior::Error)]
+    procedure CreateOrUpdate(SkillId: BigInteger): BigInteger
+    var
+        Skill: Record "Business Skill";
+    begin
+        VerifyReady();
+        VerifyOwnership();
+        Skill.Get(SkillId);
+        if (Skill."Owning App ID" <> TempBusinessSkill."Owning App ID") or
+           ((TempBusinessSkill."Skill ID" <> '') and (Skill."Skill ID" <> TempBusinessSkill."Skill ID"))
+        then
+            Error(SkillIdentityMismatchErr);
+        exit(Update(Skill));
+    end;
+
+    local procedure Update(var Skill: Record "Business Skill"): BigInteger
+    var
+        SkillText: SecretText;
+        TextChanged: Boolean;
+        VersionChanged: Boolean;
+        Changed: Boolean;
+    begin
+        if Skill.Manual <> TempBusinessSkill.Manual then
+            Error(SkillIdentityMismatchErr);
         SkillText := TextHelper.GetSkillText(TempBusinessSkill, false);
-        TextChanged := TextHelper.GetSkillText(Skill) <> SkillText;
-        if not TextChanged and (Skill.Title = TempBusinessSkill.Title) and (Skill.Description = TempBusinessSkill.Description) and
-           (Skill.Status = TempBusinessSkill.Status) and (Skill."Read-Only" = TempBusinessSkill."Read-Only")
-        then begin
+        TextChanged := not TextHelper.ContentEquals(TextHelper.GetSkillText(Skill), SkillText);
+        VersionChanged := ContentVersionSpecified and (Skill.Version <> TempBusinessSkill.Version);
+        Changed := TextChanged or VersionChanged or (Skill.Title <> TempBusinessSkill.Title) or
+            (DescriptionSpecified and (Skill.Description <> TempBusinessSkill.Description)) or
+            (ActiveSpecified and (Skill.Status <> TempBusinessSkill.Status)) or
+            (ContentLockedSpecified and (Skill."Read-Only" <> TempBusinessSkill."Read-Only"));
+        if not Changed then begin
             Created := true;
             exit(Skill.ID);
         end;
-        if TextChanged then begin
-            VerifyVersion();
+        if ContentVersionSpecified then
             Skill.Version := TempBusinessSkill.Version;
-            SkillManagement.ValidateSkillTextChange(Skill, SkillText);
+        if TextChanged then begin
+            if not Skill.Manual and not ContentVersionSpecified then
+                Error(VersionRequiredErr);
             TextHelper.SetSkillText(Skill, SkillText);
+            if Skill.Manual and VersionChanged then
+                Skill.Version := TempBusinessSkill.Version;
         end;
         Skill.Title := TempBusinessSkill.Title;
-        Skill.Description := TempBusinessSkill.Description;
-        Skill.Status := TempBusinessSkill.Status;
-        Skill."Read-Only" := TempBusinessSkill."Read-Only";
+        if DescriptionSpecified then
+            Skill.Description := TempBusinessSkill.Description;
+        if ActiveSpecified then
+            Skill.Status := TempBusinessSkill.Status;
+        if ContentLockedSpecified then
+            Skill."Read-Only" := TempBusinessSkill."Read-Only";
         SkillManagement.ValidateSkillModify(Skill);
         Skill.Modify(true);
         if TextChanged then
@@ -141,19 +203,26 @@ codeunit 4162 "Business Skill Builder Impl."
             Error(OneShotErr);
     end;
 
-    local procedure VerifyVersion()
+    local procedure VerifyOwnership()
     begin
-        if TempBusinessSkill.Version = '' then
-            Error(VersionRequiredErr);
+        if not TempBusinessSkill.Manual then
+            TempBusinessSkill.TestField("Owning App ID");
     end;
 
     var
         TempBusinessSkill: Record "Business Skill" temporary;
         SkillManagement: Codeunit "Business Skill Management";
         TextHelper: Codeunit "Business Skill Text";
+        CallingAppId: Guid;
         Initialized: Boolean;
         Created: Boolean;
+        ContentLockedSpecified: Boolean;
+        ContentVersionSpecified: Boolean;
+        DescriptionSpecified: Boolean;
+        ActiveSpecified: Boolean;
         NotInitializedErr: Label 'Initialize the business skill builder before using it.';
         OneShotErr: Label 'A business skill builder instance can create only one skill. Clear the variable before creating another skill.';
         VersionRequiredErr: Label 'Set a new version of the skill before changing its instructions.';
+        ManualSkillNotFoundErr: Label 'The manual skill was not found. Use an empty skill code to create a new manual skill.';
+        SkillIdentityMismatchErr: Label 'The selected skill does not match the builder''s skill code and ownership.';
 }

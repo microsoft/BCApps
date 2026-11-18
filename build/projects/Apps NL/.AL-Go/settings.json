@@ -120,6 +120,7 @@
                        "../../../src/Tools/Test Framework/Test Libraries/Any",
                        "../../../src/Tools/Test Framework/Test Libraries/Assert",
                        "../../../src/Tools/Test Framework/Test Libraries/LibraryAgent",
+                       "../../../src/Tools/Test Framework/Test Libraries/LibraryBusinessSkill",
                        "../../../src/Tools/Test Framework/Test Libraries/Permissions Mock",
                        "../../../src/Tools/Test Framework/Test Libraries/Variable Storage",
                        "../../../src/Tools/Test Framework/Test Runner",

@@ -12,15 +12,15 @@
   "logo": "",
   "dependencies": [
     {
-      "id": "47f31a2d-b5f8-4b35-956a-59e8edebd13b",
-      "name": "Business Skills",
+      "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+      "name": "System Application",
       "publisher": "Microsoft",
       "version": "30.0.0.0"
     }
   ],
   "screenshots": [],
   "platform": "30.0.0.0",
-  "target": "OnPrem",
+  "target": "Cloud",
   "idRanges": [
     {
       "from": 130055,

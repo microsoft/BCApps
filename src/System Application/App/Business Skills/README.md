@@ -8,13 +8,13 @@ native pages, XML import/export, discovery, and semantic search in
 
 | Object | Purpose |
 |---|---|
-| `Business Skill` | Manual creation, revision-aware updates, activation/deactivation, deletion, availability, and literal discovery |
-| `Business Skill Builder` | One-shot app-owned creation and upsert; captures the calling extension's identity |
-| `Business Skill Text` | Text reading, stream encoding, and text-length limit |
-| `Business Skill Search` | Semantic search and request validation |
+| `Business Skill` | Revision-aware manual updates, owning-app content updates, activation/deactivation, deletion, availability, and literal discovery |
+| `Business Skill Builder` | One-shot manual/app-owned creation and upsert; captures the calling extension's App ID |
+| `Business Skill Text` | SecretText content reading, stream encoding, and content-length limit |
+| `Business Skill Search` | Semantic search with internal request validation |
 | `IBusinessSkillDiscovery` | Literal discovery and canonical skill retrieval contract |
 
-Management, text/history implementations, XML orchestration, and search projection
+Management, text/history implementations, XML orchestration, and search implementation
 are internal. Consumers must not duplicate validation or history writes.
 The platform `Business Skill` virtual table and `Business Skill Status` enum
 remain in System; persistent skill storage is not an application table.
@@ -24,10 +24,29 @@ remain in System; persistent skill storage is not an application table.
 
 Initialize the builder with `Initialize(SkillCode, DisplayName, Content)`.
 Use `SetDisplayName`, `SetDescription`, `SetContent`, `SetContentLocked`,
-`SetContentVersion`, and `SetActive` before `Create` or `CreateOrUpdate`.
-The builder defaults to inactive with locked content; an omitted content version
-defaults to `v1.0` on creation. Both creation methods return the numeric skill ID,
-not the app-scoped skill code.
+`SetContentVersion`, `SetActive`, and `SetManual` before `Create` or `CreateOrUpdate`.
+Creation defaults to inactive, app-owned with locked content, and version `v1.0`.
+`SetManual(true)` defaults to unlocked content and empty ownership. Explicitly
+locking manual content fails. Content parameters use `SecretText`.
+
+For new manual creation, pass a blank code; the platform generates the saved
+code. Manual upsert with a supplied code selects that code plus the empty owner
+GUID and errors if absent. App-owned upsert uses the caller's manifest App ID
+plus code and creates if absent. `CreateOrUpdate(SkillId)` selects an existing
+numeric ID, validates its identity, and never creates a missing target.
+
+On update, omitted optional setters preserve stored values. Explicit false,
+empty description, or changed values apply or raise the normal validation/
+permission error; upsert never implicitly reactivates a skill. Display name and
+content passed to Initialize are always supplied values. Changed app-owned
+content requires an explicit nonblank version different from the stored label;
+version-only changes fail. Manual content changes auto-increment unless an
+explicitly changed version is supplied. All terminal methods return the numeric
+skill ID, not the skill code.
+
+Use `Business Skill.SetNewContentAndUpdateVersion(SkillCode, Content, ContentVersion)`
+for content-only updates owned by the calling app. Its manual overload takes
+numeric ID, content, expected SystemId and expected SystemRowVersion.
 
 The builder terminology maps to the existing platform fields: Skill Code to
 `Skill ID`, Display Name to `Title`, Content to `Skill Text`, Content Locked to
@@ -39,7 +58,10 @@ HTTP/NST contracts.
 
 - Active skills are available in every company. Search candidates use Title and
   Description only; semantic search requires Azure OpenAI privacy approval for
-  everyone. Candidate freshness is checked against the platform rowversion.
+  everyone. Search targets the actual virtual records and their SystemIds,
+  rejects more than 1,000 active candidates, and requests at most 50 results.
+  Mapping rechecks current active eligibility and skips deleted/inactive hits.
+  There is no catalog-wide snapshot or cross-call freshness guarantee.
 - The platform generates manual Skill IDs and stamps app-owned identities.
   Identity, ownership, and normal TableData checks are unchanged. Inherent
   Execute does not grant TableData access to the virtual table.
@@ -55,10 +77,17 @@ HTTP/NST contracts.
   export behavior. No history-data migration is provided for this unreleased move.
 
 BusinessIQ retains its HTTP API pages and NST-facing `Business Skill Agent API`
-(40224), calling these public facades. Its JSON contracts and app identity do not
-change. System Application does not depend on BusinessIQ or Base Application.
+(40224), calling these public facades. Its NST JSON contract and app identity do
+not change. System Application does not depend on BusinessIQ or Base Application.
 History sensitivity classification lives in the existing Base Application
 classification routine.
+
+Content and discovery JSON use SecretText, with narrow non-debuggable stream,
+comparison, validation, and UI/API serialization boundaries. This is debugger
+protection, not storage encryption or permission elevation. Generated XMLport
+BigText storage still needs a protection solution. The NST-facing content method
+retains a protected Text return until the platform supports a secret-aware CLR
+invocation result; end-to-end SecretText support is therefore not complete.
 
 ## Build and tests
 
@@ -67,11 +96,19 @@ The standalone module needs matching System symbols with its app identity
 Aggregate System Application already has that access. Do not expose the event
 publicly to work around mismatched symbols.
 
-Compile the module and `Test Library/Business Skills`, then `Test/Business Skills`.
-Shipped NAV consumers use aggregate System Application and System Application
-Test Library. Qualification therefore also requires aggregate builds, the affected
-Base Application classification, and retained BusinessIQ/SalesValidationAgent3P
-consumers against those updated packages.
+Compile aggregate System Application, then the independent `Business Skills Test
+Library` under `src/Tools/Test Framework/Test Libraries/LibraryBusinessSkill`,
+then the core and aggregate tests. Both the library and core test app depend on
+aggregate System Application; the standalone product module is compiled
+separately, not installed alongside the aggregate.
+
+The fixture library is registered in build projects/groups and country settings.
+Its Financials membership includes it in the SaaS extension manifest with
+Sandbox-only availability, following Application Test Library. NAV's explicit
+BCApps test-build order includes it before the test aggregates. It is not bundled
+inside System Application Test Library. The library remains Cloud-targeted;
+current OnPrem-scoped platform skill symbols block its Cloud build. A matching
+public Cloud surface is a separate platform prerequisite, not a packaging fix.
 
 Core tests are 130050-130052; the shared fixture is 130055. Cross-app ownership
 uses the separately packaged test library. Runtime tests require current packages

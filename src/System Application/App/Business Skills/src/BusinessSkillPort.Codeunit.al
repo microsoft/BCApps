@@ -9,7 +9,7 @@ using System.Utilities;
 
 /// <summary>
 /// Imports and exports manual skills with their complete instruction text.
-/// Imported skills are new manual skills: AL assigns their skill IDs, and the file carries no skill ID or owner.
+/// Imported skills are new manual skills: the platform assigns their skill IDs, and the file carries no skill ID or owner.
 /// </summary>
 codeunit 4167 "Business Skill Port"
 {
@@ -25,7 +25,7 @@ codeunit 4167 "Business Skill Port"
         DownloadBlob(TempBlob);
     end;
 
-    procedure BuildExportXml(var Skill: Record "Business Skill"): Text
+    procedure BuildExportXml(var Skill: Record "Business Skill"): SecretText
     var
         TempBlob: Codeunit "Temp Blob";
     begin
@@ -76,14 +76,14 @@ codeunit 4167 "Business Skill Port"
             Message(ImportFromStream(InStr));
     end;
 
-    procedure ImportFromXml(XmlText: Text): Text
+    procedure ImportFromXml(XmlText: SecretText): Text
     var
         TempBlob: Codeunit "Temp Blob";
         OutStr: OutStream;
         InStr: InStream;
     begin
         TempBlob.CreateOutStream(OutStr, TextHelper.GetEncoding());
-        OutStr.WriteText(XmlText);
+        TextHelper.WriteText(OutStr, XmlText);
         TempBlob.CreateInStream(InStr, TextHelper.GetEncoding());
         exit(ImportFromStream(InStr));
     end;
@@ -101,19 +101,17 @@ codeunit 4167 "Business Skill Port"
         exit(StrSubstNo(ImportSummaryLbl, SkillsCreated));
     end;
 
-    internal procedure ImportSkillElement(var SourceSkill: Record "Business Skill"; SkillText: Text)
+    internal procedure ImportSkillElement(var SourceSkill: Record "Business Skill"; SkillText: SecretText)
     var
-        Skill: Record "Business Skill";
-        SkillManagement: Codeunit "Business Skill Management";
+        Builder: Codeunit "Business Skill Builder";
+        SkillId: BigInteger;
     begin
         ValidateSkillReference(SourceSkill.ID);
-        Skill.Title := SourceSkill.Title;
-        Skill.Description := SourceSkill.Description;
-        Skill.Version := SourceSkill.Version;
-        Skill.Status := Skill.Status::Active;
-        TextHelper.SetSkillText(Skill, SkillText);
-        SkillManagement.InsertSkillRecord(Skill);
-        SkillReferences.Add(SourceSkill.ID, Skill.ID);
+        Builder.Initialize('', SourceSkill.Title, SkillText).SetManual(true).SetDescription(SourceSkill.Description).SetActive(true);
+        if SourceSkill.Version <> '' then
+            Builder.SetContentVersion(SourceSkill.Version);
+        SkillId := Builder.Create();
+        SkillReferences.Add(SourceSkill.ID, SkillId);
         SkillsCreated += 1;
     end;
 
@@ -133,7 +131,7 @@ codeunit 4167 "Business Skill Port"
         DownloadFromStream(InStr, '', '', '', FileName);
     end;
 
-    local procedure ReadBlobText(var TempBlob: Codeunit "Temp Blob"): Text
+    local procedure ReadBlobText(var TempBlob: Codeunit "Temp Blob"): SecretText
     var
         InStr: InStream;
     begin

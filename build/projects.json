@@ -6737,6 +6737,18 @@
       "skipInstallOnPrem": true,
       "hasTranslations": true
     },
+    "Business Skills Test Library": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Test Framework\\Test Libraries\\LibraryBusinessSkill",
+      "isMultiCountry": true,
+      "dvdFolder": "Applications\\TestFramework\\TestLibraries\\Business Skills",
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "repositoryUrl": "https://github.com/microsoft/BCApps",
+      "allowedEnvironmentTypes": [
+        "Sandbox"
+      ]
+    },
     "Agent Test Library": {
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Test Framework\\Test Libraries\\LibraryAgent",
       "isInternal": true,

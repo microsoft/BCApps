@@ -20,11 +20,11 @@ interface IBusinessSkillDiscovery
     /// </summary>
     /// <param name="Query">Literal text to match; blank includes all active skills.</param>
     /// <returns>A serialized JSON array containing matching canonical skill details.</returns>
-    procedure GetRelevantSkills(Query: Text): Text;
+    procedure GetRelevantSkills(Query: Text): SecretText;
 
     /// <summary>
-    /// Returns a single active skill by id as a JSON object.
+    /// Returns a single active skill by id as protected serialized JSON.
     /// </summary>
     /// <param name="SkillId">Skill id.</param>
-    procedure GetSkill(SkillId: BigInteger): JsonObject;
+    procedure GetSkill(SkillId: BigInteger): SecretText;
 }

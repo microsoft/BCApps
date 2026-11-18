@@ -12,13 +12,13 @@ codeunit 4164 "Business Skill Text"
     InherentPermissions = X;
 
     /// <summary>Loads and returns the stored text of the skill.</summary>
-    procedure GetSkillText(var Skill: Record "Business Skill"): Text
+    procedure GetSkillText(var Skill: Record "Business Skill"): SecretText
     begin
         exit(Impl.GetSkillText(Skill));
     end;
 
     /// <summary>Returns skill text, optionally loading it from the database first.</summary>
-    procedure GetSkillText(var Skill: Record "Business Skill"; LoadFromDatabase: Boolean): Text
+    procedure GetSkillText(var Skill: Record "Business Skill"; LoadFromDatabase: Boolean): SecretText
     begin
         exit(Impl.GetSkillText(Skill, LoadFromDatabase));
     end;
@@ -30,13 +30,13 @@ codeunit 4164 "Business Skill Text"
     end;
 
     /// <summary>Reads a text stream line by line, inserting separators only between returned lines.</summary>
-    procedure ReadText(Input: InStream): Text
+    procedure ReadText(Input: InStream): SecretText
     begin
         exit(Impl.ReadText(Input));
     end;
 
     /// <summary>Sets text and applies version rules without saving the record.</summary>
-    internal procedure SetSkillText(var Skill: Record "Business Skill"; Value: Text)
+    internal procedure SetSkillText(var Skill: Record "Business Skill"; Value: SecretText)
     begin
         Impl.SetSkillText(Skill, Value);
     end;
@@ -48,15 +48,33 @@ codeunit 4164 "Business Skill Text"
     end;
 
     /// <summary>Validates the persistent skill text limit.</summary>
-    internal procedure ValidateLength(Value: Text)
+    internal procedure ValidateLength(Value: SecretText)
     begin
         Impl.ValidateLength(Value);
     end;
 
     /// <summary>Encodes text for HTML attributes and content.</summary>
-    internal procedure EncodeContent(Value: Text): Text
+    internal procedure EncodeContent(Value: SecretText): SecretText
     begin
         exit(Impl.EncodeContent(Value));
+    end;
+
+    /// <summary>Writes protected content to a stream without exposing a plaintext return value.</summary>
+    internal procedure WriteText(Output: OutStream; Value: SecretText)
+    begin
+        Impl.WriteText(Output, Value);
+    end;
+
+    /// <summary>Compares content inside a non-debuggable boundary.</summary>
+    internal procedure ContentEquals(Value: SecretText; Other: SecretText): Boolean
+    begin
+        exit(Impl.ContentEquals(Value, Other));
+    end;
+
+    /// <summary>Returns whether the content contains only whitespace.</summary>
+    internal procedure IsBlank(Value: SecretText): Boolean
+    begin
+        exit(Impl.IsBlank(Value));
     end;
 
     var

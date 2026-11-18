@@ -19,20 +19,20 @@ codeunit 4165 "Business Skill Text Impl."
     InherentPermissions = X;
 
     /// <summary>Returns the instructions of the skill, loaded from the database.</summary>
-    procedure GetSkillText(var Skill: Record "Business Skill"): Text
+    procedure GetSkillText(var Skill: Record "Business Skill"): SecretText
     begin
         exit(GetSkillText(Skill, true));
     end;
 
     /// <summary>Returns the instructions of the skill. Without loading, the value already on the record is returned.</summary>
-    procedure GetSkillText(var Skill: Record "Business Skill"; LoadFromDatabase: Boolean): Text
+    procedure GetSkillText(var Skill: Record "Business Skill"; LoadFromDatabase: Boolean): SecretText
     var
         Input: InStream;
     begin
         if LoadFromDatabase then
             Skill.CalcFields("Skill Text");
         if not Skill."Skill Text".HasValue() then
-            exit('');
+            exit;
         Skill."Skill Text".CreateInStream(Input, GetEncoding());
         exit(ReadText(Input));
     end;
@@ -41,7 +41,7 @@ codeunit 4165 "Business Skill Text Impl."
     /// Sets the instructions of the skill without saving the record. A text change advances the version of a manual skill
     /// and requires a new version for a skill owned by an app.
     /// </summary>
-    procedure SetSkillText(var Skill: Record "Business Skill"; Value: Text)
+    procedure SetSkillText(var Skill: Record "Business Skill"; Value: SecretText)
     var
         SkillManagement: Codeunit "Business Skill Management";
         Output: OutStream;
@@ -50,7 +50,7 @@ codeunit 4165 "Business Skill Text Impl."
         SkillManagement.ValidateSkillTextChange(Skill, Value);
         Clear(Skill."Skill Text");
         Skill."Skill Text".CreateOutStream(Output, GetEncoding());
-        Output.WriteText(Value);
+        WriteText(Output, Value);
     end;
 
     /// <summary>Returns the encoding used by skill, history and portable text streams.</summary>
@@ -60,7 +60,8 @@ codeunit 4165 "Business Skill Text Impl."
     end;
 
     /// <summary>Reads the stream line by line, inserting separators only between returned lines.</summary>
-    procedure ReadText(Input: InStream): Text
+    [NonDebuggable]
+    procedure ReadText(Input: InStream): SecretText
     var
         TextBuilder: TextBuilder;
         TextLine: Text;
@@ -83,18 +84,41 @@ codeunit 4165 "Business Skill Text Impl."
     end;
 
     /// <summary>Checks the persistent skill text limit independently of the UI.</summary>
-    procedure ValidateLength(Value: Text)
+    [NonDebuggable]
+    procedure ValidateLength(Value: SecretText)
     begin
-        if StrLen(Value) > GetMaxLength() then
+        if StrLen(Value.Unwrap()) > GetMaxLength() then
             Error(TextTooLongErr, Format(GetMaxLength(), 0, 9));
     end;
 
     /// <summary>Encodes text for HTML attributes/content, not for JavaScript execution.</summary>
-    procedure EncodeContent(Value: Text): Text
+    [NonDebuggable]
+    procedure EncodeContent(Value: SecretText): SecretText
     var
         HttpUtility: DotNet HttpUtility;
     begin
-        exit(HttpUtility.HtmlEncode(Value));
+        exit(HttpUtility.HtmlEncode(Value.Unwrap()));
+    end;
+
+    /// <summary>Unwraps only at the stream boundary; callers retain protected content.</summary>
+    [NonDebuggable]
+    procedure WriteText(Output: OutStream; Value: SecretText)
+    begin
+        Output.WriteText(Value.Unwrap());
+    end;
+
+    /// <summary>Compares protected content without returning plaintext.</summary>
+    [NonDebuggable]
+    procedure ContentEquals(Value: SecretText; Other: SecretText): Boolean
+    begin
+        exit(Value.Unwrap() = Other.Unwrap());
+    end;
+
+    /// <summary>Checks whitespace without exposing the content.</summary>
+    [NonDebuggable]
+    procedure IsBlank(Value: SecretText): Boolean
+    begin
+        exit(Value.Unwrap().Trim() = '');
     end;
 
     var

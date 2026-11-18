@@ -12,8 +12,8 @@
   "logo": "",
   "dependencies": [
     {
-      "id": "47f31a2d-b5f8-4b35-956a-59e8edebd13b",
-      "name": "Business Skills",
+      "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+      "name": "System Application",
       "publisher": "Microsoft",
       "version": "30.0.0.0"
     },
@@ -26,12 +26,6 @@
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
-      "publisher": "Microsoft",
-      "version": "30.0.0.0"
-    },
-    {
-      "id": "e31ad830-3d46-472e-afeb-1d3d35247943",
-      "name": "BLOB Storage",
       "publisher": "Microsoft",
       "version": "30.0.0.0"
     }

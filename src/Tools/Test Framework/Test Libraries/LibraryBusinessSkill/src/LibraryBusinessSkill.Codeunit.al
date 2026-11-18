@@ -7,7 +7,7 @@ namespace System.TestLibraries.AI.BusinessSkills;
 using System.AI.BusinessSkills;
 
 /// <summary>
-/// Test helper library for Business Skill test data creation and cleanup.
+/// Standalone test helper library for Business Skill test data creation and cleanup.
 /// </summary>
 codeunit 130055 "Library - Business Skill"
 {
@@ -26,15 +26,21 @@ codeunit 130055 "Library - Business Skill"
     end;
 
     /// <summary>Creates an active manual skill with initial text history.</summary>
-    procedure CreateSkill(Title: Text[250]; SkillText: Text): BigInteger
-    var
-        Management: Codeunit "Business Skill";
+    procedure CreateSkill(Title: Text[250]; SkillText: SecretText): BigInteger
     begin
-        exit(Management.CreateSkill(Title, SkillText));
+        exit(CreateSkill(Title, '', SkillText));
+    end;
+
+    /// <summary>Creates an active manual skill with a description and initial content history.</summary>
+    procedure CreateSkill(Title: Text[250]; Description: Text[2048]; SkillText: SecretText): BigInteger
+    var
+        Builder: Codeunit "Business Skill Builder";
+    begin
+        exit(Builder.Initialize('', Title, SkillText).SetManual(true).SetDescription(Description).SetActive(true).Create());
     end;
 
     /// <summary>Creates an inactive skill owned by this test library rather than its caller.</summary>
-    procedure CreateAppOwnedSkill(SkillCode: Code[100]; Title: Text[250]; SkillText: Text): BigInteger
+    procedure CreateAppOwnedSkill(SkillCode: Code[100]; Title: Text[250]; SkillText: SecretText): BigInteger
     var
         Builder: Codeunit "Business Skill Builder";
     begin

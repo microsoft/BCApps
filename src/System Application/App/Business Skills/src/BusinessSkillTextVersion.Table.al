@@ -88,7 +88,7 @@ table 4160 "Business Skill Text Version"
     /// <summary>
     /// Writes the given text into the version's BLOB. Call before Insert.
     /// </summary>
-    procedure SetText(NewText: Text)
+    procedure SetText(NewText: SecretText)
     var
         SkillText: Codeunit "Business Skill Text";
         OutStr: OutStream;
@@ -96,20 +96,20 @@ table 4160 "Business Skill Text Version"
         SkillText.ValidateLength(NewText);
         Clear("Skill Text");
         "Skill Text".CreateOutStream(OutStr, SkillText.GetEncoding());
-        OutStr.WriteText(NewText);
+        SkillText.WriteText(OutStr, NewText);
     end;
 
     /// <summary>
     /// Returns the version's text, preserving multiple lines.
     /// </summary>
-    procedure GetText(): Text
+    procedure GetText(): SecretText
     var
         SkillText: Codeunit "Business Skill Text";
         InStr: InStream;
     begin
         CalcFields("Skill Text");
         if not "Skill Text".HasValue() then
-            exit('');
+            exit;
         "Skill Text".CreateInStream(InStr, SkillText.GetEncoding());
         exit(SkillText.ReadText(InStr));
     end;

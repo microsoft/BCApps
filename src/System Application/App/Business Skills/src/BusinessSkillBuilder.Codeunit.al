@@ -6,10 +6,10 @@
 namespace System.AI.BusinessSkills;
 
 /// <summary>
-/// Builds one skill owned by the calling app.
+/// Creates or updates one manual skill or a skill owned by the calling app.
 /// </summary>
 /// <remarks>
-/// The platform stamps the calling app as the owner of the skill. AL supplies the skill code.
+/// The platform assigns manual skill codes and stamps the calling app as the owner of app-owned skills.
 /// </remarks>
 codeunit 4161 "Business Skill Builder"
 {
@@ -17,9 +17,10 @@ codeunit 4161 "Business Skill Builder"
     InherentPermissions = X;
 
     /// <summary>
-    /// Initializes a new inactive skill with locked content owned by the calling app. An omitted content version defaults to v1.0 on creation.
+    /// Supplies the skill code, display name and content. New app-owned skills default to inactive with locked content and version v1.0.
+    /// Use SetManual(true) and an empty code to create a manual skill, or its saved code to update it.
     /// </summary>
-    procedure Initialize(SkillCode: Code[100]; DisplayName: Text[250]; Content: Text): Codeunit "Business Skill Builder"
+    procedure Initialize(SkillCode: Code[100]; DisplayName: Text[250]; Content: SecretText): Codeunit "Business Skill Builder"
     var
         CallerModule: ModuleInfo;
     begin
@@ -29,7 +30,16 @@ codeunit 4161 "Business Skill Builder"
     end;
 
     /// <summary>
-    /// Sets whether the created skill's content and content version are locked. The default is true.
+    /// Selects manual ownership. New manual skills default to unlocked content; this never converts a saved skill's identity.
+    /// </summary>
+    procedure SetManual(Manual: Boolean): Codeunit "Business Skill Builder"
+    begin
+        BuilderImpl.SetManual(Manual);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Sets whether content and its version are locked. Omitted on update, the saved value is preserved.
     /// </summary>
     procedure SetContentLocked(ContentLocked: Boolean): Codeunit "Business Skill Builder"
     begin
@@ -67,14 +77,14 @@ codeunit 4161 "Business Skill Builder"
     /// <summary>
     /// Sets the skill content.
     /// </summary>
-    procedure SetContent(Content: Text): Codeunit "Business Skill Builder"
+    procedure SetContent(Content: SecretText): Codeunit "Business Skill Builder"
     begin
         BuilderImpl.SetContent(Content);
         exit(this);
     end;
 
     /// <summary>
-    /// Selects whether the created skill is active. The default is inactive.
+    /// Selects whether the skill is active. Creation defaults to inactive; omission on update preserves the saved status.
     /// </summary>
     procedure SetActive(Active: Boolean): Codeunit "Business Skill Builder"
     begin
@@ -92,13 +102,23 @@ codeunit 4161 "Business Skill Builder"
     end;
 
     /// <summary>
-    /// Creates the skill, or updates the skill of the calling app that has the same skill code, without committing.
-    /// Returns the numeric skill ID. Changed content needs a new content version; a content-locked skill cannot change its content or version.
+    /// Creates an app-owned skill or updates its matching code, or creates/updates a manual skill selected by SetManual.
+    /// A supplied manual code must already exist. Omitted optional setters preserve saved values.
+    /// Changed app-owned content needs a new version; content-locked skills cannot change content or version.
     /// A builder instance can create or update only one skill.
     /// </summary>
     procedure CreateOrUpdate(): BigInteger
     begin
         exit(BuilderImpl.CreateOrUpdate());
+    end;
+
+    /// <summary>
+    /// Updates an existing skill by numeric ID without committing. A supplied code and the selected ownership must match.
+    /// Missing IDs are errors, never requests to allocate a new identity. Omitted optional setters preserve saved values.
+    /// </summary>
+    procedure CreateOrUpdate(SkillId: BigInteger): BigInteger
+    begin
+        exit(BuilderImpl.CreateOrUpdate(SkillId));
     end;
 
     var
