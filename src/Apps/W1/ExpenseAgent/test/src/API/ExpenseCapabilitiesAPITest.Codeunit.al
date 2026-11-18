@@ -24,6 +24,7 @@ codeunit 148318 "Expense Capabilities API Test"
         ActivityLogCapabilityNameTok: Label 'activityLog', Locked = true;
         ApprovalConversationCapabilityNameTok: Label 'approvalConversation', Locked = true;
         TravelRequestCapabilityNameTok: Label 'travelRequest', Locked = true;
+        DateTimesInAgentTimeZoneCapabilityNameTok: Label 'dateTimesInAgentTimeZone', Locked = true;
 
     [Test]
     procedure CapabilitiesProjectsEnabledViaAPI()
@@ -115,6 +116,25 @@ codeunit 148318 "Expense Capabilities API Test"
         Assert.IsTrue(
             ResponseContainsCapabilityState(ResponseText, TravelRequestCapabilityNameTok, true),
             'Response must contain an enabled travelRequest capability row.');
+    end;
+
+    [Test]
+    procedure DateTimesInAgentTimeZoneCapabilityEnabledViaAPI()
+    var
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] The service is told that per diem date times are evaluated in the agent time zone.
+        Initialize();
+
+        // [WHEN] The expenseCapabilities collection is fetched through the API.
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] DateTimesInAgentTimeZone is present and enabled.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, DateTimesInAgentTimeZoneCapabilityNameTok, true),
+            'Response must contain an enabled dateTimesInAgentTimeZone capability row.');
     end;
 
     [Test]
