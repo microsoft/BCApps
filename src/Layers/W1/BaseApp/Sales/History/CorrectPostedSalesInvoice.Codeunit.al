@@ -12,6 +12,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
@@ -1041,7 +1042,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
 
         RestoreOrderQuantity := IsOrderQtyRestorationEnabled();
 
-        SalesCrMemoLine.SetLoadFields("Document No.", "No.", "Appl.-from Item Entry", Quantity, "Variant Code");
+        SalesCrMemoLine.SetLoadFields("Document No.", "No.", "Appl.-from Item Entry", Quantity, "Quantity (Base)", "Qty. per Unit of Measure", "Variant Code");
         SalesCrMemoLine.SetRange("Document No.", SalesCreditMemoNo);
         SalesCrMemoLine.SetFilter("No.", '<>%1', '');
         SalesCrMemoLine.SetFilter(Quantity, '<>%1', 0);
@@ -1076,7 +1077,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
             if SalesLine.Type = SalesLine.Type::Item then
                 SalesInvoiceLine.GetItemLedgEntries(TempItemLedgerEntry, false);
 
-            UpdateSalesOrderLineInvoicedQuantity(SalesLine, SalesCrMemoLine.Quantity, SalesCrMemoLine."Quantity (Base)");
+            UpdateSalesOrderLineInvoicedQuantity(SalesLine, GetCancelledQtyInOrderLineUOM(SalesLine, SalesCrMemoLine), SalesCrMemoLine."Quantity (Base)");
         end;
 
         UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine);
@@ -1196,12 +1197,35 @@ codeunit 1303 "Correct Posted Sales Invoice"
         SalesLine."Qty. Invoiced (Base)" -= CancelledQtyBase;
         SalesLine."Quantity Shipped" -= CancelledQuantity;
         SalesLine."Qty. Shipped (Base)" -= CancelledQtyBase;
+        if SalesLine.Type = SalesLine.Type::Item then begin
+            // Clear residual document quantity left by UOM conversion rounding once the base quantity is fully reversed.
+            if SalesLine."Qty. Invoiced (Base)" = 0 then
+                SalesLine."Quantity Invoiced" := 0;
+            if SalesLine."Qty. Shipped (Base)" = 0 then
+                SalesLine."Quantity Shipped" := 0;
+        end;
         SalesLine.InitOutstanding();
         SalesLine.InitQtyToShip();
         SalesLine.UpdateWithWarehouseShip();
         SalesLine.Modify();
 
         OnAfterUpdateSalesOrderLineInvoicedQuantity(SalesLine, CancelledQuantity, CancelledQtyBase);
+    end;
+
+    local procedure GetCancelledQtyInOrderLineUOM(SalesLine: Record "Sales Line"; SalesCrMemoLine: Record "Sales Cr.Memo Line"): Decimal
+    var
+        UOMMgt: Codeunit "Unit of Measure Management";
+    begin
+        if (SalesLine.Type <> SalesLine.Type::Item) or
+           (SalesCrMemoLine."Qty. per Unit of Measure" = SalesLine."Qty. per Unit of Measure") or
+           (SalesLine."Qty. per Unit of Measure" = 0)
+        then
+            exit(SalesCrMemoLine.Quantity);
+
+        exit(
+            UOMMgt.CalcQtyFromBase(
+                SalesLine."No.", SalesLine."Variant Code", SalesLine."Unit of Measure Code",
+                SalesCrMemoLine."Quantity (Base)", SalesLine."Qty. per Unit of Measure"));
     end;
 
     local procedure TestWMSLocation(SalesInvoiceLine: Record "Sales Invoice Line")
