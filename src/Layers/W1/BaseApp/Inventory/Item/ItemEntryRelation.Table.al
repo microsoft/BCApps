@@ -20,7 +20,7 @@ table 6507 "Item Entry Relation"
 
     fields
     {
-        field(1; "Item Entry No."; Integer)
+        field(1; "Item Entry No."; BigInteger)
         {
             Caption = 'Item Entry No.';
             TableRelation = "Item Ledger Entry";
@@ -47,7 +47,7 @@ table 6507 "Item Entry Relation"
         {
             Caption = 'Source Prod. Order Line';
         }
-        field(15; "Source Ref. No."; Integer)
+        field(15; "Source Ref. No."; BigInteger)
         {
             Caption = 'Source Ref. No.';
         }
@@ -193,7 +193,7 @@ table 6507 "Item Entry Relation"
         SetOrderInfo(DirectTransLine."Transfer Order No.", DirectTransLine."Line No.");
     end;
 
-    procedure SetSource(SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceRefNo: Integer)
+    procedure SetSource(SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceRefNo: BigInteger)
     begin
         "Source Type" := SourceType;
         "Source Subtype" := SourceSubtype;
@@ -211,7 +211,7 @@ table 6507 "Item Entry Relation"
         OnAfterSetSource2(Rec, "Source Batch Name", "Source Prod. Order Line")
     end;
 
-    procedure SetSourceFilter(SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceRefNo: Integer; SourceKey: Boolean)
+    procedure SetSourceFilter(SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceRefNo: BigInteger; SourceKey: Boolean)
     begin
         if SourceKey then
             SetCurrentKey(
@@ -261,7 +261,7 @@ table 6507 "Item Entry Relation"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterSetSource(ItemEntryRelation: Record "Item Entry Relation"; var SourceType: Integer; var SourceSubtype: Option; var SourceID: Code[20]; var SourceRefNo: Integer)
+    local procedure OnAfterSetSource(ItemEntryRelation: Record "Item Entry Relation"; var SourceType: Integer; var SourceSubtype: Option; var SourceID: Code[20]; var SourceRefNo: BigInteger)
     begin
     end;
 
@@ -276,7 +276,7 @@ table 6507 "Item Entry Relation"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterSetSourceFilter(var ItemEntryRelation: Record "Item Entry Relation"; SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceRefNo: Integer; SourceKey: Boolean)
+    local procedure OnAfterSetSourceFilter(var ItemEntryRelation: Record "Item Entry Relation"; SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceRefNo: BigInteger; SourceKey: Boolean)
     begin
     end;
 }
