@@ -96,6 +96,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         CompanyInformation: Record "Company Information";
         CountryRegion: Record "Country/Region";
         ApplicationSystemConstants: Codeunit "Application System Constants";
+        ApplicationVersion: Version;
     begin
         SAFTXMLHelper.Initialize();
         if GuiAllowed() then
@@ -113,7 +114,8 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         SAFTXMLHelper.AppendXMLNode('AuditFileDateCreated', FormatDate(today()));
         SAFTXMLHelper.AppendXMLNode('SoftwareCompanyName', 'Microsoft');
         SAFTXMLHelper.AppendXMLNode('SoftwareID', 'Microsoft Dynamics 365 Business Central');
-        SAFTXMLHelper.AppendXMLNode('SoftwareVersion', ApplicationSystemConstants.ApplicationVersion());
+        Evaluate(ApplicationVersion, ApplicationSystemConstants.BuildFileVersion());
+        SAFTXMLHelper.AppendXMLNode('SoftwareVersion', StrSubstNo('%1.%2', ApplicationVersion.Major(), ApplicationVersion.Minor()));
         ExportCompanyInfo('Company');
         GeneralLedgerSetup.get();
         SAFTXMLHelper.AppendXMLNode('DefaultCurrencyCode', GeneralLedgerSetup."LCY Code");

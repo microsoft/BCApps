@@ -210,8 +210,7 @@ codeunit 10671 "SAF-T XML Import"
                 SAFTMappingCategory."No." := CategoryCode;
                 TempChildXMLBuffer.Next();
                 SAFTMappingCategory.Description := CopyStr(TempChildXMLBuffer.Value, 1, MaxStrLen(SAFTMappingCategory.Description));
-                if StrLen(ExtendedCategoryCode) > 20 then
-                    SAFTMappingCategory."Extended No." := ExtendedCategoryCode;
+                SAFTMappingCategory."Extended No." := ExtendedCategoryCode;
                 if not SAFTMappingCategory.insert() then
                     SAFTMappingCategory.Modify();
             end else
