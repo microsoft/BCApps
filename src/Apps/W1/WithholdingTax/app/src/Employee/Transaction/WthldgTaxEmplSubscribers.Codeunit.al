@@ -62,7 +62,16 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
         PostEmployeeWithholdingTax(GenJnlLine, TaxAmount, TaxBaseAmount, NextTransactionNo, NextTaxEntryNo, sender);
 
         if (TaxAmount = 0) and (TaxBaseAmount <> 0) then
-            WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(GenJnlLine, TaxBaseAmount);
+            WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(GenJnlLine, Abs(GenJnlLine.Amount));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforePostGenJnlLine, '', false, false)]
+    local procedure OnBeforePostGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean)
+    begin
+        GenJournalLine."WHT Empl. Base Posted" :=
+            Balancing and
+            (GenJournalLine."Account Type" = GenJournalLine."Account Type"::"G/L Account") and
+            (GenJournalLine."Bal. Account Type" = GenJournalLine."Bal. Account Type"::Employee);
     end;
 
     local procedure PostEmployeeWithholdingTax(GenJnlLine: Record "Gen. Journal Line"; TaxAmount: Decimal; TaxBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
@@ -145,7 +154,7 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
         if WHTEmployeeCalc.IsNetCalculationBase(GenJnlLine) then
             exit;
 
-        WHTEmployeeCalc.IsThresholdIncludeded(true);
+        WHTEmployeeCalc.IsThresholdIncludeded(GenJnlLine."WHT Empl. Base Posted");
         WHTEmployeeCalc.CalcEmployeeWHT(GenJnlLine, TaxAmount, TaxAmountLCY);
         WHTEmployeeCalc.IsThresholdIncludeded(false);
 
