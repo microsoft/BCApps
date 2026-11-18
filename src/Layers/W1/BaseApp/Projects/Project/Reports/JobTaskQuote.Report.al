@@ -245,6 +245,7 @@ report 1017 "Job Task Quote"
             Caption = 'Project Task Quote (RDLC)';
             Summary = 'The Project Task Quote (RDLC) provides a detailed layout.';
         }
+#if not CLEAN30
         layout("JobTaskQuote.docx")
         {
             Type = Word;
@@ -255,6 +256,7 @@ report 1017 "Job Task Quote"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
+#endif
         layout("JobTaskQuoteBody.docx")
         {
             Type = Word;
