@@ -9009,7 +9009,9 @@ codeunit 137079 "SCM Production Order III"
         PurchRcptLine.SetRange("Document No.", ReceiptNo);
         PurchRcptLine.FindSet();
         repeat
-            LineFound := (not PurchRcptLine.Correction) and (PurchRcptLine."Operation No." = OperationNo);
+            LineFound :=
+                (PurchRcptLine.Type = PurchRcptLine.Type::Item) and (PurchRcptLine.Quantity > 0) and
+                (not PurchRcptLine.Correction) and (PurchRcptLine."Operation No." = OperationNo);
         until LineFound or (PurchRcptLine.Next() = 0);
         Assert.IsTrue(LineFound, 'Original receipt line for the operation was not found.');
         PurchRcptLine.SetRange("Line No.", PurchRcptLine."Line No.");
