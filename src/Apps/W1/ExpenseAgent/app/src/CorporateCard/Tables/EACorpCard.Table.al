@@ -74,6 +74,14 @@ table 7421 "EA Corp Card"
             DataClassification = AccountData;
             ToolTip = 'Specifies the date until which the card is valid.';
         }
+        field(11; "Provider Short Name"; Text[4])
+        {
+            Caption = 'Provider Short Name';
+            FieldClass = FlowField;
+            CalcFormula = lookup("EA Corp Card Provider"."Short Name" where(Code = field("Provider Code")));
+            Editable = false;
+            ToolTip = 'Specifies the short name of the corporate card provider.';
+        }
     }
 
     keys
@@ -93,12 +101,37 @@ table 7421 "EA Corp Card"
     trigger OnDelete()
     var
         CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
     begin
+        Expense.SetRange("Corporate Card Id", "Card Id");
+        if not Expense.IsEmpty() then
+            Error(CardHasExpensesErr, "Card Id");
+        ExpenseReportLine.SetRange("Corporate Card Id", "Card Id");
+        if not ExpenseReportLine.IsEmpty() then
+            Error(CardHasExpensesErr, "Card Id");
+        PostedExpenseReportLine.SetRange("Corporate Card Id", "Card Id");
+        if not PostedExpenseReportLine.IsEmpty() then
+            Error(CardHasExpensesErr, "Card Id");
         CorpCardTrans.SetRange("Card Id", "Card Id");
         if not CorpCardTrans.IsEmpty() then
             Error(CardHasTransactionsErr, "Card Id");
     end;
 
+    internal procedure GetLastFourDigits(): Text[4]
+    var
+        LastFour: Text;
+    begin
+        if StrLen("Masked Card No.") < 4 then
+            exit('');
+        LastFour := CopyStr("Masked Card No.", StrLen("Masked Card No.") - 3);
+        if DelChr(LastFour, '=', '0123456789') <> '' then
+            exit('');
+        exit(CopyStr(LastFour, 1, 4));
+    end;
+
     var
         CardHasTransactionsErr: Label 'Corporate card %1 cannot be deleted because one or more transactions exist.', Comment = '%1 = Card Id';
+        CardHasExpensesErr: Label 'Corporate card %1 cannot be deleted because it is referenced by an expense or expense report.', Comment = '%1 = card identifier';
 }

@@ -1037,7 +1037,7 @@ report 1308 "Standard Sales - Shipment"
     var
         ItemNo: Code[20];
         ItemTotalQty: Decimal;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         FirstRow: Boolean;
         IsHandled: Boolean;
     begin

@@ -21,7 +21,7 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
 #endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnAfterInitItemLedgEntry, '', false, false)]
-    local procedure OnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: Integer)
+    local procedure OnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: BigInteger)
     begin
 #if not CLEAN28
 #pragma warning disable AL0432
@@ -78,6 +78,7 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ProductionOrder: Record "Production Order";
+        QtyReadyToStartMgt: Codeunit "Qty. Ready to Start Mgt.";
     begin
         if not ItemJournalLine.Subcontracting then
             exit;
@@ -97,6 +98,7 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
         if CapacityLedgerEntry."Output Quantity" >= ProdOrderLine."Quantity (Base)" then begin
             ProdOrderRoutingLine."Routing Status" := "Prod. Order Routing Status"::Finished;
             ProdOrderRoutingLine.Modify();
+            QtyReadyToStartMgt.UpdateSuccessorsQtyReadyToStart(ProdOrderRoutingLine);
         end;
     end;
 

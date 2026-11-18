@@ -273,7 +273,7 @@ table 111 "Sales Shipment Line"
         /// <summary>
         /// Specifies the item ledger entry number created by this shipment.
         /// </summary>
-        field(39; "Item Shpt. Entry No."; Integer)
+        field(39; "Item Shpt. Entry No."; BigInteger)
         {
             Caption = 'Item Shpt. Entry No.';
         }
@@ -920,13 +920,7 @@ table 111 "Sales Shipment Line"
                 UpdateDocumentNo();
             end;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(10000; "Package Tracking No."; Text[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Package Tracking No.';
         }
