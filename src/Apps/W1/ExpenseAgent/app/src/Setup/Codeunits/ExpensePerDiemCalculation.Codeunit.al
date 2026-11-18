@@ -258,11 +258,13 @@ codeunit 6911 "Expense Per Diem Calculation"
 
         IsFullCalendarDay := true;
 
-        if IsFirstDay and (GetAgentTime(TripStartDateTime) <> 000000T) then
-            IsFullCalendarDay := false;
+        if IsFirstDay then
+            if GetAgentTime(TripStartDateTime) <> 000000T then
+                IsFullCalendarDay := false;
 
-        if IsLastDay and (GetAgentTime(TripEndDateTime) <> 235900T) then
-            IsFullCalendarDay := false;
+        if IsLastDay then
+            if GetAgentTime(TripEndDateTime) <> 235900T then
+                IsFullCalendarDay := false;
 
         if IsFullCalendarDay then
             exit(BaseRate)
