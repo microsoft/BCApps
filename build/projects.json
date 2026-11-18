@@ -6503,7 +6503,7 @@
       "logLevel": "warning",
       "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
-      "owningteam": "\\AI Business Solutions\\Integrations"
+      "owningteam": "\\AI Business Solutions\\Finance"
     },
     "E-Document for Mexico Tests": {
       "projectPath": "$env:INETROOT\\App\\Apps\\MX\\EDocumentMX\\test",
@@ -6514,7 +6514,7 @@
       "logLevel": "warning",
       "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
-      "owningteam": "\\AI Business Solutions\\Integrations"
+      "owningteam": "\\AI Business Solutions\\Finance"
     },
     "Field Service Integration": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\FieldServiceIntegration\\app",
