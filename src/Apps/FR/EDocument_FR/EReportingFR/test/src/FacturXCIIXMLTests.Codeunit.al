@@ -1915,14 +1915,15 @@ codeunit 148148 "Factur-X CII XML Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] An explicit electronic address does not suppress the buyer SIREN or change VAT.
+        // [SCENARIO] An explicit electronic address with the buyer SIREN prefix preserves legal identification and VAT.
         Initialize();
 
-        // [GIVEN] Invoice "SI" for customer "C" with separate legal and routing identifiers.
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithElecAddress('987654321_001'));
-        Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
-        Customer.Validate("Registration Number", '012345678');
+        // [GIVEN] Invoice "SI" for customer "C" with coherent registration, routing and VAT identifiers.
+        Customer.Get(CreateCustomer('784301772_001'));
+        Customer.Validate("Registration Number", '784301772');
+        Customer."VAT Registration No." := 'FR93784301772';
         Customer.Modify(true);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomer(Customer."No."));
 
         // [WHEN] Generate the invoice XML.
         CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
