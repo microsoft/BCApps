@@ -18,6 +18,7 @@ codeunit 135095 "OCR Web Service Tests"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         VendorNameErr: Label 'Vendor Name must have a value in Incoming Document';
+        UnexpectedNodeValueErr: Label 'Unexpected value of node: %1', Comment = '%1 = XPath of the node', Locked = true;
         ExternalDocumentReferenceLbl: Label '68f89f3f4eb7436daa20d960c311b01e';
         TestSupplierTxt: Label 'TestSupplier';
 
@@ -397,10 +398,10 @@ codeunit 135095 "OCR Web Service Tests"
         IncomingDocument: Record "Incoming Document";
         TempBlob: Codeunit "Temp Blob";
         OCRServiceMgt: Codeunit "OCR Service Mgt.";
-        XMLDOMManagement: Codeunit "XML DOM Management";
-        CorrectedXMLRootNode: DotNet XmlNode;
+        CorrectedXmlDocument: XmlDocument;
+        CorrectedXmlRootElement: XmlElement;
+        CorrectedXMLRootNode: XmlNode;
         InStream: InStream;
-        CorrectedXMLContent: Text;
     begin
         // Setup
         SetupTestForOCRCorrection(IncomingDocument);
@@ -411,8 +412,9 @@ codeunit 135095 "OCR Web Service Tests"
 
         // Assert
         TempBlob.CreateInStream(InStream);
-        InStream.Read(CorrectedXMLContent);
-        XMLDOMManagement.LoadXMLNodeFromText(CorrectedXMLContent, CorrectedXMLRootNode);
+        XmlDocument.ReadFrom(InStream, CorrectedXmlDocument);
+        CorrectedXmlDocument.GetRoot(CorrectedXmlRootElement);
+        CorrectedXMLRootNode := CorrectedXmlRootElement.AsXmlNode();
 
         VerifyCorrectedXMLValue(CorrectedXMLRootNode, IncomingDocument.GetDataExchangePath(IncomingDocument.FieldNo("Vendor Name")), IncomingDocument."Vendor Name");
         VerifyCorrectedXMLValue(CorrectedXMLRootNode, IncomingDocument.GetDataExchangePath(IncomingDocument.FieldNo("Order No.")), IncomingDocument."Order No.");
@@ -825,12 +827,12 @@ codeunit 135095 "OCR Web Service Tests"
         IncomingDocument.Get(IncomingDocument."Entry No.");
     end;
 
-    local procedure VerifyCorrectedXMLValue(CorrectedXMLRootNode: DotNet XmlNode; XPath: Text; ExpectedValue: Text)
+    local procedure VerifyCorrectedXMLValue(CorrectedXMLRootNode: XmlNode; XPath: Text; ExpectedValue: Text)
     var
-        XMLNode: DotNet XmlNode;
+        FoundXmlNode: XmlNode;
     begin
-        XMLNode := CorrectedXMLRootNode.SelectSingleNode(XPath);
-        Assert.AreEqual(ExpectedValue, XMLNode.InnerText, StrSubstNo('Unexpected value of node: %1', XPath));
+        CorrectedXMLRootNode.SelectSingleNode(XPath, FoundXmlNode);
+        Assert.AreEqual(ExpectedValue, FoundXmlNode.AsXmlElement().InnerText(), StrSubstNo(UnexpectedNodeValueErr, XPath));
     end;
 
     local procedure SetupTestForOCRCorrection(var IncomingDocument: Record "Incoming Document")

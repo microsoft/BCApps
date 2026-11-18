@@ -11,7 +11,6 @@ using System.Environment.Configuration;
 using System.Integration;
 using System.IO;
 using System.Reflection;
-using System.Xml;
 
 /// <summary>
 /// Provides a detailed card interface for configuring currency exchange rate service connections.
@@ -299,9 +298,8 @@ page 1651 "Curr. Exch. Rate Service Card"
     var
         ActivityLog: Record "Activity Log";
         WebRequestHelper: Codeunit "Web Request Helper";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         WebException: DotNet WebException;
-        XmlNode: DotNet XmlNode;
+        ResponseXmlDocument: XmlDocument;
         ResponseInputStream: InStream;
         ErrorText: Text;
     begin
@@ -314,7 +312,8 @@ page 1651 "Curr. Exch. Rate Service Card"
 
         ResponseInputStream := WebException.Response.GetResponseStream();
 
-        XMLDOMMgt.LoadXMLNodeFromInStream(ResponseInputStream, XmlNode);
+        // Read without using the return value so that a response that is not XML raises a parse error, as before.
+        XmlDocument.ReadFrom(ResponseInputStream, ResponseXmlDocument);
 
         ErrorText := XmlStructureIsNotSupportedErr;
 

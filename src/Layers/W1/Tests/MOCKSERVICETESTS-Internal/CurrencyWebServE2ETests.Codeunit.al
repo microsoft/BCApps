@@ -498,7 +498,9 @@ codeunit 134272 "Currency Web Serv. E2E Tests"
         XmlDocument: DotNet XmlDocument;
         File: File;
     begin
-        XMLDOMManagement.LoadXMLDocumentFromFile(XMLFilePath, XmlDocument);
+        FileMgt.IsAllowedPath(XMLFilePath, false);
+        XmlDocument := XmlDocument.XmlDocument();
+        XmlDocument.Load(XMLFilePath);
 
         JsonFilePath := FileMgt.ServerTempFileName('.json');
 
