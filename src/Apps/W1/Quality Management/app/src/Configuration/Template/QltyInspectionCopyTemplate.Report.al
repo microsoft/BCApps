@@ -36,7 +36,7 @@ report 20402 "Qlty. Inspection Copy Template"
             trigger OnAfterGetRecord()
             begin
                 if not CreateFromItems then
-                    CopyTemplate(CurrentTemplate, TargetDestinationName, Description);
+                    CopyTemplate(CurrentTemplate, TargetDestinationName, TargetDescription);
             end;
         }
         dataitem(CurrentItem; Item)
@@ -90,7 +90,7 @@ report 20402 "Qlty. Inspection Copy Template"
                         Caption = 'Target Code';
                         ToolTip = 'Specifies the code for the new template. This must be unique and will identify the copied template.';
                     }
-                    field(ChooseTargetDescription; Description)
+                    field(ChooseTargetDescription; TargetDescription)
                     {
                         ApplicationArea = All;
                         Enabled = not CreateFromItems;
@@ -112,7 +112,7 @@ report 20402 "Qlty. Inspection Copy Template"
     var
         CreateFromItems: Boolean;
         TargetDestinationName: Code[20];
-        Description: Text[100];
+        TargetDescription: Text[100];
         ThisWillReplaceTemplateConfigQst: Label 'This will duplicates the source template to %1 templates for %1 items.\\Target template names will use the item no. as their name.\\ If an existing template exists then template lines will be added, but will not be removed. Any removal of template lines must be done manually, or via a process such as a configuration package. \\ Do you want to proceed?', Comment = '%1=how many templates will be added/updated';
         ASingleTemplateErr: Label 'A single template must be chosen. The filters supplied result in %1 templates.', Comment = '%1=the expected number of templates';
         MustSpecifyACodeAndDescriptionErr: Label 'You must specify a target code and description when Bulk Copy from Items is disabled.';

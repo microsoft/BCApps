@@ -202,7 +202,7 @@ codeunit 181 "Copy Gen. Journal Mgt."
             ShowCanBeCopiedError(GLRegister."No.");
     end;
 
-    local procedure ShowCanBeCopiedError(GLRegisterNo: Integer)
+    local procedure ShowCanBeCopiedError(GLRegisterNo: BigInteger)
     begin
         Error(CanBeCopiedErr, GLRegisterNo);
     end;

@@ -132,6 +132,8 @@ To make the BC sales credit memo total match `Refund.totalRefundedSet` *without*
 
 Net effect on the credit memo: positive-quantity item line for the returned item plus a negative-quantity item line for the exchange item, summing to `Refund.totalRefundedSet`. Net effect on BC inventory: the returned item flows back in via the positive credit-memo line; the exchange item leaves inventory via the negative credit-memo line (matching what Shopify physically shipped to the customer).
 
+Unverified POS returns are the exception. Shopify can only refund them to a gift card, which it adds to the order as an exchange line item, and no refund offsets that gift card on a credit memo. Order import therefore leaves the gift card line unflagged so it is invoiced, and refund import skips its synthetic refund line (removing one left by an earlier import).
+
 ## Customer management
 
 The Shopify Customer table mirrors Shopify's customer resource. It stores the Shopify customer ID, email, phone, name, and a `"Customer SystemId"` linking to the BC Customer table (again via GUID, with a FlowField for the human-readable number).
