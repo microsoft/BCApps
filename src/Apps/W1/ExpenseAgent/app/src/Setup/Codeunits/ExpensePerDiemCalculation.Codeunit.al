@@ -136,7 +136,7 @@ codeunit 6911 "Expense Per Diem Calculation"
         TripStartDateTime: DateTime;
         TripEndDateTime: DateTime): Decimal
     var
-        IsFirstDay, IsLastDay, HasOvernightBefore : Boolean;
+        IsFirstDay, IsLastDay : Boolean;
     begin
         // Check if this is first/last day of trip
         IsFirstDay := (CurrentDate = GetPerDiemDate(TripStartDateTime));
@@ -150,10 +150,7 @@ codeunit 6911 "Expense Per Diem Calculation"
             ExpenseAgentSetup."Full Per-Diem Calculation"::"24-hour Rolling Period":
                 exit(Calculate24HourRollingDayAmount(CurrentDate, BaseRate, TripStartDateTime, TripEndDateTime));
             ExpenseAgentSetup."Full Per-Diem Calculation"::"Overnight Stay":
-                begin
-                    HasOvernightBefore := (CurrentDate > GetPerDiemDate(TripStartDateTime));
-                    exit(CalculateOvernightStayDayAmount(CurrentDate, BaseRate, TripStartDateTime, TripEndDateTime));
-                end;
+                exit(CalculateOvernightStayDayAmount(CurrentDate, BaseRate, TripStartDateTime, TripEndDateTime));
         end;
     end;
 
