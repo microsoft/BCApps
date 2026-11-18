@@ -172,7 +172,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         PurchaseHeader."Document Type" := DocumentType;
         PurchaseHeader."No." := '';
         PurchaseHeader.SetAllowSelectNoSeries();
-        PurchaseHeader."Corrected Invoice No." := PurchInvHeader."No.";
+        OnCopyInvoiceToCreditMemoHeader(PurchaseHeader, PurchInvHeader);
         OnBeforePurchaseHeaderInsert(PurchaseHeader, PurchInvHeader);
         PurchaseHeader.Insert(true);
 
@@ -1263,4 +1263,9 @@ codeunit 1313 "Correct Posted Purch. Invoice"
 
 #pragma warning disable AS0018
 #pragma warning restore AS0018
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCopyInvoiceToCreditMemoHeader(var PurchaseHeader: Record "Purchase Header"; PurchInvHeader: Record "Purch. Inv. Header")
+    begin
+    end;
 }

@@ -50,14 +50,9 @@ tableextension 7000019 "SII Sales Header" extends "Sales Header"
             Caption = 'Operation Description';
             DataClassification = CustomerContent;
         }
-        field(10711; "Correction Type"; Option)
+        modify("Correction Type")
         {
-            Caption = 'Correction Type';
-            DataClassification = CustomerContent;
-            OptionCaption = ' ,Replacement,Difference,Removal';
-            OptionMembers = " ",Replacement,Difference,Removal;
-
-            trigger OnValidate()
+            trigger OnAfterValidate()
             var
                 SIIManagement: Codeunit "SII Management";
             begin

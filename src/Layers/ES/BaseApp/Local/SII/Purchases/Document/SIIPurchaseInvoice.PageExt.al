@@ -11,7 +11,7 @@ pageextension 7000001 "SII Purchase Invoice" extends "Purchase Invoice"
 {
     layout
     {
-        addafter(Payment)
+        addlast("Invoice Details")
         {
             group("SII Information")
             {

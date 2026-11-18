@@ -38,8 +38,7 @@ table 79 "Company Information"
 
             trigger OnValidate()
             begin
-                "Payment Days Code" := CopyStr(Name, 1, 10);
-                "Non-Paymt. Periods Code" := CopyStr(Name, 1, 10);
+                OnAfterValidateName(Rec);
             end;
         }
         field(3; "Name 2"; Text[50])
@@ -517,14 +516,6 @@ table 79 "Company Information"
         field(10701; "CNAE Description"; Text[80])
         {
             Caption = 'CNAE Description';
-        }
-        field(10702; "Payment Days Code"; Code[10])
-        {
-            Caption = 'Payment Days Code';
-        }
-        field(10703; "Non-Paymt. Periods Code"; Code[10])
-        {
-            Caption = 'Non-Paymt. Periods Code';
         }
         field(10704; "CCC Bank No."; Text[4])
         {
@@ -1008,4 +999,9 @@ table 79 "Company Information"
     begin
     end;
 
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterValidateName(var CompanyInformation: Record "Company Information")
+    begin
+    end;
 }

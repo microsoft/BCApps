@@ -11,7 +11,6 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Reporting;
@@ -22,7 +21,6 @@ using Microsoft.Sales.Archive;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
-using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
 using System.Automation;
 using System.Environment;
@@ -424,15 +422,6 @@ page 41 "Sales Quote"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                }
-            }
-            group(Payment)
-            {
-                Caption = 'Payment';
-                field("Cust. Bank Acc. Code"; Rec."Cust. Bank Acc. Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the customer bank code to assign to the sales header in this field.';
                 }
                 field("Prices Including VAT"; Rec."Prices Including VAT")
                 {
@@ -965,18 +954,6 @@ page 41 "Sales Quote"
         }
         area(factboxes)
         {
-            part(Control1903433807; "Cartera Receiv. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Bill-to Customer No.");
-                Visible = true;
-            }
-            part(Control1903433607; "Cartera Fact. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Bill-to Customer No.");
-                Visible = true;
-            }
             part("Attached Documents List"; "Doc. Attachment List Factbox")
             {
                 ApplicationArea = All;
@@ -1535,10 +1512,10 @@ page 41 "Sales Quote"
                 {
                     AccessByPermission = TableData "Cust. Invoice Disc." = R;
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Calculate &Inv. and Pmt. Discounts';
+                    Caption = 'Calculate &Invoice Discount';
                     Enabled = IsCustomerOrContactNotEmpty;
-                    Image = CalculateDiscount;
-                    ToolTip = 'Update the lines with any payment discount that is specified in the related payment terms.';
+                    Image = CalculateInvoiceDiscount;
+                    ToolTip = 'Calculate the invoice discount that applies to the sales quote.';
 
                     trigger OnAction()
                     begin

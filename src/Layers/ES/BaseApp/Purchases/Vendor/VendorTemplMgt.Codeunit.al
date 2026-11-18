@@ -102,10 +102,7 @@ codeunit 1385 "Vendor Templ. Mgt."
         VendorRecRef.SetTable(Vendor);
         if VendorTempl."Invoice Disc. Code" <> '' then
             Vendor."Invoice Disc. Code" := VendorTempl."Invoice Disc. Code";
-        if VendorTempl."Payment Days Code" <> '' then
-            Vendor."Payment Days Code" := VendorTempl."Payment Days Code";
-        if VendorTempl."Non-Paymt. Periods Code" <> '' then
-            Vendor."Non-Paymt. Periods Code" := VendorTempl."Non-Paymt. Periods Code";
+        OnApplyTemplateOnAfterCopyFields(Vendor, VendorTempl, UpdateExistingValues);
         OnApplyTemplateOnBeforeVendorModify(Vendor, VendorTempl, UpdateExistingValues);
         Vendor.Modify(true);
     end;
@@ -389,8 +386,7 @@ codeunit 1385 "Vendor Templ. Mgt."
         FieldExclusionList.Add(VendorTempl.FieldNo("Invoice Disc. Code"));
         FieldExclusionList.Add(VendorTempl.FieldNo("No. Series"));
         FieldExclusionList.Add(VendorTempl.FieldNo("Contact Type"));
-        FieldExclusionList.Add(VendorTempl.FieldNo("Payment Days Code"));
-        FieldExclusionList.Add(VendorTempl.FieldNo("Non-Paymt. Periods Code"));
+        OnFillFieldExclusionListOnAfterAddFields(FieldExclusionList);
 
         OnAfterFillFieldExclusionList(FieldExclusionList);
     end;
@@ -606,5 +602,15 @@ codeunit 1385 "Vendor Templ. Mgt."
             FldRef := RecRef.Field(Vendor.FieldNo("No. Series"));
             FldRef.Value := ConfigTemplateHeader."Instance No. Series";
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnApplyTemplateOnAfterCopyFields(var Vendor: Record Vendor; VendorTempl: Record "Vendor Templ."; UpdateExistingValues: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFillFieldExclusionListOnAfterAddFields(var FieldExclusionList: List of [Integer])
+    begin
     end;
 }

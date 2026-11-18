@@ -10,7 +10,6 @@ using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Comment;
@@ -315,18 +314,6 @@ page 22 "Customer List"
                               "Global Dimension 2 Filter" = field("Global Dimension 2 Filter");
                 Visible = false;
             }
-            part(Control1903433807; "Cartera Receiv. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("No.");
-                Visible = true;
-            }
-            part(Control1903433607; "Cartera Fact. Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("No.");
-                Visible = true;
-            }
             systempart(Control1900383207; Links)
             {
                 ApplicationArea = RecordLinks;
@@ -355,26 +342,6 @@ page 22 "Customer List"
                     RunPageLink = "Table Name" = const(Customer),
                                   "No." = field("No.");
                     ToolTip = 'View or add comments for the record.';
-                }
-                action("&Payment Days")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = '&Payment Days';
-                    Image = PaymentDays;
-                    RunObject = Page "Payment Days";
-                    RunPageLink = "Table Name" = const(Customer),
-                                  Code = field("Payment Days Code");
-                    ToolTip = 'View or edit the payment days that are associated with the payment code.';
-                }
-                action("N&on-Payment Periods")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'N&on-Payment Periods';
-                    Image = PaymentPeriod;
-                    RunObject = Page "Non-Payment Periods";
-                    RunPageLink = "Table Name" = const(Customer),
-                                  Code = field("Non-Paymt. Periods Code");
-                    ToolTip = 'View or edit the periods for which payments will not be made.';
                 }
                 group(Dimensions)
                 {

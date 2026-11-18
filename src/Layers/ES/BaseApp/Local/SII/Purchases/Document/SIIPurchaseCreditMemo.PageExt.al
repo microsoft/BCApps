@@ -63,11 +63,6 @@ pageextension 7000000 "SII Purchase Credit Memo" extends "Purchase Credit Memo"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the Cr. Memo Type.';
                 }
-                field("Correction Type"; Rec."Correction Type")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the Correction Type.';
-                }
                 field("ID Type"; Rec."ID Type")
                 {
                     ApplicationArea = Basic, Suite;

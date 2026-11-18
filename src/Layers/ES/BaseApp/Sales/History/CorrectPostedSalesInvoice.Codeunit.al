@@ -183,7 +183,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         SalesHeader."No." := '';
         SalesHeader."Document Type" := DocumentType;
         SalesHeader.SetAllowSelectNoSeries();
-        SalesHeader."Corrected Invoice No." := SalesInvoiceHeader."No.";
+        OnCopyInvoiceToCreditMemoHeader(SalesHeader, SalesInvoiceHeader);
         OnBeforeSalesHeaderInsert(SalesHeader, SalesInvoiceHeader, CancellingOnly);
         SalesHeader.Insert(true);
 
@@ -1711,6 +1711,11 @@ codeunit 1303 "Correct Posted Sales Invoice"
     /// <param name="SalesLine">The sales line being processed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreateJobPlanningLineOnAfterInitFromJobPlanningLine(var ToJobPlanningLine: Record "Job Planning Line"; FromJobPlanningLine: Record "Job Planning Line"; SalesLine: Record "Sales Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCopyInvoiceToCreditMemoHeader(var SalesHeader: Record "Sales Header"; SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
     end;
 }

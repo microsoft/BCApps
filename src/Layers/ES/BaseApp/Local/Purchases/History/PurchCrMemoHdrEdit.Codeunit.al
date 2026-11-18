@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
-using Microsoft.EServices.EDocument;
 using Microsoft.Purchases.Payables;
 
 codeunit 10767 "Purch. Cr. Memo Hdr. - Edit"
@@ -19,22 +18,15 @@ codeunit 10767 "Purch. Cr. Memo Hdr. - Edit"
         PurchCrMemoHdr := Rec;
         PurchCrMemoHdr.LockTable();
         PurchCrMemoHdr.Find();
-        PurchCrMemoHdr."Operation Description" := Rec."Operation Description";
-        PurchCrMemoHdr."Operation Description 2" := Rec."Operation Description 2";
-        PurchCrMemoHdr."Special Scheme Code" := Rec."Special Scheme Code";
-        PurchCrMemoHdr."Cr. Memo Type" := Rec."Cr. Memo Type";
+        PurchCrMemoHdr."Posting Description" := Rec."Posting Description";
         PurchCrMemoHdr."Correction Type" := Rec."Correction Type";
         PurchCrMemoHdr."Corrected Invoice No." := Rec."Corrected Invoice No.";
-        PurchCrMemoHdr."ID Type" := Rec."ID Type";
-        PurchCrMemoHdr."Succeeded Company Name" := Rec."Succeeded Company Name";
-        PurchCrMemoHdr."Succeeded VAT Registration No." := Rec."Succeeded VAT Registration No.";
-        PurchCrMemoHdr."Posting Description" := Rec."Posting Description";
         OnRunOnBeforeTestFieldNo(PurchCrMemoHdr, Rec);
         OnBeforePurchCrMemoHdrModify(PurchCrMemoHdr, Rec);
         PurchCrMemoHdr.TestField("No.", Rec."No.");
         PurchCrMemoHdr.Modify();
         Rec := PurchCrMemoHdr;
-        UpdateSIIDocUploadState(Rec);
+        OnRunOnAfterPurchCrMemoHdrEdit(Rec);
 
         UpdateVendorLedgerEntry(Rec);
     end;
@@ -58,37 +50,6 @@ codeunit 10767 "Purch. Cr. Memo Hdr. - Edit"
         exit(VendorLedgerEntry.Get(PurchCrMemoHdr."Vendor Ledger Entry No."));
     end;
 
-    local procedure UpdateSIIDocUploadState(PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
-    var
-        xSIIDocUploadState: Record "SII Doc. Upload State";
-        SIIDocUploadState: Record "SII Doc. Upload State";
-        SIIManagement: Codeunit "SII Management";
-        SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
-    begin
-        if not SIIManagement.IsSIISetupEnabled() then
-            exit;
-
-        if not SIIDocUploadState.GetSIIDocUploadStateByDocument(
-             SIIDocUploadState."Document Source"::"Vendor Ledger".AsInteger(),
-             SIIDocUploadState."Document Type"::"Credit Memo".AsInteger(),
-             PurchCrMemoHdr."Posting Date",
-             PurchCrMemoHdr."No.")
-        then
-            exit;
-
-        xSIIDocUploadState := SIIDocUploadState;
-        SIIDocUploadState.AssignPurchCreditMemoType(PurchCrMemoHdr."Cr. Memo Type");
-        SIIDocUploadState.AssignPurchSchemeCode(PurchCrMemoHdr."Special Scheme Code");
-        SIISchemeCodeMgt.ValidatePurchSpecialRegimeCodeInSIIDocUploadState(xSIIDocUploadState, SIIDocUploadState);
-        SIIDocUploadState.IDType := PurchCrMemoHdr."ID Type";
-        SIIDocUploadState."Succeeded Company Name" := PurchCrMemoHdr."Succeeded Company Name";
-        SIIDocUploadState."Succeeded VAT Registration No." := PurchCrMemoHdr."Succeeded VAT Registration No.";
-        SIIDocUploadState.GetCorrectionInfo(
-          SIIDocUploadState."Corrected Doc. No.", SIIDocUploadState."Corr. Posting Date", SIIDocUploadState."Posting Date");
-        SIIDocUploadState."Is Credit Memo Removal" := SIIDocUploadState.IsCreditMemoRemoval();
-        SIIDocUploadState.Modify();
-    end;
-
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeTestFieldNo(var PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; PurchCrMemoHeaderRec: Record "Purch. Cr. Memo Hdr.")
     begin
@@ -96,6 +57,11 @@ codeunit 10767 "Purch. Cr. Memo Hdr. - Edit"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePurchCrMemoHdrModify(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; PurchCrMemoHdrRec: Record "Purch. Cr. Memo Hdr.")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRunOnAfterPurchCrMemoHdrEdit(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
     begin
     end;
 

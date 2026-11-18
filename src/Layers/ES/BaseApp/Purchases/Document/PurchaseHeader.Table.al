@@ -253,8 +253,7 @@ table 38 "Purchase Header"
 
                         PurchLine.Reset();
 
-                        if xRec."Pay-to Vendor No." <> "Pay-to Vendor No." then
-                            "Corrected Invoice No." := '';
+                        OnValidatePayToVendorNoOnAfterResetPurchLines(Rec, xRec);
                     end else
                         "Pay-to Vendor No." := xRec."Pay-to Vendor No.";
 
@@ -1071,9 +1070,7 @@ table 38 "Purchase Header"
                     if "Applies-to Bill No." <> '' then
                         VendLedgEntry.SetRange("Bill No.", "Applies-to Bill No.");
                     if VendLedgEntry.FindFirst() then;
-                    VendLedgEntry.SetRange("Document Type");
-                    VendLedgEntry.SetRange("Document No.");
-                    VendLedgEntry.SetRange("Bill No.");
+                    VendLedgEntry.ClearDocumentFilters();
                 end else
                     if "Applies-to Doc. Type" <> "Applies-to Doc. Type"::" " then begin
                         VendLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
@@ -2957,26 +2954,6 @@ table 38 "Purchase Header"
         {
             Caption = 'Generate Autocredit Memo';
             Editable = false;
-        }
-        field(10705; "Corrected Invoice No."; Code[20])
-        {
-            Caption = 'Corrected Invoice No.';
-
-            trigger OnLookup()
-            var
-                PurchaseInvoiceHeader: Record "Purch. Inv. Header";
-            begin
-                if PurchaseInvoiceHeader.LookupInvoice("Pay-to Vendor No.") then
-                    Validate("Corrected Invoice No.", PurchaseInvoiceHeader."No.");
-            end;
-
-            trigger OnValidate()
-            var
-                PurchaseInvoiceHeader: Record "Purch. Inv. Header";
-            begin
-                if "Corrected Invoice No." <> '' then
-                    PurchaseInvoiceHeader.CheckCorrectedDocumentExist("Pay-to Vendor No.", "Corrected Invoice No.");
-            end;
         }
         field(10706; "Due Date Modified"; Boolean)
         {
@@ -9615,6 +9592,11 @@ table 38 "Purchase Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnLookupBuyFromContactOnAfterValidateBuyFromContactNo(var PurchaseHeader: Record "Purchase Header"; Contact: Record Contact)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePayToVendorNoOnAfterResetPurchLines(var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header")
     begin
     end;
 }

@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.History;
 
-using Microsoft.EServices.EDocument;
-
 tableextension 10793 "Service Invoice Line ES" extends "Service Invoice Line"
 {
     fields
@@ -31,11 +29,6 @@ tableextension 10793 "Service Invoice Line ES" extends "Service Invoice Line"
             Caption = 'EC Difference';
             DataClassification = CustomerContent;
             Editable = true;
-        }
-        field(10709; "Special Scheme Code"; Enum "SII Sales Special Scheme Code")
-        {
-            Caption = 'Special Scheme Code';
-            DataClassification = CustomerContent;
         }
     }
 }

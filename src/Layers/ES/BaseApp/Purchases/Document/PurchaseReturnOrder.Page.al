@@ -327,11 +327,6 @@ page 6640 "Purchase Return Order"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
-                field("Corrected Invoice No."; Rec."Corrected Invoice No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the posted invoice that you have corrected.';
-                }
             }
             part(PurchLines; "Purchase Return Order Subform")
             {
@@ -802,12 +797,6 @@ page 6640 "Purchase Return Order"
                 ApplicationArea = Suite;
                 ShowFilter = false;
                 Visible = false;
-            }
-            part(Control1903433907; "Cartera Payables Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Pay-to Vendor No.");
-                Visible = true;
             }
             part(Control1903435607; "Vendor Hist. Buy-from FactBox")
             {
@@ -1284,8 +1273,8 @@ page 6640 "Purchase Return Order"
                 {
                     AccessByPermission = TableData "Vendor Invoice Disc." = R;
                     ApplicationArea = PurchReturnOrder;
-                    Caption = 'Calculate &Inv. and Pmt. Discounts';
-                    Image = CalculateDiscount;
+                    Caption = 'Calculate &Invoice Discount';
+                    Image = CalculateInvoiceDiscount;
                     ToolTip = 'Calculate the discount that can be granted based on all lines in the purchase document.';
 
                     trigger OnAction()

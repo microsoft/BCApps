@@ -461,18 +461,6 @@ table 1383 "Vendor Templ."
             ToolTip = 'Specifies the policy that will be used for the vendor if more items than ordered are received.';
             TableRelation = "Over-Receipt Code";
         }
-        field(10700; "Payment Days Code"; Code[20])
-        {
-            Caption = 'Payment Days Code';
-            TableRelation = Vendor;
-            ValidateTableRelation = false;
-        }
-        field(10701; "Non-Paymt. Periods Code"; Code[20])
-        {
-            Caption = 'Non-Paymt. Periods Code';
-            TableRelation = Vendor;
-            ValidateTableRelation = false;
-        }
     }
 
     keys

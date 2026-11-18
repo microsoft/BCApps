@@ -775,14 +775,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine."Recipient Bank Account" := PurchHeader."Vendor Bank Acc. Code";
         GenJnlLine."Generate AutoInvoices" := PurchHeader."Generate Autoinvoices" or PurchHeader."Generate Autocredit Memo";
         GenJnlLine."AutoDoc. No." := InvoicePostingParameters."Auto Document No.";
-        GenJnlLine."Purch. Invoice Type" := PurchHeader."Invoice Type";
-        GenJnlLine."Purch. Cr. Memo Type" := PurchHeader."Cr. Memo Type";
-        GenJnlLine."Purch. Special Scheme Code" := PurchHeader."Special Scheme Code";
-        GenJnlLine."Correction Type" := PurchHeader."Correction Type";
-        GenJnlLine."Corrected Invoice No." := PurchHeader."Corrected Invoice No.";
-        GenJnlLine."Succeeded Company Name" := PurchHeader."Succeeded Company Name";
-        GenJnlLine."Succeeded VAT Registration No." := PurchHeader."Succeeded VAT Registration No.";
-        GenJnlLine."ID Type" := PurchHeader."ID Type";
+        OnPostLedgerEntryOnCopyHeaderFields(GenJnlLine, PurchHeader);
+        OnPostLedgerEntryOnAfterCopyToGenJnlLine(GenJnlLine, PurchHeader);
 
         PurchPostInvoiceEvents.RunOnPostLedgerEntryOnBeforeGenJnlPostLine(
             GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
@@ -1462,7 +1456,17 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnPostLedgerEntryOnAfterCopyToGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; PurchHeader: Record "Purchase Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnSplitFAOnBeforeRunGenJnlPostLine(var GenJournalLine: Record "Gen. Journal Line"; var GenJournalLine2: Record "Gen. Journal Line"; var TotalGenJournalLine: Record "Gen. Journal Line"; IterationCounter: Integer; SplitNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostLedgerEntryOnCopyHeaderFields(var GenJnlLine: Record "Gen. Journal Line"; PurchHeader: Record "Purchase Header")
     begin
     end;
 }

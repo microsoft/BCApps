@@ -151,10 +151,7 @@ codeunit 1381 "Customer Templ. Mgt."
         if CustomerTempl."Invoice Disc. Code" <> '' then
             Customer."Invoice Disc. Code" := CustomerTempl."Invoice Disc. Code";
         Customer.Validate("Payment Method Code", CustomerTempl."Payment Method Code");
-        if CustomerTempl."Payment Days Code" <> '' then
-            Customer."Payment Days Code" := CustomerTempl."Payment Days Code";
-        if CustomerTempl."Non-Paymt. Periods Code" <> '' then
-            Customer."Non-Paymt. Periods Code" := CustomerTempl."Non-Paymt. Periods Code";
+        OnApplyTemplateOnAfterCopyFields(Customer, CustomerTempl, UpdateExistingValues);
         OnApplyTemplateOnBeforeCustomerModify(Customer, CustomerTempl, UpdateExistingValues);
         Customer.Modify(true);
     end;
@@ -493,8 +490,7 @@ codeunit 1381 "Customer Templ. Mgt."
         FieldExclusionList.Add(CustomerTempl.FieldNo("Invoice Disc. Code"));
         FieldExclusionList.Add(CustomerTempl.FieldNo("No. Series"));
         FieldExclusionList.Add(CustomerTempl.FieldNo("Payment Method Code"));
-        FieldExclusionList.Add(CustomerTempl.FieldNo("Payment Days Code"));
-        FieldExclusionList.Add(CustomerTempl.FieldNo("Non-Paymt. Periods Code"));
+        OnFillFieldExclusionListOnAfterAddFields(FieldExclusionList);
 
         OnAfterFillFieldExclusionList(FieldExclusionList);
     end;
@@ -831,5 +827,15 @@ codeunit 1381 "Customer Templ. Mgt."
             FldRef := RecRef.Field(Customer.FieldNo("No. Series"));
             FldRef.Value := ConfigTemplateHeader."Instance No. Series";
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnApplyTemplateOnAfterCopyFields(var Customer: Record Customer; CustomerTempl: Record "Customer Templ."; UpdateExistingValues: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFillFieldExclusionListOnAfterAddFields(var FieldExclusionList: List of [Integer])
+    begin
     end;
 }

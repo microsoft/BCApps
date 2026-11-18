@@ -291,7 +291,7 @@ report 6653 "Combine Return Receipts"
             SalesHeader."Shortcut Dimension 1 Code" := SalesOrderHeader."Shortcut Dimension 1 Code";
             SalesHeader."Shortcut Dimension 2 Code" := SalesOrderHeader."Shortcut Dimension 2 Code";
             SalesHeader."Dimension Set ID" := SalesOrderHeader."Dimension Set ID";
-            SalesHeader."Corrected Invoice No." := SalesOrderHeader."Corrected Invoice No.";
+            OnCopySalesOrderToCrMemoHeader(SalesHeader, SalesOrderHeader);
             OnBeforeSalesCrMemoHeaderModify(SalesHeader, SalesOrderHeader);
 
             SalesHeader.Modify();
@@ -444,6 +444,11 @@ report 6653 "Combine Return Receipts"
 
     [IntegrationEvent(false, false)]
     local procedure OnReturnReceiptHeaderOnAfterFinalizeSalesInvHeader(var SalesHeader: Record "Sales Header"; var NoOfSalesCrMemoErrors: Integer; PostInv: Boolean; HideDialog: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCopySalesOrderToCrMemoHeader(var SalesHeader: Record "Sales Header"; SalesOrderHeader: Record "Sales Header")
     begin
     end;
 }
