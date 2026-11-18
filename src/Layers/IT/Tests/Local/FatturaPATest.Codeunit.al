@@ -3523,7 +3523,7 @@ codeunit 144200 "FatturaPA Test"
         exit(ChildValue);
     end;
 
-    local procedure SetEmitAdditionalArticleCodes(Enable: Boolean)
+    internal procedure SetEmitAdditionalArticleCodes(Enable: Boolean)
     begin
         EmitAdditionalArticleCodes := Enable;
     end;
