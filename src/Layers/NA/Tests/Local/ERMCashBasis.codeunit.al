@@ -1063,6 +1063,141 @@
     end;
 
     [Test]
+    procedure PartialJournalInvoiceApplicationUsesGroupPaidAmount()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        CreditMemoVATPostingSetup: array[2] of Record "VAT Posting Setup";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoCustLedgerEntry: Record "Cust. Ledger Entry";
+        VATEntry: Record "VAT Entry";
+        GLEntry: Record "G/L Entry";
+        CustomerNo: Code[20];
+        InvoiceNo: Code[20];
+        CreditMemoNo: Code[20];
+        GroupIndex: Integer;
+        InvoiceVATEntryNo: Integer;
+        CreditMemoVATEntryNo: Integer;
+        LastVATEntryNo: Integer;
+        LastGLEntryNo: Integer;
+    begin
+        // [SCENARIO 648925] A whole-invoice payment equal to one VAT group's total must not fully realize that group.
+        Initialize();
+
+        // [GIVEN] A journal invoice with two 16% Cash Basis VAT groups totaling 1160 and 2320, with separate VAT accounts.
+        CreateCashBasisVATPostingSetup(VATPostingSetup[1], 16);
+        VATPostingSetup[2]."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(VATPostingSetup[2], 16);
+        CustomerNo := CreateCustomer('', VATPostingSetup[1]."VAT Bus. Posting Group");
+        CreateGenJournalBatch(GenJournalBatch, GenJournalBatch."Template Type"::General);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+          GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Customer, CustomerNo, 3480);
+        InvoiceNo := GenJournalLine."Document No.";
+        for GroupIndex := 1 to ArrayLen(VATPostingSetup) do begin
+            LibraryERM.CreateGeneralJnlLine(
+              GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+              GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::"G/L Account",
+              LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup[GroupIndex], GenJournalLine."Gen. Posting Type"::Sale),
+              -1160 * GroupIndex);
+            GenJournalLine.Validate("Document No.", InvoiceNo);
+            GenJournalLine.Modify(true);
+        end;
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        SalesInvoiceLine.SetRange("Document No.", InvoiceNo);
+        Assert.IsTrue(SalesInvoiceLine.IsEmpty(), 'The journal invoice must not have posted sales invoice lines');
+        LibraryERM.FindCustomerLedgerEntry(InvoiceCustLedgerEntry, InvoiceCustLedgerEntry."Document Type"::Invoice, InvoiceNo);
+        InvoiceCustLedgerEntry.TestField("Currency Code", '');
+        InvoiceCustLedgerEntry.CalcFields("Amount (LCY)");
+        Assert.AreEqual(3480, InvoiceCustLedgerEntry."Amount (LCY)", 'The journal invoice must contain both VAT groups');
+        for GroupIndex := 1 to ArrayLen(VATPostingSetup) do begin
+            VATEntry.Reset();
+            FindVATEntryByDocumentAndPostingGroup(
+              VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+              InvoiceNo, VATPostingSetup[GroupIndex]."VAT Prod. Posting Group");
+            VATEntry.TestField("Transaction No.", InvoiceCustLedgerEntry."Transaction No.");
+            Assert.AreEqual(-160 * GroupIndex, VATEntry."Remaining Unrealized Amount", 'Each invoice group must start fully unrealized');
+            Assert.AreEqual(-1000 * GroupIndex, VATEntry."Remaining Unrealized Base", 'Each invoice group must have its original base');
+        end;
+
+        // [GIVEN] A sales credit memo for 580 per group, using an exact first group and an equivalent second group.
+        CreditMemoVATPostingSetup[1] := VATPostingSetup[1];
+        CreditMemoVATPostingSetup[2]."VAT Bus. Posting Group" := VATPostingSetup[2]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(CreditMemoVATPostingSetup[2], 16);
+        CreditMemoVATPostingSetup[2].Validate("Sales VAT Account", VATPostingSetup[2]."Sales VAT Account");
+        CreditMemoVATPostingSetup[2].Validate("Sales VAT Unreal. Account", VATPostingSetup[2]."Sales VAT Unreal. Account");
+        CreditMemoVATPostingSetup[2].Modify(true);
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", CustomerNo);
+        for GroupIndex := 1 to ArrayLen(CreditMemoVATPostingSetup) do begin
+            LibrarySales.CreateSalesLine(
+              SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(CreditMemoVATPostingSetup[GroupIndex]."VAT Prod. Posting Group"), 1);
+            SalesLine.Validate("Unit Price", 500);
+            SalesLine.Modify(true);
+        end;
+        CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        LibraryERM.FindCustomerLedgerEntry(CreditMemoCustLedgerEntry, CreditMemoCustLedgerEntry."Document Type"::"Credit Memo", CreditMemoNo);
+        CreditMemoCustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(-1160, CreditMemoCustLedgerEntry."Remaining Amount", 'The credit memo total must equal only the first invoice group total');
+        LibraryERM.SetApplyCustomerEntry(CreditMemoCustLedgerEntry, CreditMemoCustLedgerEntry."Remaining Amount");
+        LibraryERM.SetAppliestoIdCustomer(InvoiceCustLedgerEntry);
+        VATEntry.Reset();
+        VATEntry.FindLast();
+        LastVATEntryNo := VATEntry."Entry No.";
+        GLEntry.FindLast();
+        LastGLEntryNo := GLEntry."Entry No.";
+
+        // [WHEN] The credit memo is applied for 1160 against the invoice, settling only 580 in each group.
+        LibraryERM.PostCustLedgerApplication(CreditMemoCustLedgerEntry);
+
+        // [THEN] Each invoice group realizes exactly 80 VAT on a base of 500, rather than fully realizing the first group.
+        for GroupIndex := 1 to ArrayLen(VATPostingSetup) do begin
+            VATEntry.Reset();
+            FindVATEntryByDocumentAndPostingGroup(
+              VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+              InvoiceNo, VATPostingSetup[GroupIndex]."VAT Prod. Posting Group");
+            InvoiceVATEntryNo := VATEntry."Entry No.";
+            Assert.AreEqual(-160 * GroupIndex + 80, VATEntry."Remaining Unrealized Amount", 'Only 80 VAT must be realized per invoice group');
+            Assert.AreEqual(-1000 * GroupIndex + 500, VATEntry."Remaining Unrealized Base", 'Only 500 base must be realized per invoice group');
+            VATEntry.Reset();
+            VATEntry.SetFilter("Entry No.", '>%1', LastVATEntryNo);
+            VATEntry.SetRange("Unrealized VAT Entry No.", InvoiceVATEntryNo);
+            Assert.RecordCount(VATEntry, 1);
+            VATEntry.FindFirst();
+            Assert.AreEqual(-80, VATEntry.Amount, 'The invoice VAT realization must use the group settlement');
+            Assert.AreEqual(-500, VATEntry.Base, 'The invoice base realization must use the group settlement');
+            VATEntry.TestField("VAT Prod. Posting Group", CreditMemoVATPostingSetup[GroupIndex]."VAT Prod. Posting Group");
+
+            VATEntry.Reset();
+            FindVATEntryByDocumentAndPostingGroup(
+              VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::"Credit Memo",
+              CreditMemoNo, CreditMemoVATPostingSetup[GroupIndex]."VAT Prod. Posting Group");
+            CreditMemoVATEntryNo := VATEntry."Entry No.";
+            Assert.AreEqual(0, VATEntry."Remaining Unrealized Amount", 'The applied credit memo group must have no remaining VAT');
+            Assert.AreEqual(0, VATEntry."Remaining Unrealized Base", 'The applied credit memo group must have no remaining base');
+            VATEntry.Reset();
+            VATEntry.SetFilter("Entry No.", '>%1', LastVATEntryNo);
+            VATEntry.SetRange("Unrealized VAT Entry No.", CreditMemoVATEntryNo);
+            Assert.RecordCount(VATEntry, 1);
+            VATEntry.FindFirst();
+            Assert.AreEqual(80, VATEntry.Amount, 'The credit memo VAT realization must offset the invoice realization');
+            Assert.AreEqual(500, VATEntry.Base, 'The credit memo base realization must offset the invoice realization');
+
+            GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
+            GLEntry.SetRange("G/L Account No.", VATPostingSetup[GroupIndex]."Sales VAT Account");
+            Assert.IsTrue(GLEntry.IsEmpty(), 'The sales credit memo application must not transfer realized VAT to G/L');
+            GLEntry.SetRange("G/L Account No.", VATPostingSetup[GroupIndex]."Sales VAT Unreal. Account");
+            Assert.IsTrue(GLEntry.IsEmpty(), 'The sales credit memo application must not transfer unrealized VAT to G/L');
+        end;
+        VATEntry.Reset();
+        VATEntry.SetFilter("Entry No.", '>%1', LastVATEntryNo);
+        Assert.RecordCount(VATEntry, 4);
+    end;
+
+    [Test]
     procedure ApplyingInvoiceToHalfJournalCrMemoRealizesProportionalVAT()
     begin
         // [SCENARIO 648925] An applying LCY invoice realizes half of each VAT group against a journal credit memo.

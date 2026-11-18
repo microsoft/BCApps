@@ -4666,6 +4666,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATAmountAddCurr: Decimal;
         VATBaseAddCurr: Decimal;
         PaidAmount: Decimal;
+        PaidAmountByVAT: Decimal;
         TotalUnrealVATAmountLast: Decimal;
         TotalUnrealVATAmountFirst: Decimal;
         SalesVATAccount: Code[20];
@@ -4729,6 +4730,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     CalculateFirstLastAmount(TaxJurisdiction."Unrealized VAT Type", VATEntry2."Remaining Unrealized Amount", TotalUnrealVATAmountLast, TotalUnrealVATAmountFirst);
                 end else
                     CalculateFirstLastAmount(VATPostingSetup."Unrealized VAT Type", VATEntry2."Remaining Unrealized Amount", TotalUnrealVATAmountLast, TotalUnrealVATAmountFirst);
+                if ShouldConsiderVATPostingGrouping and
+                   (CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::Invoice) and
+                   (VATPostingSetup."Unrealized VAT Type" = VATPostingSetup."Unrealized VAT Type"::"Cash Basis")
+                then
+                    PaidAmountByVAT +=
+                      VATEntry2."Remaining Unrealized Amount" + VATEntry2."Remaining Unrealized Base" -
+                      VATEntry2."Unrealized Amount" - VATEntry2."Unrealized Base";
             until VATEntry2.Next() = 0;
         if VATEntry2.FindSet() then begin
             if ShouldConsiderVATPostingGrouping then begin
@@ -4738,6 +4746,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         CreditMemoDocumentNo, TempAppliedVATPostingSetup."VAT Bus. Posting Group", TempAppliedVATPostingSetup."VAT Prod. Posting Group", SettledAmount,
                         CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup,
                         CreditMemoVATGroupAmounts, CreditMemoTotalAmount, CreditMemoAmountsLoaded);
+                if (CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::Invoice) and
+                   (VATPostingSetup."Unrealized VAT Type" = VATPostingSetup."Unrealized VAT Type"::"Cash Basis")
+                then
+                    // Combine prior group realizations with this group's current settlement, not whole-invoice payments.
+                    PaidAmountByVAT -= Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor())
+                else
+                    PaidAmountByVAT := PaidAmount;
             end;
             LastConnectionNo := 0;
             repeat
@@ -4754,7 +4769,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         VATPart :=
                             VATEntry2.GetUnrealizedVATPart(
                             Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor()),
-                            PaidAmount,
+                            PaidAmountByVAT,
                             InvoicePartAmountByVAT,
                             TotalUnrealVATAmountFirst,
                             TotalUnrealVATAmountLast,
