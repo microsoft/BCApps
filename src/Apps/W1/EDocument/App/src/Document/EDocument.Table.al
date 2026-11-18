@@ -525,7 +525,11 @@ table 6121 "E-Document"
         exit(EDocumentLog.FindLast());
     end;
 
-    internal procedure OpenEDocument(EDocumentRecordId: RecordId)
+    /// <summary>
+    /// Shows e-document(s) linked to the given source document. Opens either the card if exactly one e-document exists, or the list for multiple ones. It does nothing if no e-document was found or the permissions are missing.
+    /// </summary>
+    /// <param name="EDocumentRecordId">Specifies Record ID of the source document.</param>
+    procedure OpenEDocument(EDocumentRecordId: RecordId)
     var
         EDocument: Record "E-Document";
         EDocumentPage: Page "E-Document";
@@ -694,13 +698,6 @@ table 6121 "E-Document"
         if EDocumentService.Get(GetEDocumentServiceStatus()."E-Document Service Code") then;
     end;
 
-#if not CLEAN27
-    [Obsolete('Use flow field "Import Processing Status"', '27.0')]
-    procedure GetEDocumentImportProcessingStatus(): Enum "Import E-Doc. Proc. Status"
-    begin
-        exit(GetEDocumentServiceStatus()."Import Processing Status");
-    end;
-#endif
     internal procedure ToString(): Text
     begin
         exit(StrSubstNo(ToStringLbl, SystemId, "Document Record ID", "Workflow Step Instance ID", "Job Queue Entry ID"));

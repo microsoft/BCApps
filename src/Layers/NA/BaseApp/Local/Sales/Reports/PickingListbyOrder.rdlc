@@ -3605,6 +3605,9 @@
                                   <Group Name="GroupOnSalesLineComments">
                                     <GroupExpressions>
                                       <GroupExpression>=Fields!Sales_Comment_Line_Document_Type.Value</GroupExpression>
+                                      <GroupExpression>=Fields!Sales_Comment_Line_No_.Value</GroupExpression>
+                                      <GroupExpression>=Fields!Sales_Comment_Line_Document_Line_No_.Value</GroupExpression>
+                                      <GroupExpression>=Fields!Sales_Comment_Line_Line_No_.Value</GroupExpression>
                                     </GroupExpressions>
                                   </Group>
                                   <SortExpressions>

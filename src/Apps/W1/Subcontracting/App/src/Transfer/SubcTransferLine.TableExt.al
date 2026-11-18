@@ -103,7 +103,7 @@ tableextension 20517 "Subc. Transfer Line" extends "Transfer Line"
                 Item: Record Item;
                 UnitOfMeasureManagement: Codeunit "Unit of Measure Management";
             begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
                 if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -170,7 +170,7 @@ tableextension 20517 "Subc. Transfer Line" extends "Transfer Line"
         key(Key99001504; "Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Prod. Ord. Comp Line No.", "Subc. Purch. Order No.", "Subc. Return Order") { }
     }
 
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -184,7 +184,7 @@ tableextension 20517 "Subc. Transfer Line" extends "Transfer Line"
         ExistingItemTrackingErr: Label 'There is existing item tracking for this transfer line. Please remove the item tracking before changing the line to/from a WIP item transfer.';
         ExistingReservationEntriesErr: Label 'There are existing reservation entries for this transfer line. Please remove the reservation entries before changing the line to/from a WIP item transfer.';
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -218,7 +218,7 @@ tableextension 20517 "Subc. Transfer Line" extends "Transfer Line"
         UnitOfMeasureManagement: Codeunit "Unit of Measure Management";
         QtyPerUoM: Decimal;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -234,7 +234,7 @@ tableextension 20517 "Subc. Transfer Line" extends "Transfer Line"
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

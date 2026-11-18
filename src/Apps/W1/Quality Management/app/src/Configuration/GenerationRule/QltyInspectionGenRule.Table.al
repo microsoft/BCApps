@@ -769,6 +769,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
 
     /// <summary>
     /// Checks whether setup enables exactly one automatic trigger and it matches the specified intent.
+    /// Stops checking as soon as a second enabled trigger rules out exclusivity.
     /// </summary>
     /// <param name="IntentToCheck">The intent whose setup trigger must be the only enabled automatic trigger.</param>
     /// <returns>True if exactly one automatic setup trigger is enabled and belongs to the specified intent.</returns>
@@ -788,31 +789,43 @@ table 20404 "Qlty. Inspection Gen. Rule"
         end;
         if QltyManagementSetup."Sales Return Trigger" <> QltyManagementSetup."Sales Return Trigger"::NoTrigger then begin
             TriggerCount += 1;
+            if TriggerCount > 1 then
+                exit(false);
             if IntentToCheck = IntentToCheck::"Sales Return" then
                 IntentSet := true;
         end;
         if QltyManagementSetup."Warehouse Receipt Trigger" <> QltyManagementSetup."Warehouse Receipt Trigger"::NoTrigger then begin
             TriggerCount += 1;
+            if TriggerCount > 1 then
+                exit(false);
             if IntentToCheck = IntentToCheck::"Warehouse Receipt" then
                 IntentSet := true;
         end;
         if QltyManagementSetup."Warehouse Trigger" <> QltyManagementSetup."Warehouse Trigger"::NoTrigger then begin
             TriggerCount += 1;
+            if TriggerCount > 1 then
+                exit(false);
             if IntentToCheck = IntentToCheck::"Warehouse Movement" then
                 IntentSet := true;
         end;
         if QltyManagementSetup."Transfer Order Trigger" <> QltyManagementSetup."Transfer Order Trigger"::NoTrigger then begin
             TriggerCount += 1;
+            if TriggerCount > 1 then
+                exit(false);
             if IntentToCheck = IntentToCheck::Transfer then
                 IntentSet := true;
         end;
         if QltyManagementSetup."Production Order Trigger" <> QltyManagementSetup."Production Order Trigger"::NoTrigger then begin
             TriggerCount += 1;
+            if TriggerCount > 1 then
+                exit(false);
             if IntentToCheck = IntentToCheck::Production then
                 IntentSet := true;
         end;
         if QltyManagementSetup."Assembly Trigger" <> QltyManagementSetup."Assembly Trigger"::NoTrigger then begin
             TriggerCount += 1;
+            if TriggerCount > 1 then
+                exit(false);
             if IntentToCheck = IntentToCheck::Assembly then
                 IntentSet := true;
         end;

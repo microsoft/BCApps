@@ -102,9 +102,9 @@ tableextension 11739 "VAT Statement Line CZL" extends "VAT Statement Line"
     begin
         case "Show CZL" of
             "Show CZL"::"Zero If Negative":
-                exit(Amount < 0 ? true : false);
+                exit(Amount < 0);
             "Show CZL"::"Zero If Positive":
-                exit(Amount > 0 ? true : false);
+                exit(Amount > 0);
         end;
     end;
 

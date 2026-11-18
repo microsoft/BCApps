@@ -19,7 +19,7 @@
               },
               "variant_code": {
                 "type": "string",
-                "description": "The selected Item Variant Code from the candidate's Variants column. Include only when a variant is explicitly or semantically identified by the query or relevant same-item message context. Do not invent variant codes."
+                "description": "The selected Item Variant Code from the candidate's non-empty Variants array. Include only when a requested value is explicitly or semantically identified by the query or relevant same-item message context and is resolved against an entry in that array. Omit when Variants is empty, and do not invent variant codes."
               },
               "confidence": {
                 "type": "string",
@@ -29,7 +29,7 @@
               "variant_match": {
                 "type": "string",
                 "enum": ["matching", "alternative", "not_requested"],
-                "description": "Whether variant_code fulfills the variant request, is a safe interchangeable substitute, or is omitted because no variant was requested. Never classify changes to size, fit, compatibility, capacity, technical specification, safety classification, or intended user as alternative unless the customer explicitly permits that change."
+                "description": "Whether variant_code fulfills the variant request, is a safe interchangeable substitute, or is omitted because no variant was requested or the candidate's Variants array is empty. Characteristics in item-level descriptions are not variant signals when Variants is empty. Never classify changes to size, fit, compatibility, capacity, technical specification, safety classification, or intended user as alternative unless the customer explicitly permits that change."
               },
               "variant_substitution_safety": {
                 "type": "string",
@@ -49,4 +49,3 @@
     }
   }
 }
-

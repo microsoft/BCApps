@@ -821,18 +821,6 @@ page 151 "Customer Statistics"
                             ToolTip = 'Specifies the number of distinct items sold to the customer.';
                         }
                     }
-#if not CLEAN27
-#pragma warning disable AA0218, AA0225, AA0189
-                    field(Placeholder2; Text001)
-                    {
-                        ApplicationArea = None;
-                        Visible = false;
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'Replaced with CustSinceDate.';
-                        ObsoleteTag = '27.0';
-                    }
-#pragma warning restore AA0218, AA0225, AA0189
-#endif
                 }
             }
         }

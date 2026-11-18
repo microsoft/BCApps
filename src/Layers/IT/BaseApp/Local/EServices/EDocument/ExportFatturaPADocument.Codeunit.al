@@ -289,10 +289,7 @@ codeunit 12179 "Export FatturaPA Document"
         TempXMLBuffer.AddGroupElement('IdTrasmittente');
         if TransmissionIntermediaryVendor."No." = '' then begin
             TempXMLBuffer.AddNonEmptyElement('IdPaese', CompanyInformation."Country/Region Code");
-            if CompanyInformation."Fiscal Code" = '' then
-                TempXMLBuffer.AddNonEmptyLastElement('IdCodice', CompanyInformation."VAT Registration No.")
-            else
-                TempXMLBuffer.AddNonEmptyLastElement('IdCodice', CompanyInformation."Fiscal Code");
+            TempXMLBuffer.AddNonEmptyLastElement('IdCodice', FatturaDocHelper.GetCompanyTransmitterId(CompanyInformation));
         end else begin
             TempXMLBuffer.AddNonEmptyElement('IdPaese', TransmissionIntermediaryVendor."Country/Region Code");
             TempXMLBuffer.AddNonEmptyLastElement('IdCodice', TransmissionIntermediaryVendor."Fiscal Code");

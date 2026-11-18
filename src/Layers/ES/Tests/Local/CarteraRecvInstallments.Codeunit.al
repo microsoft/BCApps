@@ -756,8 +756,7 @@ codeunit 147531 "Cartera Recv. Installments"
         // Remove the line discount - without it we would get more GL/Lines
         SalesLine.SetRange("Document Type", DocumentType);
         SalesLine.SetRange("Document No.", DocumentNo);
-        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, true);
-        SalesLine.ModifyAll(SalesLine."Line Discount Amount", 0, true);
+        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, SalesLine."Line Discount Amount", 0, true);
     end;
 
     local procedure ValidateCarteraDiscountGLEntries(BankAccount: Record "Bank Account"; BillGroupNo: Code[20])

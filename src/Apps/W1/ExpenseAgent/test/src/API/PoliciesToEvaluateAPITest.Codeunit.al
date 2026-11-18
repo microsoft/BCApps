@@ -9,6 +9,7 @@ using Microsoft.ExpenseAgent;
 codeunit 148345 "Policies To Evaluate API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -18,7 +19,6 @@ codeunit 148345 "Policies To Evaluate API Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ExpenseReportLinesServiceNameTok: Label 'expenseReportLines', Locked = true;
 
@@ -117,7 +117,6 @@ codeunit 148345 "Policies To Evaluate API Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Policies To Evaluate API Test");
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();

@@ -24,7 +24,7 @@
               </TablixColumns>
               <TablixRows>
                 <TablixRow>
-                  <Height>5.27369in</Height>
+                  <Height>4.91935in</Height>
                   <TablixCells>
                     <TablixCell>
                       <CellContents>
@@ -2655,7 +2655,7 @@ Cstr(First(Fields!LogoPositiononDocuments_SalesReceivablesSetup.Value, "DataSet_
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=Parameters!BKPLbl.Value</Value>
+                                                    <Value>=Parameters!POKLbl.Value</Value>
                                                     <Style>
                                                       <FontSize>9pt</FontSize>
                                                     </Style>
@@ -2686,7 +2686,7 @@ Cstr(First(Fields!LogoPositiononDocuments_SalesReceivablesSetup.Value, "DataSet_
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=Fields!SecurityCode_EETEntry.Value</Value>
+                                                    <Value>=Fields!AcknowledgementCode_EETEntry.Value</Value>
                                                     <Style>
                                                       <FontSize>9pt</FontSize>
                                                     </Style>
@@ -2716,120 +2716,6 @@ Cstr(First(Fields!LogoPositiononDocuments_SalesReceivablesSetup.Value, "DataSet_
                                       <TablixCell />
                                     </TablixCells>
                                   </TablixRow>
-                                  <TablixRow>
-                                    <Height>0.45cm</Height>
-                                    <TablixCells>
-                                      <TablixCell>
-                                        <CellContents>
-                                          <Textbox Name="Textbox20">
-                                            <CanGrow>true</CanGrow>
-                                            <KeepTogether>true</KeepTogether>
-                                            <Paragraphs>
-                                              <Paragraph>
-                                                <TextRuns>
-                                                  <TextRun>
-                                                    <Value>=IIf(Fields!FiscalIdentificationCode_EETEntry.Value &gt; "",Parameters!FIKLbl.Value,Parameters!PKPLbl.Value)</Value>
-                                                    <Style>
-                                                      <FontSize>9pt</FontSize>
-                                                    </Style>
-                                                  </TextRun>
-                                                </TextRuns>
-                                                <Style />
-                                              </Paragraph>
-                                            </Paragraphs>
-                                            <rd:DefaultName>Textbox20</rd:DefaultName>
-                                            <Style>
-                                              <Border>
-                                                <Color>LightGrey</Color>
-                                              </Border>
-                                              <PaddingLeft>2pt</PaddingLeft>
-                                              <PaddingRight>2pt</PaddingRight>
-                                              <PaddingTop>2pt</PaddingTop>
-                                              <PaddingBottom>2pt</PaddingBottom>
-                                            </Style>
-                                          </Textbox>
-                                        </CellContents>
-                                      </TablixCell>
-                                      <TablixCell>
-                                        <CellContents>
-                                          <Textbox Name="Textbox21">
-                                            <CanGrow>true</CanGrow>
-                                            <KeepTogether>true</KeepTogether>
-                                            <Paragraphs>
-                                              <Paragraph>
-                                                <TextRuns>
-                                                  <TextRun>
-                                                    <Value>=IIf(Fields!FiscalIdentificationCode_EETEntry.Value &gt; "",Fields!FiscalIdentificationCode_EETEntry.Value,Fields!SignatureCode_EETEntry.Value)</Value>
-                                                    <Style>
-                                                      <FontSize>9pt</FontSize>
-                                                    </Style>
-                                                  </TextRun>
-                                                </TextRuns>
-                                                <Style>
-                                                  <TextAlign>Left</TextAlign>
-                                                </Style>
-                                              </Paragraph>
-                                            </Paragraphs>
-                                            <rd:DefaultName>Textbox21</rd:DefaultName>
-                                            <Style>
-                                              <Border>
-                                                <Color>LightGrey</Color>
-                                              </Border>
-                                              <PaddingLeft>2pt</PaddingLeft>
-                                              <PaddingRight>2pt</PaddingRight>
-                                              <PaddingTop>2pt</PaddingTop>
-                                              <PaddingBottom>2pt</PaddingBottom>
-                                            </Style>
-                                          </Textbox>
-                                          <ColSpan>4</ColSpan>
-                                        </CellContents>
-                                      </TablixCell>
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                    </TablixCells>
-                                  </TablixRow>
-                                  <TablixRow>
-                                    <Height>0.45cm</Height>
-                                    <TablixCells>
-                                      <TablixCell>
-                                        <CellContents>
-                                          <Textbox Name="Textbox34">
-                                            <CanGrow>true</CanGrow>
-                                            <KeepTogether>true</KeepTogether>
-                                            <Paragraphs>
-                                              <Paragraph>
-                                                <TextRuns>
-                                                  <TextRun>
-                                                    <Value>=Fields!SalesRegimeText_EETEntry.Value</Value>
-                                                    <Style>
-                                                      <FontSize>9pt</FontSize>
-                                                    </Style>
-                                                  </TextRun>
-                                                </TextRuns>
-                                                <Style />
-                                              </Paragraph>
-                                            </Paragraphs>
-                                            <rd:DefaultName>Textbox34</rd:DefaultName>
-                                            <Style>
-                                              <Border>
-                                                <Color>LightGrey</Color>
-                                              </Border>
-                                              <PaddingLeft>2pt</PaddingLeft>
-                                              <PaddingRight>2pt</PaddingRight>
-                                              <PaddingTop>2pt</PaddingTop>
-                                              <PaddingBottom>2pt</PaddingBottom>
-                                            </Style>
-                                          </Textbox>
-                                          <ColSpan>5</ColSpan>
-                                        </CellContents>
-                                      </TablixCell>
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                    </TablixCells>
-                                  </TablixRow>
                                 </TablixRows>
                               </TablixBody>
                               <TablixColumnHierarchy>
@@ -2849,8 +2735,6 @@ Cstr(First(Fields!LogoPositiononDocuments_SalesReceivablesSetup.Value, "DataSet_
                                       <TablixMember />
                                       <TablixMember />
                                       <TablixMember />
-                                      <TablixMember />
-                                      <TablixMember />
                                     </TablixMembers>
                                   </TablixMember>
                                 </TablixMembers>
@@ -2865,8 +2749,7 @@ Cstr(First(Fields!LogoPositiononDocuments_SalesReceivablesSetup.Value, "DataSet_
                                 </Filter>
                               </Filters>
                               <Top>11.14516cm</Top>
-                              <Left>0in</Left>
-                              <Height>2.25cm</Height>
+                              <Height>1.35cm</Height>
                               <Width>15.00001cm</Width>
                               <ZIndex>4</ZIndex>
                               <Visibility>
@@ -3720,7 +3603,7 @@ Cstr(First(Fields!LogoPositiononDocuments_SalesReceivablesSetup.Value, "DataSet_
               </Filter>
             </Filters>
             <Left>0.00001cm</Left>
-            <Height>5.27369in</Height>
+            <Height>4.91935in</Height>
             <Width>17.99999cm</Width>
             <Style>
               <Border>
@@ -3729,7 +3612,7 @@ Cstr(First(Fields!LogoPositiononDocuments_SalesReceivablesSetup.Value, "DataSet_
             </Style>
           </Tablix>
         </ReportItems>
-        <Height>13.39516cm</Height>
+        <Height>12.49516cm</Height>
         <Style />
       </Body>
       <Width>18cm</Width>
@@ -4121,6 +4004,15 @@ Cstr(First(Fields!LogoPositiononDocuments_SalesReceivablesSetup.Value, "DataSet_
       </DefaultValue>
       <Prompt>PKPLbl</Prompt>
     </ReportParameter>
+    <ReportParameter Name="POKLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>POKLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>POKLbl</Prompt>
+    </ReportParameter>
     <ReportParameter Name="CopyLbl">
       <DataType>String</DataType>
       <DefaultValue>
@@ -4323,7 +4215,7 @@ Cstr(First(Fields!LogoPositiononDocuments_SalesReceivablesSetup.Value, "DataSet_
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>1</NumberOfColumns>
-      <NumberOfRows>39</NumberOfRows>
+      <NumberOfRows>40</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
@@ -4413,111 +4305,116 @@ Cstr(First(Fields!LogoPositiononDocuments_SalesReceivablesSetup.Value, "DataSet_
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>17</RowIndex>
-          <ParameterName>CopyLbl</ParameterName>
+          <ParameterName>POKLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>18</RowIndex>
-          <ParameterName>PostingDateLbl</ParameterName>
+          <ParameterName>CopyLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>19</RowIndex>
-          <ParameterName>DocumentNoLbl</ParameterName>
+          <ParameterName>PostingDateLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>20</RowIndex>
-          <ParameterName>GreetingLbl</ParameterName>
+          <ParameterName>DocumentNoLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>21</RowIndex>
-          <ParameterName>ClosingLbl</ParameterName>
+          <ParameterName>GreetingLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>22</RowIndex>
-          <ParameterName>BodyLbl</ParameterName>
+          <ParameterName>ClosingLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>23</RowIndex>
-          <ParameterName>PaymentPurpose_PostedCashDocumentHeaderCaption</ParameterName>
+          <ParameterName>BodyLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>24</RowIndex>
-          <ParameterName>RegistrationNo_PostedCashDocumentHeaderCaption</ParameterName>
+          <ParameterName>PaymentPurpose_PostedCashDocumentHeaderCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>25</RowIndex>
-          <ParameterName>VATRegistrationNo_PostedCashDocumentHeaderCaption</ParameterName>
+          <ParameterName>RegistrationNo_PostedCashDocumentHeaderCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>26</RowIndex>
-          <ParameterName>ReceivedFrom_PostedCashDocumentHeaderCaption</ParameterName>
+          <ParameterName>VATRegistrationNo_PostedCashDocumentHeaderCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>27</RowIndex>
-          <ParameterName>IdentificationCardNo_PostedCashDocumentHeaderCaption</ParameterName>
+          <ParameterName>ReceivedFrom_PostedCashDocumentHeaderCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>28</RowIndex>
-          <ParameterName>ReceivedBy_PostedCashDocumentHeaderCaption</ParameterName>
+          <ParameterName>IdentificationCardNo_PostedCashDocumentHeaderCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>29</RowIndex>
-          <ParameterName>Description_PostedCashDocumentLineCaption</ParameterName>
+          <ParameterName>ReceivedBy_PostedCashDocumentHeaderCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>30</RowIndex>
-          <ParameterName>AmountIncludingVAT_PostedCashDocumentLineCaption</ParameterName>
+          <ParameterName>Description_PostedCashDocumentLineCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>31</RowIndex>
-          <ParameterName>VAT_PostedCashDocumentLineCaption</ParameterName>
+          <ParameterName>AmountIncludingVAT_PostedCashDocumentLineCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>32</RowIndex>
-          <ParameterName>VATAmount_PostedCashDocumentLineCaption</ParameterName>
+          <ParameterName>VAT_PostedCashDocumentLineCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>33</RowIndex>
-          <ParameterName>VATBaseAmount_PostedCashDocumentLineCaption</ParameterName>
+          <ParameterName>VATAmount_PostedCashDocumentLineCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>34</RowIndex>
-          <ParameterName>VATAmtLineVATPerCaption</ParameterName>
+          <ParameterName>VATBaseAmount_PostedCashDocumentLineCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>35</RowIndex>
-          <ParameterName>AccountNo_GLEntryCaption</ParameterName>
+          <ParameterName>VATAmtLineVATPerCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>36</RowIndex>
-          <ParameterName>Description_GLEntryCaption</ParameterName>
+          <ParameterName>AccountNo_GLEntryCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>37</RowIndex>
-          <ParameterName>DebitAmount_GLEntryCaption</ParameterName>
+          <ParameterName>Description_GLEntryCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>38</RowIndex>
+          <ParameterName>DebitAmount_GLEntryCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>39</RowIndex>
           <ParameterName>CreditAmount_GLEntryCaption</ParameterName>
         </CellDefinition>
       </CellDefinitions>
@@ -4836,6 +4733,9 @@ End Function</Code>
         </Field>
         <Field Name="FiscalIdentificationCode_EETEntry">
           <DataField>FiscalIdentificationCode_EETEntry</DataField>
+        </Field>
+        <Field Name="AcknowledgementCode_EETEntry">
+          <DataField>AcknowledgementCode_EETEntry</DataField>
         </Field>
         <Field Name="FullName_Employee">
           <DataField>FullName_Employee</DataField>

@@ -14,6 +14,7 @@ using System.Text;
 codeunit 148215 "PowerBI Sustainability Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     Access = Internal;
     Permissions = tabledata "Employee Ledger Entry" = RIMD, tabledata "Detailed Employee Ledger Entry" = RIMD;
 

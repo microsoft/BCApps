@@ -1,6 +1,7 @@
 codeunit 139919 "APIV2 PstdApprovalEntries E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 

@@ -3,6 +3,7 @@ codeunit 139722 "APIV1 - Employees E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -25,6 +26,7 @@ codeunit 139722 "APIV1 - Employees E2E"
     var
         LibraryApplicationArea: Codeunit "Library - Application Area";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryApplicationArea.EnableBasicHRSetup();
 
         // Lazy Setup.

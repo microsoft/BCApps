@@ -12,7 +12,7 @@ page 48512 "Fabric Platform Tables"
     InsertAllowed = false;
     DeleteAllowed = false;
     AboutTitle = 'Choose tables to synchronize';
-    AboutText = 'Add the Business Central tables you want to send to Microsoft Fabric. You can select up to 500 tables.';
+    AboutText = 'Add the Business Central tables you want to send to Microsoft Fabric. You can select up to 1000 tables, including the two required Fabric log tables, which cannot be removed.';
 
     layout
     {
@@ -52,7 +52,7 @@ page 48512 "Fabric Platform Tables"
                 Caption = 'Add table';
                 ApplicationArea = All;
                 Image = New;
-                ToolTip = 'Adds one or more Business Central tables to the export selection. A maximum of 500 tables can be selected.';
+                ToolTip = 'Adds one or more Business Central tables to the export selection. A maximum of 1000 tables can be selected.';
 
                 trigger OnAction()
                 var
@@ -80,7 +80,7 @@ page 48512 "Fabric Platform Tables"
                 Caption = 'Remove table';
                 ApplicationArea = All;
                 Image = Delete;
-                ToolTip = 'Removes the selected table from the export selection. Tables still claimed by an active configuration package cannot be removed here.';
+                ToolTip = 'Removes the selected table from the export selection. Required Fabric log tables and tables still claimed by an active configuration package cannot be removed here.';
 
                 trigger OnAction()
                 var
@@ -88,6 +88,23 @@ page 48512 "Fabric Platform Tables"
                 begin
                     FabricPlatformMgt.RemoveTable(Rec."Table ID");
                     CurrPage.Update(false);
+                end;
+            }
+            action(ResetTable)
+            {
+                Caption = 'Reset table';
+                ApplicationArea = All;
+                Image = Refresh;
+                ToolTip = 'Makes the next synchronization run send a full snapshot of the selected table to Microsoft Fabric.';
+
+                trigger OnAction()
+                var
+                    FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                begin
+                    if not Confirm(ResetTableQst, false, Rec."Table Name") then
+                        exit;
+
+                    FabricPlatformMgt.ResetTable(Rec."Table ID");
                 end;
             }
         }
@@ -99,7 +116,11 @@ page 48512 "Fabric Platform Tables"
 
                 actionref(AddTable_Promoted; AddTable) { }
                 actionref(RemoveTable_Promoted; RemoveTable) { }
+                actionref(ResetTable_Promoted; ResetTable) { }
             }
         }
     }
+
+    var
+        ResetTableQst: Label 'The next synchronization run will send a full snapshot of table %1 to Microsoft Fabric. Do you want to continue?', Comment = '%1 = table name';
 }

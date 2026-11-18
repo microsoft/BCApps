@@ -2852,7 +2852,7 @@
                     <TablixMember>
                       <Group Name="Table1_Group3">
                         <GroupExpressions>
-                          <GroupExpression>=Fields!AccountNo_GenJournalLine.Value</GroupExpression>
+                          <GroupExpression>=Fields!AccountType_GenJournalLine.Value &amp; "|" &amp; Fields!AccountNo_GenJournalLine.Value</GroupExpression>
                         </GroupExpressions>
                       </Group>
                       <TablixMembers>
@@ -3462,6 +3462,9 @@ End Function
         </Field>
         <Field Name="intLayout">
           <DataField>intLayout</DataField>
+        </Field>
+        <Field Name="AccountType_GenJournalLine">
+          <DataField>AccountType_GenJournalLine</DataField>
         </Field>
         <Field Name="AccountNo_GenJournalLine">
           <DataField>AccountNo_GenJournalLine</DataField>
