@@ -515,8 +515,9 @@ codeunit 139018 "Job Queue Entry Tests"
         JobQueueEntry.Status := JobQueueEntry.Status::Ready;
         JobQueueEntry.Modify(true);
 
-        // [GIVEN] This user has logged in 10 days ago
-        UserLoginTestLibrary.UpdateUserLogin(UserSecurityId(), 0D, CreateDateTime(CalcDate('<-10D>'), 0T), 0DT);
+        // [GIVEN] This user is the only user and has logged in 10 days ago
+        UserLoginTestLibrary.DeleteAllLoginInformation();
+        UserLoginTestLibrary.InsertUserLogin(UserSecurityId(), 0D, CreateDateTime(CalcDate('<-10D>'), 0T), 0DT);
 
         // [WHEN] Call the method to set job queue on hold if last login was 11 days ago
         JobQueueManagement.SetStatusToOnHoldIfInstanceInactiveFor(PeriodType::Day, 11,

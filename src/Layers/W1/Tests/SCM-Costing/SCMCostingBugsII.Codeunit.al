@@ -34,7 +34,7 @@ codeunit 137621 "SCM Costing Bugs II"
         ItemNoAdjustedErr: Label 'Item cost was not adjusted.';
         OutbndEntryIsNotUpdatedErr: Label '"Outbound Entry is Updated" must be TRUE after adjustment.';
         WrongStandardCostVarianceErr: Label 'Item standard cost variance is incorrect.';
-        WrongCostAmountErr: Label '%1 after adjustment is incorrect', Comment = 'Field name (Cost Amount (Expected) or Cost Amount (Actual)): Cost Amount (Expected) after adjustment is incorrect';
+        WrongCostAmountErr: Label '%1 after adjustment is incorrect', Comment = '%1: Field name (Cost Amount (Expected) or Cost Amount (Actual)): Cost Amount (Expected) after adjustment is incorrect';
         InsufficientQtyErr: Label 'You have insufficient quantity of Item %1', Comment = '%1 - Item No.';
         STRMENUWasNotCalledTxt: Label 'STRMENU was not called';
         ValueIsNotPopulatedTxt: Label 'Value is not populated';
@@ -229,7 +229,7 @@ codeunit 137621 "SCM Costing Bugs II"
         LibraryManufacturing.CreateConsumptionJournalLine(ItemJournalBatch, ProdOrderLine, CompItem, WorkDate(), Location.Code, '', -Qty, 0);
         ItemJournalLine.SetRange("Journal Template Name", ItemJournalBatch."Journal Template Name");
         ItemJournalLine.SetRange("Journal Batch Name", ItemJournalBatch.Name);
-        ItemJournalLine.FindFirst();
+        Assert.RecordIsNotEmpty(ItemJournalLine);
         LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
 
         // [GIVEN] Apply Consumption to Negative Consumption from the Unapplied Entries page.
@@ -313,9 +313,9 @@ codeunit 137621 "SCM Costing Bugs II"
     procedure TFS330379()
     var
         Item: Record Item;
+        Interval: DateFormula;
         ApplicationWorksheet: TestPage "Application Worksheet";
         PostingDate: array[5] of Date;
-        Interval: DateFormula;
     begin
         // Repro steps
         Initialize();
@@ -363,9 +363,9 @@ codeunit 137621 "SCM Costing Bugs II"
     procedure TFS330379NotFixedApplication()
     var
         Item: Record Item;
+        Interval: DateFormula;
         ApplicationWorksheet: TestPage "Application Worksheet";
         PostingDate: array[5] of Date;
-        Interval: DateFormula;
     begin
         // Repro steps
         Initialize();
@@ -411,8 +411,8 @@ codeunit 137621 "SCM Costing Bugs II"
         ItemLedgerEntry: Record "Item Ledger Entry";
         ItemJournalBatch: Record "Item Journal Batch";
         ItemJournalLine: Record "Item Journal Line";
-        PostingDate: array[5] of Date;
         Interval: DateFormula;
+        PostingDate: array[5] of Date;
     begin
         // Same scenario as in TFS330379 - the negative adjustment is applied to 2nd purchase in item journal
         Initialize();
@@ -455,8 +455,8 @@ codeunit 137621 "SCM Costing Bugs II"
         ItemLedgerEntry: Record "Item Ledger Entry";
         ItemJournalBatch: Record "Item Journal Batch";
         ItemJournalLine: Record "Item Journal Line";
-        PostingDate: array[5] of Date;
         Interval: DateFormula;
+        PostingDate: array[5] of Date;
     begin
         // Same scenario as in TFS330379 - the negative adjustment is applied to 2nd purchase in item journal
         Initialize();
@@ -1712,7 +1712,7 @@ codeunit 137621 "SCM Costing Bugs II"
         LibraryCosting.AdjustCostItemEntries(Item."No.", '');
 
         // [THEN] Unit cost on the item card = 19.98 LCY (100 pcs for 20.0 LCY + 1 pc for 18.0 LCY).
-        Item.Find();
+        Item.Get(Item."No.");
         Assert.AreNearlyEqual(
           (100 * 20.0 + 1 * 18.0) / (100 + 1), Item."Unit Cost", LibraryERM.GetUnitAmountRoundingPrecision(),
           'Wrong unit cost on item card.');
@@ -3004,6 +3004,197 @@ codeunit 137621 "SCM Costing Bugs II"
         Assert.AreEqual(ExpectedVariance, ValueEntry."Cost Amount (Actual)", WrongStandardCostVarianceErr);
     end;
 
+    [Test]
+    procedure AverageCostTransfersWithHistoricalDeficitDoNotOverflow()
+    begin
+        // [FEATURE] [Average Cost] [Transfer] [Negative Inventory]
+        // [SCENARIO] Same-period transfers do not amplify their costs when other locations have a historical inventory deficit.
+        Initialize();
+        VerifyAverageCostTransfersWithHistoricalBalance(35);
+    end;
+
+    [Test]
+    procedure AverageCostTransfersWithPositiveHistoricalBalanceConverge()
+    begin
+        // [FEATURE] [Average Cost] [Transfer]
+        // [SCENARIO] The same transfers converge when the historical inventory balance is positive.
+        Initialize();
+        VerifyAverageCostTransfersWithHistoricalBalance(15);
+    end;
+
+    [Test]
+    procedure AverageCostTransfersWithZeroHistoricalBalanceDoNotOverflow()
+    begin
+        // [FEATURE] [Average Cost] [Transfer] [Negative Inventory]
+        // [SCENARIO] Same-period transfers do not amplify costs when the historical inventory quantity is zero.
+        Initialize();
+        VerifyAverageCostTransfersWithHistoricalBalance(30);
+    end;
+
+    [Test]
+    procedure AverageCostTransferAdjustsWhenSameDaySalesDepleteInventory()
+    var
+        InventorySetup: Record "Inventory Setup";
+        Item: Record Item;
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        TransferHeader: Record "Transfer Header";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        InventoryAdjustment: Codeunit "Inventory Adjustment";
+    begin
+        // [FEATURE] [AI test 1.0] [Average Cost] [Transfer] [Sales]
+        // [SCENARIO 656611] Same-day sales depleting stock must not prevent a transfer from receiving the day's average cost.
+        Initialize();
+
+        // [GIVEN] Item "I" uses Item/Day averaging with automatic adjustment and cost posting disabled.
+        LibraryInventory.SetAutomaticCostAdjmtNever();
+        LibraryInventory.SetAutomaticCostPosting(false);
+        LibraryInventory.SetAverageCostSetup(
+            InventorySetup."Average Cost Calc. Type"::Item, InventorySetup."Average Cost Period"::Day);
+        LibraryInventory.SetAverageCostSetupInAccPeriods(
+            InventorySetup."Average Cost Calc. Type"::Item, InventorySetup."Average Cost Period"::Day);
+        LibraryWarehouse.CreateTransferLocations(FromLocation, ToLocation, InTransitLocation);
+        LibraryInventory.CreateItemSimple(Item, Item."Costing Method"::Average, 10);
+
+        // [GIVEN] Receive ten units at cost 10 in "A", then transfer all ten to "B".
+        LibraryInventory.PostPositiveAdjustment(Item, FromLocation.Code, '', '', 10, WorkDate(), 10);
+        LibraryInventory.CreateAndPostTransferOrder(
+            TransferHeader, Item, FromLocation, ToLocation, InTransitLocation, '',
+            10, WorkDate(), WorkDate(), true, true);
+
+        // [GIVEN] Receive another ten units at cost 20 in "A" on the same day.
+        LibraryInventory.PostPositiveAdjustment(Item, FromLocation.Code, '', '', 10, WorkDate(), 20);
+
+        // [GIVEN] Sell and invoice ten units from each location that day, depleting stock without any earlier deficit.
+        LibrarySales.CreateSalesDocumentWithItem(
+            SalesHeader, SalesLine, SalesHeader."Document Type"::Invoice, '', Item."No.", 10,
+            FromLocation.Code, WorkDate());
+        SalesHeader.Validate("Posting Date", WorkDate());
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 10);
+        SalesLine.Validate("Location Code", ToLocation.Code);
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [WHEN] Adjust the item after all entries for the day have been posted.
+        Item.SetRecFilter();
+        InventoryAdjustment.SetProperties(false, false);
+        InventoryAdjustment.SetFilterItem(Item);
+        InventoryAdjustment.MakeMultiLevelAdjmt();
+
+        // [THEN] The transfer costs 150 and both empty locations have zero quantity and inventory value.
+        Item.Get(Item."No.");
+        Assert.IsTrue(Item."Cost is Adjusted", 'Cost adjustment must complete for the depleted item.');
+        VerifyDepletedAverageCostTransferLocation(Item."No.", FromLocation.Code, -150);
+        VerifyDepletedAverageCostTransferLocation(Item."No.", ToLocation.Code, 150);
+    end;
+
+    local procedure VerifyAverageCostTransfersWithHistoricalBalance(NegativeQty: Decimal)
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        InventorySetup: Record "Inventory Setup";
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        DeficitLocation: Record Location;
+        TransferHeader: Record "Transfer Header";
+        ValueEntry: Record "Value Entry";
+        InventoryAdjustment: Codeunit "Inventory Adjustment";
+        HistoricalQty: Decimal;
+        HistoricalCost: Decimal;
+        SourceCost: Decimal;
+        TransferQty: Decimal;
+        ExpectedTransferCost: Decimal;
+        AmountRoundingPrecision: Decimal;
+        i: Integer;
+    begin
+        LibraryInventory.SetAutomaticCostAdjmtNever();
+        LibraryInventory.SetAutomaticCostPosting(false);
+        LibraryInventory.SetPreventNegativeInventory(false);
+        LibraryInventory.SetAverageCostSetup(
+            InventorySetup."Average Cost Calc. Type"::Item, InventorySetup."Average Cost Period"::Day);
+        LibraryInventory.SetAverageCostSetupInAccPeriods(
+            InventorySetup."Average Cost Calc. Type"::Item, InventorySetup."Average Cost Period"::Day);
+
+        GeneralLedgerSetup.Get();
+        AmountRoundingPrecision := GeneralLedgerSetup."Amount Rounding Precision";
+
+        LibraryWarehouse.CreateTransferLocations(FromLocation, ToLocation, InTransitLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DeficitLocation);
+        LibraryInventory.CreateItemSimple(Item, Item."Costing Method"::Average, 10);
+        TransferQty := 10;
+        SourceCost := 330;
+
+        // [GIVEN] Consume at unit cost 10 before any receipt. No earlier positive quantity exists to reprice this entry during adjustment.
+        LibraryInventory.PostNegativeAdjustment(Item, DeficitLocation.Code, '', '', NegativeQty, WorkDate() - 2, 10);
+
+        // [GIVEN] Receive thirty units at unit cost 11 at another location, leaving the earlier negative entry open.
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", FromLocation.Code, '', 3 * TransferQty);
+        ItemJournalLine.Validate("Posting Date", WorkDate() - 1);
+        ItemJournalLine.Validate(Amount, SourceCost);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        HistoricalQty := 3 * TransferQty - NegativeQty;
+        HistoricalCost := SourceCost - NegativeQty * 10;
+        if HistoricalQty > 0 then
+            ExpectedTransferCost := Round(TransferQty * HistoricalCost / HistoricalQty, AmountRoundingPrecision)
+        else
+            // A nonpositive item balance leaves the initial unit cost of 10 unchanged when posting transfers.
+            ExpectedTransferCost := TransferQty * 10;
+
+        // [GIVEN] Three separate, fully received transfers on the same day, each for ten units.
+        for i := 1 to 3 do
+            LibraryInventory.CreateAndPostTransferOrder(
+                TransferHeader, Item, FromLocation, ToLocation, InTransitLocation, '',
+                TransferQty, WorkDate(), WorkDate(), true, true);
+
+        // [WHEN] Adjust the item using the production code, without posting to G/L or committing the test setup.
+        Item.SetRecFilter();
+        InventoryAdjustment.SetProperties(false, false);
+        InventoryAdjustment.SetFilterItem(Item);
+        InventoryAdjustment.MakeMultiLevelAdjmt();
+
+        // [THEN] Adjustment finishes, conserving inventory value and forwarding the expected shipment cost to every receipt.
+        Item.Get(Item."No.");
+        Item.TestField("Cost is Adjusted", true);
+        ValueEntry.Reset();
+        ValueEntry.SetRange("Item No.", Item."No.");
+        ValueEntry.CalcSums("Item Ledger Entry Quantity", "Cost Amount (Actual)");
+        Assert.AreEqual(HistoricalQty, ValueEntry."Item Ledger Entry Quantity", 'Transfers must not change the item quantity.');
+        Assert.AreNearlyEqual(
+            HistoricalCost, ValueEntry."Cost Amount (Actual)", AmountRoundingPrecision,
+            'Transfers must not change the total inventory value.');
+
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
+        ItemLedgerEntry.SetAutoCalcFields("Cost Amount (Actual)");
+        ItemLedgerEntry.SetRange("Location Code", FromLocation.Code);
+        ItemLedgerEntry.SetRange(Positive, false);
+        Assert.RecordCount(ItemLedgerEntry, 3);
+        ItemLedgerEntry.FindSet();
+        repeat
+            Assert.AreNearlyEqual(
+                -ExpectedTransferCost, ItemLedgerEntry."Cost Amount (Actual)", AmountRoundingPrecision,
+                'A transfer shipment must have the expected cost.');
+        until ItemLedgerEntry.Next() = 0;
+
+        ItemLedgerEntry.SetRange("Location Code", ToLocation.Code);
+        ItemLedgerEntry.SetRange(Positive, true);
+        Assert.RecordCount(ItemLedgerEntry, 3);
+        ItemLedgerEntry.FindSet();
+        repeat
+            Assert.AreNearlyEqual(
+                ExpectedTransferCost, ItemLedgerEntry."Cost Amount (Actual)", AmountRoundingPrecision,
+                'A transfer receipt must receive the expected shipment cost.');
+        until ItemLedgerEntry.Next() = 0;
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -3022,12 +3213,38 @@ codeunit 137621 "SCM Costing Bugs II"
         LibraryERMCountryData.UpdateGeneralLedgerSetup();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.UpdatePurchasesPayablesSetup();
+        LibraryERMCountryData.UpdateSalesReceivablesSetup();
         isInitialized := true;
         Commit();
 
         LibrarySetupStorage.Save(DATABASE::"Inventory Setup");
         LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
+        LibrarySetupStorage.Save(DATABASE::"Sales & Receivables Setup");
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Costing Bugs II");
+    end;
+
+    local procedure VerifyDepletedAverageCostTransferLocation(ItemNo: Code[20]; LocationCode: Code[10]; ExpectedTransferCost: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ValueEntry: Record "Value Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Location Code", LocationCode);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
+        ItemLedgerEntry.SetAutoCalcFields("Cost Amount (Actual)");
+        Assert.RecordCount(ItemLedgerEntry, 1);
+        ItemLedgerEntry.FindFirst();
+        Assert.AreNearlyEqual(
+            ExpectedTransferCost, ItemLedgerEntry."Cost Amount (Actual)", LibraryERM.GetAmountRoundingPrecision(),
+            'The transfer must use the same-day average cost even when later sales deplete stock.');
+
+        ValueEntry.SetRange("Item No.", ItemNo);
+        ValueEntry.SetRange("Location Code", LocationCode);
+        ValueEntry.CalcSums("Item Ledger Entry Quantity", "Cost Amount (Actual)");
+        Assert.AreEqual(0, ValueEntry."Item Ledger Entry Quantity", 'The location must have no remaining quantity.');
+        Assert.AreNearlyEqual(
+            0, ValueEntry."Cost Amount (Actual)", LibraryERM.GetAmountRoundingPrecision(),
+            'An empty location must not retain inventory value after cost adjustment.');
     end;
 
     local procedure CreateStandardCostItem(var Item: Record Item; StandardCost: Decimal; ReplenishmentSystem: Enum "Replenishment System")

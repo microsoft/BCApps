@@ -53,7 +53,7 @@ table 17 "G/L Entry"
         /// <summary>
         /// Unique sequential identifier for the G/L entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, which is assigned automatically when the entry is posted.';
@@ -175,6 +175,13 @@ table 17 "G/L Entry"
             ToolTip = 'Specifies the source currency code for general ledger entries.';
             TableRelation = Currency;
             DataClassification = SystemMetadata;
+        }
+        field(21; "SIFT Bucket No."; Integer)
+        {
+            Caption = 'SIFT Bucket No.';
+            ToolTip = 'Specifies an automatically generated number that is used by the system to enable better concurrency.';
+            DataClassification = SystemMetadata;
+            Editable = false;
         }
         /// <summary>
         /// Primary global dimension code for analytical reporting and filtering.
@@ -321,7 +328,7 @@ table 17 "G/L Entry"
         /// <summary>
         /// Transaction number grouping related G/L entries from the same posting.
         /// </summary>
-        field(52; "Transaction No."; Integer)
+        field(52; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
             TableRelation = "G/L Transaction";
@@ -502,7 +509,7 @@ table 17 "G/L Entry"
         /// <summary>
         /// Entry number of the reversing entry that canceled this transaction.
         /// </summary>
-        field(74; "Reversed by Entry No."; Integer)
+        field(74; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
@@ -512,7 +519,7 @@ table 17 "G/L Entry"
         /// <summary>
         /// Entry number of the original entry that was reversed by this transaction.
         /// </summary>
-        field(75; "Reversed Entry No."; Integer)
+        field(75; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
@@ -549,9 +556,10 @@ table 17 "G/L Entry"
         /// <summary>
         /// G/L Register number for this entry.
         /// </summary>
-        field(95; "G/L Register No."; Integer)
+        field(95; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
+            DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
@@ -653,7 +661,7 @@ table 17 "G/L Entry"
         /// <summary>
         /// Entry number of the last dimension correction applied to this G/L entry.
         /// </summary>
-        field(495; "Last Dim. Correction Entry No."; Integer)
+        field(495; "Last Dim. Correction Entry No."; BigInteger)
         {
             Caption = 'Last Dim. Correction Entry No.';
             Editable = false;
@@ -716,7 +724,7 @@ table 17 "G/L Entry"
         /// <summary>
         /// Entry number of the related fixed asset ledger entry.
         /// </summary>
-        field(5601; "FA Entry No."; Integer)
+        field(5601; "FA Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'FA Entry No.';
@@ -807,7 +815,7 @@ table 17 "G/L Entry"
         {
             Clustered = true;
         }
-        key(Key2; "G/L Account No.", "Posting Date")
+        key(Key2; "G/L Account No.", "Posting Date", "SIFT Bucket No.")
         {
             SumIndexFields = Amount, "Debit Amount", "Credit Amount", "Additional-Currency Amount", "Add.-Currency Debit Amount", "Add.-Currency Credit Amount", "VAT Amount", Quantity, "Source Currency Amount", "Source Currency VAT Amount";
             IncludedFields = Amount, "Additional-Currency Amount";
@@ -877,6 +885,9 @@ table 17 "G/L Entry"
         key(Key21; "Dimension Set ID")
         {
         }
+        key(Key22; "External Document No.", "Posting Date")
+        {
+        }
     }
 
     fieldgroups
@@ -888,6 +899,7 @@ table 17 "G/L Entry"
 
     trigger OnInsert()
     begin
+        Rec."SIFT Bucket No." := Rec."Entry No." mod 5;
         "Last Modified DateTime" := CurrentDateTime;
     end;
 
@@ -915,7 +927,7 @@ table 17 "G/L Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -927,7 +939,7 @@ table 17 "G/L Entry"
     /// </summary>
     /// <returns>The last entry number used</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -940,10 +952,10 @@ table 17 "G/L Entry"
     /// <param name="LastEntryNo">Returns the last entry number used</param>
     /// <param name="LastTransactionNo">Returns the last transaction number used</param>
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
-    procedure GetLastEntry(var LastEntryNo: Integer; var LastTransactionNo: Integer)
+    procedure GetLastEntry(var LastEntryNo: BigInteger; var LastTransactionNo: BigInteger)
     var
         FindRecordManagement: Codeunit "Find Record Management";
-        FieldNoValues: List of [Integer];
+        FieldNoValues: List of [BigInteger];
     begin
         FieldNoValues.Add(FieldNo("Entry No."));
         FieldNoValues.Add(FieldNo("Transaction No."));
@@ -952,17 +964,6 @@ table 17 "G/L Entry"
         LastTransactionNo := FieldNoValues.Get(2);
     end;
 
-#if not CLEAN27
-    /// <summary>
-    /// Gets the additional reporting currency code from General Ledger Setup.
-    /// </summary>
-    /// <returns>Additional reporting currency code</returns>
-    [Obsolete('use GetAdditionalReportingCurrencyCode instead', '27.0')]
-    procedure GetCurrencyCode(): Code[10]
-    begin
-        exit(GetAdditionalReportingCurrencyCode())
-    end;
-#endif
     /// <summary>
     /// Opens the Value Entries page showing item ledger entries related to this G/L entry.
     /// </summary>

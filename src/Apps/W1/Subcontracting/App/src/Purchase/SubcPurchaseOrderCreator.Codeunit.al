@@ -31,7 +31,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
         PageManagement: Codeunit "Page Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         SubcontractingManagement: Codeunit "Subcontracting Management";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -51,7 +51,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
         BaseQtyToPurch: Decimal;
         QtyToPurch: Decimal;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -90,7 +90,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
         ProdOrderLine: Record "Prod. Order Line";
         PurchaseLine: Record "Purchase Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -223,7 +223,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
         SubContractorWorkCenterNo: Code[20];
         DimensionSetIDArr: array[10] of Integer;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -293,7 +293,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
         NoOfMarkedPurchaseOrders: Integer;
         IsHandled: Boolean;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -737,15 +737,14 @@ codeunit 20557 "Subc. Purchase Order Creator"
             RequisitionLine."Accept Action Message" := true;
         end else begin
             RequisitionLine."Replenishment System" := "Replenishment System"::"Prod. Order";
-            RequisitionLine."Ref. Order No." := ProdOrderLine."Prod. Order No.";
-            RequisitionLine."Ref. Order Type" := RequisitionLine."Ref. Order Type"::"Prod. Order";
-            RequisitionLine."Ref. Order Status" := ProdOrderLine.Status;
-            RequisitionLine."Ref. Line No." := ProdOrderLine."Line No.";
+            RequisitionLine."Ref. Order Type" := RequisitionLine."Ref. Order Type"::Purchase;
             RequisitionLine."Action Message" := "Action Message Type"::New;
             RequisitionLine."Accept Action Message" := true;
         end;
 
-        if RequisitionLine."Ref. Order No." <> '' then
+        if RequisitionLine."Action Message" = "Action Message Type"::New then
+            RequisitionLine.GetDimFromProdOrderLine(ProdOrderLine, true)
+        else
             RequisitionLine.GetDimFromRefOrderLine(true);
 
         RequisitionLine.Insert();

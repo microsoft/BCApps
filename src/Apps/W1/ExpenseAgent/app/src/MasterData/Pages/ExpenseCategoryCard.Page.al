@@ -70,6 +70,18 @@ page 6945 "Expense Category Card"
                 {
                     ToolTip = 'Specifies additional details required for expenses in the category, such as itemization, per-diem, or participants.';
                 }
+                field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
+                {
+                    Visible = AllowVATReclaim;
+                }
+                field("Default VAT %"; Rec."Default VAT %")
+                {
+                    Visible = AllowVATReclaim;
+                }
+                field("Default VAT Reclaim %"; Rec."Default VAT Reclaim %")
+                {
+                    Visible = AllowVATReclaim;
+                }
             }
         }
     }
@@ -108,6 +120,14 @@ page 6945 "Expense Category Card"
         }
     }
 
+    trigger OnOpenPage()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.Get();
+        AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
+    end;
+
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
         if not IsDeletingCategory then
@@ -122,6 +142,7 @@ page 6945 "Expense Category Card"
 
     var
         IsDeletingCategory: Boolean;
+        AllowVATReclaim: Boolean;
         ContinueWithMissingSubcategoryQst: Label 'You have not added any subcategories for expense category %1 where %2 is %3.\\ It will be required to be added before you can use this expense category.\\ Do you want to continue without adding subcategories ?', Comment = '%1 - Expense Category Code, %2 - Field Name "Expense Detail Required", %3 - Expense Detail Required';
 
     local procedure CheckShowConfirmationForSubCategories(ExpenseCategory: Record "Expense Category")

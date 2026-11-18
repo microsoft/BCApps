@@ -96,6 +96,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         CompanyInformation: Record "Company Information";
         CountryRegion: Record "Country/Region";
         ApplicationSystemConstants: Codeunit "Application System Constants";
+        ApplicationVersion: Version;
     begin
         SAFTXMLHelper.Initialize();
         if GuiAllowed() then
@@ -113,7 +114,8 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         SAFTXMLHelper.AppendXMLNode('AuditFileDateCreated', FormatDate(today()));
         SAFTXMLHelper.AppendXMLNode('SoftwareCompanyName', 'Microsoft');
         SAFTXMLHelper.AppendXMLNode('SoftwareID', 'Microsoft Dynamics 365 Business Central');
-        SAFTXMLHelper.AppendXMLNode('SoftwareVersion', ApplicationSystemConstants.ApplicationVersion());
+        Evaluate(ApplicationVersion, ApplicationSystemConstants.BuildFileVersion());
+        SAFTXMLHelper.AppendXMLNode('SoftwareVersion', StrSubstNo('%1.%2', ApplicationVersion.Major(), ApplicationVersion.Minor()));
         ExportCompanyInfo('Company');
         GeneralLedgerSetup.get();
         SAFTXMLHelper.AppendXMLNode('DefaultCurrencyCode', GeneralLedgerSetup."LCY Code");
@@ -603,6 +605,39 @@ codeunit 10692 "Generate SAF-T 1.3 File"
                 while SAFTGLEntryByDoc.Read() do
                     NumberOfTransactions += 1;
                 SAFTGLEntryByDoc.Close();
+            end;
+        until SAFTSourceCode.Next() = 0;
+    end;
+
+    internal procedure CalculateDebitCreditTotals(var SAFTExportHeader: Record "SAF-T Export Header")
+    var
+        SAFTSourceCode: Record "SAF-T Source Code";
+        TempSourceCode: Record "Source Code" temporary;
+        SAFTGLEntryTotal: Query "SAF-T G/L Entry Total";
+        SourceCodeFilter: Text;
+    begin
+        SAFTExportHeader."Total G/L Entry Debit" := 0;
+        SAFTExportHeader."Total G/L Entry Credit" := 0;
+        if not SAFTSourceCode.FindSet() then
+            SAFTSourceCode.Init();
+        repeat
+            PopulateSourceCodeBuffer(TempSourceCode, SAFTSourceCode);
+            SourceCodeFilter := GetSourceCodeFilter(TempSourceCode);
+            if SourceCodeFilter <> '' then begin
+                Clear(SAFTGLEntryTotal);
+                SAFTGLEntryTotal.SetRange(PostingDate, SAFTExportHeader."Starting Date", SAFTExportHeader."Ending Date");
+                SAFTGLEntryTotal.SetFilter(SourceCode, SourceCodeFilter);
+                SAFTGLEntryTotal.SetFilter(AmountFilter, '>%1', 0);
+                SAFTGLEntryTotal.Open();
+                if SAFTGLEntryTotal.Read() then
+                    SAFTExportHeader."Total G/L Entry Debit" += SAFTGLEntryTotal.TotalAmount;
+                SAFTGLEntryTotal.Close();
+
+                SAFTGLEntryTotal.SetFilter(AmountFilter, '<%1', 0);
+                SAFTGLEntryTotal.Open();
+                if SAFTGLEntryTotal.Read() then
+                    SAFTExportHeader."Total G/L Entry Credit" -= SAFTGLEntryTotal.TotalAmount;
+                SAFTGLEntryTotal.Close();
             end;
         until SAFTSourceCode.Next() = 0;
     end;

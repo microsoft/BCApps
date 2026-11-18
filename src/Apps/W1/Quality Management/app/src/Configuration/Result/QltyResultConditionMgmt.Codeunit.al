@@ -69,18 +69,18 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <summary>
     /// Prompts to overwrite existing test conditions after a result condition changes.
     /// </summary>
-    /// <param name="ResultCode">The changed result code whose test conditions may be updated.</param>
-    internal procedure PromptUpdateTestsFromResultIfApplicable(ResultCode: Code[20])
+    /// <param name="QltyInspectionResult">The result with the changed conditions, before it is saved.</param>
+    internal procedure PromptUpdateTestsFromResultIfApplicable(QltyInspectionResult: Record "Qlty. Inspection Result")
     var
         ExistingQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
-        ExistingQltyIResultConditConf.SetRange("Result Code", ResultCode);
+        ExistingQltyIResultConditConf.SetRange("Result Code", QltyInspectionResult.Code);
         ExistingQltyIResultConditConf.SetRange("Condition Type", ExistingQltyIResultConditConf."Condition Type"::Test);
         if not ExistingQltyIResultConditConf.IsEmpty() then
             if ConfirmManagement.GetResponseOrDefault(
-                StrSubstNo(ChangedResultConditionsUpdateDefaultsOnTestsQst, ResultCode, ExistingQltyIResultConditConf.Count()))
+                StrSubstNo(ChangedResultConditionsUpdateDefaultsOnTestsQst, QltyInspectionResult.Code, ExistingQltyIResultConditConf.Count()))
             then
-                OverwriteExistingTestConditionsWithResultCondition(ResultCode);
+                OverwriteExistingTestConditionsWithResultCondition(QltyInspectionResult);
     end;
 
     /// <summary>
@@ -322,34 +322,19 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <summary>
     /// Overwrites existing test conditions for a result with that result's default conditions.
     /// </summary>
-    /// <param name="ResultCode">The result code whose default conditions are copied.</param>
-    local procedure OverwriteExistingTestConditionsWithResultCondition(ResultCode: Code[20])
+    /// <param name="QltyInspectionResult">The result whose current default conditions are copied.</param>
+    local procedure OverwriteExistingTestConditionsWithResultCondition(QltyInspectionResult: Record "Qlty. Inspection Result")
     var
         ExistingQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        QltyTest: Record "Qlty. Test";
     begin
-        ExistingQltyIResultConditConf.SetRange("Result Code", ResultCode);
+        ExistingQltyIResultConditConf.SetRange("Result Code", QltyInspectionResult.Code);
         ExistingQltyIResultConditConf.SetRange("Condition Type", ExistingQltyIResultConditConf."Condition Type"::Test);
         if ExistingQltyIResultConditConf.FindSet() then
             repeat
-                InternalCopyResultConditionsFromDefaultToTest(ExistingQltyIResultConditConf."Test Code", ResultCode, true, false);
+                if QltyTest.Get(ExistingQltyIResultConditConf."Test Code") then
+                    CopyResultConditionToTest(QltyTest, QltyInspectionResult, true, false);
             until ExistingQltyIResultConditConf.Next() = 0;
-    end;
-
-    /// <summary>
-    /// Copies default result conditions to a test using the test's configured value type.
-    /// </summary>
-    /// <param name="TestCode">The target test code.</param>
-    /// <param name="OptionalSpecificResultCode">The result code to copy, or blank to copy all automatic results.</param>
-    /// <param name="AlwaysUpdateExistingCondition">Specifies whether every existing condition is overwritten.</param>
-    /// <param name="OnlyOverwriteIfADefaultCondition">Specifies whether only blank or default-valued conditions may be overwritten.</param>
-    local procedure InternalCopyResultConditionsFromDefaultToTest(TestCode: Code[20]; OptionalSpecificResultCode: Code[20]; AlwaysUpdateExistingCondition: Boolean; OnlyOverwriteIfADefaultCondition: Boolean)
-    var
-        QltyTest: Record "Qlty. Test";
-    begin
-        if not QltyTest.Get(TestCode) then
-            exit;
-
-        InternalCopyResultConditionsFromDefaultToTestSpecificType(TestCode, OptionalSpecificResultCode, AlwaysUpdateExistingCondition, OnlyOverwriteIfADefaultCondition, QltyTest."Test Value Type");
     end;
 
     /// <summary>
@@ -364,8 +349,6 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     var
         QltyTest: Record "Qlty. Test";
         QltyInspectionResult: Record "Qlty. Inspection Result";
-        ToTestQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        Condition: Text;
     begin
         if not QltyTest.Get(TestCode) then
             exit;
@@ -376,47 +359,54 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         if QltyInspectionResult.FindSet() then
             repeat
                 QltyTest."Test Value Type" := SpecificQltyTestValueType;
-                case true of
-                    QltyTest.IsNumericFieldType():
-                        Condition := QltyInspectionResult."Default Number Condition";
-                    QltyTest."Test Value Type" = QltyTest."Test Value Type"::"Value Type Boolean":
-                        Condition := QltyInspectionResult."Default Boolean Condition";
-                    QltyTest."Test Value Type" = QltyTest."Test Value Type"::"Value Type Label":
-                        Condition := '';
-                    else
-                        Condition := QltyInspectionResult."Default Text Condition";
-                end;
-                ToTestQltyIResultConditConf.Reset();
-                ToTestQltyIResultConditConf.SetRange("Condition Type", ToTestQltyIResultConditConf."Condition Type"::Test);
-                ToTestQltyIResultConditConf.SetRange("Target Code", TestCode);
-                ToTestQltyIResultConditConf.SetRange("Test Code", TestCode);
-                ToTestQltyIResultConditConf.SetRange("Result Code", QltyInspectionResult.Code);
-                if not ToTestQltyIResultConditConf.FindFirst() then begin
-                    ToTestQltyIResultConditConf."Result Code" := QltyInspectionResult.Code;
-                    ToTestQltyIResultConditConf."Condition Type" := ToTestQltyIResultConditConf."Condition Type"::Test;
-                    ToTestQltyIResultConditConf."Target Code" := TestCode;
-                    ToTestQltyIResultConditConf."Test Code" := TestCode;
-                    ToTestQltyIResultConditConf.Condition := CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf.Condition));
-                    ToTestQltyIResultConditConf.Priority := QltyInspectionResult."Evaluation Sequence";
-                    ToTestQltyIResultConditConf."Result Visibility" := QltyInspectionResult."Result Visibility";
-                    ToTestQltyIResultConditConf."Condition Description" := CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf."Condition Description"));
-                    ToTestQltyIResultConditConf.Insert();
-                end else
-                    if AlwaysUpdateExistingCondition or
-                       (OnlyOverwriteIfADefaultCondition and
-                            (ToTestQltyIResultConditConf.Condition in
-                                ['', // '' treated as uninitialized; safe to overwrite just like named defaults
-                                QltyInspectionResult."Default Boolean Condition",
-                                QltyInspectionResult."Default Number Condition",
-                                QltyInspectionResult."Default Text Condition"]))
-                    then begin
-                        ToTestQltyIResultConditConf.Validate(Condition, CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf.Condition)));
-                        ToTestQltyIResultConditConf."Condition Description" := CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf."Condition Description"));
-                        ToTestQltyIResultConditConf.Priority := QltyInspectionResult."Evaluation Sequence";
-                        ToTestQltyIResultConditConf."Result Visibility" := QltyInspectionResult."Result Visibility";
-                        ToTestQltyIResultConditConf.Modify();
-                    end;
+                CopyResultConditionToTest(QltyTest, QltyInspectionResult, AlwaysUpdateExistingCondition, OnlyOverwriteIfADefaultCondition);
             until QltyInspectionResult.Next() = 0;
+    end;
+
+    local procedure CopyResultConditionToTest(QltyTest: Record "Qlty. Test"; QltyInspectionResult: Record "Qlty. Inspection Result"; AlwaysUpdateExistingCondition: Boolean; OnlyOverwriteIfADefaultCondition: Boolean)
+    var
+        ToTestQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        Condition: Text;
+    begin
+        case true of
+            QltyTest.IsNumericFieldType():
+                Condition := QltyInspectionResult."Default Number Condition";
+            QltyTest."Test Value Type" = QltyTest."Test Value Type"::"Value Type Boolean":
+                Condition := QltyInspectionResult."Default Boolean Condition";
+            QltyTest."Test Value Type" = QltyTest."Test Value Type"::"Value Type Label":
+                Condition := '';
+            else
+                Condition := QltyInspectionResult."Default Text Condition";
+        end;
+        ToTestQltyIResultConditConf.SetRange("Condition Type", ToTestQltyIResultConditConf."Condition Type"::Test);
+        ToTestQltyIResultConditConf.SetRange("Target Code", QltyTest.Code);
+        ToTestQltyIResultConditConf.SetRange("Test Code", QltyTest.Code);
+        ToTestQltyIResultConditConf.SetRange("Result Code", QltyInspectionResult.Code);
+        if not ToTestQltyIResultConditConf.FindFirst() then begin
+            ToTestQltyIResultConditConf."Result Code" := QltyInspectionResult.Code;
+            ToTestQltyIResultConditConf."Condition Type" := ToTestQltyIResultConditConf."Condition Type"::Test;
+            ToTestQltyIResultConditConf."Target Code" := QltyTest.Code;
+            ToTestQltyIResultConditConf."Test Code" := QltyTest.Code;
+            ToTestQltyIResultConditConf.Condition := CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf.Condition));
+            ToTestQltyIResultConditConf.Priority := QltyInspectionResult."Evaluation Sequence";
+            ToTestQltyIResultConditConf."Result Visibility" := QltyInspectionResult."Result Visibility";
+            ToTestQltyIResultConditConf."Condition Description" := CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf."Condition Description"));
+            ToTestQltyIResultConditConf.Insert();
+        end else
+            if AlwaysUpdateExistingCondition or
+               (OnlyOverwriteIfADefaultCondition and
+                    (ToTestQltyIResultConditConf.Condition in
+                        ['', // '' treated as uninitialized; safe to overwrite just like named defaults
+                        QltyInspectionResult."Default Boolean Condition",
+                        QltyInspectionResult."Default Number Condition",
+                        QltyInspectionResult."Default Text Condition"]))
+            then begin
+                ToTestQltyIResultConditConf.Validate(Condition, CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf.Condition)));
+                ToTestQltyIResultConditConf."Condition Description" := CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf."Condition Description"));
+                ToTestQltyIResultConditConf.Priority := QltyInspectionResult."Evaluation Sequence";
+                ToTestQltyIResultConditConf."Result Visibility" := QltyInspectionResult."Result Visibility";
+                ToTestQltyIResultConditConf.Modify();
+            end;
     end;
 
     /// <summary>

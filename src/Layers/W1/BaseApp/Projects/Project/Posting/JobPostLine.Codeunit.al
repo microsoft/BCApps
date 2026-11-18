@@ -147,7 +147,7 @@ codeunit 1001 "Job Post-Line"
         JobTask: Record "Job Task";
         JobPlanningLine: Record "Job Planning Line";
         JobPlanningLineInvoice: Record "Job Planning Line Invoice";
-        DummyJobLedgEntryNo: Integer;
+        DummyJobLedgEntryNo: BigInteger;
         JobLineChecked: Boolean;
         IsHandled: Boolean;
     begin
@@ -542,7 +542,7 @@ codeunit 1001 "Job Post-Line"
               PurchaseLine.FieldCaption("Line No."), PurchaseLine."Line No.");
     end;
 
-    procedure PostJobPurchaseLines(JobLineFilters: Text; GLEntryNo: Integer)
+    procedure PostJobPurchaseLines(JobLineFilters: Text; GLEntryNo: BigInteger)
     var
         IsHandled: Boolean;
     begin
@@ -567,7 +567,7 @@ codeunit 1001 "Job Post-Line"
         TempPurchaseLineJob.DeleteAll();
     end;
 
-    procedure PostJobSalesLines(JobLineFilters: Text; GLEntryNo: Integer)
+    procedure PostJobSalesLines(JobLineFilters: Text; GLEntryNo: BigInteger)
     var
         IsHandled: Boolean;
     begin
@@ -626,13 +626,13 @@ codeunit 1001 "Job Post-Line"
 
     local procedure PostSalesJobJournalLine(var JobJournalLine: Record "Job Journal Line")
     var
-        JobLedgerEntryNo: Integer;
+        JobLedgerEntryNo: BigInteger;
     begin
         JobLedgerEntryNo := JobJnlPostLine.RunWithCheck(JobJournalLine);
         UpdateJobLedgerEntryNoOnJobPlanLineInvoice(JobJournalLine, JobLedgerEntryNo);
     end;
 
-    local procedure UpdateJobLedgerEntryNoOnJobPlanLineInvoice(JobJournalLine: Record "Job Journal Line"; JobLedgerEntryNo: Integer)
+    local procedure UpdateJobLedgerEntryNoOnJobPlanLineInvoice(JobJournalLine: Record "Job Journal Line"; JobLedgerEntryNo: BigInteger)
     var
         JobPlanningLineInvoice: Record "Job Planning Line Invoice";
     begin
@@ -653,7 +653,7 @@ codeunit 1001 "Job Post-Line"
 
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterPostJobPurchaseLines(var TempPurchaseLineJob: Record "Purchase Line" temporary; var JobJnlPostLine: Codeunit "Job Jnl.-Post Line"; GLEntryNo: Integer)
+    local procedure OnAfterPostJobPurchaseLines(var TempPurchaseLineJob: Record "Purchase Line" temporary; var JobJnlPostLine: Codeunit "Job Jnl.-Post Line"; GLEntryNo: BigInteger)
     begin
     end;
 
@@ -678,7 +678,7 @@ codeunit 1001 "Job Post-Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeJobPlanningLineUpdateQtyToInvoice(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var JobPlanningLine: Record "Job Planning Line"; var JobPlanningLineInvoice: Record "Job Planning Line Invoice"; JobLedgerEntryNo: Integer)
+    local procedure OnBeforeJobPlanningLineUpdateQtyToInvoice(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var JobPlanningLine: Record "Job Planning Line"; var JobPlanningLineInvoice: Record "Job Planning Line Invoice"; JobLedgerEntryNo: BigInteger)
     begin
     end;
 

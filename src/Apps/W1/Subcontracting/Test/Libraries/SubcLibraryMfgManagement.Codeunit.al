@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Requisition;
@@ -82,6 +83,27 @@ codeunit 139984 "Subc. Library Mfg. Management"
         LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter, CalcDate('<-1W>', WorkDate()), WorkDate());
     end;
 
+    /// <summary>
+    /// Creates a work center with a new subcontractor, a direct unit cost and a calculated calendar, so that Calculate Subcontracts can propose its operations.
+    /// </summary>
+    /// <param name="WorkCenter">The created subcontracting work center.</param>
+    procedure CreateSubcontractingWorkCenterWithCalendar(var WorkCenter: Record "Work Center")
+    var
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        CreateWorkCenterWithFixedCost(WorkCenter, LibraryManufacturing.UpdateShopCalendarWorkingDays(), 0);
+        WorkCenter.Validate("Direct Unit Cost", LibraryRandom.RandDec(10, 2));
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        GenProductPostingGroup.SetLoadFields("Def. VAT Prod. Posting Group");
+        GenProductPostingGroup.Get(WorkCenter."Gen. Prod. Posting Group");
+        GenProductPostingGroup.Validate("Def. VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GenProductPostingGroup.Modify(true);
+        WorkCenter.Validate("Subcontractor No.", CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+        LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter, CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+    end;
+
     procedure CreateSubcontractorWithCurrency(CurrencyCode: Code[10]): Code[20]
     var
         Vendor: Record Vendor;
@@ -139,21 +161,36 @@ codeunit 139984 "Subc. Library Mfg. Management"
 
     procedure CreateRoutingLine(var RoutingLine: Record "Routing Line"; RoutingHeader: Record "Routing Header"; CenterNo: Code[20])
     var
-        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
         OperationNo: Code[10];
     begin
+        // Random used such that the Next Operation No is greater than the Previous Operation No.
+        OperationNo := FindLastOperationNo(RoutingHeader."No.") + Format(LibraryRandom.RandInt(5));
+
+        // Random is used, values not important for test.
+        CreateRoutingLine(RoutingLine, RoutingHeader, CenterNo, OperationNo, LibraryRandom.RandInt(5), LibraryRandom.RandInt(5));
+    end;
+
+    /// <summary>
+    /// Creates a routing line with the specified operation and setup and run times in minutes.
+    /// </summary>
+    /// <param name="RoutingLine">The routing line to create.</param>
+    /// <param name="RoutingHeader">The routing header to which the line belongs.</param>
+    /// <param name="CenterNo">The number of the work center or machine center for the operation.</param>
+    /// <param name="OperationNo">The operation number for the routing line.</param>
+    /// <param name="SetupTime">The setup time in minutes.</param>
+    /// <param name="RunTime">The run time in minutes.</param>
+    procedure CreateRoutingLine(var RoutingLine: Record "Routing Line"; RoutingHeader: Record "Routing Header"; CenterNo: Code[20]; OperationNo: Code[10]; SetupTime: Decimal; RunTime: Decimal)
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+    begin
         // Create Routing Lines with required fields.
+        CapacityUnitOfMeasure.SetLoadFields(Code);
 #pragma warning disable AA0210
         CapacityUnitOfMeasure.SetRange(Type, CapacityUnitOfMeasure.Type::Minutes);
 #pragma warning restore AA0210
         CapacityUnitOfMeasure.FindFirst();
 
-        // Random used such that the Next Operation No is greater than the Previous Operation No.
-        OperationNo := FindLastOperationNo(RoutingHeader."No.") + Format(LibraryRandom.RandInt(5));
-
-        // Random is used, values not important for test.
-        LibraryManufacturing.CreateRoutingLineSetup(
-          RoutingLine, RoutingHeader, CenterNo, OperationNo, LibraryRandom.RandInt(5), LibraryRandom.RandInt(5));
+        LibraryManufacturing.CreateRoutingLineSetup(RoutingLine, RoutingHeader, CenterNo, OperationNo, SetupTime, RunTime);
 
         RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
         RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
@@ -207,6 +244,25 @@ codeunit 139984 "Subc. Library Mfg. Management"
     begin
         CreateReqWkshTemplate(ReqWkshTemplate, false);
         CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
+        ManufacturingSetup."Subcontracting Batch Name" := RequisitionWkshName.Name;
+        ManufacturingSetup.Modify();
+    end;
+
+    /// <summary>
+    /// Creates a subcontracting worksheet name in the first existing non-recurring subcontracting worksheet template, or in a new one when none exists, and sets both in the Manufacturing Setup.
+    /// Reusing the template keeps a single subcontracting worksheet template, because Calculate Subcontracts asks the user to pick one when several exist.
+    /// </summary>
+    procedure CreateSubcontractingReqWkshNameAndUpdateSetup()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcManagementLibrary: Codeunit "Subc. Management Library";
+    begin
+        SubcManagementLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        ManufacturingSetup.SetLoadFields("Subcontracting Template Name", "Subcontracting Batch Name");
         ManufacturingSetup.Get();
         ManufacturingSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
         ManufacturingSetup."Subcontracting Batch Name" := RequisitionWkshName.Name;

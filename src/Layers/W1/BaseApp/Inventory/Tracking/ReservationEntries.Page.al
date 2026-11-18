@@ -8,12 +8,14 @@ using Microsoft.Inventory.Item;
 
 page 497 "Reservation Entries"
 {
+    ApplicationArea = Reservation;
     Caption = 'Reservation Entries';
     DataCaptionExpression = Rec.TextCaption();
     DeleteAllowed = false;
     InsertAllowed = false;
     PageType = List;
     SourceTable = "Reservation Entry";
+    UsageCategory = Lists;
 
     layout
     {
@@ -324,4 +326,3 @@ page 497 "Reservation Entries"
     begin
     end;
 }
-
