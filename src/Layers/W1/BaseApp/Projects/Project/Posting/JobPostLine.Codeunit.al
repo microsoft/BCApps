@@ -10,6 +10,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -380,32 +381,32 @@ codeunit 1001 "Job Post-Line"
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
         SourceCurrency: Record Currency;
+        VATPostingSetup: Record "VAT Posting Setup";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
         SourceCurrencyVATAmount: Decimal;
     begin
         // VAT posting splits the non-deductible part of the source currency VAT only after the project entry is posted, so repeat that split with the same rounding.
         if not NonDeductibleVAT.IsNonDeductibleVATEnabled() or (GenJnlLine."Non-Deductible VAT %" = 0) then
             exit(0);
-        if GenJnlLine."VAT Posting" = GenJnlLine."VAT Posting"::"Manual VAT Entry" then
-            SourceCurrencyVATAmount := GenJnlLine."Source Curr. VAT Amount"
-        else
-            case GenJnlLine."VAT Calculation Type" of
-                GenJnlLine."VAT Calculation Type"::"Normal VAT",
-                GenJnlLine."VAT Calculation Type"::"Full VAT":
-                    SourceCurrencyVATAmount := GenJnlLine."Source Currency Amount" - GLEntry."Additional-Currency Amount";
-                GenJnlLine."VAT Calculation Type"::"Reverse Charge VAT":
-                    if GenJnlLine."VAT Difference" <> 0 then
-                        SourceCurrencyVATAmount := GenJnlLine."Source Curr. VAT Amount"
-                    else begin
-                        SourceCurrency.Initialize(GenJnlLine."Source Currency Code");
-                        SourceCurrencyVATAmount :=
-                            Round(
-                                GLEntry."Additional-Currency Amount" * GenJnlLine."VAT %" / 100,
-                                SourceCurrency."Amount Rounding Precision", SourceCurrency.VATRoundingDirection());
-                    end;
-                else
-                    exit(0);
-            end;
+        case GenJnlLine."VAT Calculation Type" of
+            GenJnlLine."VAT Calculation Type"::"Normal VAT",
+            GenJnlLine."VAT Calculation Type"::"Full VAT":
+                SourceCurrencyVATAmount := GenJnlLine."Source Currency Amount" - GLEntry."Additional-Currency Amount";
+            GenJnlLine."VAT Calculation Type"::"Reverse Charge VAT":
+                if GenJnlLine."VAT Difference" <> 0 then
+                    SourceCurrencyVATAmount := GenJnlLine."Source Curr. VAT Amount"
+                else begin
+                    VATPostingSetup.Get(
+                        GenJnlLine."VAT Bus. Posting Group", GenJnlLine."VAT Prod. Posting Group");
+                    SourceCurrency.Initialize(GenJnlLine."Source Currency Code");
+                    SourceCurrencyVATAmount :=
+                        Round(
+                            GLEntry."Additional-Currency Amount" * VATPostingSetup."VAT %" / 100,
+                            SourceCurrency."Amount Rounding Precision", SourceCurrency.VATRoundingDirection());
+                end;
+            else
+                exit(0);
+        end;
         GeneralLedgerSetup.Get();
         exit(Round(SourceCurrencyVATAmount * GenJnlLine."Non-Deductible VAT %" / 100, GeneralLedgerSetup."Amount Rounding Precision"));
     end;
