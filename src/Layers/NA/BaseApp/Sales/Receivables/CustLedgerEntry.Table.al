@@ -1793,7 +1793,6 @@ table 21 "Cust. Ledger Entry"
     local procedure SetInvoiceVATEntryFilters(var VATEntry: Record "VAT Entry"; DocumentNo: Code[20])
     begin
         // Use indexed filters, then check the unindexed original-invoice fields while iterating.
-        VATEntry.SetCurrentKey("Transaction No.");
         VATEntry.SetRange("Transaction No.", Rec."Transaction No.");
         VATEntry.SetRange("Document No.", DocumentNo);
         VATEntry.SetRange(Type, VATEntry.Type::Sale);
