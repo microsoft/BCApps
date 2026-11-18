@@ -23,6 +23,8 @@ codeunit 148090 "Compensations CZC"
 
     local procedure Initialize()
     var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Compensations CZC");
@@ -31,6 +33,18 @@ codeunit 148090 "Compensations CZC"
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Compensations CZC");
+
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Invoice Nos.", LibraryERM.CreateNoSeriesCode());
+        SalesReceivablesSetup.Validate("Credit Memo Nos.", LibraryERM.CreateNoSeriesCode());
+        SalesReceivablesSetup.Modify(true);
+        LibrarySales.SetPostedNoSeriesInSetup();
+
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Invoice Nos.", LibraryERM.CreateNoSeriesCode());
+        PurchasesPayablesSetup.Validate("Credit Memo Nos.", LibraryERM.CreateNoSeriesCode());
+        PurchasesPayablesSetup.Modify(true);
+        LibraryPurchase.SetPostedNoSeriesInSetup();
 
         CompensationsSetupCZC.Get();
         CompensationsSetupCZC."Compensation Nos." := LibraryERM.CreateNoSeriesCode();
