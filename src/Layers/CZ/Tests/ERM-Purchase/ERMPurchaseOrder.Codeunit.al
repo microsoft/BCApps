@@ -9455,6 +9455,200 @@
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler,PostedPurchaseDocumentLinesPageHandler')]
+    procedure ReversedCrMemoLineKeepsBaseQtyRoundingPrecisionLikeNativeLine()
+    var
+        Item: Record Item;
+        BoxItemUnitOfMeasure: Record "Item Unit of Measure";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseHeaderCrMemo: Record "Purchase Header";
+        PurchaseLineCrMemo: Record "Purchase Line";
+        PurchaseHeaderNative: Record "Purchase Header";
+        PurchaseLineNative: Record "Purchase Line";
+        VendorNo: Code[20];
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Get Posted Document Lines to Reverse] [Credit Memo] [Unit of Measure] [Rounding]
+        // [SCENARIO 659446] A credit memo line copied with "Get Posted Document Lines to Reverse" keeps the base quantity rounding precision of the item, like a native line.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(true);
+        LibraryPurchase.SetExactCostReversingMandatory(false);
+
+        // [GIVEN] Item with base UOM "PCS" (rounding precision 1) and UOM "BOX" = 3 PCS.
+        CreateItemWithBaseRoundingAndBoxUOM(Item, BoxItemUnitOfMeasure);
+        VendorNo := LibraryPurchase.CreateVendorNo();
+
+        // [GIVEN] Purchase order for 1 BOX, received and invoiced 0.6 BOX = 2 PCS.
+        InvoiceNo := CreateAndPostPartialPurchaseOrderInUOM(PurchaseLineOrder, VendorNo, Item."No.", BoxItemUnitOfMeasure.Code, 1, 0.6, 6);
+        PurchaseLineOrder.TestField("Qty. Received (Base)", 2);
+
+        // [GIVEN] Credit memo created with "Get Posted Document Lines to Reverse" from the posted invoice.
+        CreateCrMemoByReversingPostedInvoice(PurchaseHeaderCrMemo, PurchaseLineCrMemo, VendorNo, InvoiceNo);
+
+        // [WHEN] Change the copied credit memo quantity to 0.3 BOX.
+        PurchaseLineCrMemo.Validate(Quantity, 0.3);
+        PurchaseLineCrMemo.Modify(true);
+
+        // [THEN] The copied line has base rounding precision 1 and 0.3 BOX is rounded to 1 PCS.
+        PurchaseLineCrMemo.TestField("Qty. Rounding Precision (Base)", 1);
+        PurchaseLineCrMemo.TestField("Quantity (Base)", 1);
+
+        // [THEN] A natively created credit memo line for 0.3 BOX has the same base quantity and precision.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderNative, PurchaseHeaderNative."Document Type"::"Credit Memo", VendorNo);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineNative, PurchaseHeaderNative, PurchaseLineNative.Type::Item, Item."No.", 0);
+        PurchaseLineNative.Validate("Unit of Measure Code", BoxItemUnitOfMeasure.Code);
+        PurchaseLineNative.Validate(Quantity, 0.3);
+        PurchaseLineNative.TestField("Qty. Rounding Precision (Base)", PurchaseLineCrMemo."Qty. Rounding Precision (Base)");
+        PurchaseLineNative.TestField("Quantity (Base)", PurchaseLineCrMemo."Quantity (Base)");
+
+        // [WHEN] Post the copied credit memo.
+        PostPurchaseCreditMemoFromPage(PurchaseHeaderCrMemo);
+
+        // [THEN] A whole 1 PCS is returned and the order is restored to 0.3 BOX = 1 PCS received and invoiced.
+        VerifyItemReturnedQty(Item."No.", -1);
+        VerifyOrderLineRestoredQty(PurchaseLineOrder, 0.3, 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,PostedPurchaseDocumentLinesPageHandler,MessageHandler')]
+    procedure PartialAndRemainingReversalsInOrderUOMFullyRestorePurchaseOrder()
+    var
+        Item: Record Item;
+        BoxItemUnitOfMeasure: Record "Item Unit of Measure";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseHeaderCrMemo: Record "Purchase Header";
+        PurchaseLineCrMemo: Record "Purchase Line";
+        VendorNo: Code[20];
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Get Posted Document Lines to Reverse] [Credit Memo] [Unit of Measure] [Rounding]
+        // [SCENARIO 659446] Partial and remaining reversals of a fractional BOX invoice return whole PCS and fully restore the purchase order.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(true);
+        LibraryPurchase.SetExactCostReversingMandatory(false);
+
+        // [GIVEN] Item with base UOM "PCS" (rounding precision 1) and UOM "BOX" = 3 PCS.
+        CreateItemWithBaseRoundingAndBoxUOM(Item, BoxItemUnitOfMeasure);
+        VendorNo := LibraryPurchase.CreateVendorNo();
+
+        // [GIVEN] Purchase order for 1 BOX, received and invoiced 0.6 BOX = 2 PCS.
+        InvoiceNo := CreateAndPostPartialPurchaseOrderInUOM(PurchaseLineOrder, VendorNo, Item."No.", BoxItemUnitOfMeasure.Code, 1, 0.6, 6);
+
+        // [GIVEN] Reversed and posted 0.3 BOX = 1 PCS of the invoice.
+        CreateCrMemoByReversingPostedInvoice(PurchaseHeaderCrMemo, PurchaseLineCrMemo, VendorNo, InvoiceNo);
+        PurchaseLineCrMemo.Validate(Quantity, 0.3);
+        PurchaseLineCrMemo.Modify(true);
+        PostPurchaseCreditMemoFromPage(PurchaseHeaderCrMemo);
+
+        // [WHEN] Reverse the remaining invoice quantity with "Get Posted Document Lines to Reverse" and post it.
+        CreateCrMemoByReversingPostedInvoice(PurchaseHeaderCrMemo, PurchaseLineCrMemo, VendorNo, InvoiceNo);
+        PurchaseLineCrMemo.TestField("Quantity (Base)", 1);
+        PurchaseLineCrMemo.TestField("Qty. Rounding Precision (Base)", 1);
+        PostPurchaseCreditMemoFromPage(PurchaseHeaderCrMemo);
+
+        // [THEN] In total 2 whole PCS are returned and nothing remains received or invoiced on the order.
+        VerifyItemReturnedQty(Item."No.", -2);
+        VerifyOrderLineRestoredQty(PurchaseLineOrder, 0, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,PostedPurchaseDocumentLinesPageHandler')]
+    procedure RestoredOrderQtyIsConvertedToOrderUOMWhenCrMemoUsesBaseUOM()
+    var
+        Item: Record Item;
+        BoxItemUnitOfMeasure: Record "Item Unit of Measure";
+        PurchaseLineOrder: Record "Purchase Line";
+        VendorNo: Code[20];
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Get Posted Document Lines to Reverse] [Credit Memo] [Unit of Measure]
+        // [SCENARIO 659447] Returning 1 PCS from an invoice posted in BOX restores 1/3 BOX on the purchase order, not 1 BOX.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(true);
+        LibraryPurchase.SetExactCostReversingMandatory(false);
+
+        // [GIVEN] Item with base UOM "PCS" (rounding precision 1) and UOM "BOX" = 3 PCS.
+        CreateItemWithBaseRoundingAndBoxUOM(Item, BoxItemUnitOfMeasure);
+        VendorNo := LibraryPurchase.CreateVendorNo();
+
+        // [GIVEN] Purchase order for 2 BOX at 6.00 per BOX, received and invoiced 1 BOX = 3 PCS.
+        InvoiceNo := CreateAndPostPartialPurchaseOrderInUOM(PurchaseLineOrder, VendorNo, Item."No.", BoxItemUnitOfMeasure.Code, 2, 1, 6);
+
+        // [WHEN] Reverse the invoice line, change it to 1 PCS at 2.00 and post the credit memo.
+        CreateAndPostReversalCrMemoInUOM(VendorNo, InvoiceNo, Item."Base Unit of Measure", 1, 2);
+
+        // [THEN] 1 PCS is returned.
+        VerifyItemReturnedQty(Item."No.", -1);
+
+        // [THEN] The order keeps 0.66667 BOX = 2 PCS received and invoiced, with 1.33333 BOX = 4 PCS outstanding.
+        VerifyOrderLineRestoredQty(PurchaseLineOrder, 0.66667, 2);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,PostedPurchaseDocumentLinesPageHandler,MessageHandler')]
+    procedure RepeatedBaseUOMReversalsFullyRestoreOrderWithoutRoundingResidue()
+    var
+        Item: Record Item;
+        BoxItemUnitOfMeasure: Record "Item Unit of Measure";
+        PurchaseLineOrder: Record "Purchase Line";
+        VendorNo: Code[20];
+        InvoiceNo: Code[20];
+        i: Integer;
+    begin
+        // [FEATURE] [Get Posted Document Lines to Reverse] [Credit Memo] [Unit of Measure] [Rounding]
+        // [SCENARIO 659447] Returning a 1 BOX invoice as three 1 PCS credit memos fully restores the order without a residual BOX quantity.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(true);
+        LibraryPurchase.SetExactCostReversingMandatory(false);
+
+        // [GIVEN] Item with base UOM "PCS" (rounding precision 1) and UOM "BOX" = 3 PCS.
+        CreateItemWithBaseRoundingAndBoxUOM(Item, BoxItemUnitOfMeasure);
+        VendorNo := LibraryPurchase.CreateVendorNo();
+
+        // [GIVEN] Purchase order for 2 BOX, received and invoiced 1 BOX = 3 PCS.
+        InvoiceNo := CreateAndPostPartialPurchaseOrderInUOM(PurchaseLineOrder, VendorNo, Item."No.", BoxItemUnitOfMeasure.Code, 2, 1, 6);
+
+        // [WHEN] Reverse the invoice as three separate credit memos for 1 PCS each.
+        for i := 1 to 3 do
+            CreateAndPostReversalCrMemoInUOM(VendorNo, InvoiceNo, Item."Base Unit of Measure", 1, 2);
+
+        // [THEN] 3 PCS are returned and nothing remains received or invoiced on the order.
+        VerifyItemReturnedQty(Item."No.", -3);
+        VerifyOrderLineRestoredQty(PurchaseLineOrder, 0, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,PostedPurchaseDocumentLinesPageHandler')]
+    procedure OrderQtyNotRestoredFromBaseUOMCrMemoWhenRestoreQtyDisabled()
+    var
+        Item: Record Item;
+        BoxItemUnitOfMeasure: Record "Item Unit of Measure";
+        PurchaseLineOrder: Record "Purchase Line";
+        VendorNo: Code[20];
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Get Posted Document Lines to Reverse] [Credit Memo] [Unit of Measure]
+        // [SCENARIO 659447] Returning 1 PCS from an invoice posted in BOX leaves the order unchanged when "Restore Order Qty. on Return" is disabled.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(false);
+        LibraryPurchase.SetExactCostReversingMandatory(false);
+
+        // [GIVEN] Item with base UOM "PCS" (rounding precision 1) and UOM "BOX" = 3 PCS.
+        CreateItemWithBaseRoundingAndBoxUOM(Item, BoxItemUnitOfMeasure);
+        VendorNo := LibraryPurchase.CreateVendorNo();
+
+        // [GIVEN] Purchase order for 2 BOX, received and invoiced 1 BOX = 3 PCS.
+        InvoiceNo := CreateAndPostPartialPurchaseOrderInUOM(PurchaseLineOrder, VendorNo, Item."No.", BoxItemUnitOfMeasure.Code, 2, 1, 6);
+
+        // [WHEN] Reverse the invoice line, change it to 1 PCS and post the credit memo.
+        CreateAndPostReversalCrMemoInUOM(VendorNo, InvoiceNo, Item."Base Unit of Measure", 1, 2);
+
+        // [THEN] 1 PCS is returned, while the order keeps 1 BOX = 3 PCS received and invoiced.
+        VerifyItemReturnedQty(Item."No.", -1);
+        VerifyOrderLineRestoredQty(PurchaseLineOrder, 1, 3);
+    end;
+
+    [Test]
     procedure OrderNoIsPopulatedOnPurchaseInvoiceWithInvoiceRoundingLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -9691,6 +9885,95 @@
         PurchasesPayablesSetup.Get();
         PurchasesPayablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
         PurchasesPayablesSetup.Modify(true);
+    end;
+
+    local procedure CreateItemWithBaseRoundingAndBoxUOM(var Item: Record Item; var BoxItemUnitOfMeasure: Record "Item Unit of Measure")
+    var
+        BaseItemUnitOfMeasure: Record "Item Unit of Measure";
+    begin
+        LibraryInventory.CreateItem(Item);
+        BaseItemUnitOfMeasure.Get(Item."No.", Item."Base Unit of Measure");
+        BaseItemUnitOfMeasure.Validate("Qty. Rounding Precision", 1);
+        BaseItemUnitOfMeasure.Modify(true);
+        LibraryInventory.CreateItemUnitOfMeasureCode(BoxItemUnitOfMeasure, Item."No.", 3);
+    end;
+
+    local procedure CreateAndPostPartialPurchaseOrderInUOM(var PurchaseLine: Record "Purchase Line"; VendorNo: Code[20]; ItemNo: Code[20]; UnitOfMeasureCode: Code[10]; Quantity: Decimal; QtyToHandle: Decimal; DirectUnitCost: Decimal): Code[20]
+    var
+        PurchaseHeader: Record "Purchase Header";
+        InvoiceNo: Code[20];
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, VendorNo);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, 0);
+        PurchaseLine.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        PurchaseLine.Validate(Quantity, Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Validate("Qty. to Receive", QtyToHandle);
+        PurchaseLine.Validate("Qty. to Invoice", QtyToHandle);
+        PurchaseLine.Modify(true);
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        PurchaseLine.Find();
+        exit(InvoiceNo);
+    end;
+
+    local procedure CreateCrMemoByReversingPostedInvoice(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; VendorNo: Code[20]; InvoiceNo: Code[20])
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Credit Memo", VendorNo);
+        GetPostedDocLinesToReverse(PurchaseHeader, OptionStringRef::"Posted Invoices", InvoiceNo);
+        FindPurchaseLine(PurchaseLine, PurchaseHeader."Document Type", PurchaseHeader."No.", PurchaseLine.Type::Item);
+    end;
+
+    local procedure CreateAndPostReversalCrMemoInUOM(VendorNo: Code[20]; InvoiceNo: Code[20]; UnitOfMeasureCode: Code[10]; Quantity: Decimal; DirectUnitCost: Decimal)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ApplToItemEntryNo: Integer;
+    begin
+        CreateCrMemoByReversingPostedInvoice(PurchaseHeader, PurchaseLine, VendorNo, InvoiceNo);
+        // A copied remaining quantity such as 0.66667 BOX cannot be kept in a whole-unit UOM, so clear it before switching UOM and re-apply afterwards.
+        ApplToItemEntryNo := PurchaseLine."Appl.-to Item Entry";
+        PurchaseLine.Validate(Quantity, 0);
+        PurchaseLine.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        PurchaseLine.Validate(Quantity, Quantity);
+        PurchaseLine.Validate("Appl.-to Item Entry", ApplToItemEntryNo);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
+        PostPurchaseCreditMemoFromPage(PurchaseHeader);
+    end;
+
+    local procedure PostPurchaseCreditMemoFromPage(PurchaseHeader: Record "Purchase Header")
+    var
+        PurchaseCreditMemo: TestPage "Purchase Credit Memo";
+    begin
+        PurchaseCreditMemo.OpenView();
+        PurchaseCreditMemo.GotoRecord(PurchaseHeader);
+        PurchaseCreditMemo.Post.Invoke();
+    end;
+
+    local procedure VerifyItemReturnedQty(ItemNo: Code[20]; ExpectedQty: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Purchase);
+        ItemLedgerEntry.SetFilter(Quantity, '<0');
+        ItemLedgerEntry.CalcSums(Quantity);
+        ItemLedgerEntry.TestField(Quantity, ExpectedQty);
+    end;
+
+    local procedure VerifyOrderLineRestoredQty(var PurchaseLine: Record "Purchase Line"; ExpectedQtyHandled: Decimal; ExpectedQtyHandledBase: Decimal)
+    begin
+        PurchaseLine.Find();
+        PurchaseLine.TestField("Quantity Received", ExpectedQtyHandled);
+        PurchaseLine.TestField("Qty. Received (Base)", ExpectedQtyHandledBase);
+        PurchaseLine.TestField("Quantity Invoiced", ExpectedQtyHandled);
+        PurchaseLine.TestField("Qty. Invoiced (Base)", ExpectedQtyHandledBase);
+        PurchaseLine.TestField("Outstanding Quantity", PurchaseLine.Quantity - ExpectedQtyHandled);
+        PurchaseLine.TestField("Outstanding Qty. (Base)", PurchaseLine."Quantity (Base)" - ExpectedQtyHandledBase);
+        PurchaseLine.TestField("Qty. to Receive (Base)", PurchaseLine."Outstanding Qty. (Base)");
+        Assert.AreNearlyEqual(
+            PurchaseLine."Amount Including VAT" * PurchaseLine."Outstanding Quantity" / PurchaseLine.Quantity,
+            PurchaseLine."Outstanding Amount", LibraryERM.GetAmountRoundingPrecision(), PurchaseLine.FieldCaption("Outstanding Amount"));
     end;
 
     local procedure CreateAccountingPeriod()

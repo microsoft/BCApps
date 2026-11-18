@@ -12,6 +12,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
@@ -878,10 +879,33 @@ codeunit 1313 "Correct Posted Purch. Invoice"
         PurchaseLine."Qty. Invoiced (Base)" -= CancelledQtyBase;
         PurchaseLine."Quantity Received" -= CancelledQuantity;
         PurchaseLine."Qty. Received (Base)" -= CancelledQtyBase;
+        if PurchaseLine.Type = PurchaseLine.Type::Item then begin
+            // Clear residual document quantity left by UOM conversion rounding once the base quantity is fully reversed.
+            if PurchaseLine."Qty. Invoiced (Base)" = 0 then
+                PurchaseLine."Quantity Invoiced" := 0;
+            if PurchaseLine."Qty. Received (Base)" = 0 then
+                PurchaseLine."Quantity Received" := 0;
+        end;
         PurchaseLine.InitOutstanding();
         PurchaseLine.InitQtyToReceive();
         PurchaseLine.InitQtyToInvoice();
         PurchaseLine.Modify();
+    end;
+
+    local procedure GetCancelledQtyInOrderLineUOM(PurchaseLine: Record "Purchase Line"; PurchCrMemoLine: Record "Purch. Cr. Memo Line"): Decimal
+    var
+        UOMMgt: Codeunit "Unit of Measure Management";
+    begin
+        if (PurchaseLine.Type <> PurchaseLine.Type::Item) or
+           (PurchCrMemoLine."Qty. per Unit of Measure" = PurchaseLine."Qty. per Unit of Measure") or
+           (PurchaseLine."Qty. per Unit of Measure" = 0)
+        then
+            exit(PurchCrMemoLine.Quantity);
+
+        exit(
+            UOMMgt.CalcQtyFromBase(
+                PurchaseLine."No.", PurchaseLine."Variant Code", PurchaseLine."Unit of Measure Code",
+                PurchCrMemoLine."Quantity (Base)", PurchaseLine."Qty. per Unit of Measure"));
     end;
 
     local procedure HasLineDiscountSetup(PurchInvLine: Record "Purch. Inv. Line") Result: Boolean
@@ -929,7 +953,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
     begin
         RestoreOrderQuantity := IsOrderQtyRestorationEnabled();
 
-        PurchCrMemoLine.SetLoadFields("Document No.", "No.", Quantity);
+        PurchCrMemoLine.SetLoadFields("Document No.", "No.", Quantity, "Quantity (Base)", "Qty. per Unit of Measure");
         PurchCrMemoLine.SetRange("Document No.", PurchaseCreditMemoNo);
         PurchCrMemoLine.SetFilter("No.", '<>%1', '');
         PurchCrMemoLine.SetFilter(Quantity, '<>%1', 0);
@@ -961,7 +985,7 @@ codeunit 1313 "Correct Posted Purch. Invoice"
             if PurchInvLine.Type = PurchInvLine.Type::Item then
                 PurchInvLine.GetItemLedgEntries(TempItemLedgerEntry, false);
 
-            UpdatePurchaseOrderLineInvoicedQuantity(PurchaseLine, PurchCrMemoLine.Quantity, PurchCrMemoLine."Quantity (Base)");
+            UpdatePurchaseOrderLineInvoicedQuantity(PurchaseLine, GetCancelledQtyInOrderLineUOM(PurchaseLine, PurchCrMemoLine), PurchCrMemoLine."Quantity (Base)");
         end;
 
         UpdatePurchaseOrderLinePrepmtAmount(PurchInvLine);
