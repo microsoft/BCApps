@@ -517,14 +517,14 @@ report 5802 "Inventory Valuation - WIP"
         {
             Caption = 'Production Order - WIP Excel';
             Type = Excel;
-            LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIP.xlsx';
+            LayoutFile = './Manufacturing/Reports/InventoryValuationWIP.xlsx';
             Summary = 'Built in layout for the Production Order - WIP Excel report.';
         }
         layout(Word)
         {
             Caption = 'Production Order - WIP Word';
             Type = Word;
-            LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIP.docx';
+            LayoutFile = './Manufacturing/Reports/InventoryValuationWIP.docx';
             Summary = 'Built in layout for the Production Order - WIP Word report.';
         }
 #if not CLEAN28
@@ -532,7 +532,7 @@ report 5802 "Inventory Valuation - WIP"
         {
             Caption = 'Production Order - WIP RDLC (Obsolete)';
             Type = RDLC;
-            LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIP.rdlc';
+            LayoutFile = './Manufacturing/Reports/InventoryValuationWIP.rdlc';
             ObsoleteState = Pending;
             ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
             ObsoleteTag = '28.0';

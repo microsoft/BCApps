@@ -16,7 +16,7 @@ using System.Utilities;
 report 6784 "WHT Calc. and Post Settlement"
 {
     DefaultLayout = RDLC;
-    RDLCLayout = 'src\Purchase\Report\WHTCalcandPostSettlement.rdlc';
+    RDLCLayout = 'src/Purchase/Report/WHTCalcandPostSettlement.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Calc. and Post WHT Settlement';
     UsageCategory = ReportsAndAnalysis;

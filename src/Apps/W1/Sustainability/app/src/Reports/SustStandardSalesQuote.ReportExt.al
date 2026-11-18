@@ -60,14 +60,14 @@ reportextension 6298 "Sust. Standard Sales Quote" extends "Standard Sales - Quot
             Type = Word;
             Caption = 'Standard ESG Sales Quote (Word)';
             Summary = 'The Standard ESG Sales Quote (Word) provides a basic layout.';
-            LayoutFile = 'src\Reports\StandardESGSalesQuote.docx';
+            LayoutFile = 'src/Reports/StandardESGSalesQuote.docx';
         }
         layout("StandardESGSalesQuoteBlue.docx")
         {
             Type = Word;
             Caption = 'Standard ESG Sales Quote - Blue (Word)';
             Summary = 'The Standard ESG Sales Quote (Word) provides a basic layout with blue theme.	';
-            LayoutFile = 'src\Reports\StandardESGSalesQuoteBlue.docx';
+            LayoutFile = 'src/Reports/StandardESGSalesQuoteBlue.docx';
         }
     }
 

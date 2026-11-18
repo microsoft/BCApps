@@ -194,14 +194,14 @@ report 708 "Inventory Order Details"
         layout(Excel)
         {
             Caption = 'Inventory Order Details Excel';
-            LayoutFile = '.\Inventory\Reports\InventoryOrderDetails.xlsx';
+            LayoutFile = './Inventory/Reports/InventoryOrderDetails.xlsx';
             Type = Excel;
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
         layout(Word)
         {
             Caption = 'Inventory Order Details Word';
-            LayoutFile = '.\Inventory\Reports\InventoryOrderDetails.docx';
+            LayoutFile = './Inventory/Reports/InventoryOrderDetails.docx';
             Type = Word;
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
