@@ -2179,7 +2179,7 @@ codeunit 137082 "SCM Manufacturing - Routings"
         ProdOrderRoutingLine.FindFirst();
 
         // [WHEN] Set routing link code "RL" on operation "20" and answer No
-        LibraryVariableStorage.Enqueue(StrSubstNo(DuplicateRoutingLinkCodeQst, ProdOrderRoutingLine.FieldCaption("Routing Link Code"), RoutingLink.Code));
+        LibraryVariableStorage.Enqueue(DuplicateRoutingLinkCodeQst);
         asserterror ProdOrderRoutingLine.Validate("Routing Link Code", RoutingLink.Code);
 
         // [THEN] The duplicate question was asked and the update is cancelled
