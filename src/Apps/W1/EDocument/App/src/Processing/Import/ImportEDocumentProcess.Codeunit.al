@@ -121,10 +121,8 @@ codeunit 6104 "Import E-Document Process"
         EDocumentDataStorage: Record "E-Doc. Data Storage";
         EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
         FromBlob: Codeunit "Temp Blob";
-        ResponseBlob: Codeunit "Temp Blob";
         IStructuredFormatReader: Interface IStructuredFormatReader;
         IResponseProvider: Interface IEDocResponseProvider;
-        IMessageBuilder: Interface IEDocMessageBuilder;
         MessageType: Enum "E-Document Message Type";
     begin
         if EDocumentDataStorage.Get(EDocument."Structured Data Entry No.") then
@@ -140,22 +138,27 @@ codeunit 6104 "Import E-Document Process"
 
         IResponseProvider := EDocument.GetEDocumentService()."Document Format";
         MessageType := IResponseProvider.GetResponseMessageType(EDocument);
-        if MessageType <> "E-Document Message Type"::Unknown then begin
-            IMessageBuilder := MessageType;
-            IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
-            EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
-        end;
+        if MessageType <> "E-Document Message Type"::Unknown then
+            EDocMessageMgt.CreateResponseMessage(EDocument, MessageType, "E-Doc. Response Type"::Acknowledged);
     end;
 
     local procedure PrepareDraft(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters")
     var
         Vendor: Record Vendor;
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentService: Record "E-Document Service";
+        EDocExport: Codeunit "E-Doc. Export";
         IProcessStructuredData: Interface IProcessStructuredData;
         VendNo: Code[20];
+        ErrorText: Text;
     begin
         IProcessStructuredData := EDocument."Process Draft Impl.";
         EDocument."Document Type" := IProcessStructuredData.PrepareDraft(EDocument, EDocImportParameters);
+
+        EDocumentService := EDocument.GetEDocumentService();
+        if EDocument."Document Type" <> "E-Document Type"::None then
+            if not EDocExport.CheckDocumentTypeSupportedForImport(EDocumentService, EDocument."Document Type", ErrorText) then
+                Error(ErrorText);
 
         VendNo := IProcessStructuredData.GetVendor(EDocument, EDocImportParameters."Processing Customizations")."No.";
         if VendNo = '' then begin

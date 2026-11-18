@@ -26,9 +26,17 @@ page 2503 "Extension Installation"
     trigger OnOpenPage()
     var
         ExtensionMarketplace: Codeunit "Extension Marketplace";
+        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         MarketplaceExtnDeployment: Page "Marketplace Extn Deployment";
     begin
         GetDetailsFromFilters();
+
+        // A session refresh can reopen this page after the requested app has been installed.
+        if Rec.PreviewKey = '' then
+            if ExtensionInstallationImpl.IsInstalledByAppId(Rec.ID) then begin
+                CurrPage.Close();
+                exit;
+            end;
 
         MarketplaceExtnDeployment.SetAppID(Rec.ID);
         MarketplaceExtnDeployment.SetPreviewKey(Rec.PreviewKey);
@@ -79,5 +87,4 @@ page 2503 "Extension Installation"
             FieldRef.Value(Filter);
     end;
 }
-
 

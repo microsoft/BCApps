@@ -937,17 +937,18 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmHandler')]
     procedure XMLExport_PaymentType3_Negative_BlankedSWIFT()
     var
         GenJournalLine: Record "Gen. Journal Line";
         VendorNo: Code[20];
     begin
         // [FEATURE] [XML] [Export]
-        // [SCENARIO 220991] Swiss SEPA CT export for "Payment Type" = "3" in case of blanked "SWIFT Code"
+        // [SCENARIO 220991] Swiss SEPA CT export for "Payment Form" = "Bank Payment Domestic" with blanked "SWIFT Code" and "Clearing No." when no clearing member id can be derived from the IBAN
         Initialize();
 
-        // [GIVEN] Vendor with bank account having "Payment Form" = "Bank Payment Domestic" ("SWIFT Code" = "" and domestic IBAN)
-        VendorNo := CreateVendorWithBankAccount(PaymentFormGbl::"Bank Payment Domestic", '', '', '', GetIBAN(true));
+        // [GIVEN] Vendor with bank account having "Payment Form" = "Bank Payment Domestic", blank "SWIFT Code" and "Clearing No.", and a domestic IBAN whose clearing slice (positions 5-9) is all zeros, so no clearing member id can be derived from it
+        VendorNo := CreateVendorWithBankAccount(PaymentFormGbl::"Bank Payment Domestic", '', '', '', 'CH9300000123456789012');
         // [GIVEN] Vendor payment journal line with "Currency Code" = ""
         CreatePaymentJournalLine(GenJournalLine, VendorNo, '', '',
           GenJournalLine."Account Type"::Vendor, GenJournalLine."Document Type"::Payment);
@@ -955,7 +956,7 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
         // [WHEN] Export payments to file
         asserterror GenJournalLine_XMLExport(GenJournalLine);
 
-        // [THEN] The file export has one or more errors (Vendor Bank Account "X" must have a value in SWIFT Code.)
+        // [THEN] The file export has one or more errors (Vendor Bank Account "X" must have a value in SWIFT Code or in Clearing No.)
         VerifyPaymentJnlExportErrorForBlankedVendorBankField(GenJournalLine);
     end;
 
@@ -3133,6 +3134,68 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
         VerifyPaymentJnlExportErrorText(GenJournalLine, IBANTypeErr);
     end;
 
+    [Test]
+    procedure FillExportBufferAppendsVendorAddress2ForSwissExport()
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentExportData: Record "Payment Export Data";
+        Vendor: Record Vendor;
+        SEPACTFillExportBuffer: Codeunit "SEPA CT-Fill Export Buffer";
+        Address: Text[100];
+        Address2: Text[50];
+    begin
+        // [SCENARIO 656772] Vendor Address 2 is appended to the street name for Swiss SEPA exports.
+        Initialize();
+
+        // [GIVEN] Swiss SEPA payment for a vendor whose building number is stored in Address 2.
+        CreateGenJournalBatch(GenJournalBatch, CreateBankAccount(FindSwissSEPACTBankExpImpCode()));
+        CreateGenJournalLine(GenJournalLine, GenJournalBatch);
+        Vendor.Get(GenJournalLine."Account No.");
+        Address := CopyStr(LibraryRandom.RandText(30), 1, MaxStrLen(Address));
+        Address2 := CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(Address2));
+        Vendor.Validate(Address, Address);
+        Vendor.Validate("Address 2", Address2);
+        Vendor.Modify(true);
+
+        // [WHEN] The payment export buffer is filled.
+        GenJournalLine.SetRecFilter();
+        SEPACTFillExportBuffer.FillExportBuffer(GenJournalLine, PaymentExportData);
+
+        // [THEN] Recipient Address contains the street and building number.
+        Assert.AreEqual(Address + ' ' + Address2, PaymentExportData."Recipient Address", '');
+    end;
+
+    [Test]
+    procedure FillExportBufferKeepsVendorAddressWhenAddress2IsBlank()
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentExportData: Record "Payment Export Data";
+        Vendor: Record Vendor;
+        SEPACTFillExportBuffer: Codeunit "SEPA CT-Fill Export Buffer";
+        Address: Text[100];
+    begin
+        // [SCENARIO 656772] A blank Vendor Address 2 does not add whitespace to the street name.
+        Initialize();
+
+        // [GIVEN] Swiss SEPA payment for a vendor with a blank Address 2.
+        CreateGenJournalBatch(GenJournalBatch, CreateBankAccount(FindSwissSEPACTBankExpImpCode()));
+        CreateGenJournalLine(GenJournalLine, GenJournalBatch);
+        Vendor.Get(GenJournalLine."Account No.");
+        Address := CopyStr(LibraryRandom.RandText(30), 1, MaxStrLen(Address));
+        Vendor.Validate(Address, Address);
+        Vendor.Validate("Address 2", '');
+        Vendor.Modify(true);
+
+        // [WHEN] The payment export buffer is filled.
+        GenJournalLine.SetRecFilter();
+        SEPACTFillExportBuffer.FillExportBuffer(GenJournalLine, PaymentExportData);
+
+        // [THEN] Recipient Address remains unchanged.
+        Assert.AreEqual(Vendor.Address, PaymentExportData."Recipient Address", '');
+    end;
+
     local procedure Initialize()
     var
         GLSetup: Record "General Ledger Setup";
@@ -4237,5 +4300,10 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
         PostedPurchInvoiceUpdate."Payment Reference".SetValue(LibraryVariableStorage.DequeueText());
         PostedPurchInvoiceUpdate.OK().Invoke();
     end;
-}
 
+    [ConfirmHandler]
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
+    end;
+}

@@ -16,7 +16,7 @@ using Microsoft.Purchases.Document;
 codeunit 20511 "Subc. Synchronize Management"
 {
     var
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -30,7 +30,7 @@ codeunit 20511 "Subc. Synchronize Management"
     var
         ProductionOrder: Record "Production Order";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -66,7 +66,7 @@ codeunit 20511 "Subc. Synchronize Management"
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         PurchLineBaseQuantity: Decimal;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -126,7 +126,7 @@ codeunit 20511 "Subc. Synchronize Management"
         PurchaseLine, PurchaseLine2, PurchaseLineModify : Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -165,13 +165,8 @@ codeunit 20511 "Subc. Synchronize Management"
                                 PurchaseLineModify.SetRange(Type, "Purchase Line Type"::Item);
                                 PurchaseLineModify.SetFilter("No.", '<>%1', '');
                                 PurchaseLineModify.SetRange("Prod. Order No.", ProductionOrder."No.");
-                                if not PurchaseLineModify.IsEmpty() then begin
-                                    PurchaseLineModify.ModifyAll("Prod. Order Line No.", 0);
-                                    PurchaseLineModify.ModifyAll("Operation No.", '');
-                                    PurchaseLineModify.ModifyAll("Routing No.", '');
-                                    PurchaseLineModify.ModifyAll("Routing Reference No.", 0);
-                                    PurchaseLineModify.ModifyAll("Prod. Order No.", '');
-                                end;
+                                if not PurchaseLineModify.IsEmpty() then
+                                    PurchaseLineModify.ModifyAll("Prod. Order Line No.", 0, "Operation No.", '', "Routing No.", '', "Routing Reference No.", 0, "Prod. Order No.", '');
 
                                 // Delete Subcontracting dependent Purchase Lines
                                 PurchaseLine2.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
@@ -202,7 +197,7 @@ codeunit 20511 "Subc. Synchronize Management"
         TransferHeader: Record "Transfer Header";
         TransferOrderErrorInfo: ErrorInfo;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -230,7 +225,7 @@ codeunit 20511 "Subc. Synchronize Management"
         ProductionOrder: Record "Production Order";
         PurchaseLine2: Record "Purchase Line";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

@@ -6,6 +6,7 @@ namespace Microsoft.Finance.AuditFileExport;
 
 using Microsoft.Inventory.Ledger;
 
+#pragma warning disable AA0210
 query 5280 "Qty. Item Ledger Entry SAF-T"
 {
     QueryType = Normal;
@@ -32,3 +33,4 @@ query 5280 "Qty. Item Ledger Entry SAF-T"
         }
     }
 }
+#pragma warning restore AA0210

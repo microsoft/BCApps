@@ -10,6 +10,7 @@ enumextension 5315 "Audit File Export Format SIE" extends "Audit File Export For
     {
         Caption = 'SIE';
         Implementation = "Audit File Export Data Handling" = "Data Handling SIE",
-                         "Audit File Export Data Check" = "Data Check SIE";
+                         "Audit File Export Data Check" = "Data Check SIE",
+                         "Audit File Export Page Visibility" = "Data Handling SIE";
     }
 }

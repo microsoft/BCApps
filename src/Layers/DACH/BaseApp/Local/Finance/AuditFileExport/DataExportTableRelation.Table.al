@@ -33,7 +33,9 @@ table 11006 "Data Export Table Relation"
             NotBlank = true;
             TableRelation = AllObj."Object ID" where("Object Type" = const(Table));
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(4; "From Table Name"; Text[80])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
                                                                            "Object ID" = field("From Table No.")));
@@ -47,7 +49,7 @@ table 11006 "Data Export Table Relation"
             Caption = 'From Field No.';
             NotBlank = true;
             TableRelation = Field."No." where(TableNo = field("From Table No."),
-                                               Type = filter(Option | Text | Code | Integer | Decimal | Date | Boolean),
+                                               Type = filter(Option | Text | Code | Integer | BigInteger | Decimal | Date | Boolean),
                                                Class = const(Normal),
                                                ObsoleteState = filter(<> Removed));
 
@@ -90,7 +92,9 @@ table 11006 "Data Export Table Relation"
             NotBlank = true;
             TableRelation = AllObj."Object ID" where("Object Type" = const(Table));
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(8; "To Table Name"; Text[80])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
                                                                            "Object ID" = field("To Table No.")));
@@ -104,7 +108,7 @@ table 11006 "Data Export Table Relation"
             Caption = 'To Field No.';
             NotBlank = true;
             TableRelation = Field."No." where(TableNo = field("To Table No."),
-                                               Type = filter(Option | Text | Code | Integer | Decimal | Date | Boolean),
+                                               Type = filter(Option | Text | Code | Integer | BigInteger | Decimal | Date | Boolean),
                                                ObsoleteState = filter(<> Removed));
 
             trigger OnLookup()

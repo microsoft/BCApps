@@ -13,13 +13,8 @@ table 6113 "EDoc Historical Matching Setup"
     ReplicateData = false;
     ObsoleteReason = 'Replaced with experiment-based matching.';
 #pragma warning disable AS0072 // this change is backported to 27.x
-#if not CLEAN27
-    ObsoleteTag = '27.0';
-    ObsoleteState = Pending;
-#else
     ObsoleteTag = '30.0';
     ObsoleteState = Removed;
-#endif
 #pragma warning restore AS0072
 
     fields

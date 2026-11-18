@@ -661,7 +661,7 @@ codeunit 147531 "Cartera Recv. Installments"
         SalesLine.Modify(true);
     end;
 
-    local procedure ApplyCreditMemoToFirstInstallment(EntryNo: Integer)
+    local procedure ApplyCreditMemoToFirstInstallment(EntryNo: BigInteger)
     var
         CustomerLedgerEntries: TestPage "Customer Ledger Entries";
     begin
@@ -756,8 +756,7 @@ codeunit 147531 "Cartera Recv. Installments"
         // Remove the line discount - without it we would get more GL/Lines
         SalesLine.SetRange("Document Type", DocumentType);
         SalesLine.SetRange("Document No.", DocumentNo);
-        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, true);
-        SalesLine.ModifyAll(SalesLine."Line Discount Amount", 0, true);
+        SalesLine.ModifyAll(SalesLine."Line Discount %", 0, SalesLine."Line Discount Amount", 0, true);
     end;
 
     local procedure ValidateCarteraDiscountGLEntries(BankAccount: Record "Bank Account"; BillGroupNo: Code[20])
@@ -801,7 +800,6 @@ codeunit 147531 "Cartera Recv. Installments"
           StrSubstNo(CountMismatchErr, CarteraDoc.TableCaption(), PaymentTerms.FieldCaption("No. of Installments")));
 
         CarteraDocsTotalAmount := 0;
-
         repeat
             Index += 1;
             CarteraDoc.TestField("No.", Format(Index));
@@ -826,7 +824,6 @@ codeunit 147531 "Cartera Recv. Installments"
           StrSubstNo(CountMismatchErr, CustLedgerEntry.TableCaption(), PaymentTerms.FieldCaption("No. of Installments")));
 
         CustomerLedgerTotalAmount := 0;
-
         repeat
             Index += 1;
             CustLedgerEntry.TestField("Bill No.", Format(Index));

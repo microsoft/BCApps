@@ -675,10 +675,10 @@ page 7200 "CDS Connection Setup"
             action("Virtual Tables App")
             {
                 ApplicationArea = Suite;
-                Caption = 'Virtual Tables AppSource App';
+                Caption = 'Virtual Tables Marketplace App';
                 Image = Setup;
                 Enabled = BusinessEventsSupported;
-                ToolTip = 'Go to Microsoft AppSource to get the Business Central Virtual Tables app. The app will let you create virtual tables for Business Central data in Dataverse';
+                ToolTip = 'Go to Microsoft Marketplace to get the Business Central Virtual Tables app. The app will let you create virtual tables for Business Central data in Dataverse';
 
                 trigger OnAction()
                 begin

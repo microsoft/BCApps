@@ -15,7 +15,7 @@ table 8390 "Financial Report Audit Log"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             AutoIncrement = true;
             Caption = 'Entry No.';
@@ -77,6 +77,9 @@ table 8390 "Financial Report Audit Log"
             Clustered = true;
         }
         key(ReportUser; "Report Name", User, SystemCreatedAt)
+        {
+        }
+        key(ReportUserSecurityId; "Report Name", SystemCreatedBy, SystemCreatedAt)
         {
         }
     }

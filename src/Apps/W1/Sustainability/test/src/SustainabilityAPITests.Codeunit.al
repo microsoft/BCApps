@@ -9,6 +9,7 @@ using Microsoft.Sustainability.Posting;
 codeunit 148185 "Sustainability API Tests"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 

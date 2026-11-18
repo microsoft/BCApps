@@ -439,18 +439,6 @@ codeunit 6385 "Outlook Processing"
         EmailInbox.Copy(this.RetrievedEmailInbox);
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0432
-    [EventSubscriber(ObjectType::Page, Page::"Inbound E-Documents", OnAfterActionEvent, ViewMailMessage, false, false)]
-    local procedure OnAfterViewEmailMessageAction(var Rec: Record "E-Document")
-    var
-        OutlookIntegrationImpl: Codeunit "Outlook Integration Impl.";
-    begin
-        if (Rec."Outlook Mail Message Id" <> '') then
-            HyperLink(StrSubstNo(OutlookIntegrationImpl.WebLinkText(), Rec."Outlook Mail Message Id"))
-    end;
-#pragma warning restore AL0432
-#endif
 
     local procedure GetOutlookCategoryDescription(EDocumentService: Record "E-Document Service"): Text
     var

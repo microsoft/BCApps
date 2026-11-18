@@ -9,6 +9,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Planning;
 using Microsoft.Manufacturing.Journal;
 
 page 99000832 "Released Prod. Order Lines"
@@ -314,16 +315,6 @@ page 99000832 "Released Prod. Order Lines"
                         Rec.ValidateShortcutDimCode(8, ShortcutDimCode[8]);
                     end;
                 }
-#if not CLEAN27
-                field("Standard Task Code"; Rec."Standard Task Code")
-                {
-                    ApplicationArea = Manufacturing;
-                    Visible = false;
-                    ObsoleteReason = 'Discontinued functionality';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#endif
             }
         }
     }
@@ -358,6 +349,20 @@ page 99000832 "Released Prod. Order Lines"
                     trigger OnAction()
                     begin
                         ShowTracking();
+                    end;
+                }
+                action(SupplyWhatIfPlanningAnalysis)
+                {
+                    ApplicationArea = Planning;
+                    Caption = 'Supply Planning What-If Analysis';
+                    Image = CalculateRegenerativePlan;
+                    ToolTip = 'Analyze how changes to this production order would impact the overall supply planning suggestions.';
+
+                    trigger OnAction()
+                    var
+                        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+                    begin
+                        SupplyWhatIfPlanningEngine.OpenWhatIfPlanning(Rec);
                     end;
                 }
             }

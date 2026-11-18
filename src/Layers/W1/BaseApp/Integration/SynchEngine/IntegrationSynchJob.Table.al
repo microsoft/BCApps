@@ -76,7 +76,7 @@ table 5338 "Integration Synch. Job"
             OptionCaption = 'Bidirectional,ToIntegrationTable,FromIntegrationTable';
             OptionMembers = Bidirectional,ToIntegrationTable,FromIntegrationTable;
         }
-        field(13; "Job Queue Log Entry No."; Integer)
+        field(13; "Job Queue Log Entry No."; BigInteger)
         {
             Caption = 'Job Queue Log Entry No.';
         }
@@ -172,7 +172,7 @@ table 5338 "Integration Synch. Job"
         exit(Failed <> 0);
     end;
 
-    procedure HaveJobsBeenIdle(JobQueueLogEntryNo: Integer): Boolean
+    procedure HaveJobsBeenIdle(JobQueueLogEntryNo: BigInteger): Boolean
     begin
         Reset();
         SetRange("Job Queue Log Entry No.", JobQueueLogEntryNo);

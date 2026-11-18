@@ -2695,7 +2695,9 @@ codeunit 142085 PurchDocTotalsSalesEntryUI
     begin
         CreatePurchaseHeader(PurchaseHeader, DocumentType, VendorNo);
         if IsCalcInvDiscountMarked() then
-            PurchaseHeader.Validate("Invoice Discount Calculation", PurchaseHeader."Invoice Discount Calculation"::"%");
+            PurchaseHeader.Validate("Invoice Discount Calculation", PurchaseHeader."Invoice Discount Calculation"::"%")
+        else
+            PurchaseHeader.Validate("Invoice Discount Calculation", PurchaseHeader."Invoice Discount Calculation"::None);
         PurchaseHeader.Validate("Tax Area Code", TaxAreaCode);
         PurchaseHeader.Modify();
 

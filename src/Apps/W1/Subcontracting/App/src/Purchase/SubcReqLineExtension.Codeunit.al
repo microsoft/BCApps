@@ -5,10 +5,12 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 20513 "Subc. Req.Line Extension"
 {
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -20,7 +22,7 @@ codeunit 20513 "Subc. Req.Line Extension"
     var
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -34,7 +36,7 @@ codeunit 20513 "Subc. Req.Line Extension"
     var
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -44,6 +46,46 @@ codeunit 20513 "Subc. Req.Line Extension"
             exit;
 
         SubcontractingManagement.UpdateSubcontractorPriceForRequisitionLine(Rec);
+        RestoreSubcontractingDescriptions(Rec);
+    end;
+
+    local procedure RestoreSubcontractingDescriptions(var RequisitionLine: Record "Requisition Line")
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        WorkCenter: Record "Work Center";
+        RoutingLineFound: Boolean;
+    begin
+        if (RequisitionLine."Ref. Order Type" <> RequisitionLine."Ref. Order Type"::"Prod. Order") and
+           not ((RequisitionLine."Ref. Order Type" = RequisitionLine."Ref. Order Type"::Purchase) and
+                (RequisitionLine."Action Message" = RequisitionLine."Action Message"::New) and
+                (RequisitionLine."Prod. Order No." <> ''))
+        then
+            exit;
+            
+        if not WorkCenter.Get(RequisitionLine."Work Center No.") then
+            exit;
+
+        if RequisitionLine."Ref. Order Type" = RequisitionLine."Ref. Order Type"::"Prod. Order" then
+            RoutingLineFound := ProdOrderRoutingLine.Get(
+                RequisitionLine."Ref. Order Status", RequisitionLine."Ref. Order No.", RequisitionLine."Routing Reference No.",
+                RequisitionLine."Routing No.", RequisitionLine."Operation No.")
+        else
+            RoutingLineFound := ProdOrderRoutingLine.Get(
+                ProdOrderRoutingLine.Status::Released, RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.",
+                RequisitionLine."Routing No.", RequisitionLine."Operation No.");
+        if RoutingLineFound and
+           (ProdOrderRoutingLine."Work Center No." = RequisitionLine."Work Center No.")
+        then begin
+            RequisitionLine.Description := ProdOrderRoutingLine.Description;
+            if ProdOrderRoutingLine."Description 2" <> '' then
+                RequisitionLine."Description 2" := ProdOrderRoutingLine."Description 2"
+            else
+                RequisitionLine."Description 2" := WorkCenter."Name 2";
+            exit;
+        end;
+
+        RequisitionLine.Description := WorkCenter.Name;
+        RequisitionLine."Description 2" := WorkCenter."Name 2";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", OnAfterValidateEvent, Quantity, false, false)]
@@ -51,7 +93,7 @@ codeunit 20513 "Subc. Req.Line Extension"
     var
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -66,7 +108,7 @@ codeunit 20513 "Subc. Req.Line Extension"
     [EventSubscriber(ObjectType::Table, Database::"Req. Wksh. Template", 'OnAfterValidateEvent', 'Recurring', true, false)]
     local procedure ReqWkshTemplateOnAfterValidateRecurring(var Rec: Record "Req. Wksh. Template")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

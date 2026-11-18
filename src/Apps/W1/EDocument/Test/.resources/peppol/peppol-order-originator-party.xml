@@ -20,6 +20,7 @@
     </cac:BuyerCustomerParty>
     <cac:SellerSupplierParty>
         <cac:Party>
+            <cbc:EndpointID schemeID="0088">9876543210987</cbc:EndpointID>
             <cac:PartyName>
                 <cbc:Name>Seller Ltd.</cbc:Name>
             </cac:PartyName>

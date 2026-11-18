@@ -8,6 +8,9 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
+#if not CLEAN28
+using System.Environment.Configuration;
+#endif
 
 /// <summary>
 /// Represents individual direct debit transactions within a collection, linking customer ledger entries
@@ -57,7 +60,7 @@ table 1208 "Direct Debit Collection Entry"
         /// <summary>
         /// Customer ledger entry that this direct debit entry applies to, typically an invoice or reminder.
         /// </summary>
-        field(4; "Applies-to Entry No."; Integer)
+        field(4; "Applies-to Entry No."; BigInteger)
         {
             Caption = 'Applies-to Entry No.';
             ToolTip = 'Specifies the number of the sales invoice that the customer leger entry behind this direct-debit collection entry applies to.';
@@ -500,7 +503,10 @@ table 1208 "Direct Debit Collection Entry"
 
     local procedure TransferPKToGenJnlLine(var GenJnlLine: Record "Gen. Journal Line")
     var
+#if not CLEAN28
         DirectDebitCollection: Record "Direct Debit Collection";
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -508,8 +514,14 @@ table 1208 "Direct Debit Collection Entry"
         if IsHandled then
             exit;
 
-        if DirectDebitCollection.Get("Direct Debit Collection No.") then
-            DirectDebitCollection.SetErrorLink(GenJnlLine);
+        GenJnlLine."Document No." := CopyStr(Format("Direct Debit Collection No.", 0, 9), 1, MaxStrLen(GenJnlLine."Document No."));
+#if not CLEAN28
+        if not FeatureManagementFacade.IsEnabled('Payment') then
+            if DirectDebitCollection.Get("Direct Debit Collection No.") then
+#pragma warning disable AL0432
+                DirectDebitCollection.SetErrorLink(GenJnlLine);
+#pragma warning restore AL0432
+#endif
         GenJnlLine."Line No." := "Entry No.";
     end;
 

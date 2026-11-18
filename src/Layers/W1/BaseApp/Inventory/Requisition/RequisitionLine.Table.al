@@ -92,7 +92,8 @@ table 246 "Requisition Line"
         {
             Caption = 'No.';
             ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
-            TableRelation = if (Type = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if (Type = const("G/L Account")) "G/L Account"
             else
             if (Type = const(Item)) Item;
 
@@ -107,14 +108,12 @@ table 246 "Requisition Line"
                 OnValidateNoOnBeforeDeleteRelations(Rec, xRec, IsHandled);
                 if not IsHandled then
                     DeleteRelations();
-
                 if "No." = '' then begin
                     CreateDimFromDefaultDim();
                     Init();
                     Type := xRec.Type;
                     exit;
                 end;
-
                 if "No." <> xRec."No." then begin
                     "Variant Code" := '';
                     CleanProdOrderNo();
@@ -128,6 +127,8 @@ table 246 "Requisition Line"
                     Type::Item:
                         CopyFromItem();
                 end;
+                if BlockedItemSkipped then
+                    exit;
 
                 OnValidateNoOnAfterAssignFieldsForNo(Rec, xRec);
 
@@ -163,36 +164,7 @@ table 246 "Requisition Line"
 
             trigger OnValidate()
             begin
-                Quantity := UOMMgt.RoundAndValidateQty(Quantity, "Qty. Rounding Precision", FieldCaption(Quantity));
-
-                "Quantity (Base)" :=
-                    UOMMgt.CalcBaseQty(
-                        "No.", "Variant Code", "Unit of Measure Code", Quantity, "Qty. per Unit of Measure",
-                        "Qty. Rounding Precision (Base)", FieldCaption("Qty. Rounding Precision"), FieldCaption(Quantity),
-                        FieldCaption("Quantity (Base)"));
-
-                if Type = Type::Item then begin
-                    OnValidateQuantityOnBeforeGetDirectCost(Rec, xRec, CurrFieldNo);
-                    GetDirectCost(FieldNo(Quantity));
-                    SetRemaningQuantity();
-
-                    if (CurrFieldNo = FieldNo(Quantity)) or (CurrentFieldNo = FieldNo(Quantity)) then
-                        SetActionMessage();
-
-                    "Net Quantity (Base)" := (Quantity - "Original Quantity") * "Qty. per Unit of Measure";
-
-                    OnValidateQuantityOnBeforeUnitCost(Rec, CurrFieldNo, CurrentFieldNo);
-                    Validate("Unit Cost");
-                    if ValidateFields() then
-                        if "Ending Date" <> 0D then
-                            Validate("Ending Time")
-                        else begin
-                            if "Starting Date" = 0D then
-                                "Starting Date" := WorkDate();
-                            Validate("Starting Time");
-                        end;
-                    ReqLineReserve.VerifyQuantity(Rec, xRec);
-                end;
+                ValidateQuantity();
             end;
         }
         field(9; "Vendor No."; Code[20])
@@ -241,7 +213,6 @@ table 246 "Requisition Line"
                         end;
                         CheckVendorBlocked(Vend);
                         OnValidateVendorNoOnAfterCheckVendor(Rec, Vend, CurrFieldNo);
-
                         if "Order Date" = 0D then
                             Validate("Order Date", WorkDate());
 
@@ -276,7 +247,6 @@ table 246 "Requisition Line"
 
                 UpdateVendorItemInfo := (Type = Type::Item) and ("No." <> '') and (not IsProdOrder());
                 OnValidateVendorNoOnBeforeUpdateVendorItemInfo(Rec, UpdateVendorItemInfo);
-
                 if UpdateVendorItemInfo then begin
                     if ItemVend.Get("Vendor No.", "No.", "Variant Code") then begin
                         IsHandled := false;
@@ -324,14 +294,13 @@ table 246 "Requisition Line"
                 OnValidateDueDateOnAfterCalcShouldExitDueDate(Rec, xRec, CurrFieldNo, ShouldExitDueDate);
                 if ShouldExitDueDate then
                     exit;
-
                 if (CurrFieldNo = FieldNo("Due Date")) or (CurrentFieldNo = FieldNo("Due Date")) or (CurrFieldNo = FieldNo("Location Code")) then
                     if (Type = Type::Item) and
                        ("Planning Level" = 0)
                     then
                         Validate(
                           "Ending Date",
-                          LeadTimeMgt.GetPlannedEndingDate("No.", "Location Code", "Variant Code", "Due Date", '', "Ref. Order Type"))
+                          LeadTimeMgt.GetPlannedEndingDate("No.", "Location Code", "Variant Code", "Due Date", '', GetPlanningReferenceType()))
                     else
                         Validate("Ending Date", "Due Date");
 
@@ -398,7 +367,6 @@ table 246 "Requisition Line"
                 CheckActionMessageNew();
                 "Bin Code" := '';
                 ReqLineReserve.VerifyChange(Rec, xRec);
-
                 if Type = Type::Item then begin
                     UpdateReplenishmentSystem();
                     if "Location Code" <> xRec."Location Code" then
@@ -442,12 +410,9 @@ table 246 "Requisition Line"
 
             trigger OnValidate()
             begin
-                "Starting Date" := "Order Date";
-
                 GetDirectCost(FieldNo("Order Date"));
-
                 if CurrFieldNo = FieldNo("Order Date") then
-                    Validate("Starting Date");
+                    Validate("Starting Date", "Order Date");
             end;
         }
         field(22; "Vendor Item No."; Text[50])
@@ -510,7 +475,6 @@ table 246 "Requisition Line"
                 OnBeforeOnValidateShipToCode(Rec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if "Ship-to Code" <> '' then begin
                     ShipToAddr.Get("Sell-to Customer No.", "Ship-to Code");
                     "Location Code" := ShipToAddr."Location Code";
@@ -630,7 +594,8 @@ table 246 "Requisition Line"
         {
             Caption = 'Variant Code';
             ToolTip = 'Specifies the variant of the item on the line.';
-            TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
+            TableRelation =
+            if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
 
             trigger OnValidate()
             var
@@ -654,13 +619,14 @@ table 246 "Requisition Line"
                     UpdateReplenishmentSystem();
                     if "Variant Code" <> xRec."Variant Code" then begin
                         "Bin Code" := '';
-                        if ("Location Code" <> '') and ("No." <> '') then begin
-                            GetLocation("Location Code");
-                            ShouldGetDefaultBin := Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
-                            OnBeforeGetDefaultBin(Rec, ShouldGetDefaultBin);
-                            if ShouldGetDefaultBin then
-                                WMSManagement.GetDefaultBin("No.", "Variant Code", "Location Code", "Bin Code");
-                        end;
+                        if ("Location Code" <> '') and ("No." <> '') then
+                            if not IsDropShipment() then begin
+                                GetLocation("Location Code");
+                                ShouldGetDefaultBin := Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
+                                OnBeforeGetDefaultBin(Rec, ShouldGetDefaultBin);
+                                if ShouldGetDefaultBin then
+                                    WMSManagement.GetDefaultBin("No.", "Variant Code", "Location Code", "Bin Code");
+                            end;
                     end;
                     if ItemVend.Get("Vendor No.", "No.", "Variant Code") then
                         "Vendor Item No." := ItemVend."Vendor Item No.";
@@ -729,7 +695,8 @@ table 246 "Requisition Line"
         {
             Caption = 'Unit of Measure Code';
             ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
-            TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
+            TableRelation =
+            if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             "Unit of Measure";
 
@@ -746,7 +713,6 @@ table 246 "Requisition Line"
 
                 OnValidateUnitofMeasureCodeOnBeforeGetDirectCost(Rec, Item);
                 GetDirectCost(FieldNo("Unit of Measure Code"));
-
                 if "Planning Line Origin" = "Planning Line Origin"::"Order Planning" then
                     SetSupplyQty("Demand Quantity (Base)", "Needed Quantity (Base)")
                 else
@@ -890,13 +856,15 @@ table 246 "Requisition Line"
         {
             Caption = 'Unit Of Measure Code (Demand)';
             Editable = false;
-            TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."));
+            TableRelation =
+            if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."));
         }
         field(5552; "Supply From"; Code[20])
         {
             Caption = 'Supply From';
             ToolTip = 'Specifies a value, according to the selected replenishment system, before a supply order can be created for the line.';
-            TableRelation = if ("Replenishment System" = const(Purchase)) Vendor
+            TableRelation =
+            if ("Replenishment System" = const(Purchase)) Vendor
             else
             if ("Replenishment System" = const(Transfer)) Location where("Use As In-Transit" = const(false));
 
@@ -963,7 +931,8 @@ table 246 "Requisition Line"
         field(5701; "Item Category Code"; Code[20])
         {
             Caption = 'Item Category Code';
-            TableRelation = if (Type = const(Item)) "Item Category";
+            TableRelation =
+            if (Type = const(Item)) "Item Category";
         }
         field(5702; Nonstock; Boolean)
         {
@@ -1144,7 +1113,6 @@ table 246 "Requisition Line"
             trigger OnValidate()
             begin
                 CheckEndingDate(ValidateFields());
-
                 if Type = Type::Item then begin
                     Validate("Ending Time");
                     OnValidateEndingDate(Rec);
@@ -1256,7 +1224,6 @@ table 246 "Requisition Line"
                 TestField(Type, Type::Item);
                 TestField("No.");
                 GetItem();
-
                 if Item.IsNonInventoriableType() then
                     if "Replenishment System" <> "Replenishment System"::Purchase then
                         Error(ErrorInfo.Create(StrSubstNo(ReplenishmentSystemPurchaseErr, Item."No.", "Location Code", Rec.FieldCaption("Replenishment System"), "Replenishment System"::Purchase, "Replenishment System")));
@@ -1265,7 +1232,6 @@ table 246 "Requisition Line"
                 OnValidateReplenishmentSystemOnAfterSetStockkeepingUnit(Rec, StockkeepingUnit, Subcontracting);
 
                 "Supply From" := '';
-
                 case "Replenishment System" of
                     "Replenishment System"::Purchase:
                         SetReplenishmentSystemFromPurchase(StockkeepingUnit);
@@ -1281,7 +1247,8 @@ table 246 "Requisition Line"
             Caption = 'Ref. Order No.';
             ToolTip = 'Specifies the number of the relevant production or purchase order.';
             Editable = false;
-            TableRelation = if ("Ref. Order Type" = const(Purchase)) "Purchase Header"."No." where("Document Type" = const(Order))
+            TableRelation =
+            if ("Ref. Order Type" = const(Purchase)) "Purchase Header"."No." where("Document Type" = const(Order))
             else
             if ("Ref. Order Type" = const(Transfer)) "Transfer Header"."No." where("No." = field("Ref. Order No."));
             ValidateTableRelation = false;
@@ -1376,7 +1343,6 @@ table 246 "Requisition Line"
                 OnBeforeValidateActionMessage(Rec, xRec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if ("Action Message" = xRec."Action Message") or
                    (("Action Message" in ["Action Message"::" ", "Action Message"::New]) and
                     (xRec."Action Message" in ["Action Message"::" ", "Action Message"::New]))
@@ -1513,7 +1479,6 @@ table 246 "Requisition Line"
         OnBeforeOnDelete(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if RequisitionWkshName.Get(Rec."Worksheet Template Name", Rec."Journal Batch Name") then
             ApprovalsMgmt.PreventDeletingRecordWithOpenApprovalEntry(RequisitionWkshName);
 
@@ -1561,9 +1526,151 @@ table 246 "Requisition Line"
         ReqLineReserve.VerifyChange(Rec, xRec);
     end;
 
+    local procedure GetPlanningReferenceType(): Enum "Requisition Ref. Order Type"
+    begin
+        if ("Ref. Order Type" = "Ref. Order Type"::Purchase) and
+           ("Action Message" = "Action Message"::New) and IsProdOrder()
+        then
+            exit("Ref. Order Type"::"Prod. Order");
+
+        exit("Ref. Order Type");
+    end;
+
+    internal procedure HasPurchaseOrderTarget(): Boolean
+    begin
+        exit(("Action Message" = "Action Message"::New) and
+             ("Ref. Order Type" = "Ref. Order Type"::Purchase) and
+             ("Ref. Order No." <> '') and
+             ("Ref. Line No." = 0));
+    end;
+
+    internal procedure ClearPurchaseOrderTarget()
+    begin
+        if ("Ref. Order Type" <> "Ref. Order Type"::Purchase) or
+           ("Ref. Order No." = '') or
+           ("Ref. Line No." <> 0)
+        then
+            exit;
+
+        "Ref. Order Type" := "Ref. Order Type"::Purchase;
+        "Ref. Order No." := '';
+        "Ref. Order Status" := "Ref. Order Status"::Simulated;
+        "Ref. Line No." := 0;
+    end;
+
     trigger OnRename()
     begin
         Error(Text004, TableCaption);
+    end;
+
+    internal procedure SetCompatiblePurchaseOrderFilters(var PurchaseHeader: Record "Purchase Header")
+    begin
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
+        PurchaseHeader.SetRange(Status, PurchaseHeader.Status::Open);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", "Vendor No.");
+        PurchaseHeader.SetRange("Sell-to Customer No.", "Sell-to Customer No.");
+        PurchaseHeader.SetRange("Ship-to Code", "Ship-to Code");
+        PurchaseHeader.SetRange("Order Address Code", "Order Address Code");
+        PurchaseHeader.SetRange("Currency Code", "Currency Code");
+    end;
+
+    internal procedure CheckPurchaseOrderTarget()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Purchasing: Record Purchasing;
+        SalesHeader: Record "Sales Header";
+        OtherRequisitionLine: Record "Requisition Line";
+        Failure: Text;
+        TargetErr: Label 'Worksheet line %1 in %2/%3 cannot use purchase order %4: %5.', Comment = '%1 = line number, %2 = template, %3 = batch, %4 = order number, %5 = failed condition';
+        MissingErr: Label 'the order no longer exists';
+        StatusErr: Label 'the order is not Open';
+        VendorErr: Label 'the buy-from vendor does not match';
+        CustomerErr: Label 'the sell-to customer does not match';
+        ShipToErr: Label 'the ship-to code does not match';
+        AddressErr: Label 'the order address does not match';
+        CurrencyErr: Label 'the currency does not match';
+        PurchasingErr: Label 'the purchasing code does not match the existing lines';
+        PurchasingSuggestionErr: Label 'the purchasing code does not match worksheet line %1 assigned to the same order', Comment = '%1 = line number';
+        SpecialOrderErr: Label 'the special-order location does not match';
+        DropShipmentErr: Label 'the drop-shipment address does not match the sales order';
+        RecurringTemplateErr: Label 'the worksheet template is recurring';
+    begin
+        if not HasPurchaseOrderTarget() then
+            exit;
+        case true of
+            IsRecurringWorksheetTemplate():
+                Failure := RecurringTemplateErr;
+            not PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, "Ref. Order No."):
+                Failure := MissingErr;
+            PurchaseHeader.Status <> PurchaseHeader.Status::Open:
+                Failure := StatusErr;
+            PurchaseHeader."Buy-from Vendor No." <> "Vendor No.":
+                Failure := VendorErr;
+            PurchaseHeader."Sell-to Customer No." <> "Sell-to Customer No.":
+                Failure := CustomerErr;
+            PurchaseHeader."Ship-to Code" <> "Ship-to Code":
+                Failure := ShipToErr;
+            PurchaseHeader."Order Address Code" <> "Order Address Code":
+                Failure := AddressErr;
+            PurchaseHeader."Currency Code" <> "Currency Code":
+                Failure := CurrencyErr;
+        end;
+        if Failure = '' then
+            if Purchasing.Get("Purchasing Code") then
+                if Purchasing."Special Order" and (PurchaseHeader."Location Code" <> "Location Code") then
+                    Failure := SpecialOrderErr
+                else
+                    if Purchasing."Drop Shipment" then
+                        if not SalesHeader.Get(SalesHeader."Document Type"::Order, "Sales Order No.") then
+                            Failure := DropShipmentErr
+                        else
+                            if (PurchaseHeader."Ship-to Name" <> SalesHeader."Ship-to Name") or
+                               (PurchaseHeader."Ship-to Name 2" <> SalesHeader."Ship-to Name 2") or
+                               (PurchaseHeader."Ship-to Address" <> SalesHeader."Ship-to Address") or
+                               (PurchaseHeader."Ship-to Address 2" <> SalesHeader."Ship-to Address 2") or
+                               (PurchaseHeader."Ship-to Post Code" <> SalesHeader."Ship-to Post Code") or
+                               (PurchaseHeader."Ship-to City" <> SalesHeader."Ship-to City") or
+                               (PurchaseHeader."Ship-to Contact" <> SalesHeader."Ship-to Contact")
+                            then
+                                Failure := DropShipmentErr;
+        if Failure = '' then begin
+            PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+            PurchaseLine.SetRange("Document No.", "Ref. Order No.");
+            PurchaseLine.SetFilter("Purchasing Code", '<>%1', "Purchasing Code");
+            PurchaseLine.SetFilter(Type, '<>%1', PurchaseLine.Type::" ");
+            if not PurchaseLine.IsEmpty() then
+                Failure := PurchasingErr;
+        end;
+        if Failure = '' then begin
+            // Accepted suggestions for the same order become lines of that order in one Carry Out, so they must agree with each other as well.
+            OtherRequisitionLine.SetRange("Worksheet Template Name", "Worksheet Template Name");
+            OtherRequisitionLine.SetRange("Journal Batch Name", "Journal Batch Name");
+            OtherRequisitionLine.SetFilter("Line No.", '<>%1', "Line No.");
+            OtherRequisitionLine.SetRange("Accept Action Message", true);
+            OtherRequisitionLine.SetRange("Action Message", OtherRequisitionLine."Action Message"::New);
+            OtherRequisitionLine.SetRange("Ref. Order Type", OtherRequisitionLine."Ref. Order Type"::Purchase);
+            OtherRequisitionLine.SetRange("Ref. Order No.", "Ref. Order No.");
+            OtherRequisitionLine.SetRange("Ref. Line No.", 0);
+            OtherRequisitionLine.SetFilter("Replenishment System", '%1|%2',
+                OtherRequisitionLine."Replenishment System"::Purchase, OtherRequisitionLine."Replenishment System"::"Prod. Order");
+            OtherRequisitionLine.SetFilter("Purchasing Code", '<>%1', "Purchasing Code");
+            OtherRequisitionLine.SetLoadFields("Line No.");
+            if OtherRequisitionLine.FindFirst() then
+                Failure := StrSubstNo(PurchasingSuggestionErr, OtherRequisitionLine."Line No.");
+        end;
+        if Failure <> '' then
+            Error(TargetErr, "Line No.", "Worksheet Template Name", "Journal Batch Name", "Ref. Order No.", Failure);
+    end;
+
+    local procedure IsRecurringWorksheetTemplate(): Boolean
+    var
+        RecurringReqWkshTemplate: Record "Req. Wksh. Template";
+    begin
+        RecurringReqWkshTemplate.SetLoadFields(Recurring);
+        if not RecurringReqWkshTemplate.Get("Worksheet Template Name") then
+            exit(false);
+        exit(RecurringReqWkshTemplate.Recurring);
     end;
 
     var
@@ -1582,6 +1689,8 @@ table 246 "Requisition Line"
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         BlockReservation: Boolean;
         DoNotUpdateOrderReceiptDate: Boolean;
+        SkipBlockedItem: Boolean;
+        BlockedItemSkipped: Boolean;
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -1639,7 +1748,6 @@ table 246 "Requisition Line"
             "Unit Cost" := Round(Item."Unit Cost" * "Qty. per Unit of Measure", UOMMgt.QtyRndPrecision());
         end else
             "Qty. per Unit of Measure" := 1;
-
     end;
 
     local procedure CopyFromGLAcc()
@@ -1672,12 +1780,13 @@ table 246 "Requisition Line"
     begin
         GetItem();
         OnBeforeCopyFromItem(Rec, Item, xRec, CurrFieldNo, TempPlanningErrorLog, PlanningResiliency);
-
         if PlanningResiliency and Item.Blocked then
             TempPlanningErrorLog.SetError(
               StrSubstNo(Text031, Item.TableCaption(), Item."No."),
               Database::Item, CopyStr(Item.GetPosition(), 1, 250));
         CheckBlockedItem();
+        if BlockedItemSkipped then
+            exit;
         "Low-Level Code" := Item."Low-Level Code";
         "Item Category Code" := Item."Item Category Code";
         "Gen. Prod. Posting Group" := Item."Gen. Prod. Posting Group";
@@ -1706,6 +1815,10 @@ table 246 "Requisition Line"
         OnBeforeCheckBlockedItem(Rec, IsHandled);
         if IsHandled then
             exit;
+        if SkipBlockedItem and Item.Blocked then begin
+            BlockedItemSkipped := true;
+            exit;
+        end;
 
         Item.TestField(Blocked, false);
     end;
@@ -1796,7 +1909,6 @@ table 246 "Requisition Line"
         OnBeforeLookupVendor(Rec, Vend, PreferItemVendorCatalog, IsHandled, IsVendorSelected);
         if IsHandled then
             exit(IsVendorSelected);
-
         if (Type = Type::Item) and ItemVend.ReadPermission then begin
             ItemVend.Init();
             ItemVend.SetRange("Item No.", "No.");
@@ -1811,7 +1923,6 @@ table 246 "Requisition Line"
             ItemVend.SetRange("Vendor No.");
             LookupThroughItemVendorCatalog := not ItemVend.IsEmpty() or PreferItemVendorCatalog;
         end;
-
         if LookupThroughItemVendorCatalog then begin
             if PAGE.RunModal(0, ItemVend) = ACTION::LookupOK then
                 exit(Vend.Get(ItemVend."Vendor No."));
@@ -1839,7 +1950,6 @@ table 246 "Requisition Line"
         OnBeforeUpdateDescription(Rec, CurrFieldNo, IsHandled, xRec);
         if IsHandled then
             exit;
-
         if (Type <> Type::Item) or ("No." = '') then
             exit;
 
@@ -1848,7 +1958,6 @@ table 246 "Requisition Line"
         OnUpdateWorkCenterDescription(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if Rec."Variant Code" = '' then begin
             GetItem();
             Description := Item.Description;
@@ -1862,13 +1971,11 @@ table 246 "Requisition Line"
             "Description 2" := ItemVariantLocal."Description 2";
             OnUpdateDescriptionFromItemVariant(Rec, ItemVariantLocal);
         end;
-
         if SalesLine.Get(SalesLine."Document Type"::Order, "Sales Order No.", "Sales Order Line No.") then begin
             Description := SalesLine.Description;
             "Description 2" := SalesLine."Description 2";
             OnUpdateDescriptionFromSalesLine(Rec, SalesLine);
         end;
-
         if "Vendor No." <> '' then
             UpdateItemReferenceDescription();
         OnAfterUpdateDescription(Rec, Item, ItemVariantLocal, CurrFieldNo);
@@ -1882,7 +1989,6 @@ table 246 "Requisition Line"
         OnBeforeValidateItemDescriptionAndQuantity(Rec, Vendor, IsHandled);
         if IsHandled then
             exit;
-
         if Type = Type::Item then
             UpdateDescription();
         Validate(Quantity);
@@ -1941,10 +2047,8 @@ table 246 "Requisition Line"
             Rec, CurrFieldNo, DefaultDimSource, SourceCodeSetup.Purchases, "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code", 0, 0);
 
         DimMgt.UpdateGlobalDimFromDimSetID("Dimension Set ID", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
-
         if "Ref. Order No." <> '' then
             GetDimFromRefOrderLine(true);
-
         if ("Demand Type" = Database::"Job Planning Line") then
             UpdateJobTaskDimensions();
 
@@ -2081,11 +2185,9 @@ table 246 "Requisition Line"
         RequisitionLine.SetRange("Journal Batch Name", "Journal Batch Name");
         if not RequisitionLine.FindSet() then
             exit;
-
         if GuiAllowed and not SkipConfirm then
             if not Confirm(ConfirmDeleteAllLinesQst) then
                 exit;
-
         repeat
             if ReqLineReserve.FindReservEntry(RequisitionLine, ReservationEntry) then begin
                 ReqLineReserve.DeleteLine(RequisitionLine);
@@ -2107,7 +2209,6 @@ table 246 "Requisition Line"
     begin
         if IsEmpty() then
             exit;
-
         if not ConfirmManagement.GetResponse(ConfirmDeleteAllLinesQst, false) then
             exit;
 
@@ -2235,7 +2336,6 @@ table 246 "Requisition Line"
                 else
                     if "Original Due Date" <> 0D then
                         "Action Message" := "Action Message"::Reschedule;
-
             if "Action Message" <> xRec."Action Message" then
                 Clear("Planning Line Origin");
         end;
@@ -2245,6 +2345,46 @@ table 246 "Requisition Line"
     begin
         Result := (CurrFieldNo <> 0) or (CurrentFieldNo <> 0);
         OnAfterValidateFields(Rec, CurrFieldNo, CurrentFieldNo, Result);
+    end;
+
+    local procedure ValidateQuantity()
+    var
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeValidateQuantity(Rec, CurrFieldNo, CurrentFieldNo, IsHandled);
+        if not IsHandled then begin
+            Quantity := UOMMgt.RoundAndValidateQty(Quantity, "Qty. Rounding Precision", FieldCaption(Quantity));
+
+            "Quantity (Base)" :=
+                UOMMgt.CalcBaseQty(
+                    "No.", "Variant Code", "Unit of Measure Code", Quantity, "Qty. per Unit of Measure",
+                    "Qty. Rounding Precision (Base)", FieldCaption("Qty. Rounding Precision"), FieldCaption(Quantity),
+                    FieldCaption("Quantity (Base)"));
+            if Type = Type::Item then begin
+                OnValidateQuantityOnBeforeGetDirectCost(Rec, xRec, CurrFieldNo);
+                GetDirectCost(FieldNo(Quantity));
+                SetRemaningQuantity();
+                if (CurrFieldNo = FieldNo(Quantity)) or (CurrentFieldNo = FieldNo(Quantity)) then
+                    SetActionMessage();
+
+                "Net Quantity (Base)" := (Quantity - "Original Quantity") * "Qty. per Unit of Measure";
+
+                OnValidateQuantityOnBeforeUnitCost(Rec, CurrFieldNo, CurrentFieldNo);
+                Validate("Unit Cost");
+                if ValidateFields() then
+                    if "Ending Date" <> 0D then
+                        Validate("Ending Time")
+                    else begin
+                        if "Starting Date" = 0D then
+                            "Starting Date" := WorkDate();
+                        Validate("Starting Time");
+                    end;
+                ReqLineReserve.VerifyQuantity(Rec, xRec);
+            end;
+        end;
+
+        OnAfterValidateQuantity(Rec, CurrFieldNo, CurrentFieldNo);
     end;
 
     /// <summary>
@@ -2507,7 +2647,6 @@ table 246 "Requisition Line"
             DimSetIDArr[i] := "Dimension Set ID";
         end;
         i := i + 1;
-
         case "Ref. Order Type" of
             "Ref. Order Type"::Purchase:
                 if PurchLine.Get(PurchLine."Document Type"::Order, "Ref. Order No.", "Ref. Line No.") then
@@ -2540,17 +2679,14 @@ table 246 "Requisition Line"
         Validate("Variant Code", ReservEntry."Variant Code");
         Validate("Location Code", ReservEntry."Location Code");
         Description := ReservEntry.Description;
-
         if ReservEntry.Positive then
             EndDate := ReservEntry."Expected Receipt Date"
         else
             EndDate := ReservEntry."Shipment Date";
-
         if EndDate <> 0D then
             "Due Date" := EndDate
         else
             "Due Date" := WorkDate();
-
         if ShouldUpdateEndingDateForSourceType(ReservEntry."Source Type") then
             "Ending Date" :=
                 LeadTimeMgt.GetPlannedEndingDate(
@@ -2621,7 +2757,6 @@ table 246 "Requisition Line"
         OnBeforeGetDirectCost(Rec, xRec, CalledByFieldNo, CurrFieldNo, Subcontracting, IsHandled);
         if IsHandled then
             exit;
-
         if ("Replenishment System" = "Replenishment System"::Purchase) and not Subcontracting then begin
             IsHandled := false;
             OnGetDirectCostOnBeforePriceCalculation(Rec, IsHandled);
@@ -2655,7 +2790,6 @@ table 246 "Requisition Line"
     begin
         IsHandled := false;
         OnBeforeValidateLocationChange(Rec, IsHandled);
-
         case true of
             "Location Code" = xRec."Location Code":
                 exit;
@@ -2695,8 +2829,7 @@ table 246 "Requisition Line"
         RoutingExists: Boolean;
     begin
         OnBeforeCalcEndingDate(Rec, LeadTime);
-
-        case "Ref. Order Type" of
+        case GetPlanningReferenceType() of
             "Ref. Order Type"::Purchase:
                 if LeadTime = '' then
                     LeadTime := LeadTimeMgt.PurchaseLeadTime("No.", "Location Code", "Variant Code", "Vendor No.");
@@ -2705,7 +2838,6 @@ table 246 "Requisition Line"
                     OnRoutingLineExists(Rec, RoutingExists);
                     if RoutingExists then
                         exit;
-
                     if LeadTime = '' then
                         LeadTime := LeadTimeMgt.ManufacturingLeadTime("No.", "Location Code", "Variant Code");
                 end;
@@ -2714,7 +2846,6 @@ table 246 "Requisition Line"
                     OnRoutingLineExists(Rec, RoutingExists);
                     if RoutingExists then
                         exit;
-
                     if LeadTime = '' then
                         LeadTime := LeadTimeMgt.ManufacturingLeadTime("No.", "Location Code", "Variant Code");
                 end;
@@ -2726,7 +2857,7 @@ table 246 "Requisition Line"
 
         "Ending Date" :=
           LeadTimeMgt.GetPlannedEndingDate(
-            "No.", "Location Code", "Variant Code", "Vendor No.", LeadTime, "Ref. Order Type", "Starting Date");
+            "No.", "Location Code", "Variant Code", "Vendor No.", LeadTime, GetPlanningReferenceType(), "Starting Date");
 
         OnAfterCalcEndingDate(Rec, LeadTime);
     end;
@@ -2736,15 +2867,14 @@ table 246 "Requisition Line"
     /// </summary>
     /// <param name="LeadTime">Provided lead time formula.</param>
     /// <remarks>In case 'LeadTime' is empty, lead time code will be defined according to the reference order type. 
-    /// 'Order Date' of the current requisition line will be set to newly calculated 'Starting Date'. </remarks>
+    /// 'Order Date' of the current requisition line will be updated. </remarks>
     procedure CalcStartingDate(LeadTime: Code[20])
     var
         IsHandled: Boolean;
         RoutingExists: Boolean;
     begin
         OnBeforeCalcStartingDate(Rec, LeadTime);
-
-        case "Ref. Order Type" of
+        case GetPlanningReferenceType() of
             "Ref. Order Type"::Purchase:
                 if LeadTime = '' then
                     LeadTime :=
@@ -2755,7 +2885,6 @@ table 246 "Requisition Line"
                     OnRoutingLineExists(Rec, RoutingExists);
                     if RoutingExists then
                         exit;
-
                     if LeadTime = '' then
                         LeadTime := LeadTimeMgt.ManufacturingLeadTime("No.", "Location Code", "Variant Code");
                 end;
@@ -2764,7 +2893,6 @@ table 246 "Requisition Line"
                     OnRoutingLineExists(Rec, RoutingExists);
                     if RoutingExists then
                         exit;
-
                     if LeadTime = '' then
                         LeadTime := LeadTimeMgt.ManufacturingLeadTime("No.", "Location Code", "Variant Code");
                 end;
@@ -2774,13 +2902,16 @@ table 246 "Requisition Line"
 
         "Starting Date" :=
           LeadTimeMgt.GetPlannedStartingDate(
-            "No.", "Location Code", "Variant Code", "Vendor No.", LeadTime, "Ref. Order Type", "Ending Date");
+            "No.", "Location Code", "Variant Code", "Vendor No.", LeadTime, GetPlanningReferenceType(), "Ending Date");
 
         IsHandled := false;
         OnCalcStartingDateOnBeforeValidateOrderDate(Rec, LeadTime, IsHandled);
         if not IsHandled then
-            Validate("Order Date", "Starting Date");
-
+            // Don't use order date in the past for price calculation
+            if "Starting Date" >= WorkDate() then
+                Validate("Order Date", "Starting Date")
+            else
+                Validate("Order Date", WorkDate());
         if "Ref. Order Type" = "Ref. Order Type"::Transfer then
             CalcTransferShipmentDate();
     end;
@@ -2808,7 +2939,6 @@ table 246 "Requisition Line"
         OnBeforeGetLocation(Rec, Location, LocationCode, IsHandled);
         if IsHandled then
             exit;
-
         if LocationCode = '' then
             Clear(Location)
         else
@@ -2848,7 +2978,10 @@ table 246 "Requisition Line"
         "No." := UnplannedDemand."Item No.";
         "Location Code" := UnplannedDemand."Location Code";
         "Bin Code" := UnplannedDemand."Bin Code";
+        "Drop Shipment" := UnplannedDemand."Drop Shipment";
         Validate("No.");
+        if BlockedItemSkipped then
+            exit;
         Validate("Variant Code", UnplannedDemand."Variant Code");
         UpdateDescription();
         "Unit Of Measure Code (Demand)" := UnplannedDemand."Unit of Measure Code";
@@ -2866,13 +2999,31 @@ table 246 "Requisition Line"
         Level := 1;
         "Action Message" := ReqLine."Action Message"::New;
         "User ID" := CopyStr(UserId(), 1, MaxStrLen("User ID"));
-        "Drop Shipment" := UnplannedDemand."Drop Shipment";
 
         UpdateSalesOrderDetailForDropShipment();
 
         UpdateDim();
 
         OnAfterTransferFromUnplannedDemand(Rec, UnplannedDemand);
+    end;
+
+    /// <summary>
+    /// Populates the current requisition line from the provided unplanned demand, unless the demanded item is blocked.
+    /// The blocked item check runs at its regular place during validation of the 'No.' field, including the OnBeforeCheckBlockedItem event.
+    /// </summary>
+    /// <param name="UnplannedDemand">Source unplanned demand record.</param>
+    /// <returns>False if the demand was skipped because the item is blocked; otherwise, true.</returns>
+    internal procedure TransferFromUnplannedDemandSkipBlockedItem(var UnplannedDemand: Record "Unplanned Demand"): Boolean
+    var
+        ItemSkipped: Boolean;
+    begin
+        SkipBlockedItem := true;
+        BlockedItemSkipped := false;
+        TransferFromUnplannedDemand(UnplannedDemand);
+        ItemSkipped := BlockedItemSkipped;
+        SkipBlockedItem := false;
+        BlockedItemSkipped := false;
+        exit(not ItemSkipped);
     end;
 
     local procedure InitRecordForOrderPlanning()
@@ -2898,9 +3049,12 @@ table 246 "Requisition Line"
     begin
         "Demand Date" := DemandDate;
         "Starting Date" := "Demand Date";
-        "Order Date" := "Demand Date";
+        // Don't use order date in the past for price calculation
+        if DemandDate >= WorkDate() then
+            "Order Date" := "Demand Date"
+        else
+            "Order Date" := WorkDate();
         Validate("Due Date", "Demand Date");
-
         if "Planning Level" = 0 then begin
             Validate(
               "Ending Date",
@@ -3006,7 +3160,6 @@ table 246 "Requisition Line"
         OnBeforeCheckVendorBlocked(Rec, Vend, IsHandled, CurrentFieldNo);
         if IsHandled then
             exit;
-
         if Vend.Blocked = Vend.Blocked::All then begin
             if PlanningResiliency then
                 TempPlanningErrorLog.SetError(
@@ -3126,11 +3279,12 @@ table 246 "Requisition Line"
         OnBeforeSetFromBinCode(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if ("Location Code" <> '') and ("No." <> '') then begin
             GetLocation("Location Code");
             OnSetFromBinCodeOnSetBinCode(Rec, Location);
             ShouldGetDefaultBin := ("Bin Code" = '') and Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
+            if ShouldGetDefaultBin then
+                ShouldGetDefaultBin := not IsDropShipment();
             OnBeforeGetDefaultBin(Rec, ShouldGetDefaultBin);
             if ShouldGetDefaultBin then
                 WMSManagement.GetDefaultBin("No.", "Variant Code", "Location Code", "Bin Code");
@@ -3161,7 +3315,6 @@ table 246 "Requisition Line"
     begin
         if "Drop Shipment" then
             exit(true);
-
         if "Replenishment System" = "Replenishment System"::Purchase then
             if SalesLine.Get(SalesLine."Document Type"::Order, "Sales Order No.", "Sales Order Line No.") then
                 exit(SalesLine."Drop Shipment");
@@ -3183,7 +3336,6 @@ table 246 "Requisition Line"
         OnGetLocationCodeOnBeforeUpdate(Rec, CurrFieldNo, IsHandled);
         if IsHandled then
             exit;
-
         if "Vendor No." <> '' then begin
             Vend.Get("Vendor No.");
             if Vend."Location Code" <> '' then
@@ -3207,13 +3359,10 @@ table 246 "Requisition Line"
     begin
         if (CurrFieldNo = 0) and (CurrentFieldNo = 0) then
             exit(false);
-
         if (CurrFieldNo = FieldNo("Location Code")) or (CurrentFieldNo = FieldNo("Location Code")) then
             exit(false);
-
         if (CurrFieldNo = FieldNo("Replenishment System")) or (CurrentFieldNo = FieldNo("Replenishment System")) then
             exit(false);
-
         if "Planning Line Origin" <> "Planning Line Origin"::" " then
             exit(false);
 
@@ -3277,7 +3426,6 @@ table 246 "Requisition Line"
         OnBeforeValidateVendorNoWithStockkeepingUnit(Rec, StockkeepingUnit, IsHandled);
         if IsHandled then
             exit;
-
         if StockkeepingUnit."Vendor No." = '' then
             Validate("Vendor No.")
         else
@@ -3292,7 +3440,6 @@ table 246 "Requisition Line"
         OnBeforeUpdateUnitOfMeasureCodeFromItemPurchUnitOfMeasure(Rec, Item, IsHandled);
         if IsHandled then
             exit;
-
         if Item."Purch. Unit of Measure" <> '' then
             Validate("Unit of Measure Code", Item."Purch. Unit of Measure");
     end;
@@ -3400,7 +3547,6 @@ table 246 "Requisition Line"
         OnBeforeSetPurchaserCode(Rec, PurchaserCodeToCheck, PurchaserCodeToAssign, IsHandled);
         if IsHandled then
             exit;
-
         if PurchaserCodeToCheck = '' then
             PurchaserCodeToCheck := GetUserSetupPurchaserCode();
         if SalespersonPurchaser.Get(PurchaserCodeToCheck) then begin
@@ -3444,7 +3590,6 @@ table 246 "Requisition Line"
             Clear(ItemVariant);
             exit;
         end;
-
         if (ItemVariant."Item No." <> Rec."No.") or (ItemVariant.Code <> Rec."Variant Code") then begin
             ItemVariant.SetLoadFields("Blocked");
             ItemVariant.Get(Rec."No.", Rec."Variant Code");
@@ -3458,7 +3603,6 @@ table 246 "Requisition Line"
     begin
         if Rec."Demand Type" <> Database::"Sales Line" then
             exit;
-
         if not Rec."Drop Shipment" then
             exit;
 
@@ -3670,6 +3814,11 @@ table 246 "Requisition Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnAfterValidateQuantity(var RequisitionLine: Record "Requisition Line"; CallingFieldNo: Integer; GlobalCurrentFieldNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var RequisitionLine: Record "Requisition Line"; xRequisitionLine: Record "Requisition Line"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
     end;
@@ -3761,6 +3910,11 @@ table 246 "Requisition Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateOrderReceiptDate(var RequisitionLine: Record "Requisition Line"; LeadTimeCalc: DateFormula; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateQuantity(var RequisitionLine: Record "Requisition Line"; CallingFieldNo: Integer; GlobalCurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 

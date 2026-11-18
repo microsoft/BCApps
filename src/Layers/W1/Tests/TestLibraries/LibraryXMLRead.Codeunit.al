@@ -214,9 +214,9 @@ codeunit 131335 "Library - XML Read"
         [RunOnClient]
         XMLNode: DotNet XmlNode;
     begin
-        #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
+        #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
         asserterror GetNodeByElementName(NodeName, XMLNode);
-        #pragma warning restore AS0058, PTE0007
+        #pragma warning restore AA0161, AS0058, PTE0007
         Assert.ExpectedErrorCode('Dialog');
         Assert.ExpectedError(StrSubstNo(MissingElementErr, NodeName));
     end;
@@ -226,9 +226,9 @@ codeunit 131335 "Library - XML Read"
         [RunOnClient]
         Node: DotNet XmlNode;
     begin
-        #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
+        #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
         asserterror LocateNodeInSubtree(Node, RootNodeName, NodeName, '', NodeMatchCriteria::FindByName);
-        #pragma warning restore AS0058, PTE0007
+        #pragma warning restore AA0161, AS0058, PTE0007
         Assert.ExpectedErrorCode('Dialog');
         Assert.ExpectedError(StrSubstNo(NotFoundAnyInSubtreeErr, NodeName, RootNodeName));
     end;
@@ -238,9 +238,9 @@ codeunit 131335 "Library - XML Read"
         [RunOnClient]
         Node: DotNet XmlNode;
     begin
-        #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
+        #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
         asserterror LocateNodeInSubtree(Node, RootNodeName, NodeName, '', NodeMatchCriteria::FindByName);
-        #pragma warning restore AS0058, PTE0007
+        #pragma warning restore AA0161, AS0058, PTE0007
         Assert.ExpectedErrorCode('Dialog');
         Assert.ExpectedError(StrSubstNo(MissingElementErr, NodeName));
     end;
@@ -267,9 +267,9 @@ codeunit 131335 "Library - XML Read"
 
     procedure VerifyAttributeAbsenceInSubtree(RootNodeName: Text; NodeName: Text; AttributeName: Text)
     begin
-        #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
+        #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
         asserterror GetAttributeValueInSubtree(RootNodeName, NodeName, AttributeName);
-        #pragma warning restore AS0058, PTE0007
+        #pragma warning restore AA0161, AS0058, PTE0007
         Assert.ExpectedErrorCode('Dialog');
         Assert.ExpectedError(StrSubstNo(AttributeNotFoundErr, NodeName, RootNodeName, AttributeName));
     end;

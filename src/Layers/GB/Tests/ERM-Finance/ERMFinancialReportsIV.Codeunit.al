@@ -315,38 +315,6 @@ codeunit 134992 "ERM Financial Reports IV"
         VerifyValuesOnCalcAndPostVATSettlementReport(DocumentNo);
     end;
 
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('RHCalcAndPostVATSettlement')]
-    [Scope('OnPrem')]
-    procedure CalculateVATSettlementAfterPostPurchaseOrder()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        VATPostingSetup: Record "VAT Posting Setup";
-        VATBusinessPostingGroup: Record "VAT Business Posting Group";
-        DocumentNo: Code[20];
-        OldReverseChargeVATPostingGroup: Code[20];
-    begin
-        // Test Calc. and Post VAT Settlement Report for Purchase with blank VAT Bus. Posting Group.
-
-        // Setup: Create and Post Purchase Order.
-        Initialize();
-        LibraryERM.FindVATBusinessPostingGroup(VATBusinessPostingGroup);
-        UpdateReverseChargeVATPostingGroup(OldReverseChargeVATPostingGroup, VATBusinessPostingGroup.Code);
-        CreateVATPostingSetupWithBlankVATBusPostingGroup(VATPostingSetup);
-        CreatePurchaseOrder(PurchaseHeader, VATPostingSetup);
-        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
-
-        // Exercise: Calculate and Post VAT Settlement for Vendor.
-        SaveCalcAndPostVATSettlementReport(VATPostingSetup, LibraryUtility.GenerateGUID(), false); // Set False for Post.
-
-        // Verify: Verify Values on Cal.And Post VAT Settlement Report.
-        VerifyValuesOnCalcAndPostVATSettlementReport(DocumentNo);
-
-        // Tear down:Roll back field "Reverse Charge VAT Posting Gr." on Purchase and Payable setup
-        UpdateReverseChargeVATPostingGroup(OldReverseChargeVATPostingGroup, OldReverseChargeVATPostingGroup);
-    end;
-#endif
 
     [Test]
     [HandlerFunctions('PurchaseReceiptRequestPageHandler')]
@@ -1317,17 +1285,6 @@ codeunit 134992 "ERM Financial Reports IV"
         VATStatement.Run();
     end;
 
-#if not CLEAN27
-    local procedure UpdateReverseChargeVATPostingGroup(var OldReverseChargeVATPostingGroup: Code[20]; ReverseChargeVATPostingGroup: Code[20])
-    var
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-    begin
-        PurchasesPayablesSetup.Get();
-        OldReverseChargeVATPostingGroup := PurchasesPayablesSetup."Reverse Charge VAT Posting Gr.";
-        PurchasesPayablesSetup.Validate("Reverse Charge VAT Posting Gr.", ReverseChargeVATPostingGroup);
-        PurchasesPayablesSetup.Modify(true);
-    end;
-#endif
 
     local procedure VATStatementForDifferentEntries(VATPostingSetup: Record "VAT Posting Setup"; EntryType: Enum "Tax Calculation Type"; Selection: Enum "VAT Statement Report Selection"; Closed: Boolean)
     var

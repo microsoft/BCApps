@@ -8,7 +8,8 @@ namespace Microsoft.Integration.Dataverse;
 /// Identifies the cloud whose OAuth authority and Dataverse Global Discovery endpoints are used when
 /// connecting to Dataverse. Extend this enum and implement <see cref="Dataverse Cloud Endpoints"/> to
 /// add support for a sovereign cloud (for example GCC High, US-DoD or China), then select it per tenant
-/// through <c>CDS Connection Setup.SetDataverseCloud</c>.
+/// through <c>CDS Connection Setup.SetDataverseCloud</c>. Other values only apply on-premises; Business
+/// Central online always uses <c>Commercial</c>.
 /// </summary>
 enum 7207 "Dataverse Cloud" implements "Dataverse Cloud Endpoints"
 {

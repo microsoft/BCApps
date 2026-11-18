@@ -313,19 +313,23 @@ table 8616 "Config. Package Field"
     var
         ConfigPackageField: Record "Config. Package Field";
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
+        BaseName: Text[30];
         ElementName: Text[30];
-        NewFieldName: Text;
+        Suffix: Text;
+        Counter: Integer;
     begin
-        ElementName := CopyStr(ConfigXMLExchange.GetElementName(FieldName), 1, MaxStrLen(ElementName));
+        BaseName := CopyStr(ConfigXMLExchange.GetElementName(FieldName), 1, MaxStrLen(BaseName));
+        ElementName := BaseName;
         ConfigPackageField.SetRange("Package Code", "Package Code");
         ConfigPackageField.SetRange("Table ID", "Table ID");
         ConfigPackageField.SetFilter("Field ID", '<>%1', "Field ID");
         ConfigPackageField.SetRange("XML Field Name", ElementName);
-        if not ConfigPackageField.IsEmpty() then begin
-            NewFieldName := IncStr(FieldName);
-            if NewFieldName = '' then
-                NewFieldName := FieldName + '1';
-            exit(GetUniqueElementName(CopyStr(NewFieldName, 1, MaxStrLen(FieldName))));
+        // Append the counter to the normalized name (truncating the base if needed) so the result always changes
+        while not ConfigPackageField.IsEmpty() do begin
+            Counter += 1;
+            Suffix := Format(Counter);
+            ElementName := CopyStr(CopyStr(BaseName, 1, MaxStrLen(ElementName) - StrLen(Suffix)) + Suffix, 1, MaxStrLen(ElementName));
+            ConfigPackageField.SetRange("XML Field Name", ElementName);
         end;
 
         exit(ElementName);

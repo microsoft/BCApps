@@ -344,7 +344,7 @@ table 5621 "FA Journal Line"
             Caption = 'FA Reclassification Entry';
             ToolTip = 'Specifies if the entry was generated from a fixed asset reclassification journal.';
         }
-        field(35; "FA Error Entry No."; Integer)
+        field(35; "FA Error Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'FA Error Entry No.';
@@ -622,6 +622,8 @@ table 5621 "FA Journal Line"
                 FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::Transfer;
             FAJnlLine."FA Posting Type"::"Bonus Depreciation":
                 FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::"Bonus Depreciation";
+            FAJnlLine."FA Posting Type"::Derogatory:
+                FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::Derogatory;
             else
                 OnConvertToLedgEntryCase(FALedgEntry, FAJnlLine);
         end;

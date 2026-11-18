@@ -226,7 +226,7 @@ page 6613 "FS Connection Setup Wizard"
                 }
                 group(Control25)
                 {
-                    InstructionalText = 'Use the link below to go to AppSource and get the the Business Central Virtual Table app, so you can install it in your Dataverse environment. To refresh status after you install, click back and next.';
+                    InstructionalText = 'Use the link below to go to Marketplace and get the Business Central Virtual Table app, so you can install it in your Dataverse environment. To refresh the status after you install, click Back and Next.';
                     ShowCaption = false;
 
                     field("Enable Invt. Availability"; Rec."Enable Invt. Availability")
@@ -243,7 +243,7 @@ page 6613 "FS Connection Setup Wizard"
                         Editable = false;
                         ShowCaption = false;
                         Caption = ' ';
-                        ToolTip = 'Get the Business Central Virtual Table app from Microsoft AppSource.';
+                        ToolTip = 'Get the Business Central Virtual Table app from Microsoft Marketplace.';
 
                         trigger OnDrillDown()
                         begin
@@ -642,7 +642,8 @@ page 6613 "FS Connection Setup Wizard"
                     if not Rec.PromptForCredentials(AdminEmail, AdminPassword) then
                         exit(false);
             end;
-            FSIntegrationMgt.ImportFSSolution(Rec."Server Address", Rec."User Name", AdminEmail, AdminPassword, AccessToken, AdminADDomain, Rec."Proxy Version", true, ImportSolutionFailed);
+            if not FSIntegrationMgt.ImportFSSolution(Rec."Server Address", Rec."User Name", AdminEmail, AdminPassword, AccessToken, AdminADDomain, Rec."Proxy Version", true, ImportSolutionFailed) then
+                Error(GetLastErrorText());
         end;
         if PasswordSet then
             FSConnectionSetup.UpdateFromWizard(Rec, Password)
@@ -692,4 +693,3 @@ page 6613 "FS Connection Setup Wizard"
         EditableProjectSettings := Rec."Integration Type" = Rec."Integration Type"::Projects;
     end;
 }
-

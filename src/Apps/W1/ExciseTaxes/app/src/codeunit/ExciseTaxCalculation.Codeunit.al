@@ -8,6 +8,8 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.History;
 using Microsoft.Sustainability.ExciseTax;
 
@@ -150,14 +152,15 @@ codeunit 7412 "Excise Tax Calculation"
         SetFilterOnILEEntryType(EntryType, ItemLedgerEntry);
         if ItemLedgerEntry.FindSet() then
             repeat
-                if not ExciseJournalLineExist(ItemLedgerEntry, TaxType) and not ExciseTaxPostedInTransLog(ItemLedgerEntry, TaxType) then begin
-                    InitializeExciseJournalLine(ExciseJnlLine, ExciseJournalBatch, PostingDate, LineNo);
-                    UpdateExciseJournalLineFromItemLedgerEntry(ExciseJnlLine, ItemLedgerEntry, TaxType, EntryType);
-                    OnBeforeInsertExciseJournalLineForItem(ExciseJnlLine, ItemLedgerEntry);
-                    ExciseJnlLine.Insert(true);
-                    OnAfterInsertExciseJournalLineForItem(ExciseJnlLine, ItemLedgerEntry);
-                    LineNo += 10000;
-                end;
+                if IsEligibleByBondedLocation(ItemLedgerEntry, TaxType, EntryType) then
+                    if not ExciseJournalLineExist(ItemLedgerEntry, TaxType) and not ExciseTaxPostedInTransLog(ItemLedgerEntry, TaxType) then begin
+                        InitializeExciseJournalLine(ExciseJnlLine, ExciseJournalBatch, PostingDate, LineNo);
+                        UpdateExciseJournalLineFromItemLedgerEntry(ExciseJnlLine, ItemLedgerEntry, TaxType, EntryType);
+                        OnBeforeInsertExciseJournalLineForItem(ExciseJnlLine, ItemLedgerEntry);
+                        ExciseJnlLine.Insert(true);
+                        OnAfterInsertExciseJournalLineForItem(ExciseJnlLine, ItemLedgerEntry);
+                        LineNo += 10000;
+                    end;
             until ItemLedgerEntry.Next() = 0;
     end;
 
@@ -224,6 +227,20 @@ codeunit 7412 "Excise Tax Calculation"
                 ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
             "Excise Entry Type"::"Assembly Output":
                 ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Assembly Output");
+            "Excise Entry Type"::"Transfer Shipment":
+                begin
+                    ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Transfer);
+                    ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
+                    ItemLedgerEntry.SetFilter(Quantity, '<%1', 0);
+                end;
+            "Excise Entry Type"::"Transfer Receipt":
+                begin
+                    ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Transfer);
+                    ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
+                    ItemLedgerEntry.SetFilter(Quantity, '>%1', 0);
+                end;
+            "Excise Entry Type"::Consumption:
+                ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
         end;
     end;
 
@@ -278,6 +295,11 @@ codeunit 7412 "Excise Tax Calculation"
                 ExciseJnlLine.Validate("Document Type", ExciseJnlLine."Document Type"::"Production Order");
             EntryType::"Assembly Output":
                 ExciseJnlLine.Validate("Document Type", ExciseJnlLine."Document Type"::"Assembly Order");
+            EntryType::"Transfer Shipment",
+            EntryType::"Transfer Receipt":
+                ExciseJnlLine.Validate("Document Type", ExciseJnlLine."Document Type"::Journal);
+            EntryType::Consumption:
+                ExciseJnlLine.Validate("Document Type", ExciseJnlLine."Document Type"::"Production Order");
         end;
 
         ExciseJnlLine.Validate("Partner Type", PartnerType);
@@ -285,7 +307,11 @@ codeunit 7412 "Excise Tax Calculation"
         ExciseJnlLine.Validate("Country/Region Code", ItemLedgerEntry."Country/Region Code");
         ExciseJnlLine.Validate("Source Type", ExciseJnlLine."Source Type"::Item);
         ExciseJnlLine.Validate("Source No.", ItemLedgerEntry."Item No.");
+        ExciseJnlLine.Validate("Item Category Code", ItemLedgerEntry."Item Category Code");
         ExciseJnlLine.Validate("Source Qty.", Abs(ItemLedgerEntry.Quantity));
+        OnAfterUpdateExciseJournalLineFromItemLedgerEntry(ExciseJnlLine, ItemLedgerEntry);
+        if RequiresTaxableAmount(ExciseJnlLine) then
+            ExciseJnlLine.Validate("Excise Taxable Amount", GetTaxableAmountFromItemLedgerEntry(ItemLedgerEntry));
         ExciseJnlLine."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
     end;
 
@@ -316,7 +342,41 @@ codeunit 7412 "Excise Tax Calculation"
         ExciseJnlLine.Validate("Source Type", ExciseJnlLine."Source Type"::"Fixed Asset");
         ExciseJnlLine.Validate("Source No.", FALedgerEntry."FA No.");
         ExciseJnlLine.Validate("Source Qty.", 1);
+        if RequiresTaxableAmount(ExciseJnlLine) then
+            ExciseJnlLine.Validate("Excise Taxable Amount", Abs(FALedgerEntry.Amount));
         ExciseJnlLine."FA Ledger Entry No." := FALedgerEntry."Entry No.";
+    end;
+
+    local procedure RequiresTaxableAmount(ExciseJnlLine: Record "Sust. Excise Jnl. Line"): Boolean
+    begin
+        exit(ExciseJnlLine."Excise Calculation Type" in ["Excise Calculation Type"::"Ad valorem", "Excise Calculation Type"::Hybrid]);
+    end;
+
+    // The taxable value of an item ledger entry is taken from its value entries: the invoiced sales or purchase
+    // amount when the entry has one, otherwise the inventory cost.
+    local procedure GetTaxableAmountFromItemLedgerEntry(var ItemLedgerEntry: Record "Item Ledger Entry"): Decimal
+    begin
+        case ItemLedgerEntry."Entry Type" of
+            ItemLedgerEntry."Entry Type"::Sale:
+                begin
+                    ItemLedgerEntry.CalcFields("Sales Amount (Actual)");
+                    if ItemLedgerEntry."Sales Amount (Actual)" <> 0 then
+                        exit(Abs(ItemLedgerEntry."Sales Amount (Actual)"));
+                end;
+            ItemLedgerEntry."Entry Type"::Purchase:
+                begin
+                    ItemLedgerEntry.CalcFields("Purchase Amount (Actual)");
+                    if ItemLedgerEntry."Purchase Amount (Actual)" <> 0 then
+                        exit(Abs(ItemLedgerEntry."Purchase Amount (Actual)"));
+                end;
+        end;
+
+        ItemLedgerEntry.CalcFields("Cost Amount (Actual)");
+        if ItemLedgerEntry."Cost Amount (Actual)" <> 0 then
+            exit(Abs(ItemLedgerEntry."Cost Amount (Actual)"));
+
+        ItemLedgerEntry.CalcFields("Cost Amount (Expected)");
+        exit(Abs(ItemLedgerEntry."Cost Amount (Expected)"));
     end;
 
     local procedure UpdateExciseJournalFromPurchaseInvoice(var SustExciseJournalLine: Record "Sust. Excise Jnl. Line"; DocumentNo: Code[20])
@@ -431,10 +491,116 @@ codeunit 7412 "Excise Tax Calculation"
                 ExciseEntryType := ExciseEntryType::Output;
             ItemLedgerEntry."Entry Type"::"Assembly Output":
                 ExciseEntryType := ExciseEntryType::"Assembly Output";
+            ItemLedgerEntry."Entry Type"::Transfer:
+                if ItemLedgerEntry.Quantity < 0 then
+                    ExciseEntryType := ExciseEntryType::"Transfer Shipment"
+                else
+                    ExciseEntryType := ExciseEntryType::"Transfer Receipt";
+            ItemLedgerEntry."Entry Type"::Consumption:
+                ExciseEntryType := ExciseEntryType::Consumption;
             else
                 exit(false);
         end;
         exit(true);
+    end;
+
+    local procedure IsEligibleByBondedLocation(ItemLedgerEntry: Record "Item Ledger Entry"; TaxType: Code[20]; EntryType: Enum "Excise Entry Type"): Boolean
+    var
+        ExciseTaxType: Record "Excise Tax Type";
+    begin
+        ExciseTaxType.Get(TaxType);
+        if ExciseTaxType."Bonded Location Treatment" = ExciseTaxType."Bonded Location Treatment"::Ignore then
+            exit(true);
+
+        if IsInTransitLocation(ItemLedgerEntry."Location Code") then
+            exit(false);
+
+        case EntryType of
+            EntryType::Purchase,
+            EntryType::"Positive Adjmt.",
+            EntryType::Output,
+            EntryType::"Assembly Output",
+            EntryType::"Transfer Receipt":
+                exit(not IsBondedLocation(ItemLedgerEntry."Location Code"));
+            EntryType::"Transfer Shipment":
+                exit(IsTaxableBondReleaseTransferShipment(ItemLedgerEntry));
+            EntryType::Sale,
+            EntryType::"Negative Adjmt.",
+            EntryType::Consumption:
+                exit(IsBondedLocation(ItemLedgerEntry."Location Code"));
+        end;
+
+        exit(true);
+    end;
+
+    local procedure IsTaxableBondReleaseTransferShipment(ItemLedgerEntry: Record "Item Ledger Entry"): Boolean
+    var
+        TransferToCode: Code[10];
+    begin
+        if not IsBondedLocation(ItemLedgerEntry."Location Code") then
+            exit(false);
+
+        if not ExistTransferShipment(ItemLedgerEntry, TransferToCode) then
+            exit(false);
+
+        if IsInTransitLocation(TransferToCode) then
+            exit(false);
+
+        exit(IsNonBondedLocation(TransferToCode));
+    end;
+
+    local procedure ExistTransferShipment(ItemLedgerEntry: Record "Item Ledger Entry"; var TransferToCode: Code[10]): Boolean
+    var
+        TransferShipmentLine: Record "Transfer Shipment Line";
+    begin
+        TransferShipmentLine.SetLoadFields("Transfer-to Code");
+        if not TransferShipmentLine.Get(ItemLedgerEntry."Document No.", ItemLedgerEntry."Document Line No.") then
+            exit(false);
+
+        TransferToCode := TransferShipmentLine."Transfer-to Code";
+        exit(TransferToCode <> '');
+    end;
+
+    local procedure IsBondedLocation(LocationCode: Code[10]): Boolean
+    var
+        Location: Record Location;
+    begin
+        if LocationCode = '' then
+            exit(false);
+
+        Location.SetLoadFields("Excise Bonded Location");
+        if not Location.Get(LocationCode) then
+            exit(false);
+
+        exit(Location."Excise Bonded Location" = Location."Excise Bonded Location"::Bonded);
+    end;
+
+    local procedure IsNonBondedLocation(LocationCode: Code[10]): Boolean
+    var
+        Location: Record Location;
+    begin
+        if LocationCode = '' then
+            exit(false);
+
+        Location.SetLoadFields("Excise Bonded Location");
+        if not Location.Get(LocationCode) then
+            exit(false);
+
+        exit(Location."Excise Bonded Location" = Location."Excise Bonded Location"::"Not Bonded");
+    end;
+
+    local procedure IsInTransitLocation(LocationCode: Code[10]): Boolean
+    var
+        Location: Record Location;
+    begin
+        if LocationCode = '' then
+            exit(false);
+
+        Location.SetLoadFields("Use As In-Transit");
+        if not Location.Get(LocationCode) then
+            exit(false);
+
+        exit(Location."Use As In-Transit");
     end;
 
     [IntegrationEvent(false, false)]
@@ -444,6 +610,11 @@ codeunit 7412 "Excise Tax Calculation"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertExciseJournalLineForItem(var ExciseJournalLine: Record "Sust. Excise Jnl. Line"; ItemLedgerEntry: Record "Item Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateExciseJournalLineFromItemLedgerEntry(var ExciseJournalLine: Record "Sust. Excise Jnl. Line"; ItemLedgerEntry: Record "Item Ledger Entry")
     begin
     end;
 

@@ -1,5 +1,7 @@
 namespace System.Integration.PowerBI;
 
+using Microsoft.Foundation.Company;
+
 /// <summary>
 /// Adapts a "Power BI Deployable Report" enum value into the "Power BI Uploadable Report" interface,
 /// so the report aggregator and upload engine can process it uniformly alongside system table and customer reports.
@@ -57,5 +59,19 @@ codeunit 6350 "PBI Deployable Report Impl." implements "Power BI Uploadable Repo
     procedure GetDatasetParameters() Parameters: Dictionary of [Text, Text]
     begin
         Parameters := DeployableReport.GetDatasetParameters();
+    end;
+
+    procedure GetTargetWorkspaceId(): Guid
+    var
+        CompanyInformation: Record "Company Information";
+        PowerBIDeployment: Record "Power BI Deployment";
+    begin
+        // An upload can span several job queue runs. Once the import has started, stay in the workspace it started in
+        if PowerBIDeployment.Get(CurrentReportId) then
+            if PowerBIDeployment.GetUploadStatus() <> Enum::"Power BI Upload Status"::NotStarted then
+                exit(PowerBIDeployment."Power BI Workspace Id");
+
+        if CompanyInformation.Get() then
+            exit(CompanyInformation."Power BI Workspace Id");
     end;
 }
