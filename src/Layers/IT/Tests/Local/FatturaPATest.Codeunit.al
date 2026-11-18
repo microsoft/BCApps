@@ -166,7 +166,7 @@ codeunit 144200 "FatturaPA Test"
         Assert.RecordCount(TempXMLBuffer, 2);
         TempXMLBuffer.FindFirst();
         Assert.AreEqual(Format(FirstLineNo), TempXMLBuffer.Value, 'Incorrect additional data on first line.');
-        TempXMLBuffer.Next();
+        TempXMLBuffer.FindLast();
         Assert.AreEqual(Format(SecondLineNo), TempXMLBuffer.Value, 'Incorrect additional data on second line.');
     end;
 
@@ -3433,7 +3433,7 @@ codeunit 144200 "FatturaPA Test"
         Assert.RecordCount(TempLines, 2);
         TempLines.FindFirst();
         VerifyAdditionalArticleCodeLine(TempXMLBuffer, TempLines."Entry No.", FirstItemNo, '8001234567890', '1');
-        TempLines.Next();
+        TempLines.FindLast();
         VerifyAdditionalArticleCodeLine(TempXMLBuffer, TempLines."Entry No.", SecondItemNo, '', '2');
     end;
 
@@ -3504,18 +3504,26 @@ codeunit 144200 "FatturaPA Test"
     local procedure GetFatturaPAXMLChildValue(var TempXMLBuffer: Record "XML Buffer" temporary; ParentEntryNo: Integer; ChildName: Text): Text
     var
         TempChild: Record "XML Buffer" temporary;
+        ChildValue: Text;
+        MatchCount: Integer;
     begin
         TempChild.CopyImportFrom(TempXMLBuffer);
         TempChild.Reset();
         TempChild.SetRange("Parent Entry No.", ParentEntryNo);
-        TempChild.SetRange(Name, ChildName);
         TempChild.SetRange(Type, TempChild.Type::Element);
-        Assert.RecordCount(TempChild, 1);
-        TempChild.FindFirst();
-        exit(TempChild.Value);
+        if TempChild.FindSet() then
+            repeat
+                if TempChild.Name = ChildName then begin
+                    MatchCount += 1;
+                    ChildValue := TempChild.Value;
+                end;
+            until TempChild.Next() = 0;
+
+        Assert.AreEqual(1, MatchCount, 'Expected exactly one matching child element.');
+        exit(ChildValue);
     end;
 
-    procedure SetEmitAdditionalArticleCodes(Enable: Boolean)
+    local procedure SetEmitAdditionalArticleCodes(Enable: Boolean)
     begin
         EmitAdditionalArticleCodes := Enable;
     end;
