@@ -6,6 +6,7 @@
 namespace System.Test.FixedAssets;
 
 using Microsoft.FixedAssets;
+using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Setup;
 using Microsoft.HumanResources.Employee;
@@ -172,6 +173,7 @@ codeunit 148140 "Fixed Assets UI CZF"
     local procedure Initialize()
     var
         FASetup: Record "FA Setup";
+        DepreciationBook: Record "Depreciation Book";
         HumanResourcesSetup: Record "Human Resources Setup";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
     begin
@@ -182,7 +184,9 @@ codeunit 148140 "Fixed Assets UI CZF"
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Fixed Assets UI CZF");
 
+        LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
         FASetup.Get();
+        FASetup.Validate("Default Depr. Book", DepreciationBook.Code);
         FASetup.Validate("Fixed Asset Nos.", LibraryERM.CreateNoSeriesCode());
         FASetup.Modify(true);
         HumanResourcesSetup.Get();
