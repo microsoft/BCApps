@@ -6,9 +6,11 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.VAT.Setup;
 
+/// <summary>
+/// Stores the expense categories that are used to classify expenses and determine how they are posted.
+/// </summary>
 table 6921 "Expense Category"
 {
-    Access = Internal;
     Caption = 'Expense Category';
     LookupPageId = "Expense Categories";
     DrillDownPageId = "Expense Categories";

@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Releases and reopens expenses after checking that the required information is filled in.
+/// </summary>
 codeunit 6980 "Release Expense Document"
 {
-    Access = Internal;
     TableNo = Expense;
     Permissions = TableData Expense = rm;
 
@@ -53,7 +55,7 @@ codeunit 6980 "Release Expense Document"
         OnAfterReleaseExpense(Expense);
     end;
 
-    procedure Reopen(var ExpenseRecord: Record Expense)
+    internal procedure Reopen(var ExpenseRecord: Record Expense)
     begin
         if ExpenseRecord.Status = ExpenseRecord.Status::Open then
             exit;
@@ -62,16 +64,28 @@ codeunit 6980 "Release Expense Document"
         ExpenseRecord.Modify(true);
     end;
 
+    /// <summary>
+    /// Releases the expense as the current user after checking that the required fields are filled in and that the expense complies with the expense rules.
+    /// </summary>
+    /// <param name="ExpenseRecord">The expense to release. The record is updated with the new status.</param>
     procedure PerformManualRelease(var ExpenseRecord: Record Expense)
     begin
         PerformManualCheckAndRelease(ExpenseRecord);
     end;
 
+    /// <summary>
+    /// Checks and releases the expense as the current user. An error is raised if the expense does not meet the release requirements.
+    /// </summary>
+    /// <param name="ExpenseRecord">The expense to check and release. The record is updated with the new status.</param>
     procedure PerformManualCheckAndRelease(var ExpenseRecord: Record Expense)
     begin
         Codeunit.Run(Codeunit::"Release Expense Document", ExpenseRecord);
     end;
 
+    /// <summary>
+    /// Reopens the released expense as the current user so that it can be edited again. The expense must not be included in an expense report.
+    /// </summary>
+    /// <param name="ExpenseRecord">The expense to reopen. The record is updated with the new status.</param>
     procedure PerformManualReopen(var ExpenseRecord: Record Expense)
     begin
         CheckReopenStatus(ExpenseRecord);
