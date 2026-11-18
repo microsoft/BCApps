@@ -7409,11 +7409,11 @@ table 37 "Sales Line"
                                     NewAmount * (1 - SalesLine.GetVatBaseDiscountPct(SalesHeader) / 100), Currency."Amount Rounding Precision");
                             end else begin
                                 if SalesLine."VAT Calculation Type" = SalesLine."VAT Calculation Type"::"Full VAT" then begin
-                                    VATAmount := SalesLine.CalcLineAmount() - SalesLine."Pmt. Discount Amount";
+                                    VATAmount := GLSetup.CalculateLineAmountForVAT(SalesLine.CalcLineAmount(), SalesLine."Pmt. Discount Amount");
                                     NewAmount := 0;
                                     NewVATBaseAmount := 0;
                                 end else begin
-                                    NewAmount := SalesLine.CalcLineAmount() - SalesLine."Pmt. Discount Amount";
+                                    NewAmount := GLSetup.CalculateLineAmountForVAT(SalesLine.CalcLineAmount(), SalesLine."Pmt. Discount Amount");
                                     NewVATBaseAmount :=
                                       Round(
                                         NewAmount * (1 - SalesLine.GetVatBaseDiscountPct(SalesHeader) / 100), Currency."Amount Rounding Precision");

@@ -26,7 +26,7 @@ codeunit 61 "Sales-Disc. (Yes/No)"
 
         SalesLine.Copy(Rec);
         GLSetup.Get();
-        if GLSetup."Payment Discount Type" <> GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines" then begin
+        if not GLSetup.ShouldCalculatePaymentDiscountOnLines() then begin
             if ConfirmManagement.GetResponseOrDefault(Text000, true) then
                 CODEUNIT.Run(CODEUNIT::"Sales-Calc. Discount", SalesLine);
         end else

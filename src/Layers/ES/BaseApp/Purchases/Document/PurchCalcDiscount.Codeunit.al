@@ -180,7 +180,7 @@ codeunit 70 "Purch.-Calc.Discount"
         OnCalculateInvoiceDiscountOnBeforeGetGLSetup(VendInvDisc, PurchHeader);
 
         GLSetup.Get();
-        if GLSetup."Payment Discount Type" <> GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines" then
+        if not GLSetup.ShouldCalculatePaymentDiscountOnLines() then
             PurchLine2.SetRange("Allow Invoice Disc.", true);
         if PurchLine2.Find('-') then
             repeat
@@ -193,56 +193,16 @@ codeunit 70 "Purch.-Calc.Discount"
                        (PurchLine2."Prepayment %" = 0)
                     then
                         PurchLine2.Validate("Inv. Discount Amount");
-                    if (PurchLine2."Allow Invoice Disc.") and (PurchLine2."Line Discount %" < 100) then begin
-                        case GLSetup."Discount Calculation" of
-                            GLSetup."Discount Calculation"::" ",
-                            GLSetup."Discount Calculation"::"Line Disc. * Inv. Disc. + Payment Disc.",
-                            GLSetup."Discount Calculation"::"Line Disc. * Inv. Disc. * Payment Disc.":
-                                begin
-                                    TempPurchLine."Inv. Discount Amount" :=
-                                      TempPurchLine."Inv. Discount Amount" + PurchLine2."Line Amount" * VendInvDisc."Discount %" / 100;
-                                    PurchLine2."Inv. Discount Amount" := Round(TempPurchLine."Inv. Discount Amount", 0.01);
-                                end;
-                            GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. + Payment Disc.",
-                            GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. * Payment Disc.":
-                                begin
-                                    TempPurchLine."Inv. Discount Amount" :=
-                                      TempPurchLine."Inv. Discount Amount" +
-                                      (PurchLine2."Line Amount" + PurchLine2."Line Discount Amount") *
-                                      VendInvDisc."Discount %" / 100;
-                                    PurchLine2."Inv. Discount Amount" := Round(TempPurchLine."Inv. Discount Amount", 0.01);
-                                end;
-                        end;
-                        TempPurchLine."Inv. Discount Amount" :=
-                          TempPurchLine."Inv. Discount Amount" - PurchLine2."Inv. Discount Amount";
-                    end;
-                    if GLSetup."Payment Discount Type" =
-                       GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines"
-                    then begin
-                        GLSetup.TestField("Discount Calculation");
-                        case GLSetup."Discount Calculation" of
-                            GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. + Payment Disc.",
-                            GLSetup."Discount Calculation"::"Line Disc. * Inv. Disc. + Payment Disc.":
-                                if PurchLine2."Line Amount" <> 0 then begin
-                                    TempPurchLine."Pmt. Discount Amount" :=
-                                        TempPurchLine."Pmt. Discount Amount" +
-                                        (PurchLine2."Line Amount" + PurchLine2."Line Discount Amount") *
-                                        PurchHeader."Payment Discount %" / 100;
-                                    PurchLine2."Pmt. Discount Amount" := Round(TempPurchLine."Pmt. Discount Amount", 0.01);
-                                end;
-                            GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. * Payment Disc.",
-                            GLSetup."Discount Calculation"::"Line Disc. * Inv. Disc. * Payment Disc.":
-                                if PurchLine2."Line Amount" <> 0 then begin
-                                    TempPurchLine."Pmt. Discount Amount" :=
-                                        TempPurchLine."Pmt. Discount Amount" +
-                                        (PurchLine2."Line Amount" - PurchLine2."Inv. Discount Amount") *
-                                        PurchHeader."Payment Discount %" / 100;
-                                    PurchLine2."Pmt. Discount Amount" := Round(TempPurchLine."Pmt. Discount Amount", 0.01);
-                                end;
-                        end;
-                        TempPurchLine."Pmt. Discount Amount" :=
-                          TempPurchLine."Pmt. Discount Amount" - PurchLine2."Pmt. Discount Amount";
-                    end;
+                    if (PurchLine2."Allow Invoice Disc.") and (PurchLine2."Line Discount %" < 100) then
+                        PurchLine2."Inv. Discount Amount" :=
+                            GLSetup.CalculateInvoiceDiscount(
+                                PurchLine2."Line Amount", PurchLine2."Line Discount Amount", VendInvDisc."Discount %",
+                                0.01, TempPurchLine."Inv. Discount Amount");
+                    if GLSetup.ShouldCalculatePaymentDiscountOnLines() then
+                        PurchLine2."Pmt. Discount Amount" :=
+                            GLSetup.CalculateLinePaymentDiscount(
+                                PurchLine2."Line Amount", PurchLine2."Line Discount Amount", PurchLine2."Inv. Discount Amount",
+                                PurchHeader."Payment Discount %", TempPurchLine."Pmt. Discount Amount");
 
                     if (PurchLine2.Type <> PurchLine2.Type::"Charge (Item)") and
                        (PurchLine2."Prepayment %" = 0)
@@ -280,7 +240,7 @@ codeunit 70 "Purch.-Calc.Discount"
             if UpdateHeader then
                 PurchHeader.Modify();
 
-            if GLSetup."Payment Discount Type" = GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines" then
+            if GLSetup.ShouldCalculatePaymentDiscountOnLines() then
                 PurchLine2.CalcVATAmountLines(0, PurchHeader, PurchLine2, TempVATAmountLine);
 
             TempVATAmountLine.SetInvoiceDiscountPercent(

@@ -112,9 +112,7 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
         TotalVATBaseACY := ServiceLineACY."VAT Base Amount";
 
         SalesSetup.Get();
-        if SalesSetup."Discount Posting" in
-           [SalesSetup."Discount Posting"::"Invoice Discounts", SalesSetup."Discount Posting"::"All Discounts"]
-        then begin
+        if SalesSetup.ShouldPostInvoiceDiscount() then begin
             CalcInvoiceDiscountPosting(InvoicePostingBuffer, ServiceLine, ServiceLineACY, ServiceHeader);
             if (InvoicePostingBuffer.Amount <> 0) or (InvoicePostingBuffer."Amount (ACY)" <> 0) then begin
                 InvoicePostingBuffer.SetAccount(
@@ -132,9 +130,7 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
             end;
         end;
 
-        if SalesSetup."Discount Posting" in
-           [SalesSetup."Discount Posting"::"Line Discounts", SalesSetup."Discount Posting"::"All Discounts"]
-        then begin
+        if SalesSetup.ShouldPostLineDiscount() then begin
             CalcLineDiscountPosting(InvoicePostingBuffer, ServiceLine, ServiceLineACY, ServiceHeader);
             if (InvoicePostingBuffer.Amount <> 0) or (InvoicePostingBuffer."Amount (ACY)" <> 0) then begin
                 InvoicePostingBuffer.SetAccount(

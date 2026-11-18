@@ -59,6 +59,35 @@
         PostedDocumentNoErr: Label 'Document No. must be equal to %1', Comment = '%1= Document No.';
 
     [Test]
+    procedure DefaultPurchaseDiscountPostingUsesDiscountPostingOption()
+    var
+        PurchSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchSetup."Discount Posting" := PurchSetup."Discount Posting"::"No Discounts";
+        VerifyDefaultPurchaseDiscountPosting(PurchSetup, false, false);
+
+        PurchSetup."Discount Posting" := PurchSetup."Discount Posting"::"Invoice Discounts";
+        VerifyDefaultPurchaseDiscountPosting(PurchSetup, true, false);
+
+        PurchSetup."Discount Posting" := PurchSetup."Discount Posting"::"Line Discounts";
+        VerifyDefaultPurchaseDiscountPosting(PurchSetup, false, true);
+
+        PurchSetup."Discount Posting" := PurchSetup."Discount Posting"::"All Discounts";
+        VerifyDefaultPurchaseDiscountPosting(PurchSetup, true, true);
+    end;
+
+    local procedure VerifyDefaultPurchaseDiscountPosting(PurchSetup: Record "Purchases & Payables Setup"; InvoiceDiscount: Boolean; LineDiscount: Boolean)
+    var
+        PurchDiscountPosting: Codeunit "Purch. Discount Posting";
+        DiscountPostingSetup: Interface "Purchase Discount Posting";
+    begin
+        DiscountPostingSetup := PurchDiscountPosting;
+        Assert.AreEqual(InvoiceDiscount, DiscountPostingSetup.ShouldPostInvoiceDiscount(PurchSetup), 'Unexpected invoice discount posting.');
+        Assert.AreEqual(LineDiscount, DiscountPostingSetup.ShouldPostLineDiscount(PurchSetup), 'Unexpected line discount posting.');
+        Assert.IsFalse(DiscountPostingSetup.ShouldPostPaymentDiscount(PurchSetup), 'The default implementation must not post payment discounts on invoice lines.');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure DeleteInvdBlnktPurchOrders()
     var

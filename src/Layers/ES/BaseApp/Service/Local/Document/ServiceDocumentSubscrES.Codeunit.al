@@ -82,7 +82,7 @@ codeunit 10763 "Service Document Subscr. ES"
     begin
         GeneralLedgerSetup.GetRecordOnce();
         if (ServiceHeader."Document Type" <> ServiceHeader."Document Type"::"Credit Memo") or
-           (GeneralLedgerSetup."Payment Discount Type" = GeneralLedgerSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines")
+           GeneralLedgerSetup.ShouldCalculatePaymentDiscountOnLines()
         then
             if (ServiceHeader."Payment Terms Code" <> '') and (ServiceHeader."Document Date" <> 0D) then begin
                 PaymentTerms.Get(ServiceHeader."Payment Terms Code");
@@ -214,7 +214,7 @@ codeunit 10763 "Service Document Subscr. ES"
         InvAllow: Boolean;
     begin
         GLSetup.Get();
-        if GLSetup."Payment Discount Type" <> GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines" then
+        if not GLSetup.ShouldCalculatePaymentDiscountOnLines() then
             ServiceLine.SetRange("Allow Invoice Disc.", true);
         if ServiceLine.Find('-') then begin
             if TemporaryHeader then
@@ -226,58 +226,16 @@ codeunit 10763 "Service Document Subscr. ES"
                 if (ServiceLine.Quantity <> 0) and not InvAllow then begin
                     ServiceLine."Pmt. Discount Amount" := 0;
                     ServiceLine.Validate("Inv. Discount Amount");
-                    if ServiceLine."Allow Invoice Disc." then begin
-                        case GLSetup."Discount Calculation" of
-                            GLSetup."Discount Calculation"::" ",
-                            GLSetup."Discount Calculation"::"Line Disc. * Inv. Disc. + Payment Disc.",
-                            GLSetup."Discount Calculation"::"Line Disc. * Inv. Disc. * Payment Disc.":
-                                begin
-                                    TempServiceLine."Inv. Discount Amount" :=
-                                        TempServiceLine."Inv. Discount Amount" +
-                                        ServiceLine."Line Amount" * CustInvoiceDisc."Discount %" / 100;
-                                    ServiceLine."Inv. Discount Amount" :=
-                                            Round(TempServiceLine."Inv. Discount Amount", 0.00001);
-                                end;
-                            GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. + Payment Disc.",
-                            GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. * Payment Disc.":
-                                begin
-                                    TempServiceLine."Inv. Discount Amount" :=
-                                        TempServiceLine."Inv. Discount Amount" +
-                                        (ServiceLine."Line Amount" + ServiceLine."Line Discount Amount") *
-                                        CustInvoiceDisc."Discount %" / 100;
-                                    ServiceLine."Inv. Discount Amount" := Round(TempServiceLine."Inv. Discount Amount", 0.00001);
-                                end;
-                        end;
-                        TempServiceLine."Inv. Discount Amount" :=
-                            TempServiceLine."Inv. Discount Amount" - ServiceLine."Inv. Discount Amount";
-                    end;
-                    if GLSetup."Payment Discount Type" =
-                        GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines"
-                    then begin
-                        GLSetup.TestField("Discount Calculation");
-                        case GLSetup."Discount Calculation" of
-                            GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. + Payment Disc.",
-                            GLSetup."Discount Calculation"::"Line Disc. * Inv. Disc. + Payment Disc.":
-                                if ServiceLine."Line Amount" <> 0 then begin
-                                    TempServiceLine."Pmt. Discount Amount" :=
-                                        TempServiceLine."Pmt. Discount Amount" +
-                                        (ServiceLine."Line Amount" + ServiceLine."Line Discount Amount") *
-                                        ServiceHeader."Payment Discount %" / 100;
-                                    ServiceLine."Pmt. Discount Amount" := Round(TempServiceLine."Pmt. Discount Amount", 0.01);
-                                end;
-                            GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. * Payment Disc.",
-                            GLSetup."Discount Calculation"::"Line Disc. * Inv. Disc. * Payment Disc.":
-                                if ServiceLine."Line Amount" <> 0 then begin
-                                    TempServiceLine."Pmt. Discount Amount" :=
-                                        TempServiceLine."Pmt. Discount Amount" +
-                                        (ServiceLine."Line Amount" - ServiceLine."Inv. Discount Amount") *
-                                        ServiceHeader."Payment Discount %" / 100;
-                                    ServiceLine."Pmt. Discount Amount" := Round(TempServiceLine."Pmt. Discount Amount", 0.01);
-                                end;
-                        end;
-                        TempServiceLine."Pmt. Discount Amount" :=
-                            TempServiceLine."Pmt. Discount Amount" - ServiceLine."Pmt. Discount Amount";
-                    end;
+                    if ServiceLine."Allow Invoice Disc." then
+                        ServiceLine."Inv. Discount Amount" :=
+                            GLSetup.CalculateInvoiceDiscount(
+                                ServiceLine."Line Amount", ServiceLine."Line Discount Amount", CustInvoiceDisc."Discount %",
+                                0.00001, TempServiceLine."Inv. Discount Amount");
+                    if GLSetup.ShouldCalculatePaymentDiscountOnLines() then
+                        ServiceLine."Pmt. Discount Amount" :=
+                            GLSetup.CalculateLinePaymentDiscount(
+                                ServiceLine."Line Amount", ServiceLine."Line Discount Amount", ServiceLine."Inv. Discount Amount",
+                                ServiceHeader."Payment Discount %", TempServiceLine."Pmt. Discount Amount");
 
                     ServiceLine.Validate("Inv. Discount Amount");
                     ServiceLine.Modify();

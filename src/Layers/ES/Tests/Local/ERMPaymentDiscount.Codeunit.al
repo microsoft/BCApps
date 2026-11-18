@@ -73,6 +73,149 @@ codeunit 144076 "ERM Payment Discount"
         IsInitialize: Boolean;
 
     [Test]
+    procedure PaymentDiscountPolicyUsesESValidation()
+    var
+        GLSetup: Record "General Ledger Setup";
+    begin
+        GLSetup."Payment Discount Type" := GLSetup."Payment Discount Type"::"Adjust for Payment Disc.";
+        GLSetup.CheckVATPaymentDiscountAdjustment();
+        asserterror GLSetup.CheckPaymentDiscountPosting();
+        Assert.ExpectedError(GLSetup.FieldCaption("Payment Discount Type"));
+
+        GLSetup."Payment Discount Type" := GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines";
+        GLSetup.CheckPaymentDiscountPosting();
+        asserterror GLSetup.CheckVATPaymentDiscountAdjustment();
+        Assert.ExpectedError(GLSetup.FieldCaption("Payment Discount Type"));
+        Assert.IsFalse(GLSetup.ShouldAdjustVATForPaymentDiscount(), 'The ES calculation mode must not replace the legacy VAT adjustment flags.');
+        GLSetup."Adjust for Payment Disc." := true;
+        Assert.IsTrue(GLSetup.ShouldAdjustVATForPaymentDiscount(), 'ES must retain the legacy VAT-inclusive adjustment check.');
+        GLSetup."Pmt. Disc. Excl. VAT" := true;
+        Assert.IsFalse(GLSetup.ShouldAdjustVATForPaymentDiscount(), 'VAT-exclusive payment discounts must not adjust VAT.');
+    end;
+
+    [Test]
+    procedure PaymentDiscountPolicyUsesESFormulas()
+    var
+        GLSetup: Record "General Ledger Setup";
+    begin
+        GLSetup."Payment Discount Type" := GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines";
+        GLSetup."Discount Calculation" := GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. + Payment Disc.";
+        VerifyESDiscountFormula(GLSetup, 12, 6);
+        GLSetup."Discount Calculation" := GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. * Payment Disc.";
+        VerifyESDiscountFormula(GLSetup, 12, 4.4);
+        GLSetup."Discount Calculation" := GLSetup."Discount Calculation"::"Line Disc. * Inv. Disc. + Payment Disc.";
+        VerifyESDiscountFormula(GLSetup, 10, 6);
+        GLSetup."Discount Calculation" := GLSetup."Discount Calculation"::"Line Disc. * Inv. Disc. * Payment Disc.";
+        VerifyESDiscountFormula(GLSetup, 10, 4.5);
+    end;
+
+    local procedure VerifyESDiscountFormula(GLSetup: Record "General Ledger Setup"; ExpectedInvoiceDiscount: Decimal; ExpectedPaymentDiscount: Decimal)
+    var
+        InvoiceDiscount: Decimal;
+        Remainder: Decimal;
+    begin
+        InvoiceDiscount := GLSetup.CalculateInvoiceDiscount(100, 20, 10, 0.00001, Remainder);
+        Assert.AreEqual(ExpectedInvoiceDiscount, InvoiceDiscount, 'Unexpected ES invoice discount formula.');
+        Assert.AreEqual(0, Remainder, 'The invoice discount must not leave a remainder for these amounts.');
+        Assert.AreEqual(ExpectedPaymentDiscount, GLSetup.CalculateLinePaymentDiscount(100, 20, InvoiceDiscount, 5, Remainder), 'Unexpected ES payment discount formula.');
+        Assert.AreEqual(0, Remainder, 'The payment discount must not leave a remainder for these amounts.');
+    end;
+
+    [Test]
+    procedure PaymentDiscountPolicyPreservesESAmounts()
+    var
+        GLSetup: Record "General Ledger Setup";
+        GenJournalLine: Record "Gen. Journal Line";
+        Remainder: Decimal;
+    begin
+        Assert.AreEqual(98, GLSetup.CalculateLineAmountForVAT(100, 2), 'ES must deduct the invoice-line payment discount.');
+        Assert.AreEqual(-98, GLSetup.CalculateLineAmountForVAT(-100, -2), 'ES must preserve the sign on credit lines.');
+        GenJournalLine.Amount := 120;
+        GenJournalLine."Amount (LCY)" := 240;
+        GenJournalLine."Sales/Purch. (LCY)" := 200;
+        Assert.AreEqual(120, GLSetup.CalculatePaymentDiscountBase(GenJournalLine, -40), 'The VAT-inclusive base must use the journal amount.');
+        GLSetup."Pmt. Disc. Excl. VAT" := true;
+        Assert.AreEqual(100, GLSetup.CalculatePaymentDiscountBase(GenJournalLine, -40), 'ES must retain currency conversion.');
+        GenJournalLine."Sales/Purch. (LCY)" := 0;
+        Assert.AreEqual(0, GLSetup.CalculatePaymentDiscountBase(GenJournalLine, -40), 'ES must not introduce the W1 journal VAT fallback.');
+
+        Remainder := 0.003;
+        Assert.AreEqual(0, GLSetup.CalculateLinePaymentDiscount(100, 20, 10, 5, Remainder), 'Payment discounts must not be calculated on lines in Full Amount mode.');
+        Assert.AreEqual(0.003, Remainder, 'An inactive line-payment calculation must preserve the remainder.');
+        GLSetup."Payment Discount Type" := GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines";
+        asserterror GLSetup.CalculateLinePaymentDiscount(0, 0, 0, 5, Remainder);
+        Assert.ExpectedError(GLSetup.FieldCaption("Discount Calculation"));
+    end;
+
+    [Test]
+    procedure PaymentDiscountPolicyPreservesESRemainders()
+    var
+        GLSetup: Record "General Ledger Setup";
+        Remainder: Decimal;
+        Sign: Integer;
+    begin
+        GLSetup."Payment Discount Type" := GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines";
+        GLSetup."Discount Calculation" := GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. + Payment Disc.";
+        for Sign := -1 to 1 do
+            if Sign <> 0 then begin
+                Remainder := 0;
+                Assert.AreEqual(Sign * 0.01, GLSetup.CalculateLinePaymentDiscount(Sign * 0.05, 0, 0, 10, Remainder), 'The first line must retain payment discount rounding.');
+                Assert.AreEqual(-Sign * 0.005, Remainder, 'The first line must retain its rounding remainder.');
+                Assert.AreEqual(0, GLSetup.CalculateLinePaymentDiscount(Sign * 0.05, 0, 0, 10, Remainder), 'The second line must consume the previous rounding remainder.');
+                Assert.AreEqual(0, Remainder, 'No rounding remainder should remain.');
+                Assert.AreEqual(Sign * 0.01, GLSetup.CalculateInvoiceDiscount(Sign * 0.05, 0, 10, 0.01, Remainder), 'Purchases must retain invoice discount rounding to 0.01.');
+                Assert.AreEqual(-Sign * 0.005, Remainder, 'The invoice discount must retain its rounding remainder.');
+                Assert.AreEqual(0, GLSetup.CalculateInvoiceDiscount(Sign * 0.05, 0, 10, 0.01, Remainder), 'The next invoice line must consume the rounding remainder.');
+                Assert.AreEqual(0, Remainder, 'No invoice discount remainder should remain.');
+                Remainder := Sign * 0.003;
+                Assert.AreEqual(0, GLSetup.CalculateLinePaymentDiscount(0, 20, 10, 5, Remainder), 'A zero line amount must not produce a payment discount.');
+                Assert.AreEqual(Sign * 0.003, Remainder, 'A zero line amount must retain the payment discount remainder.');
+            end;
+    end;
+
+    [Test]
+    procedure SalesDiscountPostingUsesLocalFields()
+    var
+        SalesSetup: Record "Sales & Receivables Setup";
+        DiscountPosting: Integer;
+        DiscountFlags: Integer;
+    begin
+        for DiscountPosting := SalesSetup."Discount Posting"::"No Discounts" to SalesSetup."Discount Posting"::"All Discounts" do begin
+            SalesSetup."Discount Posting" := DiscountPosting;
+            for DiscountFlags := 0 to 7 do begin
+                SalesSetup."Post Invoice Discount" := (DiscountFlags mod 2) = 1;
+                SalesSetup."Post Line Discount" := ((DiscountFlags div 2) mod 2) = 1;
+                SalesSetup."Post Payment Discount" := (DiscountFlags div 4) = 1;
+
+                Assert.AreEqual(SalesSetup."Post Invoice Discount", SalesSetup.ShouldPostInvoiceDiscount(), 'Invoice discount posting must use the current ES setup record.');
+                Assert.AreEqual(SalesSetup."Post Line Discount", SalesSetup.ShouldPostLineDiscount(), 'Line discount posting must use the current ES setup record.');
+                Assert.AreEqual(SalesSetup."Post Payment Discount", SalesSetup.ShouldPostPaymentDiscount(), 'Payment discount posting must use the current ES setup record.');
+            end;
+        end;
+    end;
+
+    [Test]
+    procedure PurchaseDiscountPostingUsesLocalFields()
+    var
+        PurchSetup: Record "Purchases & Payables Setup";
+        DiscountPosting: Integer;
+        DiscountFlags: Integer;
+    begin
+        for DiscountPosting := PurchSetup."Discount Posting"::"No Discounts" to PurchSetup."Discount Posting"::"All Discounts" do begin
+            PurchSetup."Discount Posting" := DiscountPosting;
+            for DiscountFlags := 0 to 7 do begin
+                PurchSetup."Post Invoice Discount" := (DiscountFlags mod 2) = 1;
+                PurchSetup."Post Line Discount" := ((DiscountFlags div 2) mod 2) = 1;
+                PurchSetup."Post Payment Discount" := (DiscountFlags div 4) = 1;
+
+                Assert.AreEqual(PurchSetup."Post Invoice Discount", PurchSetup.ShouldPostInvoiceDiscount(), 'Invoice discount posting must use the current ES setup record.');
+                Assert.AreEqual(PurchSetup."Post Line Discount", PurchSetup.ShouldPostLineDiscount(), 'Line discount posting must use the current ES setup record.');
+                Assert.AreEqual(PurchSetup."Post Payment Discount", PurchSetup.ShouldPostPaymentDiscount(), 'Payment discount posting must use the current ES setup record.');
+            end;
+        end;
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandler,SalesDocumentTestRequestPageHandler')]
     [Scope('OnPrem')]
     procedure PaymentDiscountOnSalesOrderTestReport()

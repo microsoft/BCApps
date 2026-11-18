@@ -7529,7 +7529,7 @@ table 37 "Sales Line"
                                     NewAmount * (1 - SalesLine.GetVatBaseDiscountPct(SalesHeader) / 100), Currency."Amount Rounding Precision");
                             end else begin
                                 if SalesLine."VAT Calculation Type" = SalesLine."VAT Calculation Type"::"Full VAT" then begin
-                                    VATAmount := SalesLine.CalcLineAmount();
+                                    VATAmount := GLSetup.CalculateLineAmountForVAT(SalesLine.CalcLineAmount(), SalesLine."Pmt. Discount Amount");
                                     if (GLSetup."Additional Reporting Currency" <> '') and
                                         (SalesHeader."Currency Code" = GLSetup."Additional Reporting Currency") then
                                         VATAmountACY := TempVATAmountLineRemainder."VAT Amount (ACY)" +
@@ -7550,7 +7550,7 @@ table 37 "Sales Line"
                                     NewVATBaseAmount := 0;
                                     NewVATBaseAmountACY := 0;
                                 end else begin
-                                    NewAmount := SalesLine.CalcLineAmount();
+                                    NewAmount := GLSetup.CalculateLineAmountForVAT(SalesLine.CalcLineAmount(), SalesLine."Pmt. Discount Amount");
                                     NewAmountACY := SalesLine."Amount (ACY)";
                                     NewVATBaseAmount :=
                                       Round(
@@ -11550,7 +11550,7 @@ table 37 "Sales Line"
             Quantity, "Quantity (Base)", "Qty. to Invoice", "Qty. to Invoice (Base)", "Qty. Shipped Not Invoiced", "Qty. Shipped Not Invd. (Base)", "Ret. Qty. Rcd. Not Invd.(Base)", "Return Qty. Received (Base)",
             "Return Qty. Rcd. Not Invd.", "Qty. to Ship", "Qty. to Ship (Base)", "Return Qty. to Receive", "Return Qty. to Receive (Base)", "Return Qty. Received", "Outstanding Quantity", "Outstanding Qty. (Base)",
             "Quantity Invoiced", "Qty. Invoiced (Base)", "Quantity Shipped", "Qty. Shipped (Base)", "Qty. per Unit of Measure", "Reserved Quantity",
-            "Unit Price", "Amount Including VAT", Amount, "Line Amount", "Inv. Discount Amount", "Inv. Disc. Amount to Invoice", "VAT Difference", "VAT Base Amount",
+            "Unit Price", "Amount Including VAT", Amount, "Line Amount", "Inv. Discount Amount", "Inv. Disc. Amount to Invoice", "VAT Difference", "VAT Base Amount", "Pmt. Discount Amount",
             "Outstanding Amount", "Outstanding Amount (LCY)", "Shipped Not Invoiced", "Shipped Not Invoiced (LCY)", "Return Rcd. Not Invd.", "Return Rcd. Not Invd. (LCY)",
             "System-Created Entry", "VAT Identifier", "VAT Calculation Type", "Tax Group Code", "VAT %", "Allow Invoice Disc.", "Prepayment Line", "Completely Shipped", Planned);
     end;

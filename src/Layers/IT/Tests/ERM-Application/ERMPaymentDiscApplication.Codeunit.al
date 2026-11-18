@@ -24,6 +24,71 @@ codeunit 134914 "ERM Payment Disc Application"
         UnappliedError: Label '%1 %2 field must be true after Unapply entries.';
 
     [Test]
+    procedure DefaultPaymentDiscountPolicyUsesW1Validation()
+    var
+        GLSetup: Record "General Ledger Setup";
+        DefaultPaymentDiscountPolicy: Codeunit "Payment Discount Policy";
+        PaymentDiscountPolicy: Interface "Payment Discount Policy";
+    begin
+        PaymentDiscountPolicy := DefaultPaymentDiscountPolicy;
+        asserterror PaymentDiscountPolicy.CheckVATPaymentDiscountAdjustment(GLSetup);
+        Assert.ExpectedError(GLSetup.FieldCaption("Adjust for Payment Disc."));
+        asserterror PaymentDiscountPolicy.CheckPaymentDiscountPosting(GLSetup);
+        Assert.ExpectedError(GLSetup.FieldCaption("Adjust for Payment Disc."));
+        Assert.IsFalse(PaymentDiscountPolicy.ShouldAdjustVATForPaymentDiscount(GLSetup), 'VAT adjustment must be explicitly enabled.');
+
+        GLSetup."Adjust for Payment Disc." := true;
+        PaymentDiscountPolicy.CheckVATPaymentDiscountAdjustment(GLSetup);
+        PaymentDiscountPolicy.CheckPaymentDiscountPosting(GLSetup);
+        Assert.IsTrue(PaymentDiscountPolicy.ShouldAdjustVATForPaymentDiscount(GLSetup), 'VAT-inclusive payment discounts must adjust VAT when enabled.');
+        GLSetup."Pmt. Disc. Excl. VAT" := true;
+        Assert.IsFalse(PaymentDiscountPolicy.ShouldAdjustVATForPaymentDiscount(GLSetup), 'VAT-exclusive payment discounts must not adjust VAT.');
+    end;
+
+    [Test]
+    procedure DefaultPaymentDiscountPolicyPreservesAmounts()
+    var
+        GLSetup: Record "General Ledger Setup";
+        GenJournalLine: Record "Gen. Journal Line";
+        DefaultPaymentDiscountPolicy: Codeunit "Payment Discount Policy";
+        PaymentDiscountPolicy: Interface "Payment Discount Policy";
+        Remainder: Decimal;
+    begin
+        PaymentDiscountPolicy := DefaultPaymentDiscountPolicy;
+        Assert.AreEqual(100, PaymentDiscountPolicy.CalculateLineAmountForVAT(GLSetup, 100, 2), 'W1 must not deduct an invoice-line payment discount.');
+        Assert.AreEqual(0, PaymentDiscountPolicy.CalculateLinePaymentDiscount(GLSetup, 100, 20, 10, 5, Remainder), 'W1 must not calculate invoice-line payment discounts.');
+
+        GenJournalLine.Amount := 120;
+        GenJournalLine."Amount (LCY)" := 240;
+        GenJournalLine."Sales/Purch. (LCY)" := 200;
+        Assert.AreEqual(120, PaymentDiscountPolicy.CalculatePaymentDiscountBase(GLSetup, GenJournalLine, -40), 'The VAT-inclusive base must use the journal amount.');
+        GLSetup."Pmt. Disc. Excl. VAT" := true;
+        Assert.AreEqual(100, PaymentDiscountPolicy.CalculatePaymentDiscountBase(GLSetup, GenJournalLine, -40), 'The VAT-exclusive base must retain currency conversion.');
+        GenJournalLine."Sales/Purch. (LCY)" := 0;
+        Assert.AreEqual(100, PaymentDiscountPolicy.CalculatePaymentDiscountBase(GLSetup, GenJournalLine, -40), 'W1 must retain the journal VAT fallback.');
+    end;
+
+    [Test]
+    procedure DefaultPaymentDiscountPolicyPreservesRemainders()
+    var
+        GLSetup: Record "General Ledger Setup";
+        DefaultPaymentDiscountPolicy: Codeunit "Payment Discount Policy";
+        PaymentDiscountPolicy: Interface "Payment Discount Policy";
+        Remainder: Decimal;
+        Sign: Integer;
+    begin
+        PaymentDiscountPolicy := DefaultPaymentDiscountPolicy;
+        for Sign := -1 to 1 do
+            if Sign <> 0 then begin
+                Remainder := 0;
+                Assert.AreEqual(Sign * 0.01, PaymentDiscountPolicy.CalculateInvoiceDiscount(GLSetup, Sign * 0.05, 0, 10, 0.01, Remainder), 'The first line must retain normal rounding.');
+                Assert.AreEqual(-Sign * 0.005, Remainder, 'The first line must retain its rounding remainder.');
+                Assert.AreEqual(0, PaymentDiscountPolicy.CalculateInvoiceDiscount(GLSetup, Sign * 0.05, 0, 10, 0.01, Remainder), 'The second line must consume the previous rounding remainder.');
+                Assert.AreEqual(0, Remainder, 'No rounding remainder should remain.');
+            end;
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure PurchaseInvDiscApplication()
     var

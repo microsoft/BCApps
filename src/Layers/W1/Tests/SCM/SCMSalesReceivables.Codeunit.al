@@ -56,6 +56,35 @@ codeunit 137062 "SCM Sales & Receivables"
         SalesDocumentPostedLbl: Label 'Sales document was posted successfully';
 
     [Test]
+    procedure DefaultSalesDiscountPostingUsesDiscountPostingOption()
+    var
+        SalesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesSetup."Discount Posting" := SalesSetup."Discount Posting"::"No Discounts";
+        VerifyDefaultSalesDiscountPosting(SalesSetup, false, false);
+
+        SalesSetup."Discount Posting" := SalesSetup."Discount Posting"::"Invoice Discounts";
+        VerifyDefaultSalesDiscountPosting(SalesSetup, true, false);
+
+        SalesSetup."Discount Posting" := SalesSetup."Discount Posting"::"Line Discounts";
+        VerifyDefaultSalesDiscountPosting(SalesSetup, false, true);
+
+        SalesSetup."Discount Posting" := SalesSetup."Discount Posting"::"All Discounts";
+        VerifyDefaultSalesDiscountPosting(SalesSetup, true, true);
+    end;
+
+    local procedure VerifyDefaultSalesDiscountPosting(SalesSetup: Record "Sales & Receivables Setup"; InvoiceDiscount: Boolean; LineDiscount: Boolean)
+    var
+        SalesDiscountPosting: Codeunit "Sales Discount Posting";
+        DiscountPostingSetup: Interface "Sales Discount Posting";
+    begin
+        DiscountPostingSetup := SalesDiscountPosting;
+        Assert.AreEqual(InvoiceDiscount, DiscountPostingSetup.ShouldPostInvoiceDiscount(SalesSetup), 'Unexpected invoice discount posting.');
+        Assert.AreEqual(LineDiscount, DiscountPostingSetup.ShouldPostLineDiscount(SalesSetup), 'Unexpected line discount posting.');
+        Assert.IsFalse(DiscountPostingSetup.ShouldPostPaymentDiscount(SalesSetup), 'The default implementation must not post payment discounts on invoice lines.');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure B34576_CopyDocPostedSalesInv()
     var

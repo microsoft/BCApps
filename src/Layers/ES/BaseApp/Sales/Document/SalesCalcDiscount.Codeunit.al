@@ -186,7 +186,7 @@ codeunit 60 "Sales-Calc. Discount"
         OnCalculateInvoiceDiscountOnBeforeGetGLSetup(CustInvDisc, SalesHeader);
 
         GLSetup.Get();
-        if GLSetup."Payment Discount Type" <> GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines" then
+        if not GLSetup.ShouldCalculatePaymentDiscountOnLines() then
             SalesLine2.SetRange("Allow Invoice Disc.", true);
         if SalesLine2.Find('-') then begin
             if UpdateHeader then
@@ -201,57 +201,16 @@ codeunit 60 "Sales-Calc. Discount"
                       (SalesLine2."Prepayment %" = 0)
                     then
                         SalesLine2.Validate("Inv. Discount Amount");
-                    if (SalesLine2."Allow Invoice Disc.") and (SalesLine2."Line Discount %" < 100) and (CustInvDiscFound) then begin
-                        case GLSetup."Discount Calculation" of
-                            GLSetup."Discount Calculation"::" ",
-                            GLSetup."Discount Calculation"::"Line Disc. * Inv. Disc. + Payment Disc.",
-                            GLSetup."Discount Calculation"::"Line Disc. * Inv. Disc. * Payment Disc.":
-                                begin
-                                    TempSalesLine."Inv. Discount Amount" :=
-                                      TempSalesLine."Inv. Discount Amount" +
-                                      SalesLine2."Line Amount" * CustInvDisc."Discount %" / 100;
-                                    SalesLine2."Inv. Discount Amount" := Round(TempSalesLine."Inv. Discount Amount", 0.00001);
-                                end;
-                            GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. + Payment Disc.",
-                            GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. * Payment Disc.":
-                                begin
-                                    TempSalesLine."Inv. Discount Amount" :=
-                                      TempSalesLine."Inv. Discount Amount" +
-                                      (SalesLine2."Line Amount" + SalesLine2."Line Discount Amount") *
-                                      CustInvDisc."Discount %" / 100;
-                                    SalesLine2."Inv. Discount Amount" := Round(TempSalesLine."Inv. Discount Amount", 0.00001);
-                                end;
-                        end;
-                        TempSalesLine."Inv. Discount Amount" :=
-                          TempSalesLine."Inv. Discount Amount" - SalesLine2."Inv. Discount Amount";
-                    end;
-                    if GLSetup."Payment Discount Type" =
-                        GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines"
-                    then begin
-                        GLSetup.TestField("Discount Calculation");
-                        case GLSetup."Discount Calculation" of
-                            GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. + Payment Disc.",
-                            GLSetup."Discount Calculation"::"Line Disc. * Inv. Disc. + Payment Disc.":
-                                if SalesLine2."Line Amount" <> 0 then begin
-                                    TempSalesLine."Pmt. Discount Amount" :=
-                                        TempSalesLine."Pmt. Discount Amount" +
-                                        (SalesLine2."Line Amount" + SalesLine2."Line Discount Amount") *
-                                        SalesHeader."Payment Discount %" / 100;
-                                    SalesLine2."Pmt. Discount Amount" := Round(TempSalesLine."Pmt. Discount Amount", 0.01);
-                                end;
-                            GLSetup."Discount Calculation"::"Line Disc. + Inv. Disc. * Payment Disc.",
-                            GLSetup."Discount Calculation"::"Line Disc. * Inv. Disc. * Payment Disc.":
-                                if SalesLine2."Line Amount" <> 0 then begin
-                                    TempSalesLine."Pmt. Discount Amount" :=
-                                        TempSalesLine."Pmt. Discount Amount" +
-                                        (SalesLine2."Line Amount" - SalesLine2."Inv. Discount Amount") *
-                                        SalesHeader."Payment Discount %" / 100;
-                                    SalesLine2."Pmt. Discount Amount" := Round(TempSalesLine."Pmt. Discount Amount", 0.01);
-                                end;
-                        end;
-                        TempSalesLine."Pmt. Discount Amount" :=
-                          TempSalesLine."Pmt. Discount Amount" - SalesLine2."Pmt. Discount Amount";
-                    end;
+                    if (SalesLine2."Allow Invoice Disc.") and (SalesLine2."Line Discount %" < 100) and (CustInvDiscFound) then
+                        SalesLine2."Inv. Discount Amount" :=
+                            GLSetup.CalculateInvoiceDiscount(
+                                SalesLine2."Line Amount", SalesLine2."Line Discount Amount", CustInvDisc."Discount %",
+                                0.00001, TempSalesLine."Inv. Discount Amount");
+                    if GLSetup.ShouldCalculatePaymentDiscountOnLines() then
+                        SalesLine2."Pmt. Discount Amount" :=
+                            GLSetup.CalculateLinePaymentDiscount(
+                                SalesLine2."Line Amount", SalesLine2."Line Discount Amount", SalesLine2."Inv. Discount Amount",
+                                SalesHeader."Payment Discount %", TempSalesLine."Pmt. Discount Amount");
 
                     if (SalesLine2.Type <> SalesLine2.Type::"Charge (Item)") and
                       (SalesLine2."Prepayment %" = 0)
@@ -301,7 +260,7 @@ codeunit 60 "Sales-Calc. Discount"
                 SalesLine2.UpdateVATOnLines(0, SalesHeader, SalesLine2, TempVATAmountLine);
                 UpdatePrepmtLineAmount(SalesHeader);
             end else
-                if GLSetup."Payment Discount Type" = GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines" then begin
+                if GLSetup.ShouldCalculatePaymentDiscountOnLines() then begin
                     SalesLine2.CalcVATAmountLines(0, SalesHeader, SalesLine2, TempVATAmountLine);
                     SalesLine2.SetSalesHeader(SalesHeader);
                     SalesLine2.UpdateVATOnLines(0, SalesHeader, SalesLine2, TempVATAmountLine);

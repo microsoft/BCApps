@@ -603,6 +603,38 @@ table 312 "Purchases & Payables Setup"
         exit("Post with Job Queue" or "Post & Print with Job Queue");
     end;
 
+    procedure ShouldPostInvoiceDiscount(): Boolean
+    var
+        DiscountPostingSetup: Interface "Purchase Discount Posting";
+    begin
+        DiscountPostingSetup := GetDiscountPostingSetup();
+        exit(DiscountPostingSetup.ShouldPostInvoiceDiscount(Rec));
+    end;
+
+    procedure ShouldPostLineDiscount(): Boolean
+    var
+        DiscountPostingSetup: Interface "Purchase Discount Posting";
+    begin
+        DiscountPostingSetup := GetDiscountPostingSetup();
+        exit(DiscountPostingSetup.ShouldPostLineDiscount(Rec));
+    end;
+
+    procedure ShouldPostPaymentDiscount(): Boolean
+    var
+        DiscountPostingSetup: Interface "Purchase Discount Posting";
+    begin
+        DiscountPostingSetup := GetDiscountPostingSetup();
+        exit(DiscountPostingSetup.ShouldPostPaymentDiscount(Rec));
+    end;
+
+    local procedure GetDiscountPostingSetup() DiscountPostingSetup: Interface "Purchase Discount Posting"
+    var
+        PurchDiscountPosting: Codeunit "Purch. Discount Posting";
+    begin
+        DiscountPostingSetup := PurchDiscountPosting;
+        OnAfterGetDiscountPostingSetup(DiscountPostingSetup);
+    end;
+
     procedure ShouldDocumentTotalAmountsBeChecked(PurchaseHeader: Record "Purchase Header"): Boolean
     var
         ValueFromExtension: Boolean;
@@ -624,6 +656,11 @@ table 312 "Purchases & Payables Setup"
         // By default, if the amounts are shown in the document they can be edited, however we provide an event to allow extensions to change this behavior.
         ExitValue := true;
         OnCanDocumentTotalAmountsBeEditable(PurchaseHeader, ExitValue);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetDiscountPostingSetup(var DiscountPostingSetup: Interface "Purchase Discount Posting")
+    begin
     end;
 
     /// <summary>

@@ -1090,6 +1090,38 @@ table 311 "Sales & Receivables Setup"
         exit("Post with Job Queue" or "Post & Print with Job Queue");
     end;
 
+    procedure ShouldPostInvoiceDiscount(): Boolean
+    var
+        DiscountPostingSetup: Interface "Sales Discount Posting";
+    begin
+        DiscountPostingSetup := GetDiscountPostingSetup();
+        exit(DiscountPostingSetup.ShouldPostInvoiceDiscount(Rec));
+    end;
+
+    procedure ShouldPostLineDiscount(): Boolean
+    var
+        DiscountPostingSetup: Interface "Sales Discount Posting";
+    begin
+        DiscountPostingSetup := GetDiscountPostingSetup();
+        exit(DiscountPostingSetup.ShouldPostLineDiscount(Rec));
+    end;
+
+    procedure ShouldPostPaymentDiscount(): Boolean
+    var
+        DiscountPostingSetup: Interface "Sales Discount Posting";
+    begin
+        DiscountPostingSetup := GetDiscountPostingSetup();
+        exit(DiscountPostingSetup.ShouldPostPaymentDiscount(Rec));
+    end;
+
+    local procedure GetDiscountPostingSetup() DiscountPostingSetup: Interface "Sales Discount Posting"
+    var
+        SalesDiscountPosting: Codeunit "Sales Discount Posting";
+    begin
+        DiscountPostingSetup := SalesDiscountPosting;
+        OnAfterGetDiscountPostingSetup(DiscountPostingSetup);
+    end;
+
     local procedure CheckGLAccPostingTypeBlockedAndGenProdPostingType(AccNo: Code[20])
     var
         GLAccount: Record "G/L Account";
@@ -1099,5 +1131,10 @@ table 311 "Sales & Receivables Setup"
             GLAccount.CheckGLAcc();
             GLAccount.TestField("Gen. Prod. Posting Group");
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetDiscountPostingSetup(var DiscountPostingSetup: Interface "Sales Discount Posting")
+    begin
     end;
 }

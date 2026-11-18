@@ -65,7 +65,7 @@ codeunit 10789 "Service Posting Subscr. ES"
     begin
         GeneralLedgerSetup.GetRecordOnce();
         if (ServiceHeader."Document Type" <> ServiceHeader."Document Type"::"Credit Memo") or
-           (GeneralLedgerSetup."Payment Discount Type" = GeneralLedgerSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines")
+           GeneralLedgerSetup.ShouldCalculatePaymentDiscountOnLines()
         then
             if (ServiceHeader."Payment Terms Code" <> '') and (ServiceHeader."Document Date" <> 0D) then begin
                 PaymentTerms.Get(ServiceHeader."Payment Terms Code");
@@ -215,7 +215,7 @@ codeunit 10789 "Service Posting Subscr. ES"
     begin
         GeneralLedgerSetup.GetRecordOnce();
         if (ServiceHeader."Document Type" <> ServiceHeader."Document Type"::"Credit Memo") or
-           (GeneralLedgerSetup."Payment Discount Type" = GeneralLedgerSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines")
+           GeneralLedgerSetup.ShouldCalculatePaymentDiscountOnLines()
         then
             if (ServiceHeader."Payment Terms Code" <> '') and (ServiceHeader."Document Date" <> 0D) then begin
                 PaymentTerms.Get(ServiceHeader."Payment Terms Code");

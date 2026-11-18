@@ -2740,7 +2740,7 @@ codeunit 22 "Item Jnl.-Post Line"
                 end;
         end;
 
-        if GLSetup."Payment Discount Type" = GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines" then
+        if GLSetup.ShouldCalculatePaymentDiscountOnLines() then
             if (ValueEntry."Discount Amount" <> 0) and (ItemJnlLine."Item Charge No." <> '') then
                 case ItemJnlLine."Entry Type" of
                     ItemJnlLine."Entry Type"::Sale:

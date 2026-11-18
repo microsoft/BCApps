@@ -136,7 +136,7 @@ table 252 "General Posting Setup"
                 CheckGLAcc("Sales Pmt. Disc. Debit Acc.");
                 if "Sales Pmt. Disc. Debit Acc." <> '' then begin
                     GLSetup.Get();
-                    GLSetup.TestField("Payment Discount Type", GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines");
+                    GLSetup.CheckPaymentDiscountPosting();
                 end;
             end;
         }
@@ -226,7 +226,7 @@ table 252 "General Posting Setup"
                 CheckGLAcc("Purch. Pmt. Disc. Credit Acc.");
                 if "Purch. Pmt. Disc. Credit Acc." <> '' then begin
                     GLSetup.Get();
-                    GLSetup.TestField("Payment Discount Type", GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines");
+                    GLSetup.CheckPaymentDiscountPosting();
                 end;
             end;
         }
@@ -363,7 +363,7 @@ table 252 "General Posting Setup"
                 CheckGLAcc("Sales Pmt. Disc. Credit Acc.");
                 if "Sales Pmt. Disc. Credit Acc." <> '' then begin
                     GLSetup.Get();
-                    GLSetup.TestField("Payment Discount Type", GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines");
+                    GLSetup.CheckPaymentDiscountPosting();
                 end;
             end;
         }
@@ -382,7 +382,7 @@ table 252 "General Posting Setup"
                 CheckGLAcc("Purch. Pmt. Disc. Debit Acc.");
                 if "Purch. Pmt. Disc. Debit Acc." <> '' then begin
                     GLSetup.Get();
-                    GLSetup.TestField("Payment Discount Type", GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines");
+                    GLSetup.CheckPaymentDiscountPosting();
                 end;
             end;
         }
@@ -401,7 +401,7 @@ table 252 "General Posting Setup"
                 CheckGLAcc("Sales Pmt. Tol. Debit Acc.");
                 if "Purch. Pmt. Disc. Debit Acc." <> '' then begin
                     GLSetup.Get();
-                    GLSetup.TestField("Payment Discount Type", GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines");
+                    GLSetup.CheckPaymentDiscountPosting();
                 end;
             end;
         }
@@ -420,7 +420,7 @@ table 252 "General Posting Setup"
                 CheckGLAcc("Sales Pmt. Tol. Credit Acc.");
                 if "Purch. Pmt. Disc. Debit Acc." <> '' then begin
                     GLSetup.Get();
-                    GLSetup.TestField("Payment Discount Type", GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines");
+                    GLSetup.CheckPaymentDiscountPosting();
                 end;
             end;
         }
@@ -439,7 +439,7 @@ table 252 "General Posting Setup"
                 CheckGLAcc("Purch. Pmt. Tol. Debit Acc.");
                 if "Purch. Pmt. Disc. Debit Acc." <> '' then begin
                     GLSetup.Get();
-                    GLSetup.TestField("Payment Discount Type", GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines");
+                    GLSetup.CheckPaymentDiscountPosting();
                 end;
             end;
         }
@@ -458,7 +458,7 @@ table 252 "General Posting Setup"
                 CheckGLAcc("Purch. Pmt. Tol. Credit Acc.");
                 if "Purch. Pmt. Disc. Debit Acc." <> '' then begin
                     GLSetup.Get();
-                    GLSetup.TestField("Payment Discount Type", GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines");
+                    GLSetup.CheckPaymentDiscountPosting();
                 end;
             end;
         }
