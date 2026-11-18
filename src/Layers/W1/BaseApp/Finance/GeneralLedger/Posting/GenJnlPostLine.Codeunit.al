@@ -1329,80 +1329,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
             DtldCustLedgEntry.LockTable();
             CustLedgEntry.LockTable();
-            OnPostCustOnBeforeInitCustLedgEntry(GenJournalLine, CustLedgEntry, CVLedgEntryBuf, TempDtldCVLedgEntryBuf, CustPostingGr);
-            InitCustLedgEntry(GenJournalLine, CustLedgEntry);
-            OnPostCustOnAfterInitCustLedgEntry(GenJournalLine, CustLedgEntry, Cust, CustPostingGr);
-            if not Cust."Block Payment Tolerance" then
-                CalcPmtTolerancePossible(
-                    GenJournalLine, CustLedgEntry."Pmt. Discount Date", CustLedgEntry."Pmt. Disc. Tolerance Date",
-                    CustLedgEntry."Max. Payment Tolerance");
-
-            TempDtldCVLedgEntryBuf.DeleteAll();
-            TempDtldCVLedgEntryBuf.Init();
-            OnPostCustOnBeforeTempDtldCVLedgEntryBufCopyFromGenJnlLine(GenJournalLine, CustLedgEntry, Cust, GLReg, CVLedgEntryBuf);
-            TempDtldCVLedgEntryBuf.CopyFromGenJnlLine(GenJournalLine);
-            OnPostCustOnAfterTempDtldCVLedgEntryBufCopyFromGenJnlLine(GenJournalLine, TempDtldCVLedgEntryBuf);
-            TempDtldCVLedgEntryBuf."CV Ledger Entry No." := CustLedgEntry."Entry No.";
-            OnPostCustOnBeforeCopyFromCustLedgEntry(CVLedgEntryBuf, GenJournalLine, Cust);
-            CVLedgEntryBuf.CopyFromCustLedgEntry(CustLedgEntry);
-
-            IsHandled := false;
-            OnPostCustOnBeforeInsertDtldCVLedgEntry(GenJournalLine, TempDtldCVLedgEntryBuf, CVLedgEntryBuf, CustLedgEntry, IsHandled);
-            if not IsHandled then
-                TempDtldCVLedgEntryBuf.InsertDtldCVLedgEntry(TempDtldCVLedgEntryBuf, CVLedgEntryBuf, true);
-            CVLedgEntryBuf.Open := CVLedgEntryBuf."Remaining Amount" <> 0;
-            CVLedgEntryBuf.Positive := CVLedgEntryBuf."Remaining Amount" > 0;
-            OnPostCustOnAfterCopyCVLedgEntryBuf(CVLedgEntryBuf, GenJournalLine, Cust, CustLedgEntry, TempDtldCVLedgEntryBuf);
-
-            CalcPmtDiscPossible(GenJournalLine, CVLedgEntryBuf);
-            if GenJournalLine."Currency Code" <> '' then begin
-                GenJournalLine.TestField("Currency Factor");
-                CVLedgEntryBuf."Original Currency Factor" := GenJournalLine."Currency Factor"
+            if InstallmentPosting.PreparePosting(GenJournalLine, Balancing, TempPlanLine) then begin
+                InstallmentCount := TempPlanLine.Count();
+                repeat
+                    InstallmentPosting.SetJournalLine(GenJournalLine, TempPlanLine, InstallmentGenJournalLine);
+                    Clear(CustLedgEntry);
+                    PostCustEntry(
+                        InstallmentGenJournalLine, Cust, CustPostingGr, SalesSetup, CustLedgEntry,
+                        TempPlanLine, InstallmentCount, TempPlanLine."Installment No." = 1);
+                    InstallmentPosting.RecordPostedLine(TempPlanLine, CustLedgEntry, InstallmentCount);
+                until TempPlanLine.Next() = 0;
+                InstallmentPosting.CompletePosting(GenJournalLine, InstallmentCount);
             end else
-                CVLedgEntryBuf."Original Currency Factor" := 1;
-            CVLedgEntryBuf."Adjusted Currency Factor" := CVLedgEntryBuf."Original Currency Factor";
-            OnPostCustOnAfterAssignCurrencyFactors(CVLedgEntryBuf, GenJournalLine);
-
-            // Check the document no.
-            if GenJournalLine."Recurring Method" = GenJournalLine."Recurring Method"::" " then begin
-                ShouldCheckDocNo := IsNotPayment(GenJournalLine."Document Type");
-                OnPostCustOnAfterCalcShouldCheckDocNo(GenJournalLine, ShouldCheckDocNo);
-                if ShouldCheckDocNo then begin
-                    GenJnlCheckLine.CheckSalesDocNoIsNotUsed(GenJournalLine);
-                    CheckSalesExtDocNo(GenJournalLine);
-                end;
-            end;
-
-            // Post application
-            ApplyCustLedgEntry(CVLedgEntryBuf, TempDtldCVLedgEntryBuf, GenJournalLine, Cust);
-
-            // Post customer entry
-            CustLedgEntry.CopyFromCVLedgEntryBuffer(CVLedgEntryBuf);
-            IsHandled := false;
-            OnPostCustOnBeforeResetCustLedgerEntryAppliesToFields(CustLedgEntry, IsHandled);
-            if not IsHandled then begin
-                CustLedgEntry."Amount to Apply" := 0;
-                CustLedgEntry."Applies-to Doc. No." := '';
-                CustLedgEntry."Applies-to ID" := '';
-            end;
-            if SalesSetup."Copy Customer Name to Entries" then
-                CustLedgEntry."Customer Name" := Cust.Name;
-            CustLedgEntry."G/L Register No." := GLReg."No.";
-            CustLedgEntry.TestField("G/L Register No.");
-            OnBeforeCustLedgEntryInsert(CustLedgEntry, GenJournalLine, GLReg, TempDtldCVLedgEntryBuf, NextEntryNo);
-            CustLedgEntry.Insert(true);
-
-            CustLedgEntry.CopyLinks(GenJournalLine);
-
-            // Post detailed customer entries
-            DtldLedgEntryInserted := PostDtldCustLedgEntries(GenJournalLine, TempDtldCVLedgEntryBuf, CustPostingGr, true);
-
-            OnAfterCustLedgEntryInsert(CustLedgEntry, GenJournalLine, DtldLedgEntryInserted, PreviewMode);
-            // Post Reminder Terms - Note About Line Fee on Report
-            LineFeeNoteOnReportHist.Save(CustLedgEntry);
-            if DtldLedgEntryInserted then
-                if IsTempGLEntryBufEmpty() then
-                    DtldCustLedgEntry.SetZeroTransNo(NextTransactionNo);
+                PostCustEntry(GenJournalLine, Cust, CustPostingGr, SalesSetup, CustLedgEntry, TempPlanLine, 0, true);
 
             DeferralPosting(GenJournalLine."Deferral Code", GenJournalLine."Source Code", ReceivablesAccount, GenJournalLine, Balancing);
 
@@ -8869,8 +8808,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
             else
                 exit(GenJnlLine."Source Currency Amount");
         end else
-            if (GenJnlLine."Source Currency amount" <> (GenJnlLine.Amount - GenJnlLine."VAT Amount")) and (GenJnlLine."Source Currency Amount" <> 0) then
-                exit(GenJnlLine."Source Currency amount")
+            if (GenJnlLine."Source Currency Amount" <> (GenJnlLine.Amount - GenJnlLine."VAT Amount")) and (GenJnlLine."Source Currency Amount" <> 0) then
+                exit(GenJnlLine."Source Currency Amount")
             else
                 exit(GenJnlLine.Amount - GenJnlLine."VAT Amount");
     end;
