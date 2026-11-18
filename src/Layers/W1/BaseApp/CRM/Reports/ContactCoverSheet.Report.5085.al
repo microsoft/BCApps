@@ -18,7 +18,11 @@ report 5085 "Contact Cover Sheet"
     Caption = 'Contact Cover Sheet';
     PreviewMode = PrintLayout;
     WordMergeDataItem = TempSegmentLine;
+#if not CLEAN30
     DefaultRenderingLayout = WordLayout;
+#else
+    DefaultRenderingLayout = WordLayoutBody;
+#endif
 
     dataset
     {
@@ -292,4 +296,3 @@ report 5085 "Contact Cover Sheet"
         RunFromSegment := true;
     end;
 }
-
