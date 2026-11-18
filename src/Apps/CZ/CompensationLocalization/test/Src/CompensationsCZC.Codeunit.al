@@ -1,3 +1,15 @@
+namespace Microsoft.Finance.Compensations;
+
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Setup;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
+using Microsoft.Sales.Setup;
+using System.TestLibraries.Utilities;
+
 codeunit 148090 "Compensations CZC"
 {
     Subtype = Test;
