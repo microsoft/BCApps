@@ -67,6 +67,12 @@ codeunit 6974 "Cancel Posted Expense Report"
         if PostedExpenseReportHeader.Canceled then
             Error(AlreadyCanceledErr, PostedExpenseReportHeader."No.");
 
+        CorpCardPostMgt.LockPostedReportTransactions(PostedExpenseReportHeader."No.");
+        PostedExpenseReportHeader.LockTable();
+        PostedExpenseReportHeader.Get(PostedExpenseReportHeader."No.");
+        if PostedExpenseReportHeader.Canceled then
+            Error(AlreadyCanceledErr, PostedExpenseReportHeader."No.");
+
         ReversalTransactionNo := ReverseGLTransaction(PostedExpenseReportHeader);
 
         PostedExpenseReportLine.LockTable();

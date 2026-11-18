@@ -1437,6 +1437,7 @@ table 36 "Sales Header"
             trigger OnValidate()
             var
                 Customer: Record Customer;
+                CustomerToValidate: Record Customer;
                 VATRegistrationLog: Record "VAT Registration Log";
                 VATRegistrationNoFormat: Record "VAT Registration No. Format";
                 VATRegNoSrvConfig: Record "VAT Reg. No. Srv Config";
@@ -1473,7 +1474,6 @@ table 36 "Sales Header"
                 if not VATRegistrationNoFormat.Test("VAT Registration No.", ApplicableCountryCode, Customer."No.", DATABASE::Customer) then
                     exit;
 
-                ApplicableCountryCode := Customer."Country/Region Code";
                 if ApplicableCountryCode = '' then
                     ApplicableCountryCode := VATRegistrationNoFormat."Country/Region Code";
 
@@ -1485,8 +1485,11 @@ table 36 "Sales Header"
                     exit;
                 end;
 
+                // Validate the number entered on the document, not the one stored on the customer card.
+                CustomerToValidate := Customer;
+                CustomerToValidate."VAT Registration No." := "VAT Registration No.";
                 VATRegistrationLogMgt.CheckVIESForVATNo(
-                    ResultRecRef, VATRegistrationLog, Customer, Customer."No.",
+                    ResultRecRef, VATRegistrationLog, CustomerToValidate, Customer."No.",
                     ApplicableCountryCode, VATRegistrationLog."Account Type"::Customer.AsInteger());
 
                 if VATRegistrationLog.Status = VATRegistrationLog.Status::Valid then begin
@@ -2731,7 +2734,7 @@ table 36 "Sales Header"
         /// <summary>
         /// Specifies the entry number of the incoming document that created this sales document.
         /// </summary>
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             ToolTip = 'Specifies the number of the incoming document that this sales document is created for.';
@@ -6365,7 +6368,7 @@ table 36 "Sales Header"
         OnAfterGetStatusStyleText(Rec, StatusStyleText);
     end;
 
-    local procedure CreateTempAdjmtValueEntries(var TempValueEntry: Record "Value Entry" temporary; ItemLedgEntryNo: Integer)
+    local procedure CreateTempAdjmtValueEntries(var TempValueEntry: Record "Value Entry" temporary; ItemLedgEntryNo: BigInteger)
     var
         ValueEntry: Record "Value Entry";
     begin

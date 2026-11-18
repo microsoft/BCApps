@@ -22,6 +22,8 @@ codeunit 6980 "Release Expense Document"
         Expense: Record Expense;
 
     local procedure "Code"()
+    var
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
         if Expense.Status = Expense.Status::Released then
             exit;
@@ -33,6 +35,7 @@ codeunit 6980 "Release Expense Document"
             Expense.TestField("Job Task No.");
 
         Expense.ApplyRule(false, true);
+        CorpCardSelectionMgt.ValidateExpenseCard(Expense, true);
 
         Expense.Status := Expense.Status::Released;
         Expense.Modify(true);
