@@ -518,7 +518,7 @@ page 6996 "Expense Agent Setup"
                     Caption = 'Apply default settings';
                     Image = SetupPayment;
                     ToolTip = 'Applies all default settings (number series, payment methods, posting groups, expense categories and subcategories, expense locations, and management rules) for the expense agent. Defaults that have already been applied are skipped.';
-                    Enabled = not (Rec."No. Series Applied" and Rec."Posting Groups Applied" and Rec."Exp. Categories Applied" and Rec."Exp. Locations Applied" and Rec."Management Rules Applied");
+                    Enabled = not (Rec."No. Series Applied" and Rec."Posting Groups Applied" and Rec."Exp. Categories Applied" and Rec."Exp. Locations Applied" and Rec."Management Rules Applied") or (Rec."Expense Vendor Nos." = '');
 
                     trigger OnAction()
                     begin

@@ -93,11 +93,11 @@ page 6991 "Expense Agent Setup Wizard"
 
                     group(WebAppAccessSection)
                     {
-                        Caption = 'Enable access via web';
+                        Caption = 'Enable access via web and mobile app';
                         field(EnableWebAppAccess; true)
                         {
                             ShowCaption = false;
-                            ToolTip = 'Specifies whether registered users can submit and review expenses through the Expense app.';
+                            ToolTip = 'Specifies whether registered users can submit and review expenses through the Expense web app and the Expense mobile app.';
                             Editable = false;
                         }
                         field(ExpenseDashboardLink; ExpenseDashboardLinkTxt)
@@ -1331,7 +1331,10 @@ page 6991 "Expense Agent Setup Wizard"
         if not ExpenseAgentSetup.Get() then
             exit;
         if ApplyNoSeries and not NoSeriesLocked then
-            ExpenseAgentSetup.CreateNoSeriesDefaults();
+            ExpenseAgentSetup.CreateNoSeriesDefaults()
+        else
+            if ExpenseAgentSetup."No. Series Applied" then
+                ExpenseAgentSetup.EnsureExpenseVendorNoSeries();
         if ApplyPaymentMethods and not PaymentMethodsLocked then
             ExpenseAgentSetup.CreatePaymentMethodsDefaults();
         if ApplyPostingGroups and not PostingGroupsLocked then
