@@ -1566,6 +1566,10 @@
         CustLedgerEntry: Record "Cust. Ledger Entry";
         GenJournalLine: Record "Gen. Journal Line";
         VATEntry: Record "VAT Entry";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        CreditMemoVATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]];
+        CreditMemoAmount: Decimal;
+        CreditMemoAmountsLoaded: Boolean;
         CreditMemoDocumentNo: Code[20];
         InvoiceVATBusPostingGroup: Code[20];
         InvoiceVATProdPostingGroup: Code[20];
@@ -1608,15 +1612,17 @@
             VATEntry.Insert();
         end;
 
-        // [WHEN] The first credit memo group exactly matches an invoice group.
+        // [GIVEN] Both invoice and credit memo groups are cached by an exact mapping.
         Assert.IsTrue(
           CustLedgerEntry.GetInvoiceVATPostingGroupForCreditMemoVATGroup(
             CreditMemoDocumentNo, VATPostingSetup[1]."VAT Bus. Posting Group", VATPostingSetup[1]."VAT Prod. Posting Group",
-            InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup, TempDocumentVATPostingSetup, InvoiceVATGroupsLoaded),
+            InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup, TempDocumentVATPostingSetup, InvoiceVATGroupsLoaded,
+            CreditMemoVATGroupAmounts, CreditMemoAmount, CreditMemoAmountsLoaded),
           'The exact journal invoice VAT group must be found');
 
-        // [THEN] Both groups are cached, and their original amounts are used rather than the whole invoice or remaining amounts.
+        // [GIVEN] Both invoice groups and the credit memo amounts are loaded, with the original invoice amounts.
         Assert.IsTrue(InvoiceVATGroupsLoaded, 'An exact match must also load the operation-scoped invoice groups');
+        Assert.IsTrue(CreditMemoAmountsLoaded, 'The operation-scoped credit memo amounts must also be loaded');
         Assert.RecordCount(TempDocumentVATPostingSetup, 2);
         Assert.AreEqual(VATPostingSetup[1]."VAT Prod. Posting Group", InvoiceVATProdPostingGroup, 'The exact match must take priority');
         Assert.AreEqual(
@@ -1630,20 +1636,23 @@
             InvoiceVATPostingSetup[2]."VAT Bus. Posting Group", InvoiceVATPostingSetup[2]."VAT Prod. Posting Group"),
           'The second group amount must include its original VAT and base');
 
-        // [GIVEN] The invoice VAT entries are removed to detect a repeated read instead of cache reuse.
+        // [GIVEN] Invoice VAT entries and credit memo lines are removed to detect any repeated read instead of cache reuse.
         VATEntry.Reset();
         VATEntry.SetRange("Transaction No.", CustLedgerEntry."Transaction No.");
         VATEntry.SetRange("Document No.", CustLedgerEntry."Document No.");
         VATEntry.DeleteAll();
+        SalesCrMemoLine.SetRange("Document No.", CreditMemoDocumentNo);
+        SalesCrMemoLine.DeleteAll();
 
         // [WHEN] The next credit memo group has a different but equivalent invoice group.
         Assert.IsTrue(
           CustLedgerEntry.GetInvoiceVATPostingGroupForCreditMemoVATGroup(
             CreditMemoDocumentNo, VATPostingSetup[2]."VAT Bus. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group",
-            InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup, TempDocumentVATPostingSetup, InvoiceVATGroupsLoaded),
+            InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup, TempDocumentVATPostingSetup, InvoiceVATGroupsLoaded,
+            CreditMemoVATGroupAmounts, CreditMemoAmount, CreditMemoAmountsLoaded),
           'The equivalent journal invoice VAT group must be found in the cache');
 
-        // [THEN] The mapping reuses the cached second group without reloading invoice data.
+        // [THEN] The mapping reuses the cached second group without reloading invoice or credit memo data.
         Assert.AreEqual(
           InvoiceVATPostingSetup[2]."VAT Bus. Posting Group", InvoiceVATBusPostingGroup, 'The cached VAT business group must match');
         Assert.AreEqual(

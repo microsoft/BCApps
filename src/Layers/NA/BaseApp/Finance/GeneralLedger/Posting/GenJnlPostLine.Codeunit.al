@@ -4705,7 +4705,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         then
             if not CustLedgEntry2.GetInvoiceVATPostingGroupForCreditMemoVATGroup(
                  CreditMemoDocumentNo, TempAppliedVATPostingSetup."VAT Bus. Posting Group", TempAppliedVATPostingSetup."VAT Prod. Posting Group",
-                 InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded)
+                 InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded,
+                 CreditMemoVATGroupAmounts, CreditMemoTotalAmount, CreditMemoAmountsLoaded)
             then
                 exit;
         PaidAmount := CustLedgEntry2."Amount (LCY)" - CustLedgEntry2."Remaining Amt. (LCY)";
