@@ -32,6 +32,7 @@ codeunit 148323 "WHT Employee Threshold Tests"
         LibraryHumanResource: Codeunit "Library - Human Resource";
         LibraryJournals: Codeunit "Library - Journals";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryWithholdingTax: Codeunit "Library - Withholding Tax";
         IsInitialized: Boolean;
         WrongValueErr: Label 'Wrong value of %1.', Comment = '%1 = field or amount description';
@@ -306,6 +307,81 @@ codeunit 148323 "WHT Employee Threshold Tests"
         VerifyAccumulatedBase(EmployeeNo, 3000);
     end;
 
+    [Test]
+    procedure GroupedWithholdingUsesPostingSetupThreshold()
+    var
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+        ComponentWHTPostingSetup: Record "Withholding Tax Posting Setup";
+        GenJournalLine: array[2] of Record "Gen. Journal Line";
+        WHTEmployeeCalculation: Codeunit "WHT Employee Calculation";
+        WHTEmplGroupTestSubscr: Codeunit "WHT Empl. Group Test Subscr.";
+        EmployeeNo: Code[20];
+        WHTAmount: array[2] of Decimal;
+        WHTBaseAmount: array[2] of Decimal;
+    begin
+        // [SCENARIO 657603] Grouped withholding applies the threshold of the line's posting setup.
+        Initialize();
+
+        // [GIVEN] Total in Period threshold 1,000 with "Tax Only Amount Above Threshold" enabled on the line's posting setup.
+        CreateEmployeeWHTPostingSetup(WHTPostingSetup, "Withholding Calculation Base"::Gross, "Withholding Threshold Base"::"Total Period", true);
+        EmployeeNo := CreateEmployee(WHTPostingSetup);
+
+        // [GIVEN] Withholding tax group with one 20 % component without a threshold.
+        CreateComponentWHTPostingSetup(ComponentWHTPostingSetup, WHTPostingSetup."Wthldg. Tax Bus. Post. Group");
+        WHTEmplGroupTestSubscr.SetWHTGroupCode(CreateWHTGroup(ComponentWHTPostingSetup."Wthldg. Tax Prod. Post. Group"));
+        BindSubscription(WHTEmplGroupTestSubscr);
+
+        // [GIVEN] Grouped lines of 500 and 3,000.
+        CreateEmployeeJournalLine(GenJournalLine[1], WHTPostingSetup, EmployeeNo, LibraryERM.CreateGLAccountNoWithDirectPosting(), true, -500);
+        CreateEmployeeJournalLine(GenJournalLine[2], WHTPostingSetup, EmployeeNo, LibraryERM.CreateGLAccountNoWithDirectPosting(), true, -3000);
+
+        // [WHEN] Calculate employee withholding tax for each line.
+        WHTEmployeeCalculation.CalcEmployeeWHT(GenJournalLine[1], WHTAmount[1], WHTBaseAmount[1]);
+        WHTEmployeeCalculation.CalcEmployeeWHT(GenJournalLine[2], WHTAmount[2], WHTBaseAmount[2]);
+
+        // [THEN] 500 is below the threshold; 3,000 withholds 400 on the taxable base 2,000.
+        Assert.AreEqual(0, WHTAmount[1], StrSubstNo(WrongValueErr, 'withholding tax amount below threshold'));
+        Assert.AreEqual(2000, WHTBaseAmount[2], StrSubstNo(WrongValueErr, 'withholding tax base'));
+        Assert.AreEqual(400, WHTAmount[2], StrSubstNo(WrongValueErr, 'withholding tax amount'));
+
+        UnbindSubscription(WHTEmplGroupTestSubscr);
+    end;
+
+    [Test]
+    procedure ReverseLegacyEntryRemovesTaxableBase()
+    var
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+        WithholdingTaxEntry: Record "Withholding Tax Entry";
+        LastWithholdingTaxEntry: Record "Withholding Tax Entry";
+        WHTEmployeeCalculation: Codeunit "WHT Employee Calculation";
+        EmployeeNo: Code[20];
+    begin
+        // [SCENARIO 657603] Reversing an entry posted before "Threshold Accum. Base Amount" existed removes its taxable base from the period.
+        Initialize();
+
+        // [GIVEN] Total in Period threshold setup and an employee.
+        CreateEmployeeWHTPostingSetup(WHTPostingSetup, "Withholding Calculation Base"::Gross, "Withholding Threshold Base"::"Total Period", false);
+        EmployeeNo := CreateEmployee(WHTPostingSetup);
+
+        // [GIVEN] Legacy withholding entry with taxable base 2,000 and no "Threshold Accum. Base Amount".
+        if LastWithholdingTaxEntry.FindLast() then;
+        WithholdingTaxEntry."Entry No." := LastWithholdingTaxEntry."Entry No." + 1;
+        WithholdingTaxEntry."Party Type" := "Withholding Party Type"::Employee;
+        WithholdingTaxEntry."Employee No." := EmployeeNo;
+        WithholdingTaxEntry."Wthldg. Tax Bus. Post. Group" := WHTPostingSetup."Wthldg. Tax Bus. Post. Group";
+        WithholdingTaxEntry."Wthldg. Tax Prod. Post. Group" := WHTPostingSetup."Wthldg. Tax Prod. Post. Group";
+        WithholdingTaxEntry."Posting Date" := WorkDate();
+        WithholdingTaxEntry."Taxable Base Amount" := 2000;
+        WithholdingTaxEntry.Amount := -400;
+        WithholdingTaxEntry.Insert();
+
+        // [WHEN] Reverse the threshold accumulation of the entry.
+        WHTEmployeeCalculation.ReverseThresholdAccumulator(WithholdingTaxEntry);
+
+        // [THEN] The period accumulator is reduced by the taxable base 2,000.
+        VerifyAccumulatedBase(EmployeeNo, -2000);
+    end;
+
     local procedure Initialize()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -347,6 +423,33 @@ codeunit 148323 "WHT Employee Threshold Tests"
         WHTPostingSetup.Validate("Tax Amount Above Threshold", TaxAmountAboveThreshold);
         WHTPostingSetup.Validate("Payable Wthldg. Tax Acc. Code", LibraryERM.CreateGLAccountNoWithDirectPosting());
         WHTPostingSetup.Modify(true);
+    end;
+
+    local procedure CreateComponentWHTPostingSetup(var WHTPostingSetup: Record "Withholding Tax Posting Setup"; WHTBusPostingGroupCode: Code[20])
+    var
+        WHTProductPostingGroup: Record "Wthldg. Tax Prod. Post. Group";
+    begin
+        LibraryWithholdingTax.CreateWHTProductPostingGroup(WHTProductPostingGroup);
+        LibraryWithholdingTax.CreateWHTPostingSetup(WHTPostingSetup, WHTBusPostingGroupCode, WHTProductPostingGroup.Code);
+        WHTPostingSetup.Validate("Withholding Tax %", 20);
+        WHTPostingSetup.Validate("Payable Wthldg. Tax Acc. Code", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        WHTPostingSetup.Modify(true);
+    end;
+
+    local procedure CreateWHTGroup(ComponentProdPostingGroupCode: Code[20]): Code[20]
+    var
+        WithholdingTaxGroup: Record "Withholding Tax Group";
+        WithholdingTaxGroupLine: Record "Withholding Tax Group Line";
+    begin
+        WithholdingTaxGroup.Validate(Code, LibraryUtility.GenerateRandomCode(WithholdingTaxGroup.FieldNo(Code), Database::"Withholding Tax Group"));
+        WithholdingTaxGroup.Insert(true);
+
+        WithholdingTaxGroupLine.Validate("Group Code", WithholdingTaxGroup.Code);
+        WithholdingTaxGroupLine.Validate("Line No.", 10000);
+        WithholdingTaxGroupLine.Validate("Wthldg. Tax Prod. Post. Group", ComponentProdPostingGroupCode);
+        WithholdingTaxGroupLine.Validate("Component Order", 1);
+        WithholdingTaxGroupLine.Insert(true);
+        exit(WithholdingTaxGroup.Code);
     end;
 
     local procedure CreateEmployee(WHTPostingSetup: Record "Withholding Tax Posting Setup"): Code[20]
