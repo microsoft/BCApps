@@ -1,6 +1,8 @@
 codeunit 135519 "IRS 1099 Code Entity E2E Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -26,10 +28,11 @@ codeunit 135519 "IRS 1099 Code Entity E2E Test"
 
         // [GIVEN] IRS1099FormBox endpoint
         // [WHEN] The user makes a GET request to the endpoint for the IRS1099FormBox.
-        TargetURL := StrSubstNo('%1/%2', GetUrl(CLIENTTYPE::Api, CompanyName), ServiceNameTxt);
-        asserterror LibraryGraphMgt.GetFromWebService(Responsetext, TargetURL);
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(GetUrl(CLIENTTYPE::Api, CompanyName), '/' + ServiceNameTxt);
+        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(Responsetext, TargetURL, 404);
 
-        // [THEN] The response is empty.
+        // [THEN] The endpoint is not found and the response is empty.
+        Assert.ExpectedError('Response code is 404 (NotFound)');
         Assert.AreEqual('', Responsetext, 'GET response in W1 must be empty.');
     end;
 

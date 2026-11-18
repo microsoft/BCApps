@@ -339,12 +339,17 @@ page 9219 "Purch. Budget Overview Matrix"
     end;
 
     trigger OnFindRecord(Which: Text): Boolean
+    var
+        Found: Boolean;
     begin
-        exit(
+        OnBeforeOnFindRecord(ItemBudgetName);
+        Found :=
           ItemBudgetManagement.FindRecord(
             ItemBudgetName, LineDimType, Rec, Which,
             ItemFilter, SourceNoFilter, PeriodType, DateFilter, PeriodInitialized, InternalDateFilter,
-            GlobalDim1Filter, GlobalDim2Filter, BudgetDim1Filter, BudgetDim2Filter, BudgetDim3Filter));
+            GlobalDim1Filter, GlobalDim2Filter, BudgetDim1Filter, BudgetDim2Filter, BudgetDim3Filter);
+        OnAfterOnFindRecord(ItemBudgetName);
+        exit(Found);
     end;
 
     trigger OnInit()
@@ -354,12 +359,17 @@ page 9219 "Purch. Budget Overview Matrix"
     end;
 
     trigger OnNextRecord(Steps: Integer): Integer
+    var
+        ResultSteps: Integer;
     begin
-        exit(
+        OnBeforeOnNextRecord(ItemBudgetName);
+        ResultSteps :=
           ItemBudgetManagement.NextRecord(
             ItemBudgetName, LineDimType, Rec, Steps,
             ItemFilter, SourceNoFilter, PeriodType, DateFilter,
-            GlobalDim1Filter, GlobalDim2Filter, BudgetDim1Filter, BudgetDim2Filter, BudgetDim3Filter));
+            GlobalDim1Filter, GlobalDim2Filter, BudgetDim1Filter, BudgetDim2Filter, BudgetDim3Filter);
+        OnAfterOnNextRecord(ItemBudgetName);
+        exit(ResultSteps);
     end;
 
     trigger OnOpenPage()
@@ -541,9 +551,28 @@ page 9219 "Purch. Budget Overview Matrix"
         exit(RoundingFactorFormatString);
     end;
 
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnFindRecord(var ItemBudgetName: Record "Item Budget Name")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterOnFindRecord(var ItemBudgetName: Record "Item Budget Name")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnNextRecord(var ItemBudgetName: Record "Item Budget Name")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterOnNextRecord(var ItemBudgetName: Record "Item Budget Name")
+    begin
+    end;
+
     [IntegrationEvent(true, false)]
     local procedure OnBeforeDrillDown(var DimensionCodeBuffer: Record "Dimension Code Buffer"; var OnlyLines: Boolean; var ValueType: Option "Sales Amount","Cost Amount",Quantity)
     begin
     end;
 }
-

@@ -5,8 +5,6 @@
 
 namespace Microsoft.DataMigration;
 
-using System.Environment;
-
 codeunit 40024 "Tenant Media Warning" implements "Cloud Migration Warning"
 {
     var
@@ -16,12 +14,16 @@ codeunit 40024 "Tenant Media Warning" implements "Cloud Migration Warning"
     procedure CheckWarning(): Boolean
     var
         HybridCompanyStatus: Record "Hybrid Company Status";
-        TenantMedia: Record "Tenant Media";
+        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
+        TenantMediaCount: Integer;
     begin
         if not HybridCompanyStatus.Get() then
             exit(false);
 
-        if TenantMedia.Count() < HybridCompanyStatus."Tenant Media Count" then
+        if not HybridCloudManagement.GetTenantMediaCount(TenantMediaCount) then
+            exit(false);
+
+        if TenantMediaCount < HybridCompanyStatus."Tenant Media Count" then
             exit(true);
 
         exit(false);

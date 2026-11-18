@@ -764,11 +764,7 @@ report 10792 "Service Invoice (ES)"
 
                 trigger OnPreDataItem()
                 begin
-#if not CLEAN27
-                    NoOfLoops := Abs(NoOfCopies) + Cust."Invoice Copies" + 1;
-#else
                     NoOfLoops := Abs(NoOfCopies) + 1;
-#endif
                     if NoOfLoops <= 0 then
                         NoOfLoops := 1;
                     CopyText := '';

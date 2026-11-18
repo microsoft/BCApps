@@ -11,7 +11,7 @@ codeunit 20353 "Connectivity Apps Logo Mgt."
 
     var
         CatalogApiUrlLbl: Label 'https://catalogapi.azure.com/products/PUBID.%1|AID.%2|PAPPID.%3?market=US&api-version=2023-05-01-preview&language=en', Locked = true;
-        IncorrectAppSourceUrlLbl: Label '%1 is not a correct AppSource URL.', Locked = true, Comment = '%1 = App source URL';
+        IncorrectAppSourceUrlLbl: Label '%1 is not a correct Marketplace URL.', Locked = true, Comment = '%1 = App source URL';
         LogoDownloadFailedLbl: Label 'Logo download failed from Catalog API for PUBID.%1|AID.%2|PAPPID.%3', Locked = true, Comment = '%1 = Publisher ID, %2 = App ID, %3 = Plan App ID';
         TelemetryCategoryLbl: Label 'Connectivity Apps', Locked = true;
         CatalogApiKeyVaultSecretNameLbl: Label 'MarketplaceCatalogApi-Key', Locked = true;

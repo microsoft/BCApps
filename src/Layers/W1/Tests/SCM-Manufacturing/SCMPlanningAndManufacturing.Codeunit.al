@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Test;
 
 using Microsoft.Assembly.Document;
 using Microsoft.Foundation.Calendar;
+using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
@@ -16,6 +17,7 @@ using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Forecast;
@@ -28,6 +30,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Setup;
 using Microsoft.Service.Test;
@@ -81,6 +84,13 @@ codeunit 137080 "SCM Planning And Manufacturing"
         ErrorsWhenPlanningMsg: Label 'Not all items were planned.';
         OnlyOneRecordErr: Label 'Only one record is expected.';
         BinCodesNotEqualErr: Label 'Bin Codes are not equal.';
+        ImpactMissingProdOrderErr: Label 'Impact list does not contain Prod. Order %1 line %2.', Comment = '%1 = Prod. Order No., %2 = Line No.';
+        ImpactUnexpectedProdOrderErr: Label 'Impact list unexpectedly contains Prod. Order %1 line %2.', Comment = '%1 = Prod. Order No., %2 = Line No.';
+        ImpactMissingTransferLineErr: Label 'Impact list does not contain Transfer Order %1 line %2.', Comment = '%1 = Transfer Order No., %2 = Line No.';
+        ImpactUnexpectedSalesLineErr: Label 'Impact list unexpectedly contains Sales Order %1 line %2.', Comment = '%1 = Sales Order No., %2 = Line No.';
+        CannotFindImpactedDocumentsErr: Label 'Cannot find impacted documents. Please make sure the document line you are simulating on has reservations and try again.';
+        ExpectedCheckProdOrderStatusWarningErr: Label 'Expected Check Prod. Order Status warning to be displayed once.';
+        CheckProdOrderStatusWarningCount: Integer;
 
     [Test]
     [Scope('OnPrem')]
@@ -2556,6 +2566,577 @@ codeunit 137080 "SCM Planning And Manufacturing"
     end;
 
     [Test]
+    procedure WhatIfQuantityChangeOnPOShowsOnlyConnectedProdOrderDemand()
+    var
+        Vendor: Record Vendor;
+        ProdItem: Record Item;
+        CompItem: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        ProdOrderLineConnected: Record "Prod. Order Line";
+        ProdOrderLineUncovered: Record "Prod. Order Line";
+        ProdOrderComponentConnected: Record "Prod. Order Component";
+        ProdOrderComponentUncovered: Record "Prod. Order Component";
+        TempWhatIfScenario: Record "Supply What-If Scenario" temporary;
+        TempWhatIfImpact: Record "What-If Impact" temporary;
+        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+    begin
+        // [FEATURE] [AI test 0.4] [What-If Planning] [Supply Planning]
+        // [SCENARIO 636114] What-If quantity reduction on a Purchase Order shows only the directly connected production order demand.
+        Initialize();
+
+        // [GIVEN] Create a component item replenished by Purchase and a parent item replenished by Production.
+        CreatePurchaseReplenishedItem(CompItem);
+        CreateProdReplenishedItem(ProdItem);
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Create a Purchase Order for the component item.
+        CreatePurchaseLineForItem(PurchaseLine, Vendor."No.", CompItem."No.", 100, WorkDate());
+
+        // [GIVEN] Create a Released Production Order for the parent item with its component reserved against the Purchase Order.
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineConnected, ProdOrderComponentConnected, ProdItem."No.", CompItem."No.", 70, CalcDate('<+10D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponentConnected);
+
+        // [GIVEN] Create another Released Production Order for the parent item without reservation.
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineUncovered, ProdOrderComponentUncovered, ProdItem."No.", CompItem."No.", 30, CalcDate('<+10D>', WorkDate()));
+
+        // [GIVEN] Prepare a What-If scenario that reduces the Purchase Order quantity.
+        PrepareWhatIfScenarioForPurchase(TempWhatIfScenario, PurchaseLine, 80, PurchaseLine."Expected Receipt Date");
+
+        // [WHEN] Run the What-If analysis.
+        SupplyWhatIfPlanningEngine.RunWhatIfAnalysis(TempWhatIfScenario, TempWhatIfImpact);
+
+        // [THEN] Only the directly connected Released Production Order is listed in the impact.
+        Assert.AreEqual(1, TempWhatIfImpact.Count(), 'Unexpected number of impact entries.');
+        VerifyImpactContainsProdOrderLine(TempWhatIfImpact, ProdOrderLineConnected);
+    end;
+
+    [Test]
+    procedure WhatIfQuantityChangeOnPOShowsConnectedProdOrderAndTransferOrderDemands()
+    var
+        Vendor: Record Vendor;
+        ProdItem: Record Item;
+        CompItem: Record Item;
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        PurchaseLine: Record "Purchase Line";
+        ProdOrderLineConnected: Record "Prod. Order Line";
+        ProdOrderLineUncovered: Record "Prod. Order Line";
+        ProdOrderComponentConnected: Record "Prod. Order Component";
+        ProdOrderComponentUncovered: Record "Prod. Order Component";
+        TransferLineConnected: Record "Transfer Line";
+        TempWhatIfScenario: Record "Supply What-If Scenario" temporary;
+        TempWhatIfImpact: Record "What-If Impact" temporary;
+        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+    begin
+        // [FEATURE] [AI test 0.4] [What-If Planning] [Supply Planning]
+        // [SCENARIO 636114] What-If quantity reduction on a Purchase Order shows the connected Released Production Order and Transfer Order demands while skipping uncovered demand.
+        Initialize();
+
+        // [GIVEN] Create two locations and an in-transit location for transfers.
+        LibraryWarehouse.CreateTransferLocations(FromLocation, ToLocation, InTransitLocation);
+
+        // [GIVEN] Create a component item replenished by Purchase and a parent item replenished by Production.
+        CreatePurchaseReplenishedItem(CompItem);
+        CreateProdReplenishedItem(ProdItem);
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Create a Purchase Order for the component item at the source location.
+        CreatePurchaseLineForItemAtLocation(PurchaseLine, Vendor."No.", CompItem."No.", 100, WorkDate(), FromLocation.Code);
+
+        // [GIVEN] Create a Released Production Order for the parent item with its component reserved against the Purchase Order.
+        CreateReleasedProdOrderWithSingleCompAtLocation(ProdOrderLineConnected, ProdOrderComponentConnected, ProdItem."No.", CompItem."No.", 70, CalcDate('<+10D>', WorkDate()), FromLocation.Code);
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponentConnected);
+
+        // [GIVEN] Create a Transfer Order for the component item reserved against the Purchase Order.
+        CreateTransferOrderForItem(TransferLineConnected, FromLocation.Code, ToLocation.Code, InTransitLocation.Code, CompItem."No.", 30, CalcDate('<+10D>', WorkDate()));
+        ReserveTransferLineOutboundToPurchaseLine(TransferLineConnected);
+
+        // [GIVEN] Create another Released Production Order for the parent item without reservation.
+        CreateReleasedProdOrderWithSingleCompAtLocation(ProdOrderLineUncovered, ProdOrderComponentUncovered, ProdItem."No.", CompItem."No.", 70, CalcDate('<+10D>', WorkDate()), FromLocation.Code);
+
+        // [GIVEN] Prepare a What-If scenario that reduces the Purchase Order quantity.
+        PrepareWhatIfScenarioForPurchase(TempWhatIfScenario, PurchaseLine, 80, PurchaseLine."Expected Receipt Date");
+
+        // [WHEN] Run the What-If analysis.
+        SupplyWhatIfPlanningEngine.RunWhatIfAnalysis(TempWhatIfScenario, TempWhatIfImpact);
+
+        // [THEN] Both directly connected demands are listed and the uncovered one is not.
+        Assert.AreEqual(2, TempWhatIfImpact.Count(), 'Unexpected number of impact entries.');
+        VerifyImpactContainsProdOrderLine(TempWhatIfImpact, ProdOrderLineConnected);
+        VerifyImpactContainsTransferLine(TempWhatIfImpact, TransferLineConnected);
+        VerifyImpactDoesNotContainProdOrderLine(TempWhatIfImpact, ProdOrderLineUncovered);
+    end;
+
+    [Test]
+    procedure WhatIfQuantityChangeOnPODoesNotShowNextLevelDemand()
+    var
+        Vendor: Record Vendor;
+        Customer: Record Customer;
+        ProdItem: Record Item;
+        CompItem: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        ProdOrderLineConnected1: Record "Prod. Order Line";
+        ProdOrderLineConnected2: Record "Prod. Order Line";
+        ProdOrderComponentConnected1: Record "Prod. Order Component";
+        ProdOrderComponentConnected2: Record "Prod. Order Component";
+        SalesLine1: Record "Sales Line";
+        SalesLine2: Record "Sales Line";
+        TempWhatIfScenario: Record "Supply What-If Scenario" temporary;
+        TempWhatIfImpact: Record "What-If Impact" temporary;
+        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+    begin
+        // [FEATURE] [AI test 0.4] [What-If Planning] [Supply Planning]
+        // [SCENARIO 636114] What-If quantity change on a Purchase Order shows only the directly reserved Released Production Orders and not the next-level Sales Order demand they cover.
+        Initialize();
+
+        // [GIVEN] Create a component item replenished by Purchase and a parent item replenished by Production.
+        CreatePurchaseReplenishedItem(CompItem);
+        CreateProdReplenishedItem(ProdItem);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Create a Purchase Order for the component item.
+        CreatePurchaseLineForItem(PurchaseLine, Vendor."No.", CompItem."No.", 100, WorkDate());
+
+        // [GIVEN] Create two Released Production Orders for the parent item with their components reserved against the Purchase Order.
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineConnected1, ProdOrderComponentConnected1, ProdItem."No.", CompItem."No.", 70, CalcDate('<+10D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponentConnected1);
+
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineConnected2, ProdOrderComponentConnected2, ProdItem."No.", CompItem."No.", 30, CalcDate('<+10D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponentConnected2);
+
+        // [GIVEN] Create two Sales Orders for the parent item reserved against the Released Production Orders.
+        CreateSalesLineForItem(SalesLine1, Customer."No.", ProdItem."No.", 100, CalcDate('<+15D>', WorkDate()));
+        ReserveSalesLineToProdOrder(SalesLine1, ProdOrderLineConnected1);
+        CreateSalesLineForItem(SalesLine2, Customer."No.", ProdItem."No.", 30, CalcDate('<+15D>', WorkDate()));
+        ReserveSalesLineToProdOrder(SalesLine2, ProdOrderLineConnected2);
+
+        // [GIVEN] Prepare a What-If scenario that reduces the Purchase Order quantity.
+        PrepareWhatIfScenarioForPurchase(TempWhatIfScenario, PurchaseLine, 80, PurchaseLine."Expected Receipt Date");
+
+        // [WHEN] Run the What-If analysis.
+        SupplyWhatIfPlanningEngine.RunWhatIfAnalysis(TempWhatIfScenario, TempWhatIfImpact);
+
+        // [THEN] Only the directly connected Released Production Orders are listed and the Sales Orders are not.
+        Assert.AreEqual(2, TempWhatIfImpact.Count(), 'Unexpected number of impact entries.');
+        VerifyImpactContainsProdOrderLine(TempWhatIfImpact, ProdOrderLineConnected1);
+        VerifyImpactContainsProdOrderLine(TempWhatIfImpact, ProdOrderLineConnected2);
+        VerifyImpactDoesNotContainSalesLine(TempWhatIfImpact, SalesLine1);
+        VerifyImpactDoesNotContainSalesLine(TempWhatIfImpact, SalesLine2);
+    end;
+
+    [Test]
+    procedure WhatIfQuantityChangeOnSecondPOLineShowsOnlyDemandsOfThatLine()
+    var
+        Vendor: Record Vendor;
+        ProdItem: Record Item;
+        CompItem: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine1: Record "Purchase Line";
+        PurchaseLine2: Record "Purchase Line";
+        ProdOrderLine1: Record "Prod. Order Line";
+        ProdOrderLine2: Record "Prod. Order Line";
+        ProdOrderLine3: Record "Prod. Order Line";
+        ProdOrderComponent1: Record "Prod. Order Component";
+        ProdOrderComponent2: Record "Prod. Order Component";
+        ProdOrderComponent3: Record "Prod. Order Component";
+        TempWhatIfScenario: Record "Supply What-If Scenario" temporary;
+        TempWhatIfImpact: Record "What-If Impact" temporary;
+        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+    begin
+        // [FEATURE] [AI test 0.4] [What-If Planning] [Supply Planning]
+        // [SCENARIO 636114] What-If quantity change on the second line of a multi-line Purchase Order shows only the demands connected to that line.
+        Initialize();
+
+        // [GIVEN] Create a component item replenished by Purchase and a parent item replenished by Production.
+        CreatePurchaseReplenishedItem(CompItem);
+        CreateProdReplenishedItem(ProdItem);
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Create a Purchase Order with the first line for the component item.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Expected Receipt Date", WorkDate());
+        PurchaseHeader.Modify(true);
+        AddPurchaseLineForItem(PurchaseLine1, PurchaseHeader, CompItem."No.", 100);
+
+        // [GIVEN] Create two Released Production Orders for the parent item with their components reserved against the first Purchase Order line.
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLine1, ProdOrderComponent1, ProdItem."No.", CompItem."No.", 70, CalcDate('<+10D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponent1);
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLine2, ProdOrderComponent2, ProdItem."No.", CompItem."No.", 30, CalcDate('<+10D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponent2);
+
+        // [GIVEN] Add a second Purchase Order line for the component item and create another Released Production Order with its component reserved against the second Purchase Order line.
+        AddPurchaseLineForItem(PurchaseLine2, PurchaseHeader, CompItem."No.", 300);
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLine3, ProdOrderComponent3, ProdItem."No.", CompItem."No.", 70, CalcDate('<+10D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponent3);
+
+        // [GIVEN] Prepare a What-If scenario that reduces the quantity of the second Purchase Order line.
+        PrepareWhatIfScenarioForPurchase(TempWhatIfScenario, PurchaseLine2, 280, PurchaseLine2."Expected Receipt Date");
+
+        // [WHEN] Run the What-If analysis.
+        SupplyWhatIfPlanningEngine.RunWhatIfAnalysis(TempWhatIfScenario, TempWhatIfImpact);
+
+        // [THEN] Only the Released Production Order connected to the second Purchase Order line is listed in the impact.
+        Assert.AreEqual(1, TempWhatIfImpact.Count(), 'Unexpected number of impact entries.');
+        VerifyImpactContainsProdOrderLine(TempWhatIfImpact, ProdOrderLine3);
+        VerifyImpactDoesNotContainProdOrderLine(TempWhatIfImpact, ProdOrderLine1);
+        VerifyImpactDoesNotContainProdOrderLine(TempWhatIfImpact, ProdOrderLine2);
+    end;
+
+    [Test]
+    procedure WhatIfDateChangeOnPOShowsAllConnectedDemands()
+    var
+        Vendor: Record Vendor;
+        ProdItem: Record Item;
+        CompItem: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        ProdOrderLine1: Record "Prod. Order Line";
+        ProdOrderLine2: Record "Prod. Order Line";
+        ProdOrderLineUncovered: Record "Prod. Order Line";
+        ProdOrderComponent1: Record "Prod. Order Component";
+        ProdOrderComponent2: Record "Prod. Order Component";
+        ProdOrderComponentUncovered: Record "Prod. Order Component";
+        TempWhatIfScenario: Record "Supply What-If Scenario" temporary;
+        TempWhatIfImpact: Record "What-If Impact" temporary;
+        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+    begin
+        // [FEATURE] [AI test 0.4] [What-If Planning] [Supply Planning]
+        // [SCENARIO 636114] What-If date push on a Purchase Order shows all directly connected demands and skips uncovered demand.
+        Initialize();
+
+        // [GIVEN] Create a component item replenished by Purchase and a parent item replenished by Production.
+        CreatePurchaseReplenishedItem(CompItem);
+        CreateProdReplenishedItem(ProdItem);
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Create a Purchase Order for the component item with the Expected Receipt Date set to the work date.
+        CreatePurchaseLineForItem(PurchaseLine, Vendor."No.", CompItem."No.", 100, WorkDate());
+
+        // [GIVEN] Create two Released Production Orders for the parent item with their components reserved against the Purchase Order.
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLine1, ProdOrderComponent1, ProdItem."No.", CompItem."No.", 70, CalcDate('<+10D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponent1);
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLine2, ProdOrderComponent2, ProdItem."No.", CompItem."No.", 30, CalcDate('<+10D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponent2);
+
+        // [GIVEN] Create another Released Production Order for the parent item without reservation.
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineUncovered, ProdOrderComponentUncovered, ProdItem."No.", CompItem."No.", 70, CalcDate('<+10D>', WorkDate()));
+
+        // [GIVEN] Prepare a What-If scenario that pushes the Purchase Order Expected Receipt Date later.
+        PrepareWhatIfScenarioForPurchase(TempWhatIfScenario, PurchaseLine, PurchaseLine.Quantity, CalcDate('<+4D>', PurchaseLine."Expected Receipt Date"));
+
+        // [WHEN] Run the What-If analysis.
+        SupplyWhatIfPlanningEngine.RunWhatIfAnalysis(TempWhatIfScenario, TempWhatIfImpact);
+
+        // [THEN] Both directly connected demands are listed and the uncovered demand is not.
+        Assert.AreEqual(2, TempWhatIfImpact.Count(), 'Unexpected number of impact entries.');
+        VerifyImpactContainsProdOrderLine(TempWhatIfImpact, ProdOrderLine1);
+        VerifyImpactContainsProdOrderLine(TempWhatIfImpact, ProdOrderLine2);
+        VerifyImpactDoesNotContainProdOrderLine(TempWhatIfImpact, ProdOrderLineUncovered);
+    end;
+
+    [Test]
+    procedure WhatIfQuantityChangeOnPOAfterDeletingConnectedSalesDemandShowsRelProdOrderWithReservedComponent()
+    var
+        Vendor: Record Vendor;
+        Customer: Record Customer;
+        CompItem: Record Item;
+        ProdItem: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        ProdOrderLineConnected: Record "Prod. Order Line";
+        ProdOrderComponentConnected: Record "Prod. Order Component";
+        SalesLineConnected: Record "Sales Line";
+        SalesLineUncovered: Record "Sales Line";
+        TempWhatIfScenario: Record "Supply What-If Scenario" temporary;
+        TempWhatIfImpact: Record "What-If Impact" temporary;
+        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+    begin
+        // [FEATURE] [AI test 0.4] [What-If Planning] [Supply Planning]
+        // [SCENARIO 636114] After deleting the connected Sales Order demand, the What-If analysis still lists the Released Production Order because its component is reserved against the Purchase Order.
+        Initialize();
+
+        // [GIVEN] Create a component item replenished by Purchase and a parent item replenished by Production.
+        CreatePurchaseReplenishedItem(CompItem);
+        CreateProdReplenishedItem(ProdItem);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Create a Purchase Order for the component item.
+        CreatePurchaseLineForItem(PurchaseLine, Vendor."No.", CompItem."No.", 100, WorkDate());
+
+        // [GIVEN] Create a Released Production Order for the parent item with its component reserved against the Purchase Order.
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineConnected, ProdOrderComponentConnected, ProdItem."No.", CompItem."No.", 100, CalcDate('<+10D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponentConnected);
+
+        // [GIVEN] Create a Sales Order for the parent item reserved against the Released Production Order and an uncovered Sales Order for the same item.
+        CreateSalesLineForItem(SalesLineConnected, Customer."No.", ProdItem."No.", 100, CalcDate('<+15D>', WorkDate()));
+        ReserveSalesLineToProdOrder(SalesLineConnected, ProdOrderLineConnected);
+        CreateSalesLineForItem(SalesLineUncovered, Customer."No.", ProdItem."No.", 200, CalcDate('<+15D>', WorkDate()));
+
+        // [GIVEN] Delete the connected Sales Order so that the Released Production Order and its component reservation against the Purchase Order remain.
+        SalesLineConnected.Delete(true);
+
+        // [GIVEN] Prepare a What-If scenario that reduces the Purchase Order quantity.
+        PrepareWhatIfScenarioForPurchase(TempWhatIfScenario, PurchaseLine, 80, PurchaseLine."Expected Receipt Date");
+
+        // [WHEN] Run the What-If analysis.
+        SupplyWhatIfPlanningEngine.RunWhatIfAnalysis(TempWhatIfScenario, TempWhatIfImpact);
+
+        // [THEN] The Released Production Order is still listed in the impact because its component is reserved against the Purchase Order.
+        Assert.AreEqual(1, TempWhatIfImpact.Count(), 'Unexpected number of impact entries.');
+        VerifyImpactContainsProdOrderLine(TempWhatIfImpact, ProdOrderLineConnected);
+    end;
+
+    [Test]
+    procedure WhatIfQuantityChangeOnPOAfterDeletingOneConnectedProdOrderShowsRemainingConnectedDemand()
+    var
+        Vendor: Record Vendor;
+        ProdItem: Record Item;
+        CompItem: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        ProdOrderLineConnected1: Record "Prod. Order Line";
+        ProdOrderLineConnected2: Record "Prod. Order Line";
+        ProdOrderLineUncovered: Record "Prod. Order Line";
+        ProdOrderComponentConnected1: Record "Prod. Order Component";
+        ProdOrderComponentConnected2: Record "Prod. Order Component";
+        ProdOrderComponentUncovered: Record "Prod. Order Component";
+        ProductionOrderToDelete: Record "Production Order";
+        TempWhatIfScenario: Record "Supply What-If Scenario" temporary;
+        TempWhatIfImpact: Record "What-If Impact" temporary;
+        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+    begin
+        // [FEATURE] [AI test 0.4] [What-If Planning] [Supply Planning]
+        // [SCENARIO 636114] After deleting one connected Released Production Order, the What-If analysis lists only the remaining connected demand.
+        Initialize();
+
+        // [GIVEN] Create a component item replenished by Purchase and a parent item replenished by Production.
+        CreatePurchaseReplenishedItem(CompItem);
+        CreateProdReplenishedItem(ProdItem);
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Create a Purchase Order for the component item.
+        CreatePurchaseLineForItem(PurchaseLine, Vendor."No.", CompItem."No.", 100, WorkDate());
+
+        // [GIVEN] Create two Released Production Orders for the parent item with their components reserved against the Purchase Order, and one uncovered Released Production Order.
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineConnected1, ProdOrderComponentConnected1, ProdItem."No.", CompItem."No.", 70, CalcDate('<+10D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponentConnected1);
+
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineConnected2, ProdOrderComponentConnected2, ProdItem."No.", CompItem."No.", 30, CalcDate('<+10D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponentConnected2);
+
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineUncovered, ProdOrderComponentUncovered, ProdItem."No.", CompItem."No.", 70, CalcDate('<+10D>', WorkDate()));
+
+        // [GIVEN] Delete one of the connected Released Production Orders.
+        ProductionOrderToDelete.Get(ProdOrderLineConnected2.Status, ProdOrderLineConnected2."Prod. Order No.");
+        ProductionOrderToDelete.Delete(true);
+
+        // [GIVEN] Prepare a What-If scenario that reduces the Purchase Order quantity.
+        PrepareWhatIfScenarioForPurchase(TempWhatIfScenario, PurchaseLine, 80, PurchaseLine."Expected Receipt Date");
+
+        // [WHEN] Run the What-If analysis.
+        SupplyWhatIfPlanningEngine.RunWhatIfAnalysis(TempWhatIfScenario, TempWhatIfImpact);
+
+        // [THEN] Only the surviving connected Released Production Order is listed in the impact.
+        Assert.AreEqual(1, TempWhatIfImpact.Count(), 'Unexpected number of impact entries.');
+        VerifyImpactContainsProdOrderLine(TempWhatIfImpact, ProdOrderLineConnected1);
+        VerifyImpactDoesNotContainProdOrderLine(TempWhatIfImpact, ProdOrderLineUncovered);
+    end;
+
+    [Test]
+    procedure WhatIfDateChangeOnPOAfterDeletingConnectedDemandWithUncoveredEarlierDueDate()
+    var
+        Vendor: Record Vendor;
+        ProdItem: Record Item;
+        CompItem: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        ProdOrderLineConnected1: Record "Prod. Order Line";
+        ProdOrderLineConnected2: Record "Prod. Order Line";
+        ProdOrderLineUncovered: Record "Prod. Order Line";
+        ProdOrderComponentConnected1: Record "Prod. Order Component";
+        ProdOrderComponentConnected2: Record "Prod. Order Component";
+        ProdOrderComponentUncovered: Record "Prod. Order Component";
+        ProductionOrderToDelete: Record "Production Order";
+        TempWhatIfScenario: Record "Supply What-If Scenario" temporary;
+        TempWhatIfImpact: Record "What-If Impact" temporary;
+        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+    begin
+        // [FEATURE] [AI test 0.4] [What-If Planning] [Supply Planning]
+        // [SCENARIO 636114] After deleting a connected demand and pushing the Purchase Order date later than the surviving uncovered demand's earlier due date, the impact list shows only the remaining connected demand.
+        Initialize();
+
+        // [GIVEN] Create a component item replenished by Purchase and a parent item replenished by Production.
+        CreatePurchaseReplenishedItem(CompItem);
+        CreateProdReplenishedItem(ProdItem);
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Create a Purchase Order for the component item.
+        CreatePurchaseLineForItem(PurchaseLine, Vendor."No.", CompItem."No.", 100, WorkDate());
+
+        // [GIVEN] Create two Released Production Orders for the parent item at different due dates with their components reserved against the Purchase Order.
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineConnected1, ProdOrderComponentConnected1, ProdItem."No.", CompItem."No.", 70, CalcDate('<+3D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponentConnected1);
+
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineConnected2, ProdOrderComponentConnected2, ProdItem."No.", CompItem."No.", 30, CalcDate('<+7D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponentConnected2);
+
+        // [GIVEN] Create an uncovered Released Production Order for the parent item with an earlier due date than the revised Purchase Order receipt date.
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineUncovered, ProdOrderComponentUncovered, ProdItem."No.", CompItem."No.", 70, CalcDate('<+3D>', WorkDate()));
+
+        // [GIVEN] Delete one of the connected Released Production Orders.
+        ProductionOrderToDelete.Get(ProdOrderLineConnected2.Status, ProdOrderLineConnected2."Prod. Order No.");
+        ProductionOrderToDelete.Delete(true);
+
+        // [GIVEN] Prepare a What-If scenario that pushes the Purchase Order Expected Receipt Date later than the uncovered demand's due date.
+        PrepareWhatIfScenarioForPurchase(TempWhatIfScenario, PurchaseLine, PurchaseLine.Quantity, CalcDate('<+4D>', PurchaseLine."Expected Receipt Date"));
+
+        // [WHEN] Run the What-If analysis.
+        SupplyWhatIfPlanningEngine.RunWhatIfAnalysis(TempWhatIfScenario, TempWhatIfImpact);
+
+        // [THEN] Only the surviving connected Released Production Order is listed in the impact.
+        Assert.AreEqual(1, TempWhatIfImpact.Count(), 'Unexpected number of impact entries.');
+        VerifyImpactContainsProdOrderLine(TempWhatIfImpact, ProdOrderLineConnected1);
+        VerifyImpactDoesNotContainProdOrderLine(TempWhatIfImpact, ProdOrderLineUncovered);
+    end;
+
+    [Test]
+    procedure WhatIfDateChangeOnPOAfterDeletingConnectedDemandWithUncoveredLaterDueDate()
+    var
+        Vendor: Record Vendor;
+        ProdItem: Record Item;
+        CompItem: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        ProdOrderLineConnected1: Record "Prod. Order Line";
+        ProdOrderLineConnected2: Record "Prod. Order Line";
+        ProdOrderLineUncovered: Record "Prod. Order Line";
+        ProdOrderComponentConnected1: Record "Prod. Order Component";
+        ProdOrderComponentConnected2: Record "Prod. Order Component";
+        ProdOrderComponentUncovered: Record "Prod. Order Component";
+        ProductionOrderToDelete: Record "Production Order";
+        TempWhatIfScenario: Record "Supply What-If Scenario" temporary;
+        TempWhatIfImpact: Record "What-If Impact" temporary;
+        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+    begin
+        // [FEATURE] [AI test 0.4] [What-If Planning] [Supply Planning]
+        // [SCENARIO 636114] After deleting a connected demand and pushing the Purchase Order date earlier than the surviving uncovered demand's later due date, the impact list shows only the remaining connected demand.
+        Initialize();
+
+        // [GIVEN] Create a component item replenished by Purchase and a parent item replenished by Production.
+        CreatePurchaseReplenishedItem(CompItem);
+        CreateProdReplenishedItem(ProdItem);
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Create a Purchase Order for the component item.
+        CreatePurchaseLineForItem(PurchaseLine, Vendor."No.", CompItem."No.", 100, WorkDate());
+
+        // [GIVEN] Create two Released Production Orders for the parent item at different due dates with their components reserved against the Purchase Order.
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineConnected1, ProdOrderComponentConnected1, ProdItem."No.", CompItem."No.", 70, CalcDate('<+3D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponentConnected1);
+
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineConnected2, ProdOrderComponentConnected2, ProdItem."No.", CompItem."No.", 30, CalcDate('<+7D>', WorkDate()));
+        ReservePurchaseLineToProdOrderComp(ProdOrderComponentConnected2);
+
+        // [GIVEN] Create an uncovered Released Production Order for the parent item with a later due date than the revised Purchase Order receipt date.
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLineUncovered, ProdOrderComponentUncovered, ProdItem."No.", CompItem."No.", 30, CalcDate('<+10D>', WorkDate()));
+
+        // [GIVEN] Delete one of the connected Released Production Orders.
+        ProductionOrderToDelete.Get(ProdOrderLineConnected2.Status, ProdOrderLineConnected2."Prod. Order No.");
+        ProductionOrderToDelete.Delete(true);
+
+        // [GIVEN] Prepare a What-If scenario that pushes the Purchase Order Expected Receipt Date earlier than the uncovered demand's due date.
+        PrepareWhatIfScenarioForPurchase(TempWhatIfScenario, PurchaseLine, PurchaseLine.Quantity, CalcDate('<+4D>', PurchaseLine."Expected Receipt Date"));
+
+        // [WHEN] Run the What-If analysis.
+        SupplyWhatIfPlanningEngine.RunWhatIfAnalysis(TempWhatIfScenario, TempWhatIfImpact);
+
+        // [THEN] Only the surviving connected Released Production Order is listed in the impact.
+        Assert.AreEqual(1, TempWhatIfImpact.Count(), 'Unexpected number of impact entries.');
+        VerifyImpactContainsProdOrderLine(TempWhatIfImpact, ProdOrderLineConnected1);
+        VerifyImpactDoesNotContainProdOrderLine(TempWhatIfImpact, ProdOrderLineUncovered);
+    end;
+
+    [Test]
+    procedure WhatIfQuantityChangeOnUnconnectedPOWithReceiptBeforeDemandDueDates()
+    var
+        Vendor: Record Vendor;
+        ProdItem: Record Item;
+        CompItem: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        ProdOrderLine1: Record "Prod. Order Line";
+        ProdOrderLine2: Record "Prod. Order Line";
+        ProdOrderComponent1: Record "Prod. Order Component";
+        ProdOrderComponent2: Record "Prod. Order Component";
+        TempWhatIfScenario: Record "Supply What-If Scenario" temporary;
+        TempWhatIfImpact: Record "What-If Impact" temporary;
+        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+    begin
+        // [FEATURE] [AI test 0.4] [What-If Planning] [Supply Planning]
+        // [SCENARIO 636114] What-If quantity change on a Purchase Order with no direct reservation and an Expected Receipt Date earlier than all uncovered demand due dates does not find any impacted documents.
+        Initialize();
+
+        // [GIVEN] Create a component item replenished by Purchase and a parent item replenished by Production.
+        CreatePurchaseReplenishedItem(CompItem);
+        CreateProdReplenishedItem(ProdItem);
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Create a Purchase Order for the component item with the Expected Receipt Date set before all demand due dates.
+        CreatePurchaseLineForItem(PurchaseLine, Vendor."No.", CompItem."No.", 100, WorkDate());
+
+        // [GIVEN] Create two uncovered Released Production Orders for the parent item.
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLine1, ProdOrderComponent1, ProdItem."No.", CompItem."No.", 100, CalcDate('<+3D>', WorkDate()));
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLine2, ProdOrderComponent2, ProdItem."No.", CompItem."No.", 100, CalcDate('<+7D>', WorkDate()));
+
+        // [GIVEN] Prepare a What-If scenario that reduces the Purchase Order quantity.
+        PrepareWhatIfScenarioForPurchase(TempWhatIfScenario, PurchaseLine, 50, PurchaseLine."Expected Receipt Date");
+
+        // [WHEN] Run the What-If analysis.
+        asserterror SupplyWhatIfPlanningEngine.RunWhatIfAnalysis(TempWhatIfScenario, TempWhatIfImpact);
+
+        // [THEN] The engine errors because no impacted documents can be found.
+        Assert.ExpectedError(CannotFindImpactedDocumentsErr);
+    end;
+
+    [Test]
+    procedure WhatIfQuantityChangeOnUnconnectedPOWithReceiptBetweenDemandDueDates()
+    var
+        Vendor: Record Vendor;
+        ProdItem: Record Item;
+        CompItem: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        ProdOrderLine1: Record "Prod. Order Line";
+        ProdOrderLine2: Record "Prod. Order Line";
+        ProdOrderComponent1: Record "Prod. Order Component";
+        ProdOrderComponent2: Record "Prod. Order Component";
+        TempWhatIfScenario: Record "Supply What-If Scenario" temporary;
+        TempWhatIfImpact: Record "What-If Impact" temporary;
+        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+    begin
+        // [FEATURE] [AI test 0.4] [What-If Planning] [Supply Planning]
+        // [SCENARIO 636114] What-If quantity change on a Purchase Order with no direct reservation and an Expected Receipt Date between two uncovered demand due dates does not find any impacted documents.
+        Initialize();
+
+        // [GIVEN] Create a component item replenished by Purchase and a parent item replenished by Production.
+        CreatePurchaseReplenishedItem(CompItem);
+        CreateProdReplenishedItem(ProdItem);
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Create a Purchase Order for the component item with the Expected Receipt Date set between the two demand due dates.
+        CreatePurchaseLineForItem(PurchaseLine, Vendor."No.", CompItem."No.", 100, CalcDate('<+5D>', WorkDate()));
+
+        // [GIVEN] Create two uncovered Released Production Orders for the parent item.
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLine1, ProdOrderComponent1, ProdItem."No.", CompItem."No.", 100, CalcDate('<+3D>', WorkDate()));
+        CreateReleasedProdOrderWithSingleComp(ProdOrderLine2, ProdOrderComponent2, ProdItem."No.", CompItem."No.", 100, CalcDate('<+7D>', WorkDate()));
+
+        // [GIVEN] Prepare a What-If scenario that reduces the Purchase Order quantity.
+        PrepareWhatIfScenarioForPurchase(TempWhatIfScenario, PurchaseLine, 50, PurchaseLine."Expected Receipt Date");
+
+        // [WHEN] Run the What-If analysis.
+        asserterror SupplyWhatIfPlanningEngine.RunWhatIfAnalysis(TempWhatIfScenario, TempWhatIfImpact);
+
+        // [THEN] The engine errors because no impacted documents can be found.
+        Assert.ExpectedError(CannotFindImpactedDocumentsErr);
+    end;
+
+    [Test]
     procedure CarryOutActionMessageCreateReleasedProdOrders()
     var
         Item: Record Item;
@@ -2737,6 +3318,170 @@ codeunit 137080 "SCM Planning And Manufacturing"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('SimpleMessageHandler,SalesOrderPlanningPageHandler,CreateReleasedOrderFromSalesModalPageHandler,CheckProdOrderStatusModalPageHandlerCount')]
+    procedure RevalidateItemNoOnSalesLineWithLinkedProdOrderDoesNotThrowWriteTransactionError()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+        ProdOrder: Record "Production Order";
+        ManufacturingSetup: Record "Manufacturing Setup";
+        OldPlanningWarning: Boolean;
+    begin
+        // [SCENARIO] Re-entering the same manufactured item into Sales Line "No." when a Released Prod. Order is linked does not throw write transaction error.
+        Initialize();
+
+        ManufacturingSetup.Get();
+        OldPlanningWarning := ManufacturingSetup."Planning Warning";
+        ManufacturingSetup.Validate("Planning Warning", true);
+        ManufacturingSetup.Modify(true);
+
+        // [GIVEN] A manufactured item and a sales order with 1 line
+        CreateManufacturedItem(Item);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+
+        // [GIVEN] A Released Production Order linked to the Sales Line demand
+        CreateReleasedProdOrderForSalesLine(ProdOrder, SalesLine);
+        Commit();
+
+        // [WHEN] Clearing the Sales Line "No." and re-validating the same Item "No."
+        CheckProdOrderStatusWarningCount := 0;
+        LibraryVariableStorage.Enqueue(true);
+        asserterror SalesLine.Validate("No.", '');
+        SalesLine.Reset();
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        LibraryVariableStorage.Enqueue(true);
+        SalesLine.Validate("No.", SalesLine."No.");
+
+        // [THEN] The sales line is successfully updated without any transaction errors
+        SalesLine.TestField("No.", Item."No.");
+        SalesLine.TestField(Quantity, 1);
+        SalesLine.TestField("Quantity (Base)", 1);
+        Assert.AreEqual(1, CheckProdOrderStatusWarningCount, ExpectedCheckProdOrderStatusWarningErr);
+
+        ManufacturingSetup.Validate("Planning Warning", OldPlanningWarning);
+        ManufacturingSetup.Modify(true);
+    end;
+
+    [Test]
+    procedure QuantityRecalculationOccursCorrectlyWhenValidatingNoWithExistingQuantity()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+    begin
+        // [SCENARIO] Validating "No." on a line with existing quantity recalculates Quantity (Base) and unit of measure relations.
+        Initialize();
+
+        // [GIVEN] An item with an alternate UOM (Qty. per UOM = 5)
+        CreateManufacturedItem(Item);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", 5);
+        Item.Validate("Sales Unit of Measure", ItemUnitOfMeasure.Code);
+        Item.Modify(true);
+
+        // [GIVEN] A sales line with Quantity = 3
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 3);
+
+        // [WHEN] Re-validating "No."
+        SalesLine.Validate("No.", Item."No.");
+
+        // [THEN] Quantity (Base) is recalculated as 3 * 5 = 15
+        SalesLine.TestField(Quantity, 3);
+        SalesLine.TestField("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        SalesLine.TestField("Qty. per Unit of Measure", 5);
+        SalesLine.TestField("Quantity (Base)", 15);
+    end;
+
+    [Test]
+    [HandlerFunctions('SimpleMessageHandler,SalesOrderPlanningPageHandler,CreateReleasedOrderFromSalesModalPageHandler,CheckProdOrderStatusModalPageHandlerCount')]
+    procedure ProdOrderStatusWarningExecutesOnDirectQuantityValidationOnSalesLine()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+        ProdOrder: Record "Production Order";
+        ManufacturingSetup: Record "Manufacturing Setup";
+        OldPlanningWarning: Boolean;
+    begin
+        // [SCENARIO] Modifying Quantity directly on a Sales Line linked to a Released Prod. Order triggers the status check warning.
+        Initialize();
+
+        ManufacturingSetup.Get();
+        OldPlanningWarning := ManufacturingSetup."Planning Warning";
+        ManufacturingSetup.Validate("Planning Warning", true);
+        ManufacturingSetup.Modify(true);
+
+        // [GIVEN] Sales Line linked to a Released Production Order
+        CreateManufacturedItem(Item);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        CreateReleasedProdOrderForSalesLine(ProdOrder, SalesLine);
+        Commit();
+
+        // [WHEN] Directly validating Quantity
+        CheckProdOrderStatusWarningCount := 0;
+        LibraryVariableStorage.Enqueue(true);
+        SalesLine.Validate(Quantity, 2);
+
+        // [THEN] Warning handler was invoked and quantity was updated
+        SalesLine.TestField(Quantity, 2);
+        Assert.AreEqual(1, CheckProdOrderStatusWarningCount, ExpectedCheckProdOrderStatusWarningErr);
+
+        ManufacturingSetup.Validate("Planning Warning", OldPlanningWarning);
+        ManufacturingSetup.Modify(true);
+    end;
+
+    [Test]
+    [HandlerFunctions('SimpleMessageHandler,SalesOrderPlanningPageHandler,CreateReleasedOrderFromSalesModalPageHandler,CheckProdOrderStatusModalPageHandlerCount')]
+    procedure Regression_ClearAndReenterManufacturedItemOnSalesLineWithReleasedProdOrder()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+        ProdOrder: Record "Production Order";
+        ManufacturingSetup: Record "Manufacturing Setup";
+        OldPlanningWarning: Boolean;
+    begin
+        // [SCENARIO] Full end-to-end repro of BC 28.4 bug report
+        Initialize();
+
+        ManufacturingSetup.Get();
+        OldPlanningWarning := ManufacturingSetup."Planning Warning";
+        ManufacturingSetup.Validate("Planning Warning", true);
+        ManufacturingSetup.Modify(true);
+
+        // Step 1-4: Create Sales Order and line with manufactured item
+        CreateManufacturedItem(Item);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+
+        // Step 5: Create Released Production Order from demand
+        CreateReleasedProdOrderForSalesLine(ProdOrder, SalesLine);
+        Commit();
+
+        // Step 6-10: Clear "No." and enter same item number again
+        CheckProdOrderStatusWarningCount := 0;
+        LibraryVariableStorage.Enqueue(true);
+        asserterror SalesLine.Validate("No.", '');
+        SalesLine.Reset();
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        LibraryVariableStorage.Enqueue(true);
+        SalesLine.Validate("No.", Item."No.");
+
+        // Validation succeeds and fields are intact
+        SalesLine.TestField("No.", Item."No.");
+        SalesLine.TestField(Quantity, 1);
+        SalesLine.TestField("Outstanding Quantity", 1);
+        Assert.AreEqual(1, CheckProdOrderStatusWarningCount, ExpectedCheckProdOrderStatusWarningErr);
+
+        ManufacturingSetup.Validate("Planning Warning", OldPlanningWarning);
+        ManufacturingSetup.Modify(true);
+    end;
+
     local procedure Initialize()
     var
         PlanningErrorLog: Record "Planning Error Log";
@@ -2749,6 +3494,8 @@ codeunit 137080 "SCM Planning And Manufacturing"
         LibraryApplicationArea.EnablePremiumSetup();
 
         PlanningErrorLog.DeleteAll();
+
+        CheckProdOrderStatusWarningCount := 0;
 
         // Lazy Setup.
         if isInitialized then
@@ -4171,6 +4918,208 @@ codeunit 137080 "SCM Planning And Manufacturing"
         OrderTracking.Quantity.AssertEquals(Quantity[2]);
     end;
 
+    local procedure CreatePurchaseReplenishedItem(var Item: Record Item)
+    var
+        Vendor: Record Vendor;
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::Purchase);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Lot-for-Lot");
+        Item.Validate("Vendor No.", Vendor."No.");
+        Item.Validate(Reserve, Item.Reserve::Optional);
+        Item.Modify(true);
+    end;
+
+    local procedure CreateProdReplenishedItem(var Item: Record Item)
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Lot-for-Lot");
+        Item.Validate(Reserve, Item.Reserve::Optional);
+        Item.Modify(true);
+    end;
+
+    local procedure CreatePurchaseLineForItem(var PurchaseLine: Record "Purchase Line"; VendorNo: Code[20]; ItemNo: Code[20]; Quantity: Decimal; ExpectedReceiptDate: Date)
+    var
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, VendorNo);
+        PurchaseHeader.Validate("Expected Receipt Date", ExpectedReceiptDate);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Quantity);
+    end;
+
+    local procedure CreatePurchaseLineForItemAtLocation(var PurchaseLine: Record "Purchase Line"; VendorNo: Code[20]; ItemNo: Code[20]; Quantity: Decimal; ExpectedReceiptDate: Date; LocationCode: Code[10])
+    var
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, VendorNo);
+        PurchaseHeader.Validate("Expected Receipt Date", ExpectedReceiptDate);
+        PurchaseHeader.Validate("Location Code", LocationCode);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Quantity);
+        PurchaseLine.Validate("Location Code", LocationCode);
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure AddPurchaseLineForItem(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; ItemNo: Code[20]; Quantity: Decimal)
+    begin
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Quantity);
+    end;
+
+    local procedure CreateReleasedProdOrderWithSingleComp(var ProdOrderLine: Record "Prod. Order Line"; var ProdOrderComponent: Record "Prod. Order Component"; ProdItemNo: Code[20]; CompItemNo: Code[20]; Qty: Decimal; DueDate: Date)
+    begin
+        CreateReleasedProdOrderWithSingleCompAtLocation(ProdOrderLine, ProdOrderComponent, ProdItemNo, CompItemNo, Qty, DueDate, '');
+    end;
+
+    local procedure CreateReleasedProdOrderWithSingleCompAtLocation(var ProdOrderLine: Record "Prod. Order Line"; var ProdOrderComponent: Record "Prod. Order Component"; ProdItemNo: Code[20]; CompItemNo: Code[20]; Qty: Decimal; DueDate: Date; LocationCode: Code[10])
+    var
+        ProductionOrder: Record "Production Order";
+    begin
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, ProdItemNo, Qty);
+        if DueDate <> 0D then begin
+            ProductionOrder.SetUpdateEndDate();
+            ProductionOrder.Validate("Due Date", DueDate);
+        end;
+        if LocationCode <> '' then
+            ProductionOrder.Validate("Location Code", LocationCode);
+        ProductionOrder.Modify(true);
+
+        LibraryManufacturing.CreateProdOrderLine(
+            ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", ProdItemNo, '', LocationCode, Qty);
+        if DueDate <> 0D then begin
+            ProdOrderLine.Validate("Due Date", DueDate);
+            ProdOrderLine.Modify(true);
+        end;
+
+        LibraryManufacturing.CreateProductionOrderComponent(
+            ProdOrderComponent, ProdOrderLine.Status, ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No.");
+        ProdOrderComponent.Validate("Item No.", CompItemNo);
+        if LocationCode <> '' then
+            ProdOrderComponent.Validate("Location Code", LocationCode);
+        ProdOrderComponent.Validate("Quantity per", 1);
+        if DueDate <> 0D then
+            ProdOrderComponent.Validate("Due Date", DueDate);
+        ProdOrderComponent.Modify(true);
+    end;
+
+    local procedure CreateSalesLineForItem(var SalesLine: Record "Sales Line"; CustomerNo: Code[20]; ItemNo: Code[20]; Quantity: Decimal; ShipmentDate: Date)
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, CustomerNo);
+        LibrarySales.CreateSalesLineWithShipmentDate(
+            SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, ShipmentDate, Quantity);
+    end;
+
+    local procedure CreateTransferOrderForItem(var TransferLine: Record "Transfer Line"; FromLocation: Code[10]; ToLocation: Code[10]; InTransitLocation: Code[10]; ItemNo: Code[20]; Quantity: Decimal; ReceiptDate: Date)
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocation, ToLocation, InTransitLocation);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, ItemNo, Quantity);
+        TransferLine.Validate("Receipt Date", ReceiptDate);
+        TransferLine.Validate("Shipment Date", WorkDate());
+        TransferLine.Modify(true);
+    end;
+
+    local procedure ReservePurchaseLineToProdOrderComp(ProdOrderComponent: Record "Prod. Order Component")
+    var
+        ReservMgt: Codeunit "Reservation Management";
+        FullAutoReservation: Boolean;
+    begin
+        ProdOrderComponent.Get(
+            ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No.");
+        ReservMgt.SetReservSource(ProdOrderComponent);
+        ReservMgt.AutoReserve(
+            FullAutoReservation, '', ProdOrderComponent."Due Date",
+            ProdOrderComponent."Remaining Quantity", ProdOrderComponent."Remaining Qty. (Base)");
+    end;
+
+    local procedure ReserveTransferLineOutboundToPurchaseLine(TransferLine: Record "Transfer Line")
+    var
+        ReservMgt: Codeunit "Reservation Management";
+        FullAutoReservation: Boolean;
+    begin
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        ReservMgt.SetReservSource(TransferLine, "Transfer Direction"::Outbound);
+        ReservMgt.AutoReserve(
+            FullAutoReservation, '', TransferLine."Shipment Date", TransferLine.Quantity, TransferLine."Quantity (Base)");
+    end;
+
+    local procedure ReserveSalesLineToProdOrder(SalesLine: Record "Sales Line"; ProdOrderLine: Record "Prod. Order Line")
+    var
+        ReservMgt: Codeunit "Reservation Management";
+        FullAutoReservation: Boolean;
+    begin
+        ProdOrderLine.Get(ProdOrderLine.Status, ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No.");
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        ReservMgt.SetReservSource(SalesLine);
+        ReservMgt.AutoReserve(
+            FullAutoReservation, '', SalesLine."Shipment Date", SalesLine.Quantity, SalesLine."Quantity (Base)");
+    end;
+
+    local procedure PrepareWhatIfScenarioForPurchase(var TempWhatIfScenario: Record "Supply What-If Scenario" temporary; PurchaseLine: Record "Purchase Line"; NewQty: Decimal; NewDate: Date)
+    begin
+        TempWhatIfScenario.Reset();
+        TempWhatIfScenario.DeleteAll();
+        TempWhatIfScenario.CreateScenario(PurchaseLine);
+        TempWhatIfScenario.FindFirst();
+        TempWhatIfScenario."What-If Quantity" := NewQty;
+        TempWhatIfScenario."What-If Date" := NewDate;
+        TempWhatIfScenario.Modify();
+    end;
+
+    local procedure VerifyImpactContainsProdOrderLine(var TempWhatIfImpact: Record "What-If Impact" temporary; ProdOrderLine: Record "Prod. Order Line")
+    begin
+        TempWhatIfImpact.Reset();
+        TempWhatIfImpact.SetRange("Impact Table Id", Database::"Prod. Order Line");
+        TempWhatIfImpact.SetRange("Document No.", ProdOrderLine."Prod. Order No.");
+        TempWhatIfImpact.SetRange("Document Line No.", ProdOrderLine."Line No.");
+        Assert.IsFalse(
+            TempWhatIfImpact.IsEmpty(),
+            StrSubstNo(ImpactMissingProdOrderErr, ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No."));
+        TempWhatIfImpact.Reset();
+    end;
+
+    local procedure VerifyImpactDoesNotContainProdOrderLine(var TempWhatIfImpact: Record "What-If Impact" temporary; ProdOrderLine: Record "Prod. Order Line")
+    begin
+        TempWhatIfImpact.Reset();
+        TempWhatIfImpact.SetRange("Impact Table Id", Database::"Prod. Order Line");
+        TempWhatIfImpact.SetRange("Document No.", ProdOrderLine."Prod. Order No.");
+        TempWhatIfImpact.SetRange("Document Line No.", ProdOrderLine."Line No.");
+        Assert.IsTrue(
+            TempWhatIfImpact.IsEmpty(),
+            StrSubstNo(ImpactUnexpectedProdOrderErr, ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No."));
+        TempWhatIfImpact.Reset();
+    end;
+
+    local procedure VerifyImpactContainsTransferLine(var TempWhatIfImpact: Record "What-If Impact" temporary; TransferLine: Record "Transfer Line")
+    begin
+        TempWhatIfImpact.Reset();
+        TempWhatIfImpact.SetRange("Impact Table Id", Database::"Transfer Line");
+        TempWhatIfImpact.SetRange("Document No.", TransferLine."Document No.");
+        TempWhatIfImpact.SetRange("Document Line No.", TransferLine."Line No.");
+        Assert.IsFalse(
+            TempWhatIfImpact.IsEmpty(),
+            StrSubstNo(ImpactMissingTransferLineErr, TransferLine."Document No.", TransferLine."Line No."));
+        TempWhatIfImpact.Reset();
+    end;
+
+    local procedure VerifyImpactDoesNotContainSalesLine(var TempWhatIfImpact: Record "What-If Impact" temporary; SalesLine: Record "Sales Line")
+    begin
+        TempWhatIfImpact.Reset();
+        TempWhatIfImpact.SetRange("Impact Table Id", Database::"Sales Line");
+        TempWhatIfImpact.SetRange("Document No.", SalesLine."Document No.");
+        TempWhatIfImpact.SetRange("Document Line No.", SalesLine."Line No.");
+        Assert.IsTrue(
+            TempWhatIfImpact.IsEmpty(),
+            StrSubstNo(ImpactUnexpectedSalesLineErr, SalesLine."Document No.", SalesLine."Line No."));
+        TempWhatIfImpact.Reset();
+    end;
+
     local procedure VerifyProdOrderLineStatus(ItemNo: Code[20]; ExpectedStatus: Enum "Production Order Status")
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -4178,6 +5127,31 @@ codeunit 137080 "SCM Planning And Manufacturing"
         ProdOrderLine.SetRange("Item No.", ItemNo);
         ProdOrderLine.FindFirst();
         Assert.AreEqual(ExpectedStatus, ProdOrderLine.Status, 'Wrong status is set on production order.');
+    end;
+
+    local procedure CreateManufacturedItem(var Item: Record Item)
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Validate("Manufacturing Policy", Item."Manufacturing Policy"::"Make-to-Order");
+        Item.Modify(true);
+    end;
+
+    local procedure CreateReleasedProdOrderForSalesLine(var ProdOrder: Record "Production Order"; var SalesLine: Record "Sales Line")
+    var
+        SalesHeader: Record "Sales Header";
+        SalesOrder: TestPage "Sales Order";
+    begin
+        SalesHeader.Get(SalesLine."Document Type", SalesLine."Document No.");
+        SalesOrder.OpenEdit();
+        SalesOrder.GotoRecord(SalesHeader);
+        SalesOrder."Pla&nning".Invoke();
+        SalesOrder.Close();
+
+        ProdOrder.SetRange("Source Type", ProdOrder."Source Type"::Item);
+        ProdOrder.SetRange("Source No.", SalesLine."No.");
+        ProdOrder.SetRange(Status, ProdOrder.Status::Released);
+        ProdOrder.FindLast();
     end;
 
     [ConfirmHandler]
@@ -4257,6 +5231,36 @@ codeunit 137080 "SCM Planning And Manufacturing"
     procedure CheckProdOrderStatusModalPageHandler(var CheckProdOrderStatus: TestPage "Check Prod. Order Status")
     begin
         CheckProdOrderStatus.Yes().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure CheckProdOrderStatusModalPageHandlerCount(var CheckProdOrderStatus: TestPage "Check Prod. Order Status")
+    var
+        UserResponse: Boolean;
+    begin
+        CheckProdOrderStatusWarningCount += 1;
+        UserResponse := LibraryVariableStorage.DequeueBoolean();
+        if UserResponse then
+            CheckProdOrderStatus.Yes().Invoke()
+        else
+            CheckProdOrderStatus.No().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure SalesOrderPlanningPageHandler(var SalesOrderPlanning: TestPage "Sales Order Planning")
+    begin
+        SalesOrderPlanning."&Create Prod. Order".Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure CreateReleasedOrderFromSalesModalPageHandler(var CreateOrderFromSales: TestPage "Create Order From Sales")
+    begin
+        CreateOrderFromSales.Status.SetValue(Enum::"Production Order Status"::Released);
+        CreateOrderFromSales.OrderType.SetValue(0);
+        CreateOrderFromSales.Yes().Invoke();
     end;
 
     [ReportHandler]

@@ -33,6 +33,19 @@ report 20505 "Subc. Calculate Subcontracts"
                 DataItemTableView = sorting(Type, "No.") where(Status = const(Released), Type = const("Work Center"), "Routing Status" = filter(< Finished));
                 RequestFilterFields = "Prod. Order No.", "Starting Date";
 
+                trigger OnPreDataItem()
+                var
+                    CurrentFilterGroup: Integer;
+                begin
+                    if not IsReadinessGateOn then
+                        exit;
+
+                    CurrentFilterGroup := FilterGroup();
+                    FilterGroup(8);
+                    SetFilter("Quantity Ready to Start", '<>0');
+                    FilterGroup(CurrentFilterGroup);
+                end;
+
                 trigger OnAfterGetRecord()
                 begin
                     TempProdOrderRoutingLine.Init();
@@ -66,9 +79,23 @@ report 20505 "Subc. Calculate Subcontracts"
 
     requestpage
     {
+        SaveValues = true;
 
         layout
         {
+            area(Content)
+            {
+                group(Options)
+                {
+                    Caption = 'Options';
+                    field("Only Operations Ready to Start"; IsReadinessGateOn)
+                    {
+                        ApplicationArea = Subcontracting;
+                        Caption = 'Only Operations Ready to Start';
+                        ToolTip = 'Specifies whether to create worksheet lines only for operations whose previous operations have posted enough output for them to start.';
+                    }
+                }
+            }
         }
 
         actions
@@ -82,7 +109,7 @@ report 20505 "Subc. Calculate Subcontracts"
 
     trigger OnInitReport()
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -98,7 +125,6 @@ report 20505 "Subc. Calculate Subcontracts"
         ReqLine.SetRange("Worksheet Template Name", ReqLine."Worksheet Template Name");
         ReqLine.SetRange("Journal Batch Name", ReqLine."Journal Batch Name");
         ReqLine.LockTable();
-
         if ReqLine.FindLast() then
             ReqLine.Init();
 
@@ -116,7 +142,7 @@ report 20505 "Subc. Calculate Subcontracts"
         Item: Record Item;
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -127,19 +153,29 @@ report 20505 "Subc. Calculate Subcontracts"
         BaseQtyToPurch: Decimal;
         QtyToPurch: Decimal;
         GLSetupRead: Boolean;
+        IsReadinessGateOn: Boolean;
 
         ProcessingWorkCentersLbl: Label 'Processing Work Centers   #1##########\', Comment = '#1 = current work center number being processed';
         ProcessingOrdersLbl: Label 'Processing Orders         #2########## ', Comment = '#2 = current order number being processed';
 
     procedure SetWkShLine(NewReqLine: Record "Requisition Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
             exit;
 #endif
         ReqLine := NewReqLine;
+    end;
+
+    /// <summary>
+    /// Switches the readiness gate on or off for a run without a request page.
+    /// </summary>
+    /// <param name="NewIsReadinessGateOn">Specifies whether to create worksheet lines only for operations whose Quantity Ready to Start is not zero.</param>
+    procedure SetOnlyOperationsReadyToStart(NewIsReadinessGateOn: Boolean)
+    begin
+        IsReadinessGateOn := NewIsReadinessGateOn;
     end;
 
     local procedure InsertReqWkshLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line")
@@ -153,7 +189,6 @@ report 20505 "Subc. Calculate Subcontracts"
         OnBeforeInsertReqWkshLine(ProdOrderRoutingLine, WorkCenter, ReqLine, IsHandled, ProdOrderLine);
         if IsHandled then
             exit;
-
         if ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center" then
             SubcontractingManagement.CheckSubcontractingWorkCenter(ProdOrderRoutingLine."No.");
 
@@ -168,6 +203,7 @@ report 20505 "Subc. Calculate Subcontracts"
         ReqLine."Line No." := ReqLine."Line No." + 10000;
         ReqLine.Validate(Type, ReqLine.Type::Item);
         ReqLine.Validate("No.", ProdOrderLine."Item No.");
+        ReqLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ReqLine.Validate("Variant Code", ProdOrderLine."Variant Code");
         ReqLine.Validate("Unit of Measure Code", ProdOrderLine."Unit of Measure Code");
         ReqLine.Validate(Quantity, QtyToPurch);
@@ -204,6 +240,7 @@ report 20505 "Subc. Calculate Subcontracts"
         ReqLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ReqLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ReqLine.Validate("Vendor No.", WorkCenter."Subcontractor No.");
+        SubcontractingManagement.SetSubcontractingOrderDate(ReqLine, ProdOrderRoutingLine."Starting Date");
         ReqLine.Description := ProdOrderRoutingLine.Description;
         ReqLine."Description 2" := ProdOrderRoutingLine."Description 2";
         SetVendorItemNo();
@@ -233,15 +270,13 @@ report 20505 "Subc. Calculate Subcontracts"
             ReqLine."Accept Action Message" := true;
         end else begin
             ReqLine."Replenishment System" := ReqLine."Replenishment System"::"Prod. Order";
-            ReqLine."Ref. Order No." := ProdOrderLine."Prod. Order No.";
-            ReqLine."Ref. Order Type" := ReqLine."Ref. Order Type"::"Prod. Order";
-            ReqLine."Ref. Order Status" := ProdOrderLine.Status;
-            ReqLine."Ref. Line No." := ProdOrderLine."Line No.";
+            ReqLine."Ref. Order Type" := ReqLine."Ref. Order Type"::Purchase;
             ReqLine."Action Message" := ReqLine."Action Message"::New;
             ReqLine."Accept Action Message" := true;
         end;
-
-        if ReqLine."Ref. Order No." <> '' then
+        if ReqLine."Action Message" = ReqLine."Action Message"::New then
+            ReqLine.GetDimFromProdOrderLine(ProdOrderLine, true)
+        else
             ReqLine.GetDimFromRefOrderLine(true);
 
         OnBeforeReqWkshLineInsert(ReqLine, ProdOrderLine);
@@ -274,7 +309,6 @@ report 20505 "Subc. Calculate Subcontracts"
     begin
         if ReqLine."No." = '' then
             exit;
-
         if Item."No." <> ReqLine."No." then begin
             Item.SetLoadFields("No.");
             Item.Get(ReqLine."No.");
@@ -291,7 +325,6 @@ report 20505 "Subc. Calculate Subcontracts"
     local procedure CalculateSubContractRequirements()
     begin
         OnProdOrderRoutingLineOnBeforeCalculateSubContractRequirements(TempProdOrderRoutingLine);
-
         if TempProdOrderRoutingLine.IsEmpty() then
             exit;
 

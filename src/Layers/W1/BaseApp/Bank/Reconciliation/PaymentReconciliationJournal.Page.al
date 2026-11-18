@@ -565,6 +565,59 @@ page 1290 "Payment Reconciliation Journal"
                         end;
                     end;
                 }
+                action(AllowDuplicatedTransactions)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Allow Duplicated Transactions';
+                    Image = ChangeStatus;
+                    ToolTip = 'Toggle whether transactions that have the same transaction ID can be imported into this journal.';
+
+                    trigger OnAction()
+                    var
+                        ConfirmManagement: Codeunit "Confirm Management";
+                        ChangeSettingQst: Text;
+                    begin
+                        InitializeBankAccRecon();
+
+                        if BankAccReconciliation."Allow Duplicated Transactions" then
+                            ChangeSettingQst := SkipDuplicatedTransactionsQst
+                        else
+                            ChangeSettingQst := AllowDuplicatedTransactionsQst;
+                        if not ConfirmManagement.GetResponseOrDefault(ChangeSettingQst, false) then
+                            exit;
+
+                        BankAccReconciliation.Validate("Allow Duplicated Transactions", not BankAccReconciliation."Allow Duplicated Transactions");
+                        BankAccReconciliation.Modify(true);
+                    end;
+                }
+                action(ImportPostedTransactions)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Import Posted Transactions';
+                    Image = ChangeStatus;
+                    ToolTip = 'Toggle whether transactions that are already applied, but whose related bank account ledger entries are not closed, can be imported into this journal.';
+
+                    trigger OnAction()
+                    var
+                        ConfirmManagement: Codeunit "Confirm Management";
+                        ChangeSettingQst: Text;
+                    begin
+                        InitializeBankAccRecon();
+
+                        if BankAccReconciliation."Import Posted Transactions" = BankAccReconciliation."Import Posted Transactions"::Yes then
+                            ChangeSettingQst := SkipPostedTransactionsQst
+                        else
+                            ChangeSettingQst := ImportPostedTransactionsQst;
+                        if not ConfirmManagement.GetResponseOrDefault(ChangeSettingQst, false) then
+                            exit;
+
+                        if BankAccReconciliation."Import Posted Transactions" = BankAccReconciliation."Import Posted Transactions"::Yes then
+                            BankAccReconciliation.Validate("Import Posted Transactions", BankAccReconciliation."Import Posted Transactions"::No)
+                        else
+                            BankAccReconciliation.Validate("Import Posted Transactions", BankAccReconciliation."Import Posted Transactions"::Yes);
+                        BankAccReconciliation.Modify(true);
+                    end;
+                }
                 action(ApplyAutomatically)
                 {
                     ApplicationArea = Basic, Suite;
@@ -1279,6 +1332,10 @@ page 1290 "Payment Reconciliation Journal"
         ShowDetailsTxt: Label 'Open bank account card';
         DisableNotificationTxt: Label 'Don''t show this again';
         WouldYouLikeToRunMapTexttoAccountAgainQst: Label 'Do you want to re-apply the text to account mapping rules to all lines in the bank statement?';
+        AllowDuplicatedTransactionsQst: Label 'Transactions that have the same transaction ID are currently skipped when you import a bank statement into this journal. Do you want to import them?';
+        SkipDuplicatedTransactionsQst: Label 'Transactions that have the same transaction ID are currently considered when importing into this journal. Do you want to skip them instead?';
+        ImportPostedTransactionsQst: Label 'Transactions that are already applied, but whose related bank account ledger entries are not closed, are currently skipped when you import a bank statement into this journal. Do you want to import them?';
+        SkipPostedTransactionsQst: Label 'Transactions that are already applied, but whose related bank account ledger entries are not closed, are currently imported into this journal. Do you want to skip them instead?';
         StatementEndingBalance: Text;
 
     protected var

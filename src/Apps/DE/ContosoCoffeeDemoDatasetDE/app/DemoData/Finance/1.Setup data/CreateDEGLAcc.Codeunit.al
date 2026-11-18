@@ -312,10 +312,8 @@ codeunit 11119 "Create DE GL Acc."
         GLAccount: Record "G/L Account";
     begin
         GLAccount.SetRange("No.", FromGLAccountNo, ToGLAccountNo);
-        if GLAccount.FindSet() then begin
-            GLAccount.ModifyAll("Account Category", GLAccountCategory."Account Category", false);
-            GLAccount.ModifyAll("Account Subcategory Entry No.", GLAccountCategory."Entry No.", false);
-        end;
+        if GLAccount.FindSet() then
+            GLAccount.ModifyAll("Account Category", GLAccountCategory."Account Category", "Account Subcategory Entry No.", GLAccountCategory."Entry No.", false);
     end;
 
 
@@ -325,6 +323,9 @@ codeunit 11119 "Create DE GL Acc."
         CreateGLAccount: Codeunit "Create G/L Account";
     begin
         ModifyGLAccountForW1();
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogatoryAccountName(), '3450');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForDebitName(), '6890');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForCreditName(), '4295');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.BalanceSheetName(), '0');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.AssetsName(), '00');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.BondsName(), '0920');

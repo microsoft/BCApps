@@ -27,7 +27,7 @@ codeunit 5530 "Calc. Item Availability"
 
     var
         TempInvtEventBuf: Record "Inventory Event Buffer" temporary;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         TableNotSupportedErr: Label 'Table %1 is not supported by the ShowDocument function.', Comment = '%1 = table name';
 
     procedure CalcNewInvtEventBuf(var Item: Record Item; ForecastName: Code[10]; IncludeBlanketOrders: Boolean; ExcludeForecastBefore: Date; IncludePlan: Boolean)
@@ -554,7 +554,7 @@ codeunit 5530 "Calc. Item Availability"
         NewInvtEventBuffer.Insert();
     end;
 
-    procedure NextEntryNo(): Integer
+    procedure NextEntryNo(): BigInteger
     begin
         EntryNo += 1;
         exit(EntryNo);
@@ -671,7 +671,7 @@ codeunit 5530 "Calc. Item Availability"
         exit(ForecastExist);
     end;
 
-    procedure GetSourceReferences(FromRecordID: RecordID; TransferDirection: Enum "Transfer Direction"; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceBatchName: Code[10]; var SourceProdOrderLine: Integer; var SourceRefNo: Integer): Boolean
+    procedure GetSourceReferences(FromRecordID: RecordID; TransferDirection: Enum "Transfer Direction"; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceBatchName: Code[10]; var SourceProdOrderLine: Integer; var SourceRefNo: BigInteger): Boolean
     var
         ItemLedgEntry: Record "Item Ledger Entry";
         SalesLine: Record "Sales Line";
@@ -980,7 +980,7 @@ codeunit 5530 "Calc. Item Availability"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterGetDocumentEntries(var InvtEventBuf: Record "Inventory Event Buffer"; var Item: Record Item; var CurrEntryNo: Integer)
+    local procedure OnAfterGetDocumentEntries(var InvtEventBuf: Record "Inventory Event Buffer"; var Item: Record Item; var CurrEntryNo: BigInteger)
     begin
     end;
 
@@ -990,7 +990,7 @@ codeunit 5530 "Calc. Item Availability"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterGetAnticipatedDemand(var InvtEventBuf: Record "Inventory Event Buffer"; var Item: Record Item; ForecastName: Code[10]; ExcludeForecastBefore: Date; IncludeBlanketOrders: Boolean; EntryNo: Integer)
+    local procedure OnAfterGetAnticipatedDemand(var InvtEventBuf: Record "Inventory Event Buffer"; var Item: Record Item; ForecastName: Code[10]; ExcludeForecastBefore: Date; IncludeBlanketOrders: Boolean; EntryNo: BigInteger)
     begin
     end;
 
@@ -1000,7 +1000,7 @@ codeunit 5530 "Calc. Item Availability"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterGetSourceReferences(FromRecordID: RecordID; TransferDirection: Enum "Transfer Direction"; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceBatchName: Code[10]; var SourceProdOrderLine: Integer; var SourceRefNo: Integer; var IsHandled: Boolean; RecRef: RecordRef)
+    local procedure OnAfterGetSourceReferences(FromRecordID: RecordID; TransferDirection: Enum "Transfer Direction"; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceBatchName: Code[10]; var SourceProdOrderLine: Integer; var SourceRefNo: BigInteger; var IsHandled: Boolean; RecRef: RecordRef)
     begin
     end;
 
@@ -1018,19 +1018,6 @@ codeunit 5530 "Calc. Item Availability"
     local procedure OnBeforeRunPurchHeaderPage(var PurchHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforeRunProductionOrderPage(var ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; var IsHandled: Boolean)
-    begin
-        OnBeforeRunProductionOrderPage(ProductionOrder, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderAvailabilityMgt', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeRunProductionOrderPage(var ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTryGetQtyOnInventory(var InvtEventBuf: Record "Inventory Event Buffer"; var Item: Record Item; var Result: Boolean; var IsHandled: Boolean);
@@ -1141,19 +1128,6 @@ codeunit 5530 "Calc. Item Availability"
     local procedure OnGetPlanningTransDemandOnAfterTransferReqLineSetFilters(var RequisitionLine: Record "Requisition Line"; var Item: Record Item)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnParentIsInPlanningOnAfterReqLineSetFilters(var RequisitionLine: Record "Requisition Line"; var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnParentIsInPlanningOnAfterReqLineSetFilters(RequisitionLine, ProdOrderComp);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderAvailabilityMgt', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnParentIsInPlanningOnAfterReqLineSetFilters(var RequisitionLine: Record "Requisition Line"; var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnParentIsInPlanning(InvtEventBuf: Record "Inventory Event Buffer"; var ParentActionMessage: Enum "Action Message Type"; var Result: Boolean)

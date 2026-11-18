@@ -90,8 +90,14 @@ table 5741 "Transfer Line"
                 "Description 2" := Item."Description 2";
                 Validate("Gen. Prod. Posting Group", Item."Gen. Prod. Posting Group");
                 Validate("Inventory Posting Group", Item."Inventory Posting Group");
-                Validate(Quantity, xRec.Quantity);
-                Validate("Unit of Measure Code", Item."Base Unit of Measure");
+                if ("Item No." = xRec."Item No.") and ("Direct Transfer" <> xRec."Direct Transfer") then begin
+                    // Restore the UOM before validating quantity to preserve existing reservations.
+                    Quantity := xRec.Quantity;
+                    Validate("Unit of Measure Code", TempTransferLine."Unit of Measure Code");
+                end else begin
+                    Validate(Quantity, xRec.Quantity);
+                    Validate("Unit of Measure Code", Item."Base Unit of Measure");
+                end;
                 "Item Category Code" := Item."Item Category Code";
 
                 OnAfterAssignItemValues(Rec, Item, TransHeader);
@@ -187,7 +193,7 @@ table 5741 "Transfer Line"
                 "Qty. to Ship (Base)" := CalcBaseQty("Qty. to Ship", FieldCaption("Qty. to Ship"), FieldCaption("Qty. to Ship (Base)"));
                 ValidateQuantityShipIsBalanced();
 
-                if ("In-Transit Code" = '') and ("Quantity Shipped" = "Quantity Received") then
+                if (("In-Transit Code" = '') or "Direct Transfer") and ("Quantity Shipped" = "Quantity Received") then
                     Validate("Qty. to Receive", "Qty. to Ship");
 
                 CheckDirectTransferQtyToShip();
@@ -1201,7 +1207,7 @@ table 5741 "Transfer Line"
             "Qty. to Receive" := "Qty. in Transit";
             "Qty. to Receive (Base)" := "Qty. in Transit (Base)";
         end;
-        if ("In-Transit Code" = '') and ("Quantity Shipped" = "Quantity Received") then begin
+        if (("In-Transit Code" = '') or "Direct Transfer") and ("Quantity Shipped" = "Quantity Received") then begin
             "Qty. to Receive" := "Qty. to Ship";
             "Qty. to Receive (Base)" := "Qty. to Ship (Base)";
         end;
@@ -1683,7 +1689,7 @@ table 5741 "Transfer Line"
         else begin
             if "In-Transit Code" <> '' then
                 Validate("Qty. to Receive", "Qty. in Transit");
-            if ("In-Transit Code" = '') and ("Quantity Shipped" = "Quantity Received") then
+            if (("In-Transit Code" = '') or "Direct Transfer") and ("Quantity Shipped" = "Quantity Received") then
                 Validate("Qty. to Receive", "Qty. to Ship");
         end;
 
@@ -2149,6 +2155,11 @@ table 5741 "Transfer Line"
             TransHeader.Get("Document No.");
 
         exit(TransHeader);
+    end;
+
+    internal procedure SetTransferHeader(TransferHeader: Record "Transfer Header")
+    begin
+        TransHeader := TransferHeader;
     end;
 
     /// <summary>

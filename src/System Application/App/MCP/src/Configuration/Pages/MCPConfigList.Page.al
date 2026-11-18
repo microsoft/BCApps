@@ -57,6 +57,12 @@ page 8350 "MCP Config List"
                     ToolTip = 'Specifies whether the Data Query Tools feature is enabled for this configuration.';
                     Editable = false;
                 }
+                field(AgentTools; Rec.EnableAgents)
+                {
+                    Caption = 'Agent Tools';
+                    ToolTip = 'Specifies whether tools for Business Central agents are enabled for this configuration.';
+                    Editable = false;
+                }
             }
         }
     }

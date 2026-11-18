@@ -163,6 +163,44 @@ codeunit 144055 "UT TAB Telebank"
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
+    procedure PrepareSourceTruncatesRemittanceExceedingFieldLengths()
+    var
+        PaymentHistory: Record "Payment History";
+        PaymentHistoryLine: Record "Payment History Line";
+        TempGenJnlLine: Record "Gen. Journal Line" temporary;
+        AppliedDocNoList: Text;
+        DescriptionLen: Integer;
+    begin
+        // [SCENARIO] Preparing SEPA CT source from a payment line whose combined applied document numbers
+        // exceed Description plus Message to Recipient must truncate gracefully instead of raising a length error.
+
+        // [GIVEN] A vendor payment history line with applied documents longer than Description + Message to Recipient combined
+        MockVendorPaymentHistoryWithLongAppliedDocs(PaymentHistory, PaymentHistoryLine);
+        DescriptionLen := MaxStrLen(TempGenJnlLine.Description);
+        AppliedDocNoList := PaymentHistoryLine.GetAppliedDocNoList(DescriptionLen);
+        Assert.IsTrue(
+          StrLen(AppliedDocNoList) > DescriptionLen + MaxStrLen(TempGenJnlLine."Message to Recipient"),
+          'Test data must exceed the combined Description and Message to Recipient length.');
+
+        // [WHEN] SEPA CT-Prepare Source builds the temporary journal lines
+        TempGenJnlLine.SetRange("Bal. Account No.", PaymentHistory."Our Bank");
+        TempGenJnlLine.SetRange("Document No.", PaymentHistory."Run No.");
+        Codeunit.Run(Codeunit::"SEPA CT-Prepare Source", TempGenJnlLine);
+
+        // [THEN] The list is split across Description (first part) and Message to Recipient (next part) without overflow
+        TempGenJnlLine.Reset();
+        TempGenJnlLine.FindFirst();
+        Assert.AreEqual(
+          CopyStr(AppliedDocNoList, 1, DescriptionLen), TempGenJnlLine.Description,
+          TempGenJnlLine.FieldName(Description));
+        Assert.AreEqual(
+          CopyStr(AppliedDocNoList, DescriptionLen + 1, MaxStrLen(TempGenJnlLine."Message to Recipient")),
+          TempGenJnlLine."Message to Recipient", TempGenJnlLine.FieldName("Message to Recipient"));
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
     procedure CollectAccHolderDataOnPaymentExportBuffer()
     var
         GenJnlLine: Record "Gen. Journal Line";
@@ -812,6 +850,40 @@ codeunit 144055 "UT TAB Telebank"
         DetailLine."Account Type" := PaymentHistoryLine."Account Type";
         DetailLine."Serial No. (Entry)" := EntryNo;
         DetailLine.Insert();
+    end;
+
+    local procedure MockVendorPaymentHistoryWithLongAppliedDocs(var PaymentHistory: Record "Payment History"; var PaymentHistoryLine: Record "Payment History Line")
+    var
+        Index: Integer;
+    begin
+        PaymentHistory.Init();
+        PaymentHistory."Our Bank" := LibraryERM.CreateBankAccountNo();
+        PaymentHistory."Run No." := LibraryUtility.GenerateGUID();
+        PaymentHistory.Insert();
+
+        PaymentHistoryLine.Init();
+        PaymentHistoryLine."Our Bank" := PaymentHistory."Our Bank";
+        PaymentHistoryLine."Run No." := PaymentHistory."Run No.";
+        PaymentHistoryLine."Line No." := 10000;
+        PaymentHistoryLine."Account Type" := PaymentHistoryLine."Account Type"::Vendor;
+        PaymentHistoryLine."Account No." := LibraryPurchase.CreateVendorNo();
+        PaymentHistoryLine."Description 1" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PaymentHistoryLine."Description 1"));
+        PaymentHistoryLine.Insert();
+
+        // 12 applied documents of 30 characters each exceed Description plus Message to Recipient combined
+        for Index := 1 to 12 do
+            MockAppliedVendorDocument(PaymentHistoryLine, Index);
+    end;
+
+    local procedure MockAppliedVendorDocument(PaymentHistoryLine: Record "Payment History Line"; Index: Integer)
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        VendorLedgerEntry.Init();
+        VendorLedgerEntry."Entry No." := LibraryUtility.GetNewRecNo(VendorLedgerEntry, VendorLedgerEntry.FieldNo("Entry No."));
+        VendorLedgerEntry."External Document No." := CopyStr(PadStr('EXTDOC' + Format(Index), 30, '0'), 1, 30);
+        VendorLedgerEntry.Insert();
+        CreateDetailLine(PaymentHistoryLine, VendorLedgerEntry."Entry No.");
     end;
 
     local procedure CreateExportProtocol(): Code[20]

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -55,16 +55,46 @@ page 5613 "FA Posting Groups"
                     ApplicationArea = FixedAssets;
                     Visible = false;
                 }
+                field("Derogatory Acc."; Rec."Derogatory Acc.")
+                {
+                    ApplicationArea = FixedAssets;
+                }
+                field("Derogatory Account (Decrease)"; Rec."Derogatory Account (Decrease)")
+                {
+                    ApplicationArea = FixedAssets;
+                }
+                field("Derogatory Expense Acc."; Rec."Derogatory Expense Acc.")
+                {
+                    ApplicationArea = FixedAssets;
+                }
+                field("Derog. Bal. Account (Decrease)"; Rec."Derog. Bal. Account (Decrease)")
+                {
+                    ApplicationArea = FixedAssets;
+                }
+#if not CLEAN30
+#pragma warning disable AL0432
                 field("Depr. Difference Acc."; Rec."Depr. Difference Acc.")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the depreciation difference account that is associated with the fixed asset.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
                 }
+#pragma warning restore AL0432
+#endif
+#if not CLEAN30
+#pragma warning disable AL0432
                 field("Depr. Difference Bal. Acc."; Rec."Depr. Difference Bal. Acc.")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the depreciation difference balance account that is associated with the fixed asset.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
                 }
+#pragma warning restore AL0432
+#endif
                 field("Acq. Cost Acc. on Disposal"; Rec."Acq. Cost Acc. on Disposal")
                 {
                     ApplicationArea = FixedAssets;
@@ -336,9 +366,19 @@ page 5613 "FA Posting Groups"
                                       "Allocation Type" = const(Loss);
                         ToolTip = 'View or edit the FA allocations that apply to losses.';
                     }
+                    action(FA_Derogatory_Allocations)
+                    {
+                        ApplicationArea = FixedAssets;
+                        Caption = 'De&rogatory';
+                        Image = Delegate;
+                        RunObject = Page "FA Allocations";
+                        RunPageLink = Code = field(Code),
+                                      "Allocation Type" = const(Derogatory);
+                        ToolTip = 'View or change the posting account and allocation percentage for derogatory transactions for fixed assets in this posting group.';
+                    }
                 }
+
             }
         }
     }
 }
-

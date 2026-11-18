@@ -7,9 +7,9 @@ namespace Microsoft.Inventory.Intrastat;
 
 using Microsoft.Inventory.Item;
 
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AL0520 // AL0432/AL0520: the base table is obsolete, but this extension must remain for upgrade compatibility
 tableextension 31026 "Intrastat Jnl. Line CZL" extends "Intrastat Jnl. Line"
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AL0520
 {
     fields
     {

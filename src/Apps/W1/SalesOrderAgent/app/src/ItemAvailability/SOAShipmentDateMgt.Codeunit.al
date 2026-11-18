@@ -45,6 +45,15 @@ codeunit 4413 "SOA Shipment Date Mgt."
         exit(EarliestShipmentDate);
     end;
 
+    internal procedure OrderPromisingSetupConfigured(): Boolean
+    var
+        OrderPromisingSetup: Record "Order Promising Setup";
+    begin
+        if not OrderPromisingSetup.Get() then
+            exit(false);
+        exit((OrderPromisingSetup."Order Promising Template" <> '') and (OrderPromisingSetup."Order Promising Worksheet" <> ''));
+    end;
+
     local procedure CalculateEarliestShipmentDate() ShipmentDate: Date
     var
         CompanyInfo: Record "Company Information";

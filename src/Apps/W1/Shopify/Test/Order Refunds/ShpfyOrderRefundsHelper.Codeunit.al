@@ -172,6 +172,30 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         exit(OrderLine."Line Id");
     end;
 
+    internal procedure CreateDiscountedOrderLine(OrderId: BigInteger; LineNo: Integer; ProductId: BigInteger; VariantId: BigInteger; UnitPrice: Decimal; PresentmentUnitPrice: Decimal; Quantity: Integer; DiscountAmount: Decimal; PresentmentDiscountAmount: Decimal): BigInteger
+    var
+        Item: Record Item;
+        OrderLine: Record "Shpfy Order Line";
+    begin
+        Item := GetItem();
+        LineNo := LineNo * 100000;
+        OrderLine."Shopify Order Id" := OrderId;
+        OrderLine."Line Id" := Any.IntegerInRange(LineNo, LineNo + 99999);
+        OrderLine.Description := Item.Description;
+        OrderLine.Quantity := Quantity;
+        OrderLine."Shopify Product Id" := ProductId;
+        OrderLine."Shopify Variant Id" := VariantId;
+        OrderLine."Item No." := Item."No.";
+        OrderLine."Gift Card" := false;
+        OrderLine.Taxable := false;
+        OrderLine."Unit Price" := UnitPrice;
+        OrderLine."Presentment Unit Price" := PresentmentUnitPrice;
+        OrderLine."Discount Amount" := DiscountAmount;
+        OrderLine."Presentment Discount Amount" := PresentmentDiscountAmount;
+        OrderLine.Insert();
+        exit(OrderLine."Line Id");
+    end;
+
     internal procedure CreateReturn(OrderId: BigInteger): BigInteger
     var
         ReturnHeader: Record "Shpfy Return Header";
@@ -359,6 +383,22 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         RefundLine."Presentment Amount" := SubtotalAmount + TaxAmount;
         RefundLine."Presentment Subtotal Amount" := SubtotalAmount;
         RefundLine."Presentment Total Tax Amount" := TaxAmount;
+        RefundLine."Can Create Credit Memo" := false;
+        RefundLine.Insert();
+    end;
+
+    internal procedure CreateRefundLineWithoutCreditMemo(RefundId: BigInteger; OrderLineId: BigInteger; Quantity: Integer; UnitPrice: Decimal; PresentmentUnitPrice: Decimal; SubtotalAmount: Decimal; PresentmentSubtotalAmount: Decimal)
+    var
+        RefundLine: Record "Shpfy Refund Line";
+    begin
+        RefundLine."Refund Line Id" := Any.IntegerInRange(100000, 999999);
+        RefundLine."Refund Id" := RefundId;
+        RefundLine."Order Line Id" := OrderLineId;
+        RefundLine.Quantity := Quantity;
+        RefundLine.Amount := UnitPrice;
+        RefundLine."Presentment Amount" := PresentmentUnitPrice;
+        RefundLine."Subtotal Amount" := SubtotalAmount;
+        RefundLine."Presentment Subtotal Amount" := PresentmentSubtotalAmount;
         RefundLine."Can Create Credit Memo" := false;
         RefundLine.Insert();
     end;

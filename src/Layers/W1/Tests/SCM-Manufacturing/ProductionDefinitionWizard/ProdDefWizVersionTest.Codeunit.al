@@ -413,7 +413,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
     [ModalPageHandler]
     procedure HandleWizardToggleCreateBOMVersionError(var Wizard: TestPage "Production Definition Wizard")
     var
-        VersionNosRequiredErr: Label 'Version Nos. must have a value';
+        VersionNosRequiredErr: Label 'specify a value in the Version Nos. field on the production BOM.';
     begin
         // Navigate to Step 2 (BOM)
         Wizard.ActionNext.Invoke();
@@ -446,7 +446,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
     [ModalPageHandler]
     procedure HandleWizardToggleCreateRoutingVersionError(var Wizard: TestPage "Production Definition Wizard")
     var
-        VersionNosRequiredErr: Label 'Version Nos. must have a value';
+        VersionNosRequiredErr: Label 'specify a value in the Version Nos. field on the routing.';
     begin
         // Navigate to Step 2 (BOM)
         Wizard.ActionNext.Invoke();
@@ -769,6 +769,56 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         RoutingVersion.SetRange("Routing No.", RoutingNo);
         RoutingVersion.FindLast();
         ProdDefWizCheckLib.VerifyRoutingVersionLineCount(RoutingNo, RoutingVersion."Version Code", 2);
+    end;
+
+    [Test]
+    procedure TestE13_BOMWithoutVersionNos_ValidateRaisesActionableError()
+    var
+        ProdDefinitionVersionMgmt: Codeunit "Prod. Definition Version Mgmt.";
+        BOMNo: Code[20];
+        ActionableBOMVersionNosErr: Label 'To create a version for production BOM %1, specify a value in the Version Nos. field on the production BOM.', Comment = '%1 = Production BOM No.';
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 647370] Validating the BOM version number series for a production BOM with blank
+        //                    Version Nos. raises an actionable error instead of the generic TestField error.
+        Initialize();
+
+        // [GIVEN] Production BOM "B" with blank Version Nos.
+        BOMNo := ProdDefWizLibrary.CreateBOMWithoutVersionNos();
+
+        // [WHEN] ValidateBOMVersionNoSeries is invoked for BOM "B"
+        asserterror ProdDefinitionVersionMgmt.ValidateBOMVersionNoSeries(BOMNo);
+
+        // [THEN] An actionable error tells the user to specify Version Nos. on the production BOM
+        Assert.ExpectedError(StrSubstNo(ActionableBOMVersionNosErr, BOMNo));
+
+        // [THEN] No BOM version was created for "B"
+        ProdDefWizCheckLib.VerifyNoBOMVersionExists(BOMNo);
+    end;
+
+    [Test]
+    procedure TestE14_RoutingWithoutVersionNos_ValidateRaisesActionableError()
+    var
+        ProdDefinitionVersionMgmt: Codeunit "Prod. Definition Version Mgmt.";
+        RoutingNo: Code[20];
+        ActionableRoutingVersionNosErr: Label 'To create a version for routing %1, specify a value in the Version Nos. field on the routing.', Comment = '%1 = Routing No.';
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 647370] Validating the routing version number series for a routing with blank
+        //                    Version Nos. raises an actionable error instead of the generic TestField error.
+        Initialize();
+
+        // [GIVEN] Routing "R" with blank Version Nos.
+        RoutingNo := ProdDefWizLibrary.CreateRoutingWithoutVersionNos();
+
+        // [WHEN] ValidateRoutingVersionNoSeries is invoked for routing "R"
+        asserterror ProdDefinitionVersionMgmt.ValidateRoutingVersionNoSeries(RoutingNo);
+
+        // [THEN] An actionable error tells the user to specify Version Nos. on the routing
+        Assert.ExpectedError(StrSubstNo(ActionableRoutingVersionNosErr, RoutingNo));
+
+        // [THEN] No routing version was created for "R"
+        ProdDefWizCheckLib.VerifyNoRoutingVersionExists(RoutingNo);
     end;
 
     [ModalPageHandler]

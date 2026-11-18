@@ -1314,7 +1314,7 @@ table 98 "General Ledger Setup"
         /// <summary>
         /// G/L account category used for classifying accounts receivable accounts in financial reporting.
         /// </summary>
-        field(190; "Acc. Receivables Category"; Integer)
+        field(190; "Acc. Receivables Category"; BigInteger)
         {
             TableRelation = "G/L Account Category";
             Caption = 'Account Receivables G/L Account Category';
@@ -1341,7 +1341,7 @@ table 98 "General Ledger Setup"
             Caption = 'Check Source Curr. Consistency';
             ToolTip = 'Specifies whether Business Central validates the total of general ledger entries source currency amount during posting.';
         }
-        field(194; "Acc. Payables Category"; Integer)
+        field(194; "Acc. Payables Category"; BigInteger)
         {
             TableRelation = "G/L Account Category";
             Caption = 'Account Payables G/L Account Category';
@@ -1867,14 +1867,14 @@ table 98 "General Ledger Setup"
         VATPostingSetup.SetRange("Adjust for Payment Discount", true);
         if VATPostingSetup.FindFirst() then
             Error(
-              '%1 %2 %3 use %4.', VATPostingSetup.TableName,
+              '%1 %2 %3 use %4.', VATPostingSetup.TableCaption,
               VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group",
-              VATPostingSetup.FieldName("Adjust for Payment Discount"));
+              VATPostingSetup.FieldCaption("Adjust for Payment Discount"));
         TaxJurisdiction.SetRange("Adjust for Payment Discount", true);
         if TaxJurisdiction.FindFirst() then
             Error(
-              '%1 %2 use %3.', TaxJurisdiction.TableName,
-              TaxJurisdiction.Code, TaxJurisdiction.FieldName("Adjust for Payment Discount"));
+              '%1 %2 use %3.', TaxJurisdiction.TableCaption,
+              TaxJurisdiction.Code, TaxJurisdiction.FieldCaption("Adjust for Payment Discount"));
     end;
 
     /// <summary>

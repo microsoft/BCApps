@@ -8,9 +8,6 @@ pageextension 6261 "Sust. PBI Reports Setup" extends "PowerBI Reports Setup"
     {
         addbefore(Dimensions)
         {
-#if not CLEAN27
-#pragma warning disable AL0801
-#endif
             group(SustainabilityReport)
             {
                 Caption = 'Sustainability Report';
@@ -65,9 +62,6 @@ pageextension 6261 "Sust. PBI Reports Setup" extends "PowerBI Reports Setup"
                     }
                 }
             }
-#if not CLEAN27
-#pragma warning restore AL0801
-#endif
         }
     }
 }

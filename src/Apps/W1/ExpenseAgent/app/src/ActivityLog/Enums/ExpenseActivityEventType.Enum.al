@@ -50,6 +50,22 @@ enum 6922 "Expense Activity Event Type"
     {
         Caption = 'Reopened by approver';
     }
+    value(23; InterimApproverAssigned)
+    {
+        Caption = 'Interim approver assigned';
+    }
+    value(24; InterimApproved)
+    {
+        Caption = 'Interim approved';
+    }
+    value(25; AlternateApproverAssigned)
+    {
+        Caption = 'Alternate Approver Assigned';
+    }
+    value(26; AlternateApproverReverted)
+    {
+        Caption = 'Alternate Approver Reverted';
+    }
     value(30; CommentAdded)
     {
         Caption = 'Comment added';
@@ -65,5 +81,9 @@ enum 6922 "Expense Activity Event Type"
     value(100; Posted)
     {
         Caption = 'Posted';
+    }
+    value(110; Closed)
+    {
+        Caption = 'Closed';
     }
 }

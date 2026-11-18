@@ -928,6 +928,72 @@ codeunit 137275 "SCM Inventory Journals"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure CalcInventoryDoesNotLeakDefaultDimWhenItemNoEqualsAnotherLocationCode()
+    var
+        Item: Record Item;
+        OverlapLocation: Record Location;
+        TargetLocation: Record Location;
+        OverlapDimension: Record Dimension;
+        TargetDimension: Record Dimension;
+        OverlapDimensionValue: Record "Dimension Value";
+        TargetDimensionValue: Record "Dimension Value";
+        OverlapDefaultDim: Record "Default Dimension";
+        TargetDefaultDim: Record "Default Dimension";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemJournalBatch: Record "Item Journal Batch";
+        DimensionSetEntry: Record "Dimension Set Entry";
+        SharedCode: Code[10];
+    begin
+        // [FEATURE] [Dimensions] [Physical Inventory]
+        // [SCENARIO 9100] When an Item's "No." equals an unrelated Location's "Code", Calculate Inventory must apply only the actually-counted Location's Default Dimensions and must not leak Default Dimensions of the unrelated Location whose Code happens to match the Item's No.
+        Initialize();
+
+        // [GIVEN] Item "X" renamed to a code that also fits Location.Code (Code[10]), so an unrelated Location can carry the same value
+        CreateItem(Item, Item."Costing Method"::FIFO);
+        SharedCode := LibraryUtility.GenerateRandomCode(OverlapLocation.FieldNo(Code), DATABASE::Location);
+        Item.Rename(SharedCode);
+
+        // [GIVEN] An unrelated Location with Code = Item."No.", carrying Default Dimension "D1" = "V1"
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(OverlapLocation);
+        OverlapLocation.Rename(SharedCode);
+        LibraryDimension.CreateDimension(OverlapDimension);
+        LibraryDimension.CreateDimensionValue(OverlapDimensionValue, OverlapDimension.Code);
+        LibraryDimension.CreateDefaultDimension(
+          OverlapDefaultDim, DATABASE::Location, OverlapLocation.Code, OverlapDimension.Code, OverlapDimensionValue.Code);
+
+        // [GIVEN] A target Location, carrying Default Dimension "D2" = "V2" with a different Dimension Code from "D1"
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(TargetLocation);
+        LibraryDimension.CreateDimension(TargetDimension);
+        LibraryDimension.CreateDimensionValue(TargetDimensionValue, TargetDimension.Code);
+        LibraryDimension.CreateDefaultDimension(
+          TargetDefaultDim, DATABASE::Location, TargetLocation.Code, TargetDimension.Code, TargetDimensionValue.Code);
+
+        // [GIVEN] Posted stock of Item "X" on the target Location
+        UpdateItemInventory(
+          Item."No.", TargetLocation.Code, '', LibraryRandom.RandDec(10, 2),
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", LibraryRandom.RandDec(10, 2));
+
+        // [WHEN] Calculate Inventory for Item "X"
+        CreateAndPostPhysInventoryJournal(ItemJournalLine, ItemJournalBatch, Item."No.", false);
+
+        // [THEN] The generated Phys. Inventory Journal Line is on the target Location
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch, Item."No.");
+        ItemJournalLine.TestField("Location Code", TargetLocation.Code);
+
+        // [THEN] The line's Dimension Set carries the target Location's Default Dimension ("D2" = "V2")
+        DimensionSetEntry.SetRange("Dimension Set ID", ItemJournalLine."Dimension Set ID");
+        DimensionSetEntry.SetRange("Dimension Code", TargetDimension.Code);
+        DimensionSetEntry.SetRange("Dimension Value Code", TargetDimensionValue.Code);
+        Assert.RecordIsNotEmpty(DimensionSetEntry);
+
+        // [THEN] The line's Dimension Set does NOT carry the unrelated Location's Default Dimension ("D1")
+        DimensionSetEntry.SetRange("Dimension Code", OverlapDimension.Code);
+        DimensionSetEntry.SetRange("Dimension Value Code");
+        Assert.RecordIsEmpty(DimensionSetEntry);
+    end;
+
+    [Test]
     [HandlerFunctions('CalculateInventoryIncludeItemWithoutTransactionHandler')]
     [Scope('OnPrem')]
     procedure CalcInventoryWithIncludeItemWithoutTransactionComplexLocationFilter()

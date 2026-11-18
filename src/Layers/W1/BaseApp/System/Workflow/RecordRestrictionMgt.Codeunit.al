@@ -242,6 +242,39 @@ codeunit 1550 "Record Restriction Mgt."
         RestrictRequisitionWorksheet(Rec);
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"FA Journal Line", 'OnAfterInsertEvent', '', false, false)]
+    local procedure RestrictFAJournalLineAfterInsert(var Rec: Record "FA Journal Line"; RunTrigger: Boolean)
+    begin
+        RestrictFAJournalBatch(Rec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"FA Journal Line", 'OnAfterModifyEvent', '', false, false)]
+    local procedure RestrictFAJournalLineAfterModify(var Rec: Record "FA Journal Line"; var xRec: Record "FA Journal Line"; RunTrigger: Boolean)
+    begin
+        if Format(Rec) = Format(xRec) then
+            exit;
+
+        RestrictFAJournalBatch(Rec);
+    end;
+
+    local procedure RestrictFAJournalBatch(var FAJournalLine: Record "FA Journal Line")
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+    begin
+        if FAJournalLine.IsTemporary then
+            exit;
+
+        if FAJournalBatch.Get(FAJournalLine."Journal Template Name", FAJournalLine."Journal Batch Name") then begin
+            FAJournalBatch.CalcFields(Recurring);
+            if FAJournalBatch.Recurring then
+                exit;
+
+            if ApprovalsMgmt.IsFAJournalBatchApprovalsWorkflowEnabled(FAJournalBatch) then
+                RestrictRecordUsage(FAJournalBatch, RestrictBatchUsageDetailsTxt);
+        end;
+    end;
+
     local procedure RestrictRequisitionWorksheet(var RequisitionLine: Record "Requisition Line")
     var
         RequisitionWkshName: Record "Requisition Wksh. Name";
@@ -405,19 +438,21 @@ codeunit 1550 "Record Restriction Mgt."
     local procedure ItemJournalLineCheckItemPostRestrictions(var Sender: Record "Item Journal Line")
     var
         Item: Record Item;
+        ItemJournalBatch: Record "Item Journal Batch";
         IsHandled: Boolean;
     begin
+        if ItemJournalBatch.Get(Sender."Journal Template Name", Sender."Journal Batch Name") then
+            CheckRecordHasUsageRestrictions(ItemJournalBatch);
+
         IsHandled := false;
         OnBeforeItemJournalLineCheckItemPostRestrictions(Sender, IsHandled);
         if IsHandled then
             exit;
-
         CheckRecordHasUsageRestrictions(Sender);
-        if Sender."Item No." = '' then
-            exit;
-
-        Item.Get(Sender."Item No.");
-        CheckRecordHasUsageRestrictions(Item);
+        if Sender."Item No." <> '' then begin
+            Item.Get(Sender."Item No.");
+            CheckRecordHasUsageRestrictions(Item);
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnCheckGenJournalLinePostRestrictions', '', false, false)]
@@ -555,7 +590,8 @@ codeunit 1550 "Record Restriction Mgt."
         CheckGenJournalLineHasUsageRestrictions(Sender, GenJournalBatch);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnCheckItemJournalLinePostRestrictions', '', false, false)]
+#if not CLEAN30
+    [Obsolete('Replaced by ItemJournalLineCheckItemPostRestrictions, which now also checks the Item Journal Batch usage restrictions.', '30.0')]
     procedure ItemJournalBatchCheckItemJournalLinePostRestrictions(var Sender: Record "Item Journal Line")
     var
         ItemJournalBatch: Record "Item Journal Batch";
@@ -564,6 +600,18 @@ codeunit 1550 "Record Restriction Mgt."
             exit;
 
         CheckRecordHasUsageRestrictions(ItemJournalBatch);
+    end;
+#endif
+
+    [EventSubscriber(ObjectType::Table, Database::"FA Journal Line", 'OnCheckFAJournalLinePostRestrictions', '', false, false)]
+    local procedure FAJournalBatchCheckFAJournalLinePostRestrictions(var Sender: Record "FA Journal Line")
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+    begin
+        if not FAJournalBatch.Get(Sender."Journal Template Name", Sender."Journal Batch Name") then
+            exit;
+
+        CheckRecordHasUsageRestrictions(FAJournalBatch);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnCheckSalesPostRestrictions', '', false, false)]
@@ -666,6 +714,12 @@ codeunit 1550 "Record Restriction Mgt."
         AllowRecordUsage(Rec);
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"FA Journal Batch", 'OnBeforeDeleteEvent', '', false, false)]
+    local procedure RemoveFAJournalBatchRestrictionsBeforeDelete(var Rec: Record "FA Journal Batch"; RunTrigger: Boolean)
+    begin
+        AllowRecordUsage(Rec);
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnBeforeDeleteEvent', '', false, false)]
     procedure RemoveSalesHeaderRestrictionsBeforeDelete(var Rec: Record "Sales Header"; RunTrigger: Boolean)
     begin
@@ -692,6 +746,12 @@ codeunit 1550 "Record Restriction Mgt."
 
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", 'OnAfterRenameEvent', '', false, false)]
     procedure UpdateRequisitionWkshLineRestrictionsAfterRename(var Rec: Record "Requisition Line"; var xRec: Record "Requisition Line"; RunTrigger: Boolean)
+    begin
+        UpdateRestriction(Rec, xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"FA Journal Line", 'OnAfterRenameEvent', '', false, false)]
+    local procedure UpdateFAJournalLineRestrictionsAfterRename(var Rec: Record "FA Journal Line"; var xRec: Record "FA Journal Line"; RunTrigger: Boolean)
     begin
         UpdateRestriction(Rec, xRec);
     end;
@@ -742,6 +802,12 @@ codeunit 1550 "Record Restriction Mgt."
 
     [EventSubscriber(ObjectType::Table, Database::"Requisition Wksh. Name", 'OnAfterRenameEvent', '', false, false)]
     procedure UpdateRequisitionWkshBatchRestrictionsAfterRename(var Rec: Record "Requisition Wksh. Name"; var xRec: Record "Requisition Wksh. Name"; RunTrigger: Boolean)
+    begin
+        UpdateRestriction(Rec, xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"FA Journal Batch", 'OnAfterRenameEvent', '', false, false)]
+    local procedure UpdateFAJournalBatchRestrictionsAfterRename(var Rec: Record "FA Journal Batch"; var xRec: Record "FA Journal Batch"; RunTrigger: Boolean)
     begin
         UpdateRestriction(Rec, xRec);
     end;
@@ -893,4 +959,3 @@ codeunit 1550 "Record Restriction Mgt."
     begin
     end;
 }
-

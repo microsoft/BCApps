@@ -207,20 +207,29 @@ codeunit 9122 "SharePoint Graph Parser"
     /// </summary>
     /// <param name="FieldsJsonObject">The fieldValueSet JSON to parse. Column values are name/value pairs at the root, without a listItem envelope.</param>
     /// <param name="GraphListItem">The record to populate. Id and ListId must be set by the caller.</param>
+    /// <returns>True if the fieldValueSet contains at least one column value; otherwise false. A successful PATCH always echoes the updated columns, so a response without any column value is not a fieldValueSet.</returns>
     /// <remarks>The @odata.context annotation is not stored as a field value, so the stored fields match the shape of the expanded fields object stored by GetListItem.</remarks>
-    procedure ParseListItemFieldValueSet(FieldsJsonObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary)
+    procedure ParseListItemFieldValueSet(FieldsJsonObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary): Boolean
     var
         SanitizedFieldsObject: JsonObject;
         JsonToken: JsonToken;
         FieldKey: Text;
+        HasColumnValues: Boolean;
     begin
-        foreach FieldKey in FieldsJsonObject.Keys() do
+        foreach FieldKey in FieldsJsonObject.Keys() do begin
             if FieldKey <> '@odata.context' then begin
                 FieldsJsonObject.Get(FieldKey, JsonToken);
                 SanitizedFieldsObject.Add(FieldKey, JsonToken);
             end;
+            if not FieldKey.StartsWith('@odata.') then
+                HasColumnValues := true;
+        end;
+
+        if not HasColumnValues then
+            exit(false);
 
         ParseFields(SanitizedFieldsObject, GraphListItem);
+        exit(true);
     end;
 
     local procedure ParseFields(FieldsJsonObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary)

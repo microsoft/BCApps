@@ -24,6 +24,7 @@ codeunit 135089 "API Webhook Sending Tests"
         DeleteSubscriptionWithTooManyFailuresTitleTxt: Label 'Delete subscription with too many failures.', Locked = true;
         IncreaseAttemptNumberTitleTxt: Label 'Increase attempt number.', Locked = true;
         NotificationFailedTitleTxt: Label 'Notification failed.', Locked = true;
+        NotificationBlockedByEnvironmentTitleTxt: Label 'Notification blocked by environment.', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -1717,6 +1718,65 @@ codeunit 135089 "API Webhook Sending Tests"
         VerifyProcessingFinished();
     end;
 
+    [Test]
+    [HandlerFunctions('BlockedByEnvironmentHttpClientHandler')]
+    [Scope('OnPrem')]
+    procedure TestNotificationsKeptWhenBlockedByEnvironment()
+    var
+        SubscriptionID: Text;
+        NotificationID: Guid;
+        AggregateNotificationID: Guid;
+    begin
+        // [SCENARIO] Notifications are kept without increasing the attempt number when the environment blocks outgoing HTTP requests
+        Initialize();
+
+        // [GIVEN] A subscription
+        SubscriptionID := CreateActiveSubscriptionForEntityWithGuidKey();
+        // [GIVEN] A notification that has already failed the maximum number of attempts (5)
+        AggregateNotificationID := CreateAggregateNotificationOnCreate(SubscriptionID, ProcessingTime - 1000, 5);
+        // [GIVEN] A notification
+        NotificationID := CreateNotificationOnCreate(SubscriptionID, ProcessingTime);
+        // [GIVEN] Expecting two notifications in payload and no response code
+        EnqueueNotificationUrl(SubscriptionID);
+        EnqueueEntityCount(2);
+        EnqueueSingleEntity(AggregateNotificationID);
+        EnqueueSingleEntity(NotificationID);
+        EnqueueResponseCode(0);
+
+        // [WHEN] Process notifications while outgoing HTTP requests are blocked by the environment
+        ProcessNotifications();
+
+        // [THEN] Correct payload has been sent
+        APIWebhookSendingEvents.AssertEmptyQueue();
+        // [THEN] Subscription has not been deleted
+        VerifySubscriptionExists(SubscriptionID);
+        // [THEN] Both notifications are kept as aggregate notifications
+        VerifyNotificationDoesNotExist(NotificationID);
+        VerifyAggregateNotificationExists(AggregateNotificationID);
+        VerifyAggregateNotificationExists(NotificationID);
+        VerifyAggregateNotificationCount(2);
+        // [THEN] Attempt number has not been increased
+        VerifyAttemptNumber(AggregateNotificationID, 5);
+        VerifyActivityLogDoesNotExist(IncreaseAttemptNumberTitleTxt);
+        VerifyActivityLogDoesNotExist(NotificationFailedTitleTxt);
+        VerifyActivityLogDoesNotExist(DeleteSubscriptionWithTooManyFailuresTitleTxt);
+        // [THEN] The blocked notification is logged
+        VerifyActivityLogExists(NotificationBlockedByEnvironmentTitleTxt);
+        // [THEN] The next attempt is scheduled with the longest delay
+        VerifySendingScheduledNotBefore(AggregateNotificationID, ProcessingTime + 60000000);
+        VerifyJobCount(1);
+        // [THEN] Processing has been finished
+        VerifyProcessingFinished();
+    end;
+
+    [HttpClientHandler]
+    internal procedure BlockedByEnvironmentHttpClientHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        Response.IsBlockedByEnvironment := true;
+        Response.IsSuccessfulRequest := false;
+        exit(false);
+    end;
+
     local procedure Initialize()
     begin
         Reset();
@@ -2403,5 +2463,22 @@ codeunit 135089 "API Webhook Sending Tests"
         ActivityLog.SetRange(Context, ActivityLogContextLbl);
         ActivityLog.SetRange(Description, ExpectedMessage);
         Assert.IsTrue(ActivityLog.FindFirst(), 'Activity log is not found');
+    end;
+
+    local procedure VerifyActivityLogDoesNotExist(UnexpectedMessage: Text)
+    var
+        ActivityLog: Record "Activity Log";
+    begin
+        ActivityLog.SetRange(Context, ActivityLogContextLbl);
+        ActivityLog.SetRange(Description, UnexpectedMessage);
+        Assert.RecordIsEmpty(ActivityLog);
+    end;
+
+    local procedure VerifySendingScheduledNotBefore(NotificationID: Guid; EarliestDateTime: DateTime)
+    var
+        APIWebhookNotificationAggr: Record "API Webhook Notification Aggr";
+    begin
+        APIWebhookNotificationAggr.Get(NotificationID);
+        Assert.IsTrue(APIWebhookNotificationAggr."Sending Scheduled Date Time" >= EarliestDateTime, 'Sending is scheduled too early');
     end;
 }

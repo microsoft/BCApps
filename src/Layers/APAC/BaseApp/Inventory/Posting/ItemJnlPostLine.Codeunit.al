@@ -21,7 +21,6 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Project.Planning;
-using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Journal;
 
@@ -90,11 +89,11 @@ codeunit 22 "Item Jnl.-Post Line"
         InventoryPostingToGL: Codeunit "Inventory Posting To G/L";
         AvgCostEntryPointHandler: Codeunit "Avg. Cost Entry Point Handler";
         ACYMgt: Codeunit "Additional-Currency Management";
-        ItemLedgEntryNo: Integer;
-        PhysInvtEntryNo: Integer;
-        CapLedgEntryNo: Integer;
-        ValueEntryNo: Integer;
-        ItemApplnEntryNo: Integer;
+        ItemLedgEntryNo: BigInteger;
+        PhysInvtEntryNo: BigInteger;
+        CapLedgEntryNo: BigInteger;
+        ValueEntryNo: BigInteger;
+        ItemApplnEntryNo: BigInteger;
         TotalAppliedQty: Decimal;
         OverheadAmount: Decimal;
         VarianceAmount: Decimal;
@@ -205,9 +204,9 @@ codeunit 22 "Item Jnl.-Post Line"
 
     local procedure "Code"()
     var
-        xItemLedgEntryNo: Integer;
-        xItemApplnEntryNo: Integer;
-        xValueEntryNo: Integer;
+        xItemLedgEntryNo: BigInteger;
+        xItemApplnEntryNo: BigInteger;
+        xValueEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         xItemLedgEntryNo := ItemLedgEntryNo;
@@ -842,7 +841,7 @@ codeunit 22 "Item Jnl.-Post Line"
     /// </remarks>
     procedure ItemValuePosting()
     var
-        xValueEntryNo: Integer;
+        xValueEntryNo: BigInteger;
         IsCostNotTracedDirectly: Boolean;
         IsHandled: Boolean;
     begin
@@ -937,34 +936,8 @@ codeunit 22 "Item Jnl.-Post Line"
         OnAfterItemValuePosting(GlobalValueEntry, ItemJnlLine, Item);
     end;
 
-#if not CLEAN27
-    /// <summary>
-    /// Posts the consumption of the component in a production order. 
-    /// </summary>
-    /// <param name="ProdOrder">Production order being posted.</param>
-    /// <param name="ProdOrderLine">Production order line being posted.</param>
-    /// <param name="ProdOrderComp">Production order component to post.</param>
-    /// <param name="ProdOrderRoutingLine">Production order routing line. This record is only used on events.</param>
-    /// <param name="OldItemJnlLine">Previous item journal line from which new one will be initialized.</param>
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    procedure PostFlushedConsumption(ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; OldItemJnlLine: Record "Item Journal Line")
-    var
-        MfgItemJnlPostLine: Codeunit "Mfg. Item Jnl.-Post Line";
-        ItemJnlPostLine: Variant;
-    begin
-        ItemJnlPostLine := this;
-        MfgItemJnlPostLine.PostFlushedConsumption(
-            ItemJnlLine, ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRoutingLine, OldItemJnlLine, ItemJnlPostLine);
-    end;
-#endif
-
     internal procedure PostFlushedConsumptionItemJnlLine(var ItemJnlLine2: Record "Item Journal Line"; CombinedDimSetID: Integer)
     var
-#if not CLEAN27
-        ProdOrder: Record Microsoft.Manufacturing.Document."Production Order";
-        ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line";
-        ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component";
-#endif
         PostItemJnlLine: Boolean;
         DimsAreTaken: Boolean;
         TrackingSpecExists: Boolean;
@@ -973,12 +946,6 @@ codeunit 22 "Item Jnl.-Post Line"
         TrackingSpecExists := ItemTrackingMgt.RetrieveItemTracking(ItemJnlLine2, TempTrackingSpecification);
 
         OnPostFlushedConsumptionItemJnlLineOnBeforeSetupSplitJnlLine(ItemJnlLine2, TempTrackingSpecification, TrackingSpecExists);
-#if not CLEAN27
-        ProdOrder.Get(ProdOrder.Status::Released, ItemJnlLine2."Order No.");
-        ProdOrderLine.Get(ProdOrder.Status::Released, ItemJnlLine2."Order No.", ItemJnlLine2."Order Line No.");
-        ProdOrderComp.Get(ProdOrder.Status::Released, ItemJnlLine2."Order No.", ItemJnlLine2."Order Line No.", ItemJnlLine2."Prod. Order Comp. Line No.");
-        OnPostFlushedConsumpOnBeforeSetupSplitJnlLine(ItemJnlLine2, ProdOrder, ProdOrderLine, ProdOrderComp, TempTrackingSpecification, TrackingSpecExists);
-#endif
         PostItemJnlLine := SetupSplitJnlLine(ItemJnlLine2, TrackingSpecExists);
 
         while SplitItemJnlLine(ItemJnlLine2, PostItemJnlLine) do begin
@@ -987,9 +954,6 @@ codeunit 22 "Item Jnl.-Post Line"
             if not DimsAreTaken then begin
                 ItemJnlLine2."Dimension Set ID" := CombinedDimSetID;
                 OnPostFlushedConsumptionItemJnlLineOnAfterSetDimensionSetID(ItemJnlLine);
-#if not CLEAN27
-                OnPostFlushedConsumptionOnAfterSetDimensionSetID(ItemJnlLine, ProdOrderLine);
-#endif
                 DimsAreTaken := true;
             end;
             ItemJnlCheckLine.RunCheck(ItemJnlLine2);
@@ -1165,7 +1129,7 @@ codeunit 22 "Item Jnl.-Post Line"
         UpdateLinkedValuationUnapply(Valuationdate, CostItemLedgEntry."Entry No.", CostItemLedgEntry.Positive);
     end;
 
-    procedure UnApplyDropShipment(ItemApplicationEntry: Record "Item Application Entry"; NewItemShptEntryNo: Integer)
+    procedure UnApplyDropShipment(ItemApplicationEntry: Record "Item Application Entry"; NewItemShptEntryNo: BigInteger)
     var
         ItemLedgerEntry1: Record "Item Ledger Entry";
         ItemLedgerEntry2: Record "Item Ledger Entry";
@@ -1243,7 +1207,7 @@ codeunit 22 "Item Jnl.-Post Line"
     /// </summary>
     /// <param name="ItemLedgEntry">Item ledger entry to reaplly.</param>
     /// <param name="ApplyWith">Apply to item ledger entry no.</param>
-    procedure ReApply(ItemLedgEntry: Record "Item Ledger Entry"; ApplyWith: Integer)
+    procedure ReApply(ItemLedgEntry: Record "Item Ledger Entry"; ApplyWith: BigInteger)
     var
         ItemLedgEntry2: Record "Item Ledger Entry";
         ValueEntry: Record "Value Entry";
@@ -1369,7 +1333,7 @@ codeunit 22 "Item Jnl.-Post Line"
         end;
     end;
 
-    local procedure ZeroApplication(EntryNo: Integer): Boolean
+    local procedure ZeroApplication(EntryNo: BigInteger): Boolean
     var
         Application: Record "Item Application Entry";
     begin
@@ -1482,30 +1446,25 @@ codeunit 22 "Item Jnl.-Post Line"
                     ReservEntry2.SetLoadFields("Source Type", "Source Ref. No.", "Item No.", "Quantity (Base)");
                     OnApplyItemLedgEntryOnAfterSetLoadFieldsOnReservEntry(ReservEntry2);
                     ReservEntry2.Get(ReservEntry."Entry No.", not ReservEntry.Positive);
-                    if (ItemLedgEntry."Entry Type" = ItemLedgEntry."Entry Type"::Transfer) and (ReservEntry2."Source Type" = DATABASE::"Purchase Line") and (ItemLedgEntry.Quantity < 0) then begin
-                        UseReservationApplication := false;
-                        StartApplication := true;
-                    end else begin
-                        if ReservEntry2."Source Type" <> DATABASE::"Item Ledger Entry" then
-                            if ItemLedgEntry.Quantity < 0 then
-                                Error(Text003, ReservEntry."Item No.");
-                        OldItemLedgEntry.Get(ReservEntry2."Source Ref. No.");
+                    if ReservEntry2."Source Type" <> DATABASE::"Item Ledger Entry" then
                         if ItemLedgEntry.Quantity < 0 then
-                            if OldItemLedgEntry."Remaining Quantity" < ReservEntry2."Quantity (Base)" then
-                                Error(Text003, ReservEntry2."Item No.");
+                            Error(Text003, ReservEntry."Item No.");
+                    OldItemLedgEntry.Get(ReservEntry2."Source Ref. No.");
+                    if ItemLedgEntry.Quantity < 0 then
+                        if OldItemLedgEntry."Remaining Quantity" < ReservEntry2."Quantity (Base)" then
+                            Error(Text003, ReservEntry2."Item No.");
 
-                        OldItemLedgEntry.TestField("Item No.", ItemJnlLine."Item No.");
-                        OldItemLedgEntry.TestField("Variant Code", ItemJnlLine."Variant Code");
-                        IsHandled := false;
-                        OnApplyItemLedgEntryOnBeforeTestOldItemLedgEntryLocationCode(OldItemLedgEntry, IsHandled);
-                        if not IsHandled then
-                            OldItemLedgEntry.TestField("Location Code", ItemJnlLine."Location Code");
-                        OnApplyItemLedgEntryOnBeforeCloseReservEntry(OldItemLedgEntry, ItemJnlLine, ItemLedgEntry, ReservEntry);
-                        ReservEngineMgt.CloseReservEntry(ReservEntry, false, false);
-                        OnApplyItemLedgEntryOnAfterCloseReservEntry(OldItemLedgEntry, ItemJnlLine, ItemLedgEntry, ReservEntry);
-                        OldItemLedgEntry.CalcReservedQuantity();
-                        AppliedQty := -Abs(ReservEntry."Quantity (Base)");
-                    end;
+                    OldItemLedgEntry.TestField("Item No.", ItemJnlLine."Item No.");
+                    OldItemLedgEntry.TestField("Variant Code", ItemJnlLine."Variant Code");
+                    IsHandled := false;
+                    OnApplyItemLedgEntryOnBeforeTestOldItemLedgEntryLocationCode(OldItemLedgEntry, IsHandled);
+                    if not IsHandled then
+                        OldItemLedgEntry.TestField("Location Code", ItemJnlLine."Location Code");
+                    OnApplyItemLedgEntryOnBeforeCloseReservEntry(OldItemLedgEntry, ItemJnlLine, ItemLedgEntry, ReservEntry);
+                    ReservEngineMgt.CloseReservEntry(ReservEntry, false, false);
+                    OnApplyItemLedgEntryOnAfterCloseReservEntry(OldItemLedgEntry, ItemJnlLine, ItemLedgEntry, ReservEntry);
+                    OldItemLedgEntry.CalcReservedQuantity();
+                    AppliedQty := -Abs(ReservEntry."Quantity (Base)");
                 end;
             end else
                 StartApplication := true;
@@ -1664,7 +1623,7 @@ codeunit 22 "Item Jnl.-Post Line"
         ReservEntry2: Record "Reservation Entry";
         ItemRec: Record Item;
     begin
-        ReservEntry2.SetLoadFields("Source Type", "Source Subtype");
+        ReservEntry2.SetLoadFields("Source Type", "Source Subtype", "Item No.");
         ReservEntry2.Get(ReservEntry."Entry No.", not ReservEntry.Positive);
         if ItemRec.Get(ReservEntry2."Item No.") then
             if not (ItemRec."Assembly Policy" = ItemRec."Assembly Policy"::"Assemble-to-Stock") then
@@ -1672,7 +1631,7 @@ codeunit 22 "Item Jnl.-Post Line"
                       and (not ItemJnlLine."Assemble to Order") then
                     exit(true);
     end;
-    
+
     local procedure UpdateReservationEntryForNonInventoriableItem()
     var
         ReservationEntry: Record "Reservation Entry";
@@ -1739,6 +1698,13 @@ codeunit 22 "Item Jnl.-Post Line"
 
         ItemTrackingSetup2.CopyTrackingFromItemTrackingCodeSpecificTracking(ItemTrackingCode);
         ItemTrackingSetup2.CopyTrackingFromItemLedgerEntry(FromItemLedgEntry);
+
+        if FromItemLedgEntry."Entry Type" = FromItemLedgEntry."Entry Type"::Transfer then begin
+            ItemTrackingSetup2."Serial No. Required" := GlobalItemTrackingSetup."Serial No. Required";
+            ItemTrackingSetup2."Lot No. Required" := GlobalItemTrackingSetup."Lot No. Required";
+
+            OnAfterSetTrackingSetupForTransfer(ItemTrackingSetup2, GlobalItemTrackingSetup);
+        end;
 
         if (FromItemLedgEntry."Serial No." <> '') and (ItemTrackingSetup2."Serial No. Required") then
             ToItemLedgEntry.SetCurrentKey("Serial No.", "Item No.", Open, "Variant Code", Positive, "Location Code", "Posting Date", "Entry No.")
@@ -1908,7 +1874,7 @@ codeunit 22 "Item Jnl.-Post Line"
         NewItemLedgEntry: Record "Item Ledger Entry";
         NewValueEntry: Record "Value Entry";
         ItemLedgEntry2: Record "Item Ledger Entry";
-        xValueEntryNo: Integer;
+        xValueEntryNo: BigInteger;
         IsReserved: Boolean;
         IsHandled: Boolean;
     begin
@@ -1987,7 +1953,7 @@ codeunit 22 "Item Jnl.-Post Line"
     /// <param name="ItemLedgEntry">Return value: Initialized item ledger entry.</param>
     procedure InitItemLedgEntry(var ItemLedgEntry: Record "Item Ledger Entry")
     var
-        xItemLedgEntryNo: Integer;
+        xItemLedgEntryNo: BigInteger;
     begin
         ItemLedgEntryNo := GetNextItemLedgerEntryNo(ItemLedgEntryNo);
 
@@ -2082,9 +2048,9 @@ codeunit 22 "Item Jnl.-Post Line"
     /// <param name="TransferItem">If true, new dimension information will be set.</param>
     procedure InsertItemLedgEntry(var ItemLedgEntry: Record "Item Ledger Entry"; TransferItem: Boolean)
     var
-        xItemLedgEntryNo: Integer;
-        xItemApplnEntryNo: Integer;
-        xValueEntryNo: Integer;
+        xItemLedgEntryNo: BigInteger;
+        xItemApplnEntryNo: BigInteger;
+        xValueEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -2182,7 +2148,7 @@ codeunit 22 "Item Jnl.-Post Line"
         ValidateSequenceNo(ValueEntryNo, xValueEntryNo, Database::"Value Entry");
     end;
 
-    local procedure InsertItemReg(ItemLedgEntryNo: Integer; PhysInvtEntryNo: Integer; ValueEntryNo: Integer; CapLedgEntryNo: Integer)
+    local procedure InsertItemReg(ItemLedgEntryNo: BigInteger; PhysInvtEntryNo: BigInteger; ValueEntryNo: BigInteger; CapLedgEntryNo: BigInteger)
     begin
         if ItemReg."No." = 0 then begin
             ItemReg."No." := ItemReg.GetNextEntryNo(InvtSetup.UseLegacyPosting());
@@ -2234,14 +2200,14 @@ codeunit 22 "Item Jnl.-Post Line"
         end;
     end;
 
-    local procedure GetNextValueEntryNo(CurrValueEntryNo: Integer): Integer
+    local procedure GetNextValueEntryNo(CurrValueEntryNo: BigInteger): BigInteger
     begin
         if InvtSetup.UseLegacyPosting() then
             exit(CurrValueEntryNo + 1);
         exit(GlobalValueEntry.GetNextEntryNo());
     end;
 
-    local procedure GetNextItemLedgerEntryNo(CurrEntryNo: Integer): Integer
+    local procedure GetNextItemLedgerEntryNo(CurrEntryNo: BigInteger): BigInteger
     begin
         if InvtSetup.UseLegacyPosting() then
             exit(CurrEntryNo + 1);
@@ -2398,7 +2364,7 @@ codeunit 22 "Item Jnl.-Post Line"
     /// <param name="PostingDate">Item ledger entry posting date.</param>
     /// <param name="Quantity">Item ledger entry quantity.</param>
     /// <param name="CostToApply">If true, then cost application will be set to true.</param>
-    procedure InsertApplEntry(ItemLedgEntryNo: Integer; InboundItemEntry: Integer; OutboundItemEntry: Integer; TransferedFromEntryNo: Integer; PostingDate: Date; Quantity: Decimal; CostToApply: Boolean)
+    procedure InsertApplEntry(ItemLedgEntryNo: BigInteger; InboundItemEntry: BigInteger; OutboundItemEntry: BigInteger; TransferedFromEntryNo: BigInteger; PostingDate: Date; Quantity: Decimal; CostToApply: Boolean)
     var
         ApplItemLedgEntry: Record "Item Ledger Entry";
         OldItemApplnEntry: Record "Item Application Entry";
@@ -2496,7 +2462,7 @@ codeunit 22 "Item Jnl.-Post Line"
         end;
     end;
 
-    local procedure UpdateItemApplnEntry(ItemLedgEntryNo: Integer; PostingDate: Date)
+    local procedure UpdateItemApplnEntry(ItemLedgEntryNo: BigInteger; PostingDate: Date)
     var
         ItemApplnEntry: Record "Item Application Entry";
     begin
@@ -2525,7 +2491,7 @@ codeunit 22 "Item Jnl.-Post Line"
         InvoicedQuantityNotEmpty: Boolean;
         CostAmt: Decimal;
         CostAmtACY: Decimal;
-        xValueEntryNo: Integer;
+        xValueEntryNo: BigInteger;
     begin
         xValueEntryNo := ValueEntryNo;
         OnBeforeInitValueEntry(ValueEntry, ValueEntryNo, ItemJnlLine);
@@ -2896,7 +2862,7 @@ codeunit 22 "Item Jnl.-Post Line"
         InvdValueEntry: Record "Value Entry";
         InvoicedQty: Decimal;
         IsHandled: Boolean;
-        xValueEntryNo: Integer;
+        xValueEntryNo: BigInteger;
         ShouldCalcExpectedCost: Boolean;
     begin
         OnBeforeInsertValueEntryProcedure(ItemLedgEntry, ItemJnlLine);
@@ -3044,7 +3010,7 @@ codeunit 22 "Item Jnl.-Post Line"
 
     local procedure InsertOHValueEntry(ValueEntry: Record "Value Entry"; OverheadAmount: Decimal; OverheadAmountACY: Decimal)
     var
-        xValueEntryNo: Integer;
+        xValueEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -3219,7 +3185,7 @@ codeunit 22 "Item Jnl.-Post Line"
         OnAfterUpdateAvgCostAdjmtBuffer(OldItemLedgEntry, ValueEntry, ValuationDate);
     end;
 
-    local procedure UpdateOutboundItemLedgEntry(OutboundItemEntryNo: Integer)
+    local procedure UpdateOutboundItemLedgEntry(OutboundItemEntryNo: BigInteger)
     var
         OutboundItemLedgEntry: Record "Item Ledger Entry";
     begin
@@ -3442,7 +3408,7 @@ codeunit 22 "Item Jnl.-Post Line"
             end;
     end;
 
-    local procedure UpdateLinkedValuationDate(FromValuationDate: Date; FromItemledgEntryNo: Integer; FromInbound: Boolean)
+    local procedure UpdateLinkedValuationDate(FromValuationDate: Date; FromItemledgEntryNo: BigInteger; FromInbound: Boolean)
     var
         ToItemApplnEntry: Record "Item Application Entry";
         ValuationDate: Date;
@@ -3479,7 +3445,7 @@ codeunit 22 "Item Jnl.-Post Line"
             until ToItemApplnEntry.Next() = 0;
     end;
 
-    local procedure UpdateLinkedValuationUnapply(FromValuationDate: Date; FromItemLedgEntryNo: Integer; FromInbound: Boolean)
+    local procedure UpdateLinkedValuationUnapply(FromValuationDate: Date; FromItemLedgEntryNo: BigInteger; FromInbound: Boolean)
     var
         ToItemApplnEntry: Record "Item Application Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -3513,7 +3479,7 @@ codeunit 22 "Item Jnl.-Post Line"
             until ToItemApplnEntry.Next() = 0;
     end;
 
-    local procedure UpdateValuationDate(FromValuationDate: Date; FromItemLedgEntryNo: Integer; FromInbound: Boolean)
+    local procedure UpdateValuationDate(FromValuationDate: Date; FromItemLedgEntryNo: BigInteger; FromInbound: Boolean)
     var
         ToValueEntry2: Record "Value Entry";
         IsHandled: Boolean;
@@ -3780,7 +3746,7 @@ codeunit 22 "Item Jnl.-Post Line"
             end;
     end;
 
-    local procedure GetLastDirectCostValEntry(ItemLedgEntryNo: Integer)
+    local procedure GetLastDirectCostValEntry(ItemLedgEntryNo: BigInteger)
     var
         Found: Boolean;
     begin
@@ -3798,7 +3764,7 @@ codeunit 22 "Item Jnl.-Post Line"
             DirCostValueEntry.FindLast();
     end;
 
-    local procedure IsFirstValueEntry(ItemLedgEntryNo: Integer): Boolean
+    local procedure IsFirstValueEntry(ItemLedgEntryNo: BigInteger): Boolean
     var
         ValueEntry: Record "Value Entry";
     begin
@@ -3808,7 +3774,7 @@ codeunit 22 "Item Jnl.-Post Line"
         exit(ValueEntry.IsEmpty);
     end;
 
-    local procedure CalcExpectedCost(var InvdValueEntry: Record "Value Entry"; ItemLedgEntryNo: Integer; InvoicedQty: Decimal; Quantity: Decimal; var ExpectedCost: Decimal; var ExpectedCostACY: Decimal; var ExpectedSalesAmt: Decimal; var ExpectedPurchAmt: Decimal; CalcReminder: Boolean)
+    local procedure CalcExpectedCost(var InvdValueEntry: Record "Value Entry"; ItemLedgEntryNo: BigInteger; InvoicedQty: Decimal; Quantity: Decimal; var ExpectedCost: Decimal; var ExpectedCostACY: Decimal; var ExpectedSalesAmt: Decimal; var ExpectedPurchAmt: Decimal; CalcReminder: Boolean)
     var
         ValueEntry: Record "Value Entry";
     begin
@@ -4075,7 +4041,7 @@ codeunit 22 "Item Jnl.-Post Line"
 
     local procedure SplitItemJnlLine(var ItemJnlLine2: Record "Item Journal Line"; PostItemJnlLine: Boolean): Boolean
     var
-        FreeEntryNo: Integer;
+        FreeEntryNo: BigInteger;
         JnlLineNo: Integer;
         SignFactor: Integer;
         IsHandled: Boolean;
@@ -4461,7 +4427,7 @@ codeunit 22 "Item Jnl.-Post Line"
             (ItemJnlLine."Value Entry Type" = ItemJnlLine."Value Entry Type"::Rounding));
     end;
 
-    local procedure GetAppliedEntryNo(): Integer
+    local procedure GetAppliedEntryNo(): BigInteger
     begin
         if ItemJnlLine."Applies-to Entry" <> 0 then
             exit(ItemJnlLine."Applies-to Entry");
@@ -4588,7 +4554,7 @@ codeunit 22 "Item Jnl.-Post Line"
     /// </summary>
     /// <param name="OldItemLedgEntryNo">Inbound item ledger entry number.</param>
     /// <param name="NewItemLedgEntryNo">Outbound item ledger entry number.</param>
-    procedure UndoValuePostingWithJob(OldItemLedgEntryNo: Integer; NewItemLedgEntryNo: Integer)
+    procedure UndoValuePostingWithJob(OldItemLedgEntryNo: BigInteger; NewItemLedgEntryNo: BigInteger)
     var
         OldItemLedgEntry: Record "Item Ledger Entry";
         NewItemLedgEntry: Record "Item Ledger Entry";
@@ -4698,7 +4664,7 @@ codeunit 22 "Item Jnl.-Post Line"
 
     local procedure InsertCorrValueEntry(OldValueEntry: Record "Value Entry"; var NewValueEntry: Record "Value Entry"; ItemLedgEntry: Record "Item Ledger Entry"; DocumentLineNo: Integer; Sign: Integer; QtyToShip: Decimal; QtyToInvoice: Decimal)
     var
-        xValueEntryNo: Integer;
+        xValueEntryNo: BigInteger;
         ShouldInsertValueEntry: Boolean;
     begin
         ValueEntryNo := GetNextValueEntryNo(ValueEntryNo);
@@ -4775,7 +4741,7 @@ codeunit 22 "Item Jnl.-Post Line"
         InsertPostValueEntryToGL(NewValueEntry);
     end;
 
-    local procedure UpdateOrigAppliedFromEntry(OldItemLedgEntryNo: Integer)
+    local procedure UpdateOrigAppliedFromEntry(OldItemLedgEntryNo: BigInteger)
     var
         ItemApplEntry: Record "Item Application Entry";
         ItemLedgEntry: Record "Item Ledger Entry";
@@ -4859,20 +4825,6 @@ codeunit 22 "Item Jnl.-Post Line"
 
         OnAfterCheckItemAndVariant(ItemJnlLine, CalledFromAdjustment);
     end;
-
-    /// <summary>
-    /// Checks the tracking information of an item journal. If serial, lot or package numbers are required but are missing, an error is thrown.
-    /// </summary>
-    /// <remarks>
-    /// If the journal line is a transfer, it also checks for new serial, lot and package numbers to be assigned during the posting.
-    /// </remarks>
-#if not CLEAN27
-    [Obsolete('Replaced by same procedure with parameters ItemJnlLine', '27.0')]
-    procedure CheckItemTracking()
-    begin
-        CheckItemTracking(ItemJnlLine);
-    end;
-#endif
 
     procedure CheckItemTracking(var ItemJnlLine2: Record "Item Journal Line")
     var
@@ -5005,7 +4957,7 @@ codeunit 22 "Item Jnl.-Post Line"
             Error(CannotUnapplyCorrEntryErr);
     end;
 
-    local procedure InsertTempTrkgSpecification(FreeEntryNo: Integer)
+    local procedure InsertTempTrkgSpecification(FreeEntryNo: BigInteger)
     var
         TempTrackingSpecification2: Record "Tracking Specification" temporary;
     begin
@@ -5072,20 +5024,6 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
         exit(PostToGL);
     end;
-
-#if not CLEAN27
-    /// <summary>
-    /// Determines if the next operation number exists on the provided production order routing line.
-    /// </summary>
-    /// <param name="ProdOrderRtngLine">Production order routing line to check.</param>
-    /// <returns>True if next operation number exists, otherwise false.</returns>
-    [Obsolete('Moved to table ProdOrderRoutingLine', '27.0')]
-    procedure NextOperationExist(var ProdOrderRtngLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"): Boolean
-    begin
-        OnBeforeNextOperationExist(ProdOrderRtngLine);
-        exit(ProdOrderRtngLine."Next Operation No." <> '');
-    end;
-#endif
 
     local procedure UpdateAdjmtProperties(ValueEntry: Record "Value Entry"; OriginalPostingDate: Date)
     begin
@@ -5238,7 +5176,7 @@ codeunit 22 "Item Jnl.-Post Line"
         ValueEntry3: Record "Value Entry";
         RevExpCostToBalance: Decimal;
         RevExpCostToBalanceACY: Decimal;
-        xValueEntryNo: Integer;
+        xValueEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -5371,7 +5309,7 @@ codeunit 22 "Item Jnl.-Post Line"
         exit(ItemJournalLine."Warehouse Adjustment" and (ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Transfer));
     end;
 
-    local procedure IsNotValuedByAverageCost(CostItemLedgEntryNo: Integer): Boolean
+    local procedure IsNotValuedByAverageCost(CostItemLedgEntryNo: BigInteger): Boolean
     var
         ValueEntry: Record "Value Entry";
     begin
@@ -5453,7 +5391,7 @@ codeunit 22 "Item Jnl.-Post Line"
             OldItemLedgEntry.FieldError("Remaining Quantity", Text004)
     end;
 
-    local procedure CheckApplFromInProduction(var GlobalItemLedgerEntry: Record "Item Ledger Entry"; AppliesFRomEntryNo: Integer)
+    local procedure CheckApplFromInProduction(var GlobalItemLedgerEntry: Record "Item Ledger Entry"; AppliesFRomEntryNo: BigInteger)
     var
         OldItemLedgerEntry: Record "Item Ledger Entry";
     begin
@@ -5528,7 +5466,7 @@ codeunit 22 "Item Jnl.-Post Line"
         end;
     end;
 
-    local procedure UpdateValuedByAverageCost(CostItemLedgEntryNo: Integer; ValuedByAverage: Boolean)
+    local procedure UpdateValuedByAverageCost(CostItemLedgEntryNo: BigInteger; ValuedByAverage: Boolean)
     var
         ValueEntry: Record "Value Entry";
     begin
@@ -5566,7 +5504,7 @@ codeunit 22 "Item Jnl.-Post Line"
     /// Marks an item ledger entry as touched by inserting it into a global buffer.
     /// </summary>
     /// <param name="EntryNo">Item ledger entry to mark.</param>
-    procedure TouchEntry(EntryNo: Integer)
+    procedure TouchEntry(EntryNo: BigInteger)
     var
         TouchedItemLedgEntry: Record "Item Ledger Entry";
     begin
@@ -5609,7 +5547,7 @@ codeunit 22 "Item Jnl.-Post Line"
     local procedure GetMaxAppliedValuationdate(ItemLedgerEntry: Record "Item Ledger Entry"): Date
     var
         ToItemApplnEntry: Record "Item Application Entry";
-        FromItemledgEntryNo: Integer;
+        FromItemledgEntryNo: BigInteger;
         FromInbound: Boolean;
         MaxDate: Date;
         NewDate: Date;
@@ -5657,7 +5595,7 @@ codeunit 22 "Item Jnl.-Post Line"
     /// <param name="ItemLedgerEntryNo">Item ledger entry no. to find value entries for.</param>
     /// <param name="ValuationDate">Valuation date to set.</param>
     /// <param name="FixedApplication">Indicates if it's a fixed application.</param>
-    procedure SetValuationDateAllValueEntrie(ItemLedgerEntryNo: Integer; ValuationDate: Date; FixedApplication: Boolean)
+    procedure SetValuationDateAllValueEntrie(ItemLedgerEntryNo: BigInteger; ValuationDate: Date; FixedApplication: Boolean)
     var
         ValueEntry: Record "Value Entry";
     begin
@@ -5716,7 +5654,7 @@ codeunit 22 "Item Jnl.-Post Line"
         end;
     end;
 
-    local procedure ReservationPreventsApplication(ApplicationEntry: Integer; ItemNo: Code[20]; ReservationsEntry: Record "Item Ledger Entry")
+    local procedure ReservationPreventsApplication(ApplicationEntry: BigInteger; ItemNo: Code[20]; ReservationsEntry: Record "Item Ledger Entry")
     var
         ReservationEntries: Record "Reservation Entry";
         ReservEngineMgt: Codeunit "Reservation Engine Mgt.";
@@ -5750,7 +5688,7 @@ codeunit 22 "Item Jnl.-Post Line"
     local procedure UpdateOutputEntryAndChain(var TempValueEntry: Record "Value Entry" temporary; ValuationDate: Date)
     var
         ValueEntry: Record "Value Entry";
-        ItemLedgerEntryNo: Integer;
+        ItemLedgerEntryNo: BigInteger;
     begin
         TempValueEntry.SetCurrentKey("Item Ledger Entry No.", "Entry Type");
         if TempValueEntry.Find('-') then
@@ -5809,7 +5747,7 @@ codeunit 22 "Item Jnl.-Post Line"
         end;
     end;
 
-    local procedure TransReserveFromJobPlanningLine(FromJobContractEntryNo: Integer; ToItemJnlLine: Record "Item Journal Line")
+    local procedure TransReserveFromJobPlanningLine(FromJobContractEntryNo: BigInteger; ToItemJnlLine: Record "Item Journal Line")
     var
         JobPlanningLine: Record "Job Planning Line";
     begin
@@ -6028,7 +5966,6 @@ codeunit 22 "Item Jnl.-Post Line"
             if ReservationEntry2.Get(ReservationEntry."Entry No.", not ReservationEntry.Positive) then
                 SourceType := ReservationEntry2."Source Type";
 
-
         case SourceType of
             Database::"Sales Line":
                 AppliedQty := -Abs(OldItemLedgerEntry."Remaining Quantity" - OldItemLedgerEntry."Reserved Quantity");
@@ -6039,14 +5976,14 @@ codeunit 22 "Item Jnl.-Post Line"
         OnAfterGetUpdatedAppliedQtyForConsumption(OldItemLedgerEntry, ItemLedgerEntry, ReservationEntry2, SourceType, AppliedQty);
     end;
 
-    procedure PostDeferredValueEntriesToGL(PostponedValueEntries: List of [Integer])
+    procedure PostDeferredValueEntriesToGL(PostponedValueEntries: List of [BigInteger])
     var
         ValueEntry: Record "Value Entry";
         ValueEntryUpdate: Record "Value Entry";
         Window: Dialog;
-        EntryNo: Integer;
-        FromEntryNo: Integer;
-        ToEntryNo: Integer;
+        EntryNo: BigInteger;
+        FromEntryNo: BigInteger;
+        ToEntryNo: BigInteger;
     begin
         if PostponedValueEntries.Count = 0 then
             exit;
@@ -6105,7 +6042,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeApplyItemLedgEntry(var ItemLedgEntry: Record "Item Ledger Entry"; var OldItemLedgEntry: Record "Item Ledger Entry"; var ValueEntry: Record "Value Entry"; CausedByTransfer: Boolean; var Handled: Boolean; ItemJnlLine: Record "Item Journal Line"; var ItemApplnEntryNo: Integer)
+    local procedure OnBeforeApplyItemLedgEntry(var ItemLedgEntry: Record "Item Ledger Entry"; var OldItemLedgEntry: Record "Item Ledger Entry"; var ValueEntry: Record "Value Entry"; CausedByTransfer: Boolean; var Handled: Boolean; ItemJnlLine: Record "Item Journal Line"; var ItemApplnEntryNo: BigInteger)
     begin
     end;
 
@@ -6190,7 +6127,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertApplEntry(var ItemLedgEntryNo: Integer; var InboundItemEntry: Integer; var OutboundItemEntry: Integer; var TransferedFromEntryNo: Integer; var PostingDate: Date; var Quantity: Decimal; var CostToApply: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeInsertApplEntry(var ItemLedgEntryNo: BigInteger; var InboundItemEntry: BigInteger; var OutboundItemEntry: BigInteger; var TransferedFromEntryNo: BigInteger; var PostingDate: Date; var Quantity: Decimal; var CostToApply: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -6203,19 +6140,6 @@ codeunit 22 "Item Jnl.-Post Line"
     local procedure OnBeforeInsertTransferEntry(var NewItemLedgerEntry: Record "Item Ledger Entry"; var OldItemLedgerEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line")
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnAfterFlushOperation(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ItemJnlLine: Record "Item Journal Line");
-    begin
-        OnAfterFlushOperation(ProdOrder, ProdOrderLine, ItemJnlLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterFlushOperation(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ItemJnlLine: Record "Item Journal Line");
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetItem(var Item: Record Item; ItemNo: Code[20]; Unconditionally: Boolean; var HasGotItem: Boolean; var IsHandled: Boolean)
@@ -6232,39 +6156,13 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterPostFlushedConsump(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; OldItemJnlLine: Record "Item Journal Line")
-    begin
-        OnAfterPostFlushedConsump(ProdOrderComp, ProdOrderRoutingLine, OldItemJnlLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPostFlushedConsump(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; OldItemJnlLine: Record "Item Journal Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnAfterPostConsumption(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ItemJnlLine2: Record "Item Journal Line");
-    begin
-        OnAfterPostConsumption(ProdOrderComp, ItemJnlLine2);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPostConsumption(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ItemJnlLine: Record "Item Journal Line");
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertPhysInvtLedgEntry(var PhysInventoryLedgerEntry: Record "Phys. Inventory Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; LastSplitItemJournalLine: Record "Item Journal Line")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: Integer)
+    local procedure OnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: BigInteger)
     begin
     end;
 
@@ -6274,7 +6172,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: Integer; var ValueEntryNo: Integer; var ItemApplnEntryNo: Integer; GlobalValueEntry: Record "Value Entry"; TransferItem: Boolean; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L"; var OldItemLedgerEntry: Record "Item Ledger Entry")
+    local procedure OnAfterInsertItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: BigInteger; var ValueEntryNo: BigInteger; var ItemApplnEntryNo: BigInteger; GlobalValueEntry: Record "Value Entry"; TransferItem: Boolean; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L"; var OldItemLedgerEntry: Record "Item Ledger Entry")
     begin
     end;
 
@@ -6289,12 +6187,12 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertValueEntry(var ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer)
+    local procedure OnAfterInsertValueEntry(var ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertValueEntry(var ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L"; CalledFromAdjustment: Boolean; var OldItemLedgEntry: Record "Item Ledger Entry"; var Item: Record Item; TransferItem: Boolean; var GlobalValueEntry: Record "Value Entry")
+    local procedure OnBeforeInsertValueEntry(var ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L"; CalledFromAdjustment: Boolean; var OldItemLedgEntry: Record "Item Ledger Entry"; var Item: Record Item; TransferItem: Boolean; var GlobalValueEntry: Record "Value Entry")
     begin
     end;
 
@@ -6304,7 +6202,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInitValueEntry(var ValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; var ValueEntryNo: Integer; var ItemLedgEntry: Record "Item Ledger Entry")
+    local procedure OnAfterInitValueEntry(var ValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; var ValueEntryNo: BigInteger; var ItemLedgEntry: Record "Item Ledger Entry")
     begin
     end;
 
@@ -6344,27 +6242,14 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertCorrValueEntry(var NewValueEntry: Record "Value Entry"; OldValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; Sign: Integer; CalledFromAdjustment: Boolean; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L")
+    local procedure OnBeforeInsertCorrValueEntry(var NewValueEntry: Record "Value Entry"; OldValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; Sign: Integer; CalledFromAdjustment: Boolean; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertCorrValueEntry(var NewValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer)
+    local procedure OnAfterInsertCorrValueEntry(var NewValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforeInsertConsumpEntry(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; QtyBase: Decimal; var ModifyProdOrderComp: Boolean; var ItemJnlLine: Record "Item Journal Line"; var TempSplitItemJnlLine: Record "Item Journal Line" temporary)
-    begin
-        OnBeforeInsertConsumpEntry(ProdOrderComponent, QtyBase, ModifyProdOrderComp, ItemJnlLine, TempSplitItemJnlLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertConsumpEntry(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; QtyBase: Decimal; var ModifyProdOrderComp: Boolean; var ItemJnlLine: Record "Item Journal Line"; var TempSplitItemJnlLine: Record "Item Journal Line" temporary)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterItemApplnEntryInsert(var ItemApplicationEntry: Record "Item Application Entry"; GlobalItemLedgerEntry: Record "Item Ledger Entry"; OldItemLedgerEntry: Record "Item Ledger Entry")
@@ -6377,22 +6262,9 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeItemApplnEntryInsert(var ItemApplicationEntry: Record "Item Application Entry"; GlobalItemLedgerEntry: Record "Item Ledger Entry"; OldItemLedgerEntry: Record "Item Ledger Entry"; var ItemApplnEntryNo: Integer)
+    local procedure OnBeforeItemApplnEntryInsert(var ItemApplicationEntry: Record "Item Application Entry"; GlobalItemLedgerEntry: Record "Item Ledger Entry"; OldItemLedgerEntry: Record "Item Ledger Entry"; var ItemApplnEntryNo: BigInteger)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforeNextOperationExist(var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line")
-    begin
-        OnBeforeNextOperationExist(ProdOrderRoutingLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeNextOperationExist(var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItem(var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean; CalledFromAdjustment: Boolean; ItemRegister: Record "Item Register")
@@ -6400,7 +6272,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; CalledFromAdjustment: Boolean; CalledFromInvtPutawayPick: Boolean; var ItemRegister: Record "Item Register"; var ItemLedgEntryNo: Integer; var ValueEntryNo: Integer; var ItemApplnEntryNo: Integer; var PhysicalInventoryEntryNo: Integer; var CapacityLedgerEntryNo: Integer)
+    local procedure OnBeforePostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; CalledFromAdjustment: Boolean; CalledFromInvtPutawayPick: Boolean; var ItemRegister: Record "Item Register"; var ItemLedgEntryNo: BigInteger; var ValueEntryNo: BigInteger; var ItemApplnEntryNo: BigInteger; var PhysicalInventoryEntryNo: BigInteger; var CapacityLedgerEntryNo: BigInteger)
     begin
     end;
 
@@ -6415,48 +6287,9 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterPostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L"; CalledFromAdjustment: Boolean; CalledFromInvtPutawayPick: Boolean; var ItemRegister: Record "Item Register"; var ItemLedgEntryNo: Integer; var ItemApplnEntryNo: Integer; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; var PhysicalInventoryEntryNo: Integer; var CapacityLedgerEntryNo: Integer)
+    local procedure OnAfterPostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L"; CalledFromAdjustment: Boolean; CalledFromInvtPutawayPick: Boolean; var ItemRegister: Record "Item Register"; var ItemLedgEntryNo: BigInteger; var ItemApplnEntryNo: BigInteger; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; var PhysicalInventoryEntryNo: BigInteger; var CapacityLedgerEntryNo: BigInteger)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnAfterPostOutput(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
-    begin
-        OnAfterPostOutput(ItemLedgerEntry, ProdOrderLine, ItemJournalLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPostOutput(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostOutputOnBeforeProdOrderRtngLineModify(var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var LastOperation: Boolean)
-    begin
-        OnPostOutputOnBeforeProdOrderRtngLineModify(ProdOrderRoutingLine, ProdOrderLine, ItemJournalLine, LastOperation);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputOnBeforeProdOrderRtngLineModify(var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var LastOperation: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostOutputOnAfterProdOrderRtngLineSetFilters(var ProdOrderRtngLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line")
-    begin
-        OnPostOutputOnAfterProdOrderRtngLineSetFilters(ProdOrderRtngLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputOnAfterProdOrderRtngLineSetFilters(var ProdOrderRtngLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCheckPostingCostToGL(var PostCostToGL: Boolean)
@@ -6472,32 +6305,6 @@ codeunit 22 "Item Jnl.-Post Line"
     local procedure OnBeforeInsertSetupTempSplitItemJnlLine(var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempItemJournalLine: Record "Item Journal Line" temporary; var PostItemJnlLine: Boolean; var ItemJournalLine2: Record "Item Journal Line"; SignFactor: Integer; FloatingFactor: Decimal)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforeFlushOperation(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ItemJnlLine: Record "Item Journal Line"; LastOperation: Boolean);
-    begin
-        OnBeforeFlushOperation(ProdOrder, ProdOrderLine, ItemJnlLine, LastOperation);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnBeforeFlushOperation(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ItemJnlLine: Record "Item Journal Line"; LastOperation: Boolean);
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforePostFlushedConsumpItemJnlLine(var ItemJournalLine: Record "Item Journal Line")
-    begin
-        OnBeforePostFlushedConsumpItemJnlLine(ItemJournalLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforePostFlushedConsumpItemJnlLine(var ItemJournalLine: Record "Item Journal Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateOldItemLedgerEntryRemainingQuantity(var OldItemLedgerEntry: Record "Item Ledger Entry"; AppliedQuantity: Decimal; var GlobalItemLedgEntry: Record "Item Ledger Entry"; var AverageTransfer: Boolean)
@@ -6565,7 +6372,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCalcExpectedCost(var ValueEntry: Record "Value Entry"; ItemLedgerEntryNo: Integer; var ExpectedCost: Decimal; var ExpectedCostACY: Decimal; var ExpectedSalesAmt: Decimal; var ExpectedPurchAmt: Decimal)
+    local procedure OnAfterCalcExpectedCost(var ValueEntry: Record "Value Entry"; ItemLedgerEntryNo: BigInteger; var ExpectedCost: Decimal; var ExpectedCostACY: Decimal; var ExpectedSalesAmt: Decimal; var ExpectedPurchAmt: Decimal)
     begin
     end;
 
@@ -6614,19 +6421,6 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeCallFlushOperation(var ItemJnlLine2: Record "Item Journal Line"; var ShouldFlushOperation: Boolean);
-    begin
-        OnBeforeCallFlushOperation(ItemJnlLine2, ShouldFlushOperation);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCallFlushOperation(var ItemJnlLine: Record "Item Journal Line"; var ShouldFlushOperation: Boolean);
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckSerialNo(ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean; var SkipSerialNoQtyValidation: Boolean)
     begin
@@ -6642,21 +6436,8 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforePostFlushedConsump(ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; OldItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean);
-    begin
-        OnBeforePostFlushedConsump(ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRoutingLine, OldItemJnlLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforePostFlushedConsump(ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; OldItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean);
-    begin
-    end;
-#endif
-
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeInitValueEntry(var ValueEntry: Record "Value Entry"; var ValueEntryNo: Integer; var ItemJournalLine: Record "Item Journal Line")
+    local procedure OnBeforeInitValueEntry(var ValueEntry: Record "Value Entry"; var ValueEntryNo: BigInteger; var ItemJournalLine: Record "Item Journal Line")
     begin
     end;
 
@@ -6789,19 +6570,6 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeUpdateProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; ReTrack: Boolean)
-    begin
-        OnBeforeUpdateProdOrderLine(ProdOrderLine, ItemJournalLine, ReTrack);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; ReTrack: Boolean)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateUnitCost(var ValueEntry: Record "Value Entry"; var IsHandled: Boolean; ItemJournalLine: Record "Item Journal Line")
     begin
@@ -6853,7 +6621,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterInsertTransferEntry(var ItemJournalLine: Record "Item Journal Line"; NewItemLedgerEntry: Record "Item Ledger Entry"; OldItemLedgerEntry: Record "Item Ledger Entry"; NewValueEntry: Record "Value Entry"; var ValueEntryNo: Integer)
+    local procedure OnAfterInsertTransferEntry(var ItemJournalLine: Record "Item Journal Line"; NewItemLedgerEntry: Record "Item Ledger Entry"; OldItemLedgerEntry: Record "Item Ledger Entry"; NewValueEntry: Record "Value Entry"; var ValueEntryNo: BigInteger)
     begin
     end;
 
@@ -6947,53 +6715,14 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCalcExpectedCostOnBeforeFindValueEntry(var ValueEntry: Record "Value Entry"; ItemLedgEntryNo: Integer; InvoicedQty: Decimal; Quantity: Decimal; var ExpectedCost: Decimal; var ExpectedCostACY: Decimal; var ExpectedSalesAmt: Decimal; var ExpectedPurchAmt: Decimal; CalcReminder: Boolean; var InvdValueEntry: Record "Value Entry"; ItemJnlLine: Record "Item Journal Line")
+    local procedure OnCalcExpectedCostOnBeforeFindValueEntry(var ValueEntry: Record "Value Entry"; ItemLedgEntryNo: BigInteger; InvoicedQty: Decimal; Quantity: Decimal; var ExpectedCost: Decimal; var ExpectedCostACY: Decimal; var ExpectedSalesAmt: Decimal; var ExpectedPurchAmt: Decimal; CalcReminder: Boolean; var InvdValueEntry: Record "Value Entry"; ItemJnlLine: Record "Item Journal Line")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCalcILEExpectedAmountOnBeforeCalcCostAmounts(var OldValueEntry2: Record "Value Entry"; var OldValueEntry: Record "Value Entry"; ItemLedgEntryNo: Integer)
+    local procedure OnCalcILEExpectedAmountOnBeforeCalcCostAmounts(var OldValueEntry2: Record "Value Entry"; var OldValueEntry: Record "Value Entry"; ItemLedgEntryNo: BigInteger)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnCorrectOutputValuationDateOnBeforeCheckProdOrder(ItemLedgerEntry: Record "Item Ledger Entry"; var IsHandled: Boolean)
-    begin
-        OnCorrectOutputValuationDateOnBeforeCheckProdOrder(ItemLedgerEntry, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCorrectOutputValuationDateOnBeforeCheckProdOrder(ItemLedgerEntry: Record "Item Ledger Entry"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnFlushOperationOnAfterProdOrderCompSetFilters(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; OldItemJournalLine: Record "Item Journal Line"; var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line")
-    begin
-        OnFlushOperationOnAfterProdOrderCompSetFilters(ProdOrderComponent, OldItemJournalLine, ProdOrderRoutingLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnFlushOperationOnAfterProdOrderCompSetFilters(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; OldItemJournalLine: Record "Item Journal Line"; var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnFlushOperationOnBeforeCheckRoutingLinkCode(var ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; var ItemJournalLine: Record "Item Journal Line"; LastOperation: Boolean)
-    begin
-        OnFlushOperationOnBeforeCheckRoutingLinkCode(ProductionOrder, ProdOrderLine, ProdOrderRoutingLine, ItemJournalLine, LastOperation);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnFlushOperationOnBeforeCheckRoutingLinkCode(var ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; var ItemJournalLine: Record "Item Journal Line"; LastOperation: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnGetValuationDateOnAfterOldValueEntrySetFilters(var OldValueEntry: Record "Value Entry"; ValueEntry: Record "Value Entry"; OldItemLedgEntry: Record "Item Ledger Entry")
@@ -7060,21 +6789,8 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnInsertConsumpEntryOnBeforePostItem(var ItemJournalLine: Record "Item Journal Line"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; PostWhseJnlLine: Boolean; var WarehouseJournalLine: Record "Warehouse Journal Line")
-    begin
-        OnInsertConsumpEntryOnBeforePostItem(ItemJournalLine, ProdOrderComponent, PostWhseJnlLine, WarehouseJournalLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInsertConsumpEntryOnBeforePostItem(var ItemJournalLine: Record "Item Journal Line"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; PostWhseJnlLine: Boolean; var WarehouseJournalLine: Record "Warehouse Journal Line")
-    begin
-    end;
-#endif
-
     [IntegrationEvent(true, false)]
-    local procedure OnInsertOHValueEntryOnBeforeInsertValueEntry(var ValueEntry: Record "Value Entry"; ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean; var GlobalItemLedgEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer)
+    local procedure OnInsertOHValueEntryOnBeforeInsertValueEntry(var ValueEntry: Record "Value Entry"; ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean; var GlobalItemLedgEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger)
     begin
     end;
 
@@ -7094,7 +6810,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnItemValuePostingOnAfterInsertValueEntry(var ValueEntry: Record "Value Entry"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer)
+    local procedure OnItemValuePostingOnAfterInsertValueEntry(var ValueEntry: Record "Value Entry"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger)
     begin
     end;
 
@@ -7133,158 +6849,15 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnPostFlushedConsumpOnAfterCalcQtyToPost(ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; ActOutputQtyBase: Decimal; var QtyToPost: Decimal; var OldItemJournalLine: Record "Item Journal Line"; var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; var CompItem: Record Item)
-    begin
-        OnPostFlushedConsumpOnAfterCalcQtyToPost(ProductionOrder, ProdOrderLine, ProdOrderComponent, ActOutputQtyBase, QtyToPost, OldItemJournalLine, ProdOrderRoutingLine, CompItem);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostFlushedConsumpOnAfterCalcQtyToPost(ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; ActOutputQtyBase: Decimal; var QtyToPost: Decimal; var OldItemJournalLine: Record "Item Journal Line"; var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; var CompItem: Record Item)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostFlushedConsumpOnAfterCopyProdOrderFieldsToItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; var OldItemJournalLine: Record "Item Journal Line"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; CompItem: record Item)
-    begin
-        OnPostFlushedConsumpOnAfterCopyProdOrderFieldsToItemJnlLine(ItemJournalLine, OldItemJournalLine, ProdOrderLine, ProdOrderComponent, CompItem);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostFlushedConsumpOnAfterCopyProdOrderFieldsToItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; var OldItemJournalLine: Record "Item Journal Line"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; CompItem: record Item)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostFlushedConsumptionOnBeforeCalcQtyToPost(ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; OldItemJnlLine: Record "Item Journal Line"; var OutputQtyBase: Decimal)
-    begin
-        OnPostFlushedConsumptionOnBeforeCalcQtyToPost(ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRoutingLine, OldItemJnlLine, OutputQtyBase);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostFlushedConsumptionOnBeforeCalcQtyToPost(ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; OldItemJnlLine: Record "Item Journal Line"; var OutputQtyBase: Decimal)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostFlushedConsumpOnBeforeProdOrderCompReserveTransferPOCompToItemJnlLine(ItemJournalLine: Record "Item Journal Line"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnPostFlushedConsumpOnBeforeProdOrderCompReserveTransferPOCompToItemJnlLine(ItemJournalLine, ProdOrderComponent);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostFlushedConsumpOnBeforeProdOrderCompReserveTransferPOCompToItemJnlLine(ItemJournalLine: Record "Item Journal Line"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostFlushedConsumpOnBeforeSetupSplitJnlLine(var ItemJournalLine: Record "Item Journal Line"; var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TrackingSpecExists: Boolean)
-    begin
-        OnPostFlushedConsumpOnBeforeSetupSplitJnlLine(ItemJournalLine, ProdOrder, ProdOrderLine, ProdOrderComp, TempTrackingSpecification, TrackingSpecExists);
-    end;
-
-    [Obsolete('Replaced by event OnPostFlushedConsumptionItemJnlLineOnBeforeSetupSplitJnlLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostFlushedConsumpOnBeforeSetupSplitJnlLine(var ItemJournalLine: Record "Item Journal Line"; var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TrackingSpecExists: Boolean)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnPostFlushedConsumptionItemJnlLineOnBeforeSetupSplitJnlLine(var ItemJournalLine: Record "Item Journal Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TrackingSpecExists: Boolean)
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnPostFlushedConsumptionOnAfterSetDimensionSetID(ItemJournalLine: Record "Item Journal Line"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-        OnPostFlushedConsumptionOnAfterSetDimensionSetID(ItemJournalLine, ProdOrderLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostFlushedConsumptionOnAfterSetDimensionSetID(ItemJournalLine: Record "Item Journal Line"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnPostFlushedConsumptionItemJnlLineOnAfterSetDimensionSetID(ItemJournalLine: Record "Item Journal Line")
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnPostConsumptionOnAfterInsertEntry(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnPostConsumptionOnAfterInsertEntry(ProdOrderComponent);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostConsumptionOnAfterInsertEntry(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostConsumptionOnAfterFindProdOrderComp(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnPostConsumptionOnAfterFindProdOrderComp(ProdOrderComp);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostConsumptionOnAfterFindProdOrderComp(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostConsumptionOnAfterCalcNewRemainingQty(ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var NewRemainingQuantity: Decimal; QtyToPost: Decimal)
-    begin
-        OnPostConsumptionOnAfterCalcNewRemainingQty(ProdOrderComponent, NewRemainingQuantity, QtyToPost);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostConsumptionOnAfterCalcNewRemainingQty(ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var NewRemainingQuantity: Decimal; QtyToPost: Decimal)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostConsumptionOnBeforeCheckOrderType(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-        OnPostConsumptionOnBeforeCheckOrderType(ProdOrderComponent, ItemJournalLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostConsumptionOnBeforeCheckOrderType(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostConsumptionOnBeforeFindSetProdOrderComp(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ItemJournalLine: Record "Item Journal Line")
-    begin
-        OnPostConsumptionOnBeforeFindSetProdOrderComp(ProdOrderComponent, ItemJournalLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostConsumptionOnBeforeFindSetProdOrderComp(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ItemJournalLine: Record "Item Journal Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPostItemOnAfterGetSKU(var ItemJnlLine: Record "Item Journal Line"; var SKUExists: Boolean; var IsHandled: Boolean)
@@ -7300,123 +6873,6 @@ codeunit 22 "Item Jnl.-Post Line"
     local procedure OnPostItemOnBeforeUpdateUnitCost(var ItemJnlLine: Record "Item Journal Line"; GlobalItemLedgEntry: Record "Item Ledger Entry")
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnPostOutputOnAfterInsertCapLedgEntry(ItemJournalLine: Record "Item Journal Line"; var SkipPost: Boolean)
-    begin
-        OnPostOutputOnAfterInsertCapLedgEntry(ItemJournalLine, SkipPost);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputOnAfterInsertCapLedgEntry(ItemJournalLine: Record "Item Journal Line"; var SkipPost: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostOutputOnAfterInsertCostValueEntries(ItemJournalLine: Record "Item Journal Line"; var CapLedgEntry: Record Microsoft.Manufacturing.Capacity."Capacity Ledger Entry"; CalledFromAdjustment: Boolean; PostToGL: Boolean)
-    begin
-        OnPostOutputOnAfterInsertCostValueEntries(ItemJournalLine, CapLedgEntry, CalledFromAdjustment, PostToGL);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputOnAfterInsertCostValueEntries(ItemJournalLine: Record "Item Journal Line"; var CapLedgEntry: Record Microsoft.Manufacturing.Capacity."Capacity Ledger Entry"; CalledFromAdjustment: Boolean; PostToGL: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostOutputOnAfterSetMfgUnitCost(var ItemJournalLine: Record "Item Journal Line"; var MfgUnitCost: Decimal; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-        OnPostOutputOnAfterSetMfgUnitCost(ItemJournalLine, MfgUnitCost, ProdOrderLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputOnAfterSetMfgUnitCost(var ItemJournalLine: Record "Item Journal Line"; var MfgUnitCost: Decimal; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostOutputOnAfterUpdateAmounts(var ItemJournalLine: Record "Item Journal Line")
-    begin
-        OnPostOutputOnAfterUpdateAmounts(ItemJournalLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputOnAfterUpdateAmounts(var ItemJournalLine: Record "Item Journal Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostOutputOnAfterUpdateProdOrderLine(var ItemJournalLine: Record "Item Journal Line"; var WhseJnlLine: Record "Warehouse Journal Line"; var GlobalItemLedgEntry: Record "Item Ledger Entry");
-    begin
-        OnPostOutputOnAfterUpdateProdOrderLine(ItemJournalLine, WhseJnlLine, GlobalItemLedgEntry);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputOnAfterUpdateProdOrderLine(var ItemJournalLine: Record "Item Journal Line"; var WhseJnlLine: Record "Warehouse Journal Line"; var GlobalItemLedgEntry: Record "Item Ledger Entry");
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostOutputOnBeforeUpdateProdOrderLine(var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-        OnPostOutputOnBeforeUpdateProdOrderLine(ItemJournalLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputOnBeforeUpdateProdOrderLine(var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostOutputOnAfterCreateWhseJnlLine(var ItemJournalLine: Record "Item Journal Line")
-    begin
-        OnPostOutputOnAfterCreateWhseJnlLine(ItemJournalLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputOnAfterCreateWhseJnlLine(var ItemJournalLine: Record "Item Journal Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostOutputOnBeforeCreateWhseJnlLine(var ItemJournalLine: Record "Item Journal Line"; var PostWhseJnlLine: Boolean)
-    begin
-        OnPostOutputOnBeforeCreateWhseJnlLine(ItemJournalLine, PostWhseJnlLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputOnBeforeCreateWhseJnlLine(var ItemJournalLine: Record "Item Journal Line"; var PostWhseJnlLine: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostOutputOnBeforePostItem(var ItemJournalLine: Record "Item Journal Line"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var IsHandled: Boolean)
-    begin
-        OnPostOutputOnBeforePostItem(ItemJournalLine, ProdOrderLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputOnBeforePostItem(var ItemJournalLine: Record "Item Journal Line"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPostSplitJnlLineOnBeforeSplitJnlLine(var ItemJournalLine: Record "Item Journal Line"; var ItemJournalLineToPost: Record "Item Journal Line"; var PostItemJournalLine: Boolean; DisableItemTracking: Boolean)
@@ -7530,19 +6986,6 @@ codeunit 22 "Item Jnl.-Post Line"
     local procedure OnPostSplitJnlLineOnAfterCode(var ItemJournalLine: Record "Item Journal Line"; var ItemJournalLineToPost: Record "Item Journal Line"; var PostItemJournalLine: Boolean; var TempTrackingSpecification: Record "Tracking Specification" temporary; DisableItemTracking: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnAfterCalcCapQty(var ItemJnlLine: Record "Item Journal Line"; var CapQty: Decimal)
-    begin
-        OnAfterCalcCapQty(ItemJnlLine, CapQty);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterCalcCapQty(var ItemJnlLine: Record "Item Journal Line"; var CapQty: Decimal)
-    begin
-    end;
-#endif
 
     /// <summary>
     /// Prepares provided item journal line for posting and copies it to the global ItemJnlLine record.
@@ -7713,10 +7156,10 @@ codeunit 22 "Item Jnl.-Post Line"
         CalledFromApplicationWorksheet := IsCalledFromApplicationWorksheet;
     end;
 
-    local procedure SaveTouchedEntry(ItemLedgerEntryNo: Integer; IsInbound: Boolean)
+    local procedure SaveTouchedEntry(ItemLedgerEntryNo: BigInteger; IsInbound: Boolean)
     var
         ItemApplicationEntryHistory: Record "Item Application Entry History";
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
     begin
         if not CalledFromApplicationWorksheet then
             exit;
@@ -7806,7 +7249,7 @@ codeunit 22 "Item Jnl.-Post Line"
         end;
     end;
 
-    local procedure CalcILEExpectedAmount(var OldValueEntry: Record "Value Entry"; ItemLedgerEntryNo: Integer)
+    local procedure CalcILEExpectedAmount(var OldValueEntry: Record "Value Entry"; ItemLedgerEntryNo: BigInteger)
     var
         OldValueEntry2: Record "Value Entry";
     begin
@@ -7875,7 +7318,7 @@ codeunit 22 "Item Jnl.-Post Line"
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Ledger Entry", 'r')]
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Ledger Entry", 'r')]
     [InherentPermissions(PermissionObjectType::TableData, Database::"Value Entry", 'r')]
-    local procedure ValidateSequenceNo(LedgEntryNo: Integer; xLedgEntryNo: Integer; TableNo: Integer)
+    local procedure ValidateSequenceNo(LedgEntryNo: BigInteger; xLedgEntryNo: BigInteger; TableNo: Integer)
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -7890,7 +7333,7 @@ codeunit 22 "Item Jnl.-Post Line"
     /// Marks the inbound item ledger entries that are applied to a specific outbound item ledger entry for adjustment.
     /// </summary>
     /// <param name="OutboundItemLedgerEntryNo">Outbound item ledger entry no.</param>
-    procedure MarkAppliedInboundItemEntriesForAdjustment(OutboundItemLedgerEntryNo: Integer)
+    procedure MarkAppliedInboundItemEntriesForAdjustment(OutboundItemLedgerEntryNo: BigInteger)
     var
         InboundItemLedgerEntry: Record "Item Ledger Entry";
         ItemApplicationEntry: Record "Item Application Entry";
@@ -8052,7 +7495,7 @@ codeunit 22 "Item Jnl.-Post Line"
             until TempTrackingSpecification.Next() = 0;
     end;
 
-    internal procedure GetItemLedgerEntryNo(): Integer
+    internal procedure GetItemLedgerEntryNo(): BigInteger
     begin
         exit(ItemLedgEntryNo);
     end;
@@ -8110,71 +7553,6 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterCheckItemTrackingOfComp(TempHandlingSpecification: Record "Tracking Specification"; ItemJnlLine: Record "Item Journal Line")
-    begin
-        OnAfterCheckItemTrackingOfComp(TempHandlingSpecification, ItemJnlLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterCheckItemTrackingOfComp(TempHandlingSpecification: Record "Tracking Specification"; ItemJnlLine: Record "Item Journal Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeGetOutputProdOrder(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeGetOutputProdOrder(ProdOrder, ItemJnlLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetOutputProdOrder(var ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeGetOutputProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeGetOutputProdOrderLine(ProdOrderLine, ItemJnlLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetOutputProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeGetProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; OrderNo: Code[20]; OrderLineNo: Integer; var IsHandled: Boolean)
-    begin
-        OnBeforeGetProdOrderLine(ProdOrderLine, OrderNo, OrderLineNo, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; OrderNo: Code[20]; OrderLineNo: Integer; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeGetProdOrderRoutingLine(var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; OldItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeGetProdOrderRoutingLine(ProdOrderRoutingLine, OldItemJnlLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetProdOrderRoutingLine(var ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; OldItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsNotInternalWhseMovement(ItemJnlLine: Record "Item Journal Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
@@ -8194,45 +7572,6 @@ codeunit 22 "Item Jnl.-Post Line"
     local procedure OnBeforeItemValuePosting(ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforePostOutput(var ItemJnlLine: Record "Item Journal Line")
-    begin
-        OnBeforePostOutput(ItemJnlLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforePostOutput(var ItemJnlLine: Record "Item Journal Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforePostOutputUpdateProdOrderRtngLine(var ProdOrderRtngLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-        OnBeforePostOutputUpdateProdOrderRtngLine(ProdOrderRtngLine, ItemJnlLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforePostOutputUpdateProdOrderRtngLine(var ProdOrderRtngLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnCalcCapLedgerEntriesSetupRunTimeOnAfterCapLedgerEntrySetFilters(var CapLedgerEntry: Record Microsoft.Manufacturing.Capacity."Capacity Ledger Entry"; ItemJnlLine: Record "Item Journal Line")
-    begin
-        OnCalcCapLedgerEntriesSetupRunTimeOnAfterCapLedgerEntrySetFilters(CapLedgerEntry, ItemJnlLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCalcCapLedgerEntriesSetupRunTimeOnAfterCapLedgerEntrySetFilters(var CapLedgerEntry: Record Microsoft.Manufacturing.Capacity."Capacity Ledger Entry"; ItemJnlLine: Record "Item Journal Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCheckExpirationDateOnAfterCalcSumLot(var SumLot: Decimal; SignFactor: Integer; var TempTrackingSpecification: Record "Tracking Specification" temporary; var SkipNewExpirationDateCheck: Boolean)
@@ -8430,48 +7769,9 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnItemValuePostingOnBeforeInsertOHValueEntry(var ItemJnlLine: Record "Item Journal Line"; var GlobalValueEntry: Record "Value Entry"; var GlobalItemLedgEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var IsHandled: Boolean; var VarianceAmount: Decimal; var VarianceAmountACY: Decimal; var OverheadAmount: Decimal; var OverheadAmountACY: Decimal; var VarianceRequired: Boolean)
+    local procedure OnItemValuePostingOnBeforeInsertOHValueEntry(var ItemJnlLine: Record "Item Journal Line"; var GlobalValueEntry: Record "Value Entry"; var GlobalItemLedgEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger; var IsHandled: Boolean; var VarianceAmount: Decimal; var VarianceAmountACY: Decimal; var OverheadAmount: Decimal; var OverheadAmountACY: Decimal; var VarianceRequired: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnPostConsumptionOnBeforeCalcRemQtyToPostThisLine(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ItemJnlLine: Record "Item Journal Line"; var TempHandlingSpecification: Record "Tracking Specification"; RemQtyToPost: Decimal; UseItemTrackingApplication: Boolean; LastLoop: Boolean; var IsHandled: Boolean)
-    begin
-        OnPostConsumptionOnBeforeCalcRemQtyToPostThisLine(ProdOrderComp, ItemJnlLine, TempHandlingSpecification, RemQtyToPost, UseItemTrackingApplication, LastLoop, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostConsumptionOnBeforeCalcRemQtyToPostThisLine(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ItemJnlLine: Record "Item Journal Line"; var TempHandlingSpecification: Record "Tracking Specification"; RemQtyToPost: Decimal; UseItemTrackingApplication: Boolean; LastLoop: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostConsumptionOnBeforeCalcRemainingQuantity(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ItemJnlLine: Record "Item Journal Line"; var NewRemainingQty: Decimal; var QtyToPost: Decimal; var IsHandled: Boolean; var RemQtyToPost: Decimal)
-    begin
-        OnPostConsumptionOnBeforeCalcRemainingQuantity(ProdOrderComp, ItemJnlLine, NewRemainingQty, QtyToPost, IsHandled, RemQtyToPost);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostConsumptionOnBeforeCalcRemainingQuantity(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var ItemJnlLine: Record "Item Journal Line"; var NewRemainingQty: Decimal; var QtyToPost: Decimal; var IsHandled: Boolean; var RemQtyToPost: Decimal)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostConsumptionOnRemQtyToPostOnBeforeInsertConsumpEntry(var ItemJnlLine: Record "Item Journal Line"; var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnPostConsumptionOnRemQtyToPostOnBeforeInsertConsumpEntry(ItemJnlLine, ProdOrderComponent);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostConsumptionOnRemQtyToPostOnBeforeInsertConsumpEntry(var ItemJnlLine: Record "Item Journal Line"; var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnSetItemAdjmtPropertiesOnBeforeCheckModifyItem(var Item2: Record Item; var ModifyItem: Boolean)
@@ -8553,19 +7853,6 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforePostOutputForProdOrder(var ItemJnlLine: Record "Item Journal Line"; var LastOperation: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforePostOutputForProdOrder(ItemJnlLine, LastOperation, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforePostOutputForProdOrder(var ItemJnlLine: Record "Item Journal Line"; var LastOperation: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnPostItemOnAfterCheckCostingMethodStandard(var Item: Record Item; var ItemJnlLine: Record "Item Journal Line")
     begin
@@ -8577,7 +7864,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateLinkedValuationDate(GlobalItemLedgEntry: Record "Item Ledger Entry"; FromItemledgEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeUpdateLinkedValuationDate(GlobalItemLedgEntry: Record "Item Ledger Entry"; FromItemledgEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -8617,7 +7904,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateValuationDate(GlobalItemLedgEntry: Record "Item Ledger Entry"; FromItemLedgEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeUpdateValuationDate(GlobalItemLedgEntry: Record "Item Ledger Entry"; FromItemLedgEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -8661,36 +7948,10 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeReservationExists(ItemJnlLine: Record "Item Journal Line"; var Result: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeReservationExists(ItemJnlLine, Result, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeReservationExists(ItemJnlLine: Record "Item Journal Line"; var Result: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnUndoQuantityPostingOnAfterCalcShouldInsertCorrValueEntry(OldItemLedgEntry: Record "Item Ledger Entry"; var ShouldInsertCorrValueEntries: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnPostOutputOnBeforeGetMfgAmounts(var ItemJnlLine: Record "Item Journal Line"; ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; var IsHandled: Boolean)
-    begin
-        OnPostOutputOnBeforeGetMfgAmounts(ItemJnlLine, ProdOrder, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputOnBeforeGetMfgAmounts(var ItemJnlLine: Record "Item Journal Line"; ProdOrder: Record Microsoft.Manufacturing.Document."Production Order"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAvgCostAdjmtBufferOnAfterSetValueEntry(var ValueEntry: Record "Value Entry"; OldItemLedgEntry: Record "Item Ledger Entry")
@@ -8722,19 +7983,6 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnCorrectOutputValuationDateOnBeforeValueEntryFindSet(var ValueEntry: Record "Value Entry")
-    begin
-        OnCorrectOutputValuationDateOnBeforeValueEntryFindSet(ValueEntry);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCorrectOutputValuationDateOnBeforeValueEntryFindSet(var ValueEntry: Record "Value Entry")
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnApplyItemLedgEntryOnAfterTestFirstApplyItemLedgEntry(OldItemLedgerEntry: Record "Item Ledger Entry"; var ItemLedgerEntry: Record "Item Ledger Entry")
     begin
@@ -8746,7 +7994,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertBalanceExpCostRevEntry(var GlobalItemLedgEntry: Record "Item Ledger Entry"; ValueEntry: Record "Value Entry"; var ValueEntryNo: Integer; var GLSetup: Record "General Ledger Setup"; var Currency: Record Currency; var GLSetupRead: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeInsertBalanceExpCostRevEntry(var GlobalItemLedgEntry: Record "Item Ledger Entry"; ValueEntry: Record "Value Entry"; var ValueEntryNo: BigInteger; var GLSetup: Record "General Ledger Setup"; var Currency: Record Currency; var GLSetupRead: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -8811,7 +8059,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnInsertCorrValueEntryOnAfterAssignNewValueEntry(GlobalItemLedgerEntry: Record "Item Ledger Entry"; var OldValueEntry: Record "Value Entry"; var NewValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer)
+    local procedure OnInsertCorrValueEntryOnAfterAssignNewValueEntry(GlobalItemLedgerEntry: Record "Item Ledger Entry"; var OldValueEntry: Record "Value Entry"; var NewValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger)
     begin
     end;
 
@@ -8855,19 +8103,6 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnPostOutputOnBeforeInsertCostValueEntries(var ItemJournalLine: Record "Item Journal Line"; var CapacityLedgerEntry: Record Microsoft.Manufacturing.Capacity."Capacity Ledger Entry"; var ValuedQty: Decimal; var DirCostAmt: Decimal; var IndirCostAmt: Decimal)
-    begin
-        OnPostOutputOnBeforeInsertCostValueEntries(ItemJournalLine, CapacityLedgerEntry, ValuedQty, DirCostAmt, IndirCostAmt);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnPostOutputOnBeforeInsertCostValueEntries(var ItemJournalLine: Record "Item Journal Line"; var CapacityLedgerEntry: Record Microsoft.Manufacturing.Capacity."Capacity Ledger Entry"; var ValuedQty: Decimal; var DirCostAmt: Decimal; var IndirCostAmt: Decimal)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnUpdateItemApplnEntryOnAfterFilterItemApplicationEntry(var ItemApplnEntry: Record "Item Application Entry")
     begin
@@ -8883,34 +8118,8 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeOnApplyCapNeed(var ItemJnlLine: Record "Item Journal Line"; var PostedSetupTime: Decimal; var PostedRunTime: Decimal; var IsHandled: Boolean)
-    begin
-        OnBeforeOnApplyCapNeed(ItemJnlLine, PostedSetupTime, PostedRunTime, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeOnApplyCapNeed(var ItemJnlLine: Record "Item Journal Line"; var PostedSetupTime: Decimal; var PostedRunTime: Decimal; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostOutputForProdOrderOnAfterApplyCapNeed(var ItemJnlLine: Record "Item Journal Line"; var ValuedQty: Decimal)
-    begin
-        OnPostOutputForProdOrderOnAfterApplyCapNeed(ItemJnlLine, ValuedQty);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputForProdOrderOnAfterApplyCapNeed(var ItemJnlLine: Record "Item Journal Line"; var ValuedQty: Decimal)
-    begin
-    end;
-#endif
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeReApply(ItemLedgerEntry: Record "Item Ledger Entry"; ApplyWith: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeReApply(ItemLedgerEntry: Record "Item Ledger Entry"; ApplyWith: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -8930,7 +8139,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUndoValuePostingWithJob(OldItemLedgEntryNo: Integer; NewItemLedgEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeUndoValuePostingWithJob(OldItemLedgEntryNo: BigInteger; NewItemLedgEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -8961,7 +8170,7 @@ codeunit 22 "Item Jnl.-Post Line"
 
     [InternalEvent(true)]
     local procedure OnPostConsumption(
-        var ItemJnlLine: Record "Item Journal Line"; GlobalItemTrackingSetup: Record "Item Tracking Setup"; var TempSplitItemJnlLine: Record "Item Journal Line" temporary; var ProdOrderCompModified: Boolean; ItemLedgEntryNo: Integer)
+        var ItemJnlLine: Record "Item Journal Line"; GlobalItemTrackingSetup: Record "Item Tracking Setup"; var TempSplitItemJnlLine: Record "Item Journal Line" temporary; var ProdOrderCompModified: Boolean; ItemLedgEntryNo: BigInteger)
     begin
     end;
 
@@ -9012,7 +8221,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnInsertTransferEntryOnBeforeInsertValueEntry(var NewValueEntry: Record "Value Entry"; var NewItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var IsHandled: Boolean; ItemJournalLine: Record "Item Journal Line")
+    local procedure OnInsertTransferEntryOnBeforeInsertValueEntry(var NewValueEntry: Record "Value Entry"; var NewItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger; var IsHandled: Boolean; ItemJournalLine: Record "Item Journal Line")
     begin
     end;
 
@@ -9028,6 +8237,11 @@ codeunit 22 "Item Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnCalcCostPerUnitForPositiveValuedQtyOnBeforeCheckShouldCalculateCostPerUnit(ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line"; var ShouldCalculateCostPerUnit: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetTrackingSetupForTransfer(var ItemTrackingSetup: Record "Item Tracking Setup"; GlobalItemTrackingSetup: Record "Item Tracking Setup")
     begin
     end;
 }

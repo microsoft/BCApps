@@ -506,8 +506,7 @@ codeunit 132531 "VAT Assisted Setup"
     var
         VATSetupPostingGroups: Record "VAT Setup Posting Groups";
     begin
-        VATSetupPostingGroups.ModifyAll("Sales VAT Account", '');
-        VATSetupPostingGroups.ModifyAll("Purchase VAT Account", '');
+        VATSetupPostingGroups.ModifyAll("Sales VAT Account", '', "Purchase VAT Account", '');
     end;
 
     local procedure SetGLAccounts()
@@ -516,8 +515,7 @@ codeunit 132531 "VAT Assisted Setup"
         GLAccount: Record "G/L Account";
     begin
         GLAccount.FindFirst();
-        VATSetupPostingGroups.ModifyAll("Sales VAT Account", GLAccount."No.");
-        VATSetupPostingGroups.ModifyAll("Purchase VAT Account", GLAccount."No.");
+        VATSetupPostingGroups.ModifyAll("Sales VAT Account", GLAccount."No.", "Purchase VAT Account", GLAccount."No.");
     end;
 
     [Scope('OnPrem')]

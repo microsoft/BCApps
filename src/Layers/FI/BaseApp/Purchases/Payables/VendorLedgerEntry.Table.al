@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ table 25 "Vendor Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -283,7 +283,7 @@ table 25 "Vendor Ledger Entry"
             Caption = 'Positive';
             ToolTip = 'Specifies if the entry to be applied is positive.';
         }
-        field(44; "Closed by Entry No."; Integer)
+        field(44; "Closed by Entry No."; BigInteger)
         {
             Caption = 'Closed by Entry No.';
             TableRelation = "Vendor Ledger Entry";
@@ -343,7 +343,7 @@ table 25 "Vendor Ledger Entry"
             else
             if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset";
         }
-        field(53; "Transaction No."; Integer)
+        field(53; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
             TableRelation = "G/L Transaction";
@@ -562,14 +562,14 @@ table 25 "Vendor Ledger Entry"
             Caption = 'Reversed';
             ToolTip = 'Specifies if the entry has been part of a reverse transaction.';
         }
-        field(88; "Reversed by Entry No."; Integer)
+        field(88; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
             ToolTip = 'Specifies the number of the correcting entry that replaced the original entry in the reverse transaction.';
             TableRelation = "Vendor Ledger Entry";
         }
-        field(89; "Reversed Entry No."; Integer)
+        field(89; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
@@ -580,7 +580,7 @@ table 25 "Vendor Ledger Entry"
         {
             Caption = 'Prepayment';
         }
-        field(95; "G/L Register No."; Integer)
+        field(95; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             Editable = false;
@@ -730,6 +730,25 @@ table 25 "Vendor Ledger Entry"
             TableRelation = "Dispute Status";
             DataClassification = CustomerContent;
             ToolTip = 'Specifies if there is an ongoing dispute for this document.';
+
+            trigger OnValidate()
+            var
+                DisputeStatus: Record "Dispute Status";
+                MarkedAsOnHoldLbl: label 'X', Locked = true;
+                NewOnHold: Code[3];
+            begin
+                NewOnHold := "On Hold";
+                if (xRec."Dispute Status" <> '') and (xRec."Dispute Status" <> Rec."Dispute Status") and (NewOnHold = MarkedAsOnHoldLbl) then
+                    if DisputeStatus.Get(xRec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            NewOnHold := '';
+                if Rec."Dispute Status" <> '' then
+                    if DisputeStatus.Get(Rec."Dispute Status") then
+                        if DisputeStatus."Overwrite on hold" then
+                            NewOnHold := MarkedAsOnHoldLbl;
+                if NewOnHold <> "On Hold" then
+                    Validate("On Hold", NewOnHold);
+            end;
         }
         field(32000000; "Message Type"; Option)
         {
@@ -808,6 +827,10 @@ table 25 "Vendor Ledger Entry"
         {
             IncludedFields = "Accepted Payment Tolerance";
         }
+        // Supports the Payment Reconciliation Journal candidate search (Document Type + Open + date range).
+        key(PmtReconCandidates; "Document Type", Open, "Posting Date")
+        {
+        }
     }
 
     fieldgroups
@@ -828,7 +851,7 @@ table 25 "Vendor Ledger Entry"
         NetBalanceOnHoldErr: Label 'General journal line number %3 on template name %1 batch name %2 is applied. Do you want to change On Hold value anyway?', Comment = '%1 - template name, %2 - batch name, %3 - line number';
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Vendor Ledger Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

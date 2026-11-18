@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
@@ -13,6 +16,7 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Family;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
@@ -20,6 +24,7 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
@@ -32,11 +37,13 @@ using Microsoft.Warehouse.Worksheet;
 
 codeunit 149908 "Subc. Warehouse Library"
 {
+    EventSubscriberInstance = Manual;
     // [FEATURE] Subcontracting Warehouse Test Library
     // Consolidated data creation functions for warehouse tests to avoid code duplication
 
     var
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -44,6 +51,349 @@ codeunit 149908 "Subc. Warehouse Library"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         SubcLibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
+        SummaryAssert: Codeunit Assert;
+        SummarySetupLibrary: Codeunit "Subc. Setup Library";
+        SummaryDetailRecords: List of [RecordId];
+
+    /// <summary>
+    /// Inserts a synthetic receipt-history line for reader tests without creating a header or running posting logic.
+    /// </summary>
+    /// <param name="OrderNo">The production order identity assigned to the synthetic history line.</param>
+    /// <param name="Quantity">The signed document quantity, including precision used to test exact stored comparisons.</param>
+    procedure InsertSummaryReceipt(OrderNo: Code[20]; Quantity: Decimal)
+    var
+        ReceiptLine: Record "Purch. Rcpt. Line";
+    begin
+        ReceiptLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ReceiptLine."Document No."));
+        ReceiptLine."Line No." := 10000;
+        ReceiptLine."Prod. Order No." := OrderNo;
+        ReceiptLine.Quantity := Quantity;
+        ReceiptLine.Insert();
+    end;
+
+    /// <summary>
+    /// Inserts a synthetic invoice-history line for reader tests without creating a header or running posting logic.
+    /// </summary>
+    /// <param name="OrderNo">The production order identity assigned to the synthetic history line.</param>
+    /// <param name="Quantity">The signed document quantity, including precision used to test exact stored comparisons.</param>
+    procedure InsertSummaryInvoice(OrderNo: Code[20]; Quantity: Decimal)
+    var
+        InvoiceLine: Record "Purch. Inv. Line";
+    begin
+        InvoiceLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(InvoiceLine."Document No."));
+        InvoiceLine."Line No." := 10000;
+        InvoiceLine."Prod. Order No." := OrderNo;
+        InvoiceLine.Quantity := Quantity;
+        InvoiceLine.Insert();
+    end;
+
+    /// <summary>
+    /// Inserts a synthetic purchase line without a header or validation to test summary source and signed-quantity predicates.
+    /// </summary>
+    /// <param name="OrderNo">The production order identity assigned to the synthetic line.</param>
+    /// <param name="DocumentType">The included or deliberately excluded purchase document type.</param>
+    /// <param name="Quantity">The raw signed document quantity to persist.</param>
+    /// <param name="Invoiced">The raw signed invoiced quantity to compare with the document quantity.</param>
+    /// <param name="PurchaseLine">Returns the inserted line with a unique document number and a line number of 10000.</param>
+    procedure InsertSummaryPurchase(OrderNo: Code[20]; DocumentType: Enum "Purchase Document Type"; Quantity: Decimal; Invoiced: Decimal; var PurchaseLine: Record "Purchase Line")
+    begin
+        Clear(PurchaseLine);
+        PurchaseLine."Document Type" := DocumentType;
+        PurchaseLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchaseLine."Document No."));
+        PurchaseLine."Line No." := 10000;
+        PurchaseLine."Prod. Order No." := OrderNo;
+        PurchaseLine.Quantity := Quantity;
+        PurchaseLine."Quantity Invoiced" := Invoiced;
+        PurchaseLine.Insert();
+    end;
+
+    /// <summary>
+    /// Enables Premium application areas and creates a refreshed released item order with subcontracting and WIP transfer.
+    /// </summary>
+    /// <param name="Quantity">The production order quantity in the created item's base unit of measure.</param>
+    /// <param name="ProductionOrder">Returns the released production order with its item, location and routing.</param>
+    /// <param name="WorkCenter">Returns the routing's subcontracting work center with a configured vendor location.</param>
+    procedure CreateSummaryOrder(Quantity: Decimal; var ProductionOrder: Record "Production Order"; var WorkCenter: Record "Work Center")
+    var
+        Item: Record Item;
+        Location: Record Location;
+        RoutingNo: Code[20];
+    begin
+        RoutingNo := CreateSummaryRouting(WorkCenter);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Validate("Routing No.", RoutingNo);
+        Item.Modify(true);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item,
+            Item."No.", Quantity, Location.Code);
+    end;
+
+    /// <summary>
+    /// Enables Premium application areas and creates a refreshed released family order with two items and subcontracting.
+    /// </summary>
+    /// <param name="FirstBaseQuantity">The first family item's quantity for one unit of family output, in base units.</param>
+    /// <param name="SecondBaseQuantity">The second family item's quantity for one unit of family output, in base units.</param>
+    /// <param name="ProductionOrder">Returns the released family order with a quantity of one.</param>
+    /// <param name="WorkCenter">Returns the shared subcontracting work center with WIP transfer enabled.</param>
+    /// <param name="Items">Returns the two output items in family-line order.</param>
+    procedure CreateSummaryFamily(FirstBaseQuantity: Decimal; SecondBaseQuantity: Decimal; var ProductionOrder: Record "Production Order"; var WorkCenter: Record "Work Center"; var Items: array[2] of Record Item)
+    var
+        Family: Record Family;
+        FamilyLine: Record "Family Line";
+        Location: Record Location;
+        RoutingNo: Code[20];
+    begin
+        RoutingNo := CreateSummaryRouting(WorkCenter);
+        LibraryManufacturing.CreateFamily(Family);
+        LibraryInventory.CreateItem(Items[1]);
+        LibraryInventory.CreateItem(Items[2]);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", Items[1]."No.", FirstBaseQuantity);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", Items[2]."No.", SecondBaseQuantity);
+        Family.Validate("Routing No.", RoutingNo);
+        Family.Modify(true);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Family,
+            Family."No.", 1, Location.Code);
+    end;
+
+    local procedure CreateSummaryRouting(var WorkCenter: Record "Work Center"): Code[20]
+    var
+        Location: Record Location;
+        Vendor: Record Vendor;
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
+    begin
+        LibraryApplicationArea.EnablePremiumSetup();
+        SubcLibraryMfgManagement.CreateSubcontractingWorkCenterWithCalendar(WorkCenter);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor.Get(WorkCenter."Subcontractor No.");
+        Vendor.Validate("Subc. Location Code", Location.Code);
+        Vendor.Modify(true);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingLine.Validate("Transfer WIP Item", true);
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+        exit(RoutingHeader."No.");
+    end;
+
+    /// <summary>
+    /// Creates a native subcontract purchase order for the production routing and ensures its general posting setup is valid.
+    /// </summary>
+    /// <param name="ProductionOrder">The refreshed order containing an operation for the supplied work center.</param>
+    /// <param name="WorkCenter">The subcontracting work center whose first matching operation is purchased.</param>
+    /// <param name="PurchaseHeader">Returns the created purchase order header.</param>
+    /// <param name="PurchaseLine">Returns the linked subcontract purchase line.</param>
+    procedure CreateSummaryPurchase(ProductionOrder: Record "Production Order"; WorkCenter: Record "Work Center"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line")
+    var
+        RoutingLine: Record "Prod. Order Routing Line";
+    begin
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        RoutingLine.SetRange(Status, ProductionOrder.Status);
+        RoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RoutingLine.SetRange("Work Center No.", WorkCenter."No.");
+        RoutingLine.FindFirst();
+        CreateSubcontractingOrderFromProdOrderRouting(
+            RoutingLine."Routing No.", WorkCenter."No.", ProductionOrder."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SummarySetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+    end;
+
+    /// <summary>
+    /// Configures a transit route and invokes the purchase order action to create an outbound subcontracting WIP transfer.
+    /// </summary>
+    /// <param name="ProductionOrder">The order whose location supplies the WIP.</param>
+    /// <param name="WorkCenter">The subcontracting work center whose vendor has a configured subcontracting location.</param>
+    /// <param name="PurchaseHeader">The subcontract purchase order with transferable WIP lines.</param>
+    /// <param name="TransferHeader">Returns the outbound transfer found for the purchase order.</param>
+    procedure CreateSummaryForward(ProductionOrder: Record "Production Order"; WorkCenter: Record "Work Center"; PurchaseHeader: Record "Purchase Header"; var TransferHeader: Record "Transfer Header")
+    var
+        Vendor: Record Vendor;
+        InTransitLocation: Record Location;
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        Vendor.Get(WorkCenter."Subcontractor No.");
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        CreateTransferRoutesForWIPTransfer(ProductionOrder."Location Code", Vendor."Subc. Location Code", InTransitLocation.Code);
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+        PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
+        PurchaseOrder.Close();
+        FindSubcontractingTransferHeader(PurchaseHeader, false, TransferHeader);
+    end;
+
+    /// <summary>
+    /// Invokes the purchase order action to create a return transfer for available subcontractor WIP.
+    /// </summary>
+    /// <param name="PurchaseHeader">The subcontract purchase order with WIP available to return.</param>
+    /// <param name="TransferHeader">Returns the return transfer found for the purchase order.</param>
+    procedure CreateSummaryReturn(PurchaseHeader: Record "Purchase Header"; var TransferHeader: Record "Transfer Header")
+    var
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+        PurchaseOrder.CreateReturnFromSubcontractor.Invoke();
+        PurchaseOrder.Close();
+        FindSubcontractingTransferHeader(PurchaseHeader, true, TransferHeader);
+    end;
+
+    /// <summary>
+    /// Reopens the purchase order, assigns a unique vendor invoice number and invoices only the specified line quantity.
+    /// </summary>
+    /// <param name="PurchaseHeader">The existing order; final posting can delete it.</param>
+    /// <param name="PurchaseLine">The existing line with enough received, uninvoiced quantity; posting can delete it.</param>
+    /// <param name="Quantity">The quantity to invoice in the line's document unit of measure.</param>
+    procedure PostSummaryInvoice(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; Quantity: Decimal)
+    var
+        OtherLine: Record "Purchase Line";
+    begin
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+        PurchaseHeader.Validate("Vendor Invoice No.", CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchaseHeader."Vendor Invoice No.")));
+        PurchaseHeader.Modify(true);
+        OtherLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        OtherLine.SetRange("Document No.", PurchaseHeader."No.");
+        OtherLine.SetFilter(Type, '<>%1', OtherLine.Type::" ");
+        if OtherLine.FindSet() then
+            repeat
+                OtherLine.Validate("Qty. to Invoice", 0);
+                OtherLine.Modify(true);
+            until OtherLine.Next() = 0;
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Invoice", Quantity);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+    end;
+
+    /// <summary>
+    /// Clears captured detail keys before binding this manual subscriber instance and opening a summary drilldown.
+    /// </summary>
+    procedure StartSummaryDetailCapture()
+    begin
+        Clear(SummaryDetailRecords);
+    end;
+
+    /// <summary>
+    /// Asserts the number of distinct table and primary-key identities captured by the bound detail-page subscribers.
+    /// </summary>
+    /// <param name="ExpectedCount">The expected number of distinct detail records since capture was cleared.</param>
+    procedure VerifySummaryDetailRecordCount(ExpectedCount: Integer)
+    begin
+        SummaryAssert.AreEqual(ExpectedCount, SummaryDetailRecords.Count(), 'Drilldown must contain exactly the expected full record keys.');
+    end;
+
+    /// <summary>
+    /// Asserts that a detail drilldown visited the expected table and complete primary key.
+    /// </summary>
+    /// <param name="ExpectedRecordId">The source record identity expected in the current capture.</param>
+    procedure VerifySummaryDetailRecord(ExpectedRecordId: RecordId)
+    begin
+        SummaryAssert.IsTrue(SummaryDetailRecords.Contains(ExpectedRecordId), 'Drilldown must contain the complete expected table and primary key.');
+    end;
+
+    local procedure CaptureSummaryDetail(DetailRecordId: RecordId)
+    begin
+        if not SummaryDetailRecords.Contains(DetailRecordId) then
+            SummaryDetailRecords.Add(DetailRecordId);
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purchase Lines", 'OnAfterGetRecordEvent', '', false, false)]
+    local procedure CaptureSummaryPurchase(var Rec: Record "Purchase Line")
+    begin
+        CaptureSummaryDetail(Rec.RecordId());
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purch. Receipt Lines", 'OnAfterGetRecordEvent', '', false, false)]
+    local procedure CaptureSummaryReceipt(var Rec: Record "Purch. Rcpt. Line")
+    begin
+        CaptureSummaryDetail(Rec.RecordId());
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Subc. Summary Invoice Lines", 'OnAfterGetRecordEvent', '', false, false)]
+    local procedure CaptureSummaryInvoice(var Rec: Record "Purch. Inv. Line")
+    begin
+        CaptureSummaryDetail(Rec.RecordId());
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Transfer Lines", 'OnAfterGetRecordEvent', '', false, false)]
+    local procedure CaptureSummaryTransfer(var Rec: Record "Transfer Line")
+    begin
+        CaptureSummaryDetail(Rec.RecordId());
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Prod. Order Routing", 'OnAfterGetRecordEvent', '', false, false)]
+    local procedure CaptureSummaryRouting(var Rec: Record "Prod. Order Routing Line")
+    begin
+        CaptureSummaryDetail(Rec.RecordId());
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Subc. WIP Ledger Entries", 'OnAfterGetRecordEvent', '', false, false)]
+    local procedure CaptureSummaryWIP(var Rec: Record "Subcontractor WIP Ledger Entry")
+    begin
+        CaptureSummaryDetail(Rec.RecordId());
+    end;
+
+    /// <summary>
+    /// Opens the released production order card and asserts all nine summary values before closing it.
+    /// </summary>
+    /// <param name="ProductionOrder">The released order whose subcontracting summary is eligible and visible.</param>
+    /// <param name="RoutingCount">The expected count of current subcontracting routing operations.</param>
+    /// <param name="PurchaseQuantity">The expected raw sum of linked purchase order line quantities.</param>
+    /// <param name="ReceiptQuantity">The expected signed sum of linked posted receipt quantities.</param>
+    /// <param name="InvoiceQuantity">The expected signed sum of linked posted invoice quantities.</param>
+    /// <param name="FullyInvoiced">The expected exact-quantity invoicing indicator.</param>
+    /// <param name="AtSubcontractor">The expected signed non-transit WIP balance in item base units.</param>
+    /// <param name="InTransit">The expected signed transit WIP balance in item base units.</param>
+    /// <param name="ForwardCount">The expected count of original forward transfer lines.</param>
+    /// <param name="ReturnCount">The expected count of original return transfer lines.</param>
+    procedure VerifySummaryCard(ProductionOrder: Record "Production Order"; RoutingCount: Integer; PurchaseQuantity: Decimal; ReceiptQuantity: Decimal; InvoiceQuantity: Decimal; FullyInvoiced: Boolean; AtSubcontractor: Decimal; InTransit: Decimal; ForwardCount: Integer; ReturnCount: Integer)
+    var
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(RoutingCount);
+        ReleasedOrder.SubcontractingSummary.PurchaseQuantity.AssertEquals(PurchaseQuantity);
+        ReleasedOrder.SubcontractingSummary.ReceiptQuantity.AssertEquals(ReceiptQuantity);
+        ReleasedOrder.SubcontractingSummary.InvoiceQuantity.AssertEquals(InvoiceQuantity);
+        ReleasedOrder.SubcontractingSummary.FullyInvoiced.AssertEquals(Format(FullyInvoiced));
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(AtSubcontractor);
+        ReleasedOrder.SubcontractingSummary.WIPInTransit.AssertEquals(InTransit);
+        ReleasedOrder.SubcontractingSummary.TransferCount.AssertEquals(ForwardCount);
+        ReleasedOrder.SubcontractingSummary.ReturnTransferCount.AssertEquals(ReturnCount);
+        ReleasedOrder.Close();
+    end;
+
+    /// <summary>
+    /// Asserts that the released order card and persisted WIP ledger agree on both transit balances.
+    /// </summary>
+    /// <param name="ProductionOrder">The released order whose subcontracting summary is eligible and visible.</param>
+    /// <param name="AtSubcontractor">The expected signed non-transit WIP balance in item base units.</param>
+    /// <param name="InTransit">The expected signed transit WIP balance in item base units.</param>
+    procedure VerifySummaryWIP(ProductionOrder: Record "Production Order"; AtSubcontractor: Decimal; InTransit: Decimal)
+    var
+        WIPEntry: Record "Subcontractor WIP Ledger Entry";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(AtSubcontractor);
+        ReleasedOrder.SubcontractingSummary.WIPInTransit.AssertEquals(InTransit);
+        ReleasedOrder.Close();
+        WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
+        WIPEntry.SetRange("In Transit", false);
+        WIPEntry.CalcSums("Quantity (Base)");
+        SummaryAssert.AreEqual(AtSubcontractor, WIPEntry."Quantity (Base)", 'Persisted non-transit WIP must agree.');
+        WIPEntry.SetRange("In Transit", true);
+        WIPEntry.CalcSums("Quantity (Base)");
+        SummaryAssert.AreEqual(InTransit, WIPEntry."Quantity (Base)", 'Persisted transit WIP must agree.');
+    end;
 
     /// <summary>
     /// Creates and calculates needed work and machine centers.
@@ -1474,5 +1824,160 @@ codeunit 149908 "Subc. Warehouse Library"
         ReturnTransferLine."Subc. Operation No." := PurchaseLine."Operation No.";
         ReturnTransferLine."Subc. Return Order" := true;
         ReturnTransferLine.Modify();
+    end;
+
+    /// <summary>
+    /// Creates work and machine centers with detailed cost setup (Direct Unit Cost, Indirect Cost %,
+    /// Overhead Rate, Unit Cost Calculation). Preserves the original SubcSubcontractingTest behaviour
+    /// where the first work center is never a subcontractor.
+    /// </summary>
+    procedure CreateAndCalculateNeededWorkAndMachineCenter(var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center"; IsSubcontracting: Boolean; UnitCostCalc: Option Time,Units)
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+        ShopCalendarCode: Code[10];
+        MachineCenterNo: Code[20];
+        MachineCenterNo2: Code[20];
+        WorkCenterNo: Code[20];
+        WorkCenterNo2: Code[20];
+    begin
+        LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, "Capacity Unit of Measure"::Minutes);
+        ShopCalendarCode := LibraryManufacturing.UpdateShopCalendarWorkingDays();
+
+        CreateWorkCenterForTest(WorkCenterNo, ShopCalendarCode, "Flushing Method"::"Pick + Manual", not IsSubcontracting, UnitCostCalc, '');
+        WorkCenter[1].Get(WorkCenterNo);
+        LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter[1], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+
+        SubcLibraryMfgManagement.CreateMachineCenter(MachineCenterNo, WorkCenterNo, "Flushing Method"::"Pick + Manual".AsInteger());
+        MachineCenter[1].Get(MachineCenterNo);
+        LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter[1], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+
+        SubcLibraryMfgManagement.CreateMachineCenter(MachineCenterNo2, WorkCenterNo, "Flushing Method"::"Pick + Manual".AsInteger());
+        MachineCenter[2].Get(MachineCenterNo2);
+        LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter[2], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+
+        if IsSubcontracting then
+            CreateWorkCenterForTest(WorkCenterNo2, ShopCalendarCode, "Flushing Method"::"Pick + Manual", IsSubcontracting, UnitCostCalc, '')
+        else
+            CreateWorkCenterForTest(WorkCenterNo2, ShopCalendarCode, "Flushing Method"::"Pick + Manual", not IsSubcontracting, UnitCostCalc, '');
+        WorkCenter[2].Get(WorkCenterNo2);
+        LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter[2], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+    end;
+
+    /// <summary>
+    /// Creates work and machine centers with detailed cost setup and the given unit cost calculation.
+    /// </summary>
+    procedure CreateAndCalculateNeededWorkAndMachineCenter(var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center"; IsSubcontracting: Boolean; UnitCostCalculationType: Enum "Unit Cost Calculation Type")
+    begin
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, IsSubcontracting, UnitCostCalculationType.AsInteger());
+    end;
+
+    /// <summary>
+    /// Creates a production item with routing and BOM using detailed cost fields on both
+    /// the item and its components (Overhead Rate, Indirect Cost %, Lot-for-Lot reorder policy,
+    /// Pick + Manual flushing). Preserves original SubcSubcontractingTest behaviour.
+    /// </summary>
+    procedure CreateItemForProductionWithCostOverrides(var Item: Record Item; var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center")
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ProductionBOMHeader: Record "Production BOM Header";
+        NoSeries: Codeunit "No. Series";
+        ItemNo: Code[20];
+        ItemNo2: Code[20];
+        ProductionBOMNo: Code[20];
+        RoutingNo: Code[20];
+    begin
+        ManufacturingSetup.SetLoadFields("Routing Nos.");
+        ManufacturingSetup.Get();
+        RoutingNo := NoSeries.GetNextNo(ManufacturingSetup."Routing Nos.", WorkDate(), true);
+
+        SubcLibraryMfgManagement.CreateRouting(RoutingNo, MachineCenter[1]."No.", MachineCenter[2]."No.", WorkCenter[1]."No.", WorkCenter[2]."No.");
+
+        CreateItemForTest(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", '', '');
+        ItemNo := Item."No.";
+        Clear(Item);
+        CreateItemForTest(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", '', '');
+        ItemNo2 := Item."No.";
+        Clear(Item);
+
+        ProductionBOMNo := LibraryManufacturing.CreateCertifProdBOMWithTwoComp(ProductionBOMHeader, ItemNo, ItemNo2, 1);
+
+        CreateItemForTest(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", RoutingNo, ProductionBOMNo);
+    end;
+
+    /// <summary>
+    /// Links a routing line and a production BOM line through a routing link whose code
+    /// is derived from the production BOM number. Preserves original SubcSubcontractingTest behaviour.
+    /// </summary>
+    procedure UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item: Record Item; WorkCenterNo: Code[20])
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingLink: Record "Routing Link";
+    begin
+        RoutingLink.Init();
+        RoutingLink.Validate(Code, CopyStr(Item."Production BOM No.", 1, 10));
+        RoutingLink.Insert(true);
+
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+
+        RoutingLine.SetRange("Routing No.", RoutingHeader."No.");
+        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
+        RoutingLine.SetRange("No.", WorkCenterNo);
+        RoutingLine.FindFirst();
+        RoutingLine.Validate("Routing Link Code", RoutingLink.Code);
+        RoutingLine.Modify(true);
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        ProductionBOMHeader.Get(Item."Production BOM No.");
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::New);
+        ProductionBOMHeader.Modify(true);
+
+        ProductionBOMLine.SetRange("Production BOM No.", ProductionBOMHeader."No.");
+        ProductionBOMLine.FindLast();
+        ProductionBOMLine.Validate("Routing Link Code", RoutingLink.Code);
+        ProductionBOMLine.Modify(true);
+
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+    end;
+
+    local procedure CreateWorkCenterForTest(var WorkCenterNo: Code[20]; ShopCalendarCode: Code[10]; FlushingMethod: Enum "Flushing Method"; Subcontract: Boolean; UnitCostCalc: Option; CurrencyCode: Code[10])
+    var
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        WorkCenter: Record "Work Center";
+    begin
+        SubcLibraryMfgManagement.CreateWorkCenterWithFixedCost(WorkCenter, ShopCalendarCode, 0);
+
+        WorkCenter.Validate("Flushing Method", FlushingMethod);
+        WorkCenter.Validate("Direct Unit Cost", LibraryRandom.RandDec(10, 2));
+        WorkCenter.Validate("Indirect Cost %", LibraryRandom.RandDec(5, 1));
+        WorkCenter.Validate("Overhead Rate", LibraryRandom.RandDec(5, 1));
+        WorkCenter.Validate("Unit Cost Calculation", UnitCostCalc);
+
+        if Subcontract then begin
+            LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+            GenProductPostingGroup.FindFirst();
+            GenProductPostingGroup.Validate("Def. VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+            GenProductPostingGroup.Modify(true);
+            WorkCenter.Validate("Subcontractor No.", SubcLibraryMfgManagement.CreateSubcontractorWithCurrency(CurrencyCode));
+        end;
+        WorkCenter.Modify(true);
+        WorkCenterNo := WorkCenter."No.";
+    end;
+
+    local procedure CreateItemForTest(var Item: Record Item; ItemCostingMethod: Enum "Costing Method"; ItemReorderPolicy: Enum "Reordering Policy"; FlushingMethod: Enum "Flushing Method"; RoutingNo: Code[20]; ProductionBOMNo: Code[20])
+    begin
+        LibraryManufacturing.CreateItemManufacturing(
+          Item, ItemCostingMethod, LibraryRandom.RandInt(10), ItemReorderPolicy, FlushingMethod, RoutingNo, ProductionBOMNo);
+        Item.Validate("Overhead Rate", LibraryRandom.RandDec(5, 2));
+        Item.Validate("Indirect Cost %", LibraryRandom.RandDec(5, 2));
+        Item.Modify(true);
     end;
 }

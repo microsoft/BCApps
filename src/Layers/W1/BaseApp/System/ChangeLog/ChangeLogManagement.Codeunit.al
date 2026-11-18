@@ -197,8 +197,10 @@ codeunit 423 "Change Log Management"
     procedure InsertLogEntry(var FldRef: FieldRef; var xFldRef: FieldRef; var RecRef: RecordRef; TypeOfChange: Enum "Change Log Entry Type"; IsReadable: Boolean)
     var
         ChangeLogEntry: Record "Change Log Entry";
+        xRecRef: RecordRef;
         KeyFldRef: FieldRef;
         KeyRef1: KeyRef;
+        ChangedRecordSystemId: Guid;
         i: Integer;
     begin
         if RecRef.CurrentCompany <> ChangeLogEntry.CurrentCompany then
@@ -257,8 +259,14 @@ codeunit 423 "Change Log Management"
             end;
         end;
 
+        ChangedRecordSystemId := RecRef.Field(RecRef.SystemIdNo).Value;
+        if IsNullGuid(ChangedRecordSystemId) and IsReadable and (TypeOfChange = TypeOfChange::Modification) then begin
+            xRecRef := xFldRef.Record();
+            ChangedRecordSystemId := xRecRef.Field(xRecRef.SystemIdNo).Value;
+        end;
+
         OnInsertLogEntryOnBeforeChangeLogEntryValidateChangedRecordSystemId(ChangeLogEntry, RecRef, FldRef);
-        ChangeLogEntry.Validate("Changed Record SystemId", RecRef.Field(RecRef.SystemIdNo).Value);
+        ChangeLogEntry.Validate("Changed Record SystemId", ChangedRecordSystemId);
         MonitorSensitiveFieldData.HandleMonitorSensitiveFields(ChangeLogEntry, TempChangeLogSetupField, RecRef, FldRef, IsAlwaysLoggedTable(RecRef.Number), FieldMonitoringSetup."Monitor Status");
 
         ChangeLogEntry.Insert(true);
@@ -383,6 +391,7 @@ codeunit 423 "Change Log Management"
     var
         HasValue: Boolean;
         Int: Integer;
+        BigInt: BigInteger;
         Dec: Decimal;
         D: Date;
         T: Time;
@@ -396,6 +405,11 @@ codeunit 423 "Change Log Management"
                 begin
                     Int := FldRef.Value();
                     HasValue := Int <> 0;
+                end;
+            FieldType::BigInteger:
+                begin
+                    BigInt := FldRef.Value();
+                    HasValue := BigInt <> 0;
                 end;
             FieldType::Decimal:
                 begin

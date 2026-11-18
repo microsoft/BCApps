@@ -14,8 +14,7 @@ codeunit 130027 "Calculate Changelist Coverage"
         ChangelistCode."Line Type"::Object,
         ChangelistCode."Line Type"::"Trigger/Function",
         ChangelistCode."Line Type"::Code);
-        ChangelistCode.ModifyAll(Coverage, ChangelistCode.Coverage::None);
-        ChangelistCode.ModifyAll("Coverage %", 0.0);
+        ChangelistCode.ModifyAll(Coverage, ChangelistCode.Coverage::None, "Coverage %", 0.0);
         ChangelistCode.Reset();
 
         if ChangelistCode.FindSet() then

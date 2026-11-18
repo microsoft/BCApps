@@ -38,7 +38,9 @@ table 11005 "Data Export Record Field"
                 UpdateFieldProperties();
             end;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(4; "Table Name"; Text[80])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
                                                                            "Object ID" = field("Table No.")));
@@ -51,9 +53,7 @@ table 11005 "Data Export Record Field"
             BlankZero = true;
             Caption = 'Field No.';
             NotBlank = true;
-            TableRelation = Field."No." where(TableNo = field("Table No."),
-                                               Type = filter(Option | Text | Code | Integer | Decimal | Date | Boolean | DateTime),
-                                               ObsoleteState = filter(<> Removed));
+            TableRelation = Field."No." where(TableNo = field("Table No."), ObsoleteState = filter(<> Removed));
 
             trigger OnValidate()
             var
@@ -103,8 +103,8 @@ table 11005 "Data Export Record Field"
         {
             Caption = 'Field Type';
             Editable = false;
-            OptionCaption = ',Date,Decimal,Text,Code,Boolean,Integer,Option,DateTime';
-            OptionMembers = ,Date,Decimal,Text,"Code",Boolean,"Integer",Option,DateTime;
+            OptionCaption = ',Date,Decimal,Text,Code,Boolean,Integer,Option,DateTime,BigInteger';
+            OptionMembers = ,Date,Decimal,Text,"Code",Boolean,"Integer",Option,DateTime,BigInteger;
         }
         field(11; "Source Line No."; Integer)
         {
@@ -338,6 +338,8 @@ table 11005 "Data Export Record Field"
                     "Field Type" := "Field Type"::Boolean;
                 Field.Type::Integer:
                     "Field Type" := "Field Type"::Integer;
+                Field.Type::BigInteger:
+                    "Field Type" := "Field Type"::BigInteger;
                 Field.Type::Option:
                     "Field Type" := "Field Type"::Option;
                 Field.Type::DateTime:

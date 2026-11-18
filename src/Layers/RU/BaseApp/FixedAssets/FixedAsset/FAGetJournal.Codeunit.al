@@ -146,6 +146,8 @@ codeunit 5639 "FA Get Journal"
                 exit(DeprBook."G/L Integration - Maintenance");
             FAPostingType::"Salvage Value":
                 exit(false);
+            FAPostingType::Derogatory:
+                exit(DeprBook."Integration G/L - Derogatory");
         end;
 
         OnAfterCalcGLIntegration(DeprBook, FAPostingType, Result);
@@ -190,7 +192,7 @@ codeunit 5639 "FA Get Journal"
            (BatchName = BatchName2) and
            (TemplateName = TemplateName2)
         then
-            Error(Text001, FAJnlSetup.TableName);
+            Error(Text001, FAJnlSetup.TableCaption);
     end;
 }
 

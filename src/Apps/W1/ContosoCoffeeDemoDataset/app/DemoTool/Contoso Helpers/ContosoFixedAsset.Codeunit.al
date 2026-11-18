@@ -44,7 +44,7 @@ codeunit 4776 "Contoso Fixed Asset"
 
     procedure InsertDepreciationBook(BookCode: Code[10]; Description: Text[100]; AcqCost: Boolean; Depreciation: Boolean; WriteDown: Boolean; Appreciation: Boolean; Custom1: Boolean; Custom2: Boolean; Disposal: Boolean; Maintenance: Boolean; UseRoundingInPeriodicDepr: Boolean; DefaultFinalRoundingAmount: Decimal)
     begin
-        InsertDepreciationBook(BookCode, Description, AcqCost, Depreciation, WriteDown, Appreciation, Custom1, Custom2, Disposal, Maintenance, UseRoundingInPeriodicDepr, DefaultFinalRoundingAmount, 0, false, false, false, false, false);
+        InsertDepreciationBook(BookCode, Description, AcqCost, Depreciation, WriteDown, Appreciation, Custom1, Custom2, Disposal, Maintenance, UseRoundingInPeriodicDepr, DefaultFinalRoundingAmount, 0, false, false, false, false, false, true);
     end;
 
     procedure InsertDepreciationBook(BookCode: Code[10]; Description: Text[100]; AcqCost: Boolean; Depreciation: Boolean; WriteDown: Boolean; Appreciation: Boolean; Custom1: Boolean; Custom2: Boolean; Disposal: Boolean; Maintenance: Boolean; UseRoundingInPeriodicDepr: Boolean; DefaultFinalRoundingAmount: Decimal; DisposalCalculationMethod: Option; AllowIndexation: Boolean; MarkErrorsAsCorrections: Boolean; SubtractDiscInPurchInv: Boolean; AllowCorrectionOfDisposal: Boolean; AllowIdenticalDocumentNo: Boolean)
@@ -71,6 +71,44 @@ codeunit 4776 "Contoso Fixed Asset"
         DepreciationBook.Validate("G/L Integration - Disposal", Disposal);
         DepreciationBook.Validate("G/L Integration - Maintenance", Maintenance);
         DepreciationBook.Validate("Use Rounding in Periodic Depr.", UseRoundingInPeriodicDepr);
+        DepreciationBook.Validate("Default Final Rounding Amount", DefaultFinalRoundingAmount);
+        DepreciationBook.Validate("Disposal Calculation Method", DisposalCalculationMethod);
+        DepreciationBook.Validate("Allow Indexation", AllowIndexation);
+        DepreciationBook.Validate("Mark Errors as Corrections", MarkErrorsAsCorrections);
+        DepreciationBook.Validate("Subtract Disc. in Purch. Inv.", SubtractDiscInPurchInv);
+        DepreciationBook.Validate("Allow Correction of Disposal", AllowCorrectionOfDisposal);
+        DepreciationBook.Validate("Allow Identical Document No.", AllowIdenticalDocumentNo);
+
+        if Exists then
+            DepreciationBook.Modify(true)
+        else
+            DepreciationBook.Insert(true);
+    end;
+
+    procedure InsertDepreciationBook(BookCode: Code[10]; Description: Text[100]; AcqCost: Boolean; Depreciation: Boolean; WriteDown: Boolean; Appreciation: Boolean; Custom1: Boolean; Custom2: Boolean; Disposal: Boolean; Maintenance: Boolean; UseRoundingInPeriodicDepr: Boolean; DefaultFinalRoundingAmount: Decimal; DisposalCalculationMethod: Option; AllowIndexation: Boolean; MarkErrorsAsCorrections: Boolean; SubtractDiscInPurchInv: Boolean; AllowCorrectionOfDisposal: Boolean; AllowIdenticalDocumentNo: Boolean; GLIntegrationDerogatory: Boolean)
+    var
+        DepreciationBook: Record "Depreciation Book";
+        Exists: Boolean;
+    begin
+        if DepreciationBook.Get(BookCode) then begin
+            Exists := true;
+
+            if not OverwriteData then
+                exit;
+        end;
+
+        DepreciationBook.Validate(Code, BookCode);
+        DepreciationBook.Validate(Description, Description);
+        DepreciationBook.Validate("G/L Integration - Acq. Cost", AcqCost);
+        DepreciationBook.Validate("G/L Integration - Depreciation", Depreciation);
+        DepreciationBook.Validate("G/L Integration - Write-Down", WriteDown);
+        DepreciationBook.Validate("G/L Integration - Appreciation", Appreciation);
+        DepreciationBook.Validate("G/L Integration - Custom 1", Custom1);
+        DepreciationBook.Validate("G/L Integration - Custom 2", Custom2);
+        DepreciationBook.Validate("G/L Integration - Disposal", Disposal);
+        DepreciationBook.Validate("G/L Integration - Maintenance", Maintenance);
+        DepreciationBook.Validate("Use Rounding in Periodic Depr.", UseRoundingInPeriodicDepr);
+        DepreciationBook.Validate("Integration G/L - Derogatory", GLIntegrationDerogatory);
         DepreciationBook.Validate("Default Final Rounding Amount", DefaultFinalRoundingAmount);
         DepreciationBook.Validate("Disposal Calculation Method", DisposalCalculationMethod);
         DepreciationBook.Validate("Allow Indexation", AllowIndexation);
@@ -219,6 +257,39 @@ codeunit 4776 "Contoso Fixed Asset"
         FAPostingGroup.Validate("Maintenance Expense Account", MaintenanceExpenseAccount);
         FAPostingGroup.Validate("Depreciation Expense Acc.", DepreciationExpenseAcc);
         FAPostingGroup.Validate("Acquisition Cost Bal. Acc.", AcquisitionCostBalAcc);
+
+        if Exists then
+            FAPostingGroup.Modify(true)
+        else
+            FAPostingGroup.Insert(true);
+    end;
+
+    procedure InsertFAPostingGroup(GroupCode: Code[20]; AcquisitionCostAccount: Code[20]; AccumDepreciationAccount: Code[20]; AcqCostAccOnDisposal: Code[20]; AccumDeprAccOnDisposal: Code[20]; GainsAccOnDisposal: Code[20]; LossesAccOnDisposal: Code[20]; MaintenanceExpenseAccount: Code[20]; DepreciationExpenseAcc: Code[20]; AcquisitionCostBalAcc: Code[20]; DerogatoryAccount: Code[20]; DerogatoryAccountDecrease: Code[20]; DerogatoryBalDecreaseAcc: Code[20]; DerogatoryExpenseAcc: Code[20])
+    var
+        FAPostingGroup: Record "FA Posting Group";
+        Exists: Boolean;
+    begin
+        if FAPostingGroup.Get(GroupCode) then begin
+            Exists := true;
+
+            if not OverwriteData then
+                exit;
+        end;
+
+        FAPostingGroup.Validate(Code, GroupCode);
+        FAPostingGroup.Validate("Acquisition Cost Account", AcquisitionCostAccount);
+        FAPostingGroup.Validate("Accum. Depreciation Account", AccumDepreciationAccount);
+        FAPostingGroup.Validate("Acq. Cost Acc. on Disposal", AcqCostAccOnDisposal);
+        FAPostingGroup.Validate("Accum. Depr. Acc. on Disposal", AccumDeprAccOnDisposal);
+        FAPostingGroup.Validate("Gains Acc. on Disposal", GainsAccOnDisposal);
+        FAPostingGroup.Validate("Losses Acc. on Disposal", LossesAccOnDisposal);
+        FAPostingGroup.Validate("Maintenance Expense Account", MaintenanceExpenseAccount);
+        FAPostingGroup.Validate("Depreciation Expense Acc.", DepreciationExpenseAcc);
+        FAPostingGroup.Validate("Acquisition Cost Bal. Acc.", AcquisitionCostBalAcc);
+        FAPostingGroup.Validate("Derogatory Acc.", DerogatoryAccount);
+        FAPostingGroup.Validate("Derogatory Account (Decrease)", DerogatoryAccountDecrease);
+        FAPostingGroup.Validate("Derog. Bal. Account (Decrease)", DerogatoryBalDecreaseAcc);
+        FAPostingGroup.Validate("Derogatory Expense Acc.", DerogatoryExpenseAcc);
 
         if Exists then
             FAPostingGroup.Modify(true)
