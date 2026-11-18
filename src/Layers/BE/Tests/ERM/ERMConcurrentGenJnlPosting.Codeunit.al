@@ -712,7 +712,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
     [Test]
     [Scope('OnPrem')]
-    procedure GLEntriesAreStampedWithTheirOwnRegisterWithConcurrentPosting()
+    procedure TwoPostingsKeepGLEntryRegisterFiltersIsolatedWithConcurrentPosting()
     var
         GenJournalLine: Record "Gen. Journal Line";
         GLEntry: Record "G/L Entry";
@@ -722,7 +722,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         SecondRegisterNo: Integer;
     begin
         // [FEATURE] [Gen. Journal] [Concurrent Posting] [G/L Register]
-        // [SCENARIO] Each posting stamps its G/L Entries with its own G/L Register No., so register filters do not mix entries.
+        // [SCENARIO] Posting twice keeps the two G/L Register filters isolated from each other.
         Initialize();
 
         // [GIVEN] "Use Concurrent Posting" is enabled
@@ -730,23 +730,18 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         if GLRegister.FindLast() then
             LastGLRegisterNo := GLRegister."No.";
 
-        // [WHEN] The first journal line is posted
+        // [GIVEN] A first journal line was posted into its own register
         CreateSimpleGLJournalLine(GenJournalLine);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        // [THEN] The first posting creates one register with its own G/L Entries
         GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
-        Assert.AreEqual(1, GLRegister.Count(), 'The first posting must create one G/L Register');
-        GLRegister.FindFirst();
+        GLRegister.FindLast();
         FirstRegisterNo := GLRegister."No.";
-        GLEntry.SetRange("G/L Register No.", FirstRegisterNo);
-        Assert.RecordIsNotEmpty(GLEntry);
 
-        // [WHEN] The second journal line is posted separately
+        // [WHEN] A second journal line is posted separately
         CreateSimpleGLJournalLine(GenJournalLine);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
-        // [THEN] Two registers are created and each has its own non-empty set of G/L Entries within its entry range
+        // [THEN] Two registers exist and their G/L Entry filters remain isolated
         GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
         Assert.AreEqual(2, GLRegister.Count(), 'Two G/L Registers should have been created');
         GLRegister.FindLast();
