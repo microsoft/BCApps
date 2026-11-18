@@ -114,13 +114,28 @@ codeunit 3350 "PA Agent Access"
     internal procedure HasUserCreatedPostedPurchInvoice(): Boolean
     var
         PurchaseInvHeader: Record "Purch. Inv. Header";
+        CurrentUserSecurityId: Guid;
         Days30Ago: Date;
+        InvoicesChecked: Integer;
+        MaxInvoicesToCheck: Integer;
     begin
+        MaxInvoicesToCheck := 500;
         Days30Ago := CalcDate('<-30D>', Today());
+        CurrentUserSecurityId := UserSecurityId();
 
-        PurchaseInvHeader.SetRange(SystemCreatedAt, CreateDateTime(Days30Ago, 0T), CurrentDateTime());
-        PurchaseInvHeader.SetRange(SystemCreatedBy, UserSecurityId());
-        exit(not PurchaseInvHeader.IsEmpty());
+        PurchaseInvHeader.ReadIsolation := IsolationLevel::ReadUncommitted;
+        PurchaseInvHeader.SetCurrentKey("Posting Date");
+        PurchaseInvHeader.Ascending(false);
+        PurchaseInvHeader.SetFilter("Posting Date", '>=%1', Days30Ago);
+        PurchaseInvHeader.SetLoadFields(SystemCreatedBy);
+        if not PurchaseInvHeader.FindSet() then
+            exit(false);
+        repeat
+            if PurchaseInvHeader.SystemCreatedBy = CurrentUserSecurityId then
+                exit(true);
+            InvoicesChecked += 1;
+        until (PurchaseInvHeader.Next() = 0) or (InvoicesChecked >= MaxInvoicesToCheck);
+        exit(false);
     end;
 
     internal procedure GetUsersThatHaveCreatedPostedPurchInvoice(): List of [Guid]
