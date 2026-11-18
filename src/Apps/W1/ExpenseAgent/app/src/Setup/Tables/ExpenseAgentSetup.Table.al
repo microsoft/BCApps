@@ -1028,14 +1028,15 @@ table 6930 "Expense Agent Setup"
     end;
 
     /// <summary>
-    /// Returns the date of a UTC instant in the agent time zone for Expense Agent service calls, otherwise in the session time zone.
+    /// Returns the date of a UTC instant in the time zone that per diem days are split in: the agent time zone for
+    /// Expense Agent service calls, otherwise the session time zone.
     /// </summary>
-    internal procedure GetAgentDate(UtcDateTime: DateTime): Date
+    internal procedure GetPerDiemDate(UtcDateTime: DateTime): Date
     var
         ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
     begin
         ExpensePerDiemCalculation.SetExpenseAgentSetup(Rec);
-        exit(ExpensePerDiemCalculation.GetAgentDate(UtcDateTime));
+        exit(ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime));
     end;
 
     internal procedure LogAgentEnabledTelemetry()

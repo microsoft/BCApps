@@ -51,8 +51,8 @@ codeunit 6912 "Expense Auto Population"
     begin
         ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
         // Days are split in the agent time zone for Expense Agent service calls, and in the session time zone for users.
-        StartDate := ExpensePerDiemCalculation.GetAgentDate(Expense."Starting Date and Time");
-        EndDate := ExpensePerDiemCalculation.GetAgentDate(Expense."Ending Date and Time");
+        StartDate := ExpensePerDiemCalculation.GetPerDiemDate(Expense."Starting Date and Time");
+        EndDate := ExpensePerDiemCalculation.GetPerDiemDate(Expense."Ending Date and Time");
 
         ExpenseRuleCondition.SetRange("Expense Category Code", ExpenseRuleHeader."Expense Category Code");
         ExpenseRuleCondition.SetRange("Expense Location", ExpenseRuleHeader."Expense Location");
@@ -132,8 +132,8 @@ codeunit 6912 "Expense Auto Population"
     begin
         ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
         // Days are split in the agent time zone for Expense Agent service calls, and in the session time zone for users.
-        StartDate := ExpensePerDiemCalculation.GetAgentDate(ExpenseReportLine."Starting Date and Time");
-        EndDate := ExpensePerDiemCalculation.GetAgentDate(ExpenseReportLine."Ending Date and Time");
+        StartDate := ExpensePerDiemCalculation.GetPerDiemDate(ExpenseReportLine."Starting Date and Time");
+        EndDate := ExpensePerDiemCalculation.GetPerDiemDate(ExpenseReportLine."Ending Date and Time");
 
         ExpenseRuleCondition.SetRange("Expense Category Code", ExpenseRuleHeader."Expense Category Code");
         ExpenseRuleCondition.SetRange("Expense Location", ExpenseRuleHeader."Expense Location");

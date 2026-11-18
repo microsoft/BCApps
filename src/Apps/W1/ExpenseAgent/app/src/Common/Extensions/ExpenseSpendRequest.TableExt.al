@@ -314,7 +314,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             exit;
 
         ExpenseAgentSetup.GetRecordOnce();
-        TripStartDate := ExpenseAgentSetup.GetAgentDate(Rec."Actual Start Date and Time");
+        TripStartDate := ExpenseAgentSetup.GetPerDiemDate(Rec."Actual Start Date and Time");
         if ExpenseRuleHeader.FindPerDiemCategory(Rec."Expense Location", TripStartDate) = '' then
             Error(NoPerDiemRuleOnTripStartErr, Rec."Expense Location", TripStartDate);
     end;

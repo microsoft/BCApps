@@ -16,6 +16,7 @@ using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
 using System.Agents;
+using System.DateTime;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Utilities;
@@ -595,6 +596,52 @@ codeunit 148300 "Library - Expense"
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup."User Security ID" := AgentUser."User Security ID";
         ExpenseAgentSetup.Modify();
+    end;
+
+    /// <summary>
+    /// Returns a trip from 20:00 to 03:00 the next day in the session time zone, so the session splits it into two dates,
+    /// and sets an agent time zone in which the whole trip falls on one date, returned in AgentDate.
+    /// The time zone is chosen at run time, so the outcome doesn't depend on the session time zone of the test host.
+    /// </summary>
+    internal procedure SetAgentTimeZoneForOneDayTrip(TripDate: Date; var TripStart: DateTime; var TripEnd: DateTime; var AgentDate: Date)
+    var
+        CandidateTimeZones: List of [Text[180]];
+        TimeZoneId: Text[180];
+        NoTimeZoneErr: Label 'No time zone puts the trip on one date.', Locked = true;
+    begin
+        TripStart := CreateDateTime(TripDate, 200000T);
+        TripEnd := CreateDateTime(TripDate + 1, 030000T);
+        // Fixed offsets UTC+9, UTC-10 and UTC: for any session offset, at least one of them puts the trip on one date.
+        CandidateTimeZones.Add('Tokyo Standard Time');
+        CandidateTimeZones.Add('Hawaiian Standard Time');
+        CandidateTimeZones.Add('UTC');
+        foreach TimeZoneId in CandidateTimeZones do
+            if GetDateInTimeZone(TripStart, TimeZoneId) = GetDateInTimeZone(TripEnd, TimeZoneId) then begin
+                SetAgentTimeZone(TimeZoneId);
+                AgentDate := GetDateInTimeZone(TripStart, TimeZoneId);
+                exit;
+            end;
+        Error(NoTimeZoneErr);
+    end;
+
+    /// <summary>
+    /// Returns the date of a UTC instant in the given time zone.
+    /// </summary>
+    internal procedure GetDateInTimeZone(UtcDateTime: DateTime; TimeZoneId: Text) Result: Date
+    var
+        TimeZone: Codeunit "Time Zone";
+    begin
+        // The XML format is in UTC, so formatting the instant shifted by the zone offset gives the zone's wall clock.
+        Evaluate(Result, CopyStr(Format(UtcDateTime + TimeZone.GetTimezoneOffset(UtcDateTime, TimeZoneId), 0, 9), 1, 10), 9);
+    end;
+
+    /// <summary>
+    /// Returns the instant at the given UTC date and time, whatever the session time zone is.
+    /// </summary>
+    internal procedure CreateUtcDateTime(UtcDate: Date; UtcTime: Time) Result: DateTime
+    begin
+        Evaluate(Result, Format(UtcDate, 0, 9) + 'T00:00:00Z', 9);
+        Result += UtcTime - 000000T;
     end;
 
     procedure UpdateExpenseAccountInEmployeePostingGroup(EmployeePostingGroupCode: Code[20])

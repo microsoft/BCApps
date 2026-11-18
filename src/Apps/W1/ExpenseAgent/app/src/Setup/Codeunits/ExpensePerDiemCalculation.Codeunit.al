@@ -66,9 +66,10 @@ codeunit 6911 "Expense Per Diem Calculation"
     end;
 
     /// <summary>
-    /// Returns the date of a UTC instant on the agent's wall clock. The stored value is not changed.
+    /// Returns the date of a UTC instant in the time zone that per diem days are split in: the agent time zone for
+    /// Expense Agent service calls, otherwise the session time zone. The stored value is not changed.
     /// </summary>
-    internal procedure GetAgentDate(UtcDateTime: DateTime): Date
+    internal procedure GetPerDiemDate(UtcDateTime: DateTime): Date
     var
         LocalMs: BigInteger;
         DayIndex: Integer;
@@ -84,9 +85,10 @@ codeunit 6911 "Expense Per Diem Calculation"
     end;
 
     /// <summary>
-    /// Returns the time of a UTC instant on the agent's wall clock. The stored value is not changed.
+    /// Returns the time of a UTC instant in the time zone that per diem days are split in: the agent time zone for
+    /// Expense Agent service calls, otherwise the session time zone. The stored value is not changed.
     /// </summary>
-    internal procedure GetAgentTime(UtcDateTime: DateTime): Time
+    internal procedure GetPerDiemTime(UtcDateTime: DateTime): Time
     var
         LocalMs: BigInteger;
         MsOfDay: Integer;
@@ -99,66 +101,6 @@ codeunit 6911 "Expense Per Diem Calculation"
         LocalMs := GetLocalMsSinceEpoch(UtcDateTime);
         MsOfDay := LocalMs mod MsPerDay();
         exit(000000T + MsOfDay);
-    end;
-
-    /// <summary>
-    /// Converts a wall-clock date and time in the agent time zone to its UTC instant.
-    /// Spring-forward gap (the wall time does not exist, including zones that switch at midnight such as America/Santiago):
-    /// returns the first valid instant after the gap, i.e. the moment of the transition.
-    /// Fall-back overlap (the wall time occurs twice): returns the earlier of the two instants.
-    /// </summary>
-    internal procedure CreateAgentDateTime(LocalDate: Date; LocalTime: Time): DateTime
-    var
-        WallClock, BeforeCandidate, AfterCandidate, Low, High, Middle : DateTime;
-        OffsetBefore, OffsetAfter : Duration;
-        DaysSinceEpoch: BigInteger;
-        BeforeIsValid, AfterIsValid : Boolean;
-    begin
-        if (LocalDate = 0D) or (LocalTime = 0T) then
-            exit(0DT);
-        if AgentTimeZoneId = '' then
-            exit(CreateDateTime(LocalDate, LocalTime));
-
-        // The wall clock reading expressed as if it were a UTC instant.
-        DaysSinceEpoch := LocalDate - GetEpochDate();
-        WallClock := GetUtcEpoch() + DaysSinceEpoch * MsPerDay() + (LocalTime - 000000T);
-
-        // Offsets in effect a day before and a day after cover any transition around this wall time.
-        OffsetBefore := GetAgentOffset(WallClock - MsPerDay());
-        OffsetAfter := GetAgentOffset(WallClock + MsPerDay());
-        BeforeCandidate := WallClock - OffsetBefore;
-        AfterCandidate := WallClock - OffsetAfter;
-        BeforeIsValid := IsValidUtcForWallClock(BeforeCandidate, WallClock);
-        AfterIsValid := IsValidUtcForWallClock(AfterCandidate, WallClock);
-
-        if BeforeIsValid and AfterIsValid then begin
-            if BeforeCandidate < AfterCandidate then
-                exit(BeforeCandidate);
-            exit(AfterCandidate);
-        end;
-        if BeforeIsValid then
-            exit(BeforeCandidate);
-        if AfterIsValid then
-            exit(AfterCandidate);
-        if OffsetBefore = OffsetAfter then
-            exit(BeforeCandidate);
-
-        // Gap: the transition lies between the two candidates. Find the first instant that uses the new offset.
-        Low := AfterCandidate;
-        High := BeforeCandidate;
-        while High - Low > 1 do begin
-            Middle := Low + (High - Low) div 2;
-            if GetAgentOffset(Middle) = OffsetAfter then
-                High := Middle
-            else
-                Low := Middle;
-        end;
-        exit(High);
-    end;
-
-    local procedure IsValidUtcForWallClock(Candidate: DateTime; WallClock: DateTime): Boolean
-    begin
-        exit(Candidate + GetAgentOffset(Candidate) = WallClock);
     end;
 
     local procedure GetLocalMsSinceEpoch(UtcDateTime: DateTime): BigInteger
@@ -194,27 +136,11 @@ codeunit 6911 "Expense Per Diem Calculation"
         TripStartDateTime: DateTime;
         TripEndDateTime: DateTime): Decimal
     var
-        DayStartTime, DayEndTime : DateTime;
-        HoursInDay: Decimal;
         IsFirstDay, IsLastDay, HasOvernightBefore : Boolean;
     begin
-        // Determine day boundaries for this specific date
-        DayStartTime := CreateAgentDateTime(CurrentDate, 000000T);  // Midnight start
-        DayEndTime := CreateAgentDateTime(CurrentDate, 235900T);    // Midnight end
-
         // Check if this is first/last day of trip
-        IsFirstDay := (CurrentDate = GetAgentDate(TripStartDateTime));
-        IsLastDay := (CurrentDate = GetAgentDate(TripEndDateTime));
-
-        // Adjust times for actual trip boundaries
-        if IsFirstDay then
-            DayStartTime := TripStartDateTime;
-
-        if IsLastDay then
-            DayEndTime := TripEndDateTime;
-
-        // Calculate hours present in this day
-        HoursInDay := Round((DayEndTime - DayStartTime) / (60 * 60 * 1000), 0.01);
+        IsFirstDay := (CurrentDate = GetPerDiemDate(TripStartDateTime));
+        IsLastDay := (CurrentDate = GetPerDiemDate(TripEndDateTime));
 
         case ExpenseAgentSetup."Full Per-Diem Calculation" of
             ExpenseAgentSetup."Full Per-Diem Calculation"::None:
@@ -225,7 +151,7 @@ codeunit 6911 "Expense Per Diem Calculation"
                 exit(Calculate24HourRollingDayAmount(CurrentDate, BaseRate, TripStartDateTime, TripEndDateTime));
             ExpenseAgentSetup."Full Per-Diem Calculation"::"Overnight Stay":
                 begin
-                    HasOvernightBefore := (CurrentDate > GetAgentDate(TripStartDateTime));
+                    HasOvernightBefore := (CurrentDate > GetPerDiemDate(TripStartDateTime));
                     exit(CalculateOvernightStayDayAmount(CurrentDate, BaseRate, TripStartDateTime, TripEndDateTime));
                 end;
         end;
@@ -240,33 +166,19 @@ codeunit 6911 "Expense Per Diem Calculation"
     var
         IsFullCalendarDay: Boolean;
         HoursInDay: Decimal;
-        DayStartTime, DayEndTime : DateTime;
-        CurrentDate: Date;
+        DayStartTime, DayEndTime : Time;
     begin
-        // Calculate actual hours in this day for partial day validation
-        CurrentDate := GetAgentDate(TripStartDateTime);
-        if IsLastDay then
-            CurrentDate := GetAgentDate(TripEndDateTime);
-
-        DayStartTime := CreateAgentDateTime(CurrentDate, 000000T);
-        DayEndTime := CreateAgentDateTime(CurrentDate, 235900T);
-
+        // Hours present in this day, read on the clock that per diem days are split by
+        DayStartTime := 000000T;
+        DayEndTime := 235900T;
         if IsFirstDay then
-            DayStartTime := TripStartDateTime;
+            DayStartTime := GetPerDiemTime(TripStartDateTime);
         if IsLastDay then
-            DayEndTime := TripEndDateTime;
+            DayEndTime := GetPerDiemTime(TripEndDateTime);
 
         HoursInDay := Round((DayEndTime - DayStartTime) / (60 * 60 * 1000), 0.01);
 
-        IsFullCalendarDay := true;
-
-        if IsFirstDay then
-            if GetAgentTime(TripStartDateTime) <> 000000T then
-                IsFullCalendarDay := false;
-
-        if IsLastDay then
-            if GetAgentTime(TripEndDateTime) <> 235900T then
-                IsFullCalendarDay := false;
+        IsFullCalendarDay := (DayStartTime = 000000T) and (DayEndTime = 235900T);
 
         if IsFullCalendarDay then
             exit(BaseRate)
@@ -309,7 +221,7 @@ codeunit 6911 "Expense Per Diem Calculation"
             if PeriodEndTime > TripEndDateTime then
                 PeriodEndTime := TripEndDateTime;
 
-            PeriodStartDate := GetAgentDate(PeriodStartTime);
+            PeriodStartDate := GetPerDiemDate(PeriodStartTime);
             PeriodDurationHours := Round((PeriodEndTime - PeriodStartTime) / (60 * 60 * 1000), 0.01);
 
             // If this period starts on the current date, calculate its per diem
@@ -348,8 +260,8 @@ codeunit 6911 "Expense Per Diem Calculation"
         // Only trips that span multiple calendar dates are eligible
         // Find which overnight period "belongs" to this calendar day
 
-        TripStartDate := GetAgentDate(TripStartDateTime);
-        TripEndDate := GetAgentDate(TripEndDateTime);
+        TripStartDate := GetPerDiemDate(TripStartDateTime);
+        TripEndDate := GetPerDiemDate(TripEndDateTime);
 
         // Same-day trips get zero per diem regardless of duration
         if TripStartDate = TripEndDate then
@@ -366,7 +278,7 @@ codeunit 6911 "Expense Per Diem Calculation"
             if PeriodEndTime > TripEndDateTime then
                 PeriodEndTime := TripEndDateTime;
 
-            PeriodStartDate := GetAgentDate(PeriodStartTime);
+            PeriodStartDate := GetPerDiemDate(PeriodStartTime);
             PeriodDurationHours := Round((PeriodEndTime - PeriodStartTime) / (60 * 60 * 1000), 0.01);
 
             // If this overnight period starts on the current date, calculate its per diem

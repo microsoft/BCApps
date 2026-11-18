@@ -9124,13 +9124,14 @@ codeunit 148301 "Expense Rule Test"
 
         // [WHEN] The trip instants and Tokyo midnight are converted between UTC and agent time.
         // [THEN] The trip crosses Tokyo midnight, so it covers 2026-03-10 and 2026-03-11.
-        Assert.AreEqual(DMY2Date(10, 3, 2026), ExpensePerDiemCalculation.GetAgentDate(TripStart), 'Start date in agent time zone');
-        Assert.AreEqual(230000T, ExpensePerDiemCalculation.GetAgentTime(TripStart), 'Start time in agent time zone');
-        Assert.AreEqual(DMY2Date(11, 3, 2026), ExpensePerDiemCalculation.GetAgentDate(TripEnd), 'End date in agent time zone');
-        Assert.AreEqual(010000T, ExpensePerDiemCalculation.GetAgentTime(TripEnd), 'End time in agent time zone');
+        Assert.AreEqual(DMY2Date(10, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(TripStart), 'Start date in agent time zone');
+        Assert.AreEqual(230000T, ExpensePerDiemCalculation.GetPerDiemTime(TripStart), 'Start time in agent time zone');
+        Assert.AreEqual(DMY2Date(11, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(TripEnd), 'End date in agent time zone');
+        Assert.AreEqual(010000T, ExpensePerDiemCalculation.GetPerDiemTime(TripEnd), 'End time in agent time zone');
 
         // [THEN] Tokyo midnight is 15:00Z on the previous UTC day.
-        Assert.AreEqual(UtcDateTime('2026-03-10T15:00:00Z'), ExpensePerDiemCalculation.CreateAgentDateTime(DMY2Date(11, 3, 2026), 000000T), 'Agent midnight as UTC instant');
+        Assert.AreEqual(DMY2Date(10, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-10T14:59:00Z')), 'Agent date before agent midnight');
+        Assert.AreEqual(DMY2Date(11, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-10T15:00:00Z')), 'Agent date at agent midnight');
     end;
 
     [Test]
@@ -9144,18 +9145,18 @@ codeunit 148301 "Expense Rule Test"
 
         // [WHEN] Instants and wall times around the Eastern DST transitions are converted.
         // [THEN] The offset changes exactly at the transition instant.
-        Assert.AreEqual(015900T, ExpensePerDiemCalculation.GetAgentTime(UtcDateTime('2026-03-08T06:59:00Z')), 'Eastern time before DST starts');
-        Assert.AreEqual(030000T, ExpensePerDiemCalculation.GetAgentTime(UtcDateTime('2026-03-08T07:00:00Z')), 'Eastern time after DST starts');
+        Assert.AreEqual(015900T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2026-03-08T06:59:00Z')), 'Eastern time before DST starts');
+        Assert.AreEqual(030000T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2026-03-08T07:00:00Z')), 'Eastern time after DST starts');
 
-        // [THEN] The DST day is 23 hours long: midnight is EST, the next midnight is EDT.
-        Assert.AreEqual(UtcDateTime('2026-03-08T05:00:00Z'), ExpensePerDiemCalculation.CreateAgentDateTime(DMY2Date(8, 3, 2026), 000000T), 'Eastern midnight on DST day');
-        Assert.AreEqual(UtcDateTime('2026-03-09T04:00:00Z'), ExpensePerDiemCalculation.CreateAgentDateTime(DMY2Date(9, 3, 2026), 000000T), 'Eastern midnight after DST day');
+        // [THEN] The DST day is 23 hours long: it starts at midnight EST and ends at midnight EDT.
+        Assert.AreEqual(DMY2Date(7, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-08T04:59:00Z')), 'Eastern date before DST day');
+        Assert.AreEqual(DMY2Date(8, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-08T05:00:00Z')), 'Eastern DST day starts at midnight EST');
+        Assert.AreEqual(DMY2Date(8, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-09T03:59:00Z')), 'Eastern DST day before midnight EDT');
+        Assert.AreEqual(DMY2Date(9, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-09T04:00:00Z')), 'Eastern day after DST day starts at midnight EDT');
 
-        // [THEN] A wall time in the gap moves forward to the first valid instant.
-        Assert.AreEqual(UtcDateTime('2026-03-08T07:00:00Z'), ExpensePerDiemCalculation.CreateAgentDateTime(DMY2Date(8, 3, 2026), 023000T), 'Wall time in DST gap');
-
-        // [THEN] An ambiguous wall time when DST ends (2026-11-01 01:30) resolves to the earlier instant (EDT).
-        Assert.AreEqual(UtcDateTime('2026-11-01T05:30:00Z'), ExpensePerDiemCalculation.CreateAgentDateTime(DMY2Date(1, 11, 2026), 013000T), 'Ambiguous wall time when DST ends');
+        // [THEN] When DST ends (2026-11-01 at 06:00Z), 01:30 occurs twice: first in EDT, then in EST.
+        Assert.AreEqual(013000T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2026-11-01T05:30:00Z')), 'Eastern 01:30 in EDT');
+        Assert.AreEqual(013000T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2026-11-01T06:30:00Z')), 'Eastern 01:30 in EST');
     end;
 
     [Test]
@@ -9169,34 +9170,27 @@ codeunit 148301 "Expense Rule Test"
 
         // [WHEN] Instants and wall times around the Central Europe DST transition are converted.
         // [THEN] The offset changes exactly at the transition instant.
-        Assert.AreEqual(015900T, ExpensePerDiemCalculation.GetAgentTime(UtcDateTime('2026-03-29T00:59:00Z')), 'Romance time before DST starts');
-        Assert.AreEqual(030000T, ExpensePerDiemCalculation.GetAgentTime(UtcDateTime('2026-03-29T01:00:00Z')), 'Romance time after DST starts');
-        Assert.AreEqual(UtcDateTime('2026-03-29T22:00:00Z'), ExpensePerDiemCalculation.CreateAgentDateTime(DMY2Date(30, 3, 2026), 000000T), 'Romance midnight after DST day');
+        Assert.AreEqual(015900T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2026-03-29T00:59:00Z')), 'Romance time before DST starts');
+        Assert.AreEqual(030000T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2026-03-29T01:00:00Z')), 'Romance time after DST starts');
+        Assert.AreEqual(DMY2Date(29, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-29T21:59:00Z')), 'Romance date before midnight after DST day');
+        Assert.AreEqual(DMY2Date(30, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-29T22:00:00Z')), 'Romance midnight after DST day');
     end;
 
     [Test]
     procedure PerDiemDayStartsAtFirstValidInstantWhenDstBeginsAtMidnight()
     var
         ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
-        DayStart: DateTime;
     begin
         // [SCENARIO 659478] In zones that switch at midnight, the day starts at the first valid instant.
         // [GIVEN] Agent time zone Santiago. On 2025-09-07 local midnight does not exist: 00:00 -04 becomes 01:00 -03 at 04:00Z.
         ExpensePerDiemCalculation.SetTimeZone(SantiagoTimeZoneTok);
 
-        // [WHEN] Instants and wall times around the Santiago transition are converted.
-        // [THEN] The day before ends at 03:59Z and the DST day starts at 04:00Z (01:00 local).
-        Assert.AreEqual(DMY2Date(6, 9, 2025), ExpensePerDiemCalculation.GetAgentDate(UtcDateTime('2025-09-07T03:59:00Z')), 'Santiago date before transition');
-        Assert.AreEqual(DMY2Date(7, 9, 2025), ExpensePerDiemCalculation.GetAgentDate(UtcDateTime('2025-09-07T04:00:00Z')), 'Santiago date after transition');
-        Assert.AreEqual(010000T, ExpensePerDiemCalculation.GetAgentTime(UtcDateTime('2025-09-07T04:00:00Z')), 'Santiago time after transition');
-        Assert.AreEqual(UtcDateTime('2025-09-07T03:59:00Z'), ExpensePerDiemCalculation.CreateAgentDateTime(DMY2Date(6, 9, 2025), 235900T), 'Santiago end of day before transition');
-
-        // [THEN] The DST day starts at the transition, the first instant whose agent date is 2025-09-07.
-        // Windows time zone data places this transition at 23:59:59.999 local, so allow up to one second before 04:00Z.
-        DayStart := ExpensePerDiemCalculation.CreateAgentDateTime(DMY2Date(7, 9, 2025), 000000T);
-        Assert.IsTrue((DayStart <= UtcDateTime('2025-09-07T04:00:00Z')) and (DayStart >= UtcDateTime('2025-09-07T03:59:59Z')), 'Santiago start of DST day');
-        Assert.AreEqual(DMY2Date(7, 9, 2025), ExpensePerDiemCalculation.GetAgentDate(DayStart), 'Santiago DST day starts on its own date');
-        Assert.AreEqual(DMY2Date(6, 9, 2025), ExpensePerDiemCalculation.GetAgentDate(DayStart - 1), 'Santiago instant before DST day start');
+        // [WHEN] Instants around the Santiago transition are converted.
+        // [THEN] The day before ends just before 04:00Z and the DST day starts at 04:00Z (01:00 local).
+        Assert.AreEqual(DMY2Date(6, 9, 2025), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2025-09-07T03:59:00Z')), 'Santiago date before transition');
+        Assert.AreEqual(235900T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2025-09-07T03:59:00Z')), 'Santiago time before transition');
+        Assert.AreEqual(DMY2Date(7, 9, 2025), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2025-09-07T04:00:00Z')), 'Santiago date after transition');
+        Assert.AreEqual(010000T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2025-09-07T04:00:00Z')), 'Santiago time after transition');
     end;
 
     [Test]
@@ -9210,22 +9204,21 @@ codeunit 148301 "Expense Rule Test"
         PostCode: Record "Post Code";
         ExpenseAgentServiceCall: Codeunit "Library - Expense";
         TripStart, TripEnd : DateTime;
+        AgentDate: Date;
         ConditionValue: Decimal;
     begin
         // [SCENARIO 659478] For Expense Agent service calls, the same UTC trip gives the same per diem rows whatever the session time zone is.
         Initialize();
 
-        // [GIVEN] The agent works in Eastern time and the call comes from the Expense Agent service.
-        LibraryExpense.SetAgentTimeZone(EasternTimeZoneTok);
+        // [GIVEN] A trip from 20:00 to 03:00 the next day in the session time zone, and an agent time zone in which the trip falls on one date.
+        LibraryExpense.SetAgentTimeZoneForOneDayTrip(WorkDate(), TripStart, TripEnd, AgentDate);
+
+        // [GIVEN] The call comes from the Expense Agent service.
         ExpenseAgentServiceCall.SetExpenseAgentServiceCallSimulated(true);
         BindSubscription(ExpenseAgentServiceCall);
         LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 50, 0, 0);
         LibraryERM.FindPostCode(PostCode);
         ConditionValue := 100;
-
-        // [GIVEN] A trip from 20:00Z to 03:00Z the next UTC day, which is 16:00 to 23:00 EDT on 2026-06-15.
-        TripStart := UtcDateTime('2026-06-15T20:00:00Z');
-        TripEnd := UtcDateTime('2026-06-16T03:00:00Z');
 
         // [WHEN] The per diem expense is released.
         CreateAndReleaseExpenseWithPerDiemRule(
@@ -9239,7 +9232,7 @@ codeunit 148301 "Expense Rule Test"
         ExpensePerDiem.SetRange("Expense No.", Expense."No.");
         Assert.RecordCount(ExpensePerDiem, 1);
         ExpensePerDiem.FindFirst();
-        Assert.AreEqual(DMY2Date(15, 6, 2026), ExpensePerDiem.Date, 'Per diem date in agent time zone');
+        Assert.AreEqual(AgentDate, ExpensePerDiem.Date, 'Per diem date in agent time zone');
         Assert.AreEqual(ConditionValue * 50 / 100, ExpensePerDiem."Per Diem Amount", 'Partial day amount');
 
         // [THEN] The stored trip instants are not shifted.
@@ -9258,23 +9251,18 @@ codeunit 148301 "Expense Rule Test"
         ExpenseRuleCondition: Record "Expense Rule Condition";
         PostCode: Record "Post Code";
         TripStart, TripEnd : DateTime;
+        AgentDate: Date;
         ConditionValue: Decimal;
     begin
         // [SCENARIO 659478] Calls that do not come from the Expense Agent service split days in the user's session time zone, not the agent's.
         Initialize();
 
-        // [GIVEN] The agent works in Eastern time, but the call is made by a user.
-        LibraryExpense.SetAgentTimeZone(EasternTimeZoneTok);
+        // [GIVEN] A trip from 20:00 to 03:00 the next day in the session time zone, and an agent time zone in which the trip falls on one date.
+        // [GIVEN] The call is made by a user.
+        LibraryExpense.SetAgentTimeZoneForOneDayTrip(WorkDate(), TripStart, TripEnd, AgentDate);
         LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 50, 0, 0);
         LibraryERM.FindPostCode(PostCode);
         ConditionValue := 100;
-
-        // [GIVEN] A trip from 20:00Z to 03:00Z the next UTC day, which is 16:00 to 23:00 EDT on 2026-06-15.
-        TripStart := UtcDateTime('2026-06-15T20:00:00Z');
-        TripEnd := UtcDateTime('2026-06-16T03:00:00Z');
-
-        // [GIVEN] The session time zone splits the trip into two dates, unlike the agent time zone.
-        Assert.AreNotEqual(DT2Date(TripStart), DT2Date(TripEnd), 'The session time zone must split the trip into two dates for this test.');
 
         // [WHEN] The per diem expense is released.
         CreateAndReleaseExpenseWithPerDiemRule(
@@ -9284,9 +9272,9 @@ codeunit 148301 "Expense Rule Test"
             Expense."Reimbursement Type"::"Employee Paid", '', ExpenseRuleCondition."Condition Type"::"Daily Rate",
             true, ConditionValue);
 
-        // [THEN] The per diem days follow the session dates of the trip.
+        // [THEN] The per diem days follow the session dates of the trip, not the single agent date.
         ExpensePerDiem.SetRange("Expense No.", Expense."No.");
-        Assert.RecordCount(ExpensePerDiem, DT2Date(TripEnd) - DT2Date(TripStart) + 1);
+        Assert.RecordCount(ExpensePerDiem, 2);
         ExpensePerDiem.FindFirst();
         Assert.AreEqual(DT2Date(TripStart), ExpensePerDiem.Date, 'Per diem date in session time zone');
 
@@ -9309,7 +9297,7 @@ codeunit 148301 "Expense Rule Test"
     begin
         // [SCENARIO 659478] Without an agent, days are split in the session time zone as before.
         Initialize();
-        TripStart := UtcDateTime('2026-06-15T20:00:00Z');
+        TripStart := CreateDateTime(WorkDate(), 200000T);
         ExpenseAgentServiceCall.SetExpenseAgentServiceCallSimulated(true);
         BindSubscription(ExpenseAgentServiceCall);
 
@@ -9325,8 +9313,8 @@ codeunit 148301 "Expense Rule Test"
         // [THEN] The agent time zone is not resolved and the session time zone is used.
         Assert.IsFalse(Resolved, 'No agent must not resolve a time zone');
         Assert.AreEqual('NoAgent', UnresolvedReason, 'Reason without agent');
-        Assert.AreEqual(DT2Date(TripStart), ExpensePerDiemCalculation.GetAgentDate(TripStart), 'Session date without agent');
-        Assert.AreEqual(DT2Time(TripStart), ExpensePerDiemCalculation.GetAgentTime(TripStart), 'Session time without agent');
+        Assert.AreEqual(DT2Date(TripStart), ExpensePerDiemCalculation.GetPerDiemDate(TripStart), 'Session date without agent');
+        Assert.AreEqual(DT2Time(TripStart), ExpensePerDiemCalculation.GetPerDiemTime(TripStart), 'Session time without agent');
     end;
 
     [Test]
@@ -9342,7 +9330,7 @@ codeunit 148301 "Expense Rule Test"
     begin
         // [SCENARIO 659478] With a blank agent time zone, days are split in the session time zone as before.
         Initialize();
-        TripStart := UtcDateTime('2026-06-15T20:00:00Z');
+        TripStart := CreateDateTime(WorkDate(), 200000T);
         ExpenseAgentServiceCall.SetExpenseAgentServiceCallSimulated(true);
         BindSubscription(ExpenseAgentServiceCall);
 
@@ -9357,8 +9345,8 @@ codeunit 148301 "Expense Rule Test"
         // [THEN] The agent time zone is not resolved and the session time zone is used.
         Assert.IsFalse(Resolved, 'Blank time zone must not resolve');
         Assert.AreEqual('BlankTimeZone', UnresolvedReason, 'Reason with blank time zone');
-        Assert.AreEqual(DT2Date(TripStart), ExpensePerDiemCalculation.GetAgentDate(TripStart), 'Session date with blank time zone');
-        Assert.AreEqual(CreateDateTime(DMY2Date(15, 6, 2026), 000000T), ExpensePerDiemCalculation.CreateAgentDateTime(DMY2Date(15, 6, 2026), 000000T), 'Session midnight with blank time zone');
+        Assert.AreEqual(DT2Date(TripStart), ExpensePerDiemCalculation.GetPerDiemDate(TripStart), 'Session date with blank time zone');
+        Assert.AreEqual(DT2Time(TripStart), ExpensePerDiemCalculation.GetPerDiemTime(TripStart), 'Session time with blank time zone');
     end;
 
     local procedure UtcDateTime(XmlDateTime: Text) Result: DateTime
