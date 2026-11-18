@@ -297,9 +297,6 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         VATEntry.SetRange(Type, VATEntry.Type::Sale);
         VATEntry.FindFirst();
 
-        // Posting does not populate these VAT entry fields; provide the foreign-currency tax scenario explicitly.
-
-
         Assert.AreEqual(UseForeignCurrency ? 50 : 25, Abs(VATEntry.Amount), 'Unexpected posted tax amount.');
         Assert.AreEqual(UseForeignCurrency ? 200 : 100, Abs(VATEntry.Base), 'Unexpected posted tax base.');
 
