@@ -17,6 +17,7 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
 using System.Agents;
 using System.Environment.Configuration;
+using System.Security.AccessControl;
 using System.Utilities;
 
 codeunit 148300 "Library - Expense"
@@ -28,6 +29,7 @@ codeunit 148300 "Library - Expense"
         LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryHumanResource: Codeunit "Library - Human Resource";
+        LibraryPermissions: Codeunit "Library - Permissions";
         FirstNameTxt: Label 'First Name';
         NameTxt: Label 'Name';
         AttachmentRetrievalFailedErr: Label 'The attachment could not be retrieved.', Locked = true;
@@ -567,24 +569,31 @@ codeunit 148300 "Library - Expense"
     end;
 
     /// <summary>
-    /// Makes the current user act as the agent user with the given time zone, which per diem days are split in for Expense Agent service calls.
+    /// Sets a dedicated agent user with the given time zone, which per diem days are split in for Expense Agent service calls.
+    /// The current user's settings are not changed, so the agent and session time zones stay distinct.
     /// </summary>
     internal procedure SetAgentTimeZone(TimeZoneId: Text[180])
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        AgentUser: Record User;
         UserPersonalization: Record "User Personalization";
+        AgentUserNameTok: Label 'EXPENSE AGENT TEST USER', Locked = true;
     begin
-        // The current user stands in for the agent user, so its settings are read as the agent's.
-        if not UserPersonalization.Get(UserSecurityId()) then begin
+        // Reuse one user because CI licenses cap the number of users.
+        AgentUser.SetRange("User Name", AgentUserNameTok);
+        if not AgentUser.FindFirst() then
+            LibraryPermissions.CreateUser(AgentUser, AgentUserNameTok, false);
+
+        if not UserPersonalization.Get(AgentUser."User Security ID") then begin
             UserPersonalization.Init();
-            UserPersonalization."User SID" := UserSecurityId();
+            UserPersonalization."User SID" := AgentUser."User Security ID";
             UserPersonalization.Insert();
         end;
         UserPersonalization."Time Zone" := TimeZoneId;
         UserPersonalization.Modify();
 
         ExpenseAgentSetup.Get();
-        ExpenseAgentSetup."User Security ID" := UserSecurityId();
+        ExpenseAgentSetup."User Security ID" := AgentUser."User Security ID";
         ExpenseAgentSetup.Modify();
     end;
 

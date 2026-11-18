@@ -9273,6 +9273,9 @@ codeunit 148301 "Expense Rule Test"
         TripStart := UtcDateTime('2026-06-15T20:00:00Z');
         TripEnd := UtcDateTime('2026-06-16T03:00:00Z');
 
+        // [GIVEN] The session time zone splits the trip into two dates, unlike the agent time zone.
+        Assert.AreNotEqual(DT2Date(TripStart), DT2Date(TripEnd), 'The session time zone must split the trip into two dates for this test.');
+
         // [WHEN] The per diem expense is released.
         CreateAndReleaseExpenseWithPerDiemRule(
             Expense, ExpenseUser, ExpenseRuleHeader, ExpenseRuleCondition, PostCode."Country/Region Code",

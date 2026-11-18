@@ -125,6 +125,7 @@ codeunit 148318 "Expense Capabilities API Test"
         ResponseText: Text;
     begin
         // [SCENARIO] The service is told that per diem date times are evaluated in the agent time zone.
+        // [GIVEN] The Expense Capabilities API test environment is initialized.
         Initialize();
 
         // [WHEN] The expenseCapabilities collection is fetched through the API.

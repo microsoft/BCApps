@@ -1869,6 +1869,9 @@ codeunit 148339 "Spend Request Test"
         TripEnd := UtcDateTime('2026-06-16T03:00:00Z');
         SetPerDiemDetailsWithTrip(SpendRequest, ExpenseLocation."No.", TripStart, TripEnd);
 
+        // [GIVEN] The session time zone splits the trip into two dates, unlike the agent time zone.
+        Assert.AreNotEqual(DT2Date(TripStart), DT2Date(TripEnd), 'The session time zone must split the trip into two dates for this test.');
+
         // [WHEN] The travel request is released and approved automatically.
         ReleaseAndApproveTravelRequest(SpendRequest);
 
