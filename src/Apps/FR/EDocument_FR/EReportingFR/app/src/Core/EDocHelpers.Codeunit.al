@@ -230,9 +230,9 @@ codeunit 10991 "EDoc. Helpers"
         exit((StrLen(Identifier) = RequiredLength) and (DelChr(Identifier, '=', '0123456789') = ''));
     end;
 
-    local procedure GetSIRENFromFrenchVATRegistrationNo(VATRegistrationNo: Text): Text
+    local procedure GetSIRENFromFrenchVATRegistrationNo(VATRegistrationNo: Text): Text[9]
     var
-        SIREN: Text;
+        SIREN: Text[9];
     begin
         VATRegistrationNo := DelChr(VATRegistrationNo, '=', ' ');
         if (StrLen(VATRegistrationNo) <> 13) or (CopyStr(VATRegistrationNo, 1, 2).ToUpper() <> 'FR') then
