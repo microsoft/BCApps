@@ -17,10 +17,10 @@ codeunit 140012 "Test FAB Platform"
         LookupState: Codeunit "Fabric Platform Lookup State";
         IsInitialized: Boolean;
         ExpectedMessages: List of [Text];
-        EnableRequestedMsg: Label 'Enable was requested. The platform runs asynchronously; open Export Summary to follow progress.';
-        StartRequestedMsg: Label 'Start was requested. The platform runs asynchronously; open Export Summary to follow progress.';
-        StopRequestedMsg: Label 'Stop was requested. The platform runs asynchronously; open Export Summary to follow progress.';
-        DisableRequestedMsg: Label 'Reset was requested. The platform runs asynchronously; open Export Summary to follow progress.';
+        EnableRequestedMsg: Label 'Enable was requested. The platform runs asynchronously; open Fabric Synchronization Overview to follow progress.';
+        StartRequestedMsg: Label 'Start was requested. The platform runs asynchronously; open Fabric Synchronization Overview to follow progress.';
+        StopRequestedMsg: Label 'Stop was requested. The platform runs asynchronously; open Fabric Synchronization Overview to follow progress.';
+        DisableRequestedMsg: Label 'Reset was requested. The platform runs asynchronously; open Fabric Synchronization Overview to follow progress.';
         SyncAlreadyRunningMsg: Label 'A synchronization run is already in progress. Use Stop synchronization before starting a new run.';
         TestConnectionSuccessMsg: Label 'Connection to Microsoft Fabric succeeded.';
         TableResetMsg: Label 'Table %1 was reset. The next synchronization run will send a full snapshot.', Comment = '%1 = table id';

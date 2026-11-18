@@ -39,7 +39,6 @@ page 7232 "MDM Connection Details"
                 group(SourceConnectionDetails)
                 {
                     Caption = 'Source environment connection details';
-                    InstructionalText = 'Provide the environment and company you want to read master data from.';
 
                     field(SourceEnvironmentName; SourceEnvironmentName)
                     {
@@ -69,7 +68,7 @@ page 7232 "MDM Connection Details"
                 group(OAuth2ConnectionDetails)
                 {
                     Caption = 'Authentication details';
-                    InstructionalText = 'Provide the Microsoft Entra application that this environment uses to authenticate to the source environment. Register it as a single-tenant application, because synchronization only connects to environments in the same Microsoft Entra tenant. The application authenticates with either a client secret or a certificate.';
+                    InstructionalText = 'Provide the Microsoft Entra application that this environment uses to sign in to the source environment with a client secret or a certificate. Register it as a single-tenant application in the same tenant.';
 
                     field(OAuth2ClientId; OAuth2ClientId)
                     {
@@ -140,6 +139,7 @@ page 7232 "MDM Connection Details"
                             Caption = 'Certificate Password';
                             ApplicationArea = Suite;
                             ExtendedDatatype = Masked;
+                            ShowMandatory = CertificatePasswordRequired;
                             ToolTip = 'Specifies the password that protects the certificate file. Leave it blank if the file is not password protected. The password is stored securely and is not shown again after you enter it.';
 
                             trigger OnValidate()
@@ -148,19 +148,26 @@ page 7232 "MDM Connection Details"
                                 SetControls();
                             end;
                         }
-                        field(CertificateThumbprint; CertificateThumbprint)
+                        // Shown only once a certificate is read, so the step needs no scrolling while uploading.
+                        group(CertificateInformation)
                         {
-                            Caption = 'Certificate Thumbprint';
-                            ApplicationArea = Suite;
-                            Editable = false;
-                            ToolTip = 'Specifies the thumbprint of the certificate. It must match the thumbprint of a certificate registered for the Microsoft Entra application.';
-                        }
-                        field(CertificateExpirationDate; CertificateExpirationDate)
-                        {
-                            Caption = 'Certificate Expiration Date';
-                            ApplicationArea = Suite;
-                            Editable = false;
-                            ToolTip = 'Specifies when the certificate expires. Upload a new certificate before this date to keep synchronization running.';
+                            ShowCaption = false;
+                            Visible = CertificateThumbprint <> '';
+
+                            field(CertificateThumbprint; CertificateThumbprint)
+                            {
+                                Caption = 'Certificate Thumbprint';
+                                ApplicationArea = Suite;
+                                Editable = false;
+                                ToolTip = 'Specifies the thumbprint of the certificate. It must match the thumbprint of a certificate registered for the Microsoft Entra application.';
+                            }
+                            field(CertificateExpirationDate; CertificateExpirationDate)
+                            {
+                                Caption = 'Certificate Expiration Date';
+                                ApplicationArea = Suite;
+                                Editable = false;
+                                ToolTip = 'Specifies when the certificate expires. Upload a new certificate before this date to keep synchronization running.';
+                            }
                         }
                     }
                 }
@@ -280,6 +287,7 @@ page 7232 "MDM Connection Details"
         SecretAlreadyStored: Boolean;
         CertificateAlreadyStored: Boolean;
         CertificateVerified: Boolean;
+        CertificatePasswordRequired: Boolean;
         SourceEnvironmentName: Text[100];
         SourceCompanyName: Text[100];
         OAuth2ClientId: Text[100];
@@ -386,8 +394,10 @@ page 7232 "MDM Connection Details"
         VerifyUploadedCertificate(false);
     end;
 
-    // After an upload the file is kept even when it cannot be read yet (typically because its password has not been
-    // entered), so the problem is only reported. Entering the password re-checks the file and rejects a wrong password.
+    // After an upload the file is kept even when it cannot be read yet. Without a password that is the expected state for a
+    // password-protected certificate, so no message is shown and the password is marked as required; the certificate stays
+    // unverified, so Next stays disabled. Entering the password re-checks the file and raises an error if it still cannot be
+    // read. A file that cannot be read with a password already entered is reported right away.
     [NonDebuggable]
     local procedure VerifyUploadedCertificate(FailOnError: Boolean)
     var
@@ -408,7 +418,8 @@ page 7232 "MDM Connection Details"
                 CertificateVerified := false;
                 CertificateThumbprint := '';
                 CertificateExpirationDate := 0DT;
-                Message(GetLastErrorText());
+                if CertificatePassword <> '' then
+                    Message(GetLastErrorText());
                 exit;
             end;
 
@@ -486,6 +497,7 @@ page 7232 "MDM Connection Details"
         TestConnectionEnabled := Step = Step::TestConnection;
         FinishEnabled := Step = Step::Finish;
         NextEnabled := (Step < Step::Finish) and StepIsComplete();
+        CertificatePasswordRequired := (CertificateBase64 <> '') and not CertificateVerified;
     end;
 
     local procedure StepIsComplete(): Boolean

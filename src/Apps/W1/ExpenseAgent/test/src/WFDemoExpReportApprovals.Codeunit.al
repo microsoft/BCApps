@@ -77,8 +77,8 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         // [THEN] Verify Expense Report status is set to Pending Approval.
         VerifyExpenseReportDocumentStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Pending Approval");
 
-        // [THEN] Verify Approver in Expense Report.
-        VerifyApproverInExpenseReport(ExpenseReportHeader, ExpenseUser[2]."No.", FinalApproverUserSetup."User ID");
+        // [THEN] Verify the unlimited owner is assigned as the approver of their own report.
+        VerifyApproverInExpenseReport(ExpenseReportHeader, ExpenseUser[1]."No.", ExpenseUser[1]."User Id For Approvals");
 
         // [WHEN] Approve Expense Report.
         ApproveExpenseReport(ExpenseReportHeader);

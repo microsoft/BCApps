@@ -69,7 +69,7 @@ codeunit 7313 "Create Put-away"
         LineNo: Integer;
         OldLineNo: Integer;
         BreakbulkNo: Integer;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         SortActivity: Enum "Whse. Activity Sorting Method";
         NewCrossDockBinContent: Boolean;
         CrossDock: Boolean;
