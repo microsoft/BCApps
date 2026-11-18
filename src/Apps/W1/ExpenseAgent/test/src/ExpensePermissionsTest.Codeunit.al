@@ -12,6 +12,7 @@ using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Security.User;
 
+// [FEATURE] [Expense Agent] [Permissions]
 codeunit 148338 "Expense Permissions Test"
 {
     Subtype = Test;
@@ -41,6 +42,56 @@ codeunit 148338 "Expense Permissions Test"
         CannotDeleteEmployeeWithExpenseErr: Label 'You cannot delete Employee %1 because they have active expense.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithExpenseReportErr: Label 'You cannot delete Employee %1 because they have active expense report.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithPostedExpenseReportErr: Label 'You cannot delete Employee %1 because they have posted expense report.', Comment = '%1 = Employee No.';
+
+    [Test]
+    procedure ExpenseAgentReadsAndValidatesCorporateCards()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        CorpCardTestLib: Codeunit EACorpCardTestLib;
+        CorpCardCanRead: Boolean;
+        CorpCardTransCanRead: Boolean;
+    begin
+        // [SCENARIO] The Expense Agent retains inherited corporate card reads and validates expense and report line card selections.
+        Initialize();
+
+        // [GIVEN] An expense and report line reference a corporate card and its feed transaction.
+        CorpCardTestLib.InitializeCorpCardData();
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        Expense."Credit Card Feed No." := CorpCardTrans."Entry No.";
+        Expense.Modify();
+        ExpenseReportLine."Expense No." := Expense."No.";
+        ExpenseReportLine."Expense User No." := Expense."Expense User No.";
+        ExpenseReportLine."Reimbursement Type" := Expense."Reimbursement Type";
+        ExpenseReportLine."Expense Date" := Expense."Expense Date";
+        ExpenseReportLine."Expense Currency Code" := Expense."Currency Code";
+        ExpenseReportLine.Amount := Expense.Amount;
+        ExpenseReportLine."Corporate Card Id" := CorpCard."Card Id";
+        ExpenseReportLine."Credit Card Feed No." := CorpCardTrans."Entry No.";
+
+        // [GIVEN] The current user has the Expense Agent permission set, including corporate card reads inherited through D365 READ.
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.SetExactPermissionSet(ExpenseAgentPermissionSetTok);
+
+        // [WHEN] The agent checks direct read access and validates both corporate card selections.
+        CorpCardCanRead := CorpCard.ReadPermission();
+        CorpCardTransCanRead := CorpCardTrans.ReadPermission();
+
+        CorpCardSelectionMgt.ValidateExpenseCard(Expense, true);
+        CorpCardSelectionMgt.ValidateReportLine(ExpenseReportLine, true);
+
+        RestoreFullPermissions();
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+
+        // [THEN] Both validations succeed, and the agent retains inherited read access to both corporate card tables.
+        Assert.IsTrue(CorpCardCanRead, 'The agent must retain inherited corporate card read permission.');
+        Assert.IsTrue(CorpCardTransCanRead, 'The agent must retain inherited corporate card transaction read permission.');
+    end;
 
     [Test]
     procedure ExpenseMgmtReadRetainsAppPermissions()

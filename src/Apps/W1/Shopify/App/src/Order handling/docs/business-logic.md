@@ -43,9 +43,11 @@ For already-processed orders, it runs conflict detection. A conflict is flagged 
 
 After populating the header and lines, the import calls into related modules: fulfillment orders, shipping charges, transactions, returns (if the return/refund process requires import), and refunds. It then adjusts order line quantities and header amounts by subtracting refund line quantities and amounts. Zero-quantity lines are deleted. If the order is fully fulfilled and paid, and `Archive Processed Orders` is enabled, it closes the order in Shopify via the `CloseOrder` GraphQL mutation.
 
-When refund import is enabled, `MarkExchangeItemOrderLines` runs after related records are imported and before refund quantities are considered. It skips the extra API call for orders whose return status is blank or `No Return`. For orders with returns, it pages through `returns(first: 10)` using `GetOrderExchangeLineItems` / `GetNextOrderExchangeLineItems`, collects the Shopify line item ids under each return's `exchangeLineItems`, and sets `Shpfy Order Line`.`Is Exchange Item` on matching order lines.
+When refund import is enabled, `GetExchangeItemLineIds` runs right after the order lines are retrieved, before the processed-order conflict check. It skips the extra API call for orders whose return status is blank or `No Return`. For orders with returns, it pages through `returns(first: 10)` using `GetOrderExchangeLineItems` / `GetNextOrderExchangeLineItems` and maps each Shopify line item id under a return's `exchangeLineItems` to that return. `InsertOrderLinesAndRelatedRecords` then sets `Shpfy Order Line`.`Is Exchange Item` on every line it writes, so a flag from an earlier import is corrected on reimport. The exception is a gift card on an unverified POS return: Shopify can only refund those returns to a gift card and creates no refund to offset it, so the gift card stays unflagged and is invoiced. Exchange lines stay out of the line-id hash either way.
 
 *Updated: 2026-07-29 -- order line pagination, temporary line reset, and exchange item marking changed import behavior*
+
+*Updated: 2026-11-13 -- exchange flags are set while order lines are written; unverified-return gift cards are invoiced*
 
 ## Phase 3: mapping and document creation
 
