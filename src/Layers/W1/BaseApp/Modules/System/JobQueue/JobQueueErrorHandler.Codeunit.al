@@ -28,6 +28,7 @@ codeunit 450 "Job Queue Error Handler"
         ErrorMessageManagement: Codeunit "Error Message Management";
         ErrorMessageHandler: Codeunit "Error Message Handler";
         ErrorContextElement: Codeunit "Error Context Element";
+        ExecutedSystemTaskId: Guid;
     begin
         JobQueueLogEntry.SetErrorCallStack(GetLastErrorCallStack()); // Set callstack for telemetry
         OnBeforeLogError(JobQueueLogEntry, JobQueueEntry);
@@ -48,6 +49,7 @@ codeunit 450 "Job Queue Error Handler"
         JobQueueLogEntry.SetRange(ID, JobQueueEntry.ID);
         JobQueueLogEntry.SetRange(Status, JobQueueLogEntry.Status::"In Process");
         if JobQueueLogEntry.FindFirst() then begin
+            ExecutedSystemTaskId := JobQueueLogEntry."System Task Id";
             JobQueueLogEntry."Error Message Register Id" := JobQueueEntry."Error Message Register Id";
             JobQueueLogEntry."Error Message" := JobQueueEntry."Error Message";
             JobQueueLogEntry.SetErrorCallStack(GetLastErrorCallStack()); // Need to save callstack before deleted above
@@ -59,7 +61,7 @@ codeunit 450 "Job Queue Error Handler"
 
         OnAfterLogError(JobQueueEntry, JobQueueLogEntry);
 
-        JobQueueEntry.FinalizeRun();
+        JobQueueEntry.FinalizeRun(ExecutedSystemTaskId);
         Commit();
     end;
 
