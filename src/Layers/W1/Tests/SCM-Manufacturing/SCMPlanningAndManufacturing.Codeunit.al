@@ -3508,9 +3508,11 @@ codeunit 137080 "SCM Planning And Manufacturing"
                 SourceCode := SourceLocation.Code;
             Observer.CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Forward);
             Observer.PostDefaultLocationStock(Component."No.", SourceCode, 1);
+            RequisitionLine.Reset();
             CreateRequisitionLine(RequisitionLine, Item."No.", 1);
             RequisitionLine.Validate("Location Code", SourceCode);
             RequisitionLine.Modify(true);
+            RequisitionLine.SetRecFilter();
             LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Forward, false, true);
             Observer.StartDefaultLocationCapture(DefaultLocation.Code, '');
             BindSubscription(Observer);

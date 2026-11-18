@@ -2072,6 +2072,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         QltyManagementSetup: Record "Qlty. Management Setup";
+        RefreshProductionOrder: Report "Refresh Production Order";
         BeforeCount: Integer;
         CountOfRoutingLines: Integer;
     begin
@@ -2106,7 +2107,10 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [WHEN] The production order is refreshed
         ProdProductionOrder.SetRecFilter();
-        Report.Run(Report::"Refresh Production Order", false, false, ProdProductionOrder);
+        RefreshProductionOrder.SetTableView(ProdProductionOrder);
+        RefreshProductionOrder.SetHideValidationDialog(true);
+        RefreshProductionOrder.UseRequestPage(false);
+        RefreshProductionOrder.Run();
 
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();

@@ -172,6 +172,8 @@ codeunit 103028 MFGUtil
 
     [Scope('OnPrem')]
     procedure CreateRelProdOrder(var ProdOrder: Record "Production Order"; ProdOrderNo: Code[20]; ItemNo: Code[20]; OutputQuantity: Decimal)
+    var
+        RefreshProductionOrder: Report "Refresh Production Order";
     begin
         Clear(ProdOrder);
         ProdOrder.Init();
@@ -186,7 +188,10 @@ codeunit 103028 MFGUtil
         ProdOrder.SetRange("No.", ProdOrder."No.");
         Commit();
         CurrentTransactionType := TRANSACTIONTYPE::Update;
-        REPORT.RunModal(REPORT::"Refresh Production Order", false, true, ProdOrder);
+        RefreshProductionOrder.SetTableView(ProdOrder);
+        RefreshProductionOrder.SetHideValidationDialog(true);
+        RefreshProductionOrder.UseRequestPage(false);
+        RefreshProductionOrder.RunModal();
         ProdOrder.Get(ProdOrder.Status, ProdOrder."No.");
         Commit();
         CurrentTransactionType := TRANSACTIONTYPE::UpdateNoLocks;

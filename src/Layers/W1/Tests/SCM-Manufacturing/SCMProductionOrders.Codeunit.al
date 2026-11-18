@@ -5426,6 +5426,11 @@ codeunit 137069 "SCM Production Orders"
             AssertDefaultLocationRelations(ProductionOrder, Items[ItemIndex]."No.", Location.Code, Location.Code, Quantity);
             PostDefaultLocationStock(Components[ItemIndex]."No.", Location.Code, Quantity);
             PostDefaultLocationOutput(ProductionOrder, Items[ItemIndex]."No.", Quantity);
+        end;
+        // Backward-flushed components without routing links are consumed when the order is finished.
+        LibraryManufacturing.ChangeStatusReleasedToFinished(ProductionOrder."No.");
+        for ItemIndex := 1 to 2 do begin
+            Quantity := 2 * (2 * ItemIndex + 1);
             AssertDefaultLocationLedger(Items[ItemIndex]."No.", ProductionOrder."No.", Location.Code, Enum::"Item Ledger Entry Type"::Output, Quantity);
             AssertDefaultLocationLedger(Components[ItemIndex]."No.", ProductionOrder."No.", Location.Code, Enum::"Item Ledger Entry Type"::Consumption, -Quantity);
         end;
@@ -5683,16 +5688,14 @@ codeunit 137069 "SCM Production Orders"
         Observer: Codeunit "SCM Production Orders";
     begin
         OldOrder := ProductionOrder;
-        ManufacturingSetup.Get();
         case NewStatus of
             NewStatus::Planned:
-                ManufacturingSetup.Validate("Planned Order Nos.", LibraryERM.CreateNoSeriesCode());
+                LibraryUtility.UpdateSetupNoSeriesCode(Database::"Manufacturing Setup", ManufacturingSetup.FieldNo("Planned Order Nos."));
             NewStatus::"Firm Planned":
-                ManufacturingSetup.Validate("Firm Planned Order Nos.", LibraryERM.CreateNoSeriesCode());
+                LibraryUtility.UpdateSetupNoSeriesCode(Database::"Manufacturing Setup", ManufacturingSetup.FieldNo("Firm Planned Order Nos."));
             NewStatus::Released:
-                ManufacturingSetup.Validate("Released Order Nos.", LibraryERM.CreateNoSeriesCode());
+                LibraryUtility.UpdateSetupNoSeriesCode(Database::"Manufacturing Setup", ManufacturingSetup.FieldNo("Released Order Nos."));
         end;
-        ManufacturingSetup.Modify(true);
         Observer.StartDefaultLocationCapture(DefaultCode, LocationCode);
         BindSubscription(Observer);
         LibraryManufacturing.ChangeProdOrderStatus(ProductionOrder, NewStatus, WorkDate(), false);

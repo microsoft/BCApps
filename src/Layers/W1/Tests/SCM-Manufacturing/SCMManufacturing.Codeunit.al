@@ -5399,6 +5399,7 @@ codeunit 137404 "SCM Manufacturing"
                 TargetOrder, TargetOrder.Status::Released, TargetOrder."Source Type"::Item, Item."No.", 2);
             TargetOrder.TestField("Location Code", DefaultLocation.Code);
             // [WHEN] The source production document is copied to the target.
+            Commit();
             RunCopyProductionDocument(SourceOrder.Status, SourceOrder."No.", TargetOrder);
             // [THEN] The target header and output line retain the source location and quantities.
             TargetOrder.Get(TargetOrder.Status, TargetOrder."No.");
@@ -5617,6 +5618,7 @@ codeunit 137404 "SCM Manufacturing"
             Fixture.ConfigureDefaultLocation(LaterDefaultLocation.Code, SetupComponentCode);
             // [WHEN] Output is posted against the existing order.
             Fixture.PostDefaultLocationOutput(ProductionOrder, Item."No.", 2);
+            LibraryManufacturing.ChangeStatusReleasedToFinished(ProductionOrder."No.");
             // [THEN] Posting uses the saved output and component locations, not the later default.
             Fixture.AssertDefaultLocationLedger(Item."No.", ProductionOrder."No.", OutputLocation.Code, Enum::"Item Ledger Entry Type"::Output, 2);
             Fixture.AssertDefaultLocationLedger(Component."No.", ProductionOrder."No.", ComponentCode, Enum::"Item Ledger Entry Type"::Consumption, -2);

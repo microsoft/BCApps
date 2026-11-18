@@ -91,7 +91,6 @@ codeunit 137438 "Prod. Order Default Loc. UI"
     procedure DefaultLocationCardOverride()
     var
         Item: Record Item;
-        ItemVariant: Record "Item Variant";
         DefaultLocation: Record Location;
         OtherLocation: Record Location;
         ProductionOrder: Record "Production Order";
@@ -102,11 +101,10 @@ codeunit 137438 "Prod. Order Default Loc. UI"
         OrderNo: Code[20];
         Iteration: Integer;
     begin
-        // [SCENARIO] Saving source and variant entry preserves a user's cleared or replacement location.
+        // [SCENARIO] Saving source entry preserves a user's cleared or replacement location.
         Initialize();
-        // [GIVEN] A default location, an alternative location and an item variant.
+        // [GIVEN] A default location, an alternative location and an item.
         LibraryInventory.CreateItem(Item);
-        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DefaultLocation);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(OtherLocation);
         Fixture.ConfigureDefaultLocation(DefaultLocation.Code, '');
@@ -117,17 +115,16 @@ codeunit 137438 "Prod. Order Default Loc. UI"
                 LocationCode := OtherLocation.Code;
             ReleasedProductionOrder.OpenNew();
             ReleasedProductionOrder."Location Code".AssertEquals(DefaultLocation.Code);
-            // [WHEN] The user saves the order after overriding the location and entering the item and variant.
+            // [WHEN] The user saves the order after overriding the location and entering the item.
             ReleasedProductionOrder."Location Code".SetValue(LocationCode);
             ReleasedProductionOrder."Source No.".SetValue(Item."No.");
-            ReleasedProductionOrder."Variant Code".SetValue(ItemVariant.Code);
             ReleasedProductionOrder.Quantity.SetValue(2);
             OrderNo := CopyStr(ReleasedProductionOrder."No.".Value(), 1, MaxStrLen(OrderNo));
             ReleasedProductionOrder.Close();
-            // [THEN] The saved order respects the user's location and variant.
+            // [THEN] The saved order respects the user's location and item.
             ProductionOrder.Get(ProductionOrder.Status::Released, OrderNo);
             ProductionOrder.TestField("Location Code", LocationCode);
-            ProductionOrder.TestField("Variant Code", ItemVariant.Code);
+            ProductionOrder.TestField("Source No.", Item."No.");
         end;
         LibrarySetupStorage.Restore();
     end;
@@ -136,7 +133,6 @@ codeunit 137438 "Prod. Order Default Loc. UI"
     procedure DefaultLocationCardOverrideReopened()
     var
         Item: Record Item;
-        ItemVariant: Record "Item Variant";
         DefaultLocation: Record Location;
         OtherLocation: Record Location;
         ProductionOrder: Record "Production Order";
@@ -149,9 +145,8 @@ codeunit 137438 "Prod. Order Default Loc. UI"
     begin
         // [SCENARIO] Reopening an existing order does not replace a user's saved blank or explicit location.
         Initialize();
-        // [GIVEN] Orders saved through the card with the default cleared or replaced and a variant entered.
+        // [GIVEN] Orders saved through the card with the default cleared or replaced and an item entered.
         LibraryInventory.CreateItem(Item);
-        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DefaultLocation);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(OtherLocation);
         Fixture.ConfigureDefaultLocation(DefaultLocation.Code, '');
@@ -163,7 +158,6 @@ codeunit 137438 "Prod. Order Default Loc. UI"
             ReleasedProductionOrder.OpenNew();
             ReleasedProductionOrder."Location Code".SetValue(LocationCode);
             ReleasedProductionOrder."Source No.".SetValue(Item."No.");
-            ReleasedProductionOrder."Variant Code".SetValue(ItemVariant.Code);
             ReleasedProductionOrder.Quantity.SetValue(2);
             OrderNo := CopyStr(ReleasedProductionOrder."No.".Value(), 1, MaxStrLen(OrderNo));
             ReleasedProductionOrder.Close();
@@ -173,7 +167,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
             ReleasedProductionOrder.GoToRecord(ProductionOrder);
             // [THEN] The setup default is not applied again.
             ReleasedProductionOrder."Location Code".AssertEquals(LocationCode);
-            ReleasedProductionOrder."Variant Code".AssertEquals(ItemVariant.Code);
+            ReleasedProductionOrder."Source No.".AssertEquals(Item."No.");
             ReleasedProductionOrder.Close();
         end;
         LibrarySetupStorage.Restore();
@@ -432,6 +426,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
 
     local procedure InitializeRefreshWarning()
     var
+        MyNotifications: Record "My Notifications";
         Fixture: Codeunit "SCM Production Orders";
         InstructionMgt: Codeunit "Instruction Mgt.";
     begin
@@ -440,6 +435,8 @@ codeunit 137438 "Prod. Order Default Loc. UI"
         ManufacturingSetupOpened := false;
         Fixture.ConfigureDefaultLocation('', '');
         InstructionMgt.EnableMessageForCurrentUser(InstructionMgt.RefreshBlankLocationCode());
+        InstructionMgt.CreateMissingMyNotificationsWithDefaultState(InstructionMgt.GetRefreshBlankLocationNotificationId());
+        MyNotifications.SetStatus(InstructionMgt.GetRefreshBlankLocationNotificationId(), true);
     end;
 
     local procedure CreateOrderForRefresh(var ProductionOrder: Record "Production Order")
@@ -515,7 +512,11 @@ codeunit 137438 "Prod. Order Default Loc. UI"
             'Skip':
                 Warning.No().Invoke();
             'Setup':
-                Warning.OpenManufacturingSetup.Drilldown();
+                begin
+                    // Closing a page from a drilldown also closes its TestPage.
+                    asserterror Warning.OpenManufacturingSetup.Drilldown();
+                    Assert.ExpectedError('The TestPage is not open.');
+                end;
         end;
     end;
 
