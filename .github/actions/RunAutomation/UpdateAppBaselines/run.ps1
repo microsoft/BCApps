@@ -9,7 +9,7 @@ Install-Module -Name BcContainerHelper -AllowPrerelease -Force
 Import-Module BcContainerHelper -DisableNameChecking
 Import-Module $PSScriptRoot\..\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1
 
-$newVersion = Update-PackageVersion -PackageName "AppBaselines-BCArtifacts" -Branch $runParameters.TargetBranch
+$newVersion = Update-PackageVersion -PackageName "AppBaselines-BCArtifacts"
 
 $result = @{
     'Files' = @()
