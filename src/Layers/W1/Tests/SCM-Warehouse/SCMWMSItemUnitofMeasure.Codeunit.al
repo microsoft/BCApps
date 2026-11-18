@@ -1937,6 +1937,9 @@ codeunit 137423 "SCM WMS Item Unit of Measure"
         VerifyBinContentDoesNotExist(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code);
         VerifyWhseEntryQtyInBin(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code, 0);
 
+        // [THEN] The warehouse entry for the negative adjustment is registered as -"Qty" "PACK".
+        VerifyNegativeWhseEntryInUOM(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code, -Qty, QtyPerUOM);
+
         // [THEN] Bin content in "EA" holds "Qty" * "QtyPerUOM".
         VerifyBinContentQtyBase(Location.Code, Bin[1].Code, Item."No.", Item."Base Unit of Measure", Qty * QtyPerUOM);
 
@@ -1980,6 +1983,9 @@ codeunit 137423 "SCM WMS Item Unit of Measure"
 
         // [THEN] Bin content in "PACK" in bin "B1" is cleared and deleted.
         VerifyBinContentDoesNotExist(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code);
+
+        // [THEN] The warehouse entry for bin "B1" is registered as -"Qty" "PACK".
+        VerifyNegativeWhseEntryInUOM(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code, -Qty, QtyPerUOM);
 
         // [THEN] Bin "B2" has bin content in "EA" for "Qty" * "QtyPerUOM", and the bin content in "PACK" is unchanged.
         VerifyBinContentQtyBase(Location.Code, Bin[2].Code, Item."No.", Item."Base Unit of Measure", Qty * QtyPerUOM);
@@ -2148,6 +2154,22 @@ codeunit 137423 "SCM WMS Item Unit of Measure"
         WarehouseEntry.SetRange("Unit of Measure Code", UOMCode);
         WarehouseEntry.CalcSums("Qty. (Base)");
         WarehouseEntry.TestField("Qty. (Base)", ExpectedQtyBase);
+    end;
+
+    local procedure VerifyNegativeWhseEntryInUOM(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; UOMCode: Code[10]; ExpectedQty: Decimal; ExpectedQtyPerUOM: Decimal)
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+    begin
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        WarehouseEntry.SetRange("Bin Code", BinCode);
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        WarehouseEntry.SetRange("Unit of Measure Code", UOMCode);
+        WarehouseEntry.SetFilter(Quantity, '<0');
+        Assert.RecordCount(WarehouseEntry, 1);
+        WarehouseEntry.FindFirst();
+        WarehouseEntry.TestField(Quantity, ExpectedQty);
+        WarehouseEntry.TestField("Qty. per Unit of Measure", ExpectedQtyPerUOM);
+        WarehouseEntry.TestField("Qty. (Base)", ExpectedQty * ExpectedQtyPerUOM);
     end;
 
     local procedure Initialize()
