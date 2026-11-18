@@ -1,3 +1,16 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace System.Test.Security.AccessControl;
+
+using System;
+using System.Security.AccessControl;
+using System.TestLibraries.Azure.ActiveDirectory;
+using System.TestLibraries.Environment;
+using System.TestLibraries.Mocking;
+using System.TestLibraries.Security.AccessControl;
+
 codeunit 139495 UserBySecurityGroupTest
 {
     Subtype = Test;
