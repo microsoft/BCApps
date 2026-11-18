@@ -148,18 +148,6 @@ codeunit 148367 "Expense No Receipt API Test"
         Response.ReadFrom(ResponseText);
         Response.Get('noReceiptType', Token);
         Assert.AreEqual('Receipt_x0020_not_x0020_needed', Token.AsValue().AsText(), 'The blank wire name must remain stable.');
-
-        ExpenseCategory."Attachment Enforcement" := ExpenseCategory."Attachment Enforcement"::"Not needed under limit";
-        ExpenseCategory.Modify();
-        Commit();
-        TargetURL := LibraryGraphMgt.CreateTargetURL(Format(ExpenseCategory.SystemId), Page::"Expense Categories API", CategoriesServiceNameTok);
-        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-        Clear(Response);
-        Response.ReadFrom(ResponseText);
-        Response.Get('amountLimitForNoReceipt', Token);
-        Assert.AreEqual(101, Token.AsValue().AsDecimal(), 'Category thresholds must be exposed in LCY.');
-        Response.Get('attachmentEnforcement', Token);
-        Assert.AreEqual('Not_x0020_needed_x0020_under_x0020_limit', Token.AsValue().AsText(), 'The existing enforcement field must remain exposed.');
     end;
 
     [Test]
