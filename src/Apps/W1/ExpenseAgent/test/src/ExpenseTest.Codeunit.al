@@ -2609,7 +2609,6 @@ codeunit 148305 "Expense Test"
     procedure DescriptionMustBeFlowFromExpenseToExpenseItemization()
     var
         Expense: Record Expense;
-        ExpectedExpense: Record Expense;
         PostCode: Record "Post Code";
         Currency: Record Currency;
         Employee: Record Employee;
@@ -5171,7 +5170,6 @@ codeunit 148305 "Expense Test"
     procedure ItemizationTotalReductionMismatchInExpenseAndExpenseItemization()
     var
         Expense: Record Expense;
-        ExpectedExpense: Record Expense;
         Currency: Record Currency;
         ExpenseRuleHeader: Record "Expense Rule Header";
         ExpenseRuleCondition: Record "Expense Rule Condition";
