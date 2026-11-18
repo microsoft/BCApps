@@ -17,27 +17,27 @@ codeunit 4160 "Business Skill"
     /// <summary>
     /// Loads and returns the stored instructions of the skill.
     /// </summary>
-    procedure GetSkillText(var Skill: Record "Business Skill"): SecretText
+    procedure GetContent(var BusinessSkill: Record "Business Skill"): SecretText
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(BusinessSkillImpl.GetSkillText(Skill));
+        exit(BusinessSkillImpl.GetSkillText(BusinessSkill));
     end;
 
     /// <summary>
     /// Returns the instructions of the skill, optionally loading them from the database first.
     /// </summary>
-    procedure GetSkillText(var Skill: Record "Business Skill"; LoadFromDatabase: Boolean): SecretText
+    procedure GetContent(var BusinessSkill: Record "Business Skill"; LoadFromDatabase: Boolean): SecretText
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(BusinessSkillImpl.GetSkillText(Skill, LoadFromDatabase));
+        exit(BusinessSkillImpl.GetSkillText(BusinessSkill, LoadFromDatabase));
     end;
 
     /// <summary>
     /// Activates a skill after validating its title and text.
     /// </summary>
-    procedure ActivateSkill(SkillId: BigInteger): Boolean
+    procedure Activate(SkillId: BigInteger): Boolean
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
@@ -47,7 +47,7 @@ codeunit 4160 "Business Skill"
     /// <summary>
     /// Deactivates a skill without changing its content.
     /// </summary>
-    procedure DeactivateSkill(SkillId: BigInteger): Boolean
+    procedure Deactivate(SkillId: BigInteger): Boolean
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
@@ -57,7 +57,7 @@ codeunit 4160 "Business Skill"
     /// <summary>
     /// Deletes an inactive skill subject to owning-app and management-permission checks.
     /// </summary>
-    procedure DeleteSkill(SkillId: BigInteger)
+    procedure Delete(SkillId: BigInteger)
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
         CallerModule: ModuleInfo;
@@ -69,11 +69,11 @@ codeunit 4160 "Business Skill"
     /// <summary>
     /// Returns whether the supplied skill is active and available to consumers.
     /// </summary>
-    procedure IsSkillAvailable(Skill: Record "Business Skill"): Boolean
+    procedure IsAvailable(BusinessSkill: Record "Business Skill"): Boolean
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(BusinessSkillImpl.IsSkillAvailable(Skill));
+        exit(BusinessSkillImpl.IsSkillAvailable(BusinessSkill));
     end;
 
     /// <summary>

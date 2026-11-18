@@ -3855,7 +3855,7 @@ codeunit 1751 "Data Classification Eval. Data"
 
     local procedure ClassifyBusinessIQ()
     var
-        TextVersion: Record "Business Skill Text Version";
+        BusinessSkillTextVersion: Record "Business Skill Text Version";
     begin
         SetTableFieldsToNormal(40200); // "Business Skill Domain"
         SetFieldToCompanyConfidential(40200, 3); // Description
@@ -3870,8 +3870,8 @@ codeunit 1751 "Data Classification Eval. Data"
         SetFieldToPersonal(40201, 15); // Archived By
 
         SetTableFieldsToNormal(Database::"Business Skill Text Version");
-        SetFieldToCompanyConfidential(Database::"Business Skill Text Version", TextVersion.FieldNo("Skill Text"));
-        SetFieldToCompanyConfidential(Database::"Business Skill Text Version", TextVersion.FieldNo(Version));
+        SetFieldToCompanyConfidential(Database::"Business Skill Text Version", BusinessSkillTextVersion.FieldNo("Skill Text"));
+        SetFieldToCompanyConfidential(Database::"Business Skill Text Version", BusinessSkillTextVersion.FieldNo(Version));
 
         SetTableFieldsToNormal(40203); // "Business Skill Suggestion"
         SetFieldToCompanyConfidential(40203, 5); // Title

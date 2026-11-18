@@ -45,7 +45,7 @@ version-only changes fail. Its manual overload takes numeric ID, content,
 expected SystemId and expected SystemRowVersion, and advances the content version
 when instructions change. Content updates do not implicitly activate a skill.
 
-`Business Skill.GetSkillText` reads content
+`Business Skill.GetContent` reads content
 as SecretText; its optional load flag also supports already-loaded temporary records.
 Read APIs do not grant additional table permissions.
 

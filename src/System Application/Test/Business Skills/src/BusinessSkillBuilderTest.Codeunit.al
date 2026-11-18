@@ -74,7 +74,7 @@ codeunit 130051 "Business Skill Builder Test"
 
         // [WHEN] Checking deletion from a different app.
         Assert.IsFalse(BusinessSkillImpl.CanDeleteSkill(Skill, DeleteError), 'Only the installed owning app may delete its skill.');
-        asserterror BusinessSkill.DeleteSkill(Skill.ID);
+        asserterror BusinessSkill.Delete(Skill.ID);
         Assert.ExpectedError(StrSubstNo(ExpectedDeleteErrorLbl, OwningModule.Name));
 
         // [THEN] The denial names the extension and explains uninstalling or deactivating.
@@ -110,7 +110,7 @@ codeunit 130051 "Business Skill Builder Test"
         Assert.AreEqual(1, TextVersion.Count(), 'Creation must record the initial text history.');
 
         // [WHEN] The owning app deletes through the public facade.
-        BusinessSkill.DeleteSkill(SkillId);
+        BusinessSkill.Delete(SkillId);
 
         // [THEN] The additional implementation frame does not replace the caller or skip history cleanup.
         Assert.IsFalse(Skill.Get(SkillId), 'The owning app must be able to delete its skill.');

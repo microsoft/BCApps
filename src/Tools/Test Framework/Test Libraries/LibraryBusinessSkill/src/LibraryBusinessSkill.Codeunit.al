@@ -62,7 +62,7 @@ codeunit 130055 "Library - Business Skill"
     var
         Management: Codeunit "Business Skill";
     begin
-        Management.ActivateSkill(SkillId);
+        Management.Activate(SkillId);
     end;
 
     /// <summary>
@@ -72,7 +72,7 @@ codeunit 130055 "Library - Business Skill"
     var
         BusinessSkill: Codeunit "Business Skill";
     begin
-        BusinessSkill.DeactivateSkill(SkillId);
+        BusinessSkill.Deactivate(SkillId);
     end;
 
     /// <summary>
