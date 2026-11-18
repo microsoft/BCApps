@@ -16,6 +16,7 @@ table 6941 "Expense Activities Cue"
         field(1; "Primary Key"; Code[10])
         {
             Caption = 'Primary Key';
+            DataClassification = SystemMetadata;
             AllowInCustomizations = Never;
         }
         field(2; "Expense Reports - Open"; Integer)

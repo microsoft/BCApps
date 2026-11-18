@@ -9,7 +9,8 @@ permissionset 6906 "Expense Mgmt. Edit"
     Assignable = true;
     Caption = 'Expense Management - Edit';
 
-    IncludedPermissionSets = "Expense Mgmt. Read";
+    IncludedPermissionSets = "Expense Mgmt. Read",
+                             EACorpCardEdit;
 
     Permissions =
         tabledata Expense = IMD,
