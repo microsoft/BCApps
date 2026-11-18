@@ -802,6 +802,43 @@ page 99000852 "Planning Worksheet"
                 separator(Action113)
                 {
                 }
+                action(AcceptAllActionMessages)
+                {
+                    Caption = 'Accept All Action Messages';
+                    Image = Approve;
+                    ToolTip = 'Select Accept Action Message on the selected lines. If only one line is selected, all lines that match the filters in the current worksheet batch are updated.';
+
+                    trigger OnAction()
+                    begin
+                        SetAcceptActionMessages(true);
+                    end;
+                }
+                action(ClearAllAcceptances)
+                {
+                    Caption = 'Clear All Acceptances';
+                    Image = ClearFilter;
+                    ToolTip = 'Clear Accept Action Message on the selected lines. If only one line is selected, all lines that match the filters in the current worksheet batch are updated.';
+
+                    trigger OnAction()
+                    begin
+                        SetAcceptActionMessages(false);
+                    end;
+                }
+                action(ResetAcceptances)
+                {
+                    Caption = 'Reset Acceptances';
+                    Image = ResetStatus;
+                    ToolTip = 'Restore Accept Action Message as planning sets it: selected on lines without planning warnings and cleared on lines with warnings. Applies to the selected lines. If only one line is selected, all lines that match the filters in the current worksheet batch are updated.';
+
+                    trigger OnAction()
+                    var
+                        RequisitionLine: Record "Requisition Line";
+                    begin
+                        GetLinesToUpdate(RequisitionLine);
+                        if PlanningWkshManagement.ResetAcceptActionMessages(RequisitionLine) then
+                            UpdateAfterAcceptanceChange();
+                    end;
+                }
                 action(CarryOutActionMessage)
                 {
                     ApplicationArea = Planning;
@@ -1011,6 +1048,15 @@ page 99000852 "Planning Worksheet"
             {
                 Caption = 'Process', Comment = 'Generated from the PromotedActionCategories property index 1.';
 
+                actionref(AcceptAllActionMessages_Promoted; AcceptAllActionMessages)
+                {
+                }
+                actionref(ClearAllAcceptances_Promoted; ClearAllAcceptances)
+                {
+                }
+                actionref(ResetAcceptances_Promoted; ResetAcceptances)
+                {
+                }
                 actionref(CarryOutActionMessage_Promoted; CarryOutActionMessage)
                 {
                 }
@@ -1313,6 +1359,29 @@ page 99000852 "Planning Worksheet"
         PlanningComponent.SetRange("Worksheet Batch Name", PlanningComponent."Worksheet Batch Name");
         PlanningComponent.SetRange("Worksheet Line No.", PlanningComponent."Worksheet Line No.");
         PAGE.RunModal(PAGE::"Planning Components", PlanningComponent);
+    end;
+
+    local procedure SetAcceptActionMessages(Accept: Boolean)
+    var
+        RequisitionLine: Record "Requisition Line";
+    begin
+        GetLinesToUpdate(RequisitionLine);
+        if ReqJnlManagement.SetAcceptActionMessages(RequisitionLine, Accept) then
+            UpdateAfterAcceptanceChange();
+    end;
+
+    local procedure GetLinesToUpdate(var RequisitionLine: Record "Requisition Line")
+    begin
+        CurrPage.SaveRecord();
+        CurrPage.SetSelectionFilter(RequisitionLine);
+        if RequisitionLine.Count() <= 1 then
+            RequisitionLine.Copy(Rec);
+    end;
+
+    local procedure UpdateAfterAcceptanceChange()
+    begin
+        ApprovalMgmt.CleanRequisitionWkshApprovalStatus(Rec, RequisitionWkshBatchApprovalStatus);
+        CurrPage.Update(false);
     end;
 
     local procedure CarryOutActionMsg()

@@ -5,6 +5,7 @@
 namespace Microsoft.Inventory.Requisition;
 
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Planning;
 
 codeunit 99000812 PlanningWkshManagement
 {
@@ -40,6 +41,28 @@ codeunit 99000812 PlanningWkshManagement
         OnGetRoutingDescription(ReqLine, RoutingDescription);
 
         LastReqLine := ReqLine;
+    end;
+
+    internal procedure ResetAcceptActionMessages(var ReqLine: Record "Requisition Line"): Boolean
+    var
+        PlanningTransparency: Codeunit "Planning Transparency";
+        Accept: Boolean;
+        Updated: Boolean;
+    begin
+        ReqLine.SetLoadFields();
+        if not ReqLine.FindSet(true) then
+            exit(false);
+
+        repeat
+            Accept := PlanningTransparency.ReqLineWarningLevel(ReqLine) = 0;
+            if ReqLine."Accept Action Message" <> Accept then begin
+                ReqLine.Validate("Accept Action Message", Accept);
+                ReqLine.Modify(true);
+                Updated := true;
+            end;
+        until ReqLine.Next() = 0;
+
+        exit(Updated);
     end;
 
     [IntegrationEvent(false, false)]
