@@ -1939,7 +1939,9 @@ codeunit 137423 "SCM WMS Item Unit of Measure"
 
         // [THEN] Bin content in "EA" holds "Qty" * "QtyPerUOM".
         VerifyBinContentQtyBase(Location.Code, Bin[1].Code, Item."No.", Item."Base Unit of Measure", Qty * QtyPerUOM);
-        VerifyInvtQty(Item."No.", Qty * QtyPerUOM);
+
+        // [THEN] Total inventory is unchanged: "Qty" * "QtyPerUOM" in each of the two bins.
+        VerifyInvtQty(Item."No.", 2 * Qty * QtyPerUOM);
     end;
 
     [Test]
@@ -2078,15 +2080,14 @@ codeunit 137423 "SCM WMS Item Unit of Measure"
         WarehouseJournalTemplate: Record "Warehouse Journal Template";
         WarehouseJournalBatch: Record "Warehouse Journal Batch";
         WarehouseJournalLine: Record "Warehouse Journal Line";
+        ItemJournalBatch: Record "Item Journal Batch";
         i: Integer;
     begin
         CreateFullWMSLocation(Location, false);
         LibraryInventory.CreateItem(Item);
         LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", QtyPerUOM);
 
-        LibraryWarehouse.SelectWhseJournalTemplateName(WarehouseJournalTemplate, WarehouseJournalTemplate.Type::Item);
-        LibraryWarehouse.SelectWhseJournalBatchName(
-          WarehouseJournalBatch, WarehouseJournalTemplate.Type, WarehouseJournalTemplate.Name, Location.Code);
+        LibraryWarehouse.WarehouseJournalSetup(Location.Code, WarehouseJournalTemplate, WarehouseJournalBatch);
         for i := 1 to ArrayLen(Bin) do begin
             LibraryWarehouse.CreateBin(Bin[i], Location.Code, '', FindLocationPickZone(Location.Code), FindPutPickBinType());
             LibraryWarehouse.CreateWhseJournalLine(
@@ -2096,7 +2097,12 @@ codeunit 137423 "SCM WMS Item Unit of Measure"
             WarehouseJournalLine.Modify(true);
         end;
         LibraryWarehouse.PostWhseJournalLine(WarehouseJournalTemplate.Name, WarehouseJournalBatch.Name, Location.Code);
-        CreateAndPostWhseAdjmt(Item."No.");
+
+        LibraryInventory.CreateItemJournalBatchByType(ItemJournalBatch, ItemJournalBatch."Template Type"::Item);
+        ItemJournalBatch.Validate("No. Series", LibraryUtility.GetGlobalNoSeriesCode());
+        ItemJournalBatch.Modify(true);
+        LibraryWarehouse.CalculateWhseAdjustment(Item, ItemJournalBatch);
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
 
         Location.Get(Location.Code);
         Location.Validate("Directed Put-away and Pick", false);
