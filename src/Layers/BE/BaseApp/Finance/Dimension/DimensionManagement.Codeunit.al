@@ -4058,13 +4058,6 @@ codeunit 408 DimensionManagement
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTypeToTableID5(Type: Integer; var TableId: Integer)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetDimensionSetID(var TempDimSetEntry: Record "Dimension Set Entry" temporary)
     begin

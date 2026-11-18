@@ -160,6 +160,8 @@ codeunit 30228 "Shpfy Refunds API"
     local procedure GetRefundExchangeLines(RefundId: BigInteger; RefundHeader: Record "Shpfy Refund Header")
     var
         DataCapture: Record "Shpfy Data Capture";
+        RefundLine: Record "Shpfy Refund Line";
+        ReturnsAPI: Codeunit "Shpfy Returns API";
         GraphQLType: Enum "Shpfy GraphQL Type";
         Parameters: Dictionary of [Text, Text];
         JResponse: JsonToken;
@@ -188,7 +190,12 @@ codeunit 30228 "Shpfy Refunds API"
                 foreach JLineItem in JLineItems do begin
                     LineItemId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLineItem, 'id'));
                     if LineItemId <> 0 then
-                        FillInExchangeRefundLine(RefundHeader, LineItemId, ExchangeQuantity, JLineItem.AsObject());
+                        if ReturnsAPI.IsUnverifiedReturnGiftCard(RefundHeader."Return Id", JsonHelper.GetValueAsBoolean(JLineItem, 'isGiftCard')) then begin
+                            // Order import invoices this gift card, so remove any offsetting line an earlier import created.
+                            if RefundLine.Get(RefundId, -LineItemId) then
+                                RefundLine.Delete(true);
+                        end else
+                            FillInExchangeRefundLine(RefundHeader, LineItemId, ExchangeQuantity, JLineItem.AsObject());
                 end;
             end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.refund.return.exchangeLineItems.pageInfo.hasNextPage');

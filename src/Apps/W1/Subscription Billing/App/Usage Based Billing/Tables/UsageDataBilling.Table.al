@@ -665,7 +665,7 @@ table 8006 "Usage Data Billing"
         Rec.SetRange("Document No.", DocumentNo);
     end;
 
-    internal procedure SaveDocumentValues(UsageBasedBillingDocType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]; DocumentEntryNo: Integer; BillingLineEntryNo: Integer)
+    procedure SaveDocumentValues(UsageBasedBillingDocType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]; DocumentEntryNo: Integer; BillingLineEntryNo: Integer)
     begin
         Rec."Document Type" := UsageBasedBillingDocType;
         Rec."Document No." := DocumentNo;

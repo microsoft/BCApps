@@ -153,7 +153,9 @@ table 6909 "Expense Report Line Per Diem"
         TestField("Expense Report Line No.");
         TestField("Line No.");
 
-        UpdateExpenseReportLineInformation("Expense Report No.", "Expense Report Line No.");
+        if not ParentInformationInitialized then
+            UpdateExpenseReportLineInformation("Expense Report No.", "Expense Report Line No.");
+        ParentInformationInitialized := false;
 
         InvalidateParentPolicy();
     end;
@@ -176,6 +178,8 @@ table 6909 "Expense Report Line Per Diem"
         ExpenseCurrency: Record Currency;
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportHelper: Codeunit "Expense Report";
+        SkipParentPolicyInvalidation: Boolean;
+        ParentInformationInitialized: Boolean;
         ExpenseReportLocationMissingMsg: Label '%1 is missing in Expense Report No. %2, Line No. %3.', Comment = '%1 = Expense Location Caption, %2 = Expense Report No., %3 = Line No.';
         TotalReductionPercentExceededErr: Label 'Total Reduction Percent cannot exceed 100.';
 
@@ -183,18 +187,39 @@ table 6909 "Expense Report Line Per Diem"
     var
         ParentExpenseReportLine: Record "Expense Report Line";
     begin
+        if SkipParentPolicyInvalidation then
+            exit;
+
         if ParentExpenseReportLine.Get(Rec."Expense Report No.", Rec."Expense Report Line No.") then
             ParentExpenseReportLine.InvalidatePolicyEvaluation();
+    end;
+
+    internal procedure SetSkipParentPolicyInvalidation(NewSkipParentPolicyInvalidation: Boolean)
+    begin
+        SkipParentPolicyInvalidation := NewSkipParentPolicyInvalidation;
+    end;
+
+    internal procedure InitializeFromParent(ParentExpenseReportLine: Record "Expense Report Line")
+    begin
+        Rec.TestField("Expense Report No.", ParentExpenseReportLine."Document No.");
+        Rec.TestField("Expense Report Line No.", ParentExpenseReportLine."Line No.");
+
+        CopyParentInformation(ParentExpenseReportLine);
+        ParentInformationInitialized := true;
     end;
 
     local procedure UpdateExpenseReportLineInformation(ExpenseReportNo: Code[20]; ExpenseReportLineNo: Integer)
     begin
         ExpenseReportLine := ExpenseReportHelper.GetExpenseReportLine(ExpenseReportNo, ExpenseReportLineNo);
+        CopyParentInformation(ExpenseReportLine);
+    end;
 
-        Rec.Validate("Expense No.", ExpenseReportLine."Expense No.");
-        Rec.Validate("Expense Category Code", ExpenseReportLine."Expense Category");
-        Rec.Validate("Expense Subcategory Code", ExpenseReportLine."Expense Subcategory Code");
-        Rec.Validate("Expense Location", ExpenseReportLine."Expense Location");
+    local procedure CopyParentInformation(ParentExpenseReportLine: Record "Expense Report Line")
+    begin
+        Rec.Validate("Expense No.", ParentExpenseReportLine."Expense No.");
+        Rec.Validate("Expense Category Code", ParentExpenseReportLine."Expense Category");
+        Rec.Validate("Expense Subcategory Code", ParentExpenseReportLine."Expense Subcategory Code");
+        Rec.Validate("Expense Location", ParentExpenseReportLine."Expense Location");
     end;
 
     local procedure UpdateAmountReduction()

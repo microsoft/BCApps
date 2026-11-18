@@ -2078,6 +2078,7 @@ codeunit 18466 "Subcontracting Post"
                 OldReservEntry.TestField("Location Code", TransferLocation);
                 OldReservEntry."New Serial No." := OldReservEntry."Serial No.";
                 OldReservEntry."New Lot No." := OldReservEntry."Lot No.";
+                OldReservEntry."New Package No." := OldReservEntry."Package No.";
 
                 TransferQty := CreateReservEntry.TransferReservEntry(Database::"Item Journal Line",
                     ItemJournalLineEntryTypeEnum2EntryTypeOption(ItemJnlLine."Entry Type"), ItemJnlLine."Journal Template Name",

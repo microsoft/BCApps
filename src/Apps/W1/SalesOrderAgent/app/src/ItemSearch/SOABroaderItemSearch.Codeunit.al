@@ -107,7 +107,7 @@ codeunit 4596 "SOA Broader Item Search"
 
         // Search items using platform data search and keep ColumnValues for downstream ranking.
         Clear(CandidateArray);
-        if GlobalItemSearch.SearchAndReturnResultsWithColumnValues(SearchPrimaryKeyWords.Get(1), 0.75, CandidateArray) then
+        if GlobalItemSearch.SearchAndReturnResultsWithColumnValues(SearchPrimaryKeyWords.Get(1), 0.2, CandidateArray) then
             ItemFilter := BuildResultFilterFromCandidates(CandidateArray, '|')
         else
             ItemFilter := '';
@@ -122,7 +122,6 @@ codeunit 4596 "SOA Broader Item Search"
     begin
         if Delimiter = '' then
             Delimiter := '|';
-
         foreach CandidateToken in CandidateArray do begin
             CandidateObject := CandidateToken.AsObject();
             if CandidateObject.Get('system_id', SystemIdToken) then begin
@@ -164,7 +163,6 @@ codeunit 4596 "SOA Broader Item Search"
     begin
         if not ItemObjectToken.AsObject().Get('concatenated_keyword', JsonToken) then
             exit('');
-
         if JsonToken.AsValue().IsNull() then
             exit('');
 
