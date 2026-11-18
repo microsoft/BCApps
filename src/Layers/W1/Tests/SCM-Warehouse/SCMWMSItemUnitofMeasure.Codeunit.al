@@ -2159,17 +2159,22 @@ codeunit 137423 "SCM WMS Item Unit of Measure"
     local procedure VerifyNegativeWhseEntryInUOM(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; UOMCode: Code[10]; ExpectedQty: Decimal; ExpectedQtyPerUOM: Decimal)
     var
         WarehouseEntry: Record "Warehouse Entry";
+        NegativeEntryCount: Integer;
     begin
         WarehouseEntry.SetRange("Location Code", LocationCode);
         WarehouseEntry.SetRange("Bin Code", BinCode);
         WarehouseEntry.SetRange("Item No.", ItemNo);
         WarehouseEntry.SetRange("Unit of Measure Code", UOMCode);
-        WarehouseEntry.SetFilter(Quantity, '<0');
-        Assert.RecordCount(WarehouseEntry, 1);
-        WarehouseEntry.FindFirst();
-        WarehouseEntry.TestField(Quantity, ExpectedQty);
-        WarehouseEntry.TestField("Qty. per Unit of Measure", ExpectedQtyPerUOM);
-        WarehouseEntry.TestField("Qty. (Base)", ExpectedQty * ExpectedQtyPerUOM);
+        WarehouseEntry.FindSet();
+        repeat
+            if WarehouseEntry.Quantity < 0 then begin
+                NegativeEntryCount += 1;
+                WarehouseEntry.TestField(Quantity, ExpectedQty);
+                WarehouseEntry.TestField("Qty. per Unit of Measure", ExpectedQtyPerUOM);
+                WarehouseEntry.TestField("Qty. (Base)", ExpectedQty * ExpectedQtyPerUOM);
+            end;
+        until WarehouseEntry.Next() = 0;
+        Assert.AreEqual(1, NegativeEntryCount, 'Expected one negative warehouse entry in the non-base unit of measure.');
     end;
 
     local procedure Initialize()
