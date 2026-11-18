@@ -276,7 +276,9 @@ codeunit 10978 "CII XML Builder"
         BuyerElement.Add(NameElement);
 
         Customer.SetLoadFields("FR Electronic Address", "Registration Number", "VAT Registration No.");
-        CustomerFound := (CustomerNo <> '') and Customer.Get(CustomerNo);
+        CustomerFound := false;
+        if CustomerNo <> '' then
+            CustomerFound := Customer.Get(CustomerNo);
         if CustomerFound then
             AddBuyerLegalOrganization(BuyerElement, Customer);
 
