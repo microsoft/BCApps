@@ -51,6 +51,7 @@ codeunit 148347 "Travel Requests API Test"
         ExpenseLocationRequiresPerDiemErr: Label 'Expense Location can only be specified when Per Diem Included is selected.', Locked = true;
         ActualEndBeforeStartErr: Label 'Actual End Date and Time cannot be before Actual Start Date and Time.', Locked = true;
         NoPerDiemRuleForLocationErr: Label 'There is no per diem rule for expense location %1.', Comment = '%1 = Expense Location', Locked = true;
+        EasternTimeZoneTok: Label 'Eastern Standard Time', Locked = true;
 
     [Test]
     procedure TravelersAPIMapsEmployeeNumberToExpenseUser()
@@ -351,6 +352,90 @@ codeunit 148347 "Travel Requests API Test"
 
         // The OData call needs committed data, so remove the per diem line to keep it from matching other tests' duplicate expense checks.
         ExpenseReportHeader.Delete(true);
+        Commit();
+    end;
+
+    [Test]
+    procedure ApproveTravelRequestActionUsesAgentTimeZoneForPerDiem()
+    var
+        ApprovalSetup: Record "Expense Approval Setup";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseLocation: Record "Expense Location";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+        ApproverExpenseUser: Record "Expense User";
+        RequestedForExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        OriginalAgentUserSecurityId: Guid;
+        TripStart, TripEnd : DateTime;
+        TargetURL: Text;
+        RequestBody: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO 659478] The Expense Agent service approves a travel request through OData, and the per diem days are split in the agent time zone.
+        Initialize();
+        ExpenseAgentSetup.Get();
+        OriginalAgentUserSecurityId := ExpenseAgentSetup."User Security ID";
+
+        // [GIVEN] The agent works in Eastern time. Off SaaS, every OData caller is the Expense Agent, so no service call is simulated.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        LibraryExpense.SetAgentTimeZone(EasternTimeZoneTok);
+
+        // [GIVEN] A per diem category with a Daily Rate rule for an expense location.
+        LibraryExpense.CreateExpenseLocation(ExpenseLocation, '', CopyStr(LibraryRandom.RandText(MaxStrLen(ExpenseLocation.City)), 1, MaxStrLen(ExpenseLocation.City)));
+        DeletePerDiemRulesForLocation(ExpenseLocation."No.");
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::"Per Diem");
+        ExpenseCategory.Refundable := true;
+        ExpenseCategory.Modify(true);
+        LibraryExpense.CreateExpenseRuleWithCondition(
+            ExpenseRuleHeader, ExpenseRuleCondition, ExpenseCategory.Code, ExpenseLocation."No.", 0D,
+            "Expense Justification"::" ", '', '', "Expense Rule Condition Type"::"Daily Rate", LibraryRandom.RandIntInRange(10, 100));
+
+        // [GIVEN] A released per diem travel request from 20:00Z to 03:00Z the next UTC day, which is 16:00 to 23:00 EDT on 2026-06-15.
+        TripStart := UtcDateTime('2026-06-15T20:00:00Z');
+        TripEnd := UtcDateTime('2026-06-16T03:00:00Z');
+        LibraryExpense.CreateExpenseUser(RequestedForExpenseUser);
+        CreateApprover(ApproverExpenseUser);
+        LibraryExpense.CreateExpenseApprovalSetup(
+            ApprovalSetup, RequestedForExpenseUser."No.", ApproverExpenseUser."No.");
+        CreatePendingPerDiemTravelRequestWithTrip(TravelRequest, RequestedForExpenseUser, ExpenseLocation."No.", TripStart, TripEnd);
+
+        // [GIVEN] The session time zone splits the trip into two dates, unlike the agent time zone.
+        Assert.AreNotEqual(DT2Date(TripStart), DT2Date(TripEnd), 'The session time zone must split the trip into two dates for this test.');
+        Commit();
+
+        // [WHEN] The approve travel request action is invoked through OData.
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API",
+            TravelRequestsServiceNameTok, ApproveTravelRequestActionTok);
+        RequestBody := StrSubstNo(ApproveTravelRequestBodyLbl, ApproverExpenseUser."No.");
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 200);
+
+        // [THEN] The per diem line is dated 2026-06-15 and has a single day, as in the agent time zone.
+        ExpenseReportHeader.SetRange("Spend Request No.", TravelRequest."No.");
+        ExpenseReportHeader.FindFirst();
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        Assert.AreEqual(DMY2Date(15, 6, 2026), ExpenseReportLine."Expense Date", 'The expense date must be the trip start date in the agent time zone.');
+        ExpenseReportLinePerDiem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        Assert.RecordCount(ExpenseReportLinePerDiem, 1);
+        ExpenseReportLinePerDiem.CalcSums("Per Diem Amount");
+        Assert.AreEqual(ExpenseReportLinePerDiem."Per Diem Amount", ExpenseReportLine.Amount, 'The per diem line amount must be the sum of its daily rows.');
+
+        // [THEN] The trip instants are copied without shifting.
+        Assert.AreEqual(TripStart, ExpenseReportLine."Starting Date and Time", 'The per diem line must start with the trip.');
+        Assert.AreEqual(TripEnd, ExpenseReportLine."Ending Date and Time", 'The per diem line must end with the trip.');
+
+        // Test isolation is off, so restore the agent user and remove the per diem line to keep other tests unaffected.
+        ExpenseReportHeader.Delete(true);
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."User Security ID" := OriginalAgentUserSecurityId;
+        ExpenseAgentSetup.Modify();
         Commit();
     end;
 
@@ -1385,16 +1470,27 @@ codeunit 148347 "Travel Requests API Test"
 
     local procedure CreatePendingPerDiemTravelRequest(var TravelRequest: Record "Spend Request"; ExpenseUser: Record "Expense User"; ExpenseLocationNo: Code[20])
     begin
+        CreatePendingPerDiemTravelRequestWithTrip(
+            TravelRequest, ExpenseUser, ExpenseLocationNo, CreateDateTime(WorkDate(), 080000T), CreateDateTime(WorkDate() + 2, 180000T));
+    end;
+
+    local procedure CreatePendingPerDiemTravelRequestWithTrip(var TravelRequest: Record "Spend Request"; ExpenseUser: Record "Expense User"; ExpenseLocationNo: Code[20]; TripStart: DateTime; TripEnd: DateTime)
+    begin
         CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
         TravelRequest.Validate("Requested For", ExpenseUser."No.");
-        TravelRequest.Validate("Expected Start Date", WorkDate());
-        TravelRequest.Validate("Expected End Date", WorkDate() + 2);
+        TravelRequest.Validate("Expected Start Date", DT2Date(TripStart));
+        TravelRequest.Validate("Expected End Date", DT2Date(TripEnd));
         TravelRequest.Validate("Per Diem Included", true);
         TravelRequest.Validate("Expense Location", ExpenseLocationNo);
-        TravelRequest.Validate("Actual Start Date and Time", CreateDateTime(WorkDate(), 080000T));
-        TravelRequest.Validate("Actual End Date and Time", CreateDateTime(WorkDate() + 2, 180000T));
+        TravelRequest.Validate("Actual Start Date and Time", TripStart);
+        TravelRequest.Validate("Actual End Date and Time", TripEnd);
         TravelRequest.Modify(true);
         LibraryExpense.SetSpendRequestStatus(TravelRequest, TravelRequest.Status::Released);
+    end;
+
+    local procedure UtcDateTime(XmlDateTime: Text) Result: DateTime
+    begin
+        Evaluate(Result, XmlDateTime, 9);
     end;
 
     local procedure CreatePerDiemRuleForLocation(ExpenseLocationNo: Code[20])

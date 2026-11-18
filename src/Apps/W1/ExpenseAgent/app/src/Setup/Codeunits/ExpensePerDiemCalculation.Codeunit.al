@@ -52,6 +52,8 @@ codeunit 6911 "Expense Per Diem Calculation"
 
         if not (CurrentClientType() in [ClientType::ODataV4, ClientType::Api]) then
             exit(false);
+        // Off SaaS there is no Entra app identity, so every API caller counts as the Expense Agent, as in the Expenses API and expense tables.
+        // Agent users only exist on SaaS, so without one the agent time zone can't be resolved and the session time zone is used.
         exit(ExpenseAgentAPIValidation.IsCurrentUserExpenseAgent());
     end;
 
