@@ -149,6 +149,30 @@ codeunit 139611 "Shpfy Order Refund Test"
     end;
 
     [Test]
+    procedure ShippingRefundShopCurrencyExcludingVAT()
+    begin
+        VerifyShippingRefundUnitPrice("Shpfy Currency Handling"::"Shop Currency", false, 40);
+    end;
+
+    [Test]
+    procedure ShippingRefundShopCurrencyIncludingVAT()
+    begin
+        VerifyShippingRefundUnitPrice("Shpfy Currency Handling"::"Shop Currency", true, 48);
+    end;
+
+    [Test]
+    procedure ShippingRefundPresentmentCurrencyExcludingVAT()
+    begin
+        VerifyShippingRefundUnitPrice("Shpfy Currency Handling"::"Presentment Currency", false, 60);
+    end;
+
+    [Test]
+    procedure ShippingRefundPresentmentCurrencyIncludingVAT()
+    begin
+        VerifyShippingRefundUnitPrice("Shpfy Currency Handling"::"Presentment Currency", true, 72);
+    end;
+
+    [Test]
     procedure UnitTestCreateCrMemoFromRefundWithNotRefundedItem()
     var
         SalesHeader: Record "Sales Header";
@@ -1312,6 +1336,56 @@ codeunit 139611 "Shpfy Order Refund Test"
 
         // [THEN] It throws the pending-transactions error
         LibraryAssert.ExpectedError('This refund cannot be used to create a credit memo or return order yet because it has one or more pending transactions. The refunded amount is only final once the related transactions succeed. Retry after the transactions are no longer pending.');
+    end;
+
+    local procedure VerifyShippingRefundUnitPrice(CurrencyHandling: Enum "Shpfy Currency Handling"; PricesIncludingVAT: Boolean; ExpectedUnitPrice: Decimal)
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        RefundShippingLine: Record "Shpfy Refund Shipping Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        LibraryERM: Codeunit "Library - ERM";
+        ReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+    begin
+        // [SCENARIO] The shipping line on a refund credit memo uses the amounts in the processed order currency.
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+        Shop."Process Returns As" := "Sales Document Type"::"Credit Memo";
+        Shop.Modify();
+
+        // [GIVEN] A processed order and a shipping-only refund: shop 40 + 8 tax, presentment 60 + 12 tax.
+        OrderHeader.Get(OrderRefundsHelper.CreateShopifyOrder());
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Processed Currency Handling" := CurrencyHandling;
+        OrderHeader."Presentment Currency Code" := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1.5, 1.5);
+        OrderHeader."VAT Included" := PricesIncludingVAT;
+        OrderHeader.Processed := true;
+        OrderHeader.Modify();
+        RefundShippingLine."Refund Id" := OrderRefundsHelper.CreateRefundHeaderWithPresentmentCurrency(
+            OrderHeader."Shopify Order Id", 48, Shop.Code, OrderHeader."Presentment Currency Code", 72);
+        RefundShippingLine."Refund Shipping Line Id" := Any.IntegerInRange(100000, 999999);
+        RefundShippingLine.Title := 'Shipping';
+        RefundShippingLine."Subtotal Amount" := 40;
+        RefundShippingLine."Tax Amount" := 8;
+        RefundShippingLine."Presentment Subtotal Amount" := 60;
+        RefundShippingLine."Presentment Tax Amount" := 12;
+        RefundShippingLine.Insert();
+
+        // [WHEN] Create the credit memo from the refund.
+        ReturnRefundProcess := "Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        SalesHeader := ReturnRefundProcess.CreateSalesDocument("Shpfy Source Document Type"::Refund, RefundShippingLine."Refund Id");
+
+        // [THEN] Check the shipping charge itself, not the balancing refund line.
+        SalesHeader.TestField("Document Type", "Sales Document Type"::"Credit Memo");
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::"G/L Account");
+        SalesLine.SetRange("No.", Shop."Shipping Charges Account");
+        SalesLine.FindFirst();
+        SalesLine.TestField("Shpfy Refund Shipping Line Id", RefundShippingLine."Refund Shipping Line Id");
+        LibraryAssert.AreEqual(ExpectedUnitPrice, SalesLine."Unit Price", 'Incorrect unit price on the refunded shipping charge.');
     end;
 
     local procedure CreateShopForReturnsUpgrade(SalesDocumentType: Enum "Sales Document Type") Shop: Record "Shpfy Shop"
