@@ -9,6 +9,7 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
@@ -37,8 +38,1211 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         IsInitialized := false;
     end;
 
+    [Test]
+    [HandlerFunctions('SummaryReadTransferCreatedHandler,SummaryTransferLinesHandler')]
+    procedure SummaryOriginalTransferLinesDrilldown()
+    var
+        ProductionOrder: Record "Production Order";
+        OtherOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        OtherWorkCenter: Record "Work Center";
+        Items: array[2] of Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        OtherPurchaseHeader: Record "Purchase Header";
+        OtherPurchaseLine: Record "Purchase Line";
+        ForwardHeader: Record "Transfer Header";
+        ReturnHeader: Record "Transfer Header";
+        OtherTransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Original-line counts and detail exclude native derived lines and disappear after actual completion.
+        InitializeSummaryPurchasing();
+
+        // [GIVEN] Two real family WIP lines share one native forward header; another order has an unrelated transfer.
+        SubcWarehouseLibrary.CreateSummaryFamily(10, 10, ProductionOrder, WorkCenter, Items);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrdersViaWorksheet(ProductionOrder."No.", PurchaseHeader);
+        SubcWarehouseLibrary.CreateSummaryForward(ProductionOrder, WorkCenter, PurchaseHeader, ForwardHeader);
+        SubcWarehouseLibrary.CreateSummaryOrder(5, OtherOrder, OtherWorkCenter);
+        SubcWarehouseLibrary.CreateSummaryPurchase(OtherOrder, OtherWorkCenter, OtherPurchaseHeader, OtherPurchaseLine);
+        SubcWarehouseLibrary.CreateSummaryForward(OtherOrder, OtherWorkCenter, OtherPurchaseHeader, OtherTransferHeader);
+        TransferLine.SetRange("Document No.", ForwardHeader."No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
+        Assert.AreEqual(2, TransferLine.Count(), 'Family forward must contain two originals, not two headers.');
+        TransferLine.FindSet();
+        repeat
+            TransferLine.Validate("Qty. to Ship", 4);
+            TransferLine.Modify(true);
+        until TransferLine.Next() = 0;
+
+        // [WHEN] Native partial shipment creates derived lines, then receipt makes real WIP available for native return creation.
+        LibraryWarehouse.PostTransferOrder(ForwardHeader, true, false);
+        TransferLine.SetFilter("Derived From Line No.", '<>0');
+        Assert.RecordIsNotEmpty(TransferLine);
+        LibraryWarehouse.PostTransferOrder(ForwardHeader, false, true);
+        SubcWarehouseLibrary.CreateSummaryReturn(PurchaseHeader, ReturnHeader);
+
+        // [THEN] Each field counts two originals on one header and drills to its own exact source population.
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.TransferCount.AssertEquals(2);
+        ReleasedOrder.SubcontractingSummary.ReturnTransferCount.AssertEquals(2);
+        ReleasedOrder.Close();
+        VerifySummaryTransferDetails(ProductionOrder, false);
+        VerifySummaryTransferDetails(ProductionOrder, true);
+
+        // [WHEN] All remaining forward quantities and then the available return quantities are actually completed.
+        LibraryWarehouse.PostTransferOrder(ForwardHeader, true, true);
+        LibraryWarehouse.PostTransferOrder(ReturnHeader, true, true);
+
+        // [THEN] Completed source rows and both detail populations are empty, without a cached header count.
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.TransferCount.AssertEquals(0);
+        ReleasedOrder.SubcontractingSummary.ReturnTransferCount.AssertEquals(0);
+        ReleasedOrder.Close();
+        VerifySummaryTransferDetails(ProductionOrder, false);
+        VerifySummaryTransferDetails(ProductionOrder, true);
+        Assert.IsTrue(OtherTransferHeader.Get(OtherTransferHeader."No."), 'Unrelated original transfer must remain untouched.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SummaryReadTransferCreatedHandler,SummaryPurchaseLinesHandler,SummaryReceiptLinesHandler,SummaryInvoiceLinesHandler,SummaryTransferLinesHandler,SummaryConformanceWIPHandler,SummaryConformanceRoutingHandler')]
+    procedure SummaryFeatureWideConformance()
+    var
+        ProductionOrder: Record "Production Order";
+        OtherOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ForwardHeader: Record "Transfer Header";
+        ReturnHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] The actual Released card consumes the complete approved worked purchasing and forward/return WIP request.
+        InitializeSummaryPurchasing();
+
+        // [GIVEN] A real order of ten, another order sharing routing, and a native purchase order still available for transfer creation.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            OtherOrder, OtherOrder.Status::Released, OtherOrder."Source Type"::Item, ProductionOrder."Source No.", 4, ProductionOrder."Location Code");
+        SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, WorkCenter, PurchaseHeader, PurchaseLine);
+        SubcWarehouseLibrary.CreateSummaryForward(ProductionOrder, WorkCenter, PurchaseHeader, ForwardHeader);
+
+        // [WHEN] Ten are shipped and received in two native stages, then three are returned before invoicing deletes the PO.
+        LibraryWarehouse.PostTransferOrder(ForwardHeader, true, false);
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 0, 10);
+        TransferLine.SetRange("Document No.", ForwardHeader."No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
+        TransferLine.FindFirst();
+        TransferLine.Validate("Qty. to Receive", 4);
+        TransferLine.Modify(true);
+        LibraryWarehouse.PostTransferOrder(ForwardHeader, false, true);
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 4, 6);
+        LibraryWarehouse.PostTransferOrder(ForwardHeader, false, true);
+        SubcWarehouseLibrary.CreateSummaryReturn(PurchaseHeader, ReturnHeader);
+        TransferLine.Reset();
+        TransferLine.SetRange("Document No.", ReturnHeader."No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
+        TransferLine.FindFirst();
+        TransferLine.Validate(Quantity, 3);
+        TransferLine.Modify(true);
+        LibraryWarehouse.PostTransferOrder(ReturnHeader, true, false);
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 7, 3);
+        LibraryWarehouse.PostTransferOrder(ReturnHeader, false, true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        SubcWarehouseLibrary.PostSummaryInvoice(PurchaseHeader, PurchaseLine, 4);
+        SubcWarehouseLibrary.PostSummaryInvoice(PurchaseHeader, PurchaseLine, 6);
+
+        // [THEN] All nine final card values, source details and the untouched other order agree.
+        SubcWarehouseLibrary.VerifySummaryCard(ProductionOrder, 1, 0, 10, 10, true, 7, 0, 0, 0);
+        SubcWarehouseLibrary.VerifySummaryCard(OtherOrder, 1, 0, 0, 0, true, 0, 0, 0, 0);
+        VerifySummaryPurchaseDetails(ProductionOrder);
+        VerifySummaryTransferDetails(ProductionOrder, false);
+        VerifySummaryTransferDetails(ProductionOrder, true);
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.DrillDown();
+        Assert.AreEqual(1, LibraryVariableStorage.DequeueInteger(), 'Exactly the current subcontract operation must be returned.');
+        Assert.AreEqual(ProductionOrder."No.", LibraryVariableStorage.DequeueText(), 'Routing detail must retain the current order.');
+        Assert.AreEqual('10', LibraryVariableStorage.DequeueText(), 'Routing detail must retain the operation key.');
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.DrillDown();
+        VerifySummaryConformanceWIPRows(ProductionOrder, false);
+        ReleasedOrder.SubcontractingSummary.WIPInTransit.DrillDown();
+        VerifySummaryConformanceWIPRows(ProductionOrder, true);
+        ReleasedOrder.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SummaryPurchaseLinesHandler,SummaryReceiptLinesHandler,SummaryInvoiceLinesHandler')]
+    procedure SummaryPurchasingLifecycle()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Actual purchase persistence and all three card drilldowns agree at each lifecycle boundary.
+        InitializeSummaryPurchasing();
+
+        // [GIVEN] A real subcontract order and its native purchase order.
+        // [WHEN] Receipt and two invoices are posted.
+        // [THEN] The genuine card and details follow all four persisted states.
+        RunSummaryPurchaseLifecycle();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SummaryPurchaseLinesHandler,SummaryReceiptLinesHandler,SummaryInvoiceLinesHandler')]
+    procedure SummaryFullyInvoicedLifecycle()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Exact receipt equality alone is insufficient until the linked quantity is invoiced.
+        InitializeSummaryPurchasing();
+
+        // [GIVEN] A real ten-unit open purchase line, initially with equal empty history.
+        // [WHEN] Native posting receives ten and invoices four then six.
+        // [THEN] The card is No, No, No, then Yes after native purchase-order deletion.
+        RunSummaryPurchaseLifecycle();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SummaryPurchaseLinesHandler,SummaryReceiptLinesHandler,SummaryInvoiceLinesHandler')]
+    procedure SummaryFamilyRawQuantities()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Every real family contributor posts in its document unit; raw totals are not base totals.
+        InitializeSummaryPurchasing();
+
+        // [GIVEN] Two family outputs with factor-six and base document units.
+        // [WHEN] Both contributors are received and invoiced through native purchasing.
+        // [THEN] Card and detail show .16 and .30, not converted .46 and .80.
+        RunSummaryFamilyPurchasing(0.06, 0.10);
+        RunSummaryFamilyPurchasing(0.10, 0.20);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SummaryPurchaseLinesHandler,SummaryReceiptLinesHandler,SummaryInvoiceLinesHandler')]
+    procedure SummaryMultipleOperationsAndIsolation()
+    var
+        ProductionOrder: Record "Production Order";
+        OtherOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        SecondWorkCenter: Record "Work Center";
+        PurchaseHeader: array[2] of Record "Purchase Header";
+        PurchaseLine: array[2] of Record "Purchase Line";
+        OtherHeader: Record "Purchase Header";
+        OtherLine: Record "Purchase Line";
+        OrdinaryLine: Record "Purchase Line";
+        OrdinaryItem: Record Item;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Multiple purchased operations aggregate once per source row and exclude other orders and ancillary links.
+        InitializeSummaryPurchasing();
+
+        // [GIVEN] "A" and "B" share two real subcontract operations.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        AddSummarySecondOperation(ProductionOrder, SecondWorkCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            OtherOrder, OtherOrder.Status::Released, OtherOrder."Source Type"::Item, ProductionOrder."Source No.", 7, ProductionOrder."Location Code");
+        SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, WorkCenter, PurchaseHeader[1], PurchaseLine[1]);
+        SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, SecondWorkCenter, PurchaseHeader[2], PurchaseLine[2]);
+        LibraryInventory.CreateItem(OrdinaryItem);
+        LibraryPurchase.CreatePurchaseLine(OrdinaryLine, PurchaseHeader[1], OrdinaryLine.Type::Item, OrdinaryItem."No.", 3);
+        OrdinaryLine.Validate("Qty. to Receive", 0);
+        OrdinaryLine.Validate("Qty. to Invoice", 0);
+        OrdinaryLine.Modify(true);
+
+        // [WHEN] Both operations of both orders are received, but only "A"'s first is invoiced.
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader[1], true, false);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader[2], true, false);
+        SubcWarehouseLibrary.PostSummaryInvoice(PurchaseHeader[1], PurchaseLine[1], 10);
+        SubcWarehouseLibrary.CreateSummaryPurchase(OtherOrder, WorkCenter, OtherHeader, OtherLine);
+        LibraryPurchase.PostPurchaseDocument(OtherHeader, true, false);
+        Clear(OtherLine);
+        SubcWarehouseLibrary.CreateSummaryPurchase(OtherOrder, SecondWorkCenter, OtherHeader, OtherLine);
+        LibraryPurchase.PostPurchaseDocument(OtherHeader, true, false);
+        CreateSummaryAncillaryLine(ProductionOrder);
+
+        // [THEN] Raw operation totals are 20, not unique output 10; other and ancillary lines do not leak.
+        VerifySummaryPurchaseCard(ProductionOrder, 20, 20, 10, false);
+        VerifySummaryPurchaseCard(OtherOrder, 14, 14, 0, false);
+        VerifySummaryPurchaseDetails(ProductionOrder);
+        VerifySummaryPurchaseDetails(OtherOrder);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure SummaryRetainedLineUsesQuantityPredicate()
+    var
+        ProductionOrder: Record "Production Order";
+        PartialOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        OrdinaryLine: Record "Purchase Line";
+        Item: Record Item;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Retained fully invoiced lines do not count as open; editable quantities and header status do not decide.
+        InitializeSummaryPurchasing();
+
+        // [GIVEN] A mixed purchase order retains the fully posted subcontract line.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, WorkCenter, PurchaseHeader, PurchaseLine);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseLine(OrdinaryLine, PurchaseHeader, OrdinaryLine.Type::Item, Item."No.", 3);
+        OrdinaryLine.Validate("Qty. to Receive", 0);
+        OrdinaryLine.Validate("Qty. to Invoice", 0);
+        OrdinaryLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [WHEN] Only the subcontract line is fully invoiced.
+        SubcWarehouseLibrary.PostSummaryInvoice(PurchaseHeader, PurchaseLine, 10);
+
+        // [THEN] The retained linked line is not open, irrespective of header status.
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        Assert.AreEqual(10, PurchaseLine."Quantity Invoiced", 'The retained linked quantity must be posted, not assigned.');
+        VerifySummaryPurchaseCard(ProductionOrder, 10, 10, 10, true);
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+        VerifySummaryPurchaseCard(ProductionOrder, 10, 10, 10, true);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        VerifySummaryPurchaseCard(ProductionOrder, 10, 10, 10, true);
+
+        // [GIVEN] Another order is only partially invoiced, with editable Qty. to Invoice zero.
+        Clear(PurchaseLine);
+        SubcWarehouseLibrary.CreateSummaryOrder(10, PartialOrder, WorkCenter);
+        SubcWarehouseLibrary.CreateSummaryPurchase(PartialOrder, WorkCenter, PurchaseHeader, PurchaseLine);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        SubcWarehouseLibrary.PostSummaryInvoice(PurchaseHeader, PurchaseLine, 4);
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Invoice", 0);
+        PurchaseLine.Modify(true);
+
+        // [THEN] Posted inequality still makes the card No.
+        VerifySummaryPurchaseCard(PartialOrder, 10, 10, 4, false);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        VerifySummaryPurchaseCard(PartialOrder, 10, 10, 4, false);
+    end;
+
+    [Test]
+#pragma warning disable AA0210 // Bounded receipt and correction fixtures.
+    [HandlerFunctions('SummaryConfirmHandler,SummaryReceiptLinesHandler')]
+    procedure SummaryReceiptUndoSigned()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Native receipt undo appends signed history, while its reopened purchase line prevents Yes.
+        InitializeSummaryPurchasing();
+
+        // [GIVEN] An uninvoiced, unapplied real subcontract receipt of ten.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, WorkCenter, PurchaseHeader, PurchaseLine);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        ReceiptLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ReceiptLine.FindFirst();
+
+        // [WHEN] Native undo is performed before any application or invoice.
+        LibraryPurchase.UndoPurchaseReceiptLine(ReceiptLine);
+
+        // [THEN] Both correction rows appear and net to zero, but the original quantity remains open.
+        ReceiptLine.Reset();
+        ReceiptLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Assert.AreEqual(2, ReceiptLine.Count(), 'Undo must retain original and negative correction.');
+        ReceiptLine.CalcSums(Quantity);
+        Assert.AreEqual(0, ReceiptLine.Quantity, 'Signed receipt history must net to zero.');
+        ReceiptLine.SetFilter(Quantity, '>0');
+        ReceiptLine.CalcSums(Quantity);
+        Assert.AreEqual(10, ReceiptLine.Quantity, 'The original positive receipt must remain.');
+        ReceiptLine.SetFilter(Quantity, '<0');
+        ReceiptLine.CalcSums(Quantity);
+        Assert.AreEqual(-10, ReceiptLine.Quantity, 'Native undo must append the negative correction.');
+        VerifySummaryPurchaseCard(ProductionOrder, 10, 0, 0, false);
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.ReceiptQuantity.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+        VerifySummaryReceiptDetailRows(ProductionOrder);
+        ReleasedOrder.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+#pragma warning restore AA0210
+
+    [Test]
+    procedure SummaryEmptyQuantityProxy()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Empty real eligible orders have equal empty history and no open linked purchase lines.
+        InitializeSummaryPurchasing();
+
+        // [GIVEN] Real routing exists, but no purchase creator has run.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+
+        // [WHEN] The real Released card is read.
+        // [THEN] The complete empty summary has Fully Invoiced Yes.
+        SubcWarehouseLibrary.VerifySummaryCard(ProductionOrder, 1, 0, 0, 0, true, 0, 0, 0, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('SummaryPurchaseLinesHandler,SummaryReceiptLinesHandler,SummaryInvoiceLinesHandler')]
+    procedure SummaryNamedSourcesAndCorrections()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseLine: Record "Purchase Line";
+        CreditLine: Record "Purch. Cr. Memo Line";
+        ReturnLine: Record "Return Shipment Line";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] The actual card and drilldowns retain signed named sources and exclude credit and return populations.
+        InitializeSummaryPurchasing();
+
+        // [GIVEN] Named signed receipt/invoice rows net to four; excluded sources have unmatched quantities.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        SubcWarehouseLibrary.InsertSummaryReceipt(ProductionOrder."No.", 5);
+        SubcWarehouseLibrary.InsertSummaryReceipt(ProductionOrder."No.", -1);
+        SubcWarehouseLibrary.InsertSummaryInvoice(ProductionOrder."No.", 5);
+        SubcWarehouseLibrary.InsertSummaryInvoice(ProductionOrder."No.", -1);
+        SubcWarehouseLibrary.InsertSummaryPurchase(ProductionOrder."No.", PurchaseLine."Document Type"::"Return Order", 100, 0, PurchaseLine);
+        SubcWarehouseLibrary.InsertSummaryPurchase(ProductionOrder."No.", PurchaseLine."Document Type"::"Credit Memo", 200, 0, PurchaseLine);
+        CreditLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(CreditLine."Document No."));
+        CreditLine."Line No." := 10000;
+        CreditLine."Prod. Order No." := ProductionOrder."No.";
+        CreditLine.Quantity := 300;
+        CreditLine.Insert();
+        ReturnLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ReturnLine."Document No."));
+        ReturnLine."Line No." := 10000;
+        ReturnLine."Prod. Order No." := ProductionOrder."No.";
+        ReturnLine.Quantity := 400;
+        ReturnLine.Insert();
+        SubcWarehouseLibrary.VerifySummaryCard(ProductionOrder, 1, 0, 4, 4, true, 0, 0, 0, 0);
+        VerifySummaryPurchaseDetails(ProductionOrder);
+
+        // [WHEN] A further correction is added to the named invoice source.
+        SubcWarehouseLibrary.InsertSummaryInvoice(ProductionOrder."No.", -0.5);
+
+        // [THEN] Its sign is retained and exact equality is lost.
+        SubcWarehouseLibrary.VerifySummaryCard(ProductionOrder, 1, 0, 4, 3.5, false, 0, 0, 0, 0);
+        VerifySummaryPurchaseDetails(ProductionOrder);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure VerifySummaryTransferDetails(ProductionOrder: Record "Production Order"; ReturnOrder: Boolean)
+    var
+        TransferLine: Record "Transfer Line";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        if ReturnOrder then
+            ReleasedOrder.SubcontractingSummary.ReturnTransferCount.DrillDown()
+        else
+            ReleasedOrder.SubcontractingSummary.TransferCount.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
+        TransferLine.SetRange("Subc. Return Order", ReturnOrder);
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(TransferLine.Count());
+        Assert.AreEqual(TransferLine.Count(), LibraryVariableStorage.DequeueInteger(), 'Transfer detail must count original lines, not headers.');
+        if TransferLine.FindSet() then
+            repeat
+                SubcWarehouseLibrary.VerifySummaryDetailRecord(TransferLine.RecordId());
+                Assert.AreEqual(TransferLine."Document No.", LibraryVariableStorage.DequeueText(), 'Transfer document must match the filtered original.');
+                Assert.AreEqual(TransferLine."Item No.", LibraryVariableStorage.DequeueText(), 'Every original family item must appear.');
+                Assert.AreEqual(TransferLine."Outstanding Quantity", LibraryVariableStorage.DequeueDecimal(), 'Transfer detail quantity must match.');
+            until TransferLine.Next() = 0;
+        ReleasedOrder.Close();
+    end;
+
+    local procedure VerifySummaryConformanceWIPRows(ProductionOrder: Record "Production Order"; InTransit: Boolean)
+    var
+        WIPEntry: Record "Subcontractor WIP Ledger Entry";
+    begin
+        WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
+        WIPEntry.SetRange("In Transit", InTransit);
+        Assert.AreEqual(WIPEntry.Count(), LibraryVariableStorage.DequeueInteger(), 'Worked request WIP detail count must agree.');
+        if WIPEntry.FindSet() then
+            repeat
+                Assert.AreEqual(WIPEntry."Entry No.", LibraryVariableStorage.DequeueInteger(), 'Worked request must return every exact ledger key.');
+                Assert.AreEqual(WIPEntry."Quantity (Base)", LibraryVariableStorage.DequeueDecimal(), 'Worked request detail must preserve signed movements.');
+            until WIPEntry.Next() = 0;
+    end;
+
+    [PageHandler]
+    procedure SummaryTransferLinesHandler(var Lines: TestPage "Transfer Lines")
+    var
+        Documents: List of [Text];
+        Items: List of [Text];
+        Quantities: List of [Decimal];
+        RowIndex: Integer;
+        Quantity: Decimal;
+    begin
+        if Lines.First() then
+            repeat
+                Documents.Add(Lines."Document No.".Value());
+                Items.Add(Lines."Item No.".Value());
+                Evaluate(Quantity, Lines."Outstanding Quantity".Value());
+                Quantities.Add(Quantity);
+            until not Lines.Next();
+        LibraryVariableStorage.Enqueue(Documents.Count());
+        for RowIndex := 1 to Documents.Count() do begin
+            LibraryVariableStorage.Enqueue(Documents.Get(RowIndex));
+            LibraryVariableStorage.Enqueue(Items.Get(RowIndex));
+            LibraryVariableStorage.Enqueue(Quantities.Get(RowIndex));
+        end;
+        Lines.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryConformanceWIPHandler(var Entries: TestPage "Subc. WIP Ledger Entries")
+    var
+        EntryNumbers: List of [Integer];
+        Quantities: List of [Decimal];
+        EntryNo: Integer;
+        Quantity: Decimal;
+        RowIndex: Integer;
+    begin
+        if Entries.First() then
+            repeat
+                Evaluate(EntryNo, Entries."Entry No.".Value());
+                EntryNumbers.Add(EntryNo);
+                Evaluate(Quantity, Entries."Quantity (Base)".Value());
+                Quantities.Add(Quantity);
+            until not Entries.Next();
+        LibraryVariableStorage.Enqueue(EntryNumbers.Count());
+        for RowIndex := 1 to EntryNumbers.Count() do begin
+            LibraryVariableStorage.Enqueue(EntryNumbers.Get(RowIndex));
+            LibraryVariableStorage.Enqueue(Quantities.Get(RowIndex));
+        end;
+        Entries.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryConformanceRoutingHandler(var Routing: TestPage "Prod. Order Routing")
+    var
+        Orders: List of [Text];
+        Operations: List of [Text];
+        RowIndex: Integer;
+    begin
+        if Routing.First() then
+            repeat
+                Orders.Add(Routing."Prod. Order No.".Value());
+                Operations.Add(Routing."Operation No.".Value());
+            until not Routing.Next();
+        LibraryVariableStorage.Enqueue(Orders.Count());
+        for RowIndex := 1 to Orders.Count() do begin
+            LibraryVariableStorage.Enqueue(Orders.Get(RowIndex));
+            LibraryVariableStorage.Enqueue(Operations.Get(RowIndex));
+        end;
+        Routing.Close();
+    end;
+
+    local procedure RunSummaryPurchaseLifecycle()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, WorkCenter, PurchaseHeader, PurchaseLine);
+        VerifySummaryPurchaseCard(ProductionOrder, 10, 0, 0, false);
+        VerifySummaryPurchaseDetails(ProductionOrder);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        VerifySummaryPurchaseCard(ProductionOrder, 10, 10, 0, false);
+        VerifySummaryPurchaseDetails(ProductionOrder);
+        SubcWarehouseLibrary.PostSummaryInvoice(PurchaseHeader, PurchaseLine, 4);
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        Assert.AreEqual(4, PurchaseLine."Quantity Invoiced", 'Partial quantity must be persisted by posting.');
+        VerifySummaryPurchaseCard(ProductionOrder, 10, 10, 4, false);
+        VerifySummaryPurchaseDetails(ProductionOrder);
+        SubcWarehouseLibrary.PostSummaryInvoice(PurchaseHeader, PurchaseLine, 6);
+        Assert.IsFalse(PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No."), 'Native final posting must delete the simple order.');
+        VerifySummaryPurchaseCard(ProductionOrder, 0, 10, 10, true);
+        VerifySummaryPurchaseDetails(ProductionOrder);
+    end;
+
+    local procedure RunSummaryFamilyPurchasing(FirstQuantity: Decimal; SecondQuantity: Decimal)
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        Items: array[2] of Record Item;
+        ItemUOM: Record "Item Unit of Measure";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        InvoiceLine: Record "Purch. Inv. Line";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        SubcWarehouseLibrary.CreateSummaryFamily(FirstQuantity * 6, SecondQuantity, ProductionOrder, WorkCenter, Items);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrdersViaWorksheet(ProductionOrder."No.", PurchaseHeader);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUOM, Items[1]."No.", 6);
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange("No.", Items[1]."No.");
+        PurchaseLine.FindFirst();
+        PurchaseLine.Validate("Unit of Measure Code", ItemUOM.Code);
+        PurchaseLine.Validate(Quantity, FirstQuantity);
+        PurchaseLine.Modify(true);
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        ItemUOM.Get(PurchaseLine."No.", PurchaseLine."Unit of Measure Code");
+        Assert.AreEqual(6, ItemUOM."Qty. per Unit of Measure", 'First contributor must use the factor-six item UOM conversion.');
+        PurchaseLine.SetRange("No.", Items[2]."No.");
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(SecondQuantity, PurchaseLine.Quantity, 'Second contributor must exist with its raw quantity.');
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        VerifySummaryPurchaseCard(ProductionOrder, FirstQuantity + SecondQuantity, 0, 0, false);
+        VerifySummaryPurchaseDetails(ProductionOrder);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        VerifySummaryPurchaseCard(ProductionOrder, FirstQuantity + SecondQuantity, FirstQuantity + SecondQuantity, 0, false);
+        VerifySummaryPurchaseDetails(ProductionOrder);
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        PurchaseHeader.Validate("Vendor Invoice No.", CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchaseHeader."Vendor Invoice No.")));
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+        VerifySummaryPurchaseCard(ProductionOrder, 0, FirstQuantity + SecondQuantity, FirstQuantity + SecondQuantity, true);
+        VerifySummaryPurchaseDetails(ProductionOrder);
+#pragma warning disable AA0210 // Filters inspect only the documents created by this family fixture.
+        ReceiptLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ReceiptLine.SetRange("No.", Items[1]."No.");
+        ReceiptLine.FindFirst();
+        Assert.AreEqual(FirstQuantity, ReceiptLine.Quantity, 'First family receipt must retain document quantity.');
+        Assert.AreEqual(ItemUOM.Code, ReceiptLine."Unit of Measure Code", 'First family receipt must retain document UOM.');
+        ReceiptLine.SetRange("No.", Items[2]."No.");
+        ReceiptLine.FindFirst();
+        Assert.AreEqual(SecondQuantity, ReceiptLine.Quantity, 'Second family receipt must be posted.');
+        InvoiceLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        InvoiceLine.SetRange("No.", Items[1]."No.");
+        InvoiceLine.FindFirst();
+        Assert.AreEqual(FirstQuantity, InvoiceLine.Quantity, 'First family invoice must be posted.');
+        Assert.AreEqual(ItemUOM.Code, InvoiceLine."Unit of Measure Code", 'First family invoice must retain document UOM.');
+        InvoiceLine.SetRange("No.", Items[2]."No.");
+#pragma warning restore AA0210
+        InvoiceLine.FindFirst();
+        Assert.AreEqual(SecondQuantity, InvoiceLine.Quantity, 'Second family invoice must be posted.');
+    end;
+
+    local procedure VerifySummaryPurchaseCard(ProductionOrder: Record "Production Order"; PurchaseQuantity: Decimal; ReceiptQuantity: Decimal; InvoiceQuantity: Decimal; FullyInvoiced: Boolean)
+    var
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.PurchaseQuantity.AssertEquals(PurchaseQuantity);
+        ReleasedOrder.SubcontractingSummary.ReceiptQuantity.AssertEquals(ReceiptQuantity);
+        ReleasedOrder.SubcontractingSummary.InvoiceQuantity.AssertEquals(InvoiceQuantity);
+        ReleasedOrder.SubcontractingSummary.FullyInvoiced.AssertEquals(Format(FullyInvoiced));
+        ReleasedOrder.Close();
+    end;
+
+    local procedure VerifySummaryPurchaseDetails(ProductionOrder: Record "Production Order")
+    var
+        PurchaseLine: Record "Purchase Line";
+        InvoiceLine: Record "Purch. Inv. Line";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.PurchaseQuantity.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(PurchaseLine.Count());
+        Assert.AreEqual(PurchaseLine.Count(), LibraryVariableStorage.DequeueInteger(), 'Purchase detail row count must match.');
+        if PurchaseLine.FindSet() then
+            repeat
+                SubcWarehouseLibrary.VerifySummaryDetailRecord(PurchaseLine.RecordId());
+                Assert.AreEqual(PurchaseLine."Document No.", LibraryVariableStorage.DequeueText(), 'Purchase document key must match.');
+                Assert.AreEqual(PurchaseLine.Quantity, LibraryVariableStorage.DequeueDecimal(), 'Raw purchase detail quantity must match.');
+            until PurchaseLine.Next() = 0;
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.ReceiptQuantity.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+        VerifySummaryReceiptDetailRows(ProductionOrder);
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.InvoiceQuantity.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+        InvoiceLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(InvoiceLine.Count());
+        Assert.AreEqual(InvoiceLine.Count(), LibraryVariableStorage.DequeueInteger(), 'Invoice detail row count must match.');
+        if InvoiceLine.FindSet() then
+            repeat
+                SubcWarehouseLibrary.VerifySummaryDetailRecord(InvoiceLine.RecordId());
+                Assert.AreEqual(InvoiceLine."Document No.", LibraryVariableStorage.DequeueText(), 'Invoice document must match.');
+                Assert.AreEqual(InvoiceLine."No.", LibraryVariableStorage.DequeueText(), 'Invoice item must match.');
+                Assert.AreEqual(InvoiceLine.Quantity, LibraryVariableStorage.DequeueDecimal(), 'Raw signed invoice quantity must match.');
+            until InvoiceLine.Next() = 0;
+        ReleasedOrder.Close();
+    end;
+
+    local procedure VerifySummaryReceiptDetailRows(ProductionOrder: Record "Production Order")
+    var
+        ReceiptLine: Record "Purch. Rcpt. Line";
+    begin
+        ReceiptLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(ReceiptLine.Count());
+        if ReceiptLine.FindSet() then
+            repeat
+                SubcWarehouseLibrary.VerifySummaryDetailRecord(ReceiptLine.RecordId());
+            until ReceiptLine.Next() = 0;
+    end;
+
+    local procedure CreateSummaryAncillaryLine(ProductionOrder: Record "Production Order")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+    begin
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 99);
+        PurchaseLine."Subc. Prod. Order No." := ProductionOrder."No.";
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure AddSummarySecondOperation(var ProductionOrder: Record "Production Order"; var WorkCenter: Record "Work Center")
+    var
+        Item: Record Item;
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        Location: Record Location;
+        Vendor: Record Vendor;
+    begin
+        Item.Get(ProductionOrder."Source No.");
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+        LibraryMfgManagement.CreateSubcontractingWorkCenterWithCalendar(WorkCenter);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor.Get(WorkCenter."Subcontractor No.");
+        Vendor.Validate("Subc. Location Code", Location.Code);
+        Vendor.Modify(true);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '20', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+    end;
+
+    [ConfirmHandler]
+    procedure SummaryConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
+    end;
+
+    [PageHandler]
+    procedure SummaryPurchaseLinesHandler(var Lines: TestPage "Purchase Lines")
+    var
+        Documents: List of [Text];
+        Quantities: List of [Decimal];
+        RowIndex: Integer;
+        Quantity: Decimal;
+    begin
+        if Lines.First() then
+            repeat
+                Documents.Add(Lines."Document No.".Value());
+                Evaluate(Quantity, Lines.Quantity.Value());
+                Quantities.Add(Quantity);
+            until not Lines.Next();
+        LibraryVariableStorage.Enqueue(Documents.Count());
+        for RowIndex := 1 to Documents.Count() do begin
+            LibraryVariableStorage.Enqueue(Documents.Get(RowIndex));
+            LibraryVariableStorage.Enqueue(Quantities.Get(RowIndex));
+        end;
+        Lines.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryReceiptLinesHandler(var Lines: TestPage "Purch. Receipt Lines")
+    var
+        HasRecord: Boolean;
+    begin
+        HasRecord := Lines.First();
+        while HasRecord do
+            HasRecord := Lines.Next();
+        Lines.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryInvoiceLinesHandler(var Lines: TestPage "Subc. Summary Invoice Lines")
+    var
+        Documents: List of [Text];
+        Items: List of [Text];
+        Quantities: List of [Decimal];
+        RowIndex: Integer;
+        Quantity: Decimal;
+    begin
+        if Lines.First() then
+            repeat
+                Documents.Add(Lines."Document No.".Value());
+                Items.Add(Lines."No.".Value());
+                Evaluate(Quantity, Lines.Quantity.Value());
+                Quantities.Add(Quantity);
+            until not Lines.Next();
+        LibraryVariableStorage.Enqueue(Documents.Count());
+        for RowIndex := 1 to Documents.Count() do begin
+            LibraryVariableStorage.Enqueue(Documents.Get(RowIndex));
+            LibraryVariableStorage.Enqueue(Items.Get(RowIndex));
+            LibraryVariableStorage.Enqueue(Quantities.Get(RowIndex));
+        end;
+        Lines.Close();
+    end;
+
+    local procedure InitializeSummaryPurchasing()
+    begin
+        Initialize();
+        SubcontractingMgmtLibrary.UpdateSubMgmtSetup_ComponentAtLocation("Components at Location"::Purchase);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        LibraryERMCountryData.UpdateGeneralPostingSetup();
+    end;
+
+    [Test]
+    [HandlerFunctions('SummaryRoutingHandler')]
+    procedure SummaryCardRoutingAndEligibility()
+    var
+        ProductionOrder: Record "Production Order";
+        OtherOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        ReleasedOrders: TestPage "Released Production Orders";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] The genuine card aggregates current subcontract operations, not internal or other-order lines.
+        Initialize();
+
+        // [GIVEN] Order "A" has two subcontract operations and one internal operation; "B" shares its routing.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        AddSummaryRoutingOperations(ProductionOrder, true);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            OtherOrder, OtherOrder.Status::Released, OtherOrder."Source Type"::Item, ProductionOrder."Source No.", 7, ProductionOrder."Location Code");
+
+        // [WHEN] The real Released list opens its card and the routing detail is invoked.
+        ReleasedOrders.OpenView();
+        ReleasedOrders.GoToRecord(ProductionOrder);
+        ReleasedOrder.Trap();
+        ReleasedOrders.Edit().Invoke();
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(2);
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+
+        // [THEN] Only "A"'s subcontract operation keys are returned.
+        VerifySummaryRoutingDetails(ProductionOrder);
+        ReleasedOrder.Close();
+        ReleasedOrders.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure SummaryCardNavigationAndBlankGuard()
+    var
+        ProductionOrder: Record "Production Order";
+        OtherOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        OtherWorkCenter: Record "Work Center";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Navigation clears hidden and blank records instead of retaining another order's values.
+        Initialize();
+
+        // [GIVEN] Eligible "A" and internal-only "B".
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        AddSummaryRoutingOperations(ProductionOrder, true);
+        SubcWarehouseLibrary.CreateSummaryOrder(7, OtherOrder, OtherWorkCenter);
+        OtherWorkCenter.Validate("Subcontractor No.", '');
+        OtherWorkCenter.Modify(true);
+
+        // [WHEN] The actual card navigates "A" -> "B" -> "A".
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(2);
+        ReleasedOrder.GoToRecord(OtherOrder);
+
+        // [THEN] "B" is ineligible and does not inherit "A"; "A" is recomputed on return.
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.Visible(), 'Internal-only order must hide the summary.');
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(2);
+        ReleasedOrder.Close();
+        ReleasedOrder.OpenNew();
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.Visible(), 'Blank card must hide the summary.');
+        ReleasedOrder.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('SummaryRefreshProductionOrderHandler')]
+    procedure SummaryRefreshActionUpdatesWithoutReselection()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Refresh Production Order updates the open summary without reselecting the order.
+        Initialize();
+
+        // [GIVEN] The open card has one operation, while its certified master routing now has two subcontract operations.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(1);
+        AddSummaryRoutingOperations(ProductionOrder, false);
+        Commit();
+
+        // [WHEN] The real parent action recalculates the order from its changed master routing.
+        ReleasedOrder.RefreshProductionOrder.Invoke();
+
+        // [THEN] The same card immediately shows both subcontract operations without GoToRecord or reopening.
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(2);
+        ReleasedOrder.Close();
+    end;
+
+    [RequestPageHandler]
+    procedure SummaryRefreshProductionOrderHandler(var RefreshOrder: TestRequestPage "Refresh Production Order")
+    begin
+        RefreshOrder.CalcLines.SetValue(true);
+        RefreshOrder.CalcRoutings.SetValue(true);
+        RefreshOrder.CalcComponents.SetValue(true);
+        RefreshOrder.CreateInbRqst.SetValue(false);
+        RefreshOrder.OK().Invoke();
+    end;
+
+    [Test]
+    procedure SummaryOrdinaryRefreshAndMembership()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReleasedOrder: TestPage "Released Production Order";
+        VendorNo: Code[20];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Persisted work-center membership is recalculated by the parent even while the part is hidden.
+        Initialize();
+
+        // [GIVEN] Eligible "A" has one current subcontract operation.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        VendorNo := WorkCenter."Subcontractor No.";
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(1);
+
+        // [WHEN] The work center's subcontractor is cleared and the current record is reread.
+        WorkCenter.Validate("Subcontractor No.", '');
+        WorkCenter.Modify(true);
+        ReleasedOrder.GoToRecord(ProductionOrder);
+
+        // [THEN] The parent hides the part, then restores it after the persisted vendor is restored.
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.Visible(), 'Cleared membership must hide the summary.');
+        WorkCenter.Validate("Subcontractor No.", VendorNo);
+        WorkCenter.Modify(true);
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        Assert.IsTrue(ReleasedOrder.SubcontractingSummary.Visible(), 'Hidden part must become eligible again.');
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(1);
+        SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, WorkCenter, PurchaseHeader, PurchaseLine);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.PurchaseQuantity.AssertEquals(10);
+        ReleasedOrder.SubcontractingSummary.ReceiptQuantity.AssertEquals(10);
+        ReleasedOrder.SubcontractingSummary.InvoiceQuantity.AssertEquals(0);
+        ReleasedOrder.SubcontractingSummary.FullyInvoiced.AssertEquals(Format(false));
+        ReleasedOrder.Close();
+    end;
+
+    [Test]
+    procedure SummaryVisibilityAndPersonalizationContract()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Eligible cards expose all nine read-only summary values by default; client personalization needs a client trace.
+        Initialize();
+
+        // [GIVEN] An eligible order without purchasing history.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+
+        // [WHEN] Its actual card is opened for editing.
+        ReleasedOrder.OpenEdit();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+
+        // [THEN] The summary is visible, but none of its nine fields is editable.
+        Assert.IsTrue(ReleasedOrder.SubcontractingSummary.Visible(), 'Eligible summary must be visible by default.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.RoutingCount.Editable(), 'Routing count is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.PurchaseQuantity.Editable(), 'Purchase quantity is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.ReceiptQuantity.Editable(), 'Receipt quantity is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.InvoiceQuantity.Editable(), 'Invoice quantity is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.FullyInvoiced.Editable(), 'Indicator is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.Editable(), 'WIP balance is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.WIPInTransit.Editable(), 'Transit balance is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.TransferCount.Editable(), 'Forward count is read-only.');
+        Assert.IsFalse(ReleasedOrder.SubcontractingSummary.ReturnTransferCount.Editable(), 'Return count is read-only.');
+        ReleasedOrder.SubcontractingSummary.FullyInvoiced.AssertEquals(Format(true));
+        ReleasedOrder.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('SummaryReadTransferCreatedHandler,SummaryReadPurchaseHandler,SummaryReadReceiptHandler,SummaryReadInvoiceHandler,SummaryReadWIPHandler,SummaryReadTransferHandler,SummaryRoutingHandler')]
+    procedure SummaryReadPermissionsContract()
+    var
+        ProductionOrder: Record "Production Order";
+        OtherOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        OtherPurchaseHeader: Record "Purchase Header";
+        OtherPurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        InvoiceLine: Record "Purch. Inv. Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        RoutingLine: Record "Prod. Order Routing Line";
+        WIPEntry: Record "Subcontractor WIP Ledger Entry";
+        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
+        DirectPost: Codeunit "TransferOrder-Post Transfer";
+        ReleasedOrder: TestPage "Released Production Order";
+        OrderSystemModifiedAt: DateTime;
+        WIPEntryCount: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Record actual card read permission use without treating this Disabled suite as an effective-user permission test.
+        Initialize();
+
+        // [GIVEN] A real production order is prepared before the read-only permission recording phase.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, WorkCenter, PurchaseHeader, PurchaseLine);
+        SubcWarehouseLibrary.CreateSummaryForward(ProductionOrder, WorkCenter, PurchaseHeader, TransferHeader);
+        TransferHeader.Validate("Direct Transfer", true);
+        TransferHeader.Validate("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Direct Transfer");
+        TransferHeader.Modify(true);
+        DirectPost.SetHideValidationDialog(true);
+        DirectPost.Run(TransferHeader);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+        OrderSystemModifiedAt := ProductionOrder.SystemModifiedAt;
+        WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
+        WIPEntryCount := WIPEntry.Count();
+
+        // [GIVEN] A different order has a real posted invoice, while the current order has none.
+        SubcWarehouseLibrary.CreateSummaryOrder(3, OtherOrder, WorkCenter);
+        SubcWarehouseLibrary.CreateSummaryPurchase(OtherOrder, WorkCenter, OtherPurchaseHeader, OtherPurchaseLine);
+        LibraryPurchase.PostPurchaseDocument(OtherPurchaseHeader, true, false);
+        SubcWarehouseLibrary.PostSummaryInvoice(OtherPurchaseHeader, OtherPurchaseLine, 3);
+#pragma warning disable AA0210 // Bounded foreign-order invoice fixture.
+        InvoiceLine.SetRange("Prod. Order No.", OtherOrder."No.");
+#pragma warning restore AA0210
+        Assert.RecordIsNotEmpty(InvoiceLine);
+
+        // [WHEN] The real consumer reads with Base Application read permissions and the owning extension role.
+        LibraryLowerPermissions.StartLoggingNAVPermissions('Subcontract. - Read');
+        LibraryLowerPermissions.AddeRead();
+        SubcWarehouseLibrary.VerifySummaryCard(ProductionOrder, 1, 10, 10, 0, false, 10, 0, 0, 0);
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.PurchaseQuantity.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(1);
+        SubcWarehouseLibrary.VerifySummaryDetailRecord(PurchaseLine.RecordId());
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.ReceiptQuantity.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+#pragma warning disable AA0210 // Bounded receipt fixture.
+        ReceiptLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
+        ReceiptLine.FindFirst();
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(1);
+        SubcWarehouseLibrary.VerifySummaryDetailRecord(ReceiptLine.RecordId());
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.InvoiceQuantity.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(0);
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+        WIPEntry.FindFirst();
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(1);
+        SubcWarehouseLibrary.VerifySummaryDetailRecord(WIPEntry.RecordId());
+        ReleasedOrder.SubcontractingSummary.WIPInTransit.DrillDown();
+        ReleasedOrder.SubcontractingSummary.TransferCount.DrillDown();
+        ReleasedOrder.SubcontractingSummary.ReturnTransferCount.DrillDown();
+        SubcWarehouseLibrary.StartSummaryDetailCapture();
+        BindSubscription(SubcWarehouseLibrary);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.DrillDown();
+        UnbindSubscription(SubcWarehouseLibrary);
+        RoutingLine.SetRange(Status, ProductionOrder.Status);
+        RoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RoutingLine.FindFirst();
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(1);
+        SubcWarehouseLibrary.VerifySummaryDetailRecord(RoutingLine.RecordId());
+        Assert.AreEqual(1, LibraryVariableStorage.DequeueInteger(), 'Read-role routing detail must contain one operation.');
+        Assert.AreEqual(ProductionOrder."No.", LibraryVariableStorage.DequeueText(), 'Read-role routing detail must retain current order.');
+        Assert.AreEqual('10', LibraryVariableStorage.DequeueText(), 'Read-role routing detail must retain operation.');
+        ReleasedOrder.Close();
+
+        // [THEN] Reading has not modified the header. Actual non-SUPER access remains a separate client obligation.
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+        Assert.AreEqual(OrderSystemModifiedAt, ProductionOrder.SystemModifiedAt, 'Summary reads must not write the production order.');
+        Assert.AreEqual(WIPEntryCount, WIPEntry.Count(), 'Summary details must not write WIP history.');
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        Assert.RecordIsEmpty(TransferLine);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure AddSummaryRoutingOperations(var ProductionOrder: Record "Production Order"; RefreshOrder: Boolean)
+    var
+        Item: Record Item;
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        SecondWorkCenter: Record "Work Center";
+        InternalWorkCenter: Record "Work Center";
+    begin
+        Item.Get(ProductionOrder."Source No.");
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+        LibraryMfgManagement.CreateSubcontractingWorkCenterWithCalendar(SecondWorkCenter);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '20', RoutingLine.Type::"Work Center", SecondWorkCenter."No.");
+        LibraryMfgManagement.CreateSubcontractingWorkCenterWithCalendar(InternalWorkCenter);
+        InternalWorkCenter.Validate("Subcontractor No.", '');
+        InternalWorkCenter.Modify(true);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '30', RoutingLine.Type::"Work Center", InternalWorkCenter."No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+        if RefreshOrder then
+            LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+    end;
+
+    local procedure VerifySummaryRoutingDetails(ProductionOrder: Record "Production Order")
+    var
+        RoutingLine: Record "Prod. Order Routing Line";
+    begin
+        RoutingLine.SetRange(Status, ProductionOrder.Status);
+        RoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210 // Subcontracting is a FlowField; routing is already scoped to one order.
+        RoutingLine.SetRange(Subcontracting, true);
+#pragma warning restore AA0210
+        SubcWarehouseLibrary.VerifySummaryDetailRecordCount(RoutingLine.Count());
+        Assert.AreEqual(2, LibraryVariableStorage.DequeueInteger(), 'Exactly two qualifying operations must be shown.');
+        RoutingLine.FindSet();
+        repeat
+            SubcWarehouseLibrary.VerifySummaryDetailRecord(RoutingLine.RecordId());
+            Assert.AreEqual(ProductionOrder."No.", LibraryVariableStorage.DequeueText(), 'Detail must be scoped to current order.');
+            Assert.AreEqual(RoutingLine."Operation No.", LibraryVariableStorage.DequeueText(), 'Detail operation must match the filtered routing.');
+        until RoutingLine.Next() = 0;
+    end;
+
+    [PageHandler]
+    procedure SummaryRoutingHandler(var Routing: TestPage "Prod. Order Routing")
+    var
+        OrderNumbers: List of [Text];
+        OperationNumbers: List of [Text];
+        RowIndex: Integer;
+    begin
+        if Routing.First() then
+            repeat
+                OrderNumbers.Add(Routing."Prod. Order No.".Value());
+                OperationNumbers.Add(Routing."Operation No.".Value());
+            until not Routing.Next();
+        LibraryVariableStorage.Enqueue(OrderNumbers.Count());
+        for RowIndex := 1 to OrderNumbers.Count() do begin
+            LibraryVariableStorage.Enqueue(OrderNumbers.Get(RowIndex));
+            LibraryVariableStorage.Enqueue(OperationNumbers.Get(RowIndex));
+        end;
+        Routing.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryReadTransferCreatedHandler(var TransferOrder: TestPage "Transfer Order")
+    begin
+        TransferOrder.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryReadPurchaseHandler(var Lines: TestPage "Purchase Lines")
+    var
+        HasRecord: Boolean;
+    begin
+        HasRecord := Lines.First();
+        while HasRecord do
+            HasRecord := Lines.Next();
+        Lines.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryReadReceiptHandler(var Lines: TestPage "Purch. Receipt Lines")
+    var
+        HasRecord: Boolean;
+    begin
+        HasRecord := Lines.First();
+        while HasRecord do
+            HasRecord := Lines.Next();
+        Lines.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryReadInvoiceHandler(var Lines: TestPage "Subc. Summary Invoice Lines")
+    var
+        HasRecord: Boolean;
+    begin
+        HasRecord := Lines.First();
+        while HasRecord do
+            HasRecord := Lines.Next();
+        Lines.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryReadWIPHandler(var Entries: TestPage "Subc. WIP Ledger Entries")
+    var
+        HasRecord: Boolean;
+    begin
+        HasRecord := Entries.First();
+        while HasRecord do
+            HasRecord := Entries.Next();
+        Entries.Close();
+    end;
+
+    [PageHandler]
+    procedure SummaryReadTransferHandler(var Lines: TestPage "Transfer Lines")
+    begin
+        Lines.Close();
+    end;
+
     local procedure Initialize()
     begin
+        Clear(SubcWarehouseLibrary);
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting UI Test");
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
@@ -1680,6 +2884,8 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";

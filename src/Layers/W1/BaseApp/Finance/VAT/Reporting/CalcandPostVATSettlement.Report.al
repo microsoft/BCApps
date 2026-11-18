@@ -762,7 +762,7 @@ report 20 "Calc. and Post VAT Settlement"
         VATPostingSetup: Record "VAT Posting Setup";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         PrintVATEntries: Boolean;
-        NextVATEntryNo: Integer;
+        NextVATEntryNo: BigInteger;
         VATDate: Date;
         DocNo: Code[20];
         VATType: Enum "General Posting Type";
@@ -962,7 +962,7 @@ report 20 "Calc. and Post VAT Settlement"
         OnAfterIncrementGenPostingType(OldGenPostingType, NewGenPostingType);
     end;
 
-    local procedure CloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: Integer)
+    local procedure CloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: BigInteger)
     var
         IsHandled: Boolean;
     begin
@@ -982,12 +982,12 @@ report 20 "Calc. and Post VAT Settlement"
             (GenPostingType = GenPostingType::Sale));
     end;
 
-    local procedure GetSettlementVATEntryNo(PostVATSettlement: Boolean): Integer
+    local procedure GetSettlementVATEntryNo(PostVATSettlement: Boolean): BigInteger
     var
         GLRegister: Record "G/L Register";
         SettlementVATEntry: Record "VAT Entry";
-        NextAvailableVATEntryNo: Integer;
-        LastPostedVATEntryNo: Integer;
+        NextAvailableVATEntryNo: BigInteger;
+        LastPostedVATEntryNo: BigInteger;
     begin
         if PostVATSettlement then begin
             if GLSetup.UseConcurrentPosting() then begin
@@ -1074,7 +1074,7 @@ report 20 "Calc. and Post VAT Settlement"
     /// <param name="NextVATEntryNo">Next available VAT entry number for new entries</param>
     /// <param name="IsHandled">Set to true to skip standard VAT entry closure processing</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeCloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

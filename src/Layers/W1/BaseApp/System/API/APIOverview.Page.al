@@ -115,7 +115,7 @@ page 812 "API Overview"
         TempAPILine: Record "API Overview Buffer" temporary;
         ApiWebService: Record "Api Web Service";
         LineNo: Integer;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         Rec.Reset();
         Rec.DeleteAll();

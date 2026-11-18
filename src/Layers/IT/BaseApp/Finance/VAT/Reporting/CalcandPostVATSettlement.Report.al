@@ -1051,8 +1051,8 @@ report 20 "Calc. and Post VAT Settlement"
         VATSetup: Record "VAT Setup";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         PrintVATEntries: Boolean;
-        NextVATEntryNo: Integer;
-        LastVATEntryNo: Integer;
+        NextVATEntryNo: BigInteger;
+        LastVATEntryNo: BigInteger;
         DocNo: Code[20];
         VATType: Enum "General Posting Type";
         VATAmount: Decimal;
@@ -1498,7 +1498,7 @@ report 20 "Calc. and Post VAT Settlement"
         GenJnlLine."VAT Calculation Type" := VATPostingSetup."VAT Calculation Type";
     end;
 
-    local procedure CloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: Integer)
+    local procedure CloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: BigInteger)
     var
         IsHandled: Boolean;
     begin
@@ -1514,12 +1514,12 @@ report 20 "Calc. and Post VAT Settlement"
         VATEntry.SetRange(Closed, false);
     end;
 
-    local procedure GetSettlementVATEntryNo(PostVATSettlement: Boolean; IsPostingAllowed: Boolean): Integer
+    local procedure GetSettlementVATEntryNo(PostVATSettlement: Boolean; IsPostingAllowed: Boolean): BigInteger
     var
         GLRegister: Record "G/L Register";
         SettlementVATEntry: Record "VAT Entry";
-        NextAvailableVATEntryNo: Integer;
-        LastPostedVATEntryNo: Integer;
+        NextAvailableVATEntryNo: BigInteger;
+        LastPostedVATEntryNo: BigInteger;
     begin
         if not IsPostingAllowed then
             exit(0);
@@ -1644,7 +1644,7 @@ report 20 "Calc. and Post VAT Settlement"
     /// <param name="NextVATEntryNo">Next available VAT entry number for new entries</param>
     /// <param name="IsHandled">Set to true to skip standard VAT entry closure processing</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeCloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
