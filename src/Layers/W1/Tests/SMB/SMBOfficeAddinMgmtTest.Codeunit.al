@@ -24,6 +24,10 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
         AdminEmail: Text[80];
         AdminPassword: Text[50];
         CloseReopenHandlerAction: Option CloseImmediately,EnterCredentials;
+        IncorrectAddinRetrievedErr: Label 'Incorrect add-in retrieved. Incoming HostType="%1"; HostTypeLength=%2; ExpectedCodeunit=%3; ActualCodeunit=%4.', Locked = true;
+        ManifestLookupStartedTelemetryTxt: Label 'Starting direct manifest lookup. Incoming HostType="%1"; HostTypeLength=%2; ExpectedCodeunit=%3.', Locked = true;
+        ManifestLookupCompletedTelemetryTxt: Label 'Completed direct manifest lookup. Incoming HostType="%1"; HostTypeLength=%2; ExpectedCodeunit=%3; ActualCodeunit=%4.', Locked = true;
+        IncorrectManifestCodeunitErr: Label 'Incorrect manifest codeunit retrieved. Incoming HostType="%1"; HostTypeLength=%2; ExpectedCodeunit=%3; ActualCodeunit=%4.', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -598,6 +602,8 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
     var
         OfficeHostType: DotNet OfficeHostType;
     begin
+        Initialize();
+
         // Verify that we can get the correct add-in when specifying a host type
         VerifyAddinByHostType(OfficeHostType.OutlookItemRead, CODEUNIT::"Intelligent Info Manifest");
         VerifyAddinByHostType(OfficeHostType.OutlookItemEdit, CODEUNIT::"Intelligent Info Manifest");
@@ -606,6 +612,20 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
         VerifyAddinByHostType(OfficeHostType.OutlookTaskPane, CODEUNIT::"Intelligent Info Manifest");
 
         VerifyAddinByHostType(OfficeHostType.OutlookHyperlink, CODEUNIT::"Hyperlink Manifest");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetOfficeAddinByHostTypeWithoutDefaultAddins()
+    var
+        OfficeAddin: Record "Office Add-in";
+    begin
+        OfficeAddin.DeleteAll();
+
+        Initialize();
+
+        VerifyAddinByHostType('Outlook-PopOut', CODEUNIT::"Intelligent Info Manifest");
+        VerifyAddinByHostType('Outlook-Hyperlink', CODEUNIT::"Hyperlink Manifest");
     end;
 
     [Test]
@@ -666,6 +686,57 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
         VerifyAddinManifestCodeunit(OfficeHostType.OutlookPopOut, CODEUNIT::"Intelligent Info Manifest");
 
         VerifyAddinManifestCodeunit(OfficeHostType.OutlookHyperlink, CODEUNIT::"Hyperlink Manifest");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetOfficeAddinManifestCodeunitForUnknownHostType()
+    var
+        ManifestCodeunit: Integer;
+    begin
+        VerifyAddinManifestCodeunit('', 0);
+        VerifyAddinManifestCodeunit('N/A', 0);
+        VerifyAddinManifestCodeunit('Outlook-PopOut-Unknown', 0);
+
+        ManifestCodeunit := CODEUNIT::"SMB Office Addin Mgmt Test";
+        AddinManifestManagement.GetManifestCodeunit(ManifestCodeunit, 'N/A');
+        Assert.AreEqual(CODEUNIT::"SMB Office Addin Mgmt Test", ManifestCodeunit, 'An unknown host type must not overwrite an existing manifest codeunit.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestOfficeHostTypeFallback()
+    var
+        HostTypes: List of [Text];
+        HostType: Text;
+    begin
+        HostTypes.Add('Outlook-ItemRead');
+        HostTypes.Add('Outlook-ItemEdit');
+        HostTypes.Add('Outlook-TaskPane');
+        HostTypes.Add('Outlook-MobileApp');
+        HostTypes.Add('Outlook-PopOut');
+        HostTypes.Add('Outlook-Hyperlink');
+        foreach HostType in HostTypes do
+            Assert.AreEqual(HostType, AddinManifestManagement.GetOfficeHostTypeOrDefault('', HostType),
+                'An empty .NET comparison value must use its protocol fallback.');
+
+        Assert.AreEqual('Updated-Outlook-Host',
+            AddinManifestManagement.GetOfficeHostTypeOrDefault('Updated-Outlook-Host', 'Outlook-PopOut'),
+            'A non-empty .NET host type must take precedence over the protocol fallback.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestOfficeHostTypeValues()
+    var
+        OfficeHostType: DotNet OfficeHostType;
+    begin
+        Assert.AreEqual('Outlook-ItemRead', OfficeHostType.OutlookItemRead, 'Unexpected Outlook item-read host protocol value.');
+        Assert.AreEqual('Outlook-ItemEdit', OfficeHostType.OutlookItemEdit, 'Unexpected Outlook item-edit host protocol value.');
+        Assert.AreEqual('Outlook-MobileApp', OfficeHostType.OutlookMobileApp, 'Unexpected Outlook mobile host protocol value.');
+        Assert.AreEqual('Outlook-PopOut', OfficeHostType.OutlookPopOut, 'Unexpected Outlook pop-out host protocol value.');
+        Assert.AreEqual('Outlook-TaskPane', OfficeHostType.OutlookTaskPane, 'Unexpected Outlook task-pane host protocol value.');
+        Assert.AreEqual('Outlook-Hyperlink', OfficeHostType.OutlookHyperlink, 'Unexpected Outlook hyperlink host protocol value.');
     end;
 
     [Test]
@@ -1102,15 +1173,26 @@ codeunit 139049 "SMB Office Addin Mgmt Test"
         OfficeAddin: Record "Office Add-in";
     begin
         AddinManifestManagement.GetAddinByHostType(OfficeAddin, HostType);
-        Assert.AreEqual(CodeunitID, OfficeAddin."Manifest Codeunit", StrSubstNo('Incorrect add-in retrieved for %1.', HostType));
+        Assert.AreEqual(CodeunitID, OfficeAddin."Manifest Codeunit",
+            StrSubstNo(IncorrectAddinRetrievedErr,
+                HostType, StrLen(HostType), CodeunitID, OfficeAddin."Manifest Codeunit"));
     end;
 
     local procedure VerifyAddinManifestCodeunit(HostType: Text; ExpectedCodeunit: Integer)
     var
         ActualCodeunit: Integer;
     begin
+        Session.LogMessage('0000WOC',
+            StrSubstNo(ManifestLookupStartedTelemetryTxt, HostType, StrLen(HostType), ExpectedCodeunit),
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
         AddinManifestManagement.GetManifestCodeunit(ActualCodeunit, HostType);
-        Assert.AreEqual(ExpectedCodeunit, ActualCodeunit, StrSubstNo('Incorrect manifest codeunit retrieved for %1', HostType));
+        Session.LogMessage('0000WOD',
+            StrSubstNo(ManifestLookupCompletedTelemetryTxt,
+                HostType, StrLen(HostType), ExpectedCodeunit, ActualCodeunit),
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL Office Add-in');
+        Assert.AreEqual(ExpectedCodeunit, ActualCodeunit,
+            StrSubstNo(IncorrectManifestCodeunitErr,
+                HostType, StrLen(HostType), ExpectedCodeunit, ActualCodeunit));
     end;
 
     [Normal]
