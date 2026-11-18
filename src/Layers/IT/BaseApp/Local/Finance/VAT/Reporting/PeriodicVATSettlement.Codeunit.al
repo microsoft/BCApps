@@ -6,7 +6,6 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
-using Microsoft.Utilities;
 
 codeunit 12195 "Periodic VAT Settlement"
 {
