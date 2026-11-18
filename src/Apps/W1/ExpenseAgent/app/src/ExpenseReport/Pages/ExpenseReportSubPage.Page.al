@@ -117,6 +117,33 @@ page 6999 "Expense Report SubPage"
                         CurrPage.Update();
                     end;
                 }
+                field(CorporateCard; CorporateCardDisplay)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Corporate Card';
+                    ToolTip = 'Specifies the provider short name and last four card digits. Expenses copied to a report retain the card selected on the expense.';
+                    Editable = (Rec."Credit Card Feed No." = 0) and (Rec."Expense No." = '');
+                    ShowMandatory = CorporateCardMandatory;
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    begin
+                        if not CorpCardSelectionMgt.LookupReportLineCard(Rec) then
+                            exit(false);
+                        CorporateCardDisplay := CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id");
+                        Text := CorporateCardDisplay;
+                        CurrPage.Update();
+                        exit(true);
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        if CorporateCardDisplay = '' then
+                            Rec.Validate("Corporate Card Id", '')
+                        else
+                            if CorporateCardDisplay <> CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id") then
+                                Error(CorpCardSelectionMgt.GetReportLineCardLookupError(Rec));
+                    end;
+                }
                 field("Expense Date"; Rec."Expense Date")
                 {
                     ApplicationArea = Basic, Suite;
@@ -356,8 +383,8 @@ page 6999 "Expense Report SubPage"
                 field("Non-Refundable Amount"; Rec."Non-Refundable Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value of the Non-Refundable Amount field.';
-                    Editable = Rec.Refundable and (not IsItemizationCategory);
+                    ToolTip = 'Specifies the reduction to the reimbursable amount. Available when Refundable is on and itemization is not required or is enforced by policy.';
+                    Editable = Rec.Refundable and ((not IsItemizationCategory) or IsEnforcedItemizationCategory);
 
                     trigger OnValidate()
                     begin
@@ -639,18 +666,30 @@ page 6999 "Expense Report SubPage"
         UpdateControls();
     end;
 
+    trigger OnFindRecord(Which: Text): Boolean
+    begin
+        Clear(CardDisplayDocumentNo);
+        Clear(CardDisplays);
+        exit(Rec.Find(Which));
+    end;
+
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
         ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        CardDisplays: Dictionary of [Code[50], Text[150]];
+        CardDisplayDocumentNo: Code[20];
+        CorporateCardDisplay: Text[150];
+        CorporateCardMandatory: Boolean;
         TotalAmountLCY: Decimal;
         TotalVATAmountLCY: Decimal;
         TotalAmountWithoutVATLCY: Decimal;
         TotalNonRefundableAmountLCY: Decimal;
         TotalReimbursableAmountLCY, TotalRefundableAmountLCY : Decimal;
         TotalReimbursableAmount, TotalRefundableAmount : Decimal;
-        IsMileageCategory, IsPerDiemCategory, IsParticipantCategory, IsItemizationCategory : Boolean;
+        IsMileageCategory, IsPerDiemCategory, IsParticipantCategory, IsItemizationCategory, IsEnforcedItemizationCategory : Boolean;
         IsRuleApplied: Boolean;
         TotalMileage: Decimal;
         AllowVATReclaim: Boolean;
@@ -662,9 +701,16 @@ page 6999 "Expense Report SubPage"
 
     local procedure UpdateControls()
     begin
+        if CardDisplayDocumentNo <> Rec."Document No." then begin
+            CorpCardSelectionMgt.LoadReportCardDisplays(Rec."Document No.", CardDisplays);
+            CardDisplayDocumentNo := Rec."Document No.";
+        end;
+        CorporateCardDisplay := CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id", CardDisplays);
+        CorporateCardMandatory := Rec."Reimbursement Type" = Rec."Reimbursement Type"::"Credit Card";
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;
-        IsItemizationCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize;
+        IsItemizationCategory := Rec.IsItemizationRequired();
+        IsEnforcedItemizationCategory := Rec.IsEnforcedItemizationRequired();
         IsParticipantCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Participants;
 
         IsRuleApplied := not IsNullGuid(Rec."Applied Rule Id");

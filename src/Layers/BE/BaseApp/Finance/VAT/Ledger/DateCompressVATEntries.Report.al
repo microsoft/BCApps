@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.VAT.Ledger;
 
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Period;
 using System.DataAdministration;
@@ -171,6 +172,7 @@ report 95 "Date Compress VAT Entries"
 
                 SourceCodeSetup.Get();
                 SourceCodeSetup.TestField("Compress VAT Entries");
+                CheckConcurrentPostingIsNotEnabled();
 
                 GLEntry.LockTable();
                 NewVATEntry.LockTable();
@@ -380,6 +382,16 @@ report 95 "Date Compress VAT Entries"
 
     protected var
         EntrdDateComprReg: Record "Date Compr. Register";
+
+    local procedure CheckConcurrentPostingIsNotEnabled()
+    var
+        GLSetup: Record "General Ledger Setup";
+        ConcurrentPostingNotSupportedErr: Label 'Date compression is not supported while concurrent posting is enabled in General Ledger Setup.';
+    begin
+        GLSetup.Get();
+        if GLSetup.UseConcurrentPosting() then
+            Error(ConcurrentPostingNotSupportedErr);
+    end;
 
     local procedure InitRegisters()
     begin

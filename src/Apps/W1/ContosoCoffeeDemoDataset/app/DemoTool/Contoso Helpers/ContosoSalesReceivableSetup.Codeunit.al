@@ -69,6 +69,7 @@ codeunit 5269 "Contoso Sales Receivable Setup"
         SalesReceivablesSetup.Validate("Price List Nos.", PriceListNos);
         SalesReceivablesSetup.Validate("Link Doc. Date To Posting Date", LinkDocDateToPostingDate);
         SalesReceivablesSetup.Validate("Copy Customer Name to Entries", CopyCustomerNametoEntries);
+        SalesReceivablesSetup.Validate("Restore Order Qty. on Return", true);
         SalesReceivablesSetup.Modify(true);
     end;
 }

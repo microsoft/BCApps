@@ -146,12 +146,10 @@ page 1190 "Create Payment"
         GenJnlManagement: Codeunit GenJnlManagement;
     begin
         PostingDate := WorkDate();
-
         if not GenJournalTemplate.Get(JournalTemplateName) then
             Clear(JournalTemplateName);
         if not GenJournalBatch.Get(JournalTemplateName, JournalBatchName) then
             Clear(JournalBatchName);
-
         if JournalTemplateName = '' then
             if GenJnlManagement.TemplateSelectionSimple(GenJournalTemplate, GenJournalTemplate.Type::Payments, false) then
                 JournalTemplateName := GenJournalTemplate.Name;
@@ -228,7 +226,7 @@ page 1190 "Create Payment"
         TempVendorPaymentBuffer.Reset();
         TempVendorPaymentBuffer.DeleteAll();
 
-        VendorLedgerEntryView := VendorLedgerEntry.GetView();
+        VendorLedgerEntryView := VendorLedgerEntry.GetView(false);
         VendorLedgerEntry.SetCurrentKey("Entry No.");
         if VendorLedgerEntry.Find('-') then
             repeat
@@ -242,7 +240,6 @@ page 1190 "Create Payment"
                     OnMakeGenJnlLinesOnAfterCalcRemainingAmount(VendorLedgerEntry);
                     TempVendorPaymentBuffer."Vendor No." := VendorLedgerEntry."Vendor No.";
                     TempVendorPaymentBuffer."Currency Code" := VendorLedgerEntry."Currency Code";
-
                     if VendorLedgerEntry."Payment Method Code" = '' then begin
                         if Vendor.Get(VendorLedgerEntry."Vendor No.") then
                             TempVendorPaymentBuffer."Payment Method Code" := Vendor."Payment Method Code";
@@ -258,7 +255,6 @@ page 1190 "Create Payment"
                     TempVendorPaymentBuffer."Vendor Ledg. Entry No." := VendorLedgerEntry."Entry No.";
                     TempVendorPaymentBuffer."Vendor Ledg. Entry Doc. Type" := VendorLedgerEntry."Document Type";
                     TempVendorPaymentBuffer."Remit-to Code" := VendorLedgerEntry."Remit-to Code";
-
                     if CheckCalcPmtDiscGenJnlVend(VendorLedgerEntry."Remaining Amount", VendorLedgerEntry, 0, false) then
                         PaymentAmt := -(VendorLedgerEntry."Remaining Amount" - VendorLedgerEntry.GetRemainingPmtDiscPossible(PostingDate))
                     else
@@ -272,7 +268,6 @@ page 1190 "Create Payment"
                         TempVendorPaymentBuffer.Amount += PaymentAmt;
                         TempVendorPaymentBuffer."Payment Reference" := '';
                         TempVendorPaymentBuffer.Modify();
-
                         if not DocumentsToApply.Contains(StrSubstNo(DocToApplyLbl, TempVendorPaymentBuffer."Vendor Ledg. Entry Doc. Type", VendorLedgerEntry."Vendor No.")) then
                             DocumentsToApply.Add(StrSubstNo(DocToApplyLbl, TempVendorPaymentBuffer."Vendor Ledg. Entry Doc. Type", VendorLedgerEntry."Vendor No."));
                     end else begin
@@ -338,7 +333,6 @@ page 1190 "Create Payment"
                 GenJnlLine.SetHideValidation(true);
                 GenJnlLine.Validate("Posting Date", PostingDate);
                 GenJnlLine.Validate("Account No.", TempVendorPaymentBuffer."Vendor No.");
-
                 if Vendor."No." <> TempVendorPaymentBuffer."Vendor No." then
                     Vendor.Get(TempVendorPaymentBuffer."Vendor No.");
                 GenJnlLine.Description := Vendor.Name;
@@ -469,7 +463,6 @@ page 1190 "Create Payment"
         OnBeforeGetMessageToRecipient(TempVendorPaymentBuffer, DocumentsToApply, IsHandled, MessageToRecipient);
         if IsHandled then
             exit(MessageToRecipient);
-
         if DocumentsToApply.Contains(StrSubstNo(DocToApplyLbl, TempVendorPaymentBuffer."Vendor Ledg. Entry Doc. Type", TempVendorPaymentBuffer."Vendor No.")) then begin
             CompanyInformation.Get();
             exit(CompanyInformation.Name);

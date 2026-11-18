@@ -37,11 +37,18 @@ page 6988 "Expense"
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
                     ToolTip = 'Specifies the expense user who incurred the expense.';
+
+                    trigger OnValidate()
+                    begin
+                        SetCategoryTypeVisibility();
+                        CurrPage.Update();
+                    end;
                 }
                 field("Expense Category"; Rec."Expense Category")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the category assigned to this expense.';
+                    Importance = Promoted;
 
                     trigger OnValidate()
                     begin
@@ -70,6 +77,7 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the date the expense occurred.';
+                    Editable = Rec.Source <> Rec.Source::CorporateCard;
 
                     trigger OnValidate()
                     begin
@@ -98,11 +106,19 @@ page 6988 "Expense"
                     Caption = 'Receipt No.';
                     ToolTip = 'Specifies the receipt number or external reference on the document.';
                 }
+                field("Currency Code"; Rec."Currency Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the Currency of the Amount.';
+                    Editable = (Rec.Source <> Rec.Source::CorporateCard) and not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
+                    Importance = Promoted;
+                }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the total amount in the expense currency.';
-                    Editable = not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
+                    Editable = (Rec.Source <> Rec.Source::CorporateCard) and not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
+                    Importance = Promoted;
 
                     trigger OnValidate()
                     begin
@@ -141,13 +157,6 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the expense vendor record created for this expense. Open the expense vendor to review and approve vendor creation.';
-                }
-                field("Currency Code"; Rec."Currency Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value of the Currency Code field.';
-                    Importance = Additional;
-                    Editable = not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
                 }
                 field(Status; Rec.Status)
                 {
@@ -317,8 +326,8 @@ page 6988 "Expense"
                 field("Non-Refundable Amount"; Rec."Non-Refundable Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reduction to the reimbursable amount. Available when Refundable is on and the category does not require itemization.';
-                    Editable = Rec.Refundable and (not IsItemizationCategory);
+                    ToolTip = 'Specifies the reduction to the reimbursable amount. Available when Refundable is on and itemization is not required or is enforced by policy.';
+                    Editable = Rec.Refundable and ((not IsItemizationCategory) or IsEnforcedItemizationCategory);
                     Importance = Additional;
 
                     trigger OnValidate()
@@ -330,6 +339,7 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the amount eligible for reimbursement based on policy.';
+                    Importance = Promoted;
                 }
                 field("Reimbursable Amount (LCY)"; Rec."Reimbursable Amount (LCY)")
                 {
@@ -354,11 +364,39 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the payment method used for this expense.';
-                    Importance = Additional;
+                    Importance = Standard;
 
                     trigger OnValidate()
                     begin
+                        SetCategoryTypeVisibility();
                         CurrPage.Update();
+                    end;
+                }
+                field(CorporateCard; CorporateCardDisplay)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Corporate Card';
+                    ToolTip = 'Specifies the provider short name and last four card digits. Choose a credit card payment method to select a card belonging to the expense user.';
+                    Editable = CorporateCardEditable;
+                    ShowMandatory = CorporateCardMandatory;
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    begin
+                        if not CorpCardSelectionMgt.LookupCard(Rec) then
+                            exit(false);
+                        CorporateCardDisplay := CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id");
+                        Text := CorporateCardDisplay;
+                        CurrPage.Update();
+                        exit(true);
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        if CorporateCardDisplay = '' then
+                            Rec.Validate("Corporate Card Id", '')
+                        else
+                            if CorporateCardDisplay <> CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id") then
+                                Error(UseCardLookupErr);
                     end;
                 }
                 field("Credit Card Feed No."; Rec."Credit Card Feed No.")
@@ -387,21 +425,13 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Dimensions;
                     ToolTip = 'Specifies Shortcut Dimension 1 for this expense.';
-
-                    trigger OnValidate()
-                    begin
-                        ShortcutDimension1CodeOnAfterV();
-                    end;
+                    Importance = Promoted;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
                     ToolTip = 'Specifies Shortcut Dimension 2 for this expense.';
-
-                    trigger OnValidate()
-                    begin
-                        ShortcutDimension1CodeOnAfterV();
-                    end;
+                    Importance = Promoted;
                 }
             }
 
@@ -619,7 +649,7 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Release';
-                    Enabled = Rec.Status <> Rec.Status::Released;
+                    Enabled = Rec.Status = Rec.Status::Open;
                     Image = ReleaseDoc;
                     ShortCutKey = 'Ctrl+F9';
                     ToolTip = 'Release the expense and lock editing. Reopen to edit.';
@@ -710,6 +740,7 @@ page 6988 "Expense"
     begin
         SetCategoryTypeVisibility();
         CalculateTotalMileage();
+        CorporateCardDisplay := CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id");
 
         if IsNullGuid(Rec."Applied Rule Id") then
             ShowAppliedRuleTxt := ''
@@ -724,11 +755,18 @@ page 6988 "Expense"
     begin
         if Rec."Expense Date" = 0D then
             Rec."Expense Date" := WorkDate();
+        CorporateCardDisplay := '';
+        SetCategoryTypeVisibility();
     end;
 
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        IsMileageCategory, IsPerDiemCategory, IsParticipantCategory, IsItemizationCategory : Boolean;
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        CorporateCardDisplay: Text[150];
+        CorporateCardEditable: Boolean;
+        CorporateCardMandatory: Boolean;
+        UseCardLookupErr: Label 'Choose a corporate card from the lookup instead of entering a card number.';
+        IsMileageCategory, IsPerDiemCategory, IsParticipantCategory, IsItemizationCategory, IsEnforcedItemizationCategory : Boolean;
         DocNoVisible: Boolean;
         HasPdfAttachment: Boolean;
         RuleStyleTxt: Text;
@@ -746,17 +784,17 @@ page 6988 "Expense"
 
     local procedure SetCategoryTypeVisibility()
     begin
+        CorporateCardMandatory := Rec."Reimbursement Type" = Rec."Reimbursement Type"::"Credit Card";
+        CorporateCardEditable :=
+            CorporateCardMandatory and
+            (Rec."Expense User No." <> '') and (Rec.Status = Rec.Status::Open) and (Rec."Credit Card Feed No." = 0);
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;
-        IsItemizationCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize;
+        IsItemizationCategory := Rec.IsItemizationRequired();
+        IsEnforcedItemizationCategory := Rec.IsEnforcedItemizationRequired();
         IsParticipantCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Participants;
         ExpenseAgentSetup.GetRecordOnce();
         AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
-    end;
-
-    local procedure ShortcutDimension1CodeOnAfterV()
-    begin
-        CurrPage.Update();
     end;
 
     local procedure CalculateTotalMileage()
