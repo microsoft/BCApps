@@ -1780,23 +1780,30 @@ table 21 "Cust. Ledger Entry"
         else begin
             // Journal and service invoices have VAT entries, but no posted sales invoice lines.
             SetInvoiceVATEntryFilters(VATEntry, DocumentNo);
-            VATEntry.SetLoadFields("VAT Bus. Posting Group", "VAT Prod. Posting Group");
+            VATEntry.SetLoadFields("Document Type", "Unrealized VAT Entry No.", "VAT Bus. Posting Group", "VAT Prod. Posting Group");
             if VATEntry.FindSet() then
                 repeat
-                    InsertTempVATPostingSetup(
-                      TempVATPostingSetup, VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
+                    if IsOriginalInvoiceVATEntry(VATEntry) then
+                        InsertTempVATPostingSetup(
+                          TempVATPostingSetup, VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
                 until VATEntry.Next() = 0;
         end;
     end;
 
     local procedure SetInvoiceVATEntryFilters(var VATEntry: Record "VAT Entry"; DocumentNo: Code[20])
     begin
+        // Use indexed filters, then check the unindexed original-invoice fields while iterating.
         VATEntry.SetCurrentKey("Transaction No.");
         VATEntry.SetRange("Transaction No.", Rec."Transaction No.");
         VATEntry.SetRange("Document No.", DocumentNo);
         VATEntry.SetRange(Type, VATEntry.Type::Sale);
-        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
-        VATEntry.SetRange("Unrealized VAT Entry No.", 0);
+    end;
+
+    local procedure IsOriginalInvoiceVATEntry(VATEntry: Record "VAT Entry"): Boolean
+    begin
+        exit(
+          (VATEntry."Document Type" = VATEntry."Document Type"::Invoice) and
+          (VATEntry."Unrealized VAT Entry No." = 0));
     end;
 
     local procedure InsertTempVATPostingSetupFromCreditMemo(var TempVATPostingSetup: Record "VAT Posting Setup"; DocumentNo: Code[20])
@@ -1830,6 +1837,7 @@ table 21 "Cust. Ledger Entry"
         SalesInvLine: Record "Sales Invoice Line";
         VATEntry: Record "VAT Entry";
         BaseInvoicePartAmount: Decimal;
+        InvoiceVATEntryFound: Boolean;
     begin
         BaseInvoicePartAmount := Rec."Amount (LCY)";
 
@@ -1849,12 +1857,16 @@ table 21 "Cust. Ledger Entry"
             SetInvoiceVATEntryFilters(VATEntry, Rec."Document No.");
             VATEntry.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
             VATEntry.SetRange("VAT Prod. Posting Group", VATProdPostingGroup);
-            if VATEntry.IsEmpty() then
-                InvoicePartAmount := BaseInvoicePartAmount
-            else begin
-                VATEntry.CalcSums("Unrealized Amount", "Unrealized Base");
-                InvoicePartAmount := -(VATEntry."Unrealized Amount" + VATEntry."Unrealized Base");
-            end;
+            VATEntry.SetLoadFields("Document Type", "Unrealized VAT Entry No.", "Unrealized Amount", "Unrealized Base");
+            if VATEntry.FindSet() then
+                repeat
+                    if IsOriginalInvoiceVATEntry(VATEntry) then begin
+                        InvoiceVATEntryFound := true;
+                        InvoicePartAmount -= VATEntry."Unrealized Amount" + VATEntry."Unrealized Base";
+                    end;
+                until VATEntry.Next() = 0;
+            if not InvoiceVATEntryFound then
+                InvoicePartAmount := BaseInvoicePartAmount;
         end;
     end;
 
