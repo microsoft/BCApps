@@ -8127,6 +8127,7 @@ codeunit 137072 "SCM Production Orders II"
         CompItem: Record Item;
         ProdItem: Record Item;
         ProductionOrder: Record "Production Order";
+        RequisitionLine: Record "Requisition Line";
         StdComponentLineNo: Integer;
         FixedComponentLineNo: Integer;
         ProdOrderQty: Decimal;
@@ -8167,9 +8168,10 @@ codeunit 137072 "SCM Production Orders II"
         // [WHEN] Only the standard component grows and regenerative planning runs again.
         CalcRegenPlanForSingleItem(CompItem."No.");
 
-        // [THEN] The fixed component keeps its full reservation to unposted supply while the standard line is topped up.
-        VerifyRequisitionLine(
-          CompItem."No.", "Action Message Type"::New, (UpdatedStdQtyPer - StdQtyPer) * ProdOrderQty, '');
+        // [THEN] The net supply increase matches the additional demand, including cancellation of replaced supply.
+        FilterRequisitionLine(RequisitionLine, CompItem."No.");
+        RequisitionLine.CalcSums("Net Quantity (Base)");
+        RequisitionLine.TestField("Net Quantity (Base)", (UpdatedStdQtyPer - StdQtyPer) * ProdOrderQty);
         VerifyProdOrderComponentReservedQty(
           ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ", UpdatedStdQtyPer * ProdOrderQty);
         VerifyProdOrderComponentReservedQty(
@@ -8179,7 +8181,10 @@ codeunit 137072 "SCM Production Orders II"
         UpdateProdOrderComponentQty(ProductionOrder, FixedComponentLineNo, UpdatedFixedQty);
         CalcRegenPlanForSingleItem(CompItem."No.");
 
-        // [THEN] Both components are reserved for their updated quantities.
+        // [THEN] The net supply increase covers both changes and both components are reserved for their updated quantities.
+        RequisitionLine.CalcSums("Net Quantity (Base)");
+        RequisitionLine.TestField(
+          "Net Quantity (Base)", (UpdatedStdQtyPer - StdQtyPer) * ProdOrderQty + UpdatedFixedQty - FixedQty);
         VerifyProdOrderComponentReservedQty(
           ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ", UpdatedStdQtyPer * ProdOrderQty);
         VerifyProdOrderComponentReservedQty(
