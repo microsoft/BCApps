@@ -172,7 +172,8 @@ codeunit 7282 "Search"
                 if (QuantityToken.IsValue() and (QuantityToken.AsValue().AsText() <> '')) then
                     if not JsonValueAsDecimal(QuantityToken.AsValue(), Quantity) then
                         Quantity := 0;
-            end;
+            end else
+                Quantity := 1;
 
             if ItemToken.AsObject().Get('unit_of_measure', UOMToken) then begin
                 ItemTokenForQueryIndex.AsObject().Remove('unit_of_measure');
@@ -339,7 +340,7 @@ codeunit 7282 "Search"
         exit(SearchKeywords);
     end;
 
-    local procedure GetConfidence(Score: Decimal): Enum "Search Confidence"
+    internal procedure GetConfidence(Score: Decimal): Enum "Search Confidence"
     begin
         if Score >= 0.55 then
             exit("Search Confidence"::High);
