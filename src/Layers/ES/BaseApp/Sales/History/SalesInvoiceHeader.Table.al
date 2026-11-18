@@ -1281,29 +1281,10 @@ table 112 "Sales Invoice Header"
         field(8840; "Installment Plan ID"; Guid)
         {
             Caption = 'Installment Plan ID';
-            TableRelation = "Installment Plan";
+            TableRelation = "Sales Installment Plan";
             Editable = false;
             ToolTip = 'Specifies the posted global installment schedule for this invoice.';
         }
-        field(7000000; "Applies-to Bill No."; Code[20])
-        {
-            Caption = 'Applies-to Bill No.';
-        }
-        field(7000001; "Cust. Bank Acc. Code"; Code[20])
-        {
-            Caption = 'Cust. Bank Acc. Code';
-            TableRelation = "Customer Bank Account".Code where("Customer No." = field("Bill-to Customer No."));
-        }
-#if not CLEANSCHEMA25
-        field(7000003; "Pay-at Code"; Code[10])
-        {
-            Caption = 'Pay-at Code';
-            TableRelation = "Customer Pmt. Address".Code where("Customer No." = field("Bill-to Customer No."));
-            ObsoleteReason = 'Address is taken from the fields Bill-to Address, Bill-to City, etc.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

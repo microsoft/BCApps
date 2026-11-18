@@ -724,37 +724,12 @@ table 122 "Purch. Inv. Header"
             Caption = 'Draft Invoice SystemId';
             DataClassification = SystemMetadata;
         }
-        field(10005; "Ship-to UPS Zone"; Code[2])
+        field(8840; "Installment Plan ID"; Guid)
         {
-            Caption = 'Ship-to UPS Zone';
-        }
-        field(10015; "Tax Exemption No."; Text[30])
-        {
-            Caption = 'Tax Exemption No.';
-        }
-        field(10017; "Provincial Tax Area Code"; Code[20])
-        {
-            Caption = 'Provincial Tax Area Code';
-            TableRelation = "Tax Area" where("Country/Region" = const(CA));
-        }
-        field(10018; "STE Transaction ID"; Text[20])
-        {
-            Caption = 'STE Transaction ID';
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
             Editable = false;
-        }
-#if not CLEANSCHEMA28
-        field(10020; "IRS 1099 Code"; Code[10])
-        {
-            Caption = 'IRS 1099 Code';
-            ObsoleteReason = 'Moved to IRS Forms App.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
-        field(10042; "Fiscal Invoice Number PAC"; Text[50])
-        {
-            Caption = 'Fiscal Invoice Number PAC';
-            Editable = false;
+            ToolTip = 'Specifies the posted purchase installment schedule for this invoice.';
         }
     }
 

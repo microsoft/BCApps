@@ -3701,7 +3701,7 @@ table 36 "Sales Header"
         {
             Caption = 'Installment Plan ID';
             ToolTip = 'Specifies the document-owned global installment rule snapshot. Supported standalone sales invoices post one receivable per installment.';
-            TableRelation = "Installment Plan";
+            TableRelation = "Sales Installment Plan";
             Editable = false;
         }
         field(9000; "Assigned User ID"; Code[50])
@@ -14733,11 +14733,6 @@ table 36 "Sales Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeResponsibilityCenterValidate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnDeleteOnBeforeCheckPostingNo(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 }

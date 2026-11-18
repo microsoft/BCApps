@@ -760,111 +760,30 @@ table 25 "Vendor Ledger Entry"
                     Validate("On Hold", NewOnHold);
             end;
         }
-        field(12401; "Prepmt. Diff. Appln. Entry No."; Integer)
+        field(8840; "Installment Plan ID"; Guid)
         {
-            Caption = 'Prepmt. Diff. Appln. Entry No.';
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
             Editable = false;
-
-            trigger OnValidate()
-            var
-                DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
-            begin
-                if "Prepmt. Diff. Appln. Entry No." > 0 then
-                    if DtldVendLedgEntry.Get("Prepmt. Diff. Appln. Entry No.") then
-                        "Prepmt. Diff. Vend. Entry No." := DtldVendLedgEntry."Vendor Ledger Entry No.";
-            end;
+            ToolTip = 'Specifies the posted purchase installment plan.';
         }
-        field(12402; "Prepmt. Diff. Vend. Entry No."; Integer)
+        field(8841; "Installment No."; Integer)
         {
-            Caption = 'Prepmt. Diff. Vend. Entry No.';
-        }
-        field(12430; "Vendor VAT Invoice No."; Code[30])
-        {
-            Caption = 'Vendor VAT Invoice No.';
-        }
-        field(12431; "Vendor VAT Invoice Date"; Date)
-        {
-            Caption = 'Vendor VAT Invoice Date';
-
-            trigger OnValidate()
-            var
-                PurchInvHeader: Record "Purch. Inv. Header";
-                PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
-                AddSheet: Boolean;
-            begin
-                if PurchInvHeader.Get("Document No.") then
-                    AddSheet := PurchInvHeader."Additional VAT Ledger Sheet";
-                if PurchCrMemoHdr.Get("Document No.") then
-                    AddSheet := PurchCrMemoHdr."Additional VAT Ledger Sheet";
-                if AddSheet then
-                    exit;
-
-                if ("Vendor VAT Invoice Rcvd Date" <> 0D) and ("Vendor VAT Invoice Date" <> 0D) and
-                   ("Vendor VAT Invoice Rcvd Date" < "Vendor VAT Invoice Date") then
-                    Error(Text12400, FieldCaption("Vendor VAT Invoice Rcvd Date"), FieldCaption("Vendor VAT Invoice Date"));
-            end;
-        }
-        field(12432; "Vendor VAT Invoice Rcvd Date"; Date)
-        {
-            Caption = 'Vendor VAT Invoice Rcvd Date';
-
-            trigger OnValidate()
-            var
-                PurchInvHeader: Record "Purch. Inv. Header";
-                PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
-                AddSheet: Boolean;
-            begin
-                if PurchInvHeader.Get("Document No.") then
-                    AddSheet := PurchInvHeader."Additional VAT Ledger Sheet";
-                if PurchCrMemoHdr.Get("Document No.") then
-                    AddSheet := PurchCrMemoHdr."Additional VAT Ledger Sheet";
-                if AddSheet then
-                    exit;
-
-                if ("Vendor VAT Invoice Rcvd Date" <> 0D) and ("Vendor VAT Invoice Date" <> 0D) and
-                   ("Vendor VAT Invoice Rcvd Date" < "Vendor VAT Invoice Date") then
-                    Error(Text12400, FieldCaption("Vendor VAT Invoice Rcvd Date"), FieldCaption("Vendor VAT Invoice Date"));
-            end;
-        }
-        field(12445; "VAT Entry Type"; Code[15])
-        {
-            Caption = 'VAT Entry Type';
-
-            trigger OnLookup()
-            var
-                VATEntryType: Record "VAT Entry Type";
-            begin
-                VATEntryType.LookupSetOfVATEntryCodes("VAT Entry Type");
-            end;
-
-            trigger OnValidate()
-            var
-                VATEntryType: Record "VAT Entry Type";
-            begin
-                VATEntryType.UpdatePurchVATEntryType(Rec);
-            end;
-        }
-        field(12470; "Vendor Receipts No."; Code[20])
-        {
-            Caption = 'Vendor Receipts No.';
-        }
-        field(12471; "Vendor Receipts Date"; Date)
-        {
-            Caption = 'Vendor Receipts Date';
-        }
-        field(12485; "VAT Adjusted"; Boolean)
-        {
-            Caption = 'VAT Adjusted';
+            Caption = 'Installment No.';
             Editable = false;
+            ToolTip = 'Specifies the sequence number within the installment plan.';
         }
-        field(12490; "Agreement No."; Code[20])
+        field(8842; "No. of Installments"; Integer)
         {
-            Caption = 'Agreement No.';
-            TableRelation = "Vendor Agreement"."No." where("Vendor No." = field("Vendor No."));
+            Caption = 'No. of Installments';
+            Editable = false;
+            ToolTip = 'Specifies the number of payables in the installment plan.';
         }
-        field(12491; "CV Ledger Entry No."; Integer)
+        field(8843; "Invoice Entry No."; Integer)
         {
-            Caption = 'CV Ledger Entry No.';
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
     }
 
@@ -927,6 +846,16 @@ table 25 "Vendor Ledger Entry"
         // Supports the Payment Reconciliation Journal candidate search (Document Type + Open + date range).
         key(PmtReconCandidates; "Document Type", Open, "Posting Date")
         {
+        }
+        key(Installment; "Installment Plan ID", "Installment No.")
+        {
+        }
+        key(Invoice; "Invoice Entry No.", Open)
+        {
+        }
+        key(InstallmentApplication; "Vendor No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.")
+        {
+            MaintainSQLIndex = false;
         }
     }
 

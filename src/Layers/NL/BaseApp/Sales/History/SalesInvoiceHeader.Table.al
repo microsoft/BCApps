@@ -1280,19 +1280,9 @@ table 112 "Sales Invoice Header"
         field(8840; "Installment Plan ID"; Guid)
         {
             Caption = 'Installment Plan ID';
-            TableRelation = "Installment Plan";
+            TableRelation = "Sales Installment Plan";
             Editable = false;
             ToolTip = 'Specifies the posted global installment schedule for this invoice.';
-        }
-        field(11000000; "Transaction Mode"; Code[20])
-        {
-            Caption = 'Transaction Mode';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Customer));
-        }
-        field(11000001; "Bank Account"; Code[20])
-        {
-            Caption = 'Bank Account';
-            TableRelation = "Customer Bank Account".Code where("Customer No." = field("Sell-to Customer No."));
         }
     }
 

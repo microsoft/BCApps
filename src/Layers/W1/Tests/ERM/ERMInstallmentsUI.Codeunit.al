@@ -6,6 +6,7 @@ namespace Microsoft.Foundation.PaymentTerms;
 
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 
 codeunit 134494 "ERM Installments UI"
 {
@@ -24,7 +25,7 @@ codeunit 134494 "ERM Installments UI"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
         Rule: Record "Payment Term Installment";
         PostedSchedule: TestPage "Posted Installment Schedule";
     begin

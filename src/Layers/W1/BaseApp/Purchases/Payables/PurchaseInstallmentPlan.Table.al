@@ -2,14 +2,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Foundation.PaymentTerms;
+namespace Microsoft.Purchases.Payables;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Sales.History;
+using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Purchases.History;
 
-table 8842 "Installment Plan"
+table 8843 "Purchase Installment Plan"
 {
-    Caption = 'Installment Plan';
+    Caption = 'Purchase Installment Plan';
     DataClassification = CustomerContent;
 
     fields
@@ -18,7 +19,7 @@ table 8842 "Installment Plan"
         {
             Caption = 'ID';
         }
-        field(2; Status; Enum "Installment Plan Status")
+        field(2; Status; Enum "Purchase Installment Plan Status")
         {
             Caption = 'Status';
         }
@@ -37,6 +38,7 @@ table 8842 "Installment Plan"
         field(6; "Payment Terms Code"; Code[10])
         {
             Caption = 'Payment Terms Code';
+            TableRelation = "Payment Terms";
         }
         field(7; "Document Date"; Date)
         {
@@ -50,7 +52,7 @@ table 8842 "Installment Plan"
         field(9; "Posted Invoice No."; Code[20])
         {
             Caption = 'Posted Invoice No.';
-            TableRelation = "Sales Invoice Header";
+            TableRelation = "Purch. Inv. Header";
             Editable = false;
         }
         field(10; "Posted Invoice SystemId"; Guid)
@@ -93,7 +95,7 @@ table 8842 "Installment Plan"
 
     trigger OnDelete()
     var
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Purchase Installment Plan Line";
     begin
         if IsTemporary() then
             exit;

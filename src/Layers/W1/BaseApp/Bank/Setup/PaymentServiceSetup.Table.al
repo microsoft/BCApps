@@ -7,6 +7,7 @@ namespace Microsoft.Bank.Setup;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 using System.IO;
 using System.Reflection;
 

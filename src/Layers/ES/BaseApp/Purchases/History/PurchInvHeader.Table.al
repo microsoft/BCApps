@@ -726,30 +726,13 @@ table 122 "Purch. Inv. Header"
             Caption = 'Draft Invoice SystemId';
             DataClassification = SystemMetadata;
         }
-        field(10700; "Autoinvoice No."; Code[20])
+        field(8840; "Installment Plan ID"; Guid)
         {
-            Caption = 'Autoinvoice No.';
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
             Editable = false;
+            ToolTip = 'Specifies the posted purchase installment schedule for this invoice.';
         }
-        field(7000000; "Applies-to Bill No."; Code[20])
-        {
-            Caption = 'Applies-to Bill No.';
-        }
-        field(7000001; "Vendor Bank Acc. Code"; Code[20])
-        {
-            Caption = 'Vendor Bank Acc. Code';
-            TableRelation = "Vendor Bank Account".Code where("Vendor No." = field("Pay-to Vendor No."));
-        }
-#if not CLEANSCHEMA25
-        field(7000003; "Pay-at Code"; Code[10])
-        {
-            Caption = 'Pay-at Code';
-            TableRelation = "Vendor Pmt. Address".Code where("Vendor No." = field("Pay-to Vendor No."));
-            ObsoleteReason = 'Address is taken from the fields Pay-to Address, Pay-to City, etc.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

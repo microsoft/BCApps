@@ -507,7 +507,6 @@ page 43 "Sales Invoice"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ShowMandatory = true;
 
                     trigger OnValidate()
                     begin

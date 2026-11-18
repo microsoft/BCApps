@@ -1071,7 +1071,7 @@ table 21 "Cust. Ledger Entry"
         field(8840; "Installment Plan ID"; Guid)
         {
             Caption = 'Installment Plan ID';
-            TableRelation = "Installment Plan";
+            TableRelation = "Sales Installment Plan";
             Editable = false;
             ToolTip = 'Specifies the posted global installment plan.';
         }
@@ -1092,59 +1092,6 @@ table 21 "Cust. Ledger Entry"
             Caption = 'Invoice Entry No.';
             Editable = false;
             ToolTip = 'Specifies the customer entry that identifies the invoice balance group. Ordinary entries identify themselves.';
-        }
-        field(11620; Adjustment; Boolean)
-        {
-            Caption = 'Adjustment';
-        }
-        field(11621; "BAS Adjustment"; Boolean)
-        {
-            Caption = 'BAS Adjustment';
-        }
-        field(11626; "Adjustment Applies-to"; Code[20])
-        {
-            Caption = 'Adjustment Applies-to';
-        }
-        field(11628; "Pre Adjmt. Reason Code"; Code[10])
-        {
-            Caption = 'Pre Adjmt. Reason Code';
-            TableRelation = "Reason Code";
-        }
-        field(28040; "Rem. Amt for WHT"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = "Currency Code";
-            Caption = 'Rem. Amt for WHT';
-        }
-        field(28041; "Rem. Amt"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = "Currency Code";
-            Caption = 'Rem. Amt';
-        }
-        field(28042; "WHT Amount"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = "Currency Code";
-            CalcFormula = sum("WHT Entry".Amount where("Bill-to/Pay-to No." = field("Customer No."),
-                                                        "Transaction No." = field("Transaction No.")));
-            Caption = 'WHT Amount';
-            Editable = false;
-            FieldClass = FlowField;
-        }
-        field(28043; "WHT Amount (LCY)"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            CalcFormula = sum("WHT Entry"."Amount (LCY)" where("Bill-to/Pay-to No." = field("Customer No."),
-                                                                "Transaction No." = field("Transaction No.")));
-            Caption = 'WHT Amount (LCY)';
-            Editable = false;
-            FieldClass = FlowField;
-        }
-        field(28044; "WHT Payment"; Boolean)
-        {
-            Caption = 'WHT Payment';
         }
     }
 

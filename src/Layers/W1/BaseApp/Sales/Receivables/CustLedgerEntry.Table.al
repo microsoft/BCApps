@@ -1070,7 +1070,7 @@ table 21 "Cust. Ledger Entry"
         field(8840; "Installment Plan ID"; Guid)
         {
             Caption = 'Installment Plan ID';
-            TableRelation = "Installment Plan";
+            TableRelation = "Sales Installment Plan";
             Editable = false;
             ToolTip = 'Specifies the posted global installment plan.';
         }

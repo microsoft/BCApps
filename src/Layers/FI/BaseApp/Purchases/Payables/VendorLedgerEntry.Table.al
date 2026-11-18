@@ -750,24 +750,30 @@ table 25 "Vendor Ledger Entry"
                     Validate("On Hold", NewOnHold);
             end;
         }
-        field(32000000; "Message Type"; Option)
+        field(8840; "Installment Plan ID"; Guid)
         {
-            Caption = 'Message Type';
-            InitValue = "Reference No.";
-            OptionCaption = 'Reference No.,Invoice Information,Message,Long Message,Tax Message';
-            OptionMembers = "Reference No.","Invoice Information",Message,"Long Message","Tax Message";
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
+            Editable = false;
+            ToolTip = 'Specifies the posted purchase installment plan.';
         }
-        field(32000001; "Invoice Message"; Text[250])
+        field(8841; "Installment No."; Integer)
         {
-            Caption = 'Invoice Message';
+            Caption = 'Installment No.';
+            Editable = false;
+            ToolTip = 'Specifies the sequence number within the installment plan.';
         }
-        field(32000002; "Invoice Message 2"; Text[250])
+        field(8842; "No. of Installments"; Integer)
         {
-            Caption = 'Invoice Message 2';
+            Caption = 'No. of Installments';
+            Editable = false;
+            ToolTip = 'Specifies the number of payables in the installment plan.';
         }
-        field(32000003; "Payment Date"; Date)
+        field(8843; "Invoice Entry No."; Integer)
         {
-            Caption = 'Payment Date';
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
     }
 
@@ -830,6 +836,16 @@ table 25 "Vendor Ledger Entry"
         // Supports the Payment Reconciliation Journal candidate search (Document Type + Open + date range).
         key(PmtReconCandidates; "Document Type", Open, "Posting Date")
         {
+        }
+        key(Installment; "Installment Plan ID", "Installment No.")
+        {
+        }
+        key(Invoice; "Invoice Entry No.", Open)
+        {
+        }
+        key(InstallmentApplication; "Vendor No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.")
+        {
+            MaintainSQLIndex = false;
         }
     }
 

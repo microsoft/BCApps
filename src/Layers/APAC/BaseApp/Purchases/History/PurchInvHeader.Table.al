@@ -725,79 +725,12 @@ table 122 "Purch. Inv. Header"
             Caption = 'Draft Invoice SystemId';
             DataClassification = SystemMetadata;
         }
-        field(11620; ABN; Text[14])
+        field(8840; "Installment Plan ID"; Guid)
         {
-            Caption = 'ABN';
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
             Editable = false;
-            Numeric = true;
-        }
-        field(11622; "ABN Division Part No."; Text[3])
-        {
-            Caption = 'ABN Division Part No.';
-        }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28041; "Rem. WHT Prepaid Amount (LCY)"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            CalcFormula = sum("WHT Entry"."Remaining Unrealized Amount" where("Document Type" = const(Invoice),
-                                                                               "Document No." = field("No.")));
-            Caption = 'Rem. WHT Prepaid Amount (LCY)';
-            FieldClass = FlowField;
-        }
-        field(28042; "Paid WHT Prepaid Amount (LCY)"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            CalcFormula = sum("WHT Entry".Amount where("Document Type" = const(Payment),
-                                                        "Document No." = field("No.")));
-            Caption = 'Paid WHT Prepaid Amount (LCY)';
-            FieldClass = FlowField;
-        }
-        field(28043; "Total WHT Prepaid Amount (LCY)"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            CalcFormula = sum("WHT Entry"."Unrealized Amount" where("Document Type" = const(Invoice),
-                                                                     "Document No." = field("No.")));
-            Caption = 'Total WHT Prepaid Amount (LCY)';
-            FieldClass = FlowField;
-        }
-        field(28044; "Actual Vendor No."; Code[20])
-        {
-            Caption = 'Actual Vendor No.';
-            TableRelation = Vendor;
-        }
-        field(28070; "Printed Tax Document"; Boolean)
-        {
-            Caption = 'Printed Tax Document';
-            Editable = false;
-        }
-        field(28071; "Posted Tax Document"; Boolean)
-        {
-            Caption = 'Posted Tax Document';
-            Editable = false;
-        }
-        field(28073; "Tax Date Filter"; Date)
-        {
-            Caption = 'Tax Date Filter';
-            FieldClass = FlowFilter;
-        }
-        field(28074; "Tax Document Marked"; Boolean)
-        {
-            Caption = 'Tax Document Marked';
-            Editable = false;
-        }
-        field(28075; "Invoice Print Type"; Option)
-        {
-            Caption = 'Invoice Print Type';
-            Editable = false;
-            OptionCaption = 'Invoice,Tax Invoice (Items),Tax Invoice (Services)';
-            OptionMembers = Invoice,"Tax Invoice (Items)","Tax Invoice (Services)";
+            ToolTip = 'Specifies the posted purchase installment schedule for this invoice.';
         }
     }
 

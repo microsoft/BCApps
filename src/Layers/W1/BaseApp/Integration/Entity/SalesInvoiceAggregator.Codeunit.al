@@ -616,7 +616,7 @@ codeunit 5477 "Sales Invoice Aggregator"
     local procedure SetStatusOptionFromCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry")
     var
         SalesInvoiceEntityAggregate: Record "Sales Invoice Entity Aggregate";
-        Plan: Record "Installment Plan";
+        Plan: Record "Sales Installment Plan";
         DummyGuid: Guid;
     begin
         if not GraphMgtGeneralTools.IsApiEnabled() then

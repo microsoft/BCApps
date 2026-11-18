@@ -18,6 +18,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
 using System.Automation;
 
 /// <summary>

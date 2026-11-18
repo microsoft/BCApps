@@ -255,42 +255,6 @@ table 380 "Detailed Vendor Ledg. Entry"
             Editable = false;
             TableRelation = "Exch. Rate Adjmt. Reg.";
         }
-        field(12401; Prepayment; Boolean)
-        {
-            Caption = 'Prepayment';
-        }
-        field(12403; "Prepmt. Diff."; Boolean)
-        {
-            Caption = 'Prepmt. Diff.';
-            Editable = false;
-        }
-        field(12404; "Prepmt. Diff. in TA"; Boolean)
-        {
-            Caption = 'Prepmt. Diff. in TA';
-            Editable = false;
-        }
-        field(12435; "Vendor Posting Group"; Code[20])
-        {
-            Caption = 'Vendor Posting Group';
-            TableRelation = "Vendor Posting Group";
-        }
-        field(12436; "Initial Entry Posting Date"; Date)
-        {
-            Caption = 'Initial Entry Posting Date';
-        }
-        field(12490; "Agreement No."; Code[20])
-        {
-            Caption = 'Agreement No.';
-            TableRelation = "Vendor Agreement"."No." where("Vendor No." = field("Vendor No."));
-        }
-        field(17200; "Initial Entry Positive"; Boolean)
-        {
-            Caption = 'Initial Entry Positive';
-        }
-        field(17201; "Tax Diff. Transaction No."; Integer)
-        {
-            Caption = 'Tax Diff. Transaction No.';
-        }
         field(95; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
@@ -298,6 +262,12 @@ table 380 "Detailed Vendor Ledg. Entry"
             Editable = false;
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
+        }
+        field(8843; "Invoice Entry No."; Integer)
+        {
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the vendor entry that identifies the invoice balance group.';
         }
         field(7000004; "Excluded from calculation"; Boolean)
         {
@@ -351,6 +321,10 @@ table 380 "Detailed Vendor Ledg. Entry"
         key(Key12; "Vendor No.", "Entry Type", "Posting Date")
         {
             IncludedFields = Amount, "Amount (LCY)", "Debit Amount", "Credit Amount", "Debit Amount (LCY)", "Credit Amount (LCY)";
+        }
+        key(Invoice; "Invoice Entry No.")
+        {
+            SumIndexFields = Amount, "Amount (LCY)";
         }
     }
 

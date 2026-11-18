@@ -1072,7 +1072,7 @@ table 21 "Cust. Ledger Entry"
         field(8840; "Installment Plan ID"; Guid)
         {
             Caption = 'Installment Plan ID';
-            TableRelation = "Installment Plan";
+            TableRelation = "Sales Installment Plan";
             Editable = false;
             ToolTip = 'Specifies the posted global installment plan.';
         }
@@ -1093,11 +1093,6 @@ table 21 "Cust. Ledger Entry"
             Caption = 'Invoice Entry No.';
             Editable = false;
             ToolTip = 'Specifies the customer entry that identifies the invoice balance group. Ordinary entries identify themselves.';
-        }
-        field(3010831; "LSV No."; Integer)
-        {
-            Caption = 'LSV No.';
-            TableRelation = "LSV Journal";
         }
     }
 

@@ -3880,7 +3880,6 @@ table 81 "Gen. Journal Line"
         field(8840; "Installment Plan ID"; Guid)
         {
             Caption = 'Installment Plan ID';
-            TableRelation = "Installment Plan";
             Editable = false;
         }
         field(8841; "Sales Invoice Source SystemId"; Guid)
@@ -3889,15 +3888,12 @@ table 81 "Gen. Journal Line"
             Editable = false;
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA26
-        field(10500; "Invoice Receipt Date"; Date)
+        field(8842; "Purchase Invoice Source SystemId"; Guid)
         {
-
-            ObsoleteReason = 'Replaced by W1 field "Invoice Received Date".';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
+            Caption = 'Purchase Invoice Source SystemId';
+            Editable = false;
+            DataClassification = SystemMetadata;
         }
-#endif
     }
 
     keys

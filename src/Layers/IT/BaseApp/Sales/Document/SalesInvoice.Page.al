@@ -29,6 +29,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Pricing;
+using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Automation;
@@ -586,11 +587,14 @@ page 43 "Sales Invoice"
                 field("Direct Debit Mandate ID"; Rec."Direct Debit Mandate ID")
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = not HasInstallmentPlan;
+                    ToolTip = 'Specifies the payment discount percentage granted if the customer pays on or before the date entered in the Pmt. Discount Date field.';
                 }
                 field("Fattura Document Type"; Rec."Fattura Document Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value to export in TipoDocument XML node of the Fattura document.';
+                    Importance = Additional;
+                    Editable = not HasInstallmentPlan;
                 }
                 field("Fattura Project Code"; Rec."Fattura Project Code")
                 {

@@ -4163,6 +4163,7 @@ codeunit 90 "Purch.-Post"
     local procedure UpdatePurchaseHeader(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var PurchaseHeader: Record "Purchase Header")
     var
         GenJnlLine: Record "Gen. Journal Line";
+        PurchaseInstallmentPosting: Codeunit "Purchase Installment Posting";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -4173,7 +4174,10 @@ codeunit 90 "Purch.-Post"
         case GenJnlLineDocType of
             GenJnlLine."Document Type"::Invoice:
                 begin
-                    FindVendorLedgerEntry(GenJnlLineDocType, GenJnlLineDocNo, VendorLedgerEntry);
+                    if IsNullGuid(PurchInvHeader."Installment Plan ID") then
+                        FindVendorLedgerEntry(GenJnlLineDocType, GenJnlLineDocNo, VendorLedgerEntry)
+                    else
+                        PurchaseInstallmentPosting.GetFinalVendorEntry(PurchInvHeader, VendorLedgerEntry);
                     PurchInvHeader."Vendor Ledger Entry No." := VendorLedgerEntry."Entry No.";
                     PurchInvHeader.Modify();
                 end;
@@ -11390,11 +11394,6 @@ codeunit 90 "Purch.-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnPostPurchLineOnAfterCreatePostedDeferralScheduleFromPurchDocCrMemo(var PurchCrMemoLine: Record "Purch. Cr. Memo Line"; PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; PurchLine: Record "Purchase Line"; ItemLedgShptEntryNo: Integer; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSupressed: Boolean; xPurchaseLine: Record "Purchase Line")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnPostSalesTaxToGLOnBeforeGenJnlPostLine(var GenJnlLine: Record "Gen. Journal Line"; PurchaseHeader: Record "Purchase Header"; var TempSalesTaxAmtLine: Record "Sales Tax Amount Line");
     begin
     end;
 

@@ -724,77 +724,12 @@ table 122 "Purch. Inv. Header"
             Caption = 'Draft Invoice SystemId';
             DataClassification = SystemMetadata;
         }
-        field(12100; "Operation Type"; Code[20])
+        field(8840; "Installment Plan ID"; Guid)
         {
-            Caption = 'Operation Type';
-            TableRelation = "No. Series" where("No. Series Type" = filter(Sales | Purchase));
-        }
-        field(12101; "Operation Occurred Date"; Date)
-        {
-            Caption = 'Operation Occurred Date';
-        }
-        field(12123; "Activity Code"; Code[6])
-        {
-            Caption = 'Activity Code';
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
             Editable = false;
-            TableRelation = "Activity Code".Code;
-        }
-        field(12125; "Service Tariff No."; Code[10])
-        {
-            Caption = 'Service Tariff No.';
-            Editable = false;
-            TableRelation = "Service Tariff Number";
-        }
-        field(12130; Resident; Option)
-        {
-            Caption = 'Resident';
-            OptionCaption = 'Resident,Non-Resident';
-            OptionMembers = Resident,"Non-Resident";
-        }
-        field(12131; "Individual Person"; Boolean)
-        {
-            Caption = 'Individual Person';
-        }
-        field(12132; "Related Entry No."; Integer)
-        {
-            BlankZero = true;
-            Caption = 'Related Entry No.';
-            Editable = false;
-            TableRelation = "Vendor Ledger Entry" where("Document Type" = const(Invoice));
-        }
-        field(12133; "Birth City"; Text[30])
-        {
-            Caption = 'Birth City';
-        }
-        field(12134; "First Name"; Text[30])
-        {
-            Caption = 'First Name';
-        }
-        field(12135; "Last Name"; Text[30])
-        {
-            Caption = 'Last Name';
-        }
-        field(12136; "Date of Birth"; Date)
-        {
-            Caption = 'Date of Birth';
-        }
-        field(12142; "Fiscal Code"; Code[20])
-        {
-            Caption = 'Fiscal Code';
-        }
-        field(12172; "Bank Account"; Code[20])
-        {
-            Caption = 'Bank Account';
-            TableRelation = "Vendor Bank Account".Code where("Vendor No." = field("Buy-from Vendor No."));
-        }
-        field(12190; "Document Remaining Amount"; Decimal)
-        {
-            AutoFormatExpression = Rec."Currency Code";
-            AutoFormatType = 1;
-            CalcFormula = - sum("Detailed Vendor Ledg. Entry".Amount where("Original Document Type" = const(Invoice), "Original Document No." = field("No.")));
-            Caption = 'Document Remaining Amount';
-            Editable = false;
-            FieldClass = FlowField;
+            ToolTip = 'Specifies the posted purchase installment schedule for this invoice.';
         }
     }
 

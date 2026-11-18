@@ -266,6 +266,15 @@ page 51 "Purchase Invoice"
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                     ToolTip = 'Specifies when the invoice is due. The program calculates the date using the Payment Terms Code and Document Date fields.';
+                    Visible = not HasInstallmentPlan;
+                }
+                field(FirstInstallmentDueDate; Rec."Due Date")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the first scheduled due date as a summary. View the Installment Schedule for all due dates and payment discount conditions.';
+                    Importance = Promoted;
+                    Editable = false;
+                    Visible = HasInstallmentPlan;
                 }
                 field("Incoming Document Entry No."; Rec."Incoming Document Entry No.")
                 {
@@ -455,6 +464,14 @@ page 51 "Purchase Invoice"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
+
+                    trigger OnValidate()
+                    begin
+                        if HasInstallmentPlan or not IsNullGuid(Rec."Installment Plan ID") then begin
+                            HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
+                            CurrPage.Update(false);
+                        end;
+                    end;
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
@@ -489,11 +506,13 @@ page 51 "Purchase Invoice"
                 field("Payment Discount %"; Rec."Payment Discount %")
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = not HasInstallmentPlan;
                 }
                 field("Pmt. Discount Date"; Rec."Pmt. Discount Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
+                    Editable = not HasInstallmentPlan;
                 }
                 field("Journal Templ. Name"; Rec."Journal Templ. Name")
                 {
@@ -1101,6 +1120,23 @@ page 51 "Purchase Invoice"
                     ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
                     RunObject = Page "Purchase Statistics";
                     RunPageOnRec = true;
+                }
+                action(InstallmentSchedule)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    ToolTip = 'Preview installments using the document rule snapshot and current invoice totals. Posting recalculates amounts and creates one payable per installment for supported standalone purchase invoices.';
+                    Image = Payment;
+                    Enabled = HasInstallmentPlan;
+
+                    trigger OnAction()
+                    var
+                        PurchaseInstallmentMgt: Codeunit "Purchase Installment Mgt.";
+                    begin
+                        CurrPage.SaveRecord();
+                        PurchaseInstallmentMgt.ShowSchedule(Rec);
+                        CurrPage.Update(false);
+                    end;
                 }
                 action(Vendor)
                 {
@@ -1811,6 +1847,7 @@ page 51 "Purchase Invoice"
         ShowWorkflowStatus := CurrPage.WorkflowStatus.PAGE.SetFilterOnWorkflowRecord(Rec.RecordId);
         StatusStyleTxt := Rec.GetStatusStyleText();
         Rec.GetContactDetails(BuyFromContact, PayToContact);
+        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
     end;
 
     trigger OnAfterGetRecord()
@@ -1966,6 +2003,7 @@ page 51 "Purchase Invoice"
         VATDateEnabled: Boolean;
         DocAmountEnable, DocAmountsEditable : Boolean;
         IsVendorInvoiceEditable: Boolean;
+        HasInstallmentPlan: Boolean;
 
     protected var
         ShipToOptions: Option "Default (Company Address)",Location,"Custom Address";
@@ -1981,6 +2019,7 @@ page 51 "Purchase Invoice"
         IsJournalTemplNameVisible := GLSetup."Journal Templ. Name Mandatory";
         IsPaymentMethodCodeVisible := not GLSetup."Hide Payment Method Code";
         IsPurchaseLinesEditable := Rec.PurchaseLinesEditable();
+        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
     end;
 
     procedure LineModified()

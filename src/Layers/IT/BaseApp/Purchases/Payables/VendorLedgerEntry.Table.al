@@ -759,33 +759,30 @@ table 25 "Vendor Ledger Entry"
                     Validate("On Hold", NewOnHold);
             end;
         }
-        field(12170; "Document Occurrence"; Integer)
+        field(8840; "Installment Plan ID"; Guid)
         {
-            Caption = 'Document Occurrence';
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
+            Editable = false;
+            ToolTip = 'Specifies the posted purchase installment plan.';
         }
-        field(12171; "Applies-to Occurrence No."; Integer)
+        field(8841; "Installment No."; Integer)
         {
-            Caption = 'Applies-to Occurrence No.';
+            Caption = 'Installment No.';
+            Editable = false;
+            ToolTip = 'Specifies the sequence number within the installment plan.';
         }
-        field(12174; "Vendor Bill No."; Code[20])
+        field(8842; "No. of Installments"; Integer)
         {
-            Caption = 'Vendor Bill No.';
+            Caption = 'No. of Installments';
+            Editable = false;
+            ToolTip = 'Specifies the number of payables in the installment plan.';
         }
-        field(12175; "Vendor Bill List"; Code[20])
+        field(8843; "Invoice Entry No."; Integer)
         {
-            Caption = 'Vendor Bill List';
-        }
-        field(12184; "Int. Arrears Amount to Pay"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = "Currency Code";
-            Caption = 'Int. Arrears Amount to Pay';
-        }
-        field(12185; "Paid Int. Arrears Amount"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = "Currency Code";
-            Caption = 'Paid Int. Arrears Amount';
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
     }
 
@@ -865,6 +862,16 @@ table 25 "Vendor Ledger Entry"
         // Supports the Payment Reconciliation Journal candidate search (Document Type + Open + date range).
         key(PmtReconCandidates; "Document Type", Open, "Posting Date")
         {
+        }
+        key(Installment; "Installment Plan ID", "Installment No.")
+        {
+        }
+        key(Invoice; "Invoice Entry No.", Open)
+        {
+        }
+        key(InstallmentApplication; "Vendor No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.")
+        {
+            MaintainSQLIndex = false;
         }
     }
 

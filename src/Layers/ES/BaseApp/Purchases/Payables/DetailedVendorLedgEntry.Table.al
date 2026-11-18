@@ -265,25 +265,11 @@ table 380 "Detailed Vendor Ledg. Entry"
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
-        field(10700; "VAT Reporting Date"; Date)
+        field(8843; "Invoice Entry No."; Integer)
         {
-            Caption = 'VAT Date';
-        }
-        field(7000000; "Bill No."; Code[20])
-        {
-            Caption = 'Bill No.';
-        }
-        field(7000001; "Document Situation"; Enum "ES Document Situation")
-        {
-            Caption = 'Document Situation';
-        }
-        field(7000002; "Applies-to Bill No."; Code[20])
-        {
-            Caption = 'Applies-to Bill No.';
-        }
-        field(7000003; "Document Status"; Enum "ES Document Status")
-        {
-            Caption = 'Document Status';
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the vendor entry that identifies the invoice balance group.';
         }
         field(7000004; "Excluded from calculation"; Boolean)
         {
@@ -337,6 +323,10 @@ table 380 "Detailed Vendor Ledg. Entry"
         key(Key12; "Vendor No.", "Entry Type", "Posting Date")
         {
             IncludedFields = Amount, "Amount (LCY)", "Debit Amount", "Credit Amount", "Debit Amount (LCY)", "Credit Amount (LCY)";
+        }
+        key(Invoice; "Invoice Entry No.")
+        {
+            SumIndexFields = Amount, "Amount (LCY)";
         }
     }
 

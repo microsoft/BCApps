@@ -63,7 +63,7 @@ page 8840 "Payment Term Installments"
 
                 trigger OnAction()
                 var
-                    TempPlanLine: Record "Installment Plan Line" temporary;
+                    TempPlanLine: Record "Installment Calculation Line" temporary;
                     InstallmentCalculation: Codeunit "Installment Calculation";
                 begin
                     CurrPage.SaveRecord();

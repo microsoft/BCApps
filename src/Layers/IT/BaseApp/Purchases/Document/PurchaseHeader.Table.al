@@ -706,9 +706,45 @@ table 38 "Purchase Header"
             var
                 PaymentLines: Record "Payment Lines";
             begin
-                PaymentLines.CreatePaymentLiensPurchases(Rec);
+                IsHandled := false;
+                OnBeforeValidatePaymentTermsCode(Rec, xRec, CurrFieldNo, UpdateDocumentDate, IsHandled);
+                if IsHandled then
+                    exit;
 
-                CalcFields("Payment %");
+                if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
+                    PaymentTerms.Get("Payment Terms Code");
+                    if IsCreditDocType() and not PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then begin
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeValidateDueDate(Rec, xRec, CurrFieldNo, IsHandled);
+                        if not IsHandled then
+                            Validate("Due Date", "Document Date");
+                        Validate("Pmt. Discount Date", 0D);
+                        Validate("Payment Discount %", 0);
+                    end else begin
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeCalcDueDate(Rec, xRec, FieldNo("Payment Terms Code"), CurrFieldNo, IsHandled);
+                        if not IsHandled then
+                            "Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeCalcPmtDiscDate(Rec, xRec, FieldNo("Payment Terms Code"), CurrFieldNo, IsHandled, UpdateDocumentDate);
+                        if not IsHandled then
+                            "Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
+                        if not UpdateDocumentDate then
+                            Validate("Payment Discount %", PaymentTerms."Discount %")
+                    end;
+                end else begin
+                    IsHandled := false;
+                    OnValidatePaymentTermsCodeOnBeforeValidateDueDateWhenBlank(Rec, xRec, CurrFieldNo, IsHandled);
+                    if not IsHandled then
+                        Validate("Due Date", "Document Date");
+                    if not UpdateDocumentDate then begin
+                        OnValidatePaymentTermsCodeOnBeforeValidatePmtDiscountWhenBlank(Rec);
+                        Validate("Pmt. Discount Date", 0D);
+                        Validate("Payment Discount %", 0);
+                    end;
+                end;
+                if xRec."Payment Terms Code" = "Prepmt. Payment Terms Code" then
+                    Validate("Prepmt. Payment Terms Code", "Payment Terms Code");
             end;
         }
         field(24; "Due Date"; Date)
@@ -2856,6 +2892,13 @@ table 38 "Purchase Header"
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Price Calculation Method';
+        }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            ToolTip = 'Specifies the document-owned purchase installment rule snapshot. Supported standalone purchase invoices post one payable per installment.';
+            TableRelation = "Purchase Installment Plan";
+            Editable = false;
         }
         field(9000; "Assigned User ID"; Code[50])
         {
@@ -9540,6 +9583,11 @@ table 38 "Purchase Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateOrderAddressCodeOnBeforeUpdateLocationCode(var PurchaseHeader: Record "Purchase Header"; var xPurchaseHeader: Record "Purchase Header"; CurrentFieldNo: Integer; var IsHandled: Boolean);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidatePaymentTermsCode(var PurchaseHeader: Record "Purchase Header"; var xPurchaseHeader: Record "Purchase Header"; CallingFieldNo: Integer; UpdateDocumentDate: Boolean; var IsHandled: Boolean)
     begin
     end;
 

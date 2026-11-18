@@ -724,20 +724,12 @@ table 122 "Purch. Inv. Header"
             Caption = 'Draft Invoice SystemId';
             DataClassification = SystemMetadata;
         }
-        field(32000000; "Message Type"; Option)
+        field(8840; "Installment Plan ID"; Guid)
         {
-            Caption = 'Message Type';
-            InitValue = "Reference No.";
-            OptionCaption = 'Reference No.,Invoice Information,Message,Long Message,Tax Message';
-            OptionMembers = "Reference No.","Invoice Information",Message,"Long Message","Tax Message";
-        }
-        field(32000001; "Invoice Message"; Text[250])
-        {
-            Caption = 'Invoice Message';
-        }
-        field(32000002; "Invoice Message 2"; Text[250])
-        {
-            Caption = 'Invoice Message 2';
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
+            Editable = false;
+            ToolTip = 'Specifies the posted purchase installment schedule for this invoice.';
         }
     }
 

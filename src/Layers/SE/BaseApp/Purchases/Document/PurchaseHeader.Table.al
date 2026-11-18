@@ -636,6 +636,11 @@ table 38 "Purchase Header"
             var
                 IsHandled: Boolean;
             begin
+                IsHandled := false;
+                OnBeforeValidatePaymentTermsCode(Rec, xRec, CurrFieldNo, UpdateDocumentDate, IsHandled);
+                if IsHandled then
+                    exit;
+
                 if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
                     PaymentTerms.Get("Payment Terms Code");
                     if IsCreditDocType() and not PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then begin
@@ -2778,6 +2783,13 @@ table 38 "Purchase Header"
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
         {
             Caption = 'Price Calculation Method';
+        }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            ToolTip = 'Specifies the document-owned purchase installment rule snapshot. Supported standalone purchase invoices post one payable per installment.';
+            TableRelation = "Purchase Installment Plan";
+            Editable = false;
         }
         field(9000; "Assigned User ID"; Code[50])
         {
@@ -8914,6 +8926,11 @@ table 38 "Purchase Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateOrderAddressCodeOnBeforeUpdateLocationCode(var PurchaseHeader: Record "Purchase Header"; var xPurchaseHeader: Record "Purchase Header"; CurrentFieldNo: Integer; var IsHandled: Boolean);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidatePaymentTermsCode(var PurchaseHeader: Record "Purchase Header"; var xPurchaseHeader: Record "Purchase Header"; CallingFieldNo: Integer; UpdateDocumentDate: Boolean; var IsHandled: Boolean)
     begin
     end;
 

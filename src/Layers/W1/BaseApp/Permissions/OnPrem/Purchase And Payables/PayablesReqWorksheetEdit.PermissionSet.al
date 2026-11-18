@@ -19,8 +19,10 @@ using Microsoft.Pricing.Worksheet;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Pricing;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
 using Microsoft.Warehouse.Structure;
 using System.Security.User;
 
@@ -40,8 +42,10 @@ permissionset 552 "Payables Req Worksheet - Edit"
                   tabledata "Entry Summary" = RIMD,
                   tabledata "G/L Account" = R,
                   tabledata Item = R,
-                  tabledata "Installment Plan" = R,
-                  tabledata "Installment Plan Line" = R,
+                  tabledata "Sales Installment Plan" = R,
+                  tabledata "Purchase Installment Plan" = R,
+                  tabledata "Sales Installment Plan Line" = R,
+                  tabledata "Purchase Installment Plan Line" = R,
                   tabledata "Item Journal Line" = Rm,
                   tabledata "Item Ledger Entry" = Rm,
                   tabledata "Item Translation" = R,

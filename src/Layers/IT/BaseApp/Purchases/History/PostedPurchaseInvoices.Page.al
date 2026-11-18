@@ -296,6 +296,21 @@ page 146 "Posted Purchase Invoices"
             {
                 Caption = '&Invoice';
                 Image = Invoice;
+                action(InstallmentSchedule)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    Image = PaymentPeriod;
+                    Enabled = HasInstallmentPlan;
+                    ToolTip = 'View the original installment schedule, current unpaid amounts, and linked vendor entries.';
+
+                    trigger OnAction()
+                    var
+                        PurchaseInstallmentHistory: Codeunit "Purchase Installment History";
+                    begin
+                        PurchaseInstallmentHistory.ShowSchedule(Rec);
+                    end;
+                }
                 action(Statistics)
                 {
                     ApplicationArea = Suite;
@@ -579,6 +594,7 @@ page 146 "Posted Purchase Invoices"
     trigger OnAfterGetCurrRecord()
     begin
         CurrPage.IncomingDocAttachFactBox.PAGE.LoadDataFromRecord(Rec);
+        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
     end;
 
     trigger OnOpenPage()
@@ -604,4 +620,5 @@ page 146 "Posted Purchase Invoices"
 
     var
         IsOfficeAddin: Boolean;
+        HasInstallmentPlan: Boolean;
 }

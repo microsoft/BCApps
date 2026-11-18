@@ -28,6 +28,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Pricing;
+using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Automation;
@@ -1275,18 +1276,6 @@ page 43 "Sales Invoice"
                     RunObject = Page "Sales Statistics";
                     RunPageOnRec = true;
                 }
-                action(SalesOrderStats)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Statistics';
-                    Enabled = Rec."No." <> '';
-                    Image = Statistics;
-                    ShortCutKey = 'F7';
-                    Visible = SalesTaxStatisticsVisible;
-                    ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-                    RunObject = Page "Sales Order Stats.";
-                    RunPageOnRec = true;
-                }
                 action(InstallmentSchedule)
                 {
                     ApplicationArea = Basic, Suite;
@@ -2132,8 +2121,6 @@ page 43 "Sales Invoice"
         RejectICSalesInvoiceEnabled := ICInboxOutboxMgt.IsSalesHeaderFromIncomingIC(Rec);
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
         HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
-
-        SalesTaxStatisticsVisible := Rec."Tax Area Code" <> '';
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean

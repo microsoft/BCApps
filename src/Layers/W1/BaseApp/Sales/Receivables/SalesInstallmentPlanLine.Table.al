@@ -2,13 +2,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Foundation.PaymentTerms;
+namespace Microsoft.Sales.Receivables;
 
-using Microsoft.Sales.Receivables;
+using Microsoft.Foundation.PaymentTerms;
 
-table 8841 "Installment Plan Line"
+table 8841 "Sales Installment Plan Line"
 {
-    Caption = 'Installment Plan Line';
+    Caption = 'Sales Installment Plan Line';
     DataClassification = CustomerContent;
 
     fields
@@ -16,7 +16,7 @@ table 8841 "Installment Plan Line"
         field(1; "Plan ID"; Guid)
         {
             Caption = 'Plan ID';
-            TableRelation = "Installment Plan";
+            TableRelation = "Sales Installment Plan";
         }
         field(2; "Line No."; Integer)
         {
@@ -149,7 +149,7 @@ table 8841 "Installment Plan Line"
         Description := PaymentTermInstallment.Description;
     end;
 
-    internal procedure CopyRulesFromPlanLine(PlanLine: Record "Installment Plan Line")
+    internal procedure CopyRulesFromPlanLine(PlanLine: Record "Sales Installment Plan Line")
     begin
         "Line No." := PlanLine."Line No.";
         "Allocation Type" := PlanLine."Allocation Type";
@@ -158,5 +158,53 @@ table 8841 "Installment Plan Line"
         "Discount Date Calculation" := PlanLine."Discount Date Calculation";
         "Discount %" := PlanLine."Discount %";
         Description := PlanLine.Description;
+    end;
+
+    internal procedure CopyToCalculationLine(var CalculationLine: Record "Installment Calculation Line" temporary)
+    begin
+        CalculationLine."Plan ID" := "Plan ID";
+        CalculationLine."Line No." := "Line No.";
+        CalculationLine."Allocation Type" := "Allocation Type";
+        CalculationLine."Payment %" := "Payment %";
+        CalculationLine."Due Date Calculation" := "Due Date Calculation";
+        CalculationLine."Discount Date Calculation" := "Discount Date Calculation";
+        CalculationLine."Discount %" := "Discount %";
+        CalculationLine.Description := Description;
+        CalculationLine."Installment No." := "Installment No.";
+        CalculationLine."Due Date" := "Due Date";
+        CalculationLine."Pmt. Discount Date" := "Pmt. Discount Date";
+        CalculationLine.Amount := Amount;
+        CalculationLine."Amount (LCY)" := "Amount (LCY)";
+        CalculationLine."Rounding Adjustment" := "Rounding Adjustment";
+        CalculationLine."Rounding Adjustment (LCY)" := "Rounding Adjustment (LCY)";
+        CalculationLine."Original Pmt. Disc. Possible" := "Original Pmt. Disc. Possible";
+        CalculationLine."Source Currency Amount" := "Source Currency Amount";
+        CalculationLine."Sales/Purch. (LCY)" := "Sales (LCY)";
+        CalculationLine."Profit (LCY)" := "Profit (LCY)";
+        CalculationLine."Inv. Discount (LCY)" := "Inv. Discount (LCY)";
+    end;
+
+    internal procedure CopyFromCalculationLine(CalculationLine: Record "Installment Calculation Line" temporary)
+    begin
+        "Plan ID" := CalculationLine."Plan ID";
+        "Line No." := CalculationLine."Line No.";
+        "Allocation Type" := CalculationLine."Allocation Type";
+        "Payment %" := CalculationLine."Payment %";
+        "Due Date Calculation" := CalculationLine."Due Date Calculation";
+        "Discount Date Calculation" := CalculationLine."Discount Date Calculation";
+        "Discount %" := CalculationLine."Discount %";
+        Description := CalculationLine.Description;
+        "Installment No." := CalculationLine."Installment No.";
+        "Due Date" := CalculationLine."Due Date";
+        "Pmt. Discount Date" := CalculationLine."Pmt. Discount Date";
+        Amount := CalculationLine.Amount;
+        "Amount (LCY)" := CalculationLine."Amount (LCY)";
+        "Rounding Adjustment" := CalculationLine."Rounding Adjustment";
+        "Rounding Adjustment (LCY)" := CalculationLine."Rounding Adjustment (LCY)";
+        "Original Pmt. Disc. Possible" := CalculationLine."Original Pmt. Disc. Possible";
+        "Source Currency Amount" := CalculationLine."Source Currency Amount";
+        "Sales (LCY)" := CalculationLine."Sales/Purch. (LCY)";
+        "Profit (LCY)" := CalculationLine."Profit (LCY)";
+        "Inv. Discount (LCY)" := CalculationLine."Inv. Discount (LCY)";
     end;
 }

@@ -24,10 +24,6 @@ codeunit 9998 "Upgrade Tag Definitions"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
-        // RU
-        PerCompanyUpgradeTags.Add(GetItemDocumentsUpgradeTag());
-
-        // W1
         PerCompanyUpgradeTags.Add(GetInstallmentInvoiceGroupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetTimeRegistrationUpgradeTag());
         PerCompanyUpgradeTags.Add(GetJobQueueEntryMergeErrorMessageFieldsUpgradeTag());

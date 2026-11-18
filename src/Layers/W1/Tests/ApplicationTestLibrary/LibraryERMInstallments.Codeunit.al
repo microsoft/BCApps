@@ -9,6 +9,10 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Enums;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -27,6 +31,7 @@ codeunit 134495 "Library - ERM Installments"
     var
         GLSetup: Record "General Ledger Setup";
         SalesSetup: Record "Sales & Receivables Setup";
+        PurchSetup: Record "Purchases & Payables Setup";
     begin
         GLSetup.Get();
         GLSetup."Amount Rounding Precision" := 0.01;
@@ -39,6 +44,11 @@ codeunit 134495 "Library - ERM Installments"
         SalesSetup."Calc. Inv. Discount" := false;
         SalesSetup."Discount Posting" := SalesSetup."Discount Posting"::"No Discounts";
         SalesSetup.Modify();
+        PurchSetup.Get();
+        PurchSetup."Invoice Rounding" := false;
+        PurchSetup."Calc. Inv. Discount" := false;
+        PurchSetup."Discount Posting" := PurchSetup."Discount Posting"::"No Discounts";
+        PurchSetup.Modify();
     end;
 
     procedure CreateInvoice(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CurrencyCode: Code[10])
@@ -47,7 +57,7 @@ codeunit 134495 "Library - ERM Installments"
         PaymentTerms: Record "Payment Terms";
         PaymentMethod: Record "Payment Method";
         VATPostingSetup: Record "VAT Posting Setup";
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Sales Installment Plan Line" temporary;
         Rule: Record "Payment Term Installment";
     begin
         Initialize();
@@ -90,7 +100,83 @@ codeunit 134495 "Library - ERM Installments"
         SalesLine.Modify(true);
     end;
 
-    procedure CreateTemporaryRules(var TempPlanLine: Record "Installment Plan Line" temporary)
+    procedure CreatePurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; CurrencyCode: Code[10])
+    var
+        Vendor: Record Vendor;
+        PaymentTerms: Record "Payment Terms";
+        PaymentMethod: Record "Payment Method";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Rule: Record "Payment Term Installment";
+        TempPlanLine: Record "Purchase Installment Plan Line" temporary;
+    begin
+        Initialize();
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 25);
+        LibraryERM.CreatePaymentTerms(PaymentTerms);
+        LibraryERM.CreatePaymentMethod(PaymentMethod);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Payment Terms Code", PaymentTerms.Code);
+        Vendor.Validate("Payment Method Code", PaymentMethod.Code);
+        Vendor.Validate("Application Method", Vendor."Application Method"::Manual);
+        Vendor.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Vendor.Modify(true);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        PurchaseHeader.Validate("Document Date", WorkDate());
+        PurchaseHeader.Validate("Posting Date", WorkDate());
+        PurchaseHeader.Validate("Prices Including VAT", false);
+        if CurrencyCode <> '' then
+            PurchaseHeader.Validate("Currency Code", CurrencyCode);
+        PurchaseHeader.Modify(true);
+        CreatePurchaseTemporaryRules(TempPlanLine);
+        TempPlanLine.FindSet();
+        repeat
+            Rule.Init();
+            Rule."Payment Terms Code" := PaymentTerms.Code;
+            Rule."Line No." := TempPlanLine."Line No.";
+            Rule."Allocation Type" := TempPlanLine."Allocation Type";
+            Rule."Payment %" := TempPlanLine."Payment %";
+            Rule."Due Date Calculation" := TempPlanLine."Due Date Calculation";
+            Rule."Discount Date Calculation" := TempPlanLine."Discount Date Calculation";
+            Rule."Discount %" := TempPlanLine."Discount %";
+            Rule.Insert(true);
+        until TempPlanLine.Next() = 0;
+        PurchaseHeader.Validate("Payment Terms Code", PaymentTerms.Code);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account",
+            LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, Enum::"General Posting Type"::Purchase), 1);
+        PurchaseLine.Validate("Direct Unit Cost", 100);
+        PurchaseLine.Validate("Allow Invoice Disc.", true);
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure CreatePurchaseTemporaryRules(var TempPlanLine: Record "Purchase Installment Plan Line" temporary)
+    var
+        PlanID: Guid;
+    begin
+        PlanID := CreateGuid();
+        CreatePurchaseRule(TempPlanLine, PlanID, 10000, 33.33333, '<30D>', 2, '<10D>');
+        CreatePurchaseRule(TempPlanLine, PlanID, 20000, 33.33333, '<60D>', 1, '<20D>');
+        TempPlanLine.Init();
+        TempPlanLine."Plan ID" := PlanID;
+        TempPlanLine."Line No." := 30000;
+        TempPlanLine."Allocation Type" := TempPlanLine."Allocation Type"::"Remaining Amount";
+        Evaluate(TempPlanLine."Due Date Calculation", '<90D>');
+        TempPlanLine.Insert();
+    end;
+
+    local procedure CreatePurchaseRule(var TempPlanLine: Record "Purchase Installment Plan Line" temporary; PlanID: Guid; LineNo: Integer; PaymentPercentage: Decimal; DueDateCalculation: Text; DiscountPercentage: Decimal; DiscountDateCalculation: Text)
+    begin
+        TempPlanLine.Init();
+        TempPlanLine."Plan ID" := PlanID;
+        TempPlanLine."Line No." := LineNo;
+        TempPlanLine."Payment %" := PaymentPercentage;
+        TempPlanLine."Discount %" := DiscountPercentage;
+        Evaluate(TempPlanLine."Due Date Calculation", DueDateCalculation);
+        Evaluate(TempPlanLine."Discount Date Calculation", DiscountDateCalculation);
+        TempPlanLine.Insert();
+    end;
+
+    procedure CreateTemporaryRules(var TempPlanLine: Record "Sales Installment Plan Line" temporary)
     var
         PlanID: Guid;
     begin
@@ -121,7 +207,7 @@ codeunit 134495 "Library - ERM Installments"
     var
         Header: Record "Sales Header";
         Line: Record "Sales Line";
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
     begin
         CreateInvoice(Header, Line, CurrencyCode);
         Header.Validate("External Document No.", LibraryUtility.GenerateGUID());
@@ -140,7 +226,7 @@ codeunit 134495 "Library - ERM Installments"
 
     procedure GetInstallment(var Entry: Record "Cust. Ledger Entry"; PlanID: Guid; Sequence: Integer)
     var
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
     begin
         PlanLine.SetRange("Plan ID", PlanID);
         PlanLine.SetRange("Installment No.", Sequence);

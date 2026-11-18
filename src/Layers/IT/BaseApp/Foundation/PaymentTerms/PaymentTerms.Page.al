@@ -45,6 +45,10 @@ page 4 "Payment Terms"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+                field("Has Installments"; Rec."Has Installments")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field("Coupled to Dataverse"; CDSIsCoupledToRecord)
                 {
                     ApplicationArea = All;
@@ -74,16 +78,6 @@ page 4 "Payment Terms"
     {
         area(processing)
         {
-            action("&Calculation")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = '&Calculation';
-                Image = Calculate;
-                RunObject = Page "Payment Terms Lines";
-                RunPageLink = Type = const("Payment Terms"),
-                              Code = field(Code);
-                ToolTip = 'View or edit the conditions of the current payment term.';
-            }
             action(InstallmentLines)
             {
                 ApplicationArea = Basic, Suite;
@@ -213,9 +207,6 @@ page 4 "Payment Terms"
             {
                 Caption = 'Payment Terms';
 
-                actionref("&Calculation_Promoted"; "&Calculation")
-                {
-                }
                 actionref(InstallmentLines_Promoted; InstallmentLines)
                 {
                 }

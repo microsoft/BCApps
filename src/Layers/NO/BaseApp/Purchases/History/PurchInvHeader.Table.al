@@ -724,21 +724,12 @@ table 122 "Purch. Inv. Header"
             Caption = 'Draft Invoice SystemId';
             DataClassification = SystemMetadata;
         }
-        field(15000000; KID; Code[30])
+        field(8840; "Installment Plan ID"; Guid)
         {
-            Caption = 'KID';
-
-            trigger OnValidate()
-            var
-                Tools: Codeunit "Remittance Tools";
-                ErrorMess: Text[250];
-            begin
-                if KID <> '' then begin
-                    ErrorMess := Tools.CheckKID(KID);
-                    if ErrorMess <> '' then
-                        Error(ErrorMess);
-                end;
-            end;
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
+            Editable = false;
+            ToolTip = 'Specifies the posted purchase installment schedule for this invoice.';
         }
     }
 

@@ -46,12 +46,6 @@ page 4 "Payment Terms"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("SAT Payment Term"; Rec."SAT Payment Term")
-                {
-                    ApplicationArea = BasicMX;
-                    Caption = 'SAT Payment Form';
-                    ToolTip = 'Specifies the number of the SAT payment form. ';
-                }
                 field("Has Installments"; Rec."Has Installments")
                 {
                     ApplicationArea = Basic, Suite;

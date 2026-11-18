@@ -376,7 +376,7 @@ codeunit 134497 "ERM Installment Collections"
     var
         Header: Record "Sales Header";
         Line: Record "Sales Line";
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
         PaymentTerms: Record "Payment Terms";
     begin
         LibraryInstallments.CreateInvoice(Header, Line, '');
@@ -502,7 +502,7 @@ codeunit 134497 "ERM Installment Collections"
 
     local procedure GetInstallment(var Entry: Record "Cust. Ledger Entry"; PlanID: Guid; Sequence: Integer)
     var
-        Line: Record "Installment Plan Line";
+        Line: Record "Sales Installment Plan Line";
     begin
         Line.SetRange("Plan ID", PlanID);
         Line.SetRange("Installment No.", Sequence);

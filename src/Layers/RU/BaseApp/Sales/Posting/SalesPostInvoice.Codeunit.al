@@ -461,8 +461,6 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         SalesHeader: Record "Sales Header";
         GenJnlLine: Record "Gen. Journal Line";
         JobSalesLine: Record "Sales Line";
-        CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
-        PrepmtDiffCustLedgerEntry: Record "Cust. Ledger Entry";
         GLEntryNo: Integer;
         LineCount: Integer;
     begin
@@ -626,8 +624,6 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
     var
         SalesHeader: Record "Sales Header";
         GenJnlLine: Record "Gen. Journal Line";
-        CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
-        PrepmtDiffCustLedgerEntry: Record "Cust. Ledger Entry";
         InstallmentPosting: Codeunit "Installment Posting";
         IsHandled: Boolean;
     begin
@@ -674,7 +670,6 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 
         SalesPostInvoiceEvents.RunOnPostLedgerEntryOnBeforeGenJnlPostLine(
             GenJnlLine, SalesHeader, TotalSalesLine, TotalSalesLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
-        GenJnlPostLine.SetPreviewMode(PreviewMode);
         InstallmentPosting.PrepareJournalLine(SalesHeader, GenJnlLine);
         GenJnlPostLine.RunWithCheck(GenJnlLine);
         SalesPostInvoiceEvents.RunOnPostLedgerEntryOnAfterGenJnlPostLine(

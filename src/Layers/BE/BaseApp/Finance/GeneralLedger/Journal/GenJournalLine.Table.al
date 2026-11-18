@@ -3886,7 +3886,6 @@ table 81 "Gen. Journal Line"
         field(8840; "Installment Plan ID"; Guid)
         {
             Caption = 'Installment Plan ID';
-            TableRelation = "Installment Plan";
             Editable = false;
         }
         field(8841; "Sales Invoice Source SystemId"; Guid)
@@ -3895,21 +3894,11 @@ table 81 "Gen. Journal Line"
             Editable = false;
             DataClassification = SystemMetadata;
         }
-        field(11310; "Enterprise No."; Text[50])
+        field(8842; "Purchase Invoice Source SystemId"; Guid)
         {
-            Caption = 'Enterprise No.';
-        }
-        field(11311; "Non Ded. VAT Amount"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = Rec."Currency Code";
-            Caption = 'Non Ded. VAT Amount';
-        }
-        field(11312; "Non Ded. Source Curr. VAT Amt."; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = Rec."Currency Code";
-            Caption = 'Non Ded. Source Curr. VAT Amt.';
+            Caption = 'Purchase Invoice Source SystemId';
+            Editable = false;
+            DataClassification = SystemMetadata;
         }
     }
 

@@ -3898,7 +3898,6 @@ table 81 "Gen. Journal Line"
         field(8840; "Installment Plan ID"; Guid)
         {
             Caption = 'Installment Plan ID';
-            TableRelation = "Installment Plan";
             Editable = false;
         }
         field(8841; "Sales Invoice Source SystemId"; Guid)
@@ -3907,67 +3906,12 @@ table 81 "Gen. Journal Line"
             Editable = false;
             DataClassification = SystemMetadata;
         }
-        field(10801; "Bank Account Name"; Text[100])
+        field(8842; "Purchase Invoice Source SystemId"; Guid)
         {
-            Caption = 'Bank Account Name';
-        }
-        field(10860; "Entry No."; Integer)
-        {
-            Caption = 'Entry No.';
+            Caption = 'Purchase Invoice Source SystemId';
             Editable = false;
+            DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA33
-        field(10861; "Derogatory Line"; Boolean)
-        {
-            Caption = 'Derogatory Line';
-            Editable = false;
-#if CLEAN30
-            ObsoleteState = Removed;
-            ObsoleteTag = '33.0';
-            ObsoleteReason = 'Moved to W1 Base Application';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '30.0';
-            ObsoleteReason = 'Moved to W1 Base Application';
-#endif
-        }
-        field(10862; "Delayed Unrealized VAT"; Boolean)
-        {
-            Caption = 'Delayed Unrealized VAT';
-            ObsoleteReason = 'Use Delayed Unreal. VAT in the Payment Management FR app.';
-#if not CLEAN30
-            ObsoleteState = Pending;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '33.0';
-#endif
-        }
-        field(10863; "Realize VAT"; Boolean)
-        {
-            Caption = 'Realize VAT';
-            ObsoleteReason = 'Use Realize Delayed VAT in the Payment Management FR app.';
-#if not CLEAN30
-            ObsoleteState = Pending;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '33.0';
-#endif
-        }
-        field(10864; "Created from No."; Code[20])
-        {
-            Caption = 'Created from No.';
-            ObsoleteReason = 'Use Created From Pmt. Slip No. in the Payment Management FR app.';
-#if not CLEAN30
-            ObsoleteState = Pending;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '33.0';
-#endif
-        }
-#endif
     }
 
     keys

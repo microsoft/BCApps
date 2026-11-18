@@ -7,6 +7,7 @@ namespace Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 
@@ -29,8 +30,8 @@ codeunit 134492 "ERM Installment Draft"
     var
         SalesHeader: Record "Sales Header";
         PaymentTerms: Record "Payment Terms";
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
     begin
         // [FEATURE] [Installments] [Draft]
         // [SCENARIO] Selecting installment terms creates an invoice-owned draft snapshot without caching calculated values.
@@ -58,7 +59,7 @@ codeunit 134492 "ERM Installment Draft"
         SalesHeader: Record "Sales Header";
         PaymentTerms: Record "Payment Terms";
         Rule: Record "Payment Term Installment";
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
         PlanID: Guid;
     begin
         // [FEATURE] [Installments] [Draft]
@@ -88,8 +89,8 @@ codeunit 134492 "ERM Installment Draft"
         SalesHeader: Record "Sales Header";
         PaymentTerms: Record "Payment Terms";
         ReplacementTerms: Record "Payment Terms";
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
         OldPlanID: Guid;
     begin
         // [FEATURE] [Installments] [Draft]
@@ -118,8 +119,8 @@ codeunit 134492 "ERM Installment Draft"
         SalesHeader: Record "Sales Header";
         PaymentTerms: Record "Payment Terms";
         OrdinaryTerms: Record "Payment Terms";
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
         OldPlanID: Guid;
     begin
         // [FEATURE] [Installments] [Draft]
@@ -174,7 +175,7 @@ codeunit 134492 "ERM Installment Draft"
         PaymentTerms: Record "Payment Terms";
         OrdinaryTerms: Record "Payment Terms";
         Customer: Record Customer;
-        Plan: Record "Installment Plan";
+        Plan: Record "Sales Installment Plan";
         OldPlanID: Guid;
     begin
         // [FEATURE] [Installments] [Draft]
@@ -206,8 +207,8 @@ codeunit 134492 "ERM Installment Draft"
         PaymentTerms: Record "Payment Terms";
         TargetTerms: Record "Payment Terms";
         Rule: Record "Payment Term Installment";
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
         CopyDocumentMgt: Codeunit "Copy Document Mgt.";
         ReplacedPlanID: Guid;
     begin
@@ -246,7 +247,7 @@ codeunit 134492 "ERM Installment Draft"
     var
         SalesHeader: Record "Sales Header";
         PaymentTerms: Record "Payment Terms";
-        Plan: Record "Installment Plan";
+        Plan: Record "Sales Installment Plan";
     begin
         // [FEATURE] [Installments] [Draft]
         // [SCENARIO] Validating and then inserting a new invoice defers plan ownership until its SystemId is assigned.
@@ -278,8 +279,8 @@ codeunit 134492 "ERM Installment Draft"
     var
         SalesHeader: Record "Sales Header";
         PaymentTerms: Record "Payment Terms";
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
         PlanID: Guid;
     begin
         // [FEATURE] [Installments] [Draft]
@@ -303,8 +304,8 @@ codeunit 134492 "ERM Installment Draft"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         PaymentTerms: Record "Payment Terms";
-        PlanLine: Record "Installment Plan Line";
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        PlanLine: Record "Sales Installment Plan Line";
+        TempPlanLine: Record "Sales Installment Plan Line" temporary;
         SalesSetup: Record "Sales & Receivables Setup";
         DiscountByType: Codeunit "Sales - Calc Discount By Type";
     begin

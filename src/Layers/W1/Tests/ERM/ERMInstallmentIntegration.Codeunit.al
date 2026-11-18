@@ -31,8 +31,8 @@ codeunit 134499 "ERM Installment Integration"
     procedure ReadRoleCanReadPostedScheduleAndLiveBalances()
     var
         Invoice: Record "Sales Invoice Header";
-        Plan: Record "Installment Plan";
-        Line: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        Line: Record "Sales Installment Plan Line";
         Entry: Record "Cust. Ledger Entry";
         PermissionsMock: Codeunit "Permissions Mock";
         RemainingAmount: Decimal;
@@ -60,7 +60,7 @@ codeunit 134499 "ERM Installment Integration"
     var
         Header: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        Plan: Record "Installment Plan";
+        Plan: Record "Sales Installment Plan";
         PermissionsMock: Codeunit "Permissions Mock";
     begin
         LibraryInstallments.CreateInvoice(Header, SalesLine, '');
@@ -125,8 +125,8 @@ codeunit 134499 "ERM Installment Integration"
         Invoices: array[10] of Record "Sales Invoice Header";
         Header: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        Line: Record "Installment Plan Line";
-        TempOriginalLine: Record "Installment Plan Line" temporary;
+        Line: Record "Sales Installment Plan Line";
+        TempOriginalLine: Record "Sales Installment Plan Line" temporary;
         Entry: Record "Cust. Ledger Entry";
         Customer: Record Customer;
         CustomerPostingGroup: Record "Customer Posting Group";
@@ -217,7 +217,7 @@ codeunit 134499 "ERM Installment Integration"
 
     local procedure SetTwelveInstallments(PlanID: Guid)
     var
-        Line: Record "Installment Plan Line";
+        Line: Record "Sales Installment Plan Line";
         Sequence: Integer;
     begin
         Line.SetRange("Plan ID", PlanID);

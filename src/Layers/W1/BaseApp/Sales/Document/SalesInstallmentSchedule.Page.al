@@ -5,12 +5,13 @@
 namespace Microsoft.Sales.Document;
 
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Sales.Receivables;
 
 page 8841 "Sales Installment Schedule"
 {
     Caption = 'Sales Installment Schedule';
     PageType = List;
-    SourceTable = "Installment Plan Line";
+    SourceTable = "Sales Installment Plan Line";
     SourceTableTemporary = true;
     Editable = false;
     InsertAllowed = false;
@@ -98,7 +99,7 @@ page 8841 "Sales Installment Schedule"
         SourceDocumentNo: Code[20];
         DocumentCurrencyCode: Code[10];
 
-    internal procedure SetSchedule(SalesHeader: Record "Sales Header"; var TempPlanLine: Record "Installment Plan Line" temporary)
+    internal procedure SetSchedule(SalesHeader: Record "Sales Header"; var TempPlanLine: Record "Sales Installment Plan Line" temporary)
     begin
         Rec.Copy(TempPlanLine, true);
         Rec.Reset();

@@ -13,6 +13,7 @@ using Microsoft.Integration.Dataverse;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
 
 /// <summary>
@@ -363,6 +364,21 @@ page 143 "Posted Sales Invoices"
                 Caption = '&Invoice';
                 Image = Invoice;
                 action(InstallmentSchedule)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    Image = PaymentPeriod;
+                    Enabled = HasInstallmentPlan;
+                    ToolTip = 'View the original installment schedule, current unpaid amounts, and linked customer entries.';
+
+                    trigger OnAction()
+                    var
+                        SalesInstallmentHistory: Codeunit "Sales Installment History";
+                    begin
+                        SalesInstallmentHistory.ShowSchedule(Rec);
+                    end;
+                }
+                action(Statistics)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Installment Schedule';
@@ -988,10 +1004,6 @@ page 143 "Posted Sales Invoices"
         IsOfficeAddin: Boolean;
         HasPostedSalesInvoices: Boolean;
         HasInstallmentPlan: Boolean;
-        ProcessingInvoiceMsg: Label 'Processing record #1#######', Comment = '%1 = Record no';
-
-    protected var
-        SalesInvoiceStatsVisible: Boolean;
 
     [IntegrationEvent(true, false)]
     local procedure OnOpenPageOnAfterSetFilters(var SalesInvoiceHeader: Record "Sales Invoice Header")

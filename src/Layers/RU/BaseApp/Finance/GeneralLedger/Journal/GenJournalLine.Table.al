@@ -4830,7 +4830,6 @@ table 81 "Gen. Journal Line"
         field(8840; "Installment Plan ID"; Guid)
         {
             Caption = 'Installment Plan ID';
-            TableRelation = "Installment Plan";
             Editable = false;
         }
         field(8841; "Sales Invoice Source SystemId"; Guid)
@@ -4839,9 +4838,11 @@ table 81 "Gen. Journal Line"
             Editable = false;
             DataClassification = SystemMetadata;
         }
-        field(17301; "Depr. Group Elimination"; Boolean)
+        field(8842; "Purchase Invoice Source SystemId"; Guid)
         {
-            Caption = 'Depr. Group Elimination';
+            Caption = 'Purchase Invoice Source SystemId';
+            Editable = false;
+            DataClassification = SystemMetadata;
         }
     }
 

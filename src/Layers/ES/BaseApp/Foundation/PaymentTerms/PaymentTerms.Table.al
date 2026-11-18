@@ -124,18 +124,12 @@ table 3 "Payment Terms"
     var
         PaymentTermsTranslation: Record "Payment Term Translation";
         PaymentTermInstallment: Record "Payment Term Installment";
-        Installment: Record Installment;
     begin
         PaymentTermsTranslation.SetRange("Payment Term", Code);
         PaymentTermsTranslation.DeleteAll();
         if not IsTemporary() then begin
             PaymentTermInstallment.SetRange("Payment Terms Code", Code);
             PaymentTermInstallment.DeleteAll();
-        end;
-
-        if Installment.WritePermission then begin
-            Installment.SetRange("Payment Terms Code", Code);
-            Installment.DeleteAll();
         end;
     end;
 
@@ -232,16 +226,6 @@ table 3 "Payment Terms"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterTranslateDescription(var PaymentTerms: Record "Payment Terms"; Language: Code[10])
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalculateMaxDueDate(PaymentTerms: Record "Payment Terms"; BaseDate: Date; var CalculatedDate: Date; var IsHandled: boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeVerifyMaxNoDaysTillDueDate(PaymentTerms: Record "Payment Terms"; DueDate: Date; DocumentDate: Date; MessageFieldCaption: Text[50]; var IsHandled: boolean)
     begin
     end;
 }

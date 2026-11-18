@@ -23,8 +23,8 @@ codeunit 8845 "Sales Installment Correction"
 
     internal procedure CheckInvoice(SalesInvoiceHeader: Record "Sales Invoice Header"; RequireUnpaid: Boolean)
     var
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         InstallmentCount: Integer;
         Sequence: Integer;

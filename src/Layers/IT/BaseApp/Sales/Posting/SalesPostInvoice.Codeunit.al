@@ -641,8 +641,6 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
     var
         SalesHeader: Record "Sales Header";
         GenJnlLine: Record "Gen. Journal Line";
-        Bill: Record Bill;
-        PaymentMethod: Record "Payment Method";
         InstallmentPosting: Codeunit "Installment Posting";
         IsHandled: Boolean;
     begin

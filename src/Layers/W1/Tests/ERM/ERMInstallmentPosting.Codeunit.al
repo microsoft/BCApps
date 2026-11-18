@@ -45,9 +45,9 @@ codeunit 134493 "ERM Installment Posting"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
-        TempPreviewLine: Record "Installment Plan Line" temporary;
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
+        TempPreviewLine: Record "Sales Installment Plan Line" temporary;
         CustLedgerEntry: Record "Cust. Ledger Entry";
         GLEntry: Record "G/L Entry";
         VATEntry: Record "VAT Entry";
@@ -105,8 +105,8 @@ codeunit 134493 "ERM Installment Posting"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         CurrencyFactor: Decimal;
     begin
@@ -138,7 +138,7 @@ codeunit 134493 "ERM Installment Posting"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         Customer: Record Customer;
         GLSetup: Record "General Ledger Setup";
@@ -223,7 +223,7 @@ codeunit 134493 "ERM Installment Posting"
     procedure AuxiliaryAmountsAllocateNegativeProfitAndFinalResidualIndependently()
     var
         GenJournalLine: Record "Gen. Journal Line";
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Sales Installment Plan Line" temporary;
     begin
         LibraryInstallments.Initialize();
         LibraryInstallments.CreateTemporaryRules(TempPlanLine);
@@ -256,7 +256,7 @@ codeunit 134493 "ERM Installment Posting"
     procedure RoundedZeroLCYInstallmentHasNoPaymentDiscount()
     var
         GenJournalLine: Record "Gen. Journal Line";
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Sales Installment Plan Line" temporary;
     begin
         LibraryInstallments.Initialize();
         LibraryInstallments.CreateTemporaryRules(TempPlanLine);
@@ -382,8 +382,8 @@ codeunit 134493 "ERM Installment Posting"
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
         PlanID: Guid;
     begin
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
@@ -414,8 +414,8 @@ codeunit 134493 "ERM Installment Posting"
         TargetHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         Rule: Record "Payment Term Installment";
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
         CopyDocumentMgt: Codeunit "Copy Document Mgt.";
         SourcePlanID: Guid;
         PostedNo: Code[20];
@@ -562,7 +562,7 @@ codeunit 134493 "ERM Installment Posting"
     var
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         CustomerPostingGroup: Record "Customer Posting Group";
@@ -635,7 +635,7 @@ codeunit 134493 "ERM Installment Posting"
     var
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         PaymentEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
@@ -717,7 +717,7 @@ codeunit 134493 "ERM Installment Posting"
         SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Aggregate: Record "Sales Invoice Entity Aggregate";
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
         APIMockEvents: Codeunit "API Mock Events";
         PlanID: Guid;
         SourceID: Guid;
@@ -858,7 +858,7 @@ codeunit 134493 "ERM Installment Posting"
         SalesInvoiceLine: Record "Sales Invoice Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         OrdinaryInvoice: Record "Sales Invoice Header";
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin
         // [FEATURE] [Installments] [Application] [Apply to Oldest]
@@ -916,7 +916,7 @@ codeunit 134493 "ERM Installment Posting"
     var
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         PaymentEntry: Record "Cust. Ledger Entry";
         PaymentNo: Code[20];
@@ -949,7 +949,7 @@ codeunit 134493 "ERM Installment Posting"
     var
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin
@@ -1282,7 +1282,7 @@ codeunit 134493 "ERM Installment Posting"
 
     local procedure ClearInstallmentDiscounts(PlanID: Guid)
     var
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
     begin
         PlanLine.SetRange("Plan ID", PlanID);
         PlanLine.FindSet(true);
@@ -1330,8 +1330,8 @@ codeunit 134493 "ERM Installment Posting"
         Currency: Record Currency;
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        OriginalPlanLine: Record "Installment Plan Line";
-        PlanLine: Record "Installment Plan Line";
+        OriginalPlanLine: Record "Sales Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         PaymentEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
@@ -1463,8 +1463,8 @@ codeunit 134493 "ERM Installment Posting"
 
     local procedure VerifyPostedSchedule(SalesInvoiceHeader: Record "Sales Invoice Header"; PlanID: Guid)
     var
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin
@@ -1513,8 +1513,8 @@ codeunit 134493 "ERM Installment Posting"
 
     local procedure VerifyDraftAfterRollback(PlanID: Guid; PostingNo: Code[20])
     var
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         SalesInvoiceHeader: Record "Sales Invoice Header";

@@ -592,12 +592,6 @@ table 25 "Vendor Ledger Entry"
         {
             Caption = 'Prepayment';
         }
-        field(91; "Payment Terms Code"; Code[10])
-        {
-            Caption = 'Payment Terms Code';
-            Editable = false;
-            TableRelation = "Payment Terms";
-        }
         field(95; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
@@ -775,47 +769,30 @@ table 25 "Vendor Ledger Entry"
                     Validate("On Hold", NewOnHold);
             end;
         }
-        field(10701; "VAT Reporting Date"; Date)
+        field(8840; "Installment Plan ID"; Guid)
         {
-            Caption = 'VAT Date';
-        }
-        field(10702; "Generated Autodocument"; Boolean)
-        {
-            Caption = 'Generated Autodocument';
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
             Editable = false;
+            ToolTip = 'Specifies the posted purchase installment plan.';
         }
-        field(10703; "Autodocument No."; Code[20])
+        field(8841; "Installment No."; Integer)
         {
-            Caption = 'Autodocument No.';
+            Caption = 'Installment No.';
             Editable = false;
+            ToolTip = 'Specifies the sequence number within the installment plan.';
         }
-        field(7000000; "Bill No."; Code[20])
+        field(8842; "No. of Installments"; Integer)
         {
-            Caption = 'Bill No.';
+            Caption = 'No. of Installments';
+            Editable = false;
+            ToolTip = 'Specifies the number of payables in the installment plan.';
         }
-        field(7000001; "Document Situation"; Enum "ES Document Situation")
+        field(8843; "Invoice Entry No."; Integer)
         {
-            Caption = 'Document Situation';
-        }
-        field(7000002; "Applies-to Bill No."; Code[20])
-        {
-            Caption = 'Applies-to Bill No.';
-        }
-        field(7000003; "Document Status"; Enum "ES Document Status")
-        {
-            Caption = 'Document Status';
-        }
-        field(7000005; "Remaining Amount (LCY) stats."; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            Caption = 'Remaining Amount (LCY) stats.';
-        }
-        field(7000006; "Amount (LCY) stats."; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            Caption = 'Amount (LCY) stats.';
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
     }
 
@@ -878,6 +855,16 @@ table 25 "Vendor Ledger Entry"
         // Supports the Payment Reconciliation Journal candidate search (Document Type + Open + date range).
         key(PmtReconCandidates; "Document Type", Open, "Posting Date")
         {
+        }
+        key(Installment; "Installment Plan ID", "Installment No.")
+        {
+        }
+        key(Invoice; "Invoice Entry No.", Open)
+        {
+        }
+        key(InstallmentApplication; "Vendor No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.")
+        {
+            MaintainSQLIndex = false;
         }
     }
 

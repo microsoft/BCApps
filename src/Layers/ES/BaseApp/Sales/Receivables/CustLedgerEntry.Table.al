@@ -865,12 +865,6 @@ table 21 "Cust. Ledger Entry"
             Caption = 'Prepayment';
             ToolTip = 'Specifies if the related payment is a prepayment.';
         }
-        field(91; "Payment Terms Code"; Code[10])
-        {
-            Caption = 'Payment Terms Code';
-            Editable = false;
-            TableRelation = "Payment Terms";
-        }
         field(95; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
@@ -1097,7 +1091,7 @@ table 21 "Cust. Ledger Entry"
         field(8840; "Installment Plan ID"; Guid)
         {
             Caption = 'Installment Plan ID';
-            TableRelation = "Installment Plan";
+            TableRelation = "Sales Installment Plan";
             Editable = false;
             ToolTip = 'Specifies the posted global installment plan.';
         }
@@ -1118,38 +1112,6 @@ table 21 "Cust. Ledger Entry"
             Caption = 'Invoice Entry No.';
             Editable = false;
             ToolTip = 'Specifies the customer entry that identifies the invoice balance group. Ordinary entries identify themselves.';
-        }
-        field(10728; "VAT Reporting Date"; Date)
-        {
-            Caption = 'VAT Date';
-        }
-        field(7000000; "Bill No."; Code[20])
-        {
-            Caption = 'Bill No.';
-        }
-        field(7000001; "Document Situation"; Enum "ES Document Situation")
-        {
-            Caption = 'Document Situation';
-        }
-        field(7000002; "Applies-to Bill No."; Code[20])
-        {
-            Caption = 'Applies-to Bill No.';
-        }
-        field(7000003; "Document Status"; Enum "ES Document Status")
-        {
-            Caption = 'Document Status';
-        }
-        field(7000005; "Remaining Amount (LCY) stats."; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            Caption = 'Remaining Amount (LCY) stats.';
-        }
-        field(7000006; "Amount (LCY) stats."; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            Caption = 'Amount (LCY) stats.';
         }
     }
 
@@ -1231,16 +1193,6 @@ table 21 "Cust. Ledger Entry"
         key(InstallmentApplication; "Customer No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.")
         {
             MaintainSQLIndex = false;
-        }
-        key(Key7000000; "Document No.", "Bill No.")
-        {
-        }
-        key(Key7000001; "Customer No.", "Document Type", "Document Situation", "Document Status")
-        {
-            SumIndexFields = "Remaining Amount (LCY) stats.", "Amount (LCY) stats.";
-        }
-        key(Key7000002; "Applies-to ID", "Document Type", "Document Situation", "Document Status")
-        {
         }
     }
 

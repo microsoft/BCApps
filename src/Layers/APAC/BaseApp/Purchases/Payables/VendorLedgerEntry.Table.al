@@ -752,74 +752,30 @@ table 25 "Vendor Ledger Entry"
                     Validate("On Hold", NewOnHold);
             end;
         }
-        field(11620; Adjustment; Boolean)
+        field(8840; "Installment Plan ID"; Guid)
         {
-            Caption = 'Adjustment';
-        }
-        field(11621; "BAS Adjustment"; Boolean)
-        {
-            Caption = 'BAS Adjustment';
-        }
-        field(11626; "Adjustment Applies-to"; Code[20])
-        {
-            Caption = 'Adjustment Applies-to';
-        }
-        field(11628; "Pre Adjmt. Reason Code"; Code[10])
-        {
-            Caption = 'Pre Adjmt. Reason Code';
-            TableRelation = "Reason Code";
-        }
-        field(11631; "Financially Voided Cheque"; Boolean)
-        {
-            Caption = 'Financially Voided Cheque';
-        }
-        field(11632; "EFT Register No."; Integer)
-        {
-            BlankZero = true;
-            Caption = 'EFT Register No.';
-            TableRelation = "EFT Register";
-        }
-        field(11633; "EFT Amount Transferred"; Decimal)
-        {
-            AutoFormatExpression = "Currency Code";
-            AutoFormatType = 1;
-            Caption = 'EFT Amount Transferred';
-        }
-        field(11634; "EFT Bank Account No."; Code[20])
-        {
-            Caption = 'EFT Bank Account No.';
-        }
-        field(28040; "Rem. Amt for WHT"; Decimal)
-        {
-            AutoFormatExpression = "Currency Code";
-            AutoFormatType = 1;
-            Caption = 'Rem. Amt for WHT';
-        }
-        field(28041; "Rem. Amt"; Decimal)
-        {
-            AutoFormatExpression = "Currency Code";
-            AutoFormatType = 1;
-            Caption = 'Rem. Amt';
-        }
-        field(28042; "WHT Amount"; Decimal)
-        {
-            AutoFormatExpression = "Currency Code";
-            AutoFormatType = 1;
-            CalcFormula = sum("WHT Entry".Amount where("Bill-to/Pay-to No." = field("Vendor No."),
-                                                        "Original Document No." = field("Document No.")));
-            Caption = 'WHT Amount';
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
             Editable = false;
-            FieldClass = FlowField;
+            ToolTip = 'Specifies the posted purchase installment plan.';
         }
-        field(28043; "WHT Amount (LCY)"; Decimal)
+        field(8841; "Installment No."; Integer)
         {
-            AutoFormatExpression = '';
-            AutoFormatType = 1;
-            CalcFormula = sum("WHT Entry"."Amount (LCY)" where("Bill-to/Pay-to No." = field("Vendor No."),
-                                                                "Original Document No." = field("Document No.")));
-            Caption = 'WHT Amount (LCY)';
+            Caption = 'Installment No.';
             Editable = false;
-            FieldClass = FlowField;
+            ToolTip = 'Specifies the sequence number within the installment plan.';
+        }
+        field(8842; "No. of Installments"; Integer)
+        {
+            Caption = 'No. of Installments';
+            Editable = false;
+            ToolTip = 'Specifies the number of payables in the installment plan.';
+        }
+        field(8843; "Invoice Entry No."; Integer)
+        {
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
     }
 
@@ -894,6 +850,16 @@ table 25 "Vendor Ledger Entry"
         // Supports the Payment Reconciliation Journal candidate search (Document Type + Open + date range).
         key(PmtReconCandidates; "Document Type", Open, "Posting Date")
         {
+        }
+        key(Installment; "Installment Plan ID", "Installment No.")
+        {
+        }
+        key(Invoice; "Invoice Entry No.", Open)
+        {
+        }
+        key(InstallmentApplication; "Vendor No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.")
+        {
+            MaintainSQLIndex = false;
         }
     }
 

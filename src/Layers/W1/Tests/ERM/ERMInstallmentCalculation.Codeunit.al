@@ -17,7 +17,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure PercentagesUseOriginalTotalsAndDocumentDate()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
         // [SCENARIO] Percentages use the original totals and due dates use the document date in rule order.
@@ -38,7 +38,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure FinalLineReceivesIndependentCurrencyResiduals()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
         // [SCENARIO] The final installment absorbs document currency and LCY rounding residuals independently.
@@ -62,7 +62,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure RemainingAmountReceivesUnallocatedPercentage()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
         // [SCENARIO] A final remaining-amount rule receives the balance after percentage installments.
@@ -83,7 +83,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure UsesWholeUnitDocumentCurrencyAndThreeDecimalLCYPrecisions()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
         // [SCENARIO] Document currency uses whole-unit precision independently of three-decimal LCY precision.
@@ -101,7 +101,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure UsesThreeDecimalDocumentCurrencyAndWholeUnitLCYPrecisions()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
         // [SCENARIO] Document currency uses three-decimal precision independently of whole-unit LCY precision.
@@ -119,7 +119,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure DiscountsUseEachLineAndPostingDateGracePeriod()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
         GracePeriod: DateFormula;
     begin
         // [FEATURE] [Installments] [Calculation]
@@ -156,7 +156,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure ZeroLCYAllocationDoesNotCreateDiscountEligibility()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
         // [SCENARIO] An installment rounded to zero in LCY is not eligible for a payment discount.
@@ -182,7 +182,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure RejectsIncompletePercentageTotal()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
         // [SCENARIO] Percentage rules must allocate the full invoice total.
@@ -201,7 +201,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure RejectsRemainingAmountBeforeFinalLine()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
         // [SCENARIO] A remaining-amount rule is allowed only on the final line.
@@ -221,7 +221,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure RejectsMissingDueDateFormula()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
         // [SCENARIO] Every installment rule requires a due-date formula.
@@ -238,7 +238,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure RejectsDescendingDatesWithoutReplacingSnapshot()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
         // [SCENARIO] Descending due dates are rejected without partially replacing the schedule.
@@ -259,7 +259,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure RejectsDiscountDateAfterDueDate()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
         // [SCENARIO] An installment's payment discount date cannot follow its due date.
@@ -277,7 +277,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure RejectsZeroRoundedInstallment()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
         // [SCENARIO] An installment amount must remain positive after rounding.
@@ -295,7 +295,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure RejectsInvalidRoundingPrecision()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
         // [SCENARIO] Calculation requires positive rounding precisions.
@@ -312,7 +312,7 @@ codeunit 134491 "ERM Installment Calculation"
     [Test]
     procedure RejectsMultiplePlansInOneCalculation()
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
     begin
         // [FEATURE] [Installments] [Calculation]
         // [SCENARIO] A calculation cannot combine rules belonging to different plans.
@@ -329,25 +329,10 @@ codeunit 134491 "ERM Installment Calculation"
     end;
 
     [Test]
-    procedure RejectsPersistentCalculationTarget()
-    var
-        PlanLine: Record "Installment Plan Line";
-    begin
-        // [FEATURE] [Installments] [Calculation]
-        // [SCENARIO] Calculation cannot write directly to persistent plan lines.
-        // [GIVEN] A nontemporary plan-line record.
-        // [WHEN] Calculation is requested for that record.
-        asserterror Calculate(PlanLine, 100, 100, 0.01, 0.01);
-
-        // [THEN] Calculation requires a temporary target instead.
-        Assert.ExpectedError('requires a temporary plan line record');
-    end;
-
-    [Test]
     procedure OrdinaryTermsProduceNoSyntheticPlan()
     var
         PaymentTerms: Record "Payment Terms";
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
         OriginalDueDateCalculation: DateFormula;
     begin
         // [FEATURE] [Installments] [Calculation]
@@ -375,8 +360,7 @@ codeunit 134491 "ERM Installment Calculation"
     var
         PaymentTerms: Record "Payment Terms";
         PaymentTermInstallment: Record "Payment Term Installment";
-        PlanLine: Record "Installment Plan Line";
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Installment Calculation Line" temporary;
         PlanID: Guid;
     begin
         // [FEATURE] [Installments] [Calculation]
@@ -399,10 +383,8 @@ codeunit 134491 "ERM Installment Calculation"
         // [WHEN] The snapshot is calculated after the source setup has been deleted.
         Calculate(TempPlanLine, 100, 100, 0.01, 0.01);
 
-        // [THEN] The original rule is used and no persistent plan lines are created.
+        // [THEN] The original rule is used after the source setup is removed.
         AssertLine(TempPlanLine, 10000, 100, 100, DMY2Date(31, 1, 2026));
-        PlanLine.SetRange("Plan ID", PlanID);
-        Assert.IsTrue(PlanLine.IsEmpty(), 'Copying and calculating rules must not persist a plan.');
     end;
 
     [Test]
@@ -429,7 +411,7 @@ codeunit 134491 "ERM Installment Calculation"
         Assert.IsTrue(PaymentTermInstallment.Get(NewCode, 10000), 'Related rules must follow the renamed payment terms.');
     end;
 
-    local procedure AddPercentageRule(var TempPlanLine: Record "Installment Plan Line" temporary; LineNo: Integer; PaymentPercentage: Decimal; DueDateFormula: Text)
+    local procedure AddPercentageRule(var TempPlanLine: Record "Installment Calculation Line" temporary; LineNo: Integer; PaymentPercentage: Decimal; DueDateFormula: Text)
     var
         PlanID: Guid;
     begin
@@ -448,14 +430,14 @@ codeunit 134491 "ERM Installment Calculation"
         TempPlanLine.Insert();
     end;
 
-    local procedure SetDiscount(var TempPlanLine: Record "Installment Plan Line" temporary; DiscountPercentage: Decimal; DiscountDateFormula: Text)
+    local procedure SetDiscount(var TempPlanLine: Record "Installment Calculation Line" temporary; DiscountPercentage: Decimal; DiscountDateFormula: Text)
     begin
         TempPlanLine."Discount %" := DiscountPercentage;
         Evaluate(TempPlanLine."Discount Date Calculation", DiscountDateFormula);
         TempPlanLine.Modify();
     end;
 
-    local procedure Calculate(var TempPlanLine: Record "Installment Plan Line" temporary; Amount: Decimal; AmountLCY: Decimal; AmountRoundingPrecision: Decimal; LCYAmountRoundingPrecision: Decimal)
+    local procedure Calculate(var TempPlanLine: Record "Installment Calculation Line" temporary; Amount: Decimal; AmountLCY: Decimal; AmountRoundingPrecision: Decimal; LCYAmountRoundingPrecision: Decimal)
     var
         GracePeriod: DateFormula;
     begin
@@ -464,7 +446,7 @@ codeunit 134491 "ERM Installment Calculation"
             Amount, AmountLCY, AmountRoundingPrecision, LCYAmountRoundingPrecision, GracePeriod);
     end;
 
-    local procedure AssertLine(var TempPlanLine: Record "Installment Plan Line" temporary; LineNo: Integer; Amount: Decimal; AmountLCY: Decimal; DueDate: Date)
+    local procedure AssertLine(var TempPlanLine: Record "Installment Calculation Line" temporary; LineNo: Integer; Amount: Decimal; AmountLCY: Decimal; DueDate: Date)
     begin
         TempPlanLine.SetRange("Line No.", LineNo);
         TempPlanLine.FindFirst();

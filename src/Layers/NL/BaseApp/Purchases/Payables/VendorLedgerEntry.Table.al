@@ -751,45 +751,30 @@ table 25 "Vendor Ledger Entry"
                     Validate("On Hold", NewOnHold);
             end;
         }
-        field(11000000; "Transaction Mode Code"; Code[20])
+        field(8840; "Installment Plan ID"; Guid)
         {
-            Caption = 'Transaction Mode Code';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Vendor));
-
-            trigger OnValidate()
-            var
-            begin
-            end;
-        }
-        field(11000002; "Payments in Process"; Decimal)
-        {
-            AutoFormatExpression = "Currency Code";
-            AutoFormatType = 1;
-            BlankZero = true;
-            CalcFormula = sum("Detail Line"."Amount (Entry)" where("Serial No. (Entry)" = field("Entry No."),
-                                                                    Status = const("In process"),
-                                                                    "Account Type" = const(Vendor),
-                                                                    "Connect Batches" = field("Connect Batches Filter"),
-                                                                    "Connect Lines" = field("Connect Lines Filter"),
-                                                                    "Our Bank" = field("Our Bank Filter")));
-            Caption = 'Payments in Process';
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
             Editable = false;
-            FieldClass = FlowField;
+            ToolTip = 'Specifies the posted purchase installment plan.';
         }
-        field(11000003; "Connect Batches Filter"; Code[20])
+        field(8841; "Installment No."; Integer)
         {
-            Caption = 'Connect Batches Filter';
-            FieldClass = FlowFilter;
+            Caption = 'Installment No.';
+            Editable = false;
+            ToolTip = 'Specifies the sequence number within the installment plan.';
         }
-        field(11000004; "Connect Lines Filter"; Integer)
+        field(8842; "No. of Installments"; Integer)
         {
-            Caption = 'Connect Lines Filter';
-            FieldClass = FlowFilter;
+            Caption = 'No. of Installments';
+            Editable = false;
+            ToolTip = 'Specifies the number of payables in the installment plan.';
         }
-        field(11000005; "Our Bank Filter"; Code[20])
+        field(8843; "Invoice Entry No."; Integer)
         {
-            Caption = 'Our Bank Filter';
-            FieldClass = FlowFilter;
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
     }
 
@@ -855,6 +840,16 @@ table 25 "Vendor Ledger Entry"
         // Supports the Payment Reconciliation Journal candidate search (Document Type + Open + date range).
         key(PmtReconCandidates; "Document Type", Open, "Posting Date")
         {
+        }
+        key(Installment; "Installment Plan ID", "Installment No.")
+        {
+        }
+        key(Invoice; "Invoice Entry No.", Open)
+        {
+        }
+        key(InstallmentApplication; "Vendor No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.")
+        {
+            MaintainSQLIndex = false;
         }
     }
 

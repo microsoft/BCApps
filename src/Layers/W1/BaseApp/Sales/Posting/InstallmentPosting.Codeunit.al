@@ -18,8 +18,8 @@ using Microsoft.Sales.Receivables;
 
 codeunit 8842 "Installment Posting"
 {
-    Permissions = tabledata "Installment Plan" = RIMD,
-                  tabledata "Installment Plan Line" = RIMD;
+    Permissions = tabledata "Sales Installment Plan" = RIMD,
+                  tabledata "Sales Installment Plan Line" = RIMD;
 
     var
         UnsupportedProducerErr: Label 'Global installments currently support full standalone sales invoices only. Orders, shipment invoices, projects, subscription billing, service documents, and journals are not supported.';
@@ -32,7 +32,7 @@ codeunit 8842 "Installment Posting"
 
     internal procedure CheckSalesPosting(SalesHeader: Record "Sales Header")
     var
-        Plan: Record "Installment Plan";
+        Plan: Record "Sales Installment Plan";
         SalesLine: Record "Sales Line";
         Customer: Record Customer;
         PaymentMethod: Record "Payment Method";
@@ -131,6 +131,11 @@ codeunit 8842 "Installment Posting"
             if not CustLedgerEntry.IsEmpty() then
                 Error(ApplicationErr);
         end;
+        if (ApplyingCustomerNo = '') and
+           ((GenJournalLine."Account Type" <> GenJournalLine."Account Type"::Customer) and
+            (GenJournalLine."Bal. Account Type" <> GenJournalLine."Bal. Account Type"::Customer))
+        then
+            exit;
         if not IsNullGuid(GenJournalLine."Installment Plan ID") then begin
             GenJournalLine.TestField("Account Type", GenJournalLine."Account Type"::Customer);
             GenJournalLine.TestField("Document Type", GenJournalLine."Document Type"::Invoice);
@@ -139,8 +144,8 @@ codeunit 8842 "Installment Posting"
             GenJournalLine.TestField("Sales Invoice Source SystemId");
             exit;
         end;
-        if not ((GenJournalLine."Account Type" in [GenJournalLine."Account Type"::Customer, GenJournalLine."Account Type"::Vendor]) or
-                (GenJournalLine."Bal. Account Type" in [GenJournalLine."Bal. Account Type"::Customer, GenJournalLine."Bal. Account Type"::Vendor])) or
+        if not ((GenJournalLine."Account Type" = GenJournalLine."Account Type"::Customer) or
+                (GenJournalLine."Bal. Account Type" = GenJournalLine."Bal. Account Type"::Customer)) or
            not (GenJournalLine."Document Type" in [GenJournalLine."Document Type"::Invoice, GenJournalLine."Document Type"::"Credit Memo"])
         then
             exit;
@@ -194,10 +199,10 @@ codeunit 8842 "Installment Posting"
              (SalesCrMemoHeader."Bill-to Customer No." = GenJournalLine."Account No."));
     end;
 
-    internal procedure PreparePosting(GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean; var TempPlanLine: Record "Installment Plan Line" temporary): Boolean
+    internal procedure PreparePosting(GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean; var TempPlanLine: Record "Sales Installment Plan Line" temporary): Boolean
     var
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
     begin
@@ -258,10 +263,11 @@ codeunit 8842 "Installment Posting"
         exit(true);
     end;
 
-    internal procedure CalculatePostingLines(GenJournalLine: Record "Gen. Journal Line"; var TempPlanLine: Record "Installment Plan Line" temporary)
+    internal procedure CalculatePostingLines(GenJournalLine: Record "Gen. Journal Line"; var TempPlanLine: Record "Sales Installment Plan Line" temporary)
     var
         GLSetup: Record "General Ledger Setup";
         Currency: Record Currency;
+        TempCalculationLine: Record "Installment Calculation Line" temporary;
         InstallmentCalculation: Codeunit "Installment Calculation";
         RemainingSourceAmount: Decimal;
         RemainingSalesLCY: Decimal;
@@ -275,9 +281,11 @@ codeunit 8842 "Installment Posting"
             RaiseInternalError(SourceErr);
         GLSetup.Get();
         Currency.Initialize(GenJournalLine."Currency Code", true);
+        CopyToCalculationLines(TempPlanLine, TempCalculationLine);
         InstallmentCalculation.Calculate(
-            TempPlanLine, GenJournalLine."Document Date", GenJournalLine."Posting Date", GenJournalLine.Amount, GenJournalLine."Amount (LCY)",
+            TempCalculationLine, GenJournalLine."Document Date", GenJournalLine."Posting Date", GenJournalLine.Amount, GenJournalLine."Amount (LCY)",
             Currency."Amount Rounding Precision", GLSetup."Amount Rounding Precision", GLSetup."Payment Discount Grace Period");
+        CopyFromCalculationLines(TempCalculationLine, TempPlanLine);
         TempPlanLine.FindLast();
         LastLineNo := TempPlanLine."Line No.";
         RemainingSourceAmount := GenJournalLine."Source Currency Amount";
@@ -299,7 +307,7 @@ codeunit 8842 "Installment Posting"
         until TempPlanLine.Next() = 0;
     end;
 
-    internal procedure SetJournalLine(TotalGenJournalLine: Record "Gen. Journal Line"; PlanLine: Record "Installment Plan Line"; var GenJournalLine: Record "Gen. Journal Line")
+    internal procedure SetJournalLine(TotalGenJournalLine: Record "Gen. Journal Line"; PlanLine: Record "Sales Installment Plan Line"; var GenJournalLine: Record "Gen. Journal Line")
     begin
         GenJournalLine := TotalGenJournalLine;
         GenJournalLine.Amount := PlanLine.Amount;
@@ -315,9 +323,9 @@ codeunit 8842 "Installment Posting"
         GenJournalLine."Credit Amount" := 0;
     end;
 
-    internal procedure RecordPostedLine(PlanLine: Record "Installment Plan Line"; CustLedgerEntry: Record "Cust. Ledger Entry"; InstallmentCount: Integer)
+    internal procedure RecordPostedLine(PlanLine: Record "Sales Installment Plan Line"; CustLedgerEntry: Record "Cust. Ledger Entry"; InstallmentCount: Integer)
     var
-        SavedPlanLine: Record "Installment Plan Line";
+        SavedPlanLine: Record "Sales Installment Plan Line";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin
         CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
@@ -347,8 +355,8 @@ codeunit 8842 "Installment Posting"
 
     internal procedure CompletePosting(GenJournalLine: Record "Gen. Journal Line"; InstallmentCount: Integer)
     var
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInstallmentHistory: Codeunit "Sales Installment History";
     begin
@@ -386,8 +394,8 @@ codeunit 8842 "Installment Posting"
 
     internal procedure GetFinalCustomerEntry(SalesInvoiceHeader: Record "Sales Invoice Header"; var CustLedgerEntry: Record "Cust. Ledger Entry")
     var
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
     begin
         Plan.Get(SalesInvoiceHeader."Installment Plan ID");
         Plan.TestField(Status, Plan.Status::Posted);
@@ -422,32 +430,58 @@ codeunit 8842 "Installment Posting"
         Remaining -= Amount;
     end;
 
-    local procedure CheckTemporary(var TempPlanLine: Record "Installment Plan Line" temporary)
+    local procedure CheckTemporary(var TempPlanLine: Record "Sales Installment Plan Line" temporary)
     begin
         if not TempPlanLine.IsTemporary() then
             Error(TemporaryRecordErr);
     end;
 
+    local procedure CopyToCalculationLines(var TempPlanLine: Record "Sales Installment Plan Line" temporary; var TempCalculationLine: Record "Installment Calculation Line" temporary)
+    begin
+        TempCalculationLine.Reset();
+        TempCalculationLine.DeleteAll();
+        TempPlanLine.Reset();
+        if TempPlanLine.FindSet() then
+            repeat
+                TempCalculationLine.Init();
+                TempPlanLine.CopyToCalculationLine(TempCalculationLine);
+                TempCalculationLine.Insert();
+            until TempPlanLine.Next() = 0;
+    end;
+
+    local procedure CopyFromCalculationLines(var TempCalculationLine: Record "Installment Calculation Line" temporary; var TempPlanLine: Record "Sales Installment Plan Line" temporary)
+    begin
+        TempPlanLine.Reset();
+        TempPlanLine.DeleteAll();
+        TempCalculationLine.Reset();
+        if TempCalculationLine.FindSet() then
+            repeat
+                TempPlanLine.Init();
+                TempPlanLine.CopyFromCalculationLine(TempCalculationLine);
+                TempPlanLine.Insert();
+            until TempCalculationLine.Next() = 0;
+    end;
+
     local procedure CheckPlanEditable(PlanID: Guid)
     var
-        Plan: Record "Installment Plan";
+        Plan: Record "Sales Installment Plan";
     begin
         if Plan.Get(PlanID) then
             if Plan.Status = Plan.Status::Posted then
                 Error(PostedPlanErr);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Installment Plan", 'OnBeforeModifyEvent', '', false, false)]
-    local procedure CheckPlanModification(var Rec: Record "Installment Plan")
+    [EventSubscriber(ObjectType::Table, Database::"Sales Installment Plan", 'OnBeforeModifyEvent', '', false, false)]
+    local procedure CheckPlanModification(var Rec: Record "Sales Installment Plan")
     begin
         if not Rec.IsTemporary() then
             CheckPlanEditable(Rec.ID);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Installment Plan", 'OnBeforeRenameEvent', '', false, false)]
-    local procedure CheckPlanRenaming(var Rec: Record "Installment Plan")
+    [EventSubscriber(ObjectType::Table, Database::"Sales Installment Plan", 'OnBeforeRenameEvent', '', false, false)]
+    local procedure CheckPlanRenaming(var Rec: Record "Sales Installment Plan")
     var
-        SavedPlan: Record "Installment Plan";
+        SavedPlan: Record "Sales Installment Plan";
     begin
         if Rec.IsTemporary() then
             exit;
@@ -456,24 +490,24 @@ codeunit 8842 "Installment Posting"
         CheckPlanEditable(Rec.ID);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Installment Plan", 'OnBeforeDeleteEvent', '', false, false)]
-    local procedure CheckPlanDeletion(var Rec: Record "Installment Plan")
+    [EventSubscriber(ObjectType::Table, Database::"Sales Installment Plan", 'OnBeforeDeleteEvent', '', false, false)]
+    local procedure CheckPlanDeletion(var Rec: Record "Sales Installment Plan")
     begin
         if not Rec.IsTemporary() then
             CheckPlanEditable(Rec.ID);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Installment Plan Line", 'OnBeforeInsertEvent', '', false, false)]
-    local procedure CheckLineInsertion(var Rec: Record "Installment Plan Line")
+    [EventSubscriber(ObjectType::Table, Database::"Sales Installment Plan Line", 'OnBeforeInsertEvent', '', false, false)]
+    local procedure CheckLineInsertion(var Rec: Record "Sales Installment Plan Line")
     begin
         if not Rec.IsTemporary() then
             CheckPlanEditable(Rec."Plan ID");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Installment Plan Line", 'OnBeforeModifyEvent', '', false, false)]
-    local procedure CheckLineModification(var Rec: Record "Installment Plan Line")
+    [EventSubscriber(ObjectType::Table, Database::"Sales Installment Plan Line", 'OnBeforeModifyEvent', '', false, false)]
+    local procedure CheckLineModification(var Rec: Record "Sales Installment Plan Line")
     var
-        SavedPlanLine: Record "Installment Plan Line";
+        SavedPlanLine: Record "Sales Installment Plan Line";
     begin
         if Rec.IsTemporary() then
             exit;
@@ -482,14 +516,14 @@ codeunit 8842 "Installment Posting"
         CheckPlanEditable(Rec."Plan ID");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Installment Plan Line", 'OnBeforeRenameEvent', '', false, false)]
-    local procedure CheckLineRenaming(var Rec: Record "Installment Plan Line")
+    [EventSubscriber(ObjectType::Table, Database::"Sales Installment Plan Line", 'OnBeforeRenameEvent', '', false, false)]
+    local procedure CheckLineRenaming(var Rec: Record "Sales Installment Plan Line")
     begin
         CheckLineModification(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Installment Plan Line", 'OnBeforeDeleteEvent', '', false, false)]
-    local procedure CheckLineDeletion(var Rec: Record "Installment Plan Line")
+    [EventSubscriber(ObjectType::Table, Database::"Sales Installment Plan Line", 'OnBeforeDeleteEvent', '', false, false)]
+    local procedure CheckLineDeletion(var Rec: Record "Sales Installment Plan Line")
     begin
         if not Rec.IsTemporary() then
             CheckPlanEditable(Rec."Plan ID");

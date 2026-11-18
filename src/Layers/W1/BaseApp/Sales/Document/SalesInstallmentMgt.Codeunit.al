@@ -9,14 +9,14 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
+using Microsoft.Sales.Receivables;
 
 codeunit 8841 "Sales Installment Mgt."
 {
-    Permissions = tabledata "Installment Plan" = RIMD,
-                  tabledata "Installment Plan Line" = RIMD;
+    Permissions = tabledata "Sales Installment Plan" = RIMD,
+                  tabledata "Sales Installment Plan Line" = RIMD;
 
     var
-        InstallmentCalculation: Codeunit "Installment Calculation";
         InvoiceOnlyErr: Label 'Global installments currently support standalone sales invoices only.';
         TemporaryHeaderErr: Label 'An installment schedule requires a saved sales invoice.';
         TemporaryResultErr: Label 'Installment preview requires a temporary plan line record.';
@@ -28,7 +28,7 @@ codeunit 8841 "Sales Installment Mgt."
 
     procedure ShowSchedule(var SalesHeader: Record "Sales Header")
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Sales Installment Plan Line" temporary;
         Schedule: Page "Sales Installment Schedule";
     begin
         CalculatePreview(SalesHeader, TempPlanLine);
@@ -47,9 +47,9 @@ codeunit 8841 "Sales Installment Mgt."
         ShowSchedule(SalesHeader);
     end;
 
-    procedure CalculatePreview(var SalesHeader: Record "Sales Header"; var TempPlanLine: Record "Installment Plan Line" temporary)
+    procedure CalculatePreview(var SalesHeader: Record "Sales Header"; var TempPlanLine: Record "Sales Installment Plan Line" temporary)
     var
-        Plan: Record "Installment Plan";
+        Plan: Record "Sales Installment Plan";
         Currency: Record Currency;
         GLSetup: Record "General Ledger Setup";
         TempSalesLine: Record "Sales Line" temporary;
@@ -86,7 +86,7 @@ codeunit 8841 "Sales Installment Mgt."
         SalesPost.SumSalesLinesTemp(
             SalesHeader, TempSalesLine, 0, TotalSalesLine, TotalSalesLineLCY,
             VATAmount, VATAmountText, ProfitLCY, ProfitPct, TotalAdjCostLCY, true, true);
-        InstallmentCalculation.Calculate(
+        Calculate(
             TempPlanLine, SalesHeader."Document Date", SalesHeader."Posting Date",
             TotalSalesLine."Amount Including VAT", TotalSalesLineLCY."Amount Including VAT",
             Currency."Amount Rounding Precision", GLSetup."Amount Rounding Precision", GLSetup."Payment Discount Grace Period");
@@ -94,8 +94,8 @@ codeunit 8841 "Sales Installment Mgt."
 
     local procedure UpdatePaymentTerms(var SalesHeader: Record "Sales Header"; UpdateDocumentDate: Boolean): Boolean
     var
-        Plan: Record "Installment Plan";
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        Plan: Record "Sales Installment Plan";
+        TempPlanLine: Record "Sales Installment Plan Line" temporary;
     begin
         if SalesHeader.IsTemporary() then
             exit(false);
@@ -128,20 +128,20 @@ codeunit 8841 "Sales Installment Mgt."
             Clear(SalesHeader."Installment Plan ID");
             exit(false);
         end;
-        InstallmentCalculation.CopyPaymentTerms(SalesHeader."Payment Terms Code", CreateGuid(), TempPlanLine);
+        CopyPaymentTerms(SalesHeader."Payment Terms Code", CreateGuid(), TempPlanLine);
         if SalesHeader."Document Date" <> 0D then
-            InstallmentCalculation.CalculateDates(TempPlanLine, SalesHeader."Document Date");
+            CalculateDates(TempPlanLine, SalesHeader."Document Date");
         if IsSaved(SalesHeader) then
             StoreSnapshot(SalesHeader, TempPlanLine);
         SetHeaderSummary(SalesHeader, TempPlanLine);
         exit(true);
     end;
 
-    local procedure StoreSnapshot(var SalesHeader: Record "Sales Header"; var TempPlanLine: Record "Installment Plan Line" temporary)
+    local procedure StoreSnapshot(var SalesHeader: Record "Sales Header"; var TempPlanLine: Record "Sales Installment Plan Line" temporary)
     var
         SavedHeader: Record "Sales Header";
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
     begin
         DeleteOwnedDraft(SalesHeader);
         SavedHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
@@ -162,9 +162,9 @@ codeunit 8841 "Sales Installment Mgt."
         SalesHeader."Installment Plan ID" := Plan.ID;
     end;
 
-    local procedure LoadRules(PlanID: Guid; var TempPlanLine: Record "Installment Plan Line" temporary)
+    local procedure LoadRules(PlanID: Guid; var TempPlanLine: Record "Sales Installment Plan Line" temporary)
     var
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
     begin
         TempPlanLine.Reset();
         TempPlanLine.DeleteAll();
@@ -177,14 +177,14 @@ codeunit 8841 "Sales Installment Mgt."
             TempPlanLine.CopyRulesFromPlanLine(PlanLine);
             TempPlanLine.Insert();
         until PlanLine.Next() = 0;
-        InstallmentCalculation.ValidateRules(TempPlanLine);
+        ValidateRules(TempPlanLine);
     end;
 
-    local procedure SetHeaderSummary(var SalesHeader: Record "Sales Header"; var TempPlanLine: Record "Installment Plan Line" temporary)
+    local procedure SetHeaderSummary(var SalesHeader: Record "Sales Header"; var TempPlanLine: Record "Sales Installment Plan Line" temporary)
     begin
         SalesHeader."Due Date" := 0D;
         if SalesHeader."Document Date" <> 0D then begin
-            InstallmentCalculation.CalculateDates(TempPlanLine, SalesHeader."Document Date");
+            CalculateDates(TempPlanLine, SalesHeader."Document Date");
             TempPlanLine.FindFirst();
             SalesHeader."Due Date" := TempPlanLine."Due Date";
         end;
@@ -200,8 +200,8 @@ codeunit 8841 "Sales Installment Mgt."
 
     local procedure CheckHeaderConditions(SalesHeader: Record "Sales Header")
     var
-        Plan: Record "Installment Plan";
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        Plan: Record "Sales Installment Plan";
+        TempPlanLine: Record "Sales Installment Plan Line" temporary;
         DueDate: Date;
     begin
         if SalesHeader.IsTemporary() or IsNullGuid(SalesHeader."Installment Plan ID") then
@@ -213,7 +213,7 @@ codeunit 8841 "Sales Installment Mgt."
             GetOwnedDraft(SalesHeader, Plan);
         LoadRules(Plan.ID, TempPlanLine);
         if SalesHeader."Document Date" <> 0D then begin
-            InstallmentCalculation.CalculateDates(TempPlanLine, SalesHeader."Document Date");
+            CalculateDates(TempPlanLine, SalesHeader."Document Date");
             TempPlanLine.FindFirst();
             DueDate := TempPlanLine."Due Date";
         end;
@@ -233,7 +233,7 @@ codeunit 8841 "Sales Installment Mgt."
         Error(HeaderConditionsErrorInfo);
     end;
 
-    local procedure GetOwnedDraft(SalesHeader: Record "Sales Header"; var Plan: Record "Installment Plan")
+    local procedure GetOwnedDraft(SalesHeader: Record "Sales Header"; var Plan: Record "Sales Installment Plan")
     begin
         SalesHeader.TestField("Document Type", SalesHeader."Document Type"::Invoice);
         SalesHeader.TestField("Installment Plan ID");
@@ -246,7 +246,7 @@ codeunit 8841 "Sales Installment Mgt."
             Error(PlanLinkErr);
     end;
 
-    local procedure CheckPostedSource(SalesHeader: Record "Sales Header"; Plan: Record "Installment Plan")
+    local procedure CheckPostedSource(SalesHeader: Record "Sales Header"; Plan: Record "Sales Installment Plan")
     var
         PostedInvoice: Record "Sales Invoice Header";
     begin
@@ -265,7 +265,7 @@ codeunit 8841 "Sales Installment Mgt."
 
     local procedure DeleteOwnedDraft(SalesHeader: Record "Sales Header")
     var
-        Plan: Record "Installment Plan";
+        Plan: Record "Sales Installment Plan";
     begin
         if SalesHeader.IsTemporary() or IsNullGuid(SalesHeader."Installment Plan ID") or IsNullGuid(SalesHeader.SystemId) then
             exit;
@@ -276,13 +276,81 @@ codeunit 8841 "Sales Installment Mgt."
                 Plan.Delete(true);
     end;
 
-    local procedure SetPlanSource(var Plan: Record "Installment Plan"; SalesHeader: Record "Sales Header")
+    local procedure SetPlanSource(var Plan: Record "Sales Installment Plan"; SalesHeader: Record "Sales Header")
     begin
         Plan."Source SystemId" := SalesHeader.SystemId;
         Plan."Source Record ID" := SalesHeader.RecordId();
         Plan."Source Document No." := SalesHeader."No.";
         Plan."Document Date" := SalesHeader."Document Date";
         Plan."Currency Code" := SalesHeader."Currency Code";
+    end;
+
+    local procedure CopyPaymentTerms(PaymentTermsCode: Code[10]; PlanID: Guid; var TempPlanLine: Record "Sales Installment Plan Line" temporary): Boolean
+    var
+        TempCalculationLine: Record "Installment Calculation Line" temporary;
+        InstallmentCalculation: Codeunit "Installment Calculation";
+    begin
+        if not InstallmentCalculation.CopyPaymentTerms(PaymentTermsCode, PlanID, TempCalculationLine) then
+            exit(false);
+        CopyFromCalculationLines(TempCalculationLine, TempPlanLine);
+        exit(true);
+    end;
+
+    local procedure ValidateRules(var TempPlanLine: Record "Sales Installment Plan Line" temporary)
+    var
+        TempCalculationLine: Record "Installment Calculation Line" temporary;
+        InstallmentCalculation: Codeunit "Installment Calculation";
+    begin
+        CopyToCalculationLines(TempPlanLine, TempCalculationLine);
+        InstallmentCalculation.ValidateRules(TempCalculationLine);
+    end;
+
+    local procedure CalculateDates(var TempPlanLine: Record "Sales Installment Plan Line" temporary; DocumentDate: Date)
+    var
+        TempCalculationLine: Record "Installment Calculation Line" temporary;
+        InstallmentCalculation: Codeunit "Installment Calculation";
+    begin
+        CopyToCalculationLines(TempPlanLine, TempCalculationLine);
+        InstallmentCalculation.CalculateDates(TempCalculationLine, DocumentDate);
+        CopyFromCalculationLines(TempCalculationLine, TempPlanLine);
+    end;
+
+    local procedure Calculate(var TempPlanLine: Record "Sales Installment Plan Line" temporary; DocumentDate: Date; PostingDate: Date; Amount: Decimal; AmountLCY: Decimal; AmountRoundingPrecision: Decimal; LCYAmountRoundingPrecision: Decimal; PaymentDiscountGracePeriod: DateFormula)
+    var
+        TempCalculationLine: Record "Installment Calculation Line" temporary;
+        InstallmentCalculation: Codeunit "Installment Calculation";
+    begin
+        CopyToCalculationLines(TempPlanLine, TempCalculationLine);
+        InstallmentCalculation.Calculate(
+            TempCalculationLine, DocumentDate, PostingDate, Amount, AmountLCY,
+            AmountRoundingPrecision, LCYAmountRoundingPrecision, PaymentDiscountGracePeriod);
+        CopyFromCalculationLines(TempCalculationLine, TempPlanLine);
+    end;
+
+    local procedure CopyToCalculationLines(var TempPlanLine: Record "Sales Installment Plan Line" temporary; var TempCalculationLine: Record "Installment Calculation Line" temporary)
+    begin
+        TempCalculationLine.Reset();
+        TempCalculationLine.DeleteAll();
+        TempPlanLine.Reset();
+        if TempPlanLine.FindSet() then
+            repeat
+                TempCalculationLine.Init();
+                TempPlanLine.CopyToCalculationLine(TempCalculationLine);
+                TempCalculationLine.Insert();
+            until TempPlanLine.Next() = 0;
+    end;
+
+    local procedure CopyFromCalculationLines(var TempCalculationLine: Record "Installment Calculation Line" temporary; var TempPlanLine: Record "Sales Installment Plan Line" temporary)
+    begin
+        TempPlanLine.Reset();
+        TempPlanLine.DeleteAll();
+        TempCalculationLine.Reset();
+        if TempCalculationLine.FindSet() then
+            repeat
+                TempPlanLine.Init();
+                TempPlanLine.CopyFromCalculationLine(TempCalculationLine);
+                TempPlanLine.Insert();
+            until TempCalculationLine.Next() = 0;
     end;
 
     local procedure IsSaved(SalesHeader: Record "Sales Header"): Boolean
@@ -326,8 +394,8 @@ codeunit 8841 "Sales Installment Mgt."
     local procedure OnBeforeModifySalesHeader(var Rec: Record "Sales Header")
     var
         SavedHeader: Record "Sales Header";
-        Plan: Record "Installment Plan";
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        Plan: Record "Sales Installment Plan";
+        TempPlanLine: Record "Sales Installment Plan Line" temporary;
         SavedPlanExists: Boolean;
     begin
         if Rec.IsTemporary() then
@@ -399,7 +467,7 @@ codeunit 8841 "Sales Installment Mgt."
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnAfterRenameEvent', '', false, false)]
     local procedure OnAfterRenameSalesHeader(var Rec: Record "Sales Header")
     var
-        Plan: Record "Installment Plan";
+        Plan: Record "Sales Installment Plan";
     begin
         if Rec.IsTemporary() or IsNullGuid(Rec."Installment Plan ID") then
             exit;
@@ -437,7 +505,7 @@ codeunit 8841 "Sales Installment Mgt."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnBeforePostSalesDoc', '', false, false)]
     local procedure OnBeforePostSalesDoc(var SalesHeader: Record "Sales Header")
     var
-        TempPlanLine: Record "Installment Plan Line" temporary;
+        TempPlanLine: Record "Sales Installment Plan Line" temporary;
         InstallmentPosting: Codeunit "Installment Posting";
     begin
         if IsNullGuid(SalesHeader."Installment Plan ID") then

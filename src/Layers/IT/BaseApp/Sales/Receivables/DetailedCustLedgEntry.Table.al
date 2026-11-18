@@ -469,11 +469,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         {
             SumIndexFields = Amount, "Amount (LCY)";
         }
-        key(Key16; "Customer No.", "Initial Entry Due Date")
-        {
-            IncludedFields = Amount, "Amount (LCY)";
-        }
-        key(Key12100; "Original Document Type", "Original Document No.")
+        key(Key14; "Customer No.", "Initial Entry Due Date")
         {
             SumIndexFields = Amount;
         }

@@ -713,7 +713,22 @@ page 138 "Posted Purchase Invoice"
             {
                 Caption = '&Invoice';
                 Image = Invoice;
-                action(PurchaseInvoiceStatistics)
+                action(InstallmentSchedule)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    Image = PaymentPeriod;
+                    Enabled = HasInstallmentPlan;
+                    ToolTip = 'View the original installment schedule, current unpaid amounts, and linked vendor entries.';
+
+                    trigger OnAction()
+                    var
+                        PurchaseInstallmentHistory: Codeunit "Purchase Installment History";
+                    begin
+                        PurchaseInstallmentHistory.ShowSchedule(Rec);
+                    end;
+                }
+                action(Statistics)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Statistics';
@@ -1132,6 +1147,7 @@ page 138 "Posted Purchase Invoice"
         IncomingDocument: Record "Incoming Document";
     begin
         HasIncomingDocument := IncomingDocument.PostedDocExists(Rec."No.", Rec."Posting Date");
+        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
         if GuiAllowed() then
             CurrPage.IncomingDocAttachFactBox.PAGE.LoadDataFromRecord(Rec);
     end;
@@ -1170,6 +1186,7 @@ page 138 "Posted Purchase Invoice"
         IsShipToCountyVisible: Boolean;
         IsRemitToCountyVisible: Boolean;
         VATDateEnabled: Boolean;
+        HasInstallmentPlan: Boolean;
 
     protected var
         PurchaseInvoiceStatsVisible: Boolean;
@@ -1179,6 +1196,7 @@ page 138 "Posted Purchase Invoice"
         IsBuyFromCountyVisible := FormatAddress.UseCounty(Rec."Buy-from Country/Region Code");
         IsPayToCountyVisible := FormatAddress.UseCounty(Rec."Pay-to Country/Region Code");
         IsShipToCountyVisible := FormatAddress.UseCounty(Rec."Ship-to Country/Region Code");
+        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
     end;
 
     local procedure FillRemitToFields()

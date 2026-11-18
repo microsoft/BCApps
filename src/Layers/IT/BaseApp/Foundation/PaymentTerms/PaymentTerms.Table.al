@@ -133,9 +133,6 @@ table 3 "Payment Terms"
             PaymentTermInstallment.SetRange("Payment Terms Code", Code);
             PaymentTermInstallment.DeleteAll();
         end;
-        FilterPaymentLines();
-        if PaymentTermsLine.Find('-') then
-            PaymentTermsLine.DeleteAll(true);
     end;
 
     trigger OnInsert()

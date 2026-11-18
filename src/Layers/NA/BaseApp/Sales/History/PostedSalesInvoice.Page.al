@@ -19,6 +19,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
 using System.Automation;
 using System.Telemetry;
 
@@ -881,6 +882,21 @@ page 132 "Posted Sales Invoice"
                         SalesInstallmentHistory.ShowSchedule(Rec);
                     end;
                 }
+                action(Statistics)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    Image = PaymentPeriod;
+                    Enabled = HasInstallmentPlan;
+                    ToolTip = 'View the original installment schedule, current unpaid amounts, and linked customer entries.';
+
+                    trigger OnAction()
+                    var
+                        SalesInstallmentHistory: Codeunit "Sales Installment History";
+                    begin
+                        SalesInstallmentHistory.ShowSchedule(Rec);
+                    end;
+                }
                 action(SalesInvoiceStatistics)
                 {
                     ApplicationArea = Basic, Suite;
@@ -1618,10 +1634,6 @@ page 132 "Posted Sales Invoice"
         IsShipToCountyVisible: Boolean;
         VATDateEnabled: Boolean;
         HasInstallmentPlan: Boolean;
-        SATCertInLocationEnabled: Boolean;
-        SATCertificateCode: Text;
-        SATCertificateName: Text;
-        SATCertificateSource: Text;
 
     protected var
         SalesInvHeader: Record "Sales Invoice Header";

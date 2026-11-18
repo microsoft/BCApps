@@ -48,7 +48,7 @@ codeunit 8843 "Sales Installment History"
 
     internal procedure BackfillInvoiceGroups() Complete: Boolean
     var
-        Plan: Record "Installment Plan";
+        Plan: Record "Sales Installment Plan";
     begin
         Complete := true;
         Plan.SetRange(Status, Plan.Status::Posted);
@@ -62,7 +62,7 @@ codeunit 8843 "Sales Installment History"
                 DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL SaaS Upgrade');
     end;
 
-    local procedure BackfillInvoiceGroup(Plan: Record "Installment Plan"): Boolean
+    local procedure BackfillInvoiceGroup(Plan: Record "Sales Installment Plan"): Boolean
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         AnchorEntry: Record "Cust. Ledger Entry";
@@ -85,8 +85,8 @@ codeunit 8843 "Sales Installment History"
 
     procedure ShowSchedule(SalesInvoiceHeader: Record "Sales Invoice Header")
     var
-        Plan: Record "Installment Plan";
-        PlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
     begin
         Plan.Get(SalesInvoiceHeader."Installment Plan ID");
         Plan.TestField(Status, Plan.Status::Posted);

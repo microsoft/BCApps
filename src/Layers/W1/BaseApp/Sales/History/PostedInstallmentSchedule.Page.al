@@ -11,7 +11,7 @@ page 8842 "Posted Installment Schedule"
 {
     Caption = 'Posted Installment Schedule';
     PageType = List;
-    SourceTable = "Installment Plan Line";
+    SourceTable = "Sales Installment Plan Line";
     SourceTableView = sorting("Plan ID", "Installment No.");
     Editable = false;
     InsertAllowed = false;
@@ -133,7 +133,7 @@ page 8842 "Posted Installment Schedule"
 
     trigger OnOpenPage()
     var
-        Plan: Record "Installment Plan";
+        Plan: Record "Sales Installment Plan";
     begin
         Rec.FilterGroup(2);
         Plan.Get(Rec.GetRangeMin("Plan ID"));

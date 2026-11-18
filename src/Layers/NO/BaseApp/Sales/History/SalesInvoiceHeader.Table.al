@@ -1280,61 +1280,10 @@ table 112 "Sales Invoice Header"
         field(8840; "Installment Plan ID"; Guid)
         {
             Caption = 'Installment Plan ID';
-            TableRelation = "Installment Plan";
+            TableRelation = "Sales Installment Plan";
             Editable = false;
             ToolTip = 'Specifies the posted global installment schedule for this invoice.';
         }
-#if not CLEANSCHEMA32
-        field(10605; GLN; Code[13])
-        {
-            Caption = 'GLN';
-            ObsoleteReason = 'This field is obsolete and should not be used.';
-#if CLEAN29
-            ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
-#endif
-        }
-        field(10606; "Account Code"; Text[30])
-        {
-            Caption = 'Account Code';
-            ObsoleteReason = 'This field is obsolete and should not be used.';
-#if CLEAN29
-            ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
-#endif
-        }
-        field(10612; "E-Invoice Created"; Boolean)
-        {
-            Caption = 'E-Invoice Created';
-            Editable = false;
-            ObsoleteReason = 'This field is obsolete and should not be used.';
-#if CLEAN29
-            ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
-#endif
-        }
-        field(10613; "E-Invoice"; Boolean)
-        {
-            Caption = 'E-Invoice';
-            ObsoleteReason = 'This field is obsolete and should not be used.';
-#if CLEAN29
-            ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
-#endif
-        }
-#endif
     }
 
     keys

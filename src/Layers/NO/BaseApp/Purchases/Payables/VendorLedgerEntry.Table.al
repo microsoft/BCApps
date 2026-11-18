@@ -750,35 +750,30 @@ table 25 "Vendor Ledger Entry"
                     Validate("On Hold", NewOnHold);
             end;
         }
-        field(15000000; "Remittance ID"; Integer)
+        field(8840; "Installment Plan ID"; Guid)
         {
-            Caption = 'Remittance ID';
-            TableRelation = "Remittance Payment Order".ID;
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
+            Editable = false;
+            ToolTip = 'Specifies the posted purchase installment plan.';
         }
-        field(15000001; KID; Code[30])
+        field(8841; "Installment No."; Integer)
         {
-            Caption = 'KID';
-
-            trigger OnValidate()
-            var
-                Tools: Codeunit "Remittance Tools";
-                ErrorMess: Text[250];
-            begin
-                if KID <> '' then begin
-                    ErrorMess := Tools.CheckKID(KID);
-                    if ErrorMess <> '' then
-                        Error(ErrorMess);
-                end;
-            end;
+            Caption = 'Installment No.';
+            Editable = false;
+            ToolTip = 'Specifies the sequence number within the installment plan.';
         }
-        field(15000014; "Payment Type Code Abroad"; Code[2])
+        field(8842; "No. of Installments"; Integer)
         {
-            Caption = 'Payment Type Code Abroad';
-            TableRelation = "Payment Type Code Abroad";
+            Caption = 'No. of Installments';
+            Editable = false;
+            ToolTip = 'Specifies the number of payables in the installment plan.';
         }
-        field(15000015; "Specification (Norges Bank)"; Code[60])
+        field(8843; "Invoice Entry No."; Integer)
         {
-            Caption = 'Specification (Norges Bank)';
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
     }
 
@@ -841,6 +836,16 @@ table 25 "Vendor Ledger Entry"
         // Supports the Payment Reconciliation Journal candidate search (Document Type + Open + date range).
         key(PmtReconCandidates; "Document Type", Open, "Posting Date")
         {
+        }
+        key(Installment; "Installment Plan ID", "Installment No.")
+        {
+        }
+        key(Invoice; "Invoice Entry No.", Open)
+        {
+        }
+        key(InstallmentApplication; "Vendor No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.")
+        {
+            MaintainSQLIndex = false;
         }
     }
 

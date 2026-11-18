@@ -4007,6 +4007,7 @@ codeunit 90 "Purch.-Post"
     local procedure UpdatePurchaseHeader(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var PurchaseHeader: Record "Purchase Header")
     var
         GenJnlLine: Record "Gen. Journal Line";
+        PurchaseInstallmentPosting: Codeunit "Purchase Installment Posting";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -4017,7 +4018,10 @@ codeunit 90 "Purch.-Post"
         case GenJnlLineDocType of
             GenJnlLine."Document Type"::Invoice:
                 begin
-                    FindVendorLedgerEntry(GenJnlLineDocType, GenJnlLineDocNo, VendorLedgerEntry);
+                    if IsNullGuid(PurchInvHeader."Installment Plan ID") then
+                        FindVendorLedgerEntry(GenJnlLineDocType, GenJnlLineDocNo, VendorLedgerEntry)
+                    else
+                        PurchaseInstallmentPosting.GetFinalVendorEntry(PurchInvHeader, VendorLedgerEntry);
                     PurchInvHeader."Vendor Ledger Entry No." := VendorLedgerEntry."Entry No.";
                     PurchInvHeader.Modify();
                 end;

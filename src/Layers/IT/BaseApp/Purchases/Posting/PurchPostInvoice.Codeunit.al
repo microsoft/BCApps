@@ -724,6 +724,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
     var
         PurchHeader: Record "Purchase Header";
         GenJnlLine: Record "Gen. Journal Line";
+        PurchaseInstallmentPosting: Codeunit "Purchase Installment Posting";
         IsHandled: Boolean;
     begin
         PurchHeader := PurchHeaderVar;
@@ -768,6 +769,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
         PurchPostInvoiceEvents.RunOnPostLedgerEntryOnBeforeGenJnlPostLine(
             GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
+        PurchaseInstallmentPosting.PrepareJournalLine(PurchHeader, GenJnlLine);
         GenJnlPostLine.RunWithCheck(GenJnlLine);
         PurchPostInvoiceEvents.RunOnPostLedgerEntryOnAfterGenJnlPostLine(
             GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);

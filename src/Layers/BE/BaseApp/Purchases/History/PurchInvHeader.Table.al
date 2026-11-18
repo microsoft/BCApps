@@ -724,9 +724,12 @@ table 122 "Purch. Inv. Header"
             Caption = 'Draft Invoice SystemId';
             DataClassification = SystemMetadata;
         }
-        field(11310; "Enterprise No."; Text[50])
+        field(8840; "Installment Plan ID"; Guid)
         {
-            Caption = 'Enterprise No.';
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
+            Editable = false;
+            ToolTip = 'Specifies the posted purchase installment schedule for this invoice.';
         }
     }
 

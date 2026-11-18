@@ -23,11 +23,11 @@ codeunit 8840 "Installment Calculation"
         InstallmentAmountErr: Label 'Installment line %1 must have a positive amount and a nonnegative LCY amount after rounding.', Comment = '%1 = line number';
         UnsupportedAllocationErr: Label 'The allocation type on installment line %1 is not supported.', Comment = '%1 = line number';
 
-    procedure CopyPaymentTerms(PaymentTermsCode: Code[10]; PlanID: Guid; var TempPlanLine: Record "Installment Plan Line" temporary): Boolean
+    procedure CopyPaymentTerms(PaymentTermsCode: Code[10]; PlanID: Guid; var TempPlanLine: Record "Installment Calculation Line" temporary): Boolean
     var
         PaymentTerms: Record "Payment Terms";
         PaymentTermInstallment: Record "Payment Term Installment";
-        TempRule: Record "Installment Plan Line" temporary;
+        TempRule: Record "Installment Calculation Line" temporary;
     begin
         CheckTemporary(TempPlanLine);
         PaymentTerms.Get(PaymentTermsCode);
@@ -45,7 +45,7 @@ codeunit 8840 "Installment Calculation"
         exit(not TempPlanLine.IsEmpty());
     end;
 
-    procedure ValidateRules(var TempPlanLine: Record "Installment Plan Line" temporary)
+    procedure ValidateRules(var TempPlanLine: Record "Installment Calculation Line" temporary)
     var
         PlanID: Guid;
         TotalPercentage: Decimal;
@@ -98,9 +98,9 @@ codeunit 8840 "Installment Calculation"
             Error(TotalPercentageErr);
     end;
 
-    procedure CalculateDates(var TempPlanLine: Record "Installment Plan Line" temporary; DocumentDate: Date)
+    procedure CalculateDates(var TempPlanLine: Record "Installment Calculation Line" temporary; DocumentDate: Date)
     var
-        TempCalculatedLine: Record "Installment Plan Line" temporary;
+        TempCalculatedLine: Record "Installment Calculation Line" temporary;
         PreviousDueDate: Date;
     begin
         ValidateRules(TempPlanLine);
@@ -119,9 +119,9 @@ codeunit 8840 "Installment Calculation"
 
     // Calculation reads only the supplied snapshot and explicit accounting inputs.
     // Discount eligibility is limited to the M1 gross-amount policy.
-    procedure Calculate(var TempPlanLine: Record "Installment Plan Line" temporary; DocumentDate: Date; PostingDate: Date; Amount: Decimal; AmountLCY: Decimal; AmountRoundingPrecision: Decimal; LCYAmountRoundingPrecision: Decimal; PaymentDiscountGracePeriod: DateFormula)
+    procedure Calculate(var TempPlanLine: Record "Installment Calculation Line" temporary; DocumentDate: Date; PostingDate: Date; Amount: Decimal; AmountLCY: Decimal; AmountRoundingPrecision: Decimal; LCYAmountRoundingPrecision: Decimal; PaymentDiscountGracePeriod: DateFormula)
     var
-        TempCalculatedLine: Record "Installment Plan Line" temporary;
+        TempCalculatedLine: Record "Installment Calculation Line" temporary;
         RemainingAmount: Decimal;
         RemainingAmountLCY: Decimal;
         RemainingPercentage: Decimal;
@@ -187,7 +187,7 @@ codeunit 8840 "Installment Calculation"
         ReplaceTemporaryLines(TempCalculatedLine, TempPlanLine);
     end;
 
-    local procedure CalculateLineDates(var TempPlanLine: Record "Installment Plan Line" temporary; DocumentDate: Date; var PreviousDueDate: Date)
+    local procedure CalculateLineDates(var TempPlanLine: Record "Installment Calculation Line" temporary; DocumentDate: Date; var PreviousDueDate: Date)
     begin
         TempPlanLine."Due Date" := CalcDate(TempPlanLine."Due Date Calculation", DocumentDate);
         if (TempPlanLine."Due Date" < DocumentDate) or (TempPlanLine."Due Date" < PreviousDueDate) then
@@ -203,13 +203,13 @@ codeunit 8840 "Installment Calculation"
         PreviousDueDate := TempPlanLine."Due Date";
     end;
 
-    local procedure CheckTemporary(var TempPlanLine: Record "Installment Plan Line" temporary)
+    local procedure CheckTemporary(var TempPlanLine: Record "Installment Calculation Line" temporary)
     begin
         if not TempPlanLine.IsTemporary() then
             Error(TemporaryRecordErr);
     end;
 
-    local procedure ReplaceTemporaryLines(var TempSource: Record "Installment Plan Line" temporary; var TempTarget: Record "Installment Plan Line" temporary)
+    local procedure ReplaceTemporaryLines(var TempSource: Record "Installment Calculation Line" temporary; var TempTarget: Record "Installment Calculation Line" temporary)
     begin
         TempTarget.Reset();
         TempTarget.DeleteAll();

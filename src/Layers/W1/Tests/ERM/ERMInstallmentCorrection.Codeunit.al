@@ -62,9 +62,9 @@ codeunit 134496 "ERM Installment Correction"
         ReplacementInvoice: Record "Sales Invoice Header";
         SalesLine: Record "Sales Line";
         ReplacementHeader: Record "Sales Header";
-        Plan: Record "Installment Plan";
-        OriginalPlanLine: Record "Installment Plan Line";
-        ReplacementPlanLine: Record "Installment Plan Line";
+        Plan: Record "Sales Installment Plan";
+        OriginalPlanLine: Record "Sales Installment Plan Line";
+        ReplacementPlanLine: Record "Sales Installment Plan Line";
         Rule: Record "Payment Term Installment";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
     begin
@@ -110,7 +110,7 @@ codeunit 134496 "ERM Installment Correction"
         CreditEntry: Record "Cust. Ledger Entry";
         DetailedEntry: Record "Detailed Cust. Ledg. Entry";
         Parameters: Record "Apply Unapply Parameters";
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
         CustEntryApplyPostedEntries: Codeunit "CustEntry-Apply Posted Entries";
         OriginalDiscount: Decimal;
         CreditNo: Code[20];
@@ -328,7 +328,7 @@ codeunit 134496 "ERM Installment Correction"
     local procedure CreatePostedInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesLine: Record "Sales Line"; WithoutDiscounts: Boolean)
     var
         SalesHeader: Record "Sales Header";
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
     begin
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesHeader.Validate("External Document No.", LibraryUtility.GenerateGUID());
@@ -383,7 +383,7 @@ codeunit 134496 "ERM Installment Correction"
 
     local procedure GetInstallment(var CustLedgerEntry: Record "Cust. Ledger Entry"; PlanID: Guid; Sequence: Integer)
     var
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
     begin
         PlanLine.SetRange("Plan ID", PlanID);
         PlanLine.SetRange("Installment No.", Sequence);
@@ -404,7 +404,7 @@ codeunit 134496 "ERM Installment Correction"
     local procedure VerifyClosedInvoice(SalesInvoiceHeader: Record "Sales Invoice Header"; CreditNo: Code[20])
     var
         CreditEntry: Record "Cust. Ledger Entry";
-        Plan: Record "Installment Plan";
+        Plan: Record "Sales Installment Plan";
     begin
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 1, 0);
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 2, 0);

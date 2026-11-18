@@ -3914,7 +3914,6 @@ table 81 "Gen. Journal Line"
         field(8840; "Installment Plan ID"; Guid)
         {
             Caption = 'Installment Plan ID';
-            TableRelation = "Installment Plan";
             Editable = false;
         }
         field(8841; "Sales Invoice Source SystemId"; Guid)
@@ -3923,121 +3922,11 @@ table 81 "Gen. Journal Line"
             Editable = false;
             DataClassification = SystemMetadata;
         }
-        field(10006; "Export File Name"; Text[30])
+        field(8842; "Purchase Invoice Source SystemId"; Guid)
         {
-            Caption = 'Export File Name';
+            Caption = 'Purchase Invoice Source SystemId';
             Editable = false;
-        }
-        field(10011; "Tax Jurisdiction Code"; Code[10])
-        {
-            Caption = 'Tax Jurisdiction Code';
-            Editable = true;
-            TableRelation = "Tax Jurisdiction";
-        }
-        field(10012; "Tax Type"; Option)
-        {
-            Caption = 'Tax Type';
-            OptionCaption = 'Sales and Use Tax,Excise Tax,Sales Tax Only,Use Tax Only';
-            OptionMembers = "Sales and Use Tax","Excise Tax","Sales Tax Only","Use Tax Only";
-        }
-        field(10015; "Tax Exemption No."; Text[30])
-        {
-            Caption = 'Tax Exemption No.';
-        }
-        field(10018; "STE Transaction ID"; Text[20])
-        {
-            Caption = 'STE Transaction ID';
-            Editable = false;
-        }
-#if not CLEANSCHEMA28
-        field(10020; "IRS 1099 Code"; Code[10])
-        {
-            Caption = 'IRS 1099 Code';
-            ObsoleteReason = 'Moved to IRS Forms App.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-
-        }
-#endif
-#if not CLEANSCHEMA28
-        field(10021; "IRS 1099 Amount"; Decimal)
-        {
-            Caption = 'IRS 1099 Amount';
-            ObsoleteReason = 'Moved to IRS Forms App.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
-        field(10030; "Foreign Exchange Indicator"; Option)
-        {
-            Caption = 'Foreign Exchange Indicator';
-            OptionCaption = ' ,FV,VF,FF';
-            OptionMembers = " ",FV,VF,FF;
-        }
-        field(10031; "Foreign Exchange Ref.Indicator"; Option)
-        {
-            Caption = 'Foreign Exchange Ref.Indicator';
-            OptionCaption = ' ,1,2,3';
-            OptionMembers = " ","1","2","3";
-        }
-        field(10032; "Foreign Exchange Reference"; Code[20])
-        {
-            Caption = 'Foreign Exchange Reference';
-        }
-        field(10033; "Gateway Operator OFAC Scr.Inc"; Option)
-        {
-            Caption = 'Gateway Operator OFAC Scr.Inc';
-            OptionCaption = ' ,0,1';
-            OptionMembers = " ","0","1";
-        }
-        field(10034; "Secondary OFAC Scr.Indicator"; Option)
-        {
-            Caption = 'Secondary OFAC Scr.Indicator';
-            OptionCaption = ' ,0,1';
-            OptionMembers = " ","0","1";
-        }
-        field(10035; "Origin. DFI ID Qualifier"; Option)
-        {
-            Caption = 'Origin. DFI ID Qualifier';
-            OptionCaption = ' ,01,02,03';
-            OptionMembers = " ","01","02","03";
-        }
-        field(10036; "Receiv. DFI ID Qualifier"; Option)
-        {
-            Caption = 'Receiv. DFI ID Qualifier';
-            OptionCaption = ' ,01,02,03';
-            OptionMembers = " ","01","02","03";
-        }
-        field(10037; "Transaction Type Code"; Option)
-        {
-            Caption = 'Transaction Type Code';
-            InitValue = BUS;
-            OptionCaption = 'ANN,BUS,DEP,LOA,MIS,MOR,PEN,RLS,SAL,TAX';
-            OptionMembers = ANN,BUS,DEP,LOA,MIS,MOR,PEN,RLS,SAL,TAX;
-        }
-        field(10038; "Transaction Code"; Code[3])
-        {
-            Caption = 'Transaction Code';
-        }
-        field(10039; "Company Entry Description"; Text[10])
-        {
-            Caption = 'Company Entry Description';
-        }
-        field(10040; "Payment Related Information 1"; Text[80])
-        {
-            Caption = 'Payment Related Information 1';
-        }
-        field(10041; "Payment Related Information 2"; Text[52])
-        {
-            Caption = 'Payment Related Information 2';
-        }
-        field(10045; "GST/HST"; Enum "GST HST Tax Type")
-        {
-            Caption = 'GST/HST';
-        }
-        field(10046; "EFT Export Sequence No."; Integer)
-        {
-            Caption = 'EFT Export Sequence No.';
+            DataClassification = SystemMetadata;
         }
     }
 

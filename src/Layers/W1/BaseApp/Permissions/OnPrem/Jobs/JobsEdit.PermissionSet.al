@@ -25,10 +25,12 @@ using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Archive;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
 
 permissionset 6719 "Jobs - Edit"
@@ -48,8 +50,10 @@ permissionset 6719 "Jobs - Edit"
                   tabledata "Gen. Journal Line" = r,
                   tabledata "General Ledger Setup" = RM,
                   tabledata "VAT Setup" = RM,
-                  tabledata "Installment Plan" = r,
-                  tabledata "Installment Plan Line" = r,
+                  tabledata "Sales Installment Plan" = r,
+                  tabledata "Purchase Installment Plan" = r,
+                  tabledata "Sales Installment Plan Line" = r,
+                  tabledata "Purchase Installment Plan Line" = r,
                   tabledata Job = RIMD,
                   tabledata "Job Assigned Resource" = RIMD,
                   tabledata "Job G/L Account Price" = RIMD,
