@@ -3519,6 +3519,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
 
         if (TargetDate - SupplyInvtProfile."Due Date") <= DampenersDays then begin
             if (TempSKU."Reordering Policy" = TempSKU."Reordering Policy"::"Lot-for-Lot") and
+               not IsNewNonExceptionSupply(SupplyInvtProfile) and
                AllowLotAccumulation(SupplyInvtProfile, TargetDate) and
                (TargetDate > SupplyInvtProfile."Due Date") and
                (SupplyInvtProfile."Untracked Quantity" < TempSKU."Safety Stock Quantity")
@@ -3562,6 +3563,13 @@ codeunit 99000854 "Inventory Profile Offsetting"
         end;
 
         exit(true);
+    end;
+
+    local procedure IsNewNonExceptionSupply(SupplyInvtProfile: Record "Inventory Profile"): Boolean
+    begin
+        exit(
+          (SupplyInvtProfile."Action Message" = SupplyInvtProfile."Action Message"::New) and
+          not SupplyInvtProfile."Is Exception Order");
     end;
 
     local procedure CheckSupplyWithSKU(var InventoryProfile: Record "Inventory Profile"; var SKU: Record "Stockkeeping Unit")
