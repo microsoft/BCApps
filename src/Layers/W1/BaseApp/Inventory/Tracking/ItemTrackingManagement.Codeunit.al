@@ -2837,6 +2837,7 @@ codeunit 6500 "Item Tracking Management"
             exit;
         WhseActivLine1.Reset();
         WhseActivLine1.SetSourceFilter(WhseActivLine1."Source Type", WhseActivLine1."Source Subtype", WhseActivLine1."Source No.", WhseActivLine1."Source Line No.", WhseActivLine1."Source Subline No.", true);
+        WhseActivLine1.SetFilter("Qty. to Handle (Base)", '<>0');
         if WhseActivLine1.FindSet() then
             repeat
                 if WhseActivLine1.TrackingExists() then
