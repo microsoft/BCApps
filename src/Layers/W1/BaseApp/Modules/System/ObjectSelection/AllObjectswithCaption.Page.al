@@ -107,10 +107,5 @@ page 9174 "All Objects with Caption"
         ObjectIDText := Format(AllObjWithCaption."Object ID");
         exit(true);
     end;
-
-    procedure GetSelectionFilter(var AllObjWithCaption: Record AllObjWithCaption)
-    begin
-        CurrPage.SetSelectionFilter(AllObjWithCaption);
-    end;
 }
 

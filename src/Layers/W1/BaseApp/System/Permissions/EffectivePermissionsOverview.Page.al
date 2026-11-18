@@ -90,15 +90,15 @@ page 9886 "Effective Permissions Overview"
 
                     trigger OnAssistEdit()
                     var
-                        AllObjWithCaption: Record AllObjWithCaption;
-                        AllObjectsWithCaption: Page "All Objects with Caption";
+                        TempAllObjWithCaption: Record AllObjWithCaption temporary;
+                        Objects: Page Objects;
                         RecRef: RecordRef;
                     begin
-                        AllObjectsWithCaption.LookupMode(true);
-                        if AllObjectsWithCaption.RunModal() = Action::LookupOK then begin
-                            AllObjectsWithCaption.GetSelectionFilter(AllObjWithCaption);
-                            RecRef.GetTable(AllObjWithCaption);
-                            ObjIDFilter := SelectionFilterMgt.GetSelectionFilter(RecRef, AllObjWithCaption.FieldNo("Object ID"));
+                        Objects.LookupMode(true);
+                        if Objects.RunModal() = Action::LookupOK then begin
+                            Objects.GetSelectedRecords(TempAllObjWithCaption);
+                            RecRef.GetTable(TempAllObjWithCaption);
+                            ObjIDFilter := SelectionFilterMgt.GetSelectionFilter(RecRef, TempAllObjWithCaption.FieldNo("Object ID"));
                             ApplyFilters();
                         end;
                     end;
@@ -314,9 +314,12 @@ page 9886 "Effective Permissions Overview"
         if User.FindSet() then
             repeat
                 if IsSaaS then
-                    if not AzureADUserManagement.IsUserDelegated(User."User Security ID") then
-                        if (not UserProperty.Get(User."User Security ID")) or (UserProperty."Authentication Object ID" = '') then
+                    if not AzureADUserManagement.IsUserDelegated(User."User Security ID") then begin
+                        if not UserProperty.Get(User."User Security ID") then
                             continue;
+                        if UserProperty."Authentication Object ID" = '' then
+                            continue;
+                    end;
                 TempUser."User Security ID" := User."User Security ID";
                 TempUser."User Name" := User."User Name";
                 TempUser.Insert();

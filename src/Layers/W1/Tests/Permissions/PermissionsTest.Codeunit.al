@@ -797,12 +797,12 @@ codeunit 139400 "Permissions Test"
     end;
 
     [ModalPageHandler]
-    procedure SelectCustomerInAllObjectsLookupHandler(var AllObjectsWithCaption: TestPage "All Objects with Caption")
+    procedure SelectCustomerInAllObjectsLookupHandler(var Objects: TestPage Objects)
     var
         AllObjWithCaption: Record AllObjWithCaption;
     begin
-        AllObjectsWithCaption.GoToKey(AllObjWithCaption."Object Type"::TableData, Database::Customer);
-        AllObjectsWithCaption.OK().Invoke();
+        Objects.GoToKey(AllObjWithCaption."Object Type"::TableData, Database::Customer);
+        Objects.OK().Invoke();
     end;
 
     [Test]
