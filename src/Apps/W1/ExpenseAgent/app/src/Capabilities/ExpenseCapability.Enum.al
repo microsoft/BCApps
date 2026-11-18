@@ -97,13 +97,20 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Travel Request', Locked = true;
     }
+    /// <summary>
+    /// Credit card feed APIs are supported by this backend, independently of provider setup or mandatory card selection.
+    /// </summary>
+    value(9; CreditCardFeed)
+    {
+        Caption = 'Credit Card Feed', Locked = true;
+    }
 
     /// <summary>
     /// For Expense Agent service calls, per diem days and meal times are evaluated in the agent time zone,
     /// so the service can send travel start and end times as true UTC instants. A backend that predates
     /// this omits the value, and then evaluates them in the session time zone.
     /// </summary>
-    value(9; DateTimesInAgentTimeZone)
+    value(10; DateTimesInAgentTimeZone)
     {
         Caption = 'Date Times In Agent Time Zone', Locked = true;
     }
