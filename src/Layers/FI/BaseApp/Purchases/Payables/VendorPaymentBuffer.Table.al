@@ -31,7 +31,7 @@ table 475 "Vendor Payment Buffer"
             DataClassification = SystemMetadata;
             TableRelation = Currency;
         }
-        field(3; "Vendor Ledg. Entry No."; Integer)
+        field(3; "Vendor Ledg. Entry No."; BigInteger)
         {
             Caption = 'Vendor Ledg. Entry No.';
             DataClassification = SystemMetadata;

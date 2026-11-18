@@ -38,6 +38,8 @@ Exchange item order lines are filtered out before `OnBeforeCreateItemSalesLine` 
 - `OnAfterConsiderRefundsInQuantityAndAmounts` -- fires after each order line's quantity and the header's amounts are adjusted for refunds.
 - `OnBeforeConvertToFinancialStatus`, `OnBeforeConvertToFulfillmentStatus`, `OnBeforeConvertToOrderReturnStatus` -- internal events that let you override enum conversion from Shopify's status strings, useful when Shopify adds new status values before the enum is updated.
 
-`OnAfterCreateShopifyOrderAndLines` runs after `MarkExchangeItemOrderLines` and refund adjustments. At that point `Is Exchange Item` has already been set on any order lines matched from Shopify return exchange line items.
+`OnAfterCreateShopifyOrderAndLines` runs after the order lines are written and refund adjustments are applied. At that point `Is Exchange Item` has already been set on order lines matched from Shopify return exchange line items, except gift cards issued by unverified POS returns, which stay on the sales invoice.
 
 *Updated: 2026-07-29 -- clarified import event timing for exchange item flags*
+
+*Updated: 2026-11-13 -- exchange flags are set while order lines are written*

@@ -90,6 +90,16 @@ page 7433 "EA Corp Card Trans List"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the posted expense report linked to this transaction.';
                 }
+                field("Liability Bank Entry No."; Rec."Liability Bank Entry No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the bank ledger entry created by transferring an already-posted manual expense liability.';
+                }
+                field("Liability Reversal Trans. No."; Rec."Liability Reversal Trans. No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the transaction that reversed the manual expense liability transfer.';
+                }
                 field("Provider Statement No."; Rec."Provider Statement No.")
                 {
                     ApplicationArea = Basic, Suite;
@@ -103,6 +113,45 @@ page 7433 "EA Corp Card Trans List"
     {
         area(Processing)
         {
+            action(TransferCardLiability)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Transfer card liability';
+                Image = TransferToGeneralJournal;
+                AccessByPermission = codeunit "EA Corp Card Liability Mgt" = X;
+                Enabled = (Rec.Status = Rec.Status::Posted) and (Rec."Liability Transaction No." = 0);
+                ToolTip = 'Transfers the original manual expense liability from its card-payable G/L account to the provider bank account, without posting expense or VAT again.';
+
+                trigger OnAction()
+                var
+                    CorpCardLiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
+                    LiabilityTransfer: Page "EA Card Liability Transfer";
+                begin
+                    if LiabilityTransfer.RunModal() <> Action::OK then
+                        exit;
+                    CorpCardLiabilityMgt.TransferLiability(Rec, LiabilityTransfer.GetPostingDate());
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ReverseCardLiability)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Reverse card liability transfer';
+                Image = ReverseRegister;
+                AccessByPermission = codeunit "EA Corp Card Liability Mgt" = X;
+                Enabled = (Rec."Liability Transaction No." <> 0) and (Rec."Liability Reversal Trans. No." = 0);
+                ToolTip = 'Reverses the liability transfer and invalidates statement reconciliation. Expense and VAT amounts are not posted again.';
+
+                trigger OnAction()
+                var
+                    CorpCardLiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
+                begin
+                    if not Confirm(ReverseCardLiabilityQst, false) then
+                        exit;
+                    CorpCardLiabilityMgt.ReverseLiability(Rec);
+                    CurrPage.Update(false);
+                end;
+            }
             action(OpenMatchedExpense)
             {
                 Caption = 'Open matched expense';
@@ -158,6 +207,17 @@ page 7433 "EA Corp Card Trans List"
         }
         area(Promoted)
         {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(TransferCardLiability_Promoted; TransferCardLiability)
+                {
+                }
+                actionref(ReverseCardLiability_Promoted; ReverseCardLiability)
+                {
+                }
+            }
             group(Category_Transaction)
             {
                 Caption = 'Transaction';
@@ -178,4 +238,5 @@ page 7433 "EA Corp Card Trans List"
     var
         NoLinkedExpenseErr: Label 'No linked expense exists for the selected transaction.';
         NoLinkedStatementErr: Label 'No provider statement is linked to the selected transaction.';
+        ReverseCardLiabilityQst: Label 'Do you want to reverse this card liability transfer? Statement reconciliation will need to be reviewed.';
 }
