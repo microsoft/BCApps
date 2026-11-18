@@ -1964,9 +1964,11 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer: Record Customer;
         TempBlob: Codeunit "Temp Blob";
     begin
+        // [FEATURE] [AI test 1.0]
         // [SCENARIO] French VAT supplies the buyer SIREN when registration and electronic address are blank.
         Initialize();
 
+        // [GIVEN] Invoice "SI" for customer "C" with only a usable French VAT identifier.
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
         Customer.Get(SalesInvoiceHeader."Sell-to Customer No.");
         Customer.Validate("Registration Number", '');
@@ -1974,8 +1976,10 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer."VAT Registration No." := 'FR12012345678';
         Customer.Modify(true);
 
+        // [WHEN] Generate the invoice XML.
         CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
 
+        // [THEN] French VAT supplies the legal SIREN and routing while posted VAT remains unchanged.
         VerifyBuyerLegalOrganization(TempBlob, '012345678');
         VerifyBuyerRoutingAndVAT(TempBlob, '012345678', SalesInvoiceHeader."VAT Registration No.");
     end;
