@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SpendRequest;
 
+/// <summary>
+/// Displays the G/L entries posted against spend requests.
+/// </summary>
 page 6843 "Spend Request To G/L Link"
 {
     Caption = 'Posted to G/L';

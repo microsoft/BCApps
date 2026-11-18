@@ -23,9 +23,11 @@ using System.Agents;
 using System.Telemetry;
 using System.Utilities;
 
+/// <summary>
+/// Posts released expense reports to the general ledger and creates the posted expense report and expense ledger entries.
+/// </summary>
 codeunit 6987 "Expense Report-Post"
 {
-    Access = Internal;
     TableNo = "Expense Report Header";
     Permissions = TableData "Expense Report Header" = rimd,
                   TableData "Expense Report Line" = rimd,
@@ -1269,7 +1271,7 @@ codeunit 6987 "Expense Report-Post"
         GenJnlPostLine.RunWithCheck(GenJournalLine);
     end;
 
-    procedure UpdateVATAmount(
+    internal procedure UpdateVATAmount(
         var Amount: Decimal;
         var AmountLCY: Decimal;
         var VATAmount: Decimal;
@@ -1371,7 +1373,7 @@ codeunit 6987 "Expense Report-Post"
     /// Preview Mode ensures no transactions are committed to the database and no documents are sent.
     /// </summary>
     /// <param name="NewPreviewMode">The new value for the Preview Mode.</param>
-    procedure SetPreviewMode(NewPreviewMode: Boolean)
+    internal procedure SetPreviewMode(NewPreviewMode: Boolean)
     begin
         PreviewMode := NewPreviewMode;
     end;

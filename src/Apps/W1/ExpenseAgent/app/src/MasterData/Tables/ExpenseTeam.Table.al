@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Stores the teams that expense users can belong to.
+/// </summary>
 table 6931 "Expense Team"
 {
-    Access = Internal;
     Caption = 'Expense Team';
     LookupPageId = "Expense Teams";
     DrillDownPageId = "Expense Teams";

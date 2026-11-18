@@ -22,9 +22,11 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Stores the lines of a posted expense report as history after the expense report has been posted.
+/// </summary>
 table 6916 "Posted Expense Report Line"
 {
-    Access = Internal;
     Caption = 'Posted Expense Report Line';
     DataClassification = CustomerContent;
     LookupPageId = "Posted Expense Report Lines";
@@ -330,10 +332,12 @@ table 6916 "Posted Expense Report Line"
         }
         field(51; "Credit Card Feed No."; Integer)
         {
+            Access = Internal;
             Caption = 'Credit Card Feed No.';
         }
         field(107; "Corporate Card Id"; Code[50])
         {
+            Access = Internal;
             Caption = 'Corporate Card';
             DataClassification = AccountData;
             TableRelation = "EA Corp Card"."Card Id";
@@ -342,6 +346,7 @@ table 6916 "Posted Expense Report Line"
         }
         field(108; "Card Payable Account No."; Code[20])
         {
+            Access = Internal;
             Caption = 'Card Payable Account No.';
             DataClassification = AccountData;
             TableRelation = "G/L Account"."No.";
@@ -349,6 +354,7 @@ table 6916 "Posted Expense Report Line"
         }
         field(109; "Card Liability Amount"; Decimal)
         {
+            Access = Internal;
             Caption = 'Card Liability Amount';
             DataClassification = AccountData;
             AutoFormatType = 1;
@@ -357,6 +363,7 @@ table 6916 "Posted Expense Report Line"
         }
         field(110; "Card Liability Amount (LCY)"; Decimal)
         {
+            Access = Internal;
             Caption = 'Card Liability Amount (LCY)';
             DataClassification = AccountData;
             AutoFormatType = 1;
@@ -365,6 +372,7 @@ table 6916 "Posted Expense Report Line"
         }
         field(111; "Card Liability Currency Code"; Code[10])
         {
+            Access = Internal;
             Caption = 'Card Liability Currency Code';
             DataClassification = AccountData;
             TableRelation = Currency.Code;
@@ -372,6 +380,7 @@ table 6916 "Posted Expense Report Line"
         }
         field(112; "Card Liability Currency Factor"; Decimal)
         {
+            Access = Internal;
             Caption = 'Card Liability Currency Factor';
             DataClassification = AccountData;
             AutoFormatType = 0;
@@ -509,6 +518,7 @@ table 6916 "Posted Expense Report Line"
         }
         field(106; "Policy Status At Posting"; Enum "Expense Policy Status")
         {
+            Access = Internal;
             Caption = 'Policy Status At Posting';
             DataClassification = CustomerContent;
             Editable = false;
@@ -549,6 +559,10 @@ table 6916 "Posted Expense Report Line"
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         DimMgt: Codeunit DimensionManagement;
 
+    /// <summary>
+    /// Gets the reimbursement currency code from the posted expense report header.
+    /// </summary>
+    /// <returns>The reimbursement currency code, or an empty value if the posted expense report header does not exist.</returns>
     procedure GetReimbursementCurrencyCode(): Code[10]
     begin
         if PostedExpenseReportHeader.Get("Document No.") then
@@ -557,6 +571,10 @@ table 6916 "Posted Expense Report Line"
         exit('');
     end;
 
+    /// <summary>
+    /// Opens the dimension set of the posted expense report line and updates the global dimension codes.
+    /// </summary>
+    /// <returns>True if the dimension set was changed; otherwise, false.</returns>
     procedure ShowDimensions() IsChanged: Boolean
     var
         OldDimSetID: Integer;
@@ -568,6 +586,9 @@ table 6916 "Posted Expense Report Line"
         IsChanged := OldDimSetID <> "Dimension Set ID";
     end;
 
+    /// <summary>
+    /// Opens the comment lines of the posted expense report line.
+    /// </summary>
     procedure ShowLineComments()
     var
         ExpenseReportCommentLine: Record "Expense Report Comment Line";

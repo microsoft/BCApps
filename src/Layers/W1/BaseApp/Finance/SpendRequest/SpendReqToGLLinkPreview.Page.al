@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SpendRequest;
 
+/// <summary>
+/// Previews, from temporary records, the G/L entries that will be linked to spend requests.
+/// </summary>
 page 6844 "Spend Req. To G/L Link Preview"
 {
     Caption = 'Posted to G/L Preview';

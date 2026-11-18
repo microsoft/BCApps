@@ -14,7 +14,6 @@ using Microsoft.Finance.VAT.Setup;
 /// </summary>
 table 6934 "Posted Exp. Rep. Line VAT Spec"
 {
-    Access = Internal;
     Caption = 'Posted Expense Report Line VAT Specification';
     DataClassification = CustomerContent;
     ReplicateData = false;
@@ -222,6 +221,7 @@ table 6934 "Posted Exp. Rep. Line VAT Spec"
         }
         field(42; Confidence; Decimal)
         {
+            Access = Internal;
             AutoFormatType = 0;
             Caption = 'Confidence';
             DecimalPlaces = 0 : 5;
@@ -299,7 +299,7 @@ table 6934 "Posted Exp. Rep. Line VAT Spec"
     end;
 
     /// <summary>Stores a UTF-8 reclaim justification text into the blob.</summary>
-    procedure SetJustification(NewText: Text)
+    internal procedure SetJustification(NewText: Text)
     var
         OutStream: OutStream;
     begin
