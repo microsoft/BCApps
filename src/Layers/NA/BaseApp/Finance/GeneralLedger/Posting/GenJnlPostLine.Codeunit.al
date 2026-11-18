@@ -4666,7 +4666,17 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     if Abs(PaidAmount) = Abs(CustLedgEntry2."Amount (LCY)") then
                         PaidAmountByVAT := InvoicePartAmountByVAT
                     else
-                        PaidAmountByVAT -= Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor());
+                        if (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") and
+                           (CustLedgEntry2."Original Amt. (LCY)" <> 0)
+                        then
+                            PaidAmountByVAT :=
+                              CustLedgEntry2.GetAppliedAmountByVATPostingGroup(
+                                PaidAmount + Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
+                                InvoicePartAmountByVAT, InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup,
+                                TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded) -
+                              Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor())
+                        else
+                            PaidAmountByVAT -= Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor());
                 end else
                     PaidAmountByVAT := PaidAmount;
             end;
