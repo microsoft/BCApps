@@ -40,6 +40,7 @@ codeunit 139196 "CDS Connection Setup Test"
         CommercialClientCredentialsAuthorityUrlTxt: Label 'https://login.microsoftonline.com/organizations/oauth2/v2.0/token', Locked = true;
         CommercialGlobalDiscoveryScopeTxt: Label 'https://globaldisco.crm.dynamics.com/user_impersonation', Locked = true;
         CommercialGlobalDiscoveryApiUrlTxt: Label 'https://globaldisco.crm.dynamics.com/api/discovery/v2.0/Instances', Locked = true;
+        CommercialEnvironmentHostSuffixTxt: Label 'dynamics.com', Locked = true;
         SovereignOAuthAuthorityUrlTxt: Label 'https://login.microsoftonline.us/common/oauth2', Locked = true;
         SovereignGlobalDiscoveryApiUrlTxt: Label 'https://globaldisco.crm.microsoftdynamics.us/api/discovery/v2.0/Instances', Locked = true;
         IsInitialized: Boolean;
@@ -75,12 +76,16 @@ codeunit 139196 "CDS Connection Setup Test"
     procedure DataverseCloudOverrideReturnsPartnerEndpoints()
     var
         TempCDSConnectionSetup: Record "CDS Connection Setup" temporary;
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         DataverseCloud: Enum "Dataverse Cloud";
         Endpoints: Interface "Dataverse Cloud Endpoints";
     begin
         // [FEATURE] [Dataverse Cloud]
-        // [SCENARIO] A partner-supplied Dataverse Cloud implementation overrides the endpoints used to connect.
+        // [SCENARIO] On-premises, a partner-supplied Dataverse Cloud implementation overrides the endpoints used to connect.
         Initialize();
+
+        // [GIVEN] Business Central on-premises
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
 
         // [GIVEN] A Dataverse Connection Setup pointed at a partner (test) sovereign cloud
         TempCDSConnectionSetup.Init();
@@ -90,6 +95,39 @@ codeunit 139196 "CDS Connection Setup Test"
         Endpoints := TempCDSConnectionSetup.GetDataverseCloudEndpoints();
         Assert.AreEqual(SovereignOAuthAuthorityUrlTxt, Endpoints.GetOAuthAuthorityUrl(), 'Unexpected OAuth authority URL.');
         Assert.AreEqual(SovereignGlobalDiscoveryApiUrlTxt, Endpoints.GetGlobalDiscoveryApiUrl(), 'Unexpected Global Discovery API URL.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DataverseCloudOverrideIgnoredInSaaS()
+    var
+        TempCDSConnectionSetup: Record "CDS Connection Setup" temporary;
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        DataverseCloud: Enum "Dataverse Cloud";
+        Endpoints: Interface "Dataverse Cloud Endpoints";
+    begin
+        // [FEATURE] [Dataverse Cloud]
+        // [SCENARIO] Business Central online ignores a partner-supplied Dataverse Cloud and uses the commercial endpoints.
+        Initialize();
+
+        // [GIVEN] Business Central online
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+
+        // [GIVEN] A Dataverse Connection Setup pointed at a partner (test) sovereign cloud
+        TempCDSConnectionSetup.Init();
+        TempCDSConnectionSetup."Dataverse Cloud" := DataverseCloud::TestSovereign;
+
+        // [WHEN] The endpoints are resolved
+        Endpoints := TempCDSConnectionSetup.GetDataverseCloudEndpoints();
+
+        // [THEN] The worldwide commercial endpoints and host suffix are used, not the partner implementation
+        Assert.AreEqual(CommercialOAuthAuthorityUrlTxt, Endpoints.GetOAuthAuthorityUrl(), 'Unexpected OAuth authority URL.');
+        Assert.AreEqual(CommercialClientCredentialsAuthorityUrlTxt, Endpoints.GetClientCredentialsTokenAuthorityUrl(), 'Unexpected client credentials authority URL.');
+        Assert.AreEqual(CommercialGlobalDiscoveryScopeTxt, Endpoints.GetGlobalDiscoveryScope(), 'Unexpected Global Discovery scope.');
+        Assert.AreEqual(CommercialGlobalDiscoveryApiUrlTxt, Endpoints.GetGlobalDiscoveryApiUrl(), 'Unexpected Global Discovery API URL.');
+        Assert.AreEqual(CommercialEnvironmentHostSuffixTxt, Endpoints.GetEnvironmentHostSuffix(), 'Unexpected environment host suffix.');
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
 
     [Test]

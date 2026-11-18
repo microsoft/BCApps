@@ -435,7 +435,8 @@ table 6900 Expense
                 ApplyRule();
             end;
         }
-        field(28; "Starting Point"; Text[50])
+#pragma warning disable AS0086
+        field(28; "Starting Point"; Text[2048])
         {
             Caption = 'Starting Point';
             ToolTip = 'Specifies the starting location for mileage. Available for Mileage expenses.';
@@ -444,7 +445,7 @@ table 6900 Expense
                 TestStatusOpen();
             end;
         }
-        field(29; "Ending Point"; Text[50])
+        field(29; "Ending Point"; Text[2048])
         {
             Caption = 'Ending Point';
             ToolTip = 'Specifies the ending location for mileage. Available for Mileage expenses.';
@@ -453,6 +454,7 @@ table 6900 Expense
                 TestStatusOpen();
             end;
         }
+#pragma warning restore AS0086
         field(53; "Round Trip"; Boolean)
         {
             Caption = 'Round Trip';
