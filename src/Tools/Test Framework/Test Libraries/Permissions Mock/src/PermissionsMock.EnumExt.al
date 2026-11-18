@@ -11,6 +11,6 @@ enumextension 131006 "Permissions Mock" extends DefaultTestHandler
 {
     value(131006; "Permissions Mock")
     {
-        Implementation = ITestHandler = "Permissions Mock";
+        Implementation = ITestHandler = "Permissions Mock Test Handler";
     }
 }
