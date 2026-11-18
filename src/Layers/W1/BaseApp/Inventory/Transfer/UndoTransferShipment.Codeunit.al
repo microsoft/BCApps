@@ -77,7 +77,7 @@ codeunit 9030 "Undo Transfer Shipment"
         TransferLine: Record "Transfer Line";
         WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line";
         Window: Dialog;
-        ItemShptEntryNo: Integer;
+        ItemShptEntryNo: BigInteger;
         DocLineNo: Integer;
         Direction: Enum "Transfer Direction";
         PostedWhseShptLineFound: Boolean;
@@ -194,7 +194,7 @@ codeunit 9030 "Undo Transfer Shipment"
         OnAfterGetCorrectionLineNo(TransferShptLine, Result);
     end;
 
-    local procedure PostItemJnlLine(TransShptLine: Record "Transfer Shipment Line"; var DocLineNo: Integer): Integer
+    local procedure PostItemJnlLine(TransShptLine: Record "Transfer Shipment Line"; var DocLineNo: Integer): BigInteger
     var
         ItemJnlLine: Record "Item Journal Line";
         TransShptHeader: Record "Transfer Shipment Header";
@@ -299,7 +299,7 @@ codeunit 9030 "Undo Transfer Shipment"
         until ItemLedgEntry.Next() = 0;
     end;
 
-    local procedure InsertNewShipmentLine(OldTransShptLine: Record "Transfer Shipment Line"; ItemShptEntryNo: Integer; DocLineNo: Integer)
+    local procedure InsertNewShipmentLine(OldTransShptLine: Record "Transfer Shipment Line"; ItemShptEntryNo: BigInteger; DocLineNo: Integer)
     var
         NewTransShptLine: Record "Transfer Shipment Line";
     begin

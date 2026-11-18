@@ -6,7 +6,7 @@ codeunit 7106 "O365 Bidirectional Sync"
 {
     var
         LastSyncCreatedCount: Integer;
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         NoContactsFoundMsg: Label 'No contacts found in the selected folder to Synchronize.';
         StartMsgTxt: Label 'Retrieving your contacts... This will take some time.';
         ContentTypeLbl: Label 'application/json', Locked = true;
@@ -604,7 +604,7 @@ codeunit 7106 "O365 Bidirectional Sync"
         i: Integer;
         FolderId: Text;
         FolderName: Text;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         DefaultParentFolderId: Text;
     begin
         OutFolderTable.DeleteAll();

@@ -12,12 +12,12 @@ table 6521 "Item Tracing History Buffer"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;
         }
-        field(2; Level; Integer)
+        field(2; Level; BigInteger)
         {
             Caption = 'Level';
             DataClassification = SystemMetadata;
