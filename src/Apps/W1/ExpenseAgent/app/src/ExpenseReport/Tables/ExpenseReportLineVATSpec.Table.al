@@ -307,6 +307,7 @@ table 6922 "Expense Report Line VAT Spec."
         }
         field(40; Source; Enum "Expense VAT Spec Source")
         {
+            Access = Internal;
             Caption = 'Source';
             ToolTip = 'Specifies the provenance of this row (Agent / Manual / Override).';
         }

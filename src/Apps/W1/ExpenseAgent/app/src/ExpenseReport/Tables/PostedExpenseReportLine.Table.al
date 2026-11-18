@@ -512,6 +512,7 @@ table 6916 "Posted Expense Report Line"
         }
         field(102; "Policies Evaluated At"; DateTime)
         {
+            Access = Internal;
             Caption = 'Policies Evaluated At';
             DataClassification = CustomerContent;
             Editable = false;
