@@ -763,14 +763,6 @@ codeunit 148311 "Expense No Rule Test"
         ExpenseAgentSetup.Modify();
     end;
 
-    local procedure MarkDeclarationCurrentForTest(var Expense: Record Expense)
-    begin
-        Expense."No Receipt Type" := Expense."No Receipt Type"::"Lost Receipt";
-        Expense."No Receipt Declaration ID" := CreateGuid();
-        Expense.Modify();
-        Expense.Get(Expense."No.");
-    end;
-
     local procedure Initialize()
     var
         Workflow: Record Workflow;
