@@ -31,6 +31,7 @@ codeunit 148300 "Library - Expense"
         NameTxt: Label 'Name';
         AttachmentRetrievalFailedErr: Label 'The attachment could not be retrieved.', Locked = true;
         AttachmentRetrievalFailureEnabled: Boolean;
+        OnePixelPngBase64Lbl: Label 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAen63NgAAAAASUVORK5CYII=', Locked = true;
 
     internal procedure SetAttachmentRetrievalFailureEnabled(Enabled: Boolean)
     begin
@@ -796,5 +797,16 @@ codeunit 148300 "Library - Expense"
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup."Enable Agent" := EnableAgent;
         ExpenseAgentSetup.Modify(true);
+    end;
+
+    internal procedure CreateTempBLOBWithImageOfType(var TempBlob: Codeunit "Temp Blob"; ImageFormat: Enum "Image Format")
+    var
+        Image: Codeunit Image;
+        OutStream: OutStream;
+    begin
+        Image.FromBase64(OnePixelPngBase64Lbl);
+        Image.SetFormat(ImageFormat);
+        TempBlob.CreateOutStream(OutStream);
+        Image.Save(OutStream);
     end;
 }
