@@ -161,7 +161,7 @@ codeunit 130050 "Business Skill Test"
         Assert.AreEqual(Skill.Status::Inactive, Skill.Status, 'Native authoring may save an inactive skill before activation.');
         Assert.AreEqual(Format(Skill.ID, 0, '<Integer,20><Filler Character,0>'), Skill."Skill ID", 'Creation must persist the final manual identifier.');
         Assert.IsTrue(Skill.Get(Skill.ID), 'The inactive skill must persist.');
-        AssertContentEquals(SecretStrSubstNo('Body'), SkillText.GetSkillText(Skill), 'The instructions must persist.');
+        AssertContentEquals(SecretStrSubstNo('Body'), BusinessSkillImpl.GetSkillText(Skill), 'The instructions must persist.');
         AssertVersionCount(Skill.ID, 1);
     end;
 
@@ -179,19 +179,101 @@ codeunit 130050 "Business Skill Test"
         // [GIVEN] A created skill.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Lifecycle', SecretStrSubstNo('Body'));
-        Results.ReadFrom(Management.GetAllActiveSkills().Unwrap());
+        Results.ReadFrom(BusinessSkillImpl.GetAllActiveSkills().Unwrap());
         Assert.AreEqual(1, Results.Count(), 'New active applicable skills must be discoverable.');
         // [WHEN] Its active status changes through lifecycle operations.
-        Management.DeactivateSkill(SkillId);
+        BusinessSkillImpl.DeactivateSkill(SkillId);
         Skill.Get(SkillId);
         // [THEN] Discovery includes it only while active.
         Assert.AreEqual(Skill.Status::Inactive, Skill.Status, 'Deactivation must set Inactive.');
-        Results.ReadFrom(Management.GetAllActiveSkills().Unwrap());
+        Results.ReadFrom(BusinessSkillImpl.GetAllActiveSkills().Unwrap());
         Assert.AreEqual(0, Results.Count(), 'Inactive skills must not be discoverable.');
-        Management.ActivateSkill(SkillId);
+        BusinessSkillImpl.ActivateSkill(SkillId);
         Skill.Get(SkillId);
         Assert.AreEqual(Skill.Status::Active, Skill.Status, 'Inactive content can be activated again.');
         AssertVersionCount(SkillId, 1);
+    end;
+
+    /// <summary>
+    /// Code-based discovery uses the exact app identity, including empty ownership for manual skills, and excludes inactive skills.
+    /// </summary>
+    [Test]
+    [NonDebuggable]
+    procedure DiscoveryUsesSkillCodeAndAppId()
+    var
+        OwnedSkill: Record "Business Skill";
+        OtherSkill: Record "Business Skill";
+        ManualSkill: Record "Business Skill";
+        Builder: Codeunit "Business Skill Builder";
+        BusinessSkill: Codeunit "Business Skill";
+        Result: JsonObject;
+        Token: JsonToken;
+        EmptyAppId: Guid;
+    begin
+        // [GIVEN] Two apps use the same code, and a manual skill has its generated code.
+        Initialize();
+        OwnedSkill.Get(Builder.Initialize('SHARED-CODE', 'Owned skill', SecretStrSubstNo('Owned content')).SetActive(true).Create());
+        OtherSkill.Get(LibraryBusinessSkill.CreateAppOwnedSkill('SHARED-CODE', 'Other app', SecretStrSubstNo('Other content')));
+        LibraryBusinessSkill.ActivateSkill(OtherSkill.ID);
+        ManualSkill.Get(LibraryBusinessSkill.CreateSkill('Manual skill', SecretStrSubstNo('Manual content')));
+
+        // [WHEN] Discovery selects each code and app pair.
+        Result.ReadFrom(BusinessSkill.GetSkill(OwnedSkill."Skill ID", OwnedSkill."Owning App ID").Unwrap());
+        Result.Get('id', Token);
+        // [THEN] Each pair selects only its own active record.
+        Assert.AreEqual(OwnedSkill.ID, Token.AsValue().AsBigInteger(), 'Discovery must select the specified app, not the first matching code.');
+        Result.ReadFrom(BusinessSkill.GetSkill(OtherSkill."Skill ID", OtherSkill."Owning App ID").Unwrap());
+        Result.Get('id', Token);
+        Assert.AreEqual(OtherSkill.ID, Token.AsValue().AsBigInteger(), 'Identical codes in different apps must remain distinct.');
+        Result.ReadFrom(BusinessSkill.GetSkill(ManualSkill."Skill ID", EmptyAppId).Unwrap());
+        Result.Get('id', Token);
+        Assert.AreEqual(ManualSkill.ID, Token.AsValue().AsBigInteger(), 'Empty ownership must select a saved manual skill.');
+        LibraryBusinessSkill.InactivateSkill(OwnedSkill.ID);
+        Commit();
+        asserterror BusinessSkill.GetSkill(OwnedSkill."Skill ID", OwnedSkill."Owning App ID");
+        Assert.ExpectedError('is not active');
+        asserterror BusinessSkill.GetSkill(ManualSkill."Skill ID", OtherSkill."Owning App ID");
+        Assert.ExpectedError('not found');
+    end;
+
+    /// <summary>
+    /// Library inactivation targets one skill or the whole catalog without changing content or history.
+    /// </summary>
+    [Test]
+    procedure LibraryInactivationPreservesContentAndHistory()
+    var
+        FirstSkill: Record "Business Skill";
+        SecondSkill: Record "Business Skill";
+        InactiveSkill: Record "Business Skill";
+        InactiveRevision: BigInteger;
+    begin
+        // [GIVEN] Two active manual skills and an already inactive app-owned skill.
+        Initialize();
+        FirstSkill.Get(LibraryBusinessSkill.CreateSkill('First', SecretStrSubstNo('First content')));
+        SecondSkill.Get(LibraryBusinessSkill.CreateSkill('Second', SecretStrSubstNo('Second content')));
+        InactiveSkill.Get(LibraryBusinessSkill.CreateAppOwnedSkill('INACTIVE', 'Inactive', SecretStrSubstNo('Inactive content')));
+        InactiveRevision := InactiveSkill.SystemRowVersion;
+
+        // [WHEN] Only the first skill is inactivated.
+        LibraryBusinessSkill.InactivateSkill(FirstSkill.ID);
+        FirstSkill.Get(FirstSkill.ID);
+        SecondSkill.Get(SecondSkill.ID);
+        // [THEN] The other active skill is untouched.
+        Assert.AreEqual(FirstSkill.Status::Inactive, FirstSkill.Status, 'Single-skill inactivation must affect its target.');
+        Assert.AreEqual(SecondSkill.Status::Active, SecondSkill.Status, 'Single-skill inactivation must not affect other skills.');
+
+        // [WHEN] All remaining active skills are inactivated.
+        LibraryBusinessSkill.InactivateAll();
+        SecondSkill.Get(SecondSkill.ID);
+        InactiveSkill.Get(InactiveSkill.ID);
+        // [THEN] Existing inactive rows, content versions and history remain unchanged.
+        Assert.AreEqual(SecondSkill.Status::Inactive, SecondSkill.Status, 'Bulk inactivation must include every active skill.');
+        Assert.AreEqual(InactiveRevision, InactiveSkill.SystemRowVersion, 'Already inactive skills must not be rewritten.');
+        AssertContentEquals(SecretStrSubstNo('First content'), BusinessSkillImpl.GetSkillText(FirstSkill), 'Inactivation must preserve instructions.');
+        Assert.AreEqual('v1.0', SecondSkill.Version, 'Inactivation must preserve the content version.');
+        AssertVersionCount(FirstSkill.ID, 1);
+        AssertVersionCount(SecondSkill.ID, 1);
+        AssertVersionCount(InactiveSkill.ID, 1);
     end;
 
     /// <summary>
@@ -206,17 +288,17 @@ codeunit 130050 "Business Skill Test"
         // [GIVEN] An inactive skill made incomplete.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Title', SecretStrSubstNo('Body'));
-        Management.DeactivateSkill(SkillId);
+        BusinessSkillImpl.DeactivateSkill(SkillId);
         Skill.Get(SkillId);
         Skill.Title := '';
         Skill.Modify(true);
         Commit();
         // [WHEN] Activation is attempted.
-        asserterror Management.ActivateSkill(SkillId);
+        asserterror BusinessSkillImpl.ActivateSkill(SkillId);
         // [THEN] Validation rejects the incomplete skill.
         Assert.ExpectedError('needs a title and skill text');
-        Management.UpdateSkill(SkillId, 'Title', SecretStrSubstNo('   '));
-        asserterror Management.ActivateSkill(SkillId);
+        BusinessSkillImpl.UpdateSkill(SkillId, 'Title', SecretStrSubstNo('   '));
+        asserterror BusinessSkillImpl.ActivateSkill(SkillId);
         Assert.ExpectedError('needs a title and skill text');
     end;
 
@@ -232,14 +314,14 @@ codeunit 130050 "Business Skill Test"
         // [GIVEN] An active skill with nonempty instructions.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Active', SecretStrSubstNo('Keep body'));
-        Management.ActivateSkill(SkillId);
+        BusinessSkillImpl.ActivateSkill(SkillId);
         Commit();
         // [WHEN] Its text is cleared and saved.
-        asserterror Management.SetSkillText(SkillId, SecretStrSubstNo(''));
+        asserterror BusinessSkillImpl.SetSkillText(SkillId, SecretStrSubstNo(''));
         // [THEN] Validation prevents an active skill with empty text.
         Assert.ExpectedError('needs a title and skill text');
         Skill.Get(SkillId);
-        AssertContentEquals(SecretStrSubstNo('Keep body'), SkillText.GetSkillText(Skill), 'Rejected edits must leave the active content intact.');
+        AssertContentEquals(SecretStrSubstNo('Keep body'), BusinessSkillImpl.GetSkillText(Skill), 'Rejected edits must leave the active content intact.');
         AssertVersionCount(SkillId, 1);
     end;
 
@@ -255,12 +337,12 @@ codeunit 130050 "Business Skill Test"
         // [GIVEN] Active and inactive skills with standard record filters.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Active skill', SecretStrSubstNo('Body'));
-        Management.ActivateSkill(SkillId);
+        BusinessSkillImpl.ActivateSkill(SkillId);
         SkillId := LibraryBusinessSkill.CreateSkill('Inactive skill', SecretStrSubstNo('Body'));
-        Management.DeactivateSkill(SkillId);
+        BusinessSkillImpl.DeactivateSkill(SkillId);
 
         Skill.FilterGroup(10);
-        Management.SetAvailableSKillsFilter(Skill);
+        BusinessSkillImpl.SetAvailableSKillsFilter(Skill);
         Skill.FilterGroup(0);
         // [WHEN] The discovery eligibility filter is applied.
         Skill.SetRange(Status, Skill.Status::Inactive);
@@ -284,9 +366,9 @@ codeunit 130050 "Business Skill Test"
         // [GIVEN] An active canonical skill.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Specific Skill', GetMultilineText());
-        Management.ActivateSkill(SkillId);
+        BusinessSkillImpl.ActivateSkill(SkillId);
         // [WHEN] The skill is serialized to JSON.
-        Result.ReadFrom(Management.GetSkillById(SkillId).Unwrap());
+        Result.ReadFrom(BusinessSkillImpl.GetSkillById(SkillId).Unwrap());
         Result.Get('id', Token);
         // [THEN] Canonical identity is represented.
         Assert.AreEqual(SkillId, Token.AsValue().AsBigInteger(), 'JSON must retain canonical identity.');
@@ -319,13 +401,13 @@ codeunit 130050 "Business Skill Test"
         SkillId := LibraryBusinessSkill.CreateSkill('Payment policy', GetMultilineText());
         Skill.Get(SkillId);
         Skill.Description := 'Invoice approval guidance';
-        Management.UpdateSkillRecord(Skill.ID, Skill, GetMultilineText());
-        Management.ActivateSkill(SkillId);
+        BusinessSkillImpl.UpdateSkillRecord(Skill.ID, Skill, GetMultilineText());
+        BusinessSkillImpl.ActivateSkill(SkillId);
         // [WHEN] Skill search queries each kind of text.
-        Results.ReadFrom(Management.SearchSkills('payment').Unwrap());
+        Results.ReadFrom(BusinessSkillImpl.SearchSkills('payment').Unwrap());
         // [THEN] Only title and skill description participate in matching.
         Assert.AreEqual(1, Results.Count(), 'Search must match titles without case sensitivity.');
-        Results.ReadFrom(Management.SearchSkills('APPROVAL').Unwrap());
+        Results.ReadFrom(BusinessSkillImpl.SearchSkills('APPROVAL').Unwrap());
         Assert.AreEqual(1, Results.Count(), 'Descriptions are matched without case sensitivity.');
         SkillJson := Results.GetObject(0);
         AssertDiscoveryTimestamp(SkillJson);
@@ -333,7 +415,7 @@ codeunit 130050 "Business Skill Test"
         Assert.AreEqual('Invoice approval guidance', Token.AsValue().AsText(), 'Discovery exposes the persisted description.');
         SkillJson.Get('skillText', Token);
         AssertContentEquals(GetMultilineText(), Token.AsValue().AsText(), 'Selected skills still return complete instructions.');
-        Results.ReadFrom(Management.SearchSkills('Second line').Unwrap());
+        Results.ReadFrom(BusinessSkillImpl.SearchSkills('Second line').Unwrap());
         Assert.AreEqual(0, Results.Count(), 'Body-only matches must not select skills.');
     end;
 
@@ -350,13 +432,13 @@ codeunit 130050 "Business Skill Test"
         // [GIVEN] Skill metadata containing search-filter metacharacters.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Literal A|B filter', 'Use * as a literal', SecretStrSubstNo('Instructions are not searched'));
-        Management.ActivateSkill(SkillId);
-        Management.ActivateSkill(LibraryBusinessSkill.CreateSkill('Other', SecretStrSubstNo('Unrelated')));
+        BusinessSkillImpl.ActivateSkill(SkillId);
+        BusinessSkillImpl.ActivateSkill(LibraryBusinessSkill.CreateSkill('Other', SecretStrSubstNo('Unrelated')));
         // [WHEN] Those characters are searched as text.
-        Results.ReadFrom(Management.SearchSkills('A|B').Unwrap());
+        Results.ReadFrom(BusinessSkillImpl.SearchSkills('A|B').Unwrap());
         // [THEN] Matching is literal rather than interpreted as a filter.
         Assert.AreEqual(1, Results.Count(), 'Filter metacharacters must not broaden title search.');
-        Results.ReadFrom(Management.SearchSkills('*').Unwrap());
+        Results.ReadFrom(BusinessSkillImpl.SearchSkills('*').Unwrap());
         Assert.AreEqual(1, Results.Count(), 'Asterisk must match literal content, not every skill.');
     end;
 
@@ -394,12 +476,12 @@ codeunit 130050 "Business Skill Test"
         SkillCard.Close();
         Skill.Get(Skill.ID);
         Assert.AreEqual('Edited description', Skill.Description, 'Native editing must not drop metadata-only changes.');
-        AssertContentEquals(SecretStrSubstNo(''), SkillText.GetSkillText(Skill), 'Description editing does not invent instructions.');
+        AssertContentEquals(SecretStrSubstNo(''), BusinessSkillImpl.GetSkillText(Skill), 'Description editing does not invent instructions.');
         Commit();
-        asserterror Management.ActivateSkill(Skill.ID);
+        asserterror BusinessSkillImpl.ActivateSkill(Skill.ID);
         Assert.ExpectedError('title and skill text');
-        Management.SetSkillText(Skill.ID, SecretStrSubstNo('Body'));
-        Management.ActivateSkill(Skill.ID);
+        BusinessSkillImpl.SetSkillText(Skill.ID, SecretStrSubstNo('Body'));
+        BusinessSkillImpl.ActivateSkill(Skill.ID);
         Skill.Get(Skill.ID);
         Assert.AreEqual(Skill.Status::Active, Skill.Status, 'A completed native skill can be activated.');
         AssertVersionCount(Skill.ID, 2);
@@ -418,7 +500,7 @@ codeunit 130050 "Business Skill Test"
         // [GIVEN] A complete inactive skill opened on its card.
         Initialize();
         Skill.Get(LibraryBusinessSkill.CreateSkill('Activate on close', SecretStrSubstNo('Instructions')));
-        Management.DeactivateSkill(Skill.ID);
+        BusinessSkillImpl.DeactivateSkill(Skill.ID);
         Skill.Get(Skill.ID);
         Commit();
         SkillCard.OpenEdit();
@@ -430,7 +512,7 @@ codeunit 130050 "Business Skill Test"
         // [THEN] The skill becomes active.
         Assert.AreEqual(Skill.Status::Active, Skill.Status, 'Accepting the prompt activates the skill.');
         Assert.AreEqual('Saved before activation', Skill.Description, 'Closing preserves metadata.');
-        AssertContentEquals(SecretStrSubstNo('Instructions'), SkillText.GetSkillText(Skill), 'Closing preserves the instructions.');
+        AssertContentEquals(SecretStrSubstNo('Instructions'), BusinessSkillImpl.GetSkillText(Skill), 'Closing preserves the instructions.');
     end;
 
     /// <summary>
@@ -469,7 +551,7 @@ codeunit 130050 "Business Skill Test"
         // [GIVEN] A read-only inactive skill and a blank new card.
         Initialize();
         Skill.Get(LibraryBusinessSkill.CreateSkill('Read-only inactive', SecretStrSubstNo('Instructions')));
-        Management.DeactivateSkill(Skill.ID);
+        BusinessSkillImpl.DeactivateSkill(Skill.ID);
         Skill.Get(Skill.ID);
         Commit();
         // [WHEN] Each card is closed.
@@ -515,7 +597,7 @@ codeunit 130050 "Business Skill Test"
         Initialize();
         ActiveSkillId := LibraryBusinessSkill.CreateSkill('Active skill', SecretStrSubstNo('Body'));
         InactiveSkillId := LibraryBusinessSkill.CreateSkill('Inactive skill', SecretStrSubstNo('Body'));
-        Management.DeactivateSkill(InactiveSkillId);
+        BusinessSkillImpl.DeactivateSkill(InactiveSkillId);
         Commit();
         // [WHEN] The skill list is opened.
         SkillList.OpenView();
@@ -556,7 +638,7 @@ codeunit 130050 "Business Skill Test"
         SkillCard.Status.AssertEquals(Format(Skill.Status::Active));
         SkillCard.Close();
         Skill.Get(SkillId);
-        AssertContentEquals(SecretStrSubstNo('Body'), SkillText.GetSkillText(Skill), 'Lifecycle actions must preserve the canonical instructions.');
+        AssertContentEquals(SecretStrSubstNo('Body'), BusinessSkillImpl.GetSkillText(Skill), 'Lifecycle actions must preserve the canonical instructions.');
         Assert.AreEqual(Skill.Status::Active, Skill.Status, 'Activation persists after the card closes.');
     end;
 
@@ -577,29 +659,29 @@ codeunit 130050 "Business Skill Test"
         SkillId := LibraryBusinessSkill.CreateSkill('Existing title', SecretStrSubstNo('Body'));
         Skill.Get(SkillId);
         Assert.AreEqual('', Skill.Description, 'Description is optional for existing authoring paths.');
-        Results.ReadFrom(Management.SearchSkills('Existing title').Unwrap());
+        Results.ReadFrom(BusinessSkillImpl.SearchSkills('Existing title').Unwrap());
         Assert.AreEqual(1, Results.Count(), 'Skills without descriptions remain discoverable by title.');
         Original := Skill;
         Skill.Description := CopyStr(PadStr('Description ', 2048, 'x'), 1, 2048);
         // [WHEN] Its description changes and an older record is edited.
-        Management.UpdateSkillRecord(SkillId, Skill, SecretStrSubstNo('Body'));
+        BusinessSkillImpl.UpdateSkillRecord(SkillId, Skill, SecretStrSubstNo('Body'));
         Commit();
         Skill.Get(SkillId);
         // [THEN] History is preserved and stale edits are rejected.
         Assert.AreEqual(2048, StrLen(Skill.Description), 'The entire supported description is persisted.');
         Assert.AreNotEqual(Original.SystemRowVersion, Skill.SystemRowVersion, 'Description changes advance the canonical revision.');
         AssertVersionCount(SkillId, 1);
-        asserterror Management.UpdateSkillRecord(SkillId, Original, SecretStrSubstNo('Stale body'));
+        asserterror BusinessSkillImpl.UpdateSkillRecord(SkillId, Original, SecretStrSubstNo('Stale body'));
         Assert.ExpectedError('changed by another user');
         Original := Skill;
-        Management.UpdateSkillRecord(SkillId, Skill, SecretStrSubstNo('Body'));
+        BusinessSkillImpl.UpdateSkillRecord(SkillId, Skill, SecretStrSubstNo('Body'));
         Skill.Get(SkillId);
         Assert.AreEqual(Original.SystemRowVersion, Skill.SystemRowVersion, 'Unchanged metadata saves remain no-ops.');
-        Management.SetSkillText(SkillId, SecretStrSubstNo('New body'));
+        BusinessSkillImpl.SetSkillText(SkillId, SecretStrSubstNo('New body'));
         Skill.Get(SkillId);
         Assert.AreEqual(Original.Description, Skill.Description, 'Body-only operations preserve descriptions.');
         Skill.Description := '';
-        Management.UpdateSkillRecord(SkillId, Skill, SecretStrSubstNo('New body'));
+        BusinessSkillImpl.UpdateSkillRecord(SkillId, Skill, SecretStrSubstNo('New body'));
         Skill.Get(SkillId);
         Assert.AreEqual('', Skill.Description, 'An explicit metadata edit can clear the description.');
         AssertVersionCount(SkillId, 2);
@@ -623,7 +705,7 @@ codeunit 130050 "Business Skill Test"
         SkillId := LibraryBusinessSkill.CreateSkill('Unicode', Value);
         Skill.Get(SkillId);
         // [THEN] All characters and line breaks round-trip.
-        AssertContentEquals(Value, SkillText.GetSkillText(Skill), 'The canonical BLOB must preserve line endings and Unicode.');
+        AssertContentEquals(Value, BusinessSkillImpl.GetSkillText(Skill), 'The canonical BLOB must preserve line endings and Unicode.');
         Version.SetRange("Skill ID", SkillId);
         Version.FindFirst();
         AssertContentEquals(Value, Version.GetText(), 'History must preserve exactly the same text.');
@@ -647,7 +729,7 @@ codeunit 130050 "Business Skill Test"
         SkillId := LibraryBusinessSkill.CreateSkill('Maximum', Value);
         Skill.Get(SkillId);
         // [THEN] The full supported length is retained.
-        AssertContentEquals(Value, SkillText.GetSkillText(Skill), 'Exactly 100000 characters must round-trip.');
+        AssertContentEquals(Value, BusinessSkillImpl.GetSkillText(Skill), 'Exactly 100000 characters must round-trip.');
     end;
 
     /// <summary>
@@ -693,10 +775,10 @@ codeunit 130050 "Business Skill Test"
         Assert.IsTrue(Skill.IsEmpty(), 'Rejected creation must not insert a skill.');
         SkillId := LibraryBusinessSkill.CreateSkill('Keep', SecretStrSubstNo('Original'));
         Commit();
-        asserterror Management.SetSkillText(SkillId, Value);
+        asserterror BusinessSkillImpl.SetSkillText(SkillId, Value);
         Assert.ExpectedError('100000 characters');
         Skill.Get(SkillId);
-        AssertContentEquals(SecretStrSubstNo('Original'), SkillText.GetSkillText(Skill), 'Rejected updates must preserve the prior text.');
+        AssertContentEquals(SecretStrSubstNo('Original'), BusinessSkillImpl.GetSkillText(Skill), 'Rejected updates must preserve the prior text.');
         AssertVersionCount(SkillId, 1);
     end;
 
@@ -713,15 +795,15 @@ codeunit 130050 "Business Skill Test"
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Long', PadStr('x', 5000, 'x'));
         // [WHEN] Its body becomes shorter and then empty while inactive.
-        Management.UpdateSkill(SkillId, 'Short', SecretStrSubstNo('new'));
+        BusinessSkillImpl.UpdateSkill(SkillId, 'Short', SecretStrSubstNo('new'));
         Skill.Get(SkillId);
         // [THEN] No stale text remains in the skill or history.
         Assert.AreEqual('Short', Skill.Title, 'Title updates must persist.');
-        AssertContentEquals(SecretStrSubstNo('new'), SkillText.GetSkillText(Skill), 'Shorter text must replace the full previous BLOB.');
-        Management.DeactivateSkill(SkillId);
-        Management.SetSkillText(SkillId, SecretStrSubstNo(''));
+        AssertContentEquals(SecretStrSubstNo('new'), BusinessSkillImpl.GetSkillText(Skill), 'Shorter text must replace the full previous BLOB.');
+        BusinessSkillImpl.DeactivateSkill(SkillId);
+        BusinessSkillImpl.SetSkillText(SkillId, SecretStrSubstNo(''));
         Skill.Get(SkillId);
-        AssertContentEquals(SecretStrSubstNo(''), SkillText.GetSkillText(Skill), 'An Inactive skill may explicitly clear its text.');
+        AssertContentEquals(SecretStrSubstNo(''), BusinessSkillImpl.GetSkillText(Skill), 'An Inactive skill may explicitly clear its text.');
         AssertVersionCount(SkillId, 3);
     end;
 
@@ -740,12 +822,12 @@ codeunit 130050 "Business Skill Test"
         SkillId := LibraryBusinessSkill.CreateSkill('Unchanged', SecretStrSubstNo('Body'));
         Original.Get(SkillId);
         // [WHEN] The same metadata and text are saved again.
-        Management.UpdateSkill(SkillId, 'Unchanged', SecretStrSubstNo('Body'));
+        BusinessSkillImpl.UpdateSkill(SkillId, 'Unchanged', SecretStrSubstNo('Body'));
         Skill.Get(SkillId);
         // [THEN] Neither the revision nor history changes.
         Assert.AreEqual(Original.SystemRowVersion, Skill.SystemRowVersion, 'A no-op save must not create a false concurrency conflict.');
         AssertVersionCount(SkillId, 1);
-        Management.UpdateSkill(SkillId, 'Title only', SecretStrSubstNo('Body'));
+        BusinessSkillImpl.UpdateSkill(SkillId, 'Title only', SecretStrSubstNo('Body'));
         AssertVersionCount(SkillId, 1);
     end;
 
@@ -764,18 +846,18 @@ codeunit 130050 "Business Skill Test"
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Original', SecretStrSubstNo('Original text'));
         Original.Get(SkillId);
-        Management.UpdateSkill(SkillId, 'Concurrent title', SecretStrSubstNo('Concurrent text'));
+        BusinessSkillImpl.UpdateSkill(SkillId, 'Concurrent title', SecretStrSubstNo('Concurrent text'));
         Commit();
         // [WHEN] Stale text or record updates are attempted.
         asserterror BusinessSkill.SetNewContentAndUpdateVersion(SkillId, SecretStrSubstNo('Stale text'), Original.SystemId, Original.SystemRowVersion);
         // [THEN] Concurrency checks reject them.
         Assert.ExpectedError('changed by another user');
         Original.Title := 'Stale title';
-        asserterror Management.UpdateSkillRecord(SkillId, Original, SecretStrSubstNo('Stale record text'));
+        asserterror BusinessSkillImpl.UpdateSkillRecord(SkillId, Original, SecretStrSubstNo('Stale record text'));
         Assert.ExpectedError('changed by another user');
         Skill.Get(SkillId);
         Assert.AreEqual('Concurrent title', Skill.Title, 'Stale edits must not overwrite the latest title.');
-        AssertContentEquals(SecretStrSubstNo('Concurrent text'), SkillText.GetSkillText(Skill), 'Stale edits must not overwrite the latest text.');
+        AssertContentEquals(SecretStrSubstNo('Concurrent text'), BusinessSkillImpl.GetSkillText(Skill), 'Stale edits must not overwrite the latest text.');
         AssertVersionCount(SkillId, 2);
     end;
 
@@ -799,15 +881,15 @@ codeunit 130050 "Business Skill Test"
         // [THEN] The current revision succeeds and the wrong identity fails.
         Assert.ExpectedError('changed by another user');
         Skill.Title := 'Updated title';
-        Management.UpdateSkillRecord(SkillId, Skill, SecretStrSubstNo('Updated text'));
+        BusinessSkillImpl.UpdateSkillRecord(SkillId, Skill, SecretStrSubstNo('Updated text'));
         Skill.Get(SkillId);
         Assert.AreEqual('Updated title', Skill.Title, 'A current record revision must be accepted.');
-        AssertContentEquals(SecretStrSubstNo('Updated text'), SkillText.GetSkillText(Skill), 'A current record revision must update text.');
+        AssertContentEquals(SecretStrSubstNo('Updated text'), BusinessSkillImpl.GetSkillText(Skill), 'A current record revision must update text.');
         AssertVersionCount(SkillId, 2);
 
         BusinessSkill.SetNewContentAndUpdateVersion(SkillId, SecretStrSubstNo('Public update'), Skill.SystemId, Skill.SystemRowVersion);
         Skill.Get(SkillId);
-        AssertContentEquals(SecretStrSubstNo('Public update'), SkillText.GetSkillText(Skill), 'The public manual update must accept the current revision.');
+        AssertContentEquals(SecretStrSubstNo('Public update'), BusinessSkillImpl.GetSkillText(Skill), 'The public manual update must accept the current revision.');
         Assert.AreEqual('v1.2', Skill.Version, 'The public manual update must advance the content version.');
         AssertVersionCount(SkillId, 3);
     end;
@@ -834,7 +916,7 @@ codeunit 130050 "Business Skill Test"
         History.RestoreVersion(FirstEntryNo);
         Skill.Get(SkillId);
         // [THEN] A new latest version records the restored text.
-        AssertContentEquals(SecretStrSubstNo('First'), SkillText.GetSkillText(Skill), 'Restore must update canonical text.');
+        AssertContentEquals(SecretStrSubstNo('First'), BusinessSkillImpl.GetSkillText(Skill), 'Restore must update canonical text.');
         Assert.AreEqual('v1.2', Skill.Version, 'Restoring different text must advance the current skill version.');
         AssertVersionCount(SkillId, 3);
         Version.FindLast();
@@ -854,7 +936,7 @@ codeunit 130050 "Business Skill Test"
         // [GIVEN] A skill with multiple historical text versions.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('History', SecretStrSubstNo('First'));
-        Management.SetSkillText(SkillId, SecretStrSubstNo('Second'));
+        BusinessSkillImpl.SetSkillText(SkillId, SecretStrSubstNo('Second'));
         Version.SetRange("Skill ID", SkillId);
         Version.FindFirst();
         Commit();
@@ -885,9 +967,9 @@ codeunit 130050 "Business Skill Test"
         // [GIVEN] An inactive skill with history records.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Delete', SecretStrSubstNo('Body'));
-        Management.DeactivateSkill(SkillId);
+        BusinessSkillImpl.DeactivateSkill(SkillId);
         // [WHEN] The skill is deleted.
-        Management.DeleteSkill(SkillId);
+        BusinessSkillImpl.DeleteSkill(SkillId);
         // [THEN] The skill and its history are removed.
         Assert.IsFalse(Skill.Get(SkillId), 'The canonical skill must be removed.');
         AssertVersionCount(SkillId, 0);
@@ -909,8 +991,8 @@ codeunit 130050 "Business Skill Test"
         FirstId := LibraryBusinessSkill.CreateSkill('First selected', SecretStrSubstNo('First'));
         SecondId := LibraryBusinessSkill.CreateSkill('Second selected', SecretStrSubstNo('Second'));
         RetainedId := LibraryBusinessSkill.CreateSkill('Retained', SecretStrSubstNo('Original'));
-        Management.SetSkillText(FirstId, SecretStrSubstNo('Updated first'));
-        Management.SetSkillText(RetainedId, SecretStrSubstNo('Updated retained'));
+        BusinessSkillImpl.SetSkillText(FirstId, SecretStrSubstNo('Updated first'));
+        BusinessSkillImpl.SetSkillText(RetainedId, SecretStrSubstNo('Updated retained'));
 
         // [WHEN] Two skills are deleted through the filtered bulk path without table triggers.
         Skill.SetFilter(ID, '%1|%2', FirstId, SecondId);
@@ -920,7 +1002,7 @@ codeunit 130050 "Business Skill Test"
         Skill.Reset();
         Assert.AreEqual(1, Skill.Count(), 'Only the selected skills must be deleted.');
         Skill.Get(RetainedId);
-        AssertContentEquals(SecretStrSubstNo('Updated retained'), SkillText.GetSkillText(Skill), 'Unselected instructions must remain unchanged.');
+        AssertContentEquals(SecretStrSubstNo('Updated retained'), BusinessSkillImpl.GetSkillText(Skill), 'Unselected instructions must remain unchanged.');
         AssertVersionCount(FirstId, 0);
         AssertVersionCount(SecondId, 0);
         AssertVersionCount(RetainedId, 2);
@@ -940,7 +1022,7 @@ codeunit 130050 "Business Skill Test"
         // [GIVEN] A committed skill with two history entries and a failing history delete subscriber.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Cleanup failure', SecretStrSubstNo('Original'));
-        Management.SetSkillText(SkillId, SecretStrSubstNo('Current'));
+        BusinessSkillImpl.SetSkillText(SkillId, SecretStrSubstNo('Current'));
         Skill.Get(SkillId);
         SystemId := Skill.SystemId;
         Commit();
@@ -954,7 +1036,7 @@ codeunit 130050 "Business Skill Test"
         Assert.ExpectedError(CleanupFailureErr);
         Skill.Get(SkillId);
         Assert.AreEqual(SystemId, Skill.SystemId, 'Cleanup failure must restore the same skill.');
-        AssertContentEquals(SecretStrSubstNo('Current'), SkillText.GetSkillText(Skill), 'Cleanup failure must preserve instructions.');
+        AssertContentEquals(SecretStrSubstNo('Current'), BusinessSkillImpl.GetSkillText(Skill), 'Cleanup failure must preserve instructions.');
         AssertVersionCount(SkillId, 2);
     end;
 
@@ -975,9 +1057,9 @@ codeunit 130050 "Business Skill Test"
         // [GIVEN] Two selected skills with history and an unselected skill.
         Initialize();
         FirstId := LibraryBusinessSkill.CreateSkill('First selected', SecretStrSubstNo('Original first'));
-        Management.SetSkillText(FirstId, SecretStrSubstNo('Updated first'));
+        BusinessSkillImpl.SetSkillText(FirstId, SecretStrSubstNo('Updated first'));
         SecondId := LibraryBusinessSkill.CreateSkill('Second selected', SecretStrSubstNo('Original second'));
-        Management.SetSkillText(SecondId, SecretStrSubstNo('Updated second'));
+        BusinessSkillImpl.SetSkillText(SecondId, SecretStrSubstNo('Updated second'));
         RetainedId := LibraryBusinessSkill.CreateSkill('Retained', SecretStrSubstNo('Retained instructions'));
         Skill.Get(FirstId);
         FirstSystemId := Skill.SystemId;
@@ -998,12 +1080,12 @@ codeunit 130050 "Business Skill Test"
         Assert.AreEqual(3, Skill.Count(), 'A later cleanup failure must roll back every selected deletion.');
         Skill.Get(FirstId);
         Assert.AreEqual(FirstSystemId, Skill.SystemId, 'The first deleted skill must be restored.');
-        AssertContentEquals(SecretStrSubstNo('Updated first'), SkillText.GetSkillText(Skill), 'The first skill instructions must be restored.');
+        AssertContentEquals(SecretStrSubstNo('Updated first'), BusinessSkillImpl.GetSkillText(Skill), 'The first skill instructions must be restored.');
         Skill.Get(SecondId);
         Assert.AreEqual(SecondSystemId, Skill.SystemId, 'The failing skill must be restored.');
-        AssertContentEquals(SecretStrSubstNo('Updated second'), SkillText.GetSkillText(Skill), 'The second skill instructions must be restored.');
+        AssertContentEquals(SecretStrSubstNo('Updated second'), BusinessSkillImpl.GetSkillText(Skill), 'The second skill instructions must be restored.');
         Skill.Get(RetainedId);
-        AssertContentEquals(SecretStrSubstNo('Retained instructions'), SkillText.GetSkillText(Skill), 'Unselected instructions must remain unchanged.');
+        AssertContentEquals(SecretStrSubstNo('Retained instructions'), BusinessSkillImpl.GetSkillText(Skill), 'Unselected instructions must remain unchanged.');
         AssertVersionCount(FirstId, 2);
         AssertVersionCount(SecondId, 2);
         AssertVersionCount(RetainedId, 1);
@@ -1113,7 +1195,7 @@ codeunit 130050 "Business Skill Test"
         Assert.AreEqual(Format(Imported.ID, 0, '<Integer,20><Filler Character,0>'), Imported."Skill ID", 'Imported manual identifiers must equal the numeric record ID padded to 20 digits.');
         Assert.AreEqual(Original.Title, Imported.Title, 'The title round-trips exactly.');
         Assert.AreEqual(Original.Description, Imported.Description, 'The description round-trips exactly.');
-        AssertContentEquals(SkillText.GetSkillText(Original), SkillText.GetSkillText(Imported), 'Complete instructions round-trip exactly.');
+        AssertContentEquals(BusinessSkillImpl.GetSkillText(Original), BusinessSkillImpl.GetSkillText(Imported), 'Complete instructions round-trip exactly.');
         Assert.AreEqual(Imported.Status::Active, Imported.Status, 'Imported skills start Active.');
         AssertVersionCount(Imported.ID, 1);
     end;
@@ -1135,13 +1217,13 @@ codeunit 130050 "Business Skill Test"
         SkillId := LibraryBusinessSkill.CreateSkill('Large portable text', CopyStr(PadStr('description', 2048, 'x'), 1, 2048), Value);
         Skill.SetRange(ID, SkillId);
         XmlText := Port.BuildExportXml(Skill);
-        LibraryBusinessSkill.CleanAll();
+        LibraryBusinessSkill.DeleteAll();
         // [WHEN] It is exported and imported through XML.
         Port.ImportFromXml(XmlText);
         Skill.Reset();
         Skill.FindFirst();
         // [THEN] Neither field is truncated.
-        AssertContentEquals(Value, SkillText.GetSkillText(Skill), 'The complete maximum-length payload, including its tail, must round-trip.');
+        AssertContentEquals(Value, BusinessSkillImpl.GetSkillText(Skill), 'The complete maximum-length payload, including its tail, must round-trip.');
         Assert.AreEqual(PadStr('description', 2048, 'x'), Skill.Description, 'Maximum-length descriptions round-trip without truncation.');
         AssertVersionCount(Skill.ID, 1);
     end;
@@ -1169,13 +1251,13 @@ codeunit 130050 "Business Skill Test"
         SkillId := LibraryBusinessSkill.CreateSkill('Mixed line endings', Value);
         Skill.SetRange(ID, SkillId);
         XmlText := Port.BuildExportXml(Skill);
-        LibraryBusinessSkill.CleanAll();
+        LibraryBusinessSkill.DeleteAll();
         // [WHEN] Skill content round-trips through XML.
         Port.ImportFromXml(XmlText);
         Skill.Reset();
         Skill.FindFirst();
         // [THEN] Line endings normalize while literal content survives.
-        AssertContentEquals(ExpectedText, SkillText.GetSkillText(Skill), 'The line-based XML round trip preserves literal entities, markup and trailing spaces.');
+        AssertContentEquals(ExpectedText, BusinessSkillImpl.GetSkillText(Skill), 'The line-based XML round trip preserves literal entities, markup and trailing spaces.');
     end;
 
     /// <summary>
@@ -1193,7 +1275,7 @@ codeunit 130050 "Business Skill Test"
         SkillId := LibraryBusinessSkill.CreateSkill('Independent copies', SecretStrSubstNo('Body'));
         Skill.SetRange(ID, SkillId);
         XmlText := Port.BuildExportXml(Skill);
-        LibraryBusinessSkill.CleanAll();
+        LibraryBusinessSkill.DeleteAll();
         // [WHEN] The same XML is imported twice.
         Port.ImportFromXml(XmlText);
         Port.ImportFromXml(XmlText);
@@ -1229,7 +1311,7 @@ codeunit 130050 "Business Skill Test"
         Skill.SetRange(Title, 'Legacy');
         Skill.FindFirst();
         Assert.AreEqual('', Skill.Description, 'Old documents without descriptions must not inherit the preceding skill description.');
-        AssertContentEquals(SecretStrSubstNo('Second body'), SkillText.GetSkillText(Skill), 'Legacy instructions remain unchanged.');
+        AssertContentEquals(SecretStrSubstNo('Second body'), BusinessSkillImpl.GetSkillText(Skill), 'Legacy instructions remain unchanged.');
     end;
 
     /// <summary>
@@ -1376,11 +1458,11 @@ codeunit 130050 "Business Skill Test"
         // [THEN] Both edits persist and reopening displays the latest Markdown without adding history.
         Skill.Get(Skill.ID);
         Assert.AreEqual('Updated Markdown skill', Skill.Title, 'Text edits must not overwrite parent metadata.');
-        AssertContentEquals(Markdown + GetLineBreak() + 'Final instruction', SkillText.GetSkillText(Skill), 'The field must persist Markdown, not HTML.');
+        AssertContentEquals(Markdown + GetLineBreak() + 'Final instruction', BusinessSkillImpl.GetSkillText(Skill), 'The field must persist Markdown, not HTML.');
         AssertVersionCount(Skill.ID, 3);
         SkillCard.OpenEdit();
         SkillCard.GoToRecord(Skill);
-        AssertContentEquals(SkillText.GetSkillText(Skill), SkillCard.SkillTextEditor.SkillText.Value(), 'Reopening must show the current content.');
+        AssertContentEquals(BusinessSkillImpl.GetSkillText(Skill), SkillCard.SkillTextEditor.SkillText.Value(), 'Reopening must show the current content.');
         SkillCard.SkillTextEditor.SkillText.SetValue(Markdown + GetLineBreak() + 'Final instruction');
         SkillCard.Close();
         AssertVersionCount(Skill.ID, 3);
@@ -1402,7 +1484,7 @@ codeunit 130050 "Business Skill Test"
         Commit();
         SkillCard.OpenEdit();
         SkillCard.GoToRecord(Skill);
-        Management.SetSkillText(Skill.ID, SecretStrSubstNo('# Concurrent'));
+        BusinessSkillImpl.SetSkillText(Skill.ID, SecretStrSubstNo('# Concurrent'));
         Commit();
 
         // [WHEN] The stale editor attempts to save.
@@ -1412,7 +1494,7 @@ codeunit 130050 "Business Skill Test"
         Assert.ExpectedError('changed by another user');
         SkillCard.Close();
         Skill.Get(Skill.ID);
-        AssertContentEquals(SecretStrSubstNo('# Concurrent'), SkillText.GetSkillText(Skill), 'A stale Markdown field must not overwrite newer text.');
+        AssertContentEquals(SecretStrSubstNo('# Concurrent'), BusinessSkillImpl.GetSkillText(Skill), 'A stale Markdown field must not overwrite newer text.');
         AssertVersionCount(Skill.ID, 2);
     end;
 
@@ -1471,7 +1553,7 @@ codeunit 130050 "Business Skill Test"
         Assert.ExpectedError('An active skill needs a title and skill text.');
         SkillCard.Close();
         Skill.Get(Skill.ID);
-        AssertContentEquals(MaximumText, SkillText.GetSkillText(Skill), 'Rejected field values must preserve the full supported source.');
+        AssertContentEquals(MaximumText, BusinessSkillImpl.GetSkillText(Skill), 'Rejected field values must preserve the full supported source.');
         AssertVersionCount(Skill.ID, 2);
     end;
 
@@ -1488,7 +1570,7 @@ codeunit 130050 "Business Skill Test"
         // [GIVEN] A skill with two Markdown instruction versions.
         Initialize();
         Skill.Get(LibraryBusinessSkill.CreateSkill('Markdown history', SecretStrSubstNo('# Original')));
-        Management.SetSkillText(Skill.ID, SecretStrSubstNo('**Latest**'));
+        BusinessSkillImpl.SetSkillText(Skill.ID, SecretStrSubstNo('**Latest**'));
         Skill.Get(Skill.ID);
         Commit();
         SkillCard.OpenEdit();
@@ -1501,7 +1583,7 @@ codeunit 130050 "Business Skill Test"
         SkillCard.SkillTextEditor.SkillText.AssertEquals('# Original');
         SkillCard.Close();
         Skill.Get(Skill.ID);
-        AssertContentEquals(SecretStrSubstNo('# Original'), SkillText.GetSkillText(Skill), 'Restoring history must update the live Markdown field.');
+        AssertContentEquals(SecretStrSubstNo('# Original'), BusinessSkillImpl.GetSkillText(Skill), 'Restoring history must update the live Markdown field.');
         AssertVersionCount(Skill.ID, 3);
     end;
 
@@ -1524,12 +1606,12 @@ codeunit 130050 "Business Skill Test"
 
     local procedure Initialize()
     begin
-        LibraryBusinessSkill.CleanAll();
+        LibraryBusinessSkill.DeleteAll();
     end;
 
     local procedure AssertContentEquals(Expected: SecretText; Actual: SecretText; Message: Text)
     begin
-        Assert.IsTrue(SkillText.ContentEquals(Expected, Actual), Message);
+        Assert.IsTrue(BusinessSkillImpl.ContentEquals(Expected, Actual), Message);
     end;
 
     /// <summary>
@@ -1571,14 +1653,13 @@ codeunit 130050 "Business Skill Test"
     local procedure AssertBlobTextRead(Value: Text; Expected: Text)
     var
         TempBlob: Codeunit "Temp Blob";
-        TextHelper: Codeunit "Business Skill Text";
         Input: InStream;
         Output: OutStream;
     begin
-        TempBlob.CreateOutStream(Output, TextHelper.GetEncoding());
+        TempBlob.CreateOutStream(Output, BusinessSkillImpl.GetEncoding());
         Output.WriteText(Value);
-        TempBlob.CreateInStream(Input, TextHelper.GetEncoding());
-        AssertContentEquals(Expected, TextHelper.ReadText(Input), 'BLOB text reads must only add separators between lines.');
+        TempBlob.CreateInStream(Input, BusinessSkillImpl.GetEncoding());
+        AssertContentEquals(Expected, BusinessSkillImpl.ReadText(Input), 'BLOB text reads must only add separators between lines.');
     end;
 
     local procedure GetLineBreak(): Text
@@ -1606,10 +1687,9 @@ codeunit 130050 "Business Skill Test"
     var
         Assert: Codeunit "Library Assert";
         LibraryBusinessSkill: Codeunit "Library - Business Skill";
-        Management: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
         History: Codeunit "Business Skill Text History";
         Port: Codeunit "Business Skill Port";
-        SkillText: Codeunit "Business Skill Text";
         CleanupFailureSkillId: BigInteger;
         DeletedSkillIdBeforeFailure: BigInteger;
         CleanupFailureErr: Label 'Skill history cleanup failed.', Locked = true;

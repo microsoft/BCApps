@@ -20,7 +20,7 @@ codeunit 4162 "Business Skill Builder Impl."
         TempNewSkill."Skill ID" := SkillCode;
         TempNewSkill."Read-Only" := true;
         TempNewSkill.Title := DisplayName;
-        TextHelper.SetSkillText(TempNewSkill, Content);
+        BusinessSkillImpl.SetSkillText(TempNewSkill, Content);
         TempNewSkill.Status := TempNewSkill.Status::Inactive;
         TempBusinessSkill := TempNewSkill;
         CallingAppId := OwnerAppId;
@@ -71,7 +71,7 @@ codeunit 4162 "Business Skill Builder Impl."
     procedure SetContent(Content: SecretText)
     begin
         VerifyReady();
-        TextHelper.SetSkillText(TempBusinessSkill, Content);
+        BusinessSkillImpl.SetSkillText(TempBusinessSkill, Content);
     end;
 
     procedure SetActive(Active: Boolean)
@@ -94,8 +94,8 @@ codeunit 4162 "Business Skill Builder Impl."
         VerifyOwnership();
         if TempBusinessSkill.Manual then
             TempBusinessSkill.TestField("Skill ID", '');
-        SkillManagement.ValidateSkillInsert(TempBusinessSkill);
-        SkillText := TextHelper.GetSkillText(TempBusinessSkill, false);
+        BusinessSkillImpl.ValidateSkillInsert(TempBusinessSkill);
+        SkillText := BusinessSkillImpl.GetSkillText(TempBusinessSkill, false);
         Skill."Skill ID" := TempBusinessSkill."Skill ID";
         Skill.Manual := TempBusinessSkill.Manual;
         Skill."Read-Only" := TempBusinessSkill."Read-Only";
@@ -103,9 +103,9 @@ codeunit 4162 "Business Skill Builder Impl."
         Skill.Title := TempBusinessSkill.Title;
         Skill.Description := TempBusinessSkill.Description;
         Skill.Status := TempBusinessSkill.Status;
-        TextHelper.SetSkillText(Skill, SkillText);
+        BusinessSkillImpl.SetSkillText(Skill, SkillText);
         Skill.Insert(true);
-        SkillManagement.RecordTextVersion(Skill.ID, SkillText, Skill.Version);
+        TextHistory.RecordTextVersion(Skill.ID, SkillText, Skill.Version);
         Created := true;
         exit(Skill.ID);
     end;
@@ -154,8 +154,8 @@ codeunit 4162 "Business Skill Builder Impl."
     begin
         if Skill.Manual <> TempBusinessSkill.Manual then
             Error(SkillIdentityMismatchErr);
-        SkillText := TextHelper.GetSkillText(TempBusinessSkill, false);
-        TextChanged := not TextHelper.ContentEquals(TextHelper.GetSkillText(Skill), SkillText);
+        SkillText := BusinessSkillImpl.GetSkillText(TempBusinessSkill, false);
+        TextChanged := not BusinessSkillImpl.ContentEquals(BusinessSkillImpl.GetSkillText(Skill), SkillText);
         VersionChanged := ContentVersionSpecified and (Skill.Version <> TempBusinessSkill.Version);
         Changed := TextChanged or VersionChanged or (Skill.Title <> TempBusinessSkill.Title) or
             (DescriptionSpecified and (Skill.Description <> TempBusinessSkill.Description)) or
@@ -170,7 +170,7 @@ codeunit 4162 "Business Skill Builder Impl."
         if TextChanged then begin
             if not Skill.Manual and not ContentVersionSpecified then
                 Error(VersionRequiredErr);
-            TextHelper.SetSkillText(Skill, SkillText);
+            BusinessSkillImpl.SetSkillText(Skill, SkillText);
             if Skill.Manual and VersionChanged then
                 Skill.Version := TempBusinessSkill.Version;
         end;
@@ -181,10 +181,10 @@ codeunit 4162 "Business Skill Builder Impl."
             Skill.Status := TempBusinessSkill.Status;
         if ContentLockedSpecified then
             Skill."Read-Only" := TempBusinessSkill."Read-Only";
-        SkillManagement.ValidateSkillModify(Skill);
+        BusinessSkillImpl.ValidateSkillModify(Skill);
         Skill.Modify(true);
         if TextChanged then
-            SkillManagement.RecordTextVersion(Skill.ID, SkillText, Skill.Version);
+            TextHistory.RecordTextVersion(Skill.ID, SkillText, Skill.Version);
         Created := true;
         exit(Skill.ID);
     end;
@@ -211,8 +211,8 @@ codeunit 4162 "Business Skill Builder Impl."
 
     var
         TempBusinessSkill: Record "Business Skill" temporary;
-        SkillManagement: Codeunit "Business Skill Management";
-        TextHelper: Codeunit "Business Skill Text";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
+        TextHistory: Codeunit "Business Skill Text History";
         CallingAppId: Guid;
         Initialized: Boolean;
         Created: Boolean;

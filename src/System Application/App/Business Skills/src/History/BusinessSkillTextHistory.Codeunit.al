@@ -5,6 +5,7 @@
 
 namespace System.AI.BusinessSkills;
 
+using System.Environment;
 using System.Utilities;
 
 /// <summary>
@@ -27,9 +28,9 @@ codeunit 4166 "Business Skill Text History"
     /// </summary>
     procedure SetSkillText(SkillId: BigInteger; NewText: SecretText)
     var
-        SkillManagement: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        SkillManagement.SetSkillText(SkillId, NewText);
+        BusinessSkillImpl.SetSkillText(SkillId, NewText);
     end;
 
     /// <summary>
@@ -37,19 +38,76 @@ codeunit 4166 "Business Skill Text History"
     /// </summary>
     procedure RestoreVersion(EntryNo: Integer)
     var
-        SkillManagement: Codeunit "Business Skill Management";
+        TextVersion: Record "Business Skill Text Version";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        SkillManagement.RestoreTextVersion(EntryNo);
+        TextVersion.Get(EntryNo);
+        BusinessSkillImpl.SetSkillText(TextVersion."Skill ID", TextVersion.GetText());
     end;
 
     /// <summary>
     /// Deletes a version. The latest (current) version cannot be deleted.
     /// </summary>
     procedure DeleteVersion(var TextVersion: Record "Business Skill Text Version")
-    var
-        SkillManagement: Codeunit "Business Skill Management";
     begin
-        SkillManagement.DeleteTextVersion(TextVersion."Entry No.");
+        TextVersion.Get(TextVersion."Entry No.");
+        VerifyCanDeleteVersion(TextVersion."Entry No.");
+        TextVersion.Delete(true);
+    end;
+
+    /// <summary>
+    /// Rejects deletion of the current text version, including direct table deletion.
+    /// </summary>
+    procedure VerifyCanDeleteVersion(EntryNo: Integer)
+    var
+        TextVersion: Record "Business Skill Text Version";
+    begin
+        TextVersion.Get(EntryNo);
+        if IsLatestVersion(TextVersion) then
+            Error(CannotDeleteLatestErr);
+    end;
+
+    /// <summary>
+    /// Records the saved text as a new version unless it equals the latest version.
+    /// </summary>
+    procedure RecordTextVersion(var Skill: Record "Business Skill")
+    var
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
+    begin
+        if Skill.IsTemporary() then
+            exit;
+        RecordTextVersion(Skill.ID, BusinessSkillImpl.GetSkillText(Skill), Skill.Version);
+    end;
+
+    /// <summary>
+    /// Records the supplied text as a new version unless it equals the latest version.
+    /// </summary>
+    procedure RecordTextVersion(SkillId: BigInteger; NewText: SecretText; SkillVersion: Text[50])
+    var
+        LatestVersion: Record "Business Skill Text Version";
+        TextVersion: Record "Business Skill Text Version";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
+    begin
+        if GetLatestVersion(SkillId, LatestVersion) then
+            if BusinessSkillImpl.ContentEquals(LatestVersion.GetText(), NewText) then
+                exit;
+        TextVersion."Skill ID" := SkillId;
+        TextVersion.Version := SkillVersion;
+        TextVersion.SetText(NewText);
+        TextVersion.Insert(true);
+    end;
+
+    /// <summary>
+    /// Returns the latest version for copying, falling back to the skill's content when no history exists.
+    /// </summary>
+    procedure GetLatestText(var Skill: Record "Business Skill"): SecretText
+    var
+        LatestVersion: Record "Business Skill Text Version";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
+    begin
+        if GetLatestVersion(Skill.ID, LatestVersion) then
+            exit(LatestVersion.GetText());
+        exit(BusinessSkillImpl.GetSkillText(Skill));
     end;
 
     /// <summary>
@@ -70,13 +128,13 @@ codeunit 4166 "Business Skill Text History"
     procedure GetSkillText(SkillId: BigInteger): SecretText
     var
         Skill: Record "Business Skill";
-        TextHelper: Codeunit "Business Skill Text";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
         if SkillId = 0 then
             exit;
         if not Skill.Get(SkillId) then
             exit;
-        exit(TextHelper.GetSkillText(Skill));
+        exit(BusinessSkillImpl.GetSkillText(Skill));
     end;
 
     /// <summary>
@@ -85,14 +143,14 @@ codeunit 4166 "Business Skill Text History"
     procedure DownloadVersion(var TextVersion: Record "Business Skill Text Version")
     var
         TempBlob: Codeunit "Temp Blob";
-        TextHelper: Codeunit "Business Skill Text";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
         InStr: InStream;
         OutStr: OutStream;
         FileName: Text;
     begin
-        TempBlob.CreateOutStream(OutStr, TextHelper.GetEncoding());
-        TextHelper.WriteText(OutStr, TextVersion.GetText());
-        TempBlob.CreateInStream(InStr, TextHelper.GetEncoding());
+        TempBlob.CreateOutStream(OutStr, BusinessSkillImpl.GetEncoding());
+        BusinessSkillImpl.WriteText(OutStr, TextVersion.GetText());
+        TempBlob.CreateInStream(InStr, BusinessSkillImpl.GetEncoding());
         FileName := StrSubstNo(FileNameLbl, TextVersion."Skill ID", TextVersion."Entry No.");
         DownloadFromStream(InStr, DownloadDialogLbl, '', AllFilesFilterLbl, FileName);
     end;
@@ -102,9 +160,9 @@ codeunit 4166 "Business Skill Text History"
     /// </summary>
     procedure EncodeContent(Content: SecretText): SecretText
     var
-        TextHelper: Codeunit "Business Skill Text";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(TextHelper.EncodeContent(Content));
+        exit(BusinessSkillImpl.EncodeContent(Content));
     end;
 
     local procedure GetLatestVersion(SkillId: BigInteger; var Latest: Record "Business Skill Text Version"): Boolean
@@ -116,7 +174,17 @@ codeunit 4166 "Business Skill Text History"
         exit(Latest.FindFirst());
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'OnAfterBusinessSkillDeleted', '', false, false)]
+    local procedure DeleteTextVersionsOnAfterBusinessSkillDeleted(Skill: Record "Business Skill")
     var
+        TextVersion: Record "Business Skill Text Version";
+    begin
+        TextVersion.SetRange("Skill ID", Skill.ID);
+        TextVersion.DeleteAll(false);
+    end;
+
+    var
+        CannotDeleteLatestErr: Label 'The current (latest) version cannot be deleted.';
         FileNameLbl: Label 'Skill-%1-Version-%2.txt', Comment = '%1 = Skill ID, %2 = Entry No.', Locked = true;
         DownloadDialogLbl: Label 'Download skill text version';
         AllFilesFilterLbl: Label 'Text Files (*.txt)|*.txt', Locked = true;

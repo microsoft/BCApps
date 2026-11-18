@@ -80,9 +80,9 @@ table 4160 "Business Skill Text Version"
 
     trigger OnDelete()
     var
-        SkillManagement: Codeunit "Business Skill Management";
+        TextHistory: Codeunit "Business Skill Text History";
     begin
-        SkillManagement.VerifyCanDeleteTextVersion("Entry No.");
+        TextHistory.VerifyCanDeleteVersion("Entry No.");
     end;
 
     /// <summary>
@@ -90,13 +90,13 @@ table 4160 "Business Skill Text Version"
     /// </summary>
     procedure SetText(NewText: SecretText)
     var
-        SkillText: Codeunit "Business Skill Text";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
         OutStr: OutStream;
     begin
-        SkillText.ValidateLength(NewText);
+        BusinessSkillImpl.ValidateLength(NewText);
         Clear("Skill Text");
-        "Skill Text".CreateOutStream(OutStr, SkillText.GetEncoding());
-        SkillText.WriteText(OutStr, NewText);
+        "Skill Text".CreateOutStream(OutStr, BusinessSkillImpl.GetEncoding());
+        BusinessSkillImpl.WriteText(OutStr, NewText);
     end;
 
     /// <summary>
@@ -104,14 +104,14 @@ table 4160 "Business Skill Text Version"
     /// </summary>
     procedure GetText(): SecretText
     var
-        SkillText: Codeunit "Business Skill Text";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
         InStr: InStream;
     begin
         CalcFields("Skill Text");
         if not "Skill Text".HasValue() then
             exit;
-        "Skill Text".CreateInStream(InStr, SkillText.GetEncoding());
-        exit(SkillText.ReadText(InStr));
+        "Skill Text".CreateInStream(InStr, BusinessSkillImpl.GetEncoding());
+        exit(BusinessSkillImpl.ReadText(InStr));
     end;
 
     var

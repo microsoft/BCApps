@@ -54,7 +54,7 @@ codeunit 130052 "Business Skill Search Test"
         Response.ReadFrom(Search.Search('valid query', 5));
         AssertEnvelope(Response, 5, 0);
         Skill.Get(LibraryBusinessSkill.CreateSkill('Inactive', SecretStrSubstNo('Private instructions')));
-        Management.DeactivateSkill(Skill.ID);
+        BusinessSkillImpl.DeactivateSkill(Skill.ID);
         Response.ReadFrom(Search.Search('valid query', 5));
 
         // [THEN] Inactive records do not enter semantic ranking.
@@ -136,9 +136,9 @@ codeunit 130052 "Business Skill Search Test"
         AddResult(TempResult, 2, InactiveSkill.SystemId, 0.8);
         AddResult(TempResult, 3, CreateGuid(), 0.7);
         AddResult(TempResult, 4, ActiveSkill.SystemId, 0.6);
-        Management.DeactivateSkill(DeletedSkill.ID);
-        Management.DeleteSkill(DeletedSkill.ID);
-        Management.DeactivateSkill(InactiveSkill.ID);
+        BusinessSkillImpl.DeactivateSkill(DeletedSkill.ID);
+        BusinessSkillImpl.DeleteSkill(DeletedSkill.ID);
+        BusinessSkillImpl.DeactivateSkill(InactiveSkill.ID);
 
         // [WHEN] Resolving native system IDs against current records.
         Response := SearchImpl.ToResponse(TempResult, 4);
@@ -167,7 +167,7 @@ codeunit 130052 "Business Skill Search Test"
         AddResult(TempResult, 1, Skill.SystemId, 0.5);
         Skill.Title := 'Updated title';
         Skill.Description := 'Updated searchable description';
-        Management.UpdateSkillRecord(Skill.ID, Skill, Body);
+        BusinessSkillImpl.UpdateSkillRecord(Skill.ID, Skill, Body);
         Skill.Get(Skill.ID);
 
         // [WHEN] Mapping the result after the metadata edit.
@@ -178,7 +178,7 @@ codeunit 130052 "Business Skill Search Test"
         AssertHit(GetHit(GetValue(Response, 'hits').AsArray(), 0), Skill, 1, 0.5);
         CurrentSkill.Get(Skill.ID);
         Assert.AreEqual(Skill.SystemRowVersion, CurrentSkill.SystemRowVersion, 'Mapping must not update the source.');
-        Assert.IsTrue(SkillText.ContentEquals(Body, SkillText.GetSkillText(CurrentSkill)), 'Preserve the complete Unicode body.');
+        Assert.IsTrue(BusinessSkillImpl.ContentEquals(Body, BusinessSkillImpl.GetSkillText(CurrentSkill)), 'Preserve the complete Unicode body.');
     end;
 
     /// <summary>
@@ -248,13 +248,13 @@ codeunit 130052 "Business Skill Search Test"
 
     local procedure Initialize()
     begin
-        LibraryBusinessSkill.CleanAll();
+        LibraryBusinessSkill.DeleteAll();
     end;
 
     local procedure CreateActiveSkill(var Skill: Record "Business Skill"; Body: Text)
     begin
         Skill.Get(LibraryBusinessSkill.CreateSkill('Search fixture', Body));
-        Management.ActivateSkill(Skill.ID);
+        BusinessSkillImpl.ActivateSkill(Skill.ID);
         Skill.Get(Skill.ID);
     end;
 
@@ -332,8 +332,7 @@ codeunit 130052 "Business Skill Search Test"
     var
         Assert: Codeunit "Library Assert";
         LibraryBusinessSkill: Codeunit "Library - Business Skill";
-        Management: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
         Search: Codeunit "Business Skill Search";
         SearchImpl: Codeunit "Business Skill Search Impl.";
-        SkillText: Codeunit "Business Skill Text";
 }

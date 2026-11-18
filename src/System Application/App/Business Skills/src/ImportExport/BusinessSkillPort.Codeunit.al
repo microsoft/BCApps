@@ -52,16 +52,15 @@ codeunit 4167 "Business Skill Port"
 
     local procedure RunExport(var TempSkill: Record "Business Skill" temporary; var TempBlob: Codeunit "Temp Blob")
     var
-        SkillManagement: Codeunit "Business Skill Management";
         ExportPort: XmlPort "Business Skill Export";
         OutStr: OutStream;
     begin
         if TempSkill.FindSet() then
             repeat
-                if not SkillManagement.IsManualSkill(TempSkill) then
+                if not BusinessSkillImpl.IsManualSkill(TempSkill) then
                     Error(ManualSkillsOnlyErr, TempSkill."Skill ID");
             until TempSkill.Next() = 0;
-        TempBlob.CreateOutStream(OutStr, TextHelper.GetEncoding());
+        TempBlob.CreateOutStream(OutStr, BusinessSkillImpl.GetEncoding());
         ExportPort.SetBuffer(TempSkill);
         ExportPort.SetDestination(OutStr);
         ExportPort.Export();
@@ -82,9 +81,9 @@ codeunit 4167 "Business Skill Port"
         OutStr: OutStream;
         InStr: InStream;
     begin
-        TempBlob.CreateOutStream(OutStr, TextHelper.GetEncoding());
-        TextHelper.WriteText(OutStr, XmlText);
-        TempBlob.CreateInStream(InStr, TextHelper.GetEncoding());
+        TempBlob.CreateOutStream(OutStr, BusinessSkillImpl.GetEncoding());
+        BusinessSkillImpl.WriteText(OutStr, XmlText);
+        TempBlob.CreateInStream(InStr, BusinessSkillImpl.GetEncoding());
         exit(ImportFromStream(InStr));
     end;
 
@@ -126,7 +125,7 @@ codeunit 4167 "Business Skill Port"
         InStr: InStream;
         FileName: Text;
     begin
-        TempBlob.CreateInStream(InStr, TextHelper.GetEncoding());
+        TempBlob.CreateInStream(InStr, BusinessSkillImpl.GetEncoding());
         FileName := 'BusinessSkills.xml';
         DownloadFromStream(InStr, '', '', '', FileName);
     end;
@@ -135,12 +134,12 @@ codeunit 4167 "Business Skill Port"
     var
         InStr: InStream;
     begin
-        TempBlob.CreateInStream(InStr, TextHelper.GetEncoding());
-        exit(TextHelper.ReadText(InStr));
+        TempBlob.CreateInStream(InStr, BusinessSkillImpl.GetEncoding());
+        exit(BusinessSkillImpl.ReadText(InStr));
     end;
 
     var
-        TextHelper: Codeunit "Business Skill Text";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
         SkillReferences: Dictionary of [BigInteger, BigInteger];
         SkillsCreated: Integer;
         InvalidReferenceErr: Label 'The document contains an invalid or duplicate skill reference.';

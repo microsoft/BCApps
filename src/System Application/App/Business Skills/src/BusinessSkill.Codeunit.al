@@ -22,9 +22,9 @@ codeunit 4160 "Business Skill" implements IBusinessSkillDiscovery
     /// <returns>A serialized JSON array of matching skills.</returns>
     procedure GetRelevantSkills(Query: Text): SecretText
     var
-        Management: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(Management.SearchSkills(Query));
+        exit(BusinessSkillImpl.SearchSkills(Query));
     end;
 
     /// <summary>
@@ -35,59 +35,84 @@ codeunit 4160 "Business Skill" implements IBusinessSkillDiscovery
     /// <remarks>An error is raised when the skill does not exist or is inactive.</remarks>
     procedure GetSkill(SkillId: BigInteger): SecretText
     var
-        Management: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(Management.GetSkillById(SkillId));
+        exit(BusinessSkillImpl.GetSkillById(SkillId));
     end;
 
-    /// <summary>Updates manual skill metadata and text using the supplied record's identity and revision.</summary>
-    procedure UpdateSkillRecord(SkillId: BigInteger; var SourceSkill: Record "Business Skill"; SkillText: SecretText): Boolean
+    /// <summary>
+    /// Returns an active skill identified by its code and owning app's manifest ID. Use an empty app ID for a saved manual skill.
+    /// </summary>
+    /// <param name="SkillCode">The saved skill code.</param>
+    /// <param name="AppId">The owning app's manifest ID, or an empty GUID for a manual skill.</param>
+    /// <returns>A protected serialized JSON object containing the skill.</returns>
+    procedure GetSkill(SkillCode: Code[100]; AppId: Guid): SecretText
     var
-        Management: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(Management.UpdateSkillRecord(SkillId, SourceSkill, SkillText));
+        exit(BusinessSkillImpl.GetSkillByCode(SkillCode, AppId));
     end;
 
-    /// <summary>Activates a skill after validating its title and text.</summary>
+    /// <summary>
+    /// Loads and returns the stored instructions of the skill.
+    /// </summary>
+    procedure GetSkillText(var Skill: Record "Business Skill"): SecretText
+    var
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
+    begin
+        exit(BusinessSkillImpl.GetSkillText(Skill));
+    end;
+
+    /// <summary>
+    /// Returns the instructions of the skill, optionally loading them from the database first.
+    /// </summary>
+    procedure GetSkillText(var Skill: Record "Business Skill"; LoadFromDatabase: Boolean): SecretText
+    var
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
+    begin
+        exit(BusinessSkillImpl.GetSkillText(Skill, LoadFromDatabase));
+    end;
+
+    /// <summary>
+    /// Activates a skill after validating its title and text.
+    /// </summary>
     procedure ActivateSkill(SkillId: BigInteger): Boolean
     var
-        Management: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(Management.ActivateSkill(SkillId));
+        exit(BusinessSkillImpl.ActivateSkill(SkillId));
     end;
 
-    /// <summary>Deactivates a skill without changing its content.</summary>
+    /// <summary>
+    /// Deactivates a skill without changing its content.
+    /// </summary>
     procedure DeactivateSkill(SkillId: BigInteger): Boolean
     var
-        Management: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(Management.DeactivateSkill(SkillId));
+        exit(BusinessSkillImpl.DeactivateSkill(SkillId));
     end;
 
-    /// <summary>Deletes an inactive skill subject to owning-app and management-permission checks.</summary>
+    /// <summary>
+    /// Deletes an inactive skill subject to owning-app and management-permission checks.
+    /// </summary>
     procedure DeleteSkill(SkillId: BigInteger)
     var
-        Management: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
         CallerModule: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModule);
-        Management.DeleteSkill(SkillId, CallerModule.Id);
+        BusinessSkillImpl.DeleteSkill(SkillId, CallerModule.Id);
     end;
 
-    /// <summary>Returns whether the supplied skill is active and available to consumers.</summary>
+    /// <summary>
+    /// Returns whether the supplied skill is active and available to consumers.
+    /// </summary>
     procedure IsSkillAvailable(Skill: Record "Business Skill"): Boolean
     var
-        Management: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(Management.IsSkillAvailable(Skill));
-    end;
-
-    /// <summary>Filters the record to active skills, preserving its other filters.</summary>
-    procedure SetAvailableSkillsFilter(var Skill: Record "Business Skill")
-    var
-        Management: Codeunit "Business Skill Management";
-    begin
-        Management.SetAvailableSkillsFilter(Skill);
+        exit(BusinessSkillImpl.IsSkillAvailable(Skill));
     end;
 
     /// <summary>
@@ -96,9 +121,9 @@ codeunit 4160 "Business Skill" implements IBusinessSkillDiscovery
     [CommitBehavior(CommitBehavior::Error)]
     procedure SetNewContentAndUpdateVersion(SkillId: BigInteger; Content: SecretText; ExpectedSystemId: Guid; ExpectedRevision: BigInteger)
     var
-        Management: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        Management.SetSkillText(SkillId, Content, ExpectedSystemId, ExpectedRevision);
+        BusinessSkillImpl.SetSkillText(SkillId, Content, ExpectedSystemId, ExpectedRevision);
     end;
 
     /// <summary>
@@ -108,10 +133,10 @@ codeunit 4160 "Business Skill" implements IBusinessSkillDiscovery
     [CommitBehavior(CommitBehavior::Error)]
     procedure SetNewContentAndUpdateVersion(SkillCode: Code[100]; Content: SecretText; ContentVersion: Text[50])
     var
-        Management: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
         CallerModule: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModule);
-        Management.SetNewContentAndUpdateVersion(CallerModule.Id, SkillCode, Content, ContentVersion);
+        BusinessSkillImpl.SetNewContentAndUpdateVersion(CallerModule.Id, SkillCode, Content, ContentVersion);
     end;
 }

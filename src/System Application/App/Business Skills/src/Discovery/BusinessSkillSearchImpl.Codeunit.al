@@ -24,14 +24,14 @@ codeunit 4169 "Business Skill Search Impl."
         Skill: Record "Business Skill";
         TempResult: Record "Similarity Result" temporary;
         SemanticSearch: Codeunit "Semantic Search";
-        Management: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
         Target: RecordRef;
         FieldIds: List of [Integer];
         Result: JsonObject;
         ResultText: Text;
     begin
         ValidateRequest(Query, Top);
-        Management.SetAvailableSkillsFilter(Skill);
+        BusinessSkillImpl.SetAvailableSkillsFilter(Skill);
         if Skill.Count() > 1000 then
             RejectRequest(StrSubstNo(CapacityErr, 1000), CapacityExceededReasonTok);
         if not Skill.IsEmpty() then begin
@@ -61,8 +61,13 @@ codeunit 4169 "Business Skill Search Impl."
     begin
         if Top < 1 then
             RejectRequest(StrSubstNo(TopTooSmallErr, 1), TopTooSmallReasonTok);
-        if Top > 50 then
-            RejectRequest(StrSubstNo(TopTooLargeErr, 50), TopTooLargeReasonTok);
+        if Top > GetMaxResults() then
+            RejectRequest(StrSubstNo(TopTooLargeErr, GetMaxResults()), TopTooLargeReasonTok);
+    end;
+
+    local procedure GetMaxResults(): Integer
+    begin
+        exit(50);
     end;
 
     local procedure RejectRequest(ErrorMessage: Text; Reason: Text)
@@ -79,7 +84,7 @@ codeunit 4169 "Business Skill Search Impl."
     internal procedure ToResponse(var TempResult: Record "Similarity Result" temporary; Top: Integer): JsonObject
     var
         Skill: Record "Business Skill";
-        Management: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
         SeenSystemIds: List of [Guid];
         Hits: JsonArray;
         Response: JsonObject;
@@ -103,7 +108,7 @@ codeunit 4169 "Business Skill Search Impl."
                 PreviousScore := TempResult.Similarity;
                 if Hits.Count() < Top then
                     if Skill.GetBySystemId(TempResult."System ID") then
-                        if Management.IsSkillAvailable(Skill) then begin
+                        if BusinessSkillImpl.IsSkillAvailable(Skill) then begin
                             if Skill.Title.Trim() = '' then
                                 Error(IncompleteSkillErr);
                             Clear(Hit);

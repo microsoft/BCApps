@@ -39,11 +39,11 @@ xmlport 4160 "Business Skill Export"
                         trigger OnBeforePassVariable()
                         var
                             PersistedSkill: Record "Business Skill";
-                            SkillManagement: Codeunit "Business Skill Management";
+                            BusinessSkillImpl: Codeunit "Business Skill Impl.";
                         begin
                             Clear(SkillText);
                             PersistedSkill.Get(Skill.ID);
-                            if not SkillManagement.IsManualSkill(PersistedSkill) then
+                            if not BusinessSkillImpl.IsManualSkill(PersistedSkill) then
                                 Error(ManualSkillsOnlyErr);
                             SetExportContent(PersistedSkill);
                         end;
@@ -62,9 +62,9 @@ xmlport 4160 "Business Skill Export"
     [NonDebuggable]
     local procedure SetExportContent(var PersistedSkill: Record "Business Skill")
     var
-        TextHelper: Codeunit "Business Skill Text";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        SkillText.AddText(TextHelper.GetSkillText(PersistedSkill).Unwrap());
+        SkillText.AddText(BusinessSkillImpl.GetSkillText(PersistedSkill).Unwrap());
     end;
 
     var

@@ -38,11 +38,11 @@ page 4163 "Business Skill Text Part"
                     trigger OnValidate()
                     var
                         Skill: Record "Business Skill";
-                        SkillManagement: Codeunit "Business Skill Management";
+                        BusinessSkillImpl: Codeunit "Business Skill Impl.";
                     begin
                         if IsReadOnly or not CurrPage.Editable() or (SkillId = 0) then
                             Error(ReadOnlyModeErr);
-                        SkillManagement.SetSkillText(SkillId, SkillTextValue, SkillSystemId, SkillRevision);
+                        BusinessSkillImpl.SetSkillText(SkillId, SkillTextValue, SkillSystemId, SkillRevision);
                         Skill.Get(SkillId);
                         SkillRevision := Skill.SystemRowVersion;
                         LoadSkillSnapshot();
@@ -106,11 +106,10 @@ page 4163 "Business Skill Text Part"
     procedure SetSkillId(NewSkillId: BigInteger; AllowEdit: Boolean)
     var
         Skill: Record "Business Skill";
-        SkillManagement: Codeunit "Business Skill Management";
     begin
         IsReadOnly := not AllowEdit;
         if Skill.Get(NewSkillId) then
-            IsReadOnly := IsReadOnly or not SkillManagement.CanEditSkillText(Skill)
+            IsReadOnly := IsReadOnly or not BusinessSkillImpl.CanEditSkillText(Skill)
         else
             IsReadOnly := true;
         if (SkillId = NewSkillId) and (SkillId <> 0) then
@@ -147,12 +146,12 @@ page 4163 "Business Skill Text Part"
         if Skill.Get(SkillId) then begin
             SkillSystemId := Skill.SystemId;
             SkillRevision := Skill.SystemRowVersion;
-            SkillTextValue := TextHelper.GetSkillText(Skill).Unwrap();
+            SkillTextValue := BusinessSkillImpl.GetSkillText(Skill).Unwrap();
         end;
     end;
 
     var
-        TextHelper: Codeunit "Business Skill Text";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
         SkillId: BigInteger;
         SkillSystemId: Guid;
         SkillRevision: BigInteger;

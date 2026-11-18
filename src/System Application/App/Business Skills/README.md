@@ -8,14 +8,16 @@ native pages, XML import/export, discovery, and semantic search in
 
 | Object | Purpose |
 |---|---|
-| `Business Skill` | Revision-aware manual updates, owning-app content updates, activation/deactivation, deletion, availability, and literal discovery |
+| `Business Skill` | SecretText content reads, revision-aware manual updates, owning-app content updates, lifecycle, availability, and literal discovery |
 | `Business Skill Builder` | One-shot manual/app-owned creation and upsert; captures the calling extension's App ID |
-| `Business Skill Text` | SecretText content reading, stream encoding, and content-length limit |
 | `Business Skill Search` | Semantic search with internal request validation |
 | `IBusinessSkillDiscovery` | Literal discovery and canonical skill retrieval contract |
 
-Management, text/history implementations, XML orchestration, and search implementation
-are internal. Consumers must not duplicate validation or history writes.
+`Business Skill Impl.` owns lifecycle and content validation, encoding, and length
+helpers. History capture, restoration, deletion guards, and the platform deletion
+subscriber live in `Business Skill Text History`. Both implementations are internal;
+consumers must not duplicate validation or history writes. Related objects are grouped
+under `src/History`, `src/ImportExport`, and `src/Discovery`.
 The platform `Business Skill` virtual table and `Business Skill Status` enum
 remain in System; persistent skill storage is not an application table.
 `Business Skill Text Version` is the module's tenant-wide history table.
@@ -47,6 +49,12 @@ skill ID, not the skill code.
 Use `Business Skill.SetNewContentAndUpdateVersion(SkillCode, Content, ContentVersion)`
 for content-only updates owned by the calling app. Its manual overload takes
 numeric ID, content, expected SystemId and expected SystemRowVersion.
+
+Use `Business Skill.GetSkill(SkillCode, AppId)` to discover a saved active skill
+by its exact code and owner's manifest App ID; an empty App ID selects a manual
+skill. The numeric-ID overload remains available. `GetSkillText` reads content
+as SecretText; its optional load flag also supports already-loaded temporary records.
+Read APIs do not grant additional table permissions.
 
 The builder terminology maps to the existing platform fields: Skill Code to
 `Skill ID`, Display Name to `Title`, Content to `Skill Text`, Content Locked to
@@ -115,3 +123,7 @@ uses the separately packaged test library. Runtime tests require current package
 on an explicitly approved test environment: fixture cleanup deletes skills and
 history, and HTTP fixtures can commit changes. Compilation alone does not qualify
 runtime behavior.
+
+The independent fixture's `DeleteAll` clears skills and history. `InactivateSkill`
+and `InactivateAll` use the public lifecycle API and preserve content and history;
+the latter skips skills that are already inactive. None of these helpers commits.

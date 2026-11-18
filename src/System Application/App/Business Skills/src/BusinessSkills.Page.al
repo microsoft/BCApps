@@ -7,7 +7,7 @@ namespace System.AI.BusinessSkills;
 
 /// <summary>
 /// Lists canonical skills and opens the skill card for standard creation and editing.
-/// The page writes through "Business Skill Management", because the platform table has no table triggers.
+/// The page writes through "Business Skill Impl.", because the platform table has no table triggers.
 /// </summary>
 page 4160 "Business Skills"
 {
@@ -92,7 +92,7 @@ page 4160 "Business Skills"
                     Skill: Record "Business Skill";
                 begin
                     CurrPage.SaveRecord();
-                    Skill.Get(SkillManagement.CopySkill(Rec.ID));
+                    Skill.Get(BusinessSkillImpl.CopySkill(Rec.ID));
                     Commit();
                     Page.Run(Page::"Business Skill Card", Skill);
                 end;
@@ -115,9 +115,8 @@ page 4160 "Business Skills"
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     var
         Builder: Codeunit "Business Skill Builder";
-        TextHelper: Codeunit "Business Skill Text";
     begin
-        Builder.Initialize('', Rec.Title, TextHelper.GetSkillText(Rec, false))
+        Builder.Initialize('', Rec.Title, BusinessSkillImpl.GetSkillText(Rec, false))
             .SetManual(true)
             .SetDescription(Rec.Description)
             .SetContentLocked(Rec."Read-Only")
@@ -130,10 +129,10 @@ page 4160 "Business Skills"
 
     trigger OnDeleteRecord(): Boolean
     begin
-        SkillManagement.DeleteSkill(Rec.ID);
+        BusinessSkillImpl.DeleteSkill(Rec.ID);
         exit(false);
     end;
 
     var
-        SkillManagement: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
 }

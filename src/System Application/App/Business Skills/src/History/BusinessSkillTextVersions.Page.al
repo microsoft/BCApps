@@ -160,11 +160,11 @@ page 4162 "Business Skill Text Versions"
     trigger OnAfterGetCurrRecord()
     var
         Skill: Record "Business Skill";
-        SkillManagement: Codeunit "Business Skill Management";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
         UpdateComputedFields();
         CanChange := (Rec."Entry No." <> 0) and not IsLatest and Skill.Get(Rec."Skill ID");
-        CanRestore := CanChange and SkillManagement.CanEditSkillText(Skill);
+        CanRestore := CanChange and BusinessSkillImpl.CanEditSkillText(Skill);
         if Rec."Entry No." <> xRec."Entry No." then
             UpdatePreview();
     end;

@@ -10,7 +10,7 @@ using System.Security.AccessControl;
 
 /// <summary>
 /// Creates and edits canonical skill metadata and instructions.
-/// The page writes through "Business Skill Management", because the platform table has no table triggers.
+/// The page writes through "Business Skill Impl.", because the platform table has no table triggers.
 /// </summary>
 page 4161 "Business Skill Card"
 {
@@ -109,10 +109,10 @@ page 4161 "Business Skill Card"
 
                 trigger OnAction()
                 var
-                    BPMgt: Codeunit "Business Skill Management";
+                    BusinessSkillImpl: Codeunit "Business Skill Impl.";
                 begin
                     CurrPage.SaveRecord();
-                    BPMgt.DeactivateSkill(Rec.ID);
+                    BusinessSkillImpl.DeactivateSkill(Rec.ID);
                     Rec.Get(Rec.ID);
                     UpdateEditorState();
                     CurrPage.SkillTextEditor.Page.RefreshSkill();
@@ -145,10 +145,9 @@ page 4161 "Business Skill Card"
                 trigger OnAction()
                 var
                     Skill: Record "Business Skill";
-                    SkillManagement: Codeunit "Business Skill Management";
                 begin
                     CurrPage.SaveRecord();
-                    Skill.Get(SkillManagement.CopySkill(Rec.ID));
+                    Skill.Get(BusinessSkillImpl.CopySkill(Rec.ID));
                     Commit();
                     Page.Run(Page::"Business Skill Card", Skill);
                 end;
@@ -169,7 +168,7 @@ page 4161 "Business Skill Card"
     }
 
     var
-        TextHelper: Codeunit "Business Skill Text";
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
         ActivateOnCloseQst: Label 'This skill is inactive. Do you want to activate it before closing?';
         CanMaintainSkill: Boolean;
         HasSavedSkill: Boolean;
@@ -201,7 +200,7 @@ page 4161 "Business Skill Card"
     var
         Builder: Codeunit "Business Skill Builder";
     begin
-        Builder.Initialize('', Rec.Title, TextHelper.GetSkillText(Rec, false))
+        Builder.Initialize('', Rec.Title, BusinessSkillImpl.GetSkillText(Rec, false))
             .SetManual(true)
             .SetDescription(Rec.Description)
             .SetContentLocked(Rec."Read-Only")
@@ -214,12 +213,10 @@ page 4161 "Business Skill Card"
     end;
 
     trigger OnModifyRecord(): Boolean
-    var
-        BPMgt: Codeunit "Business Skill Management";
     begin
         // The UI owns an optimistic snapshot and a separate text control. Save both atomically,
         // including no-op detection, rather than issuing a second native modify of the stale buffer.
-        BPMgt.UpdateSkillRecord(Rec.ID, Rec, TextHelper.GetSkillText(Rec));
+        BusinessSkillImpl.UpdateSkillRecord(Rec.ID, Rec, BusinessSkillImpl.GetSkillText(Rec));
         Rec.Get(Rec.ID);
         Rec.SetAutoCalcFields("Skill Text");
         CurrPage.SkillTextEditor.Page.RefreshSkill();
@@ -227,10 +224,8 @@ page 4161 "Business Skill Card"
     end;
 
     trigger OnDeleteRecord(): Boolean
-    var
-        BPMgt: Codeunit "Business Skill Management";
     begin
-        BPMgt.DeleteSkill(Rec.ID);
+        BusinessSkillImpl.DeleteSkill(Rec.ID);
         exit(false);
     end;
 
@@ -246,11 +241,9 @@ page 4161 "Business Skill Card"
     end;
 
     local procedure ActivateSkill()
-    var
-        BPMgt: Codeunit "Business Skill Management";
     begin
         CurrPage.SaveRecord();
-        BPMgt.ActivateSkill(Rec.ID);
+        BusinessSkillImpl.ActivateSkill(Rec.ID);
         Rec.Get(Rec.ID);
         UpdateEditorState();
         CurrPage.SkillTextEditor.Page.RefreshSkill();
@@ -267,7 +260,6 @@ page 4161 "Business Skill Card"
 
     local procedure UpdateEditorState()
     var
-        SkillManagement: Codeunit "Business Skill Management";
         AgentUtilities: Codeunit "Agent Utilities";
     begin
         HasSavedSkill := Rec.ID <> 0;
@@ -275,11 +267,11 @@ page 4161 "Business Skill Card"
         if Rec.ID = 0 then
             CanMaintainSkill := true
         else
-            CanMaintainSkill := SkillManagement.SkillExists(Rec.ID);
+            CanMaintainSkill := BusinessSkillImpl.SkillExists(Rec.ID);
         CanMaintainSkill := CanMaintainSkill and AgentUtilities.CanCurrentUserManageBusinessSkills();
-        CanEditContent := CanMaintainSkill and SkillManagement.CanEditSkillText(Rec);
+        CanEditContent := CanMaintainSkill and BusinessSkillImpl.CanEditSkillText(Rec);
         CanEditVersion := CanEditContent;
-        CanExport := HasSavedSkill and SkillManagement.IsManualSkill(Rec);
+        CanExport := HasSavedSkill and BusinessSkillImpl.IsManualSkill(Rec);
     end;
 
 }
