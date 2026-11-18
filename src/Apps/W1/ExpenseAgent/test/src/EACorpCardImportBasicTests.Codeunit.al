@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.IO;
 
@@ -533,6 +534,74 @@ codeunit 148356 EACorpCardImportBasicTests
 
         Assert.IsFalse(CorpCardValidateMgt.ValidateTrans(CorpCardTrans, ValidationReason), 'A blocked card must produce a row validation failure rather than aborting the import.');
         Assert.AreEqual('The corporate card is blocked.', ValidationReason, 'The validation failure must identify the blocked card.');
+    end;
+
+    [Test]
+    procedure ConvertedTransactionStoresLcyAtPostingPrecision()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+    begin
+        InitializeForeignTransactionForRounding(CorpCardTrans);
+
+        CorpCardTrans.Insert(true);
+
+        CorpCardTrans.Get(CorpCardTrans."Entry No.");
+        Assert.AreEqual(14.72, CorpCardTrans."Amount (LCY)", 'USD 19.63 converted at 0.75 must be stored at LCY posting precision.');
+        Assert.AreEqual(14.72, CorpCardTrans.GetAmountInCurrency(''), 'Returning the stored LCY amount must match posting precision.');
+        Assert.AreEqual(19.63, CorpCardTrans.GetAmountInCurrency('USD'), 'LCY rounding must not change the original foreign-currency amount.');
+    end;
+
+    [Test]
+    procedure UncachedLcyConversionUsesConfiguredPrecisionForCredits()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        OriginalAmountRoundingPrecision: Decimal;
+    begin
+        InitializeForeignTransactionForRounding(CorpCardTrans);
+        GeneralLedgerSetup.Get();
+        OriginalAmountRoundingPrecision := GeneralLedgerSetup."Amount Rounding Precision";
+        GeneralLedgerSetup."Amount Rounding Precision" := 0.1;
+        GeneralLedgerSetup.Modify(true);
+        CorpCardTrans.Amount := -19.63;
+
+        Assert.AreEqual(-14.7, CorpCardTrans.GetAmountInCurrency(''), 'An uncached credit conversion must use configured LCY precision, not a fixed two decimals.');
+        Assert.AreEqual(-19.63, CorpCardTrans.GetAmountInCurrency('USD'), 'Returning the original credit must not apply LCY rounding.');
+        GeneralLedgerSetup."Amount Rounding Precision" := OriginalAmountRoundingPrecision;
+        GeneralLedgerSetup.Modify(true);
+    end;
+
+    [Test]
+    procedure CachedLcyAmountIsRoundedWithoutReconversion()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+    begin
+        InitializeForeignTransactionForRounding(CorpCardTrans);
+        CorpCardTrans."Amount (LCY)" := 14.7275;
+        CorpCardTrans.Insert(false);
+
+        CorpCardTrans.Get(CorpCardTrans."Entry No.");
+        Assert.AreEqual(14.73, CorpCardTrans.GetAmountInCurrency(''), 'A historical unrounded LCY amount must be rounded without conversion at the current exchange rate.');
+    end;
+
+    local procedure InitializeForeignTransactionForRounding(var CorpCardTrans: Record "EA Corp Card Trans")
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        Initialize();
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Amount Rounding Precision" := 0.01;
+        GeneralLedgerSetup.Modify(true);
+        LibraryERM.CreateExchangeRate(UsdCurrencyCodeTok, WorkDate(), 1, 1);
+        CurrencyExchangeRate.Get(UsdCurrencyCodeTok, WorkDate());
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", 0.75);
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", 0.75);
+        CurrencyExchangeRate.Modify(true);
+        InitializeValidTransaction(CorpCardTrans);
+        CorpCardTrans."Currency Code" := UsdCurrencyCodeTok;
+        CorpCardTrans.Amount := 19.63;
     end;
 
     local procedure InitializeValidTransaction(var CorpCardTrans: Record "EA Corp Card Trans")

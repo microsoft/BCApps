@@ -23,6 +23,7 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTestLib: Codeunit EACorpCardTestLib;
         LibraryExpense: Codeunit "Library - Expense";
         LinkedReportLineCannotDeleteErr: Label 'Expense report %1 line %2 cannot be deleted because it is linked to corporate card transaction %3.', Comment = '%1 = expense report number, %2 = report line number, %3 = corporate card transaction entry number';
+        CannotDeleteFeedLinkedExpenseErr: Label 'You cannot delete expense %1 because it is linked to corporate card transaction %2.', Comment = '%1 = expense number, %2 = corporate card transaction entry number';
 
     [Test]
     procedure DefaultProviderSetupUsesNeutralShortNames()
@@ -75,6 +76,81 @@ codeunit 148364 EACorpCardSelectionTests
         // [THEN] The custom abbreviation is retained.
         CsvProvider.Get(CsvProvider.Code);
         Assert.AreEqual('BANK', CsvProvider."Short Name", 'Repeating setup must preserve a custom provider short name.');
+    end;
+
+    [Test]
+    procedure RepeatedDefaultsPreserveConfiguredCardsWithoutTransactions()
+    var
+        TemplateCard: Record "EA Corp Card";
+        ConfiguredCard: Record "EA Corp Card";
+        TempConfiguredCard: Record "EA Corp Card" temporary;
+        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+        ProviderIndex: Integer;
+    begin
+        Initialize();
+        InitializeDefaultBankAccount();
+        CreateCorpCardSetup.CreateDefaults();
+        TemplateCard.Get('CORPCARD-0001');
+        for ProviderIndex := 1 to 2 do begin
+            ConfiguredCard := TemplateCard;
+            if ProviderIndex = 1 then begin
+                ConfiguredCard."Card Id" := 'CORPCARD-0009';
+                ConfiguredCard."Provider Code" := 'CORPCARDCSV';
+            end else begin
+                ConfiguredCard."Card Id" := 'CONFIGURED-XML-CARD';
+                ConfiguredCard."Provider Code" := 'CORPCARDXML';
+            end;
+            ConfiguredCard."External Card Ref" := 'CONFIGURED-ACCOUNT-REF';
+            ConfiguredCard."Masked Card No." := '****5588';
+            ConfiguredCard."Currency Code" := 'EUR';
+            ConfiguredCard.Blocked := ProviderIndex = 2;
+            ConfiguredCard."Valid From" := WorkDate() - 30;
+            ConfiguredCard."Valid To" := CalcDate('<1Y>', WorkDate());
+            ConfiguredCard.Insert(true);
+            TempConfiguredCard := ConfiguredCard;
+            TempConfiguredCard.Insert();
+        end;
+
+        CreateCorpCardSetup.CreateDefaults();
+        CreateCorpCardSetup.CreateDefaults();
+
+        TempConfiguredCard.FindSet();
+        repeat
+            Assert.IsTrue(ConfiguredCard.Get(TempConfiguredCard."Card Id"), 'Default setup must preserve configured cards before the first import.');
+            Assert.AreEqual(TempConfiguredCard.SystemId, ConfiguredCard.SystemId, 'Default setup must not replace a configured card.');
+            Assert.AreEqual(TempConfiguredCard."Provider Code", ConfiguredCard."Provider Code", 'The configured provider must remain unchanged.');
+            Assert.AreEqual(TempConfiguredCard."Expense User No.", ConfiguredCard."Expense User No.", 'The card-to-employee mapping must remain unchanged.');
+            Assert.AreEqual(TempConfiguredCard."External Card Ref", ConfiguredCard."External Card Ref", 'The external card reference must remain unchanged.');
+            Assert.AreEqual(TempConfiguredCard."Masked Card No.", ConfiguredCard."Masked Card No.", 'The configured card suffix must remain unchanged.');
+            Assert.AreEqual(TempConfiguredCard."Currency Code", ConfiguredCard."Currency Code", 'The configured currency must remain unchanged.');
+            Assert.AreEqual(TempConfiguredCard.Blocked, ConfiguredCard.Blocked, 'The configured blocked state must remain unchanged.');
+            Assert.AreEqual(TempConfiguredCard."Valid From", ConfiguredCard."Valid From", 'The configured validity start must remain unchanged.');
+            Assert.AreEqual(TempConfiguredCard."Valid To", ConfiguredCard."Valid To", 'The configured validity end must remain unchanged.');
+        until TempConfiguredCard.Next() = 0;
+    end;
+
+    [Test]
+    procedure DefaultSetupPreservesConfiguredCardReferencedByManualExpense()
+    var
+        ConfiguredCard: Record "EA Corp Card";
+        Expense: Record Expense;
+        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+    begin
+        Initialize();
+        InitializeDefaultBankAccount();
+        CreateCorpCardSetup.CreateDefaults();
+        ConfiguredCard.Get('CORPCARD-0001');
+        ConfiguredCard."Card Id" := 'CONFIGURED-EXPENSE-CARD';
+        ConfiguredCard."Masked Card No." := '****5588';
+        ConfiguredCard.Insert(true);
+        CorpCardTestLib.InsertExpense(Expense, ConfiguredCard);
+
+        CreateCorpCardSetup.CreateDefaults();
+
+        Assert.IsTrue(ConfiguredCard.Get(ConfiguredCard."Card Id"), 'Default setup must retain a configured card already selected on an expense.');
+        Expense.Get(Expense."No.");
+        Assert.AreEqual(ConfiguredCard."Card Id", Expense."Corporate Card Id", 'The manual expense must retain its selected card.');
+        Assert.AreEqual(ConfiguredCard."Expense User No.", Expense."Expense User No.", 'The card must retain its employee mapping.');
     end;
 
     [Test]
@@ -419,6 +495,87 @@ codeunit 148364 EACorpCardSelectionTests
 
         // [THEN] Release reports the feed currency mismatch.
         Assert.ExpectedError(Expense.FieldCaption("Currency Code"));
+    end;
+
+    [Test]
+    procedure CorporateCardDraftCannotBeDeletedBeforeJoiningReport()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+    begin
+        CreateCorporateCardDraft(Expense);
+        Expense.TestField("Expense Report No.", '');
+        CorpCardTrans.Get(Expense."Credit Card Feed No.");
+        CorpCardTrans.TestField(Status, CorpCardTrans.Status::DraftCreated);
+        Commit();
+
+        asserterror Expense.Delete(true);
+
+        Assert.ExpectedError(StrSubstNo(CannotDeleteFeedLinkedExpenseErr, Expense."No.", CorpCardTrans."Entry No."));
+        Expense.Get(Expense."No.");
+        Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        CorpCardTrans.Get(CorpCardTrans."Entry No.");
+        CorpCardTrans.TestField("Expense No.", Expense."No.");
+        CorpCardTrans.TestField(Status, CorpCardTrans.Status::DraftCreated);
+    end;
+
+    [Test]
+    procedure ClearingFeedLinkInDeleteBufferCannotDeleteCorporateCardDraft()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+    begin
+        CreateCorporateCardDraft(Expense);
+        CorpCardTrans.Get(Expense."Credit Card Feed No.");
+        Commit();
+        Expense."Credit Card Feed No." := 0;
+
+        asserterror Expense.Delete(true);
+
+        Assert.ExpectedError(StrSubstNo(CannotDeleteFeedLinkedExpenseErr, Expense."No.", CorpCardTrans."Entry No."));
+        Expense.Get(Expense."No.");
+        Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        CorpCardTrans.Get(CorpCardTrans."Entry No.");
+        CorpCardTrans.TestField("Expense No.", Expense."No.");
+        CorpCardTrans.TestField(Status, CorpCardTrans.Status::DraftCreated);
+    end;
+
+    [Test]
+    procedure MatchedManualExpenseCannotBeDeleted()
+    var
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+    begin
+        Initialize();
+        CreateLinkedManualExpense(Expense);
+        CorpCardTrans.Get(Expense."Credit Card Feed No.");
+        CorpCardTrans.TestField(Status, CorpCardTrans.Status::Matched);
+        Commit();
+
+        asserterror Expense.Delete(true);
+
+        Assert.ExpectedError(StrSubstNo(CannotDeleteFeedLinkedExpenseErr, Expense."No.", CorpCardTrans."Entry No."));
+        Expense.Get(Expense."No.");
+        Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        CorpCardTrans.Get(CorpCardTrans."Entry No.");
+        CorpCardTrans.TestField("Expense No.", Expense."No.");
+        CorpCardTrans.TestField(Status, CorpCardTrans.Status::Matched);
+    end;
+
+    [Test]
+    procedure UnlinkedManualCardExpenseCanStillBeDeleted()
+    var
+        CorpCard: Record "EA Corp Card";
+        Expense: Record Expense;
+    begin
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        Expense.TestField("Credit Card Feed No.", 0);
+
+        Expense.Delete(true);
+
+        Assert.IsFalse(Expense.Get(Expense."No."), 'An unlinked manual card expense must remain deletable.');
     end;
 
     [Test]
@@ -1655,6 +1812,7 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         ExpenseWriter.CreateDraftFromTrans(CorpCardTrans, ExpenseNo);
+        CorpCardTrans.Modify(true);
         Expense.Get(ExpenseNo);
     end;
 

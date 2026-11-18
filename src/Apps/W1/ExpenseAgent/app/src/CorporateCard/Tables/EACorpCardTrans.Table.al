@@ -309,7 +309,7 @@ table 7428 "EA Corp Card Trans"
         if RateDate = 0D then
             RateDate := WorkDate();
 
-        exit(CurrencyExchangeRate.ExchangeAmtFCYToLCY(RateDate, "Currency Code", Amount, CurrencyExchangeRate.ExchangeRate(RateDate, "Currency Code")));
+        exit(Round(CurrencyExchangeRate.ExchangeAmtFCYToLCY(RateDate, "Currency Code", Amount, CurrencyExchangeRate.ExchangeRate(RateDate, "Currency Code"))));
     end;
 
     internal procedure GetAmountInCurrency(TargetCurrencyCode: Code[10]): Decimal
@@ -318,7 +318,7 @@ table 7428 "EA Corp Card Trans"
             exit(Amount);
         if (TargetCurrencyCode = '') and ("Currency Code" <> '') then begin
             if "Amount (LCY)" <> 0 then
-                exit("Amount (LCY)");
+                exit(Round("Amount (LCY)"));
             exit(CalcAmountLCY());
         end;
 

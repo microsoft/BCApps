@@ -77,28 +77,32 @@ codeunit 148360 EACorpCardSettlementTests
         CorpCardSettlementLine: Record "EA Corp Card Settlement Line";
         CorpCardStatement: Record "EA Corp Card Statement";
         CorpCardTrans: Record "EA Corp Card Trans";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         PaymentBankAccount: Record "Bank Account";
         CorpCardSettlementMgt: Codeunit "EA Corp Card Settlement Mgt";
     begin
         Initialize();
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Amount Rounding Precision" := 0.01;
+        GeneralLedgerSetup.Modify(true);
         CreateBankAccount(CorpCardBankAccount, '');
         CreateBankAccount(PaymentBankAccount, '');
         CorpCardBankAccountNo := CorpCardBankAccount."No.";
         PaymentBankAccountNo := PaymentBankAccount."No.";
         ConfigureProviderAccounts();
-        CreateStatement(CorpCardStatement, 'STMT-LCY', 2000, CorpCardStatement.Status::Validated);
-        CreatePostedTransaction(CorpCardTrans, CorpCardStatement, 2000);
-        CorpCardTrans."Amount (LCY)" := 1800;
+        CreateStatement(CorpCardStatement, 'STMT-LCY', 19.63, CorpCardStatement.Status::Validated);
+        CreatePostedTransaction(CorpCardTrans, CorpCardStatement, 19.63);
+        CorpCardTrans."Amount (LCY)" := 14.7225;
         CorpCardTrans.Modify(true);
 
-        CorpCardTestLib.CreateSettlement(CorpCardSettlement, 'TEST', 'SETTLEMENT-LCY', '', 1800);
+        CorpCardTestLib.CreateSettlement(CorpCardSettlement, 'TEST', 'SETTLEMENT-LCY', '', 14.72);
         AddStatement(CorpCardSettlement, CorpCardStatement, 10000);
 
         CorpCardSettlementMgt.SetReadyToPost(CorpCardSettlement);
 
         CorpCardSettlementLine.Get(CorpCardSettlement."Settlement Entry No.", 10000);
         Assert.AreEqual('', CorpCardSettlementLine."Currency Code", 'The settlement statement line must use local currency.');
-        Assert.AreEqual(1800, CorpCardSettlementLine."Statement Amount", 'The settlement statement line must use the transaction LCY amount.');
+        Assert.AreEqual(14.72, CorpCardSettlementLine."Statement Amount", 'The settlement statement line must use the transaction LCY amount rounded to posting precision.');
     end;
 
     [Test]
@@ -148,6 +152,94 @@ codeunit 148360 EACorpCardSettlementTests
         asserterror AddStatement(CorpCardSettlement, CorpCardStatement, 20000);
 
         Assert.ExpectedError('already included in settlement');
+    end;
+
+    [Test]
+    procedure SavingPreviouslyValidatedLineRechecksOwnershipAndDeletionReleasesIt()
+    var
+        FirstSettlement: Record "EA Corp Card Settlement";
+        SecondSettlement: Record "EA Corp Card Settlement";
+        FirstLine: Record "EA Corp Card Settlement Line";
+        SecondLine: Record "EA Corp Card Settlement Line";
+        ActiveLine: Record "EA Corp Card Settlement Line";
+        CorpCardStatement: Record "EA Corp Card Statement";
+    begin
+        Initialize();
+        CreateSettlement(FirstSettlement, 2000);
+        CorpCardTestLib.CreateSettlement(SecondSettlement, 'TEST', 'SETTLEMENT-002', 'USD', 2000);
+        CreateStatement(CorpCardStatement, 'STMT-CLAIM', 2000, CorpCardStatement.Status::Validated);
+        FirstLine."Settlement Entry No." := FirstSettlement."Settlement Entry No.";
+        FirstLine."Line No." := 10000;
+        SecondLine."Settlement Entry No." := SecondSettlement."Settlement Entry No.";
+        SecondLine."Line No." := 10000;
+        // Both editors validate before either line is saved.
+        FirstLine.Validate("Statement Entry No.", CorpCardStatement."Statement Entry No.");
+        SecondLine.Validate("Statement Entry No.", CorpCardStatement."Statement Entry No.");
+        FirstLine.Insert(true);
+        Commit();
+
+        asserterror SecondLine.Insert(true);
+
+        Assert.ExpectedError('already included in settlement');
+        ActiveLine.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
+        ActiveLine.SetRange(Inactive, false);
+        Assert.AreEqual(1, ActiveLine.Count(), 'Only the first saved settlement may own the statement.');
+        FirstSettlement.Delete(true);
+        SecondLine.Insert(true);
+        Assert.AreEqual(1, ActiveLine.Count(), 'Deleting the open membership must allow exactly one replacement owner.');
+        ActiveLine.FindFirst();
+        Assert.AreEqual(SecondSettlement."Settlement Entry No.", ActiveLine."Settlement Entry No.", 'The replacement must become the active owner.');
+    end;
+
+    [Test]
+    procedure SavingPreviouslyValidatedReassignmentRechecksOwnership()
+    var
+        FirstSettlement: Record "EA Corp Card Settlement";
+        SecondSettlement: Record "EA Corp Card Settlement";
+        FirstStatement: Record "EA Corp Card Statement";
+        SecondStatement: Record "EA Corp Card Statement";
+        SettlementLine: Record "EA Corp Card Settlement Line";
+        ActiveLine: Record "EA Corp Card Settlement Line";
+    begin
+        Initialize();
+        CreateSettlement(FirstSettlement, 2000);
+        CorpCardTestLib.CreateSettlement(SecondSettlement, 'TEST', 'SETTLEMENT-002', 'USD', 2000);
+        CreateStatement(FirstStatement, 'STMT-ORIGINAL', 2000, FirstStatement.Status::Validated);
+        CreateStatement(SecondStatement, 'STMT-REASSIGN', 2000, SecondStatement.Status::Validated);
+        AddStatement(FirstSettlement, FirstStatement, 10000);
+        SettlementLine.Get(FirstSettlement."Settlement Entry No.", 10000);
+        SettlementLine.Validate("Statement Entry No.", SecondStatement."Statement Entry No.");
+        AddStatement(SecondSettlement, SecondStatement, 10000);
+        Commit();
+
+        asserterror SettlementLine.Modify(true);
+
+        Assert.ExpectedError('already included in settlement');
+        SettlementLine.Get(FirstSettlement."Settlement Entry No.", 10000);
+        Assert.AreEqual(FirstStatement."Statement Entry No.", SettlementLine."Statement Entry No.", 'Failed reassignment must preserve the original membership.');
+        ActiveLine.SetRange("Statement Entry No.", SecondStatement."Statement Entry No.");
+        ActiveLine.SetRange(Inactive, false);
+        Assert.AreEqual(1, ActiveLine.Count(), 'The target statement must retain only its existing owner.');
+    end;
+
+    [Test]
+    procedure SettlementLineCannotBeRenamedIntoAnotherSettlement()
+    var
+        FirstSettlement: Record "EA Corp Card Settlement";
+        SecondSettlement: Record "EA Corp Card Settlement";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        SettlementLine: Record "EA Corp Card Settlement Line";
+    begin
+        Initialize();
+        CreateSettlement(FirstSettlement, 2000);
+        CorpCardTestLib.CreateSettlement(SecondSettlement, 'TEST', 'SETTLEMENT-002', 'USD', 2000);
+        CreateStatement(CorpCardStatement, 'STMT-RENAME', 2000, CorpCardStatement.Status::Validated);
+        AddStatement(FirstSettlement, CorpCardStatement, 10000);
+        SettlementLine.Get(FirstSettlement."Settlement Entry No.", 10000);
+
+        asserterror SettlementLine.Rename(SecondSettlement."Settlement Entry No.", 10000);
+
+        Assert.ExpectedError('Settlement Entry No.');
     end;
 
     [Test]
@@ -239,6 +331,67 @@ codeunit 148360 EACorpCardSettlementTests
 
         Assert.ExpectedError('has changed since it was added');
         Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'Failed revalidation must not create bank account ledger entries.');
+    end;
+
+    [Test]
+    procedure PostSettlementRejectsStatementOwnedByAnotherSettlement()
+    var
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        OtherSettlement: Record "EA Corp Card Settlement";
+        SettlementLine: Record "EA Corp Card Settlement Line";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardSettlementMgt: Codeunit "EA Corp Card Settlement Mgt";
+        BankEntryCount: Integer;
+    begin
+        Initialize();
+        CreateSettlement(CorpCardSettlement, 3000);
+        CorpCardTestLib.CreateSettlement(OtherSettlement, 'TEST', 'SETTLEMENT-002', 'USD', 3000);
+        CreateStatement(CorpCardStatement, 'STMT-DUP-OWNER', 3000, CorpCardStatement.Status::Validated);
+        AddStatement(CorpCardSettlement, CorpCardStatement, 10000);
+        CorpCardSettlementMgt.SetReadyToPost(CorpCardSettlement);
+        // Simulate duplicate membership persisted before the ownership checks existed.
+        SettlementLine.Get(CorpCardSettlement."Settlement Entry No.", 10000);
+        SettlementLine."Settlement Entry No." := OtherSettlement."Settlement Entry No.";
+        SettlementLine.Insert(false);
+        Commit();
+        BankEntryCount := BankAccountLedgerEntry.Count();
+
+        asserterror CorpCardSettlementMgt.PostSettlement(CorpCardSettlement);
+
+        Assert.ExpectedError('already included in settlement');
+        Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'An ambiguous owner must prevent all settlement bank postings.');
+        CorpCardSettlement.Get(CorpCardSettlement."Settlement Entry No.");
+        Assert.AreEqual(CorpCardSettlement.Status::ReadyToPost, CorpCardSettlement.Status, 'A rejected settlement must remain unposted.');
+    end;
+
+    [Test]
+    procedure PostSettlementRejectsDuplicateStatementWithinTheSameSettlement()
+    var
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        SettlementLine: Record "EA Corp Card Settlement Line";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardSettlementMgt: Codeunit "EA Corp Card Settlement Mgt";
+        BankEntryCount: Integer;
+    begin
+        Initialize();
+        CreateSettlement(CorpCardSettlement, 3000);
+        CreateStatement(CorpCardStatement, 'STMT-DUP-LINE', 3000, CorpCardStatement.Status::Validated);
+        AddStatement(CorpCardSettlement, CorpCardStatement, 10000);
+        CorpCardSettlementMgt.SetReadyToPost(CorpCardSettlement);
+        SettlementLine.Get(CorpCardSettlement."Settlement Entry No.", 10000);
+        SettlementLine."Line No." := 20000;
+        SettlementLine.Insert(false);
+        CorpCardSettlement."Settlement Amount" := 6000;
+        CorpCardSettlement.Modify(false);
+        Commit();
+        BankEntryCount := BankAccountLedgerEntry.Count();
+
+        asserterror CorpCardSettlementMgt.PostSettlement(CorpCardSettlement);
+
+        Assert.ExpectedError('already included in settlement');
+        Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'A duplicated statement must not produce a doubled withdrawal.');
     end;
 
     [Test]

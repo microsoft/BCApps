@@ -821,9 +821,17 @@ table 6900 Expense
     var
         ExpenseRuleViolation: Record "Expense Rule Violation";
         ExpenseVATSpecification: Record "Expense VAT Specification";
+        StoredExpense: Record Expense;
     begin
         if Rec."Expense Report No." <> '' then
             Error(CannotDeleteWithExpenseReportErr, Rec."No.", Rec."Expense Report No.");
+
+        if not Rec.IsTemporary() then begin
+            StoredExpense.ReadIsolation := IsolationLevel::UpdLock;
+            StoredExpense.Get(Rec."No.");
+            if StoredExpense."Credit Card Feed No." <> 0 then
+                Error(CannotDeleteFeedLinkedExpenseErr, StoredExpense."No.", StoredExpense."Credit Card Feed No.");
+        end;
 
         DeleteExpenseParticipant();
         DeleteExpenseItemization();
@@ -850,6 +858,7 @@ table 6900 Expense
         CalledFromExpenseAgent: Boolean;
         EmptyGuid: Guid;
         CannotDeleteWithExpenseReportErr: Label 'You cannot delete expense %1 because it is associated with expense report %2.', Comment = '%1 = Expense No., %2 = Expense Report No.';
+        CannotDeleteFeedLinkedExpenseErr: Label 'You cannot delete expense %1 because it is linked to corporate card transaction %2.', Comment = '%1 = expense number, %2 = corporate card transaction entry number';
         CannotModifyWithParticipantsErr: Label 'You cannot modify %1 field of expense %2 because it has associated participants.', Comment = '%1 = Field Name, %2 = Expense No.';
         CannotModifyWithItemizationErr: Label 'You cannot modify %1 field of expense %2 because it has associated itemizations.', Comment = '%1 = Field Name, %2 = Expense No.';
         DeleteAssociatedRecordsQst: Label 'If you change %1, the existing %2 details will be deleted.\\Do you want to continue?', Comment = '%1 = Field Name, %2 = Expense Detail Required';
