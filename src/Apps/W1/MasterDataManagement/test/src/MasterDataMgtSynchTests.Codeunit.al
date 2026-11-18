@@ -1125,6 +1125,51 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
     end;
 
     [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler,SynchronizationScheduledNotificationHandler')]
+    procedure MatchBasedCouplingKeepsEarlierPriorityCriteriaWhenLookingOutsideLocalTableFilter()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        CreateNewIntegrationTableMapping: Record "Integration Table Mapping";
+        SourceCustomer: Record Customer;
+        UnrelatedLocalVendor: Record Vendor;
+        LocalVendorFilter: Record Vendor;
+        SourceCustomerFilter: Record Customer;
+        SharedCity: Text;
+    begin
+        // [FEATURE] [Match-Based Coupling]
+        // [SCENARIO] Matching criteria accumulate over the match priorities. The lookup outside the Local Table Filter must keep
+        //            the criteria of earlier priorities, so that a record matching only a later priority is not reported as an excluded match.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] A source customer, and an unrelated local vendor with a different name but the same city
+        SharedCity := CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(SourceCustomer.City));
+        CreateCustomerWithName(SourceCustomer, GetUniqueMatchName());
+        SourceCustomer.City := CopyStr(SharedCity, 1, MaxStrLen(SourceCustomer.City));
+        SourceCustomer.Modify();
+        CreateVendorWithName(UnrelatedLocalVendor, GetUniqueMatchName());
+        UnrelatedLocalVendor.City := CopyStr(SharedCity, 1, MaxStrLen(UnrelatedLocalVendor.City));
+        UnrelatedLocalVendor.Modify();
+
+        // [GIVEN] Matching on Name first and on City second, a Local Table Filter, and Create New in Case of No Match is selected
+        SourceCustomerFilter.SetRange("No.", SourceCustomer."No.");
+        LocalVendorFilter.SetRange(Blocked, LocalVendorFilter.Blocked::" ");
+        InsertMatchBasedCouplingMapping(
+            IntegrationTableMapping, Database::Vendor, UnrelatedLocalVendor.FieldNo(Name), Database::Customer, SourceCustomer.FieldNo(Name),
+            SourceCustomerFilter.GetView(), LocalVendorFilter.GetView(), true);
+        InsertMatchingFieldMapping(IntegrationTableMapping.Name, UnrelatedLocalVendor.FieldNo(City), SourceCustomer.FieldNo(City), 1);
+
+        // [WHEN] Match-based coupling runs
+        RunMatchBasedCoupling(IntegrationTableMapping);
+
+        // [THEN] The source customer is not coupled, no failure is logged, and a synchronization is scheduled to create it
+        VerifyNotCoupled(SourceCustomer.SystemId);
+        VerifyCouplingJobCounters(IntegrationTableMapping, 0, 0);
+        FilterCreateNewMappings(IntegrationTableMapping, CreateNewIntegrationTableMapping);
+        Assert.RecordCount(CreateNewIntegrationTableMapping, 1);
+    end;
+
+    [Test]
     [HandlerFunctions('SynchronizationEnabledMessageHandler')]
     procedure MatchBasedCouplingLogsErrorWhenNoMatchAndCreateNewIsNotSelected()
     var
@@ -1286,7 +1331,6 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
 
     local procedure InsertMatchBasedCouplingMapping(var IntegrationTableMapping: Record "Integration Table Mapping"; LocalTableId: Integer; LocalFieldNo: Integer; SourceTableId: Integer; SourceFieldNo: Integer; SourceTableFilter: Text; LocalTableFilter: Text; CreateNewInCaseOfNoMatch: Boolean)
     var
-        IntegrationFieldMapping: Record "Integration Field Mapping";
         SourceRecordRef: RecordRef;
     begin
         SourceRecordRef.Open(SourceTableId);
@@ -1305,13 +1349,21 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         IntegrationTableMapping.SetTableFilter(LocalTableFilter);
         IntegrationTableMapping.Insert();
 
+        InsertMatchingFieldMapping(IntegrationTableMapping.Name, LocalFieldNo, SourceFieldNo, 0);
+    end;
+
+    local procedure InsertMatchingFieldMapping(IntegrationTableMappingName: Code[20]; LocalFieldNo: Integer; SourceFieldNo: Integer; MatchPriority: Integer)
+    var
+        IntegrationFieldMapping: Record "Integration Field Mapping";
+    begin
         IntegrationFieldMapping.Init();
-        IntegrationFieldMapping."Integration Table Mapping Name" := IntegrationTableMapping.Name;
+        IntegrationFieldMapping."Integration Table Mapping Name" := IntegrationTableMappingName;
         IntegrationFieldMapping."Field No." := LocalFieldNo;
         IntegrationFieldMapping."Integration Table Field No." := SourceFieldNo;
         IntegrationFieldMapping.Direction := IntegrationFieldMapping.Direction::FromIntegrationTable;
         IntegrationFieldMapping.Status := IntegrationFieldMapping.Status::Enabled;
         IntegrationFieldMapping."Use For Match-Based Coupling" := true;
+        IntegrationFieldMapping."Match Priority" := MatchPriority;
         IntegrationFieldMapping.Insert(true);
     end;
 

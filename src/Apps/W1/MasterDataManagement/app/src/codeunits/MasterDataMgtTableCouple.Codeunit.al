@@ -156,7 +156,7 @@ codeunit 7235 "Master Data Mgt. Table Couple"
                                         begin
                                             // the Local Table Filter limits what is synchronized, it must not hide an existing counterpart and cause a duplicate to be created
                                             if HasLocalTableFilter and (MatchingFieldCount > 0) and not ExcludedMatchFound then
-                                                ExcludedMatchFound := FindMatchExcludedByLocalTableFilter(IntegrationTableMapping, IntegrationRecordRef, TempMatchingIntegrationFieldMapping, ExcludedLocalRecordRef);
+                                                ExcludedMatchFound := FindMatchExcludedByLocalTableFilter(IntegrationTableMapping, IntegrationRecordRef, TempMatchingIntegrationFieldMapping, MatchPriority, ExcludedLocalRecordRef);
                                             Session.LogMessage('0000J8E', GetNoMatchFoundTelemetryErrorMessage(IntegrationRecordRef, TempMatchingIntegrationFieldMapping), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory(), 'MatchExcludedByLocalTableFilter', Format(ExcludedMatchFound, 0, 9));
                                             if not UnmatchedIntegrationSystemIds.Contains(IntegrationRecordSystemId) then
                                                 UnmatchedIntegrationSystemIds.Add(IntegrationRecordSystemId);
@@ -300,14 +300,19 @@ codeunit 7235 "Master Data Mgt. Table Couple"
         exit(true);
     end;
 
-    local procedure FindMatchExcludedByLocalTableFilter(var IntegrationTableMapping: Record "Integration Table Mapping"; var IntegrationRecordRef: RecordRef; var TempMatchingIntegrationFieldMapping: Record "Integration Field Mapping" temporary; var ExcludedLocalRecordRef: RecordRef): Boolean
+    local procedure FindMatchExcludedByLocalTableFilter(var IntegrationTableMapping: Record "Integration Table Mapping"; var IntegrationRecordRef: RecordRef; var TempMatchingIntegrationFieldMapping: Record "Integration Field Mapping" temporary; MatchPriority: Integer; var ExcludedLocalRecordRef: RecordRef): Boolean
     var
         ExactMatchFields: Dictionary of [Integer, Integer];
+        MatchingFieldCount: Integer;
     begin
-        // repeat the lookup without the Local Table Filter, the caller has already established that no record matches within the filter
+        // repeat the lookup without the Local Table Filter, the caller has already established that no record matches within the filter.
+        // matching filters accumulate over the priorities, so the criteria of all priorities up to the current one apply
         Clear(ExcludedLocalRecordRef);
         ExcludedLocalRecordRef.Open(IntegrationTableMapping."Table ID");
-        if SetMatchingFilters(IntegrationRecordRef, ExcludedLocalRecordRef, TempMatchingIntegrationFieldMapping, ExactMatchFields) = 0 then
+        TempMatchingIntegrationFieldMapping.SetFilter("Match Priority", '..%1', MatchPriority);
+        MatchingFieldCount := SetMatchingFilters(IntegrationRecordRef, ExcludedLocalRecordRef, TempMatchingIntegrationFieldMapping, ExactMatchFields);
+        TempMatchingIntegrationFieldMapping.SetRange("Match Priority", MatchPriority);
+        if MatchingFieldCount = 0 then
             exit(false);
         if CountMatches(IntegrationRecordRef, ExcludedLocalRecordRef, ExactMatchFields) = 0 then
             exit(false);
