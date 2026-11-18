@@ -55,6 +55,51 @@ table 6969 "Expense Agent Env. Consumption"
             Caption = 'Is Feature Trial';
             DataClassification = SystemMetadata;
         }
+        field(8; "New Monetization"; Boolean)
+        {
+            Caption = 'New Monetization';
+            DataClassification = SystemMetadata;
+        }
+        field(9; "AI Consumption ID"; Guid)
+        {
+            Caption = 'AI Consumption ID';
+            DataClassification = SystemMetadata;
+        }
+        field(10; "AI Description"; Blob)
+        {
+            Caption = 'AI Description';
+            DataClassification = CustomerContent;
+        }
+        field(11; "AI Source Company"; Text[30])
+        {
+            Caption = 'AI Source Company';
+            DataClassification = SystemMetadata;
+        }
+        field(120; "AI Credits"; Decimal)
+        {
+            FieldClass = FlowField;
+            CalcFormula = lookup("AI Consumption Log Entry"."AI Credits" where(SystemId = field("AI Consumption ID"), "Reporting State" = const(Completed)));
+            Caption = 'AI Credits';
+            AutoFormatType = 0;
+        }
+        field(121; "AI Consumption DateTime"; DateTime)
+        {
+            FieldClass = FlowField;
+            CalcFormula = lookup("AI Consumption Log Entry"."Consumption DateTime" where(SystemId = field("AI Consumption ID")));
+            Caption = 'AI Consumption DateTime';
+        }
+        field(122; "AI Company Name"; Text[30])
+        {
+            FieldClass = FlowField;
+            CalcFormula = lookup("AI Consumption Log Entry"."Company Name" where(SystemId = field("AI Consumption ID")));
+            Caption = 'AI Company Name';
+        }
+        field(123; "AI Pricing Completed"; Boolean)
+        {
+            FieldClass = FlowField;
+            CalcFormula = exist("AI Consumption Log Entry" where(SystemId = field("AI Consumption ID"), "Reporting State" = const(Completed)));
+            Caption = 'AI Pricing Completed';
+        }
         field(101; "Consumption DateTime"; DateTime)
         {
             FieldClass = FlowField;
@@ -148,6 +193,14 @@ table 6969 "Expense Agent Env. Consumption"
         DestinationCompany: Text[30];
     begin
         Rec.CalcFields("Company Name");
+        if Rec."New Monetization" then begin
+            Rec.CalcFields("AI Company Name");
+            DestinationCompany := Rec."AI Company Name";
+            if DestinationCompany = '' then
+                DestinationCompany := Rec."AI Source Company";
+            if DestinationCompany = CompanyName() then
+                Clear(DestinationCompany);
+        end else
         if Rec."Company Name" <> CompanyName() then
             DestinationCompany := Rec."Company Name";
         case Rec."Consumption Source Type" of

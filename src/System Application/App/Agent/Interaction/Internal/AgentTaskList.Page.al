@@ -6,6 +6,7 @@
 namespace System.Agents;
 
 using System.Agents.Troubleshooting;
+using System.AI;
 
 page 4300 "Agent Task List"
 {
@@ -120,7 +121,8 @@ page 4300 "Agent Task List"
                 field(Credits; ConsumedCredits)
                 {
                     Caption = 'Copilot credits';
-                    ToolTip = 'Specifies the number of Copilot credits consumed by the agent task.';
+                    CaptionClass = '3,' + CreditCaption;
+                    ToolTip = 'Specifies the completed credits consumed by the agent task in the selected monetization generation.';
                     AutoFormatType = 0;
                     DecimalPlaces = 0 : 2;
 
@@ -130,6 +132,11 @@ page 4300 "Agent Task List"
                     begin
                         AgentConsumptionOverview.OpenAgentTaskConsumptionOverview(Rec.ID);
                     end;
+                }
+                field(ConsumptionPricingPending; PricingPending)
+                {
+                    Caption = 'Pricing pending';
+                    ToolTip = 'Specifies that V2 pricing is missing or incomplete. The displayed completed credits can increase later.';
                 }
             }
         }
@@ -331,8 +338,10 @@ page 4300 "Agent Task List"
     local procedure CalculateTaskConsumedCredits()
     var
         AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
+        Quota: Codeunit "Copilot Quota";
     begin
-        ConsumedCredits := AgentConsumptionOverview.GetCopilotCreditsConsumed(Rec.ID);
+        CreditCaption := Quota.GetCreditCaption();
+        AgentConsumptionOverview.GetTaskConsumption(Rec.ID, ConsumedCredits, PricingPending);
     end;
 
     local procedure UpdateControls()
@@ -366,6 +375,8 @@ page 4300 "Agent Task List"
         NumberOfStepsDone: Integer;
         TaskSelected: Boolean;
         ConsumedCredits: Decimal;
+        CreditCaption: Text;
+        PricingPending: Boolean;
         ShouldShowAllAgents: Boolean;
         AreYouSureThatYouWantToArchiveTheTasksQst: Label 'Are you sure that you want to archive the %1 selected tasks?', Comment = '%1 = number of selected tasks';
 }

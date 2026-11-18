@@ -6,6 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using System.AI;
+using System.TestLibraries.AI;
 using System.TestLibraries.Environment;
 
 codeunit 148299 "Expense Consumption Test"
@@ -20,6 +21,57 @@ codeunit 148299 "Expense Consumption Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
+
+    [Test]
+    procedure MeasuredConsumptionRequiresRealContextAndNonnegativeTokens()
+    var
+        Handler: Codeunit "Expense Consumption Handler";
+        Mock: Codeunit "Copilot Test Library";
+        Request: JsonObject;
+        Model: JsonObject;
+    begin
+        Mock.SetNewMonetizationEnabled(true);
+        BindSubscription(Mock);
+        Request := CreateValidConsumptionJson();
+        Request.Remove('v1');
+        Request.Add('correlationId', Format(CreateGuid()));
+        Request.Add('principalDisplayName', 'Test principal');
+        Assert.IsTrue(Handler.ValidateConsumptionJson(Request), 'V2 must accept measured model usage without legacy action counts.');
+        Model := Request.GetObject('model');
+        Model.Replace('inputTokenCount', -1);
+        Request.Replace('model', Model);
+        Assert.IsFalse(Handler.ValidateConsumptionJson(Request), 'Negative measured usage must be rejected.');
+        Model.Replace('inputTokenCount', 1200);
+        Request.Replace('model', Model);
+        Request.Remove('correlationId');
+        Assert.IsFalse(Handler.ValidateConsumptionJson(Request), 'An operation correlation ID must not be fabricated.');
+        UnbindSubscription(Mock);
+    end;
+
+    [Test]
+    procedure MeasuredConsumptionIdentityDependsOnBusinessOperation()
+    var
+        Handler: Codeunit "Expense Consumption Handler";
+        FirstId: Guid;
+    begin
+        FirstId := Handler.GetMeasuredConsumptionId('EXPENSE-SOURCE-PROCESS');
+        Assert.AreEqual(FirstId, Handler.GetMeasuredConsumptionId('EXPENSE-SOURCE-PROCESS'), 'Retry identity must not depend on a newly inserted companion record.');
+        Assert.AreNotEqual(FirstId, Handler.GetMeasuredConsumptionId('EXPENSE-SOURCE-POLICY'), 'Different business operations must retain separate identities.');
+    end;
+
+    [Test]
+    procedure LegacyExpenseWriterRejectsCountOnlyUsageInV2()
+    var
+        Handler: Codeunit "Expense Consumption Handler";
+        Mock: Codeunit "Copilot Test Library";
+    begin
+        Mock.SetNewMonetizationEnabled(true);
+        BindSubscription(Mock);
+        asserterror Handler.LogAIConsumption(1, Enum::"Copilot Quota Usage Type"::"Autonomous Action", 'Test', 'Test',
+            Enum::"Expense Agent Cons. Source"::Expense, CreateGuid(), 'PROCESS', '');
+        Assert.ExpectedError('New monetization requires measured AI usage and conversation context.');
+        UnbindSubscription(Mock);
+    end;
 
     [Test]
     procedure ValidConsumptionJsonIsAccepted()

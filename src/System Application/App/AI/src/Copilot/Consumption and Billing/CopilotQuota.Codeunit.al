@@ -17,6 +17,66 @@ codeunit 7785 "Copilot Quota"
         CopilotQuotaImpl: Codeunit "Copilot Quota Impl.";
 
     /// <summary>
+    /// Selects the new monetization integration. The prototype defaults to the legacy integration;
+    /// this selector does not activate monetization in the platform.
+    /// </summary>
+    procedure IsNewMonetizationEnabled() Enabled: Boolean
+    begin
+        OnIsNewMonetizationEnabled(Enabled);
+    end;
+
+    /// <summary>
+    /// Gets the display name of the selected monetization generation's credit unit.
+    /// </summary>
+    procedure GetCreditCaption(): Text
+    var
+        AICreditsLbl: Label 'AI credits';
+        CopilotCreditsLbl: Label 'Copilot credits';
+    begin
+        if IsNewMonetizationEnabled() then
+            exit(AICreditsLbl);
+        exit(CopilotCreditsLbl);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnIsNewMonetizationEnabled(var Enabled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Gets the V2 quota for the current consumption principal.
+    /// Unknown limits and usage are -1; an unavailable reset is 0DT.
+    /// </summary>
+    procedure GetAIConsumptionQuota(var Quota: Record "AI Consumption Quota" temporary)
+    var
+        PrincipalId: Guid;
+    begin
+        CopilotQuotaImpl.GetAIConsumptionQuota(PrincipalId, Quota);
+    end;
+
+    /// <summary>
+    /// Gets the V2 quota for an explicit Entra consumption principal.
+    /// </summary>
+    procedure GetAIConsumptionQuota(PrincipalId: Guid; var Quota: Record "AI Consumption Quota" temporary)
+    begin
+        CopilotQuotaImpl.GetAIConsumptionQuota(PrincipalId, Quota);
+    end;
+
+    /// <summary>
+    /// Records measured V2 usage. ConsumptionId must be stable across retries.
+    /// Returning does not acknowledge billing; credits are priced asynchronously.
+    /// Feature trials are not a substitute for billing exclusions.
+    /// </summary>
+    [Scope('OnPrem')]
+    procedure RecordAIConsumption(ConsumptionId: Guid; SessionId: Guid; InteractionId: Guid; CorrelationId: Guid; ResourceName: Text[256]; UsagePayload: Text; PrincipalId: Guid; PrincipalDisplayName: Text[256]; AgentTaskId: BigInteger; Metadata: Text[512]; Description: Text; IsFeatureTrial: Boolean)
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        CopilotQuotaImpl.RecordAIConsumption(ConsumptionId, SessionId, InteractionId, CorrelationId, ResourceName, CallerModuleInfo.Id(), UsagePayload, PrincipalId, PrincipalDisplayName, AgentTaskId, Metadata, Description, IsFeatureTrial);
+    end;
+
+    /// <summary>
     /// Try function to log usage of Copilot quota in the system. This function is only available for Microsoft Copilot features.
     /// </summary>
     /// <param name="CopilotCapability">The Copilot Capability to log usage for.</param>

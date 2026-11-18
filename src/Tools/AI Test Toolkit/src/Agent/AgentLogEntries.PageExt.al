@@ -16,6 +16,7 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
                 ApplicationArea = All;
                 AutoFormatType = 0;
                 Caption = 'Copilot Credits Consumed';
+                CaptionClass = '3,' + AgentTestContextImpl.GetCreditCaption();
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this log entry.';
                 Editable = false;
 
@@ -23,6 +24,13 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
                 begin
                     AgentTestContextImpl.OpenAgentConsumptionOverview(AgentTaskIDs);
                 end;
+            }
+            field(PricingPending; PricingPending)
+            {
+                ApplicationArea = All;
+                Caption = 'Pricing pending';
+                ToolTip = 'Specifies that the displayed completed AI credits can increase when pricing completes.';
+                Editable = false;
             }
             field("Agent Task IDs"; AgentTaskIDs)
             {
@@ -61,10 +69,12 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
     begin
         CopilotCredits := AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.");
         AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDsForLogEntry(Rec."Entry No.");
+        PricingPending := AgentTestContextImpl.IsPricingPendingForTasks(AgentTaskIDs);
     end;
 
     var
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         CopilotCredits: Decimal;
         AgentTaskIDs: Text;
+        PricingPending: Boolean;
 }

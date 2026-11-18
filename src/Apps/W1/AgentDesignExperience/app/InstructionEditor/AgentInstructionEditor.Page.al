@@ -286,10 +286,9 @@ page 4363 "Agent Instruction Editor"
 
                 trigger OnAction()
                 var
-                    UserAIConsumptionData: Record "User AI Consumption Data";
+                    AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
                 begin
-                    UserAIConsumptionData.SetRange("User ID", Rec."User Security ID");
-                    Page.Run(Page::"Agent Consumption Overview", UserAIConsumptionData);
+                    AgentConsumptionOverview.OpenAgentConsumptionOverview(Rec."User Security ID");
                 end;
             }
             group(InstructionsGroupActions)

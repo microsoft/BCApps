@@ -74,6 +74,11 @@ table 149050 "Agent Task Log"
             Caption = 'Test Log Entry ID';
             ToolTip = 'Specifies the AIT Log Entry ID that this agent task is associated with.';
         }
+        field(5002; "New Monetization"; Boolean)
+        {
+            Caption = 'New Monetization';
+            ToolTip = 'Specifies that task consumption is accounted in AI credits rather than legacy Copilot credits.';
+        }
     }
 
     keys

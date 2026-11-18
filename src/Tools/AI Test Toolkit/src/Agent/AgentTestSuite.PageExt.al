@@ -57,12 +57,20 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
                     AutoFormatType = 0;
                     Editable = false;
                     Caption = 'Copilot Credits Consumed';
+                    CaptionClass = '3,' + AgentTestContextImpl.GetCreditCaption();
                     ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
 
                     trigger OnDrillDown()
                     begin
                         AgentTestContextImpl.OpenAgentConsumptionOverview(AgentTaskIDs);
                     end;
+                }
+                field(PricingPending; PricingPending)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Pricing pending';
+                    ToolTip = 'Specifies that AI pricing for one or more linked tasks is incomplete.';
+                    Editable = false;
                 }
                 field("Agent Task Count"; AgentTaskCount)
                 {
@@ -127,6 +135,7 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         CopilotCredits := AgentTestContextImpl.GetCopilotCredits(Rec.Code, Rec.Version, '', 0);
         AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDs(Rec.Code, Rec.Version, '', 0);
         AgentTaskCount := AgentTestContextImpl.GetAgentTaskCount(AgentTaskIDs);
+        PricingPending := AgentTestContextImpl.IsPricingPendingForTasks(AgentTaskIDs);
     end;
 
     local procedure UpdateAgentUserName()
@@ -187,5 +196,6 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         AgentTaskCount: Integer;
         AgentUserName: Code[50];
         IsAgentTestType: Boolean;
+        PricingPending: Boolean;
         AgentWithNameNotFoundErr: Label 'An agent with the name %1 was not found.', Comment = '%1 - The name of the agent';
 }

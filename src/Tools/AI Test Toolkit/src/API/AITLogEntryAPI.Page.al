@@ -64,6 +64,16 @@ page 149038 "AIT Log Entry API"
                     Caption = 'Copilot Credits Consumed';
                     Editable = false;
                 }
+                field(aiCredits; AICredits)
+                {
+                    Caption = 'Completed AI Credits';
+                    Editable = false;
+                }
+                field(aiPricingPending; AIPricingPending)
+                {
+                    Caption = 'AI Pricing Pending';
+                    Editable = false;
+                }
                 field(agentTaskIDs; AgentTaskIDs)
                 {
                     Caption = 'Agent Tasks Executed';
@@ -147,7 +157,7 @@ page 149038 "AIT Log Entry API"
         ErrorCallStackText := Rec.GetErrorCallStack();
         SuiteDescription := Rec.GetSuiteDescription();
         TestMethodLineDescription := Rec.GetTestMethodLineDescription();
-        CopilotCredits := AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.");
+        AgentTestContextImpl.GetCreditTotalsForLogEntry(Rec."Entry No.", CopilotCredits, AICredits, AIPricingPending);
         AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDsForLogEntry(Rec."Entry No.");
     end;
 
@@ -159,5 +169,7 @@ page 149038 "AIT Log Entry API"
         SuiteDescription: Text[250];
         TestMethodLineDescription: Text[250];
         CopilotCredits: Decimal;
+        AICredits: Decimal;
+        AIPricingPending: Boolean;
         AgentTaskIDs: Text;
 }
