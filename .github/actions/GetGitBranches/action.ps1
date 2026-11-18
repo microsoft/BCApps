@@ -24,8 +24,6 @@ else {
 }
 
 Write-Host "Git branches: $($branches -join ', ')"
-$branches = $branches | Where-Object { Test-IsBranchInSupport -BranchName $_ -Repository $ENV:GITHUB_REPOSITORY }
-Write-Host "Git branches in support: $($branches -join ', ')"
 
 $branchesJson = ConvertTo-Json $branches -Compress
 Add-Content -Path $env:GITHUB_OUTPUT -Value "branchesJson=$branchesJson"
