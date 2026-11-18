@@ -35,14 +35,14 @@ codeunit 148090 "Compensations CZC"
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Compensations CZC");
 
         SalesReceivablesSetup.Get();
-        SalesReceivablesSetup.Validate("Invoice Nos.", LibraryERM.CreateNoSeriesCode());
-        SalesReceivablesSetup.Validate("Credit Memo Nos.", LibraryERM.CreateNoSeriesCode());
+        SalesReceivablesSetup."Invoice Nos." := LibraryERM.CreateNoSeriesCode();
+        SalesReceivablesSetup."Credit Memo Nos." := LibraryERM.CreateNoSeriesCode();
         SalesReceivablesSetup.Modify(true);
         LibrarySales.SetPostedNoSeriesInSetup();
 
         PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup.Validate("Invoice Nos.", LibraryERM.CreateNoSeriesCode());
-        PurchasesPayablesSetup.Validate("Credit Memo Nos.", LibraryERM.CreateNoSeriesCode());
+        PurchasesPayablesSetup."Invoice Nos." := LibraryERM.CreateNoSeriesCode();
+        PurchasesPayablesSetup."Credit Memo Nos." := LibraryERM.CreateNoSeriesCode();
         PurchasesPayablesSetup.Modify(true);
         LibraryPurchase.SetPostedNoSeriesInSetup();
 
