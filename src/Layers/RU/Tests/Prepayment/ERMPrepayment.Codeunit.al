@@ -47,6 +47,7 @@
         CannotChangePrepmtAccErr: Label 'You cannot change %2 while %1 is pending prepayment.', Comment = '%2- field caption, %1 - "sales order 1001".';
         CannotChangeSetupOnPrepmtAccErr: Label 'You cannot change %2 on account %3 while %1 is pending prepayment.', Comment = '%2 - field caption, %3 - account number, %1 - "sales order 1001".';
         SalesOrderNotCreatedWorksheetLineMsg: Label 'The Sales Order entry not created in Cash Flow Worksheet.';
+        PrepaymentCreditMemoLineNotFound: Label 'Prepayment credit memo line not found.';
         CustomerNo: Code[20];
 
     [Test]
@@ -4696,6 +4697,7 @@
         SalesLine: Record "Sales Line";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         PrepmtAccountNo: Code[20];
+        PrepmtLineFound: Boolean;
     begin
         // [SCENARIO 657966] Cancelling the final invoice reverses the prepayment deduction to the prepayment account posted on the invoice
         Initialize();
@@ -4742,9 +4744,13 @@
         SalesCrMemoHeader.SetRange("Sell-to Customer No.", CustomerNo);
         SalesCrMemoHeader.FindFirst();
         SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
-        SalesCrMemoLine.SetRange(Type, SalesCrMemoLine.Type::"G/L Account");
-        SalesCrMemoLine.SetRange("Prepayment Line", true);
-        SalesCrMemoLine.FindFirst();
+        SalesCrMemoLine.FindSet();
+        repeat
+            if SalesCrMemoLine."Prepayment Line" then
+                PrepmtLineFound := true;
+        until (SalesCrMemoLine.Next() = 0) or PrepmtLineFound;
+        Assert.IsTrue(PrepmtLineFound, PrepaymentCreditMemoLineNotFound);
+        SalesCrMemoLine.TestField(Type, SalesCrMemoLine.Type::"G/L Account");
         SalesCrMemoLine.TestField("No.", PrepmtAccountNo);
 
         // [THEN] The credit memo posts nothing to "X"
