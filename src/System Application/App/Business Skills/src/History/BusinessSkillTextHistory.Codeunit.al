@@ -24,16 +24,6 @@ codeunit 4166 "Business Skill Text History"
     InherentPermissions = X;
 
     /// <summary>
-    /// Writes the new text to the skill BLOB and records a version when the text changed.
-    /// </summary>
-    procedure SetSkillText(SkillId: BigInteger; NewText: SecretText)
-    var
-        BusinessSkillImpl: Codeunit "Business Skill Impl.";
-    begin
-        BusinessSkillImpl.SetSkillText(SkillId, NewText);
-    end;
-
-    /// <summary>
     /// Restores an earlier version as the current skill text by re-inserting it as a new version.
     /// </summary>
     procedure RestoreVersion(EntryNo: Integer)
@@ -153,16 +143,6 @@ codeunit 4166 "Business Skill Text History"
         TempBlob.CreateInStream(InStr, BusinessSkillImpl.GetEncoding());
         FileName := StrSubstNo(FileNameLbl, TextVersion."Skill ID", TextVersion."Entry No.");
         DownloadFromStream(InStr, DownloadDialogLbl, '', AllFilesFilterLbl, FileName);
-    end;
-
-    /// <summary>
-    /// HTML-encodes text for safe injection into the WebPageViewer add-in.
-    /// </summary>
-    procedure EncodeContent(Content: SecretText): SecretText
-    var
-        BusinessSkillImpl: Codeunit "Business Skill Impl.";
-    begin
-        exit(BusinessSkillImpl.EncodeContent(Content));
     end;
 
     local procedure GetLatestVersion(SkillId: BigInteger; var Latest: Record "Business Skill Text Version"): Boolean

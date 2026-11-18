@@ -9,7 +9,7 @@ using System;
 using System.Agents;
 
 /// <summary>
-/// Governs skill creation, content updates, lifecycle and discovery.
+/// Governs skill creation, content updates and lifecycle.
 /// Preserves text history and optimistic concurrency while sharing eligibility rules across native and API callers.
 /// </summary>
 /// <remarks>
@@ -385,77 +385,6 @@ codeunit 4163 "Business Skill Impl."
         exit(BusinessSkill.Status = BusinessSkill.Status::Active);
     end;
 
-    procedure GetAllActiveSkills(): SecretText
-    begin
-        exit(SearchSkills(''));
-    end;
-
-    procedure GetSkillById(SkillId: BigInteger): SecretText
-    var
-        BusinessSkill: Record "Business Skill";
-    begin
-        BusinessSkill.Get(SkillId);
-        if not IsSkillAvailable(BusinessSkill) then
-            Error(SkillUnavailableErr, SkillId);
-        exit(SkillToJsonObject(BusinessSkill));
-    end;
-
-    /// <summary>
-    /// Resolves an exact owner/code identity and applies the same active-skill eligibility as numeric lookup.
-    /// </summary>
-    procedure GetSkillByCode(SkillCode: Code[100]; AppId: Guid): SecretText
-    var
-        Skill: Record "Business Skill";
-    begin
-        Skill.SetRange("Owning App ID", AppId);
-        Skill.SetRange("Skill ID", SkillCode);
-        if not Skill.FindFirst() then
-            Error(SkillNotFoundErr);
-        exit(GetSkillById(Skill.ID));
-    end;
-
-    [NonDebuggable]
-    procedure SearchSkills(SearchText: Text): SecretText
-    var
-        BusinessSkill: Record "Business Skill";
-        Result: JsonArray;
-        SkillJson: JsonObject;
-        SerializedResult: Text;
-    begin
-        SetAvailableSkillsFilter(BusinessSkill);
-        if BusinessSkill.FindSet() then
-            repeat
-                if IsSkillAvailable(BusinessSkill) then
-                    if SkillMatchesSearch(BusinessSkill, LowerCase(SearchText)) then begin
-                        SkillJson.ReadFrom(SkillToJsonObject(BusinessSkill).Unwrap());
-                        Result.Add(SkillJson);
-                    end;
-            until BusinessSkill.Next() = 0;
-        Result.WriteTo(SerializedResult);
-        exit(SerializedResult);
-    end;
-
-    procedure SkillToJsonObject(var Skill: Record "Business Skill"): SecretText
-    var
-        Result: JsonObject;
-        SecretResult: SecretText;
-    begin
-        Result.Add('id', Skill.ID);
-        Result.Add('systemId', Skill.SystemId);
-        Result.Add('title', Skill.Title);
-        Result.Add('description', Skill.Description);
-        Result.Add('skillText', '');
-        case Skill.Status of
-            Skill.Status::Active:
-                Result.Add('status', 'Active');
-            Skill.Status::Inactive:
-                Result.Add('status', 'Inactive');
-        end;
-        Result.Add('lastModifiedDateTime', Skill.SystemModifiedAt);
-        Result.WriteWithSecretsTo('skillText', GetSkillText(Skill), SecretResult);
-        exit(SecretResult);
-    end;
-
     local procedure ValidateContent(var Skill: Record "Business Skill"; LoadFromDatabase: Boolean; ErrorMessage: Text)
     var
         Value: SecretText;
@@ -471,11 +400,6 @@ codeunit 4163 "Business Skill Impl."
         // The editor holds an earlier snapshot; fetching a record to save must not bypass stale-edit detection.
         if (Skill.SystemId <> ExpectedSystemId) or (Skill.SystemRowVersion <> ExpectedRevision) then
             Error(SkillChangedErr);
-    end;
-
-    local procedure SkillMatchesSearch(var Skill: Record "Business Skill"; SearchText: Text): Boolean
-    begin
-        exit((SearchText = '') or LowerCase(Skill.Title).Contains(SearchText) or LowerCase(Skill.Description).Contains(SearchText));
     end;
 
     /// <summary>
@@ -606,8 +530,6 @@ codeunit 4163 "Business Skill Impl."
         ActivationContentRequiredErr: Label 'A skill needs a title and skill text before it can be activated.';
         ActiveContentRequiredErr: Label 'An active skill needs a title and skill text.';
         SkillChangedErr: Label 'This skill was changed by another user. Refresh it before saving your changes.';
-        SkillUnavailableErr: Label 'Skill %1 is not active.', Comment = '%1 = skill ID';
-        SkillNotFoundErr: Label 'The skill was not found for the specified app and code.';
         ReadOnlyErr: Label 'The instructions and version of this skill are read-only. Create an editable copy to change them.';
         ManualReadOnlyErr: Label 'A manually owned skill cannot be read-only.';
         ManualVersionOnlyErr: Label 'Only manually owned skills can change the version directly.';

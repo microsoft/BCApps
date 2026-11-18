@@ -215,7 +215,7 @@ codeunit 130051 "Business Skill Builder Test"
     /// App-owned skills default an omitted creation version to v1.0.
     /// </summary>
     [Test]
-    procedure CreateOrUpdateDefaultsMissingVersion()
+    procedure CreateDefaultsMissingVersion()
     var
         Skill: Record "Business Skill";
         Builder: Codeunit "Business Skill Builder";
@@ -224,7 +224,7 @@ codeunit 130051 "Business Skill Builder Test"
         Initialize();
         Builder.Initialize('TEST', 'Title', SecretStrSubstNo('Instructions'));
         // [WHEN] Creating the skill.
-        Skill.Get(Builder.CreateOrUpdate());
+        Skill.Get(Builder.Create());
 
         // [THEN] Creation supplies the default without changing app ownership.
         Assert.AreEqual('v1.0', Skill.Version, 'An omitted version must default on creation.');
@@ -240,12 +240,13 @@ codeunit 130051 "Business Skill Builder Test"
         Skill: Record "Business Skill";
         TextVersion: Record "Business Skill Text Version";
         Builder: Codeunit "Business Skill Builder";
+        BuilderImpl: Codeunit "Business Skill Builder Impl.";
         SkillId: BigInteger;
         SystemId: Guid;
     begin
         // [GIVEN] A new manual skill with no caller-supplied code.
         Initialize();
-        SkillId := Builder.Initialize('', 'Manual skill', SecretStrSubstNo('First')).SetManual(true).CreateOrUpdate();
+        SkillId := Builder.Initialize('', 'Manual skill', SecretStrSubstNo('First')).SetManual(true).Create();
         Skill.Get(SkillId);
         SystemId := Skill.SystemId;
         AssertManualSkillIdentifier(Skill);
@@ -256,12 +257,14 @@ codeunit 130051 "Business Skill Builder Test"
         Assert.AreEqual(Skill.Status::Inactive, Skill.Status, 'Manual creation must default to inactive.');
 
         // [WHEN] Updating the saved manual code, then selecting the same row by numeric ID.
-        Clear(Builder);
-        Assert.AreEqual(SkillId, Builder.Initialize(Skill."Skill ID", 'Updated skill', SecretStrSubstNo('Second'))
-            .SetManual(true).CreateOrUpdate(), 'A saved manual code must resolve the existing row.');
-        Clear(Builder);
-        Assert.AreEqual(SkillId, Builder.Initialize('', 'Updated skill', SecretStrSubstNo('Second'))
-            .SetManual(true).SetActive(true).CreateOrUpdate(SkillId), 'An ID selector must resolve the same row.');
+        BuilderImpl.Initialize(Skill."Owning App ID", Skill."Skill ID", 'Updated skill', SecretStrSubstNo('Second'));
+        BuilderImpl.SetManual(true);
+        Assert.AreEqual(SkillId, BuilderImpl.CreateOrUpdate(), 'A saved manual code must resolve the existing row.');
+        Clear(BuilderImpl);
+        BuilderImpl.Initialize(Skill."Owning App ID", '', 'Updated skill', SecretStrSubstNo('Second'));
+        BuilderImpl.SetManual(true);
+        BuilderImpl.SetActive(true);
+        Assert.AreEqual(SkillId, BuilderImpl.CreateOrUpdate(SkillId), 'An ID selector must resolve the same row.');
 
         // [THEN] Identity is stable and only changed content adds history and advances the manual version.
         Skill.Get(SkillId);
@@ -280,18 +283,20 @@ codeunit 130051 "Business Skill Builder Test"
     procedure MissingManualTargetsDoNotCreateSkills()
     var
         Skill: Record "Business Skill";
-        Builder: Codeunit "Business Skill Builder";
+        BuilderImpl: Codeunit "Business Skill Builder Impl.";
     begin
         // [GIVEN] An empty catalog and a builder targeting a saved manual code.
         Initialize();
-        Builder.Initialize('MISSING', 'Manual skill', SecretStrSubstNo('Instructions')).SetManual(true);
+        BuilderImpl.Initialize(Skill."Owning App ID", 'MISSING', 'Manual skill', SecretStrSubstNo('Instructions'));
+        BuilderImpl.SetManual(true);
 
         // [WHEN] Looking up nonexistent saved identities.
-        asserterror Builder.CreateOrUpdate();
+        asserterror BuilderImpl.CreateOrUpdate();
         Assert.ExpectedError('manual skill was not found');
-        Clear(Builder);
-        Builder.Initialize('', 'Manual skill', SecretStrSubstNo('Instructions')).SetManual(true);
-        asserterror Builder.CreateOrUpdate(0);
+        Clear(BuilderImpl);
+        BuilderImpl.Initialize(Skill."Owning App ID", '', 'Manual skill', SecretStrSubstNo('Instructions'));
+        BuilderImpl.SetManual(true);
+        asserterror BuilderImpl.CreateOrUpdate(0);
         Assert.ExpectedError('does not exist');
 
         // [THEN] Neither selector allocates a different identity.
@@ -331,6 +336,7 @@ codeunit 130051 "Business Skill Builder Test"
     var
         Skill: Record "Business Skill";
         Builder: Codeunit "Business Skill Builder";
+        BuilderImpl: Codeunit "Business Skill Builder Impl.";
         SkillId: BigInteger;
         OriginalRevision: BigInteger;
     begin
@@ -342,8 +348,8 @@ codeunit 130051 "Business Skill Builder Test"
         OriginalRevision := Skill.SystemRowVersion;
 
         // [WHEN] Reapplying only the required values.
-        Clear(Builder);
-        Builder.Initialize('OPTIONAL', 'Title', SecretStrSubstNo('Instructions')).CreateOrUpdate();
+        BuilderImpl.Initialize(Skill."Owning App ID", 'OPTIONAL', 'Title', SecretStrSubstNo('Instructions'));
+        BuilderImpl.CreateOrUpdate();
 
         // [THEN] Omitted defaults do not change the stored record or its revision.
         Skill.Get(SkillId);
@@ -352,13 +358,17 @@ codeunit 130051 "Business Skill Builder Test"
         Assert.AreEqual('release-1', Skill.Version, 'Omitted version must be preserved.');
         Assert.IsFalse(Skill."Read-Only", 'Omitted lock must be preserved.');
         Assert.AreEqual(Skill.Status::Active, Skill.Status, 'Omitted status must be preserved.');
-        Clear(Builder);
-        Builder.Initialize('OPTIONAL', 'Title', SecretStrSubstNo('Instructions')).SetDescription('').SetActive(false).CreateOrUpdate();
+        Clear(BuilderImpl);
+        BuilderImpl.Initialize(Skill."Owning App ID", 'OPTIONAL', 'Title', SecretStrSubstNo('Instructions'));
+        BuilderImpl.SetDescription('');
+        BuilderImpl.SetActive(false);
+        BuilderImpl.CreateOrUpdate();
         Skill.Get(SkillId);
         Assert.AreEqual('', Skill.Description, 'An explicit empty description must be applied.');
         Assert.AreEqual(Skill.Status::Inactive, Skill.Status, 'An explicit false status must be applied.');
-        Clear(Builder);
-        Builder.Initialize('OPTIONAL', 'New title', SecretStrSubstNo('Instructions')).CreateOrUpdate();
+        Clear(BuilderImpl);
+        BuilderImpl.Initialize(Skill."Owning App ID", 'OPTIONAL', 'New title', SecretStrSubstNo('Instructions'));
+        BuilderImpl.CreateOrUpdate();
         Skill.Get(SkillId);
         Assert.AreEqual(Skill.Status::Inactive, Skill.Status, 'An omitted status must not reactivate an existing skill.');
     end;
@@ -371,23 +381,26 @@ codeunit 130051 "Business Skill Builder Test"
     var
         Skill: Record "Business Skill";
         Builder: Codeunit "Business Skill Builder";
+        BuilderImpl: Codeunit "Business Skill Builder Impl.";
         SkillId: BigInteger;
     begin
         // [GIVEN] An unlocked app-owned skill and a locked app-owned skill.
         Initialize();
         SkillId := Builder.Initialize('VERSION-ONLY', 'Title', SecretStrSubstNo('Instructions')).SetContentLocked(false).Create();
+        Skill.Get(SkillId);
         Clear(Builder);
         Builder.Initialize('LOCK-ONLY', 'Title', SecretStrSubstNo('Instructions')).Create();
         Commit();
 
         // [WHEN] Changing only the version or trying to unlock a locked skill.
-        Clear(Builder);
-        Builder.Initialize('VERSION-ONLY', 'Title', SecretStrSubstNo('Instructions')).SetContentVersion('v2.0');
-        asserterror Builder.CreateOrUpdate();
+        BuilderImpl.Initialize(Skill."Owning App ID", 'VERSION-ONLY', 'Title', SecretStrSubstNo('Instructions'));
+        BuilderImpl.SetContentVersion('v2.0');
+        asserterror BuilderImpl.CreateOrUpdate();
         Assert.ExpectedError('can change only together with its text');
-        Clear(Builder);
-        Builder.Initialize('LOCK-ONLY', 'Title', SecretStrSubstNo('Instructions')).SetContentLocked(false);
-        asserterror Builder.CreateOrUpdate();
+        Clear(BuilderImpl);
+        BuilderImpl.Initialize(Skill."Owning App ID", 'LOCK-ONLY', 'Title', SecretStrSubstNo('Instructions'));
+        BuilderImpl.SetContentLocked(false);
+        asserterror BuilderImpl.CreateOrUpdate();
         Assert.ExpectedError('read-only');
 
         // [THEN] Neither invalid request changes saved content or version.
@@ -405,17 +418,20 @@ codeunit 130051 "Business Skill Builder Test"
         Skill: Record "Business Skill";
         TextVersion: Record "Business Skill Text Version";
         Builder: Codeunit "Business Skill Builder";
+        BuilderImpl: Codeunit "Business Skill Builder Impl.";
         SkillId: BigInteger;
     begin
         // [GIVEN] An app-owned editable skill with an explicit release version.
         Initialize();
         SkillId := Builder.Initialize('UPSERT', 'Original title', SecretStrSubstNo('Original instructions'))
             .SetContentLocked(false).SetContentVersion('release-1').Create();
-        Clear(Builder);
+        Skill.Get(SkillId);
 
         // [WHEN] Metadata changes without supplying a version.
-        Assert.AreEqual(SkillId, Builder.Initialize('UPSERT', 'Updated title', SecretStrSubstNo('Original instructions'))
-            .SetDescription('Updated description').SetContentLocked(false).CreateOrUpdate(), 'An upsert must retain the existing identity.');
+        BuilderImpl.Initialize(Skill."Owning App ID", 'UPSERT', 'Updated title', SecretStrSubstNo('Original instructions'));
+        BuilderImpl.SetDescription('Updated description');
+        BuilderImpl.SetContentLocked(false);
+        Assert.AreEqual(SkillId, BuilderImpl.CreateOrUpdate(), 'An upsert must retain the existing identity.');
 
         // [THEN] Metadata changes without resetting the version or appending history.
         Skill.Get(SkillId);
@@ -425,11 +441,12 @@ codeunit 130051 "Business Skill Builder Test"
         TextVersion.SetRange("Skill ID", SkillId);
         Assert.AreEqual(1, TextVersion.Count(), 'Metadata must not append instruction history.');
         Commit();
-        Clear(Builder);
+        Clear(BuilderImpl);
 
         // [WHEN] Instructions change without a version.
-        Builder.Initialize('UPSERT', 'Updated title', SecretStrSubstNo('Changed instructions')).SetContentLocked(false);
-        asserterror Builder.CreateOrUpdate();
+        BuilderImpl.Initialize(Skill."Owning App ID", 'UPSERT', 'Updated title', SecretStrSubstNo('Changed instructions'));
+        BuilderImpl.SetContentLocked(false);
+        asserterror BuilderImpl.CreateOrUpdate();
 
         // [THEN] The intended validation fails without changing instructions or history.
         Assert.ExpectedError('Set a new version of the skill before changing its instructions.');

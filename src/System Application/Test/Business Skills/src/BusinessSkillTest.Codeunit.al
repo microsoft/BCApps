@@ -166,74 +166,29 @@ codeunit 130050 "Business Skill Test"
     end;
 
     /// <summary>
-    /// Verifies activating and deactivating a skill controls its inclusion in discovery.
+    /// Verifies activating and deactivating a skill controls its availability without changing history.
     /// </summary>
     [Test]
-    [NonDebuggable]
-    procedure LifecycleActiveInactiveControlsDiscovery()
+    procedure LifecycleActiveInactiveControlsAvailability()
     var
         Skill: Record "Business Skill";
-        Results: JsonArray;
         SkillId: BigInteger;
     begin
         // [GIVEN] A created skill.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Lifecycle', SecretStrSubstNo('Body'));
-        Results.ReadFrom(BusinessSkillImpl.GetAllActiveSkills().Unwrap());
-        Assert.AreEqual(1, Results.Count(), 'New active applicable skills must be discoverable.');
+        Skill.Get(SkillId);
+        Assert.IsTrue(BusinessSkillImpl.IsSkillAvailable(Skill), 'New active skills must be available.');
         // [WHEN] Its active status changes through lifecycle operations.
         BusinessSkillImpl.DeactivateSkill(SkillId);
         Skill.Get(SkillId);
-        // [THEN] Discovery includes it only while active.
+        // [THEN] The skill is available only while active.
         Assert.AreEqual(Skill.Status::Inactive, Skill.Status, 'Deactivation must set Inactive.');
-        Results.ReadFrom(BusinessSkillImpl.GetAllActiveSkills().Unwrap());
-        Assert.AreEqual(0, Results.Count(), 'Inactive skills must not be discoverable.');
+        Assert.IsFalse(BusinessSkillImpl.IsSkillAvailable(Skill), 'Inactive skills must not be available.');
         BusinessSkillImpl.ActivateSkill(SkillId);
         Skill.Get(SkillId);
         Assert.AreEqual(Skill.Status::Active, Skill.Status, 'Inactive content can be activated again.');
         AssertVersionCount(SkillId, 1);
-    end;
-
-    /// <summary>
-    /// Code-based discovery uses the exact app identity, including empty ownership for manual skills, and excludes inactive skills.
-    /// </summary>
-    [Test]
-    [NonDebuggable]
-    procedure DiscoveryUsesSkillCodeAndAppId()
-    var
-        OwnedSkill: Record "Business Skill";
-        OtherSkill: Record "Business Skill";
-        ManualSkill: Record "Business Skill";
-        Builder: Codeunit "Business Skill Builder";
-        BusinessSkill: Codeunit "Business Skill";
-        Result: JsonObject;
-        Token: JsonToken;
-        EmptyAppId: Guid;
-    begin
-        // [GIVEN] Two apps use the same code, and a manual skill has its generated code.
-        Initialize();
-        OwnedSkill.Get(Builder.Initialize('SHARED-CODE', 'Owned skill', SecretStrSubstNo('Owned content')).SetActive(true).Create());
-        OtherSkill.Get(LibraryBusinessSkill.CreateAppOwnedSkill('SHARED-CODE', 'Other app', SecretStrSubstNo('Other content')));
-        LibraryBusinessSkill.ActivateSkill(OtherSkill.ID);
-        ManualSkill.Get(LibraryBusinessSkill.CreateSkill('Manual skill', SecretStrSubstNo('Manual content')));
-
-        // [WHEN] Discovery selects each code and app pair.
-        Result.ReadFrom(BusinessSkill.GetSkill(OwnedSkill."Skill ID", OwnedSkill."Owning App ID").Unwrap());
-        Result.Get('id', Token);
-        // [THEN] Each pair selects only its own active record.
-        Assert.AreEqual(OwnedSkill.ID, Token.AsValue().AsBigInteger(), 'Discovery must select the specified app, not the first matching code.');
-        Result.ReadFrom(BusinessSkill.GetSkill(OtherSkill."Skill ID", OtherSkill."Owning App ID").Unwrap());
-        Result.Get('id', Token);
-        Assert.AreEqual(OtherSkill.ID, Token.AsValue().AsBigInteger(), 'Identical codes in different apps must remain distinct.');
-        Result.ReadFrom(BusinessSkill.GetSkill(ManualSkill."Skill ID", EmptyAppId).Unwrap());
-        Result.Get('id', Token);
-        Assert.AreEqual(ManualSkill.ID, Token.AsValue().AsBigInteger(), 'Empty ownership must select a saved manual skill.');
-        LibraryBusinessSkill.InactivateSkill(OwnedSkill.ID);
-        Commit();
-        asserterror BusinessSkill.GetSkill(OwnedSkill."Skill ID", OwnedSkill."Owning App ID");
-        Assert.ExpectedError('is not active');
-        asserterror BusinessSkill.GetSkill(ManualSkill."Skill ID", OtherSkill."Owning App ID");
-        Assert.ExpectedError('not found');
     end;
 
     /// <summary>
@@ -350,96 +305,6 @@ codeunit 130050 "Business Skill Test"
         Assert.IsTrue(Skill.IsEmpty(), 'A standard status filter must not widen the mandatory Active restriction.');
         Skill.SetRange(Status);
         Assert.AreEqual(1, Skill.Count(), 'Clearing the standard filter must retain the discovery restrictions.');
-    end;
-
-    /// <summary>
-    /// Verifies skill JSON exposes canonical identity, text, and status.
-    /// </summary>
-    [Test]
-    [NonDebuggable]
-    procedure JsonUsesCanonicalIdentity()
-    var
-        Result: JsonObject;
-        Token: JsonToken;
-        SkillId: BigInteger;
-    begin
-        // [GIVEN] An active canonical skill.
-        Initialize();
-        SkillId := LibraryBusinessSkill.CreateSkill('Specific Skill', GetMultilineText());
-        BusinessSkillImpl.ActivateSkill(SkillId);
-        // [WHEN] The skill is serialized to JSON.
-        Result.ReadFrom(BusinessSkillImpl.GetSkillById(SkillId).Unwrap());
-        Result.Get('id', Token);
-        // [THEN] Canonical identity is represented.
-        Assert.AreEqual(SkillId, Token.AsValue().AsBigInteger(), 'JSON must retain canonical identity.');
-        Result.Get('title', Token);
-        Assert.AreEqual('Specific Skill', Token.AsValue().AsText(), 'JSON must preserve the title.');
-        Result.Get('skillText', Token);
-        AssertContentEquals(GetMultilineText(), Token.AsValue().AsText(), 'JSON must preserve full multiline text.');
-        Result.Get('status', Token);
-        Assert.AreEqual('Active', Token.AsValue().AsText(), 'JSON must expose the retained lifecycle vocabulary.');
-        Assert.IsFalse(Result.Contains('companyNames'), 'Skills are tenant-wide, so JSON has no company selections.');
-        AssertDiscoveryTimestamp(Result);
-        Assert.IsTrue(Result.Contains('systemId'), 'JSON must expose the system identity.');
-    end;
-
-    /// <summary>
-    /// Verifies search matches skill titles and descriptions but not instruction text.
-    /// </summary>
-    [Test]
-    [NonDebuggable]
-    procedure SearchMatchesOnlyTitleAndDescription()
-    var
-        Skill: Record "Business Skill";
-        SkillJson: JsonObject;
-        Token: JsonToken;
-        Results: JsonArray;
-        SkillId: BigInteger;
-    begin
-        // [GIVEN] A skill with distinct title, description, and body text.
-        Initialize();
-        SkillId := LibraryBusinessSkill.CreateSkill('Payment policy', GetMultilineText());
-        Skill.Get(SkillId);
-        Skill.Description := 'Invoice approval guidance';
-        BusinessSkillImpl.UpdateSkillRecord(Skill.ID, Skill, GetMultilineText());
-        BusinessSkillImpl.ActivateSkill(SkillId);
-        // [WHEN] Skill search queries each kind of text.
-        Results.ReadFrom(BusinessSkillImpl.SearchSkills('payment').Unwrap());
-        // [THEN] Only title and skill description participate in matching.
-        Assert.AreEqual(1, Results.Count(), 'Search must match titles without case sensitivity.');
-        Results.ReadFrom(BusinessSkillImpl.SearchSkills('APPROVAL').Unwrap());
-        Assert.AreEqual(1, Results.Count(), 'Descriptions are matched without case sensitivity.');
-        SkillJson := Results.GetObject(0);
-        AssertDiscoveryTimestamp(SkillJson);
-        SkillJson.Get('description', Token);
-        Assert.AreEqual('Invoice approval guidance', Token.AsValue().AsText(), 'Discovery exposes the persisted description.');
-        SkillJson.Get('skillText', Token);
-        AssertContentEquals(GetMultilineText(), Token.AsValue().AsText(), 'Selected skills still return complete instructions.');
-        Results.ReadFrom(BusinessSkillImpl.SearchSkills('Second line').Unwrap());
-        Assert.AreEqual(0, Results.Count(), 'Body-only matches must not select skills.');
-    end;
-
-    /// <summary>
-    /// Verifies search treats filter metacharacters as literal title or description text.
-    /// </summary>
-    [Test]
-    [NonDebuggable]
-    procedure SearchTreatsFilterMetacharactersAsLiteralText()
-    var
-        Results: JsonArray;
-        SkillId: BigInteger;
-    begin
-        // [GIVEN] Skill metadata containing search-filter metacharacters.
-        Initialize();
-        SkillId := LibraryBusinessSkill.CreateSkill('Literal A|B filter', 'Use * as a literal', SecretStrSubstNo('Instructions are not searched'));
-        BusinessSkillImpl.ActivateSkill(SkillId);
-        BusinessSkillImpl.ActivateSkill(LibraryBusinessSkill.CreateSkill('Other', SecretStrSubstNo('Unrelated')));
-        // [WHEN] Those characters are searched as text.
-        Results.ReadFrom(BusinessSkillImpl.SearchSkills('A|B').Unwrap());
-        // [THEN] Matching is literal rather than interpreted as a filter.
-        Assert.AreEqual(1, Results.Count(), 'Filter metacharacters must not broaden title search.');
-        Results.ReadFrom(BusinessSkillImpl.SearchSkills('*').Unwrap());
-        Assert.AreEqual(1, Results.Count(), 'Asterisk must match literal content, not every skill.');
     end;
 
     /// <summary>
@@ -652,15 +517,12 @@ codeunit 130050 "Business Skill Test"
         Original: Record "Business Skill";
         Skill: Record "Business Skill";
         SkillId: BigInteger;
-        Results: JsonArray;
     begin
         // [GIVEN] A skill with instruction history and a searchable description.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Existing title', SecretStrSubstNo('Body'));
         Skill.Get(SkillId);
         Assert.AreEqual('', Skill.Description, 'Description is optional for existing authoring paths.');
-        Results.ReadFrom(BusinessSkillImpl.SearchSkills('Existing title').Unwrap());
-        Assert.AreEqual(1, Results.Count(), 'Skills without descriptions remain discoverable by title.');
         Original := Skill;
         Skill.Description := CopyStr(PadStr('Description ', 2048, 'x'), 1, 2048);
         // [WHEN] Its description changes and an older record is edited.
@@ -911,7 +773,7 @@ codeunit 130050 "Business Skill Test"
         Version.SetRange("Skill ID", SkillId);
         Version.FindFirst();
         FirstEntryNo := Version."Entry No.";
-        History.SetSkillText(SkillId, SecretStrSubstNo('Second'));
+        BusinessSkillImpl.SetSkillText(SkillId, SecretStrSubstNo('Second'));
         // [WHEN] An earlier version is restored.
         History.RestoreVersion(FirstEntryNo);
         Skill.Get(SkillId);
@@ -1103,7 +965,7 @@ codeunit 130050 "Business Skill Test"
         // [GIVEN] HTML-special characters in instruction text.
         Value := '<script>alert("x" & ''y'')</script>';
         // [WHEN] Skill history encodes the value.
-        Encoded := History.EncodeContent(Value);
+        Encoded := BusinessSkillImpl.EncodeContent(Value);
         // [THEN] HTML-special characters are escaped rather than interpreted as markup.
         AssertContentEquals(SecretStrSubstNo('&lt;script&gt;alert(&quot;x&quot; &amp; &#39;y&#39;)&lt;/script&gt;'), Encoded, 'Skill text must be safe to render as HTML text.');
     end;
@@ -1412,20 +1274,6 @@ codeunit 130050 "Business Skill Test"
         Assert.ExpectedError('reference');
         Assert.IsTrue(Skill.IsEmpty(), 'Invalid portable references must roll back earlier skills.');
         Assert.IsTrue(Version.IsEmpty(), 'Invalid portable references must roll back earlier history.');
-    end;
-
-    [NonDebuggable]
-    local procedure AssertDiscoveryTimestamp(SkillJson: JsonObject)
-    var
-        Skill: Record "Business Skill";
-        Token: JsonToken;
-    begin
-        SkillJson.Get('id', Token);
-        Skill.Get(Token.AsValue().AsBigInteger());
-        Assert.AreNotEqual(0DT, Skill.SystemModifiedAt, 'The canonical skill must have a persisted modification timestamp.');
-        Assert.IsTrue(SkillJson.Get('lastModifiedDateTime', Token), 'Discovery JSON must expose lastModifiedDateTime.');
-        Assert.AreEqual(Skill.SystemModifiedAt, Token.AsValue().AsDateTime(), 'Discovery must return the canonical modification timestamp, not temporary-buffer metadata.');
-        Assert.IsFalse(SkillJson.Contains('revision'), 'Consumer-facing discovery JSON must not expose the internal row version.');
     end;
 
     /// <summary>

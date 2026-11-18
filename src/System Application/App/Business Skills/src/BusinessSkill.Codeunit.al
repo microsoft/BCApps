@@ -6,52 +6,13 @@
 namespace System.AI.BusinessSkills;
 
 /// <summary>
-/// Provides business skill lifecycle operations, revision-aware updates, and active-skill discovery.
-/// Discovery uses literal title/description matching and retrieves canonical skill details, including instruction text.
+/// Provides business skill lifecycle operations, protected content reads, and revision-aware updates.
 /// </summary>
-codeunit 4160 "Business Skill" implements IBusinessSkillDiscovery
+codeunit 4160 "Business Skill"
 {
     Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
-
-    /// <summary>
-    /// Returns a serialized JSON array containing active skills matching the query.
-    /// </summary>
-    /// <param name="Query">Literal, case-insensitive text matched against active skill titles and descriptions only.</param>
-    /// <returns>A serialized JSON array of matching skills.</returns>
-    procedure GetRelevantSkills(Query: Text): SecretText
-    var
-        BusinessSkillImpl: Codeunit "Business Skill Impl.";
-    begin
-        exit(BusinessSkillImpl.SearchSkills(Query));
-    end;
-
-    /// <summary>
-    /// Returns an active skill by its internal numeric identifier.
-    /// </summary>
-    /// <param name="SkillId">Internal numeric identifier of the skill.</param>
-    /// <returns>A protected serialized JSON object containing the skill.</returns>
-    /// <remarks>An error is raised when the skill does not exist or is inactive.</remarks>
-    procedure GetSkill(SkillId: BigInteger): SecretText
-    var
-        BusinessSkillImpl: Codeunit "Business Skill Impl.";
-    begin
-        exit(BusinessSkillImpl.GetSkillById(SkillId));
-    end;
-
-    /// <summary>
-    /// Returns an active skill identified by its code and owning app's manifest ID. Use an empty app ID for a saved manual skill.
-    /// </summary>
-    /// <param name="SkillCode">The saved skill code.</param>
-    /// <param name="AppId">The owning app's manifest ID, or an empty GUID for a manual skill.</param>
-    /// <returns>A protected serialized JSON object containing the skill.</returns>
-    procedure GetSkill(SkillCode: Code[100]; AppId: Guid): SecretText
-    var
-        BusinessSkillImpl: Codeunit "Business Skill Impl.";
-    begin
-        exit(BusinessSkillImpl.GetSkillByCode(SkillCode, AppId));
-    end;
 
     /// <summary>
     /// Loads and returns the stored instructions of the skill.
