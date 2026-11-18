@@ -14,7 +14,6 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.HumanResources.Employee;
 using Microsoft.TestLibraries.Foundation.NoSeries;
-using System;
 using System.Automation;
 using System.Security.AccessControl;
 using System.Security.User;
@@ -6241,27 +6240,8 @@ codeunit 148305 "Expense Test"
         TempBlob: Codeunit "Temp Blob";
     begin
         DocumentAttachment.Init();
-        CreateTempBLOBWithImageOfType(TempBlob, 'jpeg');
+        LibraryExpense.CreateTempBLOBWithImageOfType(TempBlob, Enum::"Image Format"::Jpeg);
         DocumentAttachment.SaveAttachment(RecRef, FileName, TempBlob);
-    end;
-
-    local procedure CreateTempBLOBWithImageOfType(var TempBlob: Codeunit "Temp Blob"; ImageType: Text)
-    var
-        ImageFormat: DotNet ImageFormat;
-        Bitmap: DotNet Bitmap;
-        InStr: InStream;
-    begin
-        TempBlob.CreateInStream(InStr);
-        Bitmap := Bitmap.Bitmap(1, 1);
-        case ImageType of
-            'png':
-                Bitmap.Save(InStr, ImageFormat.Png);
-            'jpeg':
-                Bitmap.Save(InStr, ImageFormat.Jpeg);
-            else
-                Bitmap.Save(InStr, ImageFormat.Bmp);
-        end;
-        Bitmap.Dispose();
     end;
 
     local procedure CheckIfDocAttachExist(TableNo: Integer; DocNo: Code[20]; LineNo: Integer): Boolean;
