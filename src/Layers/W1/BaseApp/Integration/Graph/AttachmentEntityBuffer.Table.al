@@ -63,7 +63,7 @@ table 5509 "Attachment Entity Buffer"
             Caption = 'Byte Size';
             DataClassification = SystemMetadata;
         }
-        field(8003; "G/L Entry No."; Integer)
+        field(8003; "G/L Entry No."; BigInteger)
         {
             Caption = 'G/L Entry No.';
             DataClassification = SystemMetadata;
