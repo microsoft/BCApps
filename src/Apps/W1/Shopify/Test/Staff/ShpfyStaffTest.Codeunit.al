@@ -8,7 +8,9 @@ namespace Microsoft.Integration.Shopify.Test;
 using Microsoft.CRM.Team;
 using Microsoft.Integration.Shopify;
 using Microsoft.Sales.Document;
+using System.TestLibraries.Upgrade;
 using System.TestLibraries.Utilities;
+using System.Upgrade;
 
 codeunit 139551 "Shpfy Staff Test"
 {
@@ -21,8 +23,12 @@ codeunit 139551 "Shpfy Staff Test"
         Shop: Record "Shpfy Shop";
         Any: Codeunit Any;
         InitializeTest: Codeunit "Shpfy Initialize Test";
+        ShopSettingsResponses: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         ResponseResourceUrl: Text;
+        ShopSettingsRequestCount: Integer;
+        AdvancedPlanResponseTok: Label '{"data":{"shop":{"plan":{"publicDisplayName":"Advanced","shopifyPlus":false},"weightUnit":"KILOGRAMS"}}}', Locked = true;
+        StaffAccessDeniedResponseTok: Label '{"errors":[{"message":"Access denied for staffMembers field.","extensions":{"code":"ACCESS_DENIED"},"path":["staffMembers"]}],"data":null}', Locked = true;
 
     trigger OnRun()
     begin
@@ -38,25 +44,201 @@ codeunit 139551 "Shpfy Staff Test"
         // [Given] Shop exists
         Initialize();
 
-        // [When] Set store as not having staff members enabled and check action is not visible
-        Shop."Advanced Shopify Plan" := false;
+        // [When] An Advanced store does not have staff access
+        Shop."Advanced Shopify Plan" := true;
+        Shop."Can Access Staff Members" := false;
         Shop.Modify(false);
         ShpfyShopCard.OpenView();
         ShpfyShopCard.GoToRecord(Shop);
 
         // [Then] The action should not be visible
-        LibraryAssert.IsFalse(ShpfyShopCard.StaffMembers.Visible(), 'Staff Members action should not be visible for unsupported plan');
+        LibraryAssert.IsFalse(ShpfyShopCard.StaffMembers.Visible(), 'Staff Members action should not be visible without staff access.');
         ShpfyShopCard.Close();
 
-        // [When] Set store as having staff members enabled and check action is visible
-        Shop."Advanced Shopify Plan" := true;
+        // [When] Staff access is available
+        Shop."Can Access Staff Members" := true;
         Shop.Modify(false);
         ShpfyShopCard.OpenView();
         ShpfyShopCard.GoToRecord(Shop);
 
         // [Then] The action should be visible
-        LibraryAssert.IsTrue(ShpfyShopCard.StaffMembers.Visible(), 'Staff Members action should be visible for supported plan');
+        LibraryAssert.IsTrue(ShpfyShopCard.StaffMembers.Visible(), 'Staff Members action should be visible with staff access.');
         ShpfyShopCard.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('ShopSettingsHttpHandler')]
+    procedure TestAdvancedPlanWithoutStaffAccessPreservesCatalogs()
+    var
+        LocalShop: Record "Shpfy Shop";
+        StaffMemberAPI: Codeunit "Shpfy Staff Member API";
+        LibraryAssert: Codeunit "Library Assert";
+    begin
+        Initialize();
+        LocalShop := Shop;
+        LocalShop."Can Access Staff Members" := true;
+        LocalShop."Auto Create Catalog" := true;
+        ShopSettingsResponses.Enqueue(AdvancedPlanResponseTok);
+        ShopSettingsResponses.Enqueue(StaffAccessDeniedResponseTok);
+
+        LocalShop.GetShopSettings();
+
+        LibraryAssert.IsTrue(LocalShop."Advanced Shopify Plan", 'Staff denial must not change the reported plan.');
+        LibraryAssert.IsTrue(LocalShop."Auto Create Catalog", 'Staff denial must not disable catalog creation.');
+        LibraryAssert.IsFalse(LocalShop."Can Access Staff Members", 'An Advanced plan without staff access must not request staff data.');
+        LocalShop.Modify(false);
+        StaffMemberAPI.GetStaffMembers(LocalShop.Code);
+        LibraryAssert.AreEqual(2, ShopSettingsRequestCount, 'Staff synchronization must not request staff data after the access check fails.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ShopSettingsHttpHandler')]
+    procedure TestStaffAccessGrantedWithNoStaffMembers()
+    var
+        LocalShop: Record "Shpfy Shop";
+        LibraryAssert: Codeunit "Library Assert";
+    begin
+        Initialize();
+        LocalShop := Shop;
+        LocalShop."Can Access Staff Members" := false;
+        ShopSettingsResponses.Enqueue(AdvancedPlanResponseTok);
+        ShopSettingsResponses.Enqueue('{"data":{"staffMembers":{"nodes":[]}}}');
+
+        LocalShop.GetShopSettings();
+
+        LibraryAssert.IsTrue(LocalShop."Can Access Staff Members", 'A successful empty staff query still grants staff access.');
+        LibraryAssert.AreEqual(2, ShopSettingsRequestCount, 'An eligible plan must issue a staff-access check.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ShopSettingsHttpHandler')]
+    procedure TestBasicPlanClearsStaffAccessWithoutProbe()
+    var
+        LocalShop: Record "Shpfy Shop";
+        LibraryAssert: Codeunit "Library Assert";
+    begin
+        Initialize();
+        LocalShop := Shop;
+        LocalShop."Can Access Staff Members" := true;
+        ShopSettingsResponses.Enqueue('{"data":{"shop":{"plan":{"publicDisplayName":"Basic","shopifyPlus":false},"weightUnit":"KILOGRAMS"}}}');
+
+        LocalShop.GetShopSettings();
+
+        LibraryAssert.IsFalse(LocalShop."Can Access Staff Members", 'A Basic plan must clear cached staff access.');
+        LibraryAssert.AreEqual(1, ShopSettingsRequestCount, 'An ineligible plan must not issue a staff-access check.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ShopSettingsHttpHandler')]
+    procedure TestStaffAccessCheckDoesNotIgnoreOtherErrors()
+    var
+        LocalShop: Record "Shpfy Shop";
+        LibraryAssert: Codeunit "Library Assert";
+    begin
+        Initialize();
+        LocalShop := Shop;
+        ShopSettingsResponses.Enqueue(AdvancedPlanResponseTok);
+        ShopSettingsResponses.Enqueue('{"errors":[{"message":"Access denied.","extensions":{"code":"ACCESS_DENIED"},"path":["staffMembers"]},{"message":"Unexpected failure.","extensions":{"code":"INTERNAL_SERVER_ERROR"}}],"data":null}');
+
+        asserterror LocalShop.GetShopSettings();
+
+        LibraryAssert.ExpectedError('INTERNAL_SERVER_ERROR');
+    end;
+
+    [Test]
+    [HandlerFunctions('ShopSettingsHttpHandler')]
+    procedure TestStaffAccessCheckDoesNotIgnoreOtherDenials()
+    var
+        LocalShop: Record "Shpfy Shop";
+        LibraryAssert: Codeunit "Library Assert";
+    begin
+        Initialize();
+        LocalShop := Shop;
+        ShopSettingsResponses.Enqueue(AdvancedPlanResponseTok);
+        ShopSettingsResponses.Enqueue('{"errors":[{"message":"Access denied for another field.","extensions":{"code":"ACCESS_DENIED"},"path":["anotherField"]}],"data":null}');
+
+        asserterror LocalShop.GetShopSettings();
+
+        LibraryAssert.ExpectedError('anotherField');
+    end;
+
+    [Test]
+    [HandlerFunctions('ShopSettingsHttpHandler')]
+    procedure TestNormalGraphQLCallStillRaisesStaffAccessDenied()
+    var
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        LibraryAssert: Codeunit "Library Assert";
+    begin
+        Initialize();
+        CommunicationMgt.SetShop(Shop);
+        ShopSettingsResponses.Enqueue(StaffAccessDeniedResponseTok);
+
+        asserterror CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Base_CheckStaffMemberAccess);
+
+        LibraryAssert.ExpectedError('ACCESS_DENIED');
+    end;
+
+    [Test]
+    [HandlerFunctions('ShopSettingsHttpHandler')]
+    procedure TestStaffAccessCheckRejectsMissingData()
+    var
+        LocalShop: Record "Shpfy Shop";
+        LibraryAssert: Codeunit "Library Assert";
+    begin
+        Initialize();
+        LocalShop := Shop;
+        ShopSettingsResponses.Enqueue(AdvancedPlanResponseTok);
+        ShopSettingsResponses.Enqueue('{"data":{}}');
+
+        asserterror LocalShop.GetShopSettings();
+
+        LibraryAssert.ExpectedError('The response from Shopify did not contain the expected staffMembers data.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestStaffAccessUpgradeCopiesPlanFlag()
+    var
+        AdvancedShop: Record "Shpfy Shop";
+        BasicShop: Record "Shpfy Shop";
+        UpgradeMgt: Codeunit "Shpfy Upgrade Mgt.";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        LibraryAssert: Codeunit "Library Assert";
+    begin
+        Any.SetDefaultSeed();
+        DeleteStaffMemberAccessUpgradeTag();
+        AdvancedShop := CreateShopForStaffAccessUpgrade(true, false);
+        BasicShop := CreateShopForStaffAccessUpgrade(false, true);
+
+        UpgradeMgt.StaffMemberAccessUpgrade();
+
+        AdvancedShop.Get(AdvancedShop.Code);
+        BasicShop.Get(BasicShop.Code);
+        LibraryAssert.IsTrue(AdvancedShop."Can Access Staff Members", 'Upgrade must preserve staff eligibility from the old plan flag.');
+        LibraryAssert.IsFalse(BasicShop."Can Access Staff Members", 'Upgrade must not grant staff access to an ineligible plan.');
+        LibraryAssert.IsTrue(UpgradeTag.HasUpgradeTag(UpgradeMgt.GetStaffMemberAccessUpgradeTag()), 'The migration must record its upgrade tag.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestStaffAccessUpgradeDoesNotOverwriteProbeResult()
+    var
+        LocalShop: Record "Shpfy Shop";
+        UpgradeMgt: Codeunit "Shpfy Upgrade Mgt.";
+        LibraryAssert: Codeunit "Library Assert";
+    begin
+        Any.SetDefaultSeed();
+        DeleteStaffMemberAccessUpgradeTag();
+        LocalShop := CreateShopForStaffAccessUpgrade(true, false);
+        UpgradeMgt.StaffMemberAccessUpgrade();
+        LocalShop.Get(LocalShop.Code);
+        LocalShop."Can Access Staff Members" := false;
+        LocalShop.Modify(false);
+
+        UpgradeMgt.StaffMemberAccessUpgrade();
+
+        LocalShop.Get(LocalShop.Code);
+        LibraryAssert.IsFalse(LocalShop."Can Access Staff Members", 'A completed migration must not overwrite a later access-check result.');
     end;
 
     [Test]
@@ -265,6 +447,25 @@ codeunit 139551 "Shpfy Staff Test"
         LibraryAssert.AreEqual(OrderHeader."Salesperson Code", SalesHeader."Salesperson Code", 'ShpfyOrderHeader."Salesperson Code" = SalesHeader."Salesperson Code"');
     end;
 
+    local procedure CreateShopForStaffAccessUpgrade(AdvancedPlan: Boolean; StaffAccess: Boolean) LocalShop: Record "Shpfy Shop"
+    begin
+        LocalShop.Init();
+        LocalShop.Code := CopyStr(Any.AlphabeticText(MaxStrLen(LocalShop.Code)), 1, MaxStrLen(LocalShop.Code));
+        LocalShop."Advanced Shopify Plan" := AdvancedPlan;
+        LocalShop."Can Access Staff Members" := StaffAccess;
+        LocalShop.Insert(false);
+    end;
+
+    local procedure DeleteStaffMemberAccessUpgradeTag()
+    var
+        UpgradeMgt: Codeunit "Shpfy Upgrade Mgt.";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeMgt.GetStaffMemberAccessUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgradeMgt.GetStaffMemberAccessUpgradeTag(), CopyStr(CompanyName(), 1, 30));
+    end;
+
     local procedure Initialize()
     var
         ShpfyStaffMember: Record "Shpfy Staff Member";
@@ -275,6 +476,8 @@ codeunit 139551 "Shpfy Staff Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Shpfy Staff Test");
         ClearLastError();
         ResponseResourceUrl := 'Staff/StaffMembers.txt';
+        ShopSettingsResponses.Clear();
+        ShopSettingsRequestCount := 0;
 
         ShpfyStaffMember.DeleteAll(false);
 
@@ -293,6 +496,7 @@ codeunit 139551 "Shpfy Staff Test"
         // Creating Shopify Shop
         Shop := InitializeTest.CreateShop();
         Shop."Advanced Shopify Plan" := true;
+        Shop."Can Access Staff Members" := true;
         Shop.Modify();
 
         //Register Shopify Access Token
@@ -300,6 +504,17 @@ codeunit 139551 "Shpfy Staff Test"
         InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Shpfy Staff Test");
+    end;
+
+    [HttpClientHandler]
+    internal procedure ShopSettingsHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        ShopSettingsRequestCount += 1;
+        Response.Content.WriteFrom(ShopSettingsResponses.DequeueText());
+        exit(false);
     end;
 
     [HttpClientHandler]

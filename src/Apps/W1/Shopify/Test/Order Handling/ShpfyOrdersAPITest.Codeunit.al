@@ -1647,15 +1647,13 @@ codeunit 139608 "Shpfy Orders API Test"
     var
         LocalShop: Record "Shpfy Shop";
     begin
-        // [SCENARIO] Bug 635878: when the merchant downgrades from a Plus/Advanced plan to a
-        // standard plan, Shop.GetShopSettings() must clear the cached "Advanced Shopify Plan"
-        // flag based on the live response from Shopify so the order GraphQL query stops
-        // requesting the staffMember field (which would otherwise fail with ACCESS_DENIED).
+        // [SCENARIO] A plan downgrade clears cached plan and staff-access flags.
         Initialize();
 
         // [GIVEN] Shop has a stale "Advanced Shopify Plan" flag set to true
         LocalShop.Get(Shop.Code);
         LocalShop."Advanced Shopify Plan" := true;
+        LocalShop."Can Access Staff Members" := true;
         LocalShop.Modify(false);
 
         // [GIVEN] The HTTP handler is primed to return a downgraded-plan response
@@ -1666,6 +1664,7 @@ codeunit 139608 "Shpfy Orders API Test"
 
         // [THEN] The Advanced Shopify Plan flag is cleared based on the live response
         LibraryAssert.IsFalse(LocalShop."Advanced Shopify Plan", 'Stale Advanced Shopify Plan flag should be refreshed to false after plan downgrade.');
+        LibraryAssert.IsFalse(LocalShop."Can Access Staff Members", 'A plan downgrade must clear cached staff access.');
         LibraryAssert.AreEqual(1, PlanRefreshCallCount, 'GetShopSettings should issue exactly one plan-refresh query.');
     end;
 
@@ -1677,15 +1676,13 @@ codeunit 139608 "Shpfy Orders API Test"
         OrdersToImport: Record "Shpfy Orders to Import";
         SyncOrdersFromShopify: Report "Shpfy Sync Orders from Shopify";
     begin
-        // [SCENARIO] Bug 635878: the bulk "Sync Orders from Shopify" report must refresh
-        // the cached "Advanced Shopify Plan" flag before importing orders, so a plan
-        // downgrade does not leave the connector requesting the staffMember field that
-        // the new plan can no longer grant access to.
+        // [SCENARIO] Batch sync refreshes plan and staff access before importing orders.
         Initialize();
 
         // [GIVEN] Shop has a stale "Advanced Shopify Plan" flag set to true
         Shop.Get(Shop.Code);
         Shop."Advanced Shopify Plan" := true;
+        Shop."Can Access Staff Members" := true;
         Shop."Auto Create Orders" := false;
         Shop.Modify(false);
         Commit();
@@ -1706,6 +1703,7 @@ codeunit 139608 "Shpfy Orders API Test"
         // [THEN] The Advanced Shopify Plan flag is refreshed on the persisted Shop record
         Shop.Get(Shop.Code);
         LibraryAssert.IsFalse(Shop."Advanced Shopify Plan", 'Bulk sync report should refresh Advanced Shopify Plan flag before importing orders.');
+        LibraryAssert.IsFalse(Shop."Can Access Staff Members", 'Bulk sync report must persist refreshed staff access before importing orders.');
         LibraryAssert.AreEqual(1, PlanRefreshCallCount, 'Bulk sync report should issue exactly one plan-refresh query.');
     end;
 
