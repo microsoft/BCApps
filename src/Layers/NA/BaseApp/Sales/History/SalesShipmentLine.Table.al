@@ -920,13 +920,7 @@ table 111 "Sales Shipment Line"
                 UpdateDocumentNo();
             end;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(10000; "Package Tracking No."; Text[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Package Tracking No.';
         }

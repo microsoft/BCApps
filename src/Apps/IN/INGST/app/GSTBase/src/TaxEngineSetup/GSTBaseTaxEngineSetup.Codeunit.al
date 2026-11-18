@@ -4,9 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.TaxEngine.JsonExchange;
 
-#if not CLEAN27
-using Microsoft.Finance.GST.Base;
-#endif
 codeunit 18004 "GST Base Tax Engine Setup"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Tax Engine Assisted Setup", 'OnSetupTaxTypes', '', false, false)]
@@ -47,18 +44,6 @@ codeunit 18004 "GST Base Tax Engine Setup"
         ImportGSTUseCase.ImportUseCases(ImportGSTUseCase.GetResourceForUseCase(GSTResFileLbl));
     end;
 
-#if not CLEAN27
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade GST Tax Config", 'OnUpgradeGSTUseCases', '', false, false)]
-    local procedure OnUpgradeGSTUseCases(CaseID: Guid; var UseCaseConfig: Text; var IsHandled: Boolean)
-    begin
-        if IsHandled then
-            exit;
-
-        UseCaseConfig := GetText(CaseID);
-        if UseCaseConfig <> '' then
-            IsHandled := true;
-    end;
-#endif
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Tax Engine Assisted Setup", 'OnGetTaxTypeConfig', '', false, false)]
     local procedure OnGetTaxTypeConfig(TaxType: Code[20]; var ConfigText: Text; var IsHandled: Boolean)
     var
@@ -95,14 +80,6 @@ codeunit 18004 "GST Base Tax Engine Setup"
         Configtext := GetConfig(CaseID, IsHandled);
     end;
 
-#if not CLEAN27
-    local procedure GetText(CaseId: Guid): Text
-    var
-        IsHandled: Boolean;
-    begin
-        exit(GetConfig(CaseId, IsHandled))
-    end;
-#endif
 
     procedure GetConfig(CaseID: Guid; var Handled: Boolean): Text
     var
