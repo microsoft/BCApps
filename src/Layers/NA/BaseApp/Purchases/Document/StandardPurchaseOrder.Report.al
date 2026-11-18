@@ -1160,6 +1160,7 @@ report 1322 "Standard Purchase - Order"
 
     rendering
     {
+#if not CLEAN30
         layout("StandardPurchaseOrder.docx")
         {
             Type = Word;
@@ -1199,7 +1200,8 @@ report 1322 "Standard Purchase - Order"
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
-        }
+        }     
+#endif
         layout("StandardPurchaseOrderBody.docx")
         {
             Type = Word;
