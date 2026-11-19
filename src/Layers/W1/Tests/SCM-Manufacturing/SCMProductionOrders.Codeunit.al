@@ -5287,7 +5287,7 @@ codeunit 137069 "SCM Production Orders"
     end;
 
     [Test]
-    procedure DefaultLocationStatusTransfer()
+    procedure DefaultLocationStatusTransferFlow()
     var
         Item: Record Item;
         Component: Record Item;
@@ -5300,7 +5300,7 @@ codeunit 137069 "SCM Production Orders"
         Iteration: Integer;
         StatusIndex: Integer;
     begin
-        // [SCENARIO] Status changes preserve saved locations, including blank, instead of applying the current default.
+        // [SCENARIO] Release and intermediate-status flows preserve saved locations, including blank, instead of applying the current default.
         Initialize();
         // [GIVEN] Orders in each pre-release status with an explicit or blank location.
         SetupStorage.SaveManufacturingSetup();
@@ -5335,7 +5335,7 @@ codeunit 137069 "SCM Production Orders"
     end;
 
     [Test]
-    procedure DefaultLocationReopenSnapshot()
+    procedure DefaultLocationReopenSnapshotFlow()
     var
         Item: Record Item;
         Component: Record Item;
@@ -5349,7 +5349,7 @@ codeunit 137069 "SCM Production Orders"
         OrderNo: Code[20];
         Iteration: Integer;
     begin
-        // [SCENARIO] Reopening and finishing again preserve saved locations without duplicating output or consumption.
+        // [SCENARIO] The reopen-and-finish flow preserves saved locations without duplicating output or consumption.
         Initialize();
         // [GIVEN] A posted and finished order and a subsequently configured default location.
         SetupStorage.SaveManufacturingSetup();

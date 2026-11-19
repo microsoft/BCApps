@@ -5147,10 +5147,11 @@ codeunit 137404 "SCM Manufacturing"
         Location: Record Location;
         Bin: Record Bin;
         ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
         Fixture: Codeunit "SCM Production Orders";
         Iteration: Integer;
     begin
-        // [SCENARIO] Initializing a released order applies the setup output location and its production bin.
+        // [SCENARIO] An initialized released order uses the setup location and selects its output bin during refresh.
         Initialize();
         // [GIVEN] An item and a default location, with and without a mandatory output bin.
         LibraryInventory.CreateItem(Item);
@@ -5164,15 +5165,19 @@ codeunit 137404 "SCM Manufacturing"
                 Location.Modify(true);
             end;
             Fixture.ConfigureDefaultLocation(Location.Code, '');
-            // [WHEN] A released order is explicitly initialized with the setup default.
+            // [GIVEN] A released order explicitly initialized with the setup default.
             Fixture.CreateDefaultLocationInitializedOrder(
                 ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 2);
-            // [THEN] The location, quantity and applicable output bin are retained.
+            // [WHEN] The new order is refreshed.
+            LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+            // [THEN] The location and quantity are retained, and refresh selects the applicable output bin.
             ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
             ProductionOrder.TestField("Location Code", Location.Code);
             ProductionOrder.TestField(Quantity, 2);
-            if Iteration = 2 then
-                ProductionOrder.TestField("Bin Code", Bin.Code);
+            if Iteration = 2 then begin
+                FindProductionOrderLine(ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", Item."No.");
+                ProdOrderLine.TestField("Bin Code", Bin.Code);
+            end;
         end;
         LibrarySetupStorage.Restore();
     end;
@@ -5242,7 +5247,7 @@ codeunit 137404 "SCM Manufacturing"
     end;
 
     [Test]
-    procedure DefaultLocationClearRevalidate()
+    procedure DefaultLocationClearRevalidateFlow()
     var
         Item: Record Item;
         Component: Record Item;
@@ -5252,7 +5257,7 @@ codeunit 137404 "SCM Manufacturing"
         Fixture: Codeunit "SCM Production Orders";
         StatusIndex: Integer;
     begin
-        // [SCENARIO] Revalidating the item or variant does not restore an intentionally cleared default location.
+        // [SCENARIO] Clearing, revalidating the item and changing its variant preserves a blank location throughout the flow.
         Initialize();
         // [GIVEN] An initialized order with the setup location and an available item variant.
         Fixture.CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Manual);

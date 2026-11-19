@@ -881,8 +881,12 @@ table 5405 "Production Order"
             exit;
 
         if MfgSetup.Get() then
-            if MfgSetup."Default Location Code" <> '' then
+            if MfgSetup."Default Location Code" <> '' then begin
                 Validate("Location Code", MfgSetup."Default Location Code");
+                // Refresh must select the output bin using the source's final routing.
+                if "Source No." = '' then
+                    "Bin Code" := '';
+            end;
     end;
 
     procedure InitRecord()
