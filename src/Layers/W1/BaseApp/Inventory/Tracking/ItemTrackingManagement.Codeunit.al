@@ -1428,6 +1428,75 @@ codeunit 6500 "Item Tracking Management"
         WhseItemTrackingLine.Insert();
     end;
 
+    internal procedure SynchronizeWhseTrackingAfterShippedPick(WarehouseShipmentLine: Record "Warehouse Shipment Line")
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        SourceReservEntry: Record "Reservation Entry";
+        SourceWarehouseShipmentLine: Record "Warehouse Shipment Line";
+        WhseItemTrackingLine: Record "Whse. Item Tracking Line";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+    begin
+        if WarehouseShipmentLine."Assemble to Order" or
+           (WarehouseShipmentLine."Qty. Picked (Base)" = 0) or
+           (WarehouseShipmentLine."Qty. Picked (Base)" <> WarehouseShipmentLine."Qty. Shipped (Base)")
+        then
+            exit;
+
+        WarehouseShipmentLine.CalcFields("Pick Qty. (Base)");
+        if WarehouseShipmentLine."Pick Qty. (Base)" <> 0 then
+            exit;
+        if not GetWhseItemTrkgSetup(WarehouseShipmentLine."Item No.") then
+            exit;
+
+        GetItemTrackingCode(WarehouseShipmentLine."Item No.", ItemTrackingCode);
+        if not ItemTrackingCode."Lot Warehouse Tracking" or ItemTrackingCode."SN Warehouse Tracking" then
+            exit;
+        SourceWarehouseShipmentLine.SetSourceFilter(
+          WarehouseShipmentLine."Source Type", WarehouseShipmentLine."Source Subtype",
+          WarehouseShipmentLine."Source No.", WarehouseShipmentLine."Source Line No.", true);
+        if SourceWarehouseShipmentLine.Count() > 1 then
+            exit;
+
+        WhseItemTrackingLine.SetSourceFilter(
+          Database::"Warehouse Shipment Line", 0, WarehouseShipmentLine."No.", WarehouseShipmentLine."Line No.", true);
+        WhseItemTrackingLine.SetRange("Source Batch Name", '');
+        WhseItemTrackingLine.SetRange("Source Prod. Order Line", 0);
+        WhseItemTrackingLine.SetRange("Location Code", WarehouseShipmentLine."Location Code");
+        WhseItemTrackingLine.LockTable();
+        if WhseItemTrackingLine.FindSet(true) then
+            repeat
+                CalcWhseItemTrkgLine(WhseItemTrackingLine);
+                WhseItemTrackingLine.Validate("Quantity (Base)", WhseItemTrackingLine."Quantity Handled (Base)");
+                WhseItemTrackingLine.Modify();
+            until WhseItemTrackingLine.Next() = 0;
+
+        InitWhseWorksheetLine(
+          WhseWorksheetLine, Enum::"Warehouse Worksheet Document Type"::Shipment,
+          WarehouseShipmentLine."No.", WarehouseShipmentLine."Line No.",
+          WarehouseShipmentLine."Source Type", WarehouseShipmentLine."Source Subtype",
+          WarehouseShipmentLine."Source No.", WarehouseShipmentLine."Source Line No.", 0);
+        SourceReservEntry.SetSourceFilter(
+          WarehouseShipmentLine."Source Type", WarehouseShipmentLine."Source Subtype",
+          WarehouseShipmentLine."Source No.", WarehouseShipmentLine."Source Line No.", true);
+        SourceReservEntry.SetSourceFilter('', 0);
+        SourceReservEntry.SetRange("Location Code", WarehouseShipmentLine."Location Code");
+        if SourceReservEntry.FindSet() then
+            repeat
+                if SourceReservEntry.TrackingExists() and
+                   ((SourceReservEntry."Reservation Status" <> SourceReservEntry."Reservation Status"::Reservation) or
+                    IsResEntryReservedAgainstInventory(SourceReservEntry))
+                then begin
+                    WhseItemTrackingLine.SetTrackingFilterFromReservEntry(SourceReservEntry);
+                    if WhseItemTrackingLine.FindFirst() then begin
+                        WhseItemTrackingLine.Validate(
+                          "Quantity (Base)", WhseItemTrackingLine."Quantity (Base)" - SourceReservEntry."Quantity (Base)");
+                        WhseItemTrackingLine.Modify();
+                    end else
+                        CreateWhseItemTrkgForResEntry(SourceReservEntry, WhseWorksheetLine);
+                end;
+            until SourceReservEntry.Next() = 0;
+    end;
+
     procedure CalcWhseItemTrkgLine(var WhseItemTrkgLine: Record "Whse. Item Tracking Line")
     var
         ItemTrackingCode: Record "Item Tracking Code";
