@@ -101,6 +101,7 @@ report 31012 "Create Sales Adv. Letter CZZ"
         SourceSalesHeader: Record "Sales Header";
         TempSalesLine: Record "Sales Line" temporary;
         SuggestByLine: Boolean;
+        SkipConfirmDialog: Boolean;
         AdvanceLetterCode: Code[20];
         AdvanceAmount: Decimal;
         AdvancePer: Decimal;
@@ -112,7 +113,6 @@ report 31012 "Create Sales Adv. Letter CZZ"
             Error(NothingToSuggestErr);
         if AdvanceLetterCode = '' then
             Error(AdvLetterCodeEmptyErr);
-
         case SourceType of
             SourceType::SalesOrder:
                 SalesAdvLetterHeaderCZZ.SetRange("Order No.", SourceSalesHeader."No.");
@@ -130,7 +130,6 @@ report 31012 "Create Sales Adv. Letter CZZ"
             repeat
                 TotalAmountAdvLetter += SalesAdvLetterHeaderCZZ."Amount Including VAT";
             until SalesAdvLetterHeaderCZZ.Next() = 0;
-
         if TotalAmountAdvLetter + AdvanceAmount > TotalAmountInclVAT then
             Error(AmountExceedeErr);
 
@@ -139,10 +138,6 @@ report 31012 "Create Sales Adv. Letter CZZ"
     end;
 
     trigger OnPostReport()
-    var
-        ConfirmManagement: Codeunit "Confirm Management";
-        IsHandled: Boolean;
-        OpenAdvanceLetterQst: Label 'Do you want to open created Advance Letter?';
     begin
         case SourceType of
             SourceType::SalesOrder:
@@ -162,11 +157,37 @@ report 31012 "Create Sales Adv. Letter CZZ"
                     CreateAdvanceLetterLine(TempJobPlanningLine);
                 end;
         end;
-        OnPostReportOnBeforeConfirmOpenAdvanceLetter(SalesAdvLetterHeaderCZZ, IsHandled);
-        if not IsHandled then
-            if ConfirmManagement.GetResponseOrDefault(OpenAdvanceLetterQst, false) then
-                if GuiAllowed() then
-                    Page.Run(Page::"Sales Advance Letter CZZ", SalesAdvLetterHeaderCZZ);
+        ShowSalesAdvanceLetter();
+    end;
+
+    procedure SetSkipConfirmDialog(NewSkipConfirmDialog: Boolean)
+    begin
+        SkipConfirmDialog := NewSkipConfirmDialog;
+    end;
+
+    local procedure ShowSalesAdvanceLetter()
+    begin
+        if IsRunSalesAdvanceLetterAllowed() then
+            Page.Run(Page::"Sales Advance Letter CZZ", SalesAdvLetterHeaderCZZ);
+    end;
+
+    local procedure IsRunSalesAdvanceLetterAllowed() IsAllowed: Boolean
+    var
+        ConfirmManagement: Codeunit "Confirm Management";
+        OpenAdvanceLetterQst: Label 'Do you want to open created Advance Letter?';
+    begin
+        IsAllowed := GuiAllowed();
+        if not IsAllowed then
+            exit;
+        if not IsConfirmDialogSkipped() then
+            IsAllowed := ConfirmManagement.GetResponse(OpenAdvanceLetterQst, false);
+        OnAfterIsRunSalesAdvanceLetterAllowed(IsAllowed);
+    end;
+
+    local procedure IsConfirmDialogSkipped() IsSkipped: Boolean
+    begin
+        IsSkipped := SkipConfirmDialog;
+        OnAfterIsConfirmDialogSkipped(IsSkipped);
     end;
 
     local procedure CreateAdvanceLetterHeader(SalesHeader: Record "Sales Header")
@@ -309,7 +330,6 @@ report 31012 "Create Sales Adv. Letter CZZ"
                         SalesLine."Amount Including VAT",
                         TempAdvancePostingBufferCZZ);
             until SalesLine.Next() = 0;
-
         if TempAdvancePostingBufferCZZ.FindSet() then
             repeat
                 CreateAdvanceLetterLine('',
@@ -345,7 +365,6 @@ report 31012 "Create Sales Adv. Letter CZZ"
                         AmountIncludingVAT,
                         TempAdvancePostingBufferCZZ);
             until JobPlanningLine.Next() = 0;
-
         if TempAdvancePostingBufferCZZ.FindSet() then
             repeat
                 CreateAdvanceLetterLine('',
@@ -389,7 +408,6 @@ report 31012 "Create Sales Adv. Letter CZZ"
         SalesAdvLetterLineCZZ.SuspendJobRelationCheck(false);
 
         OnCreateAdvanceLetterLineOnBeforeInsert(SalesAdvLetterLineCZZ, SalesAdvLetterHeaderCZZ);
-
         if SalesAdvLetterLineCZZ."Amount Including VAT" <> 0 then
             SalesAdvLetterLineCZZ.Insert(true);
     end;
@@ -443,7 +461,6 @@ report 31012 "Create Sales Adv. Letter CZZ"
 
         AdvanceAmount := TotalAmountInclVAT;
         AdvancePer := 100;
-
         if SourceJob."Invoice Currency Code" <> '' then
             InitCurrency(SourceJob."Invoice Currency Code")
         else
@@ -459,7 +476,6 @@ report 31012 "Create Sales Adv. Letter CZZ"
 
         AdvanceAmount := TotalAmountInclVAT;
         AdvancePer := 100;
-
         if SourceJobTask."Invoice Currency Code" <> '' then
             InitCurrency(SourceJobTask."Invoice Currency Code")
         else
@@ -541,7 +557,12 @@ report 31012 "Create Sales Adv. Letter CZZ"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostReportOnBeforeConfirmOpenAdvanceLetter(SalesAdvLetterHeaderCZZ: Record "Sales Adv. Letter Header CZZ"; var IsHandled: boolean)
+    local procedure OnAfterIsRunSalesAdvanceLetterAllowed(var IsAllowed: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIsConfirmDialogSkipped(var IsSkipped: Boolean)
     begin
     end;
 }
