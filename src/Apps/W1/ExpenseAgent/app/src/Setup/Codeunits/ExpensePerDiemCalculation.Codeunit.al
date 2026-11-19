@@ -108,6 +108,30 @@ codeunit 6911 "Expense Per Diem Calculation"
         exit((UtcDateTime - GetUtcEpoch()) + GetAgentOffset(UtcDateTime));
     end;
 
+    /// <summary>
+    /// Returns the instant at which the per diem clock reads ClockShift later than at FromDateTime,
+    /// correcting for a daylight saving change in between.
+    /// </summary>
+    local procedure ShiftOnPerDiemClock(FromDateTime: DateTime; ClockShift: Integer): DateTime
+    var
+        Candidate: DateTime;
+    begin
+        Candidate := FromDateTime + ClockShift;
+        exit(Candidate - (GetPerDiemOffset(Candidate) - GetPerDiemOffset(FromDateTime)));
+    end;
+
+    local procedure GetPerDiemOffset(UtcDateTime: DateTime): Duration
+    var
+        LocalMs: BigInteger;
+    begin
+        if AgentTimeZoneId <> '' then
+            exit(GetAgentOffset(UtcDateTime));
+
+        LocalMs := GetPerDiemDate(UtcDateTime) - GetEpochDate();
+        LocalMs := LocalMs * MsPerDay() + (GetPerDiemTime(UtcDateTime) - 000000T);
+        exit(LocalMs - (UtcDateTime - GetUtcEpoch()));
+    end;
+
     local procedure GetAgentOffset(UtcDateTime: DateTime): Duration
     var
         TimeZone: Codeunit "Time Zone";
@@ -164,8 +188,8 @@ codeunit 6911 "Expense Per Diem Calculation"
         IsFullCalendarDay: Boolean;
         HoursInDay: Decimal;
         DayStartTime, DayEndTime : Time;
+        DayStart, DayEnd : DateTime;
     begin
-        // Hours present in this day, read on the clock that per diem days are split by
         DayStartTime := 000000T;
         DayEndTime := 235900T;
         if IsFirstDay then
@@ -173,9 +197,18 @@ codeunit 6911 "Expense Per Diem Calculation"
         if IsLastDay then
             DayEndTime := GetPerDiemTime(TripEndDateTime);
 
-        HoursInDay := Round((DayEndTime - DayStartTime) / (60 * 60 * 1000), 0.01);
-
         IsFullCalendarDay := (DayStartTime = 000000T) and (DayEndTime = 235900T);
+
+        // Elapsed hours present in this day; a day boundary that isn't a trip boundary is found from the other trip boundary on the clock
+        if IsFirstDay then
+            DayStart := TripStartDateTime
+        else
+            DayStart := ShiftOnPerDiemClock(TripEndDateTime, DayStartTime - DayEndTime);
+        if IsLastDay then
+            DayEnd := TripEndDateTime
+        else
+            DayEnd := ShiftOnPerDiemClock(TripStartDateTime, DayEndTime - DayStartTime);
+        HoursInDay := Round((DayEnd - DayStart) / (60 * 60 * 1000), 0.01);
 
         if IsFullCalendarDay then
             exit(BaseRate)
@@ -202,10 +235,11 @@ codeunit 6911 "Expense Per Diem Calculation"
         PeriodDurationHours: Decimal;
         PeriodStartDate: Date;
         OneDayMs: BigInteger;
+        Amount: Decimal;
     begin
         // For 24-hour rolling period method:
-        // Find which 24-hour period "belongs" to this calendar day
-        // Each rolling period is assigned to the calendar day where it starts
+        // Each rolling period is assigned to the calendar day where it starts.
+        // When clocks go back, two periods can start on the same day, so all of them are counted.
 
         OneDayMs := 24 * 60 * 60 * 1000;  // 86,400,000 ms in one day
         PeriodStartTime := TripStartDateTime;
@@ -221,23 +255,24 @@ codeunit 6911 "Expense Per Diem Calculation"
             PeriodStartDate := GetPerDiemDate(PeriodStartTime);
             PeriodDurationHours := Round((PeriodEndTime - PeriodStartTime) / (60 * 60 * 1000), 0.01);
 
-            // If this period starts on the current date, calculate its per diem
-            if PeriodStartDate = CurrentDate then begin
-                // For complete 24-hour periods
-                if PeriodDurationHours >= (24 - GetToleranceInHours(24)) then
-                    exit(BaseRate);
-                if PeriodDurationHours >= (ExpenseAgentSetup."Minimum Hours for Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Minimum Hours for Per Diem")) then
-                    exit(BaseRate);
-                if (ExpenseAgentSetup."Partial Day Rules" = ExpenseAgentSetup."Partial Day Rules"::"Based On Eligible Hours") and
-                        (PeriodDurationHours >= (ExpenseAgentSetup."Min Hours for Partial Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Min Hours for Partial Per Diem"))) then
-                    exit(BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100)
-                else
-                    exit(0);
-            end;
+            if PeriodStartDate = CurrentDate then
+                Amount += Calculate24HourRollingPeriodAmount(BaseRate, PeriodDurationHours);
             PeriodStartTime := PeriodStartTime + OneDayMs;
-        until PeriodStartTime >= TripEndDateTime;
+        until (PeriodStartTime >= TripEndDateTime) or (PeriodStartDate > CurrentDate);
 
-        // If no period starts on this date, no per diem for this day
+        exit(Amount);
+    end;
+
+    local procedure Calculate24HourRollingPeriodAmount(BaseRate: Decimal; PeriodDurationHours: Decimal): Decimal
+    begin
+        // For complete 24-hour periods
+        if PeriodDurationHours >= (24 - GetToleranceInHours(24)) then
+            exit(BaseRate);
+        if PeriodDurationHours >= (ExpenseAgentSetup."Minimum Hours for Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Minimum Hours for Per Diem")) then
+            exit(BaseRate);
+        if (ExpenseAgentSetup."Partial Day Rules" = ExpenseAgentSetup."Partial Day Rules"::"Based On Eligible Hours") and
+                (PeriodDurationHours >= (ExpenseAgentSetup."Min Hours for Partial Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Min Hours for Partial Per Diem"))) then
+            exit(BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100);
         exit(0);
     end;
 
@@ -252,10 +287,12 @@ codeunit 6911 "Expense Per Diem Calculation"
         PeriodDurationHours: Decimal;
         PeriodStartDate: Date;
         OneDayMs: BigInteger;
+        Amount: Decimal;
     begin
         // For overnight stay method:
-        // Only trips that span multiple calendar dates are eligible
-        // Find which overnight period "belongs" to this calendar day
+        // Only trips that span multiple calendar dates are eligible.
+        // Each overnight period is assigned to the calendar day where it starts.
+        // When clocks go back, two periods can start on the same day, so all of them are counted.
 
         TripStartDate := GetPerDiemDate(TripStartDateTime);
         TripEndDate := GetPerDiemDate(TripEndDateTime);
@@ -278,21 +315,22 @@ codeunit 6911 "Expense Per Diem Calculation"
             PeriodStartDate := GetPerDiemDate(PeriodStartTime);
             PeriodDurationHours := Round((PeriodEndTime - PeriodStartTime) / (60 * 60 * 1000), 0.01);
 
-            // If this overnight period starts on the current date, calculate its per diem
-            if PeriodStartDate = CurrentDate then begin
-                if PeriodDurationHours >= (ExpenseAgentSetup."Minimum Hours for Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Minimum Hours for Per Diem")) then
-                    exit(BaseRate);
-                if (ExpenseAgentSetup."Partial Day Rules" = ExpenseAgentSetup."Partial Day Rules"::"Based On Eligible Hours") and
-                        (PeriodDurationHours >= (ExpenseAgentSetup."Min Hours for Partial Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Min Hours for Partial Per Diem"))) then
-                    exit(BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100)
-                else
-                    exit(0);
-            end;
+            if PeriodStartDate = CurrentDate then
+                Amount += CalculateOvernightPeriodAmount(BaseRate, PeriodDurationHours);
 
             PeriodStartTime := PeriodStartTime + OneDayMs;
-        until PeriodStartTime >= TripEndDateTime;
+        until (PeriodStartTime >= TripEndDateTime) or (PeriodStartDate > CurrentDate);
 
-        // If no overnight period starts on this date, no per diem for this day
+        exit(Amount);
+    end;
+
+    local procedure CalculateOvernightPeriodAmount(BaseRate: Decimal; PeriodDurationHours: Decimal): Decimal
+    begin
+        if PeriodDurationHours >= (ExpenseAgentSetup."Minimum Hours for Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Minimum Hours for Per Diem")) then
+            exit(BaseRate);
+        if (ExpenseAgentSetup."Partial Day Rules" = ExpenseAgentSetup."Partial Day Rules"::"Based On Eligible Hours") and
+                (PeriodDurationHours >= (ExpenseAgentSetup."Min Hours for Partial Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Min Hours for Partial Per Diem"))) then
+            exit(BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100);
         exit(0);
     end;
 
