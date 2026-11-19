@@ -441,6 +441,9 @@ codeunit 4509 "Email - Outlook API Helper"
         if Filters."Last Message Only" then
             Body := KeepLastMessageOnly(Body);
         EmailMessage.Create('', Subject, Body, HTMLBody, not Filters.GetBypassBodySanitization());
+        // Store the original recipients before Email Inbox makes the received message immutable.
+        EmailMessage.SetRecipients(Enum::"Email Recipient Type"::"To", GetEmailRecipientsFromJson(EmailJsonObject, 'toRecipients'));
+        EmailMessage.SetRecipients(Enum::"Email Recipient Type"::Cc, GetEmailRecipientsFromJson(EmailJsonObject, 'ccRecipients'));
 
         if HasAttachments then
             AddAttachmentsToMessage(EmailJsonObject, EmailMessage, false);
@@ -463,6 +466,39 @@ codeunit 4509 "Email - Outlook API Helper"
         EmailInbox."Is Draft" := IsDraft;
         EmailInbox.Insert();
         EmailInbox.Mark(true);
+    end;
+
+    local procedure GetEmailRecipientsFromJson(EmailJsonObject: JsonObject; PropertyName: Text): List of [Text]
+    var
+        Recipients: List of [Text];
+        RecipientsToken: JsonToken;
+        RecipientToken: JsonToken;
+        EmailAddressToken: JsonToken;
+        AddressToken: JsonToken;
+    begin
+        if not EmailJsonObject.Get(PropertyName, RecipientsToken) then
+            exit(Recipients);
+        if not RecipientsToken.IsArray() then
+            exit(Recipients);
+
+        foreach RecipientToken in RecipientsToken.AsArray() do begin
+            if not RecipientToken.IsObject() then
+                continue;
+            if not RecipientToken.AsObject().Get('emailAddress', EmailAddressToken) then
+                continue;
+            if not EmailAddressToken.IsObject() then
+                continue;
+            if not EmailAddressToken.AsObject().Get('address', AddressToken) then
+                continue;
+            if not AddressToken.IsValue() then
+                continue;
+            if AddressToken.AsValue().IsNull() then
+                continue;
+
+            Recipients.Add(AddressToken.AsValue().AsText());
+        end;
+
+        exit(Recipients);
     end;
 
     procedure GetEmailFolders(AccountId: Guid; var EmailFolders: Record "Email Folders")

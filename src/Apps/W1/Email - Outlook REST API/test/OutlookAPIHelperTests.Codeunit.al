@@ -13,7 +13,12 @@ codeunit 139752 "Outlook API Helper Tests"
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        RecipientGraphMessages: JsonArray;
+        RecipientGraphRequestCount: Integer;
         SendEmailExternalUserErr: Label 'Could not send the email, because the user is delegated or external.';
+        UnexpectedRecipientCountErr: Label 'Unexpected %1 recipient count.', Comment = '%1 = Recipient type';
+        UnexpectedRecipientErr: Label 'Unexpected or duplicate %1 recipient: %2.', Comment = '%1 = Recipient type, %2 = Email address';
+        MissingRecipientsErr: Label 'Missing %1 recipients.', Comment = '%1 = Recipient type';
 
     [Test]
     procedure DefaultRedirectUrlIsAllowed()
@@ -527,6 +532,346 @@ codeunit 139752 "Outlook API Helper Tests"
         LibraryAssert.IsTrue(Body.Contains('Safe Content'), 'Safe content should be preserved');
         LibraryAssert.IsTrue(Body.ToLower().Contains('<script'), 'Script element should be preserved when sanitization is bypassed');
         LibraryAssert.IsTrue(Body.ToLower().Contains('onerror'), 'Event handler attribute should be preserved when sanitization is bypassed');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveRecipientsHandler')]
+    procedure TestRetrieveEmailPreservesThirdPartyCcAndTo()
+    begin
+        // [SCENARIO] Original To and third-party Cc are persisted even when Load Headers is false.
+        RunRecipientRetrievalScenario('recipients-single', 'recipientuser@test.com', 'thirdparty@test.com',
+            'recipientuser@test.com', 'thirdparty@test.com');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveRecipientsHandler')]
+    procedure TestRetrieveEmailPreservesMultipleToAndCc()
+    begin
+        RunRecipientRetrievalScenario('recipients-multiple', 'recipientuser@test.com;another@test.com', 'firstcc@test.com;secondcc@test.com',
+            'recipientuser@test.com;another@test.com', 'firstcc@test.com;secondcc@test.com');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveRecipientsHandler')]
+    procedure TestRetrieveEmailPreservesSenderAndSelfInCc()
+    begin
+        // [SCENARIO] Retrieval preserves the original sender and mailbox in Cc; this is not reply-all filtering.
+        RunRecipientRetrievalScenario('recipients-self', 'another@test.com', 'sender@test.com;recipientuser@test.com',
+            'another@test.com', 'sender@test.com;recipientuser@test.com');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveRecipientsHandler')]
+    procedure TestRetrieveEmailPreservesOverlappingRecipientTypes()
+    begin
+        // [SCENARIO] An address shared by To and Cc must remain in both original groups.
+        RunRecipientRetrievalScenario('recipients-overlap', 'recipientuser@test.com;shared@test.com', 'SHARED@test.com;thirdparty@test.com',
+            'recipientuser@test.com;shared@test.com', 'shared@test.com;thirdparty@test.com');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveRecipientsHandler')]
+    procedure TestRetrieveEmailDeduplicatesWithinEachRecipientType()
+    begin
+        // [SCENARIO] Standard Email Message case-insensitive deduplication still applies within each type.
+        RunRecipientRetrievalScenario('recipients-duplicates', 'recipientuser@test.com;RECIPIENTUSER@test.com;another@test.com',
+            'thirdparty@test.com;THIRDPARTY@test.com;secondcc@test.com',
+            'recipientuser@test.com;another@test.com', 'thirdparty@test.com;secondcc@test.com');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveRecipientsHandler')]
+    procedure TestRetrieveEmailWithEmptyRecipientArrays()
+    begin
+        RunRecipientRetrievalScenario('recipients-empty', '', '', '', '');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveRecipientsHandler')]
+    procedure TestRetrieveEmailsWithMissingRecipientArrays()
+    var
+        OutlookAccount: Record "Email - Outlook Account";
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
+        MessageJson: JsonObject;
+    begin
+        InitializeRecipientRetrieval(OutlookAccount, SkipTokenRequest);
+
+        MessageJson := CreateRecipientGraphMessage('recipients-missing-both', '', '');
+        MessageJson.Remove('toRecipients');
+        MessageJson.Remove('ccRecipients');
+        RecipientGraphMessages.Add(MessageJson);
+        MessageJson := CreateRecipientGraphMessage('recipients-missing-to', '', 'thirdparty@test.com');
+        MessageJson.Remove('toRecipients');
+        RecipientGraphMessages.Add(MessageJson);
+        MessageJson := CreateRecipientGraphMessage('recipients-missing-cc', 'recipientuser@test.com', '');
+        MessageJson.Remove('ccRecipients');
+        RecipientGraphMessages.Add(MessageJson);
+
+        RetrieveRecipientEmails(OutlookAccount, 3);
+
+        AssertRetrievedRecipients(OutlookAccount.Id, 'recipients-missing-both', '', '');
+        AssertRetrievedRecipients(OutlookAccount.Id, 'recipients-missing-to', '', 'thirdparty@test.com');
+        AssertRetrievedRecipients(OutlookAccount.Id, 'recipients-missing-cc', 'recipientuser@test.com', '');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveRecipientsHandler')]
+    procedure TestRetrieveEmailsWithNullRecipientArrays()
+    var
+        OutlookAccount: Record "Email - Outlook Account";
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
+        MessageJson: JsonObject;
+        NullValue: JsonValue;
+    begin
+        InitializeRecipientRetrieval(OutlookAccount, SkipTokenRequest);
+        NullValue.SetValueToNull();
+
+        MessageJson := CreateRecipientGraphMessage('recipients-null-both', '', '');
+        MessageJson.Replace('toRecipients', NullValue);
+        MessageJson.Replace('ccRecipients', NullValue);
+        RecipientGraphMessages.Add(MessageJson);
+        MessageJson := CreateRecipientGraphMessage('recipients-null-to', '', 'thirdparty@test.com');
+        MessageJson.Replace('toRecipients', NullValue);
+        RecipientGraphMessages.Add(MessageJson);
+        MessageJson := CreateRecipientGraphMessage('recipients-null-cc', 'recipientuser@test.com', '');
+        MessageJson.Replace('ccRecipients', NullValue);
+        RecipientGraphMessages.Add(MessageJson);
+
+        RetrieveRecipientEmails(OutlookAccount, 3);
+
+        AssertRetrievedRecipients(OutlookAccount.Id, 'recipients-null-both', '', '');
+        AssertRetrievedRecipients(OutlookAccount.Id, 'recipients-null-to', '', 'thirdparty@test.com');
+        AssertRetrievedRecipients(OutlookAccount.Id, 'recipients-null-cc', 'recipientuser@test.com', '');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveRecipientsHandler')]
+    procedure TestRetrieveEmailsDoesNotLeakRecipientsBetweenMessages()
+    var
+        OutlookAccount: Record "Email - Outlook Account";
+        FirstInbox: Record "Email Inbox";
+        SecondInbox: Record "Email Inbox";
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
+    begin
+        InitializeRecipientRetrieval(OutlookAccount, SkipTokenRequest);
+        RecipientGraphMessages.Add(CreateRecipientGraphMessage('recipients-batch-first', 'firstto@test.com', 'firstcc@test.com'));
+        RecipientGraphMessages.Add(CreateRecipientGraphMessage('recipients-batch-second', 'secondto@test.com', 'secondcc@test.com'));
+
+        RetrieveRecipientEmails(OutlookAccount, 2);
+
+        AssertRetrievedRecipients(OutlookAccount.Id, 'recipients-batch-first', 'firstto@test.com', 'firstcc@test.com');
+        AssertRetrievedRecipients(OutlookAccount.Id, 'recipients-batch-second', 'secondto@test.com', 'secondcc@test.com');
+        FindRecipientInbox(OutlookAccount.Id, 'recipients-batch-first', FirstInbox);
+        FindRecipientInbox(OutlookAccount.Id, 'recipients-batch-second', SecondInbox);
+        LibraryAssert.IsTrue(FirstInbox."Message Id" <> SecondInbox."Message Id", 'Each Graph message must have its own Email Message.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveRecipientsHandler')]
+    procedure TestRetrieveEmailAgainPreservesExistingMessageAndRecipients()
+    var
+        OutlookAccount: Record "Email - Outlook Account";
+        OriginalInbox: Record "Email Inbox";
+        RetrievedInbox: Record "Email Inbox";
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
+        MessageJson: JsonObject;
+        SenderJson: JsonObject;
+    begin
+        InitializeRecipientRetrieval(OutlookAccount, SkipTokenRequest);
+        RecipientGraphMessages.Add(CreateRecipientGraphMessage('recipients-repeat', 'recipientuser@test.com', 'thirdparty@test.com'));
+        RetrieveRecipientEmails(OutlookAccount, 1);
+        AssertRetrievedRecipients(OutlookAccount.Id, 'recipients-repeat', 'recipientuser@test.com', 'thirdparty@test.com');
+        FindRecipientInbox(OutlookAccount.Id, 'recipients-repeat', OriginalInbox);
+
+        // [WHEN] Graph returns the same external ID with different content and recipients.
+        // The existing inbox-linked Email Message is immutable and must not be modified.
+        Clear(RecipientGraphMessages);
+        MessageJson := CreateRecipientGraphMessage('recipients-repeat', 'changedto@test.com', 'changedcc@test.com');
+        MessageJson.Replace('subject', 'Changed subject');
+        MessageJson.Replace('body', CreateRecipientGraphBody('Changed body'));
+        SenderJson.Add('emailAddress', CreateRecipientGraphAddress('changedsender@test.com', 'Changed Sender'));
+        MessageJson.Replace('sender', SenderJson);
+        RecipientGraphMessages.Add(MessageJson);
+        RetrieveRecipientEmails(OutlookAccount, 1);
+
+        // [THEN] Retrieval succeeds without duplicates, rewriting, or immutable-message errors.
+        AssertRetrievedRecipients(OutlookAccount.Id, 'recipients-repeat', 'recipientuser@test.com', 'thirdparty@test.com');
+        FindRecipientInbox(OutlookAccount.Id, 'recipients-repeat', RetrievedInbox);
+        LibraryAssert.AreEqual(OriginalInbox.Id, RetrievedInbox.Id, 'Retrieval must reuse the inbox record.');
+        LibraryAssert.IsTrue(OriginalInbox.SystemId = RetrievedInbox.SystemId, 'Retrieval must not replace the inbox record.');
+        LibraryAssert.AreEqual(OriginalInbox.SystemModifiedAt, RetrievedInbox.SystemModifiedAt, 'Retrieval must not rewrite the inbox record.');
+        LibraryAssert.IsTrue(OriginalInbox."Message Id" = RetrievedInbox."Message Id", 'Retrieval must reuse the original Email Message.');
+    end;
+
+    local procedure RunRecipientRetrievalScenario(ExternalId: Text; ToAddresses: Text; CcAddresses: Text; ExpectedTo: Text; ExpectedCc: Text)
+    var
+        OutlookAccount: Record "Email - Outlook Account";
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
+    begin
+        InitializeRecipientRetrieval(OutlookAccount, SkipTokenRequest);
+        RecipientGraphMessages.Add(CreateRecipientGraphMessage(ExternalId, ToAddresses, CcAddresses));
+
+        RetrieveRecipientEmails(OutlookAccount, 1);
+
+        AssertRetrievedRecipients(OutlookAccount.Id, ExternalId, ExpectedTo, ExpectedCc);
+    end;
+
+    local procedure InitializeRecipientRetrieval(var OutlookAccount: Record "Email - Outlook Account"; var SkipTokenRequest: Codeunit "Skip Outlook API Token Request")
+    begin
+        Clear(RecipientGraphMessages);
+        RecipientGraphRequestCount := 0;
+        OutlookAccount.Init();
+        OutlookAccount.Id := CreateGuid();
+        OutlookAccount."Email Address" := 'recipientuser@test.com';
+        OutlookAccount.Name := 'Recipient User';
+        OutlookAccount."Outlook API Email Connector" := Enum::"Email Connector"::"Test Outlook REST API";
+        OutlookAccount.Insert();
+        BindSubscription(SkipTokenRequest);
+        SkipTokenRequest.SetSkipTokenRequest(true);
+    end;
+
+    local procedure RetrieveRecipientEmails(OutlookAccount: Record "Email - Outlook Account"; ExpectedInboxCount: Integer)
+    var
+        EmailInbox: Record "Email Inbox";
+        TempFilters: Record "Email Retrieval Filters" temporary;
+        EmailOutlookAPIHelper: Codeunit "Email - Outlook API Helper";
+        PreviousRequestCount: Integer;
+    begin
+        TempFilters."Max No. of Emails" := 10;
+        TempFilters."Body Type" := TempFilters."Body Type"::Text;
+        TempFilters."Load Headers" := false;
+        TempFilters."Load Attachments" := false;
+        PreviousRequestCount := RecipientGraphRequestCount;
+
+        EmailOutlookAPIHelper.RetrieveEmails(OutlookAccount.Id, EmailInbox, TempFilters);
+
+        LibraryAssert.AreEqual(PreviousRequestCount + 1, RecipientGraphRequestCount, 'Expected exactly one Graph retrieval request.');
+        EmailInbox.Reset();
+        EmailInbox.SetRange("Account Id", OutlookAccount.Id);
+        LibraryAssert.AreEqual(ExpectedInboxCount, EmailInbox.Count(), 'Unexpected number of inbox records for this account.');
+    end;
+
+    local procedure CreateRecipientGraphMessage(ExternalId: Text; ToAddresses: Text; CcAddresses: Text) MessageJson: JsonObject
+    var
+        SenderJson: JsonObject;
+    begin
+        MessageJson.Add('id', ExternalId);
+        MessageJson.Add('conversationId', 'conversation-' + ExternalId);
+        MessageJson.Add('receivedDateTime', '2026-01-02T03:04:05Z');
+        MessageJson.Add('sentDateTime', '2026-01-02T03:00:00Z');
+        MessageJson.Add('subject', 'Recipient retrieval');
+        MessageJson.Add('body', CreateRecipientGraphBody('Recipient retrieval body.'));
+        SenderJson.Add('emailAddress', CreateRecipientGraphAddress('sender@test.com', 'Original Sender'));
+        MessageJson.Add('sender', SenderJson);
+        MessageJson.Add('toRecipients', CreateRecipientGraphArray(ToAddresses));
+        MessageJson.Add('ccRecipients', CreateRecipientGraphArray(CcAddresses));
+        MessageJson.Add('hasAttachments', false);
+        MessageJson.Add('isRead', false);
+        MessageJson.Add('isDraft', false);
+    end;
+
+    local procedure CreateRecipientGraphBody(Content: Text) BodyJson: JsonObject
+    begin
+        BodyJson.Add('contentType', 'text');
+        BodyJson.Add('content', Content);
+    end;
+
+    local procedure CreateRecipientGraphAddress(Address: Text; DisplayName: Text) AddressJson: JsonObject
+    begin
+        AddressJson.Add('address', Address);
+        AddressJson.Add('name', DisplayName);
+    end;
+
+    local procedure CreateRecipientGraphArray(Addresses: Text) RecipientsJson: JsonArray
+    var
+        RecipientJson: JsonObject;
+        AddressList: List of [Text];
+        Address: Text;
+    begin
+        if Addresses = '' then
+            exit;
+        AddressList := Addresses.Split(';');
+        foreach Address in AddressList do begin
+            Clear(RecipientJson);
+            RecipientJson.Add('emailAddress', CreateRecipientGraphAddress(Address, 'Recipient'));
+            RecipientsJson.Add(RecipientJson);
+        end;
+    end;
+
+    local procedure FindRecipientInbox(AccountId: Guid; ExternalId: Text; var EmailInbox: Record "Email Inbox")
+    begin
+        EmailInbox.Reset();
+        EmailInbox.SetRange("Account Id", AccountId);
+        EmailInbox.SetRange("External Message Id", ExternalId);
+        LibraryAssert.AreEqual(1, EmailInbox.Count(), 'Expected exactly one persisted inbox record for the external message ID.');
+        EmailInbox.FindFirst();
+    end;
+
+    local procedure AssertRetrievedRecipients(AccountId: Guid; ExternalId: Text; ExpectedTo: Text; ExpectedCc: Text)
+    var
+        EmailInbox: Record "Email Inbox";
+        EmailMessage: Codeunit "Email Message";
+    begin
+        // Reread through the inbox link, rather than asserting against an in-memory Email Message.
+        FindRecipientInbox(AccountId, ExternalId, EmailInbox);
+        LibraryAssert.AreEqual('sender@test.com', EmailInbox."Sender Address", 'Importing recipients must not change the inbox sender address.');
+        LibraryAssert.AreEqual('Original Sender', EmailInbox."Sender Name", 'Importing recipients must not change the inbox sender name.');
+        LibraryAssert.AreEqual('Recipient retrieval', EmailInbox.Description, 'The original inbox description must be preserved.');
+        LibraryAssert.IsTrue(EmailMessage.Get(EmailInbox."Message Id"), 'The inbox must link to a persisted Email Message.');
+        LibraryAssert.AreEqual('Recipient retrieval', EmailMessage.GetSubject(), 'The original message subject must be preserved.');
+        LibraryAssert.AreEqual('Recipient retrieval body.', EmailMessage.GetBody(), 'The original message body must be preserved.');
+        AssertRecipientGroup(EmailMessage, Enum::"Email Recipient Type"::"To", ExpectedTo);
+        AssertRecipientGroup(EmailMessage, Enum::"Email Recipient Type"::Cc, ExpectedCc);
+        AssertRecipientGroup(EmailMessage, Enum::"Email Recipient Type"::Bcc, '');
+    end;
+
+    local procedure AssertRecipientGroup(EmailMessage: Codeunit "Email Message"; RecipientType: Enum "Email Recipient Type"; ExpectedAddresses: Text)
+    var
+        ActualRecipients: List of [Text];
+        RemainingExpected: List of [Text];
+        Address: Text;
+    begin
+        EmailMessage.GetRecipients(RecipientType, ActualRecipients);
+        if ExpectedAddresses <> '' then
+            RemainingExpected := ExpectedAddresses.ToLower().Split(';');
+        LibraryAssert.AreEqual(RemainingExpected.Count(), ActualRecipients.Count(), StrSubstNo(UnexpectedRecipientCountErr, RecipientType));
+        // Remove each matched address to verify exact membership and multiplicity, independent of order/casing.
+        foreach Address in ActualRecipients do
+            LibraryAssert.IsTrue(RemainingExpected.Remove(Address.ToLower()), StrSubstNo(UnexpectedRecipientErr, RecipientType, Address));
+        LibraryAssert.AreEqual(0, RemainingExpected.Count(), StrSubstNo(MissingRecipientsErr, RecipientType));
+    end;
+
+    [HttpClientHandler]
+    procedure GraphRetrieveRecipientsHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        ResponseJson: JsonObject;
+        ResponseText: Text;
+        RequestEndpoint: Text;
+        QueryPosition: Integer;
+    begin
+        LibraryAssert.IsTrue(Request.RequestType = HttpRequestType::GET, 'Only Graph GET retrieval is expected.');
+        RequestEndpoint := Request.Path;
+        QueryPosition := StrPos(RequestEndpoint, '?');
+        if QueryPosition > 0 then
+            RequestEndpoint := CopyStr(RequestEndpoint, 1, QueryPosition - 1);
+        LibraryAssert.AreEqual('https://graph.microsoft.com/v1.0/users/recipientuser@test.com/messages', RequestEndpoint, 'Unexpected Graph endpoint.');
+        RecipientGraphRequestCount += 1;
+        ResponseJson.Add('@odata.count', RecipientGraphMessages.Count());
+        ResponseJson.Add('value', RecipientGraphMessages);
+        ResponseJson.WriteTo(ResponseText);
+        Response.Content.WriteFrom(ResponseText);
+        Response.HttpStatusCode := 200;
+        exit(false);
     end;
 
     local procedure DeleteAllFromTablePlanAndUserPlan()
