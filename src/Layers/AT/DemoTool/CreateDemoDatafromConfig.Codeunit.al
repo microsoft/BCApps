@@ -18,8 +18,10 @@ codeunit 101899 "Create Demo Data from Config"
         DemoDataSetup: Record "Demo Data Setup";
     begin
         SetupDemonstrationData(DemoDataSetup);
+        SeedEntryTables();
         CODEUNIT.Run(CODEUNIT::"Create Demonstration Data");
         CleanUp();
+        UnSeedEntryTables();
     end;
 
     local procedure CreateDemoDataLogToFile(LogFileName: Text) Success: Boolean;
@@ -123,6 +125,56 @@ codeunit 101899 "Create Demo Data from Config"
             DemoDataSetup."Adjust for Payment Discount" := false; // AT
             DemoDataSetup.Modify();
         end;
+    end;
+
+    local procedure SeedEntryTables()
+    var
+        GLEntry: Record "G/L Entry";
+        VATEntry: Record "VAT Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ValueEntry: Record "Value Entry";
+        DetailedCustledgEntry: Record "Detailed Cust. Ledg. Entry";
+        DetailedVendledgEntry: Record "Detailed Vendor Ledg. Entry";
+        Seed: BigInteger;
+    begin
+        Seed := 5000000000000L;
+        GLEntry."Entry No." := Seed;
+        if GLEntry.Insert() then;
+        VATEntry."Entry No." := Seed;
+        if VATEntry.Insert() then;
+        ItemLedgerEntry."Entry No." := Seed;
+        if ItemLedgerEntry.Insert() then;
+        ValueEntry."Entry No." := Seed;
+        if ValueEntry.Insert() then;
+        DetailedCustledgEntry."Entry No." := Seed;
+        if DetailedCustledgEntry.Insert() then;
+        DetailedVendledgEntry."Entry No." := Seed;
+        if DetailedVendledgEntry.Insert() then;
+    end;
+
+    local procedure UnSeedEntryTables()
+    var
+        GLEntry: Record "G/L Entry";
+        VATEntry: Record "VAT Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ValueEntry: Record "Value Entry";
+        DetailedCustledgEntry: Record "Detailed Cust. Ledg. Entry";
+        DetailedVendledgEntry: Record "Detailed Vendor Ledg. Entry";
+        Seed: BigInteger;
+    begin
+        Seed := 5000000000000L;
+        if GLEntry.Get(Seed) then
+            if GLEntry.Delete() then;
+        if VATEntry.Get(Seed) then
+            if VATEntry.Delete() then;
+        if ItemLedgerEntry.Get(Seed) then
+            if ItemLedgerEntry.Delete() then;
+        if ValueEntry.Get(Seed) then
+            if ValueEntry.Delete() then;
+        if DetailedCustledgEntry.Get(Seed) then
+            if DetailedCustledgEntry.Delete() then;
+        if DetailedVendledgEntry.Get(Seed) then
+            if DetailedVendledgEntry.Delete() then;
     end;
 }
 
