@@ -616,7 +616,7 @@ codeunit 147314 "Cartera Payables Installments"
         PurchaseLine.Modify(true);
     end;
 
-    local procedure ApplyCreditMemoToFirstInstallment(EntryNo: Integer)
+    local procedure ApplyCreditMemoToFirstInstallment(EntryNo: BigInteger)
     var
         VendorLedgerEntries: TestPage "Vendor Ledger Entries";
     begin

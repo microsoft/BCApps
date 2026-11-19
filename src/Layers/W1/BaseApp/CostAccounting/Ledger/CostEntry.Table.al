@@ -24,7 +24,7 @@ table 1104 "Cost Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -87,7 +87,7 @@ table 1104 "Cost Entry"
             Caption = 'G/L Account';
             TableRelation = "G/L Account";
         }
-        field(29; "G/L Entry No."; Integer)
+        field(29; "G/L Entry No."; BigInteger)
         {
             Caption = 'G/L Entry No.';
             Editable = false;
@@ -107,7 +107,7 @@ table 1104 "Cost Entry"
         {
             Caption = 'Allocated';
         }
-        field(33; "Allocated with Journal No."; Integer)
+        field(33; "Allocated with Journal No."; BigInteger)
         {
             Caption = 'Allocated with Register No.';
         }
@@ -205,7 +205,7 @@ table 1104 "Cost Entry"
         exit(GLSetup."Additional Reporting Currency");
     end;
 
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
