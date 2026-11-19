@@ -9,7 +9,7 @@ using System.Reflection;
 
 table 8125 "Report Filename Pattern"
 {
-    // Initialization supplies common posted-document defaults without replacing existing patterns.
+    // Initialization supplies document, label and list defaults without replacing existing patterns.
     // With no matching enabled pattern, reports keep Business Central's own file name.
 
     Caption = 'Report Filename Pattern';

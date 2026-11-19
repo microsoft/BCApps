@@ -4,10 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 
+using Microsoft.CRM.Contact;
+using Microsoft.CRM.Reports;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Reporting.FileNaming;
+using Microsoft.Inventory.Reports;
 using Microsoft.Purchases.History;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using System.TestLibraries.Upgrade;
 using System.TestLibraries.Utilities;
@@ -131,6 +135,166 @@ codeunit 149549 "Filename Defaults Tests"
     end;
 
     [Test]
+    procedure EveryRequestedReportResolvesSingleAndMultipleRecords()
+    var
+        Pattern: Record "Report Filename Pattern";
+        ReportFilenameDefaults: Codeunit "Report Filename Defaults";
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
+        Subject: RecordRef;
+        ReportIds: List of [Integer];
+        ReportId: Integer;
+        FileName: Text;
+    begin
+        Initialize();
+        ReportFilenameDefaults.InitializeSetup(true);
+        RequestedReportIds(ReportIds);
+
+        foreach ReportId in ReportIds do begin
+            Pattern.Reset();
+            Pattern.SetRange("Report ID", ReportId);
+            if not Pattern.FindFirst() then begin
+                Pattern.SetRange("Report ID", 0);
+                Pattern.SetRange("Table No.", ReportFilenameMgt.SubjectTableNo(ReportId));
+                Assert.AreEqual(1, Pattern.Count(), StrSubstNo('Report %1 must have one table default.', ReportId));
+                Pattern.FindFirst();
+            end else
+                Assert.AreEqual(1, Pattern.Count(), StrSubstNo('Report %1 must have one report default.', ReportId));
+            Assert.IsTrue(Pattern.Enabled, StrSubstNo('Report %1 must be enabled.', ReportId));
+
+            if Pattern."Table No." = 0 then begin
+                Clear(Subject);
+                Assert.IsTrue(ReportFilenameMgt.TryResolve(ReportId, "Report Filename Output Route"::Save, Subject, '', FileName),
+                    StrSubstNo('Record-independent report %1 must resolve without a document.', ReportId));
+                Assert.AreNotEqual('', FileName, 'The report name and run date must have values.');
+            end else begin
+                Assert.AreEqual(ReportFilenameMgt.SubjectTableNo(ReportId), Pattern."Table No.", 'The default must name the actual report subject.');
+                Subject.Open(Pattern."Table No.", true);
+                InsertTemporarySubject(Subject, '100');
+                Assert.IsTrue(ReportFilenameMgt.TryResolve(ReportId, "Report Filename Output Route"::Save, Subject, '', FileName),
+                    StrSubstNo('Report %1 must name a single record.', ReportId));
+                Assert.IsTrue(FileName.Contains('DEFAULT-100'), StrSubstNo('Report %1 must include its actual record identifier: %2.', ReportId, FileName));
+
+                InsertTemporarySubject(Subject, '200');
+                Assert.IsTrue(ReportFilenameMgt.TryResolve(ReportId, "Report Filename Output Route"::Save, Subject, '', FileName),
+                    StrSubstNo('Report %1 must name a multi-record run.', ReportId));
+                Assert.IsTrue(FileName.Contains('DEFAULT-100'), 'A multi-record name must retain the first identifier.');
+                Assert.IsTrue(FileName.Contains('DEFAULT-200'), 'A multi-record name must retain the second identifier.');
+                Subject.Close();
+            end;
+        end;
+    end;
+
+    [Test]
+    procedure ExistingTableChoiceSuppressesMoreSpecificReportDefaults()
+    var
+        Pattern: Record "Report Filename Pattern";
+        ReportFilenameDefaults: Codeunit "Report Filename Defaults";
+        EntryNo: Integer;
+    begin
+        Initialize();
+        Pattern.Validate("Table No.", Database::"Sales Header");
+        Pattern.Validate("File Name Pattern", 'Custom-[No.]');
+        Pattern.Insert(true);
+        EntryNo := Pattern."Entry No.";
+
+        ReportFilenameDefaults.InitializeSetup(false);
+        ReportFilenameDefaults.InitializeSetup(false);
+
+        Pattern.SetRange("Table No.", Database::"Sales Header");
+        Assert.AreEqual(1, Pattern.Count(), 'No report default may shadow an existing disabled table choice.');
+        Pattern.FindFirst();
+        Assert.AreEqual(EntryNo, Pattern."Entry No.", 'The existing table pattern must remain untouched.');
+        Assert.IsFalse(Pattern.Enabled, 'Initialization must not enable an existing choice.');
+    end;
+
+    [Test]
+    procedure DisabledReportChoiceDoesNotSuppressOtherReportsOnItsTable()
+    var
+        Pattern: Record "Report Filename Pattern";
+        ReportFilenameDefaults: Codeunit "Report Filename Defaults";
+        EntryNo: Integer;
+    begin
+        Initialize();
+        Pattern.Validate("Report ID", Report::"Standard Sales - Quote");
+        Pattern.Validate("File Name Pattern", 'Custom-[No.]');
+        Pattern.Insert(true);
+        EntryNo := Pattern."Entry No.";
+
+        ReportFilenameDefaults.InitializeSetup(true);
+        ReportFilenameDefaults.InitializeSetup(true);
+
+        Pattern.SetRange("Report ID", Report::"Standard Sales - Quote");
+        Assert.AreEqual(1, Pattern.Count(), 'An existing report choice must not get a competing default.');
+        Pattern.FindFirst();
+        Assert.AreEqual(EntryNo, Pattern."Entry No.", 'The existing report pattern must remain untouched.');
+        Assert.IsFalse(Pattern.Enabled, 'Disabled report patterns must remain disabled.');
+        Pattern.SetRange("Report ID", Report::"Standard Sales - Order Conf.");
+        Assert.AreEqual(1, Pattern.Count(), 'Other requested reports on the same table still need their own defaults.');
+    end;
+
+    [Test]
+    procedure ContactCoverSheetNamesEitherSourceWithoutInventingANumber()
+    var
+        TempContact: Record Contact temporary;
+        ReportFilenameDefaults: Codeunit "Report Filename Defaults";
+        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
+        Subject: RecordRef;
+        ContactName: Text;
+        SegmentName: Text;
+    begin
+        Initialize();
+        ReportFilenameDefaults.InitializeSetup(true);
+        TempContact."No." := 'CONTACT-100';
+        TempContact.Insert();
+        TempContact."No." := 'CONTACT-200';
+        TempContact.Insert();
+        Subject.GetTable(TempContact);
+
+        Assert.IsTrue(ReportFilenameMgt.TryResolve(Report::"Contact Cover Sheet", "Report Filename Output Route"::Save, Subject, '', ContactName),
+            'The contact-driven cover sheet must resolve for multiple contacts.');
+        Subject.Close();
+        Subject.Open(ReportFilenameMgt.SubjectTableNo(Report::"Contact Cover Sheet"), true);
+        InsertTemporarySubject(Subject, '100');
+        InsertTemporarySubject(Subject, '200');
+        Assert.IsTrue(ReportFilenameMgt.TryResolve(Report::"Contact Cover Sheet", "Report Filename Output Route"::Save, Subject, '', SegmentName),
+            'The segment-driven cover sheet must resolve for multiple segments.');
+
+        Assert.AreEqual(ContactName, SegmentName, 'Both sources use the report caption and run date, not the wrong table number.');
+        Assert.IsFalse(ContactName.Contains('CONTACT-'), 'A record-independent pattern must not invent a segment number for contacts.');
+        Subject.Close();
+    end;
+
+    [Test]
+    procedure TrackingDefaultsDoNotNeedPersistentRecordsOrVirtualLoopNumbers()
+    var
+        ReportFilenameDefaults: Codeunit "Report Filename Defaults";
+        ReportFilenameSubscribers: Codeunit "Report Filename Subscribers";
+        Subject: RecordRef;
+        LoopNumber: FieldRef;
+        Payload: JsonObject;
+        FileName: Text;
+        Success: Boolean;
+    begin
+        Initialize();
+        ReportFilenameDefaults.InitializeSetup(true);
+        Payload.Add('intent', 'Save');
+
+        ReportFilenameSubscribers.NameFromPlatformEvent(Report::"Item Tracing Specification", Payload, '.pdf', Subject, FileName, Success);
+        Assert.IsTrue(Success, 'An Integer-only tracing report must be named without a source record.');
+        Assert.IsTrue(FileName.EndsWith('.pdf'), 'The output route must preserve the format extension.');
+
+        Subject.Open(Database::Integer);
+        LoopNumber := Subject.Field(1);
+        LoopNumber.SetRange(1, 5);
+        Clear(FileName);
+        Success := false;
+        ReportFilenameSubscribers.NameFromPlatformEvent(Report::"Item Tracking Appendix", Payload, '.pdf', Subject, FileName, Success);
+        Assert.IsTrue(Success, 'A multi-row virtual loop must use only report-level placeholders.');
+        Assert.IsFalse(FileName.Contains('1-2-3'), 'Integer loop counters are not document numbers.');
+        Subject.Close();
+    end;
+
+    [Test]
     procedure InstallingIntoExistingCompanyDoesNotEnableIt()
     var
         ReportFilenameDefaults: Codeunit "Report Filename Defaults";
@@ -219,7 +383,7 @@ codeunit 149549 "Filename Defaults Tests"
         Assert.AreEqual('_', Pattern.Separator, 'Custom separators must be preserved.');
         Assert.AreEqual(5, Pattern."Max. Values Named", 'Custom aggregation settings must be preserved.');
         Assert.AreEqual(AppId, Pattern."App ID", 'The inserting app must be preserved.');
-        Assert.AreEqual(4, Pattern.Count(), 'A customized table pattern must suppress a competing default.');
+        Assert.AreEqual(69, Pattern.Count(), 'A customized table pattern must suppress a competing default.');
     end;
 
     [Test]
@@ -237,7 +401,7 @@ codeunit 149549 "Filename Defaults Tests"
 
         AssertSetup(false, 100);
         AssertCustomPattern(EntryNo);
-        Assert.AreEqual(4, Pattern.Count(), 'Only the three unconfigured document tables need defaults.');
+        Assert.AreEqual(69, Pattern.Count(), 'The custom pattern replaces its table default without preventing other defaults.');
     end;
 
     [Test]
@@ -268,7 +432,7 @@ codeunit 149549 "Filename Defaults Tests"
         Pattern.Get(EntryNo);
         Assert.IsFalse(Pattern.Enabled, 'Initialization must not reenable a disabled default.');
         Pattern.Reset();
-        Assert.AreEqual(4, Pattern.Count(), 'Repeated initialization must not duplicate defaults.');
+        Assert.AreEqual(69, Pattern.Count(), 'Repeated initialization must not duplicate defaults.');
     end;
 
     [Test]
@@ -286,7 +450,7 @@ codeunit 149549 "Filename Defaults Tests"
 
         Assert.IsTrue(Pattern.IsEmpty(), 'A completed upgrade must not undo a subsequent deletion.');
         Pattern.Reset();
-        Assert.AreEqual(3, Pattern.Count(), 'Upgrade must run only once.');
+        Assert.AreEqual(68, Pattern.Count(), 'Upgrade must run only once.');
     end;
 
     [Test]
@@ -320,7 +484,7 @@ codeunit 149549 "Filename Defaults Tests"
 
         AssertSetup(Enabled, 75);
         AssertCustomPattern(EntryNo);
-        Assert.AreEqual(4, Pattern.Count(), 'Custom report-specific patterns must suppress a competing table default.');
+        Assert.AreEqual(69, Pattern.Count(), 'Custom report-specific patterns must suppress a competing table default.');
     end;
 
     local procedure VerifyCompanyInitializePreservesConfiguration(Enabled: Boolean)
@@ -413,11 +577,41 @@ codeunit 149549 "Filename Defaults Tests"
     var
         Pattern: Record "Report Filename Pattern";
     begin
-        Assert.AreEqual(4, Pattern.Count(), 'Only the four agreed posted-document tables get defaults.');
+        Assert.AreEqual(69, Pattern.Count(), 'The full requested report catalogue must be seeded without overlapping defaults.');
         AssertDefault(Database::"Sales Invoice Header");
         AssertDefault(Database::"Sales Cr.Memo Header");
         AssertDefault(Database::"Purch. Inv. Header");
         AssertDefault(Database::"Purch. Cr. Memo Hdr.");
+    end;
+
+    local procedure RequestedReportIds(var ReportIds: List of [Integer])
+    begin
+        ReportIds.AddRange(
+            110, 208, 210, 214, 215, 216, 310, 404, 405, 406, 407, 408, 410, 415, 416, 417, 418,
+            715, 752, 780, 902, 910, 1016, 1017, 1302, 1303, 1304, 1305, 1306, 1307, 1308, 1309, 1322,
+            5055, 5056, 5060, 5064, 5065, 5066, 5067, 5068, 5085, 5174, 5176, 5500,
+            5703, 5704, 5705, 5751, 5752, 5878, 5879, 5900, 5901, 5902, 5911, 5912, 5913,
+            5970, 5971, 5972, 5973, 6520, 6521, 6631, 6636, 6641, 6646, 7050);
+    end;
+
+    local procedure InsertTemporarySubject(var Subject: RecordRef; Suffix: Text)
+    var
+        SubjectKey: KeyRef;
+        KeyField: FieldRef;
+        FieldIndex: Integer;
+    begin
+        Subject.Init();
+        SubjectKey := Subject.KeyIndex(1);
+        for FieldIndex := 1 to SubjectKey.FieldCount do begin
+            KeyField := SubjectKey.FieldIndex(FieldIndex);
+            case KeyField.Type of
+                FieldType::Code, FieldType::Text:
+                    KeyField.Value := 'DEFAULT-' + Suffix;
+                FieldType::Integer:
+                    KeyField.Value := 1;
+            end;
+        end;
+        Subject.Insert();
     end;
 
     local procedure AssertDefault(TableNo: Integer)
