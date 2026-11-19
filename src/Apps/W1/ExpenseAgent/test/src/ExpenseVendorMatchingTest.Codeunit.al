@@ -672,8 +672,10 @@ codeunit 148337 "Expense Vendor Matching Test"
         ExpenseVendor.DeleteAll();
         LibraryExpense.UpdateEnableAgentInAgentSetup(false);
         LibraryExpense.UpdateUseRulesInAgentSetup(false);
-        if IsInitialized then
+        if IsInitialized then begin
+            SetupExpenseVendorNos();
             exit;
+        end;
 
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         SetupExpenseVendorNos();
@@ -684,10 +686,13 @@ codeunit 148337 "Expense Vendor Matching Test"
     local procedure SetupExpenseVendorNos()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        NoSeriesLine: Record "No. Series Line";
     begin
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup.Validate("Expense Vendor Nos.", LibraryUtility.GetGlobalNoSeriesCode());
         ExpenseAgentSetup.Modify(true);
+        NoSeriesLine.SetRange("Series Code", ExpenseAgentSetup."Expense Vendor Nos.");
+        NoSeriesLine.ModifyAll("Warning No.", '');
     end;
 
     local procedure SetupExpenseVendorNoSeries(var NoSeriesLine: Record "No. Series Line"; Implementation: Enum "No. Series Implementation")
