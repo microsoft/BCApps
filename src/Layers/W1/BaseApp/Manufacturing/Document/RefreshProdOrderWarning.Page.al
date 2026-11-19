@@ -66,7 +66,7 @@ page 99001026 "Refresh Prod. Order Warning"
         SetupInstructionsTxt: Label 'Default Location Code is not set in Manufacturing Setup. In the Planning group, set Default Location Code to default locations on new production orders. This does not update this order. Set its Location Code before refreshing, or continue without one.';
         OpenManufacturingSetupTxt: Label 'Open Manufacturing Setup';
 
-    procedure SetProductionOrder(ProductionOrder: Record "Production Order")
+    internal procedure SetProductionOrder(ProductionOrder: Record "Production Order")
     var
         ManufacturingSetup: Record "Manufacturing Setup";
     begin
@@ -77,7 +77,7 @@ page 99001026 "Refresh Prod. Order Warning"
             DefaultLocationMissing := ManufacturingSetup."Default Location Code" = '';
     end;
 
-    procedure IsSetupRequested(): Boolean
+    internal procedure IsSetupRequested(): Boolean
     begin
         exit(SetupRequested);
     end;
