@@ -25,33 +25,33 @@ codeunit 4160 "Business Skill"
     end;
 
     /// <summary>
-    /// Returns the instructions of the skill, optionally loading them from the database first.
+    /// Returns the content already loaded or assigned on the record buffer without reloading it.
     /// </summary>
-    procedure GetContent(var BusinessSkill: Record "Business Skill"; LoadFromDatabase: Boolean): SecretText
+    internal procedure GetContentFromBuffer(var BusinessSkill: Record "Business Skill"): SecretText
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(BusinessSkillImpl.GetContent(BusinessSkill, LoadFromDatabase));
+        exit(BusinessSkillImpl.GetContentFromBuffer(BusinessSkill));
     end;
 
     /// <summary>
     /// Activates a skill after validating its title and content.
     /// </summary>
-    procedure Activate(SkillId: BigInteger): Boolean
+    procedure Activate(SkillId: BigInteger)
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(BusinessSkillImpl.ActivateSkill(SkillId));
+        BusinessSkillImpl.ActivateSkill(SkillId);
     end;
 
     /// <summary>
     /// Deactivates a skill without changing its content.
     /// </summary>
-    procedure Deactivate(SkillId: BigInteger): Boolean
+    procedure Deactivate(SkillId: BigInteger)
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(BusinessSkillImpl.DeactivateSkill(SkillId));
+        BusinessSkillImpl.DeactivateSkill(SkillId);
     end;
 
     /// <summary>
@@ -77,10 +77,11 @@ codeunit 4160 "Business Skill"
     end;
 
     /// <summary>
-    /// Updates manual content and its version/history only if the expected identity and revision still match, without committing.
+    /// Updates manual content only if the expected identity and revision still match, without committing.
+    /// Changed content automatically advances the version and appends history. Identical content does not write.
     /// </summary>
     [CommitBehavior(CommitBehavior::Error)]
-    procedure SetNewContentAndUpdateVersion(SkillId: BigInteger; Content: SecretText; ExpectedSystemId: Guid; ExpectedRevision: BigInteger)
+    internal procedure SetNewContentAndUpdateVersion(SkillId: BigInteger; Content: SecretText; ExpectedSystemId: Guid; ExpectedRevision: BigInteger)
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
@@ -90,6 +91,7 @@ codeunit 4160 "Business Skill"
     /// <summary>
     /// Updates the calling app's skill identified by its code, preserving its status and other metadata.
     /// Changed content requires a nonblank version different from the saved version. Version-only changes fail.
+    /// Identical content and version do not write or append history.
     /// </summary>
     [CommitBehavior(CommitBehavior::Error)]
     procedure SetNewContentAndUpdateVersion(SkillCode: Code[100]; Content: SecretText; ContentVersion: Text[50])
@@ -99,5 +101,19 @@ codeunit 4160 "Business Skill"
     begin
         NavApp.GetCallerModuleInfo(CallerModule);
         BusinessSkillImpl.SetNewContentAndUpdateVersion(CallerModule.Id, SkillCode, Content, ContentVersion);
+    end;
+
+    /// <summary>
+    /// Updates the calling app's skill display name and description without changing its content, version, history, status or lock.
+    /// Normal table and management permissions apply. Identical metadata does not write.
+    /// </summary>
+    [CommitBehavior(CommitBehavior::Error)]
+    procedure UpdateMetadata(SkillCode: Code[100]; DisplayName: Text[250]; Description: Text[2048])
+    var
+        BusinessSkillImpl: Codeunit "Business Skill Impl.";
+        CallerModule: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModule);
+        BusinessSkillImpl.UpdateMetadata(CallerModule.Id, SkillCode, DisplayName, Description);
     end;
 }

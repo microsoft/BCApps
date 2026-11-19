@@ -95,7 +95,7 @@ codeunit 4162 "Business Skill Builder Impl."
         if TempBusinessSkill.Manual then
             TempBusinessSkill.TestField("Skill ID", '');
         BusinessSkillImpl.ValidateSkillInsert(TempBusinessSkill);
-        SkillContent := BusinessSkillImpl.GetContent(TempBusinessSkill, false);
+        SkillContent := BusinessSkillImpl.GetContentFromBuffer(TempBusinessSkill);
         Skill."Skill ID" := TempBusinessSkill."Skill ID";
         Skill.Manual := TempBusinessSkill.Manual;
         Skill."Read-Only" := TempBusinessSkill."Read-Only";
@@ -154,7 +154,7 @@ codeunit 4162 "Business Skill Builder Impl."
     begin
         if Skill.Manual <> TempBusinessSkill.Manual then
             Error(SkillIdentityMismatchErr);
-        SkillContent := BusinessSkillImpl.GetContent(TempBusinessSkill, false);
+        SkillContent := BusinessSkillImpl.GetContentFromBuffer(TempBusinessSkill);
         ContentChanged := not BusinessSkillImpl.ContentEquals(BusinessSkillImpl.GetContent(Skill), SkillContent);
         VersionChanged := ContentVersionSpecified and (Skill.Version <> TempBusinessSkill.Version);
         Changed := ContentChanged or VersionChanged or (Skill.Title <> TempBusinessSkill.Title) or

@@ -8,12 +8,13 @@ native pages, and XML import/export in
 
 | Object | Purpose |
 |---|---|
-| `Business Skill` | SecretText content reads, revision-aware manual updates, owning-app content updates, lifecycle, and availability |
-| `Business Skill Builder` | One-shot manual/app-owned creation; captures the calling extension's App ID |
+| `Business Skill` | Stored SecretText content reads, owning-app content/metadata updates, lifecycle, and availability |
+| `Business Skill Builder` | One-shot app-owned creation; captures the calling extension's App ID |
 
 `Business Skill Impl.` owns lifecycle and content validation, encoding, and length
-helpers. History capture, restoration, deletion guards, and the platform deletion
-subscriber live in `Business Skill Content History`. Both implementations are internal;
+helpers. History capture, restoration, and version-deletion guards live in
+`Business Skill Content History`. The platform deletion subscriber is not currently
+registered, so deleting a skill leaves its history behind. Both implementations are internal;
 consumers must not duplicate validation or history writes. Related objects are grouped
 under `src/History` and `src/ImportExport`.
 The platform `Business Skill` virtual table and `Business Skill Status` enum
@@ -24,15 +25,17 @@ remain in System; persistent skill storage is not an application table.
 
 Initialize the builder with `Initialize(SkillCode, DisplayName, Content)`.
 Use `SetDisplayName`, `SetDescription`, `SetContent`, `SetContentLocked`,
-`SetContentVersion`, `SetActive`, and `SetManual` before `Create`.
+`SetContentVersion`, and `SetActive` before `Create`.
 Creation defaults to inactive, app-owned with locked content, and version `v1.0`.
-`SetManual(true)` defaults to unlocked content and empty ownership. Explicitly
-locking manual content fails. Content parameters use `SecretText`.
+The internal `SetManual(true)` supports native authoring and approved friend apps;
+it defaults to unlocked content and empty ownership. Explicitly locking manual
+content fails. Content parameters use `SecretText`.
 
 For new manual creation, pass a blank code; the platform generates the saved
 code. App-owned creation uses a supplied code; the platform stamps the calling
 app's manifest App ID. Duplicate owner/code pairs fail. `Create` returns the
 numeric skill ID, not the skill code.
+Clear the builder variable before initializing it for another skill.
 
 The public builder is creation-only. Upsert helpers remain internal, as do
 native page updates that preserve the page's SystemId/SystemRowVersion baseline.
@@ -41,13 +44,34 @@ Do not replace a page update with a fresh-read upsert.
 Use `Business Skill.SetNewContentAndUpdateVersion(SkillCode, Content, ContentVersion)`
 for content-only updates owned by the calling app. Changed app-owned content
 requires an explicit nonblank version different from the stored label;
-version-only changes fail. Its manual overload takes numeric ID, content,
-expected SystemId and expected SystemRowVersion, and advances the content version
-when instructions change. Content updates do not implicitly activate a skill.
+version-only changes fail. Version labels are free text, not ordered versions.
+Identical content and version are a no-op. The internal manual overload takes
+numeric ID, content, expected SystemId and expected SystemRowVersion, and
+automatically advances the content version when instructions change. Identical
+manual content preserves revision and history. Content updates do not implicitly
+activate a skill.
 
-`Business Skill.GetContent` reads content
-as SecretText; its optional load flag also supports already-loaded temporary records.
+Use `Business Skill.UpdateMetadata(SkillCode, DisplayName, Description)` to
+maintain the calling app's existing skill, including inactive or content-locked
+skills. It preserves identity, content, version, history, status and lock state;
+identical metadata is a no-op. An empty description clears it. Missing or
+foreign-owned codes fail, and active skills still require a nonblank title.
+Normal TableData and management permissions apply. This is not a replacement
+for revision-aware native page updates.
+
+`Business Skill.GetContent` loads stored content and returns SecretText.
+Internal `GetContentFromBuffer` reads already-loaded or unsaved content without
+reloading it, including temporary search-result snapshots.
 Read APIs do not grant additional table permissions.
+`Activate` and `Deactivate` have no return value; errors propagate normally.
+
+System Application and the standalone module grant `Business IQ`
+(`b7e3a1d0-4f8c-4e2a-9c6b-1d3e5f7a9b0c`, publisher `Microsoft`)
+internal access for manual API creation/update and buffered search-result reads.
+AL friendship is app-wide, not restricted to these methods; consumers should use
+these facade methods rather than implementation objects. It does not grant
+TableData permissions or bypass native authorization. External tests use
+`Library - Business Skill` rather than receiving additional friendship.
 
 The builder terminology maps to the existing platform fields: Skill Code to
 `Skill ID`, Display Name to `Title`, Content to `Skill Text`, Content Locked to
@@ -72,7 +96,7 @@ Native storage fields and the NST contract are unchanged.
   authorizes app-owned content/version and lock changes; AL does not reject them
   solely because Read-Only is set. Owner updates while locked and explicit owner
   unlocking require the corresponding platform update. Content updates preserve
-  the lock unless explicitly changed. Public manual updates preserve expected
+  the lock unless explicitly changed. Internal manual updates preserve expected
   SystemId and SystemRowVersion checks.
 - XML export is manual-only; import creates new manual identities atomically.
   The instruction element is `Content`. The retired `SkillText` element is rejected;
@@ -81,7 +105,7 @@ Native storage fields and the NST contract are unchanged.
   export behavior. No history-data migration is provided for this unreleased move.
 
 BusinessIQ retains discovery/search, its HTTP API pages and NST-facing `Business Skill Agent API`
-(40224), calling these public facades. Its NST JSON contract and app identity do
+(40224), calling the facades and the internal methods described above. Its NST JSON contract and app identity do
 not change. BusinessIQ's HTTP/discovery content property is now `content`, not
 `skillText`; its `skillContent` navigation property remains unchanged.
 System Application does not depend on BusinessIQ or Base Application.
@@ -126,6 +150,9 @@ on an explicitly approved test environment: fixture cleanup deletes skills and
 history, and HTTP fixtures can commit changes. Compilation alone does not qualify
 runtime behavior.
 
-The independent fixture's `DeleteAll` clears skills and history. `InactivateSkill`
+The independent fixture's revision-aware `SetNewContentAndUpdateVersion` updates
+manual content through the internal facade, retaining expected identity/revision
+checks, automatic version increments, and identical-content no-ops.
+Its `DeleteAll` clears skills and history. `InactivateSkill`
 and `InactivateAll` use the shared lifecycle implementation and preserve content and history;
 the latter skips skills that are already inactive. None of these helpers commits.

@@ -22,6 +22,32 @@ codeunit 130050 "Business Skill Test"
     EventSubscriberInstance = Manual;
 
     /// <summary>
+    /// Stored reads load content while explicit buffer reads preserve unsaved content, including empty temporary buffers.
+    /// </summary>
+    [Test]
+    procedure StoredAndBufferedContentReadsRemainDistinct()
+    var
+        Skill: Record "Business Skill";
+        TempSkill: Record "Business Skill" temporary;
+        BusinessSkill: Codeunit "Business Skill";
+    begin
+        // [GIVEN] A stored skill and a temporary buffer carrying different content for the same ID.
+        Initialize();
+        Skill.Get(LibraryBusinessSkill.CreateSkill('Stored content', SecretStrSubstNo('Stored')));
+        TempSkill := Skill;
+        BusinessSkillImpl.SetContent(TempSkill, SecretStrSubstNo('Unsaved'));
+
+        // [WHEN] Reading persisted content and the explicit buffer.
+        AssertContentEquals(SecretStrSubstNo('Stored'), BusinessSkill.GetContent(Skill), 'Public reads must load the stored BLOB.');
+        AssertContentEquals(SecretStrSubstNo('Unsaved'), BusinessSkill.GetContentFromBuffer(TempSkill), 'Buffer reads must retain unsaved content.');
+        Clear(TempSkill."Skill Text");
+
+        // [THEN] An empty buffer stays empty instead of loading the stored skill's content.
+        Assert.IsTrue(BusinessSkill.GetContentFromBuffer(TempSkill).IsEmpty(), 'Buffer reads must not replace empty content from storage.');
+        AssertContentEquals(SecretStrSubstNo('Stored'), BusinessSkill.GetContent(Skill), 'Buffer operations must not write the stored skill.');
+    end;
+
+    /// <summary>
     /// Verifies reading empty or single-line BLOB text does not add a leading line break.
     /// </summary>
     [Test]
@@ -752,6 +778,8 @@ codeunit 130050 "Business Skill Test"
         asserterror BusinessSkill.SetNewContentAndUpdateVersion(SkillId, SecretStrSubstNo('Stale text'), Original.SystemId, Original.SystemRowVersion);
         // [THEN] Concurrency checks reject them.
         Assert.ExpectedError('changed by another user');
+        asserterror LibraryBusinessSkill.SetNewContentAndUpdateVersion(SkillId, SecretStrSubstNo('Stale fixture text'), Original.SystemId, Original.SystemRowVersion);
+        Assert.ExpectedError('changed by another user');
         Original.Title := 'Stale title';
         asserterror BusinessSkillImpl.UpdateSkillRecord(SkillId, Original, SecretStrSubstNo('Stale record text'));
         Assert.ExpectedError('changed by another user');
@@ -770,6 +798,7 @@ codeunit 130050 "Business Skill Test"
         Skill: Record "Business Skill";
         BusinessSkill: Codeunit "Business Skill";
         SkillId: BigInteger;
+        Revision: BigInteger;
     begin
         // [GIVEN] A current skill revision and a mismatched record identity.
         Initialize();
@@ -780,6 +809,8 @@ codeunit 130050 "Business Skill Test"
         asserterror BusinessSkill.SetNewContentAndUpdateVersion(SkillId, SecretStrSubstNo('Wrong identity'), CreateGuid(), Skill.SystemRowVersion);
         // [THEN] The current revision succeeds and the wrong identity fails.
         Assert.ExpectedError('changed by another user');
+        asserterror LibraryBusinessSkill.SetNewContentAndUpdateVersion(SkillId, SecretStrSubstNo('Wrong fixture identity'), CreateGuid(), Skill.SystemRowVersion);
+        Assert.ExpectedError('changed by another user');
         Skill.Title := 'Updated title';
         BusinessSkillImpl.UpdateSkillRecord(SkillId, Skill, SecretStrSubstNo('Updated text'));
         Skill.Get(SkillId);
@@ -787,11 +818,15 @@ codeunit 130050 "Business Skill Test"
         AssertContentEquals(SecretStrSubstNo('Updated text'), BusinessSkillImpl.GetContent(Skill), 'A current record revision must update text.');
         AssertVersionCount(SkillId, 2);
 
-        BusinessSkill.SetNewContentAndUpdateVersion(SkillId, SecretStrSubstNo('Public update'), Skill.SystemId, Skill.SystemRowVersion);
+        LibraryBusinessSkill.SetNewContentAndUpdateVersion(SkillId, SecretStrSubstNo('Fixture update'), Skill.SystemId, Skill.SystemRowVersion);
         Skill.Get(SkillId);
-        AssertContentEquals(SecretStrSubstNo('Public update'), BusinessSkillImpl.GetContent(Skill), 'The public manual update must accept the current revision.');
-        Assert.AreEqual('v1.2', Skill.Version, 'The public manual update must advance the content version.');
-        AssertVersionCount(SkillId, 3);
+        AssertContentEquals(SecretStrSubstNo('Fixture update'), BusinessSkillImpl.GetContent(Skill), 'The fixture helper must accept the current revision.');
+        Assert.AreEqual('v1.2', Skill.Version, 'The fixture helper must advance the manual content version.');
+        Revision := Skill.SystemRowVersion;
+        LibraryBusinessSkill.SetNewContentAndUpdateVersion(Skill.ID, SecretStrSubstNo('Fixture update'), Skill.SystemId, Skill.SystemRowVersion);
+        Skill.Get(Skill.ID);
+        Assert.AreEqual(Revision, Skill.SystemRowVersion, 'Identical fixture content must preserve the revision.');
+        AssertVersionCount(Skill.ID, 3);
     end;
 
     /// <summary>

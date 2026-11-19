@@ -160,6 +160,88 @@ codeunit 130051 "Business Skill Builder Test"
     end;
 
     /// <summary>
+    /// Metadata updates select the calling app's skill and preserve its definition, history and lifecycle state.
+    /// </summary>
+    [Test]
+    procedure MetadataUpdatePreservesContentAndCallerIdentity()
+    var
+        Skill: Record "Business Skill";
+        OriginalSkill: Record "Business Skill";
+        ForeignSkill: Record "Business Skill";
+        BusSkillContentVersion: Record "Bus Skill Content Version";
+        Builder: Codeunit "Business Skill Builder";
+        BusinessSkill: Codeunit "Business Skill";
+        Revision: BigInteger;
+        ForeignRevision: BigInteger;
+    begin
+        // [GIVEN] Locked inactive skills with the same code owned by different apps.
+        Initialize();
+        Skill.Get(Builder.Initialize('METADATA', 'Original title', SecretStrSubstNo('Instructions')).SetDescription('Original description').Create());
+        OriginalSkill := Skill;
+        ForeignSkill.Get(LibraryBusinessSkill.CreateAppOwnedSkill('METADATA', 'Foreign title', SecretStrSubstNo('Foreign instructions')));
+        ForeignRevision := ForeignSkill.SystemRowVersion;
+
+        // [WHEN] The calling app changes its display name and clears its description.
+        BusinessSkill.UpdateMetadata('METADATA', 'Updated title', '');
+
+        // [THEN] Only metadata changes, including on locked inactive skills.
+        Skill.Get(Skill.ID);
+        Assert.AreEqual('Updated title', Skill.Title, 'The display name must be updated.');
+        Assert.AreEqual('', Skill.Description, 'An empty description must clear the saved value.');
+        Assert.AreEqual(OriginalSkill.SystemId, Skill.SystemId, 'Metadata must preserve the system identity.');
+        Assert.AreEqual(OriginalSkill."Owning App ID", Skill."Owning App ID", 'Metadata must preserve the owning app.');
+        Assert.AreEqual(OriginalSkill.Version, Skill.Version, 'Metadata must preserve the content version.');
+        Assert.AreEqual(OriginalSkill.Status, Skill.Status, 'Metadata must not activate the skill.');
+        Assert.IsTrue(Skill."Read-Only", 'Metadata must preserve the content lock.');
+        AssertContentEquals(SecretStrSubstNo('Instructions'), BusinessSkill.GetContent(Skill), 'Metadata must preserve content.');
+        BusSkillContentVersion.SetRange("Skill ID", Skill.ID);
+        Assert.AreEqual(1, BusSkillContentVersion.Count(), 'Metadata must not append content history.');
+        ForeignSkill.Get(ForeignSkill.ID);
+        Assert.AreEqual(ForeignRevision, ForeignSkill.SystemRowVersion, 'A matching code in another app must not be modified.');
+
+        Revision := Skill.SystemRowVersion;
+        BusinessSkill.UpdateMetadata('METADATA', 'Updated title', '');
+        Skill.Get(Skill.ID);
+        Assert.AreEqual(Revision, Skill.SystemRowVersion, 'Identical metadata must not write.');
+    end;
+
+    /// <summary>
+    /// Metadata updates reject missing, foreign and manual targets and cannot invalidate an active skill.
+    /// </summary>
+    [Test]
+    procedure MetadataUpdateRejectsInvalidTargets()
+    var
+        Skill: Record "Business Skill";
+        ManualSkill: Record "Business Skill";
+        Builder: Codeunit "Business Skill Builder";
+        BusinessSkill: Codeunit "Business Skill";
+        Revision: BigInteger;
+    begin
+        // [GIVEN] An active owned skill, a foreign skill and a manual skill.
+        Initialize();
+        Skill.Get(Builder.Initialize('ACTIVE-METADATA', 'Active title', SecretStrSubstNo('Instructions')).SetActive(true).Create());
+        Revision := Skill.SystemRowVersion;
+        LibraryBusinessSkill.CreateAppOwnedSkill('FOREIGN-METADATA', 'Foreign title', SecretStrSubstNo('Foreign instructions'));
+        ManualSkill.Get(LibraryBusinessSkill.CreateSkill('Manual title', SecretStrSubstNo('Manual instructions')));
+        Commit();
+
+        // [WHEN] The caller selects an unavailable target or supplies a blank active title.
+        asserterror BusinessSkill.UpdateMetadata('MISSING-METADATA', 'Changed', '');
+        Assert.ExpectedError('was not found among the calling app');
+        asserterror BusinessSkill.UpdateMetadata('FOREIGN-METADATA', 'Changed', '');
+        Assert.ExpectedError('was not found among the calling app');
+        asserterror BusinessSkill.UpdateMetadata(ManualSkill."Skill ID", 'Changed', '');
+        Assert.ExpectedError('was not found among the calling app');
+        asserterror BusinessSkill.UpdateMetadata('ACTIVE-METADATA', '   ', 'Changed');
+        Assert.ExpectedError('An active skill needs a title and skill content');
+
+        // [THEN] Rejection preserves the active skill and its revision.
+        Skill.Get(Skill.ID);
+        Assert.AreEqual('Active title', Skill.Title, 'Invalid metadata must not be saved.');
+        Assert.AreEqual(Revision, Skill.SystemRowVersion, 'Rejected updates must not write.');
+    end;
+
+    /// <summary>
     /// The installed owning app can still delete its skill and receives no stale denial message.
     /// </summary>
     [Test]

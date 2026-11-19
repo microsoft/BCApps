@@ -6,10 +6,10 @@
 namespace System.AI.BusinessSkills;
 
 /// <summary>
-/// Creates one manual skill or a skill owned by the calling app.
+/// Creates one skill owned by the calling app.
 /// </summary>
 /// <remarks>
-/// The platform assigns manual skill codes and stamps the calling app as the owner of app-owned skills.
+/// The platform stamps the calling app as the owner. Clear the builder before creating another skill.
 /// </remarks>
 codeunit 4161 "Business Skill Builder"
 {
@@ -18,7 +18,6 @@ codeunit 4161 "Business Skill Builder"
 
     /// <summary>
     /// Supplies the skill code, display name and content. New app-owned skills default to inactive with locked content and version v1.0.
-    /// Use SetManual(true) and an empty code to create a manual skill.
     /// </summary>
     procedure Initialize(SkillCode: Code[100]; DisplayName: Text[250]; Content: SecretText): Codeunit "Business Skill Builder"
     var
@@ -30,9 +29,10 @@ codeunit 4161 "Business Skill Builder"
     end;
 
     /// <summary>
-    /// Selects manual ownership. New manual skills default to unlocked content; this never converts a saved skill's identity.
+    /// Selects manual ownership for internal authoring. Use an empty code for new manual skills, which default to unlocked content.
+    /// This never converts a saved skill's identity.
     /// </summary>
-    procedure SetManual(Manual: Boolean): Codeunit "Business Skill Builder"
+    internal procedure SetManual(Manual: Boolean): Codeunit "Business Skill Builder"
     begin
         BuilderImpl.SetManual(Manual);
         exit(this);

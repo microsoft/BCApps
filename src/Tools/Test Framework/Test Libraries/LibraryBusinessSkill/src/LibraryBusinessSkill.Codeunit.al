@@ -46,6 +46,14 @@ codeunit 130055 "Library - Business Skill"
     end;
 
     /// <summary>
+    /// Updates manual fixture content only if the expected identity and revision match, advancing its version when content changes.
+    /// </summary>
+    procedure SetNewContentAndUpdateVersion(SkillId: BigInteger; Content: SecretText; ExpectedSystemId: Guid; ExpectedRevision: BigInteger)
+    begin
+        BusinessSkillTestImpl.SetNewContentAndUpdateVersion(SkillId, Content, ExpectedSystemId, ExpectedRevision);
+    end;
+
+    /// <summary>
     /// Activates a skill through the shared lifecycle validation.
     /// </summary>
     procedure ActivateSkill(SkillId: BigInteger)

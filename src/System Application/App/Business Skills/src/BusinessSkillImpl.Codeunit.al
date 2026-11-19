@@ -39,7 +39,7 @@ codeunit 4163 "Business Skill Impl."
         PreventReadOnlyManualSkill(Skill);
         if Skill.Version = '' then
             Skill.Version := InitialVersionTok;
-        ValidateContent(Skill, false, ActiveContentRequiredErr);
+        ValidateContent(Skill, GetContentFromBuffer(Skill), ActiveContentRequiredErr);
     end;
 
     /// <summary>
@@ -57,10 +57,10 @@ codeunit 4163 "Business Skill Impl."
             Error(SkillIdentityImmutableErr);
         Skill.TestField(Version);
         if (Skill.Version <> StoredSkill.Version) and not IsManualSkill(Skill) then
-            if ContentEquals(GetContent(Skill, false), GetContent(StoredSkill)) then
+            if ContentEquals(GetContentFromBuffer(Skill), GetContent(StoredSkill)) then
                 Error(ProgrammaticVersionRequiresContentErr);
         PreventReadOnlyManualSkill(Skill);
-        ValidateContent(Skill, false, ActiveContentRequiredErr);
+        ValidateContent(Skill, GetContentFromBuffer(Skill), ActiveContentRequiredErr);
     end;
 
     procedure IsManualSkill(Skill: Record "Business Skill"): Boolean
@@ -216,25 +216,23 @@ codeunit 4163 "Business Skill Impl."
         exit(true);
     end;
 
-    procedure ActivateSkill(SkillId: BigInteger): Boolean
+    procedure ActivateSkill(SkillId: BigInteger)
     var
         BusinessSkill: Record "Business Skill";
     begin
         BusinessSkill.Get(SkillId);
         BusinessSkill.Status := BusinessSkill.Status::Active;
-        ValidateContent(BusinessSkill, true, ActivationContentRequiredErr);
+        ValidateContent(BusinessSkill, GetContent(BusinessSkill), ActivationContentRequiredErr);
         BusinessSkill.Modify(true);
-        exit(true);
     end;
 
-    procedure DeactivateSkill(SkillId: BigInteger): Boolean
+    procedure DeactivateSkill(SkillId: BigInteger)
     var
         BusinessSkill: Record "Business Skill";
     begin
         BusinessSkill.Get(SkillId);
         BusinessSkill.Status := BusinessSkill.Status::Inactive;
         BusinessSkill.Modify(true);
-        exit(true);
     end;
 
     /// <summary>
@@ -353,12 +351,28 @@ codeunit 4163 "Business Skill Impl."
     var
         Skill: Record "Business Skill";
     begin
+        GetAppOwnedSkill(CallerAppId, SkillCode, Skill);
+        SetContent(Skill.ID, Content, ContentVersion);
+    end;
+
+    /// <summary>
+    /// Updates only the calling app's skill metadata through the existing validation and write path.
+    /// </summary>
+    procedure UpdateMetadata(CallerAppId: Guid; SkillCode: Code[100]; DisplayName: Text[250]; Description: Text[2048])
+    var
+        BusinessSkill: Record "Business Skill";
+    begin
+        GetAppOwnedSkill(CallerAppId, SkillCode, BusinessSkill);
+        UpdateSkill(BusinessSkill, DisplayName, Description, GetContent(BusinessSkill));
+    end;
+
+    local procedure GetAppOwnedSkill(CallerAppId: Guid; SkillCode: Code[100]; var Skill: Record "Business Skill")
+    begin
         Skill.SetRange("Owning App ID", CallerAppId);
         Skill.SetRange("Skill ID", SkillCode);
         Skill.SetRange(Manual, false);
         if not Skill.FindFirst() then
             Error(AppSkillNotFoundErr);
-        SetContent(Skill.ID, Content, ContentVersion);
     end;
 
     /// <summary>
@@ -379,11 +393,8 @@ codeunit 4163 "Business Skill Impl."
         exit(BusinessSkill.Status = BusinessSkill.Status::Active);
     end;
 
-    local procedure ValidateContent(var Skill: Record "Business Skill"; LoadFromDatabase: Boolean; ErrorMessage: Text)
-    var
-        Value: SecretText;
+    local procedure ValidateContent(Skill: Record "Business Skill"; Value: SecretText; ErrorMessage: Text)
     begin
-        Value := GetContent(Skill, LoadFromDatabase);
         ValidateLength(Value);
         if (Skill.Status = Skill.Status::Active) and ((Skill.Title.Trim() = '') or IsBlank(Value)) then
             Error(ErrorMessage);
@@ -401,18 +412,17 @@ codeunit 4163 "Business Skill Impl."
     /// </summary>
     procedure GetContent(var Skill: Record "Business Skill"): SecretText
     begin
-        exit(GetContent(Skill, true));
+        Skill.CalcFields("Skill Text");
+        exit(GetContentFromBuffer(Skill));
     end;
 
     /// <summary>
-    /// Returns the instructions of the skill. Without loading, the value already on the record is returned.
+    /// Returns the content already loaded or assigned on the record buffer without reloading it.
     /// </summary>
-    procedure GetContent(var Skill: Record "Business Skill"; LoadFromDatabase: Boolean): SecretText
+    procedure GetContentFromBuffer(var Skill: Record "Business Skill"): SecretText
     var
         Input: InStream;
     begin
-        if LoadFromDatabase then
-            Skill.CalcFields("Skill Text");
         if not Skill."Skill Text".HasValue() then
             exit;
         Skill."Skill Text".CreateInStream(Input, GetEncoding());

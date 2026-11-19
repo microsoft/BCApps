@@ -52,6 +52,16 @@ codeunit 4165 "Business Skill Test Impl."
     end;
 
     /// <summary>
+    /// Updates manual fixture content through the revision-aware authoring method.
+    /// </summary>
+    procedure SetNewContentAndUpdateVersion(SkillId: BigInteger; Content: SecretText; ExpectedSystemId: Guid; ExpectedRevision: BigInteger)
+    var
+        BusinessSkill: Codeunit "Business Skill";
+    begin
+        BusinessSkill.SetNewContentAndUpdateVersion(SkillId, Content, ExpectedSystemId, ExpectedRevision);
+    end;
+
+    /// <summary>
     /// Activates a skill through the shared lifecycle validation.
     /// </summary>
     procedure ActivateSkill(SkillId: BigInteger)
