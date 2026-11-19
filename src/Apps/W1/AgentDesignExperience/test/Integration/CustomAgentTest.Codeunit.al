@@ -8,6 +8,7 @@ namespace System.Test.Agents.Designer.CustomAgent;
 using System.Agents;
 using System.Agents.Designer;
 using System.Agents.Designer.CustomAgent;
+using System.Agents.Internal;
 using System.Test.Agents.Designer;
 using System.TestLibraries.Utilities;
 
@@ -120,6 +121,32 @@ codeunit 133754 "Custom Agent Test"
 
         // Archiving is terminal, so the shared test agents must be recreated
         Initialized := false;
+    end;
+
+    [Test]
+    procedure TestBusinessSkillsOptInFollowsAgentConfiguration()
+    var
+        CustomAgentSetup: Record "Custom Agent Setup";
+        MetadataProvider: Enum "Agent Metadata Provider";
+        AgentExperimental: Interface IAgentExperimental;
+    begin
+        Initialize();
+        MetadataProvider := MetadataProvider::"Custom Agent";
+        AgentExperimental := MetadataProvider;
+        Assert.IsFalse(AgentExperimental.IsOptInFeatureEnabled(TestAgentId1, Enum::"Agent Opt In Feature"::BusinessIQ), 'Business Skills must be disabled by default.');
+
+        CustomAgentSetup.Get(TestAgentId1);
+        CustomAgentSetup."Use Business Skills" := true;
+        CustomAgentSetup.Modify(true);
+
+        Assert.IsTrue(AgentExperimental.IsOptInFeatureEnabled(TestAgentId1, Enum::"Agent Opt In Feature"::BusinessIQ), 'Enabling Business Skills must opt the configured agent in.');
+        Assert.IsFalse(AgentExperimental.IsOptInFeatureEnabled(TestAgentId2, Enum::"Agent Opt In Feature"::BusinessIQ), 'Enabling Business Skills must not affect other agents.');
+
+        CustomAgentSetup."Use Business Skills" := false;
+        CustomAgentSetup.Modify(true);
+
+        Assert.IsFalse(AgentExperimental.IsOptInFeatureEnabled(TestAgentId1, Enum::"Agent Opt In Feature"::BusinessIQ), 'Disabling Business Skills must opt the agent out.');
+        Assert.IsFalse(AgentExperimental.IsOptInFeatureEnabled(CreateGuid(), Enum::"Agent Opt In Feature"::BusinessIQ), 'Agents without configuration must not opt in to Business Skills.');
     end;
 
     [Test]

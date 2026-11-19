@@ -205,6 +205,21 @@ page 4350 "Custom Agent Setup"
                     }
                 }
 
+                group(AgentSkillsGroup)
+                {
+                    Caption = 'Agent skills';
+
+                    field(UseBusinessSkills; Rec."Use Business Skills")
+                    {
+                        ApplicationArea = All;
+
+                        trigger OnValidate()
+                        begin
+                            IsUpdated := true;
+                        end;
+                    }
+                }
+
                 group(AgentModelGroup)
                 {
                     Caption = 'Agent model';
@@ -377,6 +392,7 @@ page 4350 "Custom Agent Setup"
 
         NewCustomAgentSetupRecord.Initials := Rec.Initials;
         NewCustomAgentSetupRecord.Description := Rec.Description;
+        NewCustomAgentSetupRecord."Use Business Skills" := Rec."Use Business Skills";
         NewCustomAgentSetupRecord."User Security ID" := Rec."User Security ID";
         NewCustomAgentSetupRecord.Modify(true);
         if NewInstructionsTxt <> '' then
