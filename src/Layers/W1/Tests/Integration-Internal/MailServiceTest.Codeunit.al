@@ -18,26 +18,20 @@ codeunit 139111 "Mail Service Test"
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryService: Codeunit "Library - Service";
-#if not CLEAN30
         LibraryJob: Codeunit "Library - Job";
-#endif
         ActiveDirectoryMockEvents: Codeunit "Active Directory Mock Events";
         IsInitialized: Boolean;
         EmailSubjectCapMsg: Label '%1 - %2 %3';
         AttachmentNameTok: Label '%1 %2.pdf';
         SalesInvoiceTxt: Label 'Sales Invoice';
-#if not CLEAN30
         SalesQuoteTxt: Label 'Sales Quote';
-#endif
         SalesShipmentTxt: Label 'Sales Shipment';
         SalesReceiptTxt: Label 'Sales Receipt';
         PurchaseQuoteTxt: Label 'Purchase Quote';
         PurchaseOrderTxt: Label 'Purchase Order';
         ServiceInvoiceTxt: Label 'Service Invoice';
         ServiceCrMemoTxt: Label 'Service Credit Memo';
-#if not CLEAN30
         JobQuoteTxt: Label 'Project Quote';
-#endif
         IncorrectSubjectErr: Label 'Subject is not correct';
         IncorrectAttachNameErr: Label 'Attachment Name is not correct';
 
@@ -171,7 +165,6 @@ codeunit 139111 "Mail Service Test"
         // [THEN] Send dialog appeared (handler has been invoked)
     end;
 
-#if not CLEAN30
     [Test]
     [HandlerFunctions('ValidateMailDialog')]
     [Scope('OnPrem')]
@@ -239,7 +232,6 @@ codeunit 139111 "Mail Service Test"
 
         LibraryVariableStorage.AssertEmpty();
     end;
-#endif
 
     [Test]
     [HandlerFunctions('ValidateMailDialog')]
@@ -270,7 +262,6 @@ codeunit 139111 "Mail Service Test"
         LibraryVariableStorage.AssertEmpty();
     end;
 
-#if not CLEAN30
     [Test]
     [HandlerFunctions('ValidateMailDialog')]
     [Scope('OnPrem')]
@@ -300,7 +291,6 @@ codeunit 139111 "Mail Service Test"
 
         LibraryVariableStorage.AssertEmpty();
     end;
-#endif
 
     [Test]
     [HandlerFunctions('SelectSendingOptionsOKModalPageHandler,ValidateMailDialog')]
@@ -436,26 +426,12 @@ codeunit 139111 "Mail Service Test"
         end;
     end;
 
-#if not CLEAN30
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
-        CustomReportSelection: Record "Custom Report Selection";
-#pragma warning disable AL0432, AS0105
-        CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432, AS0105
+        LibraryReportSelection: Codeunit "Library - Report Selection";
     begin
-        CustomReportSelection.Init();
-        CustomReportSelection.Validate("Source Type", Database::Customer);
-        CustomReportSelection.Validate("Source No.", CustomerNo);
-        CustomReportSelection.Validate(Usage, ReportSelectionUsage);
-        CustomReportSelection.Validate(Sequence, 1);
-        CustomReportSelection.Validate("Report ID", ReportID);
-        CustomReportSelection.Validate("Use for Email Body", true);
-        CustomReportSelection.Validate(
-            "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
-        CustomReportSelection.Insert(true);
+        LibraryReportSelection.CreateCustomerEmailBodyLayout(CustomerNo, ReportSelectionUsage, ReportID, true);
     end;
-#endif
 
     local procedure CreateEmailPdfDefaultDocumentSendingProfile();
     var

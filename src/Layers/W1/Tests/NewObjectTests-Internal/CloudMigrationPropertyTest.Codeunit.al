@@ -680,7 +680,13 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"XML Schema Restriction");
         ListOfTablesToMigrate.Add(Database::"XML Schema");
         ListOfTablesToMigrate.Add(Database::"Zone");
-        ListOfTablesToMigrate.Add(9650); // Database::"Custom Report Layout"
+#if not CLEAN30
+#pragma warning disable AL0432, AS0105
+        ListOfTablesToMigrate.Add(Database::"Custom Report Layout");
+#pragma warning restore AL0432, AS0105
+#else
+        ListOfTablesToMigrate.Add(9650); // "Custom Report Layout" is Removed but stays in the metadata, and its data is still migrated
+#endif
         ListOfTablesToMigrate.Add(Database::"Feature Data Update Status");
         ListOfTablesToMigrate.Add(Database::"Feature Data Update Status");
         ListOfTablesToMigrate.Add(Database::"Image Analysis Setup");

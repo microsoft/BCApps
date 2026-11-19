@@ -1037,6 +1037,48 @@ codeunit 134761 "Test Custom Reports"
 
     [Test]
     [Scope('OnPrem')]
+    procedure UT_CleanEmailLayoutNames_OnReportIdValidate()
+    var
+        CustomReportSelection: Record "Custom Report Selection";
+        ReportLayoutList: Record "Report Layout List";
+        LibraryReportSelection: Codeunit "Library - Report Selection";
+        ReportId: array[2] of Integer;
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 319160] Clean the email attachment and email body report layouts on "Report Id" field validation with new value
+        Initialize();
+        ReportID[1] := Report::"Standard Statement";
+        ReportID[2] := Report::"Statement";
+
+        // [GIVEN] Document layout for report "Standard Statement" with report layout "L" for the email attachment and the email body
+        LibraryReportSelection.CreateWordLayout(ReportId[1], ReportLayoutList);
+        CustomReportSelection.Init();
+        CustomReportSelection.Validate("Report ID", ReportId[1]);
+        CustomReportSelection.Validate("Use for Email Body", true);
+        DocumentLayoutTestHelper.SetDocumentLayout(CustomReportSelection, ReportLayoutList);
+        CustomReportSelection."Email Body Layout Name" := ReportLayoutList.Name;
+        CustomReportSelection."Email Body Layout AppID" := ReportLayoutList."Application ID";
+        CustomReportSelection.Insert(true);
+
+        // [WHEN] "Report ID" is validated with the same report
+        CustomReportSelection.Validate("Report ID", ReportId[1]);
+
+        // [THEN] The report layouts are kept
+        CustomReportSelection.TestField("Use for Email Body", true);
+        CustomReportSelection.TestField("Email Attachment Layout Name", ReportLayoutList.Name);
+        CustomReportSelection.TestField("Email Body Layout Name", ReportLayoutList.Name);
+
+        // [WHEN] "Report ID" is validated with another report
+        CustomReportSelection.Validate("Report ID", ReportId[2]);
+
+        // [THEN] The report layouts of the previous report are cleared
+        CustomReportSelection.TestField("Email Attachment Layout Name", '');
+        CustomReportSelection.TestField("Email Body Layout Name", '');
+        CustomReportSelection.TestField("Use for Email Body", true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure FormatDocSetSalesLineTypeBlank()
     var
         SalesLine: Record "Sales Line";

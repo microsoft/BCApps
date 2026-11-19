@@ -52,9 +52,6 @@ using Microsoft.Utilities;
 using Microsoft.Warehouse.Structure;
 using System.Environment.Configuration;
 using System.IO;
-#if CLEAN30
-using System.Reflection;
-#endif
 using System.Security.User;
 using System.TestLibraries.Utilities;
 
@@ -8247,50 +8244,12 @@ codeunit 136101 "Service Orders"
             exit(ServiceInvoiceHeader."No.");
     end;
 
-    // The printing scenario only needs a customer document layout that carries an email body layout for the
-    // report; it asserts that printing does not error, not which layout was used. Before 29.0 that layout is
-    // a legacy "Custom Report Layout"; from 29.0 it is the report layout name that superseded it.
-#if not CLEAN30
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
-        CustomReportSelection: Record "Custom Report Selection";
-#pragma warning disable AL0432, AS0105
-        CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432, AS0105
+        LibraryReportSelection: Codeunit "Library - Report Selection";
     begin
-        CustomReportSelection.Init();
-        CustomReportSelection.Validate("Source Type", Database::Customer);
-        CustomReportSelection.Validate("Source No.", CustomerNo);
-        CustomReportSelection.Validate(Usage, ReportSelectionUsage);
-        CustomReportSelection.Validate(Sequence, 1);
-        CustomReportSelection.Validate("Report ID", ReportID);
-        CustomReportSelection.Validate("Use for Email Body", true);
-        CustomReportSelection.Validate(
-            "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
-        CustomReportSelection.Insert(true);
+        LibraryReportSelection.CreateCustomerEmailBodyLayout(CustomerNo, ReportSelectionUsage, ReportID, true);
     end;
-#else
-    local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
-    var
-        CustomReportSelection: Record "Custom Report Selection";
-        ReportLayoutList: Record "Report Layout List";
-    begin
-        ReportLayoutList.SetRange("Report ID", ReportID);
-        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
-        ReportLayoutList.FindFirst();
-
-        CustomReportSelection.Init();
-        CustomReportSelection.Validate("Source Type", Database::Customer);
-        CustomReportSelection.Validate("Source No.", CustomerNo);
-        CustomReportSelection.Validate(Usage, ReportSelectionUsage);
-        CustomReportSelection.Validate(Sequence, 1);
-        CustomReportSelection.Validate("Report ID", ReportID);
-        CustomReportSelection.Validate("Use for Email Body", true);
-        CustomReportSelection."Email Body Layout Name" := ReportLayoutList.Name;
-        CustomReportSelection."Email Body Layout AppID" := ReportLayoutList."Application ID";
-        CustomReportSelection.Insert(true);
-    end;
-#endif
 
     local procedure CreateShipmentMethod(var ShipmentMethod: Record "Shipment Method")
     begin
