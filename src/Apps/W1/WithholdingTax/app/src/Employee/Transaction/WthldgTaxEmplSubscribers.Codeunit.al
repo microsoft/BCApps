@@ -82,7 +82,11 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
         WHTGroupCode: Code[20];
     begin
         if WHTEmployeeCalc.ResolveWHTGroupComponents(GenJnlLine, WHTGroupCode) then begin
+            if TaxAmount = 0 then
+                exit;
+
             PostEmployeeWHTGroupEntries(GenJnlLine, WHTGroupCode, TaxBaseAmount, NextTransactionNo, NextTaxEntryNo, GenJnlPostLine);
+            WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(GenJnlLine, Abs(GenJnlLine.Amount));
             exit;
         end;
 

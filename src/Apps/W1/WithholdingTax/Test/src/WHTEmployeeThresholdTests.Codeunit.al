@@ -414,6 +414,88 @@ codeunit 148323 "WHT Employee Threshold Tests"
     end;
 
     [Test]
+    procedure GroupedBelowThresholdPostsNoWithholding()
+    var
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+        ComponentWHTPostingSetup: array[2] of Record "Withholding Tax Posting Setup";
+        GenJournalLine: Record "Gen. Journal Line";
+        WHTEmplGroupTestSubscr: Codeunit "WHT Empl. Group Test Subscr.";
+        EmployeeNo: Code[20];
+        GLAccountNo: Code[20];
+    begin
+        // [SCENARIO 657603] Posting a grouped transaction below the threshold posts no component withholding.
+        Initialize();
+
+        // [GIVEN] Total in Period threshold 1,000 with "Tax Only Amount Above Threshold" enabled and a group with one 20 % component.
+        CreateEmployeeWHTPostingSetup(WHTPostingSetup, "Withholding Calculation Base"::Gross, "Withholding Threshold Base"::"Total Period", true);
+        EmployeeNo := CreateEmployee(WHTPostingSetup);
+        GLAccountNo := LibraryERM.CreateGLAccountNoWithDirectPosting();
+        CreateComponentWHTPostingSetup(ComponentWHTPostingSetup[1], WHTPostingSetup."Wthldg. Tax Bus. Post. Group");
+        WHTEmplGroupTestSubscr.SetWHTGroupCode(CreateWHTGroup(ComponentWHTPostingSetup[1]."Wthldg. Tax Prod. Post. Group"));
+        BindSubscription(WHTEmplGroupTestSubscr);
+
+        // [WHEN] Post 500 with the employee as the account.
+        CreateEmployeeJournalLine(GenJournalLine, WHTPostingSetup, EmployeeNo, GLAccountNo, true, 500);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] No withholding is posted for the component and the period accumulates 500.
+        VerifyGroupedPostedAmounts(ComponentWHTPostingSetup, 1, GenJournalLine."Document No.", EmployeeNo, GLAccountNo, 500, 0, 500);
+        VerifyAccumulatedBase(EmployeeNo, 500);
+
+        UnbindSubscription(WHTEmplGroupTestSubscr);
+    end;
+
+    [Test]
+    procedure GroupedTaxAboveThresholdEmployeeAccountFirst()
+    begin
+        // [SCENARIO 657603] A grouped employee line with a G/L balancing account calculates the same withholding on both sides.
+        PostGroupedTaxAboveThreshold(true);
+    end;
+
+    [Test]
+    procedure GroupedTaxAboveThresholdGLAccountFirst()
+    begin
+        // [SCENARIO 657603] A grouped G/L line with an employee balancing account calculates the same withholding on both sides.
+        PostGroupedTaxAboveThreshold(false);
+    end;
+
+    local procedure PostGroupedTaxAboveThreshold(EmployeeIsAccount: Boolean)
+    var
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+        ComponentWHTPostingSetup: array[2] of Record "Withholding Tax Posting Setup";
+        GenJournalLine: Record "Gen. Journal Line";
+        WHTEmplGroupTestSubscr: Codeunit "WHT Empl. Group Test Subscr.";
+        EmployeeNo: Code[20];
+        GLAccountNo: Code[20];
+        WHTGroupCode: Code[20];
+    begin
+        Initialize();
+
+        // [GIVEN] Total in Period threshold 1,000 with "Tax Only Amount Above Threshold" enabled and a group with two Simple 20 % components.
+        CreateEmployeeWHTPostingSetup(WHTPostingSetup, "Withholding Calculation Base"::Gross, "Withholding Threshold Base"::"Total Period", true);
+        EmployeeNo := CreateEmployee(WHTPostingSetup);
+        GLAccountNo := LibraryERM.CreateGLAccountNoWithDirectPosting();
+        CreateComponentWHTPostingSetup(ComponentWHTPostingSetup[1], WHTPostingSetup."Wthldg. Tax Bus. Post. Group");
+        CreateComponentWHTPostingSetup(ComponentWHTPostingSetup[2], WHTPostingSetup."Wthldg. Tax Bus. Post. Group");
+        WHTGroupCode := CreateWHTGroup(ComponentWHTPostingSetup[1]."Wthldg. Tax Prod. Post. Group");
+        AddWHTGroupLine(WHTGroupCode, ComponentWHTPostingSetup[2]."Wthldg. Tax Prod. Post. Group", 2);
+        WHTEmplGroupTestSubscr.SetWHTGroupCode(WHTGroupCode);
+        BindSubscription(WHTEmplGroupTestSubscr);
+
+        // [WHEN] Post 3,000 between the employee and the G/L account.
+        CreateEmployeeJournalLine(GenJournalLine, WHTPostingSetup, EmployeeNo, GLAccountNo, EmployeeIsAccount, 3000);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Each component withholds 400 on the taxable base 2,000, 800 in total; the G/L account is credited with 2,200.
+        VerifyGroupedPostedAmounts(ComponentWHTPostingSetup, 2, GenJournalLine."Document No.", EmployeeNo, GLAccountNo, 3000, 400, 2000);
+
+        // [THEN] The period accumulates the original base 3,000 once.
+        VerifyAccumulatedBase(EmployeeNo, 3000);
+
+        UnbindSubscription(WHTEmplGroupTestSubscr);
+    end;
+
+    [Test]
     procedure ReverseLegacyEntryRemovesTaxableBase()
     var
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
@@ -535,17 +617,55 @@ codeunit 148323 "WHT Employee Threshold Tests"
     local procedure CreateWHTGroup(ComponentProdPostingGroupCode: Code[20]): Code[20]
     var
         WithholdingTaxGroup: Record "Withholding Tax Group";
-        WithholdingTaxGroupLine: Record "Withholding Tax Group Line";
     begin
         WithholdingTaxGroup.Validate(Code, LibraryUtility.GenerateRandomCode(WithholdingTaxGroup.FieldNo(Code), Database::"Withholding Tax Group"));
         WithholdingTaxGroup.Insert(true);
-
-        WithholdingTaxGroupLine.Validate("Group Code", WithholdingTaxGroup.Code);
-        WithholdingTaxGroupLine.Validate("Line No.", 10000);
-        WithholdingTaxGroupLine.Validate("Wthldg. Tax Prod. Post. Group", ComponentProdPostingGroupCode);
-        WithholdingTaxGroupLine.Validate("Component Order", 1);
-        WithholdingTaxGroupLine.Insert(true);
+        AddWHTGroupLine(WithholdingTaxGroup.Code, ComponentProdPostingGroupCode, 1);
         exit(WithholdingTaxGroup.Code);
+    end;
+
+    local procedure AddWHTGroupLine(WHTGroupCode: Code[20]; ComponentProdPostingGroupCode: Code[20]; ComponentOrder: Integer)
+    var
+        WithholdingTaxGroupLine: Record "Withholding Tax Group Line";
+    begin
+        WithholdingTaxGroupLine.Validate("Group Code", WHTGroupCode);
+        WithholdingTaxGroupLine.Validate("Line No.", ComponentOrder * 10000);
+        WithholdingTaxGroupLine.Validate("Wthldg. Tax Prod. Post. Group", ComponentProdPostingGroupCode);
+        WithholdingTaxGroupLine.Validate("Component Order", ComponentOrder);
+        WithholdingTaxGroupLine.Insert(true);
+    end;
+
+    local procedure VerifyGroupedPostedAmounts(ComponentWHTPostingSetup: array[2] of Record "Withholding Tax Posting Setup"; ComponentCount: Integer; DocumentNo: Code[20]; EmployeeNo: Code[20]; GLAccountNo: Code[20]; EmployeeAmount: Decimal; ExpectedComponentWHTAmount: Decimal; ExpectedWHTBase: Decimal)
+    var
+        EmployeeLedgerEntry: Record "Employee Ledger Entry";
+        WithholdingTaxEntry: Record "Withholding Tax Entry";
+        i: Integer;
+    begin
+        EmployeeLedgerEntry.SetRange("Employee No.", EmployeeNo);
+#pragma warning disable AA0210
+        EmployeeLedgerEntry.SetRange("Document No.", DocumentNo);
+#pragma warning restore AA0210
+        EmployeeLedgerEntry.FindFirst();
+        EmployeeLedgerEntry.CalcFields(Amount);
+        Assert.AreEqual(EmployeeAmount, EmployeeLedgerEntry.Amount, StrSubstNo(WrongValueErr, EmployeeLedgerEntry.FieldCaption(Amount)));
+        Assert.AreEqual(-ExpectedComponentWHTAmount * ComponentCount, EmployeeLedgerEntry."Withholding Tax Amount", StrSubstNo(WrongValueErr, EmployeeLedgerEntry.FieldCaption("Withholding Tax Amount")));
+        Assert.AreEqual(ExpectedWHTBase, EmployeeLedgerEntry."Withholding Tax Base Amount", StrSubstNo(WrongValueErr, EmployeeLedgerEntry.FieldCaption("Withholding Tax Base Amount")));
+
+        VerifyGLAmount(GLAccountNo, DocumentNo, -(EmployeeAmount - ExpectedComponentWHTAmount * ComponentCount));
+        for i := 1 to ComponentCount do begin
+            VerifyGLAmount(ComponentWHTPostingSetup[i]."Payable Wthldg. Tax Acc. Code", DocumentNo, -ExpectedComponentWHTAmount);
+
+            WithholdingTaxEntry.SetRange("Employee No.", EmployeeNo);
+            WithholdingTaxEntry.SetRange("Document No.", DocumentNo);
+            WithholdingTaxEntry.SetRange("Wthldg. Tax Prod. Post. Group", ComponentWHTPostingSetup[i]."Wthldg. Tax Prod. Post. Group");
+            if ExpectedComponentWHTAmount = 0 then
+                Assert.RecordIsEmpty(WithholdingTaxEntry)
+            else begin
+                WithholdingTaxEntry.FindFirst();
+                Assert.AreEqual(-ExpectedComponentWHTAmount, WithholdingTaxEntry.Amount, StrSubstNo(WrongValueErr, WithholdingTaxEntry.FieldCaption(Amount)));
+                Assert.AreEqual(ExpectedWHTBase, WithholdingTaxEntry.Base, StrSubstNo(WrongValueErr, WithholdingTaxEntry.FieldCaption(Base)));
+            end;
+        end;
     end;
 
     local procedure CreateEmployee(WHTPostingSetup: Record "Withholding Tax Posting Setup"): Code[20]
