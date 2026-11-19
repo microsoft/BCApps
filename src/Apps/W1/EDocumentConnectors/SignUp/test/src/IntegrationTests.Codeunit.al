@@ -603,6 +603,7 @@ codeunit 148193 IntegrationTests
     begin
         this.AllowEDocConnectorHttpRequests();
         this.LibraryLowerPermissions.SetOutsideO365Scope();
+        this.LibraryEDocument.DeleteInProcessEDocumentJobQueueEntries();
 
         SignUpConnectionSetup.DeleteAll();
         SignUpAuthentication.InitConnectionSetup();
