@@ -9485,11 +9485,14 @@
         // [GIVEN] Credit memo created with "Get Posted Document Lines to Reverse" from the posted invoice.
         CreateCrMemoByReversingPostedInvoice(PurchaseHeaderCrMemo, PurchaseLineCrMemo, VendorNo, InvoiceNo);
 
-        // [WHEN] Change the copied credit memo quantity to 0.3 BOX.
+        // [GIVEN] The copied credit memo quantity is changed to 0.3 BOX.
         PurchaseLineCrMemo.Validate(Quantity, 0.3);
         PurchaseLineCrMemo.Modify(true);
 
-        // [THEN] The copied line has base rounding precision 1 and 0.3 BOX is rounded to 1 PCS.
+        // [WHEN] Post the copied credit memo.
+        PostPurchaseCreditMemoFromPage(PurchaseHeaderCrMemo);
+
+        // [THEN] The copied line had base rounding precision 1 and 0.3 BOX was rounded to 1 PCS.
         PurchaseLineCrMemo.TestField("Qty. Rounding Precision (Base)", 1);
         PurchaseLineCrMemo.TestField("Quantity (Base)", 1);
 
@@ -9500,9 +9503,6 @@
         PurchaseLineNative.Validate(Quantity, 0.3);
         PurchaseLineNative.TestField("Qty. Rounding Precision (Base)", PurchaseLineCrMemo."Qty. Rounding Precision (Base)");
         PurchaseLineNative.TestField("Quantity (Base)", PurchaseLineCrMemo."Quantity (Base)");
-
-        // [WHEN] Post the copied credit memo.
-        PostPurchaseCreditMemoFromPage(PurchaseHeaderCrMemo);
 
         // [THEN] A whole 1 PCS is returned and the order is restored to 0.3 BOX = 1 PCS received and invoiced.
         VerifyItemReturnedQty(Item."No.", -1);

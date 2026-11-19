@@ -5784,11 +5784,14 @@ codeunit 134378 "ERM Sales Order"
         // [GIVEN] Credit memo created with "Get Posted Document Lines to Reverse" from the posted invoice.
         CreateSalesCrMemoByReversingPostedInvoice(SalesHeaderCrMemo, SalesLineCrMemo, CustomerNo);
 
-        // [WHEN] Change the copied credit memo quantity to 0.3 BOX.
+        // [GIVEN] The copied credit memo quantity is changed to 0.3 BOX.
         SalesLineCrMemo.Validate(Quantity, 0.3);
         SalesLineCrMemo.Modify(true);
 
-        // [THEN] The copied line has base rounding precision 1 and 0.3 BOX is rounded to 1 PCS.
+        // [WHEN] Post the copied credit memo.
+        PostSalesCreditMemoFromPage(SalesHeaderCrMemo);
+
+        // [THEN] The copied line had base rounding precision 1 and 0.3 BOX was rounded to 1 PCS.
         SalesLineCrMemo.TestField("Qty. Rounding Precision (Base)", 1);
         SalesLineCrMemo.TestField("Quantity (Base)", 1);
 
@@ -5800,9 +5803,6 @@ codeunit 134378 "ERM Sales Order"
         SalesLineNative.TestField("Qty. Rounding Precision (Base)", SalesLineCrMemo."Qty. Rounding Precision (Base)");
         SalesLineNative.TestField("Quantity (Base)", SalesLineCrMemo."Quantity (Base)");
         SalesHeaderNative.Delete(true);
-
-        // [WHEN] Post the copied credit memo.
-        PostSalesCreditMemoFromPage(SalesHeaderCrMemo);
 
         // [THEN] A whole 1 PCS is returned and the order is restored to 0.3 BOX = 1 PCS shipped and invoiced.
         VerifySalesItemReturnedQty(Item."No.", 1);
