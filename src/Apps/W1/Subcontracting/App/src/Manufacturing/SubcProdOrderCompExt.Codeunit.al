@@ -422,6 +422,7 @@ codeunit 20524 "Subc. Prod. Order Comp. Ext."
         Vendor: Record Vendor;
         PlanningGetParameters: Codeunit "Planning-Get Parameters";
         SubcontractingManagement: Codeunit "Subcontracting Management";
+        IsHandled: Boolean;
     begin
         if ProdOrderComponent."Component Supply Method" = ProdOrderComponent."Component Supply Method"::"Transfer to Vendor" then
             exit;
@@ -443,7 +444,11 @@ codeunit 20524 "Subc. Prod. Order Comp. Ext."
                         SubcontractingManagement.ChangeLocationOnProdOrderComponent(ProdOrderComponent, Vendor."Subc. Location Code", ProdOrderComponent."Subc. Original Location Code", ProdOrderComponent."Subc. Orig. Bin Code");
             end;
         end else
-            if xProdOrderComponent."Routing Link Code" <> '' then
+            if xProdOrderComponent."Routing Link Code" <> '' then begin
+                IsHandled := false;
+                OnHandleRoutingLinkCodeValidationOnBeforeRestoreLocationCode(ProdOrderComponent, xProdOrderComponent."Routing Link Code", IsHandled);
+                if IsHandled then
+                    exit;
                 if ProdOrderComponent."Subc. Original Location Code" <> '' then begin
                     SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, ProdOrderComponent."Subc. Original Location Code");
                     ProdOrderComponent."Subc. Original Location Code" := '';
@@ -459,6 +464,7 @@ codeunit 20524 "Subc. Prod. Order Comp. Ext."
                       ProdOrderLine."Location Code");
                     ProdOrderComponent.Validate("Location Code", StockkeepingUnit."Components at Location");
                 end;
+            end;
     end;
 
     local procedure SetOriginalBinCode(var ProdOrderComponent: Record "Prod. Order Component"; var xProdOrderComponent: Record "Prod. Order Component")
@@ -545,5 +551,10 @@ codeunit 20524 "Subc. Prod. Order Comp. Ext."
         NetStockAtSubcLocation := ProdOrderComponent."Subc. Qty. transf. to Subcontr";
         NetStockAtSubcLocation -= SubcTransferManagement.CalcConsumedQtyAtSubcLocation(ProdOrderComponent);
         exit(NetStockAtSubcLocation > 0);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnHandleRoutingLinkCodeValidationOnBeforeRestoreLocationCode(var ProdOrderComponent: Record "Prod. Order Component"; PreviousRoutingLinkCode: Code[10]; var IsHandled: Boolean)
+    begin
     end;
 }
