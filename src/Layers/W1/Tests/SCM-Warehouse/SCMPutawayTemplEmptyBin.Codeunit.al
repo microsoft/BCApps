@@ -138,12 +138,15 @@ codeunit 137933 "SCM Put-away Templ. Empty Bin"
     end;
 
     local procedure Initialize()
+    var
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"SCM Put-away Templ. Empty Bin");
         ClearLastError();
 
         LibraryRandom.Init();
         GlobalLanguage(1033);
+        LibraryERMCountryData.CreateVATData();
     end;
 
     local procedure CreateBaseData()
