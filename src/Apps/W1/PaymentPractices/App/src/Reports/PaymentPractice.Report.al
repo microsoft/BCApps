@@ -7,7 +7,11 @@ namespace Microsoft.Finance.Analysis;
 report 685 "Payment Practice"
 {
     ApplicationArea = All;
+#if not CLEAN30
     DefaultRenderingLayout = PaymentPractice_PeriodLayout;
+#else
+    DefaultRenderingLayout = PaymentPractice_PeriodLayoutBody;
+#endif
 
     dataset
     {
@@ -76,6 +80,7 @@ report 685 "Payment Practice"
 
     rendering
     {
+#if not CLEAN30
         layout(PaymentPractice_PeriodLayout)
         {
             Type = Word;
@@ -106,6 +111,7 @@ report 685 "Payment Practice"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
+#endif
         layout(PaymentPractice_PeriodLayoutBody)
         {
             Type = Word;
