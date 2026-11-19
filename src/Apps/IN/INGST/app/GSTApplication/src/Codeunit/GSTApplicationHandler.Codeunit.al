@@ -2674,15 +2674,15 @@ codeunit 18430 "GST Application Handler"
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         var CustomerPostingGroup: Record "Customer Posting Group";
         GenJournalLine: Record "Gen. Journal Line";
-        var TempIDimPostingBuffer: Record "Dimension Posting Buffer" temporary)
+        var TempIDimPostingBuffer: Record "Dimension Posting Buffer" temporary;
+        sender: Codeunit "Gen. Jnl.-Post Line")
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         TransactionType: Enum "Detail Ledger Transaction Type";
     begin
         CustLedgerEntry.Get(DetailedCustLedgEntry."Cust. Ledger Entry No.");
         UnApplyGSTApplication(GenJournalLine, TransactionType::Sales, CustLedgerEntry."Transaction No.", DetailedCustLedgEntry."Document No.");
-        GSTApplSessionMgt.PostApplicationGenJournalLine(GenJnlPostLine);
+        GSTApplSessionMgt.PostApplicationGenJournalLine(sender, true);
         GSTApplSessionMgt.ClearAllSessionVariables();
     end;
 
