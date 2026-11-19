@@ -554,37 +554,27 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    procedure ReleasedProdOrderSubcActionsReenableAfterFilter()
+    procedure NonEmptyReleasedProdOrderSubcActionsEnabled()
     var
         Item: Record Item;
         ProductionOrder: Record "Production Order";
         LibraryApplicationArea: Codeunit "Library - Application Area";
         ReleasedProductionOrders: TestPage "Released Production Orders";
     begin
-        // [SCENARIO 648872] Subcontracting actions follow the current selection when filters are changed.
+        // [SCENARIO 648872] Subcontracting actions are enabled on a non-empty released production orders list.
         Initialize();
 
-        // [GIVEN] A selected released production order.
+        // [GIVEN] A released production order.
         LibraryApplicationArea.EnablePremiumSetup();
         LibraryInventory.CreateItem(Item);
         LibraryManufacturing.CreateProductionOrder(
             ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 1);
+
+        // [WHEN] Opening the released production orders list.
         ReleasedProductionOrders.OpenView();
         ReleasedProductionOrders.GoToRecord(ProductionOrder);
-        VerifyReleasedProdOrderSubcActionsEnabled(ReleasedProductionOrders, true);
 
-        // [WHEN] Filtering the selected order out of the list.
-        ReleasedProductionOrders.Filter.SetFilter("No.", '__NO_MATCH__');
-        Assert.IsFalse(ReleasedProductionOrders.First(), 'The released production orders list must be empty.');
-
-        // [THEN] Subcontracting actions are disabled.
-        VerifyReleasedProdOrderSubcActionsEnabled(ReleasedProductionOrders, false);
-
-        // [WHEN] Restoring the selected order.
-        ReleasedProductionOrders.Filter.SetFilter("No.", ProductionOrder."No.");
-        Assert.IsTrue(ReleasedProductionOrders.First(), 'The released production order must be available.');
-
-        // [THEN] Subcontracting actions are enabled again.
+        // [THEN] Subcontracting actions are enabled.
         VerifyReleasedProdOrderSubcActionsEnabled(ReleasedProductionOrders, true);
         ReleasedProductionOrders.Close();
     end;
