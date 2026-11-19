@@ -5580,12 +5580,13 @@ codeunit 137020 "SCM Planning"
         Item.SetRange("No.", Item."No.");
         LibraryPlanning.CalcRegenPlanForPlanWkshPlanningParams(Item, StartDate, CalcDate(PlanningEndDate, WorkDate()), true);
 
-        // [THEN] One New line of 2 * "M" covers the safety stock shortage "S" rounded up to the Order Multiple
+        // [THEN] One New line of 2 * "M", due on the date of the first safety stock shortage, covers the shortage "S" rounded up to the Order Multiple
         FilterRequisitionLine(RequisitionLine, Item."No.");
         Assert.RecordCount(RequisitionLine, 1);
         RequisitionLine.FindFirst();
         RequisitionLine.TestField("Action Message", RequisitionLine."Action Message"::New);
         RequisitionLine.TestField(Quantity, 2 * OrderMultiple);
+        RequisitionLine.TestField("Due Date", StartDate);
     end;
 
     local procedure Initialize()
