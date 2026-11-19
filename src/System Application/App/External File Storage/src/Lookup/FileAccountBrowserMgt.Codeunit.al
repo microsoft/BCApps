@@ -123,11 +123,11 @@ codeunit 9458 "File Account Browser Mgt."
     procedure DeleteFileOrDirectory(var TempFileAccountContent: Record "File Account Content" temporary)
     var
         DeleteQst: Label 'Delete %1?', Comment = '%1 - Path to Delete';
-        CannotDeleteParentFolderErr: Label 'You cannot delete the parent folder entry.';
+        CannotDeleteEntryErr: Label 'You cannot delete this entry.';
         PathToDelete: Text;
     begin
-        if TempFileAccountContent.Name in ['', '..'] then
-            Error(CannotDeleteParentFolderErr);
+        if not CanDeleteEntry(TempFileAccountContent) then
+            Error(CannotDeleteEntryErr);
 
         PathToDelete := ExternalFileStorage.CombinePath(TempFileAccountContent."Parent Directory", TempFileAccountContent.Name);
         if not Confirm(DeleteQst, false, PathToDelete) then
@@ -139,6 +139,11 @@ codeunit 9458 "File Account Browser Mgt."
             TempFileAccountContent.Type::File:
                 ExternalFileStorage.DeleteFile(PathToDelete);
         end;
+    end;
+
+    internal procedure CanDeleteEntry(var TempFileAccountContent: Record "File Account Content" temporary): Boolean
+    begin
+        exit(not (TempFileAccountContent.Name in ['', '..']));
     end;
 
     internal procedure CombinePath(Path: Text; ChildPath: Text): Text

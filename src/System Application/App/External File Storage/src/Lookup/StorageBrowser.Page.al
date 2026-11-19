@@ -139,7 +139,7 @@ page 9455 "Storage Browser"
 
     trigger OnAfterGetCurrRecord()
     begin
-        CanDeleteEntry := not (Rec.Name in ['', '..']);
+        CanDeleteEntry := FileAccountBrowserMgt.CanDeleteEntry(Rec);
     end;
 
     internal procedure SetFileAccount(TempFileAccount: Record "File Account" temporary)

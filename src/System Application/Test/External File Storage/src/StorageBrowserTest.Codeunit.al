@@ -13,10 +13,13 @@ using System.TestLibraries.Utilities;
 codeunit 134753 "Storage Browser Test"
 {
     Subtype = Test;
+    TestPermissions = Disabled;
 
     var
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
+        EntryNotFoundErr: Label 'The entry %1 was not found in the Storage Browser.', Comment = '%1 - Name of the entry', Locked = true;
+        CannotDeleteEntryErr: Label 'You cannot delete this entry.', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -59,6 +62,54 @@ codeunit 134753 "Storage Browser Test"
         Assert.IsTrue(StorageBrowserPage.Delete.Enabled(), 'The Delete action should be enabled on a file.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DeleteParentFolderEntryRaisesError()
+    var
+        TempFileAccountContent: Record "File Account Content" temporary;
+        ExtFileStorageTestLib: Codeunit "Ext. File Storage Test Lib.";
+    begin
+        // [Scenario] Deleting the parent folder entry ("..") raises an error
+
+        // [Given] A parent folder entry
+        PermissionsMock.Set('File Storage Admin');
+        TempFileAccountContent.Name := '..';
+        TempFileAccountContent.Type := TempFileAccountContent.Type::Directory;
+        TempFileAccountContent."Parent Directory" := 'Test Folder';
+        TempFileAccountContent.Insert();
+
+        // [When] The entry is deleted
+        asserterror ExtFileStorageTestLib.DeleteFileOrDirectory(TempFileAccountContent);
+
+        // [Then] An error is raised before the delete is confirmed
+        Assert.ExpectedError(CannotDeleteEntryErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DeleteEntryWithEmptyNameRaisesError()
+    var
+        TempFileAccountContent: Record "File Account Content" temporary;
+        ExtFileStorageTestLib: Codeunit "Ext. File Storage Test Lib.";
+    begin
+        // [Scenario] Deleting an entry with an empty name raises an error
+
+        // [Given] An entry with an empty name
+        PermissionsMock.Set('File Storage Admin');
+        TempFileAccountContent.Name := '';
+        TempFileAccountContent.Type := TempFileAccountContent.Type::Directory;
+        TempFileAccountContent."Parent Directory" := 'Test Folder';
+        TempFileAccountContent.Insert();
+
+        // [When] The entry is deleted
+        asserterror ExtFileStorageTestLib.DeleteFileOrDirectory(TempFileAccountContent);
+
+        // [Then] An error is raised before the delete is confirmed
+        Assert.ExpectedError(CannotDeleteEntryErr);
+    end;
+
     local procedure GoToEntry(var StorageBrowserPage: TestPage "Storage Browser"; EntryName: Text)
     begin
         StorageBrowserPage.First();
@@ -67,6 +118,6 @@ codeunit 134753 "Storage Browser Test"
                 exit;
         until not StorageBrowserPage.Next();
 
-        Assert.Fail(StrSubstNo('The entry %1 was not found in the Storage Browser.', EntryName));
+        Assert.Fail(StrSubstNo(EntryNotFoundErr, EntryName));
     end;
 }
