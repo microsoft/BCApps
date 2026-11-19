@@ -81,7 +81,7 @@ codeunit 148364 EACorpCardSelectionTests
     [Test]
     procedure RepeatedDefaultsPreserveConfiguredCardsWithoutTransactions()
     var
-        TemplateCard: Record "EA Corp Card";
+        SourceCard: Record "EA Corp Card";
         ConfiguredCard: Record "EA Corp Card";
         TempConfiguredCard: Record "EA Corp Card" temporary;
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
@@ -90,9 +90,9 @@ codeunit 148364 EACorpCardSelectionTests
         Initialize();
         InitializeDefaultBankAccount();
         CreateCorpCardSetup.CreateDefaults();
-        TemplateCard.Get('CORPCARD-0001');
+        SourceCard.Get('CORPCARD-0001');
         for ProviderIndex := 1 to 2 do begin
-            ConfiguredCard := TemplateCard;
+            ConfiguredCard := SourceCard;
             if ProviderIndex = 1 then begin
                 ConfiguredCard."Card Id" := 'CORPCARD-0009';
                 ConfiguredCard."Provider Code" := 'CORPCARDCSV';
