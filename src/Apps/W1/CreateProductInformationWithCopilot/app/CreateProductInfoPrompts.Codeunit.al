@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9,6 +10,9 @@ using System.Telemetry;
 
 codeunit 7340 "Create Product Info. Prompts"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Copilot item substitution suggestions are discontinued. Use modern search on the Items list instead.';
+    ObsoleteTag = '30.0';
     Access = Internal;
 
     [NonDebuggable]
@@ -60,3 +64,4 @@ codeunit 7340 "Create Product Info. Prompts"
         ConstructingPromptFailedErr: label 'There was an error with sending the call to Copilot. Log a Business Central support request about this.', Comment = 'Copilot is a Microsoft service name and must not be translated';
         TelemetryConstructingPromptFailedErr: label 'There was an error with constructing the chat completion prompt from the Key Vault.', Locked = true;
 }
+#endif

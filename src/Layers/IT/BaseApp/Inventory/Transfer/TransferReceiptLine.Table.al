@@ -172,7 +172,7 @@ table 5747 "Transfer Receipt Line"
             Editable = false;
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
-        field(31; "Item Rcpt. Entry No."; Integer)
+        field(31; "Item Rcpt. Entry No."; BigInteger)
         {
             Caption = 'Item Rcpt. Entry No.';
         }

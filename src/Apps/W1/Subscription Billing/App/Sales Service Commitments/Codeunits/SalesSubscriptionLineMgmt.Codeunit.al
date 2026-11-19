@@ -22,7 +22,7 @@ codeunit 8069 "Sales Subscription Line Mgmt."
             AddSalesServiceCommitmentsForSalesLine(Rec, false);
     end;
 
-    internal procedure AddSalesServiceCommitmentsForSalesLine(var SalesLine: Record "Sales Line"; SkipAddAdditionalSalesServComm: Boolean)
+    procedure AddSalesServiceCommitmentsForSalesLine(var SalesLine: Record "Sales Line"; SkipAddAdditionalSalesServComm: Boolean)
     var
         ItemServCommitmentPackage: Record "Item Subscription Package";
         SalesHeader: Record "Sales Header";
@@ -81,10 +81,7 @@ codeunit 8069 "Sales Subscription Line Mgmt."
         ServiceCommitmentPackage.FilterCodeOnPackageFilter(PackageFilter);
 
         SalesHeader.Get(SalesLine."Document Type", SalesLine."Document No.");
-        if SalesHeader."Customer Price Group" <> '' then
-            ServiceCommitmentPackage.SetFilter("Price Group", '%1|%2', SalesHeader."Customer Price Group", '');
-        if ServiceCommitmentPackage.IsEmpty() then
-            ServiceCommitmentPackage.SetRange("Price Group");
+        ServiceCommitmentPackage.SetFilter("Price Group", '%1|%2', SalesHeader."Customer Price Group", '');
 
         OnAddAdditionalSalesSubscriptionLinesForSalesLineAfterApplyFilters(ServiceCommitmentPackage, SalesLine);
 

@@ -22,6 +22,11 @@
   {
     "codeunitId": 134076,
     "codeunitName": "ERM Suggest Vendor Payment",
+    "method": "CreatePaymentForVendorLedgerEntriesFilteredByRemainingAmountInSpanish"
+  },
+  {
+    "codeunitId": 134076,
+    "codeunitName": "ERM Suggest Vendor Payment",
     "method": "CreatePaymentWithDateEarlierThanInvoice"
   },
   {

@@ -192,6 +192,110 @@ codeunit 148356 EACorpCardImportBasicTests
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PostImportUsesInjectedMatchingAndLinkingForEveryTransaction()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: array[2] of Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        ExpenseMatchMock: Codeunit EACorpCardExpenseMatchMock;
+        ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
+        PostImportOrch: Codeunit "EA Corp Card Post Import Orch";
+        MatchedExpenseNo: Code[20];
+        ExpenseCount: Integer;
+        ExpenseReportLineCount: Integer;
+        PostedExpenseReportLineCount: Integer;
+        TransactionIndex: Integer;
+    begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Post Import]
+        // [SCENARIO] Every transaction worker uses the injected matcher without creating or linking expense documents.
+        Initialize();
+
+        // [GIVEN] Two imported transactions and a matcher returning an expense number with no persisted expense.
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.CreateStatement(
+            CorpCardStatement, CorpCard."Provider Code",
+            CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardStatement."Statement No.")), 40, CorpCardStatement.Status::Imported);
+        CorpCardStatement."Currency Code" := '';
+        CorpCardStatement.Imported := ArrayLen(CorpCardTrans);
+        CorpCardStatement.Modify(true);
+        for TransactionIndex := 1 to ArrayLen(CorpCardTrans) do begin
+            CorpCardTestLib.CreateTransaction(CorpCardTrans[TransactionIndex], CorpCard);
+            CorpCardTrans[TransactionIndex]."Statement Entry No." := CorpCardStatement."Statement Entry No.";
+            CorpCardTrans[TransactionIndex].Status := CorpCardTrans[TransactionIndex].Status::Imported;
+            CorpCardTrans[TransactionIndex].Modify(true);
+        end;
+        MatchedExpenseNo := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Expense."No."));
+        ExpenseMatchMock.SetMatchedExpenseNo(MatchedExpenseNo);
+        ExpenseCount := Expense.Count();
+        ExpenseReportLineCount := ExpenseReportLine.Count();
+        PostedExpenseReportLineCount := PostedExpenseReportLine.Count();
+
+        // [WHEN] Post-import processing runs with the injected matcher.
+        PostImportOrch.ProcessStatementPostImport(CorpCardStatement."Statement Entry No.", ExpenseWriter, ExpenseMatchMock);
+
+        // [THEN] Each worker delegates matching and linking, and no expense or report lines are created.
+        Assert.AreEqual(ArrayLen(CorpCardTrans), ExpenseMatchMock.GetMatchCallCount(), 'Each transaction must use the injected matcher.');
+        Assert.AreEqual(ArrayLen(CorpCardTrans), ExpenseMatchMock.GetLinkCallCount(), 'Each matched transaction must use the injected linker.');
+        for TransactionIndex := 1 to ArrayLen(CorpCardTrans) do begin
+            CorpCardTrans[TransactionIndex].Get(CorpCardTrans[TransactionIndex]."Entry No.");
+            CorpCardTrans[TransactionIndex].TestField(Status, CorpCardTrans[TransactionIndex].Status::Matched);
+            CorpCardTrans[TransactionIndex].TestField("Expense No.", MatchedExpenseNo);
+        end;
+        Assert.AreEqual(ExpenseCount, Expense.Count(), 'Injected matching must not create expense records.');
+        Assert.AreEqual(ExpenseReportLineCount, ExpenseReportLine.Count(), 'Injected linking must not create report lines.');
+        Assert.AreEqual(PostedExpenseReportLineCount, PostedExpenseReportLine.Count(), 'Injected linking must not create posted report lines.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PostImportUsesInjectedNoMatchBeforeCreatingDraft()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardStatement: Record "EA Corp Card Statement";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseMatchMock: Codeunit EACorpCardExpenseMatchMock;
+        ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
+        PostImportOrch: Codeunit "EA Corp Card Post Import Orch";
+        ExpenseCount: Integer;
+    begin
+        // [FEATURE] [Expense Agent] [Corporate Card] [Post Import]
+        // [SCENARIO] An injected no-match result follows the normal draft-creation path without invoking linking.
+        Initialize();
+
+        // [GIVEN] An imported transaction and a matcher returning no matching expense.
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.CreateStatement(
+            CorpCardStatement, CorpCard."Provider Code",
+            CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCardStatement."Statement No.")), 20, CorpCardStatement.Status::Imported);
+        CorpCardStatement."Currency Code" := '';
+        CorpCardStatement.Imported := 1;
+        CorpCardStatement.Modify(true);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardTrans."Statement Entry No." := CorpCardStatement."Statement Entry No.";
+        CorpCardTrans.Status := CorpCardTrans.Status::Imported;
+        CorpCardTrans.Modify(true);
+        ExpenseMatchMock.SetMatchedExpenseNo('');
+        ExpenseCount := Expense.Count();
+
+        // [WHEN] Post-import processing runs with the injected matcher.
+        PostImportOrch.ProcessStatementPostImport(CorpCardStatement."Statement Entry No.", ExpenseWriter, ExpenseMatchMock);
+
+        // [THEN] The matcher is called, the linker is not, and exactly one corporate card draft is created.
+        Assert.AreEqual(1, ExpenseMatchMock.GetMatchCallCount(), 'The injected matcher must determine whether an expense exists.');
+        Assert.AreEqual(0, ExpenseMatchMock.GetLinkCallCount(), 'A no-match result must not invoke the linker.');
+        CorpCardTrans.Get(CorpCardTrans."Entry No.");
+        CorpCardTrans.TestField(Status, CorpCardTrans.Status::DraftCreated);
+        Expense.Get(CorpCardTrans."Expense No.");
+        Expense.TestField(Source, Expense.Source::CorporateCard);
+        Assert.AreEqual(ExpenseCount + 1, Expense.Count(), 'A no-match result must create exactly one draft.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DraftFailurePreservesImportAndCanBeRetried()
     var
         CorpCard: Record "EA Corp Card";
@@ -333,6 +437,7 @@ codeunit 148356 EACorpCardImportBasicTests
     var
         CorpCard: Record "EA Corp Card";
         CorpCardTrans: Record "EA Corp Card Trans";
+        ExpensePaymentMethod: Record "Expense Payment Method";
         FirstExpense: Record Expense;
         SecondExpense: Record Expense;
         EnhancedMatchMgt: Codeunit "EA Corp Card Enh. Match Mgt";
@@ -344,11 +449,17 @@ codeunit 148356 EACorpCardImportBasicTests
         CorpCardTrans."Merchant Norm" := 'Bluebird Cafe';
         CorpCardTrans.Amount := 1234;
         CorpCardTrans."Currency Code" := UsdCurrencyCodeTok;
+        CorpCardTrans.Insert(true);
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
 
         LibraryExpense.CreateExpense(FirstExpense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, UsdCurrencyCodeTok, 1);
+        FirstExpense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
+        FirstExpense.Validate("Corporate Card Id", CorpCard."Card Id");
         FirstExpense.Validate("Merchant Name", CorpCardTrans."Merchant Norm");
         FirstExpense.Modify(true);
         LibraryExpense.CreateExpense(SecondExpense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, UsdCurrencyCodeTok, 1);
+        SecondExpense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
+        SecondExpense.Validate("Corporate Card Id", CorpCard."Card Id");
         SecondExpense.Validate("Merchant Name", CorpCardTrans."Merchant Norm");
         SecondExpense.Modify(true);
 
@@ -357,7 +468,7 @@ codeunit 148356 EACorpCardImportBasicTests
         Assert.AreEqual(FirstExpense."No.", MatchedExpenseNo, 'The first matching expense must be selected.');
         Assert.AreEqual(CorpCardTrans."Match Type"::Expense, CorpCardTrans."Match Type", 'The candidate must be selected by fuzzy merchant matching, not exact amount matching.');
 
-        FirstExpense."Credit Card Feed No." := 1;
+        FirstExpense."Credit Card Feed No." := CorpCardTrans."Entry No.";
         FirstExpense.Modify(true);
         EnhancedMatchMgt.RemoveCandidate(MatchedExpenseNo);
 
