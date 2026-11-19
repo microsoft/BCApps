@@ -1527,7 +1527,9 @@ codeunit 13916 "Export XRechnung Document"
     begin
         TaxCategoryElement := XmlElement.Create('TaxCategory', XmlNamespaceCAC);
         TaxCategoryElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, TaxCategoryID));
-        TaxCategoryElement.Add(XmlElement.Create('Percent', XmlNamespaceCBC, FormatFiveDecimal(Percent)));
+        // BR-O-06/07 apply to document allowances/charges; retain BT-119 in the VAT breakdown (BR-DE-14).
+        if (RootElement.LocalName() <> 'AllowanceCharge') or (not IsTaxCategoryNotSubjectToVAT(TaxCategoryID)) then
+            TaxCategoryElement.Add(XmlElement.Create('Percent', XmlNamespaceCBC, FormatFiveDecimal(Percent)));
         if VATEXCode <> '' then
             TaxCategoryElement.Add(XmlElement.Create('TaxExemptionReasonCode', XmlNamespaceCBC, VATEXCode));
         if VATClauseDescription <> '' then

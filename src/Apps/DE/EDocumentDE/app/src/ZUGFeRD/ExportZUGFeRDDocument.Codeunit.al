@@ -981,7 +981,8 @@ codeunit 13917 "Export ZUGFeRD Document"
         TaxElement := XmlElement.Create('CategoryTradeTax', XmlNamespaceRAM);
         TaxElement.Add(XmlElement.Create('TypeCode', XmlNamespaceRAM, 'VAT'));
         TaxElement.Add(XmlElement.Create('CategoryCode', XmlNamespaceRAM, CategoryCode));
-        TaxElement.Add(XmlElement.Create('RateApplicablePercent', XmlNamespaceRAM, RateApplicablePercent));
+        if CategoryCode <> 'O' then
+            TaxElement.Add(XmlElement.Create('RateApplicablePercent', XmlNamespaceRAM, RateApplicablePercent));
         RootElement.Add(TaxElement);
     end;
 
@@ -1095,7 +1096,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             ApplicableTradeTaxElement := XmlElement.Create('ApplicableTradeTax', XmlNamespaceRAM);
             ApplicableTradeTaxElement.Add(XmlElement.Create('TypeCode', XmlNamespaceRAM, 'VAT'));
             ApplicableTradeTaxElement.Add(XmlElement.Create('CategoryCode', XmlNamespaceRAM, GetTaxCategoryID(SalesInvoiceLine."Tax Category", SalesInvoiceLine."VAT Bus. Posting Group", SalesInvoiceLine."VAT Prod. Posting Group")));
-            ApplicableTradeTaxElement.Add(XmlElement.Create('RateApplicablePercent', XmlNamespaceRAM, FormatFiveDecimal(SalesInvoiceLine."VAT %")));
+            if GetTaxCategoryID(SalesInvoiceLine."Tax Category", SalesInvoiceLine."VAT Bus. Posting Group", SalesInvoiceLine."VAT Prod. Posting Group") <> 'O' then
+                ApplicableTradeTaxElement.Add(XmlElement.Create('RateApplicablePercent', XmlNamespaceRAM, FormatFiveDecimal(SalesInvoiceLine."VAT %")));
             SpecifiedLineTradeSettlementElement.Add(ApplicableTradeTaxElement);
 
             if SalesInvoiceLine."Shipment Date" <> 0D then
@@ -1186,7 +1188,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             ApplicableTradeTaxElement := XmlElement.Create('ApplicableTradeTax', XmlNamespaceRAM);
             ApplicableTradeTaxElement.Add(XmlElement.Create('TypeCode', XmlNamespaceRAM, 'VAT'));
             ApplicableTradeTaxElement.Add(XmlElement.Create('CategoryCode', XmlNamespaceRAM, GetTaxCategoryID(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group")));
-            ApplicableTradeTaxElement.Add(XmlElement.Create('RateApplicablePercent', XmlNamespaceRAM, FormatFiveDecimal(SalesCrMemoLine."VAT %")));
+            if GetTaxCategoryID(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group") <> 'O' then
+                ApplicableTradeTaxElement.Add(XmlElement.Create('RateApplicablePercent', XmlNamespaceRAM, FormatFiveDecimal(SalesCrMemoLine."VAT %")));
             SpecifiedLineTradeSettlementElement.Add(ApplicableTradeTaxElement);
 
             if SalesCrMemoLine."Shipment Date" <> 0D then
