@@ -105,7 +105,7 @@ codeunit 743 "VAT Report Export"
         TempBlob.CreateInStream(XmlInStream);
         FileName := GetVIESELMAFileName(VATReportHeader, FileID);
         if FileMgt.DownloadFromStreamHandler(XmlInStream, '', '', '', FileName) then begin
-            VATReportHeader.Find();
+            VATReportHeader.Get(VATReportHeader."No.");
             VATReportHeader.Status := VATReportHeader.Status::Exported;
             VATReportHeader.Modify();
         end;
