@@ -322,12 +322,12 @@ report 1198 "Date Compress Resource Ledger"
         Retain: array[10] of Boolean;
         FieldNumber: array[10] of Integer;
         FieldNameArray: array[10] of Text[100];
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
         NoOfDeleted: Integer;
         ResRegExists: Boolean;
         i: Integer;
-        ComprDimEntryNo: Integer;
-        DimEntryNo: Integer;
+        ComprDimEntryNo: BigInteger;
+        DimEntryNo: BigInteger;
         RetainDimText: Text[250];
         UseDataArchive: Boolean;
         DataArchiveProviderExists: Boolean;
@@ -392,7 +392,7 @@ report 1198 "Date Compress Resource Ledger"
 
     local procedure InsertRegisters(var ResReg: Record "Resource Register"; var DateComprReg: Record "Date Compr. Register")
     var
-        CurrLastEntryNo: Integer;
+        CurrLastEntryNo: BigInteger;
     begin
         ResReg."To Entry No." := NewResLedgEntry."Entry No.";
 
@@ -453,9 +453,9 @@ report 1198 "Date Compress Resource Ledger"
     procedure ComprCollectedEntries()
     var
         ResLedgEntry: Record "Res. Ledger Entry";
-        OldDimEntryNo: Integer;
+        OldDimEntryNo: BigInteger;
         Found: Boolean;
-        ResLedgEntryNo: Integer;
+        ResLedgEntryNo: BigInteger;
     begin
         OldDimEntryNo := 0;
         if DimBufMgt.FindFirstDimEntryNo(DimEntryNo, ResLedgEntryNo) then begin
@@ -511,7 +511,7 @@ report 1198 "Date Compress Resource Ledger"
         Window.Update(3, DateComprReg."No. of New Records");
     end;
 
-    local procedure InsertNewEntry(var NewResLedgEntry: Record "Res. Ledger Entry"; DimEntryNo: Integer)
+    local procedure InsertNewEntry(var NewResLedgEntry: Record "Res. Ledger Entry"; DimEntryNo: BigInteger)
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
         TempDimSetEntry: Record "Dimension Set Entry" temporary;

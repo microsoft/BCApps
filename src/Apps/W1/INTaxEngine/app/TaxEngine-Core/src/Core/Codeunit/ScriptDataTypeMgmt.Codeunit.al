@@ -898,6 +898,7 @@ codeunit 20132 "Script Data Type Mgmt."
             Field.Type::Boolean:
                 exit("Symbol Data Type"::Boolean);
             Field.Type::Integer,
+            Field.Type::BigInteger,
             Field.Type::Decimal:
                 exit("Symbol Data Type"::Number);
             Field.Type::Date:
