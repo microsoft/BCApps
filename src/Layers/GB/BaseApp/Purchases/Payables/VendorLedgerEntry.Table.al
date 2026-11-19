@@ -775,6 +775,15 @@ table 25 "Vendor Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+#if not CLEANSCHEMA26
+        field(10500; "Invoice Receipt Date"; Date)
+        {
+
+            ObsoleteReason = 'Replaced by W1 field "Invoice Received Date".';
+            ObsoleteState = Removed;
+            ObsoleteTag = '26.0';
+        }
+#endif
     }
 
     keys

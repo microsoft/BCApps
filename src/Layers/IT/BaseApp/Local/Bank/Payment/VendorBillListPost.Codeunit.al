@@ -38,7 +38,11 @@ codeunit 12173 "Vendor Bill List - Post"
         BalanceAmount: Decimal;
         BalanceAmountLCY: Decimal;
 
+#if not CLEAN30
         Text12100: Label 'Meanwhile %1 has been modified for %2 %3 %4 %5. New amount is %6. Please recreate the bill list.';
+#else
+        Text12100: Label 'Meanwhile %1 has been modified for %2 %3. New amount is %4. Please recreate the bill list.';
+#endif
         Text1130000: Label 'Do you want to post the lines?';
         Text1130011: Label 'Posting Vendor Bill...\\';
         Text1130012: Label 'Post Line #1##########\';
@@ -87,6 +91,7 @@ codeunit 12173 "Vendor Bill List - Post"
                     VendLedgEntry.Get(VendorBillLine."Vendor Entry No.");
                     VendLedgEntry.CalcFields("Remaining Amount");
                     if VendLedgEntry."Remaining Amount" + VendorBillLine."Remaining Amount" <> 0 then
+#if not CLEAN30
                         Error(Text12100,
                           VendLedgEntry.FieldCaption("Remaining Amount"),
                           VendLedgEntry.FieldCaption("Document No."),
@@ -94,6 +99,13 @@ codeunit 12173 "Vendor Bill List - Post"
                           VendLedgEntry.FieldCaption("Document Occurrence"),
                           VendLedgEntry."Document Occurrence",
                           Abs(VendLedgEntry."Remaining Amount"));
+#else
+                        Error(Text12100,
+                          VendLedgEntry.FieldCaption("Remaining Amount"),
+                          VendLedgEntry.FieldCaption("Document No."),
+                          VendLedgEntry."Document No.",
+                          Abs(VendLedgEntry."Remaining Amount"));
+#endif
                 end;
                 if not VendorBillLine."Manual Line" then
                     PostVendorBillLine(GenJnlLine, VendorBillHeader, VendorBillLine, VendLedgEntry, BillCode, AmountLCY)
@@ -199,8 +211,11 @@ codeunit 12173 "Vendor Bill List - Post"
         if not VendorBillLine."Manual Line" then begin
             GenJnlLine.Validate("Salespers./Purch. Code", VendLedgEntry."Purchaser Code");
             ApplyInvAndUpdateLedgEntry(GenJnlLine, VendorBillLine, Tax::" ");
-        end else
+        end else begin
+#if not CLEAN30
             GenJnlLine."Applies-to Occurrence No." := VendorBillLine."Document Occurrence";
+#endif
+        end;
         GenJnlLine.Description := Bill.Description;
         GenJnlLine."Source Code" := Bill."Vend. Bill Source Code";
         GenJnlLine."System-Created Entry" := true;
@@ -353,7 +368,9 @@ codeunit 12173 "Vendor Bill List - Post"
             GenJnlLine."Applies-to Doc. Type" := GenJnlLine."Applies-to Doc. Type"::Invoice;
             GenJnlLine."Applies-to Doc. No." := VendorBillLine."Document No.";
         end;
+#if not CLEAN30
         GenJnlLine."Applies-to Occurrence No." := VendorBillLine."Document Occurrence";
+#endif
         GenJnlLine."Allow Application" := true;
         if VendorBillLine."Amount to Pay" + VendorBillLine."Withholding Tax Amount" <> VendorBillLine."Remaining Amount" then begin
             VendLedgEntry."Vendor Bill List" := '';
@@ -372,11 +389,14 @@ codeunit 12173 "Vendor Bill List - Post"
             TempVendorBillLine.Copy(VendorBillLine);
             TempVendorBillLine.Insert();
 
+#if not CLEAN30
             UpdateDocumentOccurrenceForManualLine(TempVendorBillLine, VendorBillLine);
+#endif
         until VendorBillLine.Next() = 0;
 
     end;
 
+#if not CLEAN30
     local procedure UpdateDocumentOccurrenceForManualLine(var TempVendorBillLine: Record "Vendor Bill Line"; VendorBillLine: Record "Vendor Bill Line")
     var
         Iterations: Integer;
@@ -399,6 +419,7 @@ codeunit 12173 "Vendor Bill List - Post"
                 TempVendorBillLine.Modify(true);
             until TempVendorBillLine.Next() = 0;
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterPost(var VendorBillHeader: Record "Vendor Bill Header")

@@ -1280,7 +1280,9 @@ table 36 "Sales Header"
                       "Currency Code", CustLedgEntry."Currency Code", GenJnlLine."Account Type"::Customer, true);
                     "Applies-to Doc. Type" := CustLedgEntry."Document Type";
                     "Applies-to Doc. No." := CustLedgEntry."Document No.";
+#if not CLEAN30
                     "Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
+#endif
                     OnAfterAppliesToDocNoOnLookup(Rec, CustLedgEntry);
                 end;
                 Clear(ApplyCustEntries);
@@ -3907,6 +3909,14 @@ table 36 "Sales Header"
         field(12171; "Applies-to Occurrence No."; Integer)
         {
             Caption = 'Applies-to Occurrence No.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global installment plans and ledger entry application.';
         }
         field(12172; "Bank Account"; Code[20])
         {

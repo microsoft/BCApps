@@ -800,6 +800,48 @@ table 25 "Vendor Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+        field(10701; "VAT Reporting Date"; Date)
+        {
+            Caption = 'VAT Date';
+        }
+        field(10702; "Generated Autodocument"; Boolean)
+        {
+            Caption = 'Generated Autodocument';
+            Editable = false;
+        }
+        field(10703; "Autodocument No."; Code[20])
+        {
+            Caption = 'Autodocument No.';
+            Editable = false;
+        }
+        field(7000000; "Bill No."; Code[20])
+        {
+            Caption = 'Bill No.';
+        }
+        field(7000001; "Document Situation"; Enum "ES Document Situation")
+        {
+            Caption = 'Document Situation';
+        }
+        field(7000002; "Applies-to Bill No."; Code[20])
+        {
+            Caption = 'Applies-to Bill No.';
+        }
+        field(7000003; "Document Status"; Enum "ES Document Status")
+        {
+            Caption = 'Document Status';
+        }
+        field(7000005; "Remaining Amount (LCY) stats."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            Caption = 'Remaining Amount (LCY) stats.';
+        }
+        field(7000006; "Amount (LCY) stats."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            Caption = 'Amount (LCY) stats.';
+        }
     }
 
     keys

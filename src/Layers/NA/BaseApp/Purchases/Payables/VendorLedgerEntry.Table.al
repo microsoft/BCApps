@@ -775,6 +775,24 @@ table 25 "Vendor Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+#if not CLEANSCHEMA28
+        field(10020; "IRS 1099 Code"; Code[10])
+        {
+            Caption = 'IRS 1099 Code';
+            ObsoleteReason = 'Moved to IRS Forms App.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '28.0';
+        }
+#endif
+#if not CLEANSCHEMA28
+        field(10021; "IRS 1099 Amount"; Decimal)
+        {
+            Caption = 'IRS 1099 Amount';
+            ObsoleteReason = 'Moved to IRS Forms App.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '28.0';
+        }
+#endif
     }
 
     keys

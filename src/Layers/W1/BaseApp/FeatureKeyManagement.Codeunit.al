@@ -80,6 +80,12 @@ codeunit 265 "Feature Key Management"
         exit(ConcurrentResourcePosting);
     end;
 
+    procedure IsPaymentInstallmentsEnabled() FeatureEnabled: Boolean
+    begin
+        FeatureEnabled := true;
+        OnAfterIsPaymentInstallmentsEnabled(FeatureEnabled);
+    end;
+
     local procedure GetAutomaticAccountCodesFeatureKey(): Text[50]
     begin
         exit(AutomaticAccountCodesTxt);
@@ -135,6 +141,11 @@ codeunit 265 "Feature Key Management"
 
     [InternalEvent(false)]
     local procedure OnAfterIsConcurrentInventoryPostingEnabled(var ConcurrentInventoryPosting: Boolean)
+    begin
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnAfterIsPaymentInstallmentsEnabled(var FeatureEnabled: Boolean)
     begin
     end;
 }

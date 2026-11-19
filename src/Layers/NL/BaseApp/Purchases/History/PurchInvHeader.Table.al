@@ -731,6 +731,16 @@ table 122 "Purch. Inv. Header"
             Editable = false;
             ToolTip = 'Specifies the posted purchase installment schedule for this invoice.';
         }
+        field(11000000; "Transaction Mode"; Code[20])
+        {
+            Caption = 'Transaction Mode';
+            TableRelation = "Transaction Mode".Code where("Account Type" = const(Vendor));
+        }
+        field(11000001; "Bank Account"; Code[20])
+        {
+            Caption = 'Bank Account';
+            TableRelation = "Vendor Bank Account".Code where("Vendor No." = field("Buy-from Vendor No."));
+        }
     }
 
     keys

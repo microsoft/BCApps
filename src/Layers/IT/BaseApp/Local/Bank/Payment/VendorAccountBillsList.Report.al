@@ -92,9 +92,11 @@ report 12116 "Vendor Account Bills List"
                 column(VendLedgEntry1__Document_Date_; Format("Document Date"))
                 {
                 }
+#if not CLEAN30
                 column(VendLedgEntry1__Document_Occurrence_; "Document Occurrence")
                 {
                 }
+#endif
                 column(VendLedgEntry1__Document_No__; "Document No.")
                 {
                 }
@@ -131,9 +133,11 @@ report 12116 "Vendor Account Bills List"
                 column(VendLedgEntry1__Document_Date__Control1130020; Format("Document Date"))
                 {
                 }
+#if not CLEAN30
                 column(VendLedgEntry1__Document_Occurrence__Control1130021; "Document Occurrence")
                 {
                 }
+#endif
                 column(VendLedgEntry1__Document_No___Control1130022; "Document No.")
                 {
                 }
@@ -194,9 +198,11 @@ report 12116 "Vendor Account Bills List"
                 column(VendLedgEntry1__Document_Date_Caption; VendLedgEntry1__Document_Date_CaptionLbl)
                 {
                 }
+#if not CLEAN30
                 column(VendLedgEntry1__Document_Occurrence_Caption; FieldCaption("Document Occurrence"))
                 {
                 }
+#endif
                 column(VendLedgEntry1__Document_No__Caption; FieldCaption("Document No."))
                 {
                 }
@@ -230,9 +236,11 @@ report 12116 "Vendor Account Bills List"
                     column(VendLedgEntry2__Document_Date_; Format("Document Date"))
                     {
                     }
+#if not CLEAN30
                     column(VendLedgEntry2__Document_Occurrence_; "Document Occurrence")
                     {
                     }
+#endif
                     column(VendLedgEntry2__Document_No__; "Document No.")
                     {
                     }
@@ -289,9 +297,11 @@ report 12116 "Vendor Account Bills List"
                     column(Detailed_Vendor_Ledg__Entry__Posting_Date_; Format(VendLedgEntry3."Posting Date"))
                     {
                     }
+#if not CLEAN30
                     column(VendLedgEntry3__Document_Occurrence_; VendLedgEntry3."Document Occurrence")
                     {
                     }
+#endif
                     column(VendLedgEntry3__Document_Date_; Format(VendLedgEntry3."Document Date"))
                     {
                     }

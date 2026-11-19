@@ -1092,6 +1092,15 @@ table 21 "Cust. Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the customer entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+#if not CLEANSCHEMA25
+        field(10900; "Credit Memo Document"; Code[20])
+        {
+            Caption = 'Credit Memo Document';
+            ObsoleteReason = 'This is an unused rogue field from legacy functionality that was removed.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '25.0';
+        }
+#endif
     }
 
     keys

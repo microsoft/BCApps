@@ -1119,6 +1119,38 @@ table 21 "Cust. Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the customer entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+        field(10728; "VAT Reporting Date"; Date)
+        {
+            Caption = 'VAT Date';
+        }
+        field(7000000; "Bill No."; Code[20])
+        {
+            Caption = 'Bill No.';
+        }
+        field(7000001; "Document Situation"; Enum "ES Document Situation")
+        {
+            Caption = 'Document Situation';
+        }
+        field(7000002; "Applies-to Bill No."; Code[20])
+        {
+            Caption = 'Applies-to Bill No.';
+        }
+        field(7000003; "Document Status"; Enum "ES Document Status")
+        {
+            Caption = 'Document Status';
+        }
+        field(7000005; "Remaining Amount (LCY) stats."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            Caption = 'Remaining Amount (LCY) stats.';
+        }
+        field(7000006; "Amount (LCY) stats."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            Caption = 'Amount (LCY) stats.';
+        }
     }
 
     keys
@@ -1189,6 +1221,16 @@ table 21 "Cust. Ledger Entry"
         key(Key37; "Applies-to ID")
         {
             IncludedFields = "Accepted Payment Tolerance";
+        }
+        key(Key7000000; "Document No.", "Bill No.")
+        {
+        }
+        key(Key7000001; "Customer No.", "Document Type", "Document Situation", "Document Status")
+        {
+            SumIndexFields = "Remaining Amount (LCY) stats.", "Amount (LCY) stats.";
+        }
+        key(Key7000002; "Applies-to ID", "Document Type", "Document Situation", "Document Status")
+        {
         }
         key(Installment; "Installment Plan ID", "Installment No.")
         {

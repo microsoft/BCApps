@@ -184,7 +184,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Account No.';
             ToolTip = 'Specifies the account number that the entry on the journal line will be posted to.';
-            TableRelation = if ("Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
+            TableRelation =
+            if ("Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
                                                                                           Blocked = const(false))
             else
             if ("Account Type" = const(Customer)) Customer
@@ -444,7 +445,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Bal. Account No.';
             ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
                                                                                                Blocked = const(false))
             else
             if ("Bal. Account Type" = const(Customer)) Customer
@@ -752,7 +754,8 @@ table 81 "Gen. Journal Line"
             Caption = 'Bill-to/Pay-to No.';
             ToolTip = 'Specifies the number of the bill-to customer or pay-to vendor that the entry is linked to.';
             Editable = false;
-            TableRelation = if ("Account Type" = const(Customer)) Customer
+            TableRelation =
+            if ("Account Type" = const(Customer)) Customer
             else
             if ("Bal. Account Type" = const(Customer)) Customer
             else
@@ -776,7 +779,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Posting Group';
             ToolTip = 'Specifies the posting group that will be used in posting the journal line.The field is used only if the account type is either customer or vendor.';
-            TableRelation = if ("Account Type" = const(Customer)) "Customer Posting Group"
+            TableRelation =
+            if ("Account Type" = const(Customer)) "Customer Posting Group"
             else
             if ("Account Type" = const(Vendor)) "Vendor Posting Group"
             else
@@ -1230,8 +1234,10 @@ table 81 "Gen. Journal Line"
                 "Due Date" := 0D;
                 "Pmt. Discount Date" := 0D;
                 "Payment Discount %" := 0;
+#if not CLEAN30
                 if "Payment Terms Code" <> xRec."Payment Terms Code" then
                     DeleteSalesPaymentLines();
+#endif
                 if ("Account Type" <> "Account Type"::"G/L Account") or
                    ("Bal. Account Type" <> "Bal. Account Type"::"G/L Account")
                 then
@@ -1495,8 +1501,10 @@ table 81 "Gen. Journal Line"
                     "Sell-to/Buy-from No." := '';
                     "VAT Registration No." := '';
                 end;
+#if not CLEAN30
                 if xRec."Bal. Account Type" in [xRec."Bal. Account Type"::Customer, xRec."Bal. Account Type"::Vendor] then
                     DeleteSalesPaymentLines();
+#endif
                 if ("Account Type" in [
                                        "Account Type"::"G/L Account", "Account Type"::"Bank Account", "Account Type"::"Fixed Asset"]) and
                    ("Bal. Account Type" in [
@@ -1947,7 +1955,8 @@ table 81 "Gen. Journal Line"
         field(79; "Source No."; Code[20])
         {
             Caption = 'Source No.';
-            TableRelation = if ("Source Type" = const(Customer)) Customer
+            TableRelation =
+            if ("Source Type" = const(Customer)) Customer
             else
             if ("Source Type" = const(Vendor)) Vendor
             else
@@ -2388,7 +2397,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Ship-to/Order Address Code';
             ToolTip = 'Specifies the address code of the ship-to customer or order-from vendor that the entry is linked to.';
-            TableRelation = if ("Account Type" = const(Customer)) "Ship-to Address".Code where("Customer No." = field("Bill-to/Pay-to No."))
+            TableRelation =
+            if ("Account Type" = const(Customer)) "Ship-to Address".Code where("Customer No." = field("Bill-to/Pay-to No."))
             else
             if ("Account Type" = const(Vendor)) "Order Address".Code where("Vendor No." = field("Bill-to/Pay-to No."))
             else
@@ -2461,7 +2471,8 @@ table 81 "Gen. Journal Line"
         field(118; "Sell-to/Buy-from No."; Code[20])
         {
             Caption = 'Sell-to/Buy-from No.';
-            TableRelation = if ("Account Type" = const(Customer)) Customer
+            TableRelation =
+            if ("Account Type" = const(Customer)) Customer
             else
             if ("Bal. Account Type" = const(Customer)) Customer
             else
@@ -2760,7 +2771,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Recipient Bank Account';
             ToolTip = 'Specifies the bank account that the amount will be transferred to after it has been exported from the payment journal.';
-            TableRelation = if ("Account Type" = const(Customer)) "Customer Bank Account".Code where("Customer No." = field("Account No."))
+            TableRelation =
+            if ("Account Type" = const(Customer)) "Customer Bank Account".Code where("Customer No." = field("Account No."))
             else
             if ("Account Type" = const(Vendor)) "Vendor Bank Account".Code where("Vendor No." = field("Account No."))
             else
@@ -3216,7 +3228,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Direct Debit Mandate ID';
             ToolTip = 'Specifies the identification of the direct-debit mandate that is being used on the journal lines to process a direct debit collection.';
-            TableRelation = if ("Account Type" = const(Customer)) "SEPA Direct Debit Mandate" where("Customer No." = field("Account No."));
+            TableRelation =
+            if ("Account Type" = const(Customer)) "SEPA Direct Debit Mandate" where("Customer No." = field("Account No."));
 
             trigger OnValidate()
             var
@@ -3948,6 +3961,265 @@ table 81 "Gen. Journal Line"
             Editable = false;
             DataClassification = SystemMetadata;
         }
+        field(12100; "VAT Identifier"; Code[20])
+        {
+            Caption = 'VAT Identifier';
+            TableRelation = "VAT Identifier";
+        }
+        field(12101; "Fiscal Code"; Code[20])
+        {
+            Caption = 'Fiscal Code';
+
+            trigger OnValidate()
+            var
+                LocalAppMgt: Codeunit LocalApplicationManagement;
+            begin
+                TestField(Resident, Resident::Resident);
+                if "Fiscal Code" <> '' then
+                    LocalAppMgt.CheckDigit("Fiscal Code");
+            end;
+        }
+        field(12102; "Deductible %"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Deductible %';
+            DecimalPlaces = 0 : 5;
+            MaxValue = 100;
+            MinValue = 0;
+        }
+        field(12103; "Bal. Deductible %"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Bal. Deductible %';
+            DecimalPlaces = 0 : 5;
+            MaxValue = 100;
+            MinValue = 0;
+        }
+        field(12110; "Operation Occurred Date"; Date)
+        {
+            Caption = 'Operation Occurred Date';
+
+            trigger OnValidate()
+            begin
+                if "Document Type" in ["Document Type"::Invoice, "Document Type"::"Credit Memo"] then
+                    if "Operation Occurred Date" > "Posting Date" then
+                        Error(Text1130014, FieldCaption("Operation Occurred Date"), FieldCaption("Posting Date"));
+                ValidateIncludeInDT();
+            end;
+        }
+        field(12111; "Reverse Sales VAT No. Series"; Code[20])
+        {
+            Caption = 'Reverse Sales VAT No. Series';
+            TableRelation = "No. Series";
+        }
+        field(12112; "Reverse Sales VAT No."; Code[20])
+        {
+            Caption = 'Reverse Sales VAT No.';
+        }
+        field(12113; "Closing Balance Sheet"; Boolean)
+        {
+            Caption = 'Closing Balance Sheet';
+        }
+        field(12123; "Activity Code"; Code[6])
+        {
+            Caption = 'Activity Code';
+            TableRelation = "Activity Code".Code;
+        }
+        field(12125; "Service Tariff No."; Code[10])
+        {
+            Caption = 'Service Tariff No.';
+            TableRelation = "Service Tariff Number";
+
+            trigger OnValidate()
+            begin
+                if "Service Tariff No." <> '' then
+                    VATPostingSetup.CheckEUService("VAT Bus. Posting Group", "VAT Prod. Posting Group");
+            end;
+        }
+        field(12126; "Transport Method"; Code[10])
+        {
+            Caption = 'Transport Method';
+            TableRelation = "Transport Method";
+        }
+        field(12128; "Include in VAT Transac. Rep."; Boolean)
+        {
+            Caption = 'Include in VAT Transac. Rep.';
+
+            trigger OnValidate()
+            var
+            begin
+            end;
+        }
+        field(12130; Resident; Option)
+        {
+            Caption = 'Resident';
+            OptionCaption = 'Resident,Non-Resident';
+            OptionMembers = Resident,"Non-Resident";
+
+            trigger OnValidate()
+            begin
+                TestField("Tax Representative Type", "Tax Representative Type"::" ");
+                if Resident = Resident::Resident then
+                    InitFields()
+                else
+                    "Fiscal Code" := '';
+            end;
+        }
+        field(12131; "Individual Person"; Boolean)
+        {
+            Caption = 'Individual Person';
+
+            trigger OnValidate()
+            begin
+                "Tax Representative Type" := "Tax Representative Type"::" ";
+                "Tax Representative No." := '';
+                if not "Individual Person" then begin
+                    Resident := Resident::Resident;
+                    InitFields();
+                    "Fiscal Code" := '';
+                end;
+            end;
+        }
+        field(12132; "Related Entry No."; Integer)
+        {
+            BlankZero = true;
+            Caption = 'Related Entry No.';
+            TableRelation = "Vendor Ledger Entry" where("Document Type" = const(Invoice));
+
+            trigger OnLookup()
+            var
+                CAVendor: Record "Customs Authority Vendor";
+                Vend: Record Vendor;
+            begin
+                TestField("Account Type", "Account Type"::Vendor);
+                TestField("Account No.");
+                Vend.Get("Account No.");
+                if Vend.IsCustomAuthorityVendor() then
+                    Validate("Related Entry No.", Vend.LookupEntryNo("Related Entry No."))
+                else
+                    Validate("Related Entry No.", CAVendor.LookupEntryNo("Related Entry No."));
+            end;
+
+            trigger OnValidate()
+            begin
+                if "Related Entry No." <> 0 then begin
+                    TestField("Account Type", "Account Type"::Vendor);
+                    if not ("Document Type" in ["Document Type"::Invoice, "Document Type"::"Credit Memo"]) then
+                        FieldError("Document Type");
+                end;
+            end;
+        }
+        field(12133; "First Name"; Text[30])
+        {
+            Caption = 'First Name';
+        }
+        field(12134; "Last Name"; Text[30])
+        {
+            Caption = 'Last Name';
+        }
+        field(12135; "Date of Birth"; Date)
+        {
+            Caption = 'Date of Birth';
+        }
+        field(12136; "Tax Representative Type"; Option)
+        {
+            Caption = 'Tax Representative Type';
+            OptionCaption = ' ,Customer,Contact,Vendor';
+            OptionMembers = " ",Customer,Contact,Vendor;
+
+            trigger OnValidate()
+            begin
+                if "Tax Representative Type" <> "Tax Representative Type"::" " then begin
+                    TestField("Individual Person", false);
+                    TestField(Resident, Resident::"Non-Resident");
+                end;
+                if "Tax Representative Type" <> xRec."Tax Representative Type" then
+                    "Tax Representative No." := '';
+            end;
+        }
+        field(12137; "Tax Representative No."; Code[20])
+        {
+            Caption = 'Tax Representative No.';
+            TableRelation =
+            if ("Tax Representative Type" = filter(Vendor)) Vendor
+            else
+            if ("Tax Representative Type" = filter(Customer)) Customer
+            else
+            if ("Tax Representative Type" = filter(Contact)) Contact;
+
+            trigger OnValidate()
+            begin
+                if "Tax Representative No." <> '' then
+                    TestField("Tax Representative Type");
+            end;
+        }
+        field(12138; "Place of Birth"; Text[30])
+        {
+            Caption = 'Place of Birth';
+        }
+        field(12139; "Refers to Period"; Option)
+        {
+            Caption = 'Refers to Period';
+            OptionCaption = ' ,Current,Current Calendar Year,Previous Calendar Year';
+            OptionMembers = " ",Current,"Current Calendar Year","Previous Calendar Year";
+        }
+        field(12140; "Contract No."; Code[20])
+        {
+            Caption = 'Contract No.';
+        }
+        field(12170; "Payment %"; Decimal)
+        {
+            AutoFormatType = 0;
+            CalcFormula = sum("Payment Lines"."Payment %" where("Sales/Purchase" = const(" "),
+                                                                 Type = const("General Journal"),
+                                                                 Code = field("Journal Batch Name"),
+                                                                 "Journal Template Name" = field("Journal Template Name"),
+                                                                 "Journal Line No." = field("Line No.")));
+            Caption = 'Payment %';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(12171; "Applies-to Occurrence No."; Integer)
+        {
+            Caption = 'Applies-to Occurrence No.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global installment plans and ledger entry application.';
+        }
+        field(12172; "Bank Receipt"; Boolean)
+        {
+            Caption = 'Bank Receipt';
+        }
+        field(12174; "Cumulative Bank Receipts"; Boolean)
+        {
+            Caption = 'Cumulative Bank Receipts';
+        }
+        field(12175; "Document Type to Close"; Enum "Gen. Journal Document Type")
+        {
+            Caption = 'Document Type to Close';
+        }
+        field(12176; "Document No. to Close"; Code[20])
+        {
+            Caption = 'Document No. to Close';
+        }
+        field(12177; "Document Occurrence to Close"; Integer)
+        {
+            Caption = 'Document Occurrence to Close';
+        }
+        field(12179; "Allow Issue"; Boolean)
+        {
+            Caption = 'Allow Issue';
+        }
+        field(12186; "Fattura Document Type"; Code[20])
+        {
+            Caption = 'Fattura Document Type';
+            TableRelation = "Fattura Document Type";
+        }
     }
 
     keys
@@ -4030,8 +4302,9 @@ table 81 "Gen. Journal Line"
             DeleteRelatedPaymentFileErrors();
             ClearDataExchangeEntries(false);
 
+#if not CLEAN30
             DeleteSalesPaymentLines();
-
+#endif
             GenJnlAlloc.SetRange("Journal Template Name", "Journal Template Name");
             GenJnlAlloc.SetRange("Journal Batch Name", "Journal Batch Name");
             GenJnlAlloc.SetRange("Journal Line No.", "Line No.");
@@ -4196,9 +4469,11 @@ table 81 "Gen. Journal Line"
         MaximumDay: Integer;
         Month: Integer;
         PaymentCounter: Integer;
+#if not CLEAN30
         PaymentPurchase: Record "Payment Lines";
         PaymentSales: Record "Payment Lines";
         PaymentTermsLine: Record "Payment Lines";
+#endif
         Year: Integer;
         TmpWithholdingSocSec: Record "Tmp Withholding Contribution";
         PaymentMethod: Record "Payment Method";
@@ -5481,12 +5756,17 @@ table 81 "Gen. Journal Line"
             TmpWithholdingSocSec.Delete();
     end;
 
+#if not CLEAN30
+    [Obsolete('This procedure is obsolete because of replacement by Payment Installements feature.', '30.0')]
     [Scope('OnPrem')]
     procedure InsertPaymentLines()
     begin
         InsertPaymentTermsLines();
     end;
+#endif
 
+#if not CLEAN30
+    [Obsolete('This procedure is obsolete because of replacement by Payment Installements feature.', '30.0')]
     procedure InsertPaymentTermsLines()
     begin
         GenJnlTemplate.Get("Journal Template Name");
@@ -5505,7 +5785,10 @@ table 81 "Gen. Journal Line"
             until PaymentTermsLine.Next() = 0;
         end;
     end;
+#endif
 
+#if not CLEAN30
+    [Obsolete('This procedure is obsolete because of replacement by Payment Installements feature.', '30.0')]
     procedure DeleteSalesPaymentLines()
     begin
         PaymentSales.Reset();
@@ -5517,13 +5800,19 @@ table 81 "Gen. Journal Line"
         if PaymentSales.FindFirst() then
             PaymentSales.DeleteAll();
     end;
+#endif
 
+#if not CLEAN30
+    [Obsolete('This procedure is obsolete because of replacement by Payment Installements feature.', '30.0')]
     [Scope('OnPrem')]
     procedure PurchasePayment()
     begin
         CreatePurchasePaymentLine();
     end;
+#endif
 
+#if not CLEAN30
+    [Obsolete('This procedure is obsolete because of replacement by Payment Installements feature.', '30.0')]
     procedure CreatePurchasePaymentLine();
     var
         Vend: Record Vendor;
@@ -5601,7 +5890,10 @@ table 81 "Gen. Journal Line"
 
         PaymentPurchase.Insert();
     end;
+#endif
 
+#if not CLEAN30
+    [Obsolete('This procedure is obsolete because of replacement by Payment Installements feature.', '30.0')]
     procedure CreateSalesPaymentLine()
     begin
         PaymentSales.Init();
@@ -5683,6 +5975,7 @@ table 81 "Gen. Journal Line"
 
         PaymentSales.Insert();
     end;
+#endif
 
     [Scope('OnPrem')]
     procedure ExchangeDate(): Date
@@ -5785,7 +6078,9 @@ table 81 "Gen. Journal Line"
             end;
             SetAmountWithCustLedgEntry();
             UpdateDocumentTypeAndAppliesTo(CustLedgEntry."Document Type", CustLedgEntry."Document No.");
+#if not CLEAN30
             "Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
+#endif
             if "Document Type" = "Document Type"::Dishonored then begin
                 "Document No. to Close" := CustLedgEntry."Document No. to Close";
                 "Document Type to Close" := CustLedgEntry."Document Type to Close";
@@ -5880,7 +6175,9 @@ table 81 "Gen. Journal Line"
             end;
             SetAmountWithVendLedgEntry();
             UpdateDocumentTypeAndAppliesTo(VendLedgEntry."Document Type", VendLedgEntry."Document No.");
+#if not CLEAN30
             "Applies-to Occurrence No." := VendLedgEntry."Document Occurrence";
+#endif
             OnLookUpAppliesToDocVendOnAfterUpdateDocumentTypeAndAppliesTo(Rec, VendLedgEntry);
         end;
 
@@ -6912,7 +7209,9 @@ table 81 "Gen. Journal Line"
         if "Applies-to Doc. No." <> '' then begin
             CustLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
             CustLedgEntry.SetRange("Document No.", "Applies-to Doc. No.");
+#if not CLEAN30
             CustLedgEntry.SetRange("Document Occurrence", "Applies-to Occurrence No.");
+#endif
             if CustLedgEntry.FindFirst() then;
         end else
             if "Applies-to ID" <> '' then begin
@@ -6929,7 +7228,9 @@ table 81 "Gen. Journal Line"
         if "Applies-to Doc. No." <> '' then begin
             VendLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
             VendLedgEntry.SetRange("Document No.", "Applies-to Doc. No.");
+#if not CLEAN30
             VendLedgEntry.SetRange("Document Occurrence", "Applies-to Occurrence No.");
+#endif
             if VendLedgEntry.FindFirst() then;
         end else
             if "Applies-to ID" <> '' then begin
@@ -10805,15 +11106,18 @@ table 81 "Gen. Journal Line"
     begin
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Event triggered after running the payment export process.
     /// This event allows developers to change custom logic after the export has been completed.
     /// </summary>
     /// <param name="GenJournalLine">The current General Journal Line record that was processed for payment export.</param>
+    [Obsolete('This event is obsolete because the payment export process has changed.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchasePaymentLineOnAfterCalculateDueDate(var PaymentPurchase: Record "Payment Lines"; PaymentTermsLine: Record "Payment Lines"; GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnExportPaymentFileOnAfterRunExport(var GenJournalLine: Record "Gen. Journal Line")

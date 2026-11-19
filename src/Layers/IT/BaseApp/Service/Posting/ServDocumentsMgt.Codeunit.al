@@ -135,9 +135,11 @@ codeunit 5988 "Serv-Documents Mgt."
 #pragma warning restore AA0074
         TrackingSpecificationExists: Boolean;
         ServLineInvoicedConsumedQty: Decimal;
+#if not CLEAN30
         PaymentJournalLine: Record "Payment Lines";
         PaymentTermsLine: Record "Payment Lines";
         PostedPayments: Record "Posted Payment Lines";
+#endif
         Text1130003: Label 'Please enter at least one Payment Line for %1 %2.';
         Text1130000: Label 'must not be prior to %1';
         Text12100: Label 'It is not possible to post document with a customer with VAT exemption if an active VAT exemption doesn''t exist.';
@@ -1120,12 +1122,13 @@ codeunit 5988 "Serv-Documents Mgt."
                 FinalizeHeader(PassedServHeader);
             end;
 
+#if not CLEAN30
         PaymentTermsLine.Reset();
         PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Sales);
         PaymentTermsLine.SetRange(Type, ServHeader."Document Type");
         PaymentTermsLine.SetRange(Code, ServHeader."No.");
         PaymentTermsLine.DeleteAll();
-
+#endif
         OnFinalizeOnAfterFinalizeDocuments(ServHeader, ServInvHeader, ServInvLine, ServCrMemoHeader, ServCrMemoLine, Invoice);
 
         OnAfterFinalize(PassedServHeader, CloseCondition);
@@ -2390,6 +2393,8 @@ codeunit 5988 "Serv-Documents Mgt."
         TempWarrantyLedgerEntry.DeleteAll();
     end;
 
+#if not CLEAN30
+    [ObsoleteReason = 'Replaced by CLEAN30 version']
     [Scope('OnPrem')]
     procedure FinalizeDeletePmtTermLines()
     begin
@@ -2399,6 +2404,7 @@ codeunit 5988 "Serv-Documents Mgt."
         PaymentTermsLine.SetRange(Code, ServHeader."No.");
         PaymentTermsLine.DeleteAll();
     end;
+#endif
 
     local procedure CheckCertificateOfSupplyStatus(ServShptHeader: Record "Service Shipment Header"; ServShptLine: Record "Service Shipment Line")
     var

@@ -641,6 +641,7 @@ page 140 "Posted Purchase Credit Memo"
                         ApprovalsMgmt.ShowPostedApprovalEntries(Rec.RecordId);
                     end;
                 }
+#if not CLEAN30
                 action("Pa&yments")
                 {
                     ApplicationArea = Basic, Suite;
@@ -651,7 +652,11 @@ page 140 "Posted Purchase Credit Memo"
                                   Type = const("Credit Memo"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'This action is obsolete in the current version.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action(DocAttach)
                 {
                     ApplicationArea = All;

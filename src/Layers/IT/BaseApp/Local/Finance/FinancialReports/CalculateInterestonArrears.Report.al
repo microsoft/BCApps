@@ -106,7 +106,11 @@ report 12107 "Calculate Interest on Arrears"
             dataitem("Cust. Ledger Entry"; "Cust. Ledger Entry")
             {
                 DataItemLink = "Customer No." = field("No.");
+#if not CLEAN30
                 DataItemTableView = sorting("Document Type", "Document No.", "Document Occurrence", "Customer No.", Open) where("Document Type" = const(Invoice));
+#else
+                DataItemTableView = sorting("Entry No.") where("Document Type" = const(Invoice));
+#endif
                 column(Cust__Ledger_Entry__Customer_No__; "Customer No.")
                 {
                 }

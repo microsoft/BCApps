@@ -457,7 +457,9 @@ report 12120 "VAT Register - Print"
                                 begin
                                     SetDetailsForVendor("VAT Book Entry");
                                     VendLedgEntry.Reset();
+#if not CLEAN30
                                     VendLedgEntry.SetCurrentKey("Document Type", "External Document No.", "Vendor No.", "Document Occurrence");
+#endif
                                     VendLedgEntry.SetRange("Document Type", "Document Type");
                                     VendLedgEntry.SetRange("External Document No.", "External Document No.");
                                     VendLedgEntry.SetRange("Vendor No.", "Sell-to/Buy-from No.");
@@ -475,7 +477,9 @@ report 12120 "VAT Register - Print"
                                     if VATBookEntry."Reverse VAT Entry" then begin
                                         SetDetailsForVendor("VAT Book Entry");
                                         VendLedgEntry.Reset();
+#if not CLEAN30
                                         VendLedgEntry.SetCurrentKey("Document Type", "External Document No.", "Vendor No.", "Document Occurrence");
+#endif
                                         VendLedgEntry.SetRange("Document Type", "Document Type");
                                         VendLedgEntry.SetRange("External Document No.", "External Document No.");
                                         VendLedgEntry.SetRange("Vendor No.", "Sell-to/Buy-from No.");

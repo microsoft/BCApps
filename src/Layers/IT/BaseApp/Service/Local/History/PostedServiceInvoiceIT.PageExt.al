@@ -82,6 +82,7 @@ pageextension 12456 "Posted Service Invoice IT" extends "Posted Service Invoice"
             Visible = false;
         }
     }
+#if not CLEAN30
     actions
     {
         addafter("Service Document Lo&g")
@@ -99,7 +100,11 @@ pageextension 12456 "Posted Service Invoice IT" extends "Posted Service Invoice"
                                 Type = const(Invoice),
                                 Code = field("No.");
                 ToolTip = 'View the related payments.';
+                ObsoleteReason = 'Replaced by CLEAN30 version';
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
             }
         }
     }
+#endif
 }

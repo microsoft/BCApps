@@ -468,6 +468,7 @@ codeunit 144133 "ERM Dishonor"
         VerifyAmountOnVendorLedgerEntry(DocumentNo3, TempPurchaseLine.Amount);
     end;
 
+#if not CLEAN30
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
@@ -493,7 +494,9 @@ codeunit 144133 "ERM Dishonor"
         // [THEN] Bank Receipt data is cleared in Invoice
         VerifyCustLedgerEntriesAfterApplying(CustLedgerEntry, ApplyingCustLedgEntry);
     end;
+#endif
 
+#if not CLEAN30
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
@@ -521,6 +524,7 @@ codeunit 144133 "ERM Dishonor"
         // [THEN] Bank Receipt data is cleared in Payment
         VerifyCustLedgerEntriesAfterUnApplying(OldCustLedgerEntry, AppliedCustLedgEntry."Entry No.");
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -937,6 +941,7 @@ codeunit 144133 "ERM Dishonor"
         SalesReceivablesSetup.Modify(true);
     end;
 
+#if not CLEAN30
     local procedure MockCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry")
     var
         RecRef: RecordRef;
@@ -952,6 +957,7 @@ codeunit 144133 "ERM Dishonor"
         CustLedgerEntry.Open := true;
         CustLedgerEntry.Insert();
     end;
+#endif
 
     local procedure MockDtldCustLedgEntry(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; CustLedgerEntryNo: Integer; BankReceiptIssued: Boolean)
     begin
@@ -962,6 +968,7 @@ codeunit 144133 "ERM Dishonor"
         DtldCustLedgEntry.Insert();
     end;
 
+#if not CLEAN30
     local procedure MockCustLedgerEntryAndDtldCustLedgEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; BankReceiptIssued: Boolean)
     var
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
@@ -969,7 +976,9 @@ codeunit 144133 "ERM Dishonor"
         MockCustLedgerEntry(CustLedgerEntry);
         MockDtldCustLedgEntry(DtldCustLedgEntry, CustLedgerEntry."Entry No.", BankReceiptIssued);
     end;
+#endif
 
+#if not CLEAN30
     local procedure SetupForApplyingCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; var ApplyingCustLedgerEntry: Record "Cust. Ledger Entry")
     begin
         SetupBlankBankReceiptValueCustLedgerEntry(CustLedgerEntry);
@@ -979,7 +988,9 @@ codeunit 144133 "ERM Dishonor"
         ApplyingCustLedgerEntry."Allow Issue" := true;
         ApplyingCustLedgerEntry.Modify();
     end;
+#endif
 
+#if not CLEAN30
     local procedure SetupForUnApplyingCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; var AppliedCustLedgerEntry: Record "Cust. Ledger Entry")
     begin
         SetupBlankBankReceiptValueCustLedgerEntry(AppliedCustLedgerEntry);
@@ -989,6 +1000,7 @@ codeunit 144133 "ERM Dishonor"
         SetupCloseDocumentCustLedgerEntry(CustLedgerEntry, AppliedCustLedgerEntry);
         CustLedgerEntry.Modify();
     end;
+#endif
 
     local procedure SetupBlankBankReceiptValueCustLedgerEntry(var CustLedgEntry: Record "Cust. Ledger Entry")
     begin
@@ -998,6 +1010,7 @@ codeunit 144133 "ERM Dishonor"
         CustLedgEntry."Customer Bill No." := '';
     end;
 
+#if not CLEAN30
     local procedure SetupCloseDocumentCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; ApplyCustLedgerEntry: Record "Cust. Ledger Entry")
     begin
         CustLedgerEntry."Document Type to Close" := ApplyCustLedgerEntry."Document Type";
@@ -1005,6 +1018,7 @@ codeunit 144133 "ERM Dishonor"
         CustLedgerEntry."Document Occurrence to Close" := ApplyCustLedgerEntry."Document Occurrence";
         CustLedgerEntry."Customer No." := ApplyCustLedgerEntry."Customer No.";
     end;
+#endif
 
     local procedure SetupRandomBankReceiptValueCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin

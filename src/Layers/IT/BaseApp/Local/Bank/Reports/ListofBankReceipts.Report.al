@@ -79,9 +79,11 @@ report 12170 "List of Bank Receipts"
                 column(DocDateFormat_CustBillLine; Format("Document Date"))
                 {
                 }
+#if not CLEAN30
                 column(DocOccurrence_CustBillLine; "Document Occurrence")
                 {
                 }
+#endif
                 column(Amt_CustBillLine; Amount)
                 {
                     AutoFormatType = 1;

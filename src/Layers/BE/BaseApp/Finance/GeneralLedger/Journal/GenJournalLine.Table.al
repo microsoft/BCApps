@@ -3900,6 +3900,22 @@ table 81 "Gen. Journal Line"
             Editable = false;
             DataClassification = SystemMetadata;
         }
+        field(11310; "Enterprise No."; Text[50])
+        {
+            Caption = 'Enterprise No.';
+        }
+        field(11311; "Non Ded. VAT Amount"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
+            Caption = 'Non Ded. VAT Amount';
+        }
+        field(11312; "Non Ded. Source Curr. VAT Amt."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
+            Caption = 'Non Ded. Source Curr. VAT Amt.';
+        }
     }
 
     keys

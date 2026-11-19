@@ -3919,6 +3919,62 @@ table 81 "Gen. Journal Line"
             Editable = false;
             DataClassification = SystemMetadata;
         }
+        field(11580; "Payment Fee Code"; Option)
+        {
+            Caption = 'Payment Fee Code';
+            InitValue = " ";
+            OptionCaption = ' ,Own,Beneficiary,Share';
+            OptionMembers = " ",Own,Beneficiary,Share;
+        }
+        field(3010531; "ESR Information"; Text[100])
+        {
+            Caption = 'ESR Information';
+        }
+        field(3010541; "Reference No."; Code[35])
+        {
+            Caption = 'Reference No.';
+
+            trigger OnValidate()
+            begin
+                DTAMgt.ProcessGlRefNo(Rec);
+            end;
+        }
+        field(3010543; Checksum; Code[2])
+        {
+            Caption = 'Checksum';
+
+            trigger OnValidate()
+            begin
+                Validate("Reference No.");
+            end;
+        }
+        field(3010544; "ESR/ISR Coding Line"; Code[70])
+        {
+            Caption = 'ESR/ISR Coding Line';
+
+            trigger OnValidate()
+            begin
+                DTAMgt.ProcessGlLine(Rec, "ESR/ISR Coding Line");
+            end;
+        }
+        field(3010545; "Debit Bank"; Code[20])
+        {
+            Caption = 'Debit Bank';
+            TableRelation = "DTA Setup";
+
+            trigger OnValidate()
+            begin
+                DTASetup.Get("Debit Bank");
+                DTASetup.TestField("DTA Sender Clearing");
+                Clearing := DTASetup."DTA Sender Clearing";
+            end;
+        }
+        field(3010546; Clearing; Code[5])
+        {
+            Caption = 'Clearing';
+            Editable = false;
+            TableRelation = "Bank Directory";
+        }
     }
 
     keys

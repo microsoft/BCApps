@@ -884,11 +884,13 @@ page 52 "Purchase Credit Memo"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+#if not CLEAN30
                 field("Applies-to Occurrence No."; Rec."Applies-to Occurrence No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the occurrence that applies to the transaction.';
                 }
+#endif
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1265,6 +1267,7 @@ page 52 "Purchase Credit Memo"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+#if not CLEAN30
                 action("Pa&yments")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1275,7 +1278,11 @@ page 52 "Purchase Credit Memo"
                                   Type = field("Document Type"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'This action is obsolete in the current version.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action("Get St&d. Vend. Purchase Codes")
                 {
                     ApplicationArea = Basic, Suite;

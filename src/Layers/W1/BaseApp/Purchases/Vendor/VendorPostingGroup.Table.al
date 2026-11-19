@@ -461,8 +461,9 @@ table 93 "Vendor Posting Group"
     begin
         GLSetup.Get();
         PmtToleranceVisible := GLSetup.GetPmtToleranceVisible();
+#if not CLEAN30
         PmtDiscountVisible := PaymentTerms.UsePaymentDiscount();
-
+#endif
         PurchSetup.Get();
         InvRoundingVisible := PurchSetup."Invoice Rounding";
         ApplnRoundingVisible := PurchSetup."Appln. between Currencies" <> PurchSetup."Appln. between Currencies"::None;

@@ -78,6 +78,7 @@ table 3 "Payment Terms"
             ObsoleteTag = '26.0';
         }
 #endif
+#if not CLEAN30
         field(12170; "Payment Nos."; Integer)
         {
             CalcFormula = count("Payment Lines" where("Sales/Purchase" = const(" "),
@@ -97,6 +98,7 @@ table 3 "Payment Terms"
             Editable = false;
             FieldClass = FlowField;
         }
+#endif
         field(12172; "Fattura Payment Terms Code"; Code[4])
         {
             Caption = 'Fattura Payment Terms Code';
@@ -150,14 +152,18 @@ table 3 "Payment Terms"
         CRMSyncHelper: Codeunit "CRM Synch. Helper";
     begin
         SetLastModifiedDateTime();
+#if not CLEAN30
         FilterPaymentLines();
         if PaymentTermsLine.Find('-') then
             Error(Text000, Code);
+#endif
         CRMSyncHelper.UpdateCDSOptionMapping(xRec.RecordId(), RecordId());
     end;
 
     var
+#if not CLEAN30
         PaymentTermsLine: Record "Payment Lines";
+#endif
         Text000: Label 'Impossible to rename %1 because there are payment lines associated with it.';
 
     local procedure SetLastModifiedDateTime()
@@ -174,6 +180,8 @@ table 3 "Payment Terms"
         OnAfterTranslateDescription(PaymentTerms, Language);
     end;
 
+#if not CLEAN30
+    [Obsolete('This procedure is obsolete and will be removed in future versions.')]
     [Scope('OnPrem')]
     procedure FilterPaymentLines()
     begin
@@ -182,6 +190,7 @@ table 3 "Payment Terms"
         PaymentTermsLine.SetRange(PaymentTermsLine.Type, PaymentTermsLine.Type::"Payment Terms");
         PaymentTermsLine.SetRange(PaymentTermsLine.Code, Code);
     end;
+#endif
 
     procedure GetDescriptionInCurrentLanguageFullLength(): Text[100]
     var
@@ -194,6 +203,8 @@ table 3 "Payment Terms"
         exit(Description);
     end;
 
+#if not CLEAN30
+    [Obsolete('This procedure is obsolete and will be removed in future versions.')]
     procedure UsePaymentDiscount(): Boolean
     var
         PaymentLines: Record "Payment Lines";
@@ -202,7 +213,10 @@ table 3 "Payment Terms"
 
         exit(not PaymentLines.IsEmpty);
     end;
+#endif
 
+#if not CLEAN30
+    [Obsolete('This procedure is obsolete and will be removed in future versions.')]
     [Scope('OnPrem')]
     procedure GetDueDateCalculation(var DueDateCalculation: DateFormula)
     var
@@ -216,7 +230,7 @@ table 3 "Payment Terms"
         else
             Evaluate(DueDateCalculation, '<0D>');
     end;
-
+#endif
     [IntegrationEvent(false, false)]
     local procedure OnAfterTranslateDescription(var PaymentTerms: Record "Payment Terms"; Language: Code[10])
     begin

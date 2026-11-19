@@ -118,7 +118,9 @@ report 12177 "Suggest Vendor Bills"
             VendBillLine2.Reset();
             VendBillLine2.SetRange("Vendor No.", "Vendor Ledger Entry"."Vendor No.");
             VendBillLine2.SetRange("Document No.", "Vendor Ledger Entry"."Document No.");
+#if not CLEAN30
             VendBillLine2.SetRange("Document Occurrence", "Vendor Ledger Entry"."Document Occurrence");
+#endif
             VendBillLine2.SetRange("Document Date", "Vendor Ledger Entry"."Document Date");
             if not VendBillLine2.FindFirst() then begin
                 VendorBillLine.Init();
@@ -128,7 +130,9 @@ report 12177 "Suggest Vendor Bills"
                 VendorBillLine."Vendor Bank Acc. No." := "Vendor Ledger Entry"."Recipient Bank Account";
                 VendorBillLine."Document Type" := "Vendor Ledger Entry"."Document Type";
                 VendorBillLine."Document No." := "Vendor Ledger Entry"."Document No.";
+#if not CLEAN30
                 VendorBillLine."Document Occurrence" := "Vendor Ledger Entry"."Document Occurrence";
+#endif
                 VendorBillLine."Document Date" := "Vendor Ledger Entry"."Document Date";
                 VendorBillLine."External Document No." := "Vendor Ledger Entry"."External Document No.";
                 VendorBillLine."Instalment Amount" := Abs("Vendor Ledger Entry".Amount);

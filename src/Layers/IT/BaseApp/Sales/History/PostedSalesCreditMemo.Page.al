@@ -731,6 +731,7 @@ page 134 "Posted Sales Credit Memo"
                         ApprovalsMgmt.ShowPostedApprovalEntries(Rec.RecordId);
                     end;
                 }
+#if not CLEAN30
                 action("Pa&yments")
                 {
                     ApplicationArea = Basic, Suite;
@@ -741,26 +742,31 @@ page 134 "Posted Sales Credit Memo"
                                   Type = const("Credit Memo"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'This action is obsolete in the current version.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
-                action(DocAttach)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Attachments';
-                    Image = Attach;
-                    ToolTip = 'Add a file as an attachment. You can attach images as well as documents.';
+#endif
+            }
+            action(DocAttach)
+            {
+                ApplicationArea = All;
+                Caption = 'Attachments';
+                Image = Attach;
+                ToolTip = 'Add a file as an attachment. You can attach images as well as documents.';
 
-                    trigger OnAction()
-                    var
-                        DocumentAttachmentDetails: Page "Document Attachment Details";
-                        RecRef: RecordRef;
-                    begin
-                        RecRef.GetTable(Rec);
-                        DocumentAttachmentDetails.OpenForRecRef(RecRef);
-                        DocumentAttachmentDetails.RunModal();
-                    end;
-                }
+                trigger OnAction()
+                var
+                    DocumentAttachmentDetails: Page "Document Attachment Details";
+                    RecRef: RecordRef;
+                begin
+                    RecRef.GetTable(Rec);
+                    DocumentAttachmentDetails.OpenForRecRef(RecRef);
+                    DocumentAttachmentDetails.RunModal();
+                end;
             }
         }
+    }
         area(processing)
         {
             group("F&unctions")
@@ -786,7 +792,7 @@ page 134 "Posted Sales Credit Memo"
                 Caption = 'Customer';
                 Image = Customer;
                 RunObject = Page "Customer Card";
-                RunPageLink = "No." = field("Sell-to Customer No.");
+                                RunPageLink = "No." = field("Sell-to Customer No.");
                 ShortCutKey = 'Shift+F7';
                 ToolTip = 'View or edit detailed information about the customer.';
             }
@@ -1115,14 +1121,14 @@ page 134 "Posted Sales Credit Memo"
         BillToContact: Record Contact;
         FormatAddress: Codeunit "Format Address";
         ChangeExchangeRate: Page "Change Exchange Rate";
-        HasIncomingDocument: Boolean;
-        DocExchStatusStyle: Text;
-        DocExchStatusVisible: Boolean;
-        IsOfficeAddin: Boolean;
-        IsBillToCountyVisible: Boolean;
-        IsSellToCountyVisible: Boolean;
-        IsShipToCountyVisible: Boolean;
-        VATDateEnabled: Boolean;
+                                HasIncomingDocument: Boolean;
+                                DocExchStatusStyle: Text;
+                                DocExchStatusVisible: Boolean;
+                                IsOfficeAddin: Boolean;
+                                IsBillToCountyVisible: Boolean;
+                                IsSellToCountyVisible: Boolean;
+                                IsShipToCountyVisible: Boolean;
+                                VATDateEnabled: Boolean;
 
     local procedure ActivateFields()
     begin

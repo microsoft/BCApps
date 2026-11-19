@@ -10,6 +10,7 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.Payables;
+using System.Environment.Configuration;
 
 codeunit 8846 "Purchase Installment Mgt."
 {
@@ -363,7 +364,10 @@ codeunit 8846 "Purchase Installment Mgt."
     local procedure HasRules(PaymentTermsCode: Code[10]): Boolean
     var
         Rule: Record "Payment Term Installment";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit(false);
         Rule.SetRange("Payment Terms Code", PaymentTermsCode);
         exit(not Rule.IsEmpty());
     end;

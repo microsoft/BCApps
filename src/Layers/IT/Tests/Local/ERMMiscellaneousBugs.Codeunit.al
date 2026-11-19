@@ -904,6 +904,7 @@ codeunit 144105 "ERM Miscellaneous Bugs"
           CalcDate(PaymentLines."Due Date Calculation", WorkDate()));
     end;
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('IssuingCustomerBillRequestPageHandler,MessageHandler')]
     [Scope('OnPrem')]
@@ -940,7 +941,9 @@ codeunit 144105 "ERM Miscellaneous Bugs"
           CustLedgerEntry."Document Type"::Payment, CustLedgerEntry."Document No.", Customer."No.", Customer."Payment Method Code", -Amount,
           CalcDate(PaymentLines."Due Date Calculation", WorkDate()));
     end;
+#endif
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('IssuingCustomerBillRequestPageHandler,MessageHandler')]
     [Scope('OnPrem')]
@@ -975,7 +978,9 @@ codeunit 144105 "ERM Miscellaneous Bugs"
         VerifySubformCustomerBillLineValues(
           Customer."No.", PostedDocumentNo, Amount, CalcDate(PaymentLines."Due Date Calculation", WorkDate()));
     end;
+#endif
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('IssuingCustomerBillRequestPageHandler,MessageHandler,CustomerBillsListRequestPageHandler')]
     [Scope('OnPrem')]
@@ -1006,6 +1011,7 @@ codeunit 144105 "ERM Miscellaneous Bugs"
         LibraryReportDataSet.AssertElementWithValueExists(CustLedgEntryPaymentMethodTok, Customer."Payment Method Code");
         LibraryReportDataSet.AssertElementWithValueExists(ExposureAmountTok, Round(Amount, LibraryERM.GetAmountRoundingPrecision()));
     end;
+#endif
 
     [Test]
     [HandlerFunctions('VATRegisterPrintPageHandler')]
@@ -1151,6 +1157,7 @@ codeunit 144105 "ERM Miscellaneous Bugs"
         Assert.RecordIsNotEmpty(DummyGLEntry);
     end;
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('ConfirmHandlerWithVerification,PmtToleranceWarningZeroBalanceModalPageHandler')]
     [Scope('OnPrem')]
@@ -1208,7 +1215,9 @@ codeunit 144105 "ERM Miscellaneous Bugs"
 
         LibraryVariableStorage.AssertEmpty();
     end;
+#endif
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('ConfirmHandlerWithVerification,PmtToleranceWarningZeroBalanceModalPageHandler')]
     [Scope('OnPrem')]
@@ -1267,6 +1276,7 @@ codeunit 144105 "ERM Miscellaneous Bugs"
 
         LibraryVariableStorage.AssertEmpty();
     end;
+#endif
 
     [Test]
     [HandlerFunctions('VendorAgingMatrixModalPageHandler')]
@@ -1896,12 +1906,14 @@ codeunit 144105 "ERM Miscellaneous Bugs"
         exit(Vendor."No.");
     end;
 
+#if not CLEAN30
     local procedure CreateGenJnlLineWithAppliesToOccurence(var GenJournalLine: Record "Gen. Journal Line"; AccountType: Enum "Gen. Journal Account Type"; AccNo: Code[20]; DocNo: Code[20]; OccurenceNo: Integer; Amount: Decimal)
     begin
         CreateGeneralJournalLine(GenJournalLine, AccountType, AccNo, DocNo, Amount);
         GenJournalLine.Validate("Applies-to Occurrence No.", OccurenceNo);
         GenJournalLine.Modify(true);
     end;
+#endif
 
     local procedure CreateGeneralJournalLine(var GenJournalLine: Record "Gen. Journal Line"; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; AppliesToDocNo: Code[20]; Amount: Decimal)
     var
@@ -2433,6 +2445,7 @@ codeunit 144105 "ERM Miscellaneous Bugs"
         Assert.AreEqual(ExpectedCount, VATReportLine.Count, SuggestedLinesCountMismatchErr);
     end;
 
+#if not CLEAN30
     local procedure RunIssuingCustomerBillReport(CustomerNo: Code[20])
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -2443,6 +2456,7 @@ codeunit 144105 "ERM Miscellaneous Bugs"
         IssuingCustomerBill.SetTableView(CustLedgerEntry);
         IssuingCustomerBill.Run();
     end;
+#endif
 
     local procedure RunSuggestCustomerBillsReport(CustomerBillHeader: Record "Customer Bill Header"; CustomerNo: Code[20])
     var

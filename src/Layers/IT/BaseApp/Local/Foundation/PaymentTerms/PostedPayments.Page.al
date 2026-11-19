@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN30
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,6 +16,9 @@ page 12172 "Posted Payments"
     Editable = false;
     PageType = List;
     SourceTable = "Posted Payment Lines";
+    ObsoleteReason = 'Replaced by CLEAN30 version';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
 
     layout
     {
@@ -198,4 +202,4 @@ page 12172 "Posted Payments"
     begin
     end;
 }
-
+#endif

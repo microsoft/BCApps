@@ -3894,6 +3894,15 @@ table 81 "Gen. Journal Line"
             Editable = false;
             DataClassification = SystemMetadata;
         }
+#if not CLEANSCHEMA26
+        field(10500; "Invoice Receipt Date"; Date)
+        {
+
+            ObsoleteReason = 'Replaced by W1 field "Invoice Received Date".';
+            ObsoleteState = Removed;
+            ObsoleteTag = '26.0';
+        }
+#endif
     }
 
     keys

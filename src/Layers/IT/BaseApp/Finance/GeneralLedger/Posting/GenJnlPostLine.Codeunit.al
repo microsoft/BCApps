@@ -138,7 +138,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary;
         TempCustLedgEntry: Record "Cust. Ledger Entry" temporary;
         SourceCodeSetup: Record "Source Code Setup";
+#if not CLEAN30
         PaymentTermsLine: Record "Payment Lines";
+#endif
         VATBookEntry: Record "VAT Book Entry";
         GLBookEntry: Record "GL Book Entry";
         GenJnlCheckLine: Codeunit "Gen. Jnl.-Check Line";
@@ -1755,12 +1757,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
             Iterations := Iterations + 1;
             OnPostVendOnBeforeInitVendLedgEntry(GenJournalLine, VendLedgEntry, CVLedgEntryBuf, TempDtldCVLedgEntryBuf, VendPostingGr);
             InitVendLedgEntry(GenJournalLine, VendLedgEntry);
+#if not CLEAN30
             if (GenJournalLine."Applies-to Occurrence No." <> 0) and (GenJournalLine."Applies-to Doc. No." = '') then begin
                 VendLedgEntry."Document Occurrence" := GenJournalLine."Applies-to Occurrence No.";
                 GenJournalLine."Applies-to Occurrence No." := 0;
             end else
                 VendLedgEntry."Document Occurrence" := Iterations;
             VendLedgEntry."Applies-to Occurrence No." := GenJournalLine."Applies-to Occurrence No.";
+#endif
             VendLedgEntry."Due Date" := PaymentTermsLine."Due Date";
             VendLedgEntry."Pmt. Discount Date" := PaymentTermsLine."Pmt. Discount Date";
             if Iterations <> 1 then
@@ -1768,14 +1772,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
             else
                 NextCustVendEntry := NextEntryNo;
 
-        // Check the document no.
-        if CheckDocumentNo and (GenJournalLine."Recurring Method" = GenJournalLine."Recurring Method"::" ") then
-            if IsNotPayment(GenJournalLine."Document Type") then begin
-                GenJnlCheckLine.CheckPurchDocNoIsNotUsed(GenJournalLine);
-                OnBeforeCheckPurchExtDocNo(GenJournalLine, VendLedgEntry, CVLedgEntryBuf, CheckExtDocNoHandled);
-                if not CheckExtDocNoHandled then
-                    CheckPurchExtDocNo(GenJournalLine);
-            end;
+            // Check the document no.
+            if CheckDocumentNo and (GenJournalLine."Recurring Method" = GenJournalLine."Recurring Method"::" ") then
+                if IsNotPayment(GenJournalLine."Document Type") then begin
+                    GenJnlCheckLine.CheckPurchDocNoIsNotUsed(GenJournalLine);
+                    OnBeforeCheckPurchExtDocNo(GenJournalLine, VendLedgEntry, CVLedgEntryBuf, CheckExtDocNoHandled);
+                    if not CheckExtDocNoHandled then
+                        CheckPurchExtDocNo(GenJournalLine);
+                end;
 
             VendLedgEntry."Purchase (LCY)" := EntrySalesPurchLCY;
             if not Vend."Block Payment Tolerance" then
@@ -1837,12 +1841,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
             VendLedgEntry.TestField("G/L Register No.");
             VendLedgEntry.Insert(true);
 
-        if DtldLedgEntryInserted then
-            if IsTempGLEntryBufEmpty() then
-                DtldVendLedgEntry.SetZeroTransNo(NextTransactionNo);
+            if DtldLedgEntryInserted then
+                if IsTempGLEntryBufEmpty() then
+                    DtldVendLedgEntry.SetZeroTransNo(NextTransactionNo);
     end;
 
-    local procedure PostEmployee(GenJnlLine: Record "Gen. Journal Line")
+        local procedure PostEmployee(GenJnlLine: Record "Gen. Journal Line")
     var
         Employee: Record Employee;
         EmployeePostingGr: Record "Employee Posting Group";
@@ -4430,16 +4434,20 @@ codeunit 12 "Gen. Jnl.-Post Line"
             // Find the entry to be applied to
             OldCustLedgEntry.Reset();
             OldCustLedgEntry.SetLoadFields(Positive, "Posting Date", "Currency Code", "Bank Receipt Issued");
+#if not CLEAN30
             OldCustLedgEntry.SetCurrentKey("Document Type", "Document No.", "Document Occurrence", "Customer No.");
+#endif
             OldCustLedgEntry.SetRange("Document No.", GenJnlLine."Applies-to Doc. No.");
             OldCustLedgEntry.SetRange("Document Type", GenJnlLine."Applies-to Doc. Type");
             OldCustLedgEntry.SetRange("Customer No.", NewCVLedgEntryBuf."CV No.");
+#if not CLEAN30
             if (GenJnlLine."Applies-to Occurrence No." = 0) and
                (OldCustLedgEntry.Count = 1)
             then
                 GenJnlLine."Applies-to Occurrence No." := 1;
             if GenJnlLine."Applies-to Occurrence No." <> 0 then
                 OldCustLedgEntry.SetRange("Document Occurrence", GenJnlLine."Applies-to Occurrence No.");
+#endif
             OldCustLedgEntry.SetRange(Open, true);
             if GenJnlLine."Document No. to Close" <> '' then begin
                 OldCustLedgEntry.SetRange("Document Type to Close", GenJnlLine."Document Type to Close");
@@ -5341,10 +5349,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
             // Find the entry to be applied to
             OldVendLedgEntry.Reset();
             OldVendLedgEntry.SetLoadFields(Positive, "Posting Date", "Currency Code");
+#if not CLEAN30
             OldVendLedgEntry.SetCurrentKey("Document Type", "Document No.", "Document Occurrence", "Vendor No.");
+#endif
             OldVendLedgEntry.SetRange("Document No.", GenJnlLine."Applies-to Doc. No.");
             OldVendLedgEntry.SetRange("Document Type", GenJnlLine."Applies-to Doc. Type");
             OldVendLedgEntry.SetRange("Vendor No.", NewCVLedgEntryBuf."CV No.");
+#if not CLEAN30
             if (GenJnlLine."Applies-to Occurrence No." = 0) and
                (OldVendLedgEntry.Count = 1)
             then
@@ -5353,6 +5364,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 ((OldVendLedgEntry.Count = 1) or (GenJnlLine.Amount = NewCVLedgEntryBuf."Amount to Apply"))
             then
                 OldVendLedgEntry.SetRange("Document Occurrence", GenJnlLine."Applies-to Occurrence No.");
+#endif
 
             OldVendLedgEntry.SetRange(Open, true);
             OnPrepareTempVendLedgEntryOnAfterSetFilters(OldVendLedgEntry, GenJnlLine, NewCVLedgEntryBuf);
@@ -8635,10 +8647,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
             exit;
 
         OldCustLedgEntry2.Reset();
+#if not CLEAN30
         OldCustLedgEntry2.SetCurrentKey("Document Type", "Document No.", "Document Occurrence", "Customer No.", Open);
+#endif
         OldCustLedgEntry2.SetRange("Document Type", CustLedgEntry."Document Type to Close");
         OldCustLedgEntry2.SetRange("Document No.", CustLedgEntry."Document No. to Close");
+#if not CLEAN30
         OldCustLedgEntry2.SetRange("Document Occurrence", CustLedgEntry."Document Occurrence to Close");
+#endif
         OldCustLedgEntry2.SetRange("Customer No.", CustLedgEntry."Customer No.");
         OldCustLedgEntry2.SetRange(Open, true);
         if OldCustLedgEntry2.FindFirst() then

@@ -775,6 +775,36 @@ table 25 "Vendor Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+        field(15000000; "Remittance ID"; Integer)
+        {
+            Caption = 'Remittance ID';
+            TableRelation = "Remittance Payment Order".ID;
+        }
+        field(15000001; KID; Code[30])
+        {
+            Caption = 'KID';
+
+            trigger OnValidate()
+            var
+                Tools: Codeunit "Remittance Tools";
+                ErrorMess: Text[250];
+            begin
+                if KID <> '' then begin
+                    ErrorMess := Tools.CheckKID(KID);
+                    if ErrorMess <> '' then
+                        Error(ErrorMess);
+                end;
+            end;
+        }
+        field(15000014; "Payment Type Code Abroad"; Code[2])
+        {
+            Caption = 'Payment Type Code Abroad';
+            TableRelation = "Payment Type Code Abroad";
+        }
+        field(15000015; "Specification (Norges Bank)"; Code[60])
+        {
+            Caption = 'Specification (Norges Bank)';
+        }
     }
 
     keys

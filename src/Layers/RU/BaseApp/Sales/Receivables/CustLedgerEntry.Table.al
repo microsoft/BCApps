@@ -1102,6 +1102,62 @@ table 21 "Cust. Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the customer entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+        field(12401; "Prepmt. Diff. Appln. Entry No."; Integer)
+        {
+            Caption = 'Prepmt. Diff. Appln. Entry No.';
+            Editable = false;
+
+            trigger OnValidate()
+            var
+                DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+            begin
+                if "Prepmt. Diff. Appln. Entry No." > 0 then
+                    if DtldCustLedgEntry.Get("Prepmt. Diff. Appln. Entry No.") then
+                        "Prepmt. Diff. Cust. Entry No." := DtldCustLedgEntry."Cust. Ledger Entry No.";
+            end;
+        }
+        field(12402; "Prepmt. Diff. Cust. Entry No."; Integer)
+        {
+            Caption = 'Prepmt. Diff. Cust. Entry No.';
+        }
+        field(12425; "Prepayment Document No."; Code[20])
+        {
+            Caption = 'Prepayment Document No.';
+        }
+        field(12426; "Prepayment Status"; Option)
+        {
+            Caption = 'Prepayment Status';
+            OptionCaption = ' ,Set,Reset';
+            OptionMembers = " ",Set,Reset;
+        }
+        field(12445; "VAT Entry Type"; Code[15])
+        {
+            Caption = 'VAT Entry Type';
+
+            trigger OnLookup()
+            var
+                VATEntryType: Record "VAT Entry Type";
+            begin
+                VATEntryType.LookupSetOfVATEntryCodes("VAT Entry Type");
+            end;
+
+            trigger OnValidate()
+            var
+                VATEntryType: Record "VAT Entry Type";
+            begin
+                VATEntryType.UpdateSalesVATEntryType(Rec);
+            end;
+        }
+        field(12485; "VAT Adjusted"; Boolean)
+        {
+            Caption = 'VAT Adjusted';
+            Editable = false;
+        }
+        field(12490; "Agreement No."; Code[20])
+        {
+            Caption = 'Agreement No.';
+            TableRelation = "Customer Agreement"."No." where("Customer No." = field("Customer No."));
+        }
     }
 
     keys
@@ -1182,6 +1238,9 @@ table 21 "Cust. Ledger Entry"
         key(InstallmentApplication; "Customer No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.")
         {
             MaintainSQLIndex = false;
+        }
+        key(Key12401; "Prepmt. Diff. Cust. Entry No.", "Prepmt. Diff. Appln. Entry No.")
+        {
         }
     }
 

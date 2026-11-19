@@ -1094,6 +1094,130 @@ table 21 "Cust. Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the customer entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+        field(10015; "Tax Exemption No."; Text[30])
+        {
+            Caption = 'Tax Exemption No.';
+        }
+        field(10018; "STE Transaction ID"; Text[20])
+        {
+            Caption = 'STE Transaction ID';
+            Editable = false;
+        }
+        field(10019; "Electronic Document Sent"; Boolean)
+        {
+            Caption = 'Electronic Document Sent';
+            Editable = false;
+        }
+        field(10020; "Original Document XML"; BLOB)
+        {
+            Caption = 'Original Document XML';
+        }
+        field(10021; "No. of E-Documents Sent"; Integer)
+        {
+            Caption = 'No. of E-Documents Sent';
+            Editable = false;
+        }
+        field(10022; "Original String"; BLOB)
+        {
+            Caption = 'Original String';
+        }
+        field(10023; "Digital Stamp SAT"; BLOB)
+        {
+            Caption = 'Digital Stamp SAT';
+        }
+        field(10024; "Certificate Serial No."; Text[250])
+        {
+            Caption = 'Certificate Serial No.';
+            Editable = false;
+        }
+        field(10025; "Signed Document XML"; BLOB)
+        {
+            Caption = 'Signed Document XML';
+        }
+        field(10026; "Digital Stamp PAC"; BLOB)
+        {
+            Caption = 'Digital Stamp PAC';
+        }
+        field(10030; "Electronic Document Status"; Option)
+        {
+            Caption = 'Electronic Document Status';
+            Editable = false;
+            OptionCaption = ' ,Stamp Received,Sent,Canceled,Stamp Request Error,Cancel Error,Cancel In Progress';
+            OptionMembers = " ","Stamp Received",Sent,Canceled,"Stamp Request Error","Cancel Error","Cancel In Progress";
+        }
+        field(10031; "Date/Time Stamped"; Text[50])
+        {
+            Caption = 'Date/Time Stamped';
+            Editable = false;
+        }
+        field(10032; "Date/Time Sent"; Text[50])
+        {
+            Caption = 'Date/Time Sent';
+            Editable = false;
+        }
+        field(10033; "Date/Time Canceled"; Text[50])
+        {
+            Caption = 'Date/Time Canceled';
+            Editable = false;
+        }
+        field(10035; "Error Code"; Code[10])
+        {
+            Caption = 'Error Code';
+            Editable = false;
+        }
+        field(10036; "Error Description"; Text[250])
+        {
+            Caption = 'Error Description';
+            Editable = false;
+        }
+        field(10037; "Date/Time Stamp Received"; DateTime)
+        {
+            Caption = 'Date/Time Stamp Received';
+            Editable = false;
+        }
+        field(10038; "Date/Time Cancel Sent"; DateTime)
+        {
+            Caption = 'Date/Time Cancel Sent';
+            Editable = false;
+        }
+        field(10040; "PAC Web Service Name"; Text[50])
+        {
+            Caption = 'PAC Web Service Name';
+            Editable = false;
+        }
+        field(10041; "QR Code"; BLOB)
+        {
+            Caption = 'QR Code';
+        }
+        field(10042; "Fiscal Invoice Number PAC"; Text[50])
+        {
+            Caption = 'Fiscal Invoice Number PAC';
+            Editable = false;
+        }
+        field(10043; "Date/Time First Req. Sent"; Text[50])
+        {
+            Caption = 'Date/Time First Req. Sent';
+            Editable = false;
+        }
+        field(27002; "CFDI Cancellation Reason Code"; Code[10])
+        {
+            Caption = 'CFDI Cancellation Reason Code';
+            TableRelation = "CFDI Cancellation Reason";
+        }
+        field(27003; "Substitution Entry No."; Integer)
+        {
+            Caption = 'Substitution Entry No.';
+            TableRelation = "Cust. Ledger Entry" where("Document Type" = filter(Payment),
+                                                        "Electronic Document Status" = filter("Stamp Received"));
+        }
+        field(27007; "CFDI Cancellation ID"; Text[50])
+        {
+            Caption = 'CFDI Cancellation ID';
+        }
+        field(27008; "Marked as Canceled"; Boolean)
+        {
+            Caption = 'Marked as Canceled';
+        }
     }
 
     keys

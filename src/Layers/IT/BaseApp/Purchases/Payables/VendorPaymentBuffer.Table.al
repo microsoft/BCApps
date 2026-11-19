@@ -134,6 +134,14 @@ table 475 "Vendor Payment Buffer"
         {
             Caption = 'Document Occurrence';
             DataClassification = SystemMetadata;
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global installment plans and ledger entry application.';
         }
     }
 

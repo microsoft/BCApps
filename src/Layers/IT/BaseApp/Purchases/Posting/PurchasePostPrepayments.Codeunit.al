@@ -77,7 +77,9 @@ codeunit 444 "Purchase-Post Prepayments"
         Text011: Label '%1 %2 -> Credit Memo %3';
         Text012: Label 'Prepayment %1, %2 %3.';
         Text1130004: Label 'Total Reg. %1 is different from total Document %2.', Comment = '%1 and %2 - Total Amounts';
+#if not CLEAN30
         Text1130007: Label 'To specify the installment to apply to please select the %1 or use the function Apply Entries.', Comment = '%1 = Applies-to Occurrence No.';
+#endif
         Text1130008: Label 'must not be prior to %1', Comment = '%1 = Date';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
@@ -225,13 +227,14 @@ codeunit 444 "Purchase-Post Prepayments"
                     Window.Update(1, StrSubstNo(Text011, PurchHeader."Document Type", PurchHeader."No.", PurchCrMemoHeader."No."));
                 end;
         end;
-
+#if not CLEAN30
         if DocumentType <> DocumentType::"Credit Memo" then
             InsertPostedPaymentLines(PurchHeader, DocumentType, PurchInvHeader."No.")
         else
             InsertPostedPaymentLines(PurchHeader, DocumentType, PurchCrMemoHeader."No.");
 
         InsertPaymentJnlLine(PurchHeader);
+#endif
         // Reverse old lines
         if DocumentType = DocumentType::Invoice then begin
             GetPurchLinesToDeduct(PurchHeader, TempPurchaseLine2);
@@ -422,9 +425,11 @@ codeunit 444 "Purchase-Post Prepayments"
             PurchHeader.TestField("Activity Code");
         if PurchHeader."Operation Occurred Date" < GLSetup."Last Gen. Jour. Printing Date" then
             PurchHeader.FieldError("Operation Occurred Date", Text1130008);
+#if not CLEAN30
         if PurchHeader."Applies-to Doc. No." <> '' then
             if PurchHeader."Applies-to Occurrence No." = 0 then
                 Error(Text1130007, PurchHeader.FieldCaption("Applies-to Occurrence No."));
+#endif
 
         ErrorMessageMgt.PushContext(ErrorContextElement, PurchHeader.RecordId, 0, '');
         if GenJnlCheckLine.DateNotAllowed(PurchHeader."Posting Date", PurchHeader."Journal Templ. Name") then
@@ -1443,7 +1448,9 @@ codeunit 444 "Purchase-Post Prepayments"
 
         GenJnlLine."Applies-to Doc. Type" := DocType;
         GenJnlLine."Applies-to Doc. No." := DocNo;
+#if not CLEAN30
         GenJnlLine."Applies-to Occurrence No." := 1;
+#endif
         GenJnlLine."Deductible %" := TotalPrepmtInvLineBuffer."Deductible %";
 
         GenJnlLine."Orig. Pmt. Disc. Possible" := TotalPrepmtInvLineBuffer."Orig. Pmt. Disc. Possible";
@@ -1863,6 +1870,7 @@ codeunit 444 "Purchase-Post Prepayments"
         PreviewMode := NewPreviewMode;
     end;
 
+#if not CLEAN30
     local procedure InsertPostedPaymentLines(PurchHeader: Record "Purchase Header"; DocumentType: Option Invoice,"Credit Memo"; DocumentNo: Code[20])
     var
         PostedPaymentLines: Record "Posted Payment Lines";
@@ -1882,7 +1890,9 @@ codeunit 444 "Purchase-Post Prepayments"
         PostedPaymentLines."Pmt. Discount Date" := PurchHeader."Prepmt. Pmt. Discount Date";
         PostedPaymentLines.Insert();
     end;
+#endif
 
+#if not CLEAN30
     local procedure InsertPaymentJnlLine(PurchHeader: Record "Purchase Header")
     var
         PaymentLines: Record "Payment Lines";
@@ -1897,6 +1907,7 @@ codeunit 444 "Purchase-Post Prepayments"
         PaymentLines."Pmt. Discount Date" := PurchHeader."Prepmt. Pmt. Discount Date";
         PaymentLines.Insert();
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateDimensionsProcedure(var PurchaseLine: Record "Purchase Line"; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
@@ -2139,7 +2150,7 @@ codeunit 444 "Purchase-Post Prepayments"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCodeOnAfterUpdateHeaderAndLines(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";DocumentType: Option Invoice,"Credit Memo"; PreviewMode: Boolean)
+    local procedure OnCodeOnAfterUpdateHeaderAndLines(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; DocumentType: Option Invoice,"Credit Memo"; PreviewMode: Boolean)
     begin
     end;
 

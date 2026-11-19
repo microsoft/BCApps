@@ -7266,7 +7266,9 @@ codeunit 6620 "Copy Document Mgt."
                 ToSalesHeader."Applies-to Doc. Type" := ToSalesHeader."Applies-to Doc. Type"::"Credit Memo";
                 ToSalesHeader."Applies-to Doc. No." := FromDocNo;
             end;
+#if not CLEAN30
             ToSalesHeader."Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
+#endif
             CustLedgEntry.CalcFields("Remaining Amount");
             CustLedgEntry."Amount to Apply" := CustLedgEntry."Remaining Amount";
             CustLedgEntry."Accepted Payment Tolerance" := 0;
@@ -7301,7 +7303,9 @@ codeunit 6620 "Copy Document Mgt."
                     ToPurchHeader."Applies-to Doc. Type" := ToPurchHeader."Applies-to Doc. Type"::"Credit Memo";
                     ToPurchHeader."Applies-to Doc. No." := FromDocNo;
                 end;
+#if not CLEAN30
                 ToPurchHeader."Applies-to Occurrence No." := VendLedgEntry."Document Occurrence";
+#endif
                 VendLedgEntry.CalcFields("Remaining Amount");
                 VendLedgEntry."Amount to Apply" := VendLedgEntry."Remaining Amount";
                 VendLedgEntry."Accepted Payment Tolerance" := 0;

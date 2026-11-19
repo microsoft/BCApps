@@ -68,7 +68,9 @@ report 12180 "Issuing Customer Bill"
                 GenJnlLine."Amount (LCY)" := -1 * "Remaining Amt. (LCY)";
                 GenJnlLine."Document Type to Close" := "Document Type";
                 GenJnlLine."Document No. to Close" := "Document No.";
+#if not CLEAN30
                 GenJnlLine."Document Occurrence to Close" := "Document Occurrence";
+#endif
                 GenJnlLine."Allow Application" := true;
                 GenJnlLine."Bank Receipt" := true;
                 GenJnlLine."Allow Issue" := "Allow Issue";

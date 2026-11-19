@@ -775,6 +775,25 @@ table 25 "Vendor Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+        field(32000000; "Message Type"; Option)
+        {
+            Caption = 'Message Type';
+            InitValue = "Reference No.";
+            OptionCaption = 'Reference No.,Invoice Information,Message,Long Message,Tax Message';
+            OptionMembers = "Reference No.","Invoice Information",Message,"Long Message","Tax Message";
+        }
+        field(32000001; "Invoice Message"; Text[250])
+        {
+            Caption = 'Invoice Message';
+        }
+        field(32000002; "Invoice Message 2"; Text[250])
+        {
+            Caption = 'Invoice Message 2';
+        }
+        field(32000003; "Payment Date"; Date)
+        {
+            Caption = 'Payment Date';
+        }
     }
 
     keys

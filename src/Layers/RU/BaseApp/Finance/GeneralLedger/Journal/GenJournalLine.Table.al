@@ -4844,6 +4844,10 @@ table 81 "Gen. Journal Line"
             Editable = false;
             DataClassification = SystemMetadata;
         }
+        field(17301; "Depr. Group Elimination"; Boolean)
+        {
+            Caption = 'Depr. Group Elimination';
+        }
     }
 
     keys

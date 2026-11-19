@@ -1286,6 +1286,198 @@ table 112 "Sales Invoice Header"
             Editable = false;
             ToolTip = 'Specifies the posted global installment schedule for this invoice.';
         }
+        field(10005; "Ship-to UPS Zone"; Code[2])
+        {
+            Caption = 'Ship-to UPS Zone';
+        }
+        field(10015; "Tax Exemption No."; Text[30])
+        {
+            Caption = 'Tax Exemption No.';
+        }
+        field(10018; "STE Transaction ID"; Text[20])
+        {
+            Caption = 'STE Transaction ID';
+            Editable = false;
+        }
+        field(10019; "Electronic Document Sent"; Boolean)
+        {
+            Caption = 'Electronic Document Sent';
+            Editable = false;
+        }
+        field(10020; "Original Document XML"; BLOB)
+        {
+            Caption = 'Original Document XML';
+        }
+        field(10021; "No. of E-Documents Sent"; Integer)
+        {
+            Caption = 'No. of E-Documents Sent';
+            Editable = false;
+        }
+        field(10022; "Original String"; BLOB)
+        {
+            Caption = 'Original String';
+        }
+        field(10023; "Digital Stamp SAT"; BLOB)
+        {
+            Caption = 'Digital Stamp SAT';
+        }
+        field(10024; "Certificate Serial No."; Text[250])
+        {
+            Caption = 'Certificate Serial No.';
+            Editable = false;
+        }
+        field(10025; "Signed Document XML"; BLOB)
+        {
+            Caption = 'Signed Document XML';
+        }
+        field(10026; "Digital Stamp PAC"; BLOB)
+        {
+            Caption = 'Digital Stamp PAC';
+        }
+        field(10030; "Electronic Document Status"; Option)
+        {
+            Caption = 'Electronic Document Status';
+            Editable = false;
+            OptionCaption = ' ,Stamp Received,Sent,Canceled,Stamp Request Error,Cancel Error,Cancel In Progress';
+            OptionMembers = " ","Stamp Received",Sent,Canceled,"Stamp Request Error","Cancel Error","Cancel In Progress";
+        }
+        field(10031; "Date/Time Stamped"; Text[50])
+        {
+            Caption = 'Date/Time Stamped';
+            Editable = false;
+        }
+        field(10032; "Date/Time Sent"; Text[50])
+        {
+            Caption = 'Date/Time Sent';
+            Editable = false;
+        }
+        field(10033; "Date/Time Canceled"; Text[50])
+        {
+            Caption = 'Date/Time Canceled';
+            Editable = false;
+        }
+        field(10035; "Error Code"; Code[10])
+        {
+            Caption = 'Error Code';
+            Editable = false;
+        }
+        field(10036; "Error Description"; Text[250])
+        {
+            Caption = 'Error Description';
+            Editable = false;
+        }
+        field(10037; "Date/Time Stamp Received"; DateTime)
+        {
+            Caption = 'Date/Time Stamp Received';
+            Editable = false;
+        }
+        field(10038; "Date/Time Cancel Sent"; DateTime)
+        {
+            Caption = 'Date/Time Cancel Sent';
+            Editable = false;
+        }
+        field(10040; "PAC Web Service Name"; Text[50])
+        {
+            Caption = 'PAC Web Service Name';
+            Editable = false;
+        }
+        field(10041; "QR Code"; BLOB)
+        {
+            Caption = 'QR Code';
+        }
+        field(10042; "Fiscal Invoice Number PAC"; Text[50])
+        {
+            Caption = 'Fiscal Invoice Number PAC';
+        }
+        field(10043; "Date/Time First Req. Sent"; Text[50])
+        {
+            Caption = 'Date/Time First Req. Sent';
+            Editable = false;
+        }
+        field(10050; "Foreign Trade"; Boolean)
+        {
+            Caption = 'Foreign Trade';
+        }
+#if not CLEANSCHEMA26
+        field(10055; "Transit-to Location"; Code[10])
+        {
+            Caption = 'Transit-to Location';
+            TableRelation = Location where("Use As In-Transit" = const(false));
+            ObsoleteReason = 'Replaced with SAT Address ID.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '26.0';
+        }
+#endif
+        field(10059; "SAT International Trade Term"; Code[10])
+        {
+            Caption = 'SAT International Trade Term';
+            TableRelation = "SAT International Trade Term";
+        }
+        field(10060; "Exchange Rate USD"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Exchange Rate USD';
+            DecimalPlaces = 0 : 6;
+        }
+        field(27000; "CFDI Purpose"; Code[10])
+        {
+            Caption = 'CFDI Purpose';
+            Editable = false;
+            TableRelation = "SAT Use Code";
+        }
+        field(27001; "CFDI Relation"; Code[10])
+        {
+            Caption = 'CFDI Relation';
+            Editable = false;
+            TableRelation = "SAT Relationship Type";
+        }
+        field(27002; "CFDI Cancellation Reason Code"; Code[10])
+        {
+            Caption = 'CFDI Cancellation Reason';
+            TableRelation = "CFDI Cancellation Reason";
+        }
+        field(27003; "Substitution Document No."; Code[20])
+        {
+            Caption = 'Substitution Document No.';
+            TableRelation = "Sales Invoice Header" where("Electronic Document Status" = filter("Stamp Received"));
+        }
+        field(27004; "CFDI Export Code"; Code[10])
+        {
+            Caption = 'CFDI Export Code';
+            TableRelation = "CFDI Export Code";
+        }
+        field(27005; "CFDI Period"; Option)
+        {
+            Caption = 'CFDI Period';
+            OptionCaption = 'Diario,Semanal,Quincenal,Mensual';
+            OptionMembers = "Diario","Semanal","Quincenal","Mensual";
+        }
+        field(27007; "CFDI Cancellation ID"; Text[50])
+        {
+            Caption = 'CFDI Cancellation ID';
+        }
+        field(27008; "Marked as Canceled"; Boolean)
+        {
+            Caption = 'Marked as Canceled';
+        }
+        field(27009; "SAT Address ID"; Integer)
+        {
+            Caption = 'SAT Address ID';
+            TableRelation = "SAT Address";
+
+            trigger OnLookup()
+            var
+                SATAddress: Record "SAT Address";
+            begin
+                if SATAddress.LookupSATAddress(SATAddress, Rec."Ship-to Country/Region Code", Rec."Bill-to Country/Region Code") then
+                    Rec."SAT Address ID" := SATAddress.Id;
+            end;
+        }
+        field(27012; "CFDI Certificate of Origin No."; Text[50])
+        {
+            Caption = 'CFDI Certificate of Origin No.';
+            Description = 'NumCertificadoOrigen';
+        }
     }
 
     keys

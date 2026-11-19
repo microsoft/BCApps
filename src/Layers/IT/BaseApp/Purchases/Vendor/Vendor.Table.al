@@ -141,7 +141,8 @@ table 23 Vendor
             Caption = 'City';
             ToolTip = 'Specifies the vendor''s city.';
             OptimizeForTextSearch = true;
-            TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Country/Region Code" = const('')) "Post Code".City
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Country/Region Code"));
             ValidateTableRelation = false;
@@ -830,7 +831,8 @@ table 23 Vendor
         {
             Caption = 'Post Code';
             ToolTip = 'Specifies the postal code.';
-            TableRelation = if ("Country/Region Code" = const('')) "Post Code"
+            TableRelation =
+            if ("Country/Region Code" = const('')) "Post Code"
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Country/Region Code"));
             ValidateTableRelation = false;
@@ -1791,7 +1793,8 @@ table 23 Vendor
         {
             Caption = 'Birth City';
             OptimizeForTextSearch = true;
-            TableRelation = if ("Birth Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Birth Country/Region Code" = const('')) "Post Code".City
             else
             if ("Birth Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Birth Country/Region Code"));
             ValidateTableRelation = false;
@@ -1806,7 +1809,8 @@ table 23 Vendor
         field(12111; "Birth Post Code"; Code[20])
         {
             Caption = 'Birth Post Code';
-            TableRelation = if ("Birth Country/Region Code" = const('')) "Post Code"
+            TableRelation =
+            if ("Birth Country/Region Code" = const('')) "Post Code"
             else
             if ("Birth Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Birth Country/Region Code"));
             ValidateTableRelation = false;
@@ -1836,7 +1840,8 @@ table 23 Vendor
         field(12115; "Residence Post Code"; Code[20])
         {
             Caption = 'Residence Post Code';
-            TableRelation = if ("Residence Country/Region Code" = const('')) "Post Code"
+            TableRelation =
+            if ("Residence Country/Region Code" = const('')) "Post Code"
             else
             if ("Residence Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Residence Country/Region Code"));
             ValidateTableRelation = false;
@@ -1851,7 +1856,8 @@ table 23 Vendor
         {
             Caption = 'Residence City';
             OptimizeForTextSearch = true;
-            TableRelation = if ("Residence Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Residence Country/Region Code" = const('')) "Post Code".City
             else
             if ("Residence Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Residence Country/Region Code"));
             ValidateTableRelation = false;
@@ -1922,7 +1928,8 @@ table 23 Vendor
         field(12127; "Tax Representative No."; Code[20])
         {
             Caption = 'Tax Representative No.';
-            TableRelation = if ("Tax Representative Type" = filter(Vendor)) Vendor
+            TableRelation =
+            if ("Tax Representative Type" = filter(Vendor)) Vendor
             else
             if ("Tax Representative Type" = filter(Contact)) Contact;
 
@@ -2034,11 +2041,14 @@ table 23 Vendor
                 ValidateIndividualPerson();
             end;
         }
+#if not CLEAN30
         field(12186; "Prepmt. Payment Terms Code"; Code[10])
         {
             Caption = 'Prepmt. Payment Terms Code';
             TableRelation = "Payment Terms" where("Payment Nos." = const(1));
+            ObsoleteReason = 'Preparation for replacement by Payment Installments';
         }
+#endif
         field(12187; "Special Category"; Option)
         {
             Caption = 'Special Category';

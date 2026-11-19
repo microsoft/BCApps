@@ -266,7 +266,9 @@ codeunit 426 "Payment Tolerance Management"
         NewCustLedgEntry.Amount := GenJnlLine.Amount;
         NewCustLedgEntry."Remaining Amount" := GenJnlLine.Amount;
         NewCustLedgEntry."Document Type" := GenJnlLine."Document Type";
+#if not CLEAN30
         NewCustLedgEntry."Applies-to Occurrence No." := GenJnlLine."Applies-to Occurrence No.";
+#endif
         GenJnlLineGlobal := GenJnlLine;
         exit(
           PmtTolCustLedgEntry(NewCustLedgEntry, GenJnlLine."Account No.", GenJnlLine."Posting Date",
@@ -298,7 +300,9 @@ codeunit 426 "Payment Tolerance Management"
         NewVendLedgEntry.Amount += GenJnlLine.Amount;
         NewVendLedgEntry."Remaining Amount" += GenJnlLine.Amount;
         NewVendLedgEntry."Document Type" := GenJnlLine."Document Type";
+#if not CLEAN30
         NewVendLedgEntry."Applies-to Occurrence No." := GenJnlLine."Applies-to Occurrence No.";
+#endif
         GenJnlLineGlobal := GenJnlLine;
         exit(
           PmtTolVendLedgEntry(
@@ -664,7 +668,9 @@ codeunit 426 "Payment Tolerance Management"
                 AppliedCustLedgEntry.SetRange("Customer No.", CustledgEntry."Customer No.");
                 AppliedCustLedgEntry.SetRange(Open, true);
                 AppliedCustLedgEntry.SetRange("Document No.", CustledgEntry."Applies-to Doc. No.");
+#if not CLEAN30
                 AppliedCustLedgEntry.SetRange("Document Occurrence", CustledgEntry."Applies-to Occurrence No.");
+#endif
                 if AppliedCustLedgEntry.Find('-') then begin
                     GetApplicationRoundingPrecisionForAppliesToDoc(
                       AppliedCustLedgEntry."Currency Code", ApplnRoundingPrecision, AmountRoundingPrecision, ApplnCurrencyCode);
@@ -842,7 +848,9 @@ codeunit 426 "Payment Tolerance Management"
                 AppliedVendLedgEntry.SetRange("Vendor No.", VendledgEntry."Vendor No.");
                 AppliedVendLedgEntry.SetRange(Open, true);
                 AppliedVendLedgEntry.SetRange("Document No.", VendledgEntry."Applies-to Doc. No.");
+#if not CLEAN30
                 AppliedVendLedgEntry.SetRange("Document Occurrence", VendledgEntry."Applies-to Occurrence No.");
+#endif
                 if AppliedVendLedgEntry.Find('-') then begin
                     GetApplicationRoundingPrecisionForAppliesToDoc(
                       AppliedVendLedgEntry."Currency Code", ApplnRoundingPrecision, AmountRoundingPrecision, ApplnCurrencyCode);

@@ -731,6 +731,10 @@ table 122 "Purch. Inv. Header"
             Editable = false;
             ToolTip = 'Specifies the posted purchase installment schedule for this invoice.';
         }
+        field(11000; "Registration No."; Text[20])
+        {
+            Caption = 'Registration No.';
+        }
     }
 
     keys

@@ -1284,6 +1284,10 @@ table 112 "Sales Invoice Header"
             Editable = false;
             ToolTip = 'Specifies the posted global installment schedule for this invoice.';
         }
+        field(11310; "Enterprise No."; Text[50])
+        {
+            Caption = 'Enterprise No.';
+        }
     }
 
     keys

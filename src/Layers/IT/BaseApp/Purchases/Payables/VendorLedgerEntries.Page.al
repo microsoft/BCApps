@@ -331,12 +331,17 @@ page 29 "Vendor Ledger Entries"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                 }
+#if not CLEAN30
                 field("Document Occurrence"; Rec."Document Occurrence")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the sequence number of a vendor bill that is based on a single purchase invoice with multiple due dates.';
                     Visible = false;
+                    ObsoleteReason = 'This field is obsolete because document occurrences are no longer used.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 field("Vendor Bill No."; Rec."Vendor Bill No.")
                 {
                     ApplicationArea = Basic, Suite;

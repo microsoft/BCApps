@@ -1285,6 +1285,109 @@ table 112 "Sales Invoice Header"
             Editable = false;
             ToolTip = 'Specifies the posted global installment schedule for this invoice.';
         }
+        field(12100; "Operation Type"; Code[20])
+        {
+            Caption = 'Operation Type';
+            TableRelation = "No. Series" where("No. Series Type" = filter(Sales | Purchase));
+        }
+        field(12101; "Operation Occurred Date"; Date)
+        {
+            Caption = 'Operation Occurred Date';
+        }
+        field(12123; "Activity Code"; Code[6])
+        {
+            Caption = 'Activity Code';
+            Editable = false;
+            TableRelation = "Activity Code".Code;
+        }
+        field(12125; "Service Tariff No."; Code[10])
+        {
+            Caption = 'Service Tariff No.';
+            Editable = false;
+            TableRelation = "Service Tariff Number";
+        }
+        field(12128; "Place of Birth"; Text[30])
+        {
+            Caption = 'Place of Birth';
+        }
+        field(12130; "Fiscal Code"; Code[20])
+        {
+            Caption = 'Fiscal Code';
+        }
+        field(12131; "Individual Person"; Boolean)
+        {
+            Caption = 'Individual Person';
+        }
+        field(12132; Resident; Option)
+        {
+            Caption = 'Resident';
+            OptionCaption = 'Resident,Non-Resident';
+            OptionMembers = Resident,"Non-Resident";
+        }
+        field(12133; "First Name"; Text[30])
+        {
+            Caption = 'First Name';
+        }
+        field(12134; "Last Name"; Text[30])
+        {
+            Caption = 'Last Name';
+        }
+        field(12135; "Date of Birth"; Date)
+        {
+            Caption = 'Date of Birth';
+        }
+        field(12138; "Refers to Period"; Option)
+        {
+            Caption = 'Refers to Period';
+            OptionCaption = ' ,Current,Current Calendar Year,Previous Calendar Year';
+            OptionMembers = " ",Current,"Current Calendar Year","Previous Calendar Year";
+        }
+        field(12172; "Bank Account"; Code[20])
+        {
+            Caption = 'Bank Account';
+        }
+        field(12173; "Cumulative Bank Receipts"; Boolean)
+        {
+            Caption = 'Cumulative Bank Receipts';
+        }
+        field(12182; "Fattura Project Code"; Code[15])
+        {
+            Caption = 'Fattura Project Code';
+            TableRelation = "Fattura Project Info".Code where(Type = filter(Project));
+        }
+        field(12183; "Fattura Tender Code"; Code[15])
+        {
+            Caption = 'Fattura Tender Code';
+            TableRelation = "Fattura Project Info".Code where(Type = filter(Tender));
+        }
+        field(12184; "Customer Purchase Order No."; Text[35])
+        {
+            Caption = 'Customer Purchase Order No.';
+        }
+        field(12185; "Fattura Stamp"; Boolean)
+        {
+            Caption = 'Fattura Stamp';
+        }
+        field(12186; "Fattura Stamp Amount"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
+            Caption = 'Fattura Stamp Amount';
+        }
+        field(12187; "Fattura Document Type"; Code[20])
+        {
+            Caption = 'Fattura Document Type';
+            TableRelation = "Fattura Document Type";
+        }
+        field(12190; "Document Remaining Amount"; Decimal)
+        {
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
+            CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Original Document Type" = const(Invoice), "Original Document No." = field("No.")));
+            Caption = 'Document Remaining Amount';
+            Editable = false;
+            FieldClass = FlowField;
+        }
     }
 
     keys

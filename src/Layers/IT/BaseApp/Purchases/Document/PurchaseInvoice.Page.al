@@ -1470,7 +1470,7 @@ page 51 "Purchase Invoice"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
-                action("Pa&yments")
+#if not CLEAN30
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Pa&yments';
@@ -1480,7 +1480,12 @@ page 51 "Purchase Invoice"
                                   Type = field("Document Type"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'This action is obsolete in the current version.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+                }
+#endif
                 action(GetRecurringPurchaseLines)
                 {
                     ApplicationArea = Suite;

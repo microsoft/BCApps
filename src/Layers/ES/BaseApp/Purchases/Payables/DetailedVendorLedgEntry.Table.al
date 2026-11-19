@@ -271,6 +271,26 @@ table 380 "Detailed Vendor Ledg. Entry"
             Editable = false;
             ToolTip = 'Specifies the vendor entry that identifies the invoice balance group.';
         }
+        field(10700; "VAT Reporting Date"; Date)
+        {
+            Caption = 'VAT Date';
+        }
+        field(7000000; "Bill No."; Code[20])
+        {
+            Caption = 'Bill No.';
+        }
+        field(7000001; "Document Situation"; Enum "ES Document Situation")
+        {
+            Caption = 'Document Situation';
+        }
+        field(7000002; "Applies-to Bill No."; Code[20])
+        {
+            Caption = 'Applies-to Bill No.';
+        }
+        field(7000003; "Document Status"; Enum "ES Document Status")
+        {
+            Caption = 'Document Status';
+        }
         field(7000004; "Excluded from calculation"; Boolean)
         {
             Caption = 'Excluded from calculation';

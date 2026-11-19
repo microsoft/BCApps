@@ -94,8 +94,10 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Transport Reason Code");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Company Officials");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Company Types");
+#if not CLEAN30
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Payment Lines");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Posted Payment Lines");
+#endif
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Fixed Due Dates");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Deferring Due Dates");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Customer Bill Header");

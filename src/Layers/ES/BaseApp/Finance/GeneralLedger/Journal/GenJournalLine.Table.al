@@ -3917,6 +3917,111 @@ table 81 "Gen. Journal Line"
             Editable = false;
             DataClassification = SystemMetadata;
         }
+        field(10700; "Transaction No."; Integer)
+        {
+            BlankZero = true;
+            Caption = 'Transaction No.';
+        }
+        field(10701; "Pmt. Discount Given/Rec. (LCY)"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            Caption = 'Pmt. Discount Given/Rec. (LCY)';
+            Editable = true;
+        }
+        field(10702; "Generate AutoInvoices"; Boolean)
+        {
+            Caption = 'Generate AutoInvoices';
+        }
+        field(10703; "AutoDoc. No."; Code[20])
+        {
+            Caption = 'AutoDoc. No.';
+        }
+        field(10704; "Payment Type"; Option)
+        {
+            Caption = 'Payment Type';
+            OptionCaption = ' ,01,02';
+            OptionMembers = " ","01","02";
+
+            trigger OnValidate()
+            begin
+                if ("Payment Type" = "Payment Type"::" ") or (xRec."Payment Type" <> "Payment Type") then
+                    "Statistical Code" := '';
+            end;
+        }
+        field(10705; "Statistical Code"; Code[6])
+        {
+            Caption = 'Statistical Code';
+
+            trigger OnLookup()
+            var
+                StatisticalCode: Record "Statistical Code";
+                TariffNumber: Record "Tariff Number";
+                StatisticalCodes: Page "Statistical Codes";
+                TariffNumbers: Page "Tariff Numbers";
+                Selected: Integer;
+                PmtTypeOptions: Text[100];
+                Text1100000: Label 'Select the Value from Table Statistical Code,Select the Value from Table Tariff No.';
+                TariffNo: Text[6];
+            begin
+                TestField("Payment Type");
+                if "Payment Type" = "Payment Type"::"01" then begin
+                    PmtTypeOptions := Text1100000;
+                    Selected := DIALOG.StrMenu(PmtTypeOptions, 1);
+                    if Selected = 1 then begin
+                        StatisticalCodes.LookupMode(true);
+                        if StatisticalCodes.RunModal() = ACTION::LookupOK then begin
+                            StatisticalCodes.GetRecord(StatisticalCode);
+                            "Statistical Code" := StatisticalCode.Code;
+                        end;
+                    end else begin
+                        TariffNumbers.LookupMode(true);
+                        if TariffNumbers.RunModal() = ACTION::LookupOK then begin
+                            TariffNumbers.GetRecord(TariffNumber);
+                            TariffNumber."No." := DelChr(Format(TariffNumber."No."), '=', ' ');
+                            TariffNo := CopyStr(Format(TariffNumber."No."), StrLen(Format(TariffNumber."No.")) - 3, 4);
+                            TariffNo := PadStr('', MaxStrLen(TariffNo) - StrLen(TariffNo), '0') + TariffNo;
+                            "Statistical Code" := TariffNo;
+                        end;
+                    end;
+                end else begin
+                    StatisticalCodes.LookupMode(true);
+                    if StatisticalCodes.RunModal() = ACTION::LookupOK then begin
+                        StatisticalCodes.GetRecord(StatisticalCode);
+                        "Statistical Code" := StatisticalCode.Code;
+                    end;
+                end;
+            end;
+        }
+        field(10707; "Export File Name"; Text[30])
+        {
+            Caption = 'Export File Name';
+            Editable = false;
+        }
+        field(10708; "Transfer Type"; Option)
+        {
+            Caption = 'Transfer Type';
+            Editable = false;
+            OptionCaption = 'National,International,Special';
+            OptionMembers = National,International,Special;
+        }
+        field(7000000; "Bill No."; Code[20])
+        {
+            Caption = 'Bill No.';
+        }
+        field(7000001; "Applies-to Bill No."; Code[20])
+        {
+            Caption = 'Applies-to Bill No.';
+        }
+#if not CLEANSCHEMA25
+        field(7000003; "Pmt. Address Code"; Code[10])
+        {
+            Caption = 'Pmt. Address Code';
+            ObsoleteReason = 'Address is taken from the fields Address, City, etc. of Customer/Vendor table.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '25.0';
+        }
+#endif
     }
 
     keys

@@ -731,6 +731,22 @@ table 122 "Purch. Inv. Header"
             Editable = false;
             ToolTip = 'Specifies the posted purchase installment schedule for this invoice.';
         }
+        field(15000000; KID; Code[30])
+        {
+            Caption = 'KID';
+
+            trigger OnValidate()
+            var
+                Tools: Codeunit "Remittance Tools";
+                ErrorMess: Text[250];
+            begin
+                if KID <> '' then begin
+                    ErrorMess := Tools.CheckKID(KID);
+                    if ErrorMess <> '' then
+                        Error(ErrorMess);
+                end;
+            end;
+        }
     }
 
     keys

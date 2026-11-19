@@ -8,6 +8,14 @@ table 12171 "Posted Payment Lines"
 {
     Caption = 'Posted Payment Lines';
     DataClassification = CustomerContent;
+#if not CLEAN30
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '33.0';
+#endif
+    ObsoleteReason = 'Replaced by global installment rules and plans when the Payment Installments feature is enabled.';
 
     fields
     {

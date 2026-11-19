@@ -137,6 +137,7 @@ codeunit 12140 "Serv. Document Mgt. IT"
             CurrencyDate := ServiceHeader."Document Date";
     end;
 
+#if not CLEAN30
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnDeleteOnBeforeShowPostedDocsToPrint', '', false, false)]
     local procedure OnDeleteOnBeforeShowPostedDocsToPrint(var ServiceHeader: Record "Service Header")
     var
@@ -147,6 +148,7 @@ codeunit 12140 "Serv. Document Mgt. IT"
         PaymentSales.SetRange(Code, ServiceHeader."No.");
         PaymentSales.DeleteAll();
     end;
+#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterCopyBillToCustomerFields', '', false, false)]
     local procedure OnAfterCopyBillToCustomerFields(var ServiceHeader: Record "Service Header")
@@ -185,11 +187,13 @@ codeunit 12140 "Serv. Document Mgt. IT"
         IsHandled := true;
     end;
 
+#if not CLEAN30
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterCopyAppliestoFieldsFromCustLedgerEntry', '', false, false)]
     local procedure OnAfterCopyAppliestoFieldsFromCustLedgerEntry(var ServiceHeader: Record "Service Header"; var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
         ServiceHeader."Applies-to Occurrence No." := CustLedgerEntry."Document Occurrence";
     end;
+#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnValidatePostingDateOnAfterCheckPostingDate', '', false, false)]
     local procedure OnValidatePostingDateOnAfterCheckPostingDate(var ServiceHeader: Record "Service Header")
@@ -229,6 +233,7 @@ codeunit 12140 "Serv. Document Mgt. IT"
         end;
     end;
 
+#if not CLEAN30
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnBeforeValidatePaymentTerms', '', false, false)]
     local procedure OnBeforeValidatePaymentTerms(var ServiceHeader: Record "Service Header"; var IsHandled: Boolean)
     var
@@ -238,6 +243,7 @@ codeunit 12140 "Serv. Document Mgt. IT"
         ServiceHeader.CalcFields("Payment %");
         IsHandled := true;
     end;
+#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterInitRecord', '', false, false)]
     local procedure OnAfterInitRecord(var ServiceHeader: Record "Service Header")

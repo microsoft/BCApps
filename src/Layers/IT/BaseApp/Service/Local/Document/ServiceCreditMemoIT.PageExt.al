@@ -69,6 +69,7 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
                 ToolTip = 'Specifies the ID of the service tariff that is associated with the service order or service invoice.';
             }
         }
+#if not CLEAN30
         addafter("Applies-to Doc. No.")
         {
             field("Applies-to Occurrence No."; Rec."Applies-to Occurrence No.")
@@ -77,6 +78,7 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
                 ToolTip = 'Specifies the occurrence that applies to the transaction.';
             }
         }
+#endif
         addafter("Applies-to ID")
         {
             field("Refers to Period"; Rec."Refers to Period")
@@ -130,6 +132,7 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
     }
     actions
     {
+#if not CLEAN30
         addbefore("Calculate Invoice Discount")
         {
             action("Pa&yments")
@@ -142,8 +145,12 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
                                 Type = field("Document Type"),
                                 Code = field("No.");
                 ToolTip = 'View the related payments.';
+                ObsoleteReason = 'Replaced by CLEAN30 version';
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
             }
         }
+#endif
         addafter("Post &Batch")
         {
             action(GenerateSplitVATLines)

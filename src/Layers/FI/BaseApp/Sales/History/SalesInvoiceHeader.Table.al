@@ -1284,6 +1284,11 @@ table 112 "Sales Invoice Header"
             Editable = false;
             ToolTip = 'Specifies the posted global installment schedule for this invoice.';
         }
+        field(32000000; "Reference No."; Code[20])
+        {
+            Caption = 'Reference No.';
+            Editable = true;
+        }
     }
 
     keys

@@ -169,6 +169,7 @@ pageextension 12451 "Service Order IT" extends "Service Order"
             }
         }
     }
+#if not CLEAN30
     actions
     {
         addbefore("Create Customer")
@@ -183,9 +184,13 @@ pageextension 12451 "Service Order IT" extends "Service Order"
                                 Type = field("Document Type"),
                                 Code = field("No.");
                 ToolTip = 'View the related payments.';
+                ObsoleteReason = 'This action is obsolete in the current version.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
             }
         }
     }
+#endif
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin

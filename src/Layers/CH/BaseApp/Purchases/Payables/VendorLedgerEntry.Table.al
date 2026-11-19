@@ -776,6 +776,10 @@ table 25 "Vendor Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+        field(3010541; "Reference No."; Code[30])
+        {
+            Caption = 'Reference No.';
+        }
     }
 
     keys

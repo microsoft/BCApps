@@ -876,6 +876,7 @@ page 132 "Posted Sales Invoice"
                 separator(Action1130000)
                 {
                 }
+#if not CLEAN30
                 action(Payments)
                 {
                     ApplicationArea = Basic, Suite;
@@ -886,7 +887,11 @@ page 132 "Posted Sales Invoice"
                                   Type = const(Invoice),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'This action is obsolete in the current version.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 separator(Action171)
                 {
                 }

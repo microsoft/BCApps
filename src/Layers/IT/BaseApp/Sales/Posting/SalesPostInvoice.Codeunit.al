@@ -671,7 +671,9 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 
         GenJnlLine.CopyFromSalesHeaderApplyTo(SalesHeader);
         GenJnlLine.CopyFromSalesHeaderPayment(SalesHeader);
+#if not CLEAN30
         GenJnlLine."Applies-to Occurrence No." := SalesHeader."Applies-to Occurrence No.";
+#endif
         if PaymentMethod.Get(SalesHeader."Payment Method Code") and Bill.Get(PaymentMethod."Bill Code") then begin
             GenJnlLine."Bank Receipt" := Bill."Bank Receipt";
             GenJnlLine."Allow Issue" := Bill."Allow Issue";

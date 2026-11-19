@@ -10,6 +10,7 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
+using System.Environment.Configuration;
 
 codeunit 8841 "Sales Installment Mgt."
 {
@@ -365,7 +366,10 @@ codeunit 8841 "Sales Installment Mgt."
     local procedure HasRules(PaymentTermsCode: Code[10]): Boolean
     var
         Rule: Record "Payment Term Installment";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit(false);
         Rule.SetRange("Payment Terms Code", PaymentTermsCode);
         exit(not Rule.IsEmpty());
     end;

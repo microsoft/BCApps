@@ -1092,6 +1092,14 @@ table 21 "Cust. Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the customer entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+        field(32000000; "Reference No."; Code[20])
+        {
+            Caption = 'Reference No.';
+        }
+        field(32000001; "Disreg. Pmt. Disc. at Full Pmt"; Boolean)
+        {
+            Caption = 'Disreg. Pmt. Disc. at Full Pmt';
+        }
     }
 
     keys

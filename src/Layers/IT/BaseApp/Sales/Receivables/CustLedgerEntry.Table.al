@@ -357,7 +357,9 @@ table 21 "Cust. Ledger Entry"
             var
                 ReminderEntry: Record "Reminder/Fin. Charge Entry";
                 ReminderIssue: Codeunit "Reminder-Issue";
+#if not CLEAN30
                 PostedPaymentLines: Record "Posted Payment Lines";
+#endif
             begin
                 TestField(Open, true);
                 if "Due Date" <> xRec."Due Date" then begin
@@ -369,6 +371,7 @@ table 21 "Cust. Ledger Entry"
                         ReminderIssue.ChangeDueDate(ReminderEntry, "Due Date", xRec."Due Date");
                 end;
 
+#if not CLEAN30
                 if PostedPaymentLines.Get(
                   PostedPaymentLines."Sales/Purchase"::Sales,
                   "Document Type",
@@ -378,6 +381,7 @@ table 21 "Cust. Ledger Entry"
                     PostedPaymentLines."Due Date" := "Due Date";
                     PostedPaymentLines.Modify();
                 end;
+#endif
             end;
         }
         /// <summary>
@@ -1110,6 +1114,100 @@ table 21 "Cust. Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the customer entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+        field(12170; "Document Occurrence"; Integer)
+        {
+            Caption = 'Document Occurrence';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global installment plans and ledger entry application.';
+        }
+        field(12171; "Applies-to Occurrence No."; Integer)
+        {
+            Caption = 'Applies-to Occurrence No.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global installment plans and ledger entry application.';
+        }
+        field(12172; "Bank Receipt"; Boolean)
+        {
+            Caption = 'Bank Receipt';
+
+            trigger OnValidate()
+            begin
+                TestField(Open, true);
+                TestField("Bank Receipt Issued", false);
+            end;
+        }
+        field(12174; "Bank Receipt Issued"; Boolean)
+        {
+            Caption = 'Bank Receipt Issued';
+        }
+        field(12175; "Bank Receipt Temp. No."; Code[20])
+        {
+            Caption = 'Bank Receipt Temp. No.';
+        }
+        field(12176; "Cumulative Bank Receipts"; Boolean)
+        {
+            Caption = 'Cumulative Bank Receipts';
+
+            trigger OnValidate()
+            begin
+                TestField(Open, true);
+                TestField("Bank Receipt Issued", false);
+            end;
+        }
+        field(12177; "Document Type to Close"; Enum "Gen. Journal Document Type")
+        {
+            Caption = 'Document Type to Close';
+        }
+        field(12178; "Document No. to Close"; Code[20])
+        {
+            Caption = 'Document No. to Close';
+        }
+        field(12179; "Document Occurrence to Close"; Integer)
+        {
+            Caption = 'Document Occurrence to Close';
+        }
+        field(12180; "Customer Bill No."; Code[20])
+        {
+            Caption = 'Customer Bill No.';
+        }
+        field(12181; "Bank Receipts List No."; Code[20])
+        {
+            Caption = 'Bank Receipts List No.';
+        }
+        field(12183; "Allow Issue"; Boolean)
+        {
+            Caption = 'Allow Issue';
+
+            trigger OnValidate()
+            begin
+                TestField(Open, true);
+                TestField("Bank Receipt Issued", false);
+            end;
+        }
+        field(12184; "Int. Arrears Amount to Pay"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
+            Caption = 'Int. Arrears Amount to Pay';
+        }
+        field(12185; "Paid Int. Arrears Amount"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
+            Caption = 'Paid Int. Arrears Amount';
+        }
     }
 
     keys
@@ -1150,10 +1248,12 @@ table 21 "Cust. Ledger Entry"
         key(Key17; "Customer No.", "Applies-to ID", Open, Positive, "Due Date")
         {
         }
+#if not CLEAN30
         key(Key18; "Document Type", "Document No.", "Document Occurrence")
         {
             SumIndexFields = "Remaining Pmt. Disc. Possible";
         }
+#endif
         key(Key19; "Customer No.", Open, Positive, "Applies-to ID")
         {
             Enabled = false;
@@ -1170,9 +1270,11 @@ table 21 "Cust. Ledger Entry"
         key(Key23; "Posting Date", "Transaction No.", "Entry No.")
         {
         }
+#if not CLEAN30
         key(Key24; "Document Type", "Document No.", "Document Occurrence", "Customer No.", Open)
         {
         }
+#endif
         key(Key25; "Customer No.", "Bank Receipt", "Document Type", "Due Date", "Currency Code", "Bank Receipt Issued", Open)
         {
         }

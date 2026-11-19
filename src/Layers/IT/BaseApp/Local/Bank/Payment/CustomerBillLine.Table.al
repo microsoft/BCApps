@@ -74,6 +74,14 @@ table 12175 "Customer Bill Line"
         field(22; "Document Occurrence"; Integer)
         {
             Caption = 'Document Occurrence';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global installment plans and ledger entry application.';
         }
         field(23; "Document Date"; Date)
         {

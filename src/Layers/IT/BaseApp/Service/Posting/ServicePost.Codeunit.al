@@ -81,7 +81,9 @@ codeunit 5980 "Service-Post"
         Text007: Label 'is not within your range of allowed posting dates';
 #pragma warning restore AA0074
         WhseShip: Boolean;
+#if not CLEAN30
         Text1130004: Label 'To specify the installment to apply to please select the %1 or use the function Apply Entries';
+#endif
         Text12100: Label 'The error is in line no. %1.';
         PreviewMode: Boolean;
         SuppressCommit: Boolean;
@@ -488,6 +490,7 @@ codeunit 5980 "Service-Post"
         if GLSetup."Use Activity Code" then
             PassedServiceHeader.TestField("Activity Code", ErrorInfo.Create());
 
+#if not CLEAN30
         if PassedServiceHeader."Applies-to Doc. No." <> '' then
             if PassedServiceHeader."Applies-to Occurrence No." = 0 then
                 Error(
@@ -495,6 +498,7 @@ codeunit 5980 "Service-Post"
                         StrSubstNo(Text1130004, PassedServiceHeader.FieldCaption(PassedServiceHeader."Applies-to Occurrence No.")),
                         true,
                         PassedServiceHeader));
+#endif
 
         PassedServiceHeader.TestMandatoryFields(PassedServiceLine);
     end;

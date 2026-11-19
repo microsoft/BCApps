@@ -468,9 +468,11 @@ codeunit 90 "Purch.-Post"
         CannotBeGreaterThanErr: Label 'cannot be more than %1.', Comment = '%1 = Amount';
         CannotBeSmallerThanErr: Label 'must be at least %1.', Comment = '%1 = Amount';
         ItemJnlRollRndg: Boolean;
+#if not CLEAN30
         PaymentJournalLine: Record "Payment Lines";
         PaymentTermsLine: Record "Payment Lines";
         PostedPayments: Record "Posted Payment Lines";
+#endif
         WithhSocSec: Record "Purch. Withh. Contribution";
         CompWithhTax: Record "Computed Withholding Tax";
         Text1130003: Label 'Please enter at least one Payment Line for %1 %2.';
@@ -479,7 +481,9 @@ codeunit 90 "Purch.-Post"
         Text1130006: Label '%1 the value in withholding tax must be higher than 0 when %2 is not blank.';
         CompSocSec: Record "Computed Contribution";
         TempFA: Record "Fixed Asset" temporary;
+#if not CLEAN30
         Text1130007: Label 'To specify the installment to apply to please select the %1 or use the function Apply Entries';
+#endif
         WhseReceive: Boolean;
         WhseShip: Boolean;
         InvtPickPutaway: Boolean;
@@ -834,6 +838,7 @@ codeunit 90 "Purch.-Post"
         IsHandled := false;
         OnCheckAndUpdateOnBeforePaymentsInsert(PurchHeader, IsHandled);
         if not IsHandled then
+#if not CLEAN30
             if PurchHeader.Invoice then begin
                 PaymentTermsLine.Reset();
                 PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Purchase);
@@ -876,6 +881,7 @@ codeunit 90 "Purch.-Post"
                     if PurchHeader."Payment Terms Code" <> '' then
                         Error(Text1130003, PurchHeader.FieldCaption("Payment Terms Code"), PurchHeader."Payment Terms Code");
             end;
+#endif
 
         IsHandled := false;
         OnCheckAndUpdateOnBeforeUpdateIncomingDocument(PurchHeader, IsHandled);
@@ -934,9 +940,11 @@ codeunit 90 "Purch.-Post"
             if Check then
                 Error(Text12100);
 
+#if not CLEAN30
         if PurchHeader."Applies-to Doc. No." <> '' then
             if PurchHeader."Applies-to Occurrence No." = 0 then
                 Error(ErrorInfo.Create(StrSubstNo(Text1130007, PurchHeader.FieldCaption("Applies-to Occurrence No."))));
+#endif
 
         CheckPostingDate(PurchHeader);
 
@@ -3345,11 +3353,13 @@ codeunit 90 "Purch.-Post"
         WithhSocSec.SetRange("Document Type", PurchHeader."Document Type");
         WithhSocSec.SetRange("No.", PurchHeader."No.");
         WithhSocSec.DeleteAll();
+#if not CLEAN30
         PaymentTermsLine.Reset();
         PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Purchase);
         PaymentTermsLine.SetRange(Type, PurchHeader."Document Type");
         PaymentTermsLine.SetRange(Code, PurchHeader."No.");
         PaymentTermsLine.DeleteAll();
+#endif
 
         PurchCommentLine.DeleteComments(PurchHeader."Document Type".AsInteger(), PurchHeader."No.");
 
@@ -10578,15 +10588,21 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    [Obsolete('This event is no longer used.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeInsertPostedPayments(PurchaseHeader: Record "Purchase Header"; PaymentTermsLines: Record "Payment Lines"; var PostedPayments: Record "Posted Payment Lines")
     begin
     end;
+#endif
 
+#if not CLEAN30
+    [Obsolete('This event is no longer used.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeInsertPaymentJournalLine(PurchaseHeader: Record "Purchase Header"; PaymentTermsLine: Record "Payment Lines"; var PaymentJournalLine: Record "Payment Lines")
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateAssocOrderPostingDateOnBeforeValidateDocumentDate(var SalesHeader: Record "Sales Header"; var OriginalDocumentDate: Date)

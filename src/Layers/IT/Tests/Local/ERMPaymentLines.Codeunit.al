@@ -1464,6 +1464,7 @@ codeunit 144164 "ERM Payment Lines"
         Assert.AreEqual(0, Vendor.Balance, VendorBalanceErr);
     end;
 
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure AppliesToDocNoShouldBringCorrectDueDateAsPerSelectedLineOfPostedPurchaseInvoiceWithSplitPayment()
@@ -1494,7 +1495,9 @@ codeunit 144164 "ERM Payment Lines"
         GetVendorLedgerEntry(VendorLedgerEntry, PurchInvHeader."No.", 2);
         VerifyGetAppliesToDocDueDate(GenJournalLine."Journal Batch Name", VendorLedgerEntry."Due Date");
     end;
+#endif
 
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure AppliesToDocNoShouldBringCorrectDueDateAsPerSelectedLineOfPostedSalesInvoiceWithSplitPayment()
@@ -1525,7 +1528,9 @@ codeunit 144164 "ERM Payment Lines"
         GetCustLedgerEntry(CustLedgerEntry, SalesInvoiceHeader."No.", 2);
         VerifyGetAppliesToDocDueDate(GenJournalLine."Journal Batch Name", CustLedgerEntry."Due Date");
     end;
+#endif
 
+#if not CLEAN30
     [Test]
     procedure AppliesToDocNoAppliesPaymentSecondOccurrenceInvoiceWhenSecondOccurrence()
     var
@@ -1589,6 +1594,7 @@ codeunit 144164 "ERM Payment Lines"
                 RemainingAmountErr,
                 VendorLedgerEntry[2]."Remaining Amount"));
     end;
+#endif
 
     local procedure Initialize()
     begin
@@ -2207,6 +2213,7 @@ codeunit 144164 "ERM Payment Lines"
         PostedPurchaseCreditMemosPage.Close();
     end;
 
+#if not CLEAN30
     local procedure CreateGenJournalLineWithAppliesToOccurrence(
         var GenJournalLine: Record "Gen. Journal Line"; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; Amount: Decimal;
         DocumentType: Enum "Gen. Journal Document Type"; AppliesToDocType: Enum "Gen. Journal Document Type"; AppliesToDocNo: Code[20]; AppliesToOccurrenceNo: Integer)
@@ -2220,6 +2227,7 @@ codeunit 144164 "ERM Payment Lines"
         GenJournalLine.Validate("Applies-to Occurrence No.", AppliesToOccurrenceNo);
         GenJournalLine.Modify(true);
     end;
+#endif
 
     local procedure CreatePaymentGeneralBatch(var GenJournalBatch: Record "Gen. Journal Batch")
     var
@@ -2230,19 +2238,23 @@ codeunit 144164 "ERM Payment Lines"
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
     end;
 
+#if not CLEAN30
     local procedure GetVendorLedgerEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry"; DocumentNo: Code[20]; DocumentOccurrence: Integer)
     begin
         VendorLedgerEntry.SetRange("Document No.", DocumentNo);
         VendorLedgerEntry.SetRange("Document Occurrence", DocumentOccurrence);
         VendorLedgerEntry.FindFirst();
     end;
+#endif
 
+#if not CLEAN30
     local procedure GetCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; DocumentNo: Code[20]; DocumentOccurrence: Integer)
     begin
         CustLedgerEntry.SetRange("Document No.", DocumentNo);
         CustLedgerEntry.SetRange("Document Occurrence", DocumentOccurrence);
         CustLedgerEntry.FindFirst();
     end;
+#endif
 
     local procedure VerifyGetAppliesToDocDueDate(JournalBatchName: Code[10]; DueDate: Date)
     var

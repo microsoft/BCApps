@@ -370,11 +370,13 @@ page 44 "Sales Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+#if not CLEAN30
                 field("Applies-to Occurrence No."; Rec."Applies-to Occurrence No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the occurrence that applies to the transaction.';
                 }
+#endif
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1124,6 +1126,7 @@ page 44 "Sales Credit Memo"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+#if not CLEAN30
                 action("Pa&yments")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1134,7 +1137,11 @@ page 44 "Sales Credit Memo"
                                   Type = field("Document Type"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'This action is obsolete in the current version.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action(GetPostedDocumentLinesToReverse)
                 {
                     ApplicationArea = Basic, Suite;

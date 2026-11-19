@@ -245,15 +245,19 @@ table 25 "Vendor Ledger Entry"
 
             trigger OnValidate()
             var
+#if not CLEAN30
                 PostedPaymentLines: Record "Posted Payment Lines";
+#endif
             begin
                 TestField(Open, true);
 
+#if not CLEAN30
                 if PostedPaymentLines.Get(PostedPaymentLines."Sales/Purchase"::Purchase, "Document Type", "Document No.",
                                           "Document Occurrence" * 10000) then begin
                     PostedPaymentLines."Due Date" := "Due Date";
                     PostedPaymentLines.Modify();
                 end;
+#endif
             end;
         }
         field(38; "Pmt. Discount Date"; Date)
@@ -784,6 +788,50 @@ table 25 "Vendor Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+        field(12170; "Document Occurrence"; Integer)
+        {
+            Caption = 'Document Occurrence';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global installment plans and ledger entry application.';
+        }
+        field(12171; "Applies-to Occurrence No."; Integer)
+        {
+            Caption = 'Applies-to Occurrence No.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global installment plans and ledger entry application.';
+        }
+        field(12174; "Vendor Bill No."; Code[20])
+        {
+            Caption = 'Vendor Bill No.';
+        }
+        field(12175; "Vendor Bill List"; Code[20])
+        {
+            Caption = 'Vendor Bill List';
+        }
+        field(12184; "Int. Arrears Amount to Pay"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
+            Caption = 'Int. Arrears Amount to Pay';
+        }
+        field(12185; "Paid Int. Arrears Amount"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = "Currency Code";
+            Caption = 'Paid Int. Arrears Amount';
+        }
     }
 
     keys
@@ -825,20 +873,26 @@ table 25 "Vendor Ledger Entry"
         key(Key15; "Vendor No.", "Applies-to ID", Open, Positive, "Due Date")
         {
         }
+#if not CLEAN30
         key(Key16; "Document No.", "Document Occurrence")
         {
         }
+#endif
         key(Key17; "Vendor No.", Open, Positive, "Applies-to ID")
         {
             Enabled = false;
         }
+#if not CLEAN30
         key(Key18; "Document Type", "Document No.", "Document Occurrence", "Vendor No.")
         {
             SumIndexFields = "Remaining Pmt. Disc. Possible";
         }
+#endif
+#if not CLEAN30
         key(Key19; "Document Type", "External Document No.", "Vendor No.", "Document Occurrence")
         {
         }
+#endif
         key(Key20; "Posting Date", "Transaction No.", "Entry No.")
         {
         }

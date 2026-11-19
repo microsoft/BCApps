@@ -3901,6 +3901,58 @@ table 81 "Gen. Journal Line"
             Editable = false;
             DataClassification = SystemMetadata;
         }
+#if not CLEANSCHEMA25
+        field(11201; "Auto. Acc. Group"; Code[10])
+        {
+            Caption = 'Auto. Acc. Group';
+            TableRelation = "Automatic Acc. Header";
+            ObsoleteReason = 'Moved to Automatic Account Codes app.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '25.0';
+        }
+#endif
+        field(32000000; "Reference No."; Code[20])
+        {
+            Caption = 'Reference No.';
+        }
+        field(32000001; "Message Type"; Option)
+        {
+            Caption = 'Message Type';
+            InitValue = "Reference No";
+            OptionCaption = 'Reference No,Invoice Information,Message,Long Message,Tax Message';
+            OptionMembers = "Reference No","Invoice Information",Message,"Long Message","Tax Message";
+        }
+        field(32000002; "Invoice Message"; Text[250])
+        {
+            Caption = 'Invoice Message';
+
+            trigger OnValidate()
+            begin
+                if ("Invoice Message" <> '') and ("Message Type" = "Message Type"::"Reference No") then begin
+                    if StrLen("Invoice Message") > 20 then
+                        Error(Text1090006, FieldCaption("Invoice Message"), 20);
+                    RefNoCheck.InvReferenceCheck("Invoice Message");
+                end;
+                if "Message Type" = "Message Type"::Message then
+                    if StrLen("Invoice Message") > 70 then
+                        Error(Text1090006, FieldCaption("Invoice Message"), 70);
+            end;
+        }
+        field(32000003; "Invoice Message 2"; Text[250])
+        {
+            Caption = 'Invoice Message 2';
+
+            trigger OnValidate()
+            begin
+                if "Message Type" = "Message Type"::"Long Message" then
+                    if StrLen("Invoice Message" + "Invoice Message 2") > 420 then
+                        Error(Text1090008, FieldCaption("Invoice Message"), FieldCaption("Invoice Message 2"), 420);
+            end;
+        }
+        field(32000004; "Payment date"; Date)
+        {
+            Caption = 'Payment date';
+        }
     }
 
     keys

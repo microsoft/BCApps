@@ -777,6 +777,75 @@ table 25 "Vendor Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+        field(11620; Adjustment; Boolean)
+        {
+            Caption = 'Adjustment';
+        }
+        field(11621; "BAS Adjustment"; Boolean)
+        {
+            Caption = 'BAS Adjustment';
+        }
+        field(11626; "Adjustment Applies-to"; Code[20])
+        {
+            Caption = 'Adjustment Applies-to';
+        }
+        field(11628; "Pre Adjmt. Reason Code"; Code[10])
+        {
+            Caption = 'Pre Adjmt. Reason Code';
+            TableRelation = "Reason Code";
+        }
+        field(11631; "Financially Voided Cheque"; Boolean)
+        {
+            Caption = 'Financially Voided Cheque';
+        }
+        field(11632; "EFT Register No."; Integer)
+        {
+            BlankZero = true;
+            Caption = 'EFT Register No.';
+            TableRelation = "EFT Register";
+        }
+        field(11633; "EFT Amount Transferred"; Decimal)
+        {
+            AutoFormatExpression = "Currency Code";
+            AutoFormatType = 1;
+            Caption = 'EFT Amount Transferred';
+        }
+        field(11634; "EFT Bank Account No."; Code[20])
+        {
+            Caption = 'EFT Bank Account No.';
+        }
+        field(28040; "Rem. Amt for WHT"; Decimal)
+        {
+            AutoFormatExpression = "Currency Code";
+            AutoFormatType = 1;
+            Caption = 'Rem. Amt for WHT';
+        }
+        field(28041; "Rem. Amt"; Decimal)
+        {
+            AutoFormatExpression = "Currency Code";
+            AutoFormatType = 1;
+            Caption = 'Rem. Amt';
+        }
+        field(28042; "WHT Amount"; Decimal)
+        {
+            AutoFormatExpression = "Currency Code";
+            AutoFormatType = 1;
+            CalcFormula = sum("WHT Entry".Amount where("Bill-to/Pay-to No." = field("Vendor No."),
+                                                        "Original Document No." = field("Document No.")));
+            Caption = 'WHT Amount';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(28043; "WHT Amount (LCY)"; Decimal)
+        {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
+            CalcFormula = sum("WHT Entry"."Amount (LCY)" where("Bill-to/Pay-to No." = field("Vendor No."),
+                                                                "Original Document No." = field("Document No.")));
+            Caption = 'WHT Amount (LCY)';
+            Editable = false;
+            FieldClass = FlowField;
+        }
     }
 
     keys

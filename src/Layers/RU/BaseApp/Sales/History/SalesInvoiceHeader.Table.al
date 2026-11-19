@@ -1285,6 +1285,89 @@ table 112 "Sales Invoice Header"
             Editable = false;
             ToolTip = 'Specifies the posted global installment schedule for this invoice.';
         }
+        field(12400; "External Document Text"; Text[100])
+        {
+            Caption = 'External Document Text';
+        }
+        field(12410; "Consignor No."; Code[20])
+        {
+            Caption = 'Consignor No.';
+            TableRelation = Vendor;
+        }
+        field(12440; "Corrective Document"; Boolean)
+        {
+            Caption = 'Corrective Document';
+        }
+        field(12441; "Corrected Doc. Type"; Option)
+        {
+            Caption = 'Corrected Doc. Type';
+            OptionCaption = ' ,Invoice,Credit Memo';
+            OptionMembers = " ",Invoice,"Credit Memo";
+        }
+        field(12442; "Corrected Doc. No."; Code[20])
+        {
+            Caption = 'Corrected Doc. No.';
+            TableRelation = if ("Corrected Doc. Type" = const(Invoice)) "Sales Invoice Header"
+            else
+            if ("Corrected Doc. Type" = const("Credit Memo")) "Sales Cr.Memo Header";
+        }
+        field(12443; "Original Doc. Type"; Option)
+        {
+            Caption = 'Original Doc. Type';
+            OptionCaption = ' ,Invoice,Credit Memo';
+            OptionMembers = " ",Invoice,"Credit Memo";
+        }
+        field(12444; "Original Doc. No."; Code[20])
+        {
+            Caption = 'Original Doc. No.';
+        }
+        field(12445; "VAT Entry Type"; Code[15])
+        {
+            Caption = 'VAT Entry Type';
+        }
+        field(12446; "Corrective Doc. Type"; Option)
+        {
+            Caption = 'Corrective Doc. Type';
+            OptionCaption = ' ,Correction,Revision';
+            OptionMembers = " ",Correction,Revision;
+        }
+        field(12447; "Revision No."; Code[20])
+        {
+            Caption = 'Revision No.';
+        }
+        field(12451; "Act Signed by Name"; Text[30])
+        {
+            Caption = 'Act Signed by Name';
+        }
+        field(12452; "Act Signed by Position"; Text[30])
+        {
+            Caption = 'Act Signed by Position';
+        }
+        field(12480; "KPP Code"; Code[10])
+        {
+            Caption = 'KPP Code';
+        }
+        field(12485; "Orig. Invoice No."; Code[20])
+        {
+            Caption = 'Orig. Invoice No.';
+        }
+        field(12486; "Include In Purch. VAT Ledger"; Boolean)
+        {
+            Caption = 'Include In Purch. VAT Ledger';
+        }
+        field(12490; "Agreement No."; Code[20])
+        {
+            Caption = 'Agreement No.';
+            TableRelation = "Customer Agreement"."No." where("Customer No." = field("Bill-to Customer No."));
+        }
+        field(12498; "Additional VAT Ledger Sheet"; Boolean)
+        {
+            Caption = 'Additional VAT Ledger Sheet';
+        }
+        field(12499; "Corrected Document Date"; Date)
+        {
+            Caption = 'Corrected Document Date';
+        }
     }
 
     keys

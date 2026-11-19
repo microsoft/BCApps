@@ -102,9 +102,11 @@ report 12117 "Customer Bills List"
                 column(CustLedgEntry1__Document_Date_; Format("Document Date"))
                 {
                 }
+#if not CLEAN30
                 column(CustLedgEntry1__Document_Occurrence_; "Document Occurrence")
                 {
                 }
+#endif
                 column(CustLedgEntry1__Document_No__; "Document No.")
                 {
                 }
@@ -132,9 +134,11 @@ report 12117 "Customer Bills List"
                 column(CustLedgEntry1__Document_Date__Control1130039; Format("Document Date"))
                 {
                 }
+#if not CLEAN30
                 column(CustLedgEntry1__Document_Occurrence__Control1130040; "Document Occurrence")
                 {
                 }
+#endif
                 column(CustLedgEntry1__Document_No___Control1130041; "Document No.")
                 {
                 }
@@ -195,9 +199,11 @@ report 12117 "Customer Bills List"
                 column(CustLedgEntry1__Document_Date_Caption; CustLedgEntry1__Document_Date_CaptionLbl)
                 {
                 }
+#if not CLEAN30
                 column(CustLedgEntry1__Document_Occurrence_Caption; FieldCaption("Document Occurrence"))
                 {
                 }
+#endif
                 column(CustLedgEntry1__Document_No__Caption; FieldCaption("Document No."))
                 {
                 }
@@ -222,9 +228,11 @@ report 12117 "Customer Bills List"
                     column(CustLedgEntry2__Document_No__; "Document No.")
                     {
                     }
+#if not CLEAN30
                     column(CustLedgEntry2__Document_Occurrence_; "Document Occurrence")
                     {
                     }
+#endif
                     column(CustLedgEntry2__Document_Date_; Format("Document Date"))
                     {
                     }
@@ -270,7 +278,9 @@ report 12117 "Customer Bills List"
                     trigger OnPreDataItem()
                     begin
                         CustLedgEntry1.CopyFilter("Posting Date", "Posting Date");
+#if not CLEAN30
                         SetRange("Document Occurrence to Close", CustLedgEntry1."Document Occurrence");
+#endif
                     end;
                 }
                 dataitem("Detailed Cust. Ledg. Entry"; "Detailed Cust. Ledg. Entry")
@@ -289,9 +299,11 @@ report 12117 "Customer Bills List"
                     column(Detailed_Cust__Ledg__Entry__Posting_Date_; Format(CustLedgEntry3."Posting Date"))
                     {
                     }
+#if not CLEAN30
                     column(CustLedgEntry3__Document_Occurrence_; CustLedgEntry3."Document Occurrence")
                     {
                     }
+#endif
                     column(CustLedgEntry3__Document_Date_; Format(CustLedgEntry3."Document Date"))
                     {
                     }

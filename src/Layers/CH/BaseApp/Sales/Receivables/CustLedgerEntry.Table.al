@@ -1094,6 +1094,11 @@ table 21 "Cust. Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the customer entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+        field(3010831; "LSV No."; Integer)
+        {
+            Caption = 'LSV No.';
+            TableRelation = "LSV Journal";
+        }
     }
 
     keys

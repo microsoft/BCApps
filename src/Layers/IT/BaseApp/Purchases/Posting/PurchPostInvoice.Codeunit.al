@@ -762,7 +762,9 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine."Spend Request Close" := PurchHeader."Spend Request Close";
 
         GenJnlLine.CopyFromPurchHeaderApplyTo(PurchHeader);
+#if not CLEAN30
         GenJnlLine."Applies-to Occurrence No." := PurchHeader."Applies-to Occurrence No.";
+#endif
         GenJnlLine.CopyFromPurchHeaderPayment(PurchHeader);
 
         InitGenJnlLineAmountFieldsFromTotalLines(GenJnlLine, PurchHeader);
@@ -895,7 +897,9 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine."Bal. Account No." := PurchHeader."Bal. Account No.";
         GenJnlLine."Applies-to Doc. Type" := InvoicePostingParameters."Document Type";
         GenJnlLine."Applies-to Doc. No." := InvoicePostingParameters."Document No.";
+#if not CLEAN30
         GenJnlLine."Applies-to Occurrence No." := 0;
+#endif
 
         PurchPostInvoiceEvents.RunOnAfterSetApplyToDocNo(GenJnlLine, PurchHeader);
     end;

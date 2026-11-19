@@ -402,7 +402,9 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
         GenJnlLine.SetCurrencyFactor(ServiceHeader."Currency Code", ServiceHeader."Currency Factor");
 
         ServiceHeader.CopyToGenJournalLineApplyTo(GenJnlLine);
+#if not CLEAN30
         GenJnlLine."Applies-to Occurrence No." := ServiceHeader."Applies-to Occurrence No.";
+#endif
         ServiceHeader.CopyToGenJournalLinePayment(GenJnlLine);
 
         GenJnlLine.Amount := -TotalServiceLine."Amount Including VAT";
@@ -493,7 +495,9 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
         GenJnlLine."Bal. Account No." := ServiceHeader."Bal. Account No.";
         GenJnlLine."Applies-to Doc. Type" := InvoicePostingParameters."Document Type";
         GenJnlLine."Applies-to Doc. No." := InvoicePostingParameters."Document No.";
+#if not CLEAN30
         GenJnlLine."Applies-to Occurrence No." := 1;
+#endif
     end;
 
     local procedure FindCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry")

@@ -954,6 +954,7 @@ codeunit 144078 "ERM Extra VAT"
         VATPostingSetupCard."VAT Calculation Type".AssertEquals(VATPostingSetup."VAT Calculation Type");
     end;
 
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure SevPartPmtsPerEachDocOccurOfUnrealVATSalesInvoiceWithSevLines()
@@ -1019,7 +1020,9 @@ codeunit 144078 "ERM Extra VAT"
         VerifySevPartPmtsPerEachDocOccurOfUnrealVATSalesInvoiceWithSevLines(
           SalesLine, CustomerNo, InvoiceNo, PaymentAmount, Part, FirstPartPaymentNo, SecondPartPaymentNo, ThirdPartPaymentNo);
     end;
+#endif
 
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure SevPartPmtsPerEachDocOccurOfUnrealVATPurchInvoiceWithSevLines()
@@ -1086,6 +1089,7 @@ codeunit 144078 "ERM Extra VAT"
         VerifySevPartPmtsPerEachDocOccurOfUnrealVATPurchInvoiceWithSevLines(
           PurchaseLine, VendorNo, InvoiceNo, PaymentAmount, Part, FirstPartPaymentNo, SecondPartPaymentNo, ThirdPartPaymentNo);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('GLPostingPreviewHandler')]
@@ -1128,6 +1132,7 @@ codeunit 144078 "ERM Extra VAT"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+#if not CLEAN30
     [Test]
     procedure SevPmtTermLinesWithUnrealVATAndSevPmtJnlLinesPurchase()
     var
@@ -1179,7 +1184,9 @@ codeunit 144078 "ERM Extra VAT"
             Assert.AreNearlyEqual(Amount[i], VATEntry.Amount + VATEntry.Base, 0.01, '');
         end;
     end;
+#endif
 
+#if not CLEAN30
     [Test]
     procedure SevPmtTermLinesWithUnrealVATAndSinglePmtJnlLinePurchase()
     var
@@ -1228,7 +1235,9 @@ codeunit 144078 "ERM Extra VAT"
           VATEntry, VATEntry.Type::Purchase, VendorNo, VATEntry."Document Type"::Payment, PaymentNo);
         VerifySeveralRealizedVATEntries(VATEntry, UnrealVATEntryNo, Amount, 1);
     end;
+#endif
 
+#if not CLEAN30
     [Test]
     procedure SevPmtTermLinesWithUnrealVATAndSevPmtJnlLinesSales()
     var
@@ -1280,7 +1289,9 @@ codeunit 144078 "ERM Extra VAT"
             Assert.AreNearlyEqual(-Amount[i], VATEntry.Amount + VATEntry.Base, 0.01, '');
         end;
     end;
+#endif
 
+#if not CLEAN30
     [Test]
     procedure SevPmtTermLinesWithUnrealVATAndSinglePmtJnlLineSales()
     var
@@ -1329,6 +1340,7 @@ codeunit 144078 "ERM Extra VAT"
           VATEntry, VATEntry.Type::Sale, CustomerNo, VATEntry."Document Type"::Payment, PaymentNo);
         VerifySeveralRealizedVATEntries(VATEntry, UnrealVATEntryNo, Amount, -1);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('PurchaseStatisticsChangeVATAmountPageHandler')]
@@ -2099,6 +2111,7 @@ codeunit 144078 "ERM Extra VAT"
         end;
     end;
 
+#if not CLEAN30
     local procedure CollectVendorInvoiceLedgerEntries(var VendorLedgerEntry: array[3] of Record "Vendor Ledger Entry"; var TotalAmount: Decimal; var Amount: array[3] of Decimal; InvoiceNo: Code[20])
     var
         i: Integer;
@@ -2111,7 +2124,9 @@ codeunit 144078 "ERM Extra VAT"
             TotalAmount += Amount[i];
         end;
     end;
+#endif
 
+#if not CLEAN30
     local procedure CollectCustomerInvoiceLedgerEntries(var CustLedgerEntry: array[3] of Record "Cust. Ledger Entry"; var TotalAmount: Decimal; var Amount: array[3] of Decimal; InvoiceNo: Code[20])
     var
         i: Integer;
@@ -2124,6 +2139,7 @@ codeunit 144078 "ERM Extra VAT"
             TotalAmount -= Amount[i];
         end;
     end;
+#endif
 
     local procedure VerifyGLEntry(DocumentNo: Code[20]; GLAccountNo: Code[20]; Amount2: Decimal)
     var
@@ -2255,6 +2271,7 @@ codeunit 144078 "ERM Extra VAT"
         Assert.AreEqual(VATEntry.Type::Sale, VATEntry.Type, StrSubstNo(VATFieldErr, VATEntry.FieldCaption(Type)));
     end;
 
+#if not CLEAN30
     local procedure VerifyCustomerLedgerEntryAmounts(CustomerNo: Code[20]; DocumentNo: Code[20]; DocumentOccurrenceNo: Integer; ExpectedAmount: Decimal; ExpectedRemAmount: Decimal)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -2267,7 +2284,9 @@ codeunit 144078 "ERM Extra VAT"
         Assert.AreEqual(ExpectedAmount, CustLedgerEntry.Amount, CustLedgerEntry.FieldCaption(Amount));
         Assert.AreEqual(ExpectedRemAmount, CustLedgerEntry."Remaining Amount", CustLedgerEntry.FieldCaption("Remaining Amount"));
     end;
+#endif
 
+#if not CLEAN30
     local procedure VerifyVendorLedgerEntryAmounts(VendorNo: Code[20]; DocumentNo: Code[20]; DocumentOccurrenceNo: Integer; ExpectedAmount: Decimal; ExpectedRemAmount: Decimal)
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
@@ -2280,14 +2299,18 @@ codeunit 144078 "ERM Extra VAT"
         Assert.AreEqual(ExpectedAmount, VendorLedgerEntry.Amount, VendorLedgerEntry.FieldCaption(Amount));
         Assert.AreEqual(ExpectedRemAmount, VendorLedgerEntry."Remaining Amount", VendorLedgerEntry.FieldCaption("Remaining Amount"));
     end;
+#endif
 
+#if not CLEAN30
     local procedure VerifyThreeCustomerInvoiceLedgerEntryAmounts(CustomerNo: Code[20]; InvoiceNo: Code[20]; Amount: array[3] of Decimal)
     begin
         VerifyCustomerLedgerEntryAmounts(CustomerNo, InvoiceNo, 1, Amount[1], 0);
         VerifyCustomerLedgerEntryAmounts(CustomerNo, InvoiceNo, 2, Amount[2], 0);
         VerifyCustomerLedgerEntryAmounts(CustomerNo, InvoiceNo, 3, Amount[3], 0);
     end;
+#endif
 
+#if not CLEAN30
     local procedure VerifyThreeCustomerPaymentLedgerEntryAmounts(CustomerNo: Code[20]; PaymentNo: array[3] of Code[20]; PaymentAmount: Decimal; Part1: Decimal; Part2: Decimal)
     begin
         VerifyCustomerLedgerEntryAmounts(CustomerNo, PaymentNo[1], 1, -Round(PaymentAmount * Part1), 0);
@@ -2295,14 +2318,18 @@ codeunit 144078 "ERM Extra VAT"
         VerifyCustomerLedgerEntryAmounts(CustomerNo, PaymentNo[3], 1,
           -(PaymentAmount - Round(PaymentAmount * Part1) - Round(PaymentAmount * Part2)), 0);
     end;
+#endif
 
+#if not CLEAN30
     local procedure VerifyThreeVendorInvoiceLedgerEntryAmounts(VendorNo: Code[20]; InvoiceNo: Code[20]; Amount: array[3] of Decimal)
     begin
         VerifyVendorLedgerEntryAmounts(VendorNo, InvoiceNo, 1, -Amount[1], 0);
         VerifyVendorLedgerEntryAmounts(VendorNo, InvoiceNo, 2, -Amount[2], 0);
         VerifyVendorLedgerEntryAmounts(VendorNo, InvoiceNo, 3, -Amount[3], 0);
     end;
+#endif
 
+#if not CLEAN30
     local procedure VerifyThreeVednorPaymentLedgerEntryAmounts(VendorNo: Code[20]; PaymentNo: array[3] of Code[20]; PaymentAmount: Decimal; Part1: Decimal; Part2: Decimal)
     begin
         VerifyVendorLedgerEntryAmounts(VendorNo, PaymentNo[1], 1, Round(PaymentAmount * Part1), 0);
@@ -2310,6 +2337,7 @@ codeunit 144078 "ERM Extra VAT"
         VerifyVendorLedgerEntryAmounts(VendorNo, PaymentNo[3], 1,
           PaymentAmount - Round(PaymentAmount * Part1) - Round(PaymentAmount * Part2), 0);
     end;
+#endif
 
     local procedure VerifyUnrealizedVATEntryAmounts(VATEntry: Record "VAT Entry"; ExpectedBase: Decimal; ExpectedAmount: Decimal; ExpectedRemBase: Decimal; ExpectedRemAmount: Decimal)
     var
@@ -2434,6 +2462,7 @@ codeunit 144078 "ERM Extra VAT"
         end;
     end;
 
+#if not CLEAN30
     local procedure VerifySevPartPmtsPerEachDocOccurOfUnrealVATSalesInvoiceWithSevLines(SalesLine: array[3] of Record "Sales Line"; CustomerNo: Code[20]; InvoiceNo: Code[20]; PaymentAmount: array[3] of Decimal; "Part": array[3] of Decimal; FirstPartPaymentNo: array[3] of Code[20]; SecondPartPaymentNo: array[3] of Code[20]; ThirdPartPaymentNo: array[3] of Code[20])
     var
         UnrealizedVATEntryNo: array[3] of Integer;
@@ -2509,7 +2538,9 @@ codeunit 144078 "ERM Extra VAT"
         // "Document No." = "Pay3Part3", "Base" = 2700, "Amount" = 540, "Unrealized VAT Entry No." = 3
         VerifyThreeCustRealizedVATEntry(UnrealizedVATEntryNo, CustomerNo, ThirdPartPaymentNo[3], SalesLine, Part[3] * Part[3]);
     end;
+#endif
 
+#if not CLEAN30
     local procedure VerifySevPartPmtsPerEachDocOccurOfUnrealVATPurchInvoiceWithSevLines(PurchaseLine: array[3] of Record "Purchase Line"; VendorNo: Code[20]; InvoiceNo: Code[20]; PaymentAmount: array[3] of Decimal; "Part": array[3] of Decimal; FirstPartPaymentNo: array[3] of Code[20]; SecondPartPaymentNo: array[3] of Code[20]; ThirdPartPaymentNo: array[3] of Code[20])
     var
         UnrealizedVATEntryNo: array[3] of Integer;
@@ -2585,6 +2616,7 @@ codeunit 144078 "ERM Extra VAT"
         // "Document No." = "Pay3Part3", "Base" = 2700, "Amount" = 540, "Unrealized VAT Entry No." = 3
         VerifyThreeVendRealizedVATEntry(UnrealizedVATEntryNo, VendorNo, ThirdPartPaymentNo[3], PurchaseLine, Part[3] * Part[3]);
     end;
+#endif
 
     [ModalPageHandler]
     [Scope('OnPrem')]

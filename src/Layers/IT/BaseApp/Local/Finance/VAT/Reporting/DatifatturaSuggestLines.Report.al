@@ -202,7 +202,9 @@ report 12195 "Datifattura Suggest Lines"
     begin
         if VATEntry.Type <> VATEntry.Type::Purchase then
             exit(false);
+#if not CLEAN30
         VendorLedgerEntry.SetCurrentKey("Document Type", "Document No.", "Document Occurrence", "Vendor No.");
+#endif
         VendorLedgerEntry.SetRange("Document Type", VATEntry."Document Type");
         VendorLedgerEntry.SetRange("Document No.", VATEntry."Document No.");
         VendorLedgerEntry.SetRange("Vendor No.", VATEntry."Bill-to/Pay-to No.");

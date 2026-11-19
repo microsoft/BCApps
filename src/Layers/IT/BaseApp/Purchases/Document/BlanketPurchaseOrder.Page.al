@@ -888,6 +888,7 @@ page 509 "Blanket Purchase Order"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+#if not CLEAN30
                 action("Pa&yments")
                 {
                     ApplicationArea = Suite;
@@ -898,7 +899,11 @@ page 509 "Blanket Purchase Order"
                                   Type = const("Blanket Order"),
                                   Code = field("No.");
                     ToolTip = 'View the list of related payments.';
+                    ObsoleteReason = 'Replaced by CLEAN30 version';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action(CalculateInvoiceDiscount)
                 {
                     AccessByPermission = TableData "Vendor Invoice Disc." = R;

@@ -15,6 +15,14 @@ table 12170 "Payment Lines"
     DrillDownPageID = "Payment Terms Lines";
     LookupPageID = "Payment Terms Lines";
     DataClassification = CustomerContent;
+#if not CLEAN30
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '33.0';
+#endif
+    ObsoleteReason = 'Replaced by global installment rules and plans when the Payment Installments feature is enabled.';
 
     fields
     {
@@ -60,6 +68,7 @@ table 12170 "Payment Lines"
         {
             Caption = 'Due Date';
 
+#if not CLEAN30
             trigger OnValidate()
             begin
                 FindDocument();
@@ -67,11 +76,13 @@ table 12170 "Payment Lines"
                 if "Due Date" < DocumentDate then
                     Error(InvalidDueDateErr);
             end;
+#endif
         }
         field(9; "Pmt. Discount Date"; Date)
         {
             Caption = 'Pmt. Discount Date';
 
+#if not CLEAN30
             trigger OnValidate()
             begin
                 FindDocument();
@@ -79,6 +90,7 @@ table 12170 "Payment Lines"
                 if "Pmt. Discount Date" < DocumentDate then
                     Error(InvalidPmtDiscountDateErr);
             end;
+#endif
         }
         field(10; "Sales/Purchase"; Option)
         {
@@ -115,6 +127,7 @@ table 12170 "Payment Lines"
         {
             Caption = 'Prepmt. Due Date';
 
+#if not CLEAN30
             trigger OnValidate()
             begin
                 FindDocument();
@@ -122,6 +135,7 @@ table 12170 "Payment Lines"
                 if "Due Date" < DocumentDate then
                     Error(InvalidDueDateErr);
             end;
+#endif
         }
     }
 
@@ -138,6 +152,7 @@ table 12170 "Payment Lines"
     {
     }
 
+#if not CLEAN30
     trigger OnDelete()
     begin
         CheckPrepPaymentTermsLinked();
@@ -544,4 +559,5 @@ table 12170 "Payment Lines"
     local procedure OnDeletePaymentLinesOnAfterGetDocument(RecRef: RecordRef; var SalesPurchaseType: Option ,Sales,Purchase,Service; var DocumentType: Option; var DocumentNo: Code[20]; IsBlanketOrder: Boolean)
     begin
     end;
+#endif
 }

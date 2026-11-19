@@ -360,8 +360,10 @@ report 295 "Combine Shipments"
         SalesSetup: Record "Sales & Receivables Setup";
         GLSetup: Record "General Ledger Setup";
         OperationType: Record "No. Series";
+#if not CLEAN30
         PaymentTermsLine: Record "Payment Lines";
         PaymentSales: Record "Payment Lines";
+#endif
         SalesCalcDisc: Codeunit "Sales-Calc. Discount";
         SalesPost: Codeunit "Sales-Post";
         LocalAppMgt: Codeunit LocalApplicationManagement;

@@ -49,7 +49,11 @@ codeunit 12172 "Customer Bill - Post + Print"
         Text1130014: Label 'Customer Bill No. #2##################\';
         Text1130015: Label 'Bank Receipt No.  #3##################\';
         BRNumber: Code[20];
+#if not CLEAN30
         InvalidRemainingAmountErr: Label 'The Remaining Amount has been modified for customer entry Document No.: %1, Document Occurrence: %2. The new amount is %3.', Comment = '%1 - document number, %2 - document occurence, 3 - amount.';
+#else
+        InvalidRemainingAmountErr: Label 'The Remaining Amount has been modified for customer entry Document No.: %1. The new amount is %2.', Comment = '%1 - document number, %2 - amount.';
+#endif
         ListNumber: Code[20];
         HidePrintDialog: Boolean;
         HTMLPath: Text[1024];
@@ -217,7 +221,9 @@ codeunit 12172 "Customer Bill - Post + Print"
             GenJnlLine."Bank Receipt" := true;
             GenJnlLine."Document Type to Close" := CustLedgEntry."Document Type";
             GenJnlLine."Document No. to Close" := CustLedgEntry."Document No.";
+#if not CLEAN30
             GenJnlLine."Document Occurrence to Close" := CustLedgEntry."Document Occurrence";
+#endif
             GenJnlLine."Allow Issue" := CustLedgEntry."Allow Issue";
         end;
 
@@ -287,10 +293,14 @@ codeunit 12172 "Customer Bill - Post + Print"
         CustLedgEntry.CalcFields("Remaining Amount");
 
         if CustLedgEntry."Remaining Amount" <> CustomerBillLine.Amount then
+#if not CLEAN30
             Error(InvalidRemainingAmountErr,
               CustLedgEntry."Document No.",
               CustLedgEntry."Document Occurrence",
               CustLedgEntry."Remaining Amount");
+#else
+            Error(InvalidRemainingAmountErr, CustLedgEntry."Document No.", CustLedgEntry."Remaining Amount");
+#endif
 
         if CustLedgEntry."Due Date" <> CustomerBillLine."Due Date" then begin
             DtldCustLedgEntry.SetCurrentKey("Cust. Ledger Entry No.");
@@ -304,7 +314,9 @@ codeunit 12172 "Customer Bill - Post + Print"
             RbCustLedgEntry.SetRange("Document Type", RbCustLedgEntry."Document Type"::Payment);
             RbCustLedgEntry.SetRange("Document Type to Close", CustLedgEntry."Document Type");
             RbCustLedgEntry.SetRange("Document No. to Close", CustLedgEntry."Document No.");
+#if not CLEAN30
             RbCustLedgEntry.SetRange("Document Occurrence to Close", CustLedgEntry."Document Occurrence");
+#endif
             if RbCustLedgEntry.FindFirst() then begin
                 RbCustLedgEntry."Due Date" := CustomerBillLine."Due Date";
                 RbCustLedgEntry.Modify();

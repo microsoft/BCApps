@@ -99,6 +99,7 @@ pageextension 12454 "Posted Service Credit Memo IT" extends "Posted Service Cred
     }
     actions
     {
+#if not CLEAN30
         addafter("Service Document Lo&g")
         {
             separator(Action1130001)
@@ -114,8 +115,12 @@ pageextension 12454 "Posted Service Credit Memo IT" extends "Posted Service Cred
                                 Type = const("Credit Memo"),
                                 Code = field("No.");
                 ToolTip = 'View the related payments.';
+                ObsoleteReason = 'Replaced by CLEAN30 version';
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
             }
         }
+#endif
         addafter(ActivityLog)
         {
             action("Update Document")

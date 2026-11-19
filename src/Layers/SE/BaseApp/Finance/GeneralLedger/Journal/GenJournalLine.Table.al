@@ -3895,6 +3895,25 @@ table 81 "Gen. Journal Line"
             Editable = false;
             DataClassification = SystemMetadata;
         }
+#if not CLEANSCHEMA26
+        field(11200; "Source Posting Date"; Date)
+        {
+            Caption = 'Source Posting Date';
+            ObsoleteReason = 'The field is not used and will be obsoleted';
+            ObsoleteState = Removed;
+            ObsoleteTag = '26.0';
+        }
+#endif
+#if not CLEANSCHEMA25
+        field(11201; "Auto. Acc. Group"; Code[10])
+        {
+            Caption = 'Auto. Acc. Group';
+            TableRelation = "Automatic Acc. Header";
+            ObsoleteReason = 'Moved to Automatic Account Codes app.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '25.0';
+        }
+#endif
     }
 
     keys

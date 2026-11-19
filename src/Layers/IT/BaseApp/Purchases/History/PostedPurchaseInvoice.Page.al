@@ -809,6 +809,7 @@ page 138 "Posted Purchase Invoice"
                         ApprovalsMgmt.ShowPostedApprovalEntries(Rec.RecordId);
                     end;
                 }
+#if not CLEAN30
                 action("Pa&yments")
                 {
                     ApplicationArea = Basic, Suite;
@@ -819,7 +820,11 @@ page 138 "Posted Purchase Invoice"
                                   Type = const(Invoice),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'Replaced by CLEAN30 version';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
             }
         }
         area(processing)

@@ -785,6 +785,112 @@ table 25 "Vendor Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
         }
+        field(12401; "Prepmt. Diff. Appln. Entry No."; Integer)
+        {
+            Caption = 'Prepmt. Diff. Appln. Entry No.';
+            Editable = false;
+
+            trigger OnValidate()
+            var
+                DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
+            begin
+                if "Prepmt. Diff. Appln. Entry No." > 0 then
+                    if DtldVendLedgEntry.Get("Prepmt. Diff. Appln. Entry No.") then
+                        "Prepmt. Diff. Vend. Entry No." := DtldVendLedgEntry."Vendor Ledger Entry No.";
+            end;
+        }
+        field(12402; "Prepmt. Diff. Vend. Entry No."; Integer)
+        {
+            Caption = 'Prepmt. Diff. Vend. Entry No.';
+        }
+        field(12430; "Vendor VAT Invoice No."; Code[30])
+        {
+            Caption = 'Vendor VAT Invoice No.';
+        }
+        field(12431; "Vendor VAT Invoice Date"; Date)
+        {
+            Caption = 'Vendor VAT Invoice Date';
+
+            trigger OnValidate()
+            var
+                PurchInvHeader: Record "Purch. Inv. Header";
+                PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
+                AddSheet: Boolean;
+            begin
+                if PurchInvHeader.Get("Document No.") then
+                    AddSheet := PurchInvHeader."Additional VAT Ledger Sheet";
+                if PurchCrMemoHdr.Get("Document No.") then
+                    AddSheet := PurchCrMemoHdr."Additional VAT Ledger Sheet";
+                if AddSheet then
+                    exit;
+
+                if ("Vendor VAT Invoice Rcvd Date" <> 0D) and ("Vendor VAT Invoice Date" <> 0D) and
+                   ("Vendor VAT Invoice Rcvd Date" < "Vendor VAT Invoice Date") then
+                    Error(Text12400, FieldCaption("Vendor VAT Invoice Rcvd Date"), FieldCaption("Vendor VAT Invoice Date"));
+            end;
+        }
+        field(12432; "Vendor VAT Invoice Rcvd Date"; Date)
+        {
+            Caption = 'Vendor VAT Invoice Rcvd Date';
+
+            trigger OnValidate()
+            var
+                PurchInvHeader: Record "Purch. Inv. Header";
+                PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
+                AddSheet: Boolean;
+            begin
+                if PurchInvHeader.Get("Document No.") then
+                    AddSheet := PurchInvHeader."Additional VAT Ledger Sheet";
+                if PurchCrMemoHdr.Get("Document No.") then
+                    AddSheet := PurchCrMemoHdr."Additional VAT Ledger Sheet";
+                if AddSheet then
+                    exit;
+
+                if ("Vendor VAT Invoice Rcvd Date" <> 0D) and ("Vendor VAT Invoice Date" <> 0D) and
+                   ("Vendor VAT Invoice Rcvd Date" < "Vendor VAT Invoice Date") then
+                    Error(Text12400, FieldCaption("Vendor VAT Invoice Rcvd Date"), FieldCaption("Vendor VAT Invoice Date"));
+            end;
+        }
+        field(12445; "VAT Entry Type"; Code[15])
+        {
+            Caption = 'VAT Entry Type';
+
+            trigger OnLookup()
+            var
+                VATEntryType: Record "VAT Entry Type";
+            begin
+                VATEntryType.LookupSetOfVATEntryCodes("VAT Entry Type");
+            end;
+
+            trigger OnValidate()
+            var
+                VATEntryType: Record "VAT Entry Type";
+            begin
+                VATEntryType.UpdatePurchVATEntryType(Rec);
+            end;
+        }
+        field(12470; "Vendor Receipts No."; Code[20])
+        {
+            Caption = 'Vendor Receipts No.';
+        }
+        field(12471; "Vendor Receipts Date"; Date)
+        {
+            Caption = 'Vendor Receipts Date';
+        }
+        field(12485; "VAT Adjusted"; Boolean)
+        {
+            Caption = 'VAT Adjusted';
+            Editable = false;
+        }
+        field(12490; "Agreement No."; Code[20])
+        {
+            Caption = 'Agreement No.';
+            TableRelation = "Vendor Agreement"."No." where("Vendor No." = field("Vendor No."));
+        }
+        field(12491; "CV Ledger Entry No."; Integer)
+        {
+            Caption = 'CV Ledger Entry No.';
+        }
     }
 
     keys
