@@ -5,7 +5,6 @@
 
 namespace System.AI.BusinessSkills;
 
-using System.Environment;
 using System.Utilities;
 
 /// <summary>
@@ -152,15 +151,6 @@ codeunit 4166 "Business Skill Content History"
         LatestBusSkillContentVersion.SetRange("Skill ID", SkillId);
         LatestBusSkillContentVersion.Ascending(false);
         exit(LatestBusSkillContentVersion.FindFirst());
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'OnAfterBusinessSkillDeleted', '', false, false)]
-    local procedure DeleteContentVersionsOnAfterBusinessSkillDeleted(Skill: Record "Business Skill")
-    var
-        BusSkillContentVersion: Record "Bus Skill Content Version";
-    begin
-        BusSkillContentVersion.SetRange("Skill ID", Skill.ID);
-        BusSkillContentVersion.DeleteAll(false);
     end;
 
     var

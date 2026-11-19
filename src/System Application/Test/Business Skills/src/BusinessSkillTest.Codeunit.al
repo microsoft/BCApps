@@ -199,13 +199,17 @@ codeunit 130050 "Business Skill Test"
     var
         FirstSkill: Record "Business Skill";
         SecondSkill: Record "Business Skill";
+        ForeignSkill: Record "Business Skill";
         InactiveSkill: Record "Business Skill";
+        BusinessSkillBuilder: Codeunit "Business Skill Builder";
         InactiveRevision: BigInteger;
     begin
-        // [GIVEN] Two active manual skills and an already inactive app-owned skill.
+        // [GIVEN] Active manual and app-owned skills from both test apps, and an already inactive skill.
         Initialize();
         FirstSkill.Get(LibraryBusinessSkill.CreateSkill('First', SecretStrSubstNo('First content')));
-        SecondSkill.Get(LibraryBusinessSkill.CreateSkill('Second', SecretStrSubstNo('Second content')));
+        SecondSkill.Get(LibraryBusinessSkill.CreateAppOwnedSkill('ACTIVE', 'Second', SecretStrSubstNo('Second content')));
+        LibraryBusinessSkill.ActivateSkill(SecondSkill.ID);
+        ForeignSkill.Get(BusinessSkillBuilder.Initialize('FOREIGN', 'Foreign', SecretStrSubstNo('Foreign content')).SetActive(true).Create());
         InactiveSkill.Get(LibraryBusinessSkill.CreateAppOwnedSkill('INACTIVE', 'Inactive', SecretStrSubstNo('Inactive content')));
         InactiveRevision := InactiveSkill.SystemRowVersion;
 
@@ -220,15 +224,49 @@ codeunit 130050 "Business Skill Test"
         // [WHEN] All remaining active skills are inactivated.
         LibraryBusinessSkill.InactivateAll();
         SecondSkill.Get(SecondSkill.ID);
+        ForeignSkill.Get(ForeignSkill.ID);
         InactiveSkill.Get(InactiveSkill.ID);
         // [THEN] Existing inactive rows, content versions and history remain unchanged.
         Assert.AreEqual(SecondSkill.Status::Inactive, SecondSkill.Status, 'Bulk inactivation must include every active skill.');
+        Assert.AreEqual(ForeignSkill.Status::Inactive, ForeignSkill.Status, 'Bulk inactivation must include skills owned by other test apps.');
         Assert.AreEqual(InactiveRevision, InactiveSkill.SystemRowVersion, 'Already inactive skills must not be rewritten.');
         AssertContentEquals(SecretStrSubstNo('First content'), BusinessSkillImpl.GetContent(FirstSkill), 'Inactivation must preserve instructions.');
+        AssertContentEquals(SecretStrSubstNo('Foreign content'), BusinessSkillImpl.GetContent(ForeignSkill), 'Inactivation must preserve foreign app instructions.');
+        Assert.IsTrue(ForeignSkill."Read-Only", 'Inactivation must preserve app-owned content locks.');
         Assert.AreEqual('v1.0', SecondSkill.Version, 'Inactivation must preserve the content version.');
         AssertVersionCount(FirstSkill.ID, 1);
         AssertVersionCount(SecondSkill.ID, 1);
+        AssertVersionCount(ForeignSkill.ID, 1);
         AssertVersionCount(InactiveSkill.ID, 1);
+    end;
+
+    /// <summary>
+    /// Library cleanup removes active and inactive skills from all owners together with their history.
+    /// </summary>
+    [Test]
+    procedure LibraryDeleteAllClearsEveryOwnerAndStatus()
+    var
+        BusinessSkill: Record "Business Skill";
+        BusSkillContentVersion: Record "Bus Skill Content Version";
+        BusinessSkillBuilder: Codeunit "Business Skill Builder";
+        InactiveSkillId: BigInteger;
+    begin
+        // [GIVEN] Manual skills in both states and app-owned skills from the library and the test app.
+        Initialize();
+        LibraryBusinessSkill.CreateSkill('Active manual', SecretStrSubstNo('Active content'));
+        InactiveSkillId := LibraryBusinessSkill.CreateSkill('Inactive manual', SecretStrSubstNo('Inactive content'));
+        LibraryBusinessSkill.InactivateSkill(InactiveSkillId);
+        LibraryBusinessSkill.CreateAppOwnedSkill('LIBRARY', 'Library-owned', SecretStrSubstNo('Library content'));
+        BusinessSkillBuilder.Initialize('FOREIGN', 'Test-owned', SecretStrSubstNo('Test content')).SetActive(true).Create();
+        Assert.AreEqual(4, BusinessSkill.Count(), 'The fixture must contain all four skills.');
+        Assert.AreEqual(4, BusSkillContentVersion.Count(), 'Each fixture skill must have its initial history.');
+
+        // [WHEN] The Cloud test library requests full fixture cleanup.
+        LibraryBusinessSkill.DeleteAll();
+
+        // [THEN] Cleanup is not restricted by the production facade's inactive or owner checks.
+        Assert.IsTrue(BusinessSkill.IsEmpty(), 'Fixture cleanup must remove skills of every owner and status.');
+        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'Fixture cleanup must explicitly remove all history.');
     end;
 
     /// <summary>

@@ -66,10 +66,13 @@ Native storage fields and the NST contract are unchanged.
   Execute does not grant TableData access to the virtual table.
 - Public deletion captures the calling app before delegating. Installed owners
   may delete only their own inactive skills; manual and orphaned deletion requires
-  the existing management permission. The internal platform deletion event
-  removes history in the same transaction, and cleanup errors propagate.
-- Content uses the existing UTF-8 normalization and version rules. Read-Only
-  protects content/version, not metadata. Public manual updates preserve expected
+  the existing management permission. Automatic content-history cleanup on skill
+  deletion is not enabled; deleted skills leave their history entries behind.
+- Content uses the existing UTF-8 normalization and version rules. The platform
+  authorizes app-owned content/version and lock changes; AL does not reject them
+  solely because Read-Only is set. Owner updates while locked and explicit owner
+  unlocking require the corresponding platform update. Content updates preserve
+  the lock unless explicitly changed. Public manual updates preserve expected
   SystemId and SystemRowVersion checks.
 - XML export is manual-only; import creates new manual identities atomically.
   The instruction element is `Content`. The retired `SkillText` element is rejected;
@@ -94,10 +97,11 @@ invocation result; end-to-end SecretText support is therefore not complete.
 
 ## Build and tests
 
-The standalone module needs matching System symbols with its app identity
-`47f31a2d-b5f8-4b35-956a-59e8edebd13b` in the internal-event friend list.
-Aggregate System Application already has that access. Do not expose the event
-publicly to work around mismatched symbols.
+The standalone module does not subscribe to the internal platform deletion event.
+Restoring automatic history cleanup requires matching System symbols with its app
+identity `47f31a2d-b5f8-4b35-956a-59e8edebd13b` in the internal-event friend list.
+Keep the event internal. The deletion-history and cleanup-rollback regressions
+require that integration and are not satisfied by the current implementation.
 
 Compile aggregate System Application, then the independent `Business Skills Test
 Library` under `src/Tools/Test Framework/Test Libraries/LibraryBusinessSkill`,
@@ -110,8 +114,10 @@ Its Financials membership includes it in the SaaS extension manifest with
 Sandbox-only availability, following Application Test Library. NAV's explicit
 BCApps test-build order includes it before the test aggregates. It is not bundled
 inside System Application Test Library. The library remains Cloud-targeted;
-current OnPrem-scoped platform skill symbols block its Cloud build. A matching
-public Cloud surface is a separate platform prerequisite, not a packaging fix.
+it uses the internal, record-free `Business Skill Test Impl.` through System
+Application's `internalsVisibleTo` entry. The helper retains the fixture's indirect
+table permissions and reuses the builders and lifecycle implementation. The
+platform skill table remains OnPrem-scoped; no public destructive API is added.
 
 Core tests are 130050-130051; the shared fixture is 130055. Discovery/search tests
 are BusinessIQ codeunit 140282. Cross-app ownership
@@ -121,5 +127,5 @@ history, and HTTP fixtures can commit changes. Compilation alone does not qualif
 runtime behavior.
 
 The independent fixture's `DeleteAll` clears skills and history. `InactivateSkill`
-and `InactivateAll` use the public lifecycle API and preserve content and history;
+and `InactivateAll` use the shared lifecycle implementation and preserve content and history;
 the latter skips skills that are already inactive. None of these helpers commits.

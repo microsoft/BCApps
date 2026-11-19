@@ -55,9 +55,6 @@ codeunit 4163 "Business Skill Impl."
            or (Skill.Manual <> StoredSkill.Manual))
         then
             Error(SkillIdentityImmutableErr);
-        if StoredSkill."Read-Only" then
-            if not Skill."Read-Only" or (Skill.Version <> StoredSkill.Version) then
-                Error(ReadOnlyErr);
         Skill.TestField(Version);
         if (Skill.Version <> StoredSkill.Version) and not IsManualSkill(Skill) then
             if ContentEquals(GetContent(Skill, false), GetContent(StoredSkill)) then
@@ -110,8 +107,6 @@ codeunit 4163 "Business Skill Impl."
                 Skill.Version := StoredSkill.Version;
             exit;
         end;
-        if StoredSkill."Read-Only" then
-            Error(ReadOnlyErr);
         if IsManualSkill(StoredSkill) then begin
             Skill.Version := GetNextVersion(StoredSkill.Version);
             exit;
@@ -244,7 +239,6 @@ codeunit 4163 "Business Skill Impl."
 
     /// <summary>
     /// Deletes an inactive skill. The platform does not check deletes, so the delete rules are enforced here.
-    /// The content history of the skill is removed when the platform reports the delete.
     /// </summary>
     procedure DeleteSkill(SkillId: BigInteger)
     var
@@ -530,7 +524,6 @@ codeunit 4163 "Business Skill Impl."
         ActivationContentRequiredErr: Label 'A skill needs a title and skill content before it can be activated.';
         ActiveContentRequiredErr: Label 'An active skill needs a title and skill content.';
         SkillChangedErr: Label 'This skill was changed by another user. Refresh it before saving your changes.';
-        ReadOnlyErr: Label 'The instructions and version of this skill are read-only. Create an editable copy to change them.';
         ManualReadOnlyErr: Label 'A manually owned skill cannot be read-only.';
         ManualVersionOnlyErr: Label 'Only manually owned skills can change the version directly.';
         ProgrammaticVersionRequiredErr: Label 'Specify a new version when you change the content of an app-owned skill.';
