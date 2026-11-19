@@ -5,7 +5,6 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.Purchases.History;
 using System.Agents;
 using System.AI;
 using System.Security.AccessControl;
@@ -113,28 +112,18 @@ codeunit 3350 "PA Agent Access"
 
     internal procedure HasUserCreatedPostedPurchInvoice(): Boolean
     var
-        PurchaseInvHeader: Record "Purch. Inv. Header";
+        PARecentPurchInvCreators: Query "PA Recent Purch. Inv. Creators";
         CurrentUserSecurityId: Guid;
         Days30Ago: Date;
-        InvoicesChecked: Integer;
-        MaxInvoicesToCheck: Integer;
     begin
-        MaxInvoicesToCheck := 500;
         Days30Ago := CalcDate('<-30D>', Today());
         CurrentUserSecurityId := UserSecurityId();
 
-        PurchaseInvHeader.ReadIsolation := IsolationLevel::ReadUncommitted;
-        PurchaseInvHeader.SetCurrentKey("Posting Date");
-        PurchaseInvHeader.Ascending(false);
-        PurchaseInvHeader.SetFilter("Posting Date", '>=%1', Days30Ago);
-        PurchaseInvHeader.SetLoadFields(SystemCreatedBy);
-        if not PurchaseInvHeader.FindSet() then
-            exit(false);
-        repeat
-            if PurchaseInvHeader.SystemCreatedBy = CurrentUserSecurityId then
+        PARecentPurchInvCreators.SetFilter(PostingDate, '>=%1', Days30Ago);
+        PARecentPurchInvCreators.Open();
+        while PARecentPurchInvCreators.Read() do
+            if PARecentPurchInvCreators.SystemCreatedBy = CurrentUserSecurityId then
                 exit(true);
-            InvoicesChecked += 1;
-        until (PurchaseInvHeader.Next() = 0) or (InvoicesChecked >= MaxInvoicesToCheck);
         exit(false);
     end;
 
