@@ -39,11 +39,6 @@
       "id": "1defd6cb-5fb9-4717-b50a-9d7f2b59fe88",
       "name": "Sales Lines Suggestions Tests",
       "publisher": "Microsoft"
-    },
-    {
-      "id": "70da53ec-7e48-4baf-a418-8fa47fd65c99",
-      "name": "Sales Lines Suggestions Harms Test",
-      "publisher": "Microsoft"
     }
   ]
 }
