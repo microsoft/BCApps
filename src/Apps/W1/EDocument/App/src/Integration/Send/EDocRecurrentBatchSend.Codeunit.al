@@ -51,40 +51,41 @@ codeunit 6142 "E-Doc. Recurrent Batch Send"
         until EDocumentServiceStatus.Next() = 0;
 
         foreach DocumentType in EDocuments."Document Type".Ordinals() do begin
-            EDocuments.Init();
+            EDocuments.Reset();
             EDocuments.SetFilter("Entry No", EDocumentListFilter);
             EDocuments.SetRange("Document Type", DocumentType);
             if EDocuments.FindSet() then begin
                 Clear(TempEDocMappingLogs);
                 Clear(TempBlob);
                 Clear(BeforeExportEDocumentsErrorCount);
+                Clear(EntryNumbers);
                 EDocumentListExportedFilter := '';
                 EDocExport.ExportEDocumentBatch(EDocuments, EDocumentService, TempEDocMappingLogs, TempBlob, BeforeExportEDocumentsErrorCount);
-                EDocuments.FindSet();
-                repeat
-                    BeforeExportEDocumentsErrorCount.Get(EDocuments."Entry No", ErrorCount);
-                    if (EDocumentErrorHelper.ErrorMessageCount(EDocuments) > ErrorCount) then begin
-                        EDocServiceStatus := Enum::"E-Document Service Status"::"Export Error";
-                        EDocLog := EDocumentLog.InsertLog(EDocuments, EDocumentService, EDocServiceStatus);
-                    end else begin
-                        EDocServiceStatus := Enum::"E-Document Service Status"::Exported;
-                        EDocLog := EDocumentLog.InsertLog(EDocuments, EDocumentService, EDocServiceStatus);
-                        EntryNumbers.Add(EDocLog."Entry No.");
-                        EDocumentWorkFlowProcessing.AddFilter(EDocumentListExportedFilter, Format(EDocuments."Entry No"));
-                    end;
+                if EDocuments.FindSet() then
+                    repeat
+                        BeforeExportEDocumentsErrorCount.Get(EDocuments."Entry No", ErrorCount);
+                        if (EDocumentErrorHelper.ErrorMessageCount(EDocuments) > ErrorCount) then begin
+                            EDocServiceStatus := Enum::"E-Document Service Status"::"Export Error";
+                            EDocLog := EDocumentLog.InsertLog(EDocuments, EDocumentService, EDocServiceStatus);
+                        end else begin
+                            EDocServiceStatus := Enum::"E-Document Service Status"::Exported;
+                            EDocLog := EDocumentLog.InsertLog(EDocuments, EDocumentService, EDocServiceStatus);
+                            EntryNumbers.Add(EDocLog."Entry No.");
+                            EDocumentWorkFlowProcessing.AddFilter(EDocumentListExportedFilter, Format(EDocuments."Entry No"));
+                        end;
 
-                    TempEDocMappingLogs.SetRange("E-Doc Entry No.", EDocuments."Entry No");
-                    if TempEDocMappingLogs.FindSet() then
-                        repeat
-                            EDocMappingLog.TransferFields(TempEDocMappingLogs);
-                            EDocMappingLog."Entry No." := 0;
-                            EDocMappingLog.Validate("E-Doc Log Entry No.", EDocLog."Entry No.");
-                            EDocMappingLog.Insert();
-                        until TempEDocMappingLogs.Next() = 0;
+                        TempEDocMappingLogs.SetRange("E-Doc Entry No.", EDocuments."Entry No");
+                        if TempEDocMappingLogs.FindSet() then
+                            repeat
+                                EDocMappingLog.TransferFields(TempEDocMappingLogs);
+                                EDocMappingLog."Entry No." := 0;
+                                EDocMappingLog.Validate("E-Doc Log Entry No.", EDocLog."Entry No.");
+                                EDocMappingLog.Insert();
+                            until TempEDocMappingLogs.Next() = 0;
 
-                    EDocumentProcessing.ModifyServiceStatus(EDocuments, EDocumentService, EDocServiceStatus);
-                    EDocumentProcessing.ModifyEDocumentStatus(EDocuments);
-                until EDocuments.Next() = 0;
+                        EDocumentProcessing.ModifyServiceStatus(EDocuments, EDocumentService, EDocServiceStatus);
+                        EDocumentProcessing.ModifyEDocumentStatus(EDocuments);
+                    until EDocuments.Next() = 0;
 
                 if EntryNumbers.Count() > 0 then begin
                     EDocDataStorageEntryNo := EDocumentLog.InsertDataStorage(TempBlob);

@@ -19,6 +19,7 @@ codeunit 139020 "Test Job Queue SNAP"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryJobQueue: Codeunit "Library - Job Queue";
         JobQueueDispatcher: Codeunit "Job Queue Dispatcher";
+        JobSomethingWentWrongMsgErr: Label 'Something went wrong and the job has stopped. Likely causes are system updates or routine maintenance processes. The job will automatically run again. (Attempt %1)', Comment = '%1 = the attempt number of the interrupted run';
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -1595,6 +1596,185 @@ codeunit 139020 "Test Job Queue SNAP"
         // [THEN] The job queue log entry is set to 'error'
         JobQueueLogEntry.SetRange(Status, JobQueueLogEntry.Status::Error);
         Assert.RecordCount(JobQueueLogEntry, 1);
+
+        // [THEN] The error message explains the interruption and the attempt number of the interrupted run
+        JobQueueLogEntry.FindFirst();
+        Assert.AreEqual(StrSubstNo(JobSomethingWentWrongMsgErr, 1), JobQueueLogEntry."Error Message", 'Unexpected error message for an interrupted run.');
+    end;
+
+    [Test]
+    procedure RunCleanUpTaskWhenJobQueueRetriedByPlatformTwice()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        JobQueueLogEntry: Record "Job Queue Log Entry";
+        SystemTaskId: Guid;
+    begin
+        // [SCENARIO] The attempt number in the error message counts earlier log entries of the same scheduled task
+
+        // [GIVEN] No job queue entries or logs
+        JobQueueEntry.DeleteAll();
+        JobQueueLogEntry.DeleteAll();
+
+        // [GIVEN] Job Queue Entry that is in process, simulating a JQ that is being retried
+        CreateFailingJobQueueEntry(JobQueueEntry);  // status = 'In Process'
+        SystemTaskId := CreateGuid();
+        JobQueueEntry."System Task ID" := SystemTaskId;
+        JobQueueEntry."User Service Instance ID" := 1;
+        JobQueueEntry."User Session ID" := 2;
+        JobQueueEntry.Modify();
+
+        // [GIVEN] An earlier log entry of a different task for the same job queue entry
+        InsertJobQueueLogEntry(JobQueueEntry.ID, CreateGuid(), JobQueueLogEntry.Status::Success, 7, 8);
+
+        // [GIVEN] A log entry for the first attempt of the same task that was already marked as interrupted
+        InsertJobQueueLogEntry(JobQueueEntry.ID, SystemTaskId, JobQueueLogEntry.Status::Error, 3, 4);
+
+        // [GIVEN] A stale in-process log entry for the second attempt of the same task
+        InsertJobQueueLogEntry(JobQueueEntry.ID, SystemTaskId, JobQueueLogEntry.Status::"In Process", 5, 6);
+
+        // [WHEN] The cleanup task is run, it will update the in-process JQLE
+        Codeunit.Run(Codeunit::"Job Queue Cleanup Tasks", JobQueueEntry);
+
+        // [THEN] The second attempt is marked as interrupted with attempt number 2
+        JobQueueLogEntry.SetRange(ID, JobQueueEntry.ID);
+        JobQueueLogEntry.SetRange(Status, JobQueueLogEntry.Status::Error);
+        Assert.RecordCount(JobQueueLogEntry, 2);
+        JobQueueLogEntry.FindLast();
+        Assert.AreEqual(StrSubstNo(JobSomethingWentWrongMsgErr, 2), JobQueueLogEntry."Error Message", 'Unexpected attempt number for the interrupted run.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RecurringJobSuccessDoesNotCancelExecutedTask()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        ScheduledTask: Record "Scheduled Task";
+        IsolatedLibraryJobQueue: Codeunit "Library - Job Queue";
+        ExecutedTaskId: Guid;
+    begin
+        // [SCENARIO 659464] Scheduling the next run of a successful recurring job does not cancel the task that has just executed it
+        BindSubscription(IsolatedLibraryJobQueue);
+        IsolatedLibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
+
+        // [GIVEN] Recurring Job Queue Entry whose "System Task ID" is the task executing it
+        ExecutedTaskId := CreateNotReadyScheduledTask();
+        InitializeRecurringJobQueueEntry(JobQueueEntry, 60);
+        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
+        JobQueueEntry."Object ID to Run" := Codeunit::"Workflow Create Payment Line"; // exits without any action when there is no record to handle
+        JobQueueEntry.Status := JobQueueEntry.Status::Ready;
+        JobQueueEntry."System Task ID" := ExecutedTaskId;
+        JobQueueEntry.Insert();
+
+        // [WHEN] The dispatcher runs the entry successfully
+        IsolatedLibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
+
+        // [THEN] The executed task is not cancelled and the next run is scheduled
+        Assert.IsTrue(ScheduledTask.Get(ExecutedTaskId), 'The executed task must not be cancelled.');
+        JobQueueEntry.Get(JobQueueEntry.ID);
+        Assert.IsFalse(IsNullGuid(JobQueueEntry."System Task ID"), 'The next run must be scheduled.');
+        Assert.AreNotEqual(ExecutedTaskId, JobQueueEntry."System Task ID", 'The next run must be scheduled as a new task.');
+
+        TaskScheduler.CancelTask(ExecutedTaskId);
+        JobQueueEntry.Delete();
+        UnbindSubscription(IsolatedLibraryJobQueue);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RetryAfterFailureDoesNotCancelExecutedTask()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        JobQueueLogEntry: Record "Job Queue Log Entry";
+        ScheduledTask: Record "Scheduled Task";
+        IsolatedLibraryJobQueue: Codeunit "Library - Job Queue";
+        ExecutedTaskId: Guid;
+    begin
+        // [SCENARIO 659464] Scheduling a retry of a failed job does not cancel the task that has just executed it
+        BindSubscription(IsolatedLibraryJobQueue);
+        IsolatedLibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
+
+        // [GIVEN] Failed Job Queue Entry with attempts left, whose "System Task ID" is the task executing it
+        ExecutedTaskId := CreateNotReadyScheduledTask();
+        CreateFailingJobQueueEntryWithTask(JobQueueEntry, ExecutedTaskId);
+        InsertJobQueueLogEntry(JobQueueEntry.ID, ExecutedTaskId, JobQueueLogEntry.Status::"In Process", 0, 0);
+
+        // [WHEN] The error handler runs
+        IsolatedLibraryJobQueue.RunJobQueueErrorHandler(JobQueueEntry);
+
+        // [THEN] The executed task is not cancelled and the retry is scheduled
+        Assert.IsTrue(ScheduledTask.Get(ExecutedTaskId), 'The executed task must not be cancelled.');
+        JobQueueEntry.Get(JobQueueEntry.ID);
+        JobQueueEntry.TestField("No. of Attempts to Run", 1);
+        Assert.IsFalse(IsNullGuid(JobQueueEntry."System Task ID"), 'The retry must be scheduled.');
+        Assert.AreNotEqual(ExecutedTaskId, JobQueueEntry."System Task ID", 'The retry must be scheduled as a new task.');
+
+        TaskScheduler.CancelTask(ExecutedTaskId);
+        JobQueueEntry.Delete();
+        JobQueueLogEntry.SetRange(ID, JobQueueEntry.ID);
+        JobQueueLogEntry.DeleteAll();
+        UnbindSubscription(IsolatedLibraryJobQueue);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RetryAfterFailureCancelsConcurrentlyReplacedTask()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        JobQueueLogEntry: Record "Job Queue Log Entry";
+        ScheduledTask: Record "Scheduled Task";
+        IsolatedLibraryJobQueue: Codeunit "Library - Job Queue";
+        ExecutedTaskId: Guid;
+        ReplacementTaskId: Guid;
+    begin
+        // [SCENARIO 659464] A task that replaced the executed task while the job was running is still cancelled when the retry is scheduled
+        BindSubscription(IsolatedLibraryJobQueue);
+        IsolatedLibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
+
+        // [GIVEN] Failed Job Queue Entry executed by task "E", whose "System Task ID" was replaced by task "R"
+        ExecutedTaskId := CreateNotReadyScheduledTask();
+        ReplacementTaskId := CreateNotReadyScheduledTask();
+        CreateFailingJobQueueEntryWithTask(JobQueueEntry, ReplacementTaskId);
+        InsertJobQueueLogEntry(JobQueueEntry.ID, ExecutedTaskId, JobQueueLogEntry.Status::"In Process", 0, 0);
+
+        // [WHEN] The error handler runs
+        IsolatedLibraryJobQueue.RunJobQueueErrorHandler(JobQueueEntry);
+
+        // [THEN] Task "R" is cancelled and task "E" is left to the platform
+        Assert.IsFalse(ScheduledTask.Get(ReplacementTaskId), 'The replacement task must be cancelled.');
+        Assert.IsTrue(ScheduledTask.Get(ExecutedTaskId), 'The executed task must not be cancelled.');
+
+        TaskScheduler.CancelTask(ExecutedTaskId);
+        JobQueueEntry.Get(JobQueueEntry.ID);
+        JobQueueEntry.Delete();
+        JobQueueLogEntry.SetRange(ID, JobQueueEntry.ID);
+        JobQueueLogEntry.DeleteAll();
+        UnbindSubscription(IsolatedLibraryJobQueue);
+    end;
+
+    local procedure CreateNotReadyScheduledTask(): Guid
+    begin
+        exit(TaskScheduler.CreateTask(Codeunit::"Job Queue Dispatcher", 0, false, CompanyName(), CurrentDateTime() + 60 * 60 * 1000));
+    end;
+
+    local procedure CreateFailingJobQueueEntryWithTask(var JobQueueEntry: Record "Job Queue Entry"; SystemTaskId: Guid)
+    begin
+        CreateFailingJobQueueEntry(JobQueueEntry);
+        JobQueueEntry."Maximum No. of Attempts to Run" := 3;
+        JobQueueEntry."System Task ID" := SystemTaskId;
+        JobQueueEntry.Modify();
+    end;
+
+    local procedure InsertJobQueueLogEntry(JobQueueEntryId: Guid; SystemTaskId: Guid; Status: Option; ServiceInstanceId: Integer; SessionId: Integer)
+    var
+        JobQueueLogEntry: Record "Job Queue Log Entry";
+    begin
+        JobQueueLogEntry.Init();
+        JobQueueLogEntry.ID := JobQueueEntryId;
+        JobQueueLogEntry."System Task Id" := SystemTaskId;
+        JobQueueLogEntry.Status := Status;
+        JobQueueLogEntry."User Service Instance ID" := ServiceInstanceId;
+        JobQueueLogEntry."User Session ID" := SessionId;
+        JobQueueLogEntry.Insert();
     end;
 
     local procedure InitializeRecurringJobQueueEntry(var JobQueueEntry: Record "Job Queue Entry"; MinutesBetween: Integer)

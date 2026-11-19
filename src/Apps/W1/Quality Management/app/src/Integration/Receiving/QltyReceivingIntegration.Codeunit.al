@@ -97,11 +97,11 @@ codeunit 20411 "Qlty. Receiving Integration"
                         TempSingleBufferTrackingSpecification := TempTrackingSpecification;
                         TempSingleBufferTrackingSpecification.Insert(false);
                         TempSingleBufferTrackingSpecification.SetRecFilter();
-                        AttemptCreateInspectionWithPurchaseLineAndTracking(PurchaseLine, PurchaseHeader, TempTrackingSpecification);
+                        AttemptCreateInspectionWithPurchaseLineAndTracking(PurchaseLine, PurchaseHeader, TempSingleBufferTrackingSpecification);
                     until TempTrackingSpecification.Next() = 0;
         QltyBatchNotifHelper.EndBatch();
 
-        TempTrackingSpecification.SetRange("Qty. to Invoice (Base)");
+        TempTrackingSpecification.SetRange("Quantity Handled (Base)");
         TempTrackingSpecification.SetRange("Source ID");
         TempTrackingSpecification.SetRange("Source Ref. No.");
         TempTrackingSpecification.SetRange("Source Type");
@@ -489,7 +489,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         QltyBatchNotifHelper.ConfigureForBatch(QltyInspectionCreate);
 
         CurrentVariant := TransTransferLine;
-        QltyWarehouseIntegration.CollectSourceItemTracking(CurrentVariant, TempTrackingSpecification);
+        QltyWarehouseIntegration.CollectSourceItemTracking(CurrentVariant, TempTrackingSpecification, true);
         TempTrackingSpecification.Reset();
         if TempTrackingSpecification.FindSet() then
             repeat

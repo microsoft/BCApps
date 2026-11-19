@@ -1710,10 +1710,7 @@ codeunit 132523 "Discount Setup Notifications"
     begin
         Assert.RecordIsNotEmpty(GeneralPostingSetup);
         GLAccNo := LibraryERM.CreateGLAccountNo();
-        GeneralPostingSetup.ModifyAll("Sales Inv. Disc. Account", GLAccNo);
-        GeneralPostingSetup.ModifyAll("Sales Line Disc. Account", GLAccNo);
-        GeneralPostingSetup.ModifyAll("Purch. Inv. Disc. Account", GLAccNo);
-        GeneralPostingSetup.ModifyAll("Purch. Line Disc. Account", GLAccNo);
+        GeneralPostingSetup.ModifyAll("Sales Inv. Disc. Account", GLAccNo, "Sales Line Disc. Account", GLAccNo, "Purch. Inv. Disc. Account", GLAccNo, "Purch. Line Disc. Account", GLAccNo);
     end;
 
     local procedure ShowSalesNotificationForDiscountPosting(DiscountPosting: Option)

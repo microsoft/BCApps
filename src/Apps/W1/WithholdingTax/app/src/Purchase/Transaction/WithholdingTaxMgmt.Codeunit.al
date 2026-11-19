@@ -78,6 +78,7 @@ codeunit 6785 "Withholding Tax Mgmt."
         WithholdingMinInvNotConsistentErr: Label 'You cannot post a transaction using different Withholding Tax minimum invoice amounts on lines.';
         DiffWithholdingPostGroupsErr: Label 'The Withholding Tax posting groups are different and thus the entries cannot be apply.';
         MissingRevenueTypeErr: Label 'The Withholding Tax Entry you are trying to process contains WHT Revenue Type `%1`. Please add this value to your Withholding Revenue Types and post again.', Comment = '%1 = Withholding Revenue Type';
+        GenJnlTemplateNotFoundErr: Label 'A general journal template with Type Purchases does not exist.';
         MustbeNegativeLbl: Label 'must be positive.';
         OneLbl: Label 'ONE';
         TwoLbl: Label 'TWO';
@@ -4240,10 +4241,12 @@ codeunit 6785 "Withholding Tax Mgmt."
                     if Source = Source::Vendor then
                         GenJnlTemplate.SetRange(Type, GenJnlTemplate.Type::Purchases);
 
-                    if GenJnlTemplate.FindFirst() then
+                    if GenJnlTemplate.FindFirst() then begin
                         if GenJnlLine."Journal Template Name" <> GenJnlTemplate.Name then
                             if WithholdingTaxEntry2.Amount <> 0 then
                                 InsertWithholdingTaxPostingBuffer(WithholdingTaxEntry2, GenJnlLine, 0, AmountWithDisc);
+                    end else
+                        Error(GenJnlTemplateNotFoundErr);
                 end;
             until (WithholdingTaxEntry.Next() = 0);
 

@@ -1,0 +1,105 @@
+{
+  "type": "function",
+  "function": {
+    "name": "search_items_with_filters",
+    "description": "Retrieve item data. For instance, consider phrases like ''Add the following items: 2 red kids bycicles'' or ''I need a black office chair'' or ''I want everything from the shipment'' or ''Retrieve items from the previous sales order SO0001'' or ''Provide white tables from from the invoice between last April and this August''. Consider also general product inquiries such as ''I''m interested in your range of sustainable home decor'', and questions about specifications, comparisons, warranty, prices or discounts, sizing, care, delivery times or options, payment options, return policy or missing products/items on a document. Requests to reply with product information, brief personal background and reasons such as needing items for a report or event remain supported; do not infer an additional action. Physical products such as home security systems are supported items. Do not call this function if the message also requests an independent unsupported outcome, such as document creation or emailing, quotation preparation, a document status check, shipment investigation, arranging delivery or installation, or sales analytics, or contains an independent unrelated business notice or announcement. Route the whole message only to magic_function in those cases. Do not invent product names or source document types for popularity or best-selling-product analysis.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "description": "An array consists of several sub-arrays.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "document_type": {
+                "enum": [
+                  "sales_shipment",
+                  "sales_invoice",
+                  "sales_order",
+                  "sales_quote",
+                  "sales_blanket_order",
+                  "not_supported"
+                ],
+                "type": "string",
+                "description": "The type of the previously created document."
+              },
+              "document_number": {
+                "type": "string",
+                "description": "The number of the previous document."
+              },
+              "start_date": {
+                "type": "string",
+                "description": "The start date of the document user wants to search."
+              },
+              "end_date": {
+                "type": "string",
+                "description": "The end date of the document user wants to search."
+              }
+            },
+            "required": [
+              "document_type"
+            ]
+          }
+        },
+        "search_items": {
+          "type": "array",
+          "description": "An array contains all the information of the items from customer requests.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the item."
+              },
+              "split_name_terms": {
+                "type": "array",
+                "description": "A array consists of individual terms in name. For example ''Office Desk'' will be splitted into ''Office'' and ''Desk''.",
+                "items": {
+                  "type": "string",
+                  "description": "A string stores one term of name"
+                }
+              },
+              "origin_name": {
+                "type": "string",
+                "description": "If the name in user''s input is typo, use this field to store the original name."
+              },
+              "quantity": {
+                "type": "number",
+                "description": "The quantity explicitly requested for this item, preserving zero and fractional quantities. If no quantity is specified for this item, return 1; do not use 0 as an unspecified-quantity marker. A couple of chairs means 2 chairs. Apply quantities only to the items they qualify, not to other items mentioned in the request."
+              },
+              "unit_of_measure": {
+                "enum": [
+                  "%1"
+                ],
+                "type": "string",
+                "description": "Unit of measure of the item"
+              },
+              "features": {
+                "type": "array",
+                "description": "A string array stores all the features such as color, size, weight, type etc that the customer has specified.",
+                "items": {
+                  "type": "string",
+                  "description": "A string stores one feature, such as ''red'',''25 kg'',''middle size''"
+                }
+              },
+              "common_synonyms_of_name_terms": {
+                "type": "array",
+                "description": "This array stores possible synonyms of the item''s name terms. We want the synonyms to be useful and common. For example, if the item''s name term is ''bike'', you should find that the possible synonym is ''bicycle'', and vice versa. If it has one or more synonyms, you can put all the synonyms in the array.",
+                "items": {
+                  "type": "string",
+                  "description": "Synonyms of item name terms."
+                }
+              }
+            },
+            "required": [
+              "name",
+              "split_name_terms",
+              "quantity"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

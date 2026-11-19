@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.eServices.EDocument;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Setup;
@@ -13,9 +14,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.UOM;
 using Microsoft.Sales.Customer;
-using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
-using Microsoft.Sales.Reminder;
 using Microsoft.Service.History;
 using System.Reflection;
 using System.Utilities;
@@ -44,6 +43,7 @@ codeunit 10978 "CII XML Builder"
     begin
         FREDocHelpers.CheckBuyerElectronicAddress(SourceDocumentHeader);
         CompanyInformation.Get();
+        InitializeAmountRoundingPrecision(EDocument."Currency Code");
 
         XmlDoc := XmlDocument.Create();
 
@@ -158,6 +158,7 @@ codeunit 10978 "CII XML Builder"
 
         AddSellerTradeParty(AgreementElement, CompanyInformation);
         AddBuyerTradeParty(AgreementElement, SourceDocumentHeader);
+        AddInvoiceReferencedDocument(AgreementElement, SourceDocumentHeader);
 
         // BT-13 Purchase order reference
         if FREDocHelpers.FindFieldByName(SourceDocumentHeader, 'Order No.', FieldRefVar) then
@@ -173,6 +174,35 @@ codeunit 10978 "CII XML Builder"
         end;
 
         TransactionElement.Add(AgreementElement);
+    end;
+
+    local procedure AddInvoiceReferencedDocument(var AgreementElement: XmlElement; var SourceDocumentHeader: RecordRef)
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
+        AppliesToDocumentNoFieldRef: FieldRef;
+        DateStringElement: XmlElement;
+        FormattedIssueDateElement: XmlElement;
+        InvoiceReferenceElement: XmlElement;
+        AppliesToDocumentNo: Code[20];
+    begin
+        if SourceDocumentHeader.Number() <> Database::"Sales Cr.Memo Header" then
+            exit;
+        if not FREDocHelpers.FindFieldByName(SourceDocumentHeader, 'Applies-to Doc. No.', AppliesToDocumentNoFieldRef) then
+            exit;
+
+        AppliesToDocumentNo := AppliesToDocumentNoFieldRef.Value();
+        if (AppliesToDocumentNo = '') or not SalesInvoiceHeader.Get(AppliesToDocumentNo) then
+            exit;
+
+        InvoiceReferenceElement := XmlElement.Create('InvoiceReferencedDocument', RamNamespaceTok);
+        InvoiceReferenceElement.Add(XmlElement.Create('IssuerAssignedID', RamNamespaceTok, AppliesToDocumentNo));
+        FormattedIssueDateElement := XmlElement.Create('FormattedIssueDateTime', RamNamespaceTok);
+        DateStringElement := XmlElement.Create('DateTimeString', QdtNamespaceTok, FormatDate(SalesInvoiceHeader."Document Date"));
+        DateStringElement.SetAttribute('format', '102');
+        FormattedIssueDateElement.Add(DateStringElement);
+        InvoiceReferenceElement.Add(FormattedIssueDateElement);
+        AgreementElement.Add(InvoiceReferenceElement);
     end;
 
     local procedure AddSellerTradeParty(var AgreementElement: XmlElement; CompanyInformation: Record "Company Information")
@@ -233,16 +263,24 @@ codeunit 10978 "CII XML Builder"
         BuyerElectronicAddress: Text[250];
         BuyerCountryCode: Text;
         VATRegistrationNo: Text;
+        CustomerFound: Boolean;
     begin
         BuyerElement := XmlElement.Create('BuyerTradeParty', RamNamespaceTok);
 
-        if TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
+        if FREDocHelpers.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
             CustomerNo := CustomerNoFieldRef.Value();
 
         // Buyer name and postal address are taken from the posted document snapshot so that a later
         // edit to the customer master record does not change an already-issued legal document.
         NameElement := XmlElement.Create('Name', RamNamespaceTok, GetHeaderFieldText(SourceDocumentHeader, 'Sell-to Customer Name', 'Name'));
         BuyerElement.Add(NameElement);
+
+        Customer.SetLoadFields("FR Electronic Address", "Registration Number", "VAT Registration No.");
+        CustomerFound := false;
+        if CustomerNo <> '' then
+            CustomerFound := Customer.Get(CustomerNo);
+        if CustomerFound then
+            AddBuyerLegalOrganization(BuyerElement, Customer);
 
         AddPostalTradeAddress(
             BuyerElement,
@@ -254,8 +292,7 @@ codeunit 10978 "CII XML Builder"
 
         // BT-49 Buyer electronic routing address is held only on the live customer master record.
         // BR-FR-12: BT-49 is mandatory in French e-invoicing.
-        Customer.SetLoadFields("FR Electronic Address", "Registration Number", "VAT Registration No.");
-        if (CustomerNo <> '') and Customer.Get(CustomerNo) then
+        if CustomerFound then
             if FREDocHelpers.GetBuyerElectronicAddress(Customer, BuyerElectronicAddress) then
                 AddElectronicAddress(BuyerElement, BuyerElectronicAddress, '0225');
 
@@ -266,6 +303,24 @@ codeunit 10978 "CII XML Builder"
             AddVATRegistration(BuyerElement, GetVATRegistrationNoWithCountryPrefix(VATRegistrationNo, BuyerCountryCode));
 
         AgreementElement.Add(BuyerElement);
+    end;
+
+    local procedure AddBuyerLegalOrganization(var BuyerElement: XmlElement; Customer: Record Customer)
+    var
+        FREDocHelpers: Codeunit "EDoc. Helpers";
+        LegalOrgElement: XmlElement;
+        LegalOrgIdElement: XmlElement;
+        SIRENNo: Text;
+    begin
+        SIRENNo := FREDocHelpers.GetBuyerSIREN(Customer);
+        if SIRENNo = '' then
+            exit;
+
+        LegalOrgElement := XmlElement.Create('SpecifiedLegalOrganization', RamNamespaceTok);
+        LegalOrgIdElement := XmlElement.Create('ID', RamNamespaceTok, SIRENNo);
+        LegalOrgIdElement.SetAttribute('schemeID', '0002');
+        LegalOrgElement.Add(LegalOrgIdElement);
+        BuyerElement.Add(LegalOrgElement);
     end;
 
     local procedure GetHeaderFieldText(var SourceDocumentHeader: RecordRef; PrimaryFieldName: Text; FallbackFieldName: Text): Text
@@ -325,30 +380,6 @@ codeunit 10978 "CII XML Builder"
             exit(VATRegistrationNo);
 
         exit(CountryCode.ToUpper() + VATRegistrationNo);
-    end;
-
-    procedure TryGetCustomerNoFieldRef(SourceDocumentHeader: RecordRef; var CustomerNoFieldRef: FieldRef): Boolean
-    var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        ServiceInvoiceHeader: Record "Service Invoice Header";
-    begin
-        case SourceDocumentHeader.Number() of
-            Database::"Sales Invoice Header", Database::"Sales Cr.Memo Header":
-                begin
-                    CustomerNoFieldRef := SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Sell-to Customer No."));
-                    exit(true);
-                end;
-            Database::"Service Invoice Header",
-            Database::"Service Cr.Memo Header",
-            Database::"Issued Reminder Header",
-            Database::"Issued Fin. Charge Memo Header":
-                begin
-                    CustomerNoFieldRef := SourceDocumentHeader.Field(ServiceInvoiceHeader.FieldNo("Customer No."));
-                    exit(true);
-                end;
-            else
-                exit(false);
-        end;
     end;
 
     local procedure AddTradeDelivery(var TransactionElement: XmlElement; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef)
@@ -418,7 +449,7 @@ codeunit 10978 "CII XML Builder"
 
         InvoiceDiscountAmount := GetInvoiceDiscountAmount(SourceDocumentHeader, SourceDocumentLines, TaxBasisTotalAmount, LineTotalAmount);
         if InvoiceDiscountAmount = 0 then
-            InvoiceDiscountAmount := Round(LineTotalAmount - TaxBasisTotalAmount, 0.01);
+            InvoiceDiscountAmount := Round(LineTotalAmount - TaxBasisTotalAmount, GetAmountRoundingPrecision());
 
         // BG-16 Payment means (BT-81 TypeCode + BT-84 IBAN + BT-86 BIC)
         if FREDocHelpers.FindFieldByName(SourceDocumentHeader, 'Company Bank Account Code', FieldRefVar) then
@@ -545,7 +576,7 @@ codeunit 10978 "CII XML Builder"
             AllocatedDiscountTotal += DiscountAmount;
         end;
 
-        if Round(AllocatedDiscountTotal - InvoiceDiscountAmount, 0.01) <> 0 then begin
+        if Round(AllocatedDiscountTotal - InvoiceDiscountAmount, GetAmountRoundingPrecision()) <> 0 then begin
             Clear(AllocatedDiscountByKey);
             AllocateInvoiceDiscountByVATKey(InvoiceDiscountAmount, LineBaseAmounts, AllocatedDiscountByKey);
         end;
@@ -628,7 +659,7 @@ codeunit 10978 "CII XML Builder"
                             VATAmount := AmountIncludingVAT - NetBaseAmount;
                         end
                         else
-                            VATAmount := Round(NetBaseAmount * VATPercent / 100, 0.01);
+                            VATAmount := Round(NetBaseAmount * VATPercent / 100, GetAmountRoundingPrecision());
 
                         AddAmountForVATKey(VATAggregationKey, BaseAmount, LineBaseAmounts);
                         AddAmountForVATKey(VATAggregationKey, NetBaseAmount, LineNetBaseAmounts);
@@ -689,7 +720,7 @@ codeunit 10978 "CII XML Builder"
             exit;
 
         foreach VATKey in VATAggregationKeys do begin
-            AllocatedDiscountAmount := Round(InvoiceDiscountAmount * LineBaseAmounts.Get(VATKey) / TotalBaseAmount, 0.01);
+            AllocatedDiscountAmount := Round(InvoiceDiscountAmount * LineBaseAmounts.Get(VATKey) / TotalBaseAmount, GetAmountRoundingPrecision());
             AllocatedDiscountByKey.Add(VATKey, AllocatedDiscountAmount);
             TotalAllocatedDiscountAmount += AllocatedDiscountAmount;
         end;
@@ -954,12 +985,13 @@ codeunit 10978 "CII XML Builder"
         BankAccount: Record "Bank Account";
         CompanyInformation: Record "Company Information";
     begin
-        if CompanyBankAccountCode <> '' then
+        if CompanyBankAccountCode <> '' then begin
             BankAccount.SetLoadFields(IBAN, "SWIFT Code");
-        if BankAccount.Get(CompanyBankAccountCode) then begin
-            IBAN := BankAccount.IBAN;
-            SWIFTCode := BankAccount."SWIFT Code";
-            exit;
+            if BankAccount.Get(CompanyBankAccountCode) then begin
+                IBAN := BankAccount.IBAN;
+                SWIFTCode := BankAccount."SWIFT Code";
+                exit;
+            end;
         end;
 
         CompanyInformation.Get();
@@ -1055,7 +1087,7 @@ codeunit 10978 "CII XML Builder"
         end;
 
         if LineTotalAmount <> 0 then begin
-            InvoiceDiscountAmount := Round(LineTotalAmount - AmountExclVAT, 0.01);
+            InvoiceDiscountAmount := Round(LineTotalAmount - AmountExclVAT, GetAmountRoundingPrecision());
             if InvoiceDiscountAmount <> 0 then
                 exit(InvoiceDiscountAmount);
         end;
@@ -1096,6 +1128,28 @@ codeunit 10978 "CII XML Builder"
     local procedure FormatVATRate(VATPercent: Decimal): Text
     begin
         exit(Format(Round(VATPercent, 0.00001), 0, 9));
+    end;
+
+    local procedure InitializeAmountRoundingPrecision(CurrencyCode: Code[10])
+    var
+        Currency: Record Currency;
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        if (CurrencyCode = '') or (CurrencyCode = GeneralLedgerSetup."LCY Code") then begin
+            AmountRoundingPrecision := GeneralLedgerSetup."Amount Rounding Precision";
+            exit;
+        end;
+
+        Currency.SetLoadFields("Amount Rounding Precision");
+        Currency.Get(CurrencyCode);
+        Currency.TestField("Amount Rounding Precision");
+        AmountRoundingPrecision := Currency."Amount Rounding Precision";
+    end;
+
+    local procedure GetAmountRoundingPrecision(): Decimal
+    begin
+        exit(AmountRoundingPrecision);
     end;
 
     local procedure GetVATCategoryCode(TaxCategory: Code[10]; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]): Text
@@ -1164,6 +1218,7 @@ codeunit 10978 "CII XML Builder"
     end;
 
     var
+        AmountRoundingPrecision: Decimal;
         RsmNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100', Locked = true;
         RamNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100', Locked = true;
         QdtNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100', Locked = true;
@@ -1172,5 +1227,5 @@ codeunit 10978 "CII XML Builder"
         RecoveryCostNoteTok: Label 'Indemnité forfaitaire pour frais de recouvrement en cas de retard de paiement : 40 €', Locked = true;
         LatePaymentPenaltyNoteTok: Label 'Taux des pénalités de retard : taux directeur (BCE) majoré de 10 points', Locked = true;
         EarlyPaymentDiscountNoteTok: Label 'Pas d''escompte pour paiement anticipé', Locked = true;
-        VATExemptionReasonLbl: Label 'Exempt from VAT', Locked = true;
+        VATExemptionReasonLbl: Label 'Exonéré de TVA', Locked = true;
 }

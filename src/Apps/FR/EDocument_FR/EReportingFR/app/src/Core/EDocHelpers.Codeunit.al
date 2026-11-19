@@ -9,6 +9,10 @@ using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.FinanceCharge;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Reminder;
+using Microsoft.Service.History;
 
 codeunit 10991 "EDoc. Helpers"
 {
@@ -24,6 +28,30 @@ codeunit 10991 "EDoc. Helpers"
                 exit(true);
         end;
         exit(false);
+    end;
+
+    internal procedure TryGetCustomerNoFieldRef(SourceDocumentHeader: RecordRef; var CustomerNoFieldRef: FieldRef): Boolean
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+    begin
+        case SourceDocumentHeader.Number() of
+            Database::"Sales Invoice Header", Database::"Sales Cr.Memo Header":
+                begin
+                    CustomerNoFieldRef := SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Sell-to Customer No."));
+                    exit(true);
+                end;
+            Database::"Service Invoice Header",
+            Database::"Service Cr.Memo Header",
+            Database::"Issued Reminder Header",
+            Database::"Issued Fin. Charge Memo Header":
+                begin
+                    CustomerNoFieldRef := SourceDocumentHeader.Field(ServiceInvoiceHeader.FieldNo("Customer No."));
+                    exit(true);
+                end;
+            else
+                exit(false);
+        end;
     end;
 
     procedure GetNodeValue(XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; XPath: Text): Text
@@ -49,9 +77,7 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."Registration No." = '' then
-            RaiseCompanyInformationError(
-                StrSubstNo(SIRENRequiredErr, CompanyInformation.FieldCaption("Registration No."), CompanyInformation.TableCaption()),
-                CompanyInformation);
+            RaiseCompanyInformationError(GetSIRENRequiredError(), CompanyInformation);
     end;
 
     procedure CheckSIRETNotEmpty()
@@ -60,15 +86,12 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."SIRET No." = '' then
-            RaiseCompanyInformationError(
-                StrSubstNo(SIRETRequiredErr, CompanyInformation.FieldCaption("SIRET No."), CompanyInformation.TableCaption()),
-                CompanyInformation);
+            RaiseCompanyInformationError(GetSIRETRequiredError(), CompanyInformation);
     end;
 
     procedure CheckSellerElectronicAddress(EDocumentServiceCode: Code[20])
     var
         CompanyInformation: Record "Company Information";
-        ServiceParticipant: Record "Service Participant";
     begin
         if HasServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Company, '') then
             exit;
@@ -81,9 +104,7 @@ codeunit 10991 "EDoc. Helpers"
         if (CompanyInformation.GetVATRegistrationNumber() <> '') and IsFrenchCompany(CompanyInformation) then
             exit;
 
-        RaiseCompanyInformationError(
-            StrSubstNo(SellerElectronicAddressRequiredErr, CompanyInformation.FieldCaption("SIRET No."), CompanyInformation.FieldCaption("Registration No."), CompanyInformation.FieldCaption("VAT Registration No."), ServiceParticipant.TableCaption(), CompanyInformation.TableCaption()),
-            CompanyInformation);
+        RaiseCompanyInformationError(GetSellerElectronicAddressRequiredError(), CompanyInformation);
     end;
 
     internal procedure IsFrenchCompany(CompanyInformation: Record "Company Information"): Boolean
@@ -105,9 +126,7 @@ codeunit 10991 "EDoc. Helpers"
     begin
         CompanyInformation.Get();
         if CompanyInformation."Country/Region Code" = '' then
-            RaiseCompanyInformationError(
-                StrSubstNo(SellerCountryCodeRequiredErr, CompanyInformation.FieldCaption("Country/Region Code"), CompanyInformation.TableCaption()),
-                CompanyInformation);
+            RaiseCompanyInformationError(GetSellerCountryCodeRequiredError(), CompanyInformation);
     end;
 
     procedure CheckBuyerElectronicAddress(var SourceDocumentHeader: RecordRef)
@@ -120,10 +139,8 @@ codeunit 10991 "EDoc. Helpers"
         IsHandled: Boolean;
     begin
         OnBeforeCheckBuyerElectronicAddress(SourceDocumentHeader, EDocumentServiceCode, IsHandled);
-        if IsHandled then
-            exit;
-
-        CheckBuyerElectronicAddressCore(SourceDocumentHeader, EDocumentServiceCode);
+        if not IsHandled then
+            CheckBuyerElectronicAddressCore(SourceDocumentHeader, EDocumentServiceCode);
 
         OnAfterCheckBuyerElectronicAddress(SourceDocumentHeader, EDocumentServiceCode);
     end;
@@ -132,12 +149,11 @@ codeunit 10991 "EDoc. Helpers"
     var
         Customer: Record Customer;
         ServiceParticipant: Record "Service Participant";
-        FRCIIXMLBuilder: Codeunit "CII XML Builder";
         CustomerNoFieldRef: FieldRef;
         CustomerNo: Code[20];
         BuyerElectronicAddress: Text[250];
     begin
-        if not FRCIIXMLBuilder.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
+        if not TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
             exit;
 
         CustomerNo := CustomerNoFieldRef.Value();
@@ -145,7 +161,7 @@ codeunit 10991 "EDoc. Helpers"
             exit;
 
         if HasServiceParticipantAddress(EDocumentServiceCode, Enum::"E-Document Source Type"::Customer, CustomerNo, ServiceParticipant) then begin
-            CheckBuyerElectronicAddressValue(ServiceParticipant."Participant Identifier", ServiceParticipant.FieldCaption("Participant Identifier"), CustomerNo);
+            CheckServiceParticipantElectronicAddressValue(ServiceParticipant, CustomerNo);
             exit;
         end;
 
@@ -154,13 +170,11 @@ codeunit 10991 "EDoc. Helpers"
             exit;
 
         if GetBuyerElectronicAddress(Customer, BuyerElectronicAddress) then begin
-            CheckBuyerElectronicAddressValue(BuyerElectronicAddress, Customer.FieldCaption("FR Electronic Address"), CustomerNo);
+            CheckBuyerElectronicAddressValue(BuyerElectronicAddress, Customer);
             exit;
         end;
 
-        RaiseCustomerError(
-            StrSubstNo(BuyerElectronicAddressRequiredErr, Customer.FieldCaption("FR Electronic Address"), Customer.FieldCaption("Registration Number"), Customer.FieldCaption("VAT Registration No."), ServiceParticipant.TableCaption(), Customer.TableCaption(), Customer."No."),
-            Customer);
+        RaiseCustomerError(GetBuyerElectronicAddressRequiredError(Customer."No."), Customer);
     end;
 
     internal procedure GetBuyerElectronicAddress(Customer: Record Customer; var BuyerElectronicAddress: Text[250]) Result: Boolean
@@ -168,54 +182,90 @@ codeunit 10991 "EDoc. Helpers"
         IsHandled: Boolean;
     begin
         OnBeforeGetBuyerElectronicAddress(Customer, BuyerElectronicAddress, Result, IsHandled);
-        if IsHandled then
-            exit(Result);
-
-        BuyerElectronicAddress := Customer."FR Electronic Address";
-        if BuyerElectronicAddress <> '' then
-            Result := true
-        else begin
-            BuyerElectronicAddress := CopyStr(Customer."Registration Number", 1, 9);
-            if BuyerElectronicAddress <> '' then
-                Result := true
-            else
-                Result := GetSIRENFromFrenchVATRegistrationNo(Customer."VAT Registration No.", BuyerElectronicAddress);
-        end;
+        if not IsHandled then
+            Result := GetBuyerElectronicAddressCore(Customer, BuyerElectronicAddress);
 
         OnAfterGetBuyerElectronicAddress(Customer, BuyerElectronicAddress, Result);
     end;
 
-    local procedure GetSIRENFromFrenchVATRegistrationNo(VATRegistrationNo: Text; var SIREN: Text[250]): Boolean
+    local procedure GetBuyerElectronicAddressCore(Customer: Record Customer; var BuyerElectronicAddress: Text[250]): Boolean
+    begin
+        BuyerElectronicAddress := Customer."FR Electronic Address";
+        if BuyerElectronicAddress <> '' then
+            exit(true);
+
+        BuyerElectronicAddress := CopyStr(Customer."Registration Number", 1, 9);
+        if BuyerElectronicAddress <> '' then
+            exit(true);
+
+        BuyerElectronicAddress := GetSIRENFromFrenchVATRegistrationNo(Customer."VAT Registration No.");
+        exit(BuyerElectronicAddress <> '');
+    end;
+
+    internal procedure GetBuyerSIREN(Customer: Record Customer): Text
+    var
+        SIRENNo: Text;
+    begin
+        SIRENNo := GetSIRENNo(Customer."Registration Number", Customer."Registration Number");
+        if SIRENNo <> '' then
+            exit(SIRENNo);
+
+        SIRENNo := CopyStr(Customer."FR Electronic Address", 1, 9);
+        if IsNumericIdentifier(SIRENNo, 9) then
+            exit(SIRENNo);
+
+        exit(GetSIRENFromFrenchVATRegistrationNo(Customer."VAT Registration No."));
+    end;
+
+    internal procedure GetSIRENNo(RegistrationNo: Text; SIRETNo: Text): Text
+    begin
+        if IsNumericIdentifier(SIRETNo, 14) then
+            exit(CopyStr(SIRETNo, 1, 9));
+        if IsNumericIdentifier(RegistrationNo, 9) then
+            exit(RegistrationNo);
+    end;
+
+    local procedure IsNumericIdentifier(Identifier: Text; RequiredLength: Integer): Boolean
+    begin
+        exit((StrLen(Identifier) = RequiredLength) and (DelChr(Identifier, '=', '0123456789') = ''));
+    end;
+
+    local procedure GetSIRENFromFrenchVATRegistrationNo(VATRegistrationNo: Text): Text[9]
+    var
+        SIREN: Text[9];
     begin
         VATRegistrationNo := DelChr(VATRegistrationNo, '=', ' ');
         if (StrLen(VATRegistrationNo) <> 13) or (CopyStr(VATRegistrationNo, 1, 2).ToUpper() <> 'FR') then
-            exit(false);
+            exit('');
 
         SIREN := CopyStr(VATRegistrationNo, 5, 9);
-        if DelChr(SIREN, '=', '0123456789') <> '' then begin
-            Clear(SIREN);
-            exit(false);
-        end;
+        if IsNumericIdentifier(SIREN, 9) then
+            exit(SIREN);
 
-        exit(true);
+        exit('');
     end;
 
-    local procedure CheckBuyerElectronicAddressValue(ElectronicAddress: Text; FieldCaption: Text; CustomerNo: Code[20])
-    var
-        Customer: Record Customer;
+    local procedure CheckBuyerElectronicAddressValue(ElectronicAddress: Text; Customer: Record Customer)
     begin
         if IsValidBuyerElectronicAddress(ElectronicAddress) then
             exit;
 
-        Customer.Get(CustomerNo);
-        RaiseCustomerError(StrSubstNo(BuyerElectronicAddressInvalidErr, FieldCaption, CustomerNo), Customer);
+        RaiseCustomerError(GetBuyerElectronicAddressInvalidError(Customer.FieldCaption("FR Electronic Address"), Customer."No."), Customer);
+    end;
+
+    local procedure CheckServiceParticipantElectronicAddressValue(ServiceParticipant: Record "Service Participant"; CustomerNo: Code[20])
+    begin
+        if IsValidBuyerElectronicAddress(ServiceParticipant."Participant Identifier") then
+            exit;
+
+        RaiseServiceParticipantError(
+            GetBuyerElectronicAddressInvalidError(ServiceParticipant.FieldCaption("Participant Identifier"), CustomerNo),
+            ServiceParticipant, DataClassification::CustomerContent);
     end;
 
     local procedure IsValidBuyerElectronicAddress(ElectronicAddress: Text): Boolean
     begin
-        if StrLen(ElectronicAddress) < 9 then
-            exit(false);
-        if DelChr(CopyStr(ElectronicAddress, 1, 9), '=', '0123456789') <> '' then
+        if not IsNumericIdentifier(CopyStr(ElectronicAddress, 1, 9), 9) then
             exit(false);
         if StrLen(ElectronicAddress) = 9 then
             exit(true);
@@ -235,7 +285,6 @@ codeunit 10991 "EDoc. Helpers"
 
     internal procedure HasServiceParticipantAddress(EDocumentServiceCode: Code[20]; ParticipantType: Enum "E-Document Source Type"; ParticipantNo: Code[20]; var ServiceParticipant: Record "Service Participant"): Boolean
     var
-        ParticipantAddressErrorInfo: ErrorInfo;
         HasIdentifier: Boolean;
         HasScheme: Boolean;
     begin
@@ -246,36 +295,36 @@ codeunit 10991 "EDoc. Helpers"
 
         HasIdentifier := ServiceParticipant."Participant Identifier" <> '';
         HasScheme := ServiceParticipant."FR Identifier Scheme" <> ServiceParticipant."FR Identifier Scheme"::" ";
-        if HasIdentifier <> HasScheme then begin
-            ParticipantAddressErrorInfo.Message(GetServiceParticipantAddressIncompleteError());
-            ParticipantAddressErrorInfo.RecordId(ServiceParticipant.RecordId());
-            ParticipantAddressErrorInfo.PageNo(Page::"Service Participants");
-            ParticipantAddressErrorInfo.AddNavigationAction(ShowServiceParticipantLbl);
-            Error(ParticipantAddressErrorInfo);
-        end;
+        if HasIdentifier <> HasScheme then
+            RaiseServiceParticipantError(GetServiceParticipantAddressIncompleteError(), ServiceParticipant, DataClassification::SystemMetadata);
 
         exit(HasIdentifier);
     end;
 
     local procedure RaiseCompanyInformationError(ErrorMessage: Text; CompanyInformation: Record "Company Information")
-    var
-        SetupErrorInfo: ErrorInfo;
     begin
-        SetupErrorInfo.Message(ErrorMessage);
-        SetupErrorInfo.RecordId(CompanyInformation.RecordId());
-        SetupErrorInfo.PageNo(Page::"Company Information");
-        SetupErrorInfo.AddNavigationAction(ShowCompanyInformationLbl);
-        Error(SetupErrorInfo);
+        RaiseSetupError(ErrorMessage, CompanyInformation.RecordId(), Page::"Company Information", ShowCompanyInformationLbl, DataClassification::SystemMetadata);
     end;
 
     local procedure RaiseCustomerError(ErrorMessage: Text; Customer: Record Customer)
+    begin
+        RaiseSetupError(ErrorMessage, Customer.RecordId(), Page::"Customer Card", ShowCustomerLbl, DataClassification::CustomerContent);
+    end;
+
+    local procedure RaiseServiceParticipantError(ErrorMessage: Text; ServiceParticipant: Record "Service Participant"; ErrorDataClassification: DataClassification)
+    begin
+        RaiseSetupError(ErrorMessage, ServiceParticipant.RecordId(), Page::"Service Participants", ShowServiceParticipantLbl, ErrorDataClassification);
+    end;
+
+    local procedure RaiseSetupError(ErrorMessage: Text; SetupRecordId: RecordId; SetupPageNo: Integer; NavigationActionCaption: Text; ErrorDataClassification: DataClassification)
     var
         SetupErrorInfo: ErrorInfo;
     begin
         SetupErrorInfo.Message(ErrorMessage);
-        SetupErrorInfo.RecordId(Customer.RecordId());
-        SetupErrorInfo.PageNo(Page::"Customer Card");
-        SetupErrorInfo.AddNavigationAction(ShowCustomerLbl);
+        SetupErrorInfo.DataClassification := ErrorDataClassification;
+        SetupErrorInfo.RecordId(SetupRecordId);
+        SetupErrorInfo.PageNo(SetupPageNo);
+        SetupErrorInfo.AddNavigationAction(NavigationActionCaption);
         Error(SetupErrorInfo);
     end;
 

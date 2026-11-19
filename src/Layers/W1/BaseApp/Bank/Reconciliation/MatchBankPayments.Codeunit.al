@@ -94,6 +94,7 @@ codeunit 1255 "Match Bank Payments"
         TempDirectDebitCollectionBuffer: Record "Direct Debit Collection Buffer" temporary;
         BankPmtApplSettingsInitialized: Boolean;
         ApplyEntries: Boolean;
+        CandidateFilterReferenceDate: Date;
 #pragma warning disable AA0470
         CannotApplyDocumentNoOneToManyApplicationTxt: Label 'Document No. %1 was not applied because the transaction amount was insufficient.';
 #pragma warning restore AA0470
@@ -548,6 +549,7 @@ codeunit 1255 "Match Bank Payments"
 
     local procedure MapLedgerEntriesToStatementLines(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; Overwrite: Boolean; ApplyEntries: Boolean)
     var
+        BankAccReconciliationLine2: Record "Bank Acc. Reconciliation Line";
         Window: Dialog;
         TotalNoOfLines: Integer;
         ProcessedLines: Integer;
@@ -564,6 +566,7 @@ codeunit 1255 "Match Bank Payments"
         DisableEmployeeLedgerEntriesMatch: Boolean;
         SkipOtherEntries: Boolean;
     begin
+        CandidateFilterReferenceDate := 0D;
         TempBankStatementMatchingBuffer.Reset();
         TempBankStatementMatchingBuffer.DeleteAll();
         TempCustomerLedgerEntryMatchingBuffer.DeleteAll();
@@ -587,6 +590,12 @@ codeunit 1255 "Match Bank Payments"
                                                   BankAccReconciliationLine."Match Confidence"::Accepted,
                                                   BankAccReconciliationLine."Match Confidence"::Manual);
         if BankAccReconciliationLine.FindSet() then begin
+            BankAccReconciliationLine2.CopyFilters(BankAccReconciliationLine);
+            BankAccReconciliationLine2.SetCurrentKey("Transaction Date");
+            BankAccReconciliationLine2.SetAscending("Transaction Date", true);
+            if BankAccReconciliationLine2.FindFirst() then
+                CandidateFilterReferenceDate := BankAccReconciliationLine2."Transaction Date";
+
             OnDisableCustomerLedgerEntriesMatch(DisableCustomerLedgerEntriesMatch, BankAccReconciliationLine);
             OnDisableVendorLedgerEntriesMatch(DisableVendorLedgerEntriesMatch, BankAccReconciliationLine);
             OnDisableEmployeeLedgerEntriesMatch(DisableEmployeeLedgerEntriesMatch, BankAccReconciliationLine);
@@ -676,6 +685,7 @@ codeunit 1255 "Match Bank Payments"
 
             Window.Close();
         end;
+        CandidateFilterReferenceDate := 0D;
     end;
 
     local procedure RemoveAppliedEntriesFromBufferTables()
@@ -690,7 +700,7 @@ codeunit 1255 "Match Bank Payments"
     local procedure RemoveAppliedEntriesFromTempLEMatchingBuffer(var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary)
     var
         AppliedPaymentEntry: Record "Applied Payment Entry";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         AppliedPaymentEntry.SetFilter("Match Confidence", '%1|%2', AppliedPaymentEntry."Match Confidence"::Accepted, AppliedPaymentEntry."Match Confidence"::Manual);
         if AppliedPaymentEntry.FindSet() then
@@ -704,7 +714,7 @@ codeunit 1255 "Match Bank Payments"
     local procedure RemoveAppliedEntriesFromDirectDebMatchingBuffer(var TempDirectDebitCollectionEntryBuffer: Record "Direct Debit Collection Buffer" temporary)
     var
         AppliedPaymentEntry: Record "Applied Payment Entry";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         AppliedPaymentEntry.SetFilter("Match Confidence", '%1|%2', AppliedPaymentEntry."Match Confidence"::Accepted, AppliedPaymentEntry."Match Confidence"::Manual);
         if AppliedPaymentEntry.FindSet() then
@@ -860,7 +870,7 @@ codeunit 1255 "Match Bank Payments"
     /// <param name="AppliesToEntryNo">Specific customer ledger entry number to evaluate for matching.</param>
     /// <param name="NoOfLedgerEntriesWithinTolerance">Returns count of customer entries within amount tolerance.</param>
     /// <param name="NoOfLedgerEntriesOutsideTolerance">Returns count of customer entries outside amount tolerance.</param>
-    procedure MatchSingleLineCustomer(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: Integer; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
+    procedure MatchSingleLineCustomer(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: BigInteger; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
     var
         MinAmount: Decimal;
         MaxAmount: Decimal;
@@ -899,7 +909,7 @@ codeunit 1255 "Match Bank Payments"
     /// <param name="AppliesToEntryNo">Specific vendor ledger entry number to evaluate for matching.</param>
     /// <param name="NoOfLedgerEntriesWithinTolerance">Returns count of vendor entries within amount tolerance.</param>
     /// <param name="NoOfLedgerEntriesOutsideTolerance">Returns count of vendor entries outside amount tolerance.</param>
-    procedure MatchSingleLineVendor(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: Integer; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
+    procedure MatchSingleLineVendor(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: BigInteger; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
     var
         MinAmount: Decimal;
         MaxAmount: Decimal;
@@ -938,7 +948,7 @@ codeunit 1255 "Match Bank Payments"
     /// <param name="AppliesToEntryNo">Specific employee ledger entry number to evaluate for matching.</param>
     /// <param name="NoOfLedgerEntriesWithinTolerance">Returns count of employee entries within amount tolerance.</param>
     /// <param name="NoOfLedgerEntriesOutsideTolerance">Returns count of employee entries outside amount tolerance.</param>
-    procedure MatchSingleLineEmployee(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: Integer; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
+    procedure MatchSingleLineEmployee(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: BigInteger; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
     var
         MinAmount: Decimal;
         MaxAmount: Decimal;
@@ -977,7 +987,7 @@ codeunit 1255 "Match Bank Payments"
     /// <param name="AppliesToEntryNo">Specific bank account ledger entry number to evaluate for matching.</param>
     /// <param name="NoOfLedgerEntriesWithinTolerance">Returns count of bank account entries within amount tolerance.</param>
     /// <param name="NoOfLedgerEntriesOutsideTolerance">Returns count of bank account entries outside amount tolerance.</param>
-    procedure MatchSingleLineBankAccountLedgerEntry(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: Integer; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
+    procedure MatchSingleLineBankAccountLedgerEntry(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: BigInteger; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
     var
         MinAmount: Decimal;
         MaxAmount: Decimal;
@@ -1142,6 +1152,7 @@ codeunit 1255 "Match Bank Payments"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         GeneralLedgerSetup: Record "General Ledger Setup";
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        CandidateFilterStartDate: Date;
     begin
         BankAccount.Get(BankAccReconciliationLine."Bank Account No.");
         SalesReceivablesSetup.Get();
@@ -1156,6 +1167,10 @@ codeunit 1255 "Match Bank Payments"
 
         if ApplyEntries then
             CustLedgerEntry.SetRange("Applies-to ID", '');
+
+        CandidateFilterStartDate := GetCandidateFilterStartDate(BankAccReconciliationLine);
+        if CandidateFilterStartDate <> 0D then
+            CustLedgerEntry.SetFilter("Posting Date", '>=%1', CandidateFilterStartDate);
 
         OnInitCustomerLedgerEntriesMatchingBufferSetFilter(CustLedgerEntry, BankAccReconciliationLine);
 
@@ -1203,6 +1218,7 @@ codeunit 1255 "Match Bank Payments"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         GeneralLedgerSetup: Record "General Ledger Setup";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        CandidateFilterStartDate: Date;
     begin
         BankAccount.Get(BankAccReconciliationLine."Bank Account No.");
         PurchasesPayablesSetup.Get();
@@ -1217,6 +1233,10 @@ codeunit 1255 "Match Bank Payments"
 
         if ApplyEntries then
             VendorLedgerEntry.SetRange("Applies-to ID", '');
+
+        CandidateFilterStartDate := GetCandidateFilterStartDate(BankAccReconciliationLine);
+        if CandidateFilterStartDate <> 0D then
+            VendorLedgerEntry.SetFilter("Posting Date", '>=%1', CandidateFilterStartDate);
 
         OnInitVendorLedgerEntriesMatchingBufferSetFilter(VendorLedgerEntry, BankAccReconciliationLine);
 
@@ -1263,6 +1283,7 @@ codeunit 1255 "Match Bank Payments"
     procedure InitializeEmployeeLedgerEntriesMatchingBuffer(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; ApplyEntries: Boolean)
     var
         EmployeeLedgerEntry: Record "Employee Ledger Entry";
+        CandidateFilterStartDate: Date;
     begin
         BankAccount.Get(BankAccReconciliationLine."Bank Account No.");
 
@@ -1271,6 +1292,10 @@ codeunit 1255 "Match Bank Payments"
 
         if ApplyEntries then
             EmployeeLedgerEntry.SetRange("Applies-to ID", '');
+
+        CandidateFilterStartDate := GetCandidateFilterStartDate(BankAccReconciliationLine);
+        if CandidateFilterStartDate <> 0D then
+            EmployeeLedgerEntry.SetFilter("Posting Date", '>=%1', CandidateFilterStartDate);
 
         OnInitEmployeeLedgerEntriesMatchingBufferSetFilter(EmployeeLedgerEntry, BankAccReconciliationLine);
 
@@ -1312,6 +1337,7 @@ codeunit 1255 "Match Bank Payments"
         BankAccLedgerEntry: Record "Bank Account Ledger Entry";
         GeneralLedgerSetup: Record "General Ledger Setup";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        CandidateFilterStartDate: Date;
     begin
         BankAccount.Get(BankAccReconciliationLine."Bank Account No.");
         PurchasesPayablesSetup.Get();
@@ -1320,6 +1346,10 @@ codeunit 1255 "Match Bank Payments"
         BankAccLedgerEntry.SetRange("Bank Account No.", BankAccReconciliationLine."Bank Account No.");
         if SkipReversed then
             BankAccLedgerEntry.SetRange(Reversed, false);
+
+        CandidateFilterStartDate := GetCandidateFilterStartDate(BankAccReconciliationLine);
+        if CandidateFilterStartDate <> 0D then
+            BankAccLedgerEntry.SetFilter("Posting Date", '>=%1', CandidateFilterStartDate);
 
         OnInitBankAccLedgerEntriesMatchingBufferSetFilter(BankAccLedgerEntry, BankAccReconciliationLine);
 
@@ -1390,7 +1420,7 @@ codeunit 1255 "Match Bank Payments"
         Score: Integer;
         AccountType: Enum "Gen. Journal Account Type";
         AccountNo: Code[20];
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         TextMapperMatched: Boolean;
     begin
         TextMapperMatched := false;
@@ -2139,7 +2169,7 @@ codeunit 1255 "Match Bank Payments"
         exit(not AppliedPaymentEntry.IsEmpty);
     end;
 
-    local procedure EntryAlreadyApplied(TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; TempBankAccReconciliationLine: Record "Bank Acc. Reconciliation Line" temporary; EntryNo: Integer): Boolean
+    local procedure EntryAlreadyApplied(TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; TempBankAccReconciliationLine: Record "Bank Acc. Reconciliation Line" temporary; EntryNo: BigInteger): Boolean
     var
         AppliedPaymentEntry: Record "Applied Payment Entry";
     begin
@@ -2484,7 +2514,7 @@ codeunit 1255 "Match Bank Payments"
     var
         PaymentMatchingDetails: Record "Payment Matching Details";
         BankPmtApplRule: Record "Bank Pmt. Appl. Rule";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         MinRangeValue: Integer;
         MaxRangeValue: Integer;
     begin
@@ -2558,7 +2588,7 @@ codeunit 1255 "Match Bank Payments"
           BankAccReconciliationLine.GetAppliesToID());
     end;
 
-    procedure SetApplicationDataInCVLedgEntry(AccountType: Enum "Gen. Journal Account Type"; EntryNo: Integer;
+    procedure SetApplicationDataInCVLedgEntry(AccountType: Enum "Gen. Journal Account Type"; EntryNo: BigInteger;
                                                                AppliesToID: Code[50])
     var
         BankAccReconLine: Record "Bank Acc. Reconciliation Line";
@@ -2576,7 +2606,7 @@ codeunit 1255 "Match Bank Payments"
         end;
     end;
 
-    local procedure SetCustAppicationData(EntryNo: Integer; AppliesToID: Code[50])
+    local procedure SetCustAppicationData(EntryNo: BigInteger; AppliesToID: Code[50])
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
     begin
@@ -2588,7 +2618,7 @@ codeunit 1255 "Match Bank Payments"
         CODEUNIT.Run(CODEUNIT::"Cust. Entry-Edit", CustLedgEntry);
     end;
 
-    local procedure SetVendAppicationData(EntryNo: Integer; AppliesToID: Code[50])
+    local procedure SetVendAppicationData(EntryNo: BigInteger; AppliesToID: Code[50])
     var
         VendLedgEntry: Record "Vendor Ledger Entry";
     begin
@@ -2600,7 +2630,7 @@ codeunit 1255 "Match Bank Payments"
         CODEUNIT.Run(CODEUNIT::"Vend. Entry-Edit", VendLedgEntry);
     end;
 
-    local procedure SetEmployeeAppicationData(EntryNo: Integer; AppliesToID: Code[50])
+    local procedure SetEmployeeAppicationData(EntryNo: BigInteger; AppliesToID: Code[50])
     var
         EmployeeLedgEntry: Record "Employee Ledger Entry";
     begin
@@ -2675,6 +2705,19 @@ codeunit 1255 "Match Bank Payments"
 
         BankPmtApplSettings.GetOrInsert();
         BankPmtApplSettingsInitialized := true;
+    end;
+
+    local procedure GetCandidateFilterStartDate(BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"): Date
+    var
+        ReferenceDate: Date;
+    begin
+        InitializeBankPmtApplSettings();
+        // Buffers are built once per journal, so the batch's earliest transaction date is used to keep every line's candidates.
+        if CandidateFilterReferenceDate <> 0D then
+            ReferenceDate := CandidateFilterReferenceDate
+        else
+            ReferenceDate := BankAccReconciliationLine."Transaction Date";
+        exit(BankPmtApplSettings.GetCandidateLookbackStartDate(ReferenceDate));
     end;
 
     /// <summary>

@@ -22,6 +22,7 @@ page 6927 "Expenses API"
     ODataKeyFields = SystemId;
     SourceTable = Expense;
     AboutText = 'Provides access to data from the Expense table';
+    Permissions = tabledata "EA Corp Card" = r;
 
     layout
     {
@@ -49,6 +50,10 @@ page 6927 "Expenses API"
                 field(expenseReportNo; Rec."Expense Report No.")
                 {
                     Caption = 'Expense Report No.';
+                }
+                field(postedExpenseReportNo; Rec."Posted Expense Report No.")
+                {
+                    Caption = 'Posted Expense Report No.';
                 }
                 field(expenseCategory; Rec."Expense Category")
                 {
@@ -185,6 +190,11 @@ page 6927 "Expenses API"
                     Caption = 'Round Trip';
                     ToolTip = 'Specifies whether the mileage expense is a round trip.';
                 }
+                field(vehicleType; Rec."Vehicle Type")
+                {
+                    Caption = 'Vehicle Type';
+                    ToolTip = 'Specifies the vehicle type used for this mileage expense.';
+                }
                 field(totalMileage; TotalMileage)
                 {
                     Caption = 'Total Mileage';
@@ -202,6 +212,17 @@ page 6927 "Expenses API"
                 field(creditCardFeedNo; Rec."Credit Card Feed No.")
                 {
                     Caption = 'Credit Card Feed No.';
+                    Editable = false;
+                }
+                field(source; Rec.Source)
+                {
+                    Caption = 'Source';
+                    ToolTip = 'Specifies how the expense was originally created.';
+                    Editable = false;
+                }
+                field(corporateCardId; Rec."Corporate Card Id")
+                {
+                    Caption = 'Corporate Card Id';
                 }
                 field(extractionConfidence; Rec."Extraction Confidence")
                 {
@@ -409,11 +430,13 @@ page 6927 "Expenses API"
     local procedure UpdateExpenseUserNoFromSystemId()
     var
         ExpenseUser: Record "Expense User";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         NewExpenseUserNo: Code[20];
     begin
         NewExpenseUserNo := ExpenseUser.GetExpenseUserNoBySystemId(ExpenseUserSystemId);
         if (NewExpenseUserNo <> '') and (Rec."Expense User No." <> NewExpenseUserNo) then
             Rec."Expense User No." := NewExpenseUserNo;
+        CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
     end;
 
     [ServiceEnabled]

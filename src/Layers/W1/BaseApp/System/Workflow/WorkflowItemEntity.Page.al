@@ -291,22 +291,30 @@ page 6409 "Workflow - Item Entity"
                     ApplicationArea = All;
                     Caption = 'Last Time Modified', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(dateFilter; Rec."Date Filter")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Date Filter', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(globalDimension1Filter; Rec."Global Dimension 1 Filter")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Global Dimension 1 Filter', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(globalDimension2Filter; Rec."Global Dimension 2 Filter")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Global Dimension 2 Filter', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(locationFilter; Rec."Location Filter")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Location Filter', Locked = true;
@@ -386,7 +394,9 @@ page 6409 "Workflow - Item Entity"
                     ApplicationArea = All;
                     Caption = 'Price Includes VAT', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(dropShipmentFilter; Rec."Drop Shipment Filter")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Drop Shipment Filter', Locked = true;
@@ -636,12 +646,16 @@ page 6409 "Workflow - Item Entity"
                     ApplicationArea = All;
                     Caption = 'Rounding Precision', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(binFilter; Rec."Bin Filter")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Bin Filter', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(variantFilter; Rec."Variant Filter")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Variant Filter', Locked = true;
@@ -781,12 +795,16 @@ page 6409 "Workflow - Item Entity"
                     ApplicationArea = All;
                     Caption = 'Expiration Calculation', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(lotNumberFilter; Rec."Lot No. Filter")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Lot No. Filter', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(serialNumberFilter; Rec."Serial No. Filter")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Serial No. Filter', Locked = true;
@@ -951,12 +969,16 @@ page 6409 "Workflow - Item Entity"
                     ApplicationArea = All;
                     Caption = 'Prod. Forecast Quantity (Base)', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(productionForecastName; Rec."Production Forecast Name")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Demand Forecast Name', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(componentForecast; Rec."Component Forecast")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Component Forecast', Locked = true;

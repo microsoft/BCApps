@@ -9,6 +9,7 @@ using Microsoft.ExpenseAgent;
 codeunit 148318 "Expense Capabilities API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -18,10 +19,11 @@ codeunit 148318 "Expense Capabilities API Test"
         LibraryExpenseAgent: Codeunit "Library - Expense Agent";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseCapabilities', Locked = true;
         ActivityLogCapabilityNameTok: Label 'activityLog', Locked = true;
+        ApprovalConversationCapabilityNameTok: Label 'approvalConversation', Locked = true;
+        TravelRequestCapabilityNameTok: Label 'travelRequest', Locked = true;
 
     [Test]
     procedure CapabilitiesProjectsEnabledViaAPI()
@@ -78,6 +80,44 @@ codeunit 148318 "Expense Capabilities API Test"
     end;
 
     [Test]
+    procedure ApprovalConversationCapabilityEnabledViaAPI()
+    var
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] Approval conversation is advertised when the supporting API actions are installed.
+        Initialize();
+
+        // [WHEN] The expenseCapabilities collection is fetched through the API.
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] ApprovalConversation is present and enabled.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, ApprovalConversationCapabilityNameTok, true),
+            'Response must contain an enabled approvalConversation capability row.');
+    end;
+
+    [Test]
+    procedure TravelRequestCapabilityEnabledViaAPI()
+    var
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] Travel requests are advertised when the supporting APIs are installed.
+        Initialize();
+
+        // [WHEN] The expenseCapabilities collection is fetched through the API.
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] TravelRequest is present and enabled.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, TravelRequestCapabilityNameTok, true),
+            'Response must contain an enabled travelRequest capability row.');
+    end;
+
+    [Test]
     procedure CapabilitiesProjectsDisabledViaAPI()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -131,6 +171,7 @@ codeunit 148318 "Expense Capabilities API Test"
         // Enable Evaluate Policies too so the aiAssistedPolicyEvaluation capability is not reported
         // disabled, keeping the "no capability disabled" assertion below valid.
         ExpenseAgentSetup."Evaluate Policies" := true;
+        ExpenseAgentSetup."Require Corporate Card" := false;
         ExpenseAgentSetup.Modify();
         Commit();
 
@@ -144,6 +185,10 @@ codeunit 148318 "Expense Capabilities API Test"
         Assert.IsTrue(
             ResponseContainsCapabilityState(ResponseText, 'aiAssistedPolicyEvaluation', true),
             'Response must contain an enabled aiAssistedPolicyEvaluation capability row.');
+        // [THEN] CreditCardFeed advertises backend support even when card selection is optional.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, 'creditCardFeed', true),
+            'Response must contain an enabled creditCardFeed capability row independently of mandatory card selection.');
         LibraryExpenseAgent.RestoreExpenseAgentSetup();
         Commit();
     end;
@@ -206,7 +251,6 @@ codeunit 148318 "Expense Capabilities API Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Capabilities API Test");
         IsInitialized := true;
         Commit();

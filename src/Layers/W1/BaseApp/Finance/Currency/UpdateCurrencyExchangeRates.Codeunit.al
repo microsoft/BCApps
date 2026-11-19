@@ -5,12 +5,9 @@
 namespace Microsoft.Finance.Currency;
 
 using Microsoft.Utilities;
-using System;
 using System.Environment.Configuration;
-using System.Integration;
 using System.IO;
 using System.Utilities;
-using System.Xml;
 
 /// <summary>
 /// Manages automatic updates of currency exchange rates from external services.
@@ -33,7 +30,6 @@ codeunit 1281 "Update Currency Exchange Rates"
 
     var
         TempBlobResponse: Codeunit "Temp Blob";
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
         NoSyncCurrencyExchangeRatesSetupErr: Label 'There are no active Currency Exchange Rate Sync. Setup records.';
         MissingExchRateNotificationNameTxt: Label 'Missing Exchange Rates';
         MissingExchRateNotificationDescriptionTxt: Label 'Show warning to enter exchange rates when a new currency is created.';
@@ -44,6 +40,13 @@ codeunit 1281 "Update Currency Exchange Rates"
 #pragma warning restore AA0470
         ExchRatesUpdatedTxt: Label 'The user updated currency exchange rates via a currency exchange rate service.', Locked = true;
         TelemetryCategoryTok: Label 'AL Exchange Rate Service', Locked = true;
+        WebRequestTxt: Label 'Web service request sent.', Locked = true;
+        WebResponseTxt: Label 'Web service response status: %1', Locked = true, Comment = '%1 = HTTP status code';
+        WebServiceCallFailedErr: Label 'The call to the currency exchange rate service failed: %1', Comment = '%1 = The error returned by the service, for example the HTTP status code and reason phrase.';
+#pragma warning disable AA0470
+        HttpStatusTxt: Label '%1 %2', Locked = true, Comment = '%1 = HTTP status code, %2 = reason phrase';
+        ActivityLogDetailTxt: Label '%1 %2: %3', Locked = true, Comment = '%1 = HTTP status code, %2 = reason phrase, %3 = response body';
+#pragma warning restore AA0470
 
     local procedure SyncCurrencyExchangeRates()
     var
@@ -89,6 +92,11 @@ codeunit 1281 "Update Currency Exchange Rates"
             exit;
 
         ExecuteWebServiceRequest(CurrExchRateUpdateSetup, ResponseInStream);
+        // No app-level response-size cap: the exchange-rate service URL and its response format are configured by the
+        // customer, and a feed legitimately scales with the number of currencies, the history depth, and the per-rate
+        // verbosity of an arbitrary (sometimes human-readable text) format - so no fixed byte cap is safe. Memory is
+        // bounded by the platform HttpClient absolute response limit (150 MiB); the configured Data Exchange Definition
+        // validates and extracts the expected rate fields regardless of payload size.
         CurrExchRateUpdateSetup.GetWebServiceURL(ServiceUrl);
         SourceName := ServiceUrl;
     end;
@@ -116,21 +124,50 @@ codeunit 1281 "Update Currency Exchange Rates"
 
     local procedure ExecuteWebServiceRequest(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; var ResponseInStream: InStream)
     var
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
+        HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        HttpHeaders: HttpHeaders;
+        CustomDimensions: Dictionary of [Text, Text];
+        HttpResponseInStream: InStream;
+        ResponseOutStream: OutStream;
+        ResponseErrorText: Text;
         URL: Text;
     begin
         CurrExchRateUpdateSetup.GetWebServiceURL(URL);
-        HttpWebRequestMgt.Initialize(URL);
-        HttpWebRequestMgt.SetReturnType('application/xml,text/xml');
+        HttpRequestMessage.Method('GET');
+        HttpRequestMessage.SetRequestUri(URL);
+        HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Accept', 'application/xml,text/xml');
 
-        if not GuiAllowed then
-            HttpWebRequestMgt.DisableUI();
+        if CurrExchRateUpdateSetup."Log Web Requests" then begin
+            CustomDimensions.Add('Category', TelemetryCategoryTok);
+            CustomDimensions.Add('Url', URL);
+            Session.LogMessage('0000VSQ', WebRequestTxt, Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
+        end;
 
-        HttpWebRequestMgt.SetTraceLogEnabled(CurrExchRateUpdateSetup."Log Web Requests");
+        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            ResponseErrorText := GetLastErrorText();
+            ShowHttpError(CurrExchRateUpdateSetup, ResponseErrorText, ResponseErrorText);
+        end;
 
-        if not HttpWebRequestMgt.GetResponse(ResponseInStream, HttpStatusCode, ResponseHeaders) then
-            ShowHttpError(CurrExchRateUpdateSetup, URL);
+        if CurrExchRateUpdateSetup."Log Web Requests" then
+            if HttpResponseMessage.IsSuccessStatusCode() then
+                Session.LogMessage('0000VSR', StrSubstNo(WebResponseTxt, HttpResponseMessage.HttpStatusCode()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok)
+            else
+                Session.LogMessage('0000VSS', StrSubstNo(WebResponseTxt, HttpResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+
+        if not HttpResponseMessage.IsSuccessStatusCode() then begin
+            HttpResponseMessage.Content.ReadAs(ResponseErrorText);
+            ShowHttpError(CurrExchRateUpdateSetup,
+              StrSubstNo(HttpStatusTxt, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase()),
+              StrSubstNo(ActivityLogDetailTxt, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase(), ResponseErrorText));
+        end;
+
+        HttpResponseMessage.Content.ReadAs(HttpResponseInStream);
+        TempBlobResponse.CreateOutStream(ResponseOutStream);
+        CopyStream(ResponseOutStream, HttpResponseInStream);
+        TempBlobResponse.CreateInStream(ResponseInStream);
     end;
 
     procedure GenerateTempDataFromService(var TempCurrencyExchangeRate: Record "Currency Exchange Rate" temporary; CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup")
@@ -149,32 +186,18 @@ codeunit 1281 "Update Currency Exchange Rates"
         DataExch.Delete(true);
     end;
 
-    local procedure ShowHttpError(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; WebServiceURL: Text)
+    local procedure ShowHttpError(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; ErrorText: Text; LogDetailText: Text)
     var
         ActivityLog: Record "Activity Log";
-        WebRequestHelper: Codeunit "Web Request Helper";
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        WebException: DotNet WebException;
-        XmlNode: DotNet XmlNode;
-        ResponseInputStream: InStream;
-        ErrorText: Text;
+        HttpErrorInfo: ErrorInfo;
     begin
-        ErrorText := WebRequestHelper.GetWebResponseError(WebException, WebServiceURL);
-
         ActivityLog.LogActivity(
           CurrExchRateUpdateSetup, ActivityLog.Status::Failed, CurrExchRateUpdateSetup."Service Provider",
-          CurrExchRateUpdateSetup.Description, ErrorText);
+          CurrExchRateUpdateSetup.Description, LogDetailText);
 
-        if IsNull(WebException.Response) then
-            Error(ErrorText);
-
-        ResponseInputStream := WebException.Response.GetResponseStream();
-
-        XMLDOMMgt.LoadXMLNodeFromInStream(ResponseInputStream, XmlNode);
-
-        ErrorText := WebException.Message;
-
-        Error(ErrorText);
+        HttpErrorInfo.Message := StrSubstNo(WebServiceCallFailedErr, ErrorText);
+        HttpErrorInfo.DetailedMessage := LogDetailText;
+        Error(HttpErrorInfo);
     end;
 
     /// <summary>
@@ -268,4 +291,3 @@ codeunit 1281 "Update Currency Exchange Rates"
     begin
     end;
 }
-

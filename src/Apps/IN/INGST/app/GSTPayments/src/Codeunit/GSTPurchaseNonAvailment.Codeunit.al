@@ -86,14 +86,13 @@ codeunit 18251 "GST Purchase Non Availment"
         QuantityFactor: Decimal;
         CustomDutyAmount: Decimal;
     begin
-        if (PurchaseLine.Type = PurchaseLine.Type::"Charge (Item)") and
-            (PurchaseLine."GST Credit" = PurchaseLine."GST Credit"::"Non-Availment") then
+        if PurchaseLine."GST Credit" <> PurchaseLine."GST Credit"::"Non-Availment" then
+            exit;
+
+        if PurchaseLine.Type = PurchaseLine.Type::"Charge (Item)" then
             exit;
 
         PurchLineGSTAmount := GSTCalculatedAmount(PurchaseLine);
-        if PurchLineGSTAmount = 0 then
-            exit;
-
         if PurchaseHeader."Currency Code" <> '' then
             CustomDutyAmount := ConvertCustomDutyAmountToLCY(
                             PurchaseHeader."Currency Code",
@@ -102,6 +101,9 @@ codeunit 18251 "GST Purchase Non Availment"
                             PurchaseHeader."Posting Date")
         else
             CustomDutyAmount := PurchaseLine."Custom Duty Amount";
+
+        if (PurchLineGSTAmount = 0) and (CustomDutyAmount = 0) then
+            exit;
 
         if PurchaseLine."Qty. to Invoice" <> 0 then
             QuantityFactor := QtytoBeInvoiced / PurchaseLine."Qty. to Invoice";

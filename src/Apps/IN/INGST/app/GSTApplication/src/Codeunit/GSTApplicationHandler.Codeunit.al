@@ -1662,6 +1662,9 @@ codeunit 18430 "GST Application Handler"
                 end;
             until DetailedGSTLedgerEntry.Next() = 0;
 
+            if GSTPostingBuffer[1].IsEmpty() then
+                exit;
+
             AccountNo := GSTApplicationLibrary.GetGSTGLAccountNo(
                 GSTGLAccountType::"Payable Account",
                 ApplyDetailedGSTLedgerEntryInfo."Location State Code",
@@ -2765,13 +2768,13 @@ codeunit 18430 "GST Application Handler"
     local procedure OnAfterPostItemJnlLine(
         var ItemJournalLine: Record "Item Journal Line";
         ItemLedgerEntry: Record "Item Ledger Entry";
-        var ValueEntryNo: Integer;
+        var ValueEntryNo: BigInteger;
         var InventoryPostingToGL: Codeunit "Inventory Posting To G/L";
         CalledFromAdjustment: Boolean;
         CalledFromInvtPutawayPick: Boolean;
         var ItemRegister: Record "Item Register";
-        var ItemLedgEntryNo: Integer;
-        var ItemApplnEntryNo: Integer)
+        var ItemLedgEntryNo: BigInteger;
+        var ItemApplnEntryNo: BigInteger)
     begin
         SubcontractingEntryNosAfterPostItemJnlLine(ItemJournalLine, ItemLedgEntryNo, ItemApplnEntryNo, ValueEntryNo);
     end;
@@ -2782,9 +2785,9 @@ codeunit 18430 "GST Application Handler"
         CalledFromAdjustment: Boolean;
         CalledFromInvtPutawayPick: Boolean;
         var ItemRegister: Record "Item Register";
-        var ItemLedgEntryNo: Integer;
-        var ValueEntryNo: Integer;
-        var ItemApplnEntryNo: Integer)
+        var ItemLedgEntryNo: BigInteger;
+        var ValueEntryNo: BigInteger;
+        var ItemApplnEntryNo: BigInteger)
     begin
         SubcontractingEntryNosBeforePostItemJnlLine(ItemJournalLine, ItemLedgEntryNo, ValueEntryNo, ItemApplnEntryNo);
     end;

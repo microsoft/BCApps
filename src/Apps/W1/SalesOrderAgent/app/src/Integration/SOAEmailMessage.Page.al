@@ -72,6 +72,18 @@ page 4404 "SOA Email Message"
                                 Editable = false;
                             }
                         }
+                        group(CcGroup)
+                        {
+                            ShowCaption = false;
+
+                            field(MessageCc; GlobalCcRecipients)
+                            {
+                                Caption = 'Cc';
+                                ToolTip = 'Specifies the email CC recipients.';
+                                Editable = false;
+                                Importance = Additional;
+                            }
+                        }
                         group(UnknownContact)
                         {
                             ShowCaption = false;
@@ -232,6 +244,13 @@ page 4404 "SOA Email Message"
                     end;
                 }
             }
+            part(Attachments; "SOA Email Attachments")
+            {
+                ApplicationArea = All;
+                Caption = 'Attachments';
+                SubPageLink = "Task ID" = field("Task ID");
+                Editable = false;
+            }
             group(PreviousMessages)
             {
                 Caption = 'Previous Messages';
@@ -255,13 +274,6 @@ page 4404 "SOA Email Message"
                         CurrPage.Update(false);
                     end;
                 }
-            }
-            part(Attachments; "SOA Email Attachments")
-            {
-                ApplicationArea = All;
-                Caption = 'Attachments';
-                SubPageLink = "Task ID" = field("Task ID");
-                Editable = false;
             }
         }
     }
@@ -341,6 +353,7 @@ page 4404 "SOA Email Message"
     begin
         GlobalMessageText := AgentMessage.GetText(Rec);
         GlobalPreviousMessageText := SOATaskMessage.GetPreviousText(Rec);
+        GlobalCcRecipients := SOATaskMessage.GetMessageCcRecipients(Rec);
         PreviousMessagesVisible := GlobalPreviousMessageText <> '';
         IsMessageEditable := AgentMessage.IsEditable(Rec);
         AttachmentCount := SOAEmailSetup.GetNumberOfAttachments(Rec);
@@ -404,7 +417,7 @@ page 4404 "SOA Email Message"
         else
             SOAFiltersImpl.RecallMissingContactNotification();
 
-        if ContactCount >= 2 then
+        if (Rec.Type = Rec.Type::Input) and (ContactCount >= 2) then
             SOAFiltersImpl.ShowDuplicateContactNotification(EmailAddress, ContactCount, Rec."Task ID", GetInputTaskMessageID())
         else
             SOAFiltersImpl.RecallDuplicateContactNotification();
@@ -498,6 +511,7 @@ page 4404 "SOA Email Message"
         FromGroupVisible: Boolean;
         ToGroupVisible: Boolean;
         GlobalSendToAddress: Text;
+        GlobalCcRecipients: Text;
         GlobalMessageText: Text;
         GlobalPreviousMessageText: Text;
         PreviousMessagesVisible: Boolean;

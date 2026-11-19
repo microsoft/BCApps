@@ -394,7 +394,7 @@ report 90 "Import Consolidation from DB"
 #pragma warning disable AA0470
         Text032Err: Label 'The %1 is later than the %2 in company %3.';
 #pragma warning restore AA0470
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
 
 #pragma warning disable AA0074
         Text000: Label 'Enter a document number.';
@@ -540,7 +540,9 @@ report 90 "Import Consolidation from DB"
         AccountingPeriod.Reset();
         AccountingPeriod.SetRange(Closed, false);
         AccountingPeriod.SetRange("New Fiscal Year", true);
+#pragma warning disable AA0181, AA0233 // Positional Find() paired with Next(); suppression tracked for follow-up
         if AccountingPeriod.Find('-') then begin
+#pragma warning restore AA0181, AA0233
             FiscalYearStartDate := AccountingPeriod."Starting Date";
             if AccountingPeriod.Find('>') then
                 FiscalYearEndDate := CalcDate('<-1D>', AccountingPeriod."Starting Date")

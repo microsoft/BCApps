@@ -21,8 +21,8 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Reminder;
 using Microsoft.Utilities;
 using System.Globalization;
-using System.Integration;
 using System.Security.AccessControl;
+using System.Utilities;
 
 table 5065 "Interaction Log Entry"
 {
@@ -36,7 +36,7 @@ table 5065 "Interaction Log Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -121,7 +121,7 @@ table 5065 "Interaction Log Entry"
             ToolTip = 'Specifies the number of the campaign (if any) to which the interaction is linked. This field is not editable.';
             TableRelation = Campaign;
         }
-        field(15; "Campaign Entry No."; Integer)
+        field(15; "Campaign Entry No."; BigInteger)
         {
             Caption = 'Campaign Entry No.';
             ToolTip = 'Specifies the number of the campaign entry to which the interaction log entry is linked.';
@@ -501,7 +501,6 @@ table 5065 "Interaction Log Entry"
     var
         Attachment: Record Attachment;
         SegmentLine: Record "Segment Line";
-        WebRequestHelper: Codeunit "Web Request Helper";
         InStream: InStream;
         EmailMessageUrl: Text;
         IsHandled: Boolean;
@@ -534,7 +533,7 @@ table 5065 "Interaction Log Entry"
             if Attachment."Email Message Url".HasValue() then begin
                 Attachment."Email Message Url".CreateInStream(InStream);
                 InStream.Read(EmailMessageUrl);
-                if WebRequestHelper.IsHttpUrl(EmailMessageUrl) then begin
+                if IsHttpUrl(EmailMessageUrl) then begin
                     if Confirm(OpenMessageQst, true) then
                         HyperLink(EmailMessageUrl);
                     exit;
@@ -543,6 +542,16 @@ table 5065 "Interaction Log Entry"
         end;
 
         OnAfterOpenAttachment(Rec, Attachment, SegmentLine);
+    end;
+
+    local procedure IsHttpUrl(Url: Text): Boolean
+    var
+        Uri: Codeunit Uri;
+    begin
+        if not Uri.IsValidUri(Url) then
+            exit(false);
+        Uri.Init(Url);
+        exit(Uri.IsHttpUrl());
     end;
 
     procedure ToggleCanceledCheckmark()

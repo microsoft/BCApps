@@ -15,6 +15,10 @@ codeunit 133771 "Remittance REP Check UT"
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryERM: Codeunit "Library - ERM";
         Assert: Codeunit Assert;
+        EntryNoElementTok: Label 'EntryNo_VendLedgEntry2', Locked = true;
+        DocTypeElementTok: Label 'DocType_VendLedgEntry2', Locked = true;
+        LineAmountElementTok: Label 'LAmountWDiscCur', Locked = true;
+        TotalAmountElementTok: Label 'Amount_VendLedgEntry', Locked = true;
 
     [Test]
     [HandlerFunctions('RemittanceAdviceJournalRequestPageHandler')]
@@ -189,6 +193,46 @@ codeunit 133771 "Remittance REP Check UT"
         VerifyPayedDocumentsAndPartiallyPaid(VendorLedgerEntry, GenJournalLine);
     end;
 
+    [Test]
+    [HandlerFunctions('RemittanceAdviceEntriesRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure RefundSharingPaymentDocShownOnRemittanceAdviceEntries()
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        PaymentVendorLedgerEntry: Record "Vendor Ledger Entry";
+        RefundVendorLedgerEntry: Record "Vendor Ledger Entry";
+        VendorNo: Code[20];
+        DocumentNo: Code[20];
+        RefundAmount: Decimal;
+    begin
+        // [FEATURE] [Report] [Remittance Advice - Entries] [AI test 0.4]
+        // [SCENARIO] A vendor refund sharing the payment's document is rendered as a line on Report 400 - Remittance Advice - Entries
+        Initialize();
+
+        // [GIVEN] Payment and Refund for the same vendor sharing DocumentNo .
+        VendorNo := CreateVendor();
+        DocumentNo := LibraryUTUtility.GetNewCode();
+        CreatePaymentAndRefundWithDocumentNo(PaymentVendorLedgerEntry, RefundVendorLedgerEntry, VendorNo, DocumentNo);
+
+        // [GIVEN] Refund has an applied refund detailed entry.
+        RefundAmount :=
+          CreateDetailedVendorLedgerEntry(
+            RefundVendorLedgerEntry, RefundVendorLedgerEntry."Entry No.", DetailedVendorLedgEntry."Entry Type"::Application,
+            DetailedVendorLedgEntry."Document Type"::Refund, 1);
+
+        // [WHEN] Run report Remittance Advice - Entries filtered on payment.
+        LibraryVariableStorage.Enqueue(PaymentVendorLedgerEntry."Entry No.");
+        REPORT.Run(REPORT::"Remittance Advice - Entries");
+
+        // [THEN] Verify that the Refund is displayed as a transaction line on the report with the refund amount.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists(EntryNoElementTok, RefundVendorLedgerEntry."Entry No.");
+        LibraryReportDataset.AssertElementWithValueExists(DocTypeElementTok, Format(RefundVendorLedgerEntry."Document Type"));
+        LibraryReportDataset.AssertElementWithValueExists(LineAmountElementTok, -RefundAmount);
+        LibraryReportDataset.AssertElementWithValueExists(TotalAmountElementTok, -RefundAmount);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
@@ -342,6 +386,16 @@ codeunit 133771 "Remittance REP Check UT"
               'AppliedVendLedgEntryTempRemainingAmt', -(VendorLedgerEntry."Remaining Amount" - VendorLedgerEntry."Amount to Apply"));
             LibraryReportDataset.AssertElementWithValueExists('AppliedVendLedgEntryTempDocType', Format(VendorLedgerEntry."Document Type"));
         until VendorLedgerEntry.Next() = 0;
+    end;
+
+    local procedure CreatePaymentAndRefundWithDocumentNo(var PaymentVendorLedgerEntry: Record "Vendor Ledger Entry"; var RefundVendorLedgerEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; DocumentNo: Code[20])
+    begin
+        CreateVendorLedgerEntry(PaymentVendorLedgerEntry, '', VendorNo, PaymentVendorLedgerEntry."Document Type"::Payment);  // Blank value for Applies To ID.
+        PaymentVendorLedgerEntry."Document No." := DocumentNo;
+        PaymentVendorLedgerEntry.Modify();
+        CreateVendorLedgerEntry(RefundVendorLedgerEntry, '', VendorNo, RefundVendorLedgerEntry."Document Type"::Refund);  // Blank value for Applies To ID.
+        RefundVendorLedgerEntry."Document No." := DocumentNo;
+        RefundVendorLedgerEntry.Modify();
     end;
 
     [RequestPageHandler]

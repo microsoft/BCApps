@@ -436,26 +436,63 @@ function Get-GitCurrentBranch {
 
 $script:MiappBaseBranch = $null
 
+function Test-MiappRemoteBranchExists {
+    <#
+    .SYNOPSIS
+    Returns $true when 'refs/remotes/origin/<Branch>' resolves in the current
+    repository.
+    #>
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param(
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Branch
+    )
+
+    $null = (git rev-parse --verify --quiet "refs/remotes/origin/$Branch" 2>$null)
+    return ($LASTEXITCODE -eq 0)
+}
+
 function Get-MiappBaseBranch {
     <#
     .SYNOPSIS
-    Returns the base branch Miapp integrates from, derived from the repository
-    Miapp operates on - not from any environment variable.
+    Returns the base branch Miapp integrates from.
 
     .DESCRIPTION
-    The base branch is resolved from 'origin/HEAD' of the current repository so
-    that Miapp always targets that repository's own default branch, even when it
-    runs inside a submodule whose default branch differs from the outer repo.
-    Deriving it from the repository (rather than an ambient variable such as
-    $env:RepoBranchName) avoids constructing a non-existent ref like
-    'origin/master' when the outer repo and the submodule use different default
-    branch names. The resolved value is cached for the lifetime of the module.
+    Resolution order:
+
+    1. An explicitly requested base branch in $env:RepoBranchName - but only when
+    'origin/<branch>' actually exists in the current repository. Callers such as
+    the VerifyMiappSync action set this to the pull request target branch
+    ($env:GITHUB_BASE_REF), so a PR that targets a release branch (e.g.
+    'releases/29.x') is diffed against that branch. Without this, the base falls
+    through to the default branch and the changelist becomes the entire
+    divergence between the release branch and the default branch - thousands of
+    files - even for PRs that change nothing Miapp-relevant.
+
+    2. Otherwise 'origin/HEAD' of the current repository, via
+    'git symbolic-ref --short refs/remotes/origin/HEAD' with 'git remote show
+    origin' as a fallback. This makes Miapp target that repository's own default
+    branch even when it runs inside a submodule whose default branch differs from
+    the outer repo, avoiding a non-existent ref like 'origin/master'.
+
+    Requiring the requested branch to exist in step 1 preserves the submodule
+    behaviour: an ambient 'RepoBranchName=master' that does not exist in this
+    repository is ignored, and resolution falls back to 'origin/HEAD'.
+
+    The resolved value is cached for the lifetime of the module.
     #>
     [CmdletBinding()]
     [OutputType([string])]
     param()
 
     if ($script:MiappBaseBranch) {
+        return $script:MiappBaseBranch
+    }
+
+    if ($env:RepoBranchName -and (Test-MiappRemoteBranchExists $env:RepoBranchName)) {
+        $script:MiappBaseBranch = $env:RepoBranchName
         return $script:MiappBaseBranch
     }
 

@@ -50,9 +50,9 @@ page 20351 "Connectivity App"
                 field("AppSourceURL"; AppSourceURLLbl)
                 {
                     ApplicationArea = All;
-                    Caption = 'AppSource URL';
+                    Caption = 'Marketplace URL';
                     ShowCaption = false;
-                    ToolTip = 'Specifies the URL for the app on AppSource.';
+                    ToolTip = 'Specifies the URL for the app on Marketplace.';
 
                     trigger OnDrillDown()
                     begin
@@ -125,6 +125,6 @@ page 20351 "Connectivity App"
     end;
 
     var
-        AppSourceURLLbl: Label 'View in AppSource';
+        AppSourceURLLbl: Label 'View in Marketplace';
         ProvideSupportURLLbl: Label 'Support';
 }

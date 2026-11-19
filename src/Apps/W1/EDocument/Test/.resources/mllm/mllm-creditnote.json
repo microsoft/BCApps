@@ -1,0 +1,50 @@
+{
+    "id": "MLLM-CN-001",
+    "invoice_type_code": "381",
+    "issue_date": "2024-04-02",
+    "document_currency_code": "XYZ",
+    "billing_reference": [
+        {
+            "invoice_document_reference": {
+                "id": "MLLM-INV-001"
+            }
+        },
+        {
+            "invoice_document_reference": {
+                "id": "MLLM-INV-002"
+            }
+        }
+    ],
+    "accounting_supplier_party": {
+        "party": {
+            "party_name": {
+                "name": "Contoso Supplies Ltd."
+            },
+            "party_tax_scheme": {
+                "company_id": "US-VAT-12345"
+            }
+        }
+    },
+    "tax_total": {
+        "tax_amount": 15.00
+    },
+    "legal_monetary_total": {
+        "tax_exclusive_amount": 100.00,
+        "payable_amount": 115.00
+    },
+    "invoice_line": [
+        {
+            "item": {
+                "name": "Office Supplies returned"
+            },
+            "invoiced_quantity": {
+                "value": 10,
+                "unit_code": "PCS"
+            },
+            "price": {
+                "price_amount": 10.00
+            },
+            "line_extension_amount": 100.00
+        }
+    ]
+}

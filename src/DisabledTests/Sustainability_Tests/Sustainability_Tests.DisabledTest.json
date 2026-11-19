@@ -40,51 +40,6 @@
     "method": "VerifySustainabilityFieldsInPurchaseOrderStatistics"
   },
   {
-    "codeunitId": 148185,
-    "codeunitName": "Sustainability API Tests",
-    "method": "TestGetSustainabilityAccounts"
-  },
-  {
-    "codeunitId": 148185,
-    "codeunitName": "Sustainability API Tests",
-    "method": "TestGetSustainabilityCategory"
-  },
-  {
-    "codeunitId": 148185,
-    "codeunitName": "Sustainability API Tests",
-    "method": "TestGetSustainabilityEntries"
-  },
-  {
-    "codeunitId": 148185,
-    "codeunitName": "Sustainability API Tests",
-    "method": "TestGetSustainabilityJournalLines"
-  },
-  {
-    "codeunitId": 148185,
-    "codeunitName": "Sustainability API Tests",
-    "method": "TestGetSustainabilitySubcategory"
-  },
-  {
-    "codeunitId": 148185,
-    "codeunitName": "Sustainability API Tests",
-    "method": "TestPostSustainabilityAccount"
-  },
-  {
-    "codeunitId": 148185,
-    "codeunitName": "Sustainability API Tests",
-    "method": "TestPostSustainabilityCategory"
-  },
-  {
-    "codeunitId": 148185,
-    "codeunitName": "Sustainability API Tests",
-    "method": "TestPostSustainabilityJournalLine"
-  },
-  {
-    "codeunitId": 148185,
-    "codeunitName": "Sustainability API Tests",
-    "method": "TestPostSustainabilitySubcategory"
-  },
-  {
     "codeunitId": 148187,
     "codeunitName": "Sust. Certificate Test",
     "method": "VerifySustFieldsAreNotVisibleOnProdJnlAndCapLedgerEntriesAndSustEntriesAreNotCreatedIfEnableValueChainTrackingIsFalse"
@@ -468,5 +423,35 @@
     "codeunitId": 148190,
     "codeunitName": "Sust. Value Entry Test",
     "method": "VerifySustainabilityValueEntryShouldBeCreatedWhenPurchDocumentIsPosted"
+  },
+  {
+    "codeunitId": 148219,
+    "codeunitName": "Sust. Value Chain Fixed Asset",
+    "method": "TestSustValueChainFixedAssetForFAGLJournalLineInvoicePosting"
+  },
+  {
+    "codeunitId": 148321,
+    "codeunitName": "ERM Withholding Tax Tests I",
+    "method": "WHTEntryOnPostedPurchaseInvoiceJournalWithWHT"
+  },
+  {
+    "codeunitId": 148321,
+    "codeunitName": "ERM Withholding Tax Tests I",
+    "method": "LessThanRuleNegativeAmountAboveMinCalculatesWHTOnGenJnlInvoice"
+  },
+  {
+    "codeunitId": 148322,
+    "codeunitName": "ERM Withholding Tax Tests II",
+    "method": "WithholdingTaxProductPostingGroupIsCopiedToWithholdingTaxEntry"
+  },
+  {
+    "codeunitId": 148322,
+    "codeunitName": "ERM Withholding Tax Tests II",
+    "method": "PostingWHTPaymentWithoutPurchaseJournalTemplateErr"
+  },
+  {
+    "codeunitId": 148326,
+    "codeunitName": "ERM Withholding VAT For SEA",
+    "method": "VerifyErrorOnWHTCertificateNoSeries"
   }
 ]

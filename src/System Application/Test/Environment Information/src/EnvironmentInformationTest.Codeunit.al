@@ -98,5 +98,57 @@ codeunit 135091 "Environment Information Test"
         // [Then] Should return true
         Assert.IsTrue(EnvironmentInformation.IsEarlyPreview(), 'Testability should have dictated an early preview environment');
     end;
-}
 
+    [Test]
+    procedure TestEnvironmentDescriptionIsClearedAfterEnvironmentCopy()
+    var
+        EnvironmentTriggers: Codeunit "Environment Triggers";
+    begin
+        // [Given] The source environment has a description
+        EnvironmentInformation.SetEnvironmentDescription('Source environment description');
+
+        // [When] The environment is copied
+        EnvironmentTriggers.OnAfterCopyEnvironmentPerDatabase(0, 'Source', 1, 'Destination');
+
+        // [Then] The destination environment description is empty
+        Assert.AreEqual('', EnvironmentInformation.GetEnvironmentDescription(), 'The environment description should be cleared after copying the environment.');
+    end;
+
+    [Test]
+    procedure TestEnvironmentDescriptionIsProvidedToPlatform()
+    var
+        SystemActionTriggers: Codeunit "System Action Triggers";
+        DescriptionBuilder: TextBuilder;
+        ExpectedDescription: Text;
+        Description: Text;
+    begin
+        // [Given] The environment has a long, multiline description.
+        DescriptionBuilder.AppendLine(PadStr('Production environment ', 1024, 'x'));
+        DescriptionBuilder.Append('Italian sales');
+        ExpectedDescription := DescriptionBuilder.ToText();
+        EnvironmentInformation.SetEnvironmentDescription(ExpectedDescription);
+
+        // [When] The platform requests the environment description.
+        SystemActionTriggers.GetEnvironmentDescription(Description);
+
+        // [Then] The complete description is returned.
+        Assert.AreEqual(ExpectedDescription, Description, 'The platform should receive the complete environment description.');
+    end;
+
+    [Test]
+    procedure TestEmptyEnvironmentDescriptionIsProvidedToPlatform()
+    var
+        SystemActionTriggers: Codeunit "System Action Triggers";
+        Description: Text;
+    begin
+        // [Given] No environment description is configured.
+        EnvironmentInformation.SetEnvironmentDescription('');
+        Description := 'Previous description';
+
+        // [When] The platform requests the environment description.
+        SystemActionTriggers.GetEnvironmentDescription(Description);
+
+        // [Then] A stale description is not returned.
+        Assert.AreEqual('', Description, 'The platform should receive an empty environment description.');
+    end;
+}

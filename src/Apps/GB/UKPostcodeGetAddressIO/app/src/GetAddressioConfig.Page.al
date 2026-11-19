@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+#if not CLEAN30
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,6 +11,9 @@ page 9142 "GetAddress.io Config"
 {
     PageType = StandardDialog;
     SourceTable = "Postcode GetAddress.io Config";
+    ObsoleteReason = 'GetAddress.io UK Postcodes extension is discontinued';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
 
     layout
     {
@@ -133,4 +137,4 @@ page 9142 "GetAddress.io Config"
             Error(EmptyAPIKeyErr);
     end;
 }
-
+#endif

@@ -13,6 +13,7 @@ using System.TestLibraries.Utilities;
 codeunit 135575 "E-Doc. API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 

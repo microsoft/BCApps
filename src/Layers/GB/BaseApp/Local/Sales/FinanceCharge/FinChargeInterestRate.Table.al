@@ -5,7 +5,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.FinanceCharge;
 
+#if CLEAN28
+#pragma warning disable AS0103, PTE0004 // Accepted: this obsolete compatibility table is retained until schema cleanup and is intentionally excluded from current permission sets. Tracked by AB#640773.
+#endif
 table 10555 "Fin. Charge Interest Rate"
+#if CLEAN28
+#pragma warning restore AS0103, PTE0004
+#endif
 {
     Caption = 'Fin. Charge Interest Rate';
     DataCaptionFields = "Fin. Charge Terms Code", "Start Date";
@@ -53,4 +59,3 @@ table 10555 "Fin. Charge Interest Rate"
     }
 }
 #endif
-

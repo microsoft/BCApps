@@ -26,6 +26,8 @@ New-BcContainer @parameters
 
 Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "EnforceUserPathForAlFileOperations" -keyValue "false"
 Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "UsePermissionSetsFromExtensions" -keyValue "true"
+# API tests call the container's own web services through AL HttpClient, which anti-SSRF blocks for local addresses (same as NAV RunALTests.ps1).
+Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "NavHttpClientAntiSSRFEnabled" -keyValue "false"
 Restart-BcContainer -containerName $parameters.ContainerName
 
 $installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast

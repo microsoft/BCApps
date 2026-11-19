@@ -97,7 +97,9 @@ page 20283 "Switch Statements"
             ActivityTextValue := BlankLbl;
     end;
 
+#pragma warning disable AL0749 // Accepted: widening the parameter type is a breaking change
     procedure SetCurrentRecord(var SwitchStatement2: Record "Switch Statement"; SwitchCaseActionType: Enum "Switch Case Action Type");
+#pragma warning restore AL0749
     begin
         SwitchStatement := SwitchStatement2;
         TestRecord();

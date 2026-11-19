@@ -1,4 +1,4 @@
-#if not CLEAN27
+#if not CLEAN28
 #pragma warning disable AL0801
 codeunit 144081 "SCM Subcontracting"
 {

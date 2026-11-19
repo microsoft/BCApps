@@ -48,9 +48,7 @@ codeunit 103511 "Test - Partial Posting"
 
         GLUtil.SetAddCurr('', 1, 1, 1, 1);
 
-        SalesSetup.ModifyAll("Return Receipt on Credit Memo", true, true);
-        SalesSetup.ModifyAll("Exact Cost Reversing Mandatory", false, true);
-        SalesSetup.ModifyAll("Credit Warnings", SalesSetup."Credit Warnings"::"No Warning", true);
+        SalesSetup.ModifyAll("Return Receipt on Credit Memo", true, "Exact Cost Reversing Mandatory", false, "Credit Warnings", SalesSetup."Credit Warnings"::"No Warning", true);
 
         PurchSetup.ModifyAll("Ext. Doc. No. Mandatory", false, true);
 

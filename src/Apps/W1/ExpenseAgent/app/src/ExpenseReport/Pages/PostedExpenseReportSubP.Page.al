@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.Finance.SpendRequest;
 using Microsoft.Sales.Document;
 
 page 6993 "Posted Expense Report SubP."
@@ -151,6 +150,13 @@ page 6993 "Posted Expense Report SubP."
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the payment method used for refunds or reimbursements.';
                 }
+                field(CorporateCard; CorporateCardDisplay)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Corporate Card';
+                    ToolTip = 'Specifies the provider short name and last four card digits selected for this expense.';
+                    Editable = false;
+                }
                 field(Mileage; Rec.Mileage)
                 {
                     ApplicationArea = Basic, Suite;
@@ -165,6 +171,10 @@ page 6993 "Posted Expense Report SubP."
                     Editable = false;
                 }
                 field("Round Trip"; Rec."Round Trip")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Vehicle Type"; Rec."Vehicle Type")
                 {
                     ApplicationArea = Basic, Suite;
                 }
@@ -411,9 +421,9 @@ page 6993 "Posted Expense Report SubP."
                 {
                     ApplicationArea = Basic, Suite;
                     Image = ProjectExpense;
-                    Caption = 'Spend Request';
-                    ToolTip = 'View the details of the spend request associated with this posted expense report line.';
-                    RunObject = Page "Spend Request Card";
+                    Caption = 'Travel Request';
+                    ToolTip = 'View the details of the travel request associated with this posted expense report line.';
+                    RunObject = Page "Travel Request Card";
                     RunPageLink = "No." = field("Spend Request No.");
                     Visible = Rec."Spend Request No." <> '';
                 }
@@ -439,11 +449,22 @@ page 6993 "Posted Expense Report SubP."
         UpdateControls();
     end;
 
+    trigger OnFindRecord(Which: Text): Boolean
+    begin
+        Clear(CardDisplayDocumentNo);
+        Clear(CardDisplays);
+        exit(Rec.Find(Which));
+    end;
+
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
         ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        CardDisplays: Dictionary of [Code[50], Text[150]];
+        CardDisplayDocumentNo: Code[20];
+        CorporateCardDisplay: Text[150];
         TotalAmountLCY: Decimal;
         TotalVATAmountLCY: Decimal;
         TotalAmountWithoutVATLCY: Decimal;
@@ -459,9 +480,14 @@ page 6993 "Posted Expense Report SubP."
 
     local procedure UpdateControls()
     begin
+        if CardDisplayDocumentNo <> Rec."Document No." then begin
+            CorpCardSelectionMgt.LoadPostedReportCardDisplays(Rec."Document No.", CardDisplays);
+            CardDisplayDocumentNo := Rec."Document No.";
+        end;
+        CorporateCardDisplay := CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id", CardDisplays);
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;
-        IsItemizationCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize;
+        IsItemizationCategory := Rec.IsItemizationRequired();
         IsParticipantCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Participants;
 
         IsRuleApplied := not IsNullGuid(Rec."Applied Rule Id");

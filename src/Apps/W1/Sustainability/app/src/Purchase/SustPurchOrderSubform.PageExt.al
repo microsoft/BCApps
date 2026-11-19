@@ -28,6 +28,14 @@ pageextension 6211 "Sust. Purch. Order Subform" extends "Purchase Order Subform"
                 ToolTip = 'Specifies the value of the Energy Source Code field.';
             }
         }
+        addafter("Variant Code")
+        {
+            field("EUDR Relevant"; Rec."EUDR Relevant")
+            {
+                ApplicationArea = ItemTracking;
+                Visible = false;
+            }
+        }
         addafter("Quantity Invoiced")
         {
             field("Unit for Sust. Formulas"; Rec."Unit for Sust. Formulas")

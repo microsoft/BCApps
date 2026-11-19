@@ -28,7 +28,7 @@ using Microsoft.Service.Posting;
 codeunit 11796 "Corrections Posting Mgt. CZL"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnBeforeInsertGLEntryBuffer', '', false, false)]
-    local procedure CheckDebitCreditOnBeforeInsertGLEntryBuffer(var TempGLEntryBuf: Record "G/L Entry" temporary; var GenJournalLine: Record "Gen. Journal Line"; var BalanceCheckAmount: Decimal; var BalanceCheckAmount2: Decimal; var BalanceCheckAddCurrAmount: Decimal; var BalanceCheckAddCurrAmount2: Decimal; var NextEntryNo: Integer; var TotalAmount: Decimal; var TotalAddCurrAmount: Decimal)
+    local procedure CheckDebitCreditOnBeforeInsertGLEntryBuffer(var TempGLEntryBuf: Record "G/L Entry" temporary; var GenJournalLine: Record "Gen. Journal Line"; var BalanceCheckAmount: Decimal; var BalanceCheckAmount2: Decimal; var BalanceCheckAddCurrAmount: Decimal; var BalanceCheckAddCurrAmount2: Decimal; var NextEntryNo: BigInteger; var TotalAmount: Decimal; var TotalAddCurrAmount: Decimal)
     begin
         GeneralLedgerSetup.Get();
         if GeneralLedgerSetup."Check Posting Debit/Credit CZL" then
@@ -45,7 +45,6 @@ codeunit 11796 "Corrections Posting Mgt. CZL"
         GeneralLedgerSetup.Get();
         if not GeneralLedgerSetup."Check Posting Debit/Credit CZL" then
             exit;
-
         if (GenJnlLine2."Account No." <> '') and
             (GenJnlLine2."Recurring Method" in
             [GenJnlLine2."Recurring Method"::"B  Balance", GenJnlLine2."Recurring Method"::"RB Reversing Balance"])
@@ -88,7 +87,6 @@ codeunit 11796 "Corrections Posting Mgt. CZL"
             ValueEntry."G/L Correction CZL" := CalcGLCorrection(FirstValueEntry, ValueEntry)
         else
             ValueEntry."G/L Correction CZL" := ItemJournalLine."G/L Correction CZL";
-
         if ValueEntry."Item Ledger Entry Type" = ValueEntry."Item Ledger Entry Type"::Transfer then begin
             InventorySetup.Get();
             if InventorySetup."Post Neg.Transf. As Corr.CZL" then
@@ -97,7 +95,7 @@ codeunit 11796 "Corrections Posting Mgt. CZL"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnBeforeInsertCorrValueEntry', '', false, false)]
-    local procedure SetGLCorrectionOnBeforeInsertCorrValueEntry(var NewValueEntry: Record "Value Entry"; OldValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; Sign: Integer; CalledFromAdjustment: Boolean; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L")
+    local procedure SetGLCorrectionOnBeforeInsertCorrValueEntry(var NewValueEntry: Record "Value Entry"; OldValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; Sign: Integer; CalledFromAdjustment: Boolean; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L")
     begin
         if Sign < 0 then
             NewValueEntry."G/L Correction CZL" := not OldValueEntry."G/L Correction CZL";
@@ -235,7 +233,7 @@ codeunit 11796 "Corrections Posting Mgt. CZL"
                             ValueEntry,
                             GlobalInvtPostBuf."Account Type"::"Inventory (Interim)",
                             GetInvtPostBufferAccTypeForGLCorrection(ValueEntry, GlobalInvtPostBuf."Account Type"::"AccProdChange CZL"),
-                            ExpCostToPost, ExpCostToPostACY, false);
+                            ExpCostToPost, ExpCostToPostACY, true);
                         Sender.InitInvtPostBuf(
                             ValueEntry,
                             GlobalInvtPostBuf."Account Type"::"AccWIPChange CZL",
@@ -443,7 +441,6 @@ codeunit 11796 "Corrections Posting Mgt. CZL"
             NewGetCostAmt := NewValueEntry."Cost Amount (Expected)"
         else
             NewGetCostAmt := NewValueEntry."Cost Amount (Actual)";
-
         if FirstValueEntry."Cost Amount (Actual)" = 0 then
             GetCostAmt := FirstValueEntry."Cost Amount (Expected)"
         else
@@ -470,7 +467,6 @@ codeunit 11796 "Corrections Posting Mgt. CZL"
         CloseEntry := (GLEntry."Source Code" <> '') and CloseEntry;
 
         IsCorrection := (GLEntry."Credit Amount" < 0) or (GLEntry."Debit Amount" < 0);
-
         if (GLAccount."Debit/Credit" = GLAccount."Debit/Credit"::Debit) and not CloseEntry or
            (GLAccount."Debit/Credit" = GLAccount."Debit/Credit"::Credit) and CloseEntry
         then begin

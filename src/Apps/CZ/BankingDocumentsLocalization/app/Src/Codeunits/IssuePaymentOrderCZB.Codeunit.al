@@ -8,6 +8,7 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
+using System.Automation;
 using System.Security.AccessControl;
 using System.Utilities;
 
@@ -38,6 +39,7 @@ codeunit 31353 "Issue Payment Order CZB"
         IssPaymentOrderLineCZB: Record "Iss. Payment Order Line CZB";
         User: Record User;
         NoSeries: Codeunit "No. Series";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         RecordLinkManagement: Codeunit "Record Link Management";
         IsHandled: Boolean;
     begin
@@ -82,6 +84,7 @@ codeunit 31353 "Issue Payment Order CZB"
         OnBeforeIssuedPaymentOrderHeaderInsert(IssPaymentOrderHeaderCZB, PaymentOrderHeaderCZB);
         IssPaymentOrderHeaderCZB.Insert();
         OnAfterIssuedPaymentOrderHeaderInsert(IssPaymentOrderHeaderCZB, PaymentOrderHeaderCZB);
+        ApprovalsMgmt.PostApprovalEntries(PaymentOrderHeaderCZB.RecordId, IssPaymentOrderHeaderCZB.RecordId, IssPaymentOrderHeaderCZB."No.");
         RecordLinkManagement.CopyLinks(PaymentOrderHeaderCZB, IssPaymentOrderHeaderCZB);
 
         // insert lines

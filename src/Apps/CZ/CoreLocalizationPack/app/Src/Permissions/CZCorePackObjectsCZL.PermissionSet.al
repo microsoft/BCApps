@@ -46,6 +46,7 @@ permissionset 11732 "CZ Core Pack - Objects CZL"
                   codeunit "Format Document Mgt. CZL" = X,
                   codeunit "Gen.Jnl.Check Line Handler CZL" = X,
                   codeunit "Gen.Jnl. - Post Acc. Group CZL" = X,
+                  codeunit "Gen. Jnl.-Post Line Mgt. CZL" = X,
                   codeunit "Gen.Jnl. Post Line Handler CZL" = X,
                   codeunit "Gen. Jnl. Template Handler CZL" = X,
                   codeunit "Gen. Journal Line Handler CZL" = X,
@@ -103,9 +104,6 @@ permissionset 11732 "CZ Core Pack - Objects CZL"
                   codeunit "SOAP WS Request Management CZL" = X,
                   codeunit "Source Code Setup Handler CZL" = X,
                   codeunit "Substitute Report Handler CZL" = X,
-#if not CLEAN27
-                  codeunit "Sync.Dep.Fld-SalesHeader CZL" = X,
-#endif
                   codeunit "Transfer Line Handler CZL" = X,
                   codeunit "Transformation Rule Mgt. CZL" = X,
                   codeunit "Unreliable Payer Mgt. CZL" = X,
@@ -166,6 +164,7 @@ permissionset 11732 "CZ Core Pack - Objects CZL"
                   page "Constant Symbols CZL" = X,
                   page "Cross Application CZL" = X,
                   page "Document Footers CZL" = X,
+                  page "EET Activities CZL" = X,
                   page "EET Business Premises CZL" = X,
                   page "EET Cash Registers CZL" = X,
                   page "EET Entries CZL" = X,
@@ -323,6 +322,7 @@ permissionset 11732 "CZ Core Pack - Objects CZL"
                   table "Document Footer CZL" = X,
                   table "EET Business Premises CZL" = X,
                   table "EET Cash Register CZL" = X,
+                  table "EET Cue CZL" = X,
                   table "EET Entry CZL" = X,
                   table "EET Entry Status Log CZL" = X,
                   table "EET Service Setup CZL" = X,
