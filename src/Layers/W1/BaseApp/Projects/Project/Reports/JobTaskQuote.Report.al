@@ -269,8 +269,10 @@ report 1017 "Job Task Quote"
 
     labels
     {
+        DateLbl = 'Date';
         JobNoLbl = 'Project No.';
         JobDescriptionLbl = 'Description';
+        TotalLbl = 'Total';
     }
 
     trigger OnInitReport()

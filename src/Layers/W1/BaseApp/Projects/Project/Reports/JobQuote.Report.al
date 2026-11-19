@@ -321,6 +321,7 @@ report 1016 "Job Quote"
     {
         JobNoLbl = 'Project No.';
         JobDescriptionLbl = 'Description';
+        DateLbl = 'Date';
     }
 
     trigger OnInitReport()
