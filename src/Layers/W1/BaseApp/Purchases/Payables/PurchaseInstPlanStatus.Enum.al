@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Payables;
 
-enum 8842 "Purchase Installment Plan Status"
+enum 8842 "Purchase Inst. Plan Status"
 {
     Extensible = false;
 

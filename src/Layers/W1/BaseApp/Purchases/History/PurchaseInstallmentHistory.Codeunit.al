@@ -6,6 +6,7 @@ namespace Microsoft.Purchases.History;
 
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Purchases.Payables;
 
@@ -53,7 +54,7 @@ codeunit 8848 "Purchase Installment History"
         PlanLine.FilterGroup(2);
         PlanLine.SetRange("Plan ID", Plan.ID);
         PlanLine.FilterGroup(0);
-        Page.Run(Page::"Posted Purchase Installment Schedule", PlanLine);
+        Page.Run(Page::"Posted Purch. Inst. Schedule", PlanLine);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", 'OnBeforeInsertEvent', '', false, false)]
@@ -126,10 +127,10 @@ codeunit 8848 "Purchase Installment History"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Vend. Entry-Edit", 'OnBeforeVendLedgEntryModify', '', false, false)]
 #pragma warning disable AA0150
-    local procedure CheckVendorEdit(var VendorLedgerEntry: Record "Vendor Ledger Entry"; FromVendorLedgerEntry: Record "Vendor Ledger Entry")
+    local procedure CheckVendorEdit(var VendLedgEntry: Record "Vendor Ledger Entry"; FromVendLedgEntry: Record "Vendor Ledger Entry")
     begin
-        if not IsNullGuid(FromVendorLedgerEntry."Installment Plan ID") then
-            CheckVendorConditions(VendorLedgerEntry);
+        if not IsNullGuid(FromVendLedgEntry."Installment Plan ID") then
+            CheckVendorConditions(VendLedgEntry);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Vend. Entry-Edit", 'OnBeforeUpdatePurchaseInvoiceHeader', '', false, false)]

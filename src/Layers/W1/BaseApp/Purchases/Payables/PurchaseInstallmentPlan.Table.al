@@ -19,7 +19,7 @@ table 8843 "Purchase Installment Plan"
         {
             Caption = 'ID';
         }
-        field(2; Status; Enum "Purchase Installment Plan Status")
+        field(2; Status; Enum "Purchase Inst. Plan Status")
         {
             Caption = 'Status';
         }

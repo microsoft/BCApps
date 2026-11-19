@@ -10,7 +10,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Posting;
 using Microsoft.Utilities;
 
-codeunit 8849 "Purchase Installment Correction"
+codeunit 8849 "Purch. Installment Correction"
 {
     Access = Internal;
     Permissions = tabledata "Vendor Ledger Entry" = rm;
@@ -110,17 +110,17 @@ codeunit 8849 "Purchase Installment Correction"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", 'OnAfterCopyPostedPurchInvoice', '', false, false)]
 #pragma warning disable AA0150
-    local procedure PrepareCopiedSchedule(var ToPurchaseHeader: Record "Purchase Header"; OldPurchaseHeader: Record "Purchase Header"; PurchInvHeader: Record "Purch. Inv. Header")
+    local procedure PrepareCopiedSchedule(var ToPurchaseHeader: Record "Purchase Header"; OldPurchaseHeader: Record "Purchase Header"; FromPurchInvHeader: Record "Purch. Inv. Header")
     begin
-        if IsNullGuid(PurchInvHeader."Installment Plan ID") then
+        if IsNullGuid(FromPurchInvHeader."Installment Plan ID") then
             exit;
-        CheckInvoice(PurchInvHeader, false);
+        CheckInvoice(FromPurchInvHeader, false);
         if ToPurchaseHeader."Document Type" = ToPurchaseHeader."Document Type"::"Credit Memo" then
             Clear(ToPurchaseHeader."Installment Plan ID")
         else
             if ToPurchaseHeader."Document Type" = ToPurchaseHeader."Document Type"::Invoice then begin
-                ToPurchaseHeader."Installment Plan ID" := PurchInvHeader."Installment Plan ID";
-                ToPurchaseHeader.Validate("Payment Terms Code", PurchInvHeader."Payment Terms Code");
+                ToPurchaseHeader."Installment Plan ID" := FromPurchInvHeader."Installment Plan ID";
+                ToPurchaseHeader.Validate("Payment Terms Code", FromPurchInvHeader."Payment Terms Code");
             end;
     end;
 
@@ -146,7 +146,7 @@ codeunit 8849 "Purchase Installment Correction"
     end;
 #pragma warning restore AA0150
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch Invoice", 'OnAfterTestCorrectInvoiceIsAllowed', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", 'OnAfterTestCorrectInvoiceIsAllowed', '', false, false)]
     local procedure CheckAutomaticCorrection(var PurchInvHeader: Record "Purch. Inv. Header"; Cancelling: Boolean)
     begin
         CheckInvoice(PurchInvHeader, Cancelling);
@@ -165,11 +165,11 @@ codeunit 8849 "Purchase Installment Correction"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnBeforePostCommitPurchaseDoc', '', false, false)]
-    local procedure SuppressCreditCommit(var PurchaseHeader: Record "Purchase Header"; var CommitIsSuppressed: Boolean)
+    local procedure SuppressCreditCommit(var PurchaseHeader: Record "Purchase Header"; var CommitIsSupressed: Boolean)
     var
         PurchInvHeader: Record "Purch. Inv. Header";
     begin
         if GetCreditInvoice(PurchaseHeader, PurchInvHeader) then
-            CommitIsSuppressed := true;
+            CommitIsSupressed := true;
     end;
 }

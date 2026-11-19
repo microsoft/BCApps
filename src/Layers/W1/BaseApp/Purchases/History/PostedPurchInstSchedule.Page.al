@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.History;
 
 using Microsoft.Purchases.Payables;
 
-page 8844 "Posted Purchase Installment Schedule"
+page 8844 "Posted Purch. Inst. Schedule"
 {
     Caption = 'Posted Purchase Installment Schedule';
     PageType = List;

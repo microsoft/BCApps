@@ -96,14 +96,14 @@ codeunit 8847 "Purchase Installment Posting"
 
     internal procedure PrepareJournalLine(PurchaseHeader: Record "Purchase Header"; var GenJournalLine: Record "Gen. Journal Line")
     var
-        PurchaseInstallmentCorrection: Codeunit "Purchase Installment Correction";
+        PurchInstallmentCorrection: Codeunit "Purch. Installment Correction";
     begin
         CheckPurchasePosting(PurchaseHeader);
         GenJournalLine."Installment Plan ID" := PurchaseHeader."Installment Plan ID";
         Clear(GenJournalLine."Purchase Invoice Source SystemId");
         if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Invoice then
             GenJournalLine."Purchase Invoice Source SystemId" := PurchaseHeader.SystemId;
-        PurchaseInstallmentCorrection.PrepareCreditApplication(PurchaseHeader, GenJournalLine);
+        PurchInstallmentCorrection.PrepareCreditApplication(PurchaseHeader, GenJournalLine);
     end;
 
     internal procedure CheckJournalLine(GenJournalLine: Record "Gen. Journal Line")
@@ -521,9 +521,9 @@ codeunit 8847 "Purchase Installment Posting"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Reversal Entry", 'OnBeforeCheckVend', '', false, false)]
-    local procedure CheckVendorReversal(var CustLedgEntry: Record "Vendor Ledger Entry")
+    local procedure CheckVendorReversal(var VendLedgEntry: Record "Vendor Ledger Entry")
     begin
-        if not IsNullGuid(CustLedgEntry."Installment Plan ID") then
+        if not IsNullGuid(VendLedgEntry."Installment Plan ID") then
             Error(CorrectionErr);
     end;
 
