@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Specifies what happens when an expense is older than the allowed age.
+/// </summary>
 enum 6982 "Expense Age Handling"
 {
-    Access = Internal;
     Caption = 'Expense Age Handling';
 
     value(0; " ")
