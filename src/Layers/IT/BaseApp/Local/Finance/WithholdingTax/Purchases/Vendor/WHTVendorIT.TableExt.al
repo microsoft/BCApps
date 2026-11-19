@@ -46,7 +46,9 @@ tableextension 12201 "WHT VEndor IT" extends Vendor
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Contribution Code".Code where("Contribution Type" = filter(INPS));
         }
+#pragma warning disable AA0232
         field(12104; "Soc. Sec. Company Base"; Decimal)
+#pragma warning restore AA0232
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
