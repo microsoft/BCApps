@@ -22,7 +22,9 @@ codeunit 117562 "Add Resource"
     var
         Resource: Record Resource;
         ResUnitOfMeasure: Record "Resource Unit of Measure";
+        Employee: Record Employee;
         CreatePostCode: Codeunit "Create Post Code";
+        EmployeeResourceUpdate: Codeunit "Employee/Resource Update";
     begin
         Resource.Init();
         Evaluate(Resource."No.", Fld1);
@@ -68,6 +70,8 @@ codeunit 117562 "Add Resource"
         Evaluate(Resource."Post Code", CreatePostCode.FindPostCode(Fld53));
         Evaluate(Resource."VAT Prod. Posting Group", Fld58);
         Resource.Insert();
+        Employee.SetRange("Resource No.", Resource."No.");
+        if Employee.FindFirst() then
+            EmployeeResourceUpdate.ResUpdate(Employee);
     end;
 }
-
