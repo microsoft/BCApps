@@ -2960,7 +2960,7 @@ codeunit 144001 "VAT Report"
         VATReportExport.Export(VATReportHeader);
 
         // [THEN] Status of the VAT Report is Exported.
-        VATReportHeader.Find();
+        VATReportHeader.Get(VATReportHeader."No.");
         Assert.AreEqual(VATReportHeader.Status::Exported, VATReportHeader.Status, 'VAT Report status must be Exported after export.');
 
         UnbindSubscription(LibraryFileMgtHandler);
