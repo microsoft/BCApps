@@ -8,8 +8,7 @@ using Microsoft.Purchases.Vendor;
 
 report 12102 Contribution
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Local/Finance/WithholdingTax/Bank/Payment/Contribution.rdlc';
+    DefaultRenderingLayout = RDLCLayout;
     ApplicationArea = Basic, Suite;
     Caption = 'Contribution';
     UsageCategory = ReportsAndAnalysis;
@@ -604,6 +603,16 @@ report 12102 Contribution
             SelectedYear := Date2DMY(WorkDate(), 3);
             SelectedPrintDetails := true;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Local/Finance/WithholdingTax/Bank/Payment/Contribution.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

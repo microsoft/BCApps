@@ -186,9 +186,9 @@ tableextension 12182 "WHT Vendor Bill Line" extends "Vendor Bill Line"
         VendorLedgerEntry.SetRange("Document Type", "Document Type");
         VendorLedgerEntry.SetRange("Document No.", "Document No.");
         VendorLedgerEntry.SetRange("Vendor No.", "Vendor No.");
+        VendorLedgerEntry.SetAutoCalcFields(Amount);
         if VendorLedgerEntry.FindSet() then
             repeat
-                VendorLedgerEntry.CalcFields(Amount);
                 TotalAmountABS += Abs(VendorLedgerEntry.Amount);
             until VendorLedgerEntry.Next() = 0;
         exit(TotalAmountABS);

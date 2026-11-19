@@ -33,6 +33,7 @@ page 12188 "Manual vendor Payment Line"
                     var
                         Vend: Record Vendor;
                     begin
+                        Vend.SetLoadFields(Name);
                         if Vend.Get(VendorNo) then
                             VendorName := Vend.Name;
                     end;
