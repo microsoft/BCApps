@@ -938,6 +938,9 @@ table 6900 Expense
     /// <summary>
     /// Releases the current expense as the current user, unless it is already released.
     /// </summary>
+    /// <remarks>
+    /// The transaction is committed after a successful release, so earlier changes made by the caller cannot be rolled back by a later error.
+    /// </remarks>
     procedure PerformManualRelease()
     var
         ReleaseExpenseDoc: Codeunit "Release Expense Document";
@@ -970,6 +973,9 @@ table 6900 Expense
     /// Releases the selected expenses as the current user in a batch. Expenses that are already released are skipped.
     /// </summary>
     /// <param name="Expense">The set of expenses to release.</param>
+    /// <remarks>
+    /// Each record is processed by Batch Processing Mgt. and committed individually, so the caller's open transaction is committed as well.
+    /// </remarks>
     procedure PerformManualRelease(var Expense: Record Expense)
     var
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
@@ -991,6 +997,9 @@ table 6900 Expense
     /// Reopens the selected expenses as the current user in a batch. Expenses that are already open are skipped.
     /// </summary>
     /// <param name="Expense">The set of expenses to reopen.</param>
+    /// <remarks>
+    /// Each record is processed by Batch Processing Mgt. and committed individually, so the caller's open transaction is committed as well.
+    /// </remarks>
     procedure PerformManualReopen(var Expense: Record Expense)
     var
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
