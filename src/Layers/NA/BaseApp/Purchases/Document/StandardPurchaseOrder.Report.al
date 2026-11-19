@@ -29,10 +29,10 @@ using System.Utilities;
 report 1322 "Standard Purchase - Order"
 {
     Caption = 'Purchase - Order';
-#if CLEAN30
-    DefaultRenderingLayout = "StandardPurchaseOrderBody.docx";
-#else
+#if not CLEAN30
     DefaultRenderingLayout = "StandardPurchaseOrder.docx";
+#else
+    DefaultRenderingLayout = "StandardPurchaseOrderBody.docx";
 #endif
     EnableHyperlinks = true;
     PreviewMode = PrintLayout;
