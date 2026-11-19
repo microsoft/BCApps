@@ -21,13 +21,13 @@ tableextension 10972 "E-Reporting Customer" extends Customer
         {
             Caption = 'Electronic Address';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the electronic address used for PDP routing in French e-invoicing. Enter a nine-digit SIREN, optionally followed by an underscore and a suffix. The electronic address scheme is 0225.';
+            ToolTip = 'Specifies the electronic address used for PDP routing in French e-invoicing. The accepted format depends on the selected electronic address scheme.';
         }
         field(10977; "FR Elec. Address Scheme"; Enum "Electronic Address Scheme")
         {
             Caption = 'Electronic Address Scheme';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the legacy electronic address scheme. French buyer electronic addresses use scheme 0225.';
+            ToolTip = 'Specifies the identifier scheme and format of the electronic address used for French electronic document routing.';
         }
     }
 }
