@@ -14,7 +14,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
 
-codeunit 139980 "Subc. Wiz. Change Test"
+codeunit 140007 "Subc. Wiz. Change Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;

@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
 
-codeunit 140000 "Subc. Wiz. Config Test"
+codeunit 140008 "Subc. Wiz. Config Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;

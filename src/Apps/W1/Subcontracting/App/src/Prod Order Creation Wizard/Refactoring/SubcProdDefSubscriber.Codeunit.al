@@ -16,7 +16,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.Reflection;
 
-codeunit 20580 "Subc. Prod. Def. Subscriber"
+codeunit 20581 "Subc. Prod. Def. Subscriber"
 {
     EventSubscriberInstance = Manual;
 
