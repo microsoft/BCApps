@@ -2041,14 +2041,15 @@ table 23 Vendor
                 ValidateIndividualPerson();
             end;
         }
-#if not CLEAN30
         field(12186; "Prepmt. Payment Terms Code"; Code[10])
         {
             Caption = 'Prepmt. Payment Terms Code';
+#if not CLEAN30
             TableRelation = "Payment Terms" where("Payment Nos." = const(1));
-            ObsoleteReason = 'Preparation for replacement by Payment Installments';
-        }
+#else
+            TableRelation = "Payment Terms";
 #endif
+        }
         field(12187; "Special Category"; Option)
         {
             Caption = 'Special Category';

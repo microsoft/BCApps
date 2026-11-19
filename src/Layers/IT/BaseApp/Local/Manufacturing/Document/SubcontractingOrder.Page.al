@@ -423,6 +423,7 @@ page 12152 "Subcontracting Order"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+#if not CLEAN30
                 action("Pa&yments")
                 {
                     Caption = 'Pa&yments';
@@ -431,7 +432,11 @@ page 12152 "Subcontracting Order"
                                   Type = field("Document Type"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'This action is obsolete and will be removed in future versions.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action("Copy Document")
                 {
                     Caption = 'Copy Document';

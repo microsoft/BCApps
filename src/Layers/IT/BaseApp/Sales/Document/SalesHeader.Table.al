@@ -439,7 +439,8 @@ table 36 "Sales Header"
         {
             Caption = 'Bill-to City';
             ToolTip = 'Specifies the city of the customer on the sales document.';
-            TableRelation = if ("Bill-to Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Bill-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Bill-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Bill-to Country/Region Code"));
             ValidateTableRelation = false;
@@ -611,7 +612,8 @@ table 36 "Sales Header"
         {
             Caption = 'Ship-to City';
             ToolTip = 'Specifies the city of the customer on the sales document.';
-            TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Ship-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Ship-to Country/Region Code"));
             ValidateTableRelation = false;
@@ -792,7 +794,9 @@ table 36 "Sales Header"
 
             trigger OnValidate()
             var
+#if not CLEAN30
                 PaymentLines: Record "Payment Lines";
+#endif
                 IsHandled: Boolean;
             begin
                 IsHandled := false;
@@ -800,8 +804,54 @@ table 36 "Sales Header"
                 if IsHandled then
                     exit;
 
+#if CLEAN30
+                if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
+                    PaymentTerms.Get("Payment Terms Code");
+                    if IsCreditDocType() and not PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then begin
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeValidateDueDate(Rec, xRec, CurrFieldNo, IsHandled);
+                        if not IsHandled then
+                            Validate("Due Date", "Document Date");
+                        Validate("Pmt. Discount Date", 0D);
+                        Validate("Payment Discount %", 0);
+                    end else begin
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeCalcDueDate(Rec, xRec, FieldNo("Payment Terms Code"), CurrFieldNo, IsHandled);
+                        if not IsHandled then
+                            "Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeCalcPmtDiscDate(Rec, xRec, FieldNo("Payment Terms Code"), CurrFieldNo, IsHandled);
+                        if not IsHandled then
+                            "Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
+                        if not UpdateDocumentDate and (xRec."Payment Terms Code" <> Rec."Payment Terms Code") then
+                            Validate("Payment Discount %", PaymentTerms."Discount %")
+                    end;
+                end else begin
+                    IsHandled := false;
+                    OnValidatePaymentTermsCodeOnBeforeValidateDueDateWhenBlank(Rec, xRec, CurrFieldNo, IsHandled);
+                    if not IsHandled then
+                        Validate("Due Date", "Document Date");
+                    if not UpdateDocumentDate then begin
+                        Validate("Pmt. Discount Date", 0D);
+                        Validate("Payment Discount %", 0);
+                    end;
+                    OnValidatePaymentTermsCodeOnAfterValidatePaymentDiscountWhenBlank(Rec, xRec, CurrFieldNo);
+                end;
+                if xRec."Payment Terms Code" = "Prepmt. Payment Terms Code" then begin
+                    if xRec."Prepayment Due Date" = 0D then begin
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeCalculatePrepaymentDueDate(Rec, xRec, CurrFieldNo, IsHandled);
+                        if not IsHandled then begin
+                            TestField("Document Date");
+                            "Prepayment Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                        end;
+                    end;
+                    Validate("Prepmt. Payment Terms Code", "Payment Terms Code");
+                end;
+#else
                 PaymentLines.CreatePaymentLinesSales(Rec);
                 CalcFields("Payment %");
+#endif
             end;
         }
         /// <summary>
@@ -1321,7 +1371,8 @@ table 36 "Sales Header"
         field(55; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account";
 
@@ -1722,7 +1773,8 @@ table 36 "Sales Header"
         {
             Caption = 'Sell-to City';
             ToolTip = 'Specifies the city of the customer on the sales document.';
-            TableRelation = if ("Sell-to Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Sell-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Sell-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Sell-to Country/Region Code"));
             ValidateTableRelation = false;
@@ -1855,7 +1907,8 @@ table 36 "Sales Header"
         {
             Caption = 'Sell-to Post Code';
             ToolTip = 'Specifies the postal code of the customer''s main address.';
-            TableRelation = if ("Sell-to Country/Region Code" = const('')) "Post Code"
+            TableRelation =
+            if ("Sell-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Sell-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Sell-to Country/Region Code"));
             ValidateTableRelation = false;
@@ -1928,7 +1981,8 @@ table 36 "Sales Header"
         {
             Caption = 'Ship-to Post Code';
             ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
-            TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code"
+            TableRelation =
+            if ("Ship-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Ship-to Country/Region Code"));
             ValidateTableRelation = false;
@@ -2647,7 +2701,9 @@ table 36 "Sales Header"
 
                 if ("Prepmt. Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
                     PaymentTerms.Get("Prepmt. Payment Terms Code");
+#if not CLEAN30
                     PaymentTerms.CalcFields("Payment Nos.");
+#endif
                     if IsCreditDocType() and not PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then begin
                         IsHandled := false;
                         OnValidatePrepmtPaymentTermsCodeOnCaseIfOnBeforeValidatePrepaymentDueDate(Rec, xRec, CurrFieldNo, IsHandled);
@@ -2655,6 +2711,7 @@ table 36 "Sales Header"
                             Validate("Prepayment Due Date", "Document Date");
                         Validate("Prepmt. Pmt. Discount Date", 0D);
                         Validate("Prepmt. Payment Discount %", 0);
+#if not CLEAN30
                     end else
                         if PaymentTerms."Payment Nos." = 1 then begin
                             PaymentTermsLine.Reset();
@@ -2673,6 +2730,20 @@ table 36 "Sales Header"
                             if not UpdateDocumentDate then
                                 Validate("Prepmt. Payment Discount %", PaymentTermsLine."Discount %")
                         end;
+#else
+                    end else begin
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeCalcDueDate(Rec, xRec, FieldNo("Prepmt. Payment Terms Code"), CurrFieldNo, IsHandled);
+                        if not IsHandled then
+                            "Prepayment Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeCalcPmtDiscDate(Rec, xRec, FieldNo("Prepmt. Payment Terms Code"), CurrFieldNo, IsHandled);
+                        if not IsHandled then
+                            "Prepmt. Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
+                        if not UpdateDocumentDate then
+                            Validate("Prepmt. Payment Discount %", PaymentTerms."Discount %")
+                    end;
+#endif
                 end else begin
                     IsHandled := false;
                     OnPrepmtPaymentTermsCodeOnCaseElseOnBeforeValidatePrepaymentDueDate(Rec, xRec, CurrFieldNo, IsHandled);
@@ -3271,7 +3342,8 @@ table 36 "Sales Header"
         {
             Caption = 'Opportunity No.';
             ToolTip = 'Specifies the number of the opportunity that the sales quote is assigned to.';
-            TableRelation = if ("Document Type" = filter(<> Order)) Opportunity."No." where("Contact No." = field("Sell-to Contact No."),
+            TableRelation =
+            if ("Document Type" = filter(<> Order)) Opportunity."No." where("Contact No." = field("Sell-to Contact No."),
                                                                                           Closed = const(false))
             else
             if ("Document Type" = const(Order)) Opportunity."No." where("Contact No." = field("Sell-to Contact No."),
@@ -3862,7 +3934,8 @@ table 36 "Sales Header"
         field(12137; "Tax Representative No."; Code[20])
         {
             Caption = 'Tax Representative No.';
-            TableRelation = if ("Tax Representative Type" = filter(Customer)) Customer
+            TableRelation =
+            if ("Tax Representative Type" = filter(Customer)) Customer
             else
             if ("Tax Representative Type" = filter(Contact)) Contact;
 
@@ -3944,7 +4017,8 @@ table 36 "Sales Header"
         field(12175; "3rd Party Loader No."; Code[20])
         {
             Caption = '3rd Party Loader No.';
-            TableRelation = if ("3rd Party Loader Type" = const(Vendor)) Vendor
+            TableRelation =
+            if ("3rd Party Loader Type" = const(Vendor)) Vendor
             else
             if ("3rd Party Loader Type" = const(Contact)) Contact where(Type = filter(Company));
 
@@ -4057,7 +4131,9 @@ table 36 "Sales Header"
 
     trigger OnDelete()
     var
+#if not CLEAN30
         PaymentLines: Record "Payment Lines";
+#endif
         PostSalesDelete: Codeunit "PostSales-Delete";
         ArchiveManagement: Codeunit ArchiveManagement;
         CRMIntTableSubscriber: Codeunit "CRM Int. Table. Subscriber";
@@ -4096,8 +4172,9 @@ table 36 "Sales Header"
         DeleteAllSalesLines();
         EnableAggregateTableUpdate(DisableAggregateTableUpdate);
 
+#if not CLEAN30
         PaymentLines.DeletePaymentLines(Rec);
-
+#endif
         ShowPostedDocsToPrint := (SalesShptHeader."No." <> '') or
            (SalesInvHeader."No." <> '') or
            (SalesCrMemoHeader."No." <> '') or
@@ -4220,8 +4297,10 @@ table 36 "Sales Header"
         TempReservEntry: Record "Reservation Entry" temporary;
         CompanyInfo: Record "Company Information";
         Salesperson: Record "Salesperson/Purchaser";
+#if not CLEAN30
         PaymentTermsLine: Record "Payment Lines";
         PaymentSales: Record "Payment Lines";
+#endif
         VATBusPostingGroup: Record "VAT Business Posting Group";
         CustBankAccount: Record "Customer Bank Account";
         ShipmentMethod: Record "Shipment Method";
@@ -5248,7 +5327,9 @@ table 36 "Sales Header"
     local procedure UpdateDirectDebitPmtTermsCode()
     var
         SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+#if not CLEAN30
         PaymentLines: Record "Payment Lines";
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -5263,6 +5344,7 @@ table 36 "Sales Header"
             "Direct Debit Mandate ID" := SEPADirectDebitMandate.GetDefaultMandate("Bill-to Customer No.", "Due Date");
             if "Payment Terms Code" = '' then
                 "Payment Terms Code" := PaymentMethod."Direct Debit Pmt. Terms Code";
+#if not CLEAN30
             if (Rec."Direct Debit Mandate ID" = '') and (Rec."Due Date" = 0D) then begin
                 PaymentLines.SetRange("Sales/Purchase", PaymentLines."Sales/Purchase"::Sales);
                 PaymentLines.SetRange(Type, Rec."Document Type");
@@ -5271,6 +5353,7 @@ table 36 "Sales Header"
                 if PaymentLines.FindFirst() then
                     Rec."Direct Debit Mandate ID" := SEPADirectDebitMandate.GetDefaultMandate(Rec."Bill-to Customer No.", PaymentLines."Due Date");
             end;
+#endif
         end else
             "Direct Debit Mandate ID" := '';
     end;
@@ -13286,6 +13369,31 @@ table 36 "Sales Header"
     begin
     end;
 
+#if CLEAN30
+    /// <summary>
+    /// Raised before validating the due date when validating payment terms code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePaymentTermsCodeOnBeforeValidateDueDate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before validating the due date when payment terms code is blank.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default validation logic.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePaymentTermsCodeOnBeforeValidateDueDateWhenBlank(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
+    begin
+    end;
+#endif
 
     /// <summary>
     /// Raised before assigning the document date when validating posting date.
@@ -13319,6 +13427,19 @@ table 36 "Sales Header"
     begin
     end;
 
+#if CLEAN30
+    /// <summary>
+    /// Raised before calculating the prepayment due date when validating payment terms code.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default calculation logic.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePaymentTermsCodeOnBeforeCalculatePrepaymentDueDate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
+    begin
+    end;
+#endif
 
     /// <summary>
     /// Raised before modifying a sales line when validating prices including VAT.
@@ -14070,6 +14191,19 @@ table 36 "Sales Header"
     local procedure OnBeforeCheckCustomerPostingGroupChange(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
+
+#if CLEAN30
+    /// <summary>
+    /// Raised after validating the payment discount when payment terms code is blank.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being validated.</param>
+    /// <param name="xSalesHeader">The previous version of the sales header record.</param>
+    /// <param name="CurrentFieldNo">The current field number being processed.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePaymentTermsCodeOnAfterValidatePaymentDiscountWhenBlank(var SalesHeader: Record "Sales Header"; var xSalesHeader: Record "Sales Header"; CurrentFieldNo: Integer)
+    begin
+    end;
+#endif
 
     /// <summary>
     /// Raised after setting sales line filters when updating sales line amounts.

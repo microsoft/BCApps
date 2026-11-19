@@ -203,8 +203,16 @@ table 3 "Payment Terms"
         exit(Description);
     end;
 
-#if not CLEAN30
-    [Obsolete('This procedure is obsolete and will be removed in future versions.')]
+#if CLEAN30
+    procedure UsePaymentDiscount(): Boolean
+    var
+        PaymentTerms: Record "Payment Terms";
+    begin
+        PaymentTerms.SetFilter("Discount %", '<>%1', 0);
+
+        exit(not PaymentTerms.IsEmpty);
+    end;
+#else
     procedure UsePaymentDiscount(): Boolean
     var
         PaymentLines: Record "Payment Lines";
@@ -215,8 +223,13 @@ table 3 "Payment Terms"
     end;
 #endif
 
-#if not CLEAN30
-    [Obsolete('This procedure is obsolete and will be removed in future versions.')]
+#if CLEAN30
+    [Scope('OnPrem')]
+    procedure GetDueDateCalculation(var DueDateCalculation: DateFormula)
+    begin
+        DueDateCalculation := "Due Date Calculation";
+    end;
+#else
     [Scope('OnPrem')]
     procedure GetDueDateCalculation(var DueDateCalculation: DateFormula)
     var
@@ -231,6 +244,7 @@ table 3 "Payment Terms"
             Evaluate(DueDateCalculation, '<0D>');
     end;
 #endif
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterTranslateDescription(var PaymentTerms: Record "Payment Terms"; Language: Code[10])
     begin

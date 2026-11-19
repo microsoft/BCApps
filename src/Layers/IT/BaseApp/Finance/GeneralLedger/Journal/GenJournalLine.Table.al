@@ -1230,6 +1230,9 @@ table 81 "Gen. Journal Line"
 
             trigger OnValidate()
             var
+#if CLEAN30
+                IsHandled: Boolean;
+#endif
             begin
                 "Due Date" := 0D;
                 "Pmt. Discount Date" := 0D;
@@ -1241,6 +1244,43 @@ table 81 "Gen. Journal Line"
                 if ("Account Type" <> "Account Type"::"G/L Account") or
                    ("Bal. Account Type" <> "Bal. Account Type"::"G/L Account")
                 then
+#if CLEAN30
+                    case "Document Type" of
+                        "Document Type"::Invoice:
+                            if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
+                                PaymentTerms.Get("Payment Terms Code");
+                                IsHandled := false;
+                                OnValidatePaymentTermsCodeOnBeforeCalculateDueDate(Rec, PaymentTerms, IsHandled);
+                                if not IsHandled then
+                                    "Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                                IsHandled := false;
+                                OnValidatePaymentTermsCodeOnBeforeCalculatePmtDiscountDate(Rec, PaymentTerms, IsHandled);
+                                if not IsHandled then
+                                    "Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
+                                "Payment Discount %" := PaymentTerms."Discount %";
+                            end else
+                                "Due Date" := "Document Date";
+                        "Document Type"::"Credit Memo":
+                            if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
+                                PaymentTerms.Get("Payment Terms Code");
+                                if PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then begin
+                                    IsHandled := false;
+                                    OnValidatePaymentTermsCodeOnBeforeCalculateDueDate(Rec, PaymentTerms, IsHandled);
+                                    if not IsHandled then
+                                        "Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                                    IsHandled := false;
+                                    OnValidatePaymentTermsCodeOnBeforeCalculatePmtDiscountDate(Rec, PaymentTerms, IsHandled);
+                                    if not IsHandled then
+                                        "Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
+                                    "Payment Discount %" := PaymentTerms."Discount %";
+                                end else
+                                    "Due Date" := "Document Date";
+                            end else
+                                "Due Date" := "Document Date";
+                        else
+                            "Due Date" := "Document Date";
+                    end;
+#else
                     if ("Document Type" in ["Document Type"::Invoice, "Document Type"::"Credit Memo"]) and
                        ("Payment Terms Code" <> '') and ("Document Date" <> 0D) and
                        (("Account Type" in ["Account Type"::Customer, "Account Type"::Vendor]) or
@@ -1251,6 +1291,7 @@ table 81 "Gen. Journal Line"
                             InsertPaymentTermsLines();
                     end else
                         "Due Date" := "Posting Date";
+#endif
             end;
         }
         /// <summary>
@@ -1916,10 +1957,6 @@ table 81 "Gen. Journal Line"
                 GLSetup.Get();
                 GLSetup.UpdateVATDate("Document Date", Enum::"VAT Reporting Date"::"Document Date", "VAT Reporting Date");
                 Validate("VAT Reporting Date");
-
-                Validate("Payment Terms Code");
-
-
 
                 Validate("Payment Terms Code");
             end;
@@ -4344,7 +4381,9 @@ table 81 "Gen. Journal Line"
         if "Source Code" = '' then
             "Source Code" := GenJnlTemplate."Source Code";
 
+#if not CLEAN30
         Validate("Payment Terms Code");
+#endif
         Rec.ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
         Rec.ValidateShortcutDimCode(2, "Shortcut Dimension 2 Code");
 
@@ -11107,11 +11146,6 @@ table 81 "Gen. Journal Line"
     end;
 
 #if not CLEAN30
-    /// <summary>
-    /// Event triggered after running the payment export process.
-    /// This event allows developers to change custom logic after the export has been completed.
-    /// </summary>
-    /// <param name="GenJournalLine">The current General Journal Line record that was processed for payment export.</param>
     [Obsolete('This event is obsolete because the payment export process has changed.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchasePaymentLineOnAfterCalculateDueDate(var PaymentPurchase: Record "Payment Lines"; PaymentTermsLine: Record "Payment Lines"; GenJournalLine: Record "Gen. Journal Line")
@@ -11119,6 +11153,11 @@ table 81 "Gen. Journal Line"
     end;
 #endif
 
+    /// <summary>
+    /// Event triggered after running the payment export process.
+    /// This event allows developers to change custom logic after the export has been completed.
+    /// </summary>
+    /// <param name="GenJournalLine">The current General Journal Line record that was processed for payment export.</param>
     [IntegrationEvent(false, false)]
     local procedure OnExportPaymentFileOnAfterRunExport(var GenJournalLine: Record "Gen. Journal Line")
     begin
@@ -11529,6 +11568,32 @@ table 81 "Gen. Journal Line"
     local procedure OnValidateBalVATPctOnAfterAssignBalVATAmountLCY(var BalVATAmountLCY: Decimal)
     begin
     end;
+
+#if CLEAN30
+    /// <summary>
+    /// Event triggered before calculating the "Due Date" based on the payment terms during the validation of the "Payment Terms Code" field.
+    /// This event allows developers to add custom logic or override the default calculation for the "Due Date".
+    /// </summary>
+    /// <param name="GenJournalLine">The current General Journal Line record being processed.</param>
+    /// <param name="PaymentTerms">The Payment Terms record retrieved with the "Payment Terms Code".</param>
+    /// <param name="IsHandled">A boolean variable that, if set to true, skips the default "Due Date" calculation.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePaymentTermsCodeOnBeforeCalculateDueDate(var GenJournalLine: Record "Gen. Journal Line"; PaymentTerms: Record "Payment Terms"; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Event triggered before calculating the "Pmt. Discount Date" based on the payment terms during the validation of the "Payment Terms Code" field.
+    /// This event allows developers to add custom logic or override the default calculation for the "Pmt. Discount Date".
+    /// </summary>
+    /// <param name="GenJournalLine">The current General Journal Line record being processed.</param>
+    /// <param name="PaymentTerms">The payment terms record associated with the "Payment Terms Code".</param>
+    /// <param name="IsHandled">A boolean variable that, if set to true, skips the default discount date calculation.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePaymentTermsCodeOnBeforeCalculatePmtDiscountDate(var GenJournalLine: Record "Gen. Journal Line"; PaymentTerms: Record "Payment Terms"; var IsHandled: Boolean)
+    begin
+    end;
+#endif
 
     /// <summary>
     /// Event triggered before validating the "Amount" field during the validation of the "Bal. VAT Base Amount" field.

@@ -747,26 +747,25 @@ page 134 "Posted Sales Credit Memo"
                     ObsoleteTag = '30.0';
                 }
 #endif
-            }
-            action(DocAttach)
-            {
-                ApplicationArea = All;
-                Caption = 'Attachments';
-                Image = Attach;
-                ToolTip = 'Add a file as an attachment. You can attach images as well as documents.';
+                action(DocAttach)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Attachments';
+                    Image = Attach;
+                    ToolTip = 'Add a file as an attachment. You can attach images as well as documents.';
 
-                trigger OnAction()
-                var
-                    DocumentAttachmentDetails: Page "Document Attachment Details";
-                    RecRef: RecordRef;
-                begin
-                    RecRef.GetTable(Rec);
-                    DocumentAttachmentDetails.OpenForRecRef(RecRef);
-                    DocumentAttachmentDetails.RunModal();
-                end;
+                    trigger OnAction()
+                    var
+                        DocumentAttachmentDetails: Page "Document Attachment Details";
+                        RecRef: RecordRef;
+                    begin
+                        RecRef.GetTable(Rec);
+                        DocumentAttachmentDetails.OpenForRecRef(RecRef);
+                        DocumentAttachmentDetails.RunModal();
+                    end;
+                }
             }
         }
-    }
         area(processing)
         {
             group("F&unctions")
@@ -792,7 +791,7 @@ page 134 "Posted Sales Credit Memo"
                 Caption = 'Customer';
                 Image = Customer;
                 RunObject = Page "Customer Card";
-                                RunPageLink = "No." = field("Sell-to Customer No.");
+                RunPageLink = "No." = field("Sell-to Customer No.");
                 ShortCutKey = 'Shift+F7';
                 ToolTip = 'View or edit detailed information about the customer.';
             }

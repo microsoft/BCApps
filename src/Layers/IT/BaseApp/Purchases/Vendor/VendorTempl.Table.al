@@ -505,7 +505,8 @@ table 1383 "Vendor Templ."
         field(12110; "Birth City"; Text[30])
         {
             Caption = 'Birth City';
-            TableRelation = if ("Birth Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Birth Country/Region Code" = const('')) "Post Code".City
             else
             if ("Birth Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Birth Country/Region Code"));
             ValidateTableRelation = false;
@@ -513,7 +514,8 @@ table 1383 "Vendor Templ."
         field(12111; "Birth Post Code"; Code[20])
         {
             Caption = 'Birth Post Code';
-            TableRelation = if ("Birth Country/Region Code" = const('')) "Post Code"
+            TableRelation =
+            if ("Birth Country/Region Code" = const('')) "Post Code"
             else
             if ("Birth Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Birth Country/Region Code"));
             ValidateTableRelation = false;
@@ -535,7 +537,8 @@ table 1383 "Vendor Templ."
         field(12115; "Residence Post Code"; Code[20])
         {
             Caption = 'Residence Post Code';
-            TableRelation = if ("Residence Country/Region Code" = const('')) "Post Code"
+            TableRelation =
+            if ("Residence Country/Region Code" = const('')) "Post Code"
             else
             if ("Residence Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Residence Country/Region Code"));
             ValidateTableRelation = false;
@@ -543,7 +546,8 @@ table 1383 "Vendor Templ."
         field(12116; "Residence City"; Text[30])
         {
             Caption = 'Residence City';
-            TableRelation = if ("Residence Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Residence Country/Region Code" = const('')) "Post Code".City
             else
             if ("Residence Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Residence Country/Region Code"));
             ValidateTableRelation = false;
@@ -582,7 +586,8 @@ table 1383 "Vendor Templ."
         field(12127; "Tax Representative No."; Code[20])
         {
             Caption = 'Tax Representative No.';
-            TableRelation = if ("Tax Representative Type" = filter(Vendor)) Vendor
+            TableRelation =
+            if ("Tax Representative Type" = filter(Vendor)) Vendor
             else
             if ("Tax Representative Type" = filter(Contact)) Contact;
         }
@@ -661,7 +666,11 @@ table 1383 "Vendor Templ."
         field(12186; "Prepmt. Payment Terms Code"; Code[10])
         {
             Caption = 'Prepmt. Payment Terms Code';
+#if not CLEAN30
             TableRelation = "Payment Terms" where("Payment Nos." = const(1));
+#else
+            TableRelation = "Payment Terms";
+#endif
         }
         field(12187; "Special Category"; Option)
         {

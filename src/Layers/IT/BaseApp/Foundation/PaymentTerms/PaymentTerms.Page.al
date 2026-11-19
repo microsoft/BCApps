@@ -82,6 +82,7 @@ page 4 "Payment Terms"
     {
         area(processing)
         {
+#if not CLEAN30
             action("&Calculation")
             {
                 ApplicationArea = Basic, Suite;
@@ -96,6 +97,7 @@ page 4 "Payment Terms"
                 ToolTip = 'View or edit the conditions of the current payment term.';
                 Visible = not PaymentInstallmentsEnabled;
             }
+#endif
             action(InstallmentLines)
             {
                 ApplicationArea = Basic, Suite;
@@ -229,12 +231,14 @@ page 4 "Payment Terms"
                 actionref(InstallmentLines_Promoted; InstallmentLines)
                 {
                 }
+#if not CLEAN30
                 actionref("&Calculation_Promoted"; "&Calculation")
                 {
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Replaced by the Installment Lines action when the Payment Installments feature is enabled.';
                     ObsoleteTag = '30.0';
                 }
+#endif
                 actionref("T&ranslation_Promoted"; "T&ranslation")
                 {
                 }

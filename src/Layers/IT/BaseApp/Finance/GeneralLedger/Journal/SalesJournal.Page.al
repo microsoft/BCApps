@@ -889,6 +889,7 @@ page 253 "Sales Journal"
         }
         area(processing)
         {
+#if not CLEAN30
             action("&Payments")
             {
                 ApplicationArea = Basic, Suite;
@@ -901,7 +902,11 @@ page 253 "Sales Journal"
                               "Journal Template Name" = field("Journal Template Name"),
                               "Journal Line No." = field("Line No.");
                 ToolTip = 'View the related payments.';
+                ObsoleteReason = 'This action is obsolete in the current version.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
             }
+#endif
             group("F&unctions")
             {
                 Caption = 'F&unctions';
@@ -1420,9 +1425,14 @@ page 253 "Sales Journal"
                 actionref(IncomingDoc_Promoted; IncomingDoc)
                 {
                 }
+#if not CLEAN30
                 actionref("&Payments_Promoted"; "&Payments")
                 {
+                    ObsoleteReason = 'This action is obsolete in the current version.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
             }
             group(Category_Category7)
             {

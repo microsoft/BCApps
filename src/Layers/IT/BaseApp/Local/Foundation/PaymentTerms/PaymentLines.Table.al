@@ -12,8 +12,10 @@ using Microsoft.Sales.Document;
 table 12170 "Payment Lines"
 {
     Caption = 'Payment Lines';
+#if not CLEAN30
     DrillDownPageID = "Payment Terms Lines";
     LookupPageID = "Payment Terms Lines";
+#endif
     DataClassification = CustomerContent;
 #if not CLEAN30
     ObsoleteState = Pending;
@@ -34,7 +36,8 @@ table 12170 "Payment Lines"
         {
             Caption = 'Code';
             NotBlank = true;
-            TableRelation = if (Type = const("Payment Terms")) "Payment Terms";
+            TableRelation =
+            if (Type = const("Payment Terms")) "Payment Terms";
         }
         field(3; "Line No."; Integer)
         {

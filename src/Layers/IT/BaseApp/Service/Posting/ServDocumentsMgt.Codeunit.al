@@ -248,6 +248,7 @@ codeunit 5988 "Serv-Documents Mgt."
         if not ServHeader.FindVATExemption(VATExemption, Check, true) then
             if Check then
                 Error(Text12100);
+#if not CLEAN30
         if Invoice then begin
             PaymentTermsLine.Reset();
             PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Service);
@@ -291,7 +292,7 @@ codeunit 5988 "Serv-Documents Mgt."
                       ServHeader.FieldCaption(ServHeader."Payment Terms Code"),
                       ServHeader."Payment Terms Code");
         end;
-
+#endif
         LineCount := 0;
 
         OnBeforePostDocumentLines(ServHeader, ServLine, Ship, Consume, Invoice);

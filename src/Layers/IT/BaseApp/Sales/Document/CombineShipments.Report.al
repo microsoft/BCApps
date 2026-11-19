@@ -122,6 +122,24 @@ report 295 "Combine Shipments"
 
                     if OnlyStdPmtTerms then begin
                         Cust.Get("Bill-to Customer No.");
+#if CLEAN30                        
+                        PaymentTerms.Get(Cust."Payment Terms Code");
+                        if PaymentTerms.Code = "Payment Terms Code" then begin
+                            DueDate := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                            PmtDiscDate := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
+                            PmtDiscPct := PaymentTerms."Discount %";
+                            if (DueDate <> "Due Date") or
+                               (PmtDiscDate <> "Pmt. Discount Date") or
+                               (PmtDiscPct <> "Payment Discount %")
+                            then begin
+                                NoOfskippedShiment := NoOfskippedShiment + 1;
+                                CurrReport.Skip();
+                            end;
+                        end else begin
+                            NoOfskippedShiment := NoOfskippedShiment + 1;
+                            CurrReport.Skip();
+                        end;
+#else
                         PaymentTermsLine.Reset();
                         PaymentTermsLine.SetRange("Sales/Purchase", PaymentSales."Sales/Purchase"::" ");
                         PaymentTermsLine.SetRange(Type, PaymentTermsLine.Type::"Payment Terms");
@@ -146,6 +164,7 @@ report 295 "Combine Shipments"
                                     CurrReport.Skip();
                                 end;
                             until PaymentTermsLine.Next() = 0;
+#endif
                     end;
                 end;
 
@@ -360,7 +379,9 @@ report 295 "Combine Shipments"
         SalesSetup: Record "Sales & Receivables Setup";
         GLSetup: Record "General Ledger Setup";
         OperationType: Record "No. Series";
-#if not CLEAN30
+#if CLEAN30
+        PaymentTerms: Record "Payment Terms";
+#else
         PaymentTermsLine: Record "Payment Lines";
         PaymentSales: Record "Payment Lines";
 #endif

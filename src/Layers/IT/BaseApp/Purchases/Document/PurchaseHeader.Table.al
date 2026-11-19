@@ -704,8 +704,13 @@ table 38 "Purchase Header"
 
             trigger OnValidate()
             var
+#if CLEAN30
+                IsHandled: Boolean;
+#else
                 PaymentLines: Record "Payment Lines";
+#endif
             begin
+#if CLEAN30
                 IsHandled := false;
                 OnBeforeValidatePaymentTermsCode(Rec, xRec, CurrFieldNo, UpdateDocumentDate, IsHandled);
                 if IsHandled then
@@ -745,6 +750,11 @@ table 38 "Purchase Header"
                 end;
                 if xRec."Payment Terms Code" = "Prepmt. Payment Terms Code" then
                     Validate("Prepmt. Payment Terms Code", "Payment Terms Code");
+#else
+                PaymentLines.CreatePaymentLiensPurchases(Rec);
+
+                CalcFields("Payment %");
+#endif
             end;
         }
         field(24; "Due Date"; Date)
@@ -2214,7 +2224,11 @@ table 38 "Purchase Header"
         {
             Caption = 'Prepmt. Payment Terms Code';
             ToolTip = 'Specifies the code that represents the payment terms for prepayment invoices related to the purchase document.';
+#if not CLEAN30
             TableRelation = "Payment Terms" where("Payment Nos." = const(1));
+#else
+            TableRelation = "Payment Terms";
+#endif
 
             trigger OnValidate()
             var
@@ -2231,6 +2245,7 @@ table 38 "Purchase Header"
                         Validate("Prepmt. Pmt. Discount Date", 0D);
                         Validate("Prepmt. Payment Discount %", 0);
                     end else begin
+#if not CLEAN30
                         PaymentTermsLine.Reset();
                         PaymentTermsLine.SetRange("Sales/Purchase", PaymentPurchase."Sales/Purchase"::" ");
                         PaymentTermsLine.SetRange(Type, PaymentTermsLine.Type::"Payment Terms");
@@ -2246,6 +2261,18 @@ table 38 "Purchase Header"
                             "Prepmt. Pmt. Discount Date" := CalcDate(PaymentTermsLine."Discount Date Calculation", "Document Date");
                         if not UpdateDocumentDate then
                             Validate("Prepmt. Payment Discount %", PaymentTermsLine."Discount %")
+#else
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeCalcDueDate(Rec, xRec, FieldNo("Prepmt. Payment Terms Code"), CurrFieldNo, IsHandled);
+                        if not IsHandled then
+                            "Prepayment Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeCalcPmtDiscDate(Rec, xRec, FieldNo("Prepmt. Payment Terms Code"), CurrFieldNo, IsHandled, UpdateDocumentDate);
+                        if not IsHandled then
+                            "Prepmt. Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
+                        if not UpdateDocumentDate then
+                            Validate("Prepmt. Payment Discount %", PaymentTerms."Discount %")
+#endif
                     end;
                 end else begin
                     IsHandled := false;
@@ -3374,7 +3401,9 @@ table 38 "Purchase Header"
 
     trigger OnDelete()
     var
+#if not CLEAN30
         PaymentLines: Record "Payment Lines";
+#endif
         PurchCommentLine: Record "Purch. Comment Line";
         PostPurchDelete: Codeunit "PostPurch-Delete";
         ArchiveManagement: Codeunit ArchiveManagement;
@@ -3417,7 +3446,9 @@ table 38 "Purchase Header"
         PurchCommentLine.SetRange("No.", "No.");
         PurchCommentLine.DeleteAll();
 
+#if not CLEAN30
         PaymentLines.DeletePaymentLines(Rec);
+#endif
         PurchWithhSoc.DeleteRecByPurchHeader(Rec);
 
         ShowPostedDocsToPrint :=
@@ -3527,6 +3558,9 @@ table 38 "Purchase Header"
         xPurchLine: Record "Purchase Line";
         VendLedgEntry: Record "Vendor Ledger Entry";
         Vend: Record Vendor;
+#if CLEAN30
+        PaymentTerms: Record "Payment Terms";
+#endif
         PaymentMethod: Record "Payment Method";
         CurrExchRate: Record "Currency Exchange Rate";
         Cust: Record Customer;
@@ -3548,8 +3582,10 @@ table 38 "Purchase Header"
         GlobalNoSeries: Record "No. Series";
         SalespersonPurchaser: Record "Salesperson/Purchaser";
         VendBankAccount: Record "Vendor Bank Account";
+#if not CLEAN30
         PaymentPurchase: Record "Payment Lines";
         PaymentTermsLine: Record "Payment Lines";
+#endif
         PurchWithhSoc: Record "Purch. Withh. Contribution";
         ShipmentMethod: Record "Shipment Method";
         NoSeries: Codeunit "No. Series";
@@ -9610,6 +9646,23 @@ table 38 "Purchase Header"
     local procedure OnValidatePaymentTermsCodeOnBeforeCalcPmtDiscDate(var PurchaseHeader: Record "Purchase Header"; var xPurchaseHeader: Record "Purchase Header"; CalledByFieldNo: Integer; CallingFieldNo: Integer; var IsHandled: Boolean; var UpdateDocumentDate: Boolean)
     begin
     end;
+
+#if CLEAN30
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePaymentTermsCodeOnBeforeValidatePmtDiscountWhenBlank(var PurchaseHeader: Record "Purchase Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePaymentTermsCodeOnBeforeValidateDueDate(var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePaymentTermsCodeOnBeforeValidateDueDateWhenBlank(var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header"; CurrentFieldNo: Integer; var IsHandled: Boolean)
+    begin
+    end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnValidatePayToVendorNoOnBeforeGetPayToVend(var PurchaseHeader: Record "Purchase Header")

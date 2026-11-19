@@ -791,7 +791,11 @@ report 840 "Suggest Worksheet Lines"
         IsHandled := false;
         OnInsertTempCFWorksheetLineOnBeforeCalculateCFAmountAndCFDate(TempCFWorksheetLine, IsHandled);
         if not IsHandled then
+#if CLEAN30
+            TempCFWorksheetLine.CalculateCFAmountAndCFDate();
+#else
             TempCFWorksheetLine.CalculateCFAmountAndCFDate(MaxPmtTolerance);
+#endif
         SetCashFlowDate(TempCFWorksheetLine, TempCFWorksheetLine."Cash Flow Date");
 
         if Abs(TempCFWorksheetLine."Amount (LCY)") < Abs(MaxPmtTolerance) then
