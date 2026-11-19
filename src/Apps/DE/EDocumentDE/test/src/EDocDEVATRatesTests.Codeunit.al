@@ -118,6 +118,70 @@ codeunit 148505 "E-Doc DE VAT Rates Tests"
         VerifyStandardAllowanceChargeRates(true, true);
     end;
 
+    [Test]
+    procedure XRechnungExemptInvoiceKeepsExemptionInBreakdownOnly()
+    begin
+        VerifyExemptionPlacement('E', false);
+    end;
+
+    [Test]
+    procedure XRechnungExemptCreditMemoKeepsExemptionInBreakdownOnly()
+    begin
+        VerifyExemptionPlacement('E', true);
+    end;
+
+    [Test]
+    procedure XRechnungOutsideScopeInvoiceKeepsExemptionInBreakdownOnly()
+    begin
+        VerifyExemptionPlacement('O', false);
+    end;
+
+    [Test]
+    procedure XRechnungOutsideScopeCreditMemoKeepsExemptionInBreakdownOnly()
+    begin
+        VerifyExemptionPlacement('O', true);
+    end;
+
+    local procedure VerifyExemptionPlacement(Category: Code[10]; IsCreditMemo: Boolean)
+    var
+        Header: Record "Sales Invoice Header";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATClause: Record "VAT Clause";
+        Document: XmlDocument;
+        AllowanceChargePath, TaxPath, HeaderTaxPath: Text;
+    begin
+        // UBL-CR-480/481: check invoice discounts and both signs of mapped item charges.
+        CreateFixture(Header);
+        AddLine(Header, 10000, Category, 0, 90, 10, false, false);
+        AddLine(Header, 20000, Category, 0, 5, 0, true, false);
+        AddLine(Header, 30000, Category, 0, -2, 0, true, false);
+        VATPostingSetup.Get(VATBusPostingGroup, Category + '0');
+        VATClause.Get(VATPostingSetup."VAT Clause Code");
+        if Category = 'E' then begin
+            VATClause."VATEX Code" := 'VATEX-EU-132';
+            VATClause.Modify();
+        end;
+        ExportFixture(Header, false, IsCreditMemo, Document);
+        AllowanceChargePath := '/*/*[local-name()="AllowanceCharge"]';
+        TaxPath := AllowanceChargePath + '/*[local-name()="TaxCategory"]';
+        HeaderTaxPath := BreakdownPath(false) + '/*[local-name()="TaxCategory"]';
+        AssertNodeCount(Document, AllowanceChargePath + '[*[local-name()="ChargeIndicator"]="true"]', 1);
+        AssertNodeCount(Document, AllowanceChargePath + '[*[local-name()="ChargeIndicator"]="false"]', 2);
+        AssertNodeCount(Document, TaxPath, 3);
+        AssertNodeCount(Document, TaxPath + '/*[local-name()="ID" and .="' + Category + '"]', 3);
+        AssertNodeCount(Document, TaxPath + '/*[local-name()="TaxExemptionReasonCode"]', 0);
+        AssertNodeCount(Document, TaxPath + '/*[local-name()="TaxExemptionReason"]', 0);
+        // Keep the supplied exemption code/text and BT-119 at their required header location.
+        AssertNodeCount(Document, HeaderTaxPath + '/*[local-name()="TaxExemptionReasonCode" and .="' + VATClause."VATEX Code" + '"]', 1);
+        AssertNodeCount(Document, HeaderTaxPath + '/*[local-name()="TaxExemptionReason" and .="' + VATClause.Description + '"]', 1);
+        if Category = 'O' then
+            AssertNodeCount(Document, TaxPath + '/*[local-name()="Percent"]', 0)
+        else
+            AssertNodeCount(Document, TaxPath + '/*[local-name()="Percent" and number(.)=0]', 3);
+        AssertBreakdown(Document, false, Category, 0, 93, 0);
+        AssertPayable(Document, false, 93);
+    end;
+
     local procedure VerifyStandardAllowanceChargeRates(IsCII: Boolean; IsCreditMemo: Boolean)
     var
         Header: Record "Sales Invoice Header";
