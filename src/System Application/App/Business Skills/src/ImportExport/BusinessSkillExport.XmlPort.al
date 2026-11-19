@@ -33,7 +33,7 @@ xmlport 4160 "Business Skill Export"
                     fieldelement(Title; Skill.Title) { }
                     fieldelement(SkillDescription; Skill.Description) { XmlName = 'Description'; }
                     fieldelement(SkillVersion; Skill.Version) { XmlName = 'Version'; }
-                    textelement(SkillText)
+                    textelement(Content)
                     {
                         TextType = BigText;
                         trigger OnBeforePassVariable()
@@ -41,7 +41,7 @@ xmlport 4160 "Business Skill Export"
                             PersistedSkill: Record "Business Skill";
                             BusinessSkillImpl: Codeunit "Business Skill Impl.";
                         begin
-                            Clear(SkillText);
+                            Clear(Content);
                             PersistedSkill.Get(Skill.ID);
                             if not BusinessSkillImpl.IsManualSkill(PersistedSkill) then
                                 Error(ManualSkillsOnlyErr);
@@ -64,7 +64,7 @@ xmlport 4160 "Business Skill Export"
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        SkillText.AddText(BusinessSkillImpl.GetSkillText(PersistedSkill).Unwrap());
+        Content.AddText(BusinessSkillImpl.GetContent(PersistedSkill).Unwrap());
     end;
 
     var

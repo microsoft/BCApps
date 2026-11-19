@@ -20,7 +20,7 @@ codeunit 4162 "Business Skill Builder Impl."
         TempNewSkill."Skill ID" := SkillCode;
         TempNewSkill."Read-Only" := true;
         TempNewSkill.Title := DisplayName;
-        BusinessSkillImpl.SetSkillText(TempNewSkill, Content);
+        BusinessSkillImpl.SetContent(TempNewSkill, Content);
         TempNewSkill.Status := TempNewSkill.Status::Inactive;
         TempBusinessSkill := TempNewSkill;
         CallingAppId := OwnerAppId;
@@ -71,7 +71,7 @@ codeunit 4162 "Business Skill Builder Impl."
     procedure SetContent(Content: SecretText)
     begin
         VerifyReady();
-        BusinessSkillImpl.SetSkillText(TempBusinessSkill, Content);
+        BusinessSkillImpl.SetContent(TempBusinessSkill, Content);
     end;
 
     procedure SetActive(Active: Boolean)
@@ -88,14 +88,14 @@ codeunit 4162 "Business Skill Builder Impl."
     procedure Create(): BigInteger
     var
         Skill: Record "Business Skill";
-        SkillText: SecretText;
+        SkillContent: SecretText;
     begin
         VerifyReady();
         VerifyOwnership();
         if TempBusinessSkill.Manual then
             TempBusinessSkill.TestField("Skill ID", '');
         BusinessSkillImpl.ValidateSkillInsert(TempBusinessSkill);
-        SkillText := BusinessSkillImpl.GetSkillText(TempBusinessSkill, false);
+        SkillContent := BusinessSkillImpl.GetContent(TempBusinessSkill, false);
         Skill."Skill ID" := TempBusinessSkill."Skill ID";
         Skill.Manual := TempBusinessSkill.Manual;
         Skill."Read-Only" := TempBusinessSkill."Read-Only";
@@ -103,9 +103,9 @@ codeunit 4162 "Business Skill Builder Impl."
         Skill.Title := TempBusinessSkill.Title;
         Skill.Description := TempBusinessSkill.Description;
         Skill.Status := TempBusinessSkill.Status;
-        BusinessSkillImpl.SetSkillText(Skill, SkillText);
+        BusinessSkillImpl.SetContent(Skill, SkillContent);
         Skill.Insert(true);
-        TextHistory.RecordTextVersion(Skill.ID, SkillText, Skill.Version);
+        BusinessSkillContentHistory.RecordContentVersion(Skill.ID, SkillContent, Skill.Version);
         Created := true;
         exit(Skill.ID);
     end;
@@ -147,17 +147,17 @@ codeunit 4162 "Business Skill Builder Impl."
 
     local procedure Update(var Skill: Record "Business Skill"): BigInteger
     var
-        SkillText: SecretText;
-        TextChanged: Boolean;
+        SkillContent: SecretText;
+        ContentChanged: Boolean;
         VersionChanged: Boolean;
         Changed: Boolean;
     begin
         if Skill.Manual <> TempBusinessSkill.Manual then
             Error(SkillIdentityMismatchErr);
-        SkillText := BusinessSkillImpl.GetSkillText(TempBusinessSkill, false);
-        TextChanged := not BusinessSkillImpl.ContentEquals(BusinessSkillImpl.GetSkillText(Skill), SkillText);
+        SkillContent := BusinessSkillImpl.GetContent(TempBusinessSkill, false);
+        ContentChanged := not BusinessSkillImpl.ContentEquals(BusinessSkillImpl.GetContent(Skill), SkillContent);
         VersionChanged := ContentVersionSpecified and (Skill.Version <> TempBusinessSkill.Version);
-        Changed := TextChanged or VersionChanged or (Skill.Title <> TempBusinessSkill.Title) or
+        Changed := ContentChanged or VersionChanged or (Skill.Title <> TempBusinessSkill.Title) or
             (DescriptionSpecified and (Skill.Description <> TempBusinessSkill.Description)) or
             (ActiveSpecified and (Skill.Status <> TempBusinessSkill.Status)) or
             (ContentLockedSpecified and (Skill."Read-Only" <> TempBusinessSkill."Read-Only"));
@@ -167,10 +167,10 @@ codeunit 4162 "Business Skill Builder Impl."
         end;
         if ContentVersionSpecified then
             Skill.Version := TempBusinessSkill.Version;
-        if TextChanged then begin
+        if ContentChanged then begin
             if not Skill.Manual and not ContentVersionSpecified then
                 Error(VersionRequiredErr);
-            BusinessSkillImpl.SetSkillText(Skill, SkillText);
+            BusinessSkillImpl.SetContent(Skill, SkillContent);
             if Skill.Manual and VersionChanged then
                 Skill.Version := TempBusinessSkill.Version;
         end;
@@ -183,8 +183,8 @@ codeunit 4162 "Business Skill Builder Impl."
             Skill."Read-Only" := TempBusinessSkill."Read-Only";
         BusinessSkillImpl.ValidateSkillModify(Skill);
         Skill.Modify(true);
-        if TextChanged then
-            TextHistory.RecordTextVersion(Skill.ID, SkillText, Skill.Version);
+        if ContentChanged then
+            BusinessSkillContentHistory.RecordContentVersion(Skill.ID, SkillContent, Skill.Version);
         Created := true;
         exit(Skill.ID);
     end;
@@ -212,7 +212,7 @@ codeunit 4162 "Business Skill Builder Impl."
     var
         TempBusinessSkill: Record "Business Skill" temporary;
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
-        TextHistory: Codeunit "Business Skill Text History";
+        BusinessSkillContentHistory: Codeunit "Business Skill Content History";
         CallingAppId: Guid;
         Initialized: Boolean;
         Created: Boolean;

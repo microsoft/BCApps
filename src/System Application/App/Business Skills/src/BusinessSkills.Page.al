@@ -116,7 +116,7 @@ page 4160 "Business Skills"
     var
         Builder: Codeunit "Business Skill Builder";
     begin
-        Builder.Initialize('', Rec.Title, BusinessSkillImpl.GetSkillText(Rec, false))
+        Builder.Initialize('', Rec.Title, BusinessSkillImpl.GetContent(Rec, false))
             .SetManual(true)
             .SetDescription(Rec.Description)
             .SetContentLocked(Rec."Read-Only")

@@ -21,7 +21,7 @@ codeunit 4160 "Business Skill"
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(BusinessSkillImpl.GetSkillText(BusinessSkill));
+        exit(BusinessSkillImpl.GetContent(BusinessSkill));
     end;
 
     /// <summary>
@@ -31,11 +31,11 @@ codeunit 4160 "Business Skill"
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        exit(BusinessSkillImpl.GetSkillText(BusinessSkill, LoadFromDatabase));
+        exit(BusinessSkillImpl.GetContent(BusinessSkill, LoadFromDatabase));
     end;
 
     /// <summary>
-    /// Activates a skill after validating its title and text.
+    /// Activates a skill after validating its title and content.
     /// </summary>
     procedure Activate(SkillId: BigInteger): Boolean
     var
@@ -84,7 +84,7 @@ codeunit 4160 "Business Skill"
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        BusinessSkillImpl.SetSkillText(SkillId, Content, ExpectedSystemId, ExpectedRevision);
+        BusinessSkillImpl.SetContent(SkillId, Content, ExpectedSystemId, ExpectedRevision);
     end;
 
     /// <summary>

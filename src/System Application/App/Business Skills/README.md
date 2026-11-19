@@ -1,6 +1,6 @@
 # Business Skills
 
-Provides tenant-wide business skill authoring, lifecycle management, text history,
+Provides tenant-wide business skill authoring, lifecycle management, content history,
 native pages, and XML import/export in
 `System.AI.BusinessSkills`.
 
@@ -13,12 +13,12 @@ native pages, and XML import/export in
 
 `Business Skill Impl.` owns lifecycle and content validation, encoding, and length
 helpers. History capture, restoration, deletion guards, and the platform deletion
-subscriber live in `Business Skill Text History`. Both implementations are internal;
+subscriber live in `Business Skill Content History`. Both implementations are internal;
 consumers must not duplicate validation or history writes. Related objects are grouped
 under `src/History` and `src/ImportExport`.
 The platform `Business Skill` virtual table and `Business Skill Status` enum
 remain in System; persistent skill storage is not an application table.
-`Business Skill Text Version` is the module's tenant-wide history table.
+`Bus Skill Content Version` is the module's tenant-wide history table.
 
 ### Builder naming
 
@@ -52,8 +52,9 @@ Read APIs do not grant additional table permissions.
 The builder terminology maps to the existing platform fields: Skill Code to
 `Skill ID`, Display Name to `Title`, Content to `Skill Text`, Content Locked to
 `Read-Only`, and Content Version to `Version`. Table-field renames and calculated
-Manual are a separate change; this module preserves the current storage and
-HTTP/NST contracts.
+Manual are a separate change. The history table uses `Content` and `Content Version`,
+retaining its field IDs and types; its numeric `Skill ID` remains the relationship key.
+Native storage fields and the NST contract are unchanged.
 
 ## Behavior and boundaries
 
@@ -67,16 +68,20 @@ HTTP/NST contracts.
   may delete only their own inactive skills; manual and orphaned deletion requires
   the existing management permission. The internal platform deletion event
   removes history in the same transaction, and cleanup errors propagate.
-- Text uses the existing UTF-8 normalization and version rules. Read-Only
+- Content uses the existing UTF-8 normalization and version rules. Read-Only
   protects content/version, not metadata. Public manual updates preserve expected
   SystemId and SystemRowVersion checks.
 - XML export is manual-only; import creates new manual identities atomically.
+  The instruction element is `Content`. The retired `SkillText` element is rejected;
+  this is an intentional breaking change to the unreleased format, with no alias.
   Platform NAVDATA omission does not sanitize history or establish BACPAC/SaaS
   export behavior. No history-data migration is provided for this unreleased move.
 
 BusinessIQ retains discovery/search, its HTTP API pages and NST-facing `Business Skill Agent API`
 (40224), calling these public facades. Its NST JSON contract and app identity do
-not change. System Application does not depend on BusinessIQ or Base Application.
+not change. BusinessIQ's HTTP/discovery content property is now `content`, not
+`skillText`; its `skillContent` navigation property remains unchanged.
+System Application does not depend on BusinessIQ or Base Application.
 History sensitivity classification lives in the existing Base Application
 classification routine.
 

@@ -6,17 +6,17 @@
 namespace System.AI.BusinessSkills;
 
 /// <summary>
-/// Append-only history of a business skill's text. Each change to the skill text inserts a new
-/// entry; the entry with the highest <c>Entry No.</c> for a skill is always the current text.
+/// Append-only history of a business skill's content. Each change to the skill content inserts a new
+/// entry; the entry with the highest <c>Entry No.</c> for a skill is always the current content.
 /// </summary>
 /// <remarks>
 /// Entries are immutable once written. Older entries may be deleted from the history page, but the
-/// latest (current) entry cannot be deleted. Restoring an older entry re-inserts its text as a new
+/// latest (current) entry cannot be deleted. Restoring an older entry re-inserts its content as a new
 /// latest entry rather than mutating history.
 /// </remarks>
-table 4160 "Business Skill Text Version"
+table 4160 "Bus Skill Content Version"
 {
-    Caption = 'Business Skill Text Version';
+    Caption = 'Business Skill Content Version';
     DataPerCompany = false;
     ReplicateData = false;
     DataClassification = CustomerContent;
@@ -31,7 +31,7 @@ table 4160 "Business Skill Text Version"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
-            ToolTip = 'Specifies the unique identifier of the text version.';
+            ToolTip = 'Specifies the unique identifier of the content version.';
             DataClassification = SystemMetadata;
             AutoIncrement = true;
         }
@@ -41,23 +41,23 @@ table 4160 "Business Skill Text Version"
         field(2; "Skill ID"; BigInteger)
         {
             Caption = 'Skill ID';
-            ToolTip = 'Specifies the skill this text version belongs to.';
+            ToolTip = 'Specifies the skill this content version belongs to.';
             DataClassification = SystemMetadata;
             TableRelation = "Business Skill"."ID";
         }
         /// <summary>
-        /// Snapshot of the skill text for this version.
+        /// Snapshot of the skill content for this version.
         /// </summary>
-        field(3; "Skill Text"; Blob)
+        field(3; Content; Blob)
         {
-            Caption = 'Skill Text';
-            ToolTip = 'Specifies the immutable text captured in this version. Restoring it creates a new version.';
+            Caption = 'Content';
+            ToolTip = 'Specifies the immutable content captured in this version. Restoring it creates a new version.';
             DataClassification = CustomerContent;
         }
-        field(4; Version; Text[50])
+        field(4; "Content Version"; Text[50])
         {
-            Caption = 'Version';
-            ToolTip = 'Specifies the skill version when these instructions were recorded.';
+            Caption = 'Content Version';
+            ToolTip = 'Specifies the content version when these instructions were recorded.';
             DataClassification = CustomerContent;
         }
     }
@@ -80,40 +80,40 @@ table 4160 "Business Skill Text Version"
 
     trigger OnDelete()
     var
-        TextHistory: Codeunit "Business Skill Text History";
+        BusinessSkillContentHistory: Codeunit "Business Skill Content History";
     begin
-        TextHistory.VerifyCanDeleteVersion("Entry No.");
+        BusinessSkillContentHistory.VerifyCanDeleteVersion("Entry No.");
     end;
 
     /// <summary>
-    /// Writes the given text into the version's BLOB. Call before Insert.
+    /// Writes the given content into the version's BLOB. Call before Insert.
     /// </summary>
-    procedure SetText(NewText: SecretText)
+    procedure SetContent(NewContent: SecretText)
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
         OutStr: OutStream;
     begin
-        BusinessSkillImpl.ValidateLength(NewText);
-        Clear("Skill Text");
-        "Skill Text".CreateOutStream(OutStr, BusinessSkillImpl.GetEncoding());
-        BusinessSkillImpl.WriteText(OutStr, NewText);
+        BusinessSkillImpl.ValidateLength(NewContent);
+        Clear(Content);
+        Content.CreateOutStream(OutStr, BusinessSkillImpl.GetEncoding());
+        BusinessSkillImpl.WriteText(OutStr, NewContent);
     end;
 
     /// <summary>
-    /// Returns the version's text, preserving multiple lines.
+    /// Returns the version's content, preserving multiple lines.
     /// </summary>
-    procedure GetText(): SecretText
+    procedure GetContent(): SecretText
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
         InStr: InStream;
     begin
-        CalcFields("Skill Text");
-        if not "Skill Text".HasValue() then
+        CalcFields(Content);
+        if not Content.HasValue() then
             exit;
-        "Skill Text".CreateInStream(InStr, BusinessSkillImpl.GetEncoding());
+        Content.CreateInStream(InStr, BusinessSkillImpl.GetEncoding());
         exit(BusinessSkillImpl.ReadText(InStr));
     end;
 
     var
-        ImmutableErr: Label 'Business skill text versions are immutable.';
+        ImmutableErr: Label 'Business skill content versions are immutable.';
 }

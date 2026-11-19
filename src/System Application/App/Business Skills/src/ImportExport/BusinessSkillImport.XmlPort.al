@@ -40,13 +40,13 @@ xmlport 4161 "Business Skill Import"
                         MinOccurs = Zero;
                     }
                     fieldelement(SkillVersion; TempSkill.Version) { XmlName = 'Version'; MinOccurs = Zero; }
-                    textelement(SkillText) { TextType = BigText; }
+                    textelement(Content) { TextType = BigText; }
                     trigger OnBeforeInsertRecord()
                     begin
                         Port.ImportSkillElement(TempSkill, GetImportContent());
                         Clear(TempSkill.Description);
                         Clear(TempSkill.Version);
-                        Clear(SkillText);
+                        Clear(Content);
                     end;
                 }
             }
@@ -63,7 +63,7 @@ xmlport 4161 "Business Skill Import"
     var
         Value: Text;
     begin
-        SkillText.GetSubText(Value, 1, SkillText.Length());
+        Content.GetSubText(Value, 1, Content.Length());
         exit(Value);
     end;
 

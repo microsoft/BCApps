@@ -13,46 +13,46 @@ codeunit 130055 "Library - Business Skill"
 {
     Access = Public;
     Permissions = tabledata "Business Skill" = rimd,
-                  tabledata "Business Skill Text Version" = rimd;
+                  tabledata "Bus Skill Content Version" = rimd;
 
     /// <summary>
     /// Deletes all skill history and skills. Use only in an isolated test environment.
     /// </summary>
     procedure DeleteAll()
     var
-        TextVersion: Record "Business Skill Text Version";
+        BusSkillContentVersion: Record "Bus Skill Content Version";
         Skill: Record "Business Skill";
     begin
-        TextVersion.DeleteAll(false);
+        BusSkillContentVersion.DeleteAll(false);
         Skill.DeleteAll(false);
     end;
 
     /// <summary>
-    /// Creates an active manual skill with initial text history.
+    /// Creates an active manual skill with initial content history.
     /// </summary>
-    procedure CreateSkill(Title: Text[250]; SkillText: SecretText): BigInteger
+    procedure CreateSkill(Title: Text[250]; SkillContent: SecretText): BigInteger
     begin
-        exit(CreateSkill(Title, '', SkillText));
+        exit(CreateSkill(Title, '', SkillContent));
     end;
 
     /// <summary>
     /// Creates an active manual skill with a description and initial content history.
     /// </summary>
-    procedure CreateSkill(Title: Text[250]; Description: Text[2048]; SkillText: SecretText): BigInteger
+    procedure CreateSkill(Title: Text[250]; Description: Text[2048]; SkillContent: SecretText): BigInteger
     var
         Builder: Codeunit "Business Skill Builder";
     begin
-        exit(Builder.Initialize('', Title, SkillText).SetManual(true).SetDescription(Description).SetActive(true).Create());
+        exit(Builder.Initialize('', Title, SkillContent).SetManual(true).SetDescription(Description).SetActive(true).Create());
     end;
 
     /// <summary>
     /// Creates an inactive skill owned by this test library rather than its caller.
     /// </summary>
-    procedure CreateAppOwnedSkill(SkillCode: Code[100]; Title: Text[250]; SkillText: SecretText): BigInteger
+    procedure CreateAppOwnedSkill(SkillCode: Code[100]; Title: Text[250]; SkillContent: SecretText): BigInteger
     var
         Builder: Codeunit "Business Skill Builder";
     begin
-        exit(Builder.Initialize(SkillCode, Title, SkillText).Create());
+        exit(Builder.Initialize(SkillCode, Title, SkillContent).Create());
     end;
 
     /// <summary>

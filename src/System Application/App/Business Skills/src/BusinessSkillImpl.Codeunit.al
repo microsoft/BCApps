@@ -10,7 +10,7 @@ using System.Agents;
 
 /// <summary>
 /// Governs skill creation, content updates and lifecycle.
-/// Preserves text history and optimistic concurrency while sharing eligibility rules across native and API callers.
+/// Preserves content history and optimistic concurrency while sharing eligibility rules across native and API callers.
 /// </summary>
 /// <remarks>
 /// The platform table "Business Skill" stamps ownership, assigns manual skill identifiers and protects identity.
@@ -60,8 +60,8 @@ codeunit 4163 "Business Skill Impl."
                 Error(ReadOnlyErr);
         Skill.TestField(Version);
         if (Skill.Version <> StoredSkill.Version) and not IsManualSkill(Skill) then
-            if ContentEquals(GetSkillText(Skill, false), GetSkillText(StoredSkill)) then
-                Error(ProgrammaticVersionRequiresTextErr);
+            if ContentEquals(GetContent(Skill, false), GetContent(StoredSkill)) then
+                Error(ProgrammaticVersionRequiresContentErr);
         PreventReadOnlyManualSkill(Skill);
         ValidateContent(Skill, false, ActiveContentRequiredErr);
     end;
@@ -74,7 +74,7 @@ codeunit 4163 "Business Skill Impl."
     /// <summary>
     /// Returns whether the native manual editor can change the skill's instructions and version.
     /// </summary>
-    procedure CanEditSkillText(Skill: Record "Business Skill"): Boolean
+    procedure CanEditContent(Skill: Record "Business Skill"): Boolean
     var
         AgentUtilities: Codeunit "Agent Utilities";
     begin
@@ -95,17 +95,17 @@ codeunit 4163 "Business Skill Impl."
     end;
 
     /// <summary>
-    /// Applies the version rules to a text change of a saved skill. A manual skill advances its version; a skill owned by an app
+    /// Applies the version rules to a content change of a saved skill. A manual skill advances its version; a skill owned by an app
     /// must already carry a new version supplied by the app.
     /// </summary>
-    procedure ValidateSkillTextChange(var Skill: Record "Business Skill"; NewText: SecretText)
+    procedure ValidateContentChange(var Skill: Record "Business Skill"; NewContent: SecretText)
     var
         StoredSkill: Record "Business Skill";
     begin
         if Skill.IsTemporary() or (Skill.ID = 0) then
             exit;
         StoredSkill.Get(Skill.ID);
-        if ContentEquals(GetSkillText(StoredSkill), NewText) then begin
+        if ContentEquals(GetContent(StoredSkill), NewContent) then begin
             if IsManualSkill(StoredSkill) then
                 Skill.Version := StoredSkill.Version;
             exit;
@@ -153,56 +153,56 @@ codeunit 4163 "Business Skill Impl."
     end;
 
     /// <summary>
-    /// Creates an inactive manual copy of a skill with the current text of the source skill. The copy gets a new skill ID
-    /// from the platform and starts its own text history at v1.0.
+    /// Creates an inactive manual copy of a skill with the current content of the source skill. The copy gets a new skill ID
+    /// from the platform and starts its own content history at v1.0.
     /// </summary>
     [CommitBehavior(CommitBehavior::Ignore)]
     procedure CopySkill(SkillId: BigInteger): BigInteger
     var
         SourceSkill: Record "Business Skill";
         Builder: Codeunit "Business Skill Builder";
-        SkillText: SecretText;
+        SkillContent: SecretText;
     begin
         SourceSkill.Get(SkillId);
-        SkillText := TextHistory.GetLatestText(SourceSkill);
-        exit(Builder.Initialize('', SourceSkill.Title, SkillText).SetManual(true).SetDescription(SourceSkill.Description).Create());
+        SkillContent := BusinessSkillContentHistory.GetLatestContent(SourceSkill);
+        exit(Builder.Initialize('', SourceSkill.Title, SkillContent).SetManual(true).SetDescription(SourceSkill.Description).Create());
     end;
 
-    procedure UpdateSkillRecord(SkillId: BigInteger; var SourceSkill: Record "Business Skill"; SkillText: SecretText): Boolean
+    procedure UpdateSkillRecord(SkillId: BigInteger; var SourceSkill: Record "Business Skill"; SkillContent: SecretText): Boolean
     var
         BusinessSkill: Record "Business Skill";
     begin
         BusinessSkill.Get(SkillId);
         VerifySkillRevision(BusinessSkill, SourceSkill.SystemId, SourceSkill.SystemRowVersion);
-        exit(UpdateSkill(BusinessSkill, SourceSkill.Title, SourceSkill.Description, SkillText, SourceSkill.Version));
+        exit(UpdateSkill(BusinessSkill, SourceSkill.Title, SourceSkill.Description, SkillContent, SourceSkill.Version));
     end;
 
-    procedure UpdateSkill(SkillId: BigInteger; Title: Text[250]; SkillText: SecretText): Boolean
+    procedure UpdateSkill(SkillId: BigInteger; Title: Text[250]; SkillContent: SecretText): Boolean
     var
         BusinessSkill: Record "Business Skill";
     begin
         BusinessSkill.Get(SkillId);
-        exit(UpdateSkill(BusinessSkill, Title, SkillText));
+        exit(UpdateSkill(BusinessSkill, Title, SkillContent));
     end;
 
-    local procedure UpdateSkill(var BusinessSkill: Record "Business Skill"; Title: Text[250]; SkillText: SecretText): Boolean
+    local procedure UpdateSkill(var BusinessSkill: Record "Business Skill"; Title: Text[250]; SkillContent: SecretText): Boolean
     begin
-        exit(UpdateSkill(BusinessSkill, Title, BusinessSkill.Description, SkillText));
+        exit(UpdateSkill(BusinessSkill, Title, BusinessSkill.Description, SkillContent));
     end;
 
-    local procedure UpdateSkill(var BusinessSkill: Record "Business Skill"; Title: Text[250]; Description: Text[2048]; SkillText: SecretText): Boolean
+    local procedure UpdateSkill(var BusinessSkill: Record "Business Skill"; Title: Text[250]; Description: Text[2048]; SkillContent: SecretText): Boolean
     begin
-        exit(UpdateSkill(BusinessSkill, Title, Description, SkillText, BusinessSkill.Version));
+        exit(UpdateSkill(BusinessSkill, Title, Description, SkillContent, BusinessSkill.Version));
     end;
 
-    local procedure UpdateSkill(var BusinessSkill: Record "Business Skill"; Title: Text[250]; Description: Text[2048]; SkillText: SecretText; SkillVersion: Text[50]): Boolean
+    local procedure UpdateSkill(var BusinessSkill: Record "Business Skill"; Title: Text[250]; Description: Text[2048]; SkillContent: SecretText; SkillVersion: Text[50]): Boolean
     var
-        TextChanged: Boolean;
+        ContentChanged: Boolean;
         VersionChanged: Boolean;
     begin
-        TextChanged := not ContentEquals(GetSkillText(BusinessSkill), SkillText);
+        ContentChanged := not ContentEquals(GetContent(BusinessSkill), SkillContent);
         VersionChanged := BusinessSkill.Version <> SkillVersion;
-        if (BusinessSkill.Title = Title) and (BusinessSkill.Description = Description) and not TextChanged and not VersionChanged then
+        if (BusinessSkill.Title = Title) and (BusinessSkill.Description = Description) and not ContentChanged and not VersionChanged then
             exit(true);
         if VersionChanged then begin
             BusinessSkill.Version := SkillVersion;
@@ -210,14 +210,14 @@ codeunit 4163 "Business Skill Impl."
         end;
         BusinessSkill.Title := Title;
         BusinessSkill.Description := Description;
-        if TextChanged then
-            SetSkillText(BusinessSkill, SkillText);
+        if ContentChanged then
+            SetContent(BusinessSkill, SkillContent);
         if VersionChanged then
             BusinessSkill.Version := SkillVersion;
         ValidateSkillModify(BusinessSkill);
         BusinessSkill.Modify(true);
-        if TextChanged then
-            TextHistory.RecordTextVersion(BusinessSkill.ID, SkillText, BusinessSkill.Version);
+        if ContentChanged then
+            BusinessSkillContentHistory.RecordContentVersion(BusinessSkill.ID, SkillContent, BusinessSkill.Version);
         exit(true);
     end;
 
@@ -244,7 +244,7 @@ codeunit 4163 "Business Skill Impl."
 
     /// <summary>
     /// Deletes an inactive skill. The platform does not check deletes, so the delete rules are enforced here.
-    /// The text history of the skill is removed when the platform reports the delete.
+    /// The content history of the skill is removed when the platform reports the delete.
     /// </summary>
     procedure DeleteSkill(SkillId: BigInteger)
     var
@@ -313,43 +313,43 @@ codeunit 4163 "Business Skill Impl."
         exit(false);
     end;
 
-    procedure SetSkillText(SkillId: BigInteger; SkillText: SecretText)
+    procedure SetContent(SkillId: BigInteger; SkillContent: SecretText)
     var
         BusinessSkill: Record "Business Skill";
     begin
         BusinessSkill.Get(SkillId);
-        UpdateSkill(BusinessSkill, BusinessSkill.Title, SkillText);
+        UpdateSkill(BusinessSkill, BusinessSkill.Title, SkillContent);
     end;
 
-    procedure SetSkillText(SkillId: BigInteger; SkillText: SecretText; ExpectedSystemId: Guid; ExpectedRevision: BigInteger)
+    procedure SetContent(SkillId: BigInteger; SkillContent: SecretText; ExpectedSystemId: Guid; ExpectedRevision: BigInteger)
     var
         BusinessSkill: Record "Business Skill";
     begin
         BusinessSkill.Get(SkillId);
         BusinessSkill.TestField(Manual, true);
         VerifySkillRevision(BusinessSkill, ExpectedSystemId, ExpectedRevision);
-        UpdateSkill(BusinessSkill, BusinessSkill.Title, SkillText);
+        UpdateSkill(BusinessSkill, BusinessSkill.Title, SkillContent);
     end;
 
     /// <summary>
-    /// Changes the text of a skill owned by an app together with the new version supplied by the app.
+    /// Changes the content of a skill owned by an app together with the new version supplied by the app.
     /// </summary>
-    procedure SetSkillText(SkillId: BigInteger; SkillText: SecretText; NewVersion: Text[50])
+    procedure SetContent(SkillId: BigInteger; SkillContent: SecretText; NewVersion: Text[50])
     var
         BusinessSkill: Record "Business Skill";
-        TextChanged: Boolean;
+        ContentChanged: Boolean;
     begin
         BusinessSkill.Get(SkillId);
-        TextChanged := not ContentEquals(GetSkillText(BusinessSkill), SkillText);
-        if not TextChanged and (BusinessSkill.Version = NewVersion) then
+        ContentChanged := not ContentEquals(GetContent(BusinessSkill), SkillContent);
+        if not ContentChanged and (BusinessSkill.Version = NewVersion) then
             exit;
         BusinessSkill.Version := NewVersion;
-        if TextChanged then
-            SetSkillText(BusinessSkill, SkillText);
+        if ContentChanged then
+            SetContent(BusinessSkill, SkillContent);
         ValidateSkillModify(BusinessSkill);
         BusinessSkill.Modify(true);
-        if TextChanged then
-            TextHistory.RecordTextVersion(BusinessSkill.ID, SkillText, BusinessSkill.Version);
+        if ContentChanged then
+            BusinessSkillContentHistory.RecordContentVersion(BusinessSkill.ID, SkillContent, BusinessSkill.Version);
     end;
 
     /// <summary>
@@ -364,7 +364,7 @@ codeunit 4163 "Business Skill Impl."
         Skill.SetRange(Manual, false);
         if not Skill.FindFirst() then
             Error(AppSkillNotFoundErr);
-        SetSkillText(Skill.ID, Content, ContentVersion);
+        SetContent(Skill.ID, Content, ContentVersion);
     end;
 
     /// <summary>
@@ -389,7 +389,7 @@ codeunit 4163 "Business Skill Impl."
     var
         Value: SecretText;
     begin
-        Value := GetSkillText(Skill, LoadFromDatabase);
+        Value := GetContent(Skill, LoadFromDatabase);
         ValidateLength(Value);
         if (Skill.Status = Skill.Status::Active) and ((Skill.Title.Trim() = '') or IsBlank(Value)) then
             Error(ErrorMessage);
@@ -405,15 +405,15 @@ codeunit 4163 "Business Skill Impl."
     /// <summary>
     /// Returns the instructions of the skill, loaded from the database.
     /// </summary>
-    procedure GetSkillText(var Skill: Record "Business Skill"): SecretText
+    procedure GetContent(var Skill: Record "Business Skill"): SecretText
     begin
-        exit(GetSkillText(Skill, true));
+        exit(GetContent(Skill, true));
     end;
 
     /// <summary>
     /// Returns the instructions of the skill. Without loading, the value already on the record is returned.
     /// </summary>
-    procedure GetSkillText(var Skill: Record "Business Skill"; LoadFromDatabase: Boolean): SecretText
+    procedure GetContent(var Skill: Record "Business Skill"; LoadFromDatabase: Boolean): SecretText
     var
         Input: InStream;
     begin
@@ -428,12 +428,12 @@ codeunit 4163 "Business Skill Impl."
     /// <summary>
     /// Sets instructions without saving the record, applying manual or app-owned version rules.
     /// </summary>
-    procedure SetSkillText(var Skill: Record "Business Skill"; Value: SecretText)
+    procedure SetContent(var Skill: Record "Business Skill"; Value: SecretText)
     var
         Output: OutStream;
     begin
         ValidateLength(Value);
-        ValidateSkillTextChange(Skill, Value);
+        ValidateContentChange(Skill, Value);
         Clear(Skill."Skill Text");
         Skill."Skill Text".CreateOutStream(Output, GetEncoding());
         WriteText(Output, Value);
@@ -483,7 +483,7 @@ codeunit 4163 "Business Skill Impl."
     procedure ValidateLength(Value: SecretText)
     begin
         if StrLen(Value.Unwrap()) > GetMaxLength() then
-            Error(TextTooLongErr, Format(GetMaxLength(), 0, 9));
+            Error(ContentTooLongErr, Format(GetMaxLength(), 0, 9));
     end;
 
     /// <summary>
@@ -525,16 +525,16 @@ codeunit 4163 "Business Skill Impl."
     end;
 
     var
-        TextHistory: Codeunit "Business Skill Text History";
-        TextTooLongErr: Label 'Skill text must not exceed %1 characters.', Comment = '%1 = maximum text length';
-        ActivationContentRequiredErr: Label 'A skill needs a title and skill text before it can be activated.';
-        ActiveContentRequiredErr: Label 'An active skill needs a title and skill text.';
+        BusinessSkillContentHistory: Codeunit "Business Skill Content History";
+        ContentTooLongErr: Label 'Skill content must not exceed %1 characters.', Comment = '%1 = maximum content length';
+        ActivationContentRequiredErr: Label 'A skill needs a title and skill content before it can be activated.';
+        ActiveContentRequiredErr: Label 'An active skill needs a title and skill content.';
         SkillChangedErr: Label 'This skill was changed by another user. Refresh it before saving your changes.';
         ReadOnlyErr: Label 'The instructions and version of this skill are read-only. Create an editable copy to change them.';
         ManualReadOnlyErr: Label 'A manually owned skill cannot be read-only.';
         ManualVersionOnlyErr: Label 'Only manually owned skills can change the version directly.';
-        ProgrammaticVersionRequiredErr: Label 'Specify a new version when you change the text of an app-owned skill.';
-        ProgrammaticVersionRequiresTextErr: Label 'The version of an app-owned skill can change only together with its text.';
+        ProgrammaticVersionRequiredErr: Label 'Specify a new version when you change the content of an app-owned skill.';
+        ProgrammaticVersionRequiresContentErr: Label 'The version of an app-owned skill can change only together with its content.';
         DeleteActiveSkillErr: Label 'Deactivate the skill before you delete it.';
         DeleteInstalledOwnerErr: Label 'You cannot delete this skill because its owning extension, ''%1'', is still installed. Uninstall the extension to delete the skill, or deactivate the skill to stop it being used.', Comment = '%1 = name of the installed extension that owns the skill';
         DeleteNotAllowedErr: Label 'You do not have permission to delete this skill.';

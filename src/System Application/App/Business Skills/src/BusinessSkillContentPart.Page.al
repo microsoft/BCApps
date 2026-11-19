@@ -9,12 +9,12 @@ namespace System.AI.BusinessSkills;
 /// Hosts the native Markdown field for a business skill's instructions.
 /// Editable only for a saved skill the caller may maintain; otherwise read-only, including previews.
 /// </summary>
-page 4163 "Business Skill Text Part"
+page 4163 "Business Skill Content Part"
 {
     PageType = CardPart;
     Extensible = false;
     ApplicationArea = All;
-    Caption = 'Business Skill Text';
+    Caption = 'Business Skill Content';
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -22,14 +22,14 @@ page 4163 "Business Skill Text Part"
     {
         area(Content)
         {
-            group(SkillTextGroup)
+            group(SkillContentGroup)
             {
                 ShowCaption = false;
-                field(SkillText; SkillTextValue)
+                field(SkillContent; SkillContentValue)
                 {
                     ShowCaption = false;
                     ApplicationArea = All;
-                    Caption = 'Skill text';
+                    Caption = 'Skill content';
                     ToolTip = 'Specifies the skill instructions. Use visual formatting or edit the Markdown source.';
                     ExtendedDatatype = Markdown;
                     MultiLine = true;
@@ -42,7 +42,7 @@ page 4163 "Business Skill Text Part"
                     begin
                         if IsReadOnly or not CurrPage.Editable() or (SkillId = 0) then
                             Error(ReadOnlyModeErr);
-                        BusinessSkillImpl.SetSkillText(SkillId, SkillTextValue, SkillSystemId, SkillRevision);
+                        BusinessSkillImpl.SetContent(SkillId, SkillContentValue, SkillSystemId, SkillRevision);
                         Skill.Get(SkillId);
                         SkillRevision := Skill.SystemRowVersion;
                         LoadSkillSnapshot();
@@ -60,48 +60,48 @@ page 4163 "Business Skill Text Part"
             {
                 ApplicationArea = All;
                 Caption = 'View history';
-                ToolTip = 'View earlier versions of the skill text and restore one if needed.';
+                ToolTip = 'View earlier versions of the skill content and restore one if needed.';
                 Image = History;
                 Visible = SkillId <> 0;
 
                 trigger OnAction()
                 var
-                    TextVersions: Page "Business Skill Text Versions";
+                    BusSkillContentVersions: Page "Bus Skill Content Versions";
                 begin
-                    TextVersions.SetSkillId(SkillId);
+                    BusSkillContentVersions.SetSkillId(SkillId);
                     Commit();
-                    TextVersions.RunModal();
-                    if TextVersions.GetRestored() then begin
+                    BusSkillContentVersions.RunModal();
+                    if BusSkillContentVersions.GetRestored() then begin
                         LoadSkillSnapshot();
                         CurrPage.Update(false);
                     end;
                 end;
             }
-            action(DownloadText)
+            action(DownloadContent)
             {
                 ApplicationArea = All;
-                Caption = 'Download text';
-                ToolTip = 'Download the current skill text to a text file.';
+                Caption = 'Download content';
+                ToolTip = 'Download the current skill content to a text file.';
                 Image = Export;
                 Visible = SkillId <> 0;
 
                 trigger OnAction()
                 var
-                    TextVersion: Record "Business Skill Text Version";
-                    TextHistory: Codeunit "Business Skill Text History";
+                    BusSkillContentVersion: Record "Bus Skill Content Version";
+                    BusinessSkillContentHistory: Codeunit "Business Skill Content History";
                 begin
-                    TextVersion.SetCurrentKey("Skill ID", "Entry No.");
-                    TextVersion.SetRange("Skill ID", SkillId);
-                    TextVersion.Ascending(false);
-                    if TextVersion.FindFirst() then
-                        TextHistory.DownloadVersion(TextVersion);
+                    BusSkillContentVersion.SetCurrentKey("Skill ID", "Entry No.");
+                    BusSkillContentVersion.SetRange("Skill ID", SkillId);
+                    BusSkillContentVersion.Ascending(false);
+                    if BusSkillContentVersion.FindFirst() then
+                        BusinessSkillContentHistory.DownloadVersion(BusSkillContentVersion);
                 end;
             }
         }
     }
 
     /// <summary>
-    /// Binds the part to a saved skill and loads its current text. A zero ID renders read-only.
+    /// Binds the part to a saved skill and loads its current content. A zero ID renders read-only.
     /// </summary>
     procedure SetSkillId(NewSkillId: BigInteger; AllowEdit: Boolean)
     var
@@ -109,7 +109,7 @@ page 4163 "Business Skill Text Part"
     begin
         IsReadOnly := not AllowEdit;
         if Skill.Get(NewSkillId) then
-            IsReadOnly := IsReadOnly or not BusinessSkillImpl.CanEditSkillText(Skill)
+            IsReadOnly := IsReadOnly or not BusinessSkillImpl.CanEditContent(Skill)
         else
             IsReadOnly := true;
         if (SkillId = NewSkillId) and (SkillId <> 0) then
@@ -124,14 +124,14 @@ page 4163 "Business Skill Text Part"
     end;
 
     /// <summary>
-    /// Displays arbitrary read-only text (used to preview a historic version).
+    /// Displays arbitrary read-only content (used to preview a historic version).
     /// </summary>
     [NonDebuggable]
-    procedure SetReadOnlyText(NewText: SecretText)
+    procedure SetReadOnlyContent(NewContent: SecretText)
     begin
         SkillId := 0;
         IsReadOnly := true;
-        SkillTextValue := NewText.Unwrap();
+        SkillContentValue := NewContent.Unwrap();
         CurrPage.Update(false);
     end;
 
@@ -142,11 +142,11 @@ page 4163 "Business Skill Text Part"
     begin
         Clear(SkillSystemId);
         Clear(SkillRevision);
-        Clear(SkillTextValue);
+        Clear(SkillContentValue);
         if Skill.Get(SkillId) then begin
             SkillSystemId := Skill.SystemId;
             SkillRevision := Skill.SystemRowVersion;
-            SkillTextValue := BusinessSkillImpl.GetSkillText(Skill).Unwrap();
+            SkillContentValue := BusinessSkillImpl.GetContent(Skill).Unwrap();
         end;
     end;
 
@@ -156,7 +156,7 @@ page 4163 "Business Skill Text Part"
         SkillSystemId: Guid;
         SkillRevision: BigInteger;
         [NonDebuggable]
-        SkillTextValue: Text;
+        SkillContentValue: Text;
         IsReadOnly: Boolean;
-        ReadOnlyModeErr: Label 'This skill text is read-only.';
+        ReadOnlyModeErr: Label 'This skill content is read-only.';
 }

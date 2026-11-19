@@ -42,7 +42,7 @@ page 4161 "Business Skill Card"
 
                     trigger OnValidate()
                     begin
-                        InitializeSkillTextEditor();
+                        InitializeSkillContentEditor();
                     end;
                 }
                 field(Description; Rec.Description)
@@ -52,7 +52,7 @@ page 4161 "Business Skill Card"
 
                     trigger OnValidate()
                     begin
-                        InitializeSkillTextEditor();
+                        InitializeSkillContentEditor();
                     end;
                 }
                 field("Status"; Rec."Status")
@@ -72,13 +72,13 @@ page 4161 "Business Skill Card"
 
                     trigger OnValidate()
                     begin
-                        InitializeSkillTextEditor();
+                        InitializeSkillContentEditor();
                     end;
                 }
             }
-            part(SkillTextEditor; "Business Skill Text Part")
+            part(SkillContentEditor; "Business Skill Content Part")
             {
-                Caption = 'Skill text';
+                Caption = 'Skill content';
                 UpdatePropagation = Both;
             }
         }
@@ -115,7 +115,7 @@ page 4161 "Business Skill Card"
                     BusinessSkillImpl.DeactivateSkill(Rec.ID);
                     Rec.Get(Rec.ID);
                     UpdateEditorState();
-                    CurrPage.SkillTextEditor.Page.RefreshSkill();
+                    CurrPage.SkillContentEditor.Page.RefreshSkill();
                     CurrPage.Update(false);
                 end;
             }
@@ -193,14 +193,14 @@ page 4161 "Business Skill Card"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateEditorState();
-        CurrPage.SkillTextEditor.Page.SetSkillId(Rec.ID, CurrPage.Editable() and CanEditContent);
+        CurrPage.SkillContentEditor.Page.SetSkillId(Rec.ID, CurrPage.Editable() and CanEditContent);
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     var
         Builder: Codeunit "Business Skill Builder";
     begin
-        Builder.Initialize('', Rec.Title, BusinessSkillImpl.GetSkillText(Rec, false))
+        Builder.Initialize('', Rec.Title, BusinessSkillImpl.GetContent(Rec, false))
             .SetManual(true)
             .SetDescription(Rec.Description)
             .SetContentLocked(Rec."Read-Only")
@@ -214,12 +214,12 @@ page 4161 "Business Skill Card"
 
     trigger OnModifyRecord(): Boolean
     begin
-        // The UI owns an optimistic snapshot and a separate text control. Save both atomically,
+        // The UI owns an optimistic snapshot and a separate content control. Save both atomically,
         // including no-op detection, rather than issuing a second native modify of the stale buffer.
-        BusinessSkillImpl.UpdateSkillRecord(Rec.ID, Rec, BusinessSkillImpl.GetSkillText(Rec));
+        BusinessSkillImpl.UpdateSkillRecord(Rec.ID, Rec, BusinessSkillImpl.GetContent(Rec));
         Rec.Get(Rec.ID);
         Rec.SetAutoCalcFields("Skill Text");
-        CurrPage.SkillTextEditor.Page.RefreshSkill();
+        CurrPage.SkillContentEditor.Page.RefreshSkill();
         exit(false);
     end;
 
@@ -246,15 +246,15 @@ page 4161 "Business Skill Card"
         BusinessSkillImpl.ActivateSkill(Rec.ID);
         Rec.Get(Rec.ID);
         UpdateEditorState();
-        CurrPage.SkillTextEditor.Page.RefreshSkill();
+        CurrPage.SkillContentEditor.Page.RefreshSkill();
         CurrPage.Update(false);
     end;
 
-    local procedure InitializeSkillTextEditor()
+    local procedure InitializeSkillContentEditor()
     begin
         CurrPage.SaveRecord();
         UpdateEditorState();
-        CurrPage.SkillTextEditor.Page.SetSkillId(Rec.ID, CurrPage.Editable() and CanEditContent);
+        CurrPage.SkillContentEditor.Page.SetSkillId(Rec.ID, CurrPage.Editable() and CanEditContent);
         CurrPage.Update(false);
     end;
 
@@ -269,7 +269,7 @@ page 4161 "Business Skill Card"
         else
             CanMaintainSkill := BusinessSkillImpl.SkillExists(Rec.ID);
         CanMaintainSkill := CanMaintainSkill and AgentUtilities.CanCurrentUserManageBusinessSkills();
-        CanEditContent := CanMaintainSkill and BusinessSkillImpl.CanEditSkillText(Rec);
+        CanEditContent := CanMaintainSkill and BusinessSkillImpl.CanEditContent(Rec);
         CanEditVersion := CanEditContent;
         CanExport := HasSavedSkill and BusinessSkillImpl.IsManualSkill(Rec);
     end;

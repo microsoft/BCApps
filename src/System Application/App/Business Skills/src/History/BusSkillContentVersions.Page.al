@@ -8,16 +8,16 @@ namespace System.AI.BusinessSkills;
 using System.Security.AccessControl;
 
 /// <summary>
-/// Read-only history of a business skill's text. Lets the user preview earlier versions, restore one
-/// as the current text, download or delete versions. The latest (current) version cannot be deleted.
+/// Read-only history of a business skill's content. Lets the user preview earlier versions, restore one
+/// as the current content, download or delete versions. The latest (current) version cannot be deleted.
 /// </summary>
-page 4162 "Business Skill Text Versions"
+page 4162 "Bus Skill Content Versions"
 {
     ApplicationArea = All;
     PageType = Worksheet;
     LinksAllowed = false;
-    Caption = 'Business Skill Text History';
-    SourceTable = "Business Skill Text Version";
+    Caption = 'Business Skill Content History';
+    SourceTable = "Bus Skill Content Version";
     Extensible = false;
     InsertAllowed = false;
     ModifyAllowed = false;
@@ -38,7 +38,7 @@ page 4162 "Business Skill Text Versions"
 
                 repeater(Versions)
                 {
-                    field(Version; Rec.Version)
+                    field(ContentVersion; Rec."Content Version")
                     {
                         StyleExpr = StyleExpression;
                     }
@@ -57,19 +57,19 @@ page 4162 "Business Skill Text Versions"
                     field(IsCurrent; IsLatest)
                     {
                         Caption = 'Current';
-                        ToolTip = 'Specifies whether this is the current (latest) version of the skill text.';
+                        ToolTip = 'Specifies whether this is the current (latest) version of the skill content.';
                         StyleExpr = StyleExpression;
                     }
                 }
-                group(TextGroup)
+                group(ContentGroup)
                 {
                     ShowCaption = false;
 
-                    part(TextPreview; "Business Skill Text Part")
+                    part(ContentPreview; "Business Skill Content Part")
                     {
                         ApplicationArea = All;
                         Editable = false;
-                        Caption = 'Skill text (read-only)';
+                        Caption = 'Skill content (read-only)';
                     }
                 }
             }
@@ -83,19 +83,19 @@ page 4162 "Business Skill Text Versions"
             {
                 ApplicationArea = All;
                 Caption = 'Set as current';
-                ToolTip = 'Restore this version as the current skill text.';
+                ToolTip = 'Restore this version as the current skill content.';
                 Image = Restore;
                 Enabled = CanRestore;
 
                 trigger OnAction()
                 var
-                    TextHistory: Codeunit "Business Skill Text History";
+                    BusinessSkillContentHistory: Codeunit "Business Skill Content History";
                 begin
                     if IsLatest then begin
                         CurrPage.Close();
                         exit;
                     end;
-                    TextHistory.RestoreVersion(Rec."Entry No.");
+                    BusinessSkillContentHistory.RestoreVersion(Rec."Entry No.");
                     Restored := true;
                     CurrPage.Close();
                 end;
@@ -109,9 +109,9 @@ page 4162 "Business Skill Text Versions"
 
                 trigger OnAction()
                 var
-                    TextHistory: Codeunit "Business Skill Text History";
+                    BusinessSkillContentHistory: Codeunit "Business Skill Content History";
                 begin
-                    TextHistory.DownloadVersion(Rec);
+                    BusinessSkillContentHistory.DownloadVersion(Rec);
                 end;
             }
             action(DeleteVersion)
@@ -124,11 +124,11 @@ page 4162 "Business Skill Text Versions"
 
                 trigger OnAction()
                 var
-                    TextHistory: Codeunit "Business Skill Text History";
+                    BusinessSkillContentHistory: Codeunit "Business Skill Content History";
                 begin
                     if not Confirm(DeleteConfirmQst) then
                         exit;
-                    TextHistory.DeleteVersion(Rec);
+                    BusinessSkillContentHistory.DeleteVersion(Rec);
                     CurrPage.Update(false);
                 end;
             }
@@ -164,16 +164,16 @@ page 4162 "Business Skill Text Versions"
     begin
         UpdateComputedFields();
         CanChange := (Rec."Entry No." <> 0) and not IsLatest and Skill.Get(Rec."Skill ID");
-        CanRestore := CanChange and BusinessSkillImpl.CanEditSkillText(Skill);
+        CanRestore := CanChange and BusinessSkillImpl.CanEditContent(Skill);
         if Rec."Entry No." <> xRec."Entry No." then
             UpdatePreview();
     end;
 
     local procedure UpdateComputedFields()
     var
-        TextHistory: Codeunit "Business Skill Text History";
+        BusinessSkillContentHistory: Codeunit "Business Skill Content History";
     begin
-        IsLatest := TextHistory.IsLatestVersion(Rec);
+        IsLatest := BusinessSkillContentHistory.IsLatestVersion(Rec);
         CreatedByName := GetUserName(Rec.SystemCreatedBy);
         if IsLatest then
             StyleExpression := 'Strong'
@@ -183,7 +183,7 @@ page 4162 "Business Skill Text Versions"
 
     local procedure UpdatePreview()
     begin
-        CurrPage.TextPreview.Page.SetReadOnlyText(Rec.GetText());
+        CurrPage.ContentPreview.Page.SetReadOnlyContent(Rec.GetContent());
     end;
 
     local procedure GetUserName(UserSecId: Guid): Text
@@ -222,5 +222,5 @@ page 4162 "Business Skill Text Versions"
         Restored: Boolean;
         StyleExpression: Text;
         CreatedByName: Text;
-        DeleteConfirmQst: Label 'Delete the selected skill text version?';
+        DeleteConfirmQst: Label 'Delete the selected skill content version?';
 }

@@ -100,13 +100,13 @@ codeunit 4167 "Business Skill Port"
         exit(StrSubstNo(ImportSummaryLbl, SkillsCreated));
     end;
 
-    internal procedure ImportSkillElement(var SourceSkill: Record "Business Skill"; SkillText: SecretText)
+    internal procedure ImportSkillElement(var SourceSkill: Record "Business Skill"; SkillContent: SecretText)
     var
         Builder: Codeunit "Business Skill Builder";
         SkillId: BigInteger;
     begin
         ValidateSkillReference(SourceSkill.ID);
-        Builder.Initialize('', SourceSkill.Title, SkillText).SetManual(true).SetDescription(SourceSkill.Description).SetActive(true);
+        Builder.Initialize('', SourceSkill.Title, SkillContent).SetManual(true).SetDescription(SourceSkill.Description).SetActive(true);
         if SourceSkill.Version <> '' then
             Builder.SetContentVersion(SourceSkill.Version);
         SkillId := Builder.Create();
