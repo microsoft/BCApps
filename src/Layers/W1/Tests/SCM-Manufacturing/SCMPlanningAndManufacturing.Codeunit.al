@@ -3490,6 +3490,7 @@ codeunit 137080 "SCM Planning And Manufacturing"
         DefaultLocation: Record Location;
         SourceLocation: Record Location;
         RequisitionLine: Record "Requisition Line";
+        PlanningComponent: Record "Planning Component";
         ProductionOrder: Record "Production Order";
         Observer: Codeunit "SCM Production Orders";
         SourceCode: Code[10];
@@ -3506,14 +3507,23 @@ codeunit 137080 "SCM Planning And Manufacturing"
             SourceCode := '';
             if Iteration = 1 then
                 SourceCode := SourceLocation.Code;
-            Observer.CreateDefaultLocationItem(Item, Component, Component."Flushing Method"::Forward);
-            Observer.PostDefaultLocationStock(Component."No.", SourceCode, 1);
+            CreateProdItemWithForwardFlushingComponent(Item, Component, 1);
             RequisitionLine.Reset();
             CreateRequisitionLine(RequisitionLine, Item."No.", 1);
             RequisitionLine.Validate("Location Code", SourceCode);
             RequisitionLine.Modify(true);
             RequisitionLine.SetRecFilter();
             LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Forward, false, true);
+            RequisitionLine.FindFirst();
+            PlanningComponent.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
+            PlanningComponent.SetRange("Worksheet Batch Name", RequisitionLine."Journal Batch Name");
+            PlanningComponent.SetRange("Worksheet Line No.", RequisitionLine."Line No.");
+            Assert.RecordCount(PlanningComponent, 1);
+            PlanningComponent.FindFirst();
+            PlanningComponent.TestField("Item No.", Component."No.");
+            PlanningComponent.TestField("Location Code", SourceCode);
+            PlanningComponent.TestField("Expected Quantity", 1);
+            Observer.PostDefaultLocationStock(Component."No.", SourceCode, 1);
             Observer.StartDefaultLocationCapture(DefaultLocation.Code, '');
             BindSubscription(Observer);
             // [WHEN] Planning carry-out creates released production supply.
