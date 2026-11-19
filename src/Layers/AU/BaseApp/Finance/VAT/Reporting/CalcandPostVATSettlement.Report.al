@@ -1076,6 +1076,7 @@ report 20 "Calc. and Post VAT Settlement"
                 SettlementVATEntry.SetRange("G/L Register No.", GLRegister."No.");
                 SettlementVATEntry.SetRange(Type, SettlementVATEntry.Type::Settlement);
                 SettlementVATEntry.FindLast();
+                SettlementVATEntry.TestField("Entry No.");
                 exit(SettlementVATEntry."Entry No.");
             end;
 

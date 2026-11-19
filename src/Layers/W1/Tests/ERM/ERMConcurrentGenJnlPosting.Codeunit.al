@@ -426,7 +426,9 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
         VATPostingSetup: Record "VAT Posting Setup";
+        ExcludedVATPostingSetup: Record "VAT Posting Setup";
         VATEntry: Record "VAT Entry";
+        ExcludedVATEntry: Record "VAT Entry";
         SettlementVATEntry: Record "VAT Entry";
         CalcandPostVATSettlement: Report "Calc. and Post VAT Settlement";
         ERMConcurrentGenJnlPosting: Codeunit "ERM Concurrent Gen.Jnl.Posting";
@@ -459,6 +461,25 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         VATEntry.SetRange(Closed, false);
         VATEntry.FindFirst();
 
+        // [GIVEN] An open VAT entry from a different posting setup is deliberately excluded by the report filter.
+        LibraryERM.CreateVATPostingSetupWithAccounts(ExcludedVATPostingSetup, VATCalculationType, 20);
+        if VATCalculationType = VATCalculationType::"Reverse Charge VAT" then begin
+            ExcludedVATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+            ExcludedVATPostingSetup.Modify(true);
+        end;
+        CreateGenJnlBatch(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine2WithBalAcc(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account",
+            LibraryERM.CreateGLAccountWithVATPostingSetup(ExcludedVATPostingSetup, GenPostingType),
+            GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNoWithDirectPosting(), 500);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        ExcludedVATEntry.SetRange("VAT Bus. Posting Group", ExcludedVATPostingSetup."VAT Bus. Posting Group");
+        ExcludedVATEntry.SetRange("VAT Prod. Posting Group", ExcludedVATPostingSetup."VAT Prod. Posting Group");
+        ExcludedVATEntry.SetRange(Type, GenPostingType);
+        ExcludedVATEntry.SetRange(Closed, false);
+        ExcludedVATEntry.FindFirst();
+
         // [GIVEN] Intervening VAT sequence reservations do not correspond to posted entries.
         LastVATEntryNo := SettlementVATEntry.GetLastEntryNo();
         ReservedVATEntryNo := SettlementVATEntry.GetNextEntryNo();
@@ -477,12 +498,17 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         UnbindSubscription(ERMConcurrentGenJnlPosting);
         LibraryReportDataset.LoadDataSetFile();
         VATEntry.Get(VATEntry."Entry No.");
+        ExcludedVATEntry.Get(ExcludedVATEntry."Entry No.");
+        AssertVATEntryPresenceInReport(VATEntry."Entry No.", true);
+        AssertVATEntryPresenceInReport(ExcludedVATEntry."Entry No.", false);
         SettlementVATEntry.SetFilter("Entry No.", '>%1', LastVATEntryNo);
 
         if PostSettlement then begin
             // [THEN] The input entry and report refer to an actual settlement entry, not a reserved number.
             ERMConcurrentGenJnlPosting.VerifyReservedSettlementVATEntryNoNotUsed();
             VATEntry.TestField(Closed, true);
+            ExcludedVATEntry.TestField(Closed, false);
+            ExcludedVATEntry.TestField("Closed by Entry No.", 0);
             SettlementVATEntry.SetRange("Document No.", SettlementDocNo);
             SettlementVATEntry.SetRange(Type, SettlementVATEntry.Type::Settlement);
             SettlementVATEntry.FindLast();
@@ -494,12 +520,24 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
             // [THEN] Preview leaves the input open and the sequence unchanged, and displays a simulated number.
             VATEntry.TestField(Closed, false);
             VATEntry.TestField("Closed by Entry No.", 0);
+            ExcludedVATEntry.TestField(Closed, false);
+            ExcludedVATEntry.TestField("Closed by Entry No.", 0);
             Assert.AreEqual(ReservedVATEntryNo + 1, SettlementVATEntry.GetNextEntryNo(), 'Preview must not allocate VAT entry numbers');
             SettlementVATEntry.SetRange("Document No.", SettlementDocNo);
             SettlementVATEntry.SetRange(Type, SettlementVATEntry.Type::Settlement);
             Assert.RecordIsEmpty(SettlementVATEntry);
             AssertSettlementVATEntryNoInReport(LastVATEntryNo + 1);
         end;
+    end;
+
+    local procedure AssertVATEntryPresenceInReport(VATEntryNo: Integer; ExpectedPresent: Boolean)
+    var
+        VATEntryPresenceErr: Label 'VAT entry %1 presence in the settlement report was unexpected.', Comment = '%1 = VAT entry number';
+    begin
+        Assert.AreEqual(
+            ExpectedPresent,
+            LibraryReportDataset.SearchForElementByValue('EntryNo_VATEntry', VATEntryNo),
+            StrSubstNo(VATEntryPresenceErr, VATEntryNo));
     end;
 
     local procedure AssertSettlementVATEntryNoInReport(ExpectedVATEntryNo: Integer)
@@ -779,7 +817,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         // [GIVEN] A sales invoice with an inventory item
         LibraryInventory.CreateItem(Item);
         LibrarySales.CreateSalesDocumentWithItem(
-          SalesHeader, SalesLine, SalesHeader."Document Type"::Invoice, '', Item."No.", LibraryRandom.RandInt(10), '', WorkDate());
+          SalesHeader, SalesLine, SalesHeader."Document Type"::Invoice, '', Item."No.", 1, '', WorkDate());
 
         // [WHEN] The invoice is posted
         LibrarySales.PostSalesDocument(SalesHeader, true, true);

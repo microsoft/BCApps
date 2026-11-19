@@ -266,8 +266,11 @@ codeunit 134388 "ERM Sales Tax"
         ReservedVATEntryNo: Integer;
         ReservedTransactionNo: Integer;
     begin
+        // [FEATURE] [Sales Tax] [Concurrent Posting]
         // [SCENARIO] Sales tax journal posting skips VAT entry and transaction numbers reserved by another allocation.
         Initialize();
+
+        // [GIVEN] Concurrent posting is enabled.
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup.Validate("Use Concurrent Posting", true);
         GeneralLedgerSetup.Modify(true);
@@ -295,8 +298,11 @@ codeunit 134388 "ERM Sales Tax"
         ExpectedVATEntryNo: Integer;
         ExpectedTransactionNo: Integer;
     begin
+        // [FEATURE] [Sales Tax] [Concurrent Posting]
         // [SCENARIO] Sales tax journal posting retains tail-based numbering when concurrent posting is disabled.
         Initialize();
+
+        // [GIVEN] Concurrent posting is disabled.
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup.Validate("Use Concurrent Posting", false);
         GeneralLedgerSetup.Modify(true);
