@@ -13,7 +13,7 @@ table 5610 "Adv. Bonus Depreciation Setup"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             DataClassification = CustomerContent;

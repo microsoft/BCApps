@@ -17,7 +17,7 @@ table 2583 "Dim Correction Entry Log"
         /// <summary>
         /// Reference to the parent dimension correction entry.
         /// </summary>
-        field(1; "Dimension Correction Entry No."; Integer)
+        field(1; "Dimension Correction Entry No."; BigInteger)
         {
             DataClassification = CustomerContent;
             TableRelation = "Dimension Correction"."Entry No.";
@@ -26,7 +26,7 @@ table 2583 "Dim Correction Entry Log"
         /// <summary>
         /// Starting entry number of the processed range.
         /// </summary>
-        field(2; "Start Entry No."; Integer)
+        field(2; "Start Entry No."; BigInteger)
         {
             DataClassification = CustomerContent;
             TableRelation = "Dimension Correction"."Entry No.";
@@ -35,7 +35,7 @@ table 2583 "Dim Correction Entry Log"
         /// <summary>
         /// Ending entry number of the processed range.
         /// </summary>
-        field(3; "End Entry No."; Integer)
+        field(3; "End Entry No."; BigInteger)
         {
             DataClassification = CustomerContent;
             TableRelation = "Dimension Correction"."Entry No.";

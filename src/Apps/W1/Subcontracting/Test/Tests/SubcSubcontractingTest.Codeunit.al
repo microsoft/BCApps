@@ -1412,6 +1412,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         RequisitionLine.FindFirst();
 
         Assert.AreEqual(ProductionOrder."No.", RequisitionLine."Prod. Order No.", 'Prod. Order No. has not found');
+        Assert.AreEqual(RequisitionLine."Ref. Order Type"::Purchase, RequisitionLine."Ref. Order Type",
+            'A new subcontracting suggestion should have a purchase reference type.');
+        Assert.AreEqual('', RequisitionLine."Ref. Order No.", 'A new suggestion should not reference a production or purchase order.');
+        Assert.AreEqual(0, RequisitionLine."Ref. Line No.", 'A new suggestion should not reference a supply line.');
+        Assert.AreEqual(ProductionOrder."No.", RequisitionLine."Prod. Order No.",
+            'The dedicated production order identity must remain available.');
 
         CarryOutActionMsgReq.SetReqWkshLine(RequisitionLine);
         CarryOutActionMsgReq.UseRequestPage(false);
@@ -2426,7 +2432,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcCalculateSubContract.RunModal();
         RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
-        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        RequisitionLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
         RequisitionLine.FindFirst();
         LibraryPurchase.CreateVendor(Vendor);
 
@@ -2486,7 +2494,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcCalculateSubContract.RunModal();
         RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
-        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        RequisitionLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
         RequisitionLine.FindFirst();
         RequisitionLine.Description := 'Description before vendor validation';
         RequisitionLine."Description 2" := 'Description 2 before validation';
@@ -2543,7 +2553,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcCalculateSubContract.RunModal();
         RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
-        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        RequisitionLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
         RequisitionLine.FindFirst();
         RequisitionLine."Operation No." := 'NOTFOUND';
         RequisitionLine.Description := 'Description before vendor validation';
@@ -2602,10 +2614,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcCalculateSubContract.RunModal();
         RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
-        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        RequisitionLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
         RequisitionLine.FindFirst();
         ProdOrderRoutingLine.Get(
-            RequisitionLine."Ref. Order Status", RequisitionLine."Ref. Order No.", RequisitionLine."Routing Reference No.",
+            ProdOrderRoutingLine.Status::Released, RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.",
             RequisitionLine."Routing No.", RequisitionLine."Operation No.");
         ProdOrderRoutingLine."Work Center No." := WorkCenter[1]."No.";
         ProdOrderRoutingLine.Description := 'Mismatched routing description';

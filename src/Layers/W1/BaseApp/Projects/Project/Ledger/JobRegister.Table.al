@@ -18,18 +18,18 @@ table 241 "Job Register"
 
     fields
     {
-        field(1; "No."; Integer)
+        field(1; "No."; BigInteger)
         {
             Caption = 'No.';
             ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
-        field(2; "From Entry No."; Integer)
+        field(2; "From Entry No."; BigInteger)
         {
             Caption = 'From Entry No.';
             ToolTip = 'Specifies the first item entry number in the register.';
             TableRelation = "Job Ledger Entry";
         }
-        field(3; "To Entry No."; Integer)
+        field(3; "To Entry No."; BigInteger)
         {
             Caption = 'To Entry No.';
             ToolTip = 'Specifies the entry number of the last entry line you included before you posted the entries in the journal.';
@@ -83,7 +83,8 @@ table 241 "Job Register"
     {
     }
 
-    procedure GetNextEntryNo(UseLegacyPosting: Boolean): Integer
+#pragma warning disable AS0024
+    procedure GetNextEntryNo(UseLegacyPosting: Boolean): BigInteger
     begin
         if not UseLegacyPosting then
             exit(GetNextEntryNo());
@@ -92,15 +93,16 @@ table 241 "Job Register"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Job Register", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
         exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Job Register"));
     end;
+#pragma warning restore AS0024
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Job Register", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
