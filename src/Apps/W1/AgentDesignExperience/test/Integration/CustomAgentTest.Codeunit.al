@@ -285,6 +285,7 @@ codeunit 133754 "Custom Agent Test"
         InstructionsLog: Record "Custom Agent Instructions Log";
         CustomAgentInstructions: Codeunit "Custom Agent Instructions";
         LineFeed: Char;
+        ExpectedInstructions: TextBuilder;
         Markdown: Text;
     begin
         Initialize();
@@ -295,39 +296,46 @@ codeunit 133754 "Custom Agent Test"
         CustomAgentSetup.SetInstructions('First paragraph' + Format(LineFeed) + 'Second paragraph');
         CustomAgentInstructions.MarkCurrentInstructionsAsReadOnly(CustomAgentSetup);
         Markdown := 'First paragraph' + Format(LineFeed) + Format(LineFeed) + 'Second paragraph';
+        ExpectedInstructions.AppendLine('First paragraph');
+        ExpectedInstructions.AppendLine();
+        ExpectedInstructions.Append('Second paragraph');
 
         CustomAgentSetup.SetInstructions(Markdown);
 
         Assert.AreEqual(2, InstructionsLog.Count(), 'A Markdown paragraph-break change must create a history entry.');
         InstructionsLog.SetRange("Instruction Version", CustomAgentSetup."Instructions Version");
         InstructionsLog.FindFirst();
-        Assert.AreEqual(Markdown, InstructionsLog.GetInstructions(), 'History must preserve the new paragraph break.');
+        Assert.AreEqual(ExpectedInstructions.ToText(), InstructionsLog.GetInstructions(), 'History must preserve the new paragraph break.');
+        InstructionsLog.SetRange("Instruction Version");
+        CustomAgentInstructions.MarkCurrentInstructionsAsReadOnly(CustomAgentSetup);
+
+        CustomAgentSetup.SetInstructions(Markdown);
+
+        Assert.AreEqual(2, InstructionsLog.Count(), 'Reading LF text with normalized line endings must not create duplicate history.');
     end;
 
     [Test]
-    procedure TestMarkdownEditorRejectsInvalidInstructions()
+    procedure TestMarkdownEditorRejectsEmptyInstructions()
     var
         CustomAgentSetup: Record "Custom Agent Setup";
         InstructionsEditor: Page "Agent Instruction Editor";
         Editor: TestPage "Agent Instruction Editor";
-        MaximumInstructions: Text;
+        Instructions: Text;
     begin
         Initialize();
-        MaximumInstructions := PadStr('x', 30000, 'x');
+        Instructions := GetMarkdownInstructions() + PadStr('x', 30001, 'x');
         InstructionsEditor.SetUserSecurityId(TestAgentId1);
         Editor.Trap();
         InstructionsEditor.Run();
-        Editor.InstructionsPart.InstructionsText.SetValue(MaximumInstructions);
+        Editor.InstructionsPart.InstructionsText.SetValue(Instructions);
         Commit();
 
-        asserterror Editor.InstructionsPart.InstructionsText.SetValue(MaximumInstructions + 'x');
-        Assert.ExpectedError(StrSubstNo('Instructions cannot exceed %1 characters.', 30000));
         asserterror Editor.InstructionsPart.InstructionsText.SetValue('   ');
         Assert.ExpectedError('Instructions cannot be empty.');
         Editor.Close();
 
         CustomAgentSetup.Get(TestAgentId1);
-        Assert.AreEqual(MaximumInstructions, CustomAgentSetup.GetInstructions(TestAgentId1), 'Rejected edits must not replace the last valid instructions.');
+        Assert.AreEqual(Instructions, CustomAgentSetup.GetInstructions(TestAgentId1), 'AL validation must not duplicate the control limit, and rejected empty edits must preserve the last valid instructions.');
     end;
 
     [Test]
@@ -544,16 +552,18 @@ codeunit 133754 "Custom Agent Test"
 
     local procedure GetMarkdownInstructions(): Text
     var
-        CarriageReturn: Char;
-        LineFeed: Char;
+        Instructions: TextBuilder;
     begin
-        CarriageReturn := 13;
-        LineFeed := 10;
-        exit('    Preserve <tag> & literal text' + Format(CarriageReturn) + Format(LineFeed) +
-            '# Instructions' + Format(LineFeed) + Format(LineFeed) +
-            '- Review **orders**' + Format(LineFeed) +
-            '```al' + Format(LineFeed) + 'Message(''<not-html> & text'');' + Format(LineFeed) +
-            '```' + Format(LineFeed) + 'Keep this hard break.  ' + Format(LineFeed) + 'Final instruction.  ');
+        Instructions.AppendLine('    Preserve <tag> & literal text');
+        Instructions.AppendLine('# Instructions');
+        Instructions.AppendLine();
+        Instructions.AppendLine('- Review **orders**');
+        Instructions.AppendLine('```al');
+        Instructions.AppendLine('Message(''<not-html> & text'');');
+        Instructions.AppendLine('```');
+        Instructions.AppendLine('Keep this hard break.  ');
+        Instructions.Append('Final instruction.  ');
+        exit(Instructions.ToText());
     end;
 
     [ModalPageHandler]

@@ -836,6 +836,7 @@ codeunit 133753 "Custom Agent Import Test"
     procedure TestImportBufferPreservesMarkdownFormatting()
     var
         TempAgentImportBuffer: Record "Agent Import Buffer" temporary;
+        ExpectedInstructions: TextBuilder;
         Instructions: Text;
         CarriageReturn: Char;
         LineFeed: Char;
@@ -845,13 +846,18 @@ codeunit 133753 "Custom Agent Import Test"
         Instructions := '    Preserve indentation <tag> & text' + Format(CarriageReturn) + Format(LineFeed) +
             '# Instructions' + Format(LineFeed) + Format(LineFeed) +
             'Keep this hard break.  ' + Format(LineFeed) + 'Final instruction.  ';
+        ExpectedInstructions.AppendLine('    Preserve indentation <tag> & text');
+        ExpectedInstructions.AppendLine('# Instructions');
+        ExpectedInstructions.AppendLine();
+        ExpectedInstructions.AppendLine('Keep this hard break.  ');
+        ExpectedInstructions.Append('Final instruction.  ');
         TempAgentImportBuffer."Entry No." := 1;
         TempAgentImportBuffer.SetInstructions(Instructions);
         TempAgentImportBuffer.Insert();
 
         TempAgentImportBuffer.Get(1);
 
-        Assert.AreEqual(Instructions, TempAgentImportBuffer.GetInstructions(), 'Import previews and imported instructions must retain Markdown whitespace and literal HTML-like text.');
+        Assert.AreEqual(ExpectedInstructions.ToText(), TempAgentImportBuffer.GetInstructions(), 'Text-stream reads must normalize line endings without trimming Markdown indentation, blank lines, or hard-break spaces.');
     end;
 
     local procedure AssertAgentOneInBuffer(var TempAgentImportBuffer: Record "Agent Import Buffer" temporary)

@@ -69,12 +69,10 @@ table 4352 "Custom Agent Instructions Log"
     var
         CustomAgentInstructions: Codeunit "Custom Agent Instructions";
         InstructionsInstream: InStream;
-        InstructionsText: Text;
     begin
         Rec.CalcFields(Instructions);
         Instructions.CreateInStream(InstructionsInstream, CustomAgentInstructions.GetDefaultEncoding());
-        InstructionsInstream.Read(InstructionsText);
-        exit(InstructionsText);
+        exit(CustomAgentInstructions.ReadInstructionsFromStream(InstructionsInstream));
     end;
 
     procedure SetInstructions(NewInstructions: Text)

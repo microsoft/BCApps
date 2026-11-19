@@ -250,9 +250,26 @@ codeunit 4352 "Custom Agent Instructions"
         CustomAgentInstructionsLog.Insert(true);
     end;
 
+    internal procedure ReadInstructionsFromStream(InstructionsInStream: InStream): Text
+    var
+        InstructionsBuilder: TextBuilder;
+        InstructionsLine: Text;
+    begin
+        while not InstructionsInStream.EOS() do begin
+            InstructionsInStream.ReadText(InstructionsLine);
+            InstructionsBuilder.Append(InstructionsLine);
+            if not InstructionsInStream.EOS() then
+                InstructionsBuilder.AppendLine();
+        end;
+
+        exit(InstructionsBuilder.ToText());
+    end;
+
     local procedure ShouldSaveInstructionsToLog(AgentUserSecurityId: Guid; CurrentInstructions: Text): Boolean
     var
         CustomAgentInstructionsLog: Record "Custom Agent Instructions Log";
+        TempBlob: Codeunit "Temp Blob";
+        InstructionsInStream: InStream;
     begin
         CustomAgentInstructionsLog.SetRange("User Security ID", AgentUserSecurityId);
         CustomAgentInstructionsLog.SetCurrentKey("User Security ID", SystemCreatedAt);
@@ -264,7 +281,8 @@ codeunit 4352 "Custom Agent Instructions"
             exit(true);
         end;
 
-        exit(CurrentInstructions <> CustomAgentInstructionsLog.GetInstructions());
+        CreateTextBlobStream(TempBlob, CurrentInstructions, InstructionsInStream);
+        exit(ReadInstructionsFromStream(InstructionsInStream) <> CustomAgentInstructionsLog.GetInstructions());
     end;
 
     procedure GetNextVersionNumber(var CustomAgentSetup: Record "Custom Agent Setup") NewInstructionsName: Text[100]

@@ -36,8 +36,6 @@ page 4394 "Custom Agent Markdown Part"
                             Error(ReadOnlyModeErr);
                         if InstructionsTxt.Trim() = '' then
                             Error(InstructionsCannotBeEmptyErr);
-                        if StrLen(InstructionsTxt) > 30000 then
-                            Error(InstructionsTooLongErr, 30000);
 
                         if not IsTemporary then
                             GlobalCustomAgentSetup.SetInstructions(InstructionsTxt);
@@ -183,5 +181,4 @@ page 4394 "Custom Agent Markdown Part"
         IsTemporary: Boolean;
         CurrPageCaption: Text;
         InstructionsCannotBeEmptyErr: Label 'Instructions cannot be empty.';
-        InstructionsTooLongErr: Label 'Instructions cannot exceed %1 characters.', Comment = '%1 = maximum instruction length';
 }

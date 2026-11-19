@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+#if not CLEAN30
 namespace System.Agents.Designer.CustomAgent;
 
 using System.Agents.Designer;
@@ -236,3 +237,4 @@ page 4353 "Custom Agent Instructions Part"
         PlaceholderLbl: Label 'Describe what the agent should do, define its tone, and outline any rules and guidelines it must follow';
         InstructionsCannotBeEmptyErr: Label 'Instructions cannot be empty.';
 }
+#endif
