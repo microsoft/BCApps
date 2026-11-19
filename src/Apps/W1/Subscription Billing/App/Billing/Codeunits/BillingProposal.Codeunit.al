@@ -386,8 +386,10 @@ codeunit 8062 "Billing Proposal"
             else
                 OnCheckSkipSubscriptionLineOnElse(ServiceCommitment, SkipServiceCommitment);
         end;
+        OnProcessServiceCommitmentOnAfterCheckSkipSubscriptionLine(ServiceCommitment, BillingTemplate, BillingDate, BillingToDate, SkipServiceCommitment);
         if not SkipServiceCommitment then begin
             CalculateBillingPeriod(ServiceCommitment, BillingDate, BillingToDate, BillingPeriodStart, BillingPeriodEnd);
+            OnProcessServiceCommitmentOnAfterCalculateBillingPeriod(ServiceCommitment, BillingTemplate, BillingDate, BillingToDate, BillingPeriodStart, BillingPeriodEnd);
             BillingLine.InitNewBillingLine();
             UpdateBillingLine(BillingLine, ServiceCommitment, BillingTemplate, BillingPeriodStart, BillingPeriodEnd);
         end;
@@ -451,6 +453,7 @@ codeunit 8062 "Billing Proposal"
         if NewBillingFromDate2 <= BillingLine."Billing to" then
             NewBillingFromDate2 := BillingLine."Billing to" + 1;
 
+        OnUpdateBillingLineOnAfterCalculateNextBillingFromDate(ServiceCommitment, BillingLine, BillingTemplate, BillingPeriodEnd, NewBillingFromDate2);
         NewBillingToDate2 := CalculateNextBillingToDateForServiceCommitment(ServiceCommitment, NewBillingFromDate2);
         if NewBillingToDate2 >= BillingPeriodEnd then
             NewBillingToDate2 := BillingPeriodEnd;
@@ -1164,6 +1167,21 @@ codeunit 8062 "Billing Proposal"
 
     [IntegrationEvent(false, false)]
     local procedure OnProcessSubscriptionLineOnAfterFilterUsageDataBilling(var UsageDataBilling: Record "Usage Data Billing"; SubscriptionLine: Record "Subscription Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnProcessServiceCommitmentOnAfterCheckSkipSubscriptionLine(var SubscriptionLine: Record "Subscription Line"; BillingTemplate: Record "Billing Template"; BillingDate: Date; BillingToDate: Date; var SkipSubscriptionLine: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnProcessServiceCommitmentOnAfterCalculateBillingPeriod(SubscriptionLine: Record "Subscription Line"; BillingTemplate: Record "Billing Template"; BillingDate: Date; BillingToDate: Date; var BillingPeriodStart: Date; var BillingPeriodEnd: Date)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateBillingLineOnAfterCalculateNextBillingFromDate(SubscriptionLine: Record "Subscription Line"; BillingLine: Record "Billing Line"; BillingTemplate: Record "Billing Template"; BillingPeriodEnd: Date; var NextBillingFromDate: Date)
     begin
     end;
 

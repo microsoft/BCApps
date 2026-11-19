@@ -2272,6 +2272,7 @@ table 8052 "Customer Subscription Contract"
         ServiceCommitment.SetRange("Subscription Contract No.", Rec."No.");
         ServiceCommitment.SetFilter("Subscription Contract Line No.", '<>%1', DeletedCustContractLineNo);
         ServiceCommitment.SetRange(Closed, false);
+        OnFindEarliestServiceCommitmentOnBeforeFindFirst(ServiceCommitment, Rec, DeletedCustContractLineNo);
         ServiceCommitmentFound := ServiceCommitment.FindFirst();
     end;
 
@@ -2580,6 +2581,11 @@ table 8052 "Customer Subscription Contract"
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterUpdateHarmonizedBillingFields(var CustomerSubscriptionContract: Record "Customer Subscription Contract")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFindEarliestServiceCommitmentOnBeforeFindFirst(var SubscriptionLine: Record "Subscription Line"; CustomerSubscriptionContract: Record "Customer Subscription Contract"; DeletedCustContractLineNo: Integer)
     begin
     end;
 
