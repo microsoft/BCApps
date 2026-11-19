@@ -17,7 +17,7 @@ using System.TestLibraries.Upgrade;
 using System.TestLibraries.Utilities;
 using System.Upgrade;
 
-codeunit 149549 "Filename Defaults Tests"
+codeunit 149550 "Filename Defaults Tests"
 {
     Subtype = Test;
     TestType = UnitTest;
