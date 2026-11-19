@@ -393,7 +393,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
         LibraryVariableStorage.Enqueue(Choice);
     end;
 
-    local procedure RunRefresh(ProductionOrder: Record "Production Order"; HideDialogs: Boolean)
+    local procedure RunRefresh(var ProductionOrder: Record "Production Order"; HideDialogs: Boolean)
     var
         OrderFilter: Record "Production Order";
         RefreshProductionOrder: Report "Refresh Production Order";

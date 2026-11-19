@@ -106,7 +106,7 @@ codeunit 137439 "Prod. Order Refresh Location"
         ProductionOrder.Modify(true);
     end;
 
-    local procedure RunRefresh(ProductionOrder: Record "Production Order"; HideDialogs: Boolean)
+    local procedure RunRefresh(var ProductionOrder: Record "Production Order"; HideDialogs: Boolean)
     var
         OrderFilter: Record "Production Order";
         RefreshProductionOrder: Report "Refresh Production Order";

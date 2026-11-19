@@ -3524,10 +3524,22 @@ codeunit 137080 "SCM Planning And Manufacturing"
             PlanningComponent.TestField("Location Code", SourceCode);
             PlanningComponent.TestField("Expected Quantity", 1);
             Observer.PostDefaultLocationStock(Component."No.", SourceCode, 1);
+            Component.SetRange("Location Filter", SourceCode);
+            Component.CalcFields(Inventory);
+            Component.TestField(Inventory, 1);
+            RequisitionLine.Validate("Accept Action Message", true);
+            RequisitionLine.Modify();
+            Assert.RecordCount(RequisitionLine, 1);
             Observer.StartDefaultLocationCapture(DefaultLocation.Code, '');
             BindSubscription(Observer);
             // [WHEN] Planning carry-out creates released production supply.
-            CreateProdOrdersFromPlanWorksheet(RequisitionLine, Enum::"Planning Create Prod. Order"::Released);
+            LibraryPlanning.CarryOutPlanWksh(
+                RequisitionLine,
+                Enum::"Planning Create Prod. Order"::Released.AsInteger(),
+                Enum::"Planning Create Purchase Order"::" ".AsInteger(),
+                Enum::"Planning Create Transfer Order"::" ".AsInteger(),
+                Enum::"Planning Create Assembly Order"::" ".AsInteger(),
+                '', '', '', '');
             UnbindSubscription(Observer);
             // [THEN] No setup-default validation occurs and supply and consumption retain the source location and quantity.
             Observer.AssertDefaultLocationCapture();
