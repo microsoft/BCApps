@@ -29,7 +29,9 @@ using System.Utilities;
 report 1322 "Standard Purchase - Order"
 {
     Caption = 'Purchase - Order';
+#if not CLEAN30
     DefaultRenderingLayout = "StandardPurchaseOrder.docx";
+#endif
     EnableHyperlinks = true;
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Purchase Header";
