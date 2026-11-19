@@ -68,9 +68,7 @@ table 10050 "Transmission IRIS"
             Error(CannotDeleteTransmissionErr);
 
         IRS1099FormDocHeader.SetRange("IRIS Transmission Document ID", Rec."Document ID");
-        IRS1099FormDocHeader.ModifyAll("IRIS Submission Status", Enum::"Transmission Status IRIS"::None);
-        IRS1099FormDocHeader.ModifyAll("IRIS Needs Correction", false);
-        IRS1099FormDocHeader.ModifyAll("Allow Correction", false);
+        IRS1099FormDocHeader.ModifyAll("IRIS Submission Status", Enum::"Transmission Status IRIS"::None, "IRIS Needs Correction", false, "Allow Correction", false);
         IRS1099FormDocHeader.ModifyAll("IRIS Transmission Document ID", 0);     // remove link to transmission - must be in the end
 
         ErrorInfo.SetRange("Transmission Document ID", Rec."Document ID");

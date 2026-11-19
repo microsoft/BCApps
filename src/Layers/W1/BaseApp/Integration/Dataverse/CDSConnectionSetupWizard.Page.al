@@ -542,7 +542,7 @@ page 7201 "CDS Connection Setup Wizard"
                 }
                 group(Control62)
                 {
-                    InstructionalText = 'Use the link below to go to AppSource and get the the Business Central Virtual Table app, so you can install it in your Dataverse environment. To refresh status after you install, click back and next.';
+                    InstructionalText = 'Use the link below to go to Marketplace and get the the Business Central Virtual Table app, so you can install it in your Dataverse environment. To refresh the status after you install, click Back and Next.';
                     ShowCaption = false;
 
                     field(InstallVirtualTableApp; VirtualTableAppInstallTxt)
@@ -551,7 +551,7 @@ page 7201 "CDS Connection Setup Wizard"
                         Editable = false;
                         ShowCaption = false;
                         Caption = ' ';
-                        ToolTip = 'Get the Business Central Virtual Table app from Microsoft AppSource.';
+                        ToolTip = 'Get the Business Central Virtual Table app from Microsoft Marketplace.';
 
                         trigger OnDrillDown()
                         begin

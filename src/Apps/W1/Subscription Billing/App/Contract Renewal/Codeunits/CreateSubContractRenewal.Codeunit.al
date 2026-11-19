@@ -332,14 +332,13 @@ codeunit 8002 "Create Sub. Contract Renewal"
             if ServiceCommitment."Billing Base Period" <> EmptyDateFormula then
                 SalesServiceCommitment.Validate("Billing Base Period", ServiceCommitment."Billing Base Period");
             SalesServiceCommitment."Calculation Base %" := ServiceCommitment."Calculation Base %";
-            if ServiceCommitment."Discount %" <> ServiceCommitment."Discount %" then
-                SalesServiceCommitment.Validate("Discount %", ServiceCommitment."Discount %");
             SalesServiceCommitment.Validate("Billing Rhythm", ServiceCommitment."Billing Rhythm");
             SalesServiceCommitment.Validate("Agreed Sub. Line Start Date", ContractRenewalLine."Agreed Sub. Line Start Date");
             SalesServiceCommitment."Extension Term" := ServiceCommitment."Extension Term";
             SalesServiceCommitment.Validate("Calculation Base Amount", ServiceCommitment."Calculation Base Amount");
             if SalesServiceCommitment.Price <> ServiceCommitment.Price then
                 SalesServiceCommitment.Validate(Price, ServiceCommitment.Price);
+            SalesServiceCommitment.Validate("Discount %", ServiceCommitment."Discount %");
             SalesServiceCommitment."Unit Cost" := ServiceCommitment."Unit Cost";
             SalesServiceCommitment."Unit Cost (LCY)" := ServiceCommitment."Unit Cost (LCY)";
             SalesServiceCommitment."Subscription Header No." := ContractRenewalLine."Subscription Header No.";

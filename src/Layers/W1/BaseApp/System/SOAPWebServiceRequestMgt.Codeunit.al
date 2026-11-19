@@ -35,6 +35,7 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         GlobalContentType: Text;
         GlobalSkipCheckHttps: Boolean;
         GlobalProgressDialogEnabled: Boolean;
+        GlobalUseDefaultCredentials: Boolean;
 
         BodyPathTxt: Label '/soap:Envelope/soap:Body', Locked = true;
         ContentTypeTxt: Label 'multipart/form-data; charset=utf-8', Locked = true;
@@ -50,6 +51,8 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         UsernameTokenNamepsaceTxt: Label 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText', Locked = true;
         InternalErr: Label 'The remote service has returned the following error message:\\';
         InvalidTokenFormatErr: Label 'The token must be in JWS or JWE Compact Serialization Format.';
+        InvalidUriErr: Label 'The URI is not valid.';
+        NonSecureUriErr: Label 'The URI is not secure.';
 
     [TryFunction]
     procedure SendRequestToWebService()
@@ -80,7 +83,7 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         HttpWebRequest.Method := 'POST';
         HttpWebRequest.KeepAlive := true;
         HttpWebRequest.AllowAutoRedirect := true;
-        HttpWebRequest.UseDefaultCredentials := true;
+        HttpWebRequest.UseDefaultCredentials := GlobalUseDefaultCredentials;
         if GlobalContentType = '' then
             GlobalContentType := ContentTypeTxt;
         HttpWebRequest.ContentType := GlobalContentType;
@@ -248,6 +251,17 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         GlobalBasicPassword := Password;
     end;
 
+    /// <summary>
+    /// Specifies whether the request is authenticated with the default credentials of the Business Central service account.
+    /// Default credentials are not sent unless explicitly enabled. Only enable this for trusted endpoints that require Windows authentication.
+    /// </summary>
+    /// <param name="UseDefaultCredentials">True to send the default credentials; otherwise, false.</param>
+    [Scope('OnPrem')]
+    procedure SetUseDefaultCredentials(UseDefaultCredentials: Boolean)
+    begin
+        GlobalUseDefaultCredentials := UseDefaultCredentials;
+    end;
+
     procedure SetAction(SoapAction: Text);
     begin
         GlobalSoapAction := SoapAction;
@@ -270,7 +284,7 @@ codeunit 1290 "SOAP Web Service Request Mgt."
 
     local procedure CheckGlobals()
     var
-        WebRequestHelper: Codeunit "Web Request Helper";
+        Uri: Codeunit Uri;
     begin
         if GlobalRequestBodyInStream.EOS then
             Error(NoRequestBodyErr);
@@ -278,10 +292,14 @@ codeunit 1290 "SOAP Web Service Request Mgt."
         if GlobalURL = '' then
             Error(NoServiceAddressErr);
 
-        if GlobalSkipCheckHttps then
-            WebRequestHelper.IsValidUri(GlobalURL)
-        else
-            WebRequestHelper.IsSecureHttpUrl(GlobalURL);
+        if not Uri.IsValidUri(GlobalURL) then
+            Error(InvalidUriErr);
+
+        if not GlobalSkipCheckHttps then begin
+            Uri.Init(GlobalURL);
+            if not Uri.IsSecureHttpUrl() then
+                Error(NonSecureUriErr);
+        end;
     end;
 
     local procedure TraceLogStreamToTempFile(var ToLogInStream: InStream; Name: Text; var TempBlobTraceLog: Codeunit "Temp Blob")

@@ -70,7 +70,6 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
             until ReqLineExtern.Next() = 0;
 
         OnAfterReqLineExternDelete(Item);
-
         if not SimulationMode then
             Commit();
 
@@ -88,7 +87,6 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
             PlanningAssignment.ModifyAll(Inactive, true);
 
         OnCodeOnAfterGetPlanningComponents(Item);
-
         if not SimulationMode then
             Commit();
 
@@ -104,18 +102,11 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
 
     local procedure CalculateAndGetPlanningCompList()
     var
-#if not CLEAN27
-        MfgSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-#endif
         CurrWorksheetType: Option Requisition,Planning;
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeCalculateAndGetPlanningComponents(Item, CurrTemplateName, CurrWorksheetName, ToDate, FromDate, UseForecast, ExcludeForecastBefore, MRP, RespectPlanningParm, TempPlanningCompList, IsHandled, InvtProfileOffsetting);
-#if not CLEAN27
-        MfgSetup.Get();
-        OnBeforeCalculateAndGetPlanningCompList(Item, CurrTemplateName, CurrWorksheetName, ToDate, FromDate, UseForecast, ExcludeForecastBefore, MfgSetup, MRP, RespectPlanningParm, TempPlanningCompList, IsHandled, InvtProfileOffsetting);
-#endif
         if IsHandled then
             exit;
 
@@ -187,10 +178,8 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
         OnBeforeCheckPreconditions(Item, MPS, MRP, FromDate, ToDate, IsHandled);
         if IsHandled then
             exit;
-
         if not MPS and not MRP then
             Error(Text000);
-
         if FromDate = 0D then
             Error(Text001);
         if ToDate = 0D then
@@ -239,7 +228,6 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
         PlanningAssignment.SetRange("Item No.", Item."No.");
         if NetChange and PlanningAssignment.IsEmpty() then
             exit(false);
-
         if MRP = MPS then
             exit(true);
 
@@ -275,13 +263,11 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
             OnPlanThisItemOnBeforeExitMPS(Item, LinesExist);
             if LinesExist then
                 exit(MPS);
-
             if JobPlanningLine.LinesWithItemToPlanExist(Item) then
                 exit(MPS);
         end else
             if DoExit then
                 exit(Result);
-
         if not ProdOrderLineIsEmpty() then
             exit(MPS);
 
@@ -346,14 +332,6 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
     local procedure OnBeforeCheckPreconditions(var Item: Record Item; MPS: Boolean; MRP: Boolean; FromDate: Date; ToDate: Date; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    [Obsolete('Replaced by event OnBeforeCalculateAndGetPlanningComponents()', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalculateAndGetPlanningCompList(var Item: Record Item; CurrTemplateName: Code[10]; CurrWorksheetName: Code[10]; ToDate: Date; FromDate: Date; UseForecast: Code[10]; ExcludeForecastBefore: Date; MfgSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup"; MRP: Boolean; RespectPlanningParm: Boolean; var TempPlanningCompList: Record "Planning Component" temporary; var IsHandled: Boolean; var InventoryProfileOffsetting: Codeunit "Inventory Profile Offsetting")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalculateAndGetPlanningComponents(var Item: Record Item; CurrTemplateName: Code[10]; CurrWorksheetName: Code[10]; ToDate: Date; FromDate: Date; UseForecast: Code[10]; ExcludeForecastBefore: Date; MRP: Boolean; RespectPlanningParm: Boolean; var TempPlanningCompList: Record "Planning Component" temporary; var IsHandled: Boolean; var InventoryProfileOffsetting: Codeunit "Inventory Profile Offsetting")

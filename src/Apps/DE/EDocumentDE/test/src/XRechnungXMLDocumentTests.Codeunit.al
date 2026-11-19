@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.DirectDebit;
 using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
@@ -15,6 +16,7 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -25,8 +27,10 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Setup;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
+using Microsoft.Service.Setup;
 using Microsoft.Service.Test;
 using System.IO;
 using System.Text;
@@ -36,6 +40,7 @@ codeunit 13918 "XRechnung XML Document Tests"
 {
     Subtype = Test;
     TestType = Uncategorized;
+    Permissions = tabledata "Sales Invoice Header" = m;
 
     trigger OnRun();
     begin
@@ -58,6 +63,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         LibraryEDocDE: Codeunit "Library - E-Doc DE";
         Assert: Codeunit Assert;
         ExportXRechnungFormat: Codeunit "XRechnung Format";
+        DEXMLDocumentValidator: Codeunit "DE XML Document Validator";
         ExportXRechnungDocument: Codeunit "Export XRechnung Document";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
         AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true, Comment = '%1 = XML attribute name, %2 = XML element XPath';
@@ -75,7 +81,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         CrMemoTaxTotalPathTok: Label '/ns0:CreditNote/cac:TaxTotal', Locked = true;
         TaxCategoryStandardTok: Label 'S', Locked = true;
         ItemChargeReasonTextTok: Label 'Freight surcharge', Locked = true;
-        ItemChargeReasonCodeTok: Label 'FC', Locked = true;
+        ItemChargeReasonCodeTok: Label 'ZZZ', Locked = true;
         UnitCodeOneTok: Label 'C62', Locked = true;
         UnitCodeHourTok: Label 'HUR', Locked = true;
         SupplierTaxSchemeTok: Label '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme', Locked = true;
@@ -87,6 +93,9 @@ codeunit 13918 "XRechnung XML Document Tests"
         CreditMemoCustomerPartyIdTok: Label '/ns0:CreditNote/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID', Locked = true;
         CreditMemoCustomerLegalEntityIdTok: Label '/ns0:CreditNote/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Locked = true;
         CreditMemoDeliveryLocationIdTok: Label '/ns0:CreditNote/cac:Delivery/cac:DeliveryLocation/cbc:ID', Locked = true;
+        InvoiceDeliveryTok: Label '/ubl:Invoice/cac:Delivery', Locked = true;
+        InvoiceDeliveryAddressTok: Label '/ubl:Invoice/cac:Delivery/cac:DeliveryLocation/cac:Address', Locked = true;
+        CreditMemoDeliveryTok: Label '/ns0:CreditNote/cac:Delivery', Locked = true;
         IsInitialized: Boolean;
         OriginalCompanyGLN: Code[13];
         OriginalCompanyUsesGLN: Boolean;
@@ -148,6 +157,75 @@ codeunit 13918 "XRechnung XML Document Tests"
 
         // [THEN] XRechnung Electronic Document is created
         VerifyHeaderData(SalesInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyIssueDateUsesDocumentDate();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        DocumentDate: Date;
+        IssueDatePathTok: Label '/ubl:Invoice/cbc:IssueDate', Locked = true;
+    begin
+        // [SCENARIO 8904] Export posted sales invoice uses Document Date, not Posting Date, as IssueDate
+        Initialize();
+
+        // [GIVEN] Create and post Sales Invoice with a Document Date different from the Posting Date
+        DocumentDate := CalcDate('<-10D>', WorkDate());
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithDocumentDate("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, DocumentDate));
+
+        // [WHEN] Export XRechnung Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] IssueDate equals the Document Date and not the Posting Date
+        Assert.AreEqual(FormatDate(SalesInvoiceHeader."Document Date"), GetNodeByPathWithError(TempXMLBuffer, IssueDatePathTok), StrSubstNo(IncorrectValueErr, IssueDatePathTok));
+        Assert.AreNotEqual(FormatDate(SalesInvoiceHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, IssueDatePathTok), 'IssueDate should not equal Posting Date');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatVerifyIssueDateUsesDocumentDate();
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        DocumentDate: Date;
+        IssueDatePathTok: Label '/ns0:CreditNote/cbc:IssueDate', Locked = true;
+    begin
+        // [SCENARIO 8904] Export posted sales credit memo uses Document Date, not Posting Date, as IssueDate
+        Initialize();
+
+        // [GIVEN] Create and post Sales Credit Memo with a Document Date different from the Posting Date
+        DocumentDate := CalcDate('<-10D>', WorkDate());
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithDocumentDate("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, DocumentDate));
+
+        // [WHEN] Export XRechnung Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] IssueDate equals the Document Date and not the Posting Date
+        Assert.AreEqual(FormatDate(SalesCrMemoHeader."Document Date"), GetNodeByPathWithError(TempXMLBuffer, IssueDatePathTok), StrSubstNo(IncorrectValueErr, IssueDatePathTok));
+        Assert.AreNotEqual(FormatDate(SalesCrMemoHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, IssueDatePathTok), 'IssueDate should not equal Posting Date');
+    end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInXRechnungFormatVerifyIssueDateUsesDocumentDate();
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        DocumentDate: Date;
+        IssueDatePathTok: Label '/ubl:Invoice/cbc:IssueDate', Locked = true;
+    begin
+        // [SCENARIO 8904] Export posted service invoice uses Document Date, not Posting Date, as IssueDate
+        Initialize();
+
+        // [GIVEN] Create and post Service Invoice with a Document Date different from the Posting Date
+        DocumentDate := CalcDate('<-10D>', WorkDate());
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocumentWithDocumentDate(DocumentDate));
+
+        // [WHEN] Export XRechnung Electronic Document.
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] IssueDate equals the Document Date and not the Posting Date
+        Assert.AreEqual(FormatDate(ServiceInvoiceHeader."Document Date"), GetNodeByPathWithError(TempXMLBuffer, IssueDatePathTok), StrSubstNo(IncorrectValueErr, IssueDatePathTok));
+        Assert.AreNotEqual(FormatDate(ServiceInvoiceHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, IssueDatePathTok), 'IssueDate should not equal Posting Date');
     end;
 
     [Test]
@@ -304,6 +382,33 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyDirectDebitPaymentMeans();
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        BankAccount: Record "Bank Account";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CompanyBankAccountCode: Code[20];
+    begin
+        // [SCENARIO] Export posted sales invoice with SEPA direct debit payment means exports the customer's mandate account as payer, the mandate reference and creditor identifier, and no credit transfer account
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice with a Payment Method for SEPA direct debit (59), a Direct Debit Mandate, and a company Bank Account with a Creditor No.
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithDirectDebit(SEPADirectDebitMandate, CustomerBankAccount, CompanyBankAccountCode));
+        BankAccount.Get(CompanyBankAccountCode);
+
+        // [WHEN] Export XRechnung Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Payment means contains the mandate reference (BT-89) and customer account as payer (BT-91), but no payee account (BR-DE-25-b)
+        VerifyDirectDebitPaymentMeans(TempXMLBuffer, '/ubl:Invoice/cac:PaymentMeans', SEPADirectDebitMandate.ID, CustomerBankAccount.IBAN);
+
+        // [THEN] Supplier party contains the bank assigned creditor identifier (BT-90)
+        VerifyDirectDebitCreditorNo(TempXMLBuffer, '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party', BankAccount."Creditor No.");
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyPaymentTerms();
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -447,6 +552,31 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyLongItemNameIsNotTruncated()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO 13602] Exported XRechnung invoice contains the full item name (BT-153) of a line description with the maximum length
+        Initialize();
+
+        // [GIVEN] A posted sales invoice with an item line whose Description has the maximum length of random characters
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithLongDescription("Sales Document Type"::Invoice));
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.FindFirst();
+        Assert.AreEqual(MaxStrLen(SalesInvoiceLine.Description), StrLen(SalesInvoiceLine.Description), 'The scenario requires a line description with the maximum length.');
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The item name contains the complete Description of the invoice line
+        Path := '/ubl:Invoice/cac:InvoiceLine/cac:Item/cbc:Name';
+        Assert.AreEqual(SalesInvoiceLine.Description, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyInvoiceLineWithLineDiscount();
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -485,6 +615,189 @@ codeunit 13918 "XRechnung XML Document Tests"
 
         // [THEN] PDF is embedded in the XML
         VerifyInvoicePDFEmbeddedToXML(TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceUsesTriggeringServiceWithoutPDFEmbedding()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] Export uses the E-Document Service that triggered the export, not the last matching service by format
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] The triggering XRechnung service has PDF embedding disabled
+        SetEdocumentServiceEmbedPDFInExport(false);
+        // [GIVEN] A second XRechnung service that sorts last has PDF embedding enabled
+        CreateTrailingXRechnungService(true);
+
+        // [WHEN] Export XRechnung Electronic Document using the triggering service.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] PDF is not embedded in the XML because the triggering service disables it
+        VerifyInvoicePDFNotEmbeddedToXML(TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceUsesTriggeringServiceWithPDFEmbedding()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] Export uses the E-Document Service that triggered the export, not the last matching service by format
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] The triggering XRechnung service has PDF embedding enabled
+        SetEdocumentServiceEmbedPDFInExport(true);
+        // [GIVEN] A second XRechnung service that sorts last has PDF embedding disabled
+        CreateTrailingXRechnungService(false);
+
+        // [WHEN] Export XRechnung Electronic Document using the triggering service.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] PDF is embedded in the XML because the triggering service enables it
+        VerifyInvoicePDFEmbeddedToXML(TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceLegacyPathStillUsesFindLastLookup()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempRecordExportBuffer: Record "Record Export Buffer" temporary;
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        LegacyExportXRechnungDocument: Codeunit "Export XRechnung Document";
+        FileInStream: InStream;
+    begin
+        // [SCENARIO 8414] A legacy caller that does not provide a service through SetEDocumentService
+        // keeps the original behaviour: the service is still resolved with the FindLast lookup.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] The first service has PDF embedding disabled, a trailing service has it enabled
+        SetEdocumentServiceEmbedPDFInExport(false);
+        CreateTrailingXRechnungService(true);
+
+        // [WHEN] The export is invoked directly, without providing a service
+        TempRecordExportBuffer.RecordID := SalesInvoiceHeader.RecordId();
+        TempRecordExportBuffer."Electronic Document Format" := Format("E-Document Format"::XRechnung);
+        TempRecordExportBuffer.Insert();
+        LegacyExportXRechnungDocument.ExportSalesInvoice(TempRecordExportBuffer);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] The FindLast lookup selected the trailing service, so its PDF embedding applies
+        TempRecordExportBuffer."File Content".CreateInStream(FileInStream);
+        TempXMLBuffer.LoadFromStream(FileInStream);
+        VerifyInvoicePDFEmbeddedToXML(TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure OnAfterFindEDocumentServiceFiresWithProvidedService()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] The obsolete OnAfterFindEDocumentService event still fires during the
+        // deprecation window and carries the service provided through SetEDocumentService.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice and a trailing XRechnung service
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        CreateTrailingXRechnungService(false);
+
+        // [WHEN] Export through the format, which provides the triggering service
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] The event fired and carried the triggering service, not the trailing one
+        Assert.AreEqual(1, LibraryEDocDE.GetEDocumentServiceEventCount(), 'OnAfterFindEDocumentService should be raised once');
+        Assert.AreEqual(EDocumentService.Code, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Event should carry the triggering service');
+    end;
+
+    [Test]
+    procedure OnAfterFindEDocumentServiceFiresOnLegacyPath()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempRecordExportBuffer: Record "Record Export Buffer" temporary;
+        LegacyExportXRechnungDocument: Codeunit "Export XRechnung Document";
+        TrailingServiceCode: Code[20];
+    begin
+        // [SCENARIO 8414] On the legacy path (no service provided) the event still fires and carries the
+        // service resolved by the FindLast lookup, exactly as before.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice and a trailing XRechnung service
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        TrailingServiceCode := CreateTrailingXRechnungService(false);
+
+        // [WHEN] The export is invoked directly, without providing a service
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        TempRecordExportBuffer.RecordID := SalesInvoiceHeader.RecordId();
+        TempRecordExportBuffer."Electronic Document Format" := Format("E-Document Format"::XRechnung);
+        TempRecordExportBuffer.Insert();
+        LegacyExportXRechnungDocument.ExportSalesInvoice(TempRecordExportBuffer);
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] The event fired and carried the service found by FindLast
+        Assert.AreEqual(1, LibraryEDocDE.GetEDocumentServiceEventCount(), 'OnAfterFindEDocumentService should be raised once');
+        Assert.AreEqual(TrailingServiceCode, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Event should carry the service resolved by FindLast');
+    end;
+
+    [Test]
+    procedure ReusedInstanceResetsProvidedServiceBetweenExports()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempFirstRunExportBuffer: Record "Record Export Buffer" temporary;
+        TempSecondRunExportBuffer: Record "Record Export Buffer" temporary;
+        ReusedExportXRechnungDocument: Codeunit "Export XRechnung Document";
+        TrailingServiceCode: Code[20];
+    begin
+        // [SCENARIO 8414] A reused Export XRechnung Document instance must not carry the service provided for
+        // an earlier export into a later export that provides none: the per-instance state is reset after each
+        // run, so a second export without a provided service falls back to the legacy FindLast lookup.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] A trailing XRechnung service that sorts after the triggering service, which FindLast would resolve
+        TrailingServiceCode := CreateTrailingXRechnungService(false);
+
+        // [GIVEN] A first export on this instance provides the triggering service through SetEDocumentService
+        TempFirstRunExportBuffer.RecordID := SalesInvoiceHeader.RecordId();
+        TempFirstRunExportBuffer."Electronic Document Format" := Format("E-Document Format"::XRechnung);
+        TempFirstRunExportBuffer.Insert();
+        ReusedExportXRechnungDocument.SetEDocumentService(EDocumentService);
+        ReusedExportXRechnungDocument.Run(TempFirstRunExportBuffer);
+
+        // [WHEN] The same instance runs a second export without providing a service
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        TempSecondRunExportBuffer.RecordID := SalesInvoiceHeader.RecordId();
+        TempSecondRunExportBuffer."Electronic Document Format" := Format("E-Document Format"::XRechnung);
+        TempSecondRunExportBuffer.Insert();
+        ReusedExportXRechnungDocument.Run(TempSecondRunExportBuffer);
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] The second run fell back to the FindLast lookup (trailing service), not the stale service
+        // provided for the first export
+        Assert.AreEqual(TrailingServiceCode, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Reused instance must reset the provided service so the second export falls back to FindLast');
+        Assert.AreNotEqual(EDocumentService.Code, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Reused instance must not carry the previous triggering service into a later export');
     end;
 
     [Test]
@@ -539,6 +852,186 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := InvoiceTaxCategoryTok + '/cbc:TaxExemptionReason';
         Assert.AreEqual('Not subject to VAT', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
+
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatPartialShipToAddressFails()
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 9815] A partially filled deliver-to address must still be complete
+        Initialize();
+
+        // [GIVEN] Sales Invoice where only "Ship-to City" is filled
+        SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLine("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        ClearShipToAddress(SalesHeader);
+        SalesHeader."Ship-to City" := LibraryUtility.GenerateGUID();
+        SalesHeader.Modify(false);
+
+        // [WHEN] Check the Sales Invoice for XRechnung
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] "Ship-to Address" must have a value
+        Assert.ExpectedTestFieldError(SalesHeader.FieldCaption("Ship-to Address"), '');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatWithShipmentDateOnlyOmitsDeliveryLocation()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A delivery with only a delivery date exports no empty DeliveryLocation
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with "Shipment Date", without ship-to address and delivery GLN
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader.TestField("Shipment Date");
+        ClearShipToAddress(SalesInvoiceHeader);
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Delivery holds the ActualDeliveryDate and no DeliveryLocation
+        Assert.AreEqual(
+            FormatDate(SalesInvoiceHeader."Shipment Date"), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'));
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok + '/cac:DeliveryLocation');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatWithShipToCityOnlyOmitsEmptyAddressFields()
+    var
+        CompanyInfo: Record "Company Information";
+        CountryRegion: Record "Country/Region";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A partially filled deliver-to address exports no empty StreetName or PostalZone
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice where only "Ship-to City" is filled
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        ClearShipToAddress(SalesInvoiceHeader);
+        SalesInvoiceHeader."Ship-to City" := LibraryUtility.GenerateGUID();
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Address holds the CityName and the company country, and no empty StreetName or PostalZone
+        Assert.AreEqual(
+            SalesInvoiceHeader."Ship-to City", GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryAddressTok + '/cbc:CityName'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryAddressTok + '/cbc:CityName'));
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryAddressTok + '/cbc:StreetName');
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryAddressTok + '/cbc:PostalZone');
+        CompanyInfo.Get();
+        CountryRegion.Get(CompanyInfo."Country/Region Code");
+        Assert.AreEqual(
+            CountryRegion."ISO Code", GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryAddressTok + '/cac:Country/cbc:IdentificationCode'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryAddressTok + '/cac:Country/cbc:IdentificationCode'));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatAnyShipToFieldExportsDeliveryAddress()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ShipToFieldNo: Integer;
+    begin
+        // [SCENARIO 9815] Each ship-to address field on its own makes the delivery Address exported
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice without "Shipment Date", for a customer that does not use GLN
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader."Shipment Date" := 0D;
+        SalesInvoiceHeader.Modify(false);
+
+        foreach ShipToFieldNo in GetShipToAddressFieldNos() do begin
+            // [GIVEN] Only one ship-to address field is filled
+            SetSingleShipToAddressField(SalesInvoiceHeader, ShipToFieldNo);
+
+            // [WHEN] Export XRechnung Electronic Document
+            TempXMLBuffer.Reset();
+            TempXMLBuffer.DeleteAll();
+            ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+            // [THEN] DeliveryLocation holds an Address without empty elements
+            Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, InvoiceDeliveryAddressTok), StrSubstNo(IncorrectValueErr, InvoiceDeliveryAddressTok));
+            VerifyNoEmptyDeliveryAddressElement(TempXMLBuffer);
+        end;
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyDeliveryCountrySubentity()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] The deliver-to country subdivision (BT-79) is exported from "Ship-to County"
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with a ship-to address and a "Ship-to County"
+        ResetPostingNoSeriesDateUsage();
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader."Ship-to County" := LibraryUtility.GenerateGUID();
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The delivery Address holds the county in CountrySubentity
+        Assert.AreEqual(
+            SalesInvoiceHeader."Ship-to County", GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryAddressTok + '/cbc:CountrySubentity'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryAddressTok + '/cbc:CountrySubentity'));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatWithShipmentDateTodayExportsActualDeliveryDate()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A shipment on the current date is exported as the actual delivery date (BT-72)
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with "Shipment Date" = today
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader."Shipment Date" := Today();
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ActualDeliveryDate = today
+        Assert.AreEqual(
+            FormatDate(Today()), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatWithShipmentDateWorkDateExportsActualDeliveryDate()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A shipment on the work date is exported as the actual delivery date (BT-72)
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with "Shipment Date" = work date
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader."Shipment Date" := WorkDate();
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ActualDeliveryDate = work date
+        Assert.AreEqual(
+            FormatDate(WorkDate()), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'));
+    end;
+
     #endregion
 
     #region ServiceInvoice
@@ -689,6 +1182,54 @@ codeunit 13918 "XRechnung XML Document Tests"
 
         // [THEN] XRechnung Electronic Document is created with bank information as payment means
         VerifyPaymentMeans(TempXMLBuffer, '/ubl:Invoice/cac:PaymentMeans');
+    end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInXRechnungFormatPassesServiceHeaderToPaymentMeansEvent();
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] OnInsertPaymentMeansOnBeforeAddToRoot carries the posted service invoice, not the sales invoice header it is transferred to for the export
+        Initialize();
+
+        // [GIVEN] Create and Post Service Invoice.
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocument());
+
+        // [WHEN] Export XRechnung Electronic Document.
+        BindSubscription(LibraryEDocDE);
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] The payment means event carried the posted service invoice
+        Assert.AreEqual(ServiceInvoiceHeader.RecordId(), LibraryEDocDE.GetCapturedPaymentMeansHeaderRecordId(), 'The payment means event should carry the posted service invoice');
+    end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInXRechnungFormatVerifyDirectDebitPaymentMeans();
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        BankAccount: Record "Bank Account";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CompanyBankAccountCode: Code[20];
+    begin
+        // [SCENARIO] Export posted service invoice with SEPA direct debit payment means exports the customer's mandate account as payer, the mandate reference and creditor identifier, and no credit transfer account
+        Initialize();
+
+        // [GIVEN] Create and Post Service Invoice with a Payment Method for SEPA direct debit (59), a Direct Debit Mandate, and a company Bank Account with a Creditor No.
+        ServiceInvoiceHeader.Get(CreateAndPostServiceInvoiceWithDirectDebit(SEPADirectDebitMandate, CustomerBankAccount, CompanyBankAccountCode));
+        BankAccount.Get(CompanyBankAccountCode);
+
+        // [WHEN] Export XRechnung Electronic Document.
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Payment means contains the mandate reference (BT-89) and customer account as payer (BT-91), but no payee account (BR-DE-25-b)
+        VerifyDirectDebitPaymentMeans(TempXMLBuffer, '/ubl:Invoice/cac:PaymentMeans', SEPADirectDebitMandate.ID, CustomerBankAccount.IBAN);
+
+        // [THEN] Supplier party contains the bank assigned creditor identifier (BT-90)
+        VerifyDirectDebitCreditorNo(TempXMLBuffer, '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party', BankAccount."Creditor No.");
     end;
 
     [Test]
@@ -844,6 +1385,55 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [THEN] XRechnung Electronic Document contains 2 AdditionalDocumentReference nodes
         VerifyCSVAttachments(TempXMLBuffer, 'attachment.csv', CSVText1, 'document.csv', CSVText2);
     end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInXRechnungFormatWithoutShipToAddressOmitsDelivery()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A service invoice without a deliver-to address is released, posted and exported without Delivery
+        Initialize();
+
+        // [GIVEN] Service Invoice without ship-to address, for a customer that does not use GLN
+        ServiceHeader.Get(ServiceHeader."Document Type"::Invoice, CreateServiceDocumentWithLine());
+        ClearShipToAddress(ServiceHeader);
+        ServiceHeader.Modify(false);
+
+        // [WHEN] Check the Service Invoice for release, post it and export XRechnung Electronic Document
+        CheckServiceHeader(ServiceHeader);
+        ResetPostingNoSeriesDateUsage();
+        ServiceInvoiceHeader.Get(PostServiceDocument(ServiceHeader));
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] No Delivery is exported, the rest of the document is
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok);
+        VerifyHeaderData(ServiceInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInXRechnungFormatOmitsActualDeliveryDate()
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A service document has no shipment date, so no actual delivery date (BT-72) is exported
+        Initialize();
+
+        // [GIVEN] Posted Service Invoice with a ship-to address
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocument());
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The delivery address is exported without an ActualDeliveryDate
+        Assert.AreEqual(
+            ServiceInvoiceHeader."Ship-to Address", GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryAddressTok + '/cbc:StreetName'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryAddressTok + '/cbc:StreetName'));
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate');
+    end;
+
     #endregion
 
     #region SalesCreditMemo
@@ -864,6 +1454,32 @@ codeunit 13918 "XRechnung XML Document Tests"
 
         // [THEN] XRechnung Electronic Document is created
         VerifyHeaderData(SalesCrMemoHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoUsesTriggeringServiceWithPDFEmbedding()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] On the non-invoice Sales Cr.Memo path the export also uses the E-Document Service
+        // that triggered the export, not the last matching service by format.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Credit Memo.
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] The triggering XRechnung service has PDF embedding enabled
+        SetEdocumentServiceEmbedPDFInExport(true);
+        // [GIVEN] A second XRechnung service that sorts last has PDF embedding disabled
+        CreateTrailingXRechnungService(false);
+
+        // [WHEN] Export XRechnung Electronic Document using the triggering service.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] PDF is embedded in the XML because the triggering service enables it, not the trailing one
+        VerifyCrMemoPDFEmbeddedToXML(TempXMLBuffer);
     end;
 
     [Test]
@@ -931,6 +1547,31 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [THEN] Standard item identification does not exist
         Path := '/ns0:CreditNote/cac:CreditNoteLine/cac:Item/cac:StandardItemIdentification/cbc:ID';
         Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatVerifyLongItemNameIsNotTruncated()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO 13602] Exported XRechnung credit memo contains the full item name (BT-153) of a line description with the maximum length
+        Initialize();
+
+        // [GIVEN] A posted sales credit memo with an item line whose Description has the maximum length of random characters
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithLongDescription("Sales Document Type"::"Credit Memo"));
+        SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
+        SalesCrMemoLine.FindFirst();
+        Assert.AreEqual(MaxStrLen(SalesCrMemoLine.Description), StrLen(SalesCrMemoLine.Description), 'The scenario requires a line description with the maximum length.');
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The item name contains the complete Description of the credit memo line
+        Path := '/ns0:CreditNote/cac:CreditNoteLine/cac:Item/cbc:Name';
+        Assert.AreEqual(SalesCrMemoLine.Description, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     [Test]
@@ -1053,7 +1694,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
         // [THEN] XRechnung Electronic Document is created with bank informarion as payment means
-        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans');
+        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans', CompanyInformation.IBAN, CompanyInformation."SWIFT Code");
     end;
 
     [Test]
@@ -1082,8 +1723,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [WHEN] Export XRechnung Electronic Document.
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
-        // [THEN] XRechnung Electronic Document has payment means code
-        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans');
+        // [THEN] XRechnung Electronic Document uses Bank Account IBAN and SWIFT Code
+        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans', BankAccountIBAN, BankAccountSWIFT);
     end;
 
     [Test]
@@ -1236,6 +1877,67 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := CrMemoTaxCategoryTok + '/cbc:TaxExemptionReason';
         Assert.AreEqual('Not subject to VAT', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatVerifyCompanyIBANInPaymentMeans();
+    var
+        Customer: Record Customer;
+        CustomerBankAccount: Record "Customer Bank Account";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CustomerIBAN: Text[50];
+        Path: Text;
+    begin
+        // [SCENARIO] Export posted sales cr. memo uses the company IBAN (not the customer's) in PayeeFinancialAccount
+        Initialize();
+
+        // [GIVEN] Create customer with a bank account that has a specific IBAN
+        CustomerIBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        Customer.Get(CreateCustomer());
+        LibrarySales.CreateCustomerBankAccount(CustomerBankAccount, Customer."No.");
+        CustomerBankAccount.IBAN := CustomerIBAN;
+        CustomerBankAccount.Modify(true);
+        Customer.Validate("Preferred Bank Account Code", CustomerBankAccount.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] Create and Post sales cr. memo for that customer
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentForCustomer("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, Customer."No."));
+
+        // [WHEN] Export XRechnung Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Payment means contains the company IBAN, not the customer's
+        Path := '/ns0:CreditNote/cac:PaymentMeans/cac:PayeeFinancialAccount/cbc:ID';
+        Assert.AreEqual(CompanyInformation.IBAN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatWithoutShipToAddressOmitsDelivery()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A sales credit memo without a deliver-to address is released, posted and exported without Delivery
+        Initialize();
+
+        // [GIVEN] Sales Credit Memo without ship-to address and "Shipment Date", for a customer that does not use GLN
+        SalesHeader.Get("Sales Document Type"::"Credit Memo", CreateSalesDocumentWithLine("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+        ClearShipToAddress(SalesHeader);
+        SalesHeader."Shipment Date" := 0D;
+        SalesHeader.Modify(false);
+
+        // [WHEN] Check the Sales Credit Memo for release, post it and export XRechnung Electronic Document
+        CheckSalesHeader(SalesHeader);
+        ResetPostingNoSeriesDateUsage();
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] No Delivery is exported, the rest of the document is
+        VerifyNodeDoesNotExist(TempXMLBuffer, CreditMemoDeliveryTok);
+        VerifyHeaderData(SalesCrMemoHeader, TempXMLBuffer);
+    end;
+
     #endregion
 
     #region ServiceCreditMemo
@@ -1385,7 +2087,28 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
 
         // [THEN] XRechnung Electronic Document is created with bank information as payment means
-        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans');
+        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans', CompanyInformation.IBAN, CompanyInformation."SWIFT Code");
+    end;
+
+    [Test]
+    procedure ExportPostedServiceCrMemoInXRechnungFormatPassesServiceHeaderToPaymentMeansEvent();
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] OnInsertPaymentMeansOnBeforeAddToRoot carries the posted service cr. memo, not the sales cr. memo header it is transferred to for the export
+        Initialize();
+
+        // [GIVEN] Create and Post service cr. memo.
+        ServiceCrMemoHeader.Get(CreateAndPostServiceCrMemoDocument());
+
+        // [WHEN] Export XRechnung Electronic Document.
+        BindSubscription(LibraryEDocDE);
+        ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+
+        // [THEN] The payment means event carried the posted service cr. memo
+        Assert.AreEqual(ServiceCrMemoHeader.RecordId(), LibraryEDocDE.GetCapturedPaymentMeansHeaderRecordId(), 'The payment means event should carry the posted service cr. memo');
     end;
 
     [Test]
@@ -1515,6 +2238,33 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [THEN] XRechnung Electronic Document is created with company data as accounting supplier party
         VerifyAccountingSupplierParty(TempXMLBuffer, '/ns0:CreditNote/cac:AccountingSupplierParty/cac:Party', ResponsibilityCenter);
     end;
+
+    [Test]
+    procedure ExportPostedServiceCrMemoInXRechnungFormatWithoutShipToAddressOmitsDelivery()
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        ServiceHeader: Record "Service Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A service credit memo without a deliver-to address is released, posted and exported without Delivery
+        Initialize();
+
+        // [GIVEN] Service Credit Memo without ship-to address, for a customer that does not use GLN
+        ServiceHeader.Get(ServiceHeader."Document Type"::"Credit Memo", CreateServiceCrMemoDocumentWithLine());
+        ClearShipToAddress(ServiceHeader);
+        ServiceHeader.Modify(false);
+
+        // [WHEN] Check the Service Credit Memo for release, post it and export XRechnung Electronic Document
+        CheckServiceHeader(ServiceHeader);
+        ResetPostingNoSeriesDateUsage();
+        ServiceCrMemoHeader.Get(PostServiceCrMemoDocument(ServiceHeader));
+        ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] No Delivery is exported, the rest of the document is
+        VerifyNodeDoesNotExist(TempXMLBuffer, CreditMemoDeliveryTok);
+        VerifyHeaderData(ServiceCrMemoHeader, TempXMLBuffer);
+    end;
+
     #endregion
 
     #region InvoiceDiscount
@@ -1788,6 +2538,61 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyCustomerRegistrationNo()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        RegistrationNo: Text[50];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 652557] Customer Registration No. is exported as the legal entity identifier when GLN and VAT ID are unavailable
+        Initialize();
+
+        // [GIVEN] A customer with a Registration No. longer than 20 characters but no GLN or VAT ID
+        RegistrationNo := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(30, 0), 1, MaxStrLen(RegistrationNo));
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithRegistrationNo(RegistrationNo));
+
+        // [WHEN] Export XRechnung electronic document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Customer legal entity identifier contains the Registration No.
+        Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, CustomerLegalEntityIdTok), StrSubstNo(IncorrectValueErr, CustomerLegalEntityIdTok));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceWithDirectDebitInXRechnungFormatVerifySupplierRegistrationNo()
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        BankAccount: Record "Bank Account";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CompanyBankAccountCode: Code[20];
+        RegistrationNo: Text[20];
+    begin
+        // [SCENARIO] Supplier Registration No. is exported as the FC tax identifier for SEPA direct debit invoices when GLN and VAT ID are unavailable
+        Initialize();
+
+        // [GIVEN] Company "C" has a Registration No. but no GLN or VAT ID
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        SetCompanyRegistrationNo(RegistrationNo);
+
+        // [GIVEN] Posted Sales Invoice with a Payment Method for SEPA direct debit (59) and a company Bank Account with a Creditor No.
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithDirectDebit(SEPADirectDebitMandate, CustomerBankAccount, CompanyBankAccountCode));
+        BankAccount.Get(CompanyBankAccountCode);
+
+        // [WHEN] Export XRechnung electronic document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Supplier tax identifier contains the Registration No. with FC tax scheme
+        Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, SupplierTaxSchemeTok + '/cbc:CompanyID'), StrSubstNo(IncorrectValueErr, SupplierTaxSchemeTok));
+        Assert.AreEqual('FC', GetNodeByPathWithError(TempXMLBuffer, SupplierTaxSchemeTok + '/cac:TaxScheme/cbc:ID'), StrSubstNo(IncorrectValueErr, SupplierTaxSchemeTok));
+
+        // [THEN] Supplier party still contains the bank assigned creditor identifier (BT-90)
+        VerifyDirectDebitCreditorNo(TempXMLBuffer, '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party', BankAccount."Creditor No.");
+    end;
+
+    [Test]
     procedure ExportPostedSalesCrMemoInXRechnungFormatVerifyCustomerGLNWithSchemeID();
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
@@ -1810,6 +2615,31 @@ codeunit 13918 "XRechnung XML Document Tests"
         Assert.AreEqual(CustomerGLN(), GetNodeByPathWithError(TempXMLBuffer, CreditMemoDeliveryLocationIdTok), StrSubstNo(IncorrectValueErr, CreditMemoDeliveryLocationIdTok));
         Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, CreditMemoDeliveryLocationIdTok, 'schemeID'), StrSubstNo(IncorrectValueErr, CreditMemoDeliveryLocationIdTok + '/@schemeID'));
     end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatWithGLNOnlyOmitsDeliveryAddress()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 9815] A delivery location with only a GLN exports the ID and no empty Address
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice for a customer that uses GLN, without ship-to address and "Shipment Date"
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), '', true));
+        ClearShipToAddress(SalesInvoiceHeader);
+        SalesInvoiceHeader."Shipment Date" := 0D;
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] DeliveryLocation holds the customer GLN, and neither an Address nor an ActualDeliveryDate is exported
+        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, DeliveryLocationIdTok);
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryAddressTok);
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate');
+    end;
+
     #endregion
 
     #region PurchaseInvoice
@@ -3597,11 +4427,37 @@ codeunit 13918 "XRechnung XML Document Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateAndPostSalesDocumentWithLongDescription(DocumentType: Enum "Sales Document Type"): Code[20];
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        CreateSalesHeader(SalesHeader, DocumentType);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindFirst();
+        // Assigning Description directly because validating it on an item line would look up another item by description.
+        SalesLine.Description := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(MaxStrLen(SalesLine.Description), 0), 1, MaxStrLen(SalesLine.Description));
+        SalesLine.Modify(true);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
     local procedure CreateAndPostServiceDocument(): Code[20];
     var
         ServiceHeader: Record "Service Header";
     begin
         ServiceHeader.Get(ServiceHeader."Document Type"::Invoice, CreateServiceDocumentWithLine());
+        exit(PostServiceDocument(ServiceHeader));
+    end;
+
+    local procedure CreateAndPostServiceDocumentWithDocumentDate(DocumentDate: Date): Code[20];
+    var
+        ServiceHeader: Record "Service Header";
+    begin
+        ServiceHeader.Get(ServiceHeader."Document Type"::Invoice, CreateServiceDocumentWithLine());
+        ServiceHeader.Validate("Document Date", DocumentDate);
+        ServiceHeader.Modify(true);
         exit(PostServiceDocument(ServiceHeader));
     end;
 
@@ -3691,6 +4547,18 @@ codeunit 13918 "XRechnung XML Document Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateAndPostSalesDocumentWithDocumentDate(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; DocumentDate: Date): Code[20];
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesHeader(SalesHeader, DocumentType);
+        SalesHeader.Validate("Posting Date", WorkDate());
+        SalesHeader.Validate("Document Date", DocumentDate);
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, LineType, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
     local procedure CreateAndPostSalesDocumentWithBankAccount(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; BankAccountCode: Code[20]): Code[20];
     var
         SalesHeader: Record "Sales Header";
@@ -3698,6 +4566,62 @@ codeunit 13918 "XRechnung XML Document Tests"
         CreateSalesHeader(SalesHeader, DocumentType);
         SalesHeader.Validate("Company Bank Account Code", BankAccountCode);
         SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, LineType, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateCreditorBankAccount(): Code[20]
+    var
+        BankAccount: Record "Bank Account";
+    begin
+        LibraryERM.CreateBankAccount(BankAccount);
+        BankAccount.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        BankAccount.Validate("Creditor No.", LibraryUtility.GenerateRandomCode(BankAccount.FieldNo("Creditor No."), Database::"Bank Account"));
+        BankAccount.Modify(true);
+        exit(BankAccount."No.");
+    end;
+
+    local procedure CreateAndPostSalesInvoiceWithDirectDebit(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; var CompanyBankAccountCode: Code[20]): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+    begin
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+        CustomerNo := LibraryEDocDE.AddDirectDebitMandateToCustomer(SEPADirectDebitMandate, CustomerBankAccount, CreateCustomer(), PaymentMethodCode);
+        CompanyBankAccountCode := CreateCreditorBankAccount();
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
+        SalesHeader.Validate("Company Bank Account Code", CompanyBankAccountCode);
+        SalesHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostServiceInvoiceWithDirectDebit(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; var CompanyBankAccountCode: Code[20]): Code[20]
+    var
+        ServiceHeader: Record "Service Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+    begin
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+        CustomerNo := LibraryEDocDE.AddDirectDebitMandateToCustomer(SEPADirectDebitMandate, CustomerBankAccount, CreateCustomer(), PaymentMethodCode);
+        CompanyBankAccountCode := CreateCreditorBankAccount();
+        CreateServiceHeader(ServiceHeader, CustomerNo);
+        ServiceHeader.Validate("Payment Method Code", PaymentMethodCode);
+        ServiceHeader.Validate("Company Bank Account Code", CompanyBankAccountCode);
+        ServiceHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        ServiceHeader.Modify(true);
+        CreateServiceLine(ServiceHeader);
+        exit(PostServiceDocument(ServiceHeader));
+    end;
+
+    local procedure CreateAndPostSalesDocumentForCustomer(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; CustomerNo: Code[20]): Code[20];
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesHeader(SalesHeader, DocumentType, CustomerNo);
         CreateSalesLine(SalesHeader, LineType, false);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
@@ -3811,7 +4735,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Customer.DeleteAll();
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
-        Customer.Validate("VAT Registration No.", CompanyInformation."VAT Registration No.");
+        Customer.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo(Customer."Country/Region Code"));
         Customer.Validate("E-Invoice Routing No.", LibraryEDocDE.CreateValidRoutingNo());
         Customer.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
         Customer.Modify(true);
@@ -3946,7 +4870,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesLine, SalesHeader, LineType, LineNo, LibraryRandom.RandDecInRange(10, 20, 5));
         SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 5));
         SalesLine.Validate("Unit of Measure", UnitOfMeasure.Code);
-        SalesLine.Validate("Tax Category", LibraryRandom.RandText(2));
+        SalesLine.Validate("Tax Category", TaxCategoryStandardTok);
         if LineDiscount then
             SalesLine.Validate("Line Discount %", LibraryRandom.RandDecInRange(10, 20, 5));
         SalesLine.Modify(true);
@@ -4156,6 +5080,23 @@ codeunit 13918 "XRechnung XML Document Tests"
         exit(SalesHeader."No.");
     end;
 
+    local procedure CreateAndPostSalesInvoiceForCustomerWithRegistrationNo(RegistrationNo: Text[50]): Code[20]
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+    begin
+        Customer.Get(CreateCustomer());
+        Customer.GLN := '';
+        Customer."Use GLN in Electronic Document" := false;
+        Customer."VAT Registration No." := '';
+        Customer."Registration Number" := RegistrationNo;
+        Customer."Use Reg. No. in E-Document" := true;
+        Customer.Modify(true);
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, Customer."No.");
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
     local procedure ExportInvoice(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
@@ -4169,6 +5110,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         SourceDocumentLines.GetTable(SalesInvoiceLine);
         ExportXRechnungFormat.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
         TempBlob.CreateInStream(FileInStream);
+        DEXMLDocumentValidator.ValidateXRechnungInvoiceXML(FileInStream);
+        FileInStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(FileInStream);
     end;
 
@@ -4185,6 +5128,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         SourceDocumentLines.GetTable(ServiceInvoiceLine);
         ExportXRechnungFormat.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
         TempBlob.CreateInStream(FileInStream);
+        DEXMLDocumentValidator.ValidateXRechnungInvoiceXML(FileInStream);
+        FileInStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(FileInStream);
     end;
 
@@ -4201,6 +5146,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         SourceDocumentLines.GetTable(SalesCrMemoLine);
         ExportXRechnungFormat.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
         TempBlob.CreateInStream(FileInStream);
+        DEXMLDocumentValidator.ValidateXRechnungCreditNoteXML(FileInStream);
+        FileInStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(FileInStream);
     end;
 
@@ -4217,6 +5164,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         SourceDocumentLines.GetTable(ServiceCrMemoLine);
         ExportXRechnungFormat.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
         TempBlob.CreateInStream(FileInStream);
+        DEXMLDocumentValidator.ValidateXRechnungCreditNoteXML(FileInStream);
+        FileInStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(FileInStream);
     end;
 
@@ -4241,7 +5190,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := DocumentTok + '/cbc:ID';
         Assert.AreEqual(SalesInvoiceHeader."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:IssueDate';
-        Assert.AreEqual(FormatDate(SalesInvoiceHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(FormatDate(SalesInvoiceHeader."Document Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cbc:DocumentCurrencyCode';
         Assert.AreEqual(GetCurrencyCode(SalesInvoiceHeader."Currency Code"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
@@ -4256,7 +5205,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := DocumentCreditNoteTok + '/cbc:ID';
         Assert.AreEqual(SalesCrMemoHeader."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentCreditNoteTok + '/cbc:IssueDate';
-        Assert.AreEqual(FormatDate(SalesCrMemoHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(FormatDate(SalesCrMemoHeader."Document Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentCreditNoteTok + '/cbc:DocumentCurrencyCode';
         Assert.AreEqual(GetCurrencyCode(SalesCrMemoHeader."Currency Code"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
@@ -4271,7 +5220,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := ServiceDocumentTok + '/cbc:ID';
         Assert.AreEqual(ServiceInvoiceHeader."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := ServiceDocumentTok + '/cbc:IssueDate';
-        Assert.AreEqual(FormatDate(ServiceInvoiceHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(FormatDate(ServiceInvoiceHeader."Document Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := ServiceDocumentTok + '/cbc:DocumentCurrencyCode';
         Assert.AreEqual(GetCurrencyCode(ServiceInvoiceHeader."Currency Code"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
@@ -4286,7 +5235,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := ServiceDocumentCreditNoteTok + '/cbc:ID';
         Assert.AreEqual(ServiceCrMemoHeader."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := ServiceDocumentCreditNoteTok + '/cbc:IssueDate';
-        Assert.AreEqual(FormatDate(ServiceCrMemoHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(FormatDate(ServiceCrMemoHeader."Document Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := ServiceDocumentCreditNoteTok + '/cbc:DocumentCurrencyCode';
         Assert.AreEqual(GetCurrencyCode(ServiceCrMemoHeader."Currency Code"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
@@ -4395,6 +5344,28 @@ codeunit 13918 "XRechnung XML Document Tests"
             Path := DocumentTok + '/cac:PayeeFinancialAccount/cac:FinancialInstitutionBranch/cbc:ID';
             Assert.AreEqual(ExpectedSWIFT, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         end;
+    end;
+
+    local procedure VerifyDirectDebitPaymentMeans(var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text; ExpectedMandateID: Code[35]; ExpectedPayerIBAN: Text)
+    var
+        Path: Text;
+    begin
+        Path := DocumentTok + '/cbc:PaymentMeansCode';
+        Assert.AreEqual('59', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/cac:PaymentMandate/cbc:ID';
+        Assert.AreEqual(ExpectedMandateID, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentTok + '/cac:PayeeFinancialAccount'), 'BG-17 PayeeFinancialAccount must not be exported for direct debit (BR-DE-25-b).');
+        Path := DocumentTok + '/cac:PaymentMandate/cac:PayerFinancialAccount/cbc:ID';
+        Assert.AreEqual(ExpectedPayerIBAN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    local procedure VerifyDirectDebitCreditorNo(var TempXMLBuffer: Record "XML Buffer" temporary; PartyTok: Text; ExpectedCreditorNo: Code[35])
+    var
+        Path: Text;
+    begin
+        Path := PartyTok + '/cac:PartyIdentification/cbc:ID';
+        Assert.AreEqual(ExpectedCreditorNo, GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual('SEPA', GetLastAttributeByPathWithError(TempXMLBuffer, Path, 'schemeID'), StrSubstNo(IncorrectValueErr, Path + '/@schemeID'));
     end;
 
     local procedure VerifyPaymentTerms(PaymentTermsCode: Code[10]; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text);
@@ -4801,6 +5772,12 @@ codeunit 13918 "XRechnung XML Document Tests"
         Assert.RecordIsNotEmpty(TempXMLBuffer, '');
     end;
 
+    local procedure VerifyInvoicePDFNotEmbeddedToXML(var TempXMLBuffer: Record "XML Buffer" temporary)
+    begin
+        TempXMLBuffer.SetRange(Path, '/ubl:Invoice/cac:AdditionalDocumentReference/cac:Attachment/cbc:EmbeddedDocumentBinaryObject');
+        Assert.RecordIsEmpty(TempXMLBuffer);
+    end;
+
     local procedure VerifyCrMemoPDFEmbeddedToXML(var TempXMLBuffer: Record "XML Buffer" temporary)
     begin
         TempXMLBuffer.SetRange(Path, '/ns0:CreditNote/cac:AdditionalDocumentReference/cac:Attachment/cbc:EmbeddedDocumentBinaryObject');
@@ -4932,6 +5909,30 @@ codeunit 13918 "XRechnung XML Document Tests"
     begin
         EDocumentService."Embed PDF in export" := NewEmbedPDFInExport;
         EDocumentService.Modify();
+    end;
+
+    local procedure CreateTrailingXRechnungService(EmbedPDFInExport: Boolean): Code[20]
+    var
+        TrailingEDocumentService: Record "E-Document Service";
+    begin
+        // Insert a second XRechnung service whose Code sorts strictly after the triggering service,
+        // so that a FindLast() lookup by format would select this one instead of the triggering service.
+        RemoveTrailingXRechnungServices();
+        TrailingEDocumentService := EDocumentService;
+        TrailingEDocumentService.Code := CopyStr(CopyStr(EDocumentService.Code, 1, MaxStrLen(TrailingEDocumentService.Code) - 1) + 'Z', 1, MaxStrLen(TrailingEDocumentService.Code));
+        TrailingEDocumentService."Embed PDF in export" := EmbedPDFInExport;
+        TrailingEDocumentService.Insert();
+        exit(TrailingEDocumentService.Code);
+    end;
+
+    local procedure RemoveTrailingXRechnungServices()
+    var
+        TrailingEDocumentService: Record "E-Document Service";
+    begin
+        // The export path commits under codeunit-level test isolation, so remove the extra
+        // service explicitly to keep the single-service assumption for the rest of the suite.
+        TrailingEDocumentService.SetFilter(Code, '<>%1', EDocumentService.Code);
+        TrailingEDocumentService.DeleteAll();
     end;
 
     local procedure SetBuyerReferenceMandatory()
@@ -5251,10 +6252,104 @@ codeunit 13918 "XRechnung XML Document Tests"
         VATPostingSetup.Modify(true);
     end;
 
+    local procedure ClearShipToAddress(var SalesHeader: Record "Sales Header")
+    begin
+        SalesHeader."Ship-to Code" := '';
+        SalesHeader."Ship-to Address" := '';
+        SalesHeader."Ship-to Address 2" := '';
+        SalesHeader."Ship-to City" := '';
+        SalesHeader."Ship-to Post Code" := '';
+        SalesHeader."Ship-to County" := '';
+        SalesHeader."Ship-to Country/Region Code" := '';
+    end;
+
+    local procedure ClearShipToAddress(var SalesInvoiceHeader: Record "Sales Invoice Header")
+    begin
+        SalesInvoiceHeader."Ship-to Code" := '';
+        SalesInvoiceHeader."Ship-to Address" := '';
+        SalesInvoiceHeader."Ship-to Address 2" := '';
+        SalesInvoiceHeader."Ship-to City" := '';
+        SalesInvoiceHeader."Ship-to Post Code" := '';
+        SalesInvoiceHeader."Ship-to County" := '';
+        SalesInvoiceHeader."Ship-to Country/Region Code" := '';
+    end;
+
+    local procedure ClearShipToAddress(var ServiceHeader: Record "Service Header")
+    begin
+        ServiceHeader."Ship-to Code" := '';
+        ServiceHeader."Ship-to Address" := '';
+        ServiceHeader."Ship-to Address 2" := '';
+        ServiceHeader."Ship-to City" := '';
+        ServiceHeader."Ship-to Post Code" := '';
+        ServiceHeader."Ship-to County" := '';
+        ServiceHeader."Ship-to Country/Region Code" := '';
+    end;
+
+    local procedure GetShipToAddressFieldNos() ShipToFieldNos: List of [Integer]
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        ShipToFieldNos.Add(SalesInvoiceHeader.FieldNo("Ship-to Address"));
+        ShipToFieldNos.Add(SalesInvoiceHeader.FieldNo("Ship-to Address 2"));
+        ShipToFieldNos.Add(SalesInvoiceHeader.FieldNo("Ship-to City"));
+        ShipToFieldNos.Add(SalesInvoiceHeader.FieldNo("Ship-to Post Code"));
+        ShipToFieldNos.Add(SalesInvoiceHeader.FieldNo("Ship-to County"));
+        ShipToFieldNos.Add(SalesInvoiceHeader.FieldNo("Ship-to Country/Region Code"));
+    end;
+
+    local procedure SetSingleShipToAddressField(var SalesInvoiceHeader: Record "Sales Invoice Header"; ShipToFieldNo: Integer)
+    var
+        CountryRegion: Record "Country/Region";
+        SalesInvoiceHeaderRecRef: RecordRef;
+    begin
+        ClearShipToAddress(SalesInvoiceHeader);
+        SalesInvoiceHeader.Modify(false);
+        SalesInvoiceHeaderRecRef.GetTable(SalesInvoiceHeader);
+        if ShipToFieldNo = SalesInvoiceHeader.FieldNo("Ship-to Country/Region Code") then begin
+#pragma warning disable AA0210
+            CountryRegion.SetFilter("ISO Code", '<>%1', '');
+#pragma warning restore AA0210
+            CountryRegion.FindFirst();
+            SalesInvoiceHeaderRecRef.Field(ShipToFieldNo).Value := CountryRegion.Code;
+        end else
+            SalesInvoiceHeaderRecRef.Field(ShipToFieldNo).Value := LibraryUtility.GenerateGUID();
+        SalesInvoiceHeaderRecRef.Modify(false);
+        SalesInvoiceHeaderRecRef.SetTable(SalesInvoiceHeader);
+    end;
+
+    local procedure VerifyNoEmptyDeliveryAddressElement(var TempXMLBuffer: Record "XML Buffer" temporary)
+    var
+        ElementName: Text;
+    begin
+        foreach ElementName in '/cbc:StreetName,/cbc:AdditionalStreetName,/cbc:CityName,/cbc:PostalZone,/cbc:CountrySubentity'.Split(',') do
+            if NodeExistsByPath(TempXMLBuffer, InvoiceDeliveryAddressTok + ElementName) then
+                Assert.AreNotEqual('', GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryAddressTok + ElementName), StrSubstNo(IncorrectValueErr, InvoiceDeliveryAddressTok + ElementName));
+    end;
+
+    local procedure ResetPostingNoSeriesDateUsage()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        ServiceMgtSetup: Record "Service Mgt. Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        ServiceMgtSetup.Get();
+        NoSeriesLine.SetFilter(
+            "Series Code", '%1|%2|%3|%4|%5|%6',
+            SalesReceivablesSetup."Posted Shipment Nos.", SalesReceivablesSetup."Posted Invoice Nos.",
+            SalesReceivablesSetup."Posted Credit Memo Nos.", SalesReceivablesSetup."Posted Return Receipt Nos.",
+            ServiceMgtSetup."Posted Service Invoice Nos.", ServiceMgtSetup."Posted Serv. Credit Memo Nos.");
+        NoSeriesLine.ModifyAll("Last Date Used", 0D);
+    end;
+
     local procedure Initialize();
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"XRechnung XML Document Tests");
         if IsInitialized then begin
+            // Self-heal: a prior test that asserted (and possibly failed) after inserting a trailing
+            // service leaves it behind under codeunit-level isolation. Remove it so every test starts
+            // from the single-service fixture regardless of a previous failure.
+            RemoveTrailingXRechnungServices();
             RestoreCompanyIdentifiers();
             exit;
         end;

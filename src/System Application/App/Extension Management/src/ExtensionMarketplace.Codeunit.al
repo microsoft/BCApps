@@ -220,6 +220,7 @@ codeunit 2501 "Extension Marketplace"
     procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text);
     var
         TempExtensionInstallationRecord: Record "Extension Installation";
+        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         ExtensionInstallationPage: Page "Extension Installation";
         AppId: Guid;
     begin
@@ -228,6 +229,9 @@ codeunit 2501 "Extension Marketplace"
             Session.LogMessage('0088BQQ', StrSubstNo(MissingAppIdErr, MarketplaceApplicationId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryTok);
             Error(ExtensionNotFoundErr);
         end;
+
+        if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then
+            exit;
 
         TempExtensionInstallationRecord.SetRange(ID, AppId);
         TempExtensionInstallationRecord.ID := AppId;
@@ -240,12 +244,16 @@ codeunit 2501 "Extension Marketplace"
     procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text)
     var
         TempExtensionInstallationRecord: Record "Extension Installation";
+        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         ExtensionInstallationPage: Page "Extension Installation";
     begin
         if IsNullGuid(AppId) then begin
             Session.LogMessage('0000I4S', StrSubstNo(MissingAppIdErr, AppId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryTok);
             Error(ExtensionNotFoundErr);
         end;
+
+        if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then
+            exit;
 
         TempExtensionInstallationRecord.SetRange(ID, AppId);
         TempExtensionInstallationRecord.ID := AppId;
@@ -263,9 +271,11 @@ codeunit 2501 "Extension Marketplace"
         AppId: Guid;
     begin
         ExtensionInstallationImpl.CheckPermissions();
+        AppId := MapMarketplaceIdToAppId(MarketplaceApplicationID);
+        if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then
+            exit;
 
-        if not InstallAppsourceExtension(MarketplaceApplicationID, TelemetryURL) then begin // successful installation returns false
-            AppId := MapMarketplaceIdToAppId(MarketplaceApplicationID);
+        if not InstallAppsourceExtension(MarketplaceApplicationID, TelemetryURL) then // successful installation returns false
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
                 SaveExtensionPendingSetup(AppId);
                 MySessionSettings.Init();
@@ -275,7 +285,6 @@ codeunit 2501 "Extension Marketplace"
                 ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
                 ExtensionPendingSetup.DeleteAll();
             end;
-        end;
     end;
 
     procedure InstallAppsourceExtensionWithRefreshSession(AppId: Guid; TelemetryURL: Text);
@@ -286,6 +295,8 @@ codeunit 2501 "Extension Marketplace"
         MySessionSettings: SessionSettings;
     begin
         ExtensionInstallationImpl.CheckPermissions();
+        if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then
+            exit;
 
         if not InstallAppsourceExtension(AppId, TelemetryURL) then // successful installation returns false
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
@@ -345,7 +356,7 @@ codeunit 2501 "Extension Marketplace"
     begin
         HttpWebRequest.KeepAlive := true;
         HttpWebRequest.AllowAutoRedirect := true;
-        HttpWebRequest.UseDefaultCredentials := true;
+        HttpWebRequest.UseDefaultCredentials := false;
         HttpWebRequest.Timeout := 60000;
         CookieContainer := CookieContainer.CookieContainer();
         HttpWebRequest.CookieContainer := CookieContainer;

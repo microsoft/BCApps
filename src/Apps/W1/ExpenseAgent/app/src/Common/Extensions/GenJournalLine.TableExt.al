@@ -10,6 +10,7 @@ tableextension 6976 "Gen. Journal Line" extends "Gen. Journal Line"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve existing field IDs for compatibility.
         field(6500; "Expense User No."; Code[20])
         {
             Caption = 'Expense User No.';
@@ -29,5 +30,6 @@ tableextension 6976 "Gen. Journal Line" extends "Gen. Journal Line"
             TableRelation = "Expense SubCategory".Code where("Expense Category Code" = field("Expense Category"));
             DataClassification = CustomerContent;
         }
+#pragma warning restore AS0099
     }
 }

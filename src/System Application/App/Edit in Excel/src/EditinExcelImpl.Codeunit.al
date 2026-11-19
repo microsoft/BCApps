@@ -9,6 +9,7 @@ using System;
 using System.Environment;
 using System.Integration;
 using System.Reflection;
+using System.Security.AccessControl;
 
 codeunit 1482 "Edit in Excel Impl."
 {
@@ -23,6 +24,8 @@ codeunit 1482 "Edit in Excel Impl."
         CreateEndpointForObjectTxt: Label 'Creating endpoint for %1 %2.', Locked = true;
         EditInExcelHandledTxt: Label 'Edit in excel has been handled.', Locked = true;
         EditInExcelOnlySupportPageWebServicesTxt: Label 'Edit in Excel only support web services created from pages.', Locked = true;
+        EditInExcelNotSupportedForUserTableErr: Label 'Edit in Excel is not supported for pages that are based on the User table. To change users, use the Users or User Card page in Business Central.';
+        EditInExcelBlockedForUserTableTxt: Label 'Edit in Excel was blocked for page %1 because its source table is the User table.', Locked = true;
         EditInExcelInvalidFilterErr: Label 'Certain filters applied on the page are not available in Office, so more rows will be shown compared to Business Central.\ \ Removed filters: %1', Comment = '%1 = The field filters we had to remove because they are not exposed through OData';
         DialogTitleTxt: Label 'Export';
         ExcelFileNameTxt: Text;
@@ -35,6 +38,7 @@ codeunit 1482 "Edit in Excel Impl."
         ServiceName: Text[240];
         Handled: Boolean;
     begin
+        CheckPageIsSupported(PageId);
         ServiceName := FindOrCreateWorksheetWebService(PageCaption, PageId);
         ExcelFileNameTxt := FileName;
 
@@ -57,6 +61,8 @@ codeunit 1482 "Edit in Excel Impl."
     begin
         if (not TenantWebService.Get(TenantWebService."Object Type"::Page, ServiceName)) then
             Error(EditInExcelOnlySupportPageWebServicesTxt);
+
+        CheckPageIsSupported(TenantWebService."Object ID");
 
         Session.LogMessage('0000DB6', StrSubstNo(CreateEndpointForObjectTxt, TenantWebService."Object Type", TenantWebService."Object ID"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
 
@@ -288,6 +294,8 @@ codeunit 1482 "Edit in Excel Impl."
         if not TenantWebService.Get(TenantWebService."Object Type"::Page, ServiceName) then
             exit;
 
+        CheckPageIsSupported(TenantWebService."Object ID");
+
         EditinExcelFilters.ReadFromJsonFilters(Filter, Payload, TenantWebService."Object ID", FilterErrors);
         EditinExcel.OnEditInExcelWithFilters(ServiceName, EditinExcelFilters, SearchString, Handled);
         if Handled then begin
@@ -297,6 +305,20 @@ codeunit 1482 "Edit in Excel Impl."
         if FilterErrors.Count() > 0 then
             Message(EditInExcelInvalidFilterErr, FormatFilterErrors(FilterErrors));
         GetEndPointAndCreateWorkbookWStructuredFilter(ServiceName, EditinExcelFilters, SearchString);
+    end;
+
+    local procedure CheckPageIsSupported(PageId: Integer)
+    var
+        PageMetadata: Record "Page Metadata";
+    begin
+        // Publishing changes to the User table through OData can break user authentication, so Edit in Excel is not allowed for it.
+        if not PageMetadata.Get(PageId) then
+            exit;
+        if not (PageMetadata.SourceTable in [Database::User]) then
+            exit;
+
+        Session.LogMessage('0000VPZ', StrSubstNo(EditInExcelBlockedForUserTableTxt, PageId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
+        Error(EditInExcelNotSupportedForUserTableErr);
     end;
 
     local procedure FormatFilterErrors(FilterErrors: Dictionary of [Text, Boolean]): Text

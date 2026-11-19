@@ -1486,8 +1486,8 @@ codeunit 138702 "Retention Policy Test"
         ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
     begin
         // Setup
-        // Enabled policy setup can schedule Base Application job queue entries.
-        PermissionsMock.Set('SUPER');
+        // Run setup with the test user's own permissions: inserting and deleting policy setups raises
+        // table events that Base Application uses to schedule job queue entries, if it is installed.
         RetentionPolicyTestLibrary.RaiseOnRefreshAllowedTables();
         ClearTestData();
         InsertOneMonthRetentionPeriod(RetentionPeriod);
@@ -1685,8 +1685,8 @@ codeunit 138702 "Retention Policy Test"
         i: Integer;
     begin
         // Setup
-        // Enabled policy setup can schedule Base Application job queue entries.
-        PermissionsMock.Set('SUPER');
+        // Run setup with the test user's own permissions: inserting and deleting policy setups raises
+        // table events that Base Application uses to schedule job queue entries, if it is installed.
         RetentionPolicyTestLibrary.RaiseOnRefreshAllowedTables();
         ClearTestData();
         InsertOneMonthRetentionPeriod(RetentionPeriod);

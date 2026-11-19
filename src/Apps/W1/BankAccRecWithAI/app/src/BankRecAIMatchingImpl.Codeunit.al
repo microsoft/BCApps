@@ -257,6 +257,33 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
         exit(true);
     end;
 
+    internal procedure GetChatCompletionsDeployment(): Text
+    var
+        AOAIDeployments: Codeunit "AOAI Deployments";
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        ModelSwitchValue: Text;
+    begin
+        // The model can be switched centrally through Key Vault. Blank, missing or unrecognized values fall back to GPT-4.1 latest.
+        if not AzureKeyVault.GetAzureKeyVaultSecret(ModelSwitchSecretNameTok, ModelSwitchValue) then
+            ModelSwitchValue := '';
+
+        case UpperCase(ModelSwitchValue.Trim()) of
+            UpperCase(GPT41PreviewTok):
+                exit(AOAIDeployments.GetGPT41Preview());
+            UpperCase(GPT56CeresLatestTok):
+                exit(AOAIDeployments.GetGPT56CeresLatest());
+            UpperCase(GPT56CeresPreviewTok):
+                exit(AOAIDeployments.GetGPT56CeresPreview());
+            else
+                exit(AOAIDeployments.GetGPT41Latest());
+        end;
+    end;
+
+    internal procedure GetModelTelemetryDimensions() TelemetryDimensions: Dictionary of [Text, Text]
+    begin
+        TelemetryDimensions.Add('DeploymentName', GetChatCompletionsDeployment());
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Match Bank Rec. Lines", 'OnFindBestMatches', '', false, false)]
     local procedure HandleOnFindBestMatches(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempBankAccLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; DaysTolerance: Integer; var TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; var RemovedPreviouslyAssigned: Boolean; var Handled: Boolean)
     var
@@ -327,7 +354,6 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
     procedure CreateCompletionAndMatch(CompletionTaskTxt: SecretText; UserMessageTxt: SecretText; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempBankAccLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; var TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; DaysTolerance: Integer): Integer
     var
         AzureOpenAI: Codeunit "Azure OpenAi";
-        AOAIDeployments: Codeunit "AOAI Deployments";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         AOAIPolicyParams: Codeunit "AOAI Policy Params";
@@ -344,7 +370,7 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
             exit;
 
         // Generate OpenAI Completion
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", GetChatCompletionsDeployment());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Bank Account Reconciliation");
         AOAIPolicyParams.SetXPIADetection(true);
         AOAIPolicyParams.SetHarmsSeverity(Enum::"AOAI Policy Harms Severity"::Medium);
@@ -373,61 +399,77 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
     var
         MatchedLedgerEntryNoTxt: Text;
         MatchedStatementLineNoTxt: Text;
-        MatchJustificationTxt: Text;
+        LedgerEntryNosTxt: Text;
+        MatchTxt: Text;
         MatchedEntryNo: Integer;
         MatchedLineNo: Integer;
-        MatchTripleTxt: Text;
-        FirstOpenParenthesisPos: Integer;
-        FirstClosedParenthesisPos: Integer;
-        CommaPosition: Integer;
+        OpenBracketPos: Integer;
+        ClosedBracketPos: Integer;
     begin
         if CompletionAnswerTxt = '' then
             exit;
 
-        FirstOpenParenthesisPos := StrPos(CompletionAnswerTxt, '(');
-        FirstClosedParenthesisPos := StrPos(CompletionAnswerTxt, ')');
-        while (FirstOpenParenthesisPos > 0) and (FirstClosedParenthesisPos > FirstOpenParenthesisPos) do begin
-            MatchedLedgerEntryNoTxt := '';
-            MatchedStatementLineNoTxt := '';
-            MatchTripleTxt := CopyStr(CompletionAnswerTxt, FirstOpenParenthesisPos + 1, FirstClosedParenthesisPos - FirstOpenParenthesisPos - 1);
-            CompletionAnswerTxt := CopyStr(CompletionAnswerTxt, FirstClosedParenthesisPos + 1);
-            FirstOpenParenthesisPos := StrPos(CompletionAnswerTxt, '(');
-            FirstClosedParenthesisPos := StrPos(CompletionAnswerTxt, ')');
-            if StrPos(MatchTripleTxt, ', [') - 1 > 0 then begin
+        // Expected match format: (Statement Line Id, [Ledger Entry Id1, Ledger Entry Id2, ...])
+        while GetNextParenthesizedText(CompletionAnswerTxt, MatchTxt) do begin
+            OpenBracketPos := StrPos(MatchTxt, '[');
+            if OpenBracketPos > 0 then begin
+                MatchedStatementLineNoTxt := CopyStr(MatchTxt, 1, OpenBracketPos - 1).Trim();
+                if MatchedStatementLineNoTxt.EndsWith(',') then begin
+                    MatchedStatementLineNoTxt := NormalizeCompletionAnswerId(CopyStr(MatchedStatementLineNoTxt, 1, StrLen(MatchedStatementLineNoTxt) - 1));
+                    LedgerEntryNosTxt := CopyStr(MatchTxt, OpenBracketPos + 1);
+                    ClosedBracketPos := StrPos(LedgerEntryNosTxt, ']');
+                    if ClosedBracketPos > 0 then
+                        LedgerEntryNosTxt := CopyStr(LedgerEntryNosTxt, 1, ClosedBracketPos - 1);
 
-                MatchedStatementLineNoTxt := CopyStr(MatchTripleTxt, 1, StrPos(MatchTripleTxt, ', [') - 1);
-                MatchTripleTxt := CopyStr(MatchTripleTxt, StrPos(MatchTripleTxt, '[') + 1, StrLen(MatchTripleTxt) - StrPos(MatchTripleTxt, '[') - 1);
-
-                while StrLen(MatchTripleTxt) > 0 do begin
-                    CommaPosition := StrPos(MatchTripleTxt, ',');
-                    if CommaPosition = 0 then begin
-                        MatchedLedgerEntryNoTxt := MatchTripleTxt;
-                        MatchedLedgerEntryNoTxt := CopyStr(MatchedLedgerEntryNoTxt, 1, StrLen(MatchedLedgerEntryNoTxt));
-                        MatchTripleTxt := '';
-                    end else begin
-                        MatchedLedgerEntryNoTxt := CopyStr(MatchTripleTxt, 1, CommaPosition - 1);
-                        MatchTripleTxt := CopyStr(MatchTripleTxt, CommaPosition + 1);
-                    end;
-
-                    MatchedLedgerEntryNoTxt := MatchedLedgerEntryNoTxt.Trim();
-                    MatchedStatementLineNoTxt := MatchedStatementLineNoTxt.Trim();
-
-                    if MatchIsAcceptable(BankAccReconciliationLine, TempBankAccLedgerEntryMatchingBuffer, MatchedStatementLineNoTxt, MatchedLedgerEntryNoTxt) then begin
-                        Evaluate(MatchedEntryNo, MatchedLedgerEntryNoTxt);
-                        Evaluate(MatchedLineNo, MatchedStatementLineNoTxt);
-                        MatchJustificationTxt := MatchedByCopilotTxt;
-                        TempBankStatementMatchingBuffer.Reset();
-                        TempBankStatementMatchingBuffer."Entry No." := MatchedEntryNo;
-                        TempBankStatementMatchingBuffer."Line No." := MatchedLineNo;
-                        TempBankStatementMatchingBuffer."Match Details" := CopyStr(MatchJustificationTxt, 1, MaxStrLen(TempBankStatementMatchingBuffer."Match Details"));
-                        if not TempBankStatementMatchingBuffer.Insert() then
-                            exit
-                        else
-                            NumberOfFoundMatches += 1;
+                    foreach MatchedLedgerEntryNoTxt in LedgerEntryNosTxt.Split(',') do begin
+                        MatchedLedgerEntryNoTxt := NormalizeCompletionAnswerId(MatchedLedgerEntryNoTxt);
+                        if MatchIsAcceptable(BankAccReconciliationLine, TempBankAccLedgerEntryMatchingBuffer, MatchedStatementLineNoTxt, MatchedLedgerEntryNoTxt) then begin
+                            Evaluate(MatchedEntryNo, MatchedLedgerEntryNoTxt);
+                            Evaluate(MatchedLineNo, MatchedStatementLineNoTxt);
+                            TempBankStatementMatchingBuffer.Reset();
+                            TempBankStatementMatchingBuffer."Entry No." := MatchedEntryNo;
+                            TempBankStatementMatchingBuffer."Line No." := MatchedLineNo;
+                            TempBankStatementMatchingBuffer."Match Details" := CopyStr(MatchedByCopilotTxt, 1, MaxStrLen(TempBankStatementMatchingBuffer."Match Details"));
+                            // A repeated match in the answer is skipped, without dropping the matches that follow it.
+                            if TempBankStatementMatchingBuffer.Insert() then
+                                NumberOfFoundMatches += 1;
+                        end;
                     end;
                 end;
             end;
         end;
+    end;
+
+    internal procedure GetNextParenthesizedText(var RemainingAnswerTxt: Text; var ParenthesizedTxt: Text): Boolean
+    var
+        TextBeforeClosedParenthesis: Text;
+        OpenParenthesisPos: Integer;
+        ClosedParenthesisPos: Integer;
+    begin
+        // Returns the innermost "(...)" group and consumes the answer up to and including its closing parenthesis.
+        ParenthesizedTxt := '';
+        ClosedParenthesisPos := StrPos(RemainingAnswerTxt, ')');
+        while ClosedParenthesisPos > 0 do begin
+            TextBeforeClosedParenthesis := CopyStr(RemainingAnswerTxt, 1, ClosedParenthesisPos - 1);
+            RemainingAnswerTxt := CopyStr(RemainingAnswerTxt, ClosedParenthesisPos + 1);
+            OpenParenthesisPos := TextBeforeClosedParenthesis.LastIndexOf('(');
+            if OpenParenthesisPos > 0 then begin
+                ParenthesizedTxt := CopyStr(TextBeforeClosedParenthesis, OpenParenthesisPos + 1);
+                exit(true);
+            end;
+            ClosedParenthesisPos := StrPos(RemainingAnswerTxt, ')');
+        end;
+        RemainingAnswerTxt := '';
+        exit(false);
+    end;
+
+    internal procedure NormalizeCompletionAnswerId(IdTxt: Text): Text
+    begin
+        // Tolerates ids echoed in the input format (e.g. "#Id: 10000") or wrapped in markdown/quotes.
+        IdTxt := DelChr(IdTxt.Trim(), '<>', CompletionAnswerIdDecorationTok).Trim();
+        if IdTxt.ToLower().StartsWith(IdPrefixTok) then
+            IdTxt := DelChr(CopyStr(IdTxt, StrLen(IdPrefixTok) + 1).Trim(), '<>', CompletionAnswerIdDecorationTok).Trim();
+        exit(IdTxt);
     end;
 
     procedure GenerateMatchProposals(var TempBankAccRecAIProposal: Record "Bank Acc. Rec. AI Proposal" temporary; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempBankAccLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; var TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; DaysTolerance: Integer)
@@ -455,7 +497,7 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
 
         if not TempBankAccLedgerEntryMatchingBuffer.IsEmpty() then begin
             FeatureTelemetry.LogUptake('0000LF5', FeatureName(), Enum::"Feature Uptake Status"::Used);
-            FeatureTelemetry.LogUsage('0000LF6', FeatureName(), 'Match proposals');
+            FeatureTelemetry.LogUsage('0000LF6', FeatureName(), 'Match proposals', GetModelTelemetryDimensions());
             // Initialize the counts
             CompletionTaskTxt := BuildBankRecCompletionTask(true);
             TaskPromptTokenCount := AOAIToken.GetGPT4TokenCount(CompletionTaskTxt);
@@ -744,5 +786,11 @@ codeunit 7250 "Bank Rec. AI Matching Impl."
         ContentAreaCaptionTxt: label 'Reconciling %1 statement %2 for %3', Comment = '%1 - bank account code, %2 - statement number, %3 - statement date';
         TooManyOpenLedgerEntriesErr: label 'The number of open ledger entries for this bank account exceeds the capacity of data that we can send to Copilot. Open the bank account reconciliation card and use action ''Match Automatically'' to reconcile this statement. Perform the reconciliation month by month - reconciling the oldest open ledger entries first, then moving on to newer ones.';
         TooManyOpenLedgerEntriesTelemetryErr: label 'Throwing error that we are unable to build ledger entry candidate list.', Locked = true;
+        ModelSwitchSecretNameTok: Label 'BankRecWithAIModelSwitch', Locked = true;
+        GPT41PreviewTok: Label 'GPT41Preview', Locked = true;
+        GPT56CeresLatestTok: Label 'GPT56CeresLatest', Locked = true;
+        GPT56CeresPreviewTok: Label 'GPT56CeresPreview', Locked = true;
+        IdPrefixTok: Label 'id:', Locked = true;
+        CompletionAnswerIdDecorationTok: Label '#*`"''', Locked = true;
         InputWithReservedWordsFound: Boolean;
 }

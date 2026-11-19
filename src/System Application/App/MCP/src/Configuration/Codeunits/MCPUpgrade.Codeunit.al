@@ -19,6 +19,10 @@ codeunit 8356 "MCP Upgrade"
         UpgradeMCPSystemDefaultAsDefault();
         EnableApiToolsOnExistingConfigurations();
         UpgradeRegisterMCPCapability();
+        UpgradeMCPCapabilityBilling();
+#if not CLEAN27
+        DisableDataQueryToolsOnExistingConfigurations();
+#endif
     end;
 
     internal procedure UpgradeMCPAPIToolVersion()
@@ -84,6 +88,34 @@ codeunit 8356 "MCP Upgrade"
         UpgradeTag.SetUpgradeTag(GetRegisterMCPCapabilityUpgradeTag());
     end;
 
+    internal procedure UpgradeMCPCapabilityBilling()
+    var
+        MCPCopilotCapReg: Codeunit "MCP Copilot Cap. Reg.";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasDatabaseUpgradeTag(GetMCPUpdateCapabilityBillingUpgradeTag()) then
+            exit;
+
+        MCPCopilotCapReg.UpdateMCPCapabilityBilling();
+
+        UpgradeTag.SetUpgradeTag(GetMCPUpdateCapabilityBillingUpgradeTag());
+    end;
+
+#if not CLEAN27
+    internal procedure DisableDataQueryToolsOnExistingConfigurations()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasDatabaseUpgradeTag(GetMCPDisableDataQueryToolsUpgradeTag()) then
+            exit;
+
+        MCPConfiguration.ModifyAll(EnableAlQueryTools, false);
+
+        UpgradeTag.SetUpgradeTag(GetMCPDisableDataQueryToolsUpgradeTag());
+    end;
+#endif
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
     local procedure RegisterUpgradeTags(var PerDatabaseUpgradeTags: List of [Code[250]])
     begin
@@ -91,6 +123,10 @@ codeunit 8356 "MCP Upgrade"
         PerDatabaseUpgradeTags.Add(GetMCPSystemDefaultAsDefaultUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetMCPEnableApiToolsUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetRegisterMCPCapabilityUpgradeTag());
+        PerDatabaseUpgradeTags.Add(GetMCPUpdateCapabilityBillingUpgradeTag());
+#if not CLEAN27
+        PerDatabaseUpgradeTags.Add(GetMCPDisableDataQueryToolsUpgradeTag());
+#endif
     end;
 
     local procedure GetMCPAPIToolVersionUpgradeTag(): Text[250]
@@ -112,4 +148,16 @@ codeunit 8356 "MCP Upgrade"
     begin
         exit('MS-641612-RegisterMCPCapability-20260612');
     end;
+
+    local procedure GetMCPUpdateCapabilityBillingUpgradeTag(): Text[250]
+    begin
+        exit('MS-652515-MCPUpdateCapabilityBilling-20261001');
+    end;
+
+#if not CLEAN27
+    local procedure GetMCPDisableDataQueryToolsUpgradeTag(): Text[250]
+    begin
+        exit('MS-652515-MCPDisableDataQueryTools-20261001');
+    end;
+#endif
 }

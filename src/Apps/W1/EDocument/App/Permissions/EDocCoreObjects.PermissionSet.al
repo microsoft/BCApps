@@ -58,11 +58,6 @@ permissionset 6100 "E-Doc. Core - Objects"
         table "E-Document Message" = X,
         table "E-Doc. Payment Occurrence" = X,
         table "E-Doc. External Reference" = X,
-#if not CLEAN28
-#pragma warning disable AL0432
-        table "EDoc Historical Matching Setup" = X,
-#pragma warning restore AL0432
-#endif
         codeunit "E-Document Import Job" = X,
         codeunit "E-Doc. Integration Management" = X,
         codeunit "E-Doc. Mapping" = X,
@@ -148,10 +143,12 @@ permissionset 6100 "E-Doc. Core - Objects"
         page "E-Document Sales Draft" = X,
         page "E-Doc. Sales Draft Subform" = X,
         page "Inbound E-Doc. Factbox" = X,
+        page "Inbound E-Doc. Picture" = X,
         page "Inbound E-Documents" = X,
         page "Outbound E-Doc. Factbox" = X,
         page "Outbound E-Documents" = X,
         page "E-Document Messages FactBox" = X,
+        page "E-Doc. Status FactBox" = X,
         codeunit ActionContext = X,
         codeunit "Consent Manager Default Impl." = X,
         codeunit "Download Document" = X,
@@ -159,6 +156,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "E-Doc In Progress Status" = X,
         codeunit "E-Doc Processed Status" = X,
         codeunit "E-Doc. Create Purchase Invoice" = X,
+        codeunit "E-Doc. Navigate Handler" = X,
         codeunit "E-Doc. Providers" = X,
         codeunit "E-Document Action Runner" = X,
         codeunit "E-Document ADI Handler" = X,

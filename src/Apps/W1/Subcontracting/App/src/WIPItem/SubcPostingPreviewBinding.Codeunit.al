@@ -8,7 +8,7 @@ using Microsoft.Finance.GeneralLedger.Preview;
 
 codeunit 20565 "Subc. Posting Preview Binding"
 {
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -31,7 +31,7 @@ codeunit 20565 "Subc. Posting Preview Binding"
     var
         SubcPostingPreviewHandler: Codeunit "Subc. Pst. Prev. Event Handler";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -45,7 +45,7 @@ codeunit 20565 "Subc. Posting Preview Binding"
     var
         SubcPostingPreviewHandler: Codeunit "Subc. Pst. Prev. Event Handler";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

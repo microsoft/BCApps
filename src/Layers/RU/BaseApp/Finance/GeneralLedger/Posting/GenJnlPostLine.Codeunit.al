@@ -126,6 +126,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         UnrealizedCustLedgEntry: Record "Cust. Ledger Entry";
         UnrealizedVendLedgEntry: Record "Vendor Ledger Entry";
         TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary;
+        TempSummarizedVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary;
         TempVATEntry: Record "VAT Entry" temporary;
         TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary;
         TempCustLedgEntry: Record "Cust. Ledger Entry" temporary;
@@ -134,6 +135,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATEntryToRealize: Record "VAT Entry";
         GenJnlCheckLine: Codeunit "Gen. Jnl.-Check Line";
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        FAJnlPostLine: Codeunit "FA Jnl.-Post Line";
         PrepmtDiffMgt: Codeunit PrepmtDiffManagement;
         DeferralUtilities: Codeunit "Deferral Utilities";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
@@ -162,16 +164,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
         AddCurrGLEntryVATAmt: Decimal;
         CurrencyFactor: Decimal;
         FirstEntryNo: Integer;
-        NextEntryNo: Integer;
-        NextVATEntryNo: Integer;
-        NextTaxEntryNo: Integer;
-        FirstNewVATEntryNo: Integer;
-        FirstTransactionNo: Integer;
-        NextTransactionNo: Integer;
+        NextEntryNo: BigInteger;
+        PreviousEntryNo: Integer;
+        NextVATEntryNo: BigInteger;
+        NextTaxEntryNo: BigInteger;
+        FirstNewVATEntryNo: BigInteger;
+        FirstTransactionNo: BigInteger;
+        NextTransactionNo: BigInteger;
         NextConnectionNo: Integer;
-        NextCheckEntryNo: Integer;
+        NextCheckEntryNo: BigInteger;
         InsertedTempGLEntryVAT: Integer;
         GLEntryNo: Integer;
+        PreviousGLEntryNoForSequenceCheck: BigInteger;
+        PreviousVATEntryNoForSequenceCheck: BigInteger;
         UseCurrFactorOnly: Boolean;
         NonAddCurrCodeOccured: Boolean;
         FADimAlreadyChecked: Boolean;
@@ -205,9 +210,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
         DescriptionMustNotBeBlankErr: Label 'When %1 is selected for %2, %3 must have a value.', Comment = '%1: Field Omit Default Descr. in Jnl., %2 G/L Account No, %3 Description';
         NoDeferralScheduleErr: Label 'You must create a deferral schedule if a deferral template is selected. Line: %1, Deferral Template: %2.', Comment = '%1=The line number of the general ledger transaction, %2=The Deferral Template Code';
         ZeroDeferralAmtErr: Label 'Deferral amounts cannot be 0. Line: %1, Deferral Template: %2.', Comment = '%1=The line number of the general ledger transaction, %2=The Deferral Template Code';
+#pragma warning disable AA0074
 #pragma warning disable AA0470
         MustNotBeAfterErr: Label 'Posting date must not be after %1 in %2 entry no. %3.';
 #pragma warning restore AA0470
+#pragma warning restore AA0074
         MultipleEntriesApplnErr: Label 'Only application of one entry to several entries is allowed in Russian version.';
 #pragma warning disable AA0470
         CheckApplnDateCustErr: Label 'Check Application Date is not possible for Customer %1 if Application Method = Apply to Oldest.';
@@ -252,7 +259,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeRunWithCheck(GenJnlLine, GenJnlLine2, GLEntryNo, IsHandled);
         if IsHandled then
             exit(GLEntryNo);
-
         if GLReg."No." = 0 then
             SequenceNoMgt.ClearSequenceNoCheck();
 
@@ -278,6 +284,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeRunWithoutCheck(GenJnlLine, GenJnlLine2, GLEntryNo, isHandled);
         if IsHandled then
             exit(GLEntryNo);
+        if GLReg."No." = 0 then
+            SequenceNoMgt.ClearSequenceNoCheck();
 
         GenJnlLine.Copy(GenJnlLine2);
         Code(GenJnlLine, false);
@@ -288,7 +296,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     local procedure "Code"(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean)
     var
-        xGLEntryNo: Integer;
+        xGLEntryNo: BigInteger;
+        xVATEntryNo: BigInteger;
         Balancing: Boolean;
         IsTransactionConsistent: Boolean;
         IsPosted: Boolean;
@@ -298,16 +307,15 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if IsPosted then
             exit;
 
+        ValidateSequenceNoBeforePosting();
         xGLEntryNo := GLEntryNo;
-        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        xVATEntryNo := NextVATEntryNo;
 
         GetJournalsSourceCode();
-
         if GenJnlLine.EmptyLine() then begin
             InitLastDocDate(GenJnlLine);
             exit;
         end;
-
         if GenJnlLine."VAT Reporting Date" = 0D then begin
             GLSetup.Get();
             if (GenJnlLine."Document Date" = 0D) and (GLSetup."VAT Reporting Date" = GLSetup."VAT Reporting Date"::"Document Date") then
@@ -320,7 +328,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnCodeOnAfterCheckGenJnlLine(GenJnlLine, CheckLine);
 
         AmountRoundingPrecision := InitAmounts(GenJnlLine);
-
         if GenJnlLine."Bill-to/Pay-to No." = '' then
             case true of
                 GenJnlLine."Account Type" in [GenJnlLine."Account Type"::Customer, GenJnlLine."Account Type"::Vendor]:
@@ -334,7 +341,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             GenJnlLine."Due Date" := GenJnlLine."Posting Date";
 
         FindJobLineSign(GenJnlLine);
-
         if GenJnlLine."Prepmt. Diff." then begin
             GenJnlLine."Document Type" := InitialCVLedgEntryBuf."Document Type";
             GenJnlLine."Document No." := InitialCVLedgEntryBuf."Document No.";
@@ -343,14 +349,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATAgentVATPayment := IsVATAgentVATPayment(GenJnlLine);
 
         OnBeforeStartOrContinuePosting(GenJnlLine, LastDocType.AsInteger(), LastDocNo, LastDate, NextEntryNo);
-
         if NextEntryNo = 0 then
             StartPosting(GenJnlLine)
         else
             ContinuePosting(GenJnlLine);
 
         OnCodeOnAfterStartOrContinuePosting(GenJnlLine, LastDocType, LastDocNo, LastDate, NextEntryNo);
-
         if GenJnlLine."Account No." <> '' then begin
             if (GenJnlLine."Bal. Account No." <> '') and
                (not GenJnlLine."System-Created Entry") and
@@ -366,13 +370,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
             PostGenJnlLine(GenJnlLine, Balancing);
         end;
-
         if GenJnlLine."Bal. Account No." <> '' then begin
             CODEUNIT.Run(CODEUNIT::"Exchange Acc. G/L Journal Line", GenJnlLine);
             OnCodeOnAfterRunExhangeAccGLJournalLine(GenJnlLine, Balancing, NextEntryNo, JobLine);
             PostGenJnlLine(GenJnlLine, not Balancing);
         end;
-
         if GLSetup."Enable Russian Tax Accounting" and (GenJnlLine."Tax. Diff. Dtld. Entry No." <> 0) then
             UpdateTaxDiff(GenJnlLine);
 
@@ -387,6 +389,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
             GlobalGLEntry, GenJnlLine, IsTransactionConsistent, FirstTransactionNo, GLReg, TempGLEntryBuf,
             NextEntryNo, NextTransactionNo, NextVATEntryNo);
         ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
+        SaveSequenceNoState();
 
         GLEntryInconsistent := not IsTransactionConsistent;
     end;
@@ -423,7 +427,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeCheckGenJnlLine(GenJournalLine, CheckLine, OverrideDimErr, IsHandled);
         if IsHandled then
             exit;
-
         if CheckLine then begin
             if OverrideDimErr then
                 GenJnlCheckLine.SetOverDimErr();
@@ -437,7 +440,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     local procedure PostGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; Balancing: Boolean)
     begin
         OnBeforePostGenJnlLine(GenJnlLine, Balancing);
-
         case GenJnlLine."Account Type" of
             GenJnlLine."Account Type"::"G/L Account":
                 PostGLAcc(GenJnlLine, Balancing);
@@ -468,7 +470,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeInitAmounts(GenJnlLine, Currency, IsHandled);
         if IsHandled then
             exit(Currency."Amount Rounding Precision");
-
         if GenJnlLine."Currency Code" = '' then begin
             Currency.InitRoundingPrecision();
             GenJnlLine."Amount (LCY)" := GenJnlLine.Amount;
@@ -534,11 +535,16 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeInitNextEntryNo(GLEntry, NextEntryNo, NextTransactionNo, IsHandled);
         if IsHandled then
             exit;
-
-        GLEntry.LockTable();
-        GLEntry.GetLastEntry(LastEntryNo, LastTransactionNo);
-        NextEntryNo := LastEntryNo + 1;
-        NextTransactionNo := LastTransactionNo + 1;
+        if not GLSetup.UseConcurrentPosting() then begin
+            GLEntry.LockTable();
+            GLEntry.GetLastEntry(LastEntryNo, LastTransactionNo);
+            NextEntryNo := LastEntryNo + 1;
+            NextTransactionNo := LastTransactionNo + 1;
+        end else begin
+            PreviousEntryNo := 0;
+            NextEntryNo := GlobalGLEntry.GetNextEntryNo();
+            NextTransactionNo := GlobalGLTransaction.GetNextTransactionNo();
+        end;
 
         OnAfterInitNextEntryNo(GLEntry, NextEntryNo, NextTransactionNo);
     end;
@@ -730,7 +736,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                             TransVATAccNo := GLEntry."G/L Account No.";
                 end;
         end;
-
         if GenJnlLine."System-Created Entry" then
             GLEntry."Source Currency VAT Amount" := GenJnlLine."Source Curr. VAT Amount"
         else
@@ -772,7 +777,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforePostVAT(GenJnlLine, GLEntry, VATPostingSetup, IsHandled, AddCurrGLEntryVATAmt, NextConnectionNo, TaxDetail);
         if IsHandled then
             exit;
-
         case GenJnlLine."VAT Calculation Type" of
             GenJnlLine."VAT Calculation Type"::"Normal VAT",
             GenJnlLine."VAT Calculation Type"::"Reverse Charge VAT",
@@ -851,7 +855,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     end;
                 end;
         end;
-
         if GLSetup."Enable Russian Accounting" then
             TransVATAccNo := '';
 
@@ -910,7 +913,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 GLEntryBaseAmount := GenJnlLine."Advance VAT Base Amount";
             end;
         OnInsertVATOnAfterAssignVATEntryFields(GenJnlLine, VATEntry, CurrExchRate);
-
         if GenJnlLine."VAT Difference" = 0 then
             VATDifferenceLCY := 0
         else
@@ -924,15 +926,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
                       CurrExchRate.ExchangeRate(GenJnlLine."Posting Date", GenJnlLine."Currency Code")));
 
         OnInsertVATOnAfterCalcVATDifferenceLCY(GenJnlLine, VATEntry, VATDifferenceLCY, CurrExchRate);
-
         if (GenJnlLine."Account Type" = GenJnlLine."Account Type"::"Fixed Asset") and (GenJnlLine."Object Type" <> GenJnlLine."Object Type"::"G/L Account") then begin
             GenJnlLine."Account Type" := "Gen. Journal Account Type".FromInteger(GenJnlLine."Object Type");
             GenJnlLine."Account No." := GenJnlLine."Object No."
         end;
-
         if GenJnlLine."VAT Calculation Type" = GenJnlLine."VAT Calculation Type"::"Sales Tax" then
             UpdateVATEntryTaxDetails(GenJnlLine, VATEntry, TaxDetail, TaxJurisdiction);
-
         if GLSetup."Enable Russian Accounting" then begin
             if GenJnlLine."VAT Calculation Type" = GenJnlLine."VAT Calculation Type"::"Sales Tax" then
                 VATEntry."Tax Invoice Amount Type" := TaxJurisdiction."Sales Tax Amount Type"
@@ -948,7 +947,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                             VATEntry."VAT Settlement Type" := VATEntry."VAT Settlement Type"::"Future Expenses";
                     end;
         end;
-
         if AddCurrencyCode <> '' then
             if AddCurrencyCode <> SrcCurrCode then begin
                 SrcCurrGLEntryAmt := ExchangeAmtLCYToFCY2(GLEntryAmount);
@@ -962,7 +960,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             end;
 
         UnrealizedVAT := SetUnrealizedVAT(GenJnlLine, VATPostingSetup, TaxJurisdiction);
-
         if GLSetup."Enable Russian Accounting" then begin
             UnrealizedVAT := UnrealizedVAT or
               (VATPostingSetup."Unrealized VAT Type" > 0) and GenJnlLine.Prepayment and
@@ -1010,7 +1007,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             end;
 
             OnInsertVATOnAfterSetVATAmounts(GenJnlLine, VATEntry, GLEntryAmount, GLEntryVATAmount, VATAmount, GLEntryBaseAmount, VATBase, SrcCurrGLEntryAmt, SrcCurrGLEntryVATAmt, SrcCurrVATAmount, SrcCurrGLEntryBaseAmt, SrcCurrVATBase);
-
             if UnrealizedVAT then begin
                 VATEntry.Amount := 0;
                 VATEntry.Base := 0;
@@ -1027,7 +1023,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 VATEntry."Remaining Unrealized Base" := 0;
             end;
             NonDeductibleVAT.SetNonDedVATInVATEntry(VATEntry, GenJnlLine."Non-Deductible VAT Base LCY", GenJnlLine."Non-Deductible VAT Amount LCY", GenJnlLine."Non-Deductible VAT Base ACY", GenJnlLine."Non-Deductible VAT Amount ACY", GenJnlLine."Non-Deductible VAT Diff.", NonDedVATDiffACY);
-
             if AddCurrencyCode = '' then begin
                 VATEntry."Additional-Currency Base" := 0;
                 VATEntry."Additional-Currency Amount" := 0;
@@ -1075,10 +1070,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnBeforeInsertVATEntry(VATEntry, GenJnlLine, NextVATEntryNo, TempGLEntryVATEntryLink, TempGLEntryBuf, GLReg);
             VATEntry.Insert(true);
             TempGLEntryVATEntryLink.InsertLinkSelf(TempGLEntryBuf."Entry No.", VATEntry."Entry No.");
-            NextVATEntryNo := NextVATEntryNo + 1;
+            NextVATEntryNo := VATEntry."Entry No." + 1;
             OnAfterInsertVATEntry(GenJnlLine, VATEntry, TempGLEntryBuf."Entry No.", NextVATEntryNo, TempGLEntryVATEntryLink);
+            if NextVATEntryNo = VATEntry."Entry No." + 1 then
+                NextVATEntryNo := GetNextVATEntryNoForPosting(VATEntry."Entry No.");
         end;
-
         if GLSetup."Enable Russian Accounting" and GenJnlLine."Prepmt. Diff." and UnrealizedVAT then
             PostPrepmtDiffRealizedVAT(GenJnlLine, VATEntry);
         // VAT for G/L entry/entries
@@ -1284,7 +1280,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     local procedure CreateNormalVATGLEntries(GenJnlLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; VATPostingParameters: Record "VAT Posting Parameters")
     var
-        LastNextEntryNo: Integer;
+        LastNextEntryNo: BigInteger;
     begin
         OnBeforeCreateNormalVATGLEntries(GenJnlLine, VATPostingSetup);
         if VATPostingParameters."Unrealized VAT" or (VATPostingParameters."Non-Deductible VAT %" <> 100) then
@@ -1298,7 +1294,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     GenJnlLine, VATPostingSetup.GetPurchAccount(VATPostingParameters."Unrealized VAT"),
                     VATPostingParameters."Deductible VAT Amount", VATPostingParameters."Deductible VAT Amount ACY", true,
                     CalcAmountSrcCurr(GenJnlLine, VATPostingParameters."Deductible VAT Amount"));
-
         if VATPostingParameters."Non-Deductible VAT %" <> 0 then
             if VATPostingParameters."Non-Ded. Purchase VAT Account" = '' then begin
                 if GenJnlLine."Account Type" = GenJnlLine."Account Type"::"Fixed Asset" then begin
@@ -1329,7 +1324,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     local procedure CreateReverseChargeVATGLEntries(GenJnlLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; VATPostingParameters: Record "VAT Posting Parameters")
     var
         FullVATAmountSrcCurr: Decimal;
-        LastNextEntryNo: Integer;
+        LastNextEntryNo: BigInteger;
     begin
         if VATPostingParameters."Unrealized VAT" or not (NonDeductibleVAT.IsNonDeductibleVATEnabled()) then begin
             if GenJnlLine."System-Created Entry" and (GenJnlLine."Source Currency Code" <> '') and (GenJnlLine."Source Currency Code" <> GLSetup."LCY Code") then
@@ -1390,10 +1385,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
     end;
 
-    local procedure PostFAJnlLineWithGLEntryBufUpdate(GenJnlLine: Record "Gen. Journal Line"; VATPostingParameters: Record "VAT Posting Parameters"; LastNextEntryNo: Integer)
+    local procedure PostFAJnlLineWithGLEntryBufUpdate(GenJnlLine: Record "Gen. Journal Line"; VATPostingParameters: Record "VAT Posting Parameters"; LastNextEntryNo: BigInteger)
     var
         TempFAGLPostingBuffer: Record "FA G/L Posting Buffer" temporary;
-        FAJnlPostLine: Codeunit "FA Jnl.-Post Line";
         GLBalanceAmount: Decimal;
         IsLastDepreciationEntry: Boolean;
     begin
@@ -1420,6 +1414,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     local procedure SummarizeVAT(SummarizeGLEntries: Boolean; GLEntry: Record "G/L Entry"; TransVATTypeIsAmountPlusTax: Boolean)
+    begin
+        SummarizeVATEntry(SummarizeGLEntries, GLEntry, TransVATTypeIsAmountPlusTax);
+    end;
+
+    local procedure SummarizeVATEntry(SummarizeGLEntries: Boolean; GLEntry: Record "G/L Entry"; TransVATTypeIsAmountPlusTax: Boolean) SummarizedGLEntryNo: BigInteger
     var
         InsertedTempVAT: Boolean;
     begin
@@ -1434,14 +1433,20 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         TempGLEntryVAT."Additional-Currency Amount" :=
                           TempGLEntryVAT."Additional-Currency Amount" + GLEntry."Additional-Currency Amount";
                         TempGLEntryVAT.Modify();
+                        SummarizedGLEntryNo := TempGLEntryVAT."Entry No.";
                         InsertedTempVAT := true;
                     end;
                 until (TempGLEntryVAT.Next() = 0) or InsertedTempVAT;
         if not InsertedTempVAT or not SummarizeGLEntries then begin
             TempGLEntryVAT := GLEntry;
-            TempGLEntryVAT."Entry No." :=
-              TempGLEntryVAT."Entry No." + InsertedTempGLEntryVAT;
+            if GLSetup.UseConcurrentPosting() then
+                // Buffer identifiers are resolved to reserved G/L entry numbers when the buffer is flushed.
+                TempGLEntryVAT."Entry No." := InsertedTempGLEntryVAT + 1
+            else
+                TempGLEntryVAT."Entry No." :=
+                  TempGLEntryVAT."Entry No." + InsertedTempGLEntryVAT;
             TempGLEntryVAT.Insert();
+            SummarizedGLEntryNo := TempGLEntryVAT."Entry No.";
             InsertedTempGLEntryVAT := InsertedTempGLEntryVAT + 1;
             if GLSetup."Enable Russian Accounting" then
                 if (TransVATAccNo <> '') and TransVATTypeIsAmountPlusTax then
@@ -1461,21 +1466,50 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if TempGLEntryVAT.FindSet() then begin
             repeat
-                if not GLSetup."Enable Russian Accounting" then
-                    InsertGLEntry(GenJnlLine, TempGLEntryVAT, true)
-                else
-                    if (TransVATAccNo <> '') and
-                       (VATPostingSetup."Trans. VAT Type" = VATPostingSetup."Trans. VAT Type"::"Amount + Tax")
-                    then
-                        InsertRUGLEntry(GenJnlLine, TempGLEntryVAT, TempGLEntryVAT."Bal. Account No.", true, true, false)
+                if GLSetup.UseConcurrentPosting() then
+                    InsertConcurrentSummarizedVATEntry(GenJnlLine, VATPostingSetup)
+                else begin
+                    if not GLSetup."Enable Russian Accounting" then
+                        InsertGLEntry(GenJnlLine, TempGLEntryVAT, true)
                     else
-                        InsertGLEntry(GenJnlLine, TempGLEntryVAT, true);
-                OnInsertSummarizedVATOnAfterInsertGLEntry(GenJnlLine, TempGLEntryVAT, NextEntryNo);
+                        if (TransVATAccNo <> '') and
+                           (VATPostingSetup."Trans. VAT Type" = VATPostingSetup."Trans. VAT Type"::"Amount + Tax")
+                        then
+                            InsertRUGLEntry(GenJnlLine, TempGLEntryVAT, TempGLEntryVAT."Bal. Account No.", true, true, false)
+                        else
+                            InsertGLEntry(GenJnlLine, TempGLEntryVAT, true);
+                    OnInsertSummarizedVATOnAfterInsertGLEntry(GenJnlLine, TempGLEntryVAT, NextEntryNo);
+                end;
             until TempGLEntryVAT.Next() = 0;
             TempGLEntryVAT.DeleteAll();
             InsertedTempGLEntryVAT := 0;
         end;
         NextConnectionNo := NextConnectionNo + 1;
+    end;
+
+    local procedure InsertConcurrentSummarizedVATEntry(var GenJnlLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup")
+    var
+        TempGLEntryToInsert: Record "G/L Entry" temporary;
+    begin
+        TempGLEntryToInsert := TempGLEntryVAT;
+        TempGLEntryToInsert."Entry No." := NextEntryNo;
+        TempGLEntryToInsert.Insert();
+
+        TempSummarizedVATEntryLink.SetRange("G/L Entry No.", TempGLEntryVAT."Entry No.");
+        if TempSummarizedVATEntryLink.FindSet() then
+            repeat
+                TempGLEntryVATEntryLink.InsertLinkSelf(
+                    TempGLEntryToInsert."Entry No.", TempSummarizedVATEntryLink."VAT Entry No.");
+            until TempSummarizedVATEntryLink.Next() = 0;
+        TempSummarizedVATEntryLink.DeleteAll();
+        TempSummarizedVATEntryLink.Reset();
+        if GLSetup."Enable Russian Accounting" and (TransVATAccNo <> '') and
+           (VATPostingSetup."Trans. VAT Type" = VATPostingSetup."Trans. VAT Type"::"Amount + Tax")
+        then
+            InsertRUGLEntry(GenJnlLine, TempGLEntryToInsert, TempGLEntryToInsert."Bal. Account No.", true, true, false)
+        else
+            InsertGLEntry(GenJnlLine, TempGLEntryToInsert, true);
+        OnInsertSummarizedVATOnAfterInsertGLEntry(GenJnlLine, TempGLEntryToInsert, NextEntryNo);
     end;
 
     local procedure CheckDescriptionForGL(GLAccount: Record "G/L Account"; Description: Text[100])
@@ -1594,7 +1628,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 CustLedgEntry.Validate("Prepmt. Diff. Appln. Entry No.", GenJournalLine."Prepmt. Diff. Appln. Entry No.");
                 IncrNextEntryNo();
             end;
-
             if not Cust."Block Payment Tolerance" then
                 CalcPmtTolerancePossible(
                     GenJournalLine, CustLedgEntry."Pmt. Discount Date", CustLedgEntry."Pmt. Disc. Tolerance Date",
@@ -1619,7 +1652,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnPostCustOnAfterCopyCVLedgEntryBuf(CVLedgEntryBuf, GenJournalLine, Cust, CustLedgEntry, TempDtldCVLedgEntryBuf);
 
             CalcPmtDiscPossible(GenJournalLine, CVLedgEntryBuf);
-
             if GenJournalLine."Currency Code" <> '' then begin
                 GenJournalLine.TestField("Currency Factor");
                 CVLedgEntryBuf."Original Currency Factor" := GenJournalLine."Currency Factor"
@@ -1670,11 +1702,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnAfterCustLedgEntryInsert(CustLedgEntry, GenJournalLine, DtldLedgEntryInserted, PreviewMode);
             // Post Reminder Terms - Note About Line Fee on Report
             LineFeeNoteOnReportHist.Save(CustLedgEntry);
-
             if DtldLedgEntryInserted then
                 if IsTempGLEntryBufEmpty() then
                     DtldCustLedgEntry.SetZeroTransNo(NextTransactionNo);
-
             if GLSetup."Enable Russian Accounting" and not GenJournalLine."Prepmt. Diff." then
                 SetCVLedgEntryForVAT(NextTransactionNo, CustLedgEntry."Entry No.");
 
@@ -1738,7 +1768,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 VendLedgEntry."Vendor VAT Invoice Date" := GenJournalLine."Posting Date";
                 VendLedgEntry."Vendor VAT Invoice Rcvd Date" := GenJournalLine."Posting Date";
             end;
-            NextEntryNo += 1;
+            IncrNextEntryNo();
         end;
 
         OnPostVendOnAfterInitVendLedgEntry(GenJournalLine, VendLedgEntry, Vend, TaxAmount, TaxAmountLCY);
@@ -1762,7 +1792,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnPostVendOnAfterCopyCVLedgEntryBuf(CVLedgEntryBuf, GenJournalLine);
 
         CalcPmtDiscPossible(GenJournalLine, CVLedgEntryBuf);
-
         if GenJournalLine."Currency Code" <> '' then begin
             GenJournalLine.TestField("Currency Factor");
             CVLedgEntryBuf."Adjusted Currency Factor" := GenJournalLine."Currency Factor"
@@ -1809,14 +1838,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
 
         OnAfterVendLedgEntryInsert(VendLedgEntry, GenJournalLine, DtldLedgEntryInserted, PreviewMode);
-
         if DtldLedgEntryInserted then
             if IsTempGLEntryBufEmpty() then
                 DtldVendLedgEntry.SetZeroTransNo(NextTransactionNo);
         if GLSetup."Enable Russian Accounting" then begin
             if not GenJournalLine."Prepmt. Diff." and not VendPostingGr."Skip Posting" then
                 SetCVLedgEntryForVAT(NextTransactionNo, VendLedgEntry."Entry No.");
-
             if VATAgentVATPayment then begin
                 if VendLedgEntry."Agreement No." <> '' then begin
                     VendAgreement.Get(VendLedgEntry."Vendor No.", VendLedgEntry."Agreement No.");
@@ -1825,7 +1852,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 end else
                     VendorFunds := Vend."VAT Payment Source Type" = Vend."VAT Payment Source Type"::"Vendor Funds";
                 if VendorFunds then begin
-                    NextEntryNo := NextEntryNo - 1;
+                    if GLSetup.UseConcurrentPosting() then
+                        NextEntryNo := PreviousEntryNo
+                    else
+                        NextEntryNo := NextEntryNo - 1;
                     UpdateVATAgentVendLedgEntry(VendLedgEntry);
                     InitVATAgentDtldVendLedgEntry(GenJournalLine, VendLedgEntry, DtldVendLedgEntry);
                     DtldVendLedgEntry.UpdateDebitCredit(GenJournalLine.Correction);
@@ -1886,7 +1916,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CVLedgEntryBuf.Open := CVLedgEntryBuf."Remaining Amount" <> 0;
         CVLedgEntryBuf.Positive := CVLedgEntryBuf."Remaining Amount" > 0;
         OnPostEmployeeOnAfterCopyCVLedgEntryBuf(CVLedgEntryBuf, GenJnlLine);
-
         if GenJnlLine."Currency Code" <> '' then begin
             GenJnlLine.TestField("Currency Factor");
             CVLedgEntryBuf."Adjusted Currency Factor" := GenJnlLine."Currency Factor"
@@ -1992,12 +2021,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         BankAccLedgEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
         BankAccLedgEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
         BankAccLedgEntry."Agreement No." := GenJnlLine."Agreement No.";
+        BankAccLedgEntry."G/L Register No." := GLReg."No.";
         OnPostBankAccOnBeforeBankAccLedgEntryInsert(BankAccLedgEntry, GenJnlLine, BankAcc, TempGLEntryBuf, NextTransactionNo, GLReg, Balancing);
         BankAccLedgEntry.Insert(true);
         OnPostBankAccOnAfterBankAccLedgEntryInsert(BankAccLedgEntry, GenJnlLine, BankAcc);
 
         BankAccLedgEntry.CopyLinks(GenJnlLine);
-
         if CheckLedgerEntryIsNeeded(BankAcc, GenJnlLine) then begin
             IsHandled := false;
             OnPostBankAccOnBeforeModifyCheckLedgerEntry(GenJnlLine, IsHandled);
@@ -2048,7 +2077,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         CheckLedgEntry.SetRange("Check No.", GenJnlLine."Document No.");
                         if not CheckLedgEntry.IsEmpty() then
                             Error(CheckAlreadyExistsErr, GenJnlLine."Document No.");
-
                         if not GLSetup."Enable Russian Accounting" then begin
                             InitCheckLedgEntry(BankAccLedgEntry, CheckLedgEntry);
                             if BankAcc."Currency Code" <> '' then
@@ -2070,7 +2098,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                             CheckLedgEntry."Payment Code" := GenJnlLine."Payment Code";
                             CheckLedgEntry."Payment Assignment" := GenJnlLine."Payment Assignment";
                             CheckLedgEntry."Payment Type" := GenJnlLine."Payment Type";
-
                             if GenJnlLine."Bal. Account Type" = GenJnlLine."Bal. Account Type"::"Bank Account" then
                                 StdRepMgt.CheckAttributes(GenJnlLine, DocAmount,
                                   PayerCode, PayerText, BeneficiaryCode, BeneficiaryText);
@@ -2157,7 +2184,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempFAGLPostBuf: Record "FA G/L Posting Buffer" temporary;
         FAGLPostBuf: Record "FA G/L Posting Buffer";
         VATPostingSetup: Record "VAT Posting Setup";
-        FAJnlPostLine: Codeunit "FA Jnl.-Post Line";
         FAAutomaticEntry: Codeunit "FA Automatic Entry";
         ShortcutDim1Code: Code[20];
         ShortcutDim2Code: Code[20];
@@ -2184,6 +2210,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if not IsHandled then
                 FAJnlPostLine.GenJnlPostLine(
                     GenJnlLine, GLEntry2.Amount, GLEntry2."VAT Amount", NextTransactionNo, NextEntryNo, GLReg."No.");
+            CreateAndPostDerogEntry(GenJnlLine);
             ShortcutDim1Code := GenJnlLine."Shortcut Dimension 1 Code";
             ShortcutDim2Code := GenJnlLine."Shortcut Dimension 2 Code";
             DimensionSetID := GenJnlLine."Dimension Set ID";
@@ -2287,7 +2314,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforePostICPartner(GenJnlLine, IsHandled);
         if IsHandled then
             exit;
-
         if GenJnlLine."Account No." <> ICPartner.Code then
             ICPartner.Get(GenJnlLine."Account No.");
         if (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") xor (GenJnlLine.Amount > 0) then begin
@@ -2331,7 +2357,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforePostJob(GenJnlLine, GLEntry, JobLine, IsHandled);
         if IsHandled then
             exit;
-
         if JobLine then begin
             JobLine := false;
             JobPostLine.PostGenJnlLine(GenJnlLine, GLEntry);
@@ -2358,26 +2383,31 @@ codeunit 12 "Gen. Jnl.-Post Line"
         FiscalYearStartDate := AccountingPeriodMgt.GetPeriodStartingDate();
 
         GetGLSetup();
-
         if not GenJnlTemplate.Get(GenJnlLine."Journal Template Name") then
             GenJnlTemplate.Init();
 
         OnStartPostingOnBeforeSetNextVatEntryNo(VATEntry);
-        VATEntry.LockTable();
-        if VATEntry.FindLast() then
-            NextVATEntryNo := VATEntry."Entry No." + 1
-        else
-            NextVATEntryNo := 1;
+        if not GLSetup.UseConcurrentPosting() then begin
+            VATEntry.LockTable();
+            if VATEntry.FindLast() then
+                NextVATEntryNo := VATEntry."Entry No." + 1
+            else
+                NextVATEntryNo := 1;
+        end else
+            NextVATEntryNo := VATEntry.GetNextEntryNo();
         OnStartPostingOnAfterSetNextVatEntryNo(VATEntry, NextVATEntryNo);
         NextConnectionNo := 1;
         FirstNewVATEntryNo := NextVATEntryNo;
 
         OnStartPostingOnAfterSetNextTaxEntryNo(NextTaxEntryNo);
-        GLReg.LockTable();
-        if GLReg.FindLast() then
-            GLReg."No." := GLReg."No." + 1
-        else
-            GLReg."No." := 1;
+        if not GLSetup.UseConcurrentPosting() then begin
+            GLReg.LockTable();
+            if GLReg.FindLast() then
+                GLReg."No." := GLReg."No." + 1
+            else
+                GLReg."No." := 1;
+        end else
+            GLReg."No." := GLReg.GetNextEntryNo();
         GLReg.Init();
         GLReg."From Entry No." := NextEntryNo;
         GLReg."From VAT Entry No." := NextVATEntryNo;
@@ -2394,7 +2424,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempGLEntryPreview.DeleteAll();
         CalculateCurrentBalance(
           GenJnlLine."Account No.", GenJnlLine."Bal. Account No.", GenJnlLine.IncludeVATAmount(), GenJnlLine."Amount (LCY)", GenJnlLine."VAT Amount");
-
         if GLSetup."Enable Russian Accounting" then
             PrepmtDiffMgt.Init();
 
@@ -2402,7 +2431,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     /// <summary>
-    /// If new transaction needs to be started, Unrealized VAT is check and posted, global values initialized for the new transaction. 
+    /// If new transaction needs to be started, Unrealized VAT is check and posted, global values initialized for the new transaction.
     /// Currency is updated for the new Gen. Journal Line that is being posted, current Balance of the posting is updated.
     /// </summary>
     /// <param name="GenJnlLine">Gen. Journal Line that is being posted.</param>
@@ -2414,13 +2443,15 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeContinuePosting(GenJnlLine, GLReg, NextEntryNo, NextTransactionNo, IsHandled);
         if IsHandled then
             exit;
-
         if NextTransactionNoNeeded(GenJnlLine) then begin
             CheckPostUnrealizedVAT(GenJnlLine, false);
             IsHandled := false;
             OnContinuePostingOnIncreaseNextTransactionNo(GenJnlLine, NextTransactionNo, IsHandled);
             if not IsHandled then
-                NextTransactionNo := NextTransactionNo + 1;
+                if GLSetup.UseConcurrentPosting() then
+                    NextTransactionNo := GlobalGLTransaction.GetNextTransactionNo()
+                else
+                    NextTransactionNo := NextTransactionNo + 1;
             InitLastDocDate(GenJnlLine);
             FirstNewVATEntryNo := NextVATEntryNo;
         end;
@@ -2434,7 +2465,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CalculateCurrentBalance(
           GenJnlLine."Account No.", GenJnlLine."Bal. Account No.", GenJnlLine.IncludeVATAmount(),
           GenJnlLine."Amount (LCY)", GenJnlLine."VAT Amount");
-
         if GLSetup."Enable Russian Accounting" then
             PrepmtDiffMgt.Init();
     end;
@@ -2455,7 +2485,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Transaction", 'r')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"VAT Entry", 'r')]
     local procedure ValidateSequenceNo(LedgEntryNo: Integer; xLedgEntryNo: Integer; TableNo: Integer)
     begin
         if LedgEntryNo = xLedgEntryNo then
@@ -2463,6 +2493,22 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if not GLSetup.UseConcurrentPosting() then
             exit;
         SequenceNoMgt.ValidateSeqNo(TableNo);
+    end;
+
+    local procedure ValidateSequenceNoBeforePosting()
+    begin
+        if (GLEntryNo = PreviousGLEntryNoForSequenceCheck) and (NextVATEntryNo = PreviousVATEntryNoForSequenceCheck) then
+            exit;
+
+        SequenceNoMgt.ClearSequenceNoCheck();
+        ValidateSequenceNo(GLEntryNo, PreviousGLEntryNoForSequenceCheck, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, PreviousVATEntryNoForSequenceCheck, Database::"VAT Entry");
+    end;
+
+    local procedure SaveSequenceNoState()
+    begin
+        PreviousGLEntryNoForSequenceCheck := GLEntryNo;
+        PreviousVATEntryNoForSequenceCheck := NextVATEntryNo;
     end;
 
     /// <summary>
@@ -2478,6 +2524,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NextVATEntryNo := 0;
         FirstEntryNo := 0;
         FirstNewVATEntryNo := 0;
+        PreviousEntryNo := 0;
+        PreviousGLEntryNoForSequenceCheck := 0;
+        PreviousVATEntryNoForSequenceCheck := 0;
         IsGLRegInserted := false;
         TempGLEntryBuf.Reset();
         TempGLEntryBuf.DeleteAll();
@@ -2513,7 +2562,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnAfterSettingIsTransactionConsistent(GenJournalLine, IsTransactionConsistentExternal);
 
         IsTransactionConsistent := IsTransactionConsistent and IsTransactionConsistentExternal;
-
         if TempGLEntryBuf.FindSet() then begin
             SourceCodeSetup.Get();
             repeat
@@ -2551,7 +2599,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
 
         GlobalGLEntry.Consistent(IsTransactionConsistent);
-
         if GLSetup."Enable Russian Accounting" then begin
             if IsTransactionConsistent then begin
                 if GLSetup."Automatic G/L Correspondence" and (FirstGLEntryNo <> 0) then begin
@@ -2561,20 +2608,17 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 end;
                 PrepmtDiffMgt.PrepmtDiffProcessing(false, PreviewMode);
             end;
-
             if (GenJournalLine."Source Type" = GenJournalLine."Source Type"::"Bank Account") and (GenJournalLine."Source No." <> '') then
                 BalAccNo := GenJournalLine."Source No."
             else
                 BalAccNo := GenJournalLine."Bal. Account No.";
         end;
-
         if CostAccountingSetup.Get() then
             if CostAccountingSetup."Auto Transfer from G/L" then
                 TransferGlEntriesToCA.GetGLEntries();
 
         OnFinishPostingOnBeforeResetFirstEntryNo(GlobalGLEntry, NextEntryNo, FirstEntryNo, GenJournalLine);
         FirstEntryNo := 0;
-
         if IsTransactionConsistent then
             UpdateAppliedCVLedgerEntries();
 
@@ -2589,7 +2633,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeUpdateGLReg(IsTransactionConsistent, IsGLRegInserted, GLReg, IsHandled, GenJnlLine, GlobalGLEntry, FirstNewVATEntryNo, NextTaxEntryNo);
         if IsHandled then
             exit;
-
         if IsTransactionConsistent then
             if IsGLRegInserted then
                 GLReg.Modify()
@@ -2653,7 +2696,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SpendReqToGLLink."Posting Date" := GLEntry."Posting Date";
         SpendReqToGLLink.Amount := GLEntry.Amount;
         SpendReqToGLLink.Insert();
-
         if GenJnlLine."Spend Request Close" then begin
             SpendRequest.ReadIsolation(IsolationLevel::UpdLock);
             SpendRequest.Get(GenJnlLine."Spend Request No.");
@@ -2754,7 +2796,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             GLEntry.Amount := Amount;
             GLEntry."Additional-Currency Amount" :=
                 GLCalcAddCurrency(Amount, AmountAddCurr, GLEntry."Additional-Currency Amount", UseAmountAddCurr, GenJnlLine);
-
             if GLEntry."G/L Account No." <> '' then begin
                 GLAcc.Get(GLEntry."G/L Account No.");
                 GenJnlCheckLine.CheckGLAccountSourceCurrency(GLAcc, GenJnlLine."Source Currency Code");
@@ -2819,10 +2860,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// <param name="Amount">Amount for the G/L entry in local currency</param>
     /// <param name="AmountAddCurr">Amount for the G/L entry in additional currency</param>
     /// <param name="VATEntry">Source VAT entry to copy posting details from</param>
-    /// <returns>Entry number of the created G/L entry</returns>
-    procedure InitGLEntryVATCopy(GenJnlLine: Record "Gen. Journal Line"; AccNo: Code[20]; BalAccNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal; VATEntry: Record "VAT Entry"; TransVATTypeIsAmountPlusTax: Boolean): Integer
+    /// <returns>Buffer identifier for concurrent posting; otherwise, the initialized G/L entry number.</returns>
+    procedure InitGLEntryVATCopy(GenJnlLine: Record "Gen. Journal Line"; AccNo: Code[20]; BalAccNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal; VATEntry: Record "VAT Entry"; TransVATTypeIsAmountPlusTax: Boolean): BigInteger
     var
         GLEntry: Record "G/L Entry";
+        SummarizedGLEntryNo: BigInteger;
     begin
         OnBeforeInitGLEntryVATCopy(GenJnlLine, GLEntry, VATEntry, NextEntryNo);
         InitGLEntry(
@@ -2832,8 +2874,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLEntry."Bal. Account No." := BalAccNo;
         GLEntry.CopyPostingGroupsFromVATEntry(VATEntry);
         OnInitGLEntryVATCopyOnBeforeSummarizeVAT(GenJnlLine, GLEntry, VATEntry);
-        SummarizeVAT(GLSetup."Summarize G/L Entries", GLEntry, TransVATTypeIsAmountPlusTax);
+        SummarizedGLEntryNo := SummarizeVATEntry(GLSetup."Summarize G/L Entries", GLEntry, TransVATTypeIsAmountPlusTax);
         OnAfterInitGLEntryVATCopy(GenJnlLine, GLEntry);
+        if GLSetup.UseConcurrentPosting() then
+            exit(SummarizedGLEntryNo);
 
         exit(GLEntry."Entry No.");
     end;
@@ -2878,14 +2922,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 NextEntryNo, TotalAmount, TotalAddCurrAmount, GLEntry);
 
             TempGLEntryBuf.Insert();
-
             if FirstEntryNo = 0 then
                 FirstEntryNo := TempGLEntryBuf."Entry No.";
             IncrNextEntryNo();
-
             if CalcAddCurrResiduals then
                 HandleAddCurrResidualGLEntry(GenJnlLine, GLEntry);
-
         end;
 
         OnAfterInsertGLEntry(GLEntry, GenJnlLine, TempGLEntryBuf, CalcAddCurrResiduals);
@@ -3062,7 +3103,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         InsertVATEntriesFromTemp(DtldCVLedgEntryBuf, GLEntry);
     end;
 
-    local procedure CreateGLEntryFromVATEntry(GenJnlLine: Record "Gen. Journal Line"; VATAccNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal; VATEntry: Record "VAT Entry"): Integer
+    local procedure CreateGLEntryFromVATEntry(GenJnlLine: Record "Gen. Journal Line"; VATAccNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal; VATEntry: Record "VAT Entry"): BigInteger
     var
         GLEntry: Record "G/L Entry";
     begin
@@ -3102,7 +3143,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             BalanceCheckAmount2 :=
               BalanceCheckAmount2 + Amount * ((NormalDate(PostingDate) - 00000101D + 50) mod 98 + 1);
         end;
-
         if AddCurrencyCode <> '' then
             if PostingDate = NormalDate(PostingDate) then begin
                 BalanceCheckAddCurrAmount :=
@@ -3146,7 +3186,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeCalcPmtDiscPossible(GenJnlLine, CVLedgEntryBuf, IsHandled, AmountRoundingPrecision);
         if IsHandled then
             exit;
-
         if GenJnlLine."Amount (LCY)" <> 0 then begin
             PaymentDiscountDateWithGracePeriod := CVLedgEntryBuf."Pmt. Discount Date";
             GLSetup.GetRecordOnce();
@@ -3181,13 +3220,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeCalcPmtTolerancePossible(GenJnlLine, PmtDiscountDate, PmtDiscToleranceDate, MaxPaymentTolerance, IsHandled);
         if IsHandled then
             exit;
-
         if GenJnlLine."Document Type" in [GenJnlLine."Document Type"::Invoice, GenJnlLine."Document Type"::"Credit Memo"] then begin
             if PmtDiscountDate <> 0D then
                 PmtDiscToleranceDate := CalcDate(GLSetup."Payment Discount Grace Period", PmtDiscountDate)
             else
                 PmtDiscToleranceDate := PmtDiscountDate;
-
             case GenJnlLine."Account Type" of
                 GenJnlLine."Account Type"::Customer:
                     PaymentToleranceMgt.CalcMaxPmtTolerance(GenJnlLine."Document Type", GenJnlLine."Currency Code", GenJnlLine.Amount, GenJnlLine."Amount (LCY)", 1, MaxPaymentTolerance);
@@ -3197,7 +3234,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
     end;
 
-    local procedure CalcPmtTolerance(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; GenJnlLine: Record "Gen. Journal Line"; var PmtTolAmtToBeApplied: Decimal; NextTransactionNo: Integer; FirstNewVATEntryNo: Integer)
+    local procedure CalcPmtTolerance(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; GenJnlLine: Record "Gen. Journal Line"; var PmtTolAmtToBeApplied: Decimal; NextTransactionNo: BigInteger; FirstNewVATEntryNo: Integer)
     var
         PmtTol: Decimal;
         PmtTolLCY: Decimal;
@@ -3209,7 +3246,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
           NewCVLedgEntryBuf, OldCVLedgEntryBuf, OldCVLedgEntryBuf2, DtldCVLedgEntryBuf, GenJnlLine, PmtTolAmtToBeApplied, IsHandled);
         if IsHandled then
             exit;
-
         if OldCVLedgEntryBuf2."Accepted Payment Tolerance" = 0 then
             exit;
 
@@ -3225,12 +3261,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         OldCVLedgEntryBuf."Accepted Payment Tolerance" := 0;
         OldCVLedgEntryBuf."Pmt. Tolerance (LCY)" := -PmtTolLCY;
-
         if NewCVLedgEntryBuf."Currency Code" = AddCurrencyCode then
             PmtTolAddCurr := PmtTol
         else
             PmtTolAddCurr := CalcLCYToAddCurr(PmtTolLCY);
-
         if not GLSetup."Pmt. Disc. Excl. VAT" and GLSetup."Adjust for Payment Disc." and (PmtTolLCY <> 0) then
             CalcPmtDiscIfAdjVAT(
                 NewCVLedgEntryBuf, OldCVLedgEntryBuf2, DtldCVLedgEntryBuf, GenJnlLine, PmtTolLCY, PmtTolAddCurr,
@@ -3246,7 +3280,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnAfterCalcPmtTolerance(DtldCVLedgEntryBuf, OldCVLedgEntryBuf2, PmtTol, PmtTolLCY, GenJnlLine);
     end;
 
-    local procedure CalcPmtDisc(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; GenJnlLine: Record "Gen. Journal Line"; PmtTolAmtToBeApplied: Decimal; ApplnRoundingPrecision: Decimal; NextTransactionNo: Integer; FirstNewVATEntryNo: Integer)
+    local procedure CalcPmtDisc(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; GenJnlLine: Record "Gen. Journal Line"; PmtTolAmtToBeApplied: Decimal; ApplnRoundingPrecision: Decimal; NextTransactionNo: BigInteger; FirstNewVATEntryNo: Integer)
     var
         PmtDisc: Decimal;
         PmtDiscLCY: Decimal;
@@ -3275,7 +3309,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnAfterCalcToleratedPaymentExceedsLiability(
             NewCVLedgEntryBuf, OldCVLedgEntryBuf, OldCVLedgEntryBuf2, MinimalPossibleLiability,
             ToleratedPaymentExceedsLiability, PmtTolAmtToBeApplied);
-
         if (PaymentToleranceMgt.CheckCalcPmtDisc(NewCVLedgEntryBuf, OldCVLedgEntryBuf2, ApplnRoundingPrecision, true, true) and
             ((OldCVLedgEntryBuf2."Amount to Apply" = 0) or PaymentExceedsLiability) or
             (PaymentToleranceMgt.CheckCalcPmtDisc(NewCVLedgEntryBuf, OldCVLedgEntryBuf2, ApplnRoundingPrecision, false, false) and
@@ -3290,7 +3323,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnCalcPmtDiscOnAfterAssignPmtDisc(PmtDisc, PmtDiscLCY, OldCVLedgEntryBuf, OldCVLedgEntryBuf2);
 
             OldCVLedgEntryBuf."Pmt. Disc. Given (LCY)" := -PmtDiscLCY;
-
             if (NewCVLedgEntryBuf."Currency Code" = AddCurrencyCode) and (AddCurrencyCode <> '') then
                 PmtDiscAddCurr := PmtDisc
             else
@@ -3299,7 +3331,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnAfterCalcPmtDiscount(
                 NewCVLedgEntryBuf, OldCVLedgEntryBuf, OldCVLedgEntryBuf2, DtldCVLedgEntryBuf, GenJnlLine,
                 PmtTolAmtToBeApplied, PmtDisc, PmtDiscLCY, PmtDiscAddCurr);
-
             if not GLSetup."Pmt. Disc. Excl. VAT" and GLSetup."Adjust for Payment Disc." and (PmtDiscLCY <> 0) then
                 CalcPmtDiscIfAdjVAT(
                   NewCVLedgEntryBuf, OldCVLedgEntryBuf2, DtldCVLedgEntryBuf, GenJnlLine, PmtDiscLCY, PmtDiscAddCurr,
@@ -3315,7 +3346,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
     end;
 
-    local procedure CalcPmtDiscIfAdjVAT(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; GenJnlLine: Record "Gen. Journal Line"; var PmtDiscLCY2: Decimal; var PmtDiscAddCurr2: Decimal; NextTransactionNo: Integer; FirstNewVATEntryNo: Integer; EntryType: Enum "Detailed CV Ledger Entry Type")
+    local procedure CalcPmtDiscIfAdjVAT(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; GenJnlLine: Record "Gen. Journal Line"; var PmtDiscLCY2: Decimal; var PmtDiscAddCurr2: Decimal; NextTransactionNo: BigInteger; FirstNewVATEntryNo: Integer; EntryType: Enum "Detailed CV Ledger Entry Type")
     var
         VATEntry2: Record "VAT Entry";
         VATPostingSetup: Record "VAT Posting Setup";
@@ -3344,7 +3375,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if OldCVLedgEntryBuf."Original Amt. (LCY)" = 0 then
             exit;
-
         if (AddCurrencyCode = '') or (AddCurrencyCode = OldCVLedgEntryBuf."Currency Code") then
             OriginalAmountAddCurr := OldCVLedgEntryBuf.Amount
         else
@@ -3370,7 +3400,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnCalcPmtDiscIfAdjVATOnBeforeVATEntryFind(
             GenJnlLine, OldCVLedgEntryBuf, NewCVLedgEntryBuf, VATEntry2,
             PmtDiscLCY2, PmtDiscAddCurr2, PmtDiscFactorLCY, PmtDiscFactorAddCurr);
-
         if VATEntry2.FindSet() then begin
             TotalVATAmount := 0;
             LastConnectionNo := 0;
@@ -3463,7 +3492,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     TotalVATAmount := TotalVATAmount + VATAmount;
                     NonDedTotalVATAmount := NonDedTotalVATAmount + NonDedVATAmount;
                     NonDedTotalVATAmountACY := NonDedTotalVATAmountACY + NonDedVATAmountAddCurr;
-
                     if (PmtDiscAddCurr2 <> 0) and (PmtDiscLCY2 = 0) then begin
                         VATAmountAddCurr := VATAmountAddCurr - PmtDiscAddCurr2;
                         PmtDiscAddCurr2 := 0;
@@ -3485,7 +3513,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         VATPostingSetup, TaxJurisdiction, EntryType, VATAmount, VATAmountAddCurr, NonDedVATAmount, NonDedVATAmountAddCurr, OldCVLedgEntryBuf);
                 end;
             until VATEntry2.Next() = 0;
-
             if LastConnectionNo <> 0 then begin
                 DtldCVLedgEntryBuf := DtldCVLedgEntryBuf2;
                 DtldCVLedgEntryBuf."VAT Amount (LCY)" := -TotalVATAmount;
@@ -3502,7 +3529,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnAfterCalcPmtDiscIfAdjVAT(NewCVLedgEntryBuf, OldCVLedgEntryBuf, DtldCVLedgEntryBuf, GenJnlLine, PmtDiscLCY2, PmtDiscAddCurr2);
     end;
 
-    local procedure CalcPmtDiscTolerance(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; GenJnlLine: Record "Gen. Journal Line"; NextTransactionNo: Integer; FirstNewVATEntryNo: Integer)
+    local procedure CalcPmtDiscTolerance(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; GenJnlLine: Record "Gen. Journal Line"; NextTransactionNo: BigInteger; FirstNewVATEntryNo: Integer)
     var
         PmtDiscTol: Decimal;
         PmtDiscTolLCY: Decimal;
@@ -3514,7 +3541,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
           NewCVLedgEntryBuf, OldCVLedgEntryBuf, OldCVLedgEntryBuf2, DtldCVLedgEntryBuf, GenJnlLine, IsHandled);
         if IsHandled then
             exit;
-
         if not OldCVLedgEntryBuf2."Accepted Pmt. Disc. Tolerance" then
             exit;
 
@@ -3529,12 +3555,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
           PmtDiscTol, PmtDiscTolLCY, PmtDiscTolAddCurr);
 
         OldCVLedgEntryBuf."Pmt. Disc. Given (LCY)" := -PmtDiscTolLCY;
-
         if NewCVLedgEntryBuf."Currency Code" = AddCurrencyCode then
             PmtDiscTolAddCurr := PmtDiscTol
         else
             PmtDiscTolAddCurr := CalcLCYToAddCurr(PmtDiscTolLCY);
-
         if not GLSetup."Pmt. Disc. Excl. VAT" and GLSetup."Adjust for Payment Disc." and (PmtDiscTolLCY <> 0) then
             CalcPmtDiscIfAdjVAT(
               NewCVLedgEntryBuf, OldCVLedgEntryBuf2, DtldCVLedgEntryBuf, GenJnlLine, PmtDiscTolLCY, PmtDiscTolAddCurr,
@@ -3661,7 +3685,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                             VATAmount :=
                                 CalcAmtMultipliedByFactorWithRounding(
                                     PmtDiscRounding, PmtDiscLCY2, VATEntry2.Amount + VATEntry2."Unrealized Amount", PmtDiscFactorLCY);
-
                         if VATBaseAddCurr = 0 then
                             VATAmountAddCurr := 0
                         else begin
@@ -3754,7 +3777,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             NonDeductibleVAT.SetNonDeductibleVATBase(TempVATEntry, NonDedVATBase, NonDedVATBaseAddCurr);
         end;
         TempVATEntry."Base Before Pmt. Disc." := VATEntry.Base;
-
         if AddCurrencyCode = '' then begin
             TempVATEntry."Additional-Currency Base" := 0;
             TempVATEntry."Additional-Currency Amount" := 0;
@@ -3769,6 +3791,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     local procedure InsertPmtDiscVATForGLEntry(GenJnlLine: Record "Gen. Journal Line"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; VATEntry2: Record "VAT Entry"; var VATPostingSetup: Record "VAT Posting Setup"; var TaxJurisdiction: Record "Tax Jurisdiction"; EntryType: Enum "Detailed CV Ledger Entry Type"; VATAmount: Decimal; VATAmountAddCurr: Decimal; NonDedVATAmount: Decimal; NonDedVATAmountAddCurr: Decimal; OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer")
     var
+        NonDedVATAccountNo: Code[20];
         IsHandled: Boolean;
     begin
         DtldCVLedgEntryBuf.Init();
@@ -3824,7 +3847,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                   -VATAmount, -VATAmountAddCurr, false,
                                   VATPostingSetup."Trans. VAT Type" = VATPostingSetup."Trans. VAT Type"::"Amount + Tax");
                                 if NonDedVATAmount <> 0 then begin
-                                    InitGLEntryVAT(GenJnlLine, VATPostingSetup.GetPurchAccount(false), '',
+                                    NonDedVATAccountNo := VATPostingSetup.GetPurchAccount(false);
+                                    if EntryType = EntryType::"Payment Discount (VAT Excl.)" then
+                                        NonDedVATAccountNo := GetPaymentDiscountVATExclNonDedVATAccountNo(VATEntry2, NonDedVATAmount);
+                                    InitGLEntryVAT(GenJnlLine, NonDedVATAccountNo, '',
                                     NonDedVATAmount, NonDedVATAmountAddCurr, false,
                                     VATPostingSetup."Trans. VAT Type" = VATPostingSetup."Trans. VAT Type"::"Amount + Tax");
                                     InitGLEntryVAT(GenJnlLine, VATPostingSetup.GetRevChargeAccount(false), '',
@@ -3891,7 +3917,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         ApplnRounding := -(NewCVLedgEntryBuf."Remaining Amount" + OldCVLedgEntryBuf."Remaining Amount");
         ApplnRoundingLCY := Round(ApplnRounding / NewCVLedgEntryBuf."Adjusted Currency Factor");
-
         if (ApplnRounding = 0) or (Abs(ApplnRounding) > ApplnRoundingPrecision) then
             exit;
 
@@ -3910,7 +3935,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
           ApplnRoundingPrecision, VATEntry);
         if IsHandled then
             exit;
-
         if OldCVLedgEntryBuf2.GetFilter(Positive) <> '' then begin
             if OldCVLedgEntryBuf2."Amount to Apply" <> 0 then begin
                 if (PaymentToleranceMgt.CheckCalcPmtDisc(NewCVLedgEntryBuf, OldCVLedgEntryBuf2, ApplnRoundingPrecision, false, false) and
@@ -3942,13 +3966,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     AppliedAmount := ABSMin(NewCVLedgEntryBuf."Remaining Amount", -OldCVLedgEntryBuf2."Amount to Apply")
             else
                 AppliedAmount := ABSMin(NewCVLedgEntryBuf."Remaining Amount", -OldCVLedgEntryBuf2."Remaining Amount");
-
         if (Abs(OldCVLedgEntryBuf2."Remaining Amount" - OldCVLedgEntryBuf2."Amount to Apply") < ApplnRoundingPrecision) and
            (ApplnRoundingPrecision <> 0) and
            (OldCVLedgEntryBuf2."Amount to Apply" <> 0)
         then
             AppliedAmount := AppliedAmount - (OldCVLedgEntryBuf2."Remaining Amount" - OldCVLedgEntryBuf2."Amount to Apply");
-
         if NewCVLedgEntryBuf."Currency Code" = OldCVLedgEntryBuf2."Currency Code" then begin
             AppliedAmountLCY := Round(AppliedAmount / OldCVLedgEntryBuf."Original Currency Factor");
             OldAppliedAmount := AppliedAmount;
@@ -3961,7 +3983,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                   CurrExchRate.ExchangeAmount(
                     AppliedAmount, NewCVLedgEntryBuf."Currency Code",
                     OldCVLedgEntryBuf2."Currency Code", NewCVLedgEntryBuf."Posting Date");
-
             if NewCVLedgEntryBuf."Currency Code" <> '' then
                 // Post the realized gain or loss on the NewCVLedgEntryBuf
                 AppliedAmountLCY := Round(OldAppliedAmount / OldCVLedgEntryBuf."Original Currency Factor")
@@ -3996,7 +4017,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
           CVLedgEntryBuf, TempDtldCVLedgEntryBuf, GenJnlLine, AppliedAmount, RemainingAmountBeforeAppln, IsHandled);
         if IsHandled then
             exit;
-
         if (CVLedgEntryBuf."Currency Code" = '') or (RemainingAmountBeforeAppln = 0) then
             exit;
 
@@ -4018,7 +4038,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         DtldVendLedgEntry.GetUnrealizedGainLossAmount(CVLedgEntryBuf."Entry No.") *
                         Abs(AppliedAmount / RemainingAmountBeforeAppln));
         end;
-
         if UnRealizedGainLossLCY <> 0 then
             if UnRealizedGainLossLCY < 0 then
                 TempDtldCVLedgEntryBuf.InitDetailedCVLedgEntryBuf(
@@ -4040,19 +4059,15 @@ codeunit 12 "Gen. Jnl.-Post Line"
           CVLedgEntryBuf, TempDtldCVLedgEntryBuf, GenJnlLine, AppliedAmount, AppliedAmountLCY, IsHandled);
         if IsHandled then
             exit;
-
         if CVLedgEntryBuf."Currency Code" = '' then
             exit;
-
         if GLSetup."Enable Russian Accounting" and (NewCVLedgEntryBuf."Prepmt. Diff. Appln. Entry No." <> 0) then
             exit;
 
         RealizedGainLossLCY := AppliedAmountLCY - Round(AppliedAmount / CVLedgEntryBuf."Original Currency Factor");
         OnAfterCalcCurrencyRealizedGainLoss(CVLedgEntryBuf, AppliedAmount, AppliedAmountLCY, RealizedGainLossLCY);
-
         if RealizedGainLossLCY = 0 then
             exit;
-
         if not GLSetup."Enable Russian Accounting" then
             if RealizedGainLossLCY < 0 then
                 TempDtldCVLedgEntryBuf.InitDetailedCVLedgEntryBuf(
@@ -4062,7 +4077,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 TempDtldCVLedgEntryBuf.InitDetailedCVLedgEntryBuf(
                   GenJnlLine, CVLedgEntryBuf, TempDtldCVLedgEntryBuf,
                   TempDtldCVLedgEntryBuf."Entry Type"::"Realized Gain", 0, RealizedGainLossLCY, 0, 0, 0, 0);
-
         if GLSetup."Enable Russian Accounting" then begin
             TempDtldCVLedgEntryBuf.InitFromGenJnlLine(GenJnlLine);
             TempDtldCVLedgEntryBuf.CopyFromCVLedgEntryBuf(CVLedgEntryBuf);
@@ -4099,7 +4113,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if not IsHandled then
             if AppliedAmount = 0 then
                 exit;
-
         if not GLSetup."Enable Russian Accounting" then
             DtldCVLedgEntryBuf.InitDetailedCVLedgEntryBuf(
               GenJnlLine, OldCVLedgEntryBuf, DtldCVLedgEntryBuf,
@@ -4135,7 +4148,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OldCVLedgEntryBuf.Open := OldCVLedgEntryBuf."Remaining Amt. (LCY)" <> 0;
 
         OnCalcApplicationOnAfterFillOldCVLedgEntryBufOpen(GenJnlLine, OldCVLedgEntryBuf);
-
         if not OldCVLedgEntryBuf.Open then
             OldCVLedgEntryBuf.SetClosedFields(
               NewCVLedgEntryBuf."Entry No.", GenJnlLine."Posting Date",
@@ -4159,7 +4171,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             NewCVLedgEntryBuf.SetClosedFields(
               OldCVLedgEntryBuf."Entry No.", GenJnlLine."Posting Date",
               AppliedAmount, AppliedAmountLCY, OldCVLedgEntryBuf."Currency Code", OldAppliedAmount);
-
         if not NewCVLedgEntryBuf.Open then
             NewCVLedgEntryBuf."Closed at Date" := GenJnlLine."Posting Date";
 
@@ -4189,10 +4200,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeCalcAmtLCYAdjustment(CVLedgEntryBuf, DtldCVLedgEntryBuf, GenJnlLine, IsHandled);
         if IsHandled then
             exit;
-
         if CVLedgEntryBuf."Currency Code" = '' then
             exit;
-
         if GLSetup."Enable Russian Accounting" then begin
             if NewCVLedgEntryBuf."Prepmt. Diff. Appln. Entry No." <> 0 then
                 exit;
@@ -4205,7 +4214,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         AdjustedAmountLCY :=
           Round(CVLedgEntryBuf."Remaining Amount" / CVLedgEntryBuf."Adjusted Currency Factor");
-
         if AdjustedAmountLCY <> CVLedgEntryBuf."Remaining Amt. (LCY)" then begin
             DtldCVLedgEntryBuf.InitFromGenJnlLine(GenJnlLine);
             DtldCVLedgEntryBuf.CopyFromCVLedgEntryBuf(CVLedgEntryBuf);
@@ -4284,7 +4292,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeInsertDtldCustLedgEntryProcedure(GenJnlLine, DtldCVLedgEntryBuf, DtldCustLedgEntry, IsHandled);
         if IsHandled then
             exit;
-
         if GenJnlLine."Prepmt. Diff." then
             exit;
 
@@ -4315,7 +4322,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeInsertDtldVendLedgEntryProcedure(GenJnlLine, DtldCVLedgEntryBuf, DtldVendLedgEntry, IsHandled);
         if IsHandled then
             exit;
-
         if GenJnlLine."Prepmt. Diff." then
             exit;
 
@@ -4437,7 +4443,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                             Error(ApplnPrepmtOnlyErr);
                 CheckCustPrepmtApplPostingDate(GenJnlLine, NewCVLedgEntryBuf, TempOldCustLedgEntry);
             end;
-
             if Cust."Agreement Posting" = Cust."Agreement Posting"::Mandatory then
                 if TempOldCustLedgEntry."Agreement No." <> NewCVLedgEntryBuf."Agreement No." then
                     Error(AgreementMustBeErr, NewCVLedgEntryBuf."Agreement No.", TempOldCustLedgEntry."Document No.");
@@ -4459,7 +4464,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 UpdateCalcInterest(OldCVLedgEntryBuf);
                 UpdateCalcInterest(OldCVLedgEntryBuf, NewCVLedgEntryBuf);
             end;
-
             if (OldCVLedgEntryBuf."Currency Code" = NewCVLedgEntryBuf."Currency Code") and (OldCVLedgEntryBuf."Applies-to ID" = '') then
                 OldCVLedgEntryBuf."Amount to Apply" := 0;
             OnApplyCustLedgEntryOnBeforeCopyFromCVLedgEntryBuffer(OldCVLedgEntryBuf, AppliedAmount, GenJnlLine);
@@ -4478,7 +4482,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnAfterOldCustLedgEntryModify(OldCustLedgEntry, GenJnlLine, TempCustLedgEntry, DtldCVLedgEntryBuf);
 
             IsHandled := false;
-            OnApplyCustLedgEntryOnBeforeCustUnrealizedVAT(TempOldCustLedgEntry, IsHandled);
+            OnApplyCustLedgEntryOnBeforeCustUnrealizedVAT(TempOldCustLedgEntry, IsHandled, GenJnlLine);
             if not IsHandled then
                 if not GLSetup."Enable Russian Accounting" and
                    (GLSetup."Unrealized VAT" or
@@ -4495,7 +4499,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                             AppliedAmount, NewCVLedgEntryBuf."Currency Code",
                             TempOldCustLedgEntry."Currency Code", NewCVLedgEntryBuf."Posting Date"), 0, 0, 0);
                     end;
-
             if GLSetup."Enable Russian Accounting" and not AmtDiffDocToPrepayment and
                (GLSetup."Unrealized VAT" or
                 (GLSetup."Prepayment Unrealized VAT" and TempOldCustLedgEntry.Prepayment))
@@ -4547,12 +4550,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnApplyCustLedgEntryOnAfterCalcShouldUpdateCalcInterestFromNewBuf(OldCVLedgEntryBuf, NewCVLedgEntryBuf, Cust, ShouldUpdateCalcInterest);
         if ShouldUpdateCalcInterest then
             UpdateCalcInterest(NewCVLedgEntryBuf);
-
         if GLSetup."Enable Russian Accounting" and AmtDiffDocToPrepayment then
             exit;
 
         IsHandled := false;
-        OnApplyCustLedgEntryOnBeforeUnrealizedVAT(NewCVLedgEntryBuf, IsHandled);
+        OnApplyCustLedgEntryOnBeforeUnrealizedVAT(NewCVLedgEntryBuf, IsHandled, GenJnlLine);
         if not IsHandled then
             if GLSetup."Unrealized VAT" or
                (GLSetup."Prepayment Unrealized VAT" and NewCVLedgEntryBuf.Prepayment)
@@ -4586,7 +4588,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeFindNextOldCustLedgEntryToApply(GenJnlLine, TempOldCustLedgEntry, NewCVLedgEntryBuf, Completed, IsHandled);
         if IsHandled then
             exit(Completed);
-
         if GenJnlLine."Applies-to Doc. No." <> '' then
             Completed := true
         else
@@ -4621,6 +4622,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         GenJnlLine: Record "Gen. Journal Line";
+        xGLEntryNo: BigInteger;
+        xVATEntryNo: BigInteger;
         DtldLedgEntryInserted: Boolean;
         IsHandled: Boolean;
     begin
@@ -4628,6 +4631,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeCustPostApplyCustLedgEntry(GenJnlLinePostApply, CustLedgEntryPostApply, IsHandled);
         if IsHandled then
             exit;
+        if GLReg."No." = 0 then
+            SequenceNoMgt.ClearSequenceNoCheck();
+
+        ValidateSequenceNoBeforePosting();
+        xGLEntryNo := GLEntryNo;
+        xVATEntryNo := NextVATEntryNo;
 
         GenJnlLine := GenJnlLinePostApply;
         CustLedgEntry.TransferFields(CustLedgEntryPostApply);
@@ -4641,7 +4650,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnCustPostApplyCustLedgEntryOnBeforeRunCheck(GenJnlLine, CustLedgEntryPostApply, CustLedgEntry, IsHandled);
         if not IsHandled then
             GenJnlCheckLine.RunCheck(GenJnlLine);
-
         if NextEntryNo = 0 then
             StartPosting(GenJnlLine)
         else
@@ -4651,7 +4659,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         Cust.CheckBlockedCustOnJnls(Cust, GenJnlLine."Document Type", true);
 
         OnCustPostApplyCustLedgEntryOnBeforeCheckPostingGroup(GenJnlLine, Cust);
-
         if GenJnlLine."Posting Group" = '' then begin
             Cust.TestField("Customer Posting Group");
             GenJnlLine."Posting Group" := Cust."Customer Posting Group";
@@ -4681,7 +4688,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         OnCustPostApplyCustLedgEntryOnBeforeCheckPostUnrealizedVAT(GenJnlLine, TempDtldCVLedgEntryBuf, DtldLedgEntryInserted);
         CheckPostUnrealizedVAT(GenJnlLine, true);
-
         if DtldLedgEntryInserted then
             if IsTempGLEntryBufEmpty() then
                 DtldCustLedgEntry.SetZeroTransNo(NextTransactionNo);
@@ -4689,6 +4695,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnCustPostApplyCustLedgEntryOnBeforeFinishPosting(GenJnlLine, CustLedgEntry);
 
         FinishPosting(GenJnlLine);
+
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
+        SaveSequenceNoState();
 
         OnAfterCustPostApplyCustLedgEntry(GenJnlLine, GLReg, CustLedgEntry);
     end;
@@ -4708,7 +4718,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforePrepareTempCustledgEntry(GenJnlLine, NewCVLedgEntryBuf, Cust, ApplyingDate, Result, IsHandled, TempOldCustLedgEntry);
         if IsHandled then
             exit(Result);
-
         if GenJnlLine."Applies-to Doc. No." <> '' then begin
             // Find the entry to be applied to
             OldCustLedgEntry.Reset();
@@ -4733,7 +4742,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         (GenJnlLine."Applies-to Doc. Type" = GenJnlLine."Applies-to Doc. Type"::"Finance Charge Memo") and
                         (GenJnlLine."Applies-to Doc. No." <> '')) then
                     OldCustLedgEntry.TestField(Positive, not NewCVLedgEntryBuf.Positive);
-
             if OldCustLedgEntry."Posting Date" > ApplyingDate then
                 ApplyingDate := OldCustLedgEntry."Posting Date";
             OnPrepareTempCustLedgEntryOnBeforeCheckAgainstApplnCurrencyWithAppliesToDocNo(GenJnlLine, NewCVLedgEntryBuf, OldCustLedgEntry);
@@ -4756,7 +4764,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 OldCustLedgEntry.SetFilter("Amount to Apply", '<>%1', 0);
             if Cust."Agreement Posting" = Cust."Agreement Posting"::Mandatory then
                 OldCustLedgEntry.SetRange("Agreement No.", GenJnlLine."Agreement No.");
-
             if Cust."Application Method" = Cust."Application Method"::"Apply to Oldest" then
                 OldCustLedgEntry.SetFilter("Posting Date", '..%1', GenJnlLine."Posting Date");
 
@@ -4778,19 +4785,16 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         TempOldCustLedgEntry.Insert();
                     end;
                 until OldCustLedgEntry.Next() = 0;
-
             if GLSetup."Enable Russian Accounting" and NewCVLedgEntryBuf.Prepayment and GenJnlLine.Correction then
                 Error(PrepmtCorrectionErr);
 
             TempOldCustLedgEntry.SetRange(Positive, NewCVLedgEntryBuf."Remaining Amount" > 0);
-
             if GLSetup."Enable Russian Accounting" and SalesSetup."Check Application Date" and (TempOldCustLedgEntry.Count > 0) then begin
                 TempOldCustLedgEntry.SetRange(Positive, not (NewCVLedgEntryBuf."Remaining Amount" > 0));
                 if TempOldCustLedgEntry.Count > 0 then
                     Error(MultipleEntriesApplnErr);
                 TempOldCustLedgEntry.SetRange(Positive, NewCVLedgEntryBuf."Remaining Amount" > 0);
             end;
-
             if TempOldCustLedgEntry.Find('-') then begin
                 RemainingAmount := NewCVLedgEntryBuf."Remaining Amount";
                 TempOldCustLedgEntry.SetRange(Positive);
@@ -4848,17 +4852,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
         IsHandled: Boolean;
     begin
         OnBeforePostDtldCustLedgEntries(GenJnlLine, DtldCVLedgEntryBuf, CustPostingGr, LedgEntryInserted);
-
         if GenJnlLine."Account Type" <> GenJnlLine."Account Type"::Customer then
             exit;
-
         if DtldCustLedgEntry.FindLast() then
             DtldCustLedgEntryNoOffset := DtldCustLedgEntry."Entry No."
         else
             DtldCustLedgEntryNoOffset := 0;
 
         OnPostDtldCustLedgEntriesOnAfterSetDtldCustLedgEntryNoOffset(GenJnlLine, DtldCVLedgEntryBuf, CustPostingGr, LedgEntryInserted, NextEntryNo);
-
         if GLSetup."Enable Russian Accounting" then begin
             SummarizeGainLoss(DtldCVLedgEntryBuf, CorrDtldCVLedgEntryBuf, false);
             FinVoidedCheck := IsCheckFinVoided(GenJnlLine, DtldCVLedgEntryBuf);
@@ -4909,7 +4910,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     end;
             until DtldCVLedgEntryBuf.Next() = 0;
         end;
-
         if not GLSetup."Enable Russian Accounting" then begin
             IsHandled := false;
             OnPostDtldCustLedgEntriesOnBeforeCreateGLEntriesForTotalAmountsV19(
@@ -4950,19 +4950,16 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforePostDtldCustLedgEntryUnapply(GenJournalLine, DetailedCVLedgEntryBuffer, CustPostingGr, OriginalTransactionNo, IsHandled);
         if IsHandled then
             exit;
-
         if (DetailedCVLedgEntryBuffer."Amount (LCY)" = 0) and
            (DetailedCVLedgEntryBuffer."VAT Amount (LCY)" = 0) and
            ((AddCurrencyCode = '') or (DetailedCVLedgEntryBuffer."Additional-Currency Amount" = 0))
         then
             exit;
-
         if GLSetup."Enable Russian Accounting" then begin
             SavedGenJnlLine := GenJournalLine;
             GenJournalLine."Document Type" := DetailedCVLedgEntryBuffer."Document Type";
             GenJournalLine."Document No." := DetailedCVLedgEntryBuffer."Document No.";
         end;
-
         if MultiplePostingGroups and (DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application) then
             AccNo := GetCustDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer)
         else
@@ -5108,7 +5105,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATEntry2.SetRange("Transaction No.", CustLedgEntry2."Transaction No.");
 
         OnCustUnrealizedVATOnAfterSetFilterForVATEntry2(VATEntry2);
-
         if VATEntry2.FindSet() then
             repeat
                 VATPostingSetup.Get(VATEntry2."VAT Bus. Posting Group", VATEntry2."VAT Prod. Posting Group");
@@ -5121,7 +5117,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 then
                     TotalUnrealVATAmountFirst := TotalUnrealVATAmountFirst - VATEntry2."Remaining Unrealized Amount";
             until VATEntry2.Next() = 0;
-
         if GLSetup."Enable Russian Accounting" then
             if VATEntryNo <> 0 then begin
                 if GenJnlLine."Prepmt. Diff." then
@@ -5132,7 +5127,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 else
                     VATEntry2.SetRange("Entry No.");
             end;
-
         if VATEntry2.FindSet() then begin
             LastConnectionNo := 0;
             repeat
@@ -5142,32 +5136,34 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     LastConnectionNo := VATEntry2."Sales Tax Connection No.";
                 end;
 
-                if not GLSetup."Enable Russian Accounting" then
-                    VATPart :=
-                      VATEntry2.GetUnrealizedVATPart(
-                        Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
-                        PaidAmount,
-                        CustLedgEntry2."Amount (LCY)",
-                        TotalUnrealVATAmountFirst,
-                        TotalUnrealVATAmountLast)
-                else
-                    if not (VATSettlementMgt.VATIsPostponed(VATEntry2, GenJnlLine."VAT Settlement Part", GenJnlLine."Posting Date") or
-                            VATSettlementMgt.PartiallyRealized(VATEntry2."Entry No.", GenJnlLine."VAT Settlement Part"))
-                    then
-                        if UnrealVATPart <> 0 then
-                            VATPart := UnrealVATPart
-                        else
-                            VATPart :=
-                              VATEntry2.GetUnrealizedVATPart(
-                                Round(SettledAmount / CustLedgEntry2.GetOriginalCurrencyFactor()),
-                                PaidAmount,
-                                CustLedgEntry2."Original Amt. (LCY)",
-                                TotalUnrealVATAmountFirst,
-                                TotalUnrealVATAmountLast);
+                IsHandled := false;
+                OnCustUnrealizedVATOnBeforeGetUnrealizedVATPart(GenJnlLine, CustLedgEntry2, PaidAmount, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast, SettledAmount, VATEntry2, VATPart, IsHandled);
+                if not IsHandled then
+                    if not GLSetup."Enable Russian Accounting" then
+                        VATPart :=
+                          VATEntry2.GetUnrealizedVATPart(
+                            Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
+                            PaidAmount,
+                            CustLedgEntry2."Amount (LCY)",
+                            TotalUnrealVATAmountFirst,
+                            TotalUnrealVATAmountLast)
+                    else
+                        if not (VATSettlementMgt.VATIsPostponed(VATEntry2, GenJnlLine."VAT Settlement Part", GenJnlLine."Posting Date") or
+                                VATSettlementMgt.PartiallyRealized(VATEntry2."Entry No.", GenJnlLine."VAT Settlement Part"))
+                        then
+                            if UnrealVATPart <> 0 then
+                                VATPart := UnrealVATPart
+                            else
+                                VATPart :=
+                                  VATEntry2.GetUnrealizedVATPart(
+                                    Round(SettledAmount / CustLedgEntry2.GetOriginalCurrencyFactor()),
+                                    PaidAmount,
+                                    CustLedgEntry2."Original Amt. (LCY)",
+                                    TotalUnrealVATAmountFirst,
+                                    TotalUnrealVATAmountLast);
 
                 OnCustUnrealizedVATOnAfterVATPartCalculation(
                   GenJnlLine, CustLedgEntry2, PaidAmount, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast, SettledAmount, VATEntry2);
-
                 if VATPart > 0 then begin
                     case VATEntry2."VAT Calculation Type" of
                         VATEntry2."VAT Calculation Type"::"Normal VAT",
@@ -5186,7 +5182,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     end;
 
                     OnCustUnrealizedVATOnAfterSetSalesVATAccounts(VATEntry2, VATPostingSetup, SalesVATAccount, SalesVATUnrealAccount);
-
                     if VATPart = 1 then begin
                         VATAmount := VATEntry2."Remaining Unrealized Amount";
                         VATBase := VATEntry2."Remaining Unrealized Base";
@@ -5209,11 +5204,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
                             else
                                 AdjustVATAmount(VATEntry2, VATPart, VATBase, VATAmount, VATBaseAddCurr, VATAmountAddCurr, true);
                     end;
-
                     if GLSetup."Enable Russian Accounting" then begin
                         if VATAllocationLineNo <> 0 then
                             SalesVATAccount := GenJnlLine."Account No.";
-
                         if VATEntry2.Prepayment then begin
                             GenJnlLine."Document Type" := VATEntry2."Document Type";
                             GenJnlLine."Document No." := VATEntry2."Document No.";
@@ -5279,7 +5272,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeApplyVendLedgEntry(NewCVLedgEntryBuf, DtldCVLedgEntryBuf, GenJnlLine, Vend, IsAmountToApplyCheckHandled, IsHandled);
         if IsHandled then
             exit;
-
         if not IsAmountToApplyCheckHandled then
             if NewCVLedgEntryBuf."Amount to Apply" = 0 then
                 exit;
@@ -5305,7 +5297,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         ApplyingDate := GenJnlLine."Posting Date";
         if GLSetup."Enable Russian Accounting" then
             SavedPostingDate := GenJnlLine."Posting Date";
-
         if not PrepareTempVendLedgEntry(GenJnlLine, NewCVLedgEntryBuf, TempOldVendLedgEntry, Vend, ApplyingDate) then
             exit;
 
@@ -5342,7 +5333,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                 end;
                 UnrealVATDate := GetLastDate(ApplyingDate, VendInvPostDate, VendInvRcvdDate);
             end;
-
             if Vend."Agreement Posting" = Vend."Agreement Posting"::Mandatory then
                 if TempOldVendLedgEntry."Agreement No." <> NewCVLedgEntryBuf."Agreement No." then
                     Error(AgreementMustBeErr, NewCVLedgEntryBuf."Agreement No.", TempOldVendLedgEntry."Document No.");
@@ -5379,7 +5369,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OldVendLedgEntry.Modify();
 
             OnAfterOldVendLedgEntryModify(OldVendLedgEntry, GenJnlLine, TempVendorLedgerEntry, DtldCVLedgEntryBuf, AppliedAmount, NextTaxEntryNo, NextEntryNo, NextCheckEntryNo, NextTransactionNo);
-
             if not GLSetup."Enable Russian Accounting" and
                (GLSetup."Unrealized VAT" or (GLSetup."Prepayment Unrealized VAT" and TempOldVendLedgEntry.Prepayment))
             then
@@ -5394,7 +5383,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         AppliedAmount, NewCVLedgEntryBuf."Currency Code",
                         TempOldVendLedgEntry."Currency Code", NewCVLedgEntryBuf."Posting Date"), 0, 0, 0, 0);
                 end;
-
             if GLSetup."Enable Russian Accounting" and
                (GLSetup."Unrealized VAT" or (GLSetup."Prepayment Unrealized VAT" and TempOldVendLedgEntry.Prepayment))
             then begin
@@ -5469,7 +5457,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeFindNextOldVendLedgEntryToApply(GenJnlLine, TempOldVendLedgEntry, NewCVLedgEntryBuf, Completed, IsHandled);
         if IsHandled then
             exit(Completed);
-
         if GenJnlLine."Applies-to Doc. No." <> '' then
             Completed := true
         else
@@ -5526,7 +5513,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NewCVLedgEntryBuf2 := NewCVLedgEntryBuf;
 
         ApplyingDate := GenJnlLine."Posting Date";
-
         if not PrepareTempEmplLedgEntry(GenJnlLine, NewCVLedgEntryBuf, TempOldEmplLedgEntry, Employee, ApplyingDate) then
             exit;
 
@@ -5582,7 +5568,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeFindNextOldEmplLedgEntryToApply(GenJnlLine, TempOldEmplLedgEntry, NewCVLedgEntryBuf, Completed, IsHandled);
         if IsHandled then
             exit(Completed);
-
         if GenJnlLine."Applies-to Doc. No." <> '' then
             Completed := true
         else
@@ -5617,10 +5602,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         GenJnlLine: Record "Gen. Journal Line";
+        xGLEntryNo: BigInteger;
+        xVATEntryNo: BigInteger;
         DtldLedgEntryInserted: Boolean;
         IsHandled: Boolean;
     begin
         OnBeforeVendPostApplyVendLedgEntry(GenJnlLinePostApply, VendLedgEntryPostApply);
+        if GLReg."No." = 0 then
+            SequenceNoMgt.ClearSequenceNoCheck();
+
+        ValidateSequenceNoBeforePosting();
+        xGLEntryNo := GLEntryNo;
+        xVATEntryNo := NextVATEntryNo;
 
         GenJnlLine := GenJnlLinePostApply;
         VendLedgEntry.TransferFields(VendLedgEntryPostApply);
@@ -5634,7 +5627,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnVendPostApplyVendLedgEntryOnBeforeRunCheck(GenJnlLine, IsHandled);
         if not IsHandled then
             GenJnlCheckLine.RunCheck(GenJnlLine);
-
         if NextEntryNo = 0 then
             StartPosting(GenJnlLine)
         else
@@ -5676,7 +5668,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         OnVendPostApplyVendLedgEntryOnBeforeCheckPostUnrealizedVAT(GenJnlLine, TempDtldCVLedgEntryBuf, DtldLedgEntryInserted);
         CheckPostUnrealizedVAT(GenJnlLine, true);
-
         if DtldLedgEntryInserted then
             if IsTempGLEntryBufEmpty() then
                 DtldVendLedgEntry.SetZeroTransNo(NextTransactionNo);
@@ -5684,6 +5675,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnVendPostApplyVendLedgEntryOnBeforeFinishPosting(GenJnlLine, VendLedgEntry);
 
         FinishPosting(GenJnlLine);
+
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
+        SaveSequenceNoState();
+
         OnAfterVendPostApplyVendLedgEntry(GenJnlLine, GLReg);
     end;
 
@@ -5702,6 +5698,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         GenJnlLine: Record "Gen. Journal Line";
+        xGLEntryNo: BigInteger;
+        xVATEntryNo: BigInteger;
         DtldLedgEntryInserted: Boolean;
         IsHandled: Boolean;
     begin
@@ -5709,6 +5707,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeEmplPostApplyEmplLedgEntry(GenJnlLinePostApply, EmplLedgEntryPostApply, IsHandled);
         if IsHandled then
             exit;
+        if GLReg."No." = 0 then
+            SequenceNoMgt.ClearSequenceNoCheck();
+
+        ValidateSequenceNoBeforePosting();
+        xGLEntryNo := GLEntryNo;
+        xVATEntryNo := NextVATEntryNo;
 
         GenJnlLine := GenJnlLinePostApply;
         EmplLedgEntry.TransferFields(EmplLedgEntryPostApply);
@@ -5718,14 +5722,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         AmountRoundingPrecision := GetSourceCurrency(GenJnlLine."Source Currency Code");
 
         GenJnlCheckLine.RunCheck(GenJnlLine);
-
         if NextEntryNo = 0 then
             StartPosting(GenJnlLine)
         else
             ContinuePosting(GenJnlLine);
 
         Empl.Get(EmplLedgEntry."Employee No.");
-
         if GenJnlLine."Posting Group" = '' then begin
             Empl.TestField("Employee Posting Group");
             GenJnlLine."Posting Group" := Empl."Employee Posting Group";
@@ -5753,12 +5755,15 @@ codeunit 12 "Gen. Jnl.-Post Line"
         DtldLedgEntryInserted := PostDtldEmplLedgEntries(GenJnlLine, TempDtldCVLedgEntryBuf, EmplPostingGr, false);
 
         CheckPostUnrealizedVAT(GenJnlLine, true);
-
         if DtldLedgEntryInserted then
             if IsTempGLEntryBufEmpty() then
                 DtldEmplLedgEntry.SetZeroTransNo(NextTransactionNo);
 
         FinishPosting(GenJnlLine);
+
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
+        SaveSequenceNoState();
     end;
 
     local procedure PrepareTempVendLedgEntry(var GenJnlLine: Record "Gen. Journal Line"; var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var TempOldVendLedgEntry: Record "Vendor Ledger Entry" temporary; Vend: Record Vendor; var ApplyingDate: Date): Boolean
@@ -5776,7 +5781,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforePrepareTempVendLedgEntry(GenJnlLine, NewCVLedgEntryBuf, TempOldVendLedgEntry, Vend, ApplyingDate, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if GenJnlLine."Applies-to Doc. No." <> '' then begin
             // Find the entry to be applied to
             OldVendLedgEntry.Reset();
@@ -5814,7 +5818,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 OldVendLedgEntry.SetFilter("Amount to Apply", '<>%1', 0);
             if Vend."Agreement Posting" = Vend."Agreement Posting"::Mandatory then
                 OldVendLedgEntry.SetRange("Agreement No.", GenJnlLine."Agreement No.");
-
             if Vend."Application Method" = Vend."Application Method"::"Apply to Oldest" then
                 OldVendLedgEntry.SetFilter("Posting Date", '..%1', GenJnlLine."Posting Date");
 
@@ -5838,7 +5841,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 until OldVendLedgEntry.Next() = 0;
 
             TempOldVendLedgEntry.SetRange(Positive, NewCVLedgEntryBuf."Remaining Amount" > 0);
-
             if GLSetup."Enable Russian Accounting" then
                 if PurchSetup."Check Application Date" and (TempOldVendLedgEntry.Count > 0) then begin
                     TempOldVendLedgEntry.SetRange(Positive, not (NewCVLedgEntryBuf."Remaining Amount" > 0));
@@ -5846,7 +5848,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         Error(MultipleEntriesApplnErr);
                     TempOldVendLedgEntry.SetRange(Positive, NewCVLedgEntryBuf."Remaining Amount" > 0);
                 end;
-
             if TempOldVendLedgEntry.Find('-') then begin
                 RemainingAmount := NewCVLedgEntryBuf."Remaining Amount";
                 TempOldVendLedgEntry.SetRange(Positive);
@@ -5895,7 +5896,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforePrepareTempEmplLedgEntry(GenJnlLine, NewCVLedgEntryBuf, TempOldEmplLedgEntry, Employee, ApplyingDate, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if GenJnlLine."Applies-to Doc. No." <> '' then begin
             // Find the entry to be applied to
             OldEmplLedgEntry.Reset();
@@ -5909,7 +5909,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnPrepareTempVendLedgEntryOnBeforeTestPositive(GenJnlLine, IsHandled);
             if not IsHandled then
                 OldEmplLedgEntry.TestField(Positive, not NewCVLedgEntryBuf.Positive);
-
             if OldEmplLedgEntry."Posting Date" > ApplyingDate then
                 ApplyingDate := OldEmplLedgEntry."Posting Date";
             TempOldEmplLedgEntry := OldEmplLedgEntry;
@@ -5926,7 +5925,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OldEmplLedgEntry.SetFilter("Entry No.", '<>%1', NewCVLedgEntryBuf."Entry No.");
             if not (Employee."Application Method" = Employee."Application Method"::"Apply to Oldest") then
                 OldEmplLedgEntry.SetFilter("Amount to Apply", '<>%1', 0);
-
             if Employee."Application Method" = Employee."Application Method"::"Apply to Oldest" then
                 OldEmplLedgEntry.SetFilter("Posting Date", '..%1', GenJnlLine."Posting Date");
 
@@ -5941,7 +5939,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 until OldEmplLedgEntry.Next() = 0;
 
             TempOldEmplLedgEntry.SetRange(Positive, NewCVLedgEntryBuf."Remaining Amount" > 0);
-
             if TempOldEmplLedgEntry.Find('-') then begin
                 RemainingAmount := NewCVLedgEntryBuf."Remaining Amount";
                 TempOldEmplLedgEntry.SetRange(Positive);
@@ -5999,14 +5996,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
             exit;
 
         OnPostDtldVendLedgEntriesOnBeforeSetDtldVendLedgEntryNoOffset(GenJournalLine, DetailedVendorLedgEntry);
-
         if DetailedVendorLedgEntry.FindLast() then
             DtldVendLedgEntryNoOffset := DetailedVendorLedgEntry."Entry No."
         else
             DtldVendLedgEntryNoOffset := 0;
 
         OnPostDtldVendLedgEntriesOnAfterSetDtldVendLedgEntryNoOffset(GenJournalLine, DetailedVendorLedgEntry, DtldVendLedgEntryNoOffset);
-
         if GLSetup."Enable Russian Accounting" then begin
             SummarizeGainLoss(DetailedCVLedgEntryBuffer, CorrDtldCVLedgEntryBuf, false);
             FinVoidedCheck := IsCheckFinVoided(GenJournalLine, DetailedCVLedgEntryBuffer);
@@ -6056,7 +6051,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 OnPostDtldVendLedgEntriesOnAfterPostDtldVendLedgEntry(DetailedCVLedgEntryBuffer, DetailedVendorLedgEntry, LedgEntryInserted);
             until DetailedCVLedgEntryBuffer.Next() = 0;
         end;
-
         if not GLSetup."Enable Russian Accounting" then begin
             IsHandled := false;
             OnPostDtldVendLedgEntriesOnBeforeCreateGLEntriesForTotalAmounts(VendPostingGr, DetailedCVLedgEntryBuffer, GenJournalLine, TempDimensionPostingBuffer, AdjAmount, SaveEntryNo, LedgEntryInserted, IsHandled);
@@ -6095,19 +6089,16 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforePostDtldVendLedgEntryUnapply(GenJournalLine, DetailedCVLedgEntryBuffer, VendPostingGr, OriginalTransactionNo, IsHandled);
         if IsHandled then
             exit;
-
         if (DetailedCVLedgEntryBuffer."Amount (LCY)" = 0) and
            (DetailedCVLedgEntryBuffer."VAT Amount (LCY)" = 0) and
            ((AddCurrencyCode = '') or (DetailedCVLedgEntryBuffer."Additional-Currency Amount" = 0))
         then
             exit;
-
         if GLSetup."Enable Russian Accounting" then begin
             SavedGenJournalLine := GenJournalLine;
             GenJournalLine."Document Type" := DetailedCVLedgEntryBuffer."Document Type";
             GenJournalLine."Document No." := DetailedCVLedgEntryBuffer."Document No.";
         end;
-
         if MultiplePostingGroups and (DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application) then
             AccNo := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer)
         else
@@ -6237,7 +6228,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
            ((AddCurrencyCode = '') or (DetailedCVLedgEntryBuffer."Additional-Currency Amount" = 0))
         then
             exit;
-
         if MultiplePostingGroups and (DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application) then
             AccNo := GetEmplDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer)
         else
@@ -6333,7 +6323,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if GenJnlLine."Account Type" <> GenJnlLine."Account Type"::Employee then
             exit;
-
         if DtldEmplLedgEntry.FindLast() then
             DtldEmplLedgEntryNoOffset := DtldEmplLedgEntry."Entry No."
         else
@@ -6399,14 +6388,17 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforePostDtldCVLedgEntry(GenJournalLine, DetailedCVLedgEntryBuffer, AccNo, Unapply, AdjAmount, IsHandled, AddCurrencyCode, MultiplePostingGroups);
         if IsHandled then
             exit;
-
         case DetailedCVLedgEntryBuffer."Entry Type" of
             DetailedCVLedgEntryBuffer."Entry Type"::"Initial Entry":
                 ;
             DetailedCVLedgEntryBuffer."Entry Type"::Application:
                 if MultiplePostingGroups then
                     CreateGLEntry(
-                        GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)", 0, DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
+                        GenJournalLine, AccNo, DetailedCVLedgEntryBuffer."Amount (LCY)",
+                        GLCalcAddCurrency(
+                            DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer.Amount, 0,
+                            DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode, GenJournalLine),
+                        DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
                         CalcAmountSrcCurr(GenJournalLine, DetailedCVLedgEntryBuffer."Amount (LCY)"));
             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Loss",
             DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Gain":
@@ -6421,7 +6413,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         CreateGLEntry(
                             GenJournalLine, AccNo, -DetailedCVLedgEntryBuffer."Amount (LCY)", 0, DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode,
                             CalcAmountSrcCurr(GenJournalLine, -DetailedCVLedgEntryBuffer."Amount (LCY)"));
-
                         if MultiplePostingGroups then begin
                             case GenJournalLine."Account Type" of
                                 GenJournalLine."Account Type"::Customer:
@@ -6581,7 +6572,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforePostDtldCVLedgEntryCreateGLEntryPmtDiscTol(GenJnlLine, DtldCVLedgEntryBuf, Unapply, AccNo, IsHandled);
         if IsHandled then
             exit;
-
         if GLSetup."Enable Russian Accounting" then
             CreateGLEntryRU(
                 GenJnlLine, AccNo, -DtldCVLedgEntryBuf."Amount (LCY)", -DtldCVLedgEntryBuf."Additional-Currency Amount", false, BalAccNo, false, true, false,
@@ -6600,7 +6590,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         DtldCVLedgEntryBuf.FindVATEntry(VATEntry, OriginalTransactionNo);
         OnPostDtldCustVATAdjustmentOnAfterFindVATEntry(GenJnlLine, DtldCVLedgEntryBuf);
-
         case VATPostingSetup."VAT Calculation Type" of
             VATPostingSetup."VAT Calculation Type"::"Normal VAT",
             VATPostingSetup."VAT Calculation Type"::"Full VAT":
@@ -6633,7 +6622,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         DtldCVLedgEntryBuf.FindVATEntry(VATEntry, OriginalTransactionNo);
         OnPostDtldVendVATAdjustmentOnAfterFindVATEntry(DtldCVLedgEntryBuf, VATEntry);
-
         case VATPostingSetup."VAT Calculation Type" of
             VATPostingSetup."VAT Calculation Type"::"Normal VAT",
             VATPostingSetup."VAT Calculation Type"::"Full VAT":
@@ -6722,6 +6710,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnVendUnrealizedVATOnAfterSetFilterForVATEntry2(VATEntry2);
 
         PaidAmount := -VendLedgEntry2."Amount (LCY)" + VendLedgEntry2."Remaining Amt. (LCY)";
+        OnVendUnrealizedVATOnAfterCalcPaidAmount(GenJnlLine, VendLedgEntry2, SettledAmount, PaidAmount);
         if VATEntry2.FindSet() then
             repeat
                 VATPostingSetup.Get(VATEntry2."VAT Bus. Posting Group", VATEntry2."VAT Prod. Posting Group");
@@ -6736,7 +6725,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             until VATEntry2.Next() = 0;
 
         OnVendUnrealizedVATOnAfterCalcTotalUnrealVATAmount(VATEntry2, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast);
-
         if GLSetup."Enable Russian Accounting" and (VATEntryNo <> 0) then begin
             if GenJnlLine."Prepmt. Diff." then
                 VATEntry2.Reset();
@@ -6746,7 +6734,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             else
                 VATEntry2.SetRange("Entry No.");
         end;
-
         if VATEntry2.FindSet() then begin
             LastConnectionNo := 0;
             repeat
@@ -6792,10 +6779,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
                 OnVendUnrealizedVATOnAfterVATPartCalculation(
                   GenJnlLine, VendLedgEntry2, PaidAmount, TotalUnrealVATAmountFirst, TotalUnrealVATAmountLast, SettledAmount, VATEntry2);
-
                 if VATPart > 0 then begin
                     GetVendUnrealizedVATAccounts(VATEntry2, VATPostingSetup, PurchVATAccount, PurchVATUnrealAccount, PurchReverseAccount, PurchReverseUnrealAccount);
-
                     if VATPart = 1 then begin
                         VATAmount := VATEntry2."Remaining Unrealized Amount";
                         VATBase := VATEntry2."Remaining Unrealized Base";
@@ -6831,14 +6816,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                     VATAmountAddCurr := VATEntryToRealize."Additional-Currency Amount";
                                     VATBaseAddCurr := VATEntryToRealize."Additional-Currency Base";
                                 end;
-
                             if VATAllocationLineNo <> 0 then
                                 VATBase := Round(VATAmount * GenJnlLine."VAT Base Amount" / GenJnlLine."VAT Amount")
                             else
                                 AdjustVATAmount(VATEntry2, VATPart, VATBase, VATAmount, VATBaseAddCurr, VATAmountAddCurr, true);
                         end;
                     end;
-
                     if GLSetup."Enable Russian Accounting" then begin
                         if IsVendBackPrepmt then begin
                             VATEntryToRealize.Amount -= VATAmount;
@@ -6846,15 +6829,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
                             VATEntryToRealize."Additional-Currency Amount" -= VATAmountAddCurr;
                             VATEntryToRealize."Additional-Currency Base" -= VATBaseAddCurr;
                         end;
-
                         if VATAllocationLineNo <> 0 then
                             PurchVATAccount := GenJnlLine."Account No.";
-
                         if NewTransactionNo <> 0 then begin
                             VendLedgEntry2."Transaction No." := NextTransactionNo;
                             NextTransactionNo := NewTransactionNo;
                         end;
-
                         if VATEntry2.Prepayment then begin
                             GenJnlLine."Document Type" := VATEntry2."Document Type";
                             GenJnlLine."Document No." := VATEntry2."Document No.";
@@ -6864,7 +6844,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     end;
 
                     OnVendUnrealizedVATOnBeforeInitGLEntryVAT(GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, VendLedgEntry2, SettledAmount);
-
                     if (VATEntry2."VAT Calculation Type" = VATEntry2."VAT Calculation Type"::"Sales Tax") and
                        (VATEntry2.Type = VATEntry2.Type::Purchase) and VATEntry2."Use Tax"
                     then begin
@@ -6962,7 +6941,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         InitialVATEntry: Record "VAT Entry";
     begin
         OnBeforePostUnrealVATEntry(GenJnlLine, VATEntry);
-        VATEntry.LockTable();
+        if not GLSetup.UseConcurrentPosting() then
+            VATEntry.LockTable();
         VATEntry := VATEntry2;
         VATEntry."Entry No." := NextVATEntryNo;
         VATEntry.CopyPostingDataFromGenJnlLine(GenJnlLine);
@@ -7023,8 +7003,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeInsertPostUnrealVATEntry(VATEntry, GenJnlLine, VATEntry2);
         VATEntry.Insert(true);
         OnPostUnrealVATEntryOnBeforeInsertLinkSelf(TempGLEntryVATEntryLink, VATEntry, GLEntryNo, NextVATEntryNo);
-        TempGLEntryVATEntryLink.InsertLinkSelf(GLEntryNo + 1, NextVATEntryNo);
-        NextVATEntryNo := NextVATEntryNo + 1;
+        if GLSetup.UseConcurrentPosting() then
+            TempSummarizedVATEntryLink.InsertLinkSelf(GLEntryNo, NextVATEntryNo)
+        else
+            TempGLEntryVATEntryLink.InsertLinkSelf(GLEntryNo + 1, NextVATEntryNo);
+        NextVATEntryNo := GetNextVATEntryNoForPosting(NextVATEntryNo);
 
         VATEntry2."Remaining Unrealized Amount" :=
           VATEntry2."Remaining Unrealized Amount" - VATEntry.Amount;
@@ -7077,7 +7060,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         OnPostApplyOnAfterRecalculateAmounts(
             OldCVLedgEntryBuf2, OldCVLedgEntryBuf, NewCVLedgEntryBuf, GenJnlLine, DtldCVLedgEntryBuf, AddCurrencyCode, NextTransactionNo, NextVATEntryNo);
-
         if not BlockPaymentTolerance then
             CalcPmtTolerance(
               NewCVLedgEntryBuf, OldCVLedgEntryBuf, OldCVLedgEntryBuf2, DtldCVLedgEntryBuf, GenJnlLine,
@@ -7086,7 +7068,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CalcPmtDisc(
           NewCVLedgEntryBuf, OldCVLedgEntryBuf, OldCVLedgEntryBuf2, DtldCVLedgEntryBuf, GenJnlLine,
           PmtTolAmtToBeApplied, ApplnRoundingPrecision, NextTransactionNo, FirstNewVATEntryNo);
-
         if not BlockPaymentTolerance then
             CalcPmtDiscTolerance(
               NewCVLedgEntryBuf, OldCVLedgEntryBuf, OldCVLedgEntryBuf2, DtldCVLedgEntryBuf, GenJnlLine,
@@ -7106,7 +7087,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             FindAmtForAppln(
               NewCVLedgEntryBuf, OldCVLedgEntryBuf, OldCVLedgEntryBuf2,
               AppliedAmount, AppliedAmountLCY, OldAppliedAmount, ApplnRoundingPrecision, GenJnlLine);
-
             if GLSetup."Enable Russian Accounting" then
                 RUFindAmtForAppln(
                 NewCVLedgEntryBuf, OldCVLedgEntryBuf,
@@ -7168,6 +7148,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATSettlementMgt: Codeunit "VAT Settlement Management";
         AdjAmount: array[4] of Decimal;
         NextDtldLedgEntryNo: Integer;
+        xGLEntryNo: BigInteger;
+        xVATEntryNo: BigInteger;
         UnapplyVATEntries: Boolean;
         PmtDiscTolExists: Boolean;
         IsHandled: Boolean;
@@ -7176,6 +7158,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeUnapplyCustLedgEntry(GenJournalLine, DetailedCustLedgEntry, IsHandled);
         if IsHandled then
             exit;
+        if GLReg."No." = 0 then
+            SequenceNoMgt.ClearSequenceNoCheck();
+
+        ValidateSequenceNoBeforePosting();
+        xGLEntryNo := GLEntryNo;
+        xVATEntryNo := NextVATEntryNo;
 
         GenJournalLineToPost.TransferFields(GenJournalLine);
         if GLSetup."Enable Russian Accounting" then
@@ -7184,7 +7172,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             GenJournalLineToPost."Document Date" := GenJournalLineToPost."Posting Date";
 
         AmountRoundingPrecision := GetSourceCurrency(GenJournalLine."Source Currency Code");
-
         if NextEntryNo = 0 then
             StartPosting(GenJournalLineToPost)
         else
@@ -7198,18 +7185,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnUnapplyCustLedgEntryOnBeforeCheckPostingGroup(GenJournalLineToPost, Customer);
         CustomerPostingGroup.Get(GenJournalLineToPost."Posting Group");
         GetCustomerReceivablesAccount(GenJournalLineToPost, CustomerPostingGroup);
-
-        VATEntry.LockTable();
+        if not GLSetup.UseConcurrentPosting() then
+            VATEntry.LockTable();
         DetailedCustLedgEntry.LockTable();
         CustLedgerEntry.LockTable();
 
         DetailedCustLedgEntry.TestField("Entry Type", DetailedCustLedgEntry."Entry Type"::Application);
-
-        DetailedCustLedgEntry2.Reset();
-        DetailedCustLedgEntry2.FindLast();
-        NextDtldLedgEntryNo := DetailedCustLedgEntry2."Entry No." + 1;
+        if not GLSetup.UseConcurrentPosting() then begin
+            DetailedCustLedgEntry2.Reset();
+            DetailedCustLedgEntry2.FindLast();
+            NextDtldLedgEntryNo := DetailedCustLedgEntry2."Entry No." + 1;
+        end else
+            NextDtldLedgEntryNo := DetailedCustLedgEntry.GetNextEntryNo();
         OnUnapplyCustLedgEntryOnAfterGetNextDtldLedgEntryNo(GenJournalLine);
-
         if DetailedCustLedgEntry."Transaction No." = 0 then begin
             DetailedCustLedgEntry2.SetCurrentKey("Application No.", "Customer No.", "Entry Type");
             DetailedCustLedgEntry2.SetRange("Application No.", DetailedCustLedgEntry."Application No.");
@@ -7254,7 +7242,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
               DetailedCustLedgEntry."Customer No.", DetailedCustLedgEntry."Transaction No.", UnapplyVATEntries, TempVATEntry);
 
             OnUnapplyCustLedgEntryOnAfterPostUnapply(GenJournalLineToPost, DetailedCustLedgEntry, DetailedCustLedgEntry2);
-
             if PmtDiscTolExists then
                 ProcessTempVATEntryCust(DetailedCustLedgEntry2, TempVATEntry)
             else begin
@@ -7295,7 +7282,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 else
                     DetailedCVLedgEntryBuffer."Additional-Currency Amount" := 0;
                 CurrencyLCY.InitRoundingPrecision();
-
                 if (DetailedCustLedgEntry2."Transaction No." <> 0) and IsVATExcluded(DetailedCustLedgEntry2."Entry Type") then begin
                     UnapplyExcludedVAT(
                       TempVATEntry2, DetailedCustLedgEntry2."Transaction No.", DetailedCustLedgEntry2."VAT Bus. Posting Group",
@@ -7308,7 +7294,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 if not IsHandled then begin
                     UpdateTotalAmounts(TempDimensionPostingBuffer, GenJournalLineToPost."Dimension Set ID", DetailedCVLedgEntryBuffer);
                     OnUnapplyCustLedgEntryOnAfterUpdateTotals(GenJournalLineToPost, DetailedCVLedgEntryBuffer);
-
                     if not (DetailedCVLedgEntryBuffer."Entry Type" in [
                                                                 DetailedCVLedgEntryBuffer."Entry Type"::"Initial Entry",
                                                                 DetailedCVLedgEntryBuffer."Entry Type"::Application])
@@ -7316,7 +7301,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         CollectAdjustment(AdjAmount,
                           -DetailedCVLedgEntryBuffer."Amount (LCY)", -DetailedCVLedgEntryBuffer."Additional-Currency Amount");
                 end;
-
                 if GLSetup."Enable Russian Accounting" then begin
                     DetailedCVLedgEntryBuffer."Posting Date" := GenJournalLineToPost."Posting Date";
                     DetailedCVLedgEntryBuffer."Initial Transaction No." := DetailedCustLedgEntry."Transaction No.";
@@ -7325,7 +7309,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
                 PostDtldCustLedgEntryUnapply(
                   GenJournalLineToPost, DetailedCVLedgEntryBuffer, CustomerPostingGroup, DetailedCustLedgEntry2."Transaction No.");
-
                 if GLSetup."Enable Russian Accounting" then
                     GenJournalLineToPost := SavedGenJnlLine;
 
@@ -7340,7 +7323,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 OnUnapplyCustLedgEntryOnAfterUpdateCustLedgEntry(GenJournalLine, DetailedCustLedgEntry2, NewDetailedCustLedgEntry, CustomerPostingGroup, GlobalGLEntry);
             end;
         until DetailedCustLedgEntry2.Next() = 0;
-
         if not GLSetup."Enable Russian Accounting" then begin
             IsHandled := false;
             OnBeforeCreateGLEntriesForTotalAmountsUnapplyV19(DetailedCustLedgEntry, CustomerPostingGroup, GenJournalLineToPost, TempDimensionPostingBuffer, IsHandled);
@@ -7350,13 +7332,16 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
 
         OnUnapplyCustLedgEntryOnAfterCreateGLEntriesForTotalAmounts(GenJournalLine, DetailedCustLedgEntry, GLReg);
-
         if IsTempGLEntryBufEmpty() then
             DetailedCustLedgEntry.SetZeroTransNo(NextTransactionNo);
         CheckPostUnrealizedVAT(GenJournalLineToPost, true);
 
         OnUnapplyCustLedgEntryOnBeforeFinishPosting(GenJournalLine, GlobalGLEntry, CustomerPostingGroup);
         FinishPosting(GenJournalLineToPost);
+
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
+        SaveSequenceNoState();
     end;
 
     local procedure CheckDetailedCustLedgEntryUnapply(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
@@ -7364,7 +7349,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin
         DetailedCustLedgEntry.TestField(Unapplied, false);
-
         if DetailedCustLedgEntry."Posting Group" = '' then begin
             CustLedgerEntry.ReadIsolation := IsolationLevel::ReadCommitted;
             CustLedgerEntry.Get(DetailedCustLedgEntry."Cust. Ledger Entry No.");
@@ -7403,6 +7387,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATSettlementMgt: Codeunit "VAT Settlement Management";
         AdjAmount: array[4] of Decimal;
         NextDtldLedgEntryNo: Integer;
+        xGLEntryNo: BigInteger;
+        xVATEntryNo: BigInteger;
         UnapplyVATEntries: Boolean;
         PmtDiscTolExists: Boolean;
         IsHandled: Boolean;
@@ -7411,6 +7397,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeUnapplyVendLedgEntry(GenJournalLine, DetailedVendorLedgEntry, IsHandled);
         if IsHandled then
             exit;
+        if GLReg."No." = 0 then
+            SequenceNoMgt.ClearSequenceNoCheck();
+
+        ValidateSequenceNoBeforePosting();
+        xGLEntryNo := GLEntryNo;
+        xVATEntryNo := NextVATEntryNo;
 
         GenJournalLineToPost.TransferFields(GenJournalLine);
         if GLSetup."Enable Russian Accounting" then
@@ -7419,7 +7411,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             GenJournalLineToPost."Document Date" := GenJournalLineToPost."Posting Date";
 
         AmountRoundingPrecision := GetSourceCurrency(GenJournalLine."Source Currency Code");
-
         if NextEntryNo = 0 then
             StartPosting(GenJournalLineToPost)
         else
@@ -7433,19 +7424,20 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnUnapplyVendLedgEntryOnBeforeCheckPostingGroup(GenJournalLineToPost, Vendor);
         GetVendorPostingGroup(GenJournalLineToPost, VendorPostingGroup);
         VendorPostingGroup.GetPayablesAccount();
-
-        VATEntry.LockTable();
+        if not GLSetup.UseConcurrentPosting() then
+            VATEntry.LockTable();
         DetailedVendorLedgEntry.LockTable();
         VendorLedgerEntry.LockTable();
 
         DetailedVendorLedgEntry.TestField("Entry Type", DetailedVendorLedgEntry."Entry Type"::Application);
-
         if GLSetup."Enable Russian Accounting" then
             VATSettlementMgt.CheckForUnapplyByTransNo(DetailedVendorLedgEntry."Transaction No.");
-
-        DetailedVendorLedgEntry2.Reset();
-        DetailedVendorLedgEntry2.FindLast();
-        NextDtldLedgEntryNo := DetailedVendorLedgEntry2."Entry No." + 1;
+        if not GLSetup.UseConcurrentPosting() then begin
+            DetailedVendorLedgEntry2.Reset();
+            DetailedVendorLedgEntry2.FindLast();
+            NextDtldLedgEntryNo := DetailedVendorLedgEntry2."Entry No." + 1
+        end else
+            NextDtldLedgEntryNo := DetailedVendorLedgEntry.GetNextEntryNo();
         if DetailedVendorLedgEntry."Transaction No." = 0 then begin
             DetailedVendorLedgEntry2.SetCurrentKey("Application No.", "Vendor No.", "Entry Type");
             DetailedVendorLedgEntry2.SetRange("Application No.", DetailedVendorLedgEntry."Application No.");
@@ -7483,7 +7475,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
               DetailedVendorLedgEntry."Vendor No.", DetailedVendorLedgEntry."Transaction No.", UnapplyVATEntries, TempVATEntry);
 
             OnUnapplyVendLedgEntryOnAfterPostUnapply(GenJournalLineToPost, DetailedVendorLedgEntry, DetailedVendorLedgEntry2);
-
             if PmtDiscTolExists then
                 ProcessTempVATEntryVend(DetailedVendorLedgEntry2, TempVATEntry)
             else begin
@@ -7522,7 +7513,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             else
                 DetailedCVLedgEntryBuffer."Additional-Currency Amount" := 0;
             CurrencyLCY.InitRoundingPrecision();
-
             if (DetailedVendorLedgEntry2."Transaction No." <> 0) and IsVATExcluded(DetailedVendorLedgEntry2."Entry Type") then begin
                 UnapplyExcludedVAT(
                   TempVATEntry2, DetailedVendorLedgEntry2."Transaction No.", DetailedVendorLedgEntry2."VAT Bus. Posting Group",
@@ -7534,7 +7524,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnUnapplyVendLedgEntryOnBeforeUpdateTotalAmounts(IsHandled, GenJournalLineToPost, DetailedCVLedgEntryBuffer);
             if not IsHandled then begin
                 UpdateTotalAmounts(TempDimensionPostingBuffer, GenJournalLineToPost."Dimension Set ID", DetailedCVLedgEntryBuffer);
-
                 if not (DetailedCVLedgEntryBuffer."Entry Type" in [
                                                             DetailedCVLedgEntryBuffer."Entry Type"::"Initial Entry",
                                                             DetailedCVLedgEntryBuffer."Entry Type"::Application])
@@ -7542,7 +7531,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     CollectAdjustment(AdjAmount,
                       -DetailedCVLedgEntryBuffer."Amount (LCY)", -DetailedCVLedgEntryBuffer."Additional-Currency Amount");
             end;
-
             if GLSetup."Enable Russian Accounting" then begin
                 DetailedCVLedgEntryBuffer."Posting Date" := GenJournalLineToPost."Posting Date";
                 DetailedCVLedgEntryBuffer."Initial Transaction No." := DetailedVendorLedgEntry."Transaction No.";
@@ -7551,7 +7539,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
             PostDtldVendLedgEntryUnapply(
               GenJournalLineToPost, DetailedCVLedgEntryBuffer, VendorPostingGroup, DetailedVendorLedgEntry2."Transaction No.");
-
             if GLSetup."Enable Russian Accounting" then
                 GenJournalLineToPost := SavedGenJnlLine;
 
@@ -7564,7 +7551,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnUnapplyVendLedgEntryOnBeforeUpdateVendLedgEntry(DetailedVendorLedgEntry2, DetailedCVLedgEntryBuffer);
             UpdateVendLedgEntry(DetailedVendorLedgEntry2);
         until DetailedVendorLedgEntry2.Next() = 0;
-
         if not GLSetup."Enable Russian Accounting" then begin
             IsHandled := false;
             OnBeforeCreateGLEntriesForTotalAmountsUnapplyVendorV19(DetailedVendorLedgEntry, VendorPostingGroup, GenJournalLineToPost, TempDimensionPostingBuffer, IsHandled);
@@ -7573,12 +7559,15 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
 
         OnUnapplyVendLedgEntryOnAfterCreateGLEntriesForTotalAmounts(GenJournalLine, DetailedVendorLedgEntry, GLReg, GenJournalLineToPost, NextTaxEntryNo, NextEntryNo, NextCheckEntryNo, NextTransactionNo);
-
         if IsTempGLEntryBufEmpty() then
             DetailedVendorLedgEntry.SetZeroTransNo(NextTransactionNo);
         CheckPostUnrealizedVAT(GenJournalLineToPost, true);
 
         FinishPosting(GenJournalLineToPost);
+
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
+        SaveSequenceNoState();
 
         OnAfterUnapplyVendLedgEntry(GenJournalLine, DetailedVendorLedgEntry);
     end;
@@ -7588,7 +7577,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
     begin
         DetailedVendorLedgEntry.TestField(Unapplied, false);
-
         if DetailedVendorLedgEntry."Posting Group" = '' then begin
             VendorLedgerEntry.ReadIsolation := IsolationLevel::ReadCommitted;
             VendorLedgerEntry.Get(DetailedVendorLedgEntry."Vendor Ledger Entry No.");
@@ -7620,19 +7608,26 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempDimensionPostingBuffer: Record "Dimension Posting Buffer" temporary;
         AdjAmount: array[4] of Decimal;
         NextDtldLedgEntryNo: Integer;
+        xGLEntryNo: BigInteger;
+        xVATEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeUnapplyEmplLedgEntry(GenJournalLine, DetailedEmployeeLedgerEntry, IsHandled);
         if IsHandled then
             exit;
+        if GLReg."No." = 0 then
+            SequenceNoMgt.ClearSequenceNoCheck();
+
+        ValidateSequenceNoBeforePosting();
+        xGLEntryNo := GLEntryNo;
+        xVATEntryNo := NextVATEntryNo;
 
         GenJournalLineToPost.TransferFields(GenJournalLine);
         if GenJournalLineToPost."Document Date" = 0D then
             GenJournalLineToPost."Document Date" := GenJournalLineToPost."Posting Date";
 
         AmountRoundingPrecision := GetSourceCurrency(GenJournalLine."Source Currency Code");
-
         if NextEntryNo = 0 then
             StartPosting(GenJournalLineToPost)
         else
@@ -7649,10 +7644,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         EmployeeLedgerEntry.LockTable();
 
         DetailedEmployeeLedgerEntry.TestField("Entry Type", DetailedEmployeeLedgerEntry."Entry Type"::Application);
-
-        DetailedEmployeeLedgerEntry2.Reset();
-        DetailedEmployeeLedgerEntry2.FindLast();
-        NextDtldLedgEntryNo := DetailedEmployeeLedgerEntry2."Entry No." + 1;
+        if not GLSetup.UseConcurrentPosting() then begin
+            DetailedEmployeeLedgerEntry2.Reset();
+            DetailedEmployeeLedgerEntry2.FindLast();
+            NextDtldLedgEntryNo := DetailedEmployeeLedgerEntry2."Entry No." + 1;
+        end else
+            NextDtldLedgEntryNo := DetailedEmployeeLedgerEntry.GetNextEntryNo();
         if DetailedEmployeeLedgerEntry."Transaction No." = 0 then begin
             DetailedEmployeeLedgerEntry2.SetCurrentKey("Application No.", "Employee No.", "Entry Type");
             DetailedEmployeeLedgerEntry2.SetRange("Application No.", DetailedEmployeeLedgerEntry."Application No.");
@@ -7683,7 +7680,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnUnapplyEmplLedgEntryOnBeforeUpdateTotalAmounts(GenJournalLineToPost, DetailedCVLedgEntryBuffer, IsHandled);
             if not IsHandled then begin
                 UpdateTotalAmounts(TempDimensionPostingBuffer, GenJournalLineToPost."Dimension Set ID", DetailedCVLedgEntryBuffer);
-
                 if not (DetailedCVLedgEntryBuffer."Entry Type" in [
                                                             DetailedCVLedgEntryBuffer."Entry Type"::"Initial Entry",
                                                             DetailedCVLedgEntryBuffer."Entry Type"::Application])
@@ -7706,11 +7702,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeCreateGLEntriesForTotalAmountsUnapplyEmployee(DetailedEmployeeLedgerEntry, EmployeePostingGroup, GenJournalLineToPost, TempDimensionPostingBuffer, IsHandled);
         if not IsHandled then
             CreateGLEntriesForTotalAmountsUnapply(GenJournalLineToPost, TempDimensionPostingBuffer, GetEmployeePayablesAccount(GenJournalLineToPost, EmployeePostingGroup));
-
         if IsTempGLEntryBufEmpty() then
             DetailedEmployeeLedgerEntry.SetZeroTransNo(NextTransactionNo);
 
         FinishPosting(GenJournalLineToPost);
+
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
+        SaveSequenceNoState();
 
         OnAfterUnapplyEmplLedgEntry(GenJournalLine, DetailedEmployeeLedgerEntry);
     end;
@@ -7768,7 +7767,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SavedPostingDate: Date;
     begin
         OnBeforePostUnrealVATByUnapply(GenJnlLine, VATPostingSetup, VATEntry, NewVATEntry);
-
         if GLSetup."Enable Russian Accounting" then begin
             SavedPostingDate := GenJnlLine."Posting Date";
             if VATEntry."Posting Date" > GenJnlLine."Posting Date" then
@@ -7907,7 +7905,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         if GLSetup."Enable Russian Accounting" then
                             GenJnlLine := SavedGenJnlLine;
                     end;
-
                     if VATPostingSetup."Adjust for Payment Discount" and not IsNotPayment(VATEntry."Document Type") and
                        (VATPostingSetup."VAT Calculation Type" =
                         VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT") and
@@ -7994,7 +7991,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NewDtldCustLedgEntry."G/L Register No." := GLReg."No.";
         OnBeforeInsertDtldCustLedgEntryUnapply(NewDtldCustLedgEntry, GenJnlLine, OldDtldCustLedgEntry, GLReg);
         NewDtldCustLedgEntry.Insert(true);
-        NextDtldLedgEntryNo := NextDtldLedgEntryNo + 1;
+        if not GLSetup.UseConcurrentPosting() then
+            NextDtldLedgEntryNo := NextDtldLedgEntryNo + 1
+        else
+            NextDtldLedgEntryNo := NewDtldCustLedgEntry.GetNextEntryNo();
 
         OnAfterInsertDtldCustLedgEntryUnapply(CustomerPostingGroup, OldDtldCustLedgEntry, GenJnlLine, NewDtldCustLedgEntry);
     end;
@@ -8033,7 +8033,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NewDtldVendLedgEntry."G/L Register No." := GLReg."No.";
         OnBeforeInsertDtldVendLedgEntryUnapply(NewDtldVendLedgEntry, GenJnlLine, OldDtldVendLedgEntry, GLReg);
         NewDtldVendLedgEntry.Insert(true);
-        NextDtldLedgEntryNo := NextDtldLedgEntryNo + 1;
+        if not GLSetup.UseConcurrentPosting() then
+            NextDtldLedgEntryNo := NextDtldLedgEntryNo + 1
+        else
+            NextDtldLedgEntryNo := NewDtldVendLedgEntry.GetNextEntryNo();
+
         OnAfterInsertDtldVendLedgEntryUnapply(OldDtldVendLedgEntry, GenJnlLine, NewDtldVendLedgEntry);
     end;
 
@@ -8059,7 +8063,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NewDtldEmplLedgEntry."G/L Register No." := GLReg."No.";
         OnBeforeInsertDtldEmplLedgEntryUnapply(NewDtldEmplLedgEntry, GenJnlLine, OldDtldEmplLedgEntry);
         NewDtldEmplLedgEntry.Insert(true);
-        NextDtldLedgEntryNo := NextDtldLedgEntryNo + 1;
+        if not GLSetup.UseConcurrentPosting() then
+            NextDtldLedgEntryNo := NextDtldLedgEntryNo + 1
+        else
+            NextDtldLedgEntryNo := NewDtldEmplLedgEntry.GetNextEntryNo();
     end;
 
     local procedure InsertTempVATEntry(GenJnlLine: Record "Gen. Journal Line"; VATEntry: Record "VAT Entry"; var TempVATEntryNo: Integer; var TempVATEntry: Record "VAT Entry" temporary)
@@ -8354,7 +8361,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         TotalAddCurrAmount := TotalAddCurrAmount + GLEntry2."Additional-Currency Amount";
         TotalAmount := TotalAmount + GLEntry2.Amount;
-
         if (GenJnlLine."Additional-Currency Posting" = GenJnlLine."Additional-Currency Posting"::None) and
            (TotalAmount = 0) and (TotalAddCurrAmount <> 0) and
            CheckNonAddCurrCodeOccurred(GenJnlLine."Source Currency Code")
@@ -8424,7 +8430,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeGetCurrencyExchRate(GenJnlLine, AddCurrencyCode, UseCurrFactorOnly, CurrencyDate, CurrencyFactor, IsHandled);
         if IsHandled then
             exit;
-
         if AddCurrencyCode = '' then
             exit;
 
@@ -8490,7 +8495,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
         if VATSettlementMgt.IsLastOperation(GenJnlLine) then
             VATPart := 1;
-
         if GenJnlLine."VAT Settlement Part" <> GenJnlLine."VAT Settlement Part"::" " then
             GenJnlLine."VAT Transaction No." := 0
         else
@@ -8536,7 +8540,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     VendUnrealizedVAT(GenJnlLine,
                       VendLedgEntry2, GenJnlLine.Amount, GenJnlLine."Unrealized VAT Entry No.",
                       VATPart, GenJnlLine."VAT Transaction No.", VATAllocationLine."Line No.");
-
                     if VATAllocationLine."FA No." <> '' then begin
                         VATAllocationPost.PostFAAllocation(GenJnlLine2, VATAllocationLine, DeprAmount, DeprBook);
                         if DeprAmount <> 0 then
@@ -8573,7 +8576,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         CustLedgEntry2.CalcFields(Amount, "Amount (LCY)", "Remaining Amt. (LCY)", "Original Amt. (LCY)");
         CustLedgEntry2."Currency Code" := '';
-
         case GenJnlLine."VAT Settlement Part" of
             GenJnlLine."VAT Settlement Part"::" ":
                 ;
@@ -8587,10 +8589,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
         if VATSettlementMgt.IsLastOperation(GenJnlLine) then
             VATPart := 1;
-
         if GenJnlLine."VAT Settlement Part" <> GenJnlLine."VAT Settlement Part"::" " then
             GenJnlLine."VAT Transaction No." := 0;
-
         if GenJnlLine."Prepmt. Diff." then begin
             GenJnlLine.Correction := GenJnlLine.Amount < 0;
             VATPart := 1;
@@ -8728,13 +8728,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if FinVoidedCheck then
             exit;
-
         if not DtldCVLedgEntryBuf.Prepayment then
             exit;
-
         if GenJnlLine."Prepayment Status" = GenJnlLine."Prepayment Status"::Reset then
             exit;
-
         if (DtldCVLedgEntryBuf."Amount (LCY)" <> 0) or (DtldCVLedgEntryBuf."Additional-Currency Amount" <> 0) then begin
             UseAddCurrAmount := DtldCVLedgEntryBuf."Currency Code" <> '';
             if UseAddCurrAmount and
@@ -8772,7 +8769,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if GenJnlLine."Prepayment Status" <> GenJnlLine."Prepayment Status"::" " then
             GLEntry."Bal. Account No." := CustPostingGr.GetPrepaymentAccount(not DtldCVLedgEntryBuf.Prepayment);
         NextEntryNo := NextEntryNo - 1;
-
         if not DtldCVLedgEntryBuf.Prepayment or (GenJnlLine."Prepayment Status" = GenJnlLine."Prepayment Status"::Reset) then
             InsertGLEntry(GenJnlLine, GLEntry, true)
         else begin
@@ -8852,7 +8848,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     GLEntry."Bal. Account No." := VendPostingGr."Payables Account";
                     InsertGLEntry(GenJnlLine, GLEntry, true);
                 end;
-
         if not Unapply then begin
             VendLedgEntry.Get(DtldCVLedgEntryBuf."CV Ledger Entry No.");
             VendLedgEntry."Currency Code" := '';
@@ -8890,7 +8885,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLEntry."Source Type" := GLEntry."Source Type"::Vendor;
         GLEntry."Source No." := DtldCVLedgEntryBuf."CV No.";
         GLEntry."Entry No." := DtldCVLedgEntryBuf."CV Ledger Entry No.";
-        NextEntryNo := NextEntryNo - 1;
+        if not GLSetup.UseConcurrentPosting() then
+            NextEntryNo := NextEntryNo - 1;
         InsertGLEntry(GenJnlLine, GLEntry, true);
 
         InsertVATAgentVATPmtGLEntry(GenJnlLine, DtldCVLedgEntryBuf."Amount (LCY)");
@@ -8908,7 +8904,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if not GLSetup."Enable Russian Accounting" then
             exit;
-
         if (NewCVLedgEntryBuf."Currency Code" = '') and (OldCVLedgEntryBuf."Currency Code" = '') then
             exit;
         if (NewCVLedgEntryBuf."Currency Code" <> OldCVLedgEntryBuf."Currency Code") and
@@ -8927,7 +8922,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             PayEntryBuf := NewCVLedgEntryBuf;
             InvEntryBuf := OldCVLedgEntryBuf;
         end;
-
         if PayEntryBuf."Currency Code" = InvEntryBuf."Currency Code" then begin
             InvAmount := GetRemAmount(InvEntryBuf, ApplnRoundingPrecision);
             PayAmount := GetRemAmount(PayEntryBuf, ApplnRoundingPrecision);
@@ -8949,7 +8943,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 InvEntryBuf."Currency Code" = '':
                     CalcAppliedAmounts(PayEntryBuf, InvEntryBuf, OldAppliedAmount, AppliedAmountLCY, AppliedAmount, ApplnRoundingPrecision, -1);
             end;
-
         if ReplaceEntries then begin
             SaveAmount := OldAppliedAmount;
             OldAppliedAmount := -AppliedAmount;
@@ -9079,10 +9072,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
             repeat
                 VATEntry := TempVATEntry;
                 VATEntry."Entry No." := NextVATEntryNo;
+                VATEntry."G/L Register No." := GLReg."No.";
                 VATEntry.TestField("G/L Register No.");
                 OnInsertVATEntriesFromTempOnBeforeVATEntryInsert(VATEntry, TempVATEntry, GLReg, GLEntry);
                 VATEntry.Insert(true);
-                NextVATEntryNo := NextVATEntryNo + 1;
+                NextVATEntryNo := GetNextVATEntryNoForPosting(NextVATEntryNo);
                 if VATEntry."Unrealized VAT Entry No." = 0 then
                     TempGLEntryVATEntryLink.InsertLinkSelf(GLEntry."Entry No.", VATEntry."Entry No.");
                 LinkedAmount += VATEntry.Amount + VATEntry.Base;
@@ -9169,7 +9163,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SalesSetup.Get();
         if not SalesSetup."Ext. Doc. No. Mandatory" then
             exit;
-
         if GenJnlLine."Document Type" in
            [GenJnlLine."Document Type"::Invoice,
             GenJnlLine."Document Type"::"Credit Memo",
@@ -9227,7 +9220,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeCheckDimValueForDisposal(GenJnlLine, AccountNo, IsHandled);
         if IsHandled then
             exit;
-
         if ((GenJnlLine.Amount = 0) or (GenJnlLine."Amount (LCY)" = 0)) and
            (GenJnlLine."FA Posting Type" = GenJnlLine."FA Posting Type"::Disposal)
         then begin
@@ -9240,7 +9232,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     /// <summary>
     /// Sets the global variable OverrideDimErr for the current instance of the codeunit.
-    /// If OverrideDimErr is not set dimension check is performed before posting gen. journal line 
+    /// If OverrideDimErr is not set dimension check is performed before posting gen. journal line
     /// </summary>
     procedure SetOverDimErr()
     begin
@@ -9267,7 +9259,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeCheckGLAccDimError(GenJnlLine, GLAccNo, IsHandled);
         if IsHandled then
             exit;
-
         if ((GenJnlLine.Amount = 0) and (GenJnlLine."Amount (LCY)" = 0)) and (not IsGainLossAccount(GenJnlLine."Source Currency Code", GLAccNo)) then
             exit;
 
@@ -9277,7 +9268,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnAfterCheckGLAccDimError(GenJnlLine);
             exit;
         end;
-
         if GenJnlLine."Line No." <> 0 then
             Error(
               DimensionUsedErr,
@@ -9303,13 +9293,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if CurrencyCode = '' then
             CurrencyCode := ApplyingCurrencyCode;
-
         if CurrencyCode = '' then
             exit(false);
-
         if not Currency.Get(CurrencyCode) then
             exit(false);
-
         case true of
             Currency."Realized Gains Acc." = GLAccNo,
             Currency."Realized Losses Acc." = GLAccNo,
@@ -9327,7 +9314,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeCheckGLAccDirectPosting(GenJnlLine, GLAcc, IsHandled);
         if IsHandled then
             exit;
-
         if not GenJnlLine."System-Created Entry" then
             if GenJnlLine."Posting Date" = NormalDate(GenJnlLine."Posting Date") then
                 GLAcc.TestField("Direct Posting", true);
@@ -9337,13 +9323,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if (AccountNo <> '') and (BalAccountNo <> '') then
             exit;
-
         if AccountNo = BalAccountNo then
             exit;
-
         if not InclVATAmount then
             VATAmount := 0;
-
         if BalAccountNo <> '' then
             CurrentBalance -= AmountLCY + VATAmount
         else
@@ -9497,10 +9480,41 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     /// <summary>
+    /// Returns next G/L entry no. that should be used when creating next G/L entry with concurrent posting.
+    /// </summary>
+    /// <param name="NextGLEntryNo">Current G/L entry no.</param>
+    /// <returns>Next G/L entry no. to be used for posting</returns>
+    local procedure GetNextGLEntryNoForPosting(NextGLEntryNo: BigInteger): BigInteger
+    var
+        NewNextGLEntryNo: BigInteger;
+    begin
+        PreviousEntryNo := NextGLEntryNo;
+        if GLSetup.UseConcurrentPosting() then
+            NewNextGLEntryNo := GlobalGLEntry.GetNextEntryNo()
+        else
+            NewNextGLEntryNo := NextGLEntryNo + 1;
+
+        exit(NewNextGLEntryNo);
+    end;
+
+    /// <summary>
+    /// Returns next VAT entry no. that should be used when creating next vat entry with concurrent posting.
+    /// </summary>
+    /// <param name="VATEntryNo">Current VAT entry no.</param>
+    /// <returns>Next VAT entry no. to be used for posting</returns>
+    local procedure GetNextVATEntryNoForPosting(VATEntryNo: BigInteger): BigInteger
+    begin
+        if GLSetup.UseConcurrentPosting() then
+            exit(VATEntry.GetNextEntryNo());
+
+        exit(VATEntryNo + 1);
+    end;
+
+    /// <summary>
     /// Increases global variable NextVATEntryNo by 1 (one).
     /// </summary>
     /// <remarks>
-    /// Variable NextVATEntryNo is used as entry no. when creating vat entries
+    /// Variable NextVATEntryNo is used as entry no. when creating VAT entries
     /// </remarks>
     procedure IncrNextVATEntryNo()
     var
@@ -9510,7 +9524,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeIncrNextVATEntryNo(NextVATEntryNo, IsHandled);
         if IsHandled then
             exit;
-        NextVATEntryNo := NextVATEntryNo + 1;
+
+        NextVATEntryNo := GetNextVATEntryNoForPosting(NextVATEntryNo);
     end;
 
     /// <summary>
@@ -9527,7 +9542,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeIncrNextEntryNo(NextEntryNo, IsHandled);
         if IsHandled then
             exit;
-        NextEntryNo := NextEntryNo + 1;
+
+        NextEntryNo := GetNextGLEntryNoForPosting(NextEntryNo);
     end;
 
     local procedure IsNotPayment(DocumentType: Enum "Gen. Journal Document Type") Result: Boolean
@@ -9594,7 +9610,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if SavedEntryNo <> 0 then begin
             ExistingGLEntryNo := SavedEntryNo;
-            NextEntryNo := NextEntryNo - 1;
+            if GLSetup.UseConcurrentPosting() then
+                NextEntryNo := PreviousEntryNo
+            else
+                NextEntryNo := NextEntryNo - 1;
             SavedEntryNo := 0;
         end;
     end;
@@ -9684,7 +9703,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     GLEntryInserted := true;
                 end;
             until TempDimPostingBuffer.Next() = 0;
-
         if not GLEntryInserted and LedgEntryInserted then
             CreateGLEntryForTotalAmounts(GenJnlLine, 0, 0, AdjAmountBuf, SavedEntryNo, GLAccNo);
     end;
@@ -9698,13 +9716,46 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
         GLEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
         UpdateGLEntryNo(GLEntry."Entry No.", SavedEntryNo);
-
         IsHandled := false;
         OnCreateGLEntryForTotalAmountsOnBeforeInsertGLEntry(GenJnlLine, GLEntry, IsHandled, TempGLEntryVATEntryLink);
         if IsHandled then
             exit;
 
         InsertGLEntry(GenJnlLine, GLEntry, true);
+    end;
+
+    /// <summary>
+    /// Posts the extra derogatory depreciation created when acquisition cost is depreciated.
+    /// FAJnlPostLine.PostDerogatoryCounterpart() copies the acquisition cost to the linked derogatory book.
+    /// This extra amount must be calculated because the acquisition line contains cost, not depreciation.
+    /// </summary>
+    /// <param name="SourceGenJournalLine">The acquisition-cost general journal line used to prepare the adjustment.</param>
+    local procedure CreateAndPostDerogEntry(SourceGenJournalLine: Record "Gen. Journal Line")
+    var
+        GenJnlLine: Record "Gen. Journal Line";
+        FAJnlLine: Record "FA Journal Line";
+        DerogFALedgerEntry: Record "FA Ledger Entry";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+        IntegrationGLDerogatory: Boolean;
+    begin
+        if not DerogatoryPostingMgt.PrepareAcquisitionCostAdjustment(
+             GenJnlLine, SourceGenJournalLine, IntegrationGLDerogatory)
+        then
+            exit;
+
+        // Post through the general journal so the adjustment creates G/L entries in the current transaction.
+        if IntegrationGLDerogatory then begin
+            FAJnlPostLine.GenJnlPostLineContinue(
+              GenJnlLine, GenJnlLine.Amount, GenJnlLine."VAT Amount", NextTransactionNo, NextEntryNo, GLReg."No.");
+            DerogFALedgerEntry := FAJnlPostLine.GetLastSourceFALedgerEntry();
+            DerogFALedgerEntry.TestField("Entry No.");
+            DerogFALedgerEntry."Automatic Entry" := true;
+            FAJnlPostLine.InsertBalAcc(DerogFALedgerEntry);
+        end else begin
+            DerogatoryPostingMgt.MakeDerogatoryJournalLine(FAJnlLine, GenJnlLine, Enum::"Derogatory Posting Role"::Source);
+            FAJnlLine.Validate("Depreciation Book Code", SourceGenJournalLine."Depreciation Book Code");
+            FAJnlPostLine.FAJnlPostLine(FAJnlLine, true);
+        end;
     end;
 
     /// <summary>
@@ -9918,7 +9969,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 RemainingAmount := EntryBuf."Remaining Amount"
             else
                 RemainingAmount := EntryBuf."Amount to Apply";
-
             if (Abs(EntryBuf."Remaining Amount" - EntryBuf."Amount to Apply") < ApplnRoundingPrecision) and
                (ApplnRoundingPrecision <> 0)
             then
@@ -9973,7 +10023,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             TotalVAT := Round((VATEntry."Unrealized Amount" + VATEntry."Unrealized Base") * VATPart);
         if TotalVAT <> VATBase + VATAmount then
             VATBase := TotalVAT - VATAmount;
-
         if Remaining then
             TotalVAT := Round((VATEntry."Add.-Curr. Rem. Unreal. Amount" + VATEntry."Add.-Curr. Rem. Unreal. Base") * VATPart,
                 AddCurrency."Amount Rounding Precision")
@@ -10074,13 +10123,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 end;
                 AmountLCY := AmountLCY + CorrDtldCVLedgEntryBuf."Amount (LCY)";
                 CorrDtldCVLedgEntryBuf."Amount (LCY)" := 0;
-
                 if CorrDtldCVLedgEntryBuf."Entry Type" in
                    [CorrDtldCVLedgEntryBuf."Entry Type"::"Unrealized Loss",
                     CorrDtldCVLedgEntryBuf."Entry Type"::"Unrealized Gain"]
                 then
                     DeleteEntry := not RealizedForCustEntryNo.Get(CorrDtldCVLedgEntryBuf."CV Ledger Entry No.");
-
                 if DeleteEntry then
                     CorrDtldCVLedgEntryBuf.Delete()
                 else
@@ -10095,7 +10142,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     DtldCVLedgEntryBuf2.Insert();
                 end;
             until Completed;
-
             if DtldCVLedgEntryBuf2.FindSet() then
                 repeat
                     CorrDtldCVLedgEntryBuf.Get(DtldCVLedgEntryBuf2."Entry No.");
@@ -10220,7 +10266,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if VATSettlementMgt.VATIsPostponed(UnrealizedVATEntry, 0, GenJnlLine."Posting Date") then
             exit;
-
         case GenJnlLine."Source Type" of
             GenJnlLine."Source Type"::Vendor:
                 begin
@@ -10361,7 +10406,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         VATAgentVATPmtAmount := 0;
         if VATAgentVATPayment then begin
-            NextEntryNo := NextEntryNo - 1;
+            if not GLSetup.UseConcurrentPosting() then
+                NextEntryNo := NextEntryNo - 1;
             LCYCurrency.InitRoundingPrecision();
             if GenJnlLine."Currency Code" <> '' then
                 FCYCurrency.Get(GenJnlLine."Currency Code")
@@ -10401,7 +10447,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     [Scope('OnPrem')]
     procedure InitVATAgentDtldVendLedgEntry(GenJnlLine: Record "Gen. Journal Line"; var VendLedgEntry: Record "Vendor Ledger Entry"; var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry")
     var
-        DtldVendLedgEntryNo: Integer;
+        DtldVendLedgEntryNo: BigInteger;
     begin
         DtldVendLedgEntry.Reset();
         if DtldVendLedgEntry.FindLast() then
@@ -10479,7 +10525,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if GenJnlLine."Prepayment Status" <> GenJnlLine."Prepayment Status"::" " then
             exit;
-
         if NewCVLedgEntryBuf.Prepayment xor OldVendLedgEntry.Prepayment then
             if NewCVLedgEntryBuf.Prepayment then
                 CheckVendApplDates(NewCVLedgEntryBuf."Posting Date", OldVendLedgEntry."Posting Date", NewCVLedgEntryBuf."Entry No.")
@@ -10491,7 +10536,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if GenJnlLine."Prepayment Status" <> GenJnlLine."Prepayment Status"::" " then
             exit;
-
         if NewCVLedgEntryBuf.Prepayment xor OldCustLedgEntry.Prepayment then
             if NewCVLedgEntryBuf.Prepayment then
                 CheckCustApplDates(NewCVLedgEntryBuf."Posting Date", OldCustLedgEntry."Posting Date", NewCVLedgEntryBuf."Entry No.")
@@ -10599,7 +10643,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforePostDeferral(GenJournalLine, AccountNo, IsHandled);
         if IsHandled then
             exit;
-
         if GenJournalLine."Source Type" in [GenJournalLine."Source Type"::Vendor, GenJournalLine."Source Type"::Customer] then
             // Purchasing and Sales, respectively
             // We can create these types directly from the GL window, need to make sure we don't already have a deferral schedule
@@ -10608,7 +10651,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 PostDeferralPostBuffer(GenJournalLine);
                 exit;
             end;
-
         if DeferralHeader.Get(DeferralDocType::"G/L", GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", 0, '', GenJournalLine."Line No.") then begin
             EmptyDeferralLine := false;
             // Get the range of detail records for this schedule
@@ -10657,7 +10699,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLEntry."Source Code" := DeferralSourceCode;
         OnPostDeferralOnBeforeInsertGLEntryForDeferralAccount(GenJournalLine, DeferralLine, GLEntry);
         InsertGLEntry(GenJournalLine, GLEntry, true);
-
         if VATPostingSetup.Get(GenJournalLine."VAT Bus. Posting Group", GenJournalLine."VAT Prod. Posting Group") then
             NonDeductibleVATPct := NonDeductibleVAT.GetNonDeductibleVATPct(GenJournalLine."VAT Bus. Posting Group", GenJournalLine."VAT Prod. Posting Group", DeferralDocType);
         OnPostDeferralOnAfterGetNonDeductibleVATPct(GenJournalLine, DeferralDocType, NonDeductibleVATPct);
@@ -10732,7 +10773,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeCheckDeferralPostDate(PostingDate, IsHandled);
         if IsHandled then
             exit;
-
         if DeferralUtilities.IsDateNotAllowed(PostingDate) then
             Error(InvalidPostingDateErr, PostingDate);
     end;
@@ -10794,7 +10834,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         OnPostDeferralPostBufferOnBeforeInsertGLEntryForGLAccount(GenJournalLine, DeferralPostingBuffer, GLEntry);
                         InsertGLEntry(GenJournalLine, GLEntry, true);
                     end;
-
                     if DeferralPostingBuffer.Amount <> 0 then begin
                         InitGLEntry(
                             GenJournalLine, GLEntry, DeferralPostingBuffer."Deferral Account",
@@ -10865,10 +10904,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnBeforeInsertDeferralNonDeductibleVATGLEntries2(NonDeductibleVATPct, DeferralPostingBuffer, VATPostingSetup, GenJournalLine, DeferralTemplate, PositiveVATAmountRounding, NegativeVATAmountRounding, PositiveNDVATAmountRounding, NegativeNDVATAmountRounding, IsHandled);
         if IsHandled then
             exit;
-
         if NonDeductibleVATPct = 0 then
             exit;
-
         if DeferralTemplate."Deferral Account" <> DeferralPostingBuffer."Deferral Account" then begin
             DeferralGLAccountNo := DeferralPostingBuffer."G/L Account";
             PostingGLAccountNo := DeferralPostingBuffer."Deferral Account";
@@ -10892,7 +10929,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             VATAmount,
             NonDeductibleVATPct,
             GLSetup."Amount Rounding Precision", DeferralVATAmountRounding);
-
         if Sign = 1 then begin
             PositiveVATAmountRounding := VATAmountRounding;
             PositiveNDVATAmountRounding := DeferralVATAmountRounding;
@@ -10959,7 +10995,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeDeferralPosting(DeferralCode, SourceCode, AccountNo, GenJournalLine, Balancing, IsHandled);
         if IsHandled then
             exit;
-
         if DeferralCode <> '' then begin
             // Sales and purchasing could have negative amounts, so check for them first...
             if (not JournalsSourceCodesList.Contains(SourceCode)) and
@@ -11072,7 +11107,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     end;
             end;
         end;
-
         case VATEntry.Type of
             VATEntry.Type::Sale:
                 exit(VATPostingSetup.GetSalesAccount(UnrealizedVAT));
@@ -11173,7 +11207,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if GenJnlLine."System-Created Entry" then
             exit(GenJnlLine."Source Currency Amount");
-
         if GenJnlLine."Source Currency Code" <> '' then begin
             if GenJnlLine."Source Curr. VAT Base Amount" <> 0 then
                 exit(GenJnlLine."Source Curr. VAT Base Amount")
@@ -11275,7 +11308,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if CurrencyCode <> '' then
             exit(false);
-
         if not IsCustApplnBetweenCurrencies() then
             exit(false);
 
@@ -11291,6 +11323,15 @@ codeunit 12 "Gen. Jnl.-Post Line"
         exit(SalesReceivablesSetup."Appln. between Currencies" = SalesReceivablesSetup."Appln. between Currencies"::All);
     end;
 
+    local procedure GetPaymentDiscountVATExclNonDedVATAccountNo(VATEntry2: Record "VAT Entry"; NonDedVATAmount: Decimal): Code[20]
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        GeneralPostingSetup.SetLoadFields("Purch. Pmt. Disc. Debit Acc.", "Purch. Pmt. Disc. Credit Acc.");
+        GeneralPostingSetup.Get(VATEntry2."Gen. Bus. Posting Group", VATEntry2."Gen. Prod. Posting Group");
+        exit(GeneralPostingSetup.GetPurchPmtDiscountAccount(NonDedVATAmount > 0));
+    end;
+
     [IntegrationEvent(true, false)]
     local procedure OnBeforeRunWithCheck(var GenJournalLine: Record "Gen. Journal Line"; var GenJournalLine2: Record "Gen. Journal Line"; var GLEntryNo: Integer; var IsHandled: Boolean);
     begin
@@ -11302,7 +11343,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeCode(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean; var IsPosted: Boolean; var GLReg: Record "G/L Register"; var GLEntryNo: Integer)
+    local procedure OnBeforeCode(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean; var IsPosted: Boolean; var GLReg: Record "G/L Register"; var GLEntryNo: BigInteger)
     begin
     end;
 
@@ -11352,12 +11393,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeStartOrContinuePosting(var GenJnlLine: Record "Gen. Journal Line"; LastDocType: Option " ",Payment,Invoice,"Credit Memo","Finance Charge Memo",Reminder; LastDocNo: Code[20]; LastDate: Date; var NextEntryNo: Integer)
+    local procedure OnBeforeStartOrContinuePosting(var GenJnlLine: Record "Gen. Journal Line"; LastDocType: Option " ",Payment,Invoice,"Credit Memo","Finance Charge Memo",Reminder; LastDocNo: Code[20]; LastDate: Date; var NextEntryNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCodeOnAfterStartOrContinuePosting(var GenJournalLine: Record "Gen. Journal Line"; LastDocType: Enum "Gen. Journal Document Type"; LastDocNo: Code[20]; LastDate: Date; var NextEntryNo: Integer)
+    local procedure OnCodeOnAfterStartOrContinuePosting(var GenJournalLine: Record "Gen. Journal Line"; LastDocType: Enum "Gen. Journal Document Type"; LastDocNo: Code[20]; LastDate: Date; var NextEntryNo: BigInteger)
     begin
     end;
 
@@ -11372,7 +11413,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeContinuePosting(var GenJournalLine: Record "Gen. Journal Line"; var GLRegister: Record "G/L Register"; var NextEntryNo: Integer; var NextTransactionNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeContinuePosting(var GenJournalLine: Record "Gen. Journal Line"; var GLRegister: Record "G/L Register"; var NextEntryNo: BigInteger; var NextTransactionNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -11426,8 +11467,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
-
-
     [IntegrationEvent(false, false)]
     local procedure OnInsertVATOnAfterCalcVATDifferenceLCY(GenJournalLine: Record "Gen. Journal Line"; VATEntry: Record "VAT Entry"; var VATDifferenceLCY: Decimal; var CurrExchRate: Record "Currency Exchange Rate")
     begin
@@ -11460,7 +11499,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInitGLRegister(var GLRegister: Record "G/L Register"; var GenJournalLine: Record "Gen. Journal Line"; NextTaxEntryNo: Integer; var NextEntryNo: Integer; var NextVATEntryNo: Integer; var NextTransactionNo: Integer)
+    local procedure OnAfterInitGLRegister(var GLRegister: Record "G/L Register"; var GenJournalLine: Record "Gen. Journal Line"; NextTaxEntryNo: Integer; var NextEntryNo: BigInteger; var NextVATEntryNo: Integer; var NextTransactionNo: BigInteger)
     begin
     end;
 
@@ -11490,12 +11529,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertDtldCustLedgEntry(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; GenJournalLine: Record "Gen. Journal Line"; DtldCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; Offset: Integer)
+    local procedure OnAfterInsertDtldCustLedgEntry(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; GenJournalLine: Record "Gen. Journal Line"; DtldCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; Offset: BigInteger)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertDtldVendLedgEntry(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; GenJournalLine: Record "Gen. Journal Line"; DtldCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; Offset: Integer)
+    local procedure OnAfterInsertDtldVendLedgEntry(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; GenJournalLine: Record "Gen. Journal Line"; DtldCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; Offset: BigInteger)
     begin
     end;
 
@@ -11505,7 +11544,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterInsertGlobalGLEntry(var GLEntry: Record "G/L Entry"; var TempGLEntryBuf: Record "G/L Entry"; var NextEntryNo: Integer; GenJnlLine: Record "Gen. Journal Line")
+    local procedure OnAfterInsertGlobalGLEntry(var GLEntry: Record "G/L Entry"; var TempGLEntryBuf: Record "G/L Entry"; var NextEntryNo: BigInteger; GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 
@@ -11520,12 +11559,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterInsertVAT(var GenJournalLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; var UnrealizedVAT: Boolean; var AddCurrencyCode: Code[10]; var VATPostingSetup: Record "VAT Posting Setup"; var GLEntryAmount: Decimal; var GLEntryVATAmount: Decimal; var GLEntryBaseAmount: Decimal; var SrcCurrCode: Code[10]; var SrcCurrGLEntryAmt: Decimal; var SrcCurrGLEntryVATAmt: Decimal; var SrcCurrGLEntryBaseAmt: Decimal; AddCurrGLEntryVATAmt: Decimal; var NextConnectionNo: Integer; var NextVATEntryNo: Integer; var NextTransactionNo: Integer; TempGLEntryBufEntryNo: Integer)
+    local procedure OnAfterInsertVAT(var GenJournalLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; var UnrealizedVAT: Boolean; var AddCurrencyCode: Code[10]; var VATPostingSetup: Record "VAT Posting Setup"; var GLEntryAmount: Decimal; var GLEntryVATAmount: Decimal; var GLEntryBaseAmount: Decimal; var SrcCurrCode: Code[10]; var SrcCurrGLEntryAmt: Decimal; var SrcCurrGLEntryVATAmt: Decimal; var SrcCurrGLEntryBaseAmt: Decimal; AddCurrGLEntryVATAmt: Decimal; var NextConnectionNo: Integer; var NextVATEntryNo: BigInteger; var NextTransactionNo: BigInteger; TempGLEntryBufEntryNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterInsertVATEntry(GenJnlLine: Record "Gen. Journal Line"; VATEntry: Record "VAT Entry"; GLEntryNo: Integer; var NextEntryNo: Integer; var TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary)
+    local procedure OnAfterInsertVATEntry(GenJnlLine: Record "Gen. Journal Line"; VATEntry: Record "VAT Entry"; GLEntryNo: BigInteger; var NextEntryNo: BigInteger; var TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary)
     begin
     end;
 
@@ -11535,7 +11574,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterPostBankAcc(var GenJnlLine: Record "Gen. Journal Line"; Balancing: Boolean; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextEntryNo: Integer; var NextTransactionNo: Integer)
+    local procedure OnAfterPostBankAcc(var GenJnlLine: Record "Gen. Journal Line"; Balancing: Boolean; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextEntryNo: BigInteger; var NextTransactionNo: BigInteger)
     begin
     end;
 
@@ -11560,12 +11599,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnApplyCustLedgEntryOnBeforeCustUnrealizedVAT(CustLedgerEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean)
+    local procedure OnApplyCustLedgEntryOnBeforeCustUnrealizedVAT(CustLedgerEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean; GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnApplyCustLedgEntryOnBeforeUnrealizedVAT(CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; var IsHandled: Boolean)
+    local procedure OnApplyCustLedgEntryOnBeforeUnrealizedVAT(CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; var IsHandled: Boolean; GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
@@ -11575,7 +11614,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterOldVendLedgEntryModify(var VendLedgEntry: Record "Vendor Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary; var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; AppliedAmount: Decimal; var NextTaxEntryNo: Integer; var NextEntryNo: Integer; var NextCheckEntryNo: Integer; NextTransactionNo: Integer)
+    local procedure OnAfterOldVendLedgEntryModify(var VendLedgEntry: Record "Vendor Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary; var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; AppliedAmount: Decimal; var NextTaxEntryNo: Integer; var NextEntryNo: BigInteger; var NextCheckEntryNo: BigInteger; NextTransactionNo: BigInteger)
     begin
     end;
 
@@ -11585,7 +11624,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeCustLedgEntryInsert(var CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; GLRegister: Record "G/L Register"; var TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextEntryNo: Integer)
+    local procedure OnBeforeCustLedgEntryInsert(var CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; GLRegister: Record "G/L Register"; var TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextEntryNo: BigInteger)
     begin
     end;
 
@@ -11635,7 +11674,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertGLEntryBuffer(var TempGLEntryBuf: Record "G/L Entry" temporary; var GenJournalLine: Record "Gen. Journal Line"; var BalanceCheckAmount: Decimal; var BalanceCheckAmount2: Decimal; var BalanceCheckAddCurrAmount: Decimal; var BalanceCheckAddCurrAmount2: Decimal; var NextEntryNo: Integer; var TotalAmount: Decimal; var TotalAddCurrAmount: Decimal; var GLEntry: Record "G/L Entry")
+    local procedure OnBeforeInsertGLEntryBuffer(var TempGLEntryBuf: Record "G/L Entry" temporary; var GenJournalLine: Record "Gen. Journal Line"; var BalanceCheckAmount: Decimal; var BalanceCheckAmount2: Decimal; var BalanceCheckAddCurrAmount: Decimal; var BalanceCheckAddCurrAmount2: Decimal; var NextEntryNo: BigInteger; var TotalAmount: Decimal; var TotalAddCurrAmount: Decimal; var GLEntry: Record "G/L Entry")
     begin
     end;
 
@@ -11680,7 +11719,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeInitGLEntry(var GenJournalLine: Record "Gen. Journal Line"; var GLAccNo: Code[20]; SystemCreatedEntry: Boolean; Amount: Decimal; AmountAddCurr: Decimal; FADimAlreadyChecked: Boolean; var IsHandled: Boolean; var GLEntry: Record "G/L Entry"; UseAmountAddCurr: Boolean; NextEntryNo: Integer; NextTransactionNo: Integer)
+    local procedure OnBeforeInitGLEntry(var GenJournalLine: Record "Gen. Journal Line"; var GLAccNo: Code[20]; SystemCreatedEntry: Boolean; Amount: Decimal; AmountAddCurr: Decimal; FADimAlreadyChecked: Boolean; var IsHandled: Boolean; var GLEntry: Record "G/L Entry"; UseAmountAddCurr: Boolean; NextEntryNo: BigInteger; NextTransactionNo: BigInteger)
     begin
     end;
 
@@ -11725,7 +11764,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterGLFinishPosting(GLEntry: Record "G/L Entry"; var GenJnlLine: Record "Gen. Journal Line"; var IsTransactionConsistent: Boolean; FirstTransactionNo: Integer; var GLRegister: Record "G/L Register"; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextEntryNo: Integer; var NextTransactionNo: Integer; var NextVATEntryNo: Integer)
+    local procedure OnAfterGLFinishPosting(GLEntry: Record "G/L Entry"; var GenJnlLine: Record "Gen. Journal Line"; var IsTransactionConsistent: Boolean; FirstTransactionNo: Integer; var GLRegister: Record "G/L Register"; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextEntryNo: BigInteger; var NextTransactionNo: BigInteger; var NextVATEntryNo: Integer)
     begin
     end;
 
@@ -11735,7 +11774,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterPostGLAcc(var GenJnlLine: Record "Gen. Journal Line"; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextEntryNo: Integer; var NextTransactionNo: Integer; Balancing: Boolean; var GLEntry: Record "G/L Entry"; VATPostingSetup: Record "VAT Posting Setup"; var TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary)
+    local procedure OnAfterPostGLAcc(var GenJnlLine: Record "Gen. Journal Line"; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextEntryNo: BigInteger; var NextTransactionNo: BigInteger; Balancing: Boolean; var GLEntry: Record "G/L Entry"; VATPostingSetup: Record "VAT Posting Setup"; var TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary)
     begin
     end;
 
@@ -11750,7 +11789,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCalcPmtToleranceOnAfterAssignPmtDisc(var PmtTol: Decimal; var PmtTolLCY: Decimal; var PmtTolAmtToBeApplied: Decimal; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextTransactionNo: Integer; var FirstNewVATEntryNo: Integer)
+    local procedure OnCalcPmtToleranceOnAfterAssignPmtDisc(var PmtTol: Decimal; var PmtTolLCY: Decimal; var PmtTolAmtToBeApplied: Decimal; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextTransactionNo: BigInteger; var FirstNewVATEntryNo: Integer)
     begin
     end;
 
@@ -11795,7 +11834,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterPostDtldCVLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; var DtldCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; Unapply: Boolean; AccNo: Code[20]; AdjAmount: array[4] of Decimal; var NextEntryNo: Integer; AddCurrencyCode: Code[10]; MultiplePostingGroups: Boolean)
+    local procedure OnAfterPostDtldCVLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; var DtldCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; Unapply: Boolean; AccNo: Code[20]; AdjAmount: array[4] of Decimal; var NextEntryNo: BigInteger; AddCurrencyCode: Code[10]; MultiplePostingGroups: Boolean)
     begin
     end;
 
@@ -11820,12 +11859,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterPostCust(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextEntryNo: Integer; var NextTransactionNo: Integer)
+    local procedure OnAfterPostCust(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextEntryNo: BigInteger; var NextTransactionNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterPostVend(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextEntryNo: Integer; var NextTransactionNo: Integer)
+    local procedure OnAfterPostVend(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextEntryNo: BigInteger; var NextTransactionNo: BigInteger)
     begin
     end;
 
@@ -11855,7 +11894,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalcPmtDisc(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var GenJnlLine: Record "Gen. Journal Line"; var PmtTolAmtToBeApplied: Decimal; var IsHandled: Boolean; ApplnRoundingPrecision: Decimal; NextTransactionNo: Integer; FirstNewVATEntryNo: Integer; AddCurrencyCode: Code[10])
+    local procedure OnBeforeCalcPmtDisc(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var GenJnlLine: Record "Gen. Journal Line"; var PmtTolAmtToBeApplied: Decimal; var IsHandled: Boolean; ApplnRoundingPrecision: Decimal; NextTransactionNo: BigInteger; FirstNewVATEntryNo: Integer; AddCurrencyCode: Code[10])
     begin
     end;
 
@@ -12085,7 +12124,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInitGLEntryVATCopy(var GenJnlLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; var VATEntry: Record "VAT Entry"; var NextEntryNo: Integer)
+    local procedure OnBeforeInitGLEntryVATCopy(var GenJnlLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; var VATEntry: Record "VAT Entry"; var NextEntryNo: BigInteger)
     begin
     end;
 
@@ -12105,7 +12144,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; GLEntryNo: Integer; var NextEntryNo: Integer; var NextVATEntryNo: Integer)
+    local procedure OnAfterPostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; GLEntryNo: Integer; var NextEntryNo: BigInteger; var NextVATEntryNo: Integer)
     begin
     end;
 
@@ -12180,7 +12219,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnApplyCustLedgEntryOnBeforePrepareTempCustLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; var NewCVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; var NextEntryNo: Integer)
+    local procedure OnApplyCustLedgEntryOnBeforePrepareTempCustLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; var NewCVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; var NextEntryNo: BigInteger)
     begin
     end;
 
@@ -12219,13 +12258,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnApplyVendLedgEntryOnBeforeVendUnrealizedVAT(VendLedgerEntry: Record "Vendor Ledger Entry"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnApplyEmplLedgEntryOnBeforeOldEmplLedgEntryModify(GenJnlLine: Record "Gen. Journal Line"; var OldEmplLedgEntry: Record "Employee Ledger Entry"; var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; AppliedAmount: Decimal)
@@ -12328,7 +12360,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnCodeOnAfterRunExhangeAccGLJournalLine(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean; var NextEntryNo: Integer; var JobLine: Boolean)
+    local procedure OnCodeOnAfterRunExhangeAccGLJournalLine(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean; var NextEntryNo: BigInteger; var JobLine: Boolean)
     begin
     end;
 
@@ -12338,7 +12370,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnContinuePostingOnBeforeCalculateCurrentBalance(var GenJournalLine: Record "Gen. Journal Line"; var NextTransactionNo: Integer)
+    local procedure OnContinuePostingOnBeforeCalculateCurrentBalance(var GenJournalLine: Record "Gen. Journal Line"; var NextTransactionNo: BigInteger)
     begin
     end;
 
@@ -12363,12 +12395,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnFinishPostingOnBeforeResetFirstEntryNo(var GLEntry: Record "G/L Entry"; NextEntryNo: Integer; FirstEntryNo: Integer; GenJournalLine: Record "Gen. Journal Line")
+    local procedure OnFinishPostingOnBeforeResetFirstEntryNo(var GLEntry: Record "G/L Entry"; NextEntryNo: BigInteger; FirstEntryNo: Integer; GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnHandleAddCurrResidualGLEntryOnBeforeInsertGLEntry(GenJournalLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; var TempGLEntryBuf: Record "G/L Entry"; NextEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnHandleAddCurrResidualGLEntryOnBeforeInsertGLEntry(GenJournalLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; var TempGLEntryBuf: Record "G/L Entry"; NextEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -12438,7 +12470,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnPostApplyOnAfterRecalculateAmounts(var OldCVLedgerEntryBuffer2: Record "CV Ledger Entry Buffer"; var OldCVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; var NewCVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; GenJournalLine: Record "Gen. Journal Line"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; AddCurrencyCode: Code[10]; NextTransactionNo: Integer; var NextVATEntryNo: Integer)
+    local procedure OnPostApplyOnAfterRecalculateAmounts(var OldCVLedgerEntryBuffer2: Record "CV Ledger Entry Buffer"; var OldCVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; var NewCVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; GenJournalLine: Record "Gen. Journal Line"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; AddCurrencyCode: Code[10]; NextTransactionNo: BigInteger; var NextVATEntryNo: Integer)
     begin
     end;
 
@@ -12448,7 +12480,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostBankAccOnBeforeBankAccLedgEntryInsert(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; BankAccount: Record "Bank Account"; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextTransactionNo: Integer; GLRegister: Record "G/L Register"; Balancing: Boolean)
+    local procedure OnPostBankAccOnBeforeBankAccLedgEntryInsert(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; BankAccount: Record "Bank Account"; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextTransactionNo: BigInteger; GLRegister: Record "G/L Register"; Balancing: Boolean)
     begin
     end;
 
@@ -12468,7 +12500,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostBankAccOnBeforeInitBankAccLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; CurrencyFactor: Decimal; var NextEntryNo: Integer; var NextTransactionNo: Integer; var BankAccPostingGr: Record "Bank Account Posting Group"; var TaxAmount: Decimal; var TaxAmountLCY: Decimal)
+    local procedure OnPostBankAccOnBeforeInitBankAccLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; CurrencyFactor: Decimal; var NextEntryNo: BigInteger; var NextTransactionNo: BigInteger; var BankAccPostingGr: Record "Bank Account Posting Group"; var TaxAmount: Decimal; var TaxAmountLCY: Decimal)
     begin
     end;
 
@@ -12568,7 +12600,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDtldCustLedgEntriesOnAfterCreateGLEntriesForTotalAmounts(var TempGLEntryBuf: Record "G/L Entry" temporary; var GlobalGLEntry: Record "G/L Entry"; NextTransactionNo: Integer)
+    local procedure OnPostDtldCustLedgEntriesOnAfterCreateGLEntriesForTotalAmounts(var TempGLEntryBuf: Record "G/L Entry" temporary; var GlobalGLEntry: Record "G/L Entry"; NextTransactionNo: BigInteger)
     begin
     end;
 
@@ -12588,12 +12620,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDtldVendLedgEntriesOnAfterCreateGLEntriesForTotalAmounts(var TempGLEntryBuf: Record "G/L Entry" temporary; var GlobalGLEntry: Record "G/L Entry"; NextTransactionNo: Integer)
+    local procedure OnPostDtldVendLedgEntriesOnAfterCreateGLEntriesForTotalAmounts(var TempGLEntryBuf: Record "G/L Entry" temporary; var GlobalGLEntry: Record "G/L Entry"; NextTransactionNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnPostDtldEmplLedgEntriesOnAfterCreateGLEntriesForTotalAmounts(var TempGLEntryBuf: Record "G/L Entry" temporary; var GlobalGLEntry: Record "G/L Entry"; NextTransactionNo: Integer)
+    local procedure OnPostDtldEmplLedgEntriesOnAfterCreateGLEntriesForTotalAmounts(var TempGLEntryBuf: Record "G/L Entry" temporary; var GlobalGLEntry: Record "G/L Entry"; NextTransactionNo: BigInteger)
     begin
     end;
 
@@ -12658,7 +12690,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostFixedAssetOnBeforeGenJnlPostLine(GenJournalLine: Record "Gen. Journal Line"; GLEntry2: Record "G/L Entry"; NextTransactionNo: Integer; NextGLEntryNo: Integer; GLReg: Record "G/L Register"; var IsHandled: Boolean)
+    local procedure OnPostFixedAssetOnBeforeGenJnlPostLine(GenJournalLine: Record "Gen. Journal Line"; GLEntry2: Record "G/L Entry"; NextTransactionNo: BigInteger; NextGLEntryNo: Integer; GLReg: Record "G/L Register"; var IsHandled: Boolean)
     begin
     end;
 
@@ -12703,7 +12735,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDeferralPostBufferOnAfterSetFilters(var DeferralPostBuffer: Record "Deferral Posting Buffer"; GenJournalLine: Record "Gen. Journal Line"; GLRegisterNo: Integer; NextTransactionNo: Integer)
+    local procedure OnPostDeferralPostBufferOnAfterSetFilters(var DeferralPostBuffer: Record "Deferral Posting Buffer"; GenJournalLine: Record "Gen. Journal Line"; GLRegisterNo: Integer; NextTransactionNo: BigInteger)
     begin
     end;
 
@@ -12738,7 +12770,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPrepareTempCustLedgEntryOnAfterSetFilters(var OldCustLedgerEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; var NextEntryNo: Integer)
+    local procedure OnPrepareTempCustLedgEntryOnAfterSetFilters(var OldCustLedgerEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; var NextEntryNo: BigInteger)
     begin
     end;
 
@@ -12828,7 +12860,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnUnapplyVendLedgEntryOnAfterCreateGLEntriesForTotalAmounts(var GenJournalLine: Record "Gen. Journal Line"; DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; GLReg: Record "G/L Register"; GenJournalLineToPost: Record "Gen. Journal Line"; var NextTaxEntryNo: Integer; var NextEntryNo: Integer; var NextCheckEntryNo: Integer; NextTransactionNo: Integer)
+    local procedure OnUnapplyVendLedgEntryOnAfterCreateGLEntriesForTotalAmounts(var GenJournalLine: Record "Gen. Journal Line"; DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; GLReg: Record "G/L Register"; GenJournalLineToPost: Record "Gen. Journal Line"; var NextTaxEntryNo: Integer; var NextEntryNo: BigInteger; var NextCheckEntryNo: BigInteger; NextTransactionNo: BigInteger)
     begin
     end;
 
@@ -12869,6 +12901,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnCustUnrealizedVATOnAfterCalcPaidAmount(GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; var PaidAmount: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnVendUnrealizedVATOnAfterCalcPaidAmount(GenJnlLine: Record "Gen. Journal Line"; var VendLedgEntry2: Record "Vendor Ledger Entry"; SettledAmount: Decimal; var PaidAmount: Decimal)
     begin
     end;
 
@@ -12938,17 +12975,17 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateCustLedgEntry(DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var TempGLEntryBuf: Record "G/L Entry" temporary; var GlobalGLEntry: Record "G/L Entry"; NextTransactionNo: Integer)
+    local procedure OnAfterUpdateCustLedgEntry(DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var TempGLEntryBuf: Record "G/L Entry" temporary; var GlobalGLEntry: Record "G/L Entry"; NextTransactionNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateVendLedgEntry(DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; var TempGLEntryBuf: Record "G/L Entry" temporary; var GlobalGLEntry: Record "G/L Entry"; NextTransactionNo: Integer)
+    local procedure OnAfterUpdateVendLedgEntry(DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; var TempGLEntryBuf: Record "G/L Entry" temporary; var GlobalGLEntry: Record "G/L Entry"; NextTransactionNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnApplyCustLedgEntryOnBeforeTempOldCustLedgEntryDelete(var TempOldCustLedgEntry: Record "Cust. Ledger Entry" temporary; var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var GenJnlLine: Record "Gen. Journal Line"; var Cust: Record Customer; NextEntryNo: Integer; GLReg: Record "G/L Register"; AppliedAmount: Decimal; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer")
+    local procedure OnApplyCustLedgEntryOnBeforeTempOldCustLedgEntryDelete(var TempOldCustLedgEntry: Record "Cust. Ledger Entry" temporary; var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var GenJnlLine: Record "Gen. Journal Line"; var Cust: Record Customer; NextEntryNo: BigInteger; GLReg: Record "G/L Register"; AppliedAmount: Decimal; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer")
     begin
     end;
 
@@ -13103,12 +13140,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnInsertSummarizedVATOnAfterInsertGLEntry(var GenJnlLine: Record "Gen. Journal Line"; var TempGLEntryVAT: Record "G/L Entry" temporary; NextEntryNo: Integer)
+    local procedure OnInsertSummarizedVATOnAfterInsertGLEntry(var GenJnlLine: Record "Gen. Journal Line"; var TempGLEntryVAT: Record "G/L Entry" temporary; NextEntryNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnPostBankAccOnBeforeCreateGLEntryBalAcc(var GenJnlLine: Record "Gen. Journal Line"; BankAccPostingGr: Record "Bank Account Posting Group"; BankAccount: Record "Bank Account"; NextEntryNo: Integer; var IsHandled: Boolean; TaxAmount: Decimal; TaxAmountLCY: Decimal)
+    local procedure OnPostBankAccOnBeforeCreateGLEntryBalAcc(var GenJnlLine: Record "Gen. Journal Line"; BankAccPostingGr: Record "Bank Account Posting Group"; BankAccount: Record "Bank Account"; NextEntryNo: BigInteger; var IsHandled: Boolean; TaxAmount: Decimal; TaxAmountLCY: Decimal)
     begin
     end;
 
@@ -13118,7 +13155,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnPostICPartnerOnBeforeCreateGLEntryBalAcc(var GenJnlLine: Record "Gen. Journal Line"; NextEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnPostICPartnerOnBeforeCreateGLEntryBalAcc(var GenJnlLine: Record "Gen. Journal Line"; NextEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -13128,7 +13165,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterCreateGLEntry(var GenJnlLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; NextEntryNo: Integer)
+    local procedure OnAfterCreateGLEntry(var GenJnlLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; NextEntryNo: BigInteger)
     begin
     end;
 
@@ -13158,7 +13195,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnPostDtldCustLedgEntriesOnBeforePostDtldCustLedgEntry(var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; AddCurrencyCode: Code[10]; var GenJnlLine: Record "Gen. Journal Line"; CustPostingGr: Record "Customer Posting Group"; AdjAmount: array[4] of Decimal; var IsHandled: Boolean; var NextEntryNo: Integer; DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; LedgEntryInserted: Boolean)
+    local procedure OnPostDtldCustLedgEntriesOnBeforePostDtldCustLedgEntry(var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; AddCurrencyCode: Code[10]; var GenJnlLine: Record "Gen. Journal Line"; CustPostingGr: Record "Customer Posting Group"; AdjAmount: array[4] of Decimal; var IsHandled: Boolean; var NextEntryNo: BigInteger; DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; LedgEntryInserted: Boolean)
     begin
     end;
 
@@ -13248,7 +13285,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnPostDtldAdjustmentOnBeforeCreateGLEntryBalAcc(var GenJnlLine: Record "Gen. Journal Line"; GLAcc: Code[20]; AdjAmount: array[4] of Decimal; ArrayIndex: Integer; var IsHandled: Boolean; NextEntryNo: Integer)
+    local procedure OnPostDtldAdjustmentOnBeforeCreateGLEntryBalAcc(var GenJnlLine: Record "Gen. Journal Line"; GLAcc: Code[20]; AdjAmount: array[4] of Decimal; ArrayIndex: Integer; var IsHandled: Boolean; NextEntryNo: BigInteger)
     begin
     end;
 
@@ -13258,12 +13295,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnPostVendOnBeforePostDtldVendLedgEntries(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; var TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextEntryNo: Integer)
+    local procedure OnPostVendOnBeforePostDtldVendLedgEntries(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; var TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextEntryNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnContinuePostingOnIncreaseNextTransactionNo(var GenJnlLine: Record "Gen. Journal Line"; var NextTransactionNo: Integer; var IsHandled: Boolean)
+    local procedure OnContinuePostingOnIncreaseNextTransactionNo(var GenJnlLine: Record "Gen. Journal Line"; var NextTransactionNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -13418,12 +13455,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInitGLEntryVATOnVendUnrealizedVAT(var VATEntry: Record "VAT Entry"; var GenJournalLine: Record "Gen. Journal Line"; var NextEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeInitGLEntryVATOnVendUnrealizedVAT(var VATEntry: Record "VAT Entry"; var GenJournalLine: Record "Gen. Journal Line"; var NextEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInitGLEntryVATOnVendUnrealizedVATForRevChargeVAT(var VATEntry: Record "VAT Entry"; var GenJournalLine: Record "Gen. Journal Line"; var NextEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeInitGLEntryVATOnVendUnrealizedVATForRevChargeVAT(var VATEntry: Record "VAT Entry"; var GenJournalLine: Record "Gen. Journal Line"; var NextEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -13556,7 +13593,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDtldCustLedgEntriesOnBeforeNextEntryNo(var GenJournalLine: Record "Gen. Journal Line"; var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; CustomerPostingGroup: Record "Customer Posting Group"; LedgEntryInserted: Boolean; var NextEntryNo: Integer; var SavedEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnPostDtldCustLedgEntriesOnBeforeNextEntryNo(var GenJournalLine: Record "Gen. Journal Line"; var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; CustomerPostingGroup: Record "Customer Posting Group"; LedgEntryInserted: Boolean; var NextEntryNo: BigInteger; var SavedEntryNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
@@ -13581,7 +13618,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDtldCustLedgEntriesOnAfterSetDtldCustLedgEntryNoOffset(var GenJournalLine: Record "Gen. Journal Line"; var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; CustomerPostingGroup: Record "Customer Posting Group"; LedgEntryInserted: Boolean; var NextEntryNo: Integer)
+    local procedure OnPostDtldCustLedgEntriesOnAfterSetDtldCustLedgEntryNoOffset(var GenJournalLine: Record "Gen. Journal Line"; var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; CustomerPostingGroup: Record "Customer Posting Group"; LedgEntryInserted: Boolean; var NextEntryNo: BigInteger)
     begin
     end;
 
@@ -13622,6 +13659,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnVendUnrealizedVATOnBeforeGetUnrealizedVATPart(var GenJournalLine: Record "Gen. Journal Line"; var VendorLedgerEntry: Record "Vendor Ledger Entry"; PaidAmount: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal; SettledAmount: Decimal; VATEntry2: Record "VAT Entry"; var VATPart: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCustUnrealizedVATOnBeforeGetUnrealizedVATPart(var GenJournalLine: Record "Gen. Journal Line"; var CustLedgerEntry: Record "Cust. Ledger Entry"; PaidAmount: Decimal; TotalUnrealVATAmountFirst: Decimal; TotalUnrealVATAmountLast: Decimal; SettledAmount: Decimal; VATEntry2: Record "VAT Entry"; var VATPart: Decimal; var IsHandled: Boolean)
     begin
     end;
 
@@ -13671,12 +13713,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInitNextEntryNo(var GLEntry: Record "G/L Entry"; var NextEntryNo: Integer; var NextTransactionNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeInitNextEntryNo(var GLEntry: Record "G/L Entry"; var NextEntryNo: BigInteger; var NextTransactionNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInitNextEntryNo(var GLEntry: Record "G/L Entry"; var NextEntryNo: Integer; var NextTransactionNo: Integer)
+    local procedure OnAfterInitNextEntryNo(var GLEntry: Record "G/L Entry"; var NextEntryNo: BigInteger; var NextTransactionNo: BigInteger)
     begin
     end;
 
@@ -13711,7 +13753,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInitDetailedCVLedgEntryBufCalcPmtTolerance(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; GenJnlLine: Record "Gen. Journal Line"; var PmtTolAmtToBeApplied: Decimal; NextTransactionNo: Integer; FirstNewVATEntryNo: Integer; var PmtTol: Decimal; var PmtTolLCY: Decimal; var PmtTolAddCurr: Decimal)
+    local procedure OnBeforeInitDetailedCVLedgEntryBufCalcPmtTolerance(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; GenJnlLine: Record "Gen. Journal Line"; var PmtTolAmtToBeApplied: Decimal; NextTransactionNo: BigInteger; FirstNewVATEntryNo: Integer; var PmtTol: Decimal; var PmtTolLCY: Decimal; var PmtTolAddCurr: Decimal)
     begin
     end;
 
@@ -13731,7 +13773,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeIncrNextEntryNo(var NextEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeIncrNextEntryNo(var NextEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -13746,7 +13788,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforePostingDeferral(GenJnlLine: Record "Gen. Journal Line"; VendLedgEntry: Record "Vendor Ledger Entry"; TaxAmount: Decimal; TaxAmountLCY: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; var IsHandled: Boolean);
+    local procedure OnBeforePostingDeferral(GenJnlLine: Record "Gen. Journal Line"; VendLedgEntry: Record "Vendor Ledger Entry"; TaxAmount: Decimal; TaxAmountLCY: Decimal; NextTransactionNo: BigInteger; var NextTaxEntryNo: Integer; var IsHandled: Boolean);
     begin
     end;
 
@@ -13756,7 +13798,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCopyFromCVLedgEntryBuffer(var GenJnlLine: Record "Gen. Journal Line"; OldVendLedgEntry: Record "Vendor Ledger Entry"; TempOldVendLedgEntry: Record "Vendor Ledger Entry" temporary; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; AppliedAmount: Decimal; var RemainingTaxAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer)
+    local procedure OnBeforeCopyFromCVLedgEntryBuffer(var GenJnlLine: Record "Gen. Journal Line"; OldVendLedgEntry: Record "Vendor Ledger Entry"; TempOldVendLedgEntry: Record "Vendor Ledger Entry" temporary; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; AppliedAmount: Decimal; var RemainingTaxAmount: Decimal; NextTransactionNo: BigInteger; var NextTaxEntryNo: Integer)
     begin
     end;
 
@@ -13781,7 +13823,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterPostEmployee(GenJnlLine: Record "Gen. Journal Line"; EmployeeLedgerEntry: Record "Employee Ledger Entry"; TaxAmount: Decimal; TaxBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer)
+    local procedure OnAfterPostEmployee(GenJnlLine: Record "Gen. Journal Line"; EmployeeLedgerEntry: Record "Employee Ledger Entry"; TaxAmount: Decimal; TaxBaseAmount: Decimal; NextTransactionNo: BigInteger; var NextTaxEntryNo: Integer)
     begin
     end;
 

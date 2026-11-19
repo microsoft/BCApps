@@ -13,7 +13,7 @@ using Microsoft.Manufacturing.Document;
 
 codeunit 20515 "Subc. ItemJnlPostLine Ext"
 {
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -21,9 +21,9 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
 #endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnAfterInitItemLedgEntry, '', false, false)]
-    local procedure OnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: Integer)
+    local procedure OnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: BigInteger)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -36,7 +36,7 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnBeforeInsertCapLedgEntry, '', false, false)]
     local procedure OnBeforeInsertCapLedgEntry(var CapLedgEntry: Record "Capacity Ledger Entry"; ItemJournalLine: Record "Item Journal Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -46,16 +46,10 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
         UpdateCapLedgerEntry(CapLedgEntry, ItemJournalLine);
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0432
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnAfterPostOutput, '', false, false)]
-#pragma warning restore AL0432
-#else
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Item Jnl.-Post Line", OnAfterPostOutput, '', false, false)]
-#endif
     local procedure OnAfterPostOutput(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -68,7 +62,7 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", OnBeforeInsertCapValueEntry, '', false, false)]
     local procedure "Item Jnl.-Post Line_OnBeforeInsertCapValueEntry"(var ValueEntry: Record "Value Entry"; ItemJnlLine: Record "Item Journal Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -84,6 +78,7 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ProductionOrder: Record "Production Order";
+        QtyReadyToStartMgt: Codeunit "Qty. Ready to Start Mgt.";
     begin
         if not ItemJournalLine.Subcontracting then
             exit;
@@ -103,6 +98,7 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
         if CapacityLedgerEntry."Output Quantity" >= ProdOrderLine."Quantity (Base)" then begin
             ProdOrderRoutingLine."Routing Status" := "Prod. Order Routing Status"::Finished;
             ProdOrderRoutingLine.Modify();
+            QtyReadyToStartMgt.UpdateSuccessorsQtyReadyToStart(ProdOrderRoutingLine);
         end;
     end;
 

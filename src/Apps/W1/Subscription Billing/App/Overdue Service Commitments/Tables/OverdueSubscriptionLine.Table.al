@@ -134,14 +134,32 @@ table 8007 "Overdue Subscription Line"
     var
         ServiceCommitment: Record "Subscription Line";
         OverdueDate: Date;
+        OverdueCount: Integer;
     begin
         OverdueDate := CalcOverdueDate();
         if OverdueDate = 0D then
             exit(0);
 
+        FilterOverdueServiceCommitments(ServiceCommitment, OverdueDate);
+        OverdueCount := ServiceCommitment.Count();
+
+        // A Subscription Line can only have been billed past its Subscription Line End Date if that end date lies
+        // before the overdue date, because the filter above already restricts the next billing date to earlier dates.
+        // Only those lines have to be read one by one; the rest stays in the Count() above.
+        ServiceCommitment.SetFilter("Subscription Line End Date", '<>%1&<%2', 0D, OverdueDate);
+        ServiceCommitment.SetLoadFields("Next Billing Date", "Subscription Line End Date");
+        if ServiceCommitment.FindSet() then
+            repeat
+                if ServiceCommitment.IsBilledUntilEndOfTerm() then
+                    OverdueCount -= 1;
+            until ServiceCommitment.Next() = 0;
+        exit(OverdueCount);
+    end;
+
+    local procedure FilterOverdueServiceCommitments(var ServiceCommitment: Record "Subscription Line"; OverdueDate: Date)
+    begin
         ServiceCommitment.SetFilter("Next Billing Date", '<%1', OverdueDate);
         ServiceCommitment.SetRange(Closed, false);
-        exit(ServiceCommitment.Count());
     end;
 
     local procedure CalcOverdueDate(): Date
@@ -174,44 +192,45 @@ table 8007 "Overdue Subscription Line"
         CustomerContract: Record "Customer Subscription Contract";
         VendorContract: Record "Vendor Subscription Contract";
     begin
-        ServiceCommitment.SetFilter("Next Billing Date", '<%1', OverdueDate);
-        ServiceCommitment.SetRange(Closed, false);
+        FilterOverdueServiceCommitments(ServiceCommitment, OverdueDate);
         ServiceCommitment.SetAutoCalcFields("Subscription Description", "Source Type", "Source No.", Quantity);
         if ServiceCommitment.FindSet() then
             repeat
-                Rec.Init();
-                Rec."Line No." += 1;
-                Rec.Partner := ServiceCommitment.Partner;
-                Rec."Subscription Contract No." := ServiceCommitment."Subscription Contract No.";
-                case Rec.Partner of
-                    Rec.Partner::Customer:
-                        if CustomerContract.Get(Rec."Subscription Contract No.") then begin
-                            Rec."Partner Name" := CustomerContract."Ship-to Name";
-                            Rec."Sub. Contract Description" := CustomerContract."Description Preview";
-                            Rec."Subscription Contract Type" := CustomerContract."Contract Type";
-                        end;
-                    Rec.Partner::Vendor:
-                        if VendorContract.Get(Rec."Subscription Contract No.") then begin
-                            Rec."Partner Name" := VendorContract."Buy-from Vendor Name";
-                            Rec."Sub. Contract Description" := VendorContract."Description Preview";
-                            Rec."Subscription Contract Type" := VendorContract."Contract Type";
-                        end;
+                if not ServiceCommitment.IsBilledUntilEndOfTerm() then begin
+                    Rec.Init();
+                    Rec."Line No." += 1;
+                    Rec.Partner := ServiceCommitment.Partner;
+                    Rec."Subscription Contract No." := ServiceCommitment."Subscription Contract No.";
+                    case Rec.Partner of
+                        Rec.Partner::Customer:
+                            if CustomerContract.Get(Rec."Subscription Contract No.") then begin
+                                Rec."Partner Name" := CustomerContract."Ship-to Name";
+                                Rec."Sub. Contract Description" := CustomerContract."Description Preview";
+                                Rec."Subscription Contract Type" := CustomerContract."Contract Type";
+                            end;
+                        Rec.Partner::Vendor:
+                            if VendorContract.Get(Rec."Subscription Contract No.") then begin
+                                Rec."Partner Name" := VendorContract."Buy-from Vendor Name";
+                                Rec."Sub. Contract Description" := VendorContract."Description Preview";
+                                Rec."Subscription Contract Type" := VendorContract."Contract Type";
+                            end;
+                    end;
+                    Rec."Subscription Line Description" := ServiceCommitment.Description;
+                    Rec."Next Billing Date" := ServiceCommitment."Next Billing Date";
+                    Rec.Quantity := ServiceCommitment.Quantity;
+                    Rec.Price := ServiceCommitment.Price;
+                    Rec.Amount := ServiceCommitment.Amount;
+                    Rec."Source Type" := ServiceCommitment."Source Type";
+                    Rec."Source No." := ServiceCommitment."Source No.";
+                    Rec."Billing Rhythm" := ServiceCommitment."Billing Rhythm";
+                    Rec."Subscription Line Start Date" := ServiceCommitment."Subscription Line Start Date";
+                    Rec."Subscription Line End Date" := ServiceCommitment."Subscription Line End Date";
+                    Rec."Subscription Header No." := ServiceCommitment."Subscription Header No.";
+                    Rec."Subscription Description" := ServiceCommitment."Subscription Description";
+                    Rec."Discount %" := ServiceCommitment."Discount %";
+                    Rec."Currency Code" := ServiceCommitment."Currency Code";
+                    Rec.Insert(false);
                 end;
-                Rec."Subscription Line Description" := ServiceCommitment.Description;
-                Rec."Next Billing Date" := ServiceCommitment."Next Billing Date";
-                Rec.Quantity := ServiceCommitment.Quantity;
-                Rec.Price := ServiceCommitment.Price;
-                Rec.Amount := ServiceCommitment.Amount;
-                Rec."Source Type" := ServiceCommitment."Source Type";
-                Rec."Source No." := ServiceCommitment."Source No.";
-                Rec."Billing Rhythm" := ServiceCommitment."Billing Rhythm";
-                Rec."Subscription Line Start Date" := ServiceCommitment."Subscription Line Start Date";
-                Rec."Subscription Line End Date" := ServiceCommitment."Subscription Line End Date";
-                Rec."Subscription Header No." := ServiceCommitment."Subscription Header No.";
-                Rec."Subscription Description" := ServiceCommitment."Subscription Description";
-                Rec."Discount %" := ServiceCommitment."Discount %";
-                Rec."Currency Code" := ServiceCommitment."Currency Code";
-                Rec.Insert(false);
             until ServiceCommitment.Next() = 0;
     end;
 

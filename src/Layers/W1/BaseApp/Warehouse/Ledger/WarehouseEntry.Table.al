@@ -26,7 +26,7 @@ table 7312 "Warehouse Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -89,7 +89,7 @@ table 7312 "Warehouse Entry"
             Caption = 'Qty. (Base)';
             DecimalPlaces = 0 : 5;
         }
-        field(12; "Warehouse Register No."; Integer)
+        field(12; "Warehouse Register No."; BigInteger)
         {
             Caption = 'Warehouse Register No.';
             Editable = false;
@@ -342,13 +342,6 @@ table 7312 "Warehouse Entry"
         Rec."SIFT Bucket No." := Rec."Warehouse Register No." mod 5;
     end;
 
-#if not CLEAN27
-    [Obsolete('This function is deprecated. Concurrent warehouse posting is always on.', '27.0')]
-    procedure InsertRecord(UseLegacyPosting: Boolean)
-    begin
-        InsertRecord();
-    end;
-#endif
     [InherentPermissions(PermissionObjectType::TableData, Database::"Warehouse Entry", 'r')]
     procedure InsertRecord()
     var
@@ -363,7 +356,7 @@ table 7312 "Warehouse Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Warehouse Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -371,7 +364,7 @@ table 7312 "Warehouse Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Warehouse Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

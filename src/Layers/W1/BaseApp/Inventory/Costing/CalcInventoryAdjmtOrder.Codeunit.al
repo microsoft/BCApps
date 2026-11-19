@@ -229,7 +229,7 @@ codeunit 5896 "Calc. Inventory Adjmt. - Order"
         end;
     end;
 
-    local procedure CalcActualOutputCosts(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemLedgerEntryNo: Integer)
+    local procedure CalcActualOutputCosts(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemLedgerEntryNo: BigInteger)
     var
         OutputValueEntry: Record "Value Entry";
         IsHandled: Boolean;
@@ -327,7 +327,7 @@ codeunit 5896 "Calc. Inventory Adjmt. - Order"
             end;
     end;
 
-    procedure AdjustForRevNegCon(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemLedgEntryNo: Integer)
+    procedure AdjustForRevNegCon(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemLedgEntryNo: BigInteger)
     var
         ValueEntry: Record "Value Entry";
     begin
@@ -444,7 +444,7 @@ codeunit 5896 "Calc. Inventory Adjmt. - Order"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAddCosts(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemLedgerEntryNo: Integer; var isHandled: Boolean)
+    local procedure OnBeforeAddCosts(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemLedgerEntryNo: BigInteger; var isHandled: Boolean)
     begin
     end;
 
@@ -452,19 +452,6 @@ codeunit 5896 "Calc. Inventory Adjmt. - Order"
     local procedure OnBeforeCalcActualMaterialCosts(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnCalcActualCapacityCostsOnAfterSetFilters(var CapLedgEntry: Record Microsoft.Manufacturing.Capacity."Capacity Ledger Entry"; var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var IsHandled: Boolean; ShareOfTotalCapCost: Decimal)
-    begin
-        OnCalcActualCapacityCostsOnAfterSetFilters(CapLedgEntry, InventoryAdjmtEntryOrder, IsHandled, ShareOfTotalCapCost);
-    end;
-
-    [Obsolete('Moved to codeunit MfgInventoryAdjmtOrder', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCalcActualCapacityCostsOnAfterSetFilters(var CapLedgEntry: Record Microsoft.Manufacturing.Capacity."Capacity Ledger Entry"; var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var IsHandled: Boolean; ShareOfTotalCapCost: Decimal)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnCalcActualMaterialCostsOnAfterSetFilters(var ItemLedgEntry: Record "Item Ledger Entry"; var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var CalculateActualMaterialCost: Query "Calculate Actual Material Cost"; var IsHandled: Boolean)
@@ -495,19 +482,6 @@ codeunit 5896 "Calc. Inventory Adjmt. - Order"
     local procedure OnBeforeCalcStandardCost(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; OutputQty: Decimal; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforeCalcShareOfCapCost(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var ShareOfCapCost: Decimal; var IsHandled: Boolean)
-    begin
-        OnBeforeCalcShareOfCapCost(InvtAdjmtEntryOrder, ShareOfCapCost, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgInventoryAdjmtEntryOrder', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalcShareOfCapCost(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var ShareOfCapCost: Decimal; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcExactCostReversingQty(ItemLedgEntry: Record "Item Ledger Entry"; var Qty: Decimal)

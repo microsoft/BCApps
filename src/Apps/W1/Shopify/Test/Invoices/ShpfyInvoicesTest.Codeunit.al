@@ -58,6 +58,47 @@ codeunit 139695 "Shpfy Invoices Test"
     end;
 
     [Test]
+    procedure UnitTestGroupedInvoiceLinksAllShopifyOrders()
+    var
+        DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
+        GroupedInvoice: Record "Sales Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        SalesGetShipment: Codeunit "Sales-Get Shipment";
+        GroupedInvoiceNo: Code[20];
+        ShipmentNo1: Code[20];
+        ShipmentNo2: Code[20];
+        OrderId1: BigInteger;
+        OrderId2: BigInteger;
+    begin
+        // [SCENARIO] A grouped invoice is linked to every originating Shopify order
+        Initialize();
+
+        OrderId1 := LibraryRandom.RandIntInRange(100000, 199999);
+        OrderId2 := LibraryRandom.RandIntInRange(200000, 299999);
+        ShipmentNo1 := CreateAndPostShopifySalesShipment(OrderId1);
+        ShipmentNo2 := CreateAndPostShopifySalesShipment(OrderId2);
+
+        LibrarySales.CreateSalesHeader(GroupedInvoice, GroupedInvoice."Document Type"::Invoice, Customer."No.");
+        SalesGetShipment.SetSalesHeader(GroupedInvoice);
+        SalesShipmentLine.SetRange("Document No.", ShipmentNo1);
+        SalesGetShipment.CreateInvLines(SalesShipmentLine);
+        SalesShipmentLine.SetRange("Document No.", ShipmentNo2);
+        SalesGetShipment.CreateInvLines(SalesShipmentLine);
+        GroupedInvoiceNo := LibrarySales.PostSalesDocument(GroupedInvoice, true, true);
+
+        LibraryAssert.IsTrue(
+            DocLinkToBCDoc.Get(
+                "Shpfy Shop Document Type"::"Shopify Shop Order", OrderId1,
+                "Shpfy Document Type"::"Posted Sales Invoice", GroupedInvoiceNo),
+            'The first Shopify order should be linked to the grouped invoice');
+        LibraryAssert.IsTrue(
+            DocLinkToBCDoc.Get(
+                "Shpfy Shop Document Type"::"Shopify Shop Order", OrderId2,
+                "Shpfy Document Type"::"Posted Sales Invoice", GroupedInvoiceNo),
+            'The second Shopify order should be linked to the grouped invoice');
+    end;
+
+    [Test]
     procedure UnitTestMapPostedSalesInvoice()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -584,6 +625,22 @@ codeunit 139695 "Shpfy Invoices Test"
             SalesLine.Description := 'Comment';
         end;
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostShopifySalesShipment(OrderId: BigInteger): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        DocumentLinkMgt: Codeunit "Shpfy Document Link Mgt.";
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesHeader."Shpfy Order Id" := OrderId;
+        SalesHeader.Modify(false);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        DocumentLinkMgt.CreateNewDocumentLink(
+            "Shpfy Shop Document Type"::"Shopify Shop Order", OrderId,
+            "Shpfy Document Type"::"Sales Order", SalesHeader."No.");
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, false));
     end;
 
     local procedure CopySalesDocument(var ToSalesHeader: Record "Sales Header"; DocNo: Code[20])

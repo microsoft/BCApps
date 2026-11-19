@@ -95,13 +95,7 @@ table 6105 "E-Document Line Mapping"
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(10; "Item Reference No."; Code[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Item Reference No.';
             ToolTip = 'Specifies the item reference number.';

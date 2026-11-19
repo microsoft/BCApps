@@ -35,6 +35,20 @@ codeunit 30250 "Shpfy Returns API"
         end;
     end;
 
+    /// <summary>
+    /// Unverified POS returns are refunded to a gift card exchange line that no Shopify refund offsets, so that gift card is invoiced.
+    /// </summary>
+    internal procedure IsUnverifiedReturnGiftCard(ReturnId: BigInteger; IsGiftCard: Boolean): Boolean
+    var
+        ReturnLine: Record "Shpfy Return Line";
+    begin
+        if not IsGiftCard then
+            exit(false);
+        ReturnLine.SetRange("Return Id", ReturnId);
+        ReturnLine.SetRange(Type, ReturnLine.Type::Unverified);
+        exit(not ReturnLine.IsEmpty());
+    end;
+
     local procedure GetReturn(ReturnId: BigInteger)
     var
         GraphQLType: Enum "Shpfy GraphQL Type";

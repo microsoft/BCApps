@@ -59,6 +59,7 @@ codeunit 148340 "Expense Policy Evaluation Test"
         Assert.AreEqual(ExpenseReportLine."Policy Eval Version", ExpenseReportLine."Evaluated Policy Version", 'Evaluated must catch up to Policy Eval Version after MarkPoliciesEvaluated.');
         Assert.AreNotEqual(0DT, ExpenseReportLine."Policies Evaluated At", 'Policies Evaluated At must be stamped.');
         Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'An evaluated line with no applicable policy must report No Policies.');
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::"No Policies", 0, 0);
     end;
 
     [Test]
@@ -105,6 +106,14 @@ codeunit 148340 "Expense Policy Evaluation Test"
         Assert.AreEqual(1, ExpenseReportLine."Policy Eval Version", 'A relevant field change must bump Policy Eval Version.');
         Assert.AreEqual(0, ExpenseReportLine."Evaluated Policy Version", 'Evaluated must not move on a plain modify.');
         Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'A relevant change after evaluation must report Stale.');
+        VerifyEvaluationState(ExpenseReportLine, false, false);
+        VerifyPolicyCompletion(ExpenseReportLine, false, "Expense Policy Status"::Stale, 0, 0);
+
+        // [WHEN] The changed line is confirmed against the empty policy set.
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+
+        // [THEN] The completion summary reports No Policies rather than Cleared.
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::"No Policies", 0, 0);
     end;
 
     [Test]
@@ -205,6 +214,7 @@ codeunit 148340 "Expense Policy Evaluation Test"
         // [THEN] The Policy Evaluations FlowField sees the live evaluation and the status is Flagged.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual("Expense Policy Status"::Flagged, ExpenseReportLine.GetPolicyStatus(), 'An evaluated line with a current-version evaluation must report Flagged.');
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::Flagged, 1, 0);
     end;
 
     [Test]
@@ -920,6 +930,385 @@ codeunit 148340 "Expense Policy Evaluation Test"
         Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'A child per diem insert after evaluation must leave the parent Stale.');
     end;
 
+    [Test]
+    procedure AutoPopulatingPerDiemDefersParentInvalidation()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        StoredExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
+        ExpenseLocation: Record "Expense Location";
+        EvaluatedVersion: Integer;
+        EvaluatedAt: DateTime;
+        ParentRowVersion: BigInteger;
+    begin
+        // [SCENARIO] Location validation generates per diems without a competing parent write.
+        Initialize();
+        CreateEvaluatedPerDiemReportLine(ExpenseReportLine, ExpenseLocation);
+        EvaluatedVersion := ExpenseReportLine."Evaluated Policy Version";
+        EvaluatedAt := ExpenseReportLine."Policies Evaluated At";
+        StoredExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ParentRowVersion := StoredExpenseReportLine.SystemRowVersion;
+
+        ExpenseReportLine.Validate("Expense Location", ExpenseLocation."No.");
+
+        ExpenseReportLinePerDiem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        Assert.RecordCount(ExpenseReportLinePerDiem, 2);
+        AssertPerDiemParentInformation(ExpenseReportLine);
+        Assert.AreEqual(200, ExpenseReportLine.Amount, 'Two full days must receive the daily rate.');
+        StoredExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(ParentRowVersion, StoredExpenseReportLine.SystemRowVersion, 'Generating children must not write the stored parent.');
+        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Pending child changes must make the held parent stale.');
+
+        ExpenseReportLine.Modify(true);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(EvaluatedVersion + 1, ExpenseReportLine."Policy Eval Version", 'The parent save must coalesce field and child invalidation into one version.');
+        Assert.AreEqual(EvaluatedVersion, ExpenseReportLine."Evaluated Policy Version", 'Generation must preserve the prior evaluated version.');
+        Assert.AreEqual(EvaluatedAt, ExpenseReportLine."Policies Evaluated At", 'Generation must preserve the prior evaluation timestamp.');
+        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'The saved parent must remain stale.');
+        AssertPerDiemParentInformation(ExpenseReportLine);
+
+        // [WHEN] A different child record instance inserts directly after bulk generation.
+        Clear(ExpenseReportLinePerDiem);
+        ExpenseReportLinePerDiem."Expense Report No." := ExpenseReportLine."Document No.";
+        ExpenseReportLinePerDiem."Expense Report Line No." := ExpenseReportLine."Line No.";
+        ExpenseReportLinePerDiem."Line No." := 30000;
+        ExpenseReportLinePerDiem.Insert(true);
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(EvaluatedVersion + 2, ExpenseReportLine."Policy Eval Version", 'Bulk suppression must not disable invalidation for direct inserts.');
+    end;
+
+    [Test]
+    procedure PerDiemInitializationUsesUnsavedParentOnce()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        StoredExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: Record "Expense Subcategory";
+        ExpenseLocation: Record "Expense Location";
+    begin
+        // [SCENARIO] Explicit initialization uses unsaved metadata, including blanks, for one insert only.
+        Initialize();
+        CreateEvaluatedPerDiemReportLine(ExpenseReportLine, ExpenseLocation);
+        StoredExpenseReportLine := ExpenseReportLine;
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::"Per Diem", ExpenseReportLine."Payment Method Code");
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory, ExpenseCategory.Code, true);
+        ExpenseReportLine."Expense Category" := ExpenseCategory.Code;
+        ExpenseReportLine."Expense Subcategory Code" := ExpenseSubcategory.Code;
+        ExpenseReportLine."Expense Location" := ExpenseLocation."No.";
+
+        ExpenseReportLinePerDiem."Expense Report No." := ExpenseReportLine."Document No.";
+        ExpenseReportLinePerDiem."Expense Report Line No." := ExpenseReportLine."Line No.";
+        ExpenseReportLinePerDiem."Line No." := 10000;
+        ExpenseReportLinePerDiem.InitializeFromParent(ExpenseReportLine);
+        ExpenseReportLinePerDiem.Insert(true);
+        AssertPerDiemParentInformation(ExpenseReportLine);
+
+        ExpenseReportLinePerDiem.Init();
+        ExpenseReportLinePerDiem."Line No." := 20000;
+        ExpenseReportLinePerDiem."Expense Subcategory Code" := ExpenseSubcategory.Code;
+        ExpenseReportLinePerDiem."Expense Location" := ExpenseLocation."No.";
+        ExpenseReportLine."Expense Subcategory Code" := '';
+        ExpenseReportLine."Expense Location" := '';
+        ExpenseReportLinePerDiem.InitializeFromParent(ExpenseReportLine);
+        ExpenseReportLinePerDiem.Insert(true);
+        ExpenseReportLinePerDiem.TestField("Expense Subcategory Code", '');
+        ExpenseReportLinePerDiem.TestField("Expense Location", '');
+
+        // [WHEN] The same child buffer inserts without explicit parent initialization.
+        ExpenseReportLinePerDiem.Init();
+        ExpenseReportLinePerDiem."Line No." := 30000;
+        ExpenseReportLinePerDiem.Insert(true);
+        ExpenseReportLinePerDiem.TestField("Expense No.", StoredExpenseReportLine."Expense No.");
+        ExpenseReportLinePerDiem.TestField("Expense Category Code", StoredExpenseReportLine."Expense Category");
+        ExpenseReportLinePerDiem.TestField("Expense Subcategory Code", StoredExpenseReportLine."Expense Subcategory Code");
+        ExpenseReportLinePerDiem.TestField("Expense Location", StoredExpenseReportLine."Expense Location");
+        StoredExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(ExpenseReportLine."Policy Eval Version" + 3, StoredExpenseReportLine."Policy Eval Version", 'Explicit metadata initialization must not suppress direct-insert policy invalidation.');
+    end;
+
+    [Test]
+    procedure RegeneratingPerDiemInvalidatesUnchangedParent()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        StoredExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
+        ExpenseLocation: Record "Expense Location";
+        LineRef: RecordRef;
+        StoredLineRef: RecordRef;
+        LineField: FieldRef;
+        StoredLineField: FieldRef;
+        PolicyStatus: Enum "Expense Policy Status";
+        FieldIndex: Integer;
+        EvaluatedVersion: Integer;
+        EvaluatedAt: DateTime;
+        FailedCount: Integer;
+        PassedCount: Integer;
+        ParentFieldUnchangedErr: Label 'Regeneration must not change parent field %1.', Comment = '%1 = Parent field name';
+    begin
+        // [SCENARIO] Regenerating only child details still invalidates the parent exactly once.
+        Initialize();
+        CreateEvaluatedPerDiemReportLine(ExpenseReportLine, ExpenseLocation);
+        ExpenseReportLine.Validate("Expense Location", ExpenseLocation."No.");
+        ExpenseReportLine.Modify(true);
+
+        ExpenseReportLinePerDiem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        ExpenseReportLinePerDiem.FindFirst();
+        ExpenseReportLinePerDiem.Validate(Description, 'Manually changed per diem');
+        ExpenseReportLinePerDiem.Modify(true);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        EvaluatedVersion := ExpenseReportLine."Evaluated Policy Version";
+        EvaluatedAt := ExpenseReportLine."Policies Evaluated At";
+
+        // [WHEN] Applying the same rule replaces the children without changing the parent amount.
+        ExpenseReportLine.ApplyRule();
+
+        ExpenseReportLinePerDiem.FindFirst();
+        Assert.AreNotEqual('Manually changed per diem', ExpenseReportLinePerDiem.Description, 'The child description must be regenerated.');
+        Assert.AreEqual(200, ExpenseReportLine.Amount, 'Regeneration must leave the parent amount unchanged.');
+        StoredExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(EvaluatedVersion, StoredExpenseReportLine."Policy Eval Version", 'Child regeneration must defer the parent version write.');
+        LineRef.GetTable(ExpenseReportLine);
+        StoredLineRef.GetTable(StoredExpenseReportLine);
+        for FieldIndex := 1 to LineRef.FieldCount() do begin
+            LineField := LineRef.FieldIndex(FieldIndex);
+            if (LineField.Class = FieldClass::Normal) and (LineField.Number < 2000000000) then begin
+                StoredLineField := StoredLineRef.Field(LineField.Number);
+                Assert.AreEqual(StoredLineField.Value(), LineField.Value(), StrSubstNo(ParentFieldUnchangedErr, LineField.Name()));
+            end;
+        end;
+        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Pending child-only changes must make the held parent stale.');
+        FailedCount := 99;
+        PassedCount := 99;
+        Assert.IsFalse(ExpenseReportLine.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount), 'Pending child changes must prevent policy completion.');
+        Assert.AreEqual("Expense Policy Status"::Stale, PolicyStatus, 'Pending changes must report stale completion metadata.');
+        Assert.AreEqual(0, FailedCount, 'Incomplete policy metadata must not return failed counts.');
+        Assert.AreEqual(0, PassedCount, 'Incomplete policy metadata must not return passed counts.');
+
+        ExpenseReportLine.Modify(true);
+        Assert.AreEqual(EvaluatedVersion + 1, ExpenseReportLine."Policy Eval Version", 'Child-only regeneration must advance the saved parent version.');
+
+        // [WHEN] The same record instance is saved again without policy-relevant changes.
+        ExpenseReportLine.Modify(true);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(EvaluatedVersion + 1, ExpenseReportLine."Policy Eval Version", 'Saving must consume pending invalidation, not repeat it.');
+        Assert.AreEqual(EvaluatedVersion, ExpenseReportLine."Evaluated Policy Version", 'Regeneration must preserve the evaluated version.');
+        Assert.AreEqual(EvaluatedAt, ExpenseReportLine."Policies Evaluated At", 'Regeneration must preserve the evaluation timestamp.');
+        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Child-only regeneration must remain stale after saving.');
+    end;
+
+    [Test]
+    procedure ChangingPerDiemDatesDefersParentInvalidation()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
+        ExpenseLocation: Record "Expense Location";
+        EvaluatedVersion: Integer;
+    begin
+        // [SCENARIO] Extending an existing per-diem range can regenerate and save the held parent.
+        Initialize();
+        CreateEvaluatedPerDiemReportLine(ExpenseReportLine, ExpenseLocation);
+        ExpenseReportLine.Validate("Expense Location", ExpenseLocation."No.");
+        ExpenseReportLine.Modify(true);
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        EvaluatedVersion := ExpenseReportLine."Evaluated Policy Version";
+
+        ExpenseReportLine.Validate("Ending Date and Time", CreateDateTime(WorkDate() + 2, 235900T));
+        ExpenseReportLine.Modify(true);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+
+        ExpenseReportLinePerDiem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        Assert.RecordCount(ExpenseReportLinePerDiem, 3);
+        Assert.AreEqual(300, ExpenseReportLine.Amount, 'The extended range must receive three daily rates.');
+        Assert.AreEqual(EvaluatedVersion + 1, ExpenseReportLine."Policy Eval Version", 'Date and child changes must invalidate the parent once.');
+        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'Extending the range must leave the saved parent stale.');
+    end;
+
+    [Test]
+    procedure MarkPoliciesEvaluatedRejectsPendingChildChanges()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseLocation: Record "Expense Location";
+    begin
+        // [SCENARIO] Evaluation confirmation cannot discard an unsaved child invalidation.
+        Initialize();
+        CreateEvaluatedPerDiemReportLine(ExpenseReportLine, ExpenseLocation);
+        ExpenseReportLine.Validate("Expense Location", ExpenseLocation."No.");
+
+        asserterror ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+
+        Assert.ExpectedError('The expense report line changed after policy evaluation started.');
+    end;
+
+    [Test]
+    procedure EditingEvaluatedPerDiemDatesThroughPageFlow()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        EvaluatedExpenseReportLine: Record "Expense Report Line";
+        ExpenseLocation: Record "Expense Location";
+        ExpenseReportPage: TestPage "Expense Report";
+        StartingDateTime: DateTime;
+        EndingDateTime: DateTime;
+    begin
+        // [SCENARIO] Editing both dates on an evaluated per-diem line saves and reopens with current day rows.
+        Initialize();
+
+        // [GIVEN] An evaluated two-day line with a valid daily-rate rule is open on the report page.
+        CreateEvaluatedPerDiemPageLine(ExpenseReportLine, ExpenseLocation);
+        EvaluatedExpenseReportLine := ExpenseReportLine;
+        OpenExpenseReportPage(ExpenseReportPage, ExpenseReportLine);
+        StartingDateTime := CreateDateTime(WorkDate() + 1, 000000T);
+        EndingDateTime := CreateDateTime(WorkDate() + 3, 235900T);
+
+        // [WHEN] The end is extended, the start is moved, and the report is closed and reopened.
+        ExpenseReportPage."Expense Report Subform"."Ending Date and Time".SetValue(EndingDateTime);
+        ExpenseReportPage."Expense Report Subform"."Starting Date and Time".SetValue(StartingDateTime);
+        ExpenseReportPage.Close();
+        OpenExpenseReportPage(ExpenseReportPage, ExpenseReportLine);
+
+        // [THEN] Both date edits and the regenerated total are persisted without a record-changed error.
+        ExpenseReportPage."Expense Report Subform"."Starting Date and Time".AssertEquals(StartingDateTime);
+        ExpenseReportPage."Expense Report Subform"."Ending Date and Time".AssertEquals(EndingDateTime);
+        ExpenseReportPage."Expense Report Subform".Amount.AssertEquals(300);
+        ExpenseReportPage.Close();
+        VerifySavedPerDiemEvaluationStale(ExpenseReportLine, EvaluatedExpenseReportLine, 300);
+        ExpenseReportLine.TestField("Starting Date and Time", StartingDateTime);
+        ExpenseReportLine.TestField("Ending Date and Time", EndingDateTime);
+        VerifyGeneratedPerDiemDays(ExpenseReportLine, WorkDate() + 1, WorkDate() + 3, 100);
+    end;
+
+    [Test]
+    procedure EditingEvaluatedPerDiemLocationThroughPage()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        EvaluatedExpenseReportLine: Record "Expense Report Line";
+        ExpenseLocation: Record "Expense Location";
+        NewExpenseLocation: Record "Expense Location";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [SCENARIO] Changing an evaluated line's location through the page generates rows from the new location.
+        Initialize();
+
+        // [GIVEN] An evaluated per-diem line and another location with a different daily rate.
+        CreateEvaluatedPerDiemPageLine(ExpenseReportLine, ExpenseLocation);
+        EvaluatedExpenseReportLine := ExpenseReportLine;
+        LibraryExpense.CreateExpenseLocation(
+            NewExpenseLocation, '',
+            CopyStr(LibraryRandom.RandText(MaxStrLen(NewExpenseLocation.City)), 1, MaxStrLen(NewExpenseLocation.City)));
+        CreatePerDiemDailyRateRule(ExpenseReportLine."Expense Category", NewExpenseLocation."No.", 150);
+        OpenExpenseReportPage(ExpenseReportPage, ExpenseReportLine);
+
+        // [WHEN] The location is changed on the report page and the report is closed and reopened.
+        ExpenseReportPage."Expense Report Subform"."Expense Location".SetValue(NewExpenseLocation."No.");
+        ExpenseReportPage.Close();
+        OpenExpenseReportPage(ExpenseReportPage, ExpenseReportLine);
+
+        // [THEN] The new location, rate and child metadata persist, and the prior evaluation is stale.
+        ExpenseReportPage."Expense Report Subform"."Expense Location".AssertEquals(NewExpenseLocation."No.");
+        ExpenseReportPage."Expense Report Subform".Amount.AssertEquals(300);
+        ExpenseReportPage.Close();
+        VerifySavedPerDiemEvaluationStale(ExpenseReportLine, EvaluatedExpenseReportLine, 300);
+        ExpenseReportLine.TestField("Expense Location", NewExpenseLocation."No.");
+        VerifyGeneratedPerDiemDays(ExpenseReportLine, WorkDate(), WorkDate() + 1, 150);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmPerDiemCategoryChange')]
+    procedure EditingEvaluatedPerDiemCategoryThroughPage()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        EvaluatedExpenseReportLine: Record "Expense Report Line";
+        ExpenseLocation: Record "Expense Location";
+        NewExpenseCategory: Record "Expense Category";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [SCENARIO] Changing an evaluated per-diem category through the page saves current category metadata.
+        Initialize();
+
+        // [GIVEN] An evaluated line and another per-diem category with a valid rule for the same location.
+        CreateEvaluatedPerDiemPageLine(ExpenseReportLine, ExpenseLocation);
+        EvaluatedExpenseReportLine := ExpenseReportLine;
+        LibraryExpense.CreateExpenseCategory(
+            NewExpenseCategory, NewExpenseCategory."Reimbursement Type"::"Employee Paid",
+            "Expense Detail Needed"::"Per Diem", ExpenseReportLine."Payment Method Code");
+        CreatePerDiemDailyRateRule(NewExpenseCategory.Code, ExpenseLocation."No.", 125);
+        OpenExpenseReportPage(ExpenseReportPage, ExpenseReportLine);
+
+        // [WHEN] The category is changed, replacement of the details is confirmed, and the report is reopened.
+        ExpenseReportPage."Expense Report Subform"."Expense Category".SetValue(NewExpenseCategory.Code);
+        ExpenseReportPage.Close();
+        OpenExpenseReportPage(ExpenseReportPage, ExpenseReportLine);
+
+        // [THEN] The category edit succeeds and both day rows use the current category and rate.
+        ExpenseReportPage."Expense Report Subform"."Expense Category".AssertEquals(NewExpenseCategory.Code);
+        ExpenseReportPage."Expense Report Subform"."Expense Location".AssertEquals(ExpenseLocation."No.");
+        ExpenseReportPage."Expense Report Subform".Amount.AssertEquals(250);
+        ExpenseReportPage.Close();
+        VerifySavedPerDiemEvaluationStale(ExpenseReportLine, EvaluatedExpenseReportLine, 250);
+        ExpenseReportLine.TestField("Expense Category", NewExpenseCategory.Code);
+        ExpenseReportLine.TestField("Expense Location", ExpenseLocation."No.");
+        VerifyGeneratedPerDiemDays(ExpenseReportLine, WorkDate(), WorkDate() + 1, 125);
+    end;
+
+    [Test]
+    [HandlerFunctions('SelectPerDiemBreakfast')]
+    procedure EditingParentAfterPerDiemMealDetailsFlow()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        EvaluatedExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
+        ExpenseLocation: Record "Expense Location";
+        ExpenseReportPage: TestPage "Expense Report";
+        NewDescription: Text[100];
+    begin
+        // [SCENARIO] Returning from meal details permits further parent edits without losing the meal or reduced total.
+        Initialize();
+
+        // [GIVEN] An evaluated two-day line with a 25 percent breakfast reduction is open on the report page.
+        CreateEvaluatedPerDiemPageLine(ExpenseReportLine, ExpenseLocation);
+        EvaluatedExpenseReportLine := ExpenseReportLine;
+        OpenExpenseReportPage(ExpenseReportPage, ExpenseReportLine);
+        NewDescription := 'Edited after selecting per-diem breakfast';
+
+        // [WHEN] Breakfast is selected in details, then the parent description is edited and the report reopened.
+        ExpenseReportPage."Expense Report Subform".PerDiem.Invoke();
+        ExpenseReportPage."Expense Report Subform".Amount.AssertEquals(175);
+        ExpenseReportPage."Expense Report Subform".Description.SetValue(NewDescription);
+        ExpenseReportPage.Close();
+        OpenExpenseReportPage(ExpenseReportPage, ExpenseReportLine);
+
+        // [THEN] The parent can be saved after the child writes, and the meal selection and total survive.
+        ExpenseReportPage."Expense Report Subform".Description.AssertEquals(NewDescription);
+        ExpenseReportPage."Expense Report Subform".Amount.AssertEquals(175);
+        ExpenseReportPage.Close();
+        VerifySavedPerDiemEvaluationStale(ExpenseReportLine, EvaluatedExpenseReportLine, 175);
+        ExpenseReportLine.TestField(Description, NewDescription);
+        AssertPerDiemParentInformation(ExpenseReportLine);
+        ExpenseReportLinePerDiem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        Assert.RecordCount(ExpenseReportLinePerDiem, 2);
+        ExpenseReportLinePerDiem.FindFirst();
+        ExpenseReportLinePerDiem.TestField(Date, WorkDate());
+        ExpenseReportLinePerDiem.TestField(Breakfast, true);
+        ExpenseReportLinePerDiem.TestField(Lunch, false);
+        ExpenseReportLinePerDiem.TestField(Dinner, false);
+        ExpenseReportLinePerDiem.TestField("Original Per Diem Amount", 100);
+        ExpenseReportLinePerDiem.TestField("Per Diem Amount", 75);
+        ExpenseReportLinePerDiem.FindLast();
+        ExpenseReportLinePerDiem.TestField(Date, WorkDate() + 1);
+        ExpenseReportLinePerDiem.TestField(Breakfast, false);
+        ExpenseReportLinePerDiem.TestField(Lunch, false);
+        ExpenseReportLinePerDiem.TestField(Dinner, false);
+        ExpenseReportLinePerDiem.TestField("Per Diem Amount", 100);
+        ExpenseReportLinePerDiem.CalcSums("Per Diem Amount");
+        Assert.AreEqual(ExpenseReportLine.Amount, ExpenseReportLinePerDiem."Per Diem Amount", 'The saved parent total must equal its saved meal-adjusted day amounts.');
+    end;
+
     // --- Policies to evaluate endpoint ------------------------------------------------------
 
     [Test]
@@ -990,6 +1379,8 @@ codeunit 148340 "Expense Policy Evaluation Test"
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         AddEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Already evaluated');
         AddCompliantEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, UnchangedExpensePolicy, 'Also evaluated');
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::Flagged, 1, 1);
 
         // [WHEN] The set is built.
         Builder.Build(TempPolicyToEval, Format(ExpenseReportLine.SystemId));
@@ -1010,6 +1401,18 @@ codeunit 148340 "Expense Policy Evaluation Test"
         Assert.AreEqual(1, TempPolicyToEval.Count(), 'Only the changed policy must require re-evaluation.');
         Assert.IsTrue(TempPolicyToEval.Get(ExpenseReportLine.SystemId, ExpensePolicy.SystemId), 'A policy bumped to a new version must be listed for re-evaluation.');
         Assert.IsFalse(TempPolicyToEval.Get(ExpenseReportLine.SystemId, UnchangedExpensePolicy.SystemId), 'An unchanged policy must keep its current verdict.');
+        VerifyEvaluationState(ExpenseReportLine, true, true);
+        VerifyPolicyCompletion(ExpenseReportLine, false, "Expense Policy Status"::Stale, 0, 0);
+
+        // [WHEN] Current results are confirmed and then the subject version changes.
+        AddCompliantEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Updated policy passes.');
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::Cleared, 0, 2);
+        ExpenseReportLine.InvalidatePolicyEvaluation();
+
+        // [THEN] Old subject results cannot complete the new version.
+        VerifyEvaluationState(ExpenseReportLine, true, true);
+        VerifyPolicyCompletion(ExpenseReportLine, false, "Expense Policy Status"::Stale, 0, 0);
     end;
 
     // --- Status of never-evaluated lines -----------------------------------------------------
@@ -1036,15 +1439,26 @@ codeunit 148340 "Expense Policy Evaluation Test"
 
         // [THEN] The policy is outstanding and the line cannot be marked evaluated.
         Assert.IsTrue(Builder.HasOutstandingPolicies(ExpenseReportLine), 'An applicable policy without a evaluation must be outstanding.');
+        VerifyPolicyCompletion(ExpenseReportLine, false, "Expense Policy Status"::"Not Evaluated", 0, 0);
         Commit();
         asserterror ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         Assert.ExpectedError('one or more applicable policies have not yet been evaluated');
+        Assert.ExpectedErrorCode('Dialog');
 
         // [WHEN] A verdict (evaluation) is recorded for the policy at the current version.
         AddCompliantEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Compliant.');
 
         // [THEN] Nothing is outstanding anymore.
         Assert.IsFalse(Builder.HasOutstandingPolicies(ExpenseReportLine), 'Once every applicable policy has a evaluation, nothing is outstanding.');
+        VerifyEvaluationState(ExpenseReportLine, true, false);
+        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'Legacy status must remain independent of confirmation.');
+        VerifyPolicyCompletion(ExpenseReportLine, false, "Expense Policy Status"::"Not Evaluated", 0, 0);
+
+        // [WHEN] Existing results are explicitly confirmed.
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+
+        // [THEN] Mark does not require already-confirmed completion.
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::Cleared, 0, 1);
     end;
 
     [Test]
@@ -1061,6 +1475,8 @@ codeunit 148340 "Expense Policy Evaluation Test"
 
         // [THEN] The line reports No Policies because nothing needs to be evaluated against it.
         Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'A never-evaluated line with no applicable policy must be No Policies.');
+        VerifyEvaluationState(ExpenseReportLine, false, false);
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::"No Policies", 0, 0);
     end;
 
     [Test]
@@ -1182,6 +1598,129 @@ codeunit 148340 "Expense Policy Evaluation Test"
         Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'An applicable policy evaluated with no violation must report Cleared.');
     end;
 
+    [Test]
+    procedure CompletionRejectsResultsAfterConfirmation()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+    begin
+        // [SCENARIO] Result presence does not authorize a result newer than the last confirmation.
+        Initialize();
+
+        // [GIVEN] L has a confirmed passing result and another valid result to count first.
+        CreateConfirmedTimestampScenario(ExpenseReportLine, ExpensePolicy, ExpensePolicyEvaluation);
+
+        // [WHEN] The last result has a timestamp after confirmation (controlled immutable-result fixture).
+        ExpensePolicyEvaluation."Evaluated At" := ExpenseReportLine."Policies Evaluated At" + 1000;
+        ExpensePolicyEvaluation.Modify(false);
+
+        // [THEN] Presence is unchanged but completion rejects the set without leaking partial counts.
+        VerifyEvaluationState(ExpenseReportLine, true, false);
+        VerifyPolicyCompletion(ExpenseReportLine, false, "Expense Policy Status"::Stale, 0, 0);
+    end;
+
+    [Test]
+    procedure CompletionRejectsResultsWithoutTimestamp()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+    begin
+        // [SCENARIO] A zero evaluation timestamp cannot form confirmed evidence.
+        Initialize();
+
+        // [GIVEN] L has two confirmed passing results.
+        CreateConfirmedTimestampScenario(ExpenseReportLine, ExpensePolicy, ExpensePolicyEvaluation);
+
+        // [WHEN] The last result has no timestamp (controlled immutable-result fixture).
+        ExpensePolicyEvaluation."Evaluated At" := 0DT;
+        ExpensePolicyEvaluation.Modify(false);
+
+        // [THEN] Presence is unchanged but completion returns no partial counts.
+        VerifyEvaluationState(ExpenseReportLine, true, false);
+        VerifyPolicyCompletion(ExpenseReportLine, false, "Expense Policy Status"::Stale, 0, 0);
+    end;
+
+    [Test]
+    procedure EvaluationStateReturnsOnlyApplicableCurrentResults()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        OtherLine: Record "Expense Report Line";
+        MatchingPolicy: Record "Expense Policy";
+        GlobalPolicy: Record "Expense Policy";
+        DisabledPolicy: Record "Expense Policy";
+        DeletedPolicy: Record "Expense Policy";
+        MovedPolicy: Record "Expense Policy";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+        TempMatchedEvaluations: Record "Expense Policy Evaluation" temporary;
+        Builder: Codeunit "Exp. Policies To Eval Builder";
+        HasApplicablePolicies: Boolean;
+        HasOutstandingPolicies: Boolean;
+    begin
+        // [SCENARIO] The rich builder returns only matched current scalar rows and replaces reused output.
+        Initialize();
+
+        // [GIVEN] L has current local/global results and obsolete, disabled, deleted and inapplicable results.
+        CreateTestReportLine(ExpenseReportLine);
+        CreateTestReportLine(OtherLine);
+        CreateTestPolicy(MatchingPolicy, ExpenseReportLine."Expense Category", 'Original category policy');
+        AddEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, MatchingPolicy, 'Old failure');
+        MatchingPolicy."Policy Text" := 'Revised category policy';
+        MatchingPolicy.Modify(true);
+        AddCompliantEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, MatchingPolicy, 'Current pass');
+        CreateTestPolicy(GlobalPolicy, '', 'Global policy');
+        AddEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, GlobalPolicy, 'Current global failure');
+        CreateTestPolicy(DisabledPolicy, ExpenseReportLine."Expense Category", 'Disabled after evaluation');
+        AddEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, DisabledPolicy, 'Ignored failure');
+        // Keep the captured version to test applicability independently of version matching.
+        DisabledPolicy.Enabled := false;
+        DisabledPolicy.Modify(false);
+        CreateTestPolicy(DeletedPolicy, ExpenseReportLine."Expense Category", 'Deleted after evaluation');
+        AddEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, DeletedPolicy, 'Ignored failure');
+        DeletedPolicy.Delete(true);
+        CreateTestPolicy(MovedPolicy, ExpenseReportLine."Expense Category", 'Moved after evaluation');
+        AddEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, MovedPolicy, 'Ignored failure');
+        MovedPolicy."Expense Category Code" := OtherLine."Expense Category";
+        MovedPolicy.Modify(false);
+
+        // [WHEN] The current result set is read.
+        Builder.GetEvaluationState(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPolicies, TempMatchedEvaluations, IsolationLevel::Default);
+
+        // [THEN] Exactly the category and global current pairs remain, with no large text copied.
+        Assert.IsTrue(HasApplicablePolicies, 'Current policies apply.');
+        Assert.IsFalse(HasOutstandingPolicies, 'All applicable current versions have results.');
+        Assert.RecordCount(TempMatchedEvaluations, 2);
+        VerifyMatchedEvaluation(TempMatchedEvaluations, ExpenseReportLine, MatchingPolicy, true);
+        VerifyMatchedEvaluation(TempMatchedEvaluations, ExpenseReportLine, GlobalPolicy, false);
+        VerifyEvaluationState(ExpenseReportLine, true, false);
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::Flagged, 1, 1);
+
+        // [WHEN] The same filtered output variable is reused for a different subject with one missing result.
+        AddCompliantEvaluation(ExpensePolicyEvaluation, OtherLine, GlobalPolicy, 'Other subject pass');
+        TempMatchedEvaluations.SetRange(Compliant, false);
+        Builder.GetEvaluationState(OtherLine, HasApplicablePolicies, HasOutstandingPolicies, TempMatchedEvaluations, IsolationLevel::Default);
+
+        // [THEN] Old rows and filters are gone, and only the new subject's matched result is returned.
+        Assert.IsTrue(HasApplicablePolicies, 'The global and moved policies apply to the other line.');
+        Assert.IsTrue(HasOutstandingPolicies, 'The moved policy has no result for the other subject.');
+        Assert.RecordCount(TempMatchedEvaluations, 1);
+        VerifyMatchedEvaluation(TempMatchedEvaluations, OtherLine, GlobalPolicy, true);
+        VerifyEvaluationState(OtherLine, true, true);
+
+        // [WHEN] No policies remain applicable and the output is reused again.
+        GlobalPolicy.Delete(true);
+        MatchingPolicy.Delete(true);
+        Builder.GetEvaluationState(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPolicies, TempMatchedEvaluations, IsolationLevel::Default);
+
+        // [THEN] The empty set clears the previous output too.
+        Assert.IsFalse(HasApplicablePolicies, 'No enabled policy applies.');
+        Assert.IsFalse(HasOutstandingPolicies, 'An empty policy set has nothing outstanding.');
+        Assert.RecordIsEmpty(TempMatchedEvaluations);
+        VerifyEvaluationState(ExpenseReportLine, false, false);
+    end;
+
     // --- Fixtures ----------------------------------------------------------------------------
 
     local procedure Initialize()
@@ -1208,6 +1747,96 @@ codeunit 148340 "Expense Policy Evaluation Test"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Policy Evaluation Test");
     end;
 
+    local procedure VerifyPolicyCompletion(ExpenseReportLine: Record "Expense Report Line"; ExpectedComplete: Boolean; ExpectedStatus: Enum "Expense Policy Status"; ExpectedFailedCount: Integer; ExpectedPassedCount: Integer)
+    var
+        StoredLine: Record "Expense Report Line";
+        Evaluation: Record "Expense Policy Evaluation";
+        Policy: Record "Expense Policy";
+        ActivityEntry: Record "Expense Activity Log Entry";
+        PolicyStatus: Enum "Expense Policy Status";
+        EvaluationVersions: List of [BigInteger];
+        PolicyVersions: List of [BigInteger];
+        LineVersion: BigInteger;
+        ActivityCount: Integer;
+        FailedCount: Integer;
+        PassedCount: Integer;
+        Index: Integer;
+    begin
+        StoredLine.GetBySystemId(ExpenseReportLine.SystemId);
+        LineVersion := StoredLine.SystemRowVersion;
+        ActivityCount := ActivityEntry.Count();
+        Evaluation.SetRange("Subject System Id", ExpenseReportLine.SystemId);
+        if Evaluation.FindSet() then
+            repeat
+                EvaluationVersions.Add(Evaluation.SystemRowVersion);
+            until Evaluation.Next() = 0;
+        if Policy.FindSet() then
+            repeat
+                PolicyVersions.Add(Policy.SystemRowVersion);
+            until Policy.Next() = 0;
+
+        FailedCount := 99;
+        PassedCount := 99;
+        Assert.AreEqual(ExpectedComplete, ExpenseReportLine.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount), 'Metadata completion must match readiness.');
+        Assert.AreEqual(ExpectedStatus, PolicyStatus, 'Completion status must reflect confirmed evidence.');
+        Assert.AreEqual(ExpectedFailedCount, FailedCount, 'Failed counts must be exact, or zero when incomplete.');
+        Assert.AreEqual(ExpectedPassedCount, PassedCount, 'Passed counts must be exact, or zero when incomplete.');
+        StoredLine.GetBySystemId(ExpenseReportLine.SystemId);
+        Assert.AreEqual(LineVersion, StoredLine.SystemRowVersion, 'Completion must not update the line.');
+        Assert.AreEqual(ActivityCount, ActivityEntry.Count(), 'Completion must not write activity.');
+        Assert.RecordCount(Evaluation, EvaluationVersions.Count());
+        if Evaluation.FindSet() then
+            repeat
+                Index += 1;
+                Assert.AreEqual(EvaluationVersions.Get(Index), Evaluation.SystemRowVersion, 'Completion must not update results.');
+            until Evaluation.Next() = 0;
+        Index := 0;
+        Assert.RecordCount(Policy, PolicyVersions.Count());
+        if Policy.FindSet() then
+            repeat
+                Index += 1;
+                Assert.AreEqual(PolicyVersions.Get(Index), Policy.SystemRowVersion, 'Completion must not update policies.');
+            until Policy.Next() = 0;
+    end;
+
+    local procedure VerifyEvaluationState(ExpenseReportLine: Record "Expense Report Line"; ExpectedApplicable: Boolean; ExpectedOutstanding: Boolean)
+    var
+        TempMatchedEvaluations: Record "Expense Policy Evaluation" temporary;
+        Builder: Codeunit "Exp. Policies To Eval Builder";
+        HasApplicablePolicies: Boolean;
+        HasOutstandingPolicies: Boolean;
+    begin
+        Builder.GetEvaluationState(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPolicies);
+        Assert.AreEqual(ExpectedApplicable, HasApplicablePolicies, 'Legacy state must report applicability.');
+        Assert.AreEqual(ExpectedOutstanding, HasOutstandingPolicies, 'Legacy state must report missing current pairs.');
+        Assert.AreEqual(ExpectedOutstanding, Builder.HasOutstandingPolicies(ExpenseReportLine), 'The write guard must use result presence only.');
+        Builder.GetEvaluationState(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPolicies, TempMatchedEvaluations, IsolationLevel::Default);
+        Assert.AreEqual(ExpectedApplicable, HasApplicablePolicies, 'Rich state must agree with legacy applicability.');
+        Assert.AreEqual(ExpectedOutstanding, HasOutstandingPolicies, 'Rich state must agree with legacy result presence.');
+    end;
+
+    local procedure VerifyMatchedEvaluation(var TempMatchedEvaluations: Record "Expense Policy Evaluation" temporary; ExpenseReportLine: Record "Expense Report Line"; ExpensePolicy: Record "Expense Policy"; ExpectedCompliant: Boolean)
+    begin
+        Assert.IsTrue(TempMatchedEvaluations.Get(ExpensePolicy."Subject Type", ExpenseReportLine.SystemId, ExpensePolicy.SystemId, ExpenseReportLine."Policy Eval Version", ExpensePolicy.Version), 'The exact current pair must be returned.');
+        Assert.AreEqual(ExpectedCompliant, TempMatchedEvaluations.Compliant, 'The verdict must be retained.');
+        Assert.AreNotEqual(0DT, TempMatchedEvaluations."Evaluated At", 'The result timestamp must be retained.');
+        Assert.AreEqual('', TempMatchedEvaluations.Reason, 'The scalar output must not copy reason text.');
+        Assert.AreEqual('', TempMatchedEvaluations."Policy Text", 'The scalar output must not copy policy text.');
+    end;
+
+    local procedure CreateConfirmedTimestampScenario(var ExpenseReportLine: Record "Expense Report Line"; var ExpensePolicy: Record "Expense Policy"; var ExpensePolicyEvaluation: Record "Expense Policy Evaluation")
+    begin
+        CreateTestReportLine(ExpenseReportLine);
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'First policy');
+        AddCompliantEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'First pass');
+        Clear(ExpensePolicy);
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Second policy');
+        AddCompliantEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Second pass');
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        ExpensePolicyEvaluation.SetRange("Subject System Id", ExpenseReportLine.SystemId);
+        ExpensePolicyEvaluation.FindLast();
+    end;
+
     local procedure CreateTestReportLine(var ExpenseReportLine: Record "Expense Report Line")
     var
         ExpenseUser: Record "Expense User";
@@ -1220,6 +1849,128 @@ codeunit 148340 "Expense Policy Evaluation Test"
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::" ", ExpensePaymentMethod.Code);
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
         LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', LibraryRandom.RandIntInRange(10, 100));
+    end;
+
+    local procedure AssertPerDiemParentInformation(ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
+    begin
+        ExpenseReportLinePerDiem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        ExpenseReportLinePerDiem.FindSet();
+        repeat
+            ExpenseReportLinePerDiem.TestField("Expense No.", ExpenseReportLine."Expense No.");
+            ExpenseReportLinePerDiem.TestField("Expense Category Code", ExpenseReportLine."Expense Category");
+            ExpenseReportLinePerDiem.TestField("Expense Subcategory Code", ExpenseReportLine."Expense Subcategory Code");
+            ExpenseReportLinePerDiem.TestField("Expense Location", ExpenseReportLine."Expense Location");
+        until ExpenseReportLinePerDiem.Next() = 0;
+    end;
+
+    local procedure CreateEvaluatedPerDiemReportLine(var ExpenseReportLine: Record "Expense Report Line"; var ExpenseLocation: Record "Expense Location")
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+    begin
+        LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 100, 0, 0);
+        CreateTestReportLine(ExpenseReportLine);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", "Expense Detail Needed"::"Per Diem", ExpenseReportLine."Payment Method Code");
+        LibraryExpense.CreateExpenseLocation(ExpenseLocation, '', '');
+        LibraryExpense.CreateExpenseRuleWithCondition(
+            ExpenseRuleHeader, ExpenseRuleCondition, ExpenseCategory.Code, ExpenseLocation."No.", WorkDate(),
+            ExpenseRuleHeader."Justification Required"::" ", '', '', ExpenseRuleCondition."Condition Type"::"Daily Rate", 100);
+
+        ExpenseReportLine.SetSkipRuleApplication(true);
+        ExpenseReportLine.Validate("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLine.Validate("Expense Date", WorkDate());
+        ExpenseReportLine.Validate("Starting Date and Time", CreateDateTime(WorkDate(), 000000T));
+        ExpenseReportLine.Validate("Ending Date and Time", CreateDateTime(WorkDate() + 1, 235900T));
+        ExpenseReportLine.Modify(true);
+        ExpenseReportLine.SetSkipRuleApplication(false);
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+    end;
+
+    local procedure CreateEvaluatedPerDiemPageLine(var ExpenseReportLine: Record "Expense Report Line"; var ExpenseLocation: Record "Expense Location")
+    var
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+    begin
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+        LibraryExpense.UpdateReductionInAgentSetup(25, 0, 0);
+        CreateEvaluatedPerDiemReportLine(ExpenseReportLine, ExpenseLocation);
+        ExpenseReportLine.Validate("Expense Location", ExpenseLocation."No.");
+        ExpenseReportLine.Modify(true);
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Evaluated per-diem page scenario');
+        AddCompliantEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'The original per-diem details comply.');
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'The page scenario must start with a current, compliant evaluation.');
+    end;
+
+    local procedure CreatePerDiemDailyRateRule(ExpenseCategoryCode: Code[20]; ExpenseLocationNo: Code[20]; DailyRate: Decimal)
+    var
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+    begin
+        LibraryExpense.CreateExpenseRuleWithCondition(
+            ExpenseRuleHeader, ExpenseRuleCondition, ExpenseCategoryCode, ExpenseLocationNo, WorkDate(),
+            ExpenseRuleHeader."Justification Required"::" ", '', '', ExpenseRuleCondition."Condition Type"::"Daily Rate", DailyRate);
+    end;
+
+    local procedure OpenExpenseReportPage(var ExpenseReportPage: TestPage "Expense Report"; ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        ExpenseReportPage.OpenEdit();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsTrue(ExpenseReportPage."Expense Report Subform".First(), 'The report page must contain the evaluated line.');
+    end;
+
+    local procedure VerifySavedPerDiemEvaluationStale(var ExpenseReportLine: Record "Expense Report Line"; EvaluatedExpenseReportLine: Record "Expense Report Line"; ExpectedAmount: Decimal)
+    begin
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(ExpectedAmount, ExpenseReportLine.Amount, 'The saved parent must retain the page-calculated amount.');
+        Assert.AreEqual(EvaluatedExpenseReportLine."Evaluated Policy Version", ExpenseReportLine."Evaluated Policy Version", 'Page edits must preserve the previous evaluated version.');
+        Assert.AreEqual(EvaluatedExpenseReportLine."Policies Evaluated At", ExpenseReportLine."Policies Evaluated At", 'Page edits must preserve the previous evaluation timestamp.');
+        Assert.IsTrue(ExpenseReportLine."Policy Eval Version" > ExpenseReportLine."Evaluated Policy Version", 'Page edits must advance the subject beyond its previous evaluation.');
+        Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'The saved line must require policy reevaluation.');
+    end;
+
+    local procedure VerifyGeneratedPerDiemDays(ExpenseReportLine: Record "Expense Report Line"; StartingDate: Date; EndingDate: Date; DailyRate: Decimal)
+    var
+        ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
+        ExpectedDate: Date;
+    begin
+        ExpenseReportLinePerDiem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        Assert.RecordCount(ExpenseReportLinePerDiem, EndingDate - StartingDate + 1);
+        ExpenseReportLinePerDiem.FindSet();
+        ExpectedDate := StartingDate;
+        repeat
+            ExpenseReportLinePerDiem.TestField(Date, ExpectedDate);
+            ExpenseReportLinePerDiem.TestField("Original Per Diem Amount", DailyRate);
+            ExpenseReportLinePerDiem.TestField("Per Diem Amount", DailyRate);
+            ExpectedDate += 1;
+        until ExpenseReportLinePerDiem.Next() = 0;
+        AssertPerDiemParentInformation(ExpenseReportLine);
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmPerDiemCategoryChange(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.IsTrue(StrPos(Question, 'Expense Category') > 0, 'The page must confirm replacement of details when changing the category.');
+        Reply := true;
+    end;
+
+    [ModalPageHandler]
+    procedure SelectPerDiemBreakfast(var ExpenseReportLinePerDiems: TestPage "Expense Report Line Per Diems")
+    begin
+        Assert.IsTrue(ExpenseReportLinePerDiems.First(), 'The meal details page must contain generated day rows.');
+        ExpenseReportLinePerDiems.Date.AssertEquals(WorkDate());
+        ExpenseReportLinePerDiems.Breakfast.AssertEquals(false);
+        ExpenseReportLinePerDiems.Breakfast.SetValue(true);
+        ExpenseReportLinePerDiems."Per Diem Amount".AssertEquals(75);
+        ExpenseReportLinePerDiems.OK().Invoke();
     end;
 
     local procedure CreateTestPolicy(var ExpensePolicy: Record "Expense Policy"; ExpenseCategoryCode: Code[20]; PolicyText: Text[2048])

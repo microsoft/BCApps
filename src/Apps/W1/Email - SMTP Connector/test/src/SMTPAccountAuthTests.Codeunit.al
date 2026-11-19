@@ -16,8 +16,10 @@ codeunit 139762 "SMTP Account Auth Tests"
         SMTPAccountPage: TestPage "SMTP Account";
         SMTPAccountWizardPage: TestPage "SMTP Account Wizard";
         TokenFromCacheTxt: Label 'aGVhZGVy.eyJ1bmlxdWVfbmFtZSI6InRlc3R1c2VyQGRvbWFpbi5jb20iLCJ1cG4iOiJ0ZXN0dXNlckBkb21haW4uY29tIn0=.c2lnbmF0dXJl', Comment = 'Access token example (with no secret data)', Locked = true;
+        Base64UrlTokenTxt: Label 'aGVhZGVy.eyJ1bmlxdWVfbmFtZSI6InVzZXJAZXhhbXBsZS5jb20iLCJjbGFpbSI6In5-fiJ9.c2lnbmF0dXJl', Comment = 'Access token example with Base64URL characters (with no secret data)', Locked = true;
 #pragma warning disable AA0240
         TokenFromCacheUserNameTxt: Label 'testuser@domain.com', Locked = true;
+        Base64UrlTokenUserNameTxt: Label 'user@example.com', Locked = true;
 #pragma warning restore AA0240
         AuthenticationSuccessfulMsg: Label '%1 was authenticated.', Comment = '%1 = username';
         AuthenticationFailedMsg: Label 'Could not authenticate.';
@@ -137,6 +139,18 @@ codeunit 139762 "SMTP Account Auth Tests"
     end;
 
     [Test]
+    procedure GetUserNameFromBase64UrlTokenTest()
+    var
+        OAuth2SMTPAuthentication: Codeunit "OAuth2 SMTP Authentication";
+        ReturnedUserName: Text;
+        Token: Text;
+    begin
+        Token := Base64UrlTokenTxt;
+        Assert.IsTrue(OAuth2SMTPAuthentication.GetUserName(Token, ReturnedUserName), 'Base64URL access token should be parsed.');
+        Assert.AreEqual(Base64UrlTokenUserNameTxt, ReturnedUserName, 'Incorrect returned username.');
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [NonDebuggable]
     procedure GetOAuth2CredentialsTest()
@@ -209,6 +223,37 @@ codeunit 139762 "SMTP Account Auth Tests"
         OAuth2SMTPAuthentication.CheckOAuth2Authentication();
 
         // [THEN] The message handler verifies that message is about failed authentication.
+    end;
+
+    [Test]
+    [HandlerFunctions('VerifyAuthenticationFailMessageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CheckAuthenticationWithUnparseableTokenShowsFailMsgTest()
+    var
+        OAuth2SMTPAuthentication: Codeunit "OAuth2 SMTP Authentication";
+        SMTPAccountAuthTests: Codeunit "SMTP Account Auth Tests";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        UnparseableToken: Text;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] When a nonempty but unparseable access token is in the cache,
+        // CheckOAuth2Authentication should show AuthenticationFailedMsg ("Could not authenticate.")
+        // instead of propagating the parse error from GetUserName.
+        // (Reproduces bug: GetUserName is called as a bare TryFunction statement, so its error is not trapped.)
+
+        // [GIVEN] Environment is on-prem and an unparseable token is in the cache.
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+        SetAuthFlowProvider(Codeunit::"SMTP Account Auth Tests");
+
+        // The token has no dot-separated sections, so AccessTokenSections.Get(2) inside GetUserName raises.
+        UnparseableToken := 'notavalidtoken';
+        SMTPAccountAuthTests.SetTokenCache(UnparseableToken);
+        BindSubscription(SMTPAccountAuthTests);
+
+        // [WHEN] CheckOAuth2Authentication is called.
+        OAuth2SMTPAuthentication.CheckOAuth2Authentication();
+
+        // [THEN] The message handler verifies that the failure message was shown (not a raw parse error).
     end;
 
 

@@ -10,6 +10,7 @@ tableextension 6618 "FS Integration Record" extends "CRM Integration Record"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve existing field IDs for compatibility.
         field(12000; "Archived Service Order"; Boolean)
         {
             Caption = 'Archived Service Order';
@@ -35,6 +36,7 @@ tableextension 6618 "FS Integration Record" extends "CRM Integration Record"
             Caption = 'Skip Reimport';
             DataClassification = SystemMetadata;
         }
+#pragma warning restore AS0099
     }
 
     keys

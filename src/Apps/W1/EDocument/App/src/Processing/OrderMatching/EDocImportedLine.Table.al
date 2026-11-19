@@ -146,7 +146,10 @@ table 6165 "E-Doc. Imported Line"
         TempEDocImportedLine.Type := PurchaseLine.Type;
         TempEDocImportedLine.Quantity := PurchaseLine.Quantity;
         TempEDocImportedLine."Direct Unit Cost" := PurchaseLine."Direct Unit Cost";
-        TempEDocImportedLine."Line Discount %" := 100 * (PurchaseLine."Line Discount Amount" / (PurchaseLine.Amount + PurchaseLine."Line Discount Amount"));
+        if (PurchaseLine.Amount + PurchaseLine."Line Discount Amount") <> 0 then
+            TempEDocImportedLine."Line Discount %" := 100 * (PurchaseLine."Line Discount Amount" / (PurchaseLine.Amount + PurchaseLine."Line Discount Amount"))
+        else
+            TempEDocImportedLine."Line Discount %" := 0;
         TempEDocImportedLine.Insert();
     end;
 

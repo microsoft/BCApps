@@ -1836,7 +1836,7 @@ table 37 "Sales Line"
                 IsHandled := false;
                 OnValidateVATProdPostingGroupOnBeforeUpdateUnitPrice(Rec, VATPostingSetup, IsHandled, xRec, SalesHeader, Currency);
                 if not IsHandled then
-                    if SalesHeader."Prices Including VAT" and (Type in [Type::Item, Type::Resource]) then
+                    if SalesHeader."Prices Including VAT" and (Type = Type::Resource) then
                         Validate("Unit Price",
                             Round(
                                 "Unit Price" * (100 + GetVATPct()) / (100 + xRec.GetVATPct()),
@@ -5879,6 +5879,7 @@ table 37 "Sales Line"
             if not PrePaymentLineAmountEntered then begin
                 "Prepmt. Line Amount" := Round((OutstandingAmountExclTax) * "Prepayment %" / 100, Currency."Amount Rounding Precision");
                 "Prepmt. Line Amount" := "Prepmt. Line Amount" + "Prepmt Amt Deducted";
+                CapPrepmtLineAmountAfterOverDeduction();
             end;
             PrePaymentLineAmountEntered := false;
         end;
@@ -9363,7 +9364,7 @@ table 37 "Sales Line"
     /// </summary>
     /// <param name="ItemTrackingSetup">The item tracking setup to filter the item ledger entry with.</param>
     /// <returns>The item ledger entry no. if found, otherwise zero.</returns>
-    procedure FindOpenATOEntry(ItemTrackingSetup: Record "Item Tracking Setup"): Integer
+    procedure FindOpenATOEntry(ItemTrackingSetup: Record "Item Tracking Setup"): BigInteger
     var
         PostedATOLink: Record "Posted Assemble-to-Order Link";
         ItemLedgEntry: Record "Item Ledger Entry";
@@ -11608,6 +11609,25 @@ table 37 "Sales Line"
     local procedure CheckReceiptOrderStatus()
     begin
         OnCheckReceiptOrderStatus(Rec);
+    end;
+
+    local procedure CapPrepmtLineAmountAfterOverDeduction()
+    var
+        TotalPrepmtLineAmount: Decimal;
+    begin
+        if "Prepmt Amt Deducted" = 0 then
+            exit;
+        if "Prepmt. Line Amount" <= "Prepmt. Amt. Inv." then
+            exit;
+
+        TotalPrepmtLineAmount := Round(("Line Amount" - "Inv. Discount Amount") * "Prepayment %" / 100, Currency."Amount Rounding Precision");
+        if "Prepmt. Line Amount" <= TotalPrepmtLineAmount then
+            exit;
+
+        if TotalPrepmtLineAmount > "Prepmt. Amt. Inv." then
+            "Prepmt. Line Amount" := TotalPrepmtLineAmount
+        else
+            "Prepmt. Line Amount" := "Prepmt. Amt. Inv.";
     end;
 
     /// <summary>

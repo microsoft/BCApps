@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.IO;
 
+using Microsoft.eServices.EDocument;
 #if not CLEAN29
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
 #endif
@@ -18,9 +19,27 @@ codeunit 6161 "E-Document Install"
     Subtype = Install;
 
     trigger OnInstallAppPerCompany()
+    var
+        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
     begin
         InsertDataExch();
         InsertDataExchV2();
+        EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
+        HandleSupportedTypeDirectionUpgrade();
+    end;
+
+    local procedure HandleSupportedTypeDirectionUpgrade()
+    var
+        EDocumentUpgrade: Codeunit "E-Document Upgrade";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        CurrentModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+        if CurrentModuleInfo.DataVersion() = Version.Create(0, 0, 0, 0) then begin
+            if not UpgradeTag.HasUpgradeTag(EDocumentUpgrade.GetUpgradeSupportedTypeDirectionTag()) then
+                UpgradeTag.SetUpgradeTag(EDocumentUpgrade.GetUpgradeSupportedTypeDirectionTag());
+        end else
+            EDocumentUpgrade.UpgradeSupportedTypeDirection();
     end;
 
 #if not CLEAN29
@@ -47,7 +66,6 @@ codeunit 6161 "E-Document Install"
 
         ImportServiceInvoiceXML();
         ImportServiceCreditMemoXML();
-
         if not UpgradeTag.HasUpgradeTag(GetEDOCDataExchUpdateTag()) then
             UpgradeTag.SetUpgradeTag(GetEDOCDataExchUpdateTag());
     end;

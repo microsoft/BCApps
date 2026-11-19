@@ -467,7 +467,7 @@ codeunit 99000871 "Job Planning Availability Mgt."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Item Availability", 'OnAfterGetSourceReferences', '', false, false)]
-    local procedure OnAfterGetSourceReferences(FromRecordID: RecordId; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceRefNo: Integer; var IsHandled: Boolean; RecRef: RecordRef)
+    local procedure OnAfterGetSourceReferences(FromRecordID: RecordId; var SourceType: Integer; var SourceSubtype: Integer; var SourceID: Code[20]; var SourceRefNo: BigInteger; var IsHandled: Boolean; RecRef: RecordRef)
     var
         JobPlanningLine: Record "Job Planning Line";
     begin
@@ -533,7 +533,7 @@ codeunit 99000871 "Job Planning Availability Mgt."
     // Codeunit "Calc. Inventory Page Data"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calc. Inventory Page Data", 'OnTransferToPeriodDetailsElseCase', '', false, false)]
-    local procedure OnTransferToPeriodDetailsElseCase(var InventoryPageData: Record "Inventory Page Data"; InventoryEventBuffer: Record "Inventory Event Buffer"; SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; var IsHandled: Boolean; SourceRefNo: Integer)
+    local procedure OnTransferToPeriodDetailsElseCase(var InventoryPageData: Record "Inventory Page Data"; InventoryEventBuffer: Record "Inventory Event Buffer"; SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; var IsHandled: Boolean; SourceRefNo: BigInteger)
     begin
         if SourceType = Database::"Job Planning Line" then begin
             TransferJobPlanningLine(InventoryEventBuffer, InventoryPageData, SourceID);

@@ -16,6 +16,23 @@ codeunit 139757 "Library - Master Data Mgt."
         MasterDataMgtSubscribers.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
     end;
 
+    /// <summary>Invokes the after-transfer subscriber that restores a skipped over-cap Blob to the destination's exact bytes.</summary>
+    /// <param name="SourceRecordRef">The source (temp) record being synchronized.</param>
+    /// <param name="DestinationRecordRef">The destination record whose skipped blob fields are restored byte-exact.</param>
+    procedure HandleOnAfterTransferRecordFields(SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef)
+    begin
+        MasterDataMgtSubscribers.HandleOnAfterTransferRecordFields(SourceRecordRef, DestinationRecordRef);
+    end;
+
+    /// <summary>Invokes the before-is-field-modified subscriber that reports a skipped over-cap Blob as unchanged.</summary>
+    /// <param name="SourceFieldRef">The source Blob field being evaluated.</param>
+    /// <param name="Result">Returns whether the field is considered modified.</param>
+    /// <param name="IsHandled">Returns true when the subscriber resolved the comparison.</param>
+    procedure HandleOnBeforeIsFieldModified(var SourceFieldRef: FieldRef; var Result: Boolean; var IsHandled: Boolean)
+    begin
+        MasterDataMgtSubscribers.HandleOnBeforeIsFieldModified(SourceFieldRef, Result, IsHandled);
+    end;
+
     /// <summary>Invokes the deletion-conflict subscriber logic that resolves or fails a coupled-to-deleted-record conflict.</summary>
     /// <param name="IntegrationTableMapping">The integration table mapping being synchronized.</param>
     /// <param name="SourceRecordRef">The source record whose coupled record was deleted.</param>
@@ -245,12 +262,91 @@ codeunit 139757 "Library - Master Data Mgt."
         MasterDataManagementSetup.Modify(false);
     end;
 
+    /// <summary>Stores a client secret for the cross-environment connection, replacing any stored certificate.</summary>
+    /// <param name="ClientSecret">The client secret to store.</param>
+    [NonDebuggable]
+    procedure SetSourceClientSecret(ClientSecret: SecretText)
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.SetSourceClientSecret(ClientSecret);
+#pragma warning disable AA0214 // SetSourceClientSecret modifies the record's credential fields
+        MasterDataManagementSetup.Modify(false);
+#pragma warning restore AA0214
+    end;
+
+    /// <summary>Validates and stores a client certificate for the cross-environment connection, replacing any stored client secret.</summary>
+    /// <param name="CertificateBase64">The Base64-encoded .pfx or .p12 certificate.</param>
+    /// <param name="CertificatePassword">The password of the certificate; empty if it is not password protected.</param>
+    [NonDebuggable]
+    procedure SetSourceClientCertificate(CertificateBase64: Text; CertificatePassword: SecretText)
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.SetSourceClientCertificate(CertificateBase64, CertificatePassword);
+#pragma warning disable AA0214 // SetSourceClientCertificate modifies the record's credential fields
+        MasterDataManagementSetup.Modify(false);
+#pragma warning restore AA0214
+    end;
+
+    /// <summary>Checks whether the cross-environment connection authenticates with a client certificate.</summary>
+    /// <returns>True if a client certificate is stored for the connection.</returns>
+    procedure UsesSourceClientCertificate(): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        exit(MasterDataManagementSetup.UsesSourceClientCertificate());
+    end;
+
+    /// <summary>Clears the cross-environment connection details and removes the stored credentials from Isolated Storage.</summary>
+    procedure ClearCrossEnvConnection()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        if not MasterDataManagementSetup.Get() then
+            exit;
+        MasterDataManagementSetup.ClearCrossEnvConnection();
+#pragma warning disable AA0214 // ClearCrossEnvConnection modifies the record's connection and credential fields
+        MasterDataManagementSetup.Modify(false);
+#pragma warning restore AA0214
+    end;
+
+    /// <summary>Checks whether a cross-environment credential entry exists in the app's Isolated Storage, without reading its value.</summary>
+    /// <param name="CredentialKey">The Isolated Storage key of the credential, as stored on the setup record.</param>
+    /// <returns>True if an Isolated Storage entry exists for the key.</returns>
+    procedure IsSourceCredentialStored(CredentialKey: Guid): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        exit(MasterDataManagementSetup.IsSourceCredentialStored(CredentialKey));
+    end;
+
+    /// <summary>Checks whether the cross-environment connection details, including a credential, are complete.</summary>
+    /// <returns>True if the cross-environment connection is configured.</returns>
+    procedure IsCrossEnvConnectionConfigured(): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        exit(MasterDataManagementSetup.IsCrossEnvConnectionConfigured());
+    end;
+
     /// <summary>Runs the cross-environment change detector once.</summary>
     procedure RunChangeDetector()
     var
         MDMCrossEnvChangeDetector: Codeunit "MDM Cross-Env Change Detector";
     begin
         MDMCrossEnvChangeDetector.DetectChanges();
+    end;
+
+    /// <summary>Returns the object ID of the cross-environment change detector codeunit, which its job queue entry runs.</summary>
+    /// <returns>The codeunit ID of "MDM Cross-Env Change Detector".</returns>
+    procedure ChangeDetectorCodeunitId(): Integer
+    begin
+        exit(Codeunit::"MDM Cross-Env Change Detector");
     end;
 
     /// <summary>Validates a source environment URL against the HTTP transport's host allow-list; errors if it is not a valid Business Central endpoint.</summary>
@@ -292,6 +388,68 @@ codeunit 139757 "Library - Master Data Mgt."
         InlineMedia: Codeunit "MDM Inline Media";
     begin
         exit(InlineMedia.IsCleared(SystemId, FieldNo));
+    end;
+
+    /// <summary>Clears the per-batch inline media/blob cache.</summary>
+    procedure InlineMediaReset()
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        InlineMedia.Reset();
+    end;
+
+    /// <summary>Caches inline media content for a source field (materialization path).</summary>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="FieldNo">The field number of the media field.</param>
+    /// <param name="FileName">The media file name.</param>
+    /// <param name="MimeType">The media MIME type.</param>
+    /// <param name="ContentBase64">The base64-encoded media content.</param>
+    procedure InlineMediaPut(SystemId: Guid; FieldNo: Integer; FileName: Text; MimeType: Text; ContentBase64: Text)
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        InlineMedia.Put(SystemId, FieldNo, FileName, MimeType, ContentBase64);
+    end;
+
+    /// <summary>Marks an inline media field as cleared (empty on the source) for the same materialization path.</summary>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="FieldNo">The field number of the media field.</param>
+    procedure InlineMediaPutCleared(SystemId: Guid; FieldNo: Integer)
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        InlineMedia.PutCleared(SystemId, FieldNo);
+    end;
+
+    /// <summary>Drops any cached content/cleared state for a media field (the skip = leave-unchanged transition).</summary>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="FieldNo">The field number of the media field.</param>
+    procedure InlineMediaClearMediaState(SystemId: Guid; FieldNo: Integer)
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        InlineMedia.ClearMediaState(SystemId, FieldNo);
+    end;
+
+    /// <summary>Marks an inline blob field as skipped (over the inline cap) so the transfer keeps the destination blob.</summary>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="FieldNo">The field number of the blob field.</param>
+    procedure InlineBlobPutSkipped(SystemId: Guid; FieldNo: Integer)
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        InlineMedia.PutBlobSkipped(SystemId, FieldNo);
+    end;
+
+    /// <summary>Checks whether an inline blob field was marked skipped (over the inline cap) during materialization.</summary>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="FieldNo">The field number of the blob field.</param>
+    /// <returns>True if the field was marked skipped; otherwise false.</returns>
+    procedure InlineBlobIsSkipped(SystemId: Guid; FieldNo: Integer): Boolean
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        exit(InlineMedia.IsBlobSkipped(SystemId, FieldNo));
     end;
 
     /// <summary>Reads the source SystemModifiedAt watermark cached during cross-environment materialization.</summary>

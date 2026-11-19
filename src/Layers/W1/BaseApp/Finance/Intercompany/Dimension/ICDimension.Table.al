@@ -53,8 +53,7 @@ table 411 "IC Dimension"
             begin
                 if "Map-to Dimension Code" <> xRec."Map-to Dimension Code" then begin
                     ICDimensionValue.SetRange("Dimension Code", Code);
-                    ICDimensionValue.ModifyAll("Map-to Dimension Code", "Map-to Dimension Code");
-                    ICDimensionValue.ModifyAll("Map-to Dimension Value Code", '');
+                    ICDimensionValue.ModifyAll("Map-to Dimension Code", "Map-to Dimension Code", "Map-to Dimension Value Code", '');
                 end;
             end;
         }

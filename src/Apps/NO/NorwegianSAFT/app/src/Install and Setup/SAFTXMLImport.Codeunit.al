@@ -55,7 +55,7 @@ codeunit 10671 "SAF-T XML Import"
     begin
         CopyTenantMediaToTempFromMappingSources(TempTenantMedia, SAFTMappingRange.GetSAFTMappingSourceTypeByMappingType(), false);
         if not TempTenantMedia.FindSet() then
-            error(NotPossibleToFindXMLFilesForMappingTypeErr, format(SAFTMappingRange."Mapping Type"));
+            error(NotPossibleToFindXMLFilesForMappingTypeErr, Format(SAFTMappingRange."Mapping Type"));
         repeat
             FillXMLBufferFromMediaResource(TempXMLBuffer, TempTenantMedia);
             Case SAFTMappingRange."Mapping Type" of
@@ -148,7 +148,7 @@ codeunit 10671 "SAF-T XML Import"
             if not TempXMLBuffer.HasChildNodes() then
                 Error(NotPossibleToParseMappingXMLFileErr, SAFTStandardAccountsTxt);
             TempXMLBuffer.FindChildElements(TempChildXMLBuffer);
-            if (strlen(TempChildXMLBuffer.Value) > 4) then
+            if (StrLen(TempChildXMLBuffer.Value) > 4) then
                 Error('Standard account id must not has length more than 4 chars');
             StdAccNo := CopyStr(TempChildXMLBuffer.Value, 1, MaxStrLen(SAFTMapping."No."));
             SAFTMapping.Init();
@@ -156,7 +156,7 @@ codeunit 10671 "SAF-T XML Import"
             SAFTMapping."Category No." := TryInsertCategoryForStandardAccount(SAFTMapping."Mapping Type", StdAccNo);
             SAFTMapping."No." := StdAccNo;
             TempChildXMLBuffer.Next();
-            SAFTMapping.Description := copystr(TempChildXMLBuffer.Value, 1, MaxStrLen(SAFTMapping.Description));
+            SAFTMapping.Description := CopyStr(TempChildXMLBuffer.Value, 1, MaxStrLen(SAFTMapping.Description));
             if SAFTMapping.insert() then;
         until TempXMLBuffer.Next() = 0;
         InsertNotApplicationMappingCode(MappingType);
@@ -210,8 +210,7 @@ codeunit 10671 "SAF-T XML Import"
                 SAFTMappingCategory."No." := CategoryCode;
                 TempChildXMLBuffer.Next();
                 SAFTMappingCategory.Description := CopyStr(TempChildXMLBuffer.Value, 1, MaxStrLen(SAFTMappingCategory.Description));
-                if StrLen(ExtendedCategoryCode) > 20 then
-                    SAFTMappingCategory."Extended No." := ExtendedCategoryCode;
+                SAFTMappingCategory."Extended No." := ExtendedCategoryCode;
                 if not SAFTMappingCategory.insert() then
                     SAFTMappingCategory.Modify();
             end else
@@ -243,17 +242,22 @@ codeunit 10671 "SAF-T XML Import"
         if StrLen(ExtendedCategoryCode) <= 20 then
             exit(false);
 
-        if AutoCategoryCode = '' then begin
-            ExtendedSAFTMappingCategory.SetRange("Mapping Type", ExtendedSAFTMappingCategory."Mapping Type"::"Income Statement");
-            ExtendedSAFTMappingCategory.SetFilter("No.", StrSubstNo('%1*', CatLbl));
-            if ExtendedSAFTMappingCategory.FindLast() then
-                AutoCategoryCode := IncStr(ExtendedSAFTMappingCategory."No.")
-            else
+        ExtendedSAFTMappingCategory.SetRange("Mapping Type", ExtendedSAFTMappingCategory."Mapping Type"::"Income Statement");
+        ExtendedSAFTMappingCategory.SetRange("Extended No.", ExtendedCategoryCode);
+        if ExtendedSAFTMappingCategory.FindFirst() then begin
+            AutoCategoryCode := ExtendedSAFTMappingCategory."No.";
+            exit(true);
+        end;
+
+        ExtendedSAFTMappingCategory.Reset();
+        ExtendedSAFTMappingCategory.SetRange("Mapping Type", ExtendedSAFTMappingCategory."Mapping Type"::"Income Statement");
+        ExtendedSAFTMappingCategory.SetFilter("No.", StrSubstNo('%1*', CatLbl));
+        if ExtendedSAFTMappingCategory.FindLast() then
+            AutoCategoryCode := IncStr(ExtendedSAFTMappingCategory."No.")
+        else
 #pragma warning disable AA0139
-                AutoCategoryCode := IncStr(InitialCatCodeLbl);
+            AutoCategoryCode := IncStr(InitialCatCodeLbl);
 #pragma warning restore AA0139
-        end else
-            AutoCategoryCode := IncStr(AutoCategoryCode);
         exit(true);
     end;
 
@@ -392,7 +396,7 @@ codeunit 10671 "SAF-T XML Import"
     var
         CategoryNo: COde[20];
     begin
-        CategoryNo := copystr(StdAccNo, 1, 1);
+        CategoryNo := CopyStr(StdAccNo, 1, 1);
         case CategoryNo of
             '1':
                 exit(TryInsertSAFTMappingCategory(MappingType, CategoryNo, AssetsLbl));

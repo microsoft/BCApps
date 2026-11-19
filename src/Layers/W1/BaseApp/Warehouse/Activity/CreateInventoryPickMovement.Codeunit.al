@@ -58,7 +58,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
         ExpiredItemMessageText: Text[100];
         PostingDate: Date;
         NextLineNo: Integer;
-        LastTempHandlingSpecNo: Integer;
+        LastTempHandlingSpecNo: BigInteger;
         ATOInvtMovementsCreated: Integer;
         TotalATOInvtMovementsToBeCreated: Integer;
         HideDialog: Boolean;
@@ -366,6 +366,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
         SalesLine: Record "Sales Line";
         NewWarehouseActivityLine: Record "Warehouse Activity Line";
         RemQtyToPickBase: Decimal;
+        QtyOnInvtPickBase: Decimal;
         IsHandled: Boolean;
     begin
         SalesHeader := SalesHeaderVar;
@@ -383,7 +384,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
             IsHandled := false;
             OnBeforeCreatePickOrMoveLineFromSalesLoop(CurrWarehouseActivityHeader, SalesHeader, IsHandled, SalesLine, CurrLocation, NextLineNo, LineCreated, CompleteShipment, AutoCreation, ShowError);
             if not IsHandled and CanPickSalesLine(SalesLine) then
-                if not NewWarehouseActivityLine.ActivityExists(Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.", 0, 0) then begin
+                if CanCreateSalesActivityLine(SalesLine) then begin
                     NewWarehouseActivityLine.Init();
                     NewWarehouseActivityLine."Activity Type" := CurrWarehouseActivityHeader.Type;
                     NewWarehouseActivityLine."No." := CurrWarehouseActivityHeader."No.";
@@ -416,9 +417,13 @@ codeunit 7322 "Create Inventory Pick/Movement"
                         RemQtyToPickBase := -SalesLine."Return Qty. to Receive (Base)";
                     end;
                     OnBeforeNewWhseActivLineInsertFromSales(NewWarehouseActivityLine, SalesLine, CurrWarehouseActivityHeader, RemQtyToPickBase);
+                    QtyOnInvtPickBase := CalcOutstandingQtyOnInvtPick(NewWarehouseActivityLine, false);
+                    RemQtyToPickBase -= QtyOnInvtPickBase;
+                    if (QtyOnInvtPickBase > 0) and (RemQtyToPickBase < 0) then
+                        RemQtyToPickBase := 0;
                     SalesLine.CalcFields(SalesLine."Reserved Quantity");
                     CreatePickOrMoveLine(
-                      NewWarehouseActivityLine, RemQtyToPickBase, SalesLine."Outstanding Qty. (Base)", SalesLine."Reserved Quantity" <> 0);
+                      NewWarehouseActivityLine, RemQtyToPickBase, SalesLine."Outstanding Qty. (Base)" - QtyOnInvtPickBase, SalesLine."Reserved Quantity" <> 0);
                     OnCreatePickOrMoveFromSalesOnAfterCreatePickOrMoveLine(NewWarehouseActivityLine, SalesLine, CurrWarehouseActivityHeader, ShowError, AutoCreation, LineCreated);
                     CorrectQtyRounding(SalesLine, CurrWarehouseActivityHeader);
                     if SalesHeader."Shipping Advice" = SalesHeader."Shipping Advice"::Complete then begin
@@ -441,6 +446,61 @@ codeunit 7322 "Create Inventory Pick/Movement"
                 end;
         until SalesLine.Next() = 0;
         OnAfterCreatePickOrMoveFromSales(CurrWarehouseActivityHeader, AutoCreation, HideDialog, LineCreated, IsInvtMovement, IsBlankInvtMovement);
+    end;
+
+    local procedure CanCreateSalesActivityLine(SalesLine: Record "Sales Line"): Boolean
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        if not WarehouseActivityLine.ActivityExists(Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.", 0, 0) then
+            exit(true);
+
+        if AutoCreation or (CurrWarehouseActivityHeader.Type <> CurrWarehouseActivityHeader.Type::"Invt. Pick") then
+            exit(false);
+
+        WarehouseActivityLine.SetFilter("Activity Type", '<>%1', WarehouseActivityLine."Activity Type"::"Invt. Pick");
+        if not WarehouseActivityLine.IsEmpty() then
+            exit(false);
+
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Invt. Pick");
+        WarehouseActivityLine.SetFilter("No.", '<>%1', CurrWarehouseActivityHeader."No.");
+        exit(WarehouseActivityLine.IsEmpty());
+    end;
+
+    local procedure CalcOutstandingQtyOnInvtPick(NewWarehouseActivityLine: Record "Warehouse Activity Line"; UseTrackingFilter: Boolean): Decimal
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        if AutoCreation or (CurrWarehouseActivityHeader.Type <> CurrWarehouseActivityHeader.Type::"Invt. Pick") or
+           (NewWarehouseActivityLine."Source Type" <> Database::"Sales Line")
+        then
+            exit(0);
+
+        WarehouseActivityLine.SetSourceFilter(
+            NewWarehouseActivityLine."Source Type", NewWarehouseActivityLine."Source Subtype", NewWarehouseActivityLine."Source No.",
+            NewWarehouseActivityLine."Source Line No.", NewWarehouseActivityLine."Source Subline No.", true);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Invt. Pick");
+        WarehouseActivityLine.SetRange("No.", CurrWarehouseActivityHeader."No.");
+        WarehouseActivityLine.SetFilter("Action Type", '<>%1', WarehouseActivityLine."Action Type"::Place);
+        if UseTrackingFilter then
+            WarehouseActivityLine.SetTrackingFilterFromWhseActivityLine(NewWarehouseActivityLine);
+        WarehouseActivityLine.CalcSums("Qty. Outstanding (Base)");
+        exit(WarehouseActivityLine."Qty. Outstanding (Base)");
+    end;
+
+    local procedure AdjustItemTrackingForExistingInvtPick(NewWarehouseActivityLine: Record "Warehouse Activity Line")
+    begin
+        if CalcOutstandingQtyOnInvtPick(NewWarehouseActivityLine, false) = 0 then
+            exit;
+
+        TempTrackingSpecification.Reset();
+        if TempTrackingSpecification.FindSet() then
+            repeat
+                NewWarehouseActivityLine.CopyTrackingFromSpec(TempTrackingSpecification);
+                TempTrackingSpecification."Qty. to Handle (Base)" :=
+                    Minimum(0, TempTrackingSpecification."Qty. to Handle (Base)" + CalcOutstandingQtyOnInvtPick(NewWarehouseActivityLine, true));
+                TempTrackingSpecification.Modify();
+            until TempTrackingSpecification.Next() = 0;
     end;
 
     local procedure CanPickSalesLine(var SalesLine: Record "Sales Line"): Boolean
@@ -773,7 +833,8 @@ codeunit 7322 "Create Inventory Pick/Movement"
              NewWarehouseActivityLine."Source Type", NewWarehouseActivityLine."Source Subtype", NewWarehouseActivityLine."Source No.",
              NewWarehouseActivityLine."Source Line No.", ATOSalesLine)
         then
-            QtyAvailToPickBase += ATOSalesLine.QtyToAsmBaseOnATO();
+            QtyAvailToPickBase +=
+                ATOSalesLine.QtyToAsmBaseOnATO() - WMSManagement.CalcQtyBaseOnATOInvtPick(ATOSalesLine, WhseItemTrackingSetup);
 
         if WMSManagement.GetATOJobPlanningLine(
             NewWarehouseActivityLine."Source Type", NewWarehouseActivityLine."Source No.", NewWarehouseActivityLine."Source Line No.",
@@ -814,6 +875,8 @@ codeunit 7322 "Create Inventory Pick/Movement"
                     ItemTrackingManagement.SumUpItemTrackingOnlyInventoryOrATO(TempReservationEntry, TempTrackingSpecification, true, true);
                 end;
 
+                AdjustItemTrackingForExistingInvtPick(NewWarehouseActivityLine);
+
                 if PickOrMoveAccordingToFEFO(NewWarehouseActivityLine."Location Code", WhseItemTrackingSetup) or
                    PickStrictExpirationPosting(NewWarehouseActivityLine."Item No.", WhseItemTrackingSetup)
                 then begin
@@ -830,7 +893,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
                             NewWarehouseActivityLine, TempTrackingSpecification,
                             RemQtyToPickBase, OutstandingQtyBase, ReservationExists, IsHandled);
                         if not IsHandled then begin
-                            ITQtyToPickBase := Abs(TempTrackingSpecification."Qty. to Handle (Base)");
+                            ITQtyToPickBase := Minimum(RemQtyToPickBase, Abs(TempTrackingSpecification."Qty. to Handle (Base)"));
                             TotalITQtyToPickBase += ITQtyToPickBase;
                             if ITQtyToPickBase > 0 then begin
                                 NewWarehouseActivityLine.CopyTrackingFromSpec(TempTrackingSpecification);
@@ -1832,7 +1895,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
     local procedure PrepareItemTrackingFromWhse(SourceType: Integer; SourceSubtype: Integer; SourceNo: Code[20]; SourceBatchName: Code[20]; SourceProdOrderLine: Integer; SourceLineNo: Integer; SignFactor: Integer; FromWhseWorksheet: Boolean)
     var
         WhseItemTrackingLine: Record "Whse. Item Tracking Line";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         if TempReservationEntry.FindLast() then
             EntryNo := TempReservationEntry."Entry No.";
@@ -2447,7 +2510,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPrepareItemTrackingFromWhseIT(var ReservationEntry: Record "Reservation Entry"; EntryNo: Integer)
+    local procedure OnAfterPrepareItemTrackingFromWhseIT(var ReservationEntry: Record "Reservation Entry"; EntryNo: BigInteger)
     begin
     end;
 
@@ -2501,19 +2564,6 @@ codeunit 7322 "Create Inventory Pick/Movement"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeCreatePickOrMoveLineFromProductionLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; var IsHandled: Boolean; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnBeforeCreatePickOrMoveLineFromProductionLoop(WarehouseActivityHeader, ProductionOrder, IsHandled, ProdOrderComponent);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreateInvtPickMovement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreatePickOrMoveLineFromProductionLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; var IsHandled: Boolean; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateATOInventoryMovementsAutomatically(AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; PrintDocumentForATOMvmt: Boolean; ShowErrorForATOMvmt: Boolean; var IsHandled: Boolean)
     begin
@@ -2528,19 +2578,6 @@ codeunit 7322 "Create Inventory Pick/Movement"
     local procedure OnBeforeCreatePickOrMoveLineFromTransferLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; TransferHeader: Record "Transfer Header"; var IsHandled: Boolean; TransferLine: Record "Transfer Line")
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforeCreatePickOrMoveLineFromAssemblyLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; var IsHandled: Boolean; AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-        OnBeforeCreatePickOrMoveLineFromAssemblyLoop(WarehouseActivityHeader, AssemblyHeader, IsHandled, AssemblyLine);
-    end;
-
-    [Obsolete('Moved to codeunit AsmCreateInvtPickMovement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreatePickOrMoveLineFromAssemblyLoop(var WarehouseActivityHeader: Record "Warehouse Activity Header"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; var IsHandled: Boolean; AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateTempHandlingSpec(WarehouseActivityLine: Record "Warehouse Activity Line"; var TotalQtyToPickBase: Decimal; var IsHandled: Boolean)
@@ -2572,32 +2609,6 @@ codeunit 7322 "Create Inventory Pick/Movement"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeNewWhseActivLineInsertFromAssembly(var WarehouseActivityLine: Record "Warehouse Activity Line"; var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var RemQtyToPickBase: Decimal)
-    begin
-        OnBeforeNewWhseActivLineInsertFromAssembly(WarehouseActivityLine, AssemblyLine, WarehouseActivityHeader, RemQtyToPickBase);
-    end;
-
-    [Obsolete('Moved to codeunit AsmCreateInvtPickMovement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeNewWhseActivLineInsertFromAssembly(var WarehouseActivityLine: Record "Warehouse Activity Line"; var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var RemQtyToPickBase: Decimal)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeNewWhseActivLineInsertFromComp(var WarehouseActivityLine: Record "Warehouse Activity Line"; var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var RemQtyToPickBase: Decimal)
-    begin
-        OnBeforeNewWhseActivLineInsertFromComp(WarehouseActivityLine, ProdOrderComp, WarehouseActivityHeader, RemQtyToPickBase);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreateInvtPickMovement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeNewWhseActivLineInsertFromComp(var WarehouseActivityLine: Record "Warehouse Activity Line"; var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var WarehouseActivityHeader: Record "Warehouse Activity Header"; var RemQtyToPickBase: Decimal)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnRun(var WarehouseActivityHeader: Record "Warehouse Activity Header")
     begin
@@ -2617,32 +2628,6 @@ codeunit 7322 "Create Inventory Pick/Movement"
     local procedure OnBeforeFindTransLine(var TransferLine: Record "Transfer Line"; TransferHeader: Record "Transfer Header"; WarehouseActivityHeader: Record "Warehouse Activity Header")
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforeFindAssemblyLine(var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; WarehouseActivityHeader: Record "Warehouse Activity Header")
-    begin
-        OnBeforeFindAssemblyLine(AssemblyLine, AssemblyHeader, WarehouseActivityHeader);
-    end;
-
-    [Obsolete('Moved to codeunit AsmCreateInvtPickMovement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindAssemblyLine(var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; WarehouseActivityHeader: Record "Warehouse Activity Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeFindProdOrderComp(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; WarehouseActivityHeader: Record "Warehouse Activity Header")
-    begin
-        OnBeforeFindProdOrderComp(ProdOrderComp, ProductionOrder, WarehouseActivityHeader);
-    end;
-
-    [Obsolete('Moved to codeunit MfgCreateInvtPickMovement', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindProdOrderComp(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; WarehouseActivityHeader: Record "Warehouse Activity Header")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSourceDocHeader(var WhseRequest: Record "Warehouse Request"; var IsHandled: Boolean; var RecordExists: Boolean)

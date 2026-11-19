@@ -2618,7 +2618,7 @@ table 81 "Gen. Journal Line"
         /// <summary>
         /// Reference to incoming document entry for electronic invoice and document management integration.
         /// </summary>
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             ToolTip = 'Specifies the number of the incoming document that this general journal line is created for.';
@@ -3550,7 +3550,7 @@ table 81 "Gen. Journal Line"
         /// <summary>
         /// Fixed asset error entry number for tracking FA posting errors and corrections.
         /// </summary>
-        field(5615; "FA Error Entry No."; Integer)
+        field(5615; "FA Error Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'FA Error Entry No.';
@@ -6301,11 +6301,8 @@ table 81 "Gen. Journal Line"
         GenJournalLine.SetFilter("Line No.", '<>%1', "Line No.");
         GenJournalLine.SetRange("Document Type", "Applies-to Doc. Type");
         GenJournalLine.SetRange("Document No.", "Applies-to Doc. No.");
-        if not GenJournalLine.IsEmpty() then begin
-            GenJournalLine.ModifyAll("Applied Automatically", false);
-            GenJournalLine.ModifyAll("Account Type", GenJournalLine."Account Type"::"G/L Account");
-            GenJournalLine.ModifyAll("Account No.", '');
-        end;
+        if not GenJournalLine.IsEmpty() then
+            GenJournalLine.ModifyAll("Applied Automatically", false, "Account Type", GenJournalLine."Account Type"::"G/L Account", "Account No.", '');
     end;
 
     procedure GetIncomingDocumentURL(): Text[1024]

@@ -307,13 +307,7 @@ table 79 "Company Information"
                 MailManagement.ValidateEmailAddressField("E-Mail");
             end;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(35; "Home Page"; Text[255])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Home Page';
             ToolTip = 'Specifies your company''s web site.';
@@ -520,13 +514,7 @@ table 79 "Company Information"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the name of the Power BI workspace that deployable Power BI reports are deployed to. An empty value means the reports are deployed to "My Workspace".';
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(11620; ABN; Text[13])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'ABN';
             Numeric = true;
@@ -562,6 +550,11 @@ table 79 "Company Information"
         field(28070; "VAT Registration Date"; Date)
         {
             Caption = 'VAT Registration Date';
+        }
+        field(7612; "Company Description"; Blob)
+        {
+            Caption = 'Company Description';
+            ToolTip = 'Specifies the company''s nature and intended purpose. The description can provide context for AI-powered experiences.';
         }
     }
 
@@ -732,6 +725,50 @@ table 79 "Company Information"
         Result := FieldCaption(ABN);
         OnAfterGetRegistrationNumberLbl(Result);
     end;
+
+    procedure GetCompanyDescription(): Text
+    var
+        DescriptionInStream: InStream;
+    begin
+        CalcFields("Company Description");
+        if not "Company Description".HasValue() then
+            exit('');
+
+        "Company Description".CreateInStream(DescriptionInStream, GetTextEncoding());
+        exit(ReadText(DescriptionInStream));
+    end;
+
+    procedure SetCompanyDescription(Description: Text)
+    var
+        DescriptionOutStream: OutStream;
+    begin
+        Clear("Company Description");
+        "Company Description".CreateOutStream(DescriptionOutStream, GetTextEncoding());
+        DescriptionOutStream.WriteText(Description);
+        Modify(true);
+    end;
+
+    local procedure ReadText(Input: InStream): Text
+    var
+        TextBuilder: TextBuilder;
+        TextLine: Text;
+        FirstLine: Boolean;
+    begin
+        FirstLine := true;
+        while not Input.EOS() do begin
+            Input.ReadText(TextLine);
+            if not FirstLine then
+                TextBuilder.AppendLine('');
+            TextBuilder.Append(TextLine);
+            FirstLine := false;
+        end;
+        exit(TextBuilder.ToText());
+    end;
+    local procedure GetTextEncoding(): TextEncoding
+    begin
+        exit(TextEncoding::UTF8);
+    end;
+
 
     procedure GetVATRegistrationNumber() Result: Text
     begin

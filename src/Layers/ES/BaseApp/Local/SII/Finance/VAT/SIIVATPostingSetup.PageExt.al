@@ -6,7 +6,8 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Finance.VAT.Setup;
 
-pageextension 7000137 "SII VAT Posting Setup" extends "VAT Posting Setup"
+#pragma warning disable AS0088
+pageextension 7000037 "SII VAT Posting Setup" extends "VAT Posting Setup"
 {
     layout
     {

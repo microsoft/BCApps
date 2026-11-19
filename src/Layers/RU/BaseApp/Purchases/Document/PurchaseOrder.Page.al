@@ -103,7 +103,7 @@ page 50 "Purchase Order"
                             if Rec."Buy-from Vendor No." <> Vendor."No." then
                                 error('');
                             IsPurchaseLinesEditable := Rec.PurchaseLinesEditable();
-                            CurrPage.Update();
+                            CurrPage.SaveRecord();
                         end;
                     end;
 
@@ -765,8 +765,8 @@ page 50 "Purchase Order"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Name 2';
-                            Editable = PayToOptions = PayToOptions::"Another Vendor";
-                            Enabled = PayToOptions = PayToOptions::"Another Vendor";
+                            Editable = (PayToOptions = PayToOptions::"Custom Address") or (Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.");
+                            Enabled = (PayToOptions = PayToOptions::"Custom Address") or (Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.");
                             Importance = Additional;
                             QuickEntry = false;
                             Visible = false;

@@ -78,7 +78,7 @@ codeunit 5814 "Undo Return Shipment Line"
         PostedWhseShptLine: Record "Posted Whse. Shipment Line";
         SalesLine: Record "Sales Line";
         Window: Dialog;
-        ItemShptEntryNo: Integer;
+        ItemShptEntryNo: BigInteger;
         DocLineNo: Integer;
         PostedWhseShptLineFound: Boolean;
     begin
@@ -144,6 +144,7 @@ codeunit 5814 "Undo Return Shipment Line"
         until ReturnShptLine.Next() = 0;
         UnbindSubscription(this);
 
+        OnCodeOnBeforeMakeInventoryAdjustment(SalesLine, ReturnShptLine);
         MakeInventoryAdjustment();
 
         WhseUndoQty.PostTempWhseJnlLine(TempWhseJnlLine);
@@ -213,7 +214,7 @@ codeunit 5814 "Undo Return Shipment Line"
         ReturnShptHeader: Record "Return Shipment Header";
         SourceCodeSetup: Record "Source Code Setup";
         TempApplyToEntryList: Record "Item Ledger Entry" temporary;
-        ItemLedgEntryNo: Integer;
+        ItemLedgEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -280,7 +281,7 @@ codeunit 5814 "Undo Return Shipment Line"
         exit(0); // "Item Shpt. Entry No."
     end;
 
-    local procedure InsertNewReturnShptLine(OldReturnShptLine: Record "Return Shipment Line"; ItemShptEntryNo: Integer; DocLineNo: Integer)
+    local procedure InsertNewReturnShptLine(OldReturnShptLine: Record "Return Shipment Line"; ItemShptEntryNo: BigInteger; DocLineNo: Integer)
     var
         NewReturnShptLine: Record "Return Shipment Line";
     begin
@@ -357,7 +358,7 @@ codeunit 5814 "Undo Return Shipment Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCopyItemJnlLineFromReturnShpt(var ItemJournalLine: Record "Item Journal Line"; ReturnShipmentHeader: Record "Return Shipment Header"; ReturnShipmentLine: Record "Return Shipment Line"; var WhseUndoQty: Codeunit "Whse. Undo Quantity"; var ItemLedgEntryNo: Integer; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; var NextLineNo: Integer; var TempGlobalItemLedgerEntry: Record "Item Ledger Entry" temporary; var TempGlobalItemEntryRelation: Record "Item Entry Relation" temporary; var IsHandled: Boolean)
+    local procedure OnAfterCopyItemJnlLineFromReturnShpt(var ItemJournalLine: Record "Item Journal Line"; ReturnShipmentHeader: Record "Return Shipment Header"; ReturnShipmentLine: Record "Return Shipment Line"; var WhseUndoQty: Codeunit "Whse. Undo Quantity"; var ItemLedgEntryNo: BigInteger; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; var NextLineNo: Integer; var TempGlobalItemLedgerEntry: Record "Item Ledger Entry" temporary; var TempGlobalItemEntryRelation: Record "Item Entry Relation" temporary; var IsHandled: Boolean)
     begin
     end;
 
@@ -407,7 +408,7 @@ codeunit 5814 "Undo Return Shipment Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostItemJnlLine(var ReturnShipmentLine: Record "Return Shipment Line"; DocLineNo: Integer; var ItemLedgEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforePostItemJnlLine(var ReturnShipmentLine: Record "Return Shipment Line"; DocLineNo: Integer; var ItemLedgEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -418,6 +419,11 @@ codeunit 5814 "Undo Return Shipment Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateOrderLine(var ReturnShptLine: Record "Return Shipment Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCodeOnBeforeMakeInventoryAdjustment(var SalesLine: Record "Sales Line"; var ReturnShipmentLine: Record "Return Shipment Line")
     begin
     end;
 

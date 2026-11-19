@@ -11,6 +11,12 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         LibrarySalesLib: Codeunit "Library - Sales";
         WizardPrivacyNoticeOpenCount: Integer;
         InvalidSourceHostErr: Label 'not a valid Business Central endpoint', Locked = true;
+        // Test certificates are generated at run time, so no certificate, private key, or password is checked in.
+        [NonDebuggable]
+        TestCertificatePfxBase64: Text;
+        TestCertificatePublicBase64: Text;
+        TestCertificateThumbprint: Text;
+        TestCertificatePassword: SecretText;
 
     [Test]
     procedure CrossEnvGetBySystemIdRoundTripsSourceRecord()
@@ -441,7 +447,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandlerYes')]
+    [HandlerFunctions('ConfirmHandlerYes,ReopenedSetupPageShowsSameEnvHandler')]
     procedure ClearCrossEnvSetupRevertsToSameEnvironment()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
@@ -463,8 +469,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
 
         // [WHEN] the user runs Clear Cross-Environment Setup and confirms
         SetupPage.OpenEdit();
-        SetupPage.ClearCrossEnvSetup.Invoke();
-        SetupPage.Close();
+        SetupPage.ClearCrossEnvSetup.Invoke(); // reopens the setup page (trapped by ReopenedSetupPageShowsSameEnvHandler) and closes this instance
 
         // [THEN] every cross-environment field and the stored secret are cleared
         MasterDataManagementSetup.Get();
@@ -502,6 +507,462 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         MasterDataManagementSetup.Get();
         MasterDataManagementSetup."Is Enabled" := false;
         MasterDataManagementSetup.Modify(false);
+        CleanUp();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerNo')]
+    procedure EnvironmentCopyClearsSourceSecretAndDisablesCrossEnvSync()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        JobQueueEntry: Record "Job Queue Entry";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        EnvironmentTriggers: Codeunit "Environment Triggers";
+        EmptyRecordId: RecordId;
+        ConnectionDetails: TestPage "MDM Connection Details";
+        SynchJobId: Guid;
+        DetectorJobId: Guid;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO] Copying an environment (e.g. production to sandbox) removes the stored source client secret and
+        //            disables cross-environment synchronization, keeping the rest of the connection for re-entry.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+
+        // [GIVEN] a cross-environment connection saved through the wizard, so the secret is really in Isolated Storage
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.SourceEnvironmentName.SetValue('CONTOSO-PROD');
+        ConnectionDetails.SourceCompanyName.SetValue('CRONUS');
+        ConnectionDetails.OAuth2ClientId.SetValue('11111111-2222-3333-4444-555555555555');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionFinish.Invoke(); // declines "enable now" (ConfirmHandlerNo); enabled directly below
+
+        // [GIVEN] synchronization is enabled
+        MasterDataManagementSetup.Get();
+        Assert.IsFalse(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Precondition: client secret should be stored');
+        MasterDataManagementSetup."Is Enabled" := true; // set directly to skip the enable side effects; the cleanup is what we assert
+        MasterDataManagementSetup.Modify(false);
+
+        // [GIVEN] an active synchronization job and the change detector job. The synchronization job is non-recurring so
+        //         that only the MDM cleanup (not the Base App's put-recurring-jobs-on-hold cleanup) can put it on hold.
+        CreateMinimalCustomerMapping(IntegrationTableMapping);
+        IntegrationTableMapping."Synch. Codeunit ID" := Codeunit::"Integration Master Data Synch.";
+        IntegrationTableMapping.Modify();
+        SynchJobId := InsertReadyJobQueueEntry(Codeunit::"Integration Synch. Job Runner", IntegrationTableMapping.RecordId(), false);
+        DetectorJobId := InsertReadyJobQueueEntry(LibraryMasterDataMgt.ChangeDetectorCodeunitId(), EmptyRecordId, true);
+
+        // [WHEN] the environment is copied from production to a sandbox
+        EnvironmentTriggers.OnAfterCopyEnvironmentPerCompany(0, 'PRODUCTION', 1, 'SANDBOX');
+
+        // [THEN] the secret key is cleared and synchronization is disabled
+        MasterDataManagementSetup.Get();
+        Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Client secret should be removed on environment copy');
+        Assert.IsFalse(MasterDataManagementSetup."Is Enabled", 'Cross-environment synchronization should be disabled on environment copy');
+        // [THEN] background synchronization is stopped: the synchronization job is on hold and the change detector job is removed
+        JobQueueEntry.Get(SynchJobId);
+        Assert.AreEqual(JobQueueEntry.Status::"On Hold", JobQueueEntry.Status, 'Synchronization job should be on hold after environment copy');
+        Assert.IsFalse(JobQueueEntry.Get(DetectorJobId), 'Change detector job should be removed on environment copy');
+        // [THEN] the rest of the connection is kept, so an admin only re-enters the secret
+        Assert.AreEqual('CONTOSO-PROD', MasterDataManagementSetup."Source Environment Name", 'Source environment should be kept');
+        Assert.AreEqual('CRONUS', MasterDataManagementSetup."Source Company Name", 'Source company should be kept');
+        Assert.AreEqual('11111111-2222-3333-4444-555555555555', MasterDataManagementSetup."Source OAuth Client Id", 'Source client id should be kept');
+
+        if JobQueueEntry.Get(SynchJobId) then
+            JobQueueEntry.Delete();
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
+    procedure EnvironmentCopyKeepsSameEnvironmentSyncEnabled()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        EnvironmentTriggers: Codeunit "Environment Triggers";
+    begin
+        // [FEATURE] [Master Data Management] [Security]
+        // [SCENARIO] Copying an environment leaves a same-environment setup (no stored credential) untouched.
+        Initialize();
+        // [GIVEN] an enabled same-environment setup
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup."Is Enabled" := true; // set directly to skip the enable side effects
+        MasterDataManagementSetup.Modify(false);
+
+        // [WHEN] the environment is copied from production to a sandbox
+        EnvironmentTriggers.OnAfterCopyEnvironmentPerCompany(0, 'PRODUCTION', 1, 'SANDBOX');
+
+        // [THEN] synchronization stays enabled
+        MasterDataManagementSetup.Get();
+        Assert.IsTrue(MasterDataManagementSetup."Is Enabled", 'Same-environment synchronization should not be disabled on environment copy');
+
+        MasterDataManagementSetup."Is Enabled" := false;
+        MasterDataManagementSetup.Modify(false);
+        CleanUp();
+    end;
+
+    [Test]
+    procedure SourceClientCertificateIsStoredAndReplacesClientSecret()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        ClientSecretKey: Guid;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] Storing a client certificate keeps the certificate and its password in Isolated Storage, records the
+        //            thumbprint and expiration date, and removes a previously stored client secret.
+        Initialize();
+        // [GIVEN] a cross-environment connection that authenticates with a client secret
+        SetCrossEnvConnectionDetails();
+        LibraryMasterDataMgt.SetSourceClientSecret(SecretStrSubstNo('super-secret'));
+        MasterDataManagementSetup.Get();
+        ClientSecretKey := MasterDataManagementSetup."Source Client Secret Key";
+        Assert.IsTrue(LibraryMasterDataMgt.IsSourceCredentialStored(ClientSecretKey), 'Precondition: client secret should be stored');
+
+        // [WHEN] a password-protected certificate with a private key is stored
+        LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), GetTestCertificatePassword());
+
+        // [THEN] the certificate and password are stored, the client secret is removed, and the connection is configured
+        MasterDataManagementSetup.Get();
+        Assert.IsTrue(LibraryMasterDataMgt.IsSourceCredentialStored(MasterDataManagementSetup."Source Client Certificate Key"), 'Certificate should be stored');
+        Assert.IsTrue(LibraryMasterDataMgt.IsSourceCredentialStored(MasterDataManagementSetup."Source Cert. Password Key"), 'Certificate password should be stored');
+        Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Client secret key should be cleared when a certificate is stored');
+        Assert.IsFalse(LibraryMasterDataMgt.IsSourceCredentialStored(ClientSecretKey), 'Client secret should be removed from Isolated Storage when a certificate is stored');
+        Assert.AreEqual(GetTestCertificateThumbprint(), MasterDataManagementSetup."Source Cert. Thumbprint", 'Certificate thumbprint not saved');
+        Assert.IsTrue(MasterDataManagementSetup."Source Cert. Expiration Date" > CurrentDateTime(), 'Certificate expiration date not saved');
+        Assert.IsTrue(LibraryMasterDataMgt.UsesSourceClientCertificate(), 'Connection should authenticate with the certificate');
+        Assert.IsTrue(LibraryMasterDataMgt.IsCrossEnvConnectionConfigured(), 'A certificate should complete the cross-environment connection');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure DeletingSetupRemovesStoredSourceCredentials()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        ClientSecretKey: Guid;
+        CertificateKey: Guid;
+        CertificatePasswordKey: Guid;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO] Deleting the setup removes the stored client secret, certificate, and certificate password from
+        //            Isolated Storage, so no credential is left behind without a record that references it.
+        Initialize();
+        // [GIVEN] a client secret that a certificate later replaces, and the resulting certificate connection
+        SetCrossEnvConnectionDetails();
+        LibraryMasterDataMgt.SetSourceClientSecret(SecretStrSubstNo('super-secret'));
+        LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), GetTestCertificatePassword());
+        MasterDataManagementSetup.Get();
+        CertificateKey := MasterDataManagementSetup."Source Client Certificate Key";
+        CertificatePasswordKey := MasterDataManagementSetup."Source Cert. Password Key";
+        Assert.IsTrue(LibraryMasterDataMgt.IsSourceCredentialStored(CertificateKey), 'Precondition: certificate should be stored');
+        Assert.IsTrue(LibraryMasterDataMgt.IsSourceCredentialStored(CertificatePasswordKey), 'Precondition: certificate password should be stored');
+
+        // [WHEN] the setup is deleted
+        MasterDataManagementSetup.Delete(true);
+
+        // [THEN] the certificate and its password are removed from Isolated Storage
+        Assert.IsFalse(LibraryMasterDataMgt.IsSourceCredentialStored(CertificateKey), 'Certificate should be removed from Isolated Storage when the setup is deleted');
+        Assert.IsFalse(LibraryMasterDataMgt.IsSourceCredentialStored(CertificatePasswordKey), 'Certificate password should be removed from Isolated Storage when the setup is deleted');
+
+        // [GIVEN] a new setup that authenticates with a client secret
+        MasterDataManagementSetup.Init();
+        MasterDataManagementSetup.Insert(true);
+        SetCrossEnvConnectionDetails();
+        LibraryMasterDataMgt.SetSourceClientSecret(SecretStrSubstNo('super-secret'));
+        MasterDataManagementSetup.Get();
+        ClientSecretKey := MasterDataManagementSetup."Source Client Secret Key";
+        Assert.IsTrue(LibraryMasterDataMgt.IsSourceCredentialStored(ClientSecretKey), 'Precondition: client secret should be stored');
+
+        // [WHEN] the setup is deleted
+        MasterDataManagementSetup.Delete(true);
+
+        // [THEN] the client secret is removed from Isolated Storage
+        Assert.IsFalse(LibraryMasterDataMgt.IsSourceCredentialStored(ClientSecretKey), 'Client secret should be removed from Isolated Storage when the setup is deleted');
+
+        // Recreate the setup that the other tests and CleanUp expect.
+        MasterDataManagementSetup.Init();
+        MasterDataManagementSetup.Insert(true);
+        CleanUp();
+    end;
+
+    [Test]
+    procedure SourceClientSecretReplacesClientCertificate()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        CertificateKey: Guid;
+        CertificatePasswordKey: Guid;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] Storing a client secret removes a previously stored certificate, its password, and its details.
+        Initialize();
+        // [GIVEN] a cross-environment connection that authenticates with a certificate
+        SetCrossEnvConnectionDetails();
+        LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), GetTestCertificatePassword());
+        MasterDataManagementSetup.Get();
+        CertificateKey := MasterDataManagementSetup."Source Client Certificate Key";
+        CertificatePasswordKey := MasterDataManagementSetup."Source Cert. Password Key";
+
+        // [WHEN] a client secret is stored
+        LibraryMasterDataMgt.SetSourceClientSecret(SecretStrSubstNo('super-secret'));
+
+        // [THEN] the certificate is removed and the connection authenticates with the client secret
+        MasterDataManagementSetup.Get();
+        Assert.IsTrue(LibraryMasterDataMgt.IsSourceCredentialStored(MasterDataManagementSetup."Source Client Secret Key"), 'Client secret should be stored');
+        Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Client Certificate Key"), 'Certificate key should be cleared when a client secret is stored');
+        Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Cert. Password Key"), 'Certificate password key should be cleared when a client secret is stored');
+        Assert.IsFalse(LibraryMasterDataMgt.IsSourceCredentialStored(CertificateKey), 'Certificate should be removed from Isolated Storage when a client secret is stored');
+        Assert.IsFalse(LibraryMasterDataMgt.IsSourceCredentialStored(CertificatePasswordKey), 'Certificate password should be removed from Isolated Storage when a client secret is stored');
+        Assert.AreEqual('', MasterDataManagementSetup."Source Cert. Thumbprint", 'Certificate thumbprint should be cleared');
+        Assert.AreEqual(0DT, MasterDataManagementSetup."Source Cert. Expiration Date", 'Certificate expiration date should be cleared');
+        Assert.IsFalse(LibraryMasterDataMgt.UsesSourceClientCertificate(), 'Connection should authenticate with the client secret');
+        Assert.IsTrue(LibraryMasterDataMgt.IsCrossEnvConnectionConfigured(), 'A client secret should complete the cross-environment connection');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure SourceClientCertificateWithWrongPasswordIsRejected()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] A certificate that cannot be read with the given password is not stored.
+        Initialize();
+        SetCrossEnvConnectionDetails();
+
+        // [WHEN] the certificate is stored with a wrong password
+        asserterror LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), SecretStrSubstNo('wrong-password'));
+
+        // [THEN] an actionable error is raised and no credential is stored
+        Assert.ExpectedError('The certificate could not be read');
+        Assert.IsFalse(LibraryMasterDataMgt.UsesSourceClientCertificate(), 'A certificate that cannot be read should not be stored');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure SourceClientCertificateWithoutPasswordIsRejected()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        NoPassword: SecretText;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] A password-protected certificate cannot be stored without its password.
+        Initialize();
+        SetCrossEnvConnectionDetails();
+
+        // [WHEN] the password-protected certificate is stored with an empty password
+        asserterror LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), NoPassword);
+
+        // [THEN] an actionable error is raised and no credential is stored
+        Assert.ExpectedError('The certificate could not be read');
+        Assert.IsFalse(LibraryMasterDataMgt.UsesSourceClientCertificate(), 'A password-protected certificate should not be stored without its password');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure SourceClientCertificateWithoutPrivateKeyIsRejected()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] A certificate without the private key cannot sign the token request, so it is not stored.
+        Initialize();
+        SetCrossEnvConnectionDetails();
+
+        // [WHEN] the public part of the certificate (no private key) is stored
+        asserterror LibraryMasterDataMgt.SetSourceClientCertificate(GetTestPublicCertificateBase64(), SecretStrSubstNo(''));
+
+        // [THEN] an actionable error is raised and no credential is stored
+        Assert.ExpectedError('The certificate does not contain a private key');
+        Assert.IsFalse(LibraryMasterDataMgt.UsesSourceClientCertificate(), 'A certificate without a private key should not be stored');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure SourceClientCertificateExpiredIsRejected()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] An expired certificate is not stored.
+        Initialize();
+        SetCrossEnvConnectionDetails();
+
+        // [WHEN] an expired certificate is stored
+        asserterror LibraryMasterDataMgt.SetSourceClientCertificate(GetTestExpiredCertificateBase64(), GetTestCertificatePassword());
+
+        // [THEN] an actionable error is raised and no credential is stored
+        Assert.ExpectedError('The certificate expired on');
+        Assert.IsFalse(LibraryMasterDataMgt.UsesSourceClientCertificate(), 'An expired certificate should not be stored');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure ConnectionDetailsWizardRequiresCertificateWhenCertificateSelected()
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] Choosing certificate authentication in the wizard replaces the client secret field with the
+        //            certificate fields, and the wizard cannot continue until a certificate is provided.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+
+        // [GIVEN] the connection step with the source environment, company, and client ID filled in
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.SourceEnvironmentName.SetValue('CONTOSO-PROD');
+        ConnectionDetails.SourceCompanyName.SetValue('CRONUS');
+        ConnectionDetails.OAuth2ClientId.SetValue('11111111-2222-3333-4444-555555555555');
+
+        // [WHEN] certificate authentication is chosen
+        ConnectionDetails.AuthenticationType.SetValue('Certificate');
+
+        // [THEN] the certificate fields replace the client secret, and Next stays disabled without a certificate
+        Assert.IsFalse(ConnectionDetails.OAuth2ClientSecret.Visible(), 'Client secret should be hidden for certificate authentication');
+        Assert.IsTrue(ConnectionDetails.ClientCertificate.Visible(), 'Certificate should be shown for certificate authentication');
+        Assert.IsTrue(ConnectionDetails.CertificatePassword.Visible(), 'Certificate password should be shown for certificate authentication');
+        Assert.IsFalse(ConnectionDetails.ActionNext.Enabled(), 'Next should be disabled until a certificate is uploaded');
+
+        // [WHEN] the user switches back to client secret authentication and enters a secret
+        ConnectionDetails.AuthenticationType.SetValue('Client Secret');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+
+        // [THEN] the certificate fields are hidden and Next is enabled
+        Assert.IsFalse(ConnectionDetails.ClientCertificate.Visible(), 'Certificate should be hidden for client secret authentication');
+        Assert.IsTrue(ConnectionDetails.ActionNext.Enabled(), 'Next should be enabled once the client secret is entered');
+        ConnectionDetails.Close();
+
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerNo')]
+    procedure ConnectionDetailsWizardKeepsStoredCertificate()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] Reopening the wizard for a connection that uses a certificate shows the stored certificate details
+        //            and lets the user finish without uploading the certificate again.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        // [GIVEN] a cross-environment connection that authenticates with a certificate
+        SetCrossEnvConnectionDetails();
+        LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), GetTestCertificatePassword());
+
+        // [WHEN] the wizard is opened and the connection step is shown
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+
+        // [THEN] certificate authentication and the stored certificate's thumbprint are shown, and Next is enabled
+        Assert.AreEqual('Certificate', ConnectionDetails.AuthenticationType.Value(), 'Certificate authentication should be selected');
+        Assert.AreEqual(GetTestCertificateThumbprint(), ConnectionDetails.CertificateThumbprint.Value(), 'Stored certificate thumbprint should be shown');
+        Assert.IsTrue(ConnectionDetails.ActionNext.Enabled(), 'Next should be enabled with a stored certificate');
+
+        // [WHEN] the wizard is finished without uploading a new certificate
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionFinish.Invoke();
+
+        // [THEN] the stored certificate is kept
+        MasterDataManagementSetup.Get();
+        Assert.IsFalse(IsNullGuid(MasterDataManagementSetup."Source Client Certificate Key"), 'Stored certificate should be kept');
+        Assert.AreEqual(GetTestCertificateThumbprint(), MasterDataManagementSetup."Source Cert. Thumbprint", 'Stored certificate thumbprint should be kept');
+
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConnectionTestedMessageHandler')]
+    procedure ConnectionDetailsWizardRequiresNewCertificateAfterSecretReplacesIt()
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] After the wizard saves a client secret in place of a stored certificate, switching back to certificate
+        //            authentication no longer shows the deleted certificate and requires a new one before Next.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        InProcessTransport.Activate();
+        // [GIVEN] a cross-environment connection that authenticates with a certificate
+        SetCrossEnvConnectionDetails();
+        LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), GetTestCertificatePassword());
+
+        // [GIVEN] in the wizard, the user switches to client secret authentication and tests the connection, which saves the secret
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.AuthenticationType.SetValue('Client Secret');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.TestConnection.Invoke();
+        Assert.IsFalse(LibraryMasterDataMgt.UsesSourceClientCertificate(), 'Precondition: the client secret should replace the stored certificate');
+
+        // [WHEN] the user goes back and switches to certificate authentication again
+        ConnectionDetails.ActionBack.Invoke();
+        ConnectionDetails.AuthenticationType.SetValue('Certificate');
+
+        // [THEN] the deleted certificate is no longer shown and Next stays disabled until a new certificate is uploaded
+        Assert.IsFalse(ConnectionDetails.CertificateThumbprint.Visible(), 'The thumbprint of the replaced certificate should no longer be shown');
+        Assert.IsFalse(ConnectionDetails.ActionNext.Enabled(), 'Next should be disabled until a new certificate is uploaded');
+        ConnectionDetails.Close();
+
+        InProcessTransport.Deactivate();
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
+    procedure EnvironmentCopyClearsSourceCertificateAndDisablesCrossEnvSync()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        EnvironmentTriggers: Codeunit "Environment Triggers";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate] [Security]
+        // [SCENARIO] Copying an environment removes the stored certificate and its password and disables
+        //            cross-environment synchronization, keeping the rest of the connection for re-entry.
+        Initialize();
+        // [GIVEN] an enabled cross-environment connection that authenticates with a certificate
+        SetCrossEnvConnectionDetails();
+        LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), GetTestCertificatePassword());
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup."Is Enabled" := true; // set directly to skip the enable side effects; the cleanup is what we assert
+        MasterDataManagementSetup.Modify(false);
+
+        // [WHEN] the environment is copied from production to a sandbox
+        EnvironmentTriggers.OnAfterCopyEnvironmentPerCompany(0, 'PRODUCTION', 1, 'SANDBOX');
+
+        // [THEN] the certificate, its password, and its details are cleared and synchronization is disabled
+        MasterDataManagementSetup.Get();
+        Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Client Certificate Key"), 'Certificate should be removed on environment copy');
+        Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Cert. Password Key"), 'Certificate password should be removed on environment copy');
+        Assert.AreEqual('', MasterDataManagementSetup."Source Cert. Thumbprint", 'Certificate thumbprint should be cleared on environment copy');
+        Assert.IsFalse(MasterDataManagementSetup."Is Enabled", 'Cross-environment synchronization should be disabled on environment copy');
+        // [THEN] the rest of the connection is kept, so an admin only re-uploads the certificate
+        Assert.AreEqual('CONTOSO-PROD', MasterDataManagementSetup."Source Environment Name", 'Source environment should be kept');
+        Assert.AreEqual('11111111-2222-3333-4444-555555555555', MasterDataManagementSetup."Source OAuth Client Id", 'Source client id should be kept');
+
         CleanUp();
     end;
 
@@ -960,6 +1421,581 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         CleanUp();
     end;
 
+    [Test]
+    procedure CrossEnvOversizeBlobMarksSkipForApply()
+    var
+        TestTableA: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] An over-cap Blob is skipped AND marked so the field transfer keeps the destination blob (blobs
+        // travel in-band on the temp record, so without the marker the empty temp value would clear the destination).
+        Initialize();
+        CreateTestTableAWithBlob(TestTableA, PadStr('', 600000, 'A')); // > 512 KB raw
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        Assert.IsTrue(LibraryMasterDataMgt.DataSourceGetBySystemId(Database::"MDM Test Table A", TestTableA.SystemId, SourceRecordRef), 'Record should still materialize');
+        Assert.IsTrue(
+            LibraryMasterDataMgt.InlineBlobIsSkipped(TestTableA.SystemId, TestTableA.FieldNo("Test Blob")),
+            'An over-cap blob must be marked skipped so the transfer preserves the destination blob');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvSkippedBlobPreservesDestinationBlob()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        DestinationFieldRef: FieldRef;
+        BlobOutStream: OutStream;
+        NewValue: Variant;
+        IsValueFound: Boolean;
+        NeedsConversion: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] An over-cap source Blob is skipped (not sent inline), so the temp source blob is empty. The field
+        // transfer must keep the existing destination blob instead of clearing it. Regression guard for blob data loss.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        // [GIVEN] a destination record with an existing blob (seeded like the engine's SetTextValue, i.e. Write, so the
+        // read round-trips), and a source record whose (over-cap) blob was skipped
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        BlobOutStream.Write('existing destination blob');
+        DestinationRecord.Insert();
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert(); // empty (skipped) blob; carries a real SystemId
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        SourceRecordRef.GetTable(SourceRecord);
+        DestinationRecordRef.GetTable(DestinationRecord);
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test Blob"));
+        DestinationFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+
+        // [WHEN] the field-transfer subscriber resolves the blob value
+        LibraryMasterDataMgt.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
+
+        // [THEN] the resolved value is the destination's own content. The engine writes a resolved Blob via
+        // SetTextValue(dest, Format(NewValue)), so asserting Format(NewValue) mirrors the production write and proves
+        // the destination blob is preserved unchanged (not cleared by the empty source value).
+        Assert.IsTrue(IsValueFound, 'A skipped cross-env blob must be resolved so the destination is not cleared');
+        Assert.AreEqual(false, NeedsConversion, '');
+        Assert.AreEqual('existing destination blob', Format(NewValue), 'The skipped blob must resolve to the destination''s current content, unchanged');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvSkippedBlobPreservesDestinationBlobWhenKeyRenamed()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        RenamedDestination: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        DestinationFieldRef: FieldRef;
+        BlobOutStream: OutStream;
+        NewValue: Variant;
+        IsValueFound: Boolean;
+        NeedsConversion: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A key mapping renames the destination buffer before the Blob mapping runs, so the buffer's key no
+        // longer matches the stored row. The skipped-blob transfer must still resolve the stored content by SystemId
+        // (not the renamed key) so the destination blob is preserved rather than cleared or the sync failing.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        // [GIVEN] a destination record with an existing blob and a source record whose over-cap blob was skipped
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        BlobOutStream.Write('existing destination blob');
+        DestinationRecord.Insert();
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        SourceRecordRef.GetTable(SourceRecord);
+        DestinationRecordRef.GetTable(DestinationRecord);
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test Blob"));
+        DestinationFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+
+        // [GIVEN] the stored row is renamed, so the in-flight buffer's key no longer matches the database row
+        RenamedDestination.Get(DestinationRecord."Primary Key");
+        RenamedDestination.Rename(CopyStr('R' + Format(LibraryRandomInt()), 1, MaxStrLen(RenamedDestination."Primary Key")));
+
+        // [WHEN] the field-transfer subscriber resolves the blob value against the stale-key buffer
+        LibraryMasterDataMgt.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
+
+        // [THEN] the value resolves to the stored content via SystemId, so the destination blob is preserved unchanged
+        Assert.IsTrue(IsValueFound, 'A skipped cross-env blob must resolve even when the buffer key was renamed');
+        Assert.AreEqual('existing destination blob', Format(NewValue), 'The skipped blob must resolve to the stored content via SystemId, not the renamed key');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvSkippedBlobReportedUnmodifiedBeforeCompare()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SourceRecordRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        Result: Boolean;
+        IsHandled: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A skipped over-cap source Blob is reported as unchanged before the engine's field comparison, so
+        // the engine leaves the destination Blob untouched (no key-based read, no clear) regardless of mapping order.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        SourceRecordRef.GetTable(SourceRecord);
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test Blob"));
+
+        // [WHEN] the engine asks whether the skipped blob field is modified
+        Result := true;
+        IsHandled := false;
+        LibraryMasterDataMgt.HandleOnBeforeIsFieldModified(SourceFieldRef, Result, IsHandled);
+
+        // [THEN] it is reported handled and unchanged, so the engine skips the destination blob entirely
+        Assert.IsTrue(IsHandled, 'A skipped cross-env blob must short-circuit the engine field comparison');
+        Assert.IsFalse(Result, 'A skipped cross-env blob must be reported as unchanged');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvNonSkippedBlobNotShortCircuited()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SourceRecordRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        Result: Boolean;
+        IsHandled: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A blob with no skip marker is left to the engine's normal comparison (not short-circuited).
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+
+        SourceRecordRef.GetTable(SourceRecord);
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test Blob"));
+
+        // [WHEN] the engine asks whether an ordinary (not skipped) blob field is modified
+        Result := false;
+        IsHandled := false;
+        LibraryMasterDataMgt.HandleOnBeforeIsFieldModified(SourceFieldRef, Result, IsHandled);
+
+        // [THEN] the subscriber leaves the decision to the engine
+        Assert.IsFalse(IsHandled, 'A blob without a skip marker must not short-circuit the engine comparison');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure InlineMediaContentSupersedesEarlierClearForSameKey()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SystemId: Guid;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] The same (SystemId, field) can arrive twice in one batch (re-modified between pages): cleared,
+        // then content. The newest state must win, so storing content drops the stale cleared marker.
+        Initialize();
+        LibraryMasterDataMgt.InlineMediaReset();
+        SystemId := CreateGuid();
+
+        LibraryMasterDataMgt.InlineMediaPutCleared(SystemId, 5);
+        LibraryMasterDataMgt.InlineMediaPut(SystemId, 5, 'pic.bin', 'application/octet-stream', 'QUJD');
+
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaCacheContains(SystemId, 5), 'The newest content must win over an earlier cleared marker');
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaIsCleared(SystemId, 5), 'A stale cleared marker must not survive newer content');
+
+        LibraryMasterDataMgt.InlineMediaReset();
+        CleanUp();
+    end;
+
+    [Test]
+    procedure InlineMediaClearSupersedesEarlierContentForSameKey()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SystemId: Guid;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] Reverse of the above: content then cleared for the same key. The newest cleared state must win so
+        // the transfer removes the destination picture rather than re-applying stale bytes.
+        Initialize();
+        LibraryMasterDataMgt.InlineMediaReset();
+        SystemId := CreateGuid();
+
+        LibraryMasterDataMgt.InlineMediaPut(SystemId, 5, 'pic.bin', 'application/octet-stream', 'QUJD');
+        LibraryMasterDataMgt.InlineMediaPutCleared(SystemId, 5);
+
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaIsCleared(SystemId, 5), 'The newest cleared marker must win over earlier content');
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaCacheContains(SystemId, 5), 'Stale content must not survive a newer cleared marker');
+
+        LibraryMasterDataMgt.InlineMediaReset();
+        CleanUp();
+    end;
+
+    [Test]
+    procedure InlineMediaSkipSupersedesEarlierContentForSameKey()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SystemId: Guid;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] The newest duplicate has over-cap (skipped) media; earlier cached content must be dropped so the
+        // transfer leaves the destination unchanged instead of re-applying stale bytes.
+        Initialize();
+        LibraryMasterDataMgt.InlineMediaReset();
+        SystemId := CreateGuid();
+
+        LibraryMasterDataMgt.InlineMediaPut(SystemId, 5, 'pic.bin', 'application/octet-stream', 'QUJD');
+        LibraryMasterDataMgt.InlineMediaClearMediaState(SystemId, 5); // newest duplicate is over-cap (skipped)
+
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaCacheContains(SystemId, 5), 'A skipped newest state must drop earlier cached content');
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaIsCleared(SystemId, 5), 'A skipped newest state must not leave a cleared marker');
+
+        LibraryMasterDataMgt.InlineMediaReset();
+        CleanUp();
+    end;
+
+    [Test]
+    procedure InlineMediaSkipSupersedesEarlierClearForSameKey()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SystemId: Guid;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] The newest duplicate has over-cap (skipped) media; an earlier cleared marker must be dropped so
+        // the transfer leaves the destination unchanged instead of clearing it.
+        Initialize();
+        LibraryMasterDataMgt.InlineMediaReset();
+        SystemId := CreateGuid();
+
+        LibraryMasterDataMgt.InlineMediaPutCleared(SystemId, 5);
+        LibraryMasterDataMgt.InlineMediaClearMediaState(SystemId, 5); // newest duplicate is over-cap (skipped)
+
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaIsCleared(SystemId, 5), 'A skipped newest state must drop an earlier cleared marker');
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaCacheContains(SystemId, 5), 'A skipped newest state must not leave cached content');
+
+        LibraryMasterDataMgt.InlineMediaReset();
+        CleanUp();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CrossEnvSkippedBlobPreservedThroughSynchEngine()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        TempIntegrationFieldMapping: Record "Temp Integration Field Mapping" temporary;
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        IntegrationRecordSynch: Codeunit "Integration Record Synch.";
+        TempBlob: Codeunit "Temp Blob";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        DestBlobField: FieldRef;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        PreservedText: Text;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] End-to-end through the real synch engine: an over-cap (skipped) source blob must leave the
+        // destination blob unchanged after Integration Record Synch. transfers the mapped blob field.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        // [GIVEN] a destination record with an existing blob (seeded the way the engine stores blobs, i.e. Write)
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        BlobOutStream.Write('existing destination blob');
+        DestinationRecord.Insert();
+
+        // [GIVEN] a source record whose over-cap blob was skipped (empty temp blob + skip marker)
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        SourceRecordRef.GetTable(SourceRecord);
+        DestinationRecordRef.GetTable(DestinationRecord);
+
+        // [GIVEN] a field mapping for the blob field (source -> destination)
+        TempIntegrationFieldMapping.Init();
+        TempIntegrationFieldMapping."No." := 1;
+        TempIntegrationFieldMapping."Source Field No." := SourceRecord.FieldNo("Test Blob");
+        TempIntegrationFieldMapping."Destination Field No." := DestinationRecord.FieldNo("Test Blob");
+        TempIntegrationFieldMapping."Validate Destination Field" := false;
+        TempIntegrationFieldMapping.Bidirectional := false;
+        TempIntegrationFieldMapping.Insert();
+
+        // [WHEN] the real synch engine transfers the mapped fields
+        IntegrationRecordSynch.SetFieldMapping(TempIntegrationFieldMapping);
+        IntegrationRecordSynch.SetParameters(SourceRecordRef, DestinationRecordRef, false);
+        Commit(); // Integration Record Synch. runs via Codeunit.Run
+        Assert.IsTrue(IntegrationRecordSynch.Run(), 'The field transfer should succeed');
+
+        // [THEN] the destination blob is unchanged (not cleared by the empty skipped source)
+        DestBlobField := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        TempBlob.FromFieldRef(DestBlobField);
+        Assert.IsTrue(TempBlob.HasValue(), 'The destination blob must be preserved (not cleared) through the transfer');
+        TempBlob.CreateInStream(BlobInStream, TextEncoding::UTF8);
+        BlobInStream.Read(PreservedText);
+        Assert.AreEqual('existing destination blob', PreservedText, 'The skipped blob must leave the destination content unchanged through the engine');
+
+        CleanUp();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CrossEnvSkippedBlobSurvivesEngineWhenKeyMappedBeforeBlob()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        TempIntegrationFieldMapping: Record "Temp Integration Field Mapping" temporary;
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        IntegrationRecordSynch: Codeunit "Integration Record Synch.";
+        TempBlob: Codeunit "Temp Blob";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        DestBlobFieldRef: FieldRef;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        PreservedText: Text;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] The real synch engine processes the key mapping before the Blob mapping (No. 1 vs No. 2), so the
+        // destination buffer's primary key is already the new source key by the time the skipped over-cap Blob field is
+        // reached. Under only-modified (update) semantics the transfer must not read the destination Blob by the stale
+        // key and must not fail, leaving the transferred destination buffer's Blob untouched (S3/S5, key-before-Blob).
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        // [GIVEN] a destination record (old key) with an existing blob
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        BlobOutStream.Write('existing destination blob');
+        DestinationRecord.Insert();
+
+        // [GIVEN] a source record with a DIFFERENT (renamed) key whose over-cap blob was skipped
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        SourceRecordRef.GetTable(SourceRecord);
+        DestinationRecordRef.GetTable(DestinationRecord);
+        // load the existing bytes into the buffer up front, so a transfer that cleared the blob would be visible on it
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        DestBlobFieldRef.CalcField();
+
+        // [GIVEN] the key mapping is ordered (No. 1) before the blob mapping (No. 2), so the engine renames the
+        // destination buffer key first and reaches the skipped blob with a key that no longer matches the stored row
+        TempIntegrationFieldMapping.Init();
+        TempIntegrationFieldMapping."No." := 1;
+        TempIntegrationFieldMapping."Source Field No." := SourceRecord.FieldNo("Primary Key");
+        TempIntegrationFieldMapping."Destination Field No." := DestinationRecord.FieldNo("Primary Key");
+        TempIntegrationFieldMapping."Validate Destination Field" := false;
+        TempIntegrationFieldMapping.Bidirectional := false;
+        TempIntegrationFieldMapping.Insert();
+        TempIntegrationFieldMapping.Init();
+        TempIntegrationFieldMapping."No." := 2;
+        TempIntegrationFieldMapping."Source Field No." := SourceRecord.FieldNo("Test Blob");
+        TempIntegrationFieldMapping."Destination Field No." := DestinationRecord.FieldNo("Test Blob");
+        TempIntegrationFieldMapping."Validate Destination Field" := false;
+        TempIntegrationFieldMapping.Bidirectional := false;
+        TempIntegrationFieldMapping.Insert();
+
+        // [WHEN] the real engine transfers the mapped fields with only-modified (update) semantics
+        IntegrationRecordSynch.SetFieldMapping(TempIntegrationFieldMapping);
+        IntegrationRecordSynch.SetParameters(SourceRecordRef, DestinationRecordRef, true);
+        Commit();
+
+        // [THEN] the transfer succeeds - the skipped blob is never read by the renamed key ...
+        Assert.IsTrue(IntegrationRecordSynch.Run(), 'The transfer must succeed with the key mapped before the skipped blob');
+        // [THEN] ... the key mapping was actually processed (precondition held) ...
+        Assert.IsTrue(IntegrationRecordSynch.GetWasModified(), 'The key mapping must have been processed before the blob');
+
+        // [THEN] ... and the blob on the transferred buffer is left unchanged (a clear would empty it here)
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        TempBlob.FromFieldRef(DestBlobFieldRef);
+        Assert.IsTrue(TempBlob.HasValue(), 'The transferred destination buffer blob must not be cleared by the skipped source');
+        TempBlob.CreateInStream(BlobInStream, TextEncoding::UTF8);
+        BlobInStream.Read(PreservedText);
+        Assert.AreEqual('existing destination blob', PreservedText, 'The skipped blob must leave the transferred destination buffer content unchanged');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvSkippedBlobPreservesBinaryDestinationThroughOnAfter()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        TempBlob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        DestBlobFieldRef: FieldRef;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        OriginalBase64: Text;
+        PreservedBase64: Text;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] Binary (non-UTF-8) destination blob bytes survive a skipped over-cap source blob byte-exact via
+        // the OnAfterTransferRecordFields restore, which the text round-trip alone could not guarantee.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        OriginalBase64 := '//7+/QABAgP/'; // arbitrary non-UTF-8 bytes (0xFF 0xFE ...) that would not survive a UTF-8 round-trip
+
+        // [GIVEN] a destination record whose blob holds non-UTF-8 binary content
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream);
+        Base64Convert.FromBase64(OriginalBase64, BlobOutStream);
+        DestinationRecord.Insert();
+
+        // [GIVEN] a source record whose over-cap blob was skipped
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        // [GIVEN] a destination buffer whose blob was cleared by the field transfer (the database still holds the original)
+        DestinationRecordRef.GetTable(DestinationRecord);
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        Clear(TempBlob);
+        TempBlob.ToFieldRef(DestBlobFieldRef);
+        SourceRecordRef.GetTable(SourceRecord);
+
+        // [WHEN] the after-transfer restore runs
+        LibraryMasterDataMgt.HandleOnAfterTransferRecordFields(SourceRecordRef, DestinationRecordRef);
+
+        // [THEN] the destination buffer blob is byte-exact to the original (restored from the database, not text-decoded)
+        Clear(TempBlob);
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        TempBlob.FromFieldRef(DestBlobFieldRef);
+        Assert.IsTrue(TempBlob.HasValue(), 'The binary destination blob must be restored');
+        TempBlob.CreateInStream(BlobInStream);
+        PreservedBase64 := Base64Convert.ToBase64(BlobInStream);
+        Assert.AreEqual(OriginalBase64, PreservedBase64, 'Non-UTF-8 destination blob bytes must be preserved byte-exact');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvSkippedBlobPreservedWhenPrimaryKeyRenamed()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        RenamedDestination: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        TempBlob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        DestBlobFieldRef: FieldRef;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        OriginalBase64: Text;
+        PreservedBase64: Text;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A source rename changes the destination primary key, so the in-flight buffer's RecordId no
+        // longer matches the database row. The after-transfer restore must reload the original blob by the stable
+        // SystemId (not the stale primary key) so a skipped over-cap blob still leaves the destination bytes unchanged.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        OriginalBase64 := '//7+/QABAgP/';
+
+        // [GIVEN] a destination record whose blob holds non-UTF-8 binary content
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream);
+        Base64Convert.FromBase64(OriginalBase64, BlobOutStream);
+        DestinationRecord.Insert();
+
+        // [GIVEN] a source record whose over-cap blob was skipped
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        // [GIVEN] the in-flight destination buffer, captured with the blob cleared by the field transfer
+        DestinationRecordRef.GetTable(DestinationRecord);
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        Clear(TempBlob);
+        TempBlob.ToFieldRef(DestBlobFieldRef);
+        SourceRecordRef.GetTable(SourceRecord);
+
+        // [GIVEN] the database row is renamed (as OnBeforeModifyRecord does), so the buffer's RecordId is now stale
+        // while the row keeps the same SystemId
+        RenamedDestination.Get(DestinationRecord."Primary Key");
+        RenamedDestination.Rename(CopyStr('R' + Format(LibraryRandomInt()), 1, MaxStrLen(RenamedDestination."Primary Key")));
+
+        // [WHEN] the after-transfer restore runs against the stale-key buffer
+        LibraryMasterDataMgt.HandleOnAfterTransferRecordFields(SourceRecordRef, DestinationRecordRef);
+
+        // [THEN] the blob is still restored byte-exact, reloaded via the stable SystemId rather than the renamed key
+        Clear(TempBlob);
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        TempBlob.FromFieldRef(DestBlobFieldRef);
+        Assert.IsTrue(TempBlob.HasValue(), 'The blob must be restored even when the primary key was renamed');
+        TempBlob.CreateInStream(BlobInStream);
+        PreservedBase64 := Base64Convert.ToBase64(BlobInStream);
+        Assert.AreEqual(OriginalBase64, PreservedBase64, 'A renamed key must still preserve the destination blob byte-exact');
+
+        CleanUp();
+    end;
+
+    local procedure EnableCrossEnvForTransfer(EnvironmentName: Text)
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        if not MasterDataManagementSetup.Get() then begin
+            MasterDataManagementSetup.Init();
+            MasterDataManagementSetup.Insert();
+        end;
+        MasterDataManagementSetup."Source Environment Name" := CopyStr(EnvironmentName, 1, MaxStrLen(MasterDataManagementSetup."Source Environment Name"));
+        MasterDataManagementSetup."Is Enabled" := true;
+        MasterDataManagementSetup.Modify(false);
+    end;
+
     local procedure CreateTestTableAMapping(var IntegrationTableMapping: Record "Integration Table Mapping")
     var
         IntegrationFieldMapping: Record "Integration Field Mapping";
@@ -1051,6 +2087,10 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         end;
         MasterDataManagementSetup."Source Environment Name" := '';
         MasterDataManagementSetup.Modify(false);
+        // Setup commits survive AutoRollback, so remove a connection and credentials left by an earlier test through the
+        // setup's own cleanup, which also deletes them from Isolated Storage; otherwise the wizard opens in certificate
+        // mode for tests that enter a client secret.
+        LibraryMasterDataMgt.ClearCrossEnvConnection();
     end;
 
     [ConfirmHandler]
@@ -1065,6 +2105,21 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         Reply := false;
     end;
 
+    [MessageHandler]
+    procedure ConnectionTestedMessageHandler(Message: Text[1024])
+    begin
+        Assert.IsTrue(StrPos(Message, 'Successfully connected to the source environment') = 1, 'Unexpected message: ' + Message);
+    end;
+
+    [PageHandler]
+    procedure ReopenedSetupPageShowsSameEnvHandler(var SetupPage: TestPage "Master Data Management Setup")
+    begin
+        // The Clear Cross-Environment Setup action reopens the setup page to reapply field visibility. The reopened page
+        // must show the same-environment source company field and hide the cross-environment source fields.
+        Assert.IsTrue(SetupPage."Company Name".Visible(), 'Same-environment source company field should be visible after clearing cross-environment setup');
+        Assert.IsFalse(SetupPage."Source Company Name".Visible(), 'Cross-environment source company field should be hidden after clearing cross-environment setup');
+    end;
+
     local procedure CleanUp()
     var
         InProcessTransport: Codeunit "MDM In-Process Transport";
@@ -1074,6 +2129,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         InProcessTransport.Deactivate();
         PagingConfig.Deactivate();
         LibraryMasterDataMgt.SetSourceEnvironmentName('');
+        LibraryMasterDataMgt.ClearCrossEnvConnection(); // removes stored credentials from Isolated Storage, not just their keys
         DeleteTestArtifacts();
     end;
 
@@ -1101,6 +2157,22 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         IntegrationTableMapping."Int. Tbl. Modified On Fld. No." := 2000000003; // SystemModifiedAt
         IntegrationTableMapping."Delete After Synchronization" := false;
         IntegrationTableMapping.Insert();
+    end;
+
+    // Insert-only (no scheduling): the test lab can't schedule background jobs.
+    local procedure InsertReadyJobQueueEntry(ObjectIdToRun: Integer; RecordIdToProcess: RecordId; RecurringJob: Boolean): Guid
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        JobQueueEntry.Init();
+        JobQueueEntry.ID := CreateGuid();
+        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
+        JobQueueEntry."Object ID to Run" := ObjectIdToRun;
+        JobQueueEntry."Record ID to Process" := RecordIdToProcess;
+        JobQueueEntry."Recurring Job" := RecurringJob;
+        JobQueueEntry.Status := JobQueueEntry.Status::Ready;
+        JobQueueEntry.Insert(false);
+        exit(JobQueueEntry.ID);
     end;
 
     local procedure ContainsSystemId(var SourceRecordRef: RecordRef; SystemIdValue: Guid): Boolean
@@ -1137,5 +2209,78 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         LibraryRandomCu: Codeunit "Library - Random";
     begin
         exit(LibraryRandomCu.RandIntInRange(1, 999999));
+    end;
+
+    local procedure SetCrossEnvConnectionDetails()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.Validate("Source Environment Name", 'CONTOSO-PROD');
+        MasterDataManagementSetup."Source Environment URL" := 'https://api.businesscentral.dynamics.com/v2.0/contoso-prod';
+        MasterDataManagementSetup."Source Company Name" := 'CRONUS';
+        MasterDataManagementSetup."Source OAuth Client Id" := '11111111-2222-3333-4444-555555555555';
+        MasterDataManagementSetup.Modify(false);
+    end;
+
+    // A self-signed certificate is generated on first use, so no certificate, private key, or password is checked in.
+    local procedure GetTestCertificateBase64(): Text
+    begin
+        EnsureTestCertificate();
+        exit(TestCertificatePfxBase64);
+    end;
+
+    // The public part of the GetTestCertificateBase64 certificate, without the private key.
+    local procedure GetTestPublicCertificateBase64(): Text
+    begin
+        EnsureTestCertificate();
+        exit(TestCertificatePublicBase64);
+    end;
+
+    local procedure GetTestCertificatePassword(): SecretText
+    begin
+        EnsureTestCertificate();
+        exit(TestCertificatePassword);
+    end;
+
+    local procedure GetTestCertificateThumbprint(): Text
+    begin
+        EnsureTestCertificate();
+        exit(TestCertificateThumbprint);
+    end;
+
+    local procedure GetTestExpiredCertificateBase64(): Text
+    var
+        PublicCertificateBase64: Text;
+    begin
+        EnsureTestCertificate();
+        exit(CreateSelfSignedCertificate(CreateDateTime(CalcDate('<-2Y>', Today()), 0T), CreateDateTime(CalcDate('<-1Y>', Today()), 0T), PublicCertificateBase64));
+    end;
+
+    local procedure EnsureTestCertificate()
+    var
+        X509Certificate2: Codeunit X509Certificate2;
+        NoPassword: SecretText;
+    begin
+        if TestCertificatePfxBase64 <> '' then
+            exit;
+        TestCertificatePassword := SecretStrSubstNo(DelChr(Format(CreateGuid()), '=', '{}-'));
+        TestCertificatePfxBase64 := CreateSelfSignedCertificate(CreateDateTime(CalcDate('<-1D>', Today()), 0T), CreateDateTime(CalcDate('<+1Y>', Today()), 0T), TestCertificatePublicBase64);
+        X509Certificate2.GetCertificateThumbprint(TestCertificatePublicBase64, NoPassword, TestCertificateThumbprint);
+    end;
+
+    // Returns a password-protected PKCS#12 (.pfx) with a fresh RSA private key; PublicCertificateBase64 receives the
+    // DER-encoded public part.
+    [NonDebuggable]
+    local procedure CreateSelfSignedCertificate(NotBefore: DateTime; NotAfter: DateTime; var PublicCertificateBase64: Text): Text
+    var
+        CertificateRequest: Codeunit CertificateRequest;
+        X509Certificate2: Codeunit X509Certificate2;
+        PrivateKeyXml: SecretText;
+    begin
+        CertificateRequest.InitializeRSA(2048, true, PrivateKeyXml);
+        CertificateRequest.InitializeCertificateRequestUsingRSA('CN=MDM Cross-Environment Test', Enum::"Hash Algorithm"::SHA256, Enum::"RSA Signature Padding"::Pkcs1);
+        CertificateRequest.CreateSelfSigned(NotBefore, NotAfter, Enum::"X509 Content Type"::Cert, PublicCertificateBase64);
+        exit(X509Certificate2.CreateFromPemAndExportAsBase64(PublicCertificateBase64, PrivateKeyXml, TestCertificatePassword));
     end;
 }

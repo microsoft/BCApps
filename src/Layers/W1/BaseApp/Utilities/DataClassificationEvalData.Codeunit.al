@@ -703,6 +703,7 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(Database::"Bus. Unit In Cons. Process");
         SetTableFieldsToNormal(Database::"Consolidation Setup");
         SetTableFieldsToNormal(3700); // "Manual Setup" table
+        SetTableFieldsToNormal(3703); // "Environment Information" table
         SetTableFieldsToNormal(1876); // "Business Setup Icon" table
         SetTableFieldsToNormal(DATABASE::"VAT Setup Posting Groups");
         SetTableFieldsToNormal(DATABASE::"VAT Assisted Setup Templates");
@@ -970,6 +971,7 @@ codeunit 1751 "Data Classification Eval. Data"
         SetTableFieldsToNormal(DATABASE::"Power BI Customer Reports");
         SetTableFieldsToNormal(DATABASE::"Power BI Blob");
         SetTableFieldsToNormal(DATABASE::"Power BI Default Selection");
+        SetTableFieldsToNormal(DATABASE::"Power BI Deployment");
         SetTableFieldsToNormal(DATABASE::"Profile Designer Diagnostic");
         SetTableFieldsToNormal(DATABASE::"Designer Diagnostic");
         SetTableFieldsToNormal(DATABASE::"Profile Import");

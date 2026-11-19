@@ -176,7 +176,7 @@ report 1095 "Update Job Item Cost"
         Text001: Label 'The project ledger entry item costs have now been updated to equal the related item ledger entry actual costs.\\The number of project ledger entries modified = %1.', Comment = 'The Project Ledger Entry item costs have now been updated to equal the related item ledger entry actual costs.\\Number of Project Ledger Entries modified = 2.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
-        NoOfJobLedgEntry: Integer;
+        NoOfJobLedgEntry: BigInteger;
 #pragma warning disable AA0074
         Text003: Label 'There were no project ledger entries that needed to be updated.';
 #pragma warning restore AA0074
@@ -201,9 +201,7 @@ report 1095 "Update Job Item Cost"
 
     local procedure ModifyAllValueEntries(var ToValueEntry: Record "Value Entry"; var FromValueEntry: Record "Value Entry")
     begin
-        ToValueEntry.ModifyAll("Job No.", FromValueEntry."Job No.");
-        ToValueEntry.ModifyAll("Job Task No.", FromValueEntry."Job Task No.");
-        ToValueEntry.ModifyAll("Job Ledger Entry No.", FromValueEntry."Job Ledger Entry No.");
+        ToValueEntry.ModifyAll("Job No.", FromValueEntry."Job No.", "Job Task No.", FromValueEntry."Job Task No.", "Job Ledger Entry No.", FromValueEntry."Job Ledger Entry No.");
 
         OnAfterModifyAllValueEntries(ToValueEntry, FromValueEntry);
     end;
@@ -296,12 +294,12 @@ report 1095 "Update Job Item Cost"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostTotalCostAdjustment(var JobLedgEntry: Record "Job Ledger Entry"; ItemLedgerEntry: Record "Item Ledger Entry"; var JobLedgerEntryCostValue: Decimal; var JobLedgerEntryCostValueACY: Decimal; var AdjustJobCost: Decimal; var AdjustJobCostLCY: Decimal; var NoOfJobLedgEntry: Integer; var IsHandled: Boolean)
+    local procedure OnBeforePostTotalCostAdjustment(var JobLedgEntry: Record "Job Ledger Entry"; ItemLedgerEntry: Record "Item Ledger Entry"; var JobLedgerEntryCostValue: Decimal; var JobLedgerEntryCostValueACY: Decimal; var AdjustJobCost: Decimal; var AdjustJobCostLCY: Decimal; var NoOfJobLedgEntry: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeOnPostDataItemJob(NoOfJobLedgEntry: Integer; var HideResult: Boolean)
+    local procedure OnBeforeOnPostDataItemJob(NoOfJobLedgEntry: BigInteger; var HideResult: Boolean)
     begin
     end;
 

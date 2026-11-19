@@ -56,7 +56,7 @@ codeunit 134717 "Shpfy TMA Match Test"
         // correct) and builds the Tax Area; the order is flagged for review. The guardrail prompt is
         // read from Key Vault (provisioned in the eval environment) and carried into MatchTaxLines.
         TMAMatcher.TryGetGuardrailPrompt(SecurityPrompt);
-        Result := TMAMatcher.MatchTaxLines(OrderHeader, Shop, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch);
+        Result := TMAMatcher.MatchTaxLinesWithoutProcessingLimit(OrderHeader, Shop, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch);
         if Result and (MatchedJurisdictions.Count() > 0) then
             TaxAreaBuilder.FindOrCreateTaxArea(OrderHeader, Shop, MatchedJurisdictions, ResolvedTaxAreaCode, TaxAreaWasCreated);
 

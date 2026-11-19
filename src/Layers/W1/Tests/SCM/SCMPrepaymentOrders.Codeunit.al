@@ -771,8 +771,7 @@ codeunit 137160 "SCM Prepayment Orders"
         FindWarehouseActivityLine(
           WarehouseActivityLine, WarehouseActivityLine."Source Document"::"Sales Order", SourceNo,
           WarehouseActivityLine."Activity Type"::Pick);
-        WarehouseActivityLine.ModifyAll("Qty. to Handle", QuantityToHandle);
-        WarehouseActivityLine.ModifyAll("Qty. to Handle (Base)", QuantityToHandle);
+        WarehouseActivityLine.ModifyAll("Qty. to Handle", QuantityToHandle, "Qty. to Handle (Base)", QuantityToHandle);
     end;
 
     local procedure UpdateUnitCostOnPurchaseLine(var PurchaseLine: Record "Purchase Line")

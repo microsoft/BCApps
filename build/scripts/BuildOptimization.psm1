@@ -171,6 +171,39 @@ function Get-AffectedApps {
 
 <#
 .SYNOPSIS
+    Resolves the merge base between two commits.
+.DESCRIPTION
+    Tries 'git merge-base' directly, and - should the merge base not be reachable
+    because one side's commit has not been fetched yet - fetches both endpoints
+    and tries once more. The workflows that rely on change detection check out the
+    full history (fetch-depth: 0), so no history deepening is required here.
+.PARAMETER BaseSha
+    The base commit SHA.
+.PARAMETER HeadSha
+    The head commit SHA.
+.OUTPUTS
+    The merge-base commit SHA, or an empty string when it cannot be determined.
+#>
+function Resolve-MergeBaseForCI {
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory = $true)] [string] $BaseSha,
+        [Parameter(Mandatory = $true)] [string] $HeadSha
+    )
+
+    $mergeBase = (& git merge-base $BaseSha $HeadSha 2>$null)
+    if (-not [string]::IsNullOrWhiteSpace($mergeBase)) {
+        return $mergeBase
+    }
+
+    # Fetch both endpoints in case one side's commit is missing, then retry.
+    & git fetch --no-tags origin $BaseSha $HeadSha 2>$null
+    return (& git merge-base $BaseSha $HeadSha 2>$null)
+}
+
+<#
+.SYNOPSIS
     Detects changed files from the GitHub Actions CI environment.
 .DESCRIPTION
     Reads the GitHub event payload ($GITHUB_EVENT_PATH) to extract base/head commit
@@ -265,7 +298,7 @@ function Get-ChangedFilesForCI {
 
         $diffBase = $baseSha
         if ($CompareFromMergeBase) {
-            $diffBase = (& git merge-base $baseSha $headSha 2>$null)
+            $diffBase = Resolve-MergeBaseForCI -BaseSha $baseSha -HeadSha $headSha
             if ([string]::IsNullOrWhiteSpace($diffBase)) {
                 if ($RequireChangeDetection) {
                     throw "Could not determine the merge base between '$baseSha' and '$headSha'."

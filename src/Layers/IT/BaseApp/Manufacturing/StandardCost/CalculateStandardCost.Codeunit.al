@@ -14,7 +14,7 @@ using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Capacity;
-#if not CLEAN27
+#if not CLEAN28
 using Microsoft.Manufacturing.Document;
 #endif
 using Microsoft.Manufacturing.MachineCenter;
@@ -260,18 +260,6 @@ codeunit 5812 "Calculate Standard Cost"
                 ItemCostMgt.UpdateStdCostShares(TempItem);
             until TempItem.Next() = 0;
     end;
-
-#if not CLEAN27
-    [Obsolete('procedure that was implemented to throw the error has now been identified as unnecessary', '27.0')]
-    procedure CalcItemForNonInventoryValue(var Item: Record Item)
-    begin
-    end;
-
-    [Obsolete('procedure that was implemented to throw the error has now been identified as unnecessary', '27.0')]
-    procedure CalcSKUForNonInventoryValue(var SKU: Record "Stockkeeping Unit")
-    begin
-    end;
-#endif
 
     procedure CalcItemSKU(ItemNo: Code[20]; LocationCode: Code[20]; VariantCode: Code[20])
     var
@@ -960,7 +948,7 @@ codeunit 5812 "Calculate Standard Cost"
         end;
     end;
 
-#if not CLEAN27
+#if not CLEAN28
     local procedure CalcRoutingCostPerUnit(Type: Enum "Capacity Type Routing"; No: Code[20]; var DirUnitCost: Decimal; var IndirCostPct: Decimal; var OvhdRate: Decimal; var UnitCost: Decimal; var UnitCostCalculation: Enum "Unit Cost Calculation Type"; Item: Record Item; StandardTaskCode: Code[10])
 #else
     local procedure CalcRoutingCostPerUnit(Type: Enum "Capacity Type Routing"; No: Code[20]; var DirUnitCost: Decimal; var IndirCostPct: Decimal; var OvhdRate: Decimal; var UnitCost: Decimal; var UnitCostCalculation: Enum "Unit Cost Calculation Type")
@@ -968,7 +956,7 @@ codeunit 5812 "Calculate Standard Cost"
     var
         WorkCenter: Record "Work Center";
         MachineCenter: Record "Machine Center";
-#if not CLEAN27
+#if not CLEAN28
         SubContPrices: Record "Subcontractor Prices";
         SubContPriceMgt: Codeunit SubcontractingPricesMgt;
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
@@ -987,7 +975,7 @@ codeunit 5812 "Calculate Standard Cost"
         if IsHandled then
             exit;
 
-#if not CLEAN27
+#if not CLEAN28
         if (Type = Type::"Work Center") and
            (WorkCenter."Subcontractor No." <> '') and
            LegacySubcFeatureHandler.IsLegacySubcontractingEnabled()
@@ -1321,7 +1309,7 @@ codeunit 5812 "Calculate Standard Cost"
         IsHandled := false;
         OnCalcRtngLineCostOnBeforeCalcRoutingCostPerUnit(RoutingLine, MfgItemQtyBase, WorkCenter, DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation, ParentItem, IsHandled);
         if not IsHandled then
-#if not CLEAN27
+#if not CLEAN28
             CalcRoutingCostPerUnit(
                 RoutingLine.Type, RoutingLine."No.", DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation,
                 ParentItem, RoutingLine."Standard Task Code");
@@ -1364,7 +1352,7 @@ codeunit 5812 "Calculate Standard Cost"
             WorkCenter.Get(RoutingLine."No.");
 
         UnitCost := RoutingLine."Unit Cost per";
-#if not CLEAN27
+#if not CLEAN28
         CalcRoutingCostPerUnit(RoutingLine.Type, RoutingLine."No.", DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation, MainItem, RoutingLine."Standard Task Code");
 #else
         CalcRoutingCostPerUnit(RoutingLine.Type, RoutingLine."No.", DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation);

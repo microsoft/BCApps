@@ -88,6 +88,7 @@ codeunit 5278 "Create No. Series"
         ContosoNoSeries.InsertNoSeries(TransferOrder(), TransferOrderLbl, '1001', '2999', '2995', '', 1, Enum::"No. Series Implementation"::Normal, false);
         ContosoNoSeries.InsertNoSeries(TransferShipment(), TransferShipmentLbl, '108001', '109999', '109995', '', 1, Enum::"No. Series Implementation"::Normal, false);
         ContosoNoSeries.InsertNoSeries(TransferReceipt(), TransferReceiptLbl, '109001', '1010999', '1010995', '', 1, Enum::"No. Series Implementation"::Normal, false);
+        ContosoNoSeries.InsertNoSeries(SpendRequest(), SpendRequestLbl, '10001', '19999', '19995', '', 1, Enum::"No. Series Implementation"::Sequence, false);
     end;
 
     procedure AssemblyBlanketOrders(): Code[20]
@@ -200,31 +201,6 @@ codeunit 5278 "Create No. Series"
         exit('I-SHPT+');
     end;
 
-#if not CLEAN27
-    [Obsolete('The procedure is moved into "Create Job No Series" codeunit 5195.', '27.0')]
-    procedure JobJournal(): Code[20]
-    var
-        CreateJobNoSeries: Codeunit Microsoft.DemoData.Jobs."Create Job No Series";
-    begin
-        exit(CreateJobNoSeries.JobJournal());
-    end;
-
-    [Obsolete('The procedure is moved into "Create Job No Series" codeunit 5195.', '27.0')]
-    procedure RecurringJobJournal(): Code[20]
-    var
-        CreateJobNoSeries: Codeunit Microsoft.DemoData.Jobs."Create Job No Series";
-    begin
-        exit(CreateJobNoSeries.RecurringJobJournal());
-    end;
-
-    [Obsolete('The procedure is moved into "Create Job No Series" codeunit 5195.', '27.0')]
-    procedure JobWIP(): Code[20]
-    var
-        CreateJobNoSeries: Codeunit Microsoft.DemoData.Jobs."Create Job No Series";
-    begin
-        exit(CreateJobNoSeries.JobWIP());
-    end;
-#endif
 
     procedure JobPriceList(): Code[20]
     begin
@@ -466,6 +442,11 @@ codeunit 5278 "Create No. Series"
         exit(TransferReceiptTok);
     end;
 
+    procedure SpendRequest(): Text[20]
+    begin
+        exit(SpendRequestTok);
+    end;
+
     var
         AssemblyBlanketOrdersLbl: Label 'Assembly Blanket Orders', MaxLength = 100;
         AssemblyOrdersLbl: Label 'Assembly Orders', MaxLength = 100;
@@ -517,8 +498,8 @@ codeunit 5278 "Create No. Series"
         SegmentLbl: Label 'Segment', MaxLength = 100;
         FinanceChargeMemoLbl: Label 'Finance Charge Memo', MaxLength = 100;
         IssuedFinanceChargeMemoLbl: Label 'Issued Finance Charge Memo', MaxLength = 100;
-        SNNumbering1Lbl: Label 'SN Numbering', MaxLength = 100;
-        SNNumbering2Lbl: Label 'SN Numbering', MaxLength = 100;
+        SNNumbering1Lbl: Label 'Serial Nos. - SN Prefix', MaxLength = 100;
+        SNNumbering2Lbl: Label 'Serial Nos. - XYZ Prefix', MaxLength = 100;
         SalesPriceListLbl: Label 'Sales Price List', MaxLength = 100;
         SalesQuoteLbl: Label 'Sales Quote', MaxLength = 100;
         PostedSalesReceiptLbl: Label 'Posted Sales Receipt', MaxLength = 100;
@@ -546,5 +527,6 @@ codeunit 5278 "Create No. Series"
         TransferShipmentLbl: Label 'Transfer Shipment', MaxLength = 100;
         TransferReceiptTok: Label 'T-RCPT', MaxLength = 20;
         TransferReceiptLbl: Label 'Transfer Receipt', MaxLength = 100;
-
+        SpendRequestTok: Label 'SPENDRQ', MaxLength = 20;
+        SpendRequestLbl: Label 'Spend Request', MaxLength = 100;
 }

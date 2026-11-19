@@ -195,7 +195,7 @@ report 99001023 "Get Action Messages"
         GetPlanningParameters: Codeunit "Planning-Get Parameters";
         UOMMgt: Codeunit "Unit of Measure Management";
         Window: Dialog;
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         CurrTemplateName: Code[10];
         CurrWorksheetName: Code[10];
         PlanningLinesInserted: Boolean;
@@ -218,14 +218,6 @@ report 99001023 "Get Action Messages"
         CurrTemplateName := TemplateName;
         CurrWorksheetName := WorksheetName;
     end;
-
-#if not CLEAN27
-    [Obsolete('Replaced by UpdateActionMessageList due to extending ForBin to Code20', '27.0')]
-    procedure UpdateActionMsgList(ForType: Integer; ForSubtype: Integer; ForID: Code[20]; ForBatchName: Code[10]; ForProdOrderLine: Integer; ForRefNo: Integer; ForLocation: Code[10]; ForBin: Code[10]; ForVariant: Code[10]; ForItem: Code[20]; OrderDate: Date)
-    begin
-        UpdateActionMessageList(ForType, ForSubtype, ForID, ForBatchName, ForProdOrderLine, ForRefNo, ForLocation, ForBin, ForVariant, ForItem, OrderDate);
-    end;
-#endif
 
     procedure UpdateActionMessageList(ForType: Integer; ForSubtype: Integer; ForID: Code[20]; ForBatchName: Code[10]; ForProdOrderLine: Integer; ForRefNo: Integer; ForLocation: Code[10]; ForBin: Code[20]; ForVariant: Code[10]; ForItem: Code[20]; OrderDate: Date)
     begin
