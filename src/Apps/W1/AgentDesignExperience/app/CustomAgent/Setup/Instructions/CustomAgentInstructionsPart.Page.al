@@ -5,14 +5,20 @@
 
 namespace System.Agents.Designer.CustomAgent;
 
+using System.Agents.Designer;
+using System.Integration;
+
 page 4353 "Custom Agent Instructions Part"
 {
-    PageType = CardPart;
+    PageType = ListPart;
     Extensible = false;
     ApplicationArea = All;
     Caption = 'Designer - Instructions';
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Use the Custom Agent Markdown Part page instead.';
+    ObsoleteTag = '30.0';
 
     layout
     {
@@ -21,23 +27,28 @@ page 4353 "Custom Agent Instructions Part"
             group(Instructions)
             {
                 ShowCaption = false;
-                field(InstructionsText; InstructionsTxt)
+                usercontrol(InstructionsTxtControl; WebPageViewer)
                 {
                     ApplicationArea = All;
-                    Caption = 'Instructions';
-                    ToolTip = 'Specifies what the agent should do, its tone, and the rules and guidelines it must follow. Use visual formatting or edit the Markdown source.';
-                    ExtendedDatatype = Markdown;
-                    MultiLine = true;
-                    Editable = not IsReadOnly;
+                    Visible = true;
 
-                    trigger OnValidate()
+                    trigger ControlAddInReady(CallbackUrl: Text)
+                    var
+                        ReadInstructionsAgain: Boolean;
                     begin
-                        if IsReadOnly or not CurrPage.Editable() then
+                        ReadInstructionsAgain := not ControlAddInReady and (InstructionsTxt = '');
+                        RefreshInstructionsAddin(ReadInstructionsAgain);
+                        ControlAddInReady := true;
+                    end;
+
+                    trigger Callback(NewInstructionsTxt: Text)
+                    begin
+                        if IsReadOnly then
                             Error(ReadOnlyModeErr);
-                        if InstructionsTxt.Trim() = '' then
+                        if (NewInstructionsTxt.Trim() = '') then
                             Error(InstructionsCannotBeEmptyErr);
-                        if StrLen(InstructionsTxt) > 30000 then
-                            Error(InstructionsTooLongErr, 30000);
+
+                        InstructionsTxt := NewInstructionsTxt;
 
                         if not IsTemporary then
                             GlobalCustomAgentSetup.SetInstructions(InstructionsTxt);
@@ -80,7 +91,7 @@ page 4353 "Custom Agent Instructions Part"
                     CustomAgentInstructionsLog.SetGlobalAgentUserSecurityId(GlobalUserSecurityId);
                     CustomAgentInstructionsLog.RunModal();
                     if CustomAgentInstructionsLog.GetRestoredPreviousVersionOfInstructions() then
-                        RefreshInstructions();
+                        RefreshInstructionsAddin(true);
                 end;
             }
             action(DownloadInstructions)
@@ -118,8 +129,6 @@ page 4353 "Custom Agent Instructions Part"
     internal procedure SetUserSecurityId(UserSecId: Guid)
     begin
         GlobalUserSecurityId := UserSecId;
-        InstructionsHistoryVisible := not IsNullGuid(GlobalUserSecurityId);
-        RefreshInstructions();
     end;
 
     internal procedure GetInstructions(): Text
@@ -130,7 +139,6 @@ page 4353 "Custom Agent Instructions Part"
     internal procedure SetInstructions(NewInstructions: Text): Text
     begin
         InstructionsTxt := NewInstructions;
-        CurrPage.Update(false);
     end;
 
     internal procedure SetReadOnlyMode(ReadOnly: Boolean)
@@ -140,6 +148,11 @@ page 4353 "Custom Agent Instructions Part"
             CurrPageCaption := ViewAgentInstructionsLbl
         else
             CurrPageCaption := EditAgentInstructionsLbl;
+    end;
+
+    internal procedure FillAddIn()
+    begin
+        CurrPage.InstructionsTxtControl.SetContent(GetInstructionsTextControlContent())
     end;
 
     internal procedure SetIsTemporary(NewIsTemporary: Boolean)
@@ -152,14 +165,36 @@ page 4353 "Custom Agent Instructions Part"
         InstructionsHistoryVisible := NewVisible;
     end;
 
-    internal procedure RefreshInstructions()
+    internal procedure SetHideDeveloperUI(NewHideDeveloperUI: Boolean)
     begin
-        if not IsNullGuid(GlobalUserSecurityId) then begin
-            GlobalCustomAgentSetup.Get(GlobalUserSecurityId);
-            GlobalCustomAgentSetup.TryGetInstructions(GlobalUserSecurityId, InstructionsTxt);
-        end;
+        HideDeveloperUI := NewHideDeveloperUI;
+    end;
 
-        CurrPage.Update(false);
+    local procedure GetInstructionsTextControlContent(): Text
+    var
+        AgentDesignerUtilities: Codeunit "Agent Designer Utilities";
+        InstructionsTextArea: Text;
+        SafeInstructions: Text;
+        PlaceHolderTxt: Text;
+        MaxInstructionsLength: Integer;
+    begin
+        InstructionsTextArea := IsReadOnly ? ReadOnlyInstructionsTxtContentLbl : InstructionsTxtContentLbl;
+        SafeInstructions := AgentDesignerUtilities.EncodeContent(InstructionsTxt);
+        PlaceHolderTxt := InstructionsTxt = '' ? StrSubstNo(PlaceholderTok, PlaceholderLbl) : '';
+
+        MaxInstructionsLength := 30000;
+        exit(StrSubstNo(InstructionsTextArea, SafeInstructions, MaxInstructionsLength, AriaLbl, PlaceHolderTxt));
+    end;
+
+    internal procedure RefreshInstructionsAddin(ReadInstructionsAgain: Boolean)
+    begin
+        if not IsNullGuid(GlobalUserSecurityId) then
+            GlobalCustomAgentSetup.Get(GlobalUserSecurityId);
+
+        if ReadInstructionsAgain then
+            GlobalCustomAgentSetup.TryGetInstructions(GlobalUserSecurityId, InstructionsTxt);
+
+        FillAddIn();
     end;
 
     trigger OnOpenPage()
@@ -167,13 +202,25 @@ page 4353 "Custom Agent Instructions Part"
         if not InstructionsHistoryVisible then
             InstructionsHistoryVisible := not IsNullGuid(GlobalUserSecurityId);
 
+        if not HideDeveloperUI then
+            HideDeveloperUI := IsNullGuid(GlobalUserSecurityId);
+
         if CurrPageCaption <> '' then
             CurrPage.Caption := CurrPageCaption;
+
+        if IsReadOnly then
+            HowToWriteInstructionsTxt := ''
+        else
+            HowToWriteInstructionsTxt := HowToWriteInstructionsLbl;
     end;
 
     var
         GlobalCustomAgentSetup: Record "Custom Agent Setup";
+        ControlAddInReady: Boolean;
         InstructionsHistoryVisible: Boolean;
+        InstructionsTxtContentLbl: Label '<textarea Id="InstructionsTextArea" aria-label="%3" maxlength="%2" style="width:100%;height:100%;resize: none;" %4 OnChange="window.parent.WebPageViewerHelper.TriggerCallback(document.getElementById(''InstructionsTextArea'').value)">%1</textarea>', Locked = true;
+        ReadOnlyInstructionsTxtContentLbl: Label '<textarea Id="InstructionsReadOnlyDiv" aria-label="%3" maxlength="%2" readonly style="width:100%;height:100%;resize: none;background-color: #e9ecef;opacity: 0.7; ">%1</textarea>', Locked = true;
+        AriaLbl: Label 'Agent Instructions';
         EditAgentInstructionsLbl: Label 'Edit agent instructions';
         ViewAgentInstructionsLbl: Label 'View agent instructions';
         ReadOnlyModeErr: Label 'This page is in view-only mode. Instructions cannot be modified.';
@@ -181,7 +228,11 @@ page 4353 "Custom Agent Instructions Part"
         GlobalUserSecurityId: Guid;
         IsReadOnly: Boolean;
         IsTemporary: Boolean;
+        HideDeveloperUI: Boolean;
         CurrPageCaption: Text;
+        PlaceholderTok: Label 'placeholder="%1"', Locked = true;
+        HowToWriteInstructionsTxt: Text;
+        HowToWriteInstructionsLbl: Label 'How to write instructions';
+        PlaceholderLbl: Label 'Describe what the agent should do, define its tone, and outline any rules and guidelines it must follow';
         InstructionsCannotBeEmptyErr: Label 'Instructions cannot be empty.';
-        InstructionsTooLongErr: Label 'Instructions cannot exceed %1 characters.', Comment = '%1 = maximum instruction length';
 }

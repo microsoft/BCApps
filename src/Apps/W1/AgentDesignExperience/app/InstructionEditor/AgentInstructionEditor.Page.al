@@ -32,7 +32,7 @@ page 4363 "Agent Instruction Editor"
             {
                 ShowCaption = false;
 
-                part(InstructionsPart; "Custom Agent Instructions Part")
+                part(InstructionsPart; "Custom Agent Markdown Part")
                 {
                     ApplicationArea = All;
                     Caption = 'Instructions';

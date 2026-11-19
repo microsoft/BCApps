@@ -57,7 +57,7 @@ page 4352 "Cust. Agent Instructions Log"
                 {
                     ShowCaption = false;
 
-                    part(InstructionsLogPart; "Custom Agent Instructions Part")
+                    part(InstructionsLogPart; "Custom Agent Markdown Part")
                     {
                         ApplicationArea = All;
                         Editable = false;
