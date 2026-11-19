@@ -1595,7 +1595,7 @@ codeunit 139997 "Subc SCM Prod. Order"
         Item.Validate("Routing No.", RoutingHeader."No.");
         Item.Modify(true);
 
-        CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", LibraryRandom.RandIntInRange(10, 20), '', '');
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", 10, '', '');
 
         WorkCenter.SetFilter("No.", '%1|%2', FirstWorkCenter."No.", LastWorkCenter."No.");
         SubcManagementLibrary.CalculateSubcontractOrder(WorkCenter);
