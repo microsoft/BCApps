@@ -9,13 +9,18 @@ codeunit 135000 "Error Message Tests"
     end;
 
     var
+        GLBCustomerContext: Record Customer;
+        GLBVendorContext: Record Vendor;
+        Assert: Codeunit Assert;
+        LibraryUtility: Codeunit "Library - Utility";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryErrorMessage: Codeunit "Library - Error Message";
         GenericErrorDescriptionTxt: Label 'The field must be a multiple of 4';
         AdditionalInformationTxt: Label 'Additional Information';
         AdditionalInformation2Txt: Label 'Further information about the error message';
         SupportUrlTxt: Label 'www.bing.com';
-        GLBCustomerContext: Record Customer;
-        GLBVendorContext: Record Vendor;
-        Assert: Codeunit Assert;
         SupportUrl2Txt: Label 'www.microsoft.com';
         IfEmptyErr: Label '''%1'' in ''%2'' must not be blank.', Comment = '%1=caption of a field, %2=key of record';
         IfLengthExceededErr: Label 'The maximum length of ''%1'' in ''%2'' is %3 characters. The actual length is %4.', Comment = '%1=caption of a field, %2=key of record, %3=integer, %4=integer';
@@ -28,11 +33,6 @@ codeunit 135000 "Error Message Tests"
         InvalidErrorMessageDataErr: Label 'Invalid data in Error Message table.';
         ErrorLoggedForValidDataErr: Label 'An error was logged for valid data.';
         FieldMustNotBeErr: Label '%1 must not be %2', Comment = '%1 - field name, %2 - field value';
-        LibraryUtility: Codeunit "Library - Utility";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryRandom: Codeunit "Library - Random";
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryErrorMessage: Codeunit "Library - Error Message";
         DevMsgNotTemporaryErr: Label 'This function can only be used when the record is temporary.';
         DrillDownErr: Label 'The NavDrilldownAction method is not supported.';
 
@@ -210,8 +210,7 @@ codeunit 135000 "Error Message Tests"
         DataTypeBuffer: Record "Data Type Buffer";
         RecordRef: RecordRef;
         FieldRef: FieldRef;
-        FieldNo: Integer;
-        ID: Integer;
+        FieldNo, ID : Integer;
     begin
         // [SCENARIO] An Error Message is added when using LogIfIsEmpty function, if the provided field is empty
         Initialize();
@@ -242,8 +241,7 @@ codeunit 135000 "Error Message Tests"
         DataTypeBuffer: Record "Data Type Buffer";
         RecordRef: RecordRef;
         FieldRef: FieldRef;
-        FieldNo: Integer;
-        ID: Integer;
+        FieldNo, ID : Integer;
     begin
         // [SCENARIO] An Error Message is not added when using LogIfIsEmpty function, if the provided field is not empty
         Initialize();
@@ -1472,6 +1470,39 @@ codeunit 135000 "Error Message Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure LogTestFieldEnumCaptionWithComma()
+    var
+        TempCommaCaptionTestBuffer: Record "Comma Caption Test Buffer" temporary;
+        TempErrorMessage: Record "Error Message" temporary;
+        ErrorMessageMgt: Codeunit "Error Message Management";
+        ErrorMessageHandler: Codeunit "Error Message Handler";
+        MustBeEqualToTxt: Label '%1 must be equal to %2.', Comment = '%1 - field caption, %2 - field value', Locked = true;
+        CaptionWithCommaTxt: Label 'Received, not invoiced', Locked = true;
+        CaptionAfterCommaTxt: Label 'Fully invoiced', Locked = true;
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 10082] LogTestField logs the complete caption of an enum value whose caption contains a comma, and of the value after it
+        Initialize();
+
+        // [GIVEN] Error collection is active and Status holds the first value of an enum whose second value has a comma in its caption
+        ErrorMessageMgt.Activate(ErrorMessageHandler);
+        TempCommaCaptionTestBuffer.Status := TempCommaCaptionTestBuffer.Status::First;
+
+        // [WHEN] LogTestField expects the value with the comma caption, then the value after it
+        ErrorMessageMgt.LogTestField(TempCommaCaptionTestBuffer, TempCommaCaptionTestBuffer.FieldNo(Status), TempCommaCaptionTestBuffer.Status::WithComma);
+        ErrorMessageMgt.LogTestField(TempCommaCaptionTestBuffer, TempCommaCaptionTestBuffer.FieldNo(Status), TempCommaCaptionTestBuffer.Status::AfterComma);
+
+        // [THEN] The first message holds the complete comma caption, the second the complete caption of the value after it
+        ErrorMessageHandler.AppendTo(TempErrorMessage);
+        TempErrorMessage.FindSet();
+        Assert.AreEqual(StrSubstNo(MustBeEqualToTxt, TempCommaCaptionTestBuffer.FieldCaption(Status), CaptionWithCommaTxt), TempErrorMessage.Message, 'Caption that contains a comma.');
+
+        TempErrorMessage.Next();
+        Assert.AreEqual(StrSubstNo(MustBeEqualToTxt, TempCommaCaptionTestBuffer.FieldCaption(Status), CaptionAfterCommaTxt), TempErrorMessage.Message, 'Caption of the value after the one with a comma.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure LogFieldErrorCheckContextFieldNo()
     var
         DummySalesHeader: Record "Sales Header";
@@ -1505,8 +1536,7 @@ codeunit 135000 "Error Message Tests"
     procedure UTGetFieldNo()
     var
         TableWithFieldCaption: Record TableWithFieldCaption;
-        TempErrorMessage: Record "Error Message" temporary;
-        TempErrorMessageActual: Record "Error Message" temporary;
+        TempErrorMessage, TempErrorMessageActual : Record "Error Message" temporary;
         ErrorMessageMgt: Codeunit "Error Message Management";
         ErrorMessageHandler: Codeunit "Error Message Handler";
         ErrorMessages: Page "Error Messages";
