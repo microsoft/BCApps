@@ -5910,6 +5910,166 @@
         PurchaseLine.TestField("Direct Unit Cost", 550);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure AcceptAllActionMessagesOnReqWorksheetUpdatesOnlyFilteredLinesOfBatch()
+    var
+        RequisitionWkshName: array[2] of Record "Requisition Wksh. Name";
+        RequisitionLine: array[3] of Record "Requisition Line";
+        ReqWorksheet: TestPage "Req. Worksheet";
+        ItemNo: array[2] of Code[20];
+    begin
+        // [FEATURE] [Accept Action Message]
+        // [SCENARIO 321912] Accept All Action Messages on the Requisition Worksheet selects Accept Action Message on all lines in the filtered view of the current batch.
+        Initialize();
+        ItemNo[1] := LibraryInventory.CreateItemNo();
+        ItemNo[2] := LibraryInventory.CreateItemNo();
+
+        // [GIVEN] Requisition worksheet batch "B1" with line "L1" for item "I1" and line "L2" for item "I2".
+        // [GIVEN] Requisition worksheet batch "B2" with line "L3" for item "I1".
+        // [GIVEN] Accept Action Message is not selected on any line.
+        CreateReqWorksheetName(RequisitionWkshName[1]);
+        CreateReqWorksheetName(RequisitionWkshName[2]);
+        CreateItemRequisitionLine(RequisitionLine[1], RequisitionWkshName[1], ItemNo[1], false);
+        CreateItemRequisitionLine(RequisitionLine[2], RequisitionWkshName[1], ItemNo[2], false);
+        CreateItemRequisitionLine(RequisitionLine[3], RequisitionWkshName[2], ItemNo[1], false);
+
+        // [GIVEN] Requisition Worksheet for batch "B1" filtered by item "I1".
+        OpenRequisitionWorksheetPage(ReqWorksheet, RequisitionWkshName[1].Name);
+        ReqWorksheet.Filter.SetFilter("No.", ItemNo[1]);
+
+        // [WHEN] Choose Accept All Action Messages.
+        ReqWorksheet.AcceptAllActionMessages.Invoke();
+
+        // [THEN] Accept Action Message is selected on "L1" only.
+        VerifyAcceptActionMessage(RequisitionLine[1], true);
+        VerifyAcceptActionMessage(RequisitionLine[2], false);
+        VerifyAcceptActionMessage(RequisitionLine[3], false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ClearAllAcceptancesOnReqWorksheetUpdatesAllLinesOfBatch()
+    var
+        RequisitionWkshName: array[2] of Record "Requisition Wksh. Name";
+        RequisitionLine: array[3] of Record "Requisition Line";
+        ReqWorksheet: TestPage "Req. Worksheet";
+        ItemNo: Code[20];
+    begin
+        // [FEATURE] [Accept Action Message]
+        // [SCENARIO 321912] Clear All Acceptances on the Requisition Worksheet clears Accept Action Message on all lines of the current batch.
+        Initialize();
+        ItemNo := LibraryInventory.CreateItemNo();
+
+        // [GIVEN] Requisition worksheet batch "B1" with lines "L1" and "L2", and batch "B2" with line "L3".
+        // [GIVEN] Accept Action Message is selected on all lines.
+        CreateReqWorksheetName(RequisitionWkshName[1]);
+        CreateReqWorksheetName(RequisitionWkshName[2]);
+        CreateItemRequisitionLine(RequisitionLine[1], RequisitionWkshName[1], ItemNo, true);
+        CreateItemRequisitionLine(RequisitionLine[2], RequisitionWkshName[1], ItemNo, true);
+        CreateItemRequisitionLine(RequisitionLine[3], RequisitionWkshName[2], ItemNo, true);
+
+        // [GIVEN] Requisition Worksheet for batch "B1".
+        OpenRequisitionWorksheetPage(ReqWorksheet, RequisitionWkshName[1].Name);
+
+        // [WHEN] Choose Clear All Acceptances.
+        ReqWorksheet.ClearAllAcceptances.Invoke();
+
+        // [THEN] Accept Action Message is cleared on "L1" and "L2", and still selected on "L3".
+        VerifyAcceptActionMessage(RequisitionLine[1], false);
+        VerifyAcceptActionMessage(RequisitionLine[2], false);
+        VerifyAcceptActionMessage(RequisitionLine[3], true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AcceptAllActionMessagesOnPlanningWorksheetFilteredOnUnacceptedLines()
+    var
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: array[2] of Record "Requisition Line";
+        PlanningWorksheet: TestPage "Planning Worksheet";
+        ItemNo: Code[20];
+    begin
+        // [FEATURE] [Accept Action Message]
+        // [SCENARIO 321912] Accept All Action Messages updates all lines of a view filtered on Accept Action Message = No, although the lines leave the view when they are updated.
+        Initialize();
+        ItemNo := LibraryInventory.CreateItemNo();
+
+        // [GIVEN] Planning worksheet batch with lines "L1" and "L2" where Accept Action Message is not selected.
+        CreateRequisitionWorksheetName(RequisitionWkshName);
+        CreateItemRequisitionLine(RequisitionLine[1], RequisitionWkshName, ItemNo, false);
+        CreateItemRequisitionLine(RequisitionLine[2], RequisitionWkshName, ItemNo, false);
+
+        // [GIVEN] Planning Worksheet filtered on Accept Action Message = No.
+        OpenPlanningWorksheetPage(PlanningWorksheet, RequisitionWkshName.Name);
+        PlanningWorksheet.Filter.SetFilter("Accept Action Message", Format(false));
+
+        // [WHEN] Choose Accept All Action Messages.
+        PlanningWorksheet.AcceptAllActionMessages.Invoke();
+
+        // [THEN] Accept Action Message is selected on "L1" and "L2".
+        VerifyAcceptActionMessage(RequisitionLine[1], true);
+        VerifyAcceptActionMessage(RequisitionLine[2], true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AcceptAllActionMessagesSetsActionMessageNewOnLineWithBlankActionMessage()
+    var
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+        PlanningWorksheet: TestPage "Planning Worksheet";
+    begin
+        // [FEATURE] [Accept Action Message]
+        // [SCENARIO 321912] Accept All Action Messages validates Accept Action Message, so a blank Action Message becomes New as when the checkbox is selected manually.
+        Initialize();
+
+        // [GIVEN] Planning worksheet line with a blank Action Message where Accept Action Message is not selected.
+        CreateRequisitionWorksheetName(RequisitionWkshName);
+        CreateItemRequisitionLine(RequisitionLine, RequisitionWkshName, LibraryInventory.CreateItemNo(), false);
+        RequisitionLine."Action Message" := RequisitionLine."Action Message"::" ";
+        RequisitionLine.Modify();
+
+        // [WHEN] Choose Accept All Action Messages on the Planning Worksheet.
+        OpenPlanningWorksheetPage(PlanningWorksheet, RequisitionWkshName.Name);
+        PlanningWorksheet.AcceptAllActionMessages.Invoke();
+
+        // [THEN] Accept Action Message is selected and Action Message is New.
+        RequisitionLine.Find();
+        RequisitionLine.TestField("Accept Action Message", true);
+        RequisitionLine.TestField("Action Message", RequisitionLine."Action Message"::New);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ResetAcceptancesOnPlanningWorksheetAcceptsOnlyLinesWithoutPlanningWarnings()
+    var
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: array[2] of Record "Requisition Line";
+        PlanningWorksheet: TestPage "Planning Worksheet";
+        ItemNo: Code[20];
+    begin
+        // [FEATURE] [Accept Action Message]
+        // [SCENARIO 321912] Reset Acceptances on the Planning Worksheet selects Accept Action Message on lines without planning warnings and clears it on lines with planning warnings.
+        Initialize();
+        ItemNo := LibraryInventory.CreateItemNo();
+
+        // [GIVEN] Planning worksheet line "L1" with a planning warning where Accept Action Message is selected.
+        // [GIVEN] Planning worksheet line "L2" without planning warnings where Accept Action Message is not selected.
+        CreateRequisitionWorksheetName(RequisitionWkshName);
+        CreateItemRequisitionLine(RequisitionLine[1], RequisitionWkshName, ItemNo, true);
+        LogPlanningWarning(RequisitionLine[1]);
+        CreateItemRequisitionLine(RequisitionLine[2], RequisitionWkshName, ItemNo, false);
+
+        // [WHEN] Choose Reset Acceptances on the Planning Worksheet.
+        OpenPlanningWorksheetPage(PlanningWorksheet, RequisitionWkshName.Name);
+        PlanningWorksheet.ResetAcceptances.Invoke();
+
+        // [THEN] Accept Action Message is cleared on "L1" and selected on "L2".
+        VerifyAcceptActionMessage(RequisitionLine[1], false);
+        VerifyAcceptActionMessage(RequisitionLine[2], true);
+    end;
+
     local procedure Initialize()
     var
         AllProfile: Record "All Profile";
@@ -6442,6 +6602,40 @@
     begin
         SelectRequisitionTemplate(ReqWkshTemplate, ReqWkshTemplate.Type::Planning);
         LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
+    end;
+
+    local procedure CreateReqWorksheetName(var RequisitionWkshName: Record "Requisition Wksh. Name")
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+    begin
+        SelectRequisitionTemplate(ReqWkshTemplate, ReqWkshTemplate.Type::"Req.");
+        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
+    end;
+
+    local procedure CreateItemRequisitionLine(var RequisitionLine: Record "Requisition Line"; RequisitionWkshName: Record "Requisition Wksh. Name"; ItemNo: Code[20]; AcceptActionMessage: Boolean)
+    begin
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name);
+        UpdateRequisitionLineTypeAndNo(RequisitionLine, RequisitionLine.Type::Item, ItemNo);
+        RequisitionLine.Validate("Accept Action Message", AcceptActionMessage);
+        RequisitionLine.Modify(true);
+    end;
+
+    local procedure LogPlanningWarning(RequisitionLine: Record "Requisition Line")
+    var
+        UntrackedPlanningElement: Record "Untracked Planning Element";
+    begin
+        UntrackedPlanningElement."Worksheet Template Name" := RequisitionLine."Worksheet Template Name";
+        UntrackedPlanningElement."Worksheet Batch Name" := RequisitionLine."Journal Batch Name";
+        UntrackedPlanningElement."Worksheet Line No." := RequisitionLine."Line No.";
+        UntrackedPlanningElement."Track Line No." := 1;
+        UntrackedPlanningElement."Warning Level" := UntrackedPlanningElement."Warning Level"::Attention;
+        UntrackedPlanningElement.Insert();
+    end;
+
+    local procedure VerifyAcceptActionMessage(RequisitionLine: Record "Requisition Line"; ExpectedAcceptActionMessage: Boolean)
+    begin
+        RequisitionLine.Find();
+        RequisitionLine.TestField("Accept Action Message", ExpectedAcceptActionMessage);
     end;
 
     local procedure CreateAndCertifyProductionBOM(var ProductionBOMHeader: Record "Production BOM Header"; ItemNo: Code[20])
