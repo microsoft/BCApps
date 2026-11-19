@@ -152,7 +152,7 @@ page 9326 "Released Production Orders"
             group("Pro&d. Order")
             {
                 Caption = 'Pro&d. Order';
-                Enabled = RecordActionsEnabled;
+                Enabled = Rec."No." <> '';
                 Image = "Order";
                 group("E&ntries")
                 {
@@ -248,7 +248,7 @@ page 9326 "Released Production Orders"
             group("F&unctions")
             {
                 Caption = 'F&unctions';
-                Enabled = RecordActionsEnabled;
+                Enabled = Rec."No." <> '';
                 Image = "Action";
                 action("Change &Status")
                 {
@@ -317,7 +317,7 @@ page 9326 "Released Production Orders"
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Print Label';
-                Enabled = RecordActionsEnabled;
+                Enabled = Rec."No." <> '';
                 Image = Print;
                 ToolTip = 'Print labels for the items on the order lines.';
 
@@ -485,11 +485,6 @@ page 9326 "Released Production Orders"
         }
     }
 
-    trigger OnAfterGetCurrRecord()
-    begin
-        RecordActionsEnabled := not Rec.IsEmpty();
-    end;
-
     trigger OnAfterGetRecord()
     begin
         Rec.CalcFields("Completely Picked");
@@ -497,7 +492,6 @@ page 9326 "Released Production Orders"
 
     var
         ManuPrintReport: Codeunit "Manu. Print Report";
-        RecordActionsEnabled: Boolean;
 
 }
 
