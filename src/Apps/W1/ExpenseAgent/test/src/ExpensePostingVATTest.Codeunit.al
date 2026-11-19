@@ -209,6 +209,8 @@ codeunit 148330 "Expense Posting VAT Test"
         // [WHEN] The expense report is posted.
         // [THEN] The full amount uses the subcategory's non-refundable account and the report balances.
         VerifySubcategoryPostingWithoutVAT(false, false);
+    end;
+
     [Test]
     procedure AgentVATReceiptSubmitsWithoutDefaultVATSetup()
     var
@@ -345,6 +347,8 @@ codeunit 148330 "Expense Posting VAT Test"
 
         // [THEN] Only the parent's refundable amount of 120 is posted to the subcategory's refundable account.
         VerifyGLEntry(ExpenseReportHeader."Last Posting No.", ExpensePostingGroup."Refundable Debit Account", 120);
+    end;
+
     [Test]
     [HandlerFunctions('ConfirmHandler')]
     procedure UnmappedAgentVATRemainsPendingUntilAccountantReview()
