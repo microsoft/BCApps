@@ -9,7 +9,6 @@ using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
-using System.TestLibraries.Utilities;
 
 codeunit 137439 "Prod. Order Refresh Location"
 {

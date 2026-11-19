@@ -12,7 +12,6 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Structure;
-using System.TestLibraries.Utilities;
 
 codeunit 137440 "Prod. Order Default Loc. Bin"
 {
