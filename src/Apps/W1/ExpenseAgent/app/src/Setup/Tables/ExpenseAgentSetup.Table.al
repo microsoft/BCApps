@@ -564,7 +564,6 @@ table 6930 "Expense Agent Setup"
         }
         field(90; "Posting Groups Applied"; Boolean)
         {
-            Access = Internal;
             Caption = 'Default expense posting groups applied';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the default expense posting groups (including the employee posting group) have been created.';
@@ -572,7 +571,6 @@ table 6930 "Expense Agent Setup"
         }
         field(91; "Exp. Categories Applied"; Boolean)
         {
-            Access = Internal;
             Caption = 'Default expense categories applied';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the default expense categories and subcategories have been created.';
@@ -580,7 +578,6 @@ table 6930 "Expense Agent Setup"
         }
         field(92; "Exp. Locations Applied"; Boolean)
         {
-            Access = Internal;
             Caption = 'Default expense locations applied';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the default expense locations have been created.';
@@ -588,7 +585,6 @@ table 6930 "Expense Agent Setup"
         }
         field(93; "Management Rules Applied"; Boolean)
         {
-            Access = Internal;
             Caption = 'Default management rules applied';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the default management rules have been created.';
@@ -596,7 +592,6 @@ table 6930 "Expense Agent Setup"
         }
         field(94; "Payment Methods Applied"; Boolean)
         {
-            Access = Internal;
             Caption = 'Default payment methods applied';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the default expense payment methods (Card, Cash, Bank) have been created.';
@@ -604,7 +599,6 @@ table 6930 "Expense Agent Setup"
         }
         field(95; "No. Series Applied"; Boolean)
         {
-            Access = Internal;
             Caption = 'Default number series applied';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the default number series for expenses, expense users, expense reports, and posted expense reports have been created.';
@@ -709,7 +703,6 @@ table 6930 "Expense Agent Setup"
         }
         field(105; "VAT Rates Applied"; Boolean)
         {
-            Access = Internal;
             Caption = 'Default VAT Rates applied';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the default VAT rates have been applied.';
