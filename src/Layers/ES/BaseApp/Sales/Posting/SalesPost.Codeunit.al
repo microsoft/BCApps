@@ -12022,9 +12022,13 @@ codeunit 80 "Sales-Post"
             else begin
                 if SalesHeader."Correction Type" in [SalesHeader."Correction Type"::Replacement, SalesHeader."Correction Type"::Removal] then
                     SalesHeader.TestField("Corrected Invoice No.");
-                if SalesHeader."Corrected Invoice No." = '' then
-                    if not ConfirmManagement.GetResponseOrDefault(Text1100000, true) then
-                        Error(Text1100011);
+                if SalesHeader."Corrected Invoice No." = '' then begin
+                    IsHandled := false;
+                    OnCheckCorrectedInvoiceOnBeforeConfirmEmptyCorrectedInvoiceNo(SalesHeader, IsHandled);
+                    if not IsHandled then
+                        if not ConfirmManagement.GetResponseOrDefault(Text1100000, true) then
+                            Error(Text1100011);
+                end;
             end;
             if (SalesHeader."Corrected Invoice No." <> '') and (SalesHeader."Posting Description" = '') then
                 SalesHeader."Posting Description" := Format(Text1100104) + ' ' + SalesHeader."No."
@@ -13466,6 +13470,11 @@ codeunit 80 "Sales-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCorrectedInvoice(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckCorrectedInvoiceOnBeforeConfirmEmptyCorrectedInvoiceNo(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 

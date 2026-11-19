@@ -1017,9 +1017,13 @@ codeunit 90 "Purch.-Post"
             else begin
                 if PurchaseHeader."Correction Type" = PurchaseHeader."Correction Type"::Removal then
                     PurchaseHeader.TestField("Corrected Invoice No.");
-                if PurchaseHeader."Corrected Invoice No." = '' then
-                    if not ConfirmManagement.GetResponseOrDefault(Text1100000, false) then
-                        Error(Text1100011);
+                if PurchaseHeader."Corrected Invoice No." = '' then begin
+                    IsHandled := false;
+                    OnCheckCorrectedInvoiceNoOnBeforeConfirmEmptyCorrectedInvoiceNo(PurchaseHeader, IsHandled);
+                    if not IsHandled then
+                        if not ConfirmManagement.GetResponseOrDefault(Text1100000, false) then
+                            Error(Text1100011);
+                end;
             end;
             if (PurchaseHeader."Corrected Invoice No." <> '') and (PurchaseHeader."Posting Description" = '') then
                 PurchaseHeader."Posting Description" := Format(Text1100104) + ' ' + PurchaseHeader."No."
@@ -9756,6 +9760,11 @@ codeunit 90 "Purch.-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckCorrectedInvoiceNo(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckCorrectedInvoiceNoOnBeforeConfirmEmptyCorrectedInvoiceNo(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
 
