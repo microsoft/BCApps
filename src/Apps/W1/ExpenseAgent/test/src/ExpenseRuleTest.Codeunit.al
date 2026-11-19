@@ -9223,37 +9223,76 @@ codeunit 148301 "Expense Rule Test"
     end;
 
     [Test]
-    procedure PerDiemCountsAllPeriodsStartingOnDayClocksGoBack()
+    procedure PerDiemPartialDayIncludesHourRepeatedBeforeMidnight()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+    begin
+        // [SCENARIO 659478] When clocks go back at midnight, the repeated hour counts towards the first day of a trip.
+        Initialize();
+
+        // [GIVEN] Full calendar days, 50% of the rate for partial days of at least 8 hours, and per diem days in Santiago time.
+        // [GIVEN] On 2026-04-05 at 03:00Z, 00:00 -03 becomes 23:00 -04 on 2026-04-04, so 2026-04-05 starts at 04:00Z.
+        LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 50, 0, 8);
+        ExpenseAgentSetup.Get();
+        ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
+        ExpensePerDiemCalculation.SetTimeZone(SantiagoTimeZoneTok);
+
+        // [WHEN] The per diem is calculated for the first day of a trip from 16:30 -03 on 2026-04-04 to 10:00 -04 on 2026-04-05.
+        // [THEN] The first day has 8.48 elapsed hours, including the repeated hour, and gets the partial rate.
+        Assert.AreEqual(50, ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(DMY2Date(4, 4, 2026), 100, UtcDateTime('2026-04-04T19:30:00Z'), UtcDateTime('2026-04-05T14:00:00Z')), 'First day ending with the repeated hour');
+    end;
+
+    [Test]
+    procedure PerDiemCountsAllRollingPeriodsStartingOnDayClocksGoBack()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
         TripStart, TripEnd : DateTime;
     begin
-        // [SCENARIO 659478] When clocks go back, two 24-hour periods can start on the same day, and both are paid.
+        // [SCENARIO 659478] When clocks go back, two 24-hour rolling periods can start on the same day, and both are paid.
         Initialize();
 
-        // [GIVEN] Per diem days in Eastern time and a 48-hour trip from 00:30 EDT on 2026-11-01 to 23:30 EST on 2026-11-02.
-        // [GIVEN] The second 24-hour period starts at 23:30 EST on 2026-11-01, so both periods start on 2026-11-01.
-        TripStart := UtcDateTime('2026-11-01T04:30:00Z');
-        TripEnd := UtcDateTime('2026-11-03T04:30:00Z');
-
-        // [WHEN] The per diem is calculated with 24-hour rolling periods.
+        // [GIVEN] 24-hour rolling periods and per diem days in Eastern time.
         LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"24-hour Rolling Period", "Expense Partial Day Rules"::"Based On Eligible Hours", 60, 20, 8);
         ExpenseAgentSetup.Get();
         ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
         ExpensePerDiemCalculation.SetTimeZone(EasternTimeZoneTok);
 
+        // [GIVEN] A 48-hour trip from 00:30 EDT on 2026-11-01 to 23:30 EST on 2026-11-02.
+        // [GIVEN] The second 24-hour period starts at 23:30 EST on 2026-11-01, so both periods start on 2026-11-01.
+        TripStart := UtcDateTime('2026-11-01T04:30:00Z');
+        TripEnd := UtcDateTime('2026-11-03T04:30:00Z');
+
+        // [WHEN] The per diem is calculated for each day of the trip.
         // [THEN] 2026-11-01 gets two daily rates and 2026-11-02 none, so the trip gets two daily rates.
         Assert.AreEqual(200, ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(DMY2Date(1, 11, 2026), 100, TripStart, TripEnd), 'Rolling periods starting on 2026-11-01');
         Assert.AreEqual(0, ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(DMY2Date(2, 11, 2026), 100, TripStart, TripEnd), 'Rolling periods starting on 2026-11-02');
+    end;
 
-        // [WHEN] The per diem is calculated with overnight stays.
+    [Test]
+    procedure PerDiemCountsAllOvernightPeriodsStartingOnDayClocksGoBack()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+        TripStart, TripEnd : DateTime;
+    begin
+        // [SCENARIO 659478] When clocks go back, two overnight periods can start on the same day, and both are paid.
+        Initialize();
+
+        // [GIVEN] Overnight stays and per diem days in Eastern time.
         LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"Overnight Stay", "Expense Partial Day Rules"::"Based On Eligible Hours", 60, 20, 8);
         ExpenseAgentSetup.Get();
         ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
         ExpensePerDiemCalculation.SetTimeZone(EasternTimeZoneTok);
 
-        // [THEN] The trip also gets two daily rates, both on 2026-11-01.
+        // [GIVEN] A 48-hour trip from 00:30 EDT on 2026-11-01 to 23:30 EST on 2026-11-02.
+        // [GIVEN] The second overnight period starts at 23:30 EST on 2026-11-01, so both periods start on 2026-11-01.
+        TripStart := UtcDateTime('2026-11-01T04:30:00Z');
+        TripEnd := UtcDateTime('2026-11-03T04:30:00Z');
+
+        // [WHEN] The per diem is calculated for each day of the trip.
+        // [THEN] 2026-11-01 gets two daily rates and 2026-11-02 none, so the trip gets two daily rates.
         Assert.AreEqual(200, ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(DMY2Date(1, 11, 2026), 100, TripStart, TripEnd), 'Overnight periods starting on 2026-11-01');
         Assert.AreEqual(0, ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(DMY2Date(2, 11, 2026), 100, TripStart, TripEnd), 'Overnight periods starting on 2026-11-02');
     end;

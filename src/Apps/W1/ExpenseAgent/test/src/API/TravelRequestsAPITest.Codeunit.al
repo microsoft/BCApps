@@ -368,25 +368,29 @@ codeunit 148347 "Travel Requests API Test"
         ExpenseRuleCondition: Record "Expense Rule Condition";
         ApproverExpenseUser: Record "Expense User";
         RequestedForExpenseUser: Record "Expense User";
+        OriginalExpenseAgentSetup: Record "Expense Agent Setup";
         TravelRequest: Record "Spend Request";
-        OriginalAgentUserSecurityId: Guid;
         TripStart, TripEnd : DateTime;
         AgentDate: Date;
+        DailyRate: Decimal;
         TargetURL: Text;
         RequestBody: Text;
         ResponseText: Text;
     begin
         // [SCENARIO 659478] The Expense Agent service approves a travel request through OData, and the per diem days are split in the agent time zone.
         Initialize();
-        ExpenseAgentSetup.Get();
-        OriginalAgentUserSecurityId := ExpenseAgentSetup."User Security ID";
+        OriginalExpenseAgentSetup.Get();
 
         // [GIVEN] A trip from 20:00 to 03:00 the next day in the session time zone, and an agent time zone in which the trip falls on one date.
         // [GIVEN] Off SaaS, every OData caller is the Expense Agent, so no service call is simulated.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         LibraryExpense.SetAgentTimeZoneForOneDayTrip(WorkDate(), TripStart, TripEnd, AgentDate);
 
-        // [GIVEN] A per diem category with a Daily Rate rule for an expense location.
+        // [GIVEN] Full calendar days, with 50% of the daily rate for partial days of at least 6 hours.
+        LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 50, 0, 6);
+
+        // [GIVEN] A per diem category with a Daily Rate rule of 100 for an expense location.
+        DailyRate := 100;
         LibraryExpense.CreateExpenseLocation(ExpenseLocation, '', CopyStr(LibraryRandom.RandText(MaxStrLen(ExpenseLocation.City)), 1, MaxStrLen(ExpenseLocation.City)));
         DeletePerDiemRulesForLocation(ExpenseLocation."No.");
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::"Per Diem");
@@ -394,7 +398,7 @@ codeunit 148347 "Travel Requests API Test"
         ExpenseCategory.Modify(true);
         LibraryExpense.CreateExpenseRuleWithCondition(
             ExpenseRuleHeader, ExpenseRuleCondition, ExpenseCategory.Code, ExpenseLocation."No.", 0D,
-            "Expense Justification"::" ", '', '', "Expense Rule Condition Type"::"Daily Rate", LibraryRandom.RandIntInRange(10, 100));
+            "Expense Justification"::" ", '', '', "Expense Rule Condition Type"::"Daily Rate", DailyRate);
 
         // [GIVEN] A released per diem travel request for the trip.
         LibraryExpense.CreateExpenseUser(RequestedForExpenseUser);
@@ -411,7 +415,7 @@ codeunit 148347 "Travel Requests API Test"
         RequestBody := StrSubstNo(ApproveTravelRequestBodyLbl, ApproverExpenseUser."No.");
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 200);
 
-        // [THEN] The per diem line is dated on the agent date and has a single day, as in the agent time zone.
+        // [THEN] The per diem line is dated on the agent date and has a single 7-hour partial day, as in the agent time zone, worth 50% of the daily rate.
         ExpenseReportHeader.SetRange("Spend Request No.", TravelRequest."No.");
         ExpenseReportHeader.FindFirst();
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
@@ -421,16 +425,22 @@ codeunit 148347 "Travel Requests API Test"
         ExpenseReportLinePerDiem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
         Assert.RecordCount(ExpenseReportLinePerDiem, 1);
         ExpenseReportLinePerDiem.CalcSums("Per Diem Amount");
-        Assert.AreEqual(ExpenseReportLinePerDiem."Per Diem Amount", ExpenseReportLine.Amount, 'The per diem line amount must be the sum of its daily rows.');
+        Assert.AreEqual(DailyRate * 50 / 100, ExpenseReportLinePerDiem."Per Diem Amount", 'The single day must get the partial rate.');
+        Assert.AreEqual(DailyRate * 50 / 100, ExpenseReportLine.Amount, 'The per diem line amount must be the partial rate of its single day.');
 
         // [THEN] The trip instants are copied without shifting.
         Assert.AreEqual(TripStart, ExpenseReportLine."Starting Date and Time", 'The per diem line must start with the trip.');
         Assert.AreEqual(TripEnd, ExpenseReportLine."Ending Date and Time", 'The per diem line must end with the trip.');
 
-        // Test isolation is off, so restore the agent user and remove the per diem line to keep other tests unaffected.
+        // Test isolation is off, so restore the agent setup and remove the per diem line to keep other tests unaffected.
         ExpenseReportHeader.Delete(true);
         ExpenseAgentSetup.Get();
-        ExpenseAgentSetup."User Security ID" := OriginalAgentUserSecurityId;
+        ExpenseAgentSetup."User Security ID" := OriginalExpenseAgentSetup."User Security ID";
+        ExpenseAgentSetup."Full Per-Diem Calculation" := OriginalExpenseAgentSetup."Full Per-Diem Calculation";
+        ExpenseAgentSetup."Partial Day Rules" := OriginalExpenseAgentSetup."Partial Day Rules";
+        ExpenseAgentSetup."Percentage For Partial Day" := OriginalExpenseAgentSetup."Percentage For Partial Day";
+        ExpenseAgentSetup."Minimum Hours for Per Diem" := OriginalExpenseAgentSetup."Minimum Hours for Per Diem";
+        ExpenseAgentSetup."Min Hours for Partial Per Diem" := OriginalExpenseAgentSetup."Min Hours for Partial Per Diem";
         ExpenseAgentSetup.Modify();
         Commit();
     end;

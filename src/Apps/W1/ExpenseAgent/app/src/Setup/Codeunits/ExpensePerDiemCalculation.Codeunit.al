@@ -109,15 +109,26 @@ codeunit 6911 "Expense Per Diem Calculation"
     end;
 
     /// <summary>
-    /// Returns the instant at which the per diem clock reads ClockShift later than at FromDateTime,
-    /// correcting for a daylight saving change in between.
+    /// Returns the first instant of a date in the time zone that per diem days are split in.
+    /// When clocks skip midnight, this is the instant they change; when they go back, it includes the repeated hour.
     /// </summary>
-    local procedure ShiftOnPerDiemClock(FromDateTime: DateTime; ClockShift: Integer): DateTime
+    local procedure GetPerDiemDayStart(LocalDate: Date): DateTime
     var
-        Candidate: DateTime;
+        LocalMidnight, StartBeforeChange, StartAfterChange : DateTime;
+        DaysSinceEpoch: BigInteger;
     begin
-        Candidate := FromDateTime + ClockShift;
-        exit(Candidate - (GetPerDiemOffset(Candidate) - GetPerDiemOffset(FromDateTime)));
+        // Local midnight read as UTC, less the offset in force before or after a daylight saving change near that date
+        DaysSinceEpoch := LocalDate - GetEpochDate();
+        LocalMidnight := GetUtcEpoch() + DaysSinceEpoch * MsPerDay();
+        StartBeforeChange := LocalMidnight - GetPerDiemOffset(LocalMidnight - 2 * MsPerDay());
+        StartAfterChange := LocalMidnight - GetPerDiemOffset(LocalMidnight + 2 * MsPerDay());
+
+        // The day starts at the earliest of the two instants that falls on the date
+        if (StartAfterChange < StartBeforeChange) and (GetPerDiemDate(StartAfterChange) = LocalDate) then
+            exit(StartAfterChange);
+        if GetPerDiemDate(StartBeforeChange) = LocalDate then
+            exit(StartBeforeChange);
+        exit(StartAfterChange);
     end;
 
     local procedure GetPerDiemOffset(UtcDateTime: DateTime): Duration
@@ -170,7 +181,7 @@ codeunit 6911 "Expense Per Diem Calculation"
             ExpenseAgentSetup."Full Per-Diem Calculation"::None:
                 exit(0);
             ExpenseAgentSetup."Full Per-Diem Calculation"::"Full Calendar Day":
-                exit(CalculateFullCalendarDayAmount(IsFirstDay, IsLastDay, BaseRate, TripStartDateTime, TripEndDateTime));
+                exit(CalculateFullCalendarDayAmount(CurrentDate, IsFirstDay, IsLastDay, BaseRate, TripStartDateTime, TripEndDateTime));
             ExpenseAgentSetup."Full Per-Diem Calculation"::"24-hour Rolling Period":
                 exit(Calculate24HourRollingDayAmount(CurrentDate, BaseRate, TripStartDateTime, TripEndDateTime));
             ExpenseAgentSetup."Full Per-Diem Calculation"::"Overnight Stay":
@@ -179,6 +190,7 @@ codeunit 6911 "Expense Per Diem Calculation"
     end;
 
     local procedure CalculateFullCalendarDayAmount(
+        CurrentDate: Date;
         IsFirstDay: Boolean;
         IsLastDay: Boolean;
         BaseRate: Decimal;
@@ -199,15 +211,16 @@ codeunit 6911 "Expense Per Diem Calculation"
 
         IsFullCalendarDay := (DayStartTime = 000000T) and (DayEndTime = 235900T);
 
-        // Elapsed hours present in this day; a day boundary that isn't a trip boundary is found from the other trip boundary on the clock
+        // Elapsed hours present in this day, which differ from the clock hours on days when clocks change.
+        // As before, a day that the trip continues past ends at 23:59, one minute before the next day starts.
         if IsFirstDay then
             DayStart := TripStartDateTime
         else
-            DayStart := ShiftOnPerDiemClock(TripEndDateTime, DayStartTime - DayEndTime);
+            DayStart := GetPerDiemDayStart(CurrentDate);
         if IsLastDay then
             DayEnd := TripEndDateTime
         else
-            DayEnd := ShiftOnPerDiemClock(TripStartDateTime, DayEndTime - DayStartTime);
+            DayEnd := GetPerDiemDayStart(CurrentDate + 1) - 60 * 1000;
         HoursInDay := Round((DayEnd - DayStart) / (60 * 60 * 1000), 0.01);
 
         if IsFullCalendarDay then
