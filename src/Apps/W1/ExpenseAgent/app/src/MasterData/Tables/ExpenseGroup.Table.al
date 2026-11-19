@@ -4,11 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-/// <summary>
-/// Stores the expense groups that are used to group expense categories.
-/// </summary>
 table 6924 "Expense Group"
 {
+    Access = Internal;
     Caption = 'Expense Group';
     DataClassification = CustomerContent;
     LookupPageId = "Expense Groups";

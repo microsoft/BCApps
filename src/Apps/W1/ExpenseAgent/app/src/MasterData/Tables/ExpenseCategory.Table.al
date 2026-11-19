@@ -68,6 +68,7 @@ table 6921 "Expense Category"
         }
         field(8; "Expense Group"; Code[20])
         {
+            Access = Internal;
             Caption = 'Expense Group';
             TableRelation = "Expense Group".Code;
         }
