@@ -109,6 +109,8 @@ codeunit 1231 "SEPA DD-Fill Export Buffer"
             OnBeforeInsertPaymentExportData(PaymentExportData, TempDirectDebitCollectionEntry);
             PaymentExportData.Insert(true);
         until TempDirectDebitCollectionEntry.Next() = 0;
+
+        OnAfterFillExportBuffer(PaymentExportData, DirectDebitCollection, BankExportImportSetup);
     end;
 
     /// <summary>
@@ -175,6 +177,18 @@ codeunit 1231 "SEPA DD-Fill Export Buffer"
     /// <param name="TempDirectDebitCollectionEntry">The source direct debit collection entry providing the data.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertPaymentExportData(var PaymentExportData: Record "Payment Export Data"; var TempDirectDebitCollectionEntry: Record "Direct Debit Collection Entry" temporary)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after completing export buffer processing for SEPA direct debit.
+    /// Enables final custom processing or validation after all export data has been populated.
+    /// </summary>
+    /// <param name="TempPaymentExportData">Payment export data that was processed.</param>
+    /// <param name="DirectDebitCollection">Direct debit collection used for processing.</param>
+    /// <param name="BankExportImportSetup">Bank export/import setup used for processing.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterFillExportBuffer(var TempPaymentExportData: Record "Payment Export Data"; DirectDebitCollection: Record "Direct Debit Collection"; BankExportImportSetup: Record "Bank Export/Import Setup")
     begin
     end;
 }
