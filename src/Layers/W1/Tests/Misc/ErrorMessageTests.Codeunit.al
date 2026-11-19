@@ -9,18 +9,13 @@ codeunit 135000 "Error Message Tests"
     end;
 
     var
-        GLBCustomerContext: Record Customer;
-        GLBVendorContext: Record Vendor;
-        Assert: Codeunit Assert;
-        LibraryUtility: Codeunit "Library - Utility";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryRandom: Codeunit "Library - Random";
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryErrorMessage: Codeunit "Library - Error Message";
         GenericErrorDescriptionTxt: Label 'The field must be a multiple of 4';
         AdditionalInformationTxt: Label 'Additional Information';
         AdditionalInformation2Txt: Label 'Further information about the error message';
         SupportUrlTxt: Label 'www.bing.com';
+        GLBCustomerContext: Record Customer;
+        GLBVendorContext: Record Vendor;
+        Assert: Codeunit Assert;
         SupportUrl2Txt: Label 'www.microsoft.com';
         IfEmptyErr: Label '''%1'' in ''%2'' must not be blank.', Comment = '%1=caption of a field, %2=key of record';
         IfLengthExceededErr: Label 'The maximum length of ''%1'' in ''%2'' is %3 characters. The actual length is %4.', Comment = '%1=caption of a field, %2=key of record, %3=integer, %4=integer';
@@ -33,6 +28,11 @@ codeunit 135000 "Error Message Tests"
         InvalidErrorMessageDataErr: Label 'Invalid data in Error Message table.';
         ErrorLoggedForValidDataErr: Label 'An error was logged for valid data.';
         FieldMustNotBeErr: Label '%1 must not be %2', Comment = '%1 - field name, %2 - field value';
+        LibraryUtility: Codeunit "Library - Utility";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryErrorMessage: Codeunit "Library - Error Message";
         DevMsgNotTemporaryErr: Label 'This function can only be used when the record is temporary.';
         DrillDownErr: Label 'The NavDrilldownAction method is not supported.';
 
@@ -210,7 +210,8 @@ codeunit 135000 "Error Message Tests"
         DataTypeBuffer: Record "Data Type Buffer";
         RecordRef: RecordRef;
         FieldRef: FieldRef;
-        FieldNo, ID : Integer;
+        FieldNo: Integer;
+        ID: Integer;
     begin
         // [SCENARIO] An Error Message is added when using LogIfIsEmpty function, if the provided field is empty
         Initialize();
@@ -241,7 +242,8 @@ codeunit 135000 "Error Message Tests"
         DataTypeBuffer: Record "Data Type Buffer";
         RecordRef: RecordRef;
         FieldRef: FieldRef;
-        FieldNo, ID : Integer;
+        FieldNo: Integer;
+        ID: Integer;
     begin
         // [SCENARIO] An Error Message is not added when using LogIfIsEmpty function, if the provided field is not empty
         Initialize();
@@ -1536,7 +1538,8 @@ codeunit 135000 "Error Message Tests"
     procedure UTGetFieldNo()
     var
         TableWithFieldCaption: Record TableWithFieldCaption;
-        TempErrorMessage, TempErrorMessageActual : Record "Error Message" temporary;
+        TempErrorMessage: Record "Error Message" temporary;
+        TempErrorMessageActual: Record "Error Message" temporary;
         ErrorMessageMgt: Codeunit "Error Message Management";
         ErrorMessageHandler: Codeunit "Error Message Handler";
         ErrorMessages: Page "Error Messages";
