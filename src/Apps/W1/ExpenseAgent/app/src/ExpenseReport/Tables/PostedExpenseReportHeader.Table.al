@@ -333,8 +333,10 @@ table 6915 "Posted Expense Report Header"
     var
         PostedExpenseReportLines: Record "Posted Expense Report Line";
         ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+        ExpReportChangeLogMgt: Codeunit "Exp. Report Change Log Mgt.";
     begin
         ExpenseActivityLogMgt.DeleteEntriesForSource(Database::"Posted Expense Report Header", Rec.SystemId);
+        ExpReportChangeLogMgt.DeleteEntriesForSource(Database::"Posted Expense Report Header", Rec.SystemId);
         PostedExpenseReportLines.SetRange("Document No.", Rec."No.");
         PostedExpenseReportLines.DeleteAll();
     end;

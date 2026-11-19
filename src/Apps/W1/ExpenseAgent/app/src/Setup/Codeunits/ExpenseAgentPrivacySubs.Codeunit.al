@@ -23,6 +23,7 @@ codeunit 6950 "Expense Agent Privacy Subs."
     local procedure ClassifyExpenseAgent()
     var
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpReportChangeLogEntry: Record "Exp. Report Change Log Entry";
         ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
         PostedExpRepLineVATSpec: Record "Posted Exp. Rep. Line VAT Spec";
     begin
@@ -67,6 +68,9 @@ codeunit 6950 "Expense Agent Privacy Subs."
             Database::"Expense Activity Log Entry", ExpenseActivityLogEntry.FieldNo("Actor Record System ID"));
         DataClassificationMgt.SetFieldToPersonal(
             Database::"Expense Activity Log Entry", ExpenseActivityLogEntry.FieldNo("Actor Display Name"));
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Exp. Report Change Log Entry");
+        DataClassificationMgt.SetFieldToPersonal(
+            Database::"Exp. Report Change Log Entry", ExpReportChangeLogEntry.FieldNo("User ID"));
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Vendor");
 #if not CLEAN29
 #pragma warning disable AL0432 // Object is obsoleted
