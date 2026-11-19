@@ -38,7 +38,7 @@ codeunit 117000 "Interface Service Management"
         Window.Update(3, XServiceManagement);
 
         Steps := 0;
-        MaxSteps := 53; // Number of calls to RunCodeunit
+        MaxSteps := 52; // Number of calls to RunCodeunit
 
         RunCodeunit(CODEUNIT::"Add Source Code Setup");
         RunCodeunit(CODEUNIT::"Add No. Series");
@@ -47,7 +47,6 @@ codeunit 117000 "Interface Service Management"
         RunCodeunit(CODEUNIT::"Add Job Responsibility");
         RunCodeunit(CODEUNIT::"Add Resource");
         RunCodeunit(CODEUNIT::"Add Res. Capacity Entry");
-        RunCodeunit(CODEUNIT::"Add Employee");
         RunCodeunit(CODEUNIT::"Add Salesperson/Purchaser");
         RunCodeunit(CODEUNIT::"Create Service Zone");
         RunCodeunit(CODEUNIT::"Create Service Cost");
@@ -399,4 +398,3 @@ codeunit 117000 "Interface Service Management"
             until ServContrHeader.Next() = 0;
     end;
 }
-
