@@ -352,6 +352,7 @@ report 10139 "Inventory Valuation"
         ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
         ValueEntry.SetRange("Posting Date", 0D, EndDate);
         OnAdjustItemLedgEntryToAsOfDateOnAfterValueEntrySetFilters(ValueEntry, Item);
+        OnItemOnAfterGetRecordOnAfterValueEntrySetInitialFilters(ValueEntry, Item);
 
         if ShowACY then begin
             ValueEntry.CalcSums("Cost Amount (Actual) (ACY)", "Cost Amount (Expected) (ACY)");
@@ -444,8 +445,14 @@ report 10139 "Inventory Valuation"
     begin
     end;
 
+    [Obsolete('Use OnItemOnAfterGetRecordOnAfterValueEntrySetInitialFilters instead.', '29.0')]
     [IntegrationEvent(true, false)]
     local procedure OnAdjustItemLedgEntryToAsOfDateOnAfterValueEntrySetFilters(var ValueEntry: Record "Value Entry"; Item: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnItemOnAfterGetRecordOnAfterValueEntrySetInitialFilters(var ValueEntry: Record "Value Entry"; Item: Record Item)
     begin
     end;
 }
