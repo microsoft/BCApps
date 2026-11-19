@@ -396,6 +396,7 @@ codeunit 139780 "Integration Tests"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         this.LibraryPermission.SetOutsideO365Scope();
+        this.LibraryEDocument.DeleteInProcessEDocumentJobQueueEntries();
 
         //reset setup with every test
         this.SetMockConnectionSetups(CreateUserCredentials);

@@ -1117,6 +1117,7 @@ codeunit 148203 "Continia Doc. Integr. Tests"
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
     begin
         LibraryPermission.SetOutsideO365Scope();
+        LibraryEDocument.DeleteInProcessEDocumentJobQueueEntries();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
 
         ContiniaConnectionSetup.DeleteAll();

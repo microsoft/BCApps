@@ -919,6 +919,7 @@ codeunit 148225 "Extended Integration Tests"
         KeyGuid: Guid;
     begin
         LibraryPermission.SetOutsideO365Scope();
+        LibraryEDocument.DeleteInProcessEDocumentJobQueueEntries();
 
         GeneralLedgerSetup.Get();
         PrevVATReportingDateValue := GeneralLedgerSetup."VAT Reporting Date Usage";
