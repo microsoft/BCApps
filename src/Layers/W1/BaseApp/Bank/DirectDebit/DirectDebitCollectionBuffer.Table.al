@@ -19,7 +19,7 @@ table 1255 "Direct Debit Collection Buffer"
         /// <summary>
         /// Reference to the parent direct debit collection.
         /// </summary>
-        field(1; "Direct Debit Collection No."; Integer)
+        field(1; "Direct Debit Collection No."; BigInteger)
         {
             Caption = 'Direct Debit Collection No.';
             TableRelation = "Direct Debit Collection";
@@ -27,7 +27,7 @@ table 1255 "Direct Debit Collection Buffer"
         /// <summary>
         /// Entry number within the direct debit collection.
         /// </summary>
-        field(2; "Entry No."; Integer)
+        field(2; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

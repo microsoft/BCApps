@@ -3,6 +3,7 @@ name: 'Pull Request Build'
 on:
   pull_request:
     branches: [ 'main', 'releases/*', 'features/*' ]
+    types: [ opened, reopened, synchronize, ready_for_review ]
   merge_group:
 
 concurrency:
@@ -35,7 +36,7 @@ jobs:
 
   Initialization:
     needs: [ PregateCheck ]
-    if: (!failure() && !cancelled())
+    if: (github.event_name == 'merge_group' || github.event.pull_request.draft == false) && ((!failure() && !cancelled()))
     runs-on: [ windows-latest ]
     outputs:
       projects: ${{ steps.determineProjectsToBuild.outputs.ProjectsJson }}
@@ -93,7 +94,7 @@ jobs:
 
   Build1:
     needs: [ Initialization, CustomJob-VerifyAppChanges ]
-    if: (!failure()) && (!cancelled()) && fromJson(needs.Initialization.outputs.buildOrderJson)[0].projectsCount > 0
+    if: (github.event_name == 'merge_group' || github.event.pull_request.draft == false) && ((!failure()) && (!cancelled()) && fromJson(needs.Initialization.outputs.buildOrderJson)[0].projectsCount > 0)
     strategy:
       matrix:
         include: ${{ fromJson(needs.Initialization.outputs.buildOrderJson)[0].buildDimensions }}
@@ -119,7 +120,7 @@ jobs:
 
   Build:
     needs: [ Initialization, Build1, CustomJob-VerifyAppChanges ]
-    if: (!failure()) && (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && fromJson(needs.Initialization.outputs.buildOrderJson)[1].projectsCount > 0
+    if: (github.event_name == 'merge_group' || github.event.pull_request.draft == false) && ((!failure()) && (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && fromJson(needs.Initialization.outputs.buildOrderJson)[1].projectsCount > 0)
     strategy:
       matrix:
         include: ${{ fromJson(needs.Initialization.outputs.buildOrderJson)[1].buildDimensions }}
@@ -145,7 +146,7 @@ jobs:
 
   CodeAnalysisUpload:
     needs: [ Initialization, Build ]
-    if: (!cancelled()) && (needs.Initialization.outputs.trackALAlertsInGitHub == 'True') && (github.event_name != 'merge_group')
+    if: (github.event_name == 'merge_group' || github.event.pull_request.draft == false) && ((!cancelled()) && (needs.Initialization.outputs.trackALAlertsInGitHub == 'True') && (github.event_name != 'merge_group'))
     runs-on: [ windows-latest ]
     name: Code Analysis Processing
     steps:
@@ -182,7 +183,7 @@ jobs:
 
   StatusCheck:
     needs: [ Initialization, Build ]
-    if: (!cancelled())
+    if: (github.event_name == 'merge_group' || github.event.pull_request.draft == false) && ((!cancelled()))
     runs-on: [ windows-latest ]
     name: Pull Request Status Check
     steps:

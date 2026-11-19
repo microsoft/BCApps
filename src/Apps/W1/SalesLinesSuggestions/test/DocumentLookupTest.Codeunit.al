@@ -158,7 +158,7 @@ codeunit 133510 "Document Lookup Test"
         SalesLineAISuggestions: Page "Sales Line AI Suggestions";
     begin
         // [FEATURE] [Sales Line with AI] [Document Lookup] [Sales Order]
-        // [SCENARIO] We have one item with a new UoM. When copying a sales order, the item UoM should be set to the default one defined in item.
+        // [SCENARIO] Copying a sales order preserves the source line's UoM rather than using the item's base UoM.
         Initialize();
         LibrarySales.CreateCustomer(Customer);
         // [GIVEN] Create a new sales order for the new customer
@@ -168,11 +168,11 @@ codeunit 133510 "Document Lookup Test"
         LibraryVariableStorage.Enqueue(StrSubstNo(NeedAllItemFromSpecifiedSalesOrderLbl, SalesHeader."No."));
         LibraryVariableStorage.Enqueue('1');
         EnqueueItem1();
-        EnqueueItem1WithUoM(CreatedItem."Base Unit of Measure");
+        EnqueueItem1WithUoM(SalesLine."Unit of Measure Code");
         // [WHEN] Create a new sales order for this customer and run Sales Line AI Suggestions Page to generate suggestions lines
         // [THEN] One line is generated. Check it in 'CheckGenerateFromSalesOrder' handler function
         CreateNewSalesHeaderAndRunSalesLineAISuggestionsPage(SalesHeader, SalesLineAISuggestions, Customer."No.", SalesHeader."Document Type"::Order);
-        // [THEN] After inserting, check the UoM is set to the default one defined in item
+        // [THEN] After inserting, check the source line's UoM is preserved
         CheckSalesLineContentWithUoM(SalesLine, SalesHeader."No.");
     end;
 

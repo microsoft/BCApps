@@ -172,6 +172,7 @@ codeunit 5459 "JSON Management"
 
         case FieldRef.Type of
             FieldType::Integer,
+            FieldType::BigInteger,
             FieldType::Decimal:
                 begin
                     Success := Evaluate(DecimalVal, Value, 9);
@@ -420,6 +421,7 @@ codeunit 5459 "JSON Management"
                     JObject.Add(propertyName, JObject2);
                 end;
             value.IsInteger,
+            value.IsBigInteger,
             value.IsDecimal,
             value.IsBoolean:
                 begin
