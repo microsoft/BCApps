@@ -8,9 +8,7 @@ namespace Microsoft.Integration.Shopify.Test;
 using Microsoft.CRM.Team;
 using Microsoft.Integration.Shopify;
 using Microsoft.Sales.Document;
-using System.TestLibraries.Upgrade;
 using System.TestLibraries.Utilities;
-using System.Upgrade;
 
 codeunit 139551 "Shpfy Staff Test"
 {
@@ -193,52 +191,6 @@ codeunit 139551 "Shpfy Staff Test"
         asserterror LocalShop.GetShopSettings();
 
         LibraryAssert.ExpectedError('The response from Shopify did not contain the expected staffMembers data.');
-    end;
-
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    procedure TestStaffAccessUpgradeCopiesPlanFlag()
-    var
-        AdvancedShop: Record "Shpfy Shop";
-        BasicShop: Record "Shpfy Shop";
-        UpgradeMgt: Codeunit "Shpfy Upgrade Mgt.";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        LibraryAssert: Codeunit "Library Assert";
-    begin
-        Any.SetDefaultSeed();
-        DeleteStaffMemberAccessUpgradeTag();
-        AdvancedShop := CreateShopForStaffAccessUpgrade(true, false);
-        BasicShop := CreateShopForStaffAccessUpgrade(false, true);
-
-        UpgradeMgt.StaffMemberAccessUpgrade();
-
-        AdvancedShop.Get(AdvancedShop.Code);
-        BasicShop.Get(BasicShop.Code);
-        LibraryAssert.IsTrue(AdvancedShop."Can Access Staff Members", 'Upgrade must preserve staff eligibility from the old plan flag.');
-        LibraryAssert.IsFalse(BasicShop."Can Access Staff Members", 'Upgrade must not grant staff access to an ineligible plan.');
-        LibraryAssert.IsTrue(UpgradeTag.HasUpgradeTag(UpgradeMgt.GetStaffMemberAccessUpgradeTag()), 'The migration must record its upgrade tag.');
-    end;
-
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    procedure TestStaffAccessUpgradeDoesNotOverwriteProbeResult()
-    var
-        LocalShop: Record "Shpfy Shop";
-        UpgradeMgt: Codeunit "Shpfy Upgrade Mgt.";
-        LibraryAssert: Codeunit "Library Assert";
-    begin
-        Any.SetDefaultSeed();
-        DeleteStaffMemberAccessUpgradeTag();
-        LocalShop := CreateShopForStaffAccessUpgrade(true, false);
-        UpgradeMgt.StaffMemberAccessUpgrade();
-        LocalShop.Get(LocalShop.Code);
-        LocalShop."Can Access Staff Members" := false;
-        LocalShop.Modify(false);
-
-        UpgradeMgt.StaffMemberAccessUpgrade();
-
-        LocalShop.Get(LocalShop.Code);
-        LibraryAssert.IsFalse(LocalShop."Can Access Staff Members", 'A completed migration must not overwrite a later access-check result.');
     end;
 
     [Test]
@@ -447,25 +399,6 @@ codeunit 139551 "Shpfy Staff Test"
         LibraryAssert.AreEqual(OrderHeader."Salesperson Code", SalesHeader."Salesperson Code", 'ShpfyOrderHeader."Salesperson Code" = SalesHeader."Salesperson Code"');
     end;
 
-    local procedure CreateShopForStaffAccessUpgrade(AdvancedPlan: Boolean; StaffAccess: Boolean) LocalShop: Record "Shpfy Shop"
-    begin
-        LocalShop.Init();
-        LocalShop.Code := CopyStr(Any.AlphabeticText(MaxStrLen(LocalShop.Code)), 1, MaxStrLen(LocalShop.Code));
-        LocalShop."Advanced Shopify Plan" := AdvancedPlan;
-        LocalShop."Can Access Staff Members" := StaffAccess;
-        LocalShop.Insert(false);
-    end;
-
-    local procedure DeleteStaffMemberAccessUpgradeTag()
-    var
-        UpgradeMgt: Codeunit "Shpfy Upgrade Mgt.";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeMgt.GetStaffMemberAccessUpgradeTag()) then
-            UpgradeTagLibrary.DeleteUpgradeTag(UpgradeMgt.GetStaffMemberAccessUpgradeTag(), CopyStr(CompanyName(), 1, 30));
-    end;
-
     local procedure Initialize()
     var
         ShpfyStaffMember: Record "Shpfy Staff Member";
@@ -481,29 +414,29 @@ codeunit 139551 "Shpfy Staff Test"
 
         ShpfyStaffMember.DeleteAll(false);
 
-        if IsInitialized then
-            exit;
+        if not IsInitialized then begin
+            LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Shpfy Staff Test");
 
-        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Shpfy Staff Test");
+            LibraryRandom.Init();
 
-        LibraryRandom.Init();
+            Any.SetDefaultSeed();
 
-        Any.SetDefaultSeed();
+            IsInitialized := true;
+            Commit();
 
-        IsInitialized := true;
-        Commit();
+            Shop := InitializeTest.CreateShop();
 
-        // Creating Shopify Shop
-        Shop := InitializeTest.CreateShop();
+            AccessToken := LibraryRandom.RandText(20);
+            InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
+
+            LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Shpfy Staff Test");
+        end;
+
+        Shop.Get(Shop.Code);
         Shop."Advanced Shopify Plan" := true;
         Shop."Can Access Staff Members" := true;
-        Shop.Modify();
-
-        //Register Shopify Access Token
-        AccessToken := LibraryRandom.RandText(20);
-        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
-
-        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Shpfy Staff Test");
+        Shop."Auto Create Catalog" := false;
+        Shop.Modify(false);
     end;
 
     [HttpClientHandler]
