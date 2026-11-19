@@ -188,7 +188,6 @@ codeunit 3326 "PA Test Fixtures"
         TempMatchedLine: Record "Purchase Line" temporary;
         Vendor: Record Vendor;
         Outcome: RecordId;
-        Context: JsonObject;
         MissingOutcomeErr: Label 'Cannot collect infotips: agent task %1 has no existing unposted purchase outcome.', Locked = true;
         MissingLinesErr: Label 'Cannot collect infotips: purchase document %1 has no lines.', Locked = true;
     begin
@@ -199,16 +198,10 @@ codeunit 3326 "PA Test Fixtures"
             Error(MissingOutcomeErr, WorkItem.GetAgentTaskId());
         if not (PurchaseHeader."Document Type" in [PurchaseHeader."Document Type"::Invoice, PurchaseHeader."Document Type"::"Credit Memo", PurchaseHeader."Document Type"::Order]) then
             Error(MissingOutcomeErr, WorkItem.GetAgentTaskId());
-        Context.Add('documentType', Format(PurchaseHeader."Document Type"));
-        Context.Add('documentNo', PurchaseHeader."No.");
-        Context.Add('invoiceNo', PurchaseHeader."Vendor Invoice No.");
-        AddInfotipSource(PurchaseHeader, Context, Sources);
+        AddInfotipSource(PurchaseHeader, PurchaseHeader."Vendor Invoice No.", Sources);
         if PurchaseHeader."Buy-from Vendor No." <> '' then begin
             Vendor.Get(PurchaseHeader."Buy-from Vendor No.");
-            Clear(Context);
-            Context.Add('no', Vendor."No.");
-            Context.Add('name', Vendor.Name);
-            AddInfotipSource(Vendor, Context, Sources);
+            AddInfotipSource(Vendor, Vendor.Name, Sources);
         end;
 
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
@@ -216,7 +209,7 @@ codeunit 3326 "PA Test Fixtures"
         if not PurchaseLine.FindSet() then
             Error(MissingLinesErr, PurchaseHeader."No.");
         repeat
-            AddPurchaseLineInfotipSource(PurchaseLine, Sources);
+            AddInfotipSource(PurchaseLine, PurchaseLine.Description, Sources);
             if TryGetNativeMatchedOrderLine(PurchaseLine, MatchedLine) then
                 if not TempMatchedLine.Get(MatchedLine."Document Type", MatchedLine."Document No.", MatchedLine."Line No.") then begin
                     TempMatchedLine := MatchedLine;
@@ -226,7 +219,7 @@ codeunit 3326 "PA Test Fixtures"
         if TempMatchedLine.FindSet() then
             repeat
                 MatchedLine.Get(TempMatchedLine."Document Type", TempMatchedLine."Document No.", TempMatchedLine."Line No.");
-                AddPurchaseLineInfotipSource(MatchedLine, Sources);
+                AddInfotipSource(MatchedLine, MatchedLine.Description, Sources);
             until TempMatchedLine.Next() = 0;
     end;
 
@@ -242,18 +235,7 @@ codeunit 3326 "PA Test Fixtures"
         exit(false);
     end;
 
-    local procedure AddPurchaseLineInfotipSource(PurchaseLine: Record "Purchase Line"; var Sources: JsonArray)
-    var
-        Context: JsonObject;
-    begin
-        Context.Add('documentType', Format(PurchaseLine."Document Type"));
-        Context.Add('documentNo', PurchaseLine."Document No.");
-        Context.Add('lineNo', PurchaseLine."Line No.");
-        Context.Add('description', PurchaseLine.Description);
-        AddInfotipSource(PurchaseLine, Context, Sources);
-    end;
-
-    local procedure AddInfotipSource(SourceRecord: RecordRef; Context: JsonObject; var Sources: JsonArray)
+    local procedure AddInfotipSource(SourceRecord: RecordRef; DescriptionText: Text; var Sources: JsonArray)
     var
         Descriptor: JsonObject;
         SourceSystemId: Guid;
@@ -261,7 +243,7 @@ codeunit 3326 "PA Test Fixtures"
         SourceSystemId := SourceRecord.Field(SourceRecord.SystemIdNo()).Value;
         Descriptor.Add('tableId', SourceRecord.Number());
         Descriptor.Add('systemId', SourceSystemId);
-        Descriptor.Add('context', Context);
+        Descriptor.Add('description', DescriptionText);
         Sources.Add(Descriptor);
     end;
 

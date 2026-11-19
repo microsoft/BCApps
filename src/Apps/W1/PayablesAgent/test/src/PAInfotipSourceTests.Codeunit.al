@@ -30,7 +30,7 @@ codeunit 133735 "PA Infotip Source Tests"
         PurchaseLine: Record "Purchase Line";
         DraftFixtures: Codeunit "PA Draft Based Test Fixtures";
         Sources: JsonArray;
-        Context: JsonObject;
+        Source: JsonToken;
         AgentTaskId: BigInteger;
         WorkingSources, FinalizedSources: Text;
     begin
@@ -42,39 +42,37 @@ codeunit 133735 "PA Infotip Source Tests"
         Vendor.Name := 'Actual source vendor';
         Vendor.Insert();
         CreatePurchaseLine(PurchaseLine, "Purchase Document Type"::Invoice, NewDocumentNo(), 70000);
-        AgentTaskId := CreateTask('');
-        DraftFixtures.CreateMatchedDraftForTest(AgentTaskId, Vendor."No.", PurchaseLine.SystemId);
+
+        // [GIVEN] The task is inserted with the existing draft's correlation ID.
+        AgentTaskId := CreateTask(DraftFixtures.CreateMatchedDraftForTest(Vendor."No.", PurchaseLine.SystemId));
 
         // [WHEN] Sources are collected before finalization.
         Fixtures.GetTaskInfotipSources(AgentTaskId, Sources);
 
-        // [THEN] Each actual source appears once with its business context.
+        // [THEN] Each actual source appears once with its actual description.
         Assert.AreEqual(5, Sources.Count(), 'Header, vendor, two draft lines and one deduplicated surviving target');
         AssertAllSourcesResolve(Sources);
         AssertSource(Sources, Vendor, 1);
         AssertSource(Sources, PurchaseLine, 4);
-        Context := GetContext(Sources, 0);
-        AssertText(Context, 'invoiceNo', 'SOURCE-INVOICE');
-        Context := GetContext(Sources, 1);
-        AssertText(Context, 'no', Vendor."No.");
-        AssertText(Context, 'name', Vendor.Name);
-        Context := GetContext(Sources, 2);
-        AssertInteger(Context, 'lineNo', 10000);
-        Context := GetContext(Sources, 3);
-        AssertInteger(Context, 'lineNo', 20000);
-        Context := GetContext(Sources, 4);
-        AssertText(Context, 'documentType', Format(PurchaseLine."Document Type"));
-        AssertText(Context, 'documentNo', PurchaseLine."Document No.");
-        AssertInteger(Context, 'lineNo', PurchaseLine."Line No.");
+        Sources.Get(0, Source);
+        AssertText(Source.AsObject(), 'description', 'SOURCE-INVOICE');
+        Sources.Get(1, Source);
+        AssertText(Source.AsObject(), 'description', Vendor.Name);
+        Sources.Get(2, Source);
+        AssertText(Source.AsObject(), 'description', 'Actual draft source');
+        Sources.Get(3, Source);
+        AssertText(Source.AsObject(), 'description', 'Actual draft source');
+        Sources.Get(4, Source);
+        AssertText(Source.AsObject(), 'description', PurchaseLine.Description);
         Sources.WriteTo(WorkingSources);
 
         // [WHEN] Working matches are transferred to finalized matches and sources are collected again.
         DraftFixtures.FinalizeDraftMatchesForTest(AgentTaskId);
         Fixtures.GetTaskInfotipSources(AgentTaskId, Sources);
 
-        // [THEN] Source identities, context and ordering are unchanged.
+        // [THEN] Source identities, descriptions and ordering are unchanged.
         Sources.WriteTo(FinalizedSources);
-        Assert.AreEqual(WorkingSources, FinalizedSources, 'Finalized relations retain the same actual source identities and context');
+        Assert.AreEqual(WorkingSources, FinalizedSources, 'Finalized relations retain the same actual source identities and descriptions');
     end;
 
     [Test]
@@ -89,7 +87,7 @@ codeunit 133735 "PA Infotip Source Tests"
         ReceiptLine: Record "Purch. Rcpt. Line";
         WorkItem: Codeunit "PA Work Item";
         Sources: JsonArray;
-        Context: JsonObject;
+        Source: JsonToken;
         AgentTaskId: BigInteger;
     begin
         // [FEATURE] [AI test 1.0] [Payables Agent] [Infotip Sources]
@@ -106,7 +104,11 @@ codeunit 133735 "PA Infotip Source Tests"
         Header."Vendor Invoice No." := 'NATIVE-INVOICE';
         Header.Insert();
         CreatePurchaseLine(OrderLine, "Purchase Document Type"::Order, NewDocumentNo(), 70000);
+        OrderLine.Description := 'Direct target';
+        OrderLine.Modify();
         CreatePurchaseLine(ReceiptOrderLine, "Purchase Document Type"::Order, OrderLine."Document No.", 80000);
+        ReceiptOrderLine.Description := 'Receipt-only target';
+        ReceiptOrderLine.Modify();
         CreatePurchaseLine(Line, Header."Document Type", Header."No.", 10000);
         Line."Order No." := OrderLine."Document No.";
         Line."Order Line No." := OrderLine."Line No.";
@@ -121,6 +123,7 @@ codeunit 133735 "PA Infotip Source Tests"
         Line."Receipt Line No." := ReceiptLine."Line No.";
         Line.Modify();
         CreatePurchaseLine(Line, Header."Document Type", Header."No.", 30000);
+        Line.Description := '';
         Line."Order No." := OrderLine."Document No.";
         Line."Order Line No." := OrderLine."Line No.";
         Line.Modify();
@@ -137,15 +140,16 @@ codeunit 133735 "PA Infotip Source Tests"
         AssertSource(Sources, Line, 4);
         AssertSource(Sources, OrderLine, 5);
         AssertSource(Sources, ReceiptOrderLine, 6);
-        Context := GetContext(Sources, 0);
-        AssertText(Context, 'documentNo', Header."No.");
-        AssertText(Context, 'invoiceNo', Header."Vendor Invoice No.");
-        Context := GetContext(Sources, 5);
-        AssertText(Context, 'documentNo', OrderLine."Document No.");
-        AssertInteger(Context, 'lineNo', OrderLine."Line No.");
-        Context := GetContext(Sources, 6);
-        AssertText(Context, 'documentNo', ReceiptOrderLine."Document No.");
-        AssertInteger(Context, 'lineNo', ReceiptOrderLine."Line No.");
+        Sources.Get(0, Source);
+        AssertText(Source.AsObject(), 'description', Header."Vendor Invoice No.");
+        Sources.Get(1, Source);
+        AssertText(Source.AsObject(), 'description', Vendor.Name);
+        Sources.Get(4, Source);
+        AssertText(Source.AsObject(), 'description', '');
+        Sources.Get(5, Source);
+        AssertText(Source.AsObject(), 'description', OrderLine.Description);
+        Sources.Get(6, Source);
+        AssertText(Source.AsObject(), 'description', ReceiptOrderLine.Description);
     end;
 
     [Test]
@@ -174,6 +178,9 @@ codeunit 133735 "PA Infotip Source Tests"
 
         // [THEN] The missing outcome is reported.
         Assert.ExpectedError('has no existing unposted purchase outcome');
+
+        // [GIVEN] A fresh native task after the expected error rolled back the previous setup.
+        AgentTaskId := CreateNativeTask(WorkItem);
 
         // [GIVEN] Invoice "PI" is registered as the outcome and then deleted.
         Header."Document Type" := Header."Document Type"::Invoice;
@@ -239,7 +246,8 @@ codeunit 133735 "PA Infotip Source Tests"
     begin
         foreach Source in Sources do begin
             Descriptor := Source.AsObject();
-            Assert.AreEqual(3, Descriptor.Keys().Count(), 'Descriptors contain only actual table, SystemId and semantic context');
+            Assert.AreEqual(3, Descriptor.Keys().Count(), 'Descriptors contain only actual tableId, systemId and description');
+            Assert.IsTrue(Descriptor.Contains('description'), 'Description is always included, even when blank');
             Descriptor.Get('tableId', Property);
             SourceRecord.Open(Property.AsValue().AsInteger());
             Descriptor.Get('systemId', Property);
@@ -262,15 +270,6 @@ codeunit 133735 "PA Infotip Source Tests"
         Evaluate(ActualSystemId, Property.AsValue().AsText());
         ExpectedSystemId := Expected.Field(Expected.SystemIdNo()).Value;
         Assert.AreEqual(ExpectedSystemId, ActualSystemId, 'Use the actual source, not a temporary-copy SystemId');
-    end;
-
-    local procedure GetContext(Sources: JsonArray; Index: Integer): JsonObject
-    var
-        Source, Context: JsonToken;
-    begin
-        Sources.Get(Index, Source);
-        Source.AsObject().Get('context', Context);
-        exit(Context.AsObject());
     end;
 
     local procedure AssertText(Object: JsonObject; PropertyName: Text; Expected: Text)

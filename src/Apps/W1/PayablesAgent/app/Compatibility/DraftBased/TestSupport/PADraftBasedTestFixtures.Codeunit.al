@@ -11,7 +11,6 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
-using System.Agents;
 
 // Version-specific setup and user actions used by the version-neutral Payables Agent test fixture.
 codeunit 3347 "PA Draft Based Test Fixtures"
@@ -103,29 +102,19 @@ codeunit 3347 "PA Draft Based Test Fixtures"
         TempMatchedLine: Record "Purchase Line" temporary;
         TempTarget: Record "Purchase Line" temporary;
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
-        Context: JsonObject;
     begin
         EDocument.GetBySystemId(WorkItem.GetId());
         DraftHeader.Get(EDocument."Entry No");
-        Context.Add('eDocumentEntryNo', DraftHeader."E-Document Entry No.");
-        Context.Add('invoiceNo', DraftHeader."Sales Invoice No.");
-        AddInfotipSource(DraftHeader, Context, Sources);
+        AddInfotipSource(DraftHeader, DraftHeader."Sales Invoice No.", Sources);
         if DraftHeader."[BC] Vendor No." <> '' then begin
             Vendor.Get(DraftHeader."[BC] Vendor No.");
-            Clear(Context);
-            Context.Add('no', Vendor."No.");
-            Context.Add('name', Vendor.Name);
-            AddInfotipSource(Vendor, Context, Sources);
+            AddInfotipSource(Vendor, Vendor.Name, Sources);
         end;
         DraftLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         if not DraftLine.FindSet() then
             Error(DraftLinesNotFoundErr, EDocument."Entry No");
         repeat
-            Clear(Context);
-            Context.Add('eDocumentEntryNo', DraftLine."E-Document Entry No.");
-            Context.Add('lineNo', DraftLine."Line No.");
-            Context.Add('description', DraftLine.Description);
-            AddInfotipSource(DraftLine, Context, Sources);
+            AddInfotipSource(DraftLine, DraftLine.Description, Sources);
             EDocPOMatching.LoadPOLinesMatchedToEDocumentLine(DraftLine, TempMatchedLine);
             if TempMatchedLine.FindSet() then
                 repeat
@@ -139,16 +128,11 @@ codeunit 3347 "PA Draft Based Test Fixtures"
         if TempTarget.FindSet() then
             repeat
                 PurchaseLine.Get(TempTarget."Document Type", TempTarget."Document No.", TempTarget."Line No.");
-                Clear(Context);
-                Context.Add('documentType', Format(PurchaseLine."Document Type"));
-                Context.Add('documentNo', PurchaseLine."Document No.");
-                Context.Add('lineNo', PurchaseLine."Line No.");
-                Context.Add('description', PurchaseLine.Description);
-                AddInfotipSource(PurchaseLine, Context, Sources);
+                AddInfotipSource(PurchaseLine, PurchaseLine.Description, Sources);
             until TempTarget.Next() = 0;
     end;
 
-    local procedure AddInfotipSource(SourceRecord: RecordRef; Context: JsonObject; var Sources: JsonArray)
+    local procedure AddInfotipSource(SourceRecord: RecordRef; DescriptionText: Text; var Sources: JsonArray)
     var
         Descriptor: JsonObject;
         SourceSystemId: Guid;
@@ -156,7 +140,7 @@ codeunit 3347 "PA Draft Based Test Fixtures"
         SourceSystemId := SourceRecord.Field(SourceRecord.SystemIdNo()).Value;
         Descriptor.Add('tableId', SourceRecord.Number());
         Descriptor.Add('systemId', SourceSystemId);
-        Descriptor.Add('context', Context);
+        Descriptor.Add('description', DescriptionText);
         Sources.Add(Descriptor);
     end;
 
@@ -222,13 +206,12 @@ codeunit 3347 "PA Draft Based Test Fixtures"
         exit(true);
     end;
 
-    internal procedure CreateMatchedDraftForTest(AgentTaskId: BigInteger; VendorNo: Code[20]; PurchaseLineSystemId: Guid)
+    internal procedure CreateMatchedDraftForTest(VendorNo: Code[20]; PurchaseLineSystemId: Guid): Text
     var
         EDocument: Record "E-Document";
         DraftHeader: Record "E-Document Purchase Header";
         DraftLine: Record "E-Document Purchase Line";
         WorkingMatch: Record "E-Doc. Purchase Line PO Match";
-        AgentTask: Record "Agent Task";
         DraftBasedSetupStore: Codeunit "PA Draft Based Setup Store";
         LineNo: Integer;
     begin
@@ -251,9 +234,7 @@ codeunit 3347 "PA Draft Based Test Fixtures"
             WorkingMatch."Receipt Line SystemId" := CreateGuid();
             WorkingMatch.Insert();
         end;
-        AgentTask.Get(AgentTaskId);
-        AgentTask."External ID" := Format(EDocument."Entry No");
-        AgentTask.Modify();
+        exit(Format(EDocument."Entry No"));
     end;
 
     internal procedure FinalizeDraftMatchesForTest(AgentTaskId: BigInteger)
