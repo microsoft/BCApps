@@ -16,6 +16,9 @@ using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
 using System.Agents;
+using System.DateTime;
+using System.Environment.Configuration;
+using System.Security.AccessControl;
 using System.Utilities;
 
 codeunit 148300 "Library - Expense"
@@ -27,12 +30,31 @@ codeunit 148300 "Library - Expense"
         LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryHumanResource: Codeunit "Library - Human Resource";
+        LibraryPermissions: Codeunit "Library - Permissions";
         FirstNameTxt: Label 'First Name';
         NameTxt: Label 'Name';
         AttachmentRetrievalFailedErr: Label 'The attachment could not be retrieved.', Locked = true;
         AttachmentRetrievalFailureEnabled: Boolean;
         CorpCardDraftFailureEnabled: Boolean;
         CorpCardDraftFailedErr: Label 'Corporate card draft creation failed after inserting the expense.', Locked = true;
+        ExpenseAgentServiceCallSimulated: Boolean;
+
+    /// <summary>
+    /// Makes per diem calculations behave as if called by the Expense Agent service through the APIs, while this instance is bound.
+    /// </summary>
+    internal procedure SetExpenseAgentServiceCallSimulated(Simulated: Boolean)
+    begin
+        ExpenseAgentServiceCallSimulated := Simulated;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Expense Per Diem Calculation", OnBeforeIsExpenseAgentServiceCall, '', false, false)]
+    local procedure SimulateExpenseAgentServiceCall(var IsServiceCall: Boolean; var IsHandled: Boolean)
+    begin
+        if not ExpenseAgentServiceCallSimulated then
+            exit;
+        IsServiceCall := true;
+        IsHandled := true;
+    end;
 
     internal procedure SetCorpCardDraftFailureEnabled(Enabled: Boolean)
     begin
@@ -545,6 +567,81 @@ codeunit 148300 "Library - Expense"
         ExpenseAgentSetup.Validate("Minimum Hours for Per Diem", MinimumHoursForPerDiem);
         ExpenseAgentSetup.Validate("Min Hours for Partial Per Diem", MinimumHoursForPartialPerDiem);
         ExpenseAgentSetup.Modify(true);
+    end;
+
+    /// <summary>
+    /// Sets a dedicated agent user with the given time zone, which per diem days are split in for Expense Agent service calls.
+    /// The current user's settings are not changed, so the agent and session time zones stay distinct.
+    /// </summary>
+    internal procedure SetAgentTimeZone(TimeZoneId: Text[180])
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        AgentUser: Record User;
+        UserPersonalization: Record "User Personalization";
+        AgentUserNameTok: Label 'EXPENSE AGENT TEST USER', Locked = true;
+    begin
+        // Reuse one user because CI licenses cap the number of users.
+        AgentUser.SetRange("User Name", AgentUserNameTok);
+        if not AgentUser.FindFirst() then
+            LibraryPermissions.CreateUser(AgentUser, AgentUserNameTok, false);
+
+        if not UserPersonalization.Get(AgentUser."User Security ID") then begin
+            UserPersonalization.Init();
+            UserPersonalization."User SID" := AgentUser."User Security ID";
+            UserPersonalization.Insert();
+        end;
+        UserPersonalization."Time Zone" := TimeZoneId;
+        UserPersonalization.Modify();
+
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."User Security ID" := AgentUser."User Security ID";
+        ExpenseAgentSetup.Modify();
+    end;
+
+    /// <summary>
+    /// Returns a trip from 20:00 to 03:00 the next day in the session time zone, so the session splits it into two dates,
+    /// and sets an agent time zone in which the whole trip falls on one date, returned in AgentDate.
+    /// The time zone is chosen at run time, so the outcome doesn't depend on the session time zone of the test host.
+    /// </summary>
+    internal procedure SetAgentTimeZoneForOneDayTrip(TripDate: Date; var TripStart: DateTime; var TripEnd: DateTime; var AgentDate: Date)
+    var
+        CandidateTimeZones: List of [Text[180]];
+        TimeZoneId: Text[180];
+        NoTimeZoneErr: Label 'No time zone puts the trip on one date.', Locked = true;
+    begin
+        TripStart := CreateDateTime(TripDate, 200000T);
+        TripEnd := CreateDateTime(TripDate + 1, 030000T);
+        // Fixed offsets UTC+9, UTC-10 and UTC: for any session offset, at least one of them puts the trip on one date.
+        CandidateTimeZones.Add('Tokyo Standard Time');
+        CandidateTimeZones.Add('Hawaiian Standard Time');
+        CandidateTimeZones.Add('UTC');
+        foreach TimeZoneId in CandidateTimeZones do
+            if GetDateInTimeZone(TripStart, TimeZoneId) = GetDateInTimeZone(TripEnd, TimeZoneId) then begin
+                SetAgentTimeZone(TimeZoneId);
+                AgentDate := GetDateInTimeZone(TripStart, TimeZoneId);
+                exit;
+            end;
+        Error(NoTimeZoneErr);
+    end;
+
+    /// <summary>
+    /// Returns the date of a UTC instant in the given time zone.
+    /// </summary>
+    internal procedure GetDateInTimeZone(UtcDateTime: DateTime; TimeZoneId: Text) Result: Date
+    var
+        TimeZone: Codeunit "Time Zone";
+    begin
+        // The XML format is in UTC, so formatting the instant shifted by the zone offset gives the zone's wall clock.
+        Evaluate(Result, CopyStr(Format(UtcDateTime + TimeZone.GetTimezoneOffset(UtcDateTime, TimeZoneId), 0, 9), 1, 10), 9);
+    end;
+
+    /// <summary>
+    /// Returns the instant at the given UTC date and time, whatever the session time zone is.
+    /// </summary>
+    internal procedure CreateUtcDateTime(UtcDate: Date; UtcTime: Time) Result: DateTime
+    begin
+        Evaluate(Result, Format(UtcDate, 0, 9) + 'T00:00:00Z', 9);
+        Result += UtcTime - 000000T;
     end;
 
     procedure UpdateExpenseAccountInEmployeePostingGroup(EmployeePostingGroupCode: Code[20])

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using System.Agents;
 using System.Environment.Configuration;
 using System.Globalization;
 
@@ -218,30 +217,20 @@ page 6942 "Expense Agent Setup API"
     end;
 
     trigger OnAfterGetRecord()
+    var
+        TempUserSettings: Record "User Settings" temporary;
+        Language: Codeunit Language;
+        UnresolvedReason: Text;
     begin
         Clear(AgentLanguageCode);
         Clear(AgentTimeZone);
         Clear(AgentRegionalFormatId);
-        if IsNullGuid(Rec."User Security ID") then
+        if not Rec.GetAgentUserSettings(TempUserSettings, UnresolvedReason) then
             exit;
-        if not TryGetAgentUserSettings(Rec."User Security ID") then begin
-            Clear(AgentLanguageCode);
-            Clear(AgentTimeZone);
-            Clear(AgentRegionalFormatId);
-        end;
-    end;
-
-    [TryFunction]
-    local procedure TryGetAgentUserSettings(AgentUserSecurityID: Guid)
-    var
-        TempUserSettings: Record "User Settings" temporary;
-        Agent: Codeunit Agent;
-        Language: Codeunit Language;
-    begin
-        Agent.GetUserSettings(AgentUserSecurityID, TempUserSettings);
         AgentLanguageCode := Language.GetLanguageCode(TempUserSettings."Language ID");
-        AgentTimeZone := TempUserSettings."Time Zone";
         AgentRegionalFormatId := TempUserSettings."Locale ID";
+        // Per diem days are split in this time zone, so expose exactly the value the calculation uses.
+        Rec.GetAgentTimeZoneFromUserSettings(TempUserSettings, AgentTimeZone, UnresolvedReason);
     end;
 
     var

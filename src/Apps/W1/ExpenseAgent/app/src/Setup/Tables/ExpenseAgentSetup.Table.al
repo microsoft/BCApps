@@ -9,6 +9,7 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
 using System.Agents;
+using System.DateTime;
 using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
@@ -24,7 +25,9 @@ table 6930 "Expense Agent Setup"
     InherentEntitlements = RIMDX;
     InherentPermissions = rimdX;
     DataClassification = CustomerContent;
-    Permissions = tabledata "Expense Agent Setup" = ri;
+    Permissions = tabledata "Expense Agent Setup" = ri,
+                  tabledata User = r,
+                  tabledata "User Personalization" = r;
 
     fields
     {
@@ -824,6 +827,9 @@ table 6930 "Expense Agent Setup"
         MissingCategoryErr: Label 'You must ensure that %1 has values when %2 is enabled', Comment = '%1 is a table name, e.g. Category, %2 is a field name, e.g. Check categories';
         CannotDisableApprovalWorkflowErr: Label 'You cannot disable approval workflow because there are expense reports pending approval. Please complete or cancel the approval process for those expense reports before disabling this feature.';
         FeatureNameLbl: Label 'Expense Agent', Locked = true;
+        NoAgentTok: Label 'NoAgent', Locked = true;
+        BlankTimeZoneTok: Label 'BlankTimeZone', Locked = true;
+        InvalidTimeZoneTok: Label 'InvalidTimeZone', Locked = true;
         ClearNoreplyAccountQst: Label 'Do you want to clear the no-reply email account? The agent will no longer send welcome, reimbursement, approval or reminder emails until you configure one.';
         ClearMailboxAccountQst: Label 'Do you want to clear the mailbox account? The agent will no longer process emailed receipts until you configure a mailbox.';
         IncomingMailboxAccessFailedErr: Label 'The agent can''t use the selected Microsoft 365 mailbox for incoming receipts because the connection failed. Ask your Microsoft 365 administrator to check if you have permission to access the mailbox.';
@@ -945,6 +951,92 @@ table 6930 "Expense Agent Setup"
     internal procedure GetFeatureName(): Text
     begin
         exit(FeatureNameLbl);
+    end;
+
+    /// <summary>
+    /// Resolves the time zone of the Expense Agent user. Per diem days are split in this time zone, and the
+    /// expenseAgentSetup API exposes it, so both always use the same value.
+    /// </summary>
+    /// <param name="AgentTimeZoneId">The time zone ID of the agent user, or blank when it can't be resolved.</param>
+    /// <param name="UnresolvedReason">When the time zone can't be resolved, the reason, without customer data.</param>
+    /// <returns>True if the agent user has a valid time zone.</returns>
+    internal procedure GetAgentTimeZone(var AgentTimeZoneId: Text[180]; var UnresolvedReason: Text): Boolean
+    var
+        TempUserSettings: Record "User Settings" temporary;
+    begin
+        Clear(AgentTimeZoneId);
+        if not GetAgentUserSettings(TempUserSettings, UnresolvedReason) then
+            exit(false);
+        exit(GetAgentTimeZoneFromUserSettings(TempUserSettings, AgentTimeZoneId, UnresolvedReason));
+    end;
+
+    /// <summary>
+    /// Loads the user settings of the Expense Agent user.
+    /// </summary>
+    /// <param name="UnresolvedReason">When the settings can't be loaded, the reason, without customer data.</param>
+    /// <returns>True if the settings of the agent user were loaded.</returns>
+    internal procedure GetAgentUserSettings(var TempUserSettings: Record "User Settings" temporary; var UnresolvedReason: Text): Boolean
+    var
+        User: Record User;
+        UserPersonalization: Record "User Personalization";
+    begin
+        Clear(UnresolvedReason);
+        if IsNullGuid(Rec."User Security ID") or not User.Get(Rec."User Security ID") then begin
+            UnresolvedReason := NoAgentTok;
+            exit(false);
+        end;
+        // Read directly: Agent.GetUserSettings requires agent management rights, which the users and sessions that
+        // calculate per diems may not have, and User Settings inserts default settings, which a read must not do.
+        if not UserPersonalization.Get(Rec."User Security ID") then
+            Clear(UserPersonalization);
+        TempUserSettings."User Security ID" := Rec."User Security ID";
+        TempUserSettings."Language ID" := UserPersonalization."Language ID";
+        TempUserSettings."Locale ID" := UserPersonalization."Locale ID";
+        TempUserSettings."Time Zone" := UserPersonalization."Time Zone";
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Resolves the agent time zone from user settings already loaded with GetAgentUserSettings for this agent.
+    /// </summary>
+    internal procedure GetAgentTimeZoneFromUserSettings(var TempUserSettings: Record "User Settings" temporary; var AgentTimeZoneId: Text[180]; var UnresolvedReason: Text): Boolean
+    begin
+        Clear(AgentTimeZoneId);
+        Clear(UnresolvedReason);
+        if IsNullGuid(Rec."User Security ID") or (TempUserSettings."User Security ID" <> Rec."User Security ID") then begin
+            UnresolvedReason := NoAgentTok;
+            exit(false);
+        end;
+        if TempUserSettings."Time Zone" = '' then begin
+            UnresolvedReason := BlankTimeZoneTok;
+            exit(false);
+        end;
+        if not TryValidateTimeZone(TempUserSettings."Time Zone") then begin
+            UnresolvedReason := InvalidTimeZoneTok;
+            exit(false);
+        end;
+        AgentTimeZoneId := TempUserSettings."Time Zone";
+        exit(true);
+    end;
+
+    [TryFunction]
+    local procedure TryValidateTimeZone(TimeZoneId: Text)
+    var
+        TimeZone: Codeunit "Time Zone";
+    begin
+        TimeZone.GetTimezoneOffset(CurrentDateTime(), TimeZoneId);
+    end;
+
+    /// <summary>
+    /// Returns the date of a UTC instant in the time zone that per diem days are split in: the agent time zone for
+    /// Expense Agent service calls, otherwise the session time zone.
+    /// </summary>
+    internal procedure GetPerDiemDate(UtcDateTime: DateTime): Date
+    var
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+    begin
+        ExpensePerDiemCalculation.SetExpenseAgentSetup(Rec);
+        exit(ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime));
     end;
 
     internal procedure LogAgentEnabledTelemetry()

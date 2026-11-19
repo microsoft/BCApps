@@ -36,18 +36,23 @@ codeunit 6912 "Expense Auto Population"
         UpdateFromRule(Expense, ExpenseRuleHeader);
     end;
 
-    local procedure UpdatePerDiemRange(var Expense: Record Expense; ExpenseRuleHeader: Record "Expense Rule Header"; StartDate: Date; EndDate: Date)
+    local procedure UpdatePerDiemRange(var Expense: Record Expense; ExpenseRuleHeader: Record "Expense Rule Header")
     var
         ExpenseRuleCondition: Record "Expense Rule Condition";
         ExpensePerDiem: Record "Expense Per Diem";
         ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
         CurrentDate: Date;
+        StartDate: Date;
+        EndDate: Date;
         BaseRate: Decimal;
         TotalAmount: Decimal;
         DayPerDiemAmount: Decimal;
         ExpenseLineNo: Integer;
     begin
         ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
+        // Days are split in the agent time zone for Expense Agent service calls, and in the session time zone for users.
+        StartDate := ExpensePerDiemCalculation.GetPerDiemDate(Expense."Starting Date and Time");
+        EndDate := ExpensePerDiemCalculation.GetPerDiemDate(Expense."Ending Date and Time");
 
         ExpenseRuleCondition.SetRange("Expense Category Code", ExpenseRuleHeader."Expense Category Code");
         ExpenseRuleCondition.SetRange("Expense Location", ExpenseRuleHeader."Expense Location");
@@ -111,12 +116,14 @@ codeunit 6912 "Expense Auto Population"
         UpdateFromRuleForReportLine(ExpenseReportLine, ExpenseRuleHeader);
     end;
 
-    local procedure UpdatePerDiemRangeForReportLine(var ExpenseReportLine: Record "Expense Report Line"; ExpenseRuleHeader: Record "Expense Rule Header"; StartDate: Date; EndDate: Date)
+    local procedure UpdatePerDiemRangeForReportLine(var ExpenseReportLine: Record "Expense Report Line"; ExpenseRuleHeader: Record "Expense Rule Header")
     var
         ExpenseRuleCondition: Record "Expense Rule Condition";
         ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
         ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
         CurrentDate: Date;
+        StartDate: Date;
+        EndDate: Date;
         BaseRate: Decimal;
         TotalAmount: Decimal;
         DayPerDiemAmount: Decimal;
@@ -124,6 +131,9 @@ codeunit 6912 "Expense Auto Population"
         PerDiemDetailsChanged: Boolean;
     begin
         ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
+        // Days are split in the agent time zone for Expense Agent service calls, and in the session time zone for users.
+        StartDate := ExpensePerDiemCalculation.GetPerDiemDate(ExpenseReportLine."Starting Date and Time");
+        EndDate := ExpensePerDiemCalculation.GetPerDiemDate(ExpenseReportLine."Ending Date and Time");
 
         ExpenseRuleCondition.SetRange("Expense Category Code", ExpenseRuleHeader."Expense Category Code");
         ExpenseRuleCondition.SetRange("Expense Location", ExpenseRuleHeader."Expense Location");
@@ -367,7 +377,7 @@ codeunit 6912 "Expense Auto Population"
             Expense.Validate("Currency Code", ExpenseRuleHeader."Currency Code");
 
         if Expense."Expense Detail Required" = Expense."Expense Detail Required"::"Per Diem" then
-            UpdatePerDiemRange(Expense, ExpenseRuleHeader, DT2Date(Expense."Starting Date and Time"), DT2Date(Expense."Ending Date and Time"));
+            UpdatePerDiemRange(Expense, ExpenseRuleHeader);
 
         Expense.UpdateAmount();
     end;
@@ -462,7 +472,7 @@ codeunit 6912 "Expense Auto Population"
             ExpenseReportLine.Validate("Expense Currency Code", ExpenseRuleHeader."Currency Code");
 
         if ExpenseReportLine."Expense Detail Required" = ExpenseReportLine."Expense Detail Required"::"Per Diem" then
-            UpdatePerDiemRangeForReportLine(ExpenseReportLine, ExpenseRuleHeader, DT2Date(ExpenseReportLine."Starting Date and Time"), DT2Date(ExpenseReportLine."Ending Date and Time"));
+            UpdatePerDiemRangeForReportLine(ExpenseReportLine, ExpenseRuleHeader);
 
         ExpenseReportLine.UpdateAmounts();
     end;

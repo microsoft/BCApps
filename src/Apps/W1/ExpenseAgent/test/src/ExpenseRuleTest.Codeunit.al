@@ -38,6 +38,10 @@ codeunit 148301 "Expense Rule Test"
         FixAmountErr: Label 'Amount must equal %1 as defined by rule.', Comment = '%1 = Required fixed amount';
         MaxAmountErr: Label 'Amount must not exceed %1 as defined by rule.', Comment = '%1 = Maximum allowed amount';
         MinAmountErr: Label 'Amount must be at least %1 as defined by rule.', Comment = '%1 = Minimum required amount';
+        TokyoTimeZoneTok: Label 'Tokyo Standard Time', Locked = true;
+        EasternTimeZoneTok: Label 'Eastern Standard Time', Locked = true;
+        RomanceTimeZoneTok: Label 'Romance Standard Time', Locked = true;
+        SantiagoTimeZoneTok: Label 'Pacific SA Standard Time', Locked = true;
         ParticipantsRequiredErr: Label 'Participants are required for this expense based on your organization''s rule.';
         DailyRateConditionMissingForRangeErr: Label 'You can''t set %1 to %2 for the %3 %4. Because this expense category requires Per Diem details, %1 must be %5.', Comment = '%1 = Condition Type field caption, %2 = Condition Type value entered, %3 = Expense Category Code field caption, %4 = Expense Category Code value, %5 = Daily Rate condition type';
         RuleValidationSuccessMsg: Label 'Expense has been successfully validated against your organization''s rules.';
@@ -9106,6 +9110,354 @@ codeunit 148301 "Expense Rule Test"
         Assert.RecordIsEmpty(ExpenseReportLineItem);
     end;
 
+    [Test]
+    procedure PerDiemDaysAreSplitInAgentTimeZoneAcrossMidnight()
+    var
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+        TripStart, TripEnd : DateTime;
+    begin
+        // [SCENARIO 659478] Trip days are split on the agent's wall clock, whatever the session time zone is.
+        // [GIVEN] Agent time zone Tokyo (UTC+9) and a trip from 14:00Z to 16:00Z on 2026-03-10 (23:00 to 01:00 in Tokyo).
+        ExpensePerDiemCalculation.SetTimeZone(TokyoTimeZoneTok);
+        TripStart := UtcDateTime('2026-03-10T14:00:00Z');
+        TripEnd := UtcDateTime('2026-03-10T16:00:00Z');
+
+        // [WHEN] The trip instants and Tokyo midnight are converted between UTC and agent time.
+        // [THEN] The trip crosses Tokyo midnight, so it covers 2026-03-10 and 2026-03-11.
+        Assert.AreEqual(DMY2Date(10, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(TripStart), 'Start date in agent time zone');
+        Assert.AreEqual(230000T, ExpensePerDiemCalculation.GetPerDiemTime(TripStart), 'Start time in agent time zone');
+        Assert.AreEqual(DMY2Date(11, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(TripEnd), 'End date in agent time zone');
+        Assert.AreEqual(010000T, ExpensePerDiemCalculation.GetPerDiemTime(TripEnd), 'End time in agent time zone');
+
+        // [THEN] Tokyo midnight is 15:00Z on the previous UTC day.
+        Assert.AreEqual(DMY2Date(10, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-10T14:59:00Z')), 'Agent date before agent midnight');
+        Assert.AreEqual(DMY2Date(11, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-10T15:00:00Z')), 'Agent date at agent midnight');
+    end;
+
+    [Test]
+    procedure PerDiemDayBoundariesFollowUsDaylightSavingTime()
+    var
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+    begin
+        // [SCENARIO 659478] The agent offset is taken at each instant, so US DST transitions are respected.
+        // [GIVEN] Agent time zone Eastern. DST starts 2026-03-08 at 07:00Z (02:00 EST becomes 03:00 EDT).
+        ExpensePerDiemCalculation.SetTimeZone(EasternTimeZoneTok);
+
+        // [WHEN] Instants and wall times around the Eastern DST transitions are converted.
+        // [THEN] The offset changes exactly at the transition instant.
+        Assert.AreEqual(015900T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2026-03-08T06:59:00Z')), 'Eastern time before DST starts');
+        Assert.AreEqual(030000T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2026-03-08T07:00:00Z')), 'Eastern time after DST starts');
+
+        // [THEN] The DST day is 23 hours long: it starts at midnight EST and ends at midnight EDT.
+        Assert.AreEqual(DMY2Date(7, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-08T04:59:00Z')), 'Eastern date before DST day');
+        Assert.AreEqual(DMY2Date(8, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-08T05:00:00Z')), 'Eastern DST day starts at midnight EST');
+        Assert.AreEqual(DMY2Date(8, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-09T03:59:00Z')), 'Eastern DST day before midnight EDT');
+        Assert.AreEqual(DMY2Date(9, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-09T04:00:00Z')), 'Eastern day after DST day starts at midnight EDT');
+
+        // [THEN] When DST ends (2026-11-01 at 06:00Z), 01:30 occurs twice: first in EDT, then in EST.
+        Assert.AreEqual(013000T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2026-11-01T05:30:00Z')), 'Eastern 01:30 in EDT');
+        Assert.AreEqual(013000T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2026-11-01T06:30:00Z')), 'Eastern 01:30 in EST');
+    end;
+
+    [Test]
+    procedure PerDiemDayBoundariesFollowEuDaylightSavingTime()
+    var
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+    begin
+        // [SCENARIO 659478] The agent offset is taken at each instant, so EU DST transitions are respected.
+        // [GIVEN] Agent time zone Central Europe. DST starts 2026-03-29 at 01:00Z (02:00 CET becomes 03:00 CEST).
+        ExpensePerDiemCalculation.SetTimeZone(RomanceTimeZoneTok);
+
+        // [WHEN] Instants and wall times around the Central Europe DST transition are converted.
+        // [THEN] The offset changes exactly at the transition instant.
+        Assert.AreEqual(015900T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2026-03-29T00:59:00Z')), 'Romance time before DST starts');
+        Assert.AreEqual(030000T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2026-03-29T01:00:00Z')), 'Romance time after DST starts');
+        Assert.AreEqual(DMY2Date(29, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-29T21:59:00Z')), 'Romance date before midnight after DST day');
+        Assert.AreEqual(DMY2Date(30, 3, 2026), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2026-03-29T22:00:00Z')), 'Romance midnight after DST day');
+    end;
+
+    [Test]
+    procedure PerDiemDayStartsAtFirstValidInstantWhenDstBeginsAtMidnight()
+    var
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+    begin
+        // [SCENARIO 659478] In zones that switch at midnight, the day starts at the first valid instant.
+        // [GIVEN] Agent time zone Santiago. On 2025-09-07 local midnight does not exist: 00:00 -04 becomes 01:00 -03 at 04:00Z.
+        ExpensePerDiemCalculation.SetTimeZone(SantiagoTimeZoneTok);
+
+        // [WHEN] Instants around the Santiago transition are converted.
+        // [THEN] The day before ends just before 04:00Z and the DST day starts at 04:00Z (01:00 local).
+        Assert.AreEqual(DMY2Date(6, 9, 2025), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2025-09-07T03:59:00Z')), 'Santiago date before transition');
+        Assert.AreEqual(235900T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2025-09-07T03:59:00Z')), 'Santiago time before transition');
+        Assert.AreEqual(DMY2Date(7, 9, 2025), ExpensePerDiemCalculation.GetPerDiemDate(UtcDateTime('2025-09-07T04:00:00Z')), 'Santiago date after transition');
+        Assert.AreEqual(010000T, ExpensePerDiemCalculation.GetPerDiemTime(UtcDateTime('2025-09-07T04:00:00Z')), 'Santiago time after transition');
+    end;
+
+    [Test]
+    procedure PerDiemPartialDayHoursAreElapsedHoursOnDstDay()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+    begin
+        // [SCENARIO 659478] On the day clocks go forward, the minimum hours for a partial day are checked against elapsed hours, not the clock difference.
+        Initialize();
+
+        // [GIVEN] Full calendar days, 50% of the rate for partial days of at least 8 hours, and per diem days in Eastern time.
+        LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 50, 0, 8);
+        ExpenseAgentSetup.Get();
+        ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
+        ExpensePerDiemCalculation.SetTimeZone(EasternTimeZoneTok);
+
+        // [WHEN] The per diem is calculated for 2026-03-08, when 02:00 EST becomes 03:00 EDT.
+        // [THEN] A trip from 00:00 EST to 08:00 EDT lasts 7 hours and gets nothing.
+        Assert.AreEqual(0, ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(DMY2Date(8, 3, 2026), 100, UtcDateTime('2026-03-08T05:00:00Z'), UtcDateTime('2026-03-08T12:00:00Z')), 'One-day trip across the DST change');
+
+        // [THEN] The last day of a trip that ends at 08:00 EDT also has 7 hours and gets nothing.
+        Assert.AreEqual(0, ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(DMY2Date(8, 3, 2026), 100, UtcDateTime('2026-03-07T20:00:00Z'), UtcDateTime('2026-03-08T12:00:00Z')), 'Last day across the DST change');
+
+        // [THEN] On the day clocks go back (2026-11-01), the last day of a trip that ends at 07:00 EST has 8 hours and gets the partial rate.
+        Assert.AreEqual(50, ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(DMY2Date(1, 11, 2026), 100, UtcDateTime('2026-10-31T20:00:00Z'), UtcDateTime('2026-11-01T12:00:00Z')), 'Last day on the day clocks go back');
+
+        // [THEN] Without a DST change, a trip from 00:00 to 08:00 lasts 8 hours and gets the partial rate.
+        Assert.AreEqual(50, ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(DMY2Date(1, 3, 2026), 100, UtcDateTime('2026-03-01T05:00:00Z'), UtcDateTime('2026-03-01T13:00:00Z')), 'One-day trip without DST change');
+    end;
+
+    [Test]
+    procedure PerDiemPartialDayIncludesHourRepeatedBeforeMidnight()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+    begin
+        // [SCENARIO 659478] When clocks go back at midnight, the repeated hour counts towards the first day of a trip.
+        Initialize();
+
+        // [GIVEN] Full calendar days, 50% of the rate for partial days of at least 8 hours, and per diem days in Santiago time.
+        // [GIVEN] On 2026-04-05 at 03:00Z, 00:00 -03 becomes 23:00 -04 on 2026-04-04, so 2026-04-05 starts at 04:00Z.
+        LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 50, 0, 8);
+        ExpenseAgentSetup.Get();
+        ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
+        ExpensePerDiemCalculation.SetTimeZone(SantiagoTimeZoneTok);
+
+        // [WHEN] The per diem is calculated for the first day of a trip from 16:30 -03 on 2026-04-04 to 10:00 -04 on 2026-04-05.
+        // [THEN] The first day has 8.48 elapsed hours, including the repeated hour, and gets the partial rate.
+        Assert.AreEqual(50, ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(DMY2Date(4, 4, 2026), 100, UtcDateTime('2026-04-04T19:30:00Z'), UtcDateTime('2026-04-05T14:00:00Z')), 'First day ending with the repeated hour');
+    end;
+
+    [Test]
+    procedure PerDiemCountsAllRollingPeriodsStartingOnDayClocksGoBack()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+        TripStart, TripEnd : DateTime;
+    begin
+        // [SCENARIO 659478] When clocks go back, two 24-hour rolling periods can start on the same day, and both are paid.
+        Initialize();
+
+        // [GIVEN] 24-hour rolling periods and per diem days in Eastern time.
+        LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"24-hour Rolling Period", "Expense Partial Day Rules"::"Based On Eligible Hours", 60, 20, 8);
+        ExpenseAgentSetup.Get();
+        ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
+        ExpensePerDiemCalculation.SetTimeZone(EasternTimeZoneTok);
+
+        // [GIVEN] A 48-hour trip from 00:30 EDT on 2026-11-01 to 23:30 EST on 2026-11-02.
+        // [GIVEN] The second 24-hour period starts at 23:30 EST on 2026-11-01, so both periods start on 2026-11-01.
+        TripStart := UtcDateTime('2026-11-01T04:30:00Z');
+        TripEnd := UtcDateTime('2026-11-03T04:30:00Z');
+
+        // [WHEN] The per diem is calculated for each day of the trip.
+        // [THEN] 2026-11-01 gets two daily rates and 2026-11-02 none, so the trip gets two daily rates.
+        Assert.AreEqual(200, ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(DMY2Date(1, 11, 2026), 100, TripStart, TripEnd), 'Rolling periods starting on 2026-11-01');
+        Assert.AreEqual(0, ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(DMY2Date(2, 11, 2026), 100, TripStart, TripEnd), 'Rolling periods starting on 2026-11-02');
+    end;
+
+    [Test]
+    procedure PerDiemCountsAllOvernightPeriodsStartingOnDayClocksGoBack()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+        TripStart, TripEnd : DateTime;
+    begin
+        // [SCENARIO 659478] When clocks go back, two overnight periods can start on the same day, and both are paid.
+        Initialize();
+
+        // [GIVEN] Overnight stays and per diem days in Eastern time.
+        LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"Overnight Stay", "Expense Partial Day Rules"::"Based On Eligible Hours", 60, 20, 8);
+        ExpenseAgentSetup.Get();
+        ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
+        ExpensePerDiemCalculation.SetTimeZone(EasternTimeZoneTok);
+
+        // [GIVEN] A 48-hour trip from 00:30 EDT on 2026-11-01 to 23:30 EST on 2026-11-02.
+        // [GIVEN] The second overnight period starts at 23:30 EST on 2026-11-01, so both periods start on 2026-11-01.
+        TripStart := UtcDateTime('2026-11-01T04:30:00Z');
+        TripEnd := UtcDateTime('2026-11-03T04:30:00Z');
+
+        // [WHEN] The per diem is calculated for each day of the trip.
+        // [THEN] 2026-11-01 gets two daily rates and 2026-11-02 none, so the trip gets two daily rates.
+        Assert.AreEqual(200, ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(DMY2Date(1, 11, 2026), 100, TripStart, TripEnd), 'Overnight periods starting on 2026-11-01');
+        Assert.AreEqual(0, ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(DMY2Date(2, 11, 2026), 100, TripStart, TripEnd), 'Overnight periods starting on 2026-11-02');
+    end;
+
+    [Test]
+    procedure PerDiemEveningTripIsOneDayInAgentTimeZone()
+    var
+        Expense: Record Expense;
+        ExpensePerDiem: Record "Expense Per Diem";
+        ExpenseUser: Record "Expense User";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+        PostCode: Record "Post Code";
+        ExpenseAgentServiceCall: Codeunit "Library - Expense";
+        TripStart, TripEnd : DateTime;
+        AgentDate: Date;
+        ConditionValue: Decimal;
+    begin
+        // [SCENARIO 659478] For Expense Agent service calls, the same UTC trip gives the same per diem rows whatever the session time zone is.
+        Initialize();
+
+        // [GIVEN] A trip from 20:00 to 03:00 the next day in the session time zone, and an agent time zone in which the trip falls on one date.
+        LibraryExpense.SetAgentTimeZoneForOneDayTrip(WorkDate(), TripStart, TripEnd, AgentDate);
+
+        // [GIVEN] The call comes from the Expense Agent service.
+        ExpenseAgentServiceCall.SetExpenseAgentServiceCallSimulated(true);
+        BindSubscription(ExpenseAgentServiceCall);
+        LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 50, 0, 0);
+        LibraryERM.FindPostCode(PostCode);
+        ConditionValue := 100;
+
+        // [WHEN] The per diem expense is released.
+        CreateAndReleaseExpenseWithPerDiemRule(
+            Expense, ExpenseUser, ExpenseRuleHeader, ExpenseRuleCondition, PostCode."Country/Region Code",
+            PostCode.City, '', 0, DMY2Date(1, 1, 2020), TripStart, TripEnd,
+            "Expense Detail Needed"::"Per Diem", ExpenseRuleHeader."Justification Required"::" ",
+            Expense."Reimbursement Type"::"Employee Paid", '', ExpenseRuleCondition."Condition Type"::"Daily Rate",
+            true, ConditionValue);
+
+        // [THEN] There is exactly one partial per diem day, dated in the agent time zone.
+        ExpensePerDiem.SetRange("Expense No.", Expense."No.");
+        Assert.RecordCount(ExpensePerDiem, 1);
+        ExpensePerDiem.FindFirst();
+        Assert.AreEqual(AgentDate, ExpensePerDiem.Date, 'Per diem date in agent time zone');
+        Assert.AreEqual(ConditionValue * 50 / 100, ExpensePerDiem."Per Diem Amount", 'Partial day amount');
+
+        // [THEN] The stored trip instants are not shifted.
+        Expense.Get(Expense."No.");
+        Assert.AreEqual(TripStart, Expense."Starting Date and Time", 'Stored starting instant');
+        Assert.AreEqual(TripEnd, Expense."Ending Date and Time", 'Stored ending instant');
+    end;
+
+    [Test]
+    procedure PerDiemEveningTripUsesSessionTimeZoneForUserCall()
+    var
+        Expense: Record Expense;
+        ExpensePerDiem: Record "Expense Per Diem";
+        ExpenseUser: Record "Expense User";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+        PostCode: Record "Post Code";
+        TripStart, TripEnd : DateTime;
+        AgentDate: Date;
+        ConditionValue: Decimal;
+    begin
+        // [SCENARIO 659478] Calls that do not come from the Expense Agent service split days in the user's session time zone, not the agent's.
+        Initialize();
+
+        // [GIVEN] A trip from 20:00 to 03:00 the next day in the session time zone, and an agent time zone in which the trip falls on one date.
+        // [GIVEN] The call is made by a user.
+        LibraryExpense.SetAgentTimeZoneForOneDayTrip(WorkDate(), TripStart, TripEnd, AgentDate);
+        LibraryExpense.UpdatePerDiemInAgentSetup("Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 50, 0, 0);
+        LibraryERM.FindPostCode(PostCode);
+        ConditionValue := 100;
+
+        // [WHEN] The per diem expense is released.
+        CreateAndReleaseExpenseWithPerDiemRule(
+            Expense, ExpenseUser, ExpenseRuleHeader, ExpenseRuleCondition, PostCode."Country/Region Code",
+            PostCode.City, '', 0, DMY2Date(1, 1, 2020), TripStart, TripEnd,
+            "Expense Detail Needed"::"Per Diem", ExpenseRuleHeader."Justification Required"::" ",
+            Expense."Reimbursement Type"::"Employee Paid", '', ExpenseRuleCondition."Condition Type"::"Daily Rate",
+            true, ConditionValue);
+
+        // [THEN] The per diem days follow the session dates of the trip, not the single agent date.
+        ExpensePerDiem.SetRange("Expense No.", Expense."No.");
+        Assert.RecordCount(ExpensePerDiem, 2);
+        ExpensePerDiem.FindFirst();
+        Assert.AreEqual(DT2Date(TripStart), ExpensePerDiem.Date, 'Per diem date in session time zone');
+
+        // [THEN] The stored trip instants are not shifted.
+        Expense.Get(Expense."No.");
+        Assert.AreEqual(TripStart, Expense."Starting Date and Time", 'Stored starting instant');
+        Assert.AreEqual(TripEnd, Expense."Ending Date and Time", 'Stored ending instant');
+    end;
+
+    [Test]
+    procedure PerDiemUsesSessionTimeZoneWhenNoAgentIsConfigured()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+        ExpenseAgentServiceCall: Codeunit "Library - Expense";
+        AgentTimeZoneId: Text[180];
+        UnresolvedReason: Text;
+        TripStart: DateTime;
+        Resolved: Boolean;
+    begin
+        // [SCENARIO 659478] Without an agent, days are split in the session time zone as before.
+        Initialize();
+        TripStart := CreateDateTime(WorkDate(), 200000T);
+        ExpenseAgentServiceCall.SetExpenseAgentServiceCallSimulated(true);
+        BindSubscription(ExpenseAgentServiceCall);
+
+        // [GIVEN] No agent is configured.
+        ExpenseAgentSetup.Get();
+        Clear(ExpenseAgentSetup."User Security ID");
+        ExpenseAgentSetup.Modify();
+
+        // [WHEN] The agent time zone is resolved and the calculation is set up from the setup.
+        Resolved := ExpenseAgentSetup.GetAgentTimeZone(AgentTimeZoneId, UnresolvedReason);
+        ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
+
+        // [THEN] The agent time zone is not resolved and the session time zone is used.
+        Assert.IsFalse(Resolved, 'No agent must not resolve a time zone');
+        Assert.AreEqual('NoAgent', UnresolvedReason, 'Reason without agent');
+        Assert.AreEqual(DT2Date(TripStart), ExpensePerDiemCalculation.GetPerDiemDate(TripStart), 'Session date without agent');
+        Assert.AreEqual(DT2Time(TripStart), ExpensePerDiemCalculation.GetPerDiemTime(TripStart), 'Session time without agent');
+    end;
+
+    [Test]
+    procedure PerDiemUsesSessionTimeZoneWhenAgentTimeZoneIsBlank()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+        ExpenseAgentServiceCall: Codeunit "Library - Expense";
+        AgentTimeZoneId: Text[180];
+        UnresolvedReason: Text;
+        TripStart: DateTime;
+        Resolved: Boolean;
+    begin
+        // [SCENARIO 659478] With a blank agent time zone, days are split in the session time zone as before.
+        Initialize();
+        TripStart := CreateDateTime(WorkDate(), 200000T);
+        ExpenseAgentServiceCall.SetExpenseAgentServiceCallSimulated(true);
+        BindSubscription(ExpenseAgentServiceCall);
+
+        // [GIVEN] The agent has a blank time zone.
+        LibraryExpense.SetAgentTimeZone('');
+        ExpenseAgentSetup.Get();
+
+        // [WHEN] The agent time zone is resolved and the calculation is set up from the setup.
+        Resolved := ExpenseAgentSetup.GetAgentTimeZone(AgentTimeZoneId, UnresolvedReason);
+        ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
+
+        // [THEN] The agent time zone is not resolved and the session time zone is used.
+        Assert.IsFalse(Resolved, 'Blank time zone must not resolve');
+        Assert.AreEqual('BlankTimeZone', UnresolvedReason, 'Reason with blank time zone');
+        Assert.AreEqual(DT2Date(TripStart), ExpensePerDiemCalculation.GetPerDiemDate(TripStart), 'Session date with blank time zone');
+        Assert.AreEqual(DT2Time(TripStart), ExpensePerDiemCalculation.GetPerDiemTime(TripStart), 'Session time with blank time zone');
+    end;
+
+    local procedure UtcDateTime(XmlDateTime: Text) Result: DateTime
+    begin
+        Evaluate(Result, XmlDateTime, 9);
+    end;
+
     local procedure Initialize()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -9117,6 +9469,8 @@ codeunit 148301 "Expense Rule Test"
         LibraryExpense.CleanUpBeforeTesting();
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup."Default VAT Bus. Posting Group" := '';
+        // Per diem tests build trips in the session time zone; only the time zone tests set an agent.
+        Clear(ExpenseAgentSetup."User Security ID");
         ExpenseAgentSetup.Modify();
         LibraryVariableStorage.Clear();
         if IsInitialized then

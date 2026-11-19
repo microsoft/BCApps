@@ -4,14 +4,165 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using System.DateTime;
+
 codeunit 6911 "Expense Per Diem Calculation"
 {
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        AgentTimeZoneId: Text;
+        TimeZoneFallbackLbl: Label 'Per diem days are split in the session time zone because the agent time zone could not be resolved.', Locked = true;
+        UtcEpochTxt: Label '1900-01-01T00:00:00Z', Locked = true;
 
     internal procedure SetExpenseAgentSetup(NewExpenseAgentSetup: Record "Expense Agent Setup")
+    var
+        ExpenseAuditSubscribers: Codeunit "Expense Audit Subscribers";
+        TelemetryDimensions: Dictionary of [Text, Text];
+        ResolvedTimeZoneId: Text[180];
+        UnresolvedReason: Text;
     begin
         ExpenseAgentSetup := NewExpenseAgentSetup;
+        // Only the Expense Agent service, calling through the APIs, uses the agent time zone. Users keep their own time zone.
+        if not IsExpenseAgentServiceCall() then begin
+            SetTimeZone('');
+            exit;
+        end;
+
+        if ExpenseAgentSetup.GetAgentTimeZone(ResolvedTimeZoneId, UnresolvedReason) then begin
+            SetTimeZone(ResolvedTimeZoneId);
+            exit;
+        end;
+
+        SetTimeZone('');
+        TelemetryDimensions.Add('Category', ExpenseAuditSubscribers.TelemetryCategory());
+        TelemetryDimensions.Add('FeatureName', ExpenseAgentSetup.GetFeatureName());
+        TelemetryDimensions.Add('Reason', UnresolvedReason);
+        Session.LogMessage('0000WPD', TimeZoneFallbackLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
+    end;
+
+    local procedure IsExpenseAgentServiceCall(): Boolean
+    var
+        ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
+        IsServiceCall: Boolean;
+        IsHandled: Boolean;
+    begin
+        OnBeforeIsExpenseAgentServiceCall(IsServiceCall, IsHandled);
+        if IsHandled then
+            exit(IsServiceCall);
+
+        if not (CurrentClientType() in [ClientType::ODataV4, ClientType::Api]) then
+            exit(false);
+        // Off SaaS there is no Entra app identity, so every API caller counts as the Expense Agent, as in the Expenses API and expense tables.
+        // Agent users only exist on SaaS, so without one the agent time zone can't be resolved and the session time zone is used.
+        exit(ExpenseAgentAPIValidation.IsCurrentUserExpenseAgent());
+    end;
+
+    /// <summary>
+    /// Sets the time zone used to split trip days. An empty value means the session time zone.
+    /// </summary>
+    internal procedure SetTimeZone(TimeZoneId: Text)
+    begin
+        AgentTimeZoneId := TimeZoneId;
+    end;
+
+    /// <summary>
+    /// Returns the date of a UTC instant in the time zone that per diem days are split in: the agent time zone for
+    /// Expense Agent service calls, otherwise the session time zone. The stored value is not changed.
+    /// </summary>
+    internal procedure GetPerDiemDate(UtcDateTime: DateTime): Date
+    var
+        LocalMs: BigInteger;
+        DayIndex: Integer;
+    begin
+        if UtcDateTime = 0DT then
+            exit(0D);
+        if AgentTimeZoneId = '' then
+            exit(DT2Date(UtcDateTime));
+
+        LocalMs := GetLocalMsSinceEpoch(UtcDateTime);
+        DayIndex := LocalMs div MsPerDay();
+        exit(GetEpochDate() + DayIndex);
+    end;
+
+    /// <summary>
+    /// Returns the time of a UTC instant in the time zone that per diem days are split in: the agent time zone for
+    /// Expense Agent service calls, otherwise the session time zone. The stored value is not changed.
+    /// </summary>
+    internal procedure GetPerDiemTime(UtcDateTime: DateTime): Time
+    var
+        LocalMs: BigInteger;
+        MsOfDay: Integer;
+    begin
+        if UtcDateTime = 0DT then
+            exit(0T);
+        if AgentTimeZoneId = '' then
+            exit(DT2Time(UtcDateTime));
+
+        LocalMs := GetLocalMsSinceEpoch(UtcDateTime);
+        MsOfDay := LocalMs mod MsPerDay();
+        exit(000000T + MsOfDay);
+    end;
+
+    local procedure GetLocalMsSinceEpoch(UtcDateTime: DateTime): BigInteger
+    begin
+        exit((UtcDateTime - GetUtcEpoch()) + GetAgentOffset(UtcDateTime));
+    end;
+
+    /// <summary>
+    /// Returns the first instant of a date in the time zone that per diem days are split in.
+    /// When clocks skip midnight, this is the instant they change; when they go back, it includes the repeated hour.
+    /// </summary>
+    local procedure GetPerDiemDayStart(LocalDate: Date): DateTime
+    var
+        LocalMidnight, StartBeforeChange, StartAfterChange : DateTime;
+        DaysSinceEpoch: BigInteger;
+    begin
+        // Local midnight read as UTC, less the offset in force before or after a daylight saving change near that date
+        DaysSinceEpoch := LocalDate - GetEpochDate();
+        LocalMidnight := GetUtcEpoch() + DaysSinceEpoch * MsPerDay();
+        StartBeforeChange := LocalMidnight - GetPerDiemOffset(LocalMidnight - 2 * MsPerDay());
+        StartAfterChange := LocalMidnight - GetPerDiemOffset(LocalMidnight + 2 * MsPerDay());
+
+        // The day starts at the earliest of the two instants that falls on the date
+        if (StartAfterChange < StartBeforeChange) and (GetPerDiemDate(StartAfterChange) = LocalDate) then
+            exit(StartAfterChange);
+        if GetPerDiemDate(StartBeforeChange) = LocalDate then
+            exit(StartBeforeChange);
+        exit(StartAfterChange);
+    end;
+
+    local procedure GetPerDiemOffset(UtcDateTime: DateTime): Duration
+    var
+        LocalMs: BigInteger;
+    begin
+        if AgentTimeZoneId <> '' then
+            exit(GetAgentOffset(UtcDateTime));
+
+        LocalMs := GetPerDiemDate(UtcDateTime) - GetEpochDate();
+        LocalMs := LocalMs * MsPerDay() + (GetPerDiemTime(UtcDateTime) - 000000T);
+        exit(LocalMs - (UtcDateTime - GetUtcEpoch()));
+    end;
+
+    local procedure GetAgentOffset(UtcDateTime: DateTime): Duration
+    var
+        TimeZone: Codeunit "Time Zone";
+    begin
+        exit(TimeZone.GetTimezoneOffset(UtcDateTime, AgentTimeZoneId));
+    end;
+
+    local procedure GetUtcEpoch() UtcEpoch: DateTime
+    begin
+        Evaluate(UtcEpoch, UtcEpochTxt, 9);
+    end;
+
+    local procedure GetEpochDate(): Date
+    begin
+        exit(DMY2Date(1, 1, 1900));
+    end;
+
+    local procedure MsPerDay(): Integer
+    begin
+        exit(86400000);
     end;
 
     procedure CalculatePerDiemForSingleDay(
@@ -20,44 +171,26 @@ codeunit 6911 "Expense Per Diem Calculation"
         TripStartDateTime: DateTime;
         TripEndDateTime: DateTime): Decimal
     var
-        DayStartTime, DayEndTime : DateTime;
-        HoursInDay: Decimal;
-        IsFirstDay, IsLastDay, HasOvernightBefore : Boolean;
+        IsFirstDay, IsLastDay : Boolean;
     begin
-        // Determine day boundaries for this specific date
-        DayStartTime := CreateDateTime(CurrentDate, 000000T);  // Midnight start
-        DayEndTime := CreateDateTime(CurrentDate, 235900T);    // Midnight end
-
         // Check if this is first/last day of trip
-        IsFirstDay := (CurrentDate = DT2Date(TripStartDateTime));
-        IsLastDay := (CurrentDate = DT2Date(TripEndDateTime));
-
-        // Adjust times for actual trip boundaries
-        if IsFirstDay then
-            DayStartTime := TripStartDateTime;
-
-        if IsLastDay then
-            DayEndTime := TripEndDateTime;
-
-        // Calculate hours present in this day
-        HoursInDay := Round((DayEndTime - DayStartTime) / (60 * 60 * 1000), 0.01);
+        IsFirstDay := (CurrentDate = GetPerDiemDate(TripStartDateTime));
+        IsLastDay := (CurrentDate = GetPerDiemDate(TripEndDateTime));
 
         case ExpenseAgentSetup."Full Per-Diem Calculation" of
             ExpenseAgentSetup."Full Per-Diem Calculation"::None:
                 exit(0);
             ExpenseAgentSetup."Full Per-Diem Calculation"::"Full Calendar Day":
-                exit(CalculateFullCalendarDayAmount(IsFirstDay, IsLastDay, BaseRate, TripStartDateTime, TripEndDateTime));
+                exit(CalculateFullCalendarDayAmount(CurrentDate, IsFirstDay, IsLastDay, BaseRate, TripStartDateTime, TripEndDateTime));
             ExpenseAgentSetup."Full Per-Diem Calculation"::"24-hour Rolling Period":
                 exit(Calculate24HourRollingDayAmount(CurrentDate, BaseRate, TripStartDateTime, TripEndDateTime));
             ExpenseAgentSetup."Full Per-Diem Calculation"::"Overnight Stay":
-                begin
-                    HasOvernightBefore := (CurrentDate > DT2Date(TripStartDateTime));
-                    exit(CalculateOvernightStayDayAmount(CurrentDate, BaseRate, TripStartDateTime, TripEndDateTime));
-                end;
+                exit(CalculateOvernightStayDayAmount(CurrentDate, BaseRate, TripStartDateTime, TripEndDateTime));
         end;
     end;
 
     local procedure CalculateFullCalendarDayAmount(
+        CurrentDate: Date;
         IsFirstDay: Boolean;
         IsLastDay: Boolean;
         BaseRate: Decimal;
@@ -66,31 +199,29 @@ codeunit 6911 "Expense Per Diem Calculation"
     var
         IsFullCalendarDay: Boolean;
         HoursInDay: Decimal;
-        DayStartTime, DayEndTime : DateTime;
-        CurrentDate: Date;
+        DayStartTime, DayEndTime : Time;
+        DayStart, DayEnd : DateTime;
     begin
-        // Calculate actual hours in this day for partial day validation
-        CurrentDate := DT2Date(TripStartDateTime);
-        if IsLastDay then
-            CurrentDate := DT2Date(TripEndDateTime);
-
-        DayStartTime := CreateDateTime(CurrentDate, 000000T);
-        DayEndTime := CreateDateTime(CurrentDate, 235900T);
-
+        DayStartTime := 000000T;
+        DayEndTime := 235900T;
         if IsFirstDay then
-            DayStartTime := TripStartDateTime;
+            DayStartTime := GetPerDiemTime(TripStartDateTime);
         if IsLastDay then
-            DayEndTime := TripEndDateTime;
+            DayEndTime := GetPerDiemTime(TripEndDateTime);
 
-        HoursInDay := Round((DayEndTime - DayStartTime) / (60 * 60 * 1000), 0.01);
+        IsFullCalendarDay := (DayStartTime = 000000T) and (DayEndTime = 235900T);
 
-        IsFullCalendarDay := true;
-
-        if IsFirstDay and (DT2Time(TripStartDateTime) <> 000000T) then
-            IsFullCalendarDay := false;
-
-        if IsLastDay and (DT2Time(TripEndDateTime) <> 235900T) then
-            IsFullCalendarDay := false;
+        // Elapsed hours present in this day, which differ from the clock hours on days when clocks change.
+        // As before, a day that the trip continues past ends at 23:59, one minute before the next day starts.
+        if IsFirstDay then
+            DayStart := TripStartDateTime
+        else
+            DayStart := GetPerDiemDayStart(CurrentDate);
+        if IsLastDay then
+            DayEnd := TripEndDateTime
+        else
+            DayEnd := GetPerDiemDayStart(CurrentDate + 1) - 60 * 1000;
+        HoursInDay := Round((DayEnd - DayStart) / (60 * 60 * 1000), 0.01);
 
         if IsFullCalendarDay then
             exit(BaseRate)
@@ -117,10 +248,11 @@ codeunit 6911 "Expense Per Diem Calculation"
         PeriodDurationHours: Decimal;
         PeriodStartDate: Date;
         OneDayMs: BigInteger;
+        Amount: Decimal;
     begin
         // For 24-hour rolling period method:
-        // Find which 24-hour period "belongs" to this calendar day
-        // Each rolling period is assigned to the calendar day where it starts
+        // Each rolling period is assigned to the calendar day where it starts.
+        // When clocks go back, two periods can start on the same day, so all of them are counted.
 
         OneDayMs := 24 * 60 * 60 * 1000;  // 86,400,000 ms in one day
         PeriodStartTime := TripStartDateTime;
@@ -133,26 +265,27 @@ codeunit 6911 "Expense Per Diem Calculation"
             if PeriodEndTime > TripEndDateTime then
                 PeriodEndTime := TripEndDateTime;
 
-            PeriodStartDate := DT2Date(PeriodStartTime);
+            PeriodStartDate := GetPerDiemDate(PeriodStartTime);
             PeriodDurationHours := Round((PeriodEndTime - PeriodStartTime) / (60 * 60 * 1000), 0.01);
 
-            // If this period starts on the current date, calculate its per diem
-            if PeriodStartDate = CurrentDate then begin
-                // For complete 24-hour periods
-                if PeriodDurationHours >= (24 - GetToleranceInHours(24)) then
-                    exit(BaseRate);
-                if PeriodDurationHours >= (ExpenseAgentSetup."Minimum Hours for Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Minimum Hours for Per Diem")) then
-                    exit(BaseRate);
-                if (ExpenseAgentSetup."Partial Day Rules" = ExpenseAgentSetup."Partial Day Rules"::"Based On Eligible Hours") and
-                        (PeriodDurationHours >= (ExpenseAgentSetup."Min Hours for Partial Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Min Hours for Partial Per Diem"))) then
-                    exit(BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100)
-                else
-                    exit(0);
-            end;
+            if PeriodStartDate = CurrentDate then
+                Amount += Calculate24HourRollingPeriodAmount(BaseRate, PeriodDurationHours);
             PeriodStartTime := PeriodStartTime + OneDayMs;
-        until PeriodStartTime >= TripEndDateTime;
+        until (PeriodStartTime >= TripEndDateTime) or (PeriodStartDate > CurrentDate);
 
-        // If no period starts on this date, no per diem for this day
+        exit(Amount);
+    end;
+
+    local procedure Calculate24HourRollingPeriodAmount(BaseRate: Decimal; PeriodDurationHours: Decimal): Decimal
+    begin
+        // For complete 24-hour periods
+        if PeriodDurationHours >= (24 - GetToleranceInHours(24)) then
+            exit(BaseRate);
+        if PeriodDurationHours >= (ExpenseAgentSetup."Minimum Hours for Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Minimum Hours for Per Diem")) then
+            exit(BaseRate);
+        if (ExpenseAgentSetup."Partial Day Rules" = ExpenseAgentSetup."Partial Day Rules"::"Based On Eligible Hours") and
+                (PeriodDurationHours >= (ExpenseAgentSetup."Min Hours for Partial Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Min Hours for Partial Per Diem"))) then
+            exit(BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100);
         exit(0);
     end;
 
@@ -167,13 +300,15 @@ codeunit 6911 "Expense Per Diem Calculation"
         PeriodDurationHours: Decimal;
         PeriodStartDate: Date;
         OneDayMs: BigInteger;
+        Amount: Decimal;
     begin
         // For overnight stay method:
-        // Only trips that span multiple calendar dates are eligible
-        // Find which overnight period "belongs" to this calendar day
+        // Only trips that span multiple calendar dates are eligible.
+        // Each overnight period is assigned to the calendar day where it starts.
+        // When clocks go back, two periods can start on the same day, so all of them are counted.
 
-        TripStartDate := DT2Date(TripStartDateTime);
-        TripEndDate := DT2Date(TripEndDateTime);
+        TripStartDate := GetPerDiemDate(TripStartDateTime);
+        TripEndDate := GetPerDiemDate(TripEndDateTime);
 
         // Same-day trips get zero per diem regardless of duration
         if TripStartDate = TripEndDate then
@@ -190,24 +325,25 @@ codeunit 6911 "Expense Per Diem Calculation"
             if PeriodEndTime > TripEndDateTime then
                 PeriodEndTime := TripEndDateTime;
 
-            PeriodStartDate := DT2Date(PeriodStartTime);
+            PeriodStartDate := GetPerDiemDate(PeriodStartTime);
             PeriodDurationHours := Round((PeriodEndTime - PeriodStartTime) / (60 * 60 * 1000), 0.01);
 
-            // If this overnight period starts on the current date, calculate its per diem
-            if PeriodStartDate = CurrentDate then begin
-                if PeriodDurationHours >= (ExpenseAgentSetup."Minimum Hours for Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Minimum Hours for Per Diem")) then
-                    exit(BaseRate);
-                if (ExpenseAgentSetup."Partial Day Rules" = ExpenseAgentSetup."Partial Day Rules"::"Based On Eligible Hours") and
-                        (PeriodDurationHours >= (ExpenseAgentSetup."Min Hours for Partial Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Min Hours for Partial Per Diem"))) then
-                    exit(BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100)
-                else
-                    exit(0);
-            end;
+            if PeriodStartDate = CurrentDate then
+                Amount += CalculateOvernightPeriodAmount(BaseRate, PeriodDurationHours);
 
             PeriodStartTime := PeriodStartTime + OneDayMs;
-        until PeriodStartTime >= TripEndDateTime;
+        until (PeriodStartTime >= TripEndDateTime) or (PeriodStartDate > CurrentDate);
 
-        // If no overnight period starts on this date, no per diem for this day
+        exit(Amount);
+    end;
+
+    local procedure CalculateOvernightPeriodAmount(BaseRate: Decimal; PeriodDurationHours: Decimal): Decimal
+    begin
+        if PeriodDurationHours >= (ExpenseAgentSetup."Minimum Hours for Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Minimum Hours for Per Diem")) then
+            exit(BaseRate);
+        if (ExpenseAgentSetup."Partial Day Rules" = ExpenseAgentSetup."Partial Day Rules"::"Based On Eligible Hours") and
+                (PeriodDurationHours >= (ExpenseAgentSetup."Min Hours for Partial Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Min Hours for Partial Per Diem"))) then
+            exit(BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100);
         exit(0);
     end;
 
@@ -215,5 +351,10 @@ codeunit 6911 "Expense Per Diem Calculation"
     begin
         if Hours <> 0 then
             exit(Hours * 0.01); // 1% tolerance to avoid comparison issues ex- 5.98 Hours with 6 Hours
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnBeforeIsExpenseAgentServiceCall(var IsServiceCall: Boolean; var IsHandled: Boolean)
+    begin
     end;
 }
