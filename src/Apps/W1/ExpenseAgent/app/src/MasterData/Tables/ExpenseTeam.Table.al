@@ -30,6 +30,14 @@ table 6931 "Expense Team"
             FieldClass = FlowField;
             CalcFormula = count("Expense User" where("Expense Team Code" = field("Code")));
         }
+        field(4; "Spending Limit Per Team"; Boolean)
+        {
+            Caption = 'Spending Limit Per Team';
+            ToolTip = 'Specifies whether an expense spend limit is configured for this Expense Team.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = exist("Expense Spend Limit" where("Spend Limit Type" = const(Team), "Limit For" = field("Code")));
+        }
     }
     keys
     {
@@ -38,4 +46,14 @@ table 6931 "Expense Team"
             Clustered = true;
         }
     }
+
+    trigger OnDelete()
+    var
+        ExpenseSpendLimit: Record "Expense Spend Limit";
+    begin
+        ExpenseSpendLimit.SetRange("Spend Limit Type", ExpenseSpendLimit."Spend Limit Type"::Team);
+        ExpenseSpendLimit.SetRange("Limit For", Rec.Code);
+        if not ExpenseSpendLimit.IsEmpty() then
+            ExpenseSpendLimit.DeleteAll();
+    end;
 }
