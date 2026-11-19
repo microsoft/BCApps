@@ -1039,7 +1039,6 @@ codeunit 134761 "Test Custom Reports"
     [Scope('OnPrem')]
     procedure UT_CleanEmailLayoutNames_OnReportIdValidate()
     var
-        CustomReportSelection: Record "Custom Report Selection";
         ReportLayoutList: Record "Report Layout List";
         LibraryReportSelection: Codeunit "Library - Report Selection";
         ReportId: array[2] of Integer;
@@ -1052,6 +1051,7 @@ codeunit 134761 "Test Custom Reports"
 
         // [GIVEN] Document layout for report "Standard Statement" with report layout "L" for the email attachment and the email body
         LibraryReportSelection.CreateWordLayout(ReportId[1], ReportLayoutList);
+        Clear(CustomReportSelection);
         CustomReportSelection.Init();
         CustomReportSelection.Validate("Report ID", ReportId[1]);
         CustomReportSelection.Validate("Use for Email Body", true);
