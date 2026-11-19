@@ -23,7 +23,6 @@ codeunit 148367 "Expense No Receipt API Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
         ExpensesServiceNameTok: Label 'expenses', Locked = true;
-        CategoriesServiceNameTok: Label 'expenseCategories', Locked = true;
 
     [Test]
     procedure BlankDraftCanBeCreatedThroughAPI()
