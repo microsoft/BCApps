@@ -88,11 +88,13 @@ table 6923 "Expense User"
         }
         field(9; "Expense Team Code"; Code[20])
         {
+            Access = Internal;
             Caption = 'Expense Team Code';
             TableRelation = "Expense Team"."Code";
         }
         field(10; "Team Manager"; Boolean)
         {
+            Access = Internal;
             Caption = 'Team Manager';
 
             trigger OnValidate()
