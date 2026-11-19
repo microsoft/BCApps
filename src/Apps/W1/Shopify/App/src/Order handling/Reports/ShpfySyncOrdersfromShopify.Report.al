@@ -143,6 +143,7 @@ report 30104 "Shpfy Sync Orders from Shopify"
                     OrderMapping.PersistMappingErrorMessage(ShopifyOrderHeader, ErrorMessage)
                 else begin
                     ShopifyOrderHeader."Has Error" := true;
+                    ShopifyOrderHeader."Has Mapping Error" := false;
                     ShopifyOrderHeader."Error Message" := CopyStr(Format(Time) + ' ' + ErrorMessage, 1, MaxStrLen(ShopifyOrderHeader."Error Message"));
                 end;
                 ShopifyOrderHeader."Sales Order No." := '';
