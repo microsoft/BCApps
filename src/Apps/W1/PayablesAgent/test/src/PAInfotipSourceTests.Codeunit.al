@@ -77,6 +77,7 @@ codeunit 133735 "PA Infotip Source Tests"
         Header: Record "Purchase Header";
         Line: Record "Purchase Line";
         OrderLine: Record "Purchase Line";
+        ReceiptOrderLine: Record "Purchase Line";
         ReceiptLine: Record "Purch. Rcpt. Line";
         WorkItem: Codeunit "PA Work Item";
         Sources: JsonArray;
@@ -93,35 +94,44 @@ codeunit 133735 "PA Infotip Source Tests"
         Header."Vendor Invoice No." := 'NATIVE-INVOICE';
         Header.Insert();
         CreatePurchaseLine(OrderLine, "Purchase Document Type"::Order, NewDocumentNo(), 70000);
+        CreatePurchaseLine(ReceiptOrderLine, "Purchase Document Type"::Order, OrderLine."Document No.", 80000);
         CreatePurchaseLine(Line, Header."Document Type", Header."No.", 10000);
         Line."Order No." := OrderLine."Document No.";
         Line."Order Line No." := OrderLine."Line No.";
         Line.Modify();
         ReceiptLine."Document No." := NewDocumentNo();
         ReceiptLine."Line No." := 90000;
-        ReceiptLine."Order No." := OrderLine."Document No.";
-        ReceiptLine."Order Line No." := OrderLine."Line No.";
+        ReceiptLine."Order No." := ReceiptOrderLine."Document No.";
+        ReceiptLine."Order Line No." := ReceiptOrderLine."Line No.";
         ReceiptLine.Insert();
         CreatePurchaseLine(Line, Header."Document Type", Header."No.", 20000);
         Line."Receipt No." := ReceiptLine."Document No.";
         Line."Receipt Line No." := ReceiptLine."Line No.";
         Line.Modify();
+        CreatePurchaseLine(Line, Header."Document Type", Header."No.", 30000);
+        Line."Order No." := OrderLine."Document No.";
+        Line."Order Line No." := OrderLine."Line No.";
+        Line.Modify();
         WorkItem.RegisterOutcome(Header.RecordId());
 
         Fixtures.GetTaskInfotipSources(AgentTaskId, Sources);
 
-        Assert.AreEqual(5, Sources.Count(), 'Native header, actual vendor, two lines and one actual matched order target');
+        Assert.AreEqual(7, Sources.Count(), 'Native header, actual vendor, three lines and two distinct deduplicated order targets');
         AssertAllSourcesResolve(Sources);
         AssertSource(Sources, Header, 0);
         AssertSource(Sources, Vendor, 1);
-        AssertSource(Sources, Line, 3);
-        AssertSource(Sources, OrderLine, 4);
+        AssertSource(Sources, Line, 4);
+        AssertSource(Sources, OrderLine, 5);
+        AssertSource(Sources, ReceiptOrderLine, 6);
         Context := GetContext(Sources, 0);
         AssertText(Context, 'documentNo', Header."No.");
         AssertText(Context, 'invoiceNo', Header."Vendor Invoice No.");
-        Context := GetContext(Sources, 4);
+        Context := GetContext(Sources, 5);
         AssertText(Context, 'documentNo', OrderLine."Document No.");
         AssertInteger(Context, 'lineNo', OrderLine."Line No.");
+        Context := GetContext(Sources, 6);
+        AssertText(Context, 'documentNo', ReceiptOrderLine."Document No.");
+        AssertInteger(Context, 'lineNo', ReceiptOrderLine."Line No.");
     end;
 
     [Test]
