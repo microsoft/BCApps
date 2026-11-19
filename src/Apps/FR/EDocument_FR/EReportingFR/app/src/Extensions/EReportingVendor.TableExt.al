@@ -11,6 +11,15 @@ tableextension 10973 "E-Reporting Vendor" extends Vendor
 {
     fields
     {
+        modify("SIREN No.")
+        {
+            trigger OnAfterValidate()
+            var
+                FRLegalIdentifiers: Codeunit "FR Legal Identifiers";
+            begin
+                FRLegalIdentifiers.ValidatePair("SIREN No.", FRLegalIdentifiers.GetVendorSIRET(Rec), Rec);
+            end;
+        }
         field(10973; "FR E-Reporting Trans. Type"; Enum "FR E-Reporting Trans. Type")
         {
             Caption = 'E-Reporting Transaction Type';
@@ -27,7 +36,18 @@ tableextension 10973 "E-Reporting Vendor" extends Vendor
         {
             Caption = 'Electronic Address Scheme';
             DataClassification = CustomerContent;
+            InitValue = " ";
             ToolTip = 'Specifies the scheme of the electronic address (e.g., EM for email, 0009 for SIRET, 0002 for SIREN) used for PDP routing.';
+        }
+    }
+
+    keys
+    {
+        key(FRRegistrationNumber; "Registration Number")
+        {
+        }
+        key(FRSIREN; "SIREN No.")
+        {
         }
     }
 }

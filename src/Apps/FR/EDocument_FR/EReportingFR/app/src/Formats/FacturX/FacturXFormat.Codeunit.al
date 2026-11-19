@@ -20,10 +20,9 @@ codeunit 10979 "Factur-X Format" implements "E-Document"
     var
         FREDocHelpers: Codeunit "EDoc. Helpers";
     begin
-        FREDocHelpers.CheckSIRENNotEmpty();
-        FREDocHelpers.CheckSIRETNotEmpty();
+        FREDocHelpers.CheckSellerElectronicAddress(EDocumentService.Code);
         FREDocHelpers.CheckSellerCountryCode();
-        FREDocHelpers.CheckBuyerElectronicAddress(SourceDocumentHeader);
+        FREDocHelpers.CheckBuyerElectronicAddress(SourceDocumentHeader, EDocumentService.Code);
     end;
 
     procedure Create(EDocumentService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
@@ -37,7 +36,7 @@ codeunit 10979 "Factur-X Format" implements "E-Document"
             EDocument."Document Type"::"Service Credit Memo",
             EDocument."Document Type"::"Issued Reminder",
             EDocument."Document Type"::"Issued Finance Charge Memo":
-                CreateSourceDocumentBlob(SourceDocumentHeader, TempBlob);
+                CreateSourceDocumentBlob(SourceDocumentHeader, EDocumentService.Code, TempBlob);
             else
                 EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(DocumentTypeNotSupportedErr, EDocument.FieldCaption("Document Type"), EDocument."Document Type"));
         end;
@@ -51,7 +50,7 @@ codeunit 10979 "Factur-X Format" implements "E-Document"
 
         if SourceDocumentHeaders.FindSet() then
             repeat
-                CreateSourceDocumentBlob(SourceDocumentHeaders, TempBlob);
+                CreateSourceDocumentBlob(SourceDocumentHeaders, EDocService.Code, TempBlob);
             until SourceDocumentHeaders.Next() = 0;
     end;
 
@@ -71,15 +70,18 @@ codeunit 10979 "Factur-X Format" implements "E-Document"
         CreatedDocumentLines.GetTable(TempPurchaseLine);
     end;
 
-    local procedure CreateSourceDocumentBlob(var SourceDocumentHeader: RecordRef; var TempBlob: Codeunit "Temp Blob")
+    local procedure CreateSourceDocumentBlob(var SourceDocumentHeader: RecordRef; ServiceCode: Code[20]; var TempBlob: Codeunit "Temp Blob")
     var
         TempRecordExportBuffer: Record "Record Export Buffer" temporary;
         ExportFacturXFRDocument: Codeunit "Export Factur-X Document";
+        EDocHelpers: Codeunit "EDoc. Helpers";
     begin
+        EDocHelpers.CheckSellerElectronicAddress(ServiceCode);
+        EDocHelpers.CheckBuyerElectronicAddress(SourceDocumentHeader, ServiceCode);
         TempRecordExportBuffer.RecordID := SourceDocumentHeader.RecordId;
         TempRecordExportBuffer.Insert();
 
-        ExportFacturXFRDocument.ExportDocument(TempRecordExportBuffer);
+        ExportFacturXFRDocument.ExportDocument(TempRecordExportBuffer, ServiceCode);
         if not TempRecordExportBuffer."File Content".HasValue() then
             exit;
         TempBlob.FromRecord(TempRecordExportBuffer, TempRecordExportBuffer.FieldNo("File Content"));
