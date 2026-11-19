@@ -4,6 +4,8 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.Document.Attachment;
 using System.AI;
 using System.TestLibraries.AI;
+using System.TestTools.AITestToolkit;
+using System.TestTools.TestRunner;
 codeunit 139785 "SLS Test Utility"
 {
     Access = Internal;
@@ -135,6 +137,69 @@ codeunit 139785 "SLS Test Utility"
     internal procedure RegisterCopilotCapability()
     begin
         CopilotTestLibrary.RegisterCopilotCapabilityWithAppId(Enum::"Copilot Capability"::"Sales Lines Suggestions", GetSalesLineSuggestionAppId());
+    end;
+
+    internal procedure EvaluateItemExtraction(CustomerRequest: Text; ReferenceItems: JsonArray; ActualItems: JsonArray): JsonObject
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        AOAIDeployments: Codeunit "AOAI Deployments";
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        Input: JsonObject;
+        Evaluation: JsonObject;
+        ResultToken: JsonToken;
+        CurrentModuleInfo: ModuleInfo;
+        Deployment: Text;
+        InputText: Text;
+    begin
+        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+        CopilotTestLibrary.RegisterCopilotCapabilityWithAppId(Enum::"Copilot Capability"::"Sales Lines Suggestions", CurrentModuleInfo.Id());
+
+        // Select the judge separately from the app's model configuration.
+        Deployment := AOAIDeployments.GetGPT56CeresLatest();
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", Deployment);
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Sales Lines Suggestions");
+        AOAIChatCompletionParams.SetMaxTokens(1500);
+        AOAIChatCompletionParams.SetTemperature(0);
+        AOAIChatCompletionParams.SetJsonMode(true);
+        AOAIChatMessages.SetPrimarySystemMessage(NavApp.GetResourceAsText('SLSExtractionEvaluatorPrompt.md', TextEncoding::UTF8));
+
+        Input.Add('customer_request', CustomerRequest);
+        Input.Add('reference_items', ReferenceItems);
+        Input.Add('actual_items', ActualItems);
+        Input.WriteTo(InputText);
+        AOAIChatMessages.AddUserMessage(InputText);
+
+        AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
+        if not AOAIOperationResponse.IsSuccess() then
+            Error('Semantic evaluator failed: %1', AOAIOperationResponse.GetError());
+
+        if not Evaluation.ReadFrom(AOAIChatMessages.GetLastMessage()) then
+            Error('Semantic evaluator returned invalid JSON.');
+        Assert.IsTrue(Evaluation.Get('passed', ResultToken), 'Semantic evaluator did not return a verdict.');
+        Evaluation.Replace('passed', ResultToken.AsValue().AsBoolean());
+        Assert.IsTrue(Evaluation.Get('reason', ResultToken), 'Semantic evaluator did not return a reason.');
+        Assert.AreNotEqual('', ResultToken.AsValue().AsText(), 'Semantic evaluator returned an empty reason.');
+        Assert.IsTrue(Evaluation.Get('item_mapping', ResultToken), 'Semantic evaluator did not return an item mapping.');
+        Assert.IsTrue(ResultToken.IsArray(), 'Semantic evaluator item mapping must be an array.');
+        Evaluation.Add('deployment', Deployment);
+        Evaluation.Add('rubric_version', 1);
+        exit(Evaluation);
+    end;
+
+    internal procedure LogExtractionEvaluation(CustomerRequest: Text; CompletionAnswer: Text; Evaluation: JsonObject)
+    var
+        AITestContext: Codeunit "AIT Test Context";
+        TestOutputJson: Codeunit "Test Output Json";
+        EvaluationText: Text;
+    begin
+        Evaluation.WriteTo(EvaluationText);
+        TestOutputJson.Initialize();
+        TestOutputJson.Add('answer', CompletionAnswer);
+        TestOutputJson.Add('query', CustomerRequest);
+        TestOutputJson.Add('semantic_evaluation', EvaluationText);
+        AITestContext.SetTestOutput(TestOutputJson);
     end;
 
     local procedure GetSalesLineSuggestionAppId(): Text
