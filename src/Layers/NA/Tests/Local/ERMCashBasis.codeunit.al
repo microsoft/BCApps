@@ -1204,7 +1204,7 @@
         // [GIVEN] Two journal VAT entries of base 100 and VAT 16, and credit memos for 77.33, 77.33 and 77.34.
         // [WHEN] The last credit memo is applied after the first two.
         // [THEN] The invoice closes with no remaining unrealized VAT or base.
-        VerifyRepeatedJournalInvoiceApplicationsClearRoundingRemainder(false);
+        VerifyRepeatedJournalInvoiceApplicationsClearRoundingRemainder(false, false);
     end;
 
     [Test]
@@ -1214,10 +1214,21 @@
         // [GIVEN] A journal invoice with two entries at 16% and another group at 8%, and equivalent-group credit memos.
         // [WHEN] Credit memos for 77.33, 77.33 and 77.34 settle only the 16% group.
         // [THEN] The 16% group has no remaining VAT or base, while the 8% group and its 108 remain outstanding.
-        VerifyRepeatedJournalInvoiceApplicationsClearRoundingRemainder(true);
+        VerifyRepeatedJournalInvoiceApplicationsClearRoundingRemainder(true, false);
     end;
 
-    local procedure VerifyRepeatedJournalInvoiceApplicationsClearRoundingRemainder(WithOtherVATGroup: Boolean)
+    [Test]
+    procedure RepeatedJournalInvoiceApplicationsWithSplitCreditMemoClearGroupBeforeInvoice()
+    begin
+        // [SCENARIO 648925] A credit memo split across exact and equivalent VAT groups clears the invoice group remainder.
+        // [GIVEN] A journal invoice with two entries at 16% and another group at 8%.
+        // [GIVEN] A credit memo for 77.33 and a second credit memo with 77.33 and 77.34 in the exact and equivalent 16% groups.
+        // [WHEN] The second credit memo is applied after the first one.
+        // [THEN] The 16% group has no remaining VAT or base, while the 8% group and its 108 remain outstanding.
+        VerifyRepeatedJournalInvoiceApplicationsClearRoundingRemainder(true, true);
+    end;
+
+    local procedure VerifyRepeatedJournalInvoiceApplicationsClearRoundingRemainder(WithOtherVATGroup: Boolean; SplitFinalCreditMemo: Boolean)
     var
         VATPostingSetup: Record "VAT Posting Setup";
         OtherVATPostingSetup: Record "VAT Posting Setup";
@@ -1236,8 +1247,10 @@
         CreditMemoNo: Code[20];
         ApplicationAmounts: array[3] of Decimal;
         OtherGroupAmount: Decimal;
+        CreditMemoAmount: Decimal;
         LineIndex: Integer;
         ApplicationIndex: Integer;
+        ApplicationCount: Integer;
     begin
         // [SCENARIO 648925] Final group settlement clears rounding remainders after repeated partial applications.
         Initialize();
@@ -1297,7 +1310,10 @@
         ApplicationAmounts[1] := 77.33;
         ApplicationAmounts[2] := 77.33;
         ApplicationAmounts[3] := 77.34;
-        for ApplicationIndex := 1 to ArrayLen(ApplicationAmounts) do begin
+        ApplicationCount := ArrayLen(ApplicationAmounts);
+        if SplitFinalCreditMemo then
+            ApplicationCount := 2;
+        for ApplicationIndex := 1 to ApplicationCount do begin
             CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", CustomerNo);
             SalesHeader.Validate("Prices Including VAT", true);
             SalesHeader.Modify(true);
@@ -1305,24 +1321,35 @@
               SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(CreditMemoVATPostingSetup."VAT Prod. Posting Group"), 1);
             SalesLine.Validate("Unit Price", ApplicationAmounts[ApplicationIndex]);
             SalesLine.Modify(true);
+            CreditMemoAmount := ApplicationAmounts[ApplicationIndex];
+            if SplitFinalCreditMemo and (ApplicationIndex = ApplicationCount) then begin
+                // The second share uses the exact invoice VAT group; the first share uses the equivalent group.
+                LibrarySales.CreateSalesLine(
+                  SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(VATPostingSetup."VAT Prod. Posting Group"), 1);
+                SalesLine.Validate("Unit Price", ApplicationAmounts[3]);
+                SalesLine.Modify(true);
+                CreditMemoAmount += ApplicationAmounts[3];
+            end;
             CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
             LibraryERM.FindCustomerLedgerEntry(
               CreditMemoCustLedgerEntry, CreditMemoCustLedgerEntry."Document Type"::"Credit Memo", CreditMemoNo);
             CreditMemoCustLedgerEntry.CalcFields("Remaining Amount");
             Assert.AreEqual(
-              -ApplicationAmounts[ApplicationIndex], CreditMemoCustLedgerEntry."Remaining Amount",
+              -CreditMemoAmount, CreditMemoCustLedgerEntry."Remaining Amount",
               'Each credit memo must have the exact gross application amount');
             LibraryERM.SetApplyCustomerEntry(CreditMemoCustLedgerEntry, CreditMemoCustLedgerEntry."Remaining Amount");
             InvoiceCustLedgerEntry.Get(InvoiceCustLedgerEntry."Entry No.");
             LibraryERM.SetAppliestoIdCustomer(InvoiceCustLedgerEntry);
-            if ApplicationIndex < ArrayLen(ApplicationAmounts) then
+            if ApplicationIndex < ApplicationCount then
                 LibraryERM.PostCustLedgerApplication(CreditMemoCustLedgerEntry);
         end;
-        InvoiceVATEntry.CalcSums("Remaining Unrealized Amount", "Remaining Unrealized Base");
-        Assert.AreEqual(-10.68, InvoiceVATEntry."Remaining Unrealized Amount", 'Partial applications must leave the rounded remaining VAT');
-        Assert.AreEqual(-66.68, InvoiceVATEntry."Remaining Unrealized Base", 'Partial applications must leave the rounded remaining base');
+        if not SplitFinalCreditMemo then begin
+            InvoiceVATEntry.CalcSums("Remaining Unrealized Amount", "Remaining Unrealized Base");
+            Assert.AreEqual(-10.68, InvoiceVATEntry."Remaining Unrealized Amount", 'Partial applications must leave the rounded remaining VAT');
+            Assert.AreEqual(-66.68, InvoiceVATEntry."Remaining Unrealized Base", 'Partial applications must leave the rounded remaining base');
+        end;
         InvoiceCustLedgerEntry.CalcFields("Remaining Amount");
-        Assert.AreEqual(77.34 + OtherGroupAmount, InvoiceCustLedgerEntry."Remaining Amount", 'Only the final application must settle the 16% group');
+        Assert.AreEqual(CreditMemoAmount + OtherGroupAmount, InvoiceCustLedgerEntry."Remaining Amount", 'Only the final application must settle the 16% group');
 
         // [WHEN] The final credit memo for 77.34 fully settles the 16% group.
         LibraryERM.PostCustLedgerApplication(CreditMemoCustLedgerEntry);

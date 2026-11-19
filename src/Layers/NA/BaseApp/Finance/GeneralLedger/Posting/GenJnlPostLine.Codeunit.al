@@ -4493,6 +4493,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary;
         CreditMemoVATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]];
+        CurrentSettledByInvoiceVATGroup: Dictionary of [Text, Decimal];
         CreditMemoTotalAmount: Decimal;
         CreditMemoAmountsLoaded: Boolean;
         InvoiceVATGroupsLoaded: Boolean;
@@ -4546,7 +4547,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         else
             if TempVATPostingSetup.FindSet() then
                 repeat
-                    CustUnrealizedVAT(true, TempVATPostingSetup, GenJnlLine, CustLedgEntry2, SettledAmount, GainLossLCY, AppliedCurrencyFactor, PostingDate, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded, CreditMemoVATGroupAmounts, CreditMemoTotalAmount, CreditMemoAmountsLoaded);
+                    CustUnrealizedVAT(true, TempVATPostingSetup, GenJnlLine, CustLedgEntry2, SettledAmount, GainLossLCY, AppliedCurrencyFactor, PostingDate, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded, CreditMemoVATGroupAmounts, CreditMemoTotalAmount, CreditMemoAmountsLoaded, CurrentSettledByInvoiceVATGroup);
                 until TempVATPostingSetup.Next() = 0;
 
         InsertSummarizedVAT(GenJnlLine);
@@ -4556,6 +4557,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     var
         TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary;
         CreditMemoVATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]];
+        CurrentSettledByInvoiceVATGroup: Dictionary of [Text, Decimal];
         CreditMemoTotalAmount: Decimal;
         CreditMemoAmountsLoaded: Boolean;
         InvoiceVATGroupsLoaded: Boolean;
@@ -4563,10 +4565,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CustUnrealizedVAT(
           ShouldConsiderVATPostingGrouping, TempVATPostingSetup, GenJnlLine, CustLedgEntry2, SettledAmount,
           GainLossLCY, CurrencyFactor, PostingDate, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded,
-          CreditMemoVATGroupAmounts, CreditMemoTotalAmount, CreditMemoAmountsLoaded);
+          CreditMemoVATGroupAmounts, CreditMemoTotalAmount, CreditMemoAmountsLoaded, CurrentSettledByInvoiceVATGroup);
     end;
 
-    local procedure CustUnrealizedVAT(ShouldConsiderVATPostingGrouping: Boolean; TempAppliedVATPostingSetup: Record "VAT Posting Setup" temporary; GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; GainLossLCY: Decimal; AppliedCurrencyFactor: Decimal; PostingDate: Date; var TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary; var InvoiceVATGroupsLoaded: Boolean; var CreditMemoVATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]]; var CreditMemoTotalAmount: Decimal; var CreditMemoAmountsLoaded: Boolean)
+    local procedure CustUnrealizedVAT(ShouldConsiderVATPostingGrouping: Boolean; TempAppliedVATPostingSetup: Record "VAT Posting Setup" temporary; GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; GainLossLCY: Decimal; AppliedCurrencyFactor: Decimal; PostingDate: Date; var TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary; var InvoiceVATGroupsLoaded: Boolean; var CreditMemoVATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]]; var CreditMemoTotalAmount: Decimal; var CreditMemoAmountsLoaded: Boolean; var CurrentSettledByInvoiceVATGroup: Dictionary of [Text, Decimal])
     var
         VATEntry2: Record "VAT Entry";
         TaxJurisdiction: Record "Tax Jurisdiction";
@@ -4604,6 +4606,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CreditMemoVATProdPostingGroup: Code[20];
         InvoiceVATBusPostingGroup: Code[20];
         InvoiceVATProdPostingGroup: Code[20];
+        InvoiceVATGroupKey: Text;
+        CurrentGroupSettledAmount: Decimal;
+        PreviousGroupSettledAmount: Decimal;
     begin
         ShouldPostGLEntries := not (
             (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") and
@@ -4662,19 +4667,29 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 if (CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::Invoice) and
                    (VATPostingSetup."Unrealized VAT Type" = VATPostingSetup."Unrealized VAT Type"::"Cash Basis")
                 then begin
-                    // Rounded VAT/base realizations can differ from actual payments at final settlement.
-                    if Abs(PaidAmount) = Abs(CustLedgEntry2."Amount (LCY)") then
-                        PaidAmountByVAT := InvoicePartAmountByVAT
-                    else
-                        if (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") and
-                           (CustLedgEntry2."Original Amt. (LCY)" <> 0)
-                        then
-                            PaidAmountByVAT :=
-                              CustLedgEntry2.GetAppliedAmountByVATPostingGroup(
-                                PaidAmount + Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
-                                InvoicePartAmountByVAT, InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup,
-                                TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded) -
-                              Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor())
+                    if (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") and
+                       (CustLedgEntry2."Original Amt. (LCY)" <> 0)
+                    then begin
+                        // A credit memo can settle the invoice amount without covering every VAT group, so completion is decided per group.
+                        // Several credit memo groups can map to one invoice group; include the shares already realized in this application.
+                        InvoiceVATGroupKey := InvoiceVATBusPostingGroup + '|' + InvoiceVATProdPostingGroup;
+                        CurrentGroupSettledAmount := Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor());
+                        if CurrentSettledByInvoiceVATGroup.Get(InvoiceVATGroupKey, PreviousGroupSettledAmount) then
+                            CurrentSettledByInvoiceVATGroup.Set(InvoiceVATGroupKey, PreviousGroupSettledAmount + CurrentGroupSettledAmount)
+                        else begin
+                            PreviousGroupSettledAmount := 0;
+                            CurrentSettledByInvoiceVATGroup.Add(InvoiceVATGroupKey, CurrentGroupSettledAmount);
+                        end;
+                        PaidAmountByVAT :=
+                          CustLedgEntry2.GetAppliedAmountByVATPostingGroup(
+                            PaidAmount + Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
+                            InvoicePartAmountByVAT, InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup,
+                            TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded) -
+                          CurrentGroupSettledAmount - PreviousGroupSettledAmount;
+                    end else
+                        // Rounded VAT/base realizations can differ from actual payments at final settlement.
+                        if Abs(PaidAmount) = Abs(CustLedgEntry2."Amount (LCY)") then
+                            PaidAmountByVAT := InvoicePartAmountByVAT
                         else
                             PaidAmountByVAT -= Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor());
                 end else
