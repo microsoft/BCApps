@@ -6,6 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.Agents;
+using System.Config;
 using System.Telemetry;
 using System.TestTools.TestRunner;
 using System.Utilities;
@@ -88,6 +89,32 @@ page 149042 "AIT CommandLine Card"
                     Caption = 'No. of Pending Evals';
                     ToolTip = 'Specifies the number of eval suite lines in the eval suite that are yet to be run.';
                     Editable = false;
+                }
+            }
+            group(FeatureConfigurationGroup)
+            {
+                Caption = 'Feature Configuration';
+
+                field("Feature Configuration Key"; FeatureConfigurationKey)
+                {
+                    Caption = 'Feature Configuration Key';
+                    ToolTip = 'Specifies the ECS configuration key to read.';
+
+                    trigger OnValidate()
+                    var
+                        FeatureConfiguration: Codeunit "Feature Configuration";
+                    begin
+                        Clear(FeatureConfigurationValue);
+                        if FeatureConfigurationKey <> '' then
+                            FeatureConfigurationValue := FeatureConfiguration.GetConfiguration(FeatureConfigurationKey);
+                    end;
+                }
+                field("Feature Configuration Value"; FeatureConfigurationValue)
+                {
+                    Caption = 'Feature Configuration Value';
+                    ToolTip = 'Specifies the value returned for the ECS configuration key.';
+                    Editable = false;
+                    MultiLine = true;
                 }
             }
             group(DatasetGroup)
@@ -346,6 +373,8 @@ page 149042 "AIT CommandLine Card"
         NoOfPendingTests: Integer;
         InputDataset: Text;
         SuiteDefinition: Text;
+        FeatureConfigurationKey: Text;
+        FeatureConfigurationValue: Text;
         InputDatasetFilename: Text;
         AITRunDataTaskFiles: Dictionary of [Text, Boolean];
         AITRunDataFileText: Text;
