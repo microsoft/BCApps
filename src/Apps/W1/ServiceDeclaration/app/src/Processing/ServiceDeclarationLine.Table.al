@@ -11,7 +11,6 @@ using Microsoft.Inventory.Ledger;
 
 table 5024 "Service Declaration Line"
 {
-    DataClassification = CustomerContent;
 
     fields
     {

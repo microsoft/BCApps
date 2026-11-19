@@ -13,7 +13,6 @@ tableextension 5012 "Serv. Decl. Item" extends Item
         field(5010; "Service Transaction Type Code"; Code[20])
         {
             Caption = 'Service Transaction Type Code';
-            DataClassification = CustomerContent;
             TableRelation = "Service Transaction Type";
 
             trigger OnValidate()
@@ -25,7 +24,6 @@ tableextension 5012 "Serv. Decl. Item" extends Item
         field(5011; "Exclude From Service Decl."; Boolean)
         {
             Caption = 'Exclude From Service Declaration';
-            DataClassification = CustomerContent;
         }
     }
 }

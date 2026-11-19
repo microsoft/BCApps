@@ -15,7 +15,6 @@ tableextension 5034 "Serv. Decl. Serv. Line" extends "Service Line"
         {
             TableRelation = "Service Transaction Type";
             Caption = 'Service Transaction Type Code';
-            DataClassification = CustomerContent;
 
             trigger OnValidate()
             var
@@ -31,7 +30,6 @@ tableextension 5034 "Serv. Decl. Serv. Line" extends "Service Line"
         field(5011; "Applicable For Serv. Decl."; Boolean)
         {
             Caption = 'Applicable For Service Declaration';
-            DataClassification = CustomerContent;
 
             trigger OnValidate()
             var

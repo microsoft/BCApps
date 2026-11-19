@@ -13,12 +13,10 @@ tableextension 12215 "Service Decl. Header IT" extends "Service Declaration Head
         field(12214; Type; Enum "Serv. Decl. Report Type IT")
         {
             Caption = 'Type';
-            DataClassification = CustomerContent;
         }
         field(12215; Periodicity; Enum "Serv. Decl. Periodicity IT")
         {
             Caption = 'Periodicity';
-            DataClassification = CustomerContent;
 
             trigger OnValidate()
             begin
@@ -28,7 +26,6 @@ tableextension 12215 "Service Decl. Header IT" extends "Service Declaration Head
         field(12216; "Statistics Period"; Code[10])
         {
             Caption = 'Statistics Period';
-            DataClassification = CustomerContent;
 
             trigger OnValidate()
             var
@@ -53,7 +50,6 @@ tableextension 12215 "Service Decl. Header IT" extends "Service Declaration Head
         field(12217; "File Disk No."; Code[20])
         {
             Caption = 'File Disk No.';
-            DataClassification = CustomerContent;
             Numeric = true;
 
             trigger OnValidate()
@@ -73,7 +69,6 @@ tableextension 12215 "Service Decl. Header IT" extends "Service Declaration Head
         field(12218; "Corrective Entry"; Boolean)
         {
             Caption = 'Corrective Entry';
-            DataClassification = CustomerContent;
 
             trigger OnValidate()
             begin
@@ -85,7 +80,6 @@ tableextension 12215 "Service Decl. Header IT" extends "Service Declaration Head
         field(12219; "Customs Office No."; Code[10])
         {
             Caption = 'Customs Office No.';
-            DataClassification = CustomerContent;
             TableRelation = "Customs Office";
         }
         field(12220; "Corrected Serv. Decl. No."; Code[20])

@@ -11,7 +11,6 @@ tableextension 5036 "SD Serv. Cr.Memo Header" extends "Service Cr.Memo Header"
         field(5010; "Applicable For Serv. Decl."; Boolean)
         {
             Caption = 'Applicable For Service Declaration';
-            DataClassification = CustomerContent;
             Editable = false;
         }
     }

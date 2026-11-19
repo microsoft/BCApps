@@ -8,7 +8,6 @@ table 5011 "Service Transaction Type"
 {
     DrillDownPageID = "Service Transaction Types";
     LookupPageID = "Service Transaction Types";
-    DataClassification = CustomerContent;
 
     fields
     {
