@@ -804,7 +804,7 @@ page 99000852 "Planning Worksheet"
                 }
                 action(AcceptAllActionMessages)
                 {
-                    Caption = 'Accept All Action Messages';
+                    Caption = 'Accept all action messages';
                     Image = Approve;
                     ToolTip = 'Select Accept Action Message on the selected lines. If only one line is selected, all lines that match the filters in the current worksheet batch are updated.';
 
@@ -815,7 +815,7 @@ page 99000852 "Planning Worksheet"
                 }
                 action(ClearAllAcceptances)
                 {
-                    Caption = 'Clear All Acceptances';
+                    Caption = 'Clear all acceptances';
                     Image = ClearFilter;
                     ToolTip = 'Clear Accept Action Message on the selected lines. If only one line is selected, all lines that match the filters in the current worksheet batch are updated.';
 
@@ -826,7 +826,7 @@ page 99000852 "Planning Worksheet"
                 }
                 action(ResetAcceptances)
                 {
-                    Caption = 'Reset Acceptances';
+                    Caption = 'Reset acceptances';
                     Image = ResetStatus;
                     ToolTip = 'Restore Accept Action Message as planning sets it: selected on lines without planning warnings and cleared on lines with warnings. Applies to the selected lines. If only one line is selected, all lines that match the filters in the current worksheet batch are updated.';
 

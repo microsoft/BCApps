@@ -2890,9 +2890,6 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     local procedure CreateItemRequisitionLine(var RequisitionLine: Record "Requisition Line"; RequisitionWkshName: Record "Requisition Wksh. Name")
-    var
-        LibraryInventory: Codeunit "Library - Inventory";
-        LibraryPlanning: Codeunit "Library - Planning";
     begin
         LibraryPlanning.CreateRequisitionLine(RequisitionLine, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name);
         RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
@@ -2941,6 +2938,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPlanning: Codeunit "Library - Planning";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";

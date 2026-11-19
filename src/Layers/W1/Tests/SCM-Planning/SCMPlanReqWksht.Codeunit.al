@@ -6612,11 +6612,11 @@
         LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
     end;
 
-    local procedure CreateItemRequisitionLine(var RequisitionLine: Record "Requisition Line"; RequisitionWkshName: Record "Requisition Wksh. Name"; ItemNo: Code[20]; AcceptActionMessage: Boolean)
+    local procedure CreateItemRequisitionLine(var RequisitionLine: Record "Requisition Line"; RequisitionWkshName: Record "Requisition Wksh. Name"; ItemNo: Code[20]; NewAcceptActionMessage: Boolean)
     begin
         LibraryPlanning.CreateRequisitionLine(RequisitionLine, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name);
         UpdateRequisitionLineTypeAndNo(RequisitionLine, RequisitionLine.Type::Item, ItemNo);
-        RequisitionLine.Validate("Accept Action Message", AcceptActionMessage);
+        RequisitionLine.Validate("Accept Action Message", NewAcceptActionMessage);
         RequisitionLine.Modify(true);
     end;
 

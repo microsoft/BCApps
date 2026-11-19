@@ -389,7 +389,7 @@ page 20504 "Subc. Subcontracting Worksheet"
                 }
                 action(AcceptAllActionMessages)
                 {
-                    Caption = 'Accept All Action Messages';
+                    Caption = 'Accept all action messages';
                     Image = Approve;
                     ToolTip = 'Select Accept Action Message on the selected lines. If only one line is selected, all lines that match the filters in the current worksheet batch are updated.';
 
@@ -400,7 +400,7 @@ page 20504 "Subc. Subcontracting Worksheet"
                 }
                 action(ClearAllAcceptances)
                 {
-                    Caption = 'Clear All Acceptances';
+                    Caption = 'Clear all acceptances';
                     Image = ClearFilter;
                     ToolTip = 'Clear Accept Action Message on the selected lines. If only one line is selected, all lines that match the filters in the current worksheet batch are updated.';
 
