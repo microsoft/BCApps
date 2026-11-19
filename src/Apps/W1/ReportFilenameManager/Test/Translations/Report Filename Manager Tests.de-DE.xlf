@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file datatype="xml" source-language="en-US" target-language="de-DE" original="Report Filename Manager Tests">
+    <body>
+      <group id="body">
+        <trans-unit id="Report 2950168180 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Caption probe EN</source>
+          <target state="translated">Caption probe DE</target>
+          <note from="Developer" annotates="general" priority="2">Test-only caption resource. Filename Caption Missing intentionally has no German target.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Report Filename Caption Control - Property Caption</note>
+        </trans-unit>
+      </group>
+    </body>
+  </file>
+</xliff>
