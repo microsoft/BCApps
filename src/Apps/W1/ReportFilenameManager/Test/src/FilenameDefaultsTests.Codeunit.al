@@ -16,6 +16,7 @@ using Microsoft.Sales.History;
 using System.TestLibraries.Upgrade;
 using System.TestLibraries.Utilities;
 using System.Upgrade;
+using System.Utilities;
 
 codeunit 149550 "Filename Defaults Tests"
 {
