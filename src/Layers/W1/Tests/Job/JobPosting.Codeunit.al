@@ -2810,7 +2810,9 @@ codeunit 136309 "Job Posting"
         VATEntry: Record "VAT Entry";
     begin
         ExpenseGLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+#pragma warning disable AA0210
         ExpenseGLEntry.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
+#pragma warning restore AA0210
         ExpenseGLEntry.SetRange("G/L Account No.", GenJournalLine."Account No.");
         Assert.RecordCount(ExpenseGLEntry, 1);
         ExpenseGLEntry.FindFirst();
