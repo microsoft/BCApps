@@ -1,6 +1,5 @@
 namespace Microsoft.FixedAssets.Depreciation;
 
-using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 #if not CLEAN30
 using Microsoft.Finance.GeneralLedger.Ledger;

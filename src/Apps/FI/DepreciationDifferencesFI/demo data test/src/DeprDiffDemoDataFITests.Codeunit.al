@@ -5,7 +5,7 @@ using Microsoft.DemoData.FixedAsset;
 using Microsoft.DemoTool;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.FixedAssets.FixedAsset;
-using System.TestLibraries.Utilities;
+using System.Environment.Configuration;
 
 codeunit 148172 "Depr. Diff. Demo Data FI Tests"
 {
@@ -16,6 +16,7 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
         TestCU: Codeunit "Depr. Diff. Calculation FI";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -30,7 +31,7 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
         SetFeatureEnabled(true);
 #endif
 
-        // [GIVEN] Fixed asset setup and its dependencies have not been generated.
+        // [GIVEN] Fixed asset setup has not been generated.
         PrepareContosoFixedAssetSetup(ContosoDemoToolPage);
 
         // [WHEN] Setup data is generated through the public Contoso Demo Tool page.
@@ -42,6 +43,7 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
 
         // [THEN] All five posting groups have extension accounts instead of legacy accounts.
         VerifyContosoPostingGroupAccounts(true);
+        NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
 #if not CLEAN30
@@ -56,7 +58,7 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
         Initialize();
         SetFeatureEnabled(false);
 
-        // [GIVEN] Fixed asset setup and its dependencies have not been generated.
+        // [GIVEN] Fixed asset setup has not been generated.
         PrepareContosoFixedAssetSetup(ContosoDemoToolPage);
 
         // [WHEN] Setup data is generated through the public Contoso Demo Tool page.
@@ -66,6 +68,7 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
 
         // [THEN] All five posting groups have legacy accounts and empty extension accounts.
         VerifyContosoPostingGroupAccounts(false);
+        NotificationLifecycleMgt.RecallAllNotifications();
     end;
 #endif
 
@@ -73,10 +76,37 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
     var
         ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
         ContosoDemoDataModule: Record "Contoso Demo Data Module";
+        FinanceModuleSetup: Record "Finance Module Setup";
+        ContosoDemoTool: Codeunit "Contoso Demo Tool";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Depr. Diff. Demo Data FI Tests");
         ContosoCoffeeDemoDataSetup.InitRecord();
         ContosoDemoDataModule.DeleteAll();
+        ContosoDemoTool.RefreshModules();
+        MarkFixedAssetDependenciesGenerated();
+        // Prepare the localized chart without regenerating unrelated shared-company setup.
+        FinanceModuleSetup.InitRecord();
+        Codeunit.Run(Codeunit::"Create VAT Posting Groups");
+        Codeunit.Run(Codeunit::"Create Posting Groups");
+        Codeunit.Run(Codeunit::"Create G/L Account");
+    end;
+
+    local procedure MarkFixedAssetDependenciesGenerated()
+    var
+        ContosoDemoDataModule: Record "Contoso Demo Data Module";
+        FAModule: Codeunit "FA Module";
+        ContosoModuleDependency: Codeunit "Contoso Module Dependency";
+        Dependencies: List of [Enum "Contoso Demo Data Module"];
+        SortedDependencies: List of [Enum "Contoso Demo Data Module"];
+        Module: Enum "Contoso Demo Data Module";
+    begin
+        Dependencies := FAModule.GetDependencies();
+        ContosoModuleDependency.BuildSortedDependencyList(SortedDependencies, Dependencies);
+        foreach Module in SortedDependencies do begin
+            ContosoDemoDataModule.Get(Module);
+            ContosoDemoDataModule."Data Level" := Enum::"Contoso Demo Data Level"::"Setup Data";
+            ContosoDemoDataModule.Modify();
+        end;
     end;
 
     local procedure PrepareContosoFixedAssetSetup(var ContosoDemoToolPage: TestPage "Contoso Demo Tool")
