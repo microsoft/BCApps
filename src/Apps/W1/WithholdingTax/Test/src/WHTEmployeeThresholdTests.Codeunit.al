@@ -13,6 +13,7 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
 using Microsoft.WithholdingTax;
 using Microsoft.WithholdingTax.Employee;
+using System.TestLibraries.Utilities;
 
 codeunit 148323 "WHT Employee Threshold Tests"
 {
@@ -33,6 +34,7 @@ codeunit 148323 "WHT Employee Threshold Tests"
         LibraryJournals: Codeunit "Library - Journals";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWithholdingTax: Codeunit "Library - Withholding Tax";
         IsInitialized: Boolean;
         WrongValueErr: Label 'Wrong value of %1.', Comment = '%1 = field or amount description';
@@ -182,6 +184,20 @@ codeunit 148323 "WHT Employee Threshold Tests"
     [Test]
     [HandlerFunctions('GLPostingPreviewHandler')]
     procedure PreviewPostingTaxAboveThresholdGLAccountFirst()
+    begin
+        // [SCENARIO 657603] Preview Posting of a G/L line with an employee balancing account shows the withheld amounts and posts nothing.
+        PreviewPostingTaxAboveThreshold(false);
+    end;
+
+    [Test]
+    [HandlerFunctions('GLPostingPreviewHandler')]
+    procedure PreviewPostingTaxAboveThresholdEmployeeAccountFirst()
+    begin
+        // [SCENARIO 657603] Preview Posting of an employee line with a G/L balancing account shows the withheld amounts and posts nothing.
+        PreviewPostingTaxAboveThreshold(true);
+    end;
+
+    local procedure PreviewPostingTaxAboveThreshold(EmployeeIsAccount: Boolean)
     var
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
         GenJournalLine: Record "Gen. Journal Line";
@@ -190,7 +206,6 @@ codeunit 148323 "WHT Employee Threshold Tests"
         EmployeeNo: Code[20];
         GLAccountNo: Code[20];
     begin
-        // [SCENARIO 657603] Preview Posting of a G/L line with an employee balancing account produces a consistent transaction and posts nothing.
         Initialize();
 
         // [GIVEN] Total in Period threshold 1,000, 20 % withholding and "Tax Only Amount Above Threshold" enabled.
@@ -198,15 +213,21 @@ codeunit 148323 "WHT Employee Threshold Tests"
         EmployeeNo := CreateEmployee(WHTPostingSetup);
         GLAccountNo := LibraryERM.CreateGLAccountNoWithDirectPosting();
 
-        // [GIVEN] Journal line for 3,000 with the G/L account as the account and the employee as the balancing account.
-        CreateEmployeeJournalLine(GenJournalLine, WHTPostingSetup, EmployeeNo, GLAccountNo, false, 3000);
+        // [GIVEN] Journal line for 3,000 between the employee and the G/L account.
+        CreateEmployeeJournalLine(GenJournalLine, WHTPostingSetup, EmployeeNo, GLAccountNo, EmployeeIsAccount, 3000);
         Commit();
 
         // [WHEN] Preview Posting.
+        LibraryVariableStorage.Enqueue(GLAccountNo);
+        LibraryVariableStorage.Enqueue(WHTPostingSetup."Payable Wthldg. Tax Acc. Code");
+        LibraryVariableStorage.Enqueue(3000);
+        LibraryVariableStorage.Enqueue(400);
+        LibraryVariableStorage.Enqueue(2000);
         asserterror GenJnlPost.Preview(GenJournalLine);
 
-        // [THEN] The preview completes without an inconsistency error and shows the G/L account, employee payables and withholding tax G/L entries.
+        // [THEN] The preview shows the G/L account credited with 2,600, the withholding tax account with 400, the employee entry of 3,000 and a withholding entry of 400 on 2,000.
         Assert.ExpectedError('');
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] Nothing is posted.
         WithholdingTaxEntry.SetRange("Employee No.", EmployeeNo);
@@ -274,6 +295,51 @@ codeunit 148323 "WHT Employee Threshold Tests"
         Assert.AreEqual(100, WHTAmount[1], StrSubstNo(WrongValueErr, 'first withholding tax amount'));
         Assert.AreEqual(1500, WHTBaseAmount[2], StrSubstNo(WrongValueErr, 'second withholding tax base'));
         Assert.AreEqual(300, WHTAmount[2], StrSubstNo(WrongValueErr, 'second withholding tax amount'));
+    end;
+
+    [Test]
+    procedure DocumentThresholdLinesShareDocumentTotal()
+    var
+        WHTAmount: array[2] of Decimal;
+        WHTBaseAmount: array[2] of Decimal;
+    begin
+        // [SCENARIO 657603] Expense lines of one document calculated one by one deduct the Document threshold once.
+        // [GIVEN] Document threshold 1,000, 20 % withholding and "Tax Only Amount Above Threshold" enabled.
+        // [WHEN] Calculate two 1,500 lines of the same document, registering the first line before the second is calculated.
+        CalcDocumentLines("Withholding Calculation Base"::Gross, true, -1500, -1500, WHTAmount, WHTBaseAmount);
+
+        // [THEN] The first line withholds 100 on 500, the second 300 on 1,500, 400 in total.
+        VerifyLineWHT(WHTAmount, WHTBaseAmount, 100, 500, 300, 1500);
+    end;
+
+    [Test]
+    procedure DocumentThresholdOptionDisabledTaxesWholeDocument()
+    var
+        WHTAmount: array[2] of Decimal;
+        WHTBaseAmount: array[2] of Decimal;
+    begin
+        // [SCENARIO 657603] When the document total reaches the Document threshold, the whole document is taxed.
+        // [GIVEN] Document threshold 1,000, 20 % withholding and "Tax Only Amount Above Threshold" disabled.
+        // [WHEN] Calculate two 600 lines of the same document, registering the first line before the second is calculated.
+        CalcDocumentLines("Withholding Calculation Base"::Gross, false, -600, -600, WHTAmount, WHTBaseAmount);
+
+        // [THEN] The first line is below the threshold; the second withholds 240 on the document total 1,200.
+        VerifyLineWHT(WHTAmount, WHTBaseAmount, 0, 600, 240, 1200);
+    end;
+
+    [Test]
+    procedure NetDocumentThresholdLinesShareDocumentTotal()
+    var
+        WHTAmount: array[2] of Decimal;
+        WHTBaseAmount: array[2] of Decimal;
+    begin
+        // [SCENARIO 657603] Net lines of one document gross up using the threshold remaining after earlier lines.
+        // [GIVEN] Net calculation, Document threshold 1,000, 20 % withholding and "Tax Only Amount Above Threshold" enabled.
+        // [WHEN] Calculate two lines with net 1,500 each of the same document, registering the first gross line before the second is calculated.
+        CalcDocumentLines("Withholding Calculation Base"::Net, true, -1500, -1500, WHTAmount, WHTBaseAmount);
+
+        // [THEN] The first line grosses up to 1,625 and withholds 125 on 625; the second grosses up to 1,875 and withholds 375 on 1,875.
+        VerifyLineWHT(WHTAmount, WHTBaseAmount, 125, 625, 375, 1875);
     end;
 
     [Test]
@@ -387,6 +453,7 @@ codeunit 148323 "WHT Employee Threshold Tests"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         LibrarySetupStorage.Restore();
+        LibraryVariableStorage.Clear();
 
         if IsInitialized then
             exit;
@@ -423,6 +490,35 @@ codeunit 148323 "WHT Employee Threshold Tests"
         WHTPostingSetup.Validate("Tax Amount Above Threshold", TaxAmountAboveThreshold);
         WHTPostingSetup.Validate("Payable Wthldg. Tax Acc. Code", LibraryERM.CreateGLAccountNoWithDirectPosting());
         WHTPostingSetup.Modify(true);
+    end;
+
+    local procedure CalcDocumentLines(CalculationBase: Enum "Withholding Calculation Base"; TaxAmountAboveThreshold: Boolean; FirstAmount: Decimal; SecondAmount: Decimal; var WHTAmount: array[2] of Decimal; var WHTBaseAmount: array[2] of Decimal)
+    var
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+        GenJournalLine: array[2] of Record "Gen. Journal Line";
+        WHTEmployeeCalculation: array[2] of Codeunit "WHT Employee Calculation";
+        EmployeeNo: Code[20];
+    begin
+        Initialize();
+
+        CreateEmployeeWHTPostingSetup(WHTPostingSetup, CalculationBase, "Withholding Threshold Base"::Document, TaxAmountAboveThreshold);
+        EmployeeNo := CreateEmployee(WHTPostingSetup);
+        CreateEmployeeJournalLine(GenJournalLine[1], WHTPostingSetup, EmployeeNo, LibraryERM.CreateGLAccountNoWithDirectPosting(), true, FirstAmount);
+        CreateEmployeeJournalLine(GenJournalLine[2], WHTPostingSetup, EmployeeNo, LibraryERM.CreateGLAccountNoWithDirectPosting(), true, SecondAmount);
+        GenJournalLine[2]."Document No." := GenJournalLine[1]."Document No.";
+
+        // Each line is calculated on a new instance, seeded with the lines calculated before it, as the expense report posting does.
+        WHTEmployeeCalculation[1].CalcEmployeeWHT(GenJournalLine[1], WHTAmount[1], WHTBaseAmount[1]);
+        WHTEmployeeCalculation[2].AddPendingThresholdBase(GenJournalLine[1], GenJournalLine[1].Amount);
+        WHTEmployeeCalculation[2].CalcEmployeeWHT(GenJournalLine[2], WHTAmount[2], WHTBaseAmount[2]);
+    end;
+
+    local procedure VerifyLineWHT(WHTAmount: array[2] of Decimal; WHTBaseAmount: array[2] of Decimal; ExpectedFirstWHTAmount: Decimal; ExpectedFirstWHTBase: Decimal; ExpectedSecondWHTAmount: Decimal; ExpectedSecondWHTBase: Decimal)
+    begin
+        Assert.AreEqual(ExpectedFirstWHTBase, WHTBaseAmount[1], StrSubstNo(WrongValueErr, 'first withholding tax base'));
+        Assert.AreEqual(ExpectedFirstWHTAmount, WHTAmount[1], StrSubstNo(WrongValueErr, 'first withholding tax amount'));
+        Assert.AreEqual(ExpectedSecondWHTBase, WHTBaseAmount[2], StrSubstNo(WrongValueErr, 'second withholding tax base'));
+        Assert.AreEqual(ExpectedSecondWHTAmount, WHTAmount[2], StrSubstNo(WrongValueErr, 'second withholding tax amount'));
     end;
 
     local procedure CreateComponentWHTPostingSetup(var WHTPostingSetup: Record "Withholding Tax Posting Setup"; WHTBusPostingGroupCode: Code[20])
@@ -532,8 +628,46 @@ codeunit 148323 "WHT Employee Threshold Tests"
 
     [PageHandler]
     procedure GLPostingPreviewHandler(var GLPostingPreview: TestPage "G/L Posting Preview")
+    var
+        GLEntriesPreview: TestPage "G/L Entries Preview";
+        EmplLedgerEntriesPreview: TestPage "Empl. Ledger Entries Preview";
+        WithholdingTaxEntries: TestPage "Withholding Tax Entries";
+        GLAccountNo: Code[20];
+        PayableAccountNo: Code[20];
+        EmployeeAmount: Decimal;
+        WHTAmount: Decimal;
+        WHTBaseAmount: Decimal;
     begin
+        GLAccountNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(GLAccountNo));
+        PayableAccountNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(PayableAccountNo));
+        EmployeeAmount := LibraryVariableStorage.DequeueDecimal();
+        WHTAmount := LibraryVariableStorage.DequeueDecimal();
+        WHTBaseAmount := LibraryVariableStorage.DequeueDecimal();
+
+        GLEntriesPreview.Trap();
         GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"G/L Entry"));
-        Assert.IsTrue(GLPostingPreview.First(), StrSubstNo(WrongValueErr, 'preview G/L entries'));
+        GLPostingPreview.Show.Invoke();
+        GLEntriesPreview.Filter.SetFilter("G/L Account No.", GLAccountNo);
+        Assert.IsTrue(GLEntriesPreview.First(), StrSubstNo(WrongValueErr, 'preview G/L account entry'));
+        GLEntriesPreview.Amount.AssertEquals(-(EmployeeAmount - WHTAmount));
+        GLEntriesPreview.Filter.SetFilter("G/L Account No.", PayableAccountNo);
+        Assert.IsTrue(GLEntriesPreview.First(), StrSubstNo(WrongValueErr, 'preview withholding tax G/L entry'));
+        GLEntriesPreview.Amount.AssertEquals(-WHTAmount);
+        GLEntriesPreview.Close();
+
+        EmplLedgerEntriesPreview.Trap();
+        GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"Employee Ledger Entry"));
+        GLPostingPreview.Show.Invoke();
+        Assert.IsTrue(EmplLedgerEntriesPreview.First(), StrSubstNo(WrongValueErr, 'preview employee ledger entry'));
+        EmplLedgerEntriesPreview.AmountFCY.AssertEquals(EmployeeAmount);
+        EmplLedgerEntriesPreview.Close();
+
+        WithholdingTaxEntries.Trap();
+        GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"Withholding Tax Entry"));
+        GLPostingPreview.Show.Invoke();
+        Assert.IsTrue(WithholdingTaxEntries.First(), StrSubstNo(WrongValueErr, 'preview withholding tax entry'));
+        WithholdingTaxEntries.Amount.AssertEquals(-WHTAmount);
+        WithholdingTaxEntries.Base.AssertEquals(WHTBaseAmount);
+        WithholdingTaxEntries.Close();
     end;
 }

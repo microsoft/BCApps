@@ -17,6 +17,7 @@ codeunit 6790 "WHT Employee Calculation"
         GeneralLedgerSetup: Record "General Ledger Setup";
         ThresholdApplied: Boolean;
         PendingThresholdBase: Dictionary of [Text, Decimal];
+        PendingDocumentBase: Dictionary of [Text, Decimal];
         NetThresholdModeNotSupportedErr: Label 'The %1 option is not supported for %2 calculation with %3 threshold base.', Comment = '%1 = Tax Amount Above Threshold field caption, %2 = Calculation Base option value, %3 = WHT Threshold Base option value';
 
     procedure IsEmployeeWHTApplicable(GenJnlLine: Record "Gen. Journal Line"): Boolean
@@ -90,9 +91,10 @@ codeunit 6790 "WHT Employee Calculation"
         if CalcBase = CalcBase::Net then begin
             if PostingSetup."Tax Amount Above Threshold" then
                 case PostingSetup."WHT Threshold Base" of
-                    PostingSetup."WHT Threshold Base"::Record,
-                    PostingSetup."WHT Threshold Base"::Document:
+                    PostingSetup."WHT Threshold Base"::Record:
                         LineAmount := CalcGrossUpAmount(LineAmount, PostingSetup, WHTGroupCode, HasGroup, PostingSetup."Wthldg. Tax Min. Inv. Amount");
+                    PostingSetup."WHT Threshold Base"::Document:
+                        LineAmount := CalcGrossUpAmount(LineAmount, PostingSetup, WHTGroupCode, HasGroup, GetRemainingDocumentThreshold(PostingSetup, Employee."No.", GenJnlLine."Document No."));
                     else
                         Error(
                             NetThresholdModeNotSupportedErr,
@@ -110,7 +112,7 @@ codeunit 6790 "WHT Employee Calculation"
         WHTBaseAmount := LineAmount;
         TaxableBaseAmount := LineAmount;
 
-        if not EvaluateThresholdWithTaxableBase(PostingSetup, Employee."No.", GenJnlLine."Posting Date", LineAmount, TaxableBaseAmount) then
+        if not EvaluateThresholdWithTaxableBase(PostingSetup, Employee."No.", GenJnlLine."Document No.", GenJnlLine."Posting Date", LineAmount, TaxableBaseAmount) then
             exit;
 
         WHTBaseAmount := TaxableBaseAmount;
@@ -420,10 +422,10 @@ codeunit 6790 "WHT Employee Calculation"
     var
         TaxableBaseAmount: Decimal;
     begin
-        exit(EvaluateThresholdWithTaxableBase(PostingSetup, EmployeeNo, PostingDate, BaseAmount, TaxableBaseAmount));
+        exit(EvaluateThresholdWithTaxableBase(PostingSetup, EmployeeNo, '', PostingDate, BaseAmount, TaxableBaseAmount));
     end;
 
-    local procedure EvaluateThresholdWithTaxableBase(PostingSetup: Record "Withholding Tax Posting Setup"; EmployeeNo: Code[20]; PostingDate: Date; BaseAmount: Decimal; var TaxableBaseAmount: Decimal): Boolean
+    local procedure EvaluateThresholdWithTaxableBase(PostingSetup: Record "Withholding Tax Posting Setup"; EmployeeNo: Code[20]; DocumentNo: Code[20]; PostingDate: Date; BaseAmount: Decimal; var TaxableBaseAmount: Decimal): Boolean
     var
         ThresholdBase: Enum "Withholding Threshold Base";
         ThresholdAmount: Decimal;
@@ -454,13 +456,26 @@ codeunit 6790 "WHT Employee Calculation"
                 end;
             ThresholdBase::Document:
                 begin
-                    if BaseAmount < ThresholdAmount then begin
+                    PreviousAccumulatedAmount := GetPendingDocumentBase(
+                        EmployeeNo,
+                        DocumentNo,
+                        PostingSetup."Wthldg. Tax Bus. Post. Group",
+                        PostingSetup."Wthldg. Tax Prod. Post. Group");
+                    AmountIncludingCurrent := PreviousAccumulatedAmount + BaseAmount;
+
+                    if AmountIncludingCurrent < ThresholdAmount then begin
                         TaxableBaseAmount := 0;
                         exit(false);
                     end;
 
-                    if PostingSetup."Tax Amount Above Threshold" then
-                        TaxableBaseAmount := BaseAmount - ThresholdAmount;
+                    if PreviousAccumulatedAmount >= ThresholdAmount then
+                        TaxableBaseAmount := BaseAmount
+                    else
+                        if PostingSetup."Tax Amount Above Threshold" then
+                            TaxableBaseAmount := AmountIncludingCurrent - ThresholdAmount
+                        else
+                            // Earlier lines of the document were not taxed while the document total was below the threshold.
+                            TaxableBaseAmount := AmountIncludingCurrent;
 
                     exit(TaxableBaseAmount > 0);
                 end;
@@ -580,6 +595,15 @@ codeunit 6790 "WHT Employee Calculation"
         if not PostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Prod. Post. Group") then
             exit;
 
+        if PostingSetup."WHT Threshold Base" = "Withholding Threshold Base"::Document then begin
+            PendingKey := GetPendingDocumentKey(GetEmployeeNoFromJnlLine(GenJnlLine), GenJnlLine."Document No.", PostingSetup."Wthldg. Tax Bus. Post. Group", PostingSetup."Wthldg. Tax Prod. Post. Group");
+            if PendingDocumentBase.Get(PendingKey, PendingAmount) then
+                PendingDocumentBase.Set(PendingKey, PendingAmount + Abs(BaseAmount))
+            else
+                PendingDocumentBase.Add(PendingKey, Abs(BaseAmount));
+            exit;
+        end;
+
         if not (PostingSetup."WHT Threshold Base" in ["Withholding Threshold Base"::"Category Period", "Withholding Threshold Base"::"Total Period"]) then
             exit;
 
@@ -624,6 +648,37 @@ codeunit 6790 "WHT Employee Calculation"
     local procedure GetPendingThresholdTotalPrefix(EmployeeNo: Code[20]; PeriodStartDate: Date; PeriodEndDate: Date): Text
     begin
         exit(StrSubstNo('%1|%2|%3|', EmployeeNo, PeriodStartDate, PeriodEndDate));
+    end;
+
+    local procedure GetPendingDocumentBase(EmployeeNo: Code[20]; DocumentNo: Code[20]; BusPostGroup: Code[20]; ProdPostGroup: Code[20]): Decimal
+    var
+        PendingAmount: Decimal;
+    begin
+        if DocumentNo = '' then
+            exit(0);
+
+        if PendingDocumentBase.Get(GetPendingDocumentKey(EmployeeNo, DocumentNo, BusPostGroup, ProdPostGroup), PendingAmount) then
+            exit(PendingAmount);
+
+        exit(0);
+    end;
+
+    local procedure GetPendingDocumentKey(EmployeeNo: Code[20]; DocumentNo: Code[20]; BusPostGroup: Code[20]; ProdPostGroup: Code[20]): Text
+    begin
+        exit(StrSubstNo('%1|%2|%3|%4', EmployeeNo, DocumentNo, BusPostGroup, ProdPostGroup));
+    end;
+
+    local procedure GetRemainingDocumentThreshold(PostingSetup: Record "Withholding Tax Posting Setup"; EmployeeNo: Code[20]; DocumentNo: Code[20]): Decimal
+    var
+        RemainingThreshold: Decimal;
+    begin
+        RemainingThreshold :=
+            PostingSetup."Wthldg. Tax Min. Inv. Amount" -
+            GetPendingDocumentBase(EmployeeNo, DocumentNo, PostingSetup."Wthldg. Tax Bus. Post. Group", PostingSetup."Wthldg. Tax Prod. Post. Group");
+        if RemainingThreshold < 0 then
+            exit(0);
+
+        exit(RemainingThreshold);
     end;
 
     procedure UpdateThresholdAccumulator(WithholdingTaxEntry: Record "Withholding Tax Entry")
