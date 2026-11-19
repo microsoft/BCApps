@@ -28,7 +28,9 @@ using System.Utilities;
 report 1322 "Standard Purchase - Order"
 {
     Caption = 'Purchase - Order';
-#if not CLEAN30
+#if CLEAN30
+    DefaultRenderingLayout = "StandardPurchaseOrderBody.docx";
+#else
     DefaultRenderingLayout = "StandardPurchaseOrder.docx";
 #endif
     EnableHyperlinks = true;
