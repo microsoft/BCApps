@@ -146,6 +146,7 @@ codeunit 7057 "WHT Exp. Report Post Handler"
                 BufferedGenJnlLine := EmployeeGenJnlLine;
                 BufferedGenJnlLine."Wthldg. Tax Bus. Post. Group" := WHTExpReportBuffer."Wthldg. Tax Bus. Post. Group";
                 BufferedGenJnlLine."Wthldg. Tax Prod. Post. Group" := WHTExpReportBuffer."Wthldg. Tax Prod. Post. Group";
+                BufferedGenJnlLine."Expense Category" := WHTExpReportBuffer."Expense Category";
                 WHTEmployeeCalc.AddPendingThresholdBase(BufferedGenJnlLine, WHTExpReportBuffer."Threshold Base Amount (LCY)");
             until WHTExpReportBuffer.Next() = 0;
     end;
@@ -193,9 +194,11 @@ codeunit 7057 "WHT Exp. Report Post Handler"
                 WorkGenJnlLine."Wthldg. Tax Prod. Post. Group" := WHTExpReportBuffer."Wthldg. Tax Prod. Post. Group";
                 WorkGenJnlLine."Expense Category" := WHTExpReportBuffer."Expense Category";
 
-                if WHTEmployeeCalc.ResolveWHTGroupComponents(WorkGenJnlLine, WHTGroupCode) then
-                    PostWHTGroup(WorkGenJnlLine, WHTGroupCode, WHTExpReportBuffer."WHT Base Amount (LCY)", WHTExpReportBuffer."Threshold Base Amount (LCY)", NextTransactionNo, NextTaxEntryNo, GenJnlPostLine)
-                else
+                if WHTEmployeeCalc.ResolveWHTGroupComponents(WorkGenJnlLine, WHTGroupCode) then begin
+                    if WHTExpReportBuffer."WHT Amount (LCY)" <> 0 then
+                        PostWHTGroup(WorkGenJnlLine, WHTGroupCode, WHTExpReportBuffer."WHT Base Amount (LCY)", WHTExpReportBuffer."Threshold Base Amount (LCY)", NextTransactionNo, NextTaxEntryNo, GenJnlPostLine);
+                    WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(WorkGenJnlLine, WHTExpReportBuffer."Threshold Base Amount (LCY)");
+                end else
                     PostWHTSingle(WorkGenJnlLine, WHTExpReportBuffer."WHT Amount (LCY)", WHTExpReportBuffer."WHT Base Amount (LCY)", WHTExpReportBuffer."Threshold Base Amount (LCY)", NextTransactionNo, NextTaxEntryNo, GenJnlPostLine);
             until WHTExpReportBuffer.Next() = 0;
 
