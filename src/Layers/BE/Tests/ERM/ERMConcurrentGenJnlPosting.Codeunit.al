@@ -40,7 +40,6 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         LibraryInventory: Codeunit "Library - Inventory";
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
