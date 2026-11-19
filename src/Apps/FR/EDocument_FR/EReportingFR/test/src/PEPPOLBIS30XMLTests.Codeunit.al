@@ -310,6 +310,32 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
+    procedure ExportSalesInvPreservesBuyerSIRENAndExplicitEndpoint()
+    var
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Buyer legal identification and explicit routing retain distinct schemes and the same SIREN prefix.
+        Initialize();
+
+        // [GIVEN] Invoice "SI" for customer "C" with coherent registration, routing and VAT identifiers.
+        Customer.Get(CreateCustomer('784301772_001', "Electronic Address Scheme"::"0225"));
+        Customer.Validate("Registration Number", '784301772');
+        Customer."VAT Registration No." := 'FR93784301772';
+        Customer.Modify(true);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(Customer."No."));
+
+        // [WHEN] Invoice "SI" is checked and exported in PEPPOL BIS 3.0 FR.
+        CheckInvoice(SalesInvoiceHeader);
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        // [THEN] Legal SIREN uses scheme 0002 while the matching routing address retains scheme 0225 and its suffix.
+        VerifyBuyerLegalIdentifierAndEndpoint(XmlDoc, Customer."Registration Number", Customer."FR Electronic Address");
+    end;
+
+    [Test]
     procedure ExportSalesInvPreservesConfiguredSIRETScheme()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -1775,6 +1801,22 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         TempBlob.CreateInStream(FileInStream);
         XmlDocument.ReadFrom(FileInStream, XmlDoc);
+    end;
+
+    local procedure VerifyBuyerLegalIdentifierAndEndpoint(XmlDoc: XmlDocument; ExpectedSIREN: Text; ExpectedElectronicAddress: Text)
+    begin
+        Assert.AreEqual(ExpectedSIREN,
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer CompanyID'));
+        Assert.AreEqual('0002',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer CompanyID schemeID'));
+        Assert.AreEqual(ExpectedElectronicAddress,
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer EndpointID'));
+        Assert.AreEqual('0225',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
     end;
 
     local procedure GetNodeByPath(XmlDoc: XmlDocument; XPath: Text): Text
