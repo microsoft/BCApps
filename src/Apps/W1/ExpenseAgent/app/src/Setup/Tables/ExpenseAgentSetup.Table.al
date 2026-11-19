@@ -88,6 +88,7 @@ table 6930 "Expense Agent Setup"
         }
         field(9; "If Exp. Is Older Than Allowed"; Enum "Expense Age Handling")
         {
+            Access = Internal;
             Caption = 'If expense is older than allowed';
             ToolTip = 'Specifies how the system handles expenses older than the allowed date: warn, require justification, or block submission.';
         }
