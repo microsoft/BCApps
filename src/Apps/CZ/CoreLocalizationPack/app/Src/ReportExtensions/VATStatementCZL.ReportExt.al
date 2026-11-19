@@ -17,6 +17,7 @@ reportextension 11703 "VAT Statement CZL" extends "VAT Statement"
             begin
                 TotalAmount := TotalAmount * GetPrintSign();
                 PrepareAmountToShow(TotalAmount);
+                TotalAmount := TotalAmount * GetPrintSign();
             end;
         }
     }
@@ -106,7 +107,6 @@ reportextension 11703 "VAT Statement CZL" extends "VAT Statement"
         InitializeRequest(NewVATStatementName, NewVATStatementLine, NewSelection, NewPeriodSelection, NewPrintInIntegers, NewUseAmtsInAddCurr);
         SettlementNoFilter := NewSettlementNoFilter;
         RoundingDirection := NewRoundingDirection;
-
         if WithBinding then
             InitializeHandler(GetVATStmtCalcParameters());
     end;

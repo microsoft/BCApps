@@ -1993,7 +1993,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
         // [FEATURE] [AI test 1.0] [Header]
-        // [SCENARIO] The header exports audit-file version 1.30 and the running application version.
+        // [SCENARIO] The header exports audit-file version 1.30 and the numeric application version within the schema limit.
         Initialize();
 
         // [GIVEN] A SAF-T 1.30 export
@@ -2877,8 +2877,6 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         CompanyInformation: Record "Company Information";
         GeneralLedgerSetup: Record "General Ledger Setup";
         SAFTExportHeader: Record "SAF-T Export Header";
-        ApplicationSystemConstants: Codeunit "Application System Constants";
-
     begin
         SAFTTestHelper.FindSAFTHeaderElement(TempXMLBuffer);
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:AuditFileVersion', '1.30');
@@ -2888,7 +2886,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:AuditFileDateCreated', SAFTTestHelper.FormatDate(Today()));
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:SoftwareCompanyName', 'Microsoft');
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:SoftwareID', 'Microsoft Dynamics 365 Business Central');
-        SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:SoftwareVersion', ApplicationSystemConstants.ApplicationVersion());
+        SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:SoftwareVersion', GetExpectedSoftwareVersion());
         SAFTTestHelper.AssertElementName(TempXMLBuffer, 'n1:Company');
         VerifyCompanyStructure(TempXMLBuffer, CompanyInformation);
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:DefaultCurrencyCode', GeneralLedgerSetup."LCY Code");
@@ -3492,8 +3490,6 @@ codeunit 148110 "SAF-T XML Tests 1.3"
     end;
 
     local procedure VerifyAuditAndSoftwareVersions(var TempXMLBuffer: Record "XML Buffer" temporary)
-    var
-        ApplicationSystemConstants: Codeunit "Application System Constants";
     begin
         TempXMLBuffer.Reset();
         Assert.IsTrue(
@@ -3506,7 +3502,17 @@ codeunit 148110 "SAF-T XML Tests 1.3"
             'SoftwareVersion was not exported.');
         Assert.RecordCount(TempXMLBuffer, 1);
         SAFTTestHelper.AssertCurrentElementValue(
-            TempXMLBuffer, 'n1:SoftwareVersion', ApplicationSystemConstants.ApplicationVersion());
+            TempXMLBuffer, 'n1:SoftwareVersion', GetExpectedSoftwareVersion());
+        Assert.IsTrue(StrLen(TempXMLBuffer.Value) <= 18, 'SoftwareVersion must not exceed the SAF-T schema limit of 18 characters.');
+    end;
+
+    local procedure GetExpectedSoftwareVersion(): Text
+    var
+        ApplicationSystemConstants: Codeunit "Application System Constants";
+        ApplicationVersion: Version;
+    begin
+        Evaluate(ApplicationVersion, ApplicationSystemConstants.BuildFileVersion());
+        exit(StrSubstNo('%1.%2', ApplicationVersion.Major(), ApplicationVersion.Minor()));
     end;
 
     local procedure VerifyNoAnalysisOutput(var TempXMLBuffer: Record "XML Buffer" temporary)

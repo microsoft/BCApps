@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,12 +34,12 @@ table 5601 "FA Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
-        field(2; "G/L Entry No."; Integer)
+        field(2; "G/L Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'G/L Entry No.';
@@ -417,14 +417,14 @@ table 5601 "FA Ledger Entry"
             Caption = 'Reversed';
             ToolTip = 'Specifies whether the entry has been part of a reverse transaction (correction) made by the Reverse function.';
         }
-        field(73; "Reversed by Entry No."; Integer)
+        field(73; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
             ToolTip = 'Specifies the number of the correcting entry.';
             TableRelation = "FA Ledger Entry";
         }
-        field(74; "Reversed Entry No."; Integer)
+        field(74; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
@@ -534,11 +534,23 @@ table 5601 "FA Ledger Entry"
         {
             Caption = 'Non-Deductible VAT FA Cost';
         }
+#if not CLEANSCHEMA33
+#pragma warning disable AA0232
         field(13400; "Depr. Difference Posted"; Boolean)
         {
             Caption = 'Depr. Difference Posted';
+            ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
             Editable = false;
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys
@@ -586,10 +598,12 @@ table 5601 "FA Ledger Entry"
         key(Key12; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Document No.")
         {
         }
+#if not CLEAN30
         key(Key13; "FA No.", "FA Posting Group", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date", "Depr. Difference Posted")
         {
             SumIndexFields = Amount;
         }
+#endif
         key(Key14; "Derogatory Source Entry No.", "Depreciation Book Code")
         {
         }
@@ -608,7 +622,7 @@ table 5601 "FA Ledger Entry"
         NextLineNo: Integer;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"FA Ledger Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -770,4 +784,3 @@ table 5601 "FA Ledger Entry"
     begin
     end;
 }
-

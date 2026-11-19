@@ -79,7 +79,7 @@ table 1295 "Posted Payment Recon. Hdr"
         /// <summary>
         /// Specifies the G/L Register number where the posted payment reconciliation entries were recorded.
         /// </summary>
-        field(12; "G/L Register No."; Integer)
+        field(12; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
         }
