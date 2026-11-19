@@ -34,6 +34,10 @@ codeunit 133735 "PA Infotip Source Tests"
         AgentTaskId: BigInteger;
         WorkingSources, FinalizedSources: Text;
     begin
+        // [FEATURE] [AI test 1.0] [Payables Agent] [Infotip Sources]
+        // [SCENARIO 618671] Working and finalized draft matches expose the same deduplicated source records.
+
+        // [GIVEN] Vendor "V" and two draft lines sharing the same purchase-line target.
         Vendor."No." := NewDocumentNo();
         Vendor.Name := 'Actual source vendor';
         Vendor.Insert();
@@ -41,8 +45,10 @@ codeunit 133735 "PA Infotip Source Tests"
         AgentTaskId := CreateTask('');
         DraftFixtures.CreateMatchedDraftForTest(AgentTaskId, Vendor."No.", PurchaseLine.SystemId);
 
+        // [WHEN] Sources are collected before finalization.
         Fixtures.GetTaskInfotipSources(AgentTaskId, Sources);
 
+        // [THEN] Each actual source appears once with its business context.
         Assert.AreEqual(5, Sources.Count(), 'Header, vendor, two draft lines and one deduplicated surviving target');
         AssertAllSourcesResolve(Sources);
         AssertSource(Sources, Vendor, 1);
@@ -62,9 +68,11 @@ codeunit 133735 "PA Infotip Source Tests"
         AssertInteger(Context, 'lineNo', PurchaseLine."Line No.");
         Sources.WriteTo(WorkingSources);
 
+        // [WHEN] Working matches are transferred to finalized matches and sources are collected again.
         DraftFixtures.FinalizeDraftMatchesForTest(AgentTaskId);
         Fixtures.GetTaskInfotipSources(AgentTaskId, Sources);
 
+        // [THEN] Source identities, context and ordering are unchanged.
         Sources.WriteTo(FinalizedSources);
         Assert.AreEqual(WorkingSources, FinalizedSources, 'Finalized relations retain the same actual source identities and context');
     end;
@@ -84,6 +92,10 @@ codeunit 133735 "PA Infotip Source Tests"
         Context: JsonObject;
         AgentTaskId: BigInteger;
     begin
+        // [FEATURE] [AI test 1.0] [Payables Agent] [Infotip Sources]
+        // [SCENARIO 618671] Native sources include a receipt-only order target without duplicating a repeated direct target.
+
+        // [GIVEN] Invoice "PI" has two direct links to order line "A" and a receipt-only link to order line "B".
         AgentTaskId := CreateNativeTask(WorkItem);
         Vendor."No." := NewDocumentNo();
         Vendor.Name := 'Native source vendor';
@@ -114,8 +126,10 @@ codeunit 133735 "PA Infotip Source Tests"
         Line.Modify();
         WorkItem.RegisterOutcome(Header.RecordId());
 
+        // [WHEN] Sources are collected for the native outcome.
         Fixtures.GetTaskInfotipSources(AgentTaskId, Sources);
 
+        // [THEN] The header, vendor, three invoice lines and both distinct order targets are returned once.
         Assert.AreEqual(7, Sources.Count(), 'Native header, actual vendor, three lines and two distinct deduplicated order targets');
         AssertAllSourcesResolve(Sources);
         AssertSource(Sources, Header, 0);
@@ -143,18 +157,35 @@ codeunit 133735 "PA Infotip Source Tests"
         Sources: JsonArray;
         AgentTaskId: BigInteger;
     begin
+        // [FEATURE] [AI test 1.0] [Payables Agent] [Infotip Sources]
+        // [SCENARIO 618671] Missing tasks or native outcomes fail explicitly rather than returning an empty snapshot.
+
+        // [WHEN] Sources are requested for a missing task.
         asserterror Fixtures.GetTaskInfotipSources(0, Sources);
+
+        // [THEN] The missing task is reported.
         Assert.ExpectedError('does not work on a Payables Agent work item');
+
+        // [GIVEN] A native task without a registered outcome.
         AgentTaskId := CreateNativeTask(WorkItem);
+
+        // [WHEN] Sources are requested for that task.
         asserterror Fixtures.GetTaskInfotipSources(AgentTaskId, Sources);
+
+        // [THEN] The missing outcome is reported.
         Assert.ExpectedError('has no existing unposted purchase outcome');
+
+        // [GIVEN] Invoice "PI" is registered as the outcome and then deleted.
         Header."Document Type" := Header."Document Type"::Invoice;
         Header."No." := NewDocumentNo();
         Header.Insert();
         WorkItem.RegisterOutcome(Header.RecordId());
         Header.Delete();
 
+        // [WHEN] Sources are requested for the deleted outcome.
         asserterror Fixtures.GetTaskInfotipSources(AgentTaskId, Sources);
+
+        // [THEN] The missing outcome is reported without a successful empty snapshot.
         Assert.ExpectedError('has no existing unposted purchase outcome');
         Assert.AreEqual(0, Sources.Count(), 'Missing sources must not become a successful empty snapshot');
     end;
