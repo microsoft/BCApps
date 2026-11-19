@@ -923,6 +923,9 @@ table 6906 "Expense Report Header"
     /// Releases the expense reports in the filter that are not already released, as the current user. Reports that are already released are skipped.
     /// </summary>
     /// <param name="ExpenseReportHeader">The filtered expense reports to release.</param>
+    /// <remarks>
+    /// Each record is processed by Batch Processing Mgt. and committed individually, so the caller's open transaction is committed as well.
+    /// </remarks>
     procedure PerformManualRelease(var ExpenseReportHeader: Record "Expense Report Header")
     var
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
@@ -944,6 +947,9 @@ table 6906 "Expense Report Header"
     /// Reopens the expense reports in the filter that are not already open, as the current user. Reports that are pending approval or interim approved cannot be reopened until the approval process is cancelled.
     /// </summary>
     /// <param name="ExpenseReportHeader">The filtered expense reports to reopen.</param>
+    /// <remarks>
+    /// Each record is processed by Batch Processing Mgt. and committed individually, so the caller's open transaction is committed as well.
+    /// </remarks>
     procedure PerformManualReopen(var ExpenseReportHeader: Record "Expense Report Header")
     var
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
