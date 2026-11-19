@@ -78,6 +78,15 @@ page 9662 "Report Layout New Dialog"
                 Caption = 'Format Options';
                 ToolTip = 'Specifies the format of the layout.';
                 OptionCaption = 'RDLC,Word,Excel,External';
+
+                trigger OnValidate()
+                begin
+                    if FormatOptions = FormatOptions::Word then
+                        BodySubtype := BodySubtype::Body
+                    else
+                        BodySubtype := BodySubtype::Default;
+                    CurrPage.Update(false);
+                end;
             }
             field(AvailableInAllCompanies; AvailableInAllCompanies)
             {
@@ -129,6 +138,8 @@ page 9662 "Report Layout New Dialog"
         LayoutName := '';
         AvailableInAllCompanies := true;
         DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
+        if FormatOptions = FormatOptions::Word then
+            BodySubtype := BodySubtype::Body;
         if ReportID <> 0 then
             if ReportMetadata.Get(ReportID) then;
     end;
@@ -220,7 +231,7 @@ page 9662 "Report Layout New Dialog"
 
     internal procedure SelectedLayoutSubtype(): Enum "Report Layout Subtype"
     begin
-        if BodySubtype = BodySubtype::Body then
+        if (FormatOptions = FormatOptions::Word) and (BodySubtype = BodySubtype::Body) then
             exit(Enum::"Report Layout Subtype"::Body);
         exit(Enum::"Report Layout Subtype"::Default);
     end;
