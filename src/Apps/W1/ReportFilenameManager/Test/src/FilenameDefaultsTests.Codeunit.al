@@ -27,6 +27,13 @@ codeunit 149550 "Filename Defaults Tests"
 
     var
         Assert: Codeunit "Library Assert";
+        ReportTableDefaultErr: Label 'Report %1 must have one table default.', Locked = true, Comment = '%1 = Report ID.';
+        ReportSpecificDefaultErr: Label 'Report %1 must have one report default.', Locked = true, Comment = '%1 = Report ID.';
+        ReportEnabledErr: Label 'Report %1 must be enabled.', Locked = true, Comment = '%1 = Report ID.';
+        RecordIndependentReportErr: Label 'Record-independent report %1 must resolve without a document.', Locked = true, Comment = '%1 = Report ID.';
+        SingleRecordReportErr: Label 'Report %1 must name a single record.', Locked = true, Comment = '%1 = Report ID.';
+        ReportIdentifierErr: Label 'Report %1 must include its actual record identifier: %2.', Locked = true, Comment = '%1 = Report ID, %2 = Resolved file name.';
+        MultipleRecordReportErr: Label 'Report %1 must name a multi-record run.', Locked = true, Comment = '%1 = Report ID.';
 
     [Test]
     procedure NewCompanyGetsEnabledDefaults()
@@ -156,28 +163,28 @@ codeunit 149550 "Filename Defaults Tests"
             if not Pattern.FindFirst() then begin
                 Pattern.SetRange("Report ID", 0);
                 Pattern.SetRange("Table No.", ReportFilenameMgt.SubjectTableNo(ReportId));
-                Assert.AreEqual(1, Pattern.Count(), StrSubstNo('Report %1 must have one table default.', ReportId));
+                Assert.AreEqual(1, Pattern.Count(), StrSubstNo(ReportTableDefaultErr, ReportId));
                 Pattern.FindFirst();
             end else
-                Assert.AreEqual(1, Pattern.Count(), StrSubstNo('Report %1 must have one report default.', ReportId));
-            Assert.IsTrue(Pattern.Enabled, StrSubstNo('Report %1 must be enabled.', ReportId));
+                Assert.AreEqual(1, Pattern.Count(), StrSubstNo(ReportSpecificDefaultErr, ReportId));
+            Assert.IsTrue(Pattern.Enabled, StrSubstNo(ReportEnabledErr, ReportId));
 
             if Pattern."Table No." = 0 then begin
                 Clear(Subject);
                 Assert.IsTrue(ReportFilenameMgt.TryResolve(ReportId, "Report Filename Output Route"::Save, Subject, '', FileName),
-                    StrSubstNo('Record-independent report %1 must resolve without a document.', ReportId));
+                    StrSubstNo(RecordIndependentReportErr, ReportId));
                 Assert.AreNotEqual('', FileName, 'The report name and run date must have values.');
             end else begin
                 Assert.AreEqual(ReportFilenameMgt.SubjectTableNo(ReportId), Pattern."Table No.", 'The default must name the actual report subject.');
                 Subject.Open(Pattern."Table No.", true);
                 InsertTemporarySubject(Subject, '100');
                 Assert.IsTrue(ReportFilenameMgt.TryResolve(ReportId, "Report Filename Output Route"::Save, Subject, '', FileName),
-                    StrSubstNo('Report %1 must name a single record.', ReportId));
-                Assert.IsTrue(FileName.Contains('DEFAULT-100'), StrSubstNo('Report %1 must include its actual record identifier: %2.', ReportId, FileName));
+                    StrSubstNo(SingleRecordReportErr, ReportId));
+                Assert.IsTrue(FileName.Contains('DEFAULT-100'), StrSubstNo(ReportIdentifierErr, ReportId, FileName));
 
                 InsertTemporarySubject(Subject, '200');
                 Assert.IsTrue(ReportFilenameMgt.TryResolve(ReportId, "Report Filename Output Route"::Save, Subject, '', FileName),
-                    StrSubstNo('Report %1 must name a multi-record run.', ReportId));
+                    StrSubstNo(MultipleRecordReportErr, ReportId));
                 Assert.IsTrue(FileName.Contains('DEFAULT-100'), 'A multi-record name must retain the first identifier.');
                 Assert.IsTrue(FileName.Contains('DEFAULT-200'), 'A multi-record name must retain the second identifier.');
                 Subject.Close();
@@ -597,8 +604,8 @@ codeunit 149550 "Filename Defaults Tests"
 
     local procedure InsertTemporarySubject(var Subject: RecordRef; Suffix: Text)
     var
-        SubjectKey: KeyRef;
         KeyField: FieldRef;
+        SubjectKey: KeyRef;
         FieldIndex: Integer;
     begin
         Subject.Init();
