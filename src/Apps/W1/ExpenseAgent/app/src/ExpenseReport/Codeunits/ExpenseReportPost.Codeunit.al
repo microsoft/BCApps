@@ -1586,6 +1586,7 @@ codeunit 6987 "Expense Report-Post"
     /// Use this event to run additional checks, raising an error to stop posting, or to prepare data before posting. Changes made here are still checked by the built-in posting validation. The event is raised inside the posting transaction and also during posting preview.
     /// </remarks>
     /// <param name="ExpenseReportHeader">The expense report that is being posted.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostExpenseReport(var ExpenseReportHeader: Record "Expense Report Header")
     begin
@@ -1600,6 +1601,7 @@ codeunit 6987 "Expense Report-Post"
     /// <param name="ExpenseReportHeader">The expense report that was posted.</param>
     /// <param name="PostedExpenseReportHeader">The posted expense report that was created.</param>
     /// <param name="PreviewMode">Specifies whether the posting runs as a posting preview.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostExpenseReport(ExpenseReportHeader: Record "Expense Report Header"; PostedExpenseReportHeader: Record "Posted Expense Report Header"; PreviewMode: Boolean)
     begin
@@ -1614,6 +1616,7 @@ codeunit 6987 "Expense Report-Post"
     /// <param name="GenJournalLine">The general journal line that will be posted. Changes to this record are posted.</param>
     /// <param name="ExpenseReportHeader">The expense report that is being posted.</param>
     /// <param name="ExpenseReportLine">The expense report line that the general journal line is posted for.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostExpenseGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line")
     begin

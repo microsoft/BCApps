@@ -379,6 +379,7 @@ codeunit 6983 "Create Expense Report"
     /// </remarks>
     /// <param name="Expense">The expense that is added to the expense report.</param>
     /// <param name="ExpenseReportLine">The new expense report line. Changes to this record are saved.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyExpenseFieldsToReportLine(Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line")
     begin

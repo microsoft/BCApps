@@ -253,6 +253,7 @@ codeunit 6911 "Expense Per Diem Calculation"
     /// <param name="TripEndDateTime">The date and time when the trip ends.</param>
     /// <param name="ExpenseAgentSetup">The expense management setup that holds the per diem calculation settings.</param>
     /// <param name="PerDiemAmount">The calculated per diem amount for the day. Change this value to override the amount.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalculatePerDiemForSingleDay(CurrentDate: Date; BaseRate: Decimal; TripStartDateTime: DateTime; TripEndDateTime: DateTime; ExpenseAgentSetup: Record "Expense Agent Setup"; var PerDiemAmount: Decimal)
     begin

@@ -25,6 +25,24 @@ codeunit 148355 "Expense Ext. Events Subscr."
         CopyFromPostedLineCount: Integer;
         BeforePostExpenseReportCount: Integer;
         AfterPostExpenseReportCount: Integer;
+        CommitAndErrorOnCopyToReportLine: Boolean;
+        CommitAndErrorOnPostGenJnlLine: Boolean;
+        SubscriberErr: Label 'Subscriber error after commit.';
+
+    procedure SetCommitAndErrorOnCopyToReportLine()
+    begin
+        CommitAndErrorOnCopyToReportLine := true;
+    end;
+
+    procedure SetCommitAndErrorOnPostGenJnlLine()
+    begin
+        CommitAndErrorOnPostGenJnlLine := true;
+    end;
+
+    procedure GetSubscriberErrorText(): Text
+    begin
+        exit(SubscriberErr);
+    end;
 
     procedure SetMarkerText(NewMarkerText: Text[20])
     begin
@@ -98,6 +116,10 @@ codeunit 148355 "Expense Ext. Events Subscr."
         CapturedExpenseNo := Expense."No.";
         if MarkerText <> '' then
             ExpenseReportLine.Description := MarkerText;
+        if CommitAndErrorOnCopyToReportLine then begin
+            Commit();
+            Error(SubscriberErr);
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Expense Report-Post", 'OnBeforePostExpenseGenJournalLine', '', false, false)]
@@ -106,6 +128,10 @@ codeunit 148355 "Expense Ext. Events Subscr."
         BeforePostGenJnlLineCount += 1;
         if GenJnlLineDescriptionMarker <> '' then
             GenJournalLine.Description := GenJnlLineDescriptionMarker;
+        if CommitAndErrorOnPostGenJnlLine then begin
+            Commit();
+            Error(SubscriberErr);
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Expense Ledger Entry", 'OnAfterCopyFromGenJnlLine', '', false, false)]
