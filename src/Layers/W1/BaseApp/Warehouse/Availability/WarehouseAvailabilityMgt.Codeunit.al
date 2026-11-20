@@ -975,12 +975,19 @@ codeunit 7314 "Warehouse Availability Mgt."
         if not (Location.Get(LocationCode) and Location."Bin Mandatory" and (Location."Shipment Bin Code" <> '')) then
             exit;
 
-        QtyOnShipmentBin := CalcQtyOnShipmentBins(LocationCode, ItemNo, VariantCode, ItemTrackingSetup, SourceType, SourceSubType, SourceID, SourceRefNo);
-        if QtyOnShipmentBin = 0 then
-            QtyPicked := 0
+        QtyOnShipmentBin := CalcQtyOnShipmentBins(LocationCode, ItemNo, VariantCode, ItemTrackingSetup);
+        if QtyOnShipmentBin <> 0 then
+            exit;
+
+        // Alternate shipment bins: credit only the quantity this source line still has staged.
+        QtyOnShipmentBin :=
+            CalcQtyOnRegisteredPickDestinationBins(
+                LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, ItemTrackingSetup, SourceType, SourceSubType, SourceID, SourceRefNo);
+        if QtyPicked > QtyOnShipmentBin then
+            QtyPicked := QtyOnShipmentBin;
     end;
 
-    local procedure CalcQtyOnShipmentBins(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer): Decimal
+    local procedure CalcQtyOnShipmentBins(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"): Decimal
     var
         WarehouseEntry: Record "Warehouse Entry";
         BinType: Record "Bin Type";
@@ -1014,10 +1021,6 @@ codeunit 7314 "Warehouse Availability Mgt."
                     QtyOnShipmentBins += CalcQtyOnBin(LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup);
             end;
 
-        if QtyOnShipmentBins = 0 then
-            QtyOnShipmentBins :=
-                CalcQtyOnRegisteredPickDestinationBins(
-                    LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup, SourceType, SourceSubType, SourceID, SourceRefNo);
         exit(QtyOnShipmentBins);
     end;
 
@@ -1061,7 +1064,7 @@ codeunit 7314 "Warehouse Availability Mgt."
                         QtyOnBins += TypeHelper.Maximum(0, TypeHelper.Minimum(SourceQtyInBin, QtyOnBin - OpenShipmentsQtyInBin));
                     end;
                 end;
-            until (QtyOnBins > 0) or (WarehouseEntry.Next() = 0);
+            until WarehouseEntry.Next() = 0;
     end;
 
     local procedure CalcSourceQtyInBin(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer): Decimal
