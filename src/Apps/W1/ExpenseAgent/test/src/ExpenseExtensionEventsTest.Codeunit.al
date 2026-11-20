@@ -63,80 +63,7 @@ codeunit 148367 "Expense Extension Events Test"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
-    procedure BeforePostExpenseGenJournalLineEventCanSetGLEntryFields()
-    var
-        Expense: Record Expense;
-        ExpenseReportHeader: Record "Expense Report Header";
-        PostedExpenseReportHeader: Record "Posted Expense Report Header";
-        GLEntry: Record "G/L Entry";
-        ExpenseExtEventsSubscr: Codeunit "Expense Ext. Events Subscr.";
-        ExpenseReportPost: Codeunit "Expense Report-Post";
-        Marker: Text[20];
-    begin
-        // [SCENARIO] OnBeforePostExpenseGenJournalLine lets subscribers set fields on the posted G/L entries.
-        Initialize();
-
-        // [GIVEN] A released expense report.
-        CreateReleasedExpenseReport(ExpenseReportHeader, Expense);
-
-        // [GIVEN] A subscriber that sets the External Document No. on the expense journal lines.
-        Marker := GenerateMarker();
-        ExpenseExtEventsSubscr.SetMarkerText(Marker);
-        BindSubscription(ExpenseExtEventsSubscr);
-
-        // [WHEN] The expense report is posted.
-        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
-        UnbindSubscription(ExpenseExtEventsSubscr);
-
-        // [THEN] The event was raised and the G/L entries of the posted document carry the marker.
-        Assert.IsTrue(ExpenseExtEventsSubscr.GetBeforePostGenJnlLineCount() >= 1, 'OnBeforePostExpenseGenJournalLine must be raised.');
-        FindPostedExpenseReport(PostedExpenseReportHeader, Expense);
-        GLEntry.SetRange("Document No.", PostedExpenseReportHeader."No.");
-        GLEntry.SetRange("External Document No.", Marker);
-        Assert.RecordIsNotEmpty(GLEntry);
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmHandler')]
-    procedure ExpenseLedgerEntryCopyEventsCanChangeEntry()
-    var
-        Expense: Record Expense;
-        ExpenseReportHeader: Record "Expense Report Header";
-        PostedExpenseReportHeader: Record "Posted Expense Report Header";
-        ExpenseLedgerEntry: Record "Expense Ledger Entry";
-        ExpenseExtEventsSubscr: Codeunit "Expense Ext. Events Subscr.";
-        ExpenseReportPost: Codeunit "Expense Report-Post";
-        Marker: Text[20];
-    begin
-        // [SCENARIO] The Expense Ledger Entry copy events are raised during posting and let subscribers change the entry before insert.
-        Initialize();
-
-        // [GIVEN] A released expense report.
-        CreateReleasedExpenseReport(ExpenseReportHeader, Expense);
-
-        // [GIVEN] A subscriber that sets the expense ledger entry description when copying from the journal line.
-        Marker := GenerateMarker();
-        ExpenseExtEventsSubscr.SetMarkerText(Marker);
-        BindSubscription(ExpenseExtEventsSubscr);
-
-        // [WHEN] The expense report is posted.
-        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
-        UnbindSubscription(ExpenseExtEventsSubscr);
-
-        // [THEN] Both copy events were raised.
-        Assert.IsTrue(ExpenseExtEventsSubscr.GetCopyFromPostedLineCount() >= 1, 'OnAfterCopyFromPostedExpenseReportLine must be raised.');
-        Assert.IsTrue(ExpenseExtEventsSubscr.GetCopyFromGenJnlLineCount() >= 1, 'OnAfterCopyFromGenJnlLine must be raised.');
-
-        // [THEN] The expense ledger entry of the posted document has the marker description.
-        FindPostedExpenseReport(PostedExpenseReportHeader, Expense);
-        ExpenseLedgerEntry.SetRange("Document No.", PostedExpenseReportHeader."No.");
-        ExpenseLedgerEntry.SetRange(Description, Marker);
-        Assert.RecordIsNotEmpty(ExpenseLedgerEntry);
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmHandler')]
-    procedure GenJournalLineEventValuesReachExpenseLedgerEntry()
+    procedure PostingEventsAreRaisedAndJournalLineChangesReachPostedEntries()
     var
         Expense: Record Expense;
         ExpenseReportHeader: Record "Expense Report Header";
@@ -147,13 +74,13 @@ codeunit 148367 "Expense Extension Events Test"
         ExpenseReportPost: Codeunit "Expense Report-Post";
         Marker: Text[20];
     begin
-        // [SCENARIO] OnBeforePostExpenseGenJournalLine is raised before the expense ledger entry copies the journal line.
+        // [SCENARIO] The posting events are raised, and a journal line change made in OnBeforePostExpenseGenJournalLine reaches the G/L entries and the expense ledger entry.
         Initialize();
 
         // [GIVEN] A released expense report.
         CreateReleasedExpenseReport(ExpenseReportHeader, Expense);
 
-        // [GIVEN] A subscriber that only sets the journal line description; the ledger copy subscriber does not change the description.
+        // [GIVEN] A subscriber that sets the journal line description; the ledger copy subscribers do not change the description.
         Marker := GenerateMarker();
         ExpenseExtEventsSubscr.SetGenJnlLineDescriptionMarker(Marker);
         BindSubscription(ExpenseExtEventsSubscr);
@@ -162,49 +89,25 @@ codeunit 148367 "Expense Extension Events Test"
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
         UnbindSubscription(ExpenseExtEventsSubscr);
 
-        // [THEN] The expense ledger entry of the posted document has the description set on the journal line.
-        Assert.IsTrue(ExpenseExtEventsSubscr.GetBeforePostGenJnlLineCount() >= 1, 'OnBeforePostExpenseGenJournalLine must be raised.');
+        // [THEN] The report posting events were raised once, with the posted report outside preview mode.
         FindPostedExpenseReport(PostedExpenseReportHeader, Expense);
-        ExpenseLedgerEntry.SetRange("Document No.", PostedExpenseReportHeader."No.");
-        ExpenseLedgerEntry.SetRange(Description, Marker);
-        Assert.RecordIsNotEmpty(ExpenseLedgerEntry);
+        Assert.AreEqual(1, ExpenseExtEventsSubscr.GetBeforePostExpenseReportCount(), 'OnBeforePostExpenseReport must be raised once.');
+        Assert.AreEqual(1, ExpenseExtEventsSubscr.GetAfterPostExpenseReportCount(), 'OnAfterPostExpenseReport must be raised once.');
+        Assert.AreEqual(PostedExpenseReportHeader."No.", ExpenseExtEventsSubscr.GetCapturedPostedExpenseReportNo(), 'OnAfterPostExpenseReport must receive the posted expense report.');
+        Assert.IsFalse(ExpenseExtEventsSubscr.GetCapturedPreviewMode(), 'PreviewMode must be false for regular posting.');
 
-        // [THEN] A G/L entry of the posted document has the description set on the journal line.
+        // [THEN] The journal line and expense ledger entry events were raised.
+        Assert.IsTrue(ExpenseExtEventsSubscr.GetBeforePostGenJnlLineCount() >= 1, 'OnBeforePostExpenseGenJournalLine must be raised.');
+        Assert.IsTrue(ExpenseExtEventsSubscr.GetCopyFromGenJnlLineCount() >= 1, 'OnAfterCopyFromGenJnlLine must be raised.');
+        Assert.IsTrue(ExpenseExtEventsSubscr.GetCopyFromPostedLineCount() >= 1, 'OnAfterCopyFromPostedExpenseReportLine must be raised.');
+
+        // [THEN] The G/L entries and the expense ledger entry carry the description set on the journal line.
         GLEntry.SetRange("Document No.", PostedExpenseReportHeader."No.");
         GLEntry.SetRange(Description, Marker);
         Assert.RecordIsNotEmpty(GLEntry);
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmHandler')]
-    procedure PostExpenseReportEventsAreRaisedOnce()
-    var
-        Expense: Record Expense;
-        ExpenseReportHeader: Record "Expense Report Header";
-        PostedExpenseReportHeader: Record "Posted Expense Report Header";
-        ExpenseExtEventsSubscr: Codeunit "Expense Ext. Events Subscr.";
-        ExpenseReportPost: Codeunit "Expense Report-Post";
-    begin
-        // [SCENARIO] OnBeforePostExpenseReport and OnAfterPostExpenseReport are raised once per posted expense report.
-        Initialize();
-
-        // [GIVEN] A released expense report.
-        CreateReleasedExpenseReport(ExpenseReportHeader, Expense);
-
-        // [GIVEN] A subscriber that counts the post events.
-        BindSubscription(ExpenseExtEventsSubscr);
-
-        // [WHEN] The expense report is posted.
-        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
-        UnbindSubscription(ExpenseExtEventsSubscr);
-
-        // [THEN] Each event was raised once and the after event received the posted report outside preview mode.
-        Assert.AreEqual(1, ExpenseExtEventsSubscr.GetBeforePostExpenseReportCount(), 'OnBeforePostExpenseReport must be raised once.');
-        Assert.AreEqual(1, ExpenseExtEventsSubscr.GetAfterPostExpenseReportCount(), 'OnAfterPostExpenseReport must be raised once.');
-        Assert.AreNotEqual('', ExpenseExtEventsSubscr.GetCapturedPostedExpenseReportNo(), 'OnAfterPostExpenseReport must receive the posted expense report.');
-        FindPostedExpenseReport(PostedExpenseReportHeader, Expense);
-        Assert.AreEqual(PostedExpenseReportHeader."No.", ExpenseExtEventsSubscr.GetCapturedPostedExpenseReportNo(), 'OnAfterPostExpenseReport must receive the posted expense report.');
-        Assert.IsFalse(ExpenseExtEventsSubscr.GetCapturedPreviewMode(), 'PreviewMode must be false for regular posting.');
+        ExpenseLedgerEntry.SetRange("Document No.", PostedExpenseReportHeader."No.");
+        ExpenseLedgerEntry.SetRange(Description, Marker);
+        Assert.RecordIsNotEmpty(ExpenseLedgerEntry);
     end;
 
     [Test]
