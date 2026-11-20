@@ -256,6 +256,17 @@ page 7129 "Travel Request Card"
                 }
             }
         }
+        area(FactBoxes)
+        {
+            part(Activity; "Expense Activity Log FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'History';
+                SubPageLink = "Source Table ID" = const(Database::"Spend Request"),
+                              "Source Record System ID" = field(SystemId);
+                Visible = Rec."No." <> '';
+            }
+        }
     }
     actions
     {
@@ -269,9 +280,9 @@ page 7129 "Travel Request Card"
                 action(Release)
                 {
                     Caption = 'Release';
-                    ToolTip = 'Set the status field to Released so that it can be processed for approval.';
+                    ToolTip = 'Release the travel request when the Expense Agent is disabled.';
                     ApplicationArea = Basic, Suite;
-                    Enabled = Rec.Status <> Rec.Status::Released;
+                    Enabled = (Rec.Status <> Rec.Status::Released) and not AgentEnabled;
                     Image = ReleaseDoc;
 
                     trigger OnAction()
@@ -419,4 +430,15 @@ page 7129 "Travel Request Card"
     begin
         Rec."Document Type" := Rec."Document Type"::"Travel Request";
     end;
+
+    trigger OnAfterGetCurrRecord()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        AgentEnabled := ExpenseAgentSetup."Enable Agent";
+    end;
+
+    var
+        AgentEnabled: Boolean;
 }

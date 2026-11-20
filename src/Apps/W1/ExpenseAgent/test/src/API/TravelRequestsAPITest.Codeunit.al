@@ -1431,7 +1431,9 @@ codeunit 148347 "Travel Requests API Test"
     local procedure CreateApprover(var ExpenseUser: Record "Expense User")
     begin
         LibraryExpense.CreateExpenseUser(ExpenseUser);
+        // Enabling approval in the client also grants unlimited approval, so approval limits do not escalate the travel request.
         ExpenseUser."Can Approve" := true;
+        ExpenseUser."Unlimited Approval" := true;
         ExpenseUser."User Id For Approvals" := CopyStr(UserId(), 1, MaxStrLen(ExpenseUser."User Id For Approvals"));
         ExpenseUser.Modify(true);
     end;
