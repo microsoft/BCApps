@@ -749,6 +749,11 @@ page 99000831 "Released Production Order"
         Rec.CalcFields("Completely Picked");
     end;
 
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Rec.SetDefaultLocation();
+    end;
+
     var
         CopyProdOrderDoc: Report "Copy Production Order Document";
         ManuPrintReport: Codeunit "Manu. Print Report";

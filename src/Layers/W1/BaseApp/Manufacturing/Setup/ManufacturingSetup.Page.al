@@ -135,6 +135,10 @@ page 99000768 "Manufacturing Setup"
                 {
                     ApplicationArea = Manufacturing, Planning;
                 }
+                field("Default Location Code"; Rec."Default Location Code")
+                {
+                    ApplicationArea = Manufacturing, Planning;
+                }
                 field("Manual Scheduling"; Rec."Manual Scheduling")
                 {
                     ApplicationArea = Manufacturing;

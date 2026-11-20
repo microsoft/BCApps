@@ -1,0 +1,137 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.Test;
+
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Utilities;
+using System.Environment.Configuration;
+
+codeunit 137439 "Prod. Order Refresh Location"
+{
+    Subtype = Test;
+    TestPermissions = Disabled;
+
+    trigger OnRun()
+    begin
+        // [FEATURE] [Manufacturing] [Refresh] [Location]
+    end;
+
+    var
+        Assert: Codeunit Assert;
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        IsInitialized: Boolean;
+
+    [Test]
+    procedure RefreshPopulatedLocationWithoutWarning()
+    var
+        ProductionOrder: Record "Production Order";
+        Location: Record Location;
+    begin
+        // [SCENARIO] An order with a location refreshes without a blank-location warning.
+        Initialize();
+        // [GIVEN] An order with an explicit location.
+        CreateOrderForRefresh(ProductionOrder);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        ProductionOrder.Validate("Location Code", Location.Code);
+        ProductionOrder.Modify(true);
+        // [WHEN] The order is refreshed.
+        RunRefresh(ProductionOrder, false);
+        // [THEN] Lines are created and the location is retained without prompting.
+        VerifyRefreshed(ProductionOrder, true);
+    end;
+
+    [Test]
+    procedure RefreshBlankLocationWithoutRequestPage()
+    var
+        ProductionOrder: Record "Production Order";
+    begin
+        // [SCENARIO] Suppressing the request page bypasses the warning without hiding validation dialogs.
+        Initialize();
+        // [GIVEN] A blank-location order.
+        CreateOrderForRefresh(ProductionOrder);
+        // [WHEN] Refresh is called without a request page or hidden validation dialogs.
+        RunRefresh(ProductionOrder, false);
+        // [THEN] Lines are created without displaying the warning.
+        VerifyRefreshed(ProductionOrder, true);
+    end;
+
+    local procedure CreateOrderForRefresh(var ProductionOrder: Record "Production Order")
+    var
+        Item: Record Item;
+    begin
+        LibraryInventory.CreateItem(Item);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::"Firm Planned", ProductionOrder."Source Type"::Item, Item."No.", 1);
+        ProductionOrder.Validate("Location Code", '');
+        ProductionOrder.Modify(true);
+    end;
+
+    local procedure RunRefresh(var ProductionOrder: Record "Production Order"; HideDialogs: Boolean)
+    var
+        OrderFilter: Record "Production Order";
+        RefreshProductionOrder: Report "Refresh Production Order";
+    begin
+        if ProductionOrder.HasFilter() then
+            OrderFilter.CopyFilters(ProductionOrder)
+        else begin
+            OrderFilter.SetRange(Status, ProductionOrder.Status);
+            OrderFilter.SetRange("No.", ProductionOrder."No.");
+        end;
+        Commit();
+        RefreshProductionOrder.SetTableView(OrderFilter);
+        RefreshProductionOrder.InitializeRequest(1, true, true, true, false);
+        RefreshProductionOrder.SetHideValidationDialog(HideDialogs);
+        RefreshProductionOrder.UseRequestPage(false);
+        RefreshProductionOrder.RunModal();
+    end;
+
+    local procedure VerifyRefreshed(ProductionOrder: Record "Production Order"; ExpectedRefreshed: Boolean)
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        LocationCode: Code[10];
+    begin
+        LocationCode := ProductionOrder."Location Code";
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+        ProductionOrder.TestField("Location Code", LocationCode);
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Assert.AreEqual(ExpectedRefreshed, not ProdOrderLine.IsEmpty(), 'Unexpected refresh result.');
+        if ExpectedRefreshed then begin
+            ProdOrderLine.FindFirst();
+            ProdOrderLine.TestField("Location Code", LocationCode);
+        end;
+    end;
+
+    local procedure Initialize()
+    var
+        MyNotifications: Record "My Notifications";
+        Fixture: Codeunit "SCM Production Orders";
+        InstructionMgt: Codeunit "Instruction Mgt.";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+    begin
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Prod. Order Refresh Location");
+        LibrarySetupStorage.Restore();
+        if not IsInitialized then begin
+            LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Prod. Order Refresh Location");
+            LibraryERMCountryData.CreateVATData();
+            LibraryERMCountryData.UpdateGeneralPostingSetup();
+            LibrarySetupStorage.SaveInventorySetup();
+            LibrarySetupStorage.SaveManufacturingSetup();
+            IsInitialized := true;
+            Commit();
+            LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Prod. Order Refresh Location");
+        end;
+        Fixture.ConfigureDefaultLocation('', '');
+        InstructionMgt.EnableMessageForCurrentUser(InstructionMgt.RefreshBlankLocationCode());
+        InstructionMgt.CreateMissingMyNotificationsWithDefaultState(InstructionMgt.GetRefreshBlankLocationNotificationId());
+        MyNotifications.SetStatus(InstructionMgt.GetRefreshBlankLocationNotificationId(), true);
+    end;
+}

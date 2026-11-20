@@ -363,6 +363,11 @@ page 99000912 "Simulated Production Order"
         }
     }
 
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Rec.SetDefaultLocation();
+    end;
+
     local procedure ShortcutDimension1CodeOnAfterV()
     begin
         CurrPage.ProdOrderLines.PAGE.UpdateForm(true);

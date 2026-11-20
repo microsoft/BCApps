@@ -999,8 +999,10 @@ codeunit 132202 "Library - Manufacturing"
     var
         TmpProductionOrder: Record "Production Order";
         RefreshProductionOrder: Report "Refresh Production Order";
+        InstructionMgt: Codeunit "Instruction Mgt.";
         TempTransactionType: TransactionType;
         Direction: Option Forward,Backward;
+        BlankLocationWarningEnabled: Boolean;
     begin
         Commit();
         TempTransactionType := CurrentTransactionType;
@@ -1020,7 +1022,12 @@ codeunit 132202 "Library - Manufacturing"
         RefreshProductionOrder.InitializeRequest(Direction, CalcLines, CalcRoutings, CalcComponents, CreateInbRqst);
         RefreshProductionOrder.SetTableView(TmpProductionOrder);
         RefreshProductionOrder.UseRequestPage := false;
+        BlankLocationWarningEnabled := InstructionMgt.IsEnabled(InstructionMgt.RefreshBlankLocationCode());
+        if BlankLocationWarningEnabled then
+            InstructionMgt.DisableMessageForCurrentUser(InstructionMgt.RefreshBlankLocationCode());
         RefreshProductionOrder.RunModal();
+        if BlankLocationWarningEnabled then
+            InstructionMgt.EnableMessageForCurrentUser(InstructionMgt.RefreshBlankLocationCode());
 
         Commit();
         CurrentTransactionType(TempTransactionType);

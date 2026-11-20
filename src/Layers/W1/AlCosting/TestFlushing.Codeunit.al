@@ -232,6 +232,8 @@ codeunit 103513 "Test - Flushing"
     end;
 
     local procedure CreateProdOrder(var ProdOrder: Record "Production Order"; ItemNo: Code[1]; OutputQuantity: Decimal)
+    var
+        RefreshProductionOrder: Report "Refresh Production Order";
     begin
         Clear(ProdOrder);
         ProdOrder.Init();
@@ -245,7 +247,10 @@ codeunit 103513 "Test - Flushing"
         ProdOrder.SetRange("No.", ProdOrder."No.");
         Commit();
         CurrentTransactionType := TRANSACTIONTYPE::Update;
-        REPORT.RunModal(REPORT::"Refresh Production Order", false, true, ProdOrder);
+        RefreshProductionOrder.SetTableView(ProdOrder);
+        RefreshProductionOrder.SetHideValidationDialog(true);
+        RefreshProductionOrder.UseRequestPage(false);
+        RefreshProductionOrder.RunModal();
         ProdOrder.Get(ProdOrder.Status, ProdOrder."No.");
         Commit();
         CurrentTransactionType := TRANSACTIONTYPE::UpdateNoLocks;
