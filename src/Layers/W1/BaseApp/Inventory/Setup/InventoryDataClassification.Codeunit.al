@@ -128,6 +128,7 @@ codeunit 1764 "Inventory-Data Classification"
         DataClassificationMgt.SetTableFieldsToNormal(DATABASE::"Item Availability by Date");
         DataClassificationMgt.SetTableFieldsToNormal(DATABASE::"BOM Warning Log");
         DataClassificationMgt.SetTableFieldsToNormal(DATABASE::"Item Tracking Code");
+        DataClassificationMgt.SetTableFieldsToNormal(Database::"Item Tracking Code Change Log");
         DataClassificationMgt.SetTableFieldsToNormal(DATABASE::"Item Tracking Setup");
         DataClassificationMgt.SetTableFieldsToNormal(DATABASE::"Serial No. Information");
         DataClassificationMgt.SetTableFieldsToNormal(DATABASE::"Lot No. Information");
