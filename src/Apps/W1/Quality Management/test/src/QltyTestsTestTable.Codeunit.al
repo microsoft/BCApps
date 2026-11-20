@@ -95,6 +95,9 @@ codeunit 139967 "Qlty. Tests - Test Table"
         TestAddedExactlyOnceErr: Label 'Test %1 should be added exactly once.', Comment = '%1 = quality test code';
         UnexpectedFallbackIntentErr: Label 'Incorrect setup fallback intent for table %1.', Comment = '%1 = source table ID';
         UnexpectedFallbackCertaintyErr: Label 'Incorrect setup fallback certainty for table %1.', Comment = '%1 = source table ID';
+        CopiedTemplateDescriptionTxt: Label 'Copied inspection template';
+        CopyTemplateTargetCode: Code[20];
+        CopyTemplateTargetDescription: Text;
         IsInitialized: Boolean;
 
     [Test]
@@ -4757,6 +4760,94 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
+    [HandlerFunctions('CopyTemplateRequestPageHandler')]
+    procedure CopyTemplate_BlankSourceDescription_UsesTargetDescription()
+    var
+        SourceQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+    begin
+        // [SCENARIO 656992] Copying a template whose description is blank uses the supplied target code and description instead of raising the missing-target error.
+        Initialize();
+
+        // [GIVEN] A source template with one test and a blank description
+        QltyInspectionUtility.CreateTemplate(SourceQltyInspectionTemplateHdr, 1);
+        SourceQltyInspectionTemplateHdr.Description := '';
+        SourceQltyInspectionTemplateHdr.Modify();
+
+        // [WHEN] Copy Template runs with Bulk Copy from Items disabled and a target code and description
+        RunCopyTemplate(SourceQltyInspectionTemplateHdr, CopiedTemplateDescriptionTxt);
+
+        // [THEN] The new template is created with the supplied target description and the source lines
+        VerifyCopiedTemplate(SourceQltyInspectionTemplateHdr, CopiedTemplateDescriptionTxt);
+    end;
+
+    [Test]
+    [HandlerFunctions('CopyTemplateRequestPageHandler')]
+    procedure CopyTemplate_NonBlankSourceDescription_UsesTargetDescription()
+    var
+        SourceQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+    begin
+        // [SCENARIO 656992] Copying a template uses the supplied target description instead of the source description.
+        Initialize();
+
+        // [GIVEN] A source template with one test and a nonblank description
+        QltyInspectionUtility.CreateTemplate(SourceQltyInspectionTemplateHdr, 1);
+        LibraryAssert.AreNotEqual('', SourceQltyInspectionTemplateHdr.Description, 'Source template description should not be blank.');
+
+        // [WHEN] Copy Template runs with Bulk Copy from Items disabled and a different target description
+        RunCopyTemplate(SourceQltyInspectionTemplateHdr, CopiedTemplateDescriptionTxt);
+
+        // [THEN] The new template receives the supplied target description
+        VerifyCopiedTemplate(SourceQltyInspectionTemplateHdr, CopiedTemplateDescriptionTxt);
+    end;
+
+    [Test]
+    [HandlerFunctions('CopyTemplateRequestPageHandler')]
+    procedure CopyTemplate_BlankTargetDescription_UsesSourceDescription()
+    var
+        SourceQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+    begin
+        // [SCENARIO 656992] Copying a template without a target description falls back to the source description.
+        Initialize();
+
+        // [GIVEN] A source template with one test and a nonblank description
+        QltyInspectionUtility.CreateTemplate(SourceQltyInspectionTemplateHdr, 1);
+
+        // [WHEN] Copy Template runs with Bulk Copy from Items disabled, a target code and a blank target description
+        RunCopyTemplate(SourceQltyInspectionTemplateHdr, '');
+
+        // [THEN] The new template receives the source description
+        VerifyCopiedTemplate(SourceQltyInspectionTemplateHdr, SourceQltyInspectionTemplateHdr.Description);
+    end;
+
+    local procedure RunCopyTemplate(var SourceQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; TargetDescription: Text)
+    var
+        TargetCode: Text;
+    begin
+        QltyInspectionUtility.GenerateRandomCharacters(20, TargetCode);
+        CopyTemplateTargetCode := CopyStr(TargetCode, 1, MaxStrLen(CopyTemplateTargetCode));
+        CopyTemplateTargetDescription := TargetDescription;
+        Commit();
+
+        SourceQltyInspectionTemplateHdr.SetRecFilter();
+        Report.RunModal(Report::"Qlty. Inspection Copy Template", true, false, SourceQltyInspectionTemplateHdr);
+    end;
+
+    local procedure VerifyCopiedTemplate(SourceQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; ExpectedDescription: Text)
+    var
+        TargetQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        SourceQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        TargetQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+    begin
+        LibraryAssert.IsTrue(TargetQltyInspectionTemplateHdr.Get(CopyTemplateTargetCode), 'The target template should have been created.');
+        LibraryAssert.AreEqual(ExpectedDescription, TargetQltyInspectionTemplateHdr.Description, 'The target template has an unexpected description.');
+        LibraryAssert.AreEqual(SourceQltyInspectionTemplateHdr.Code, TargetQltyInspectionTemplateHdr."Copied From Template Code", 'The target template should reference the source template.');
+
+        SourceQltyInspectionTemplateLine.SetRange("Template Code", SourceQltyInspectionTemplateHdr.Code);
+        TargetQltyInspectionTemplateLine.SetRange("Template Code", TargetQltyInspectionTemplateHdr.Code);
+        LibraryAssert.AreEqual(SourceQltyInspectionTemplateLine.Count(), TargetQltyInspectionTemplateLine.Count(), 'The target template should have the same number of lines as the source template.');
+    end;
+
+    [Test]
     procedure TriggerIntentFallbackWithoutSetup()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -5121,5 +5212,14 @@ codeunit 139967 "Qlty. Tests - Test Table"
     [ModalPageHandler]
     procedure CameraModalPageHandler(var Camera: TestPage Camera)
     begin
+    end;
+
+    [RequestPageHandler]
+    procedure CopyTemplateRequestPageHandler(var QltyInspectionCopyTemplate: TestRequestPage "Qlty. Inspection Copy Template")
+    begin
+        QltyInspectionCopyTemplate.ChooseFromItems.SetValue(false);
+        QltyInspectionCopyTemplate.ChooseTargetName.SetValue(CopyTemplateTargetCode);
+        QltyInspectionCopyTemplate.ChooseTargetDescription.SetValue(CopyTemplateTargetDescription);
+        QltyInspectionCopyTemplate.OK().Invoke();
     end;
 }

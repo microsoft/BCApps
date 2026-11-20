@@ -1,0 +1,68 @@
+{
+  "type": "function",
+  "function": {
+    "name": "extract_information_from_csv",
+    "description": "Extracts information from a CSV file. Your task is to:\n1. Identify the column delimiter used in the input CSV data.\n2. Determine the decimal separator used in the file.\n3. Identify columns containing product/item details such as ID, name, or description (indexes start at 1).\n4. Identify the column containing quantity information (indexes start at 1).\n5. Identify the column containing unit of measure information (indexes start at 1).\n6. Identify the column containing product variant information, if available.\n\nIf the input data does not have a column for the requested information, return -1.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "column_delimiter": {
+          "type": "string",
+          "description": "Delimiter used to split the columns in the CSV file"
+        },
+        "csv_has_header_row": {
+          "type": "boolean",
+          "description": "Boolean specifying if the CSV input has a header row."
+        },
+        "csv_columns": {
+          "type": "array",
+          "description": "Columns in the CSV file. If a header row is not found, this is set to col1, col2, col3, and so on.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "column_name": {
+                "type": "string",
+                "description": "Column name."
+              },
+              "column_type": {
+                "enum": [
+                  "number",
+                  "text",
+                  "date",
+                  "boolean",
+                  "others"
+                ],
+                "type": "string",
+                "description": "Column type"
+              }
+            }
+          }
+        },
+        "product_info_column_index": {
+          "type": "array",
+          "description": "Array of integers containing the column indexes used to detect product information. Indexes start at 1.",
+          "items": {
+            "type": "number",
+            "description": "Column index containing product information."
+          }
+        },
+        "quantity_column_index": {
+          "type": "number",
+          "description": "Column index containing the quantity of the product. Indexes start at 1."
+        },
+        "unit_of_measure_column_index": {
+          "type": "number",
+          "description": "Column index containing the unit of measure for the quantity defined. Indexes start at 1."
+        }
+      },
+      "required": [
+        "column_delimiter",
+        "product_info_column_index",
+        "quantity_column_index",
+        "unit_of_measure_column_index",
+        "csv_has_header_row",
+        "csv_columns"
+      ]
+    }
+  }
+}

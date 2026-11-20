@@ -1071,11 +1071,11 @@ codeunit 6973 "Create Expense Categories"
         XINTERNETTxt: Label 'INTERNET', Locked = true;
         XInternetFeesTxt: Label 'Expenses for internet and data access related to business activities or travel. Includes hotel Wi-Fi charges, mobile data roaming fees, hotspot usage, prepaid data packages, and temporary internet services incurred while traveling.', MaxLength = 250;
         XMEALSTxt: Label 'MEALS', Locked = true;
-        XMealsDescTxt: Label 'Expenses for meals provided to employees during working hours or business travel. Includes breakfasts, lunches, dinners, and meal allowances consumed during business-related activities. Excludes external entertainment and purely personal meals.', MaxLength = 250;
+        XMealsDescTxt: Label 'Expenses for food and beverages, whether prepared or packaged, regardless of merchant type. Includes restaurant and cafe meals, takeaway, groceries, snacks, drinks, and similar food or beverage purchases.', MaxLength = 250;
         XMILEAGETxt: Label 'MILEAGE', Locked = true;
         XMileageDescTxt: Label 'Expenses for business mileage using a privately owned vehicle. Includes distance-based mileage claims for business travel, calculated per approved mileage rates. Excludes fuel receipts and company car expenses.', MaxLength = 250;
         XMISCTxt: Label 'MISC', Locked = true;
-        XMiscellaneousExpensesTxt: Label 'Expenses that do not clearly fit into any other defined expense category. Used for infrequent or exceptional business-related costs not covered elsewhere, subject to review and company policy.', MaxLength = 250;
+        XMiscellaneousExpensesTxt: Label 'Expenses for goods or services not covered by any other defined expense category.', MaxLength = 250;
         XPARKINGTxt: Label 'PARKING', Locked = true;
         XParkingDescTxt: Label 'Expenses for parking related to business travel or work activities. Includes street parking, parking garages, airport parking, meters, and parking fees incurred while using a vehicle for business purposes.', MaxLength = 250;
         XPASSPORTTxt: Label 'PASSPORT', Locked = true;
@@ -1083,9 +1083,9 @@ codeunit 6973 "Create Expense Categories"
         XPERDIEMTxt: Label 'PER-DIEM', Locked = true;
         XPerDiemDescTxt: Label 'Expenses for per-diem or daily allowance paid for business trips, typically based on travel itinerary or other proof of travel (e.g., booking or agenda), rather than individual expense receipts.', MaxLength = 250;
         XPHARMACYTxt: Label 'PHARMACY', Locked = true;
-        XPharmacyDescTxt: Label 'Expenses for pharmacy purchases related to business activities or travel, including medicines, drugs, bandages, gauze, first-aid supplies, and similar medical or health-related items.', MaxLength = 250;
+        XPharmacyDescTxt: Label 'Expenses for medical and health-related products, regardless of merchant type. Includes medicines, supplements, first-aid supplies, and similar healthcare products.', MaxLength = 250;
         XPERSONALTxt: Label 'PERSONAL', Locked = true;
-        XPersonalExpensesTxt: Label 'Expenses of a personal nature that are not related to business activities or work duties. Includes personal purchases, private travel, leisure activities, and other non-reimbursable costs.', MaxLength = 250;
+        XPersonalExpensesTxt: Label 'Expenses for general retail goods for individual use that are not covered by a more specific category. Includes clothing, personal-care products, consumer electronics, and similar retail merchandise.', MaxLength = 250;
         XPREPAYMENTTxt: Label 'PREPAYMENT', Locked = true;
         XPrepaymentsCashAdvanceTxt: Label 'Paid cash allowance for the business trip.', MaxLength = 250;
         XRENTALCARSTxt: Label 'RENTALCARS', Locked = true;
@@ -1218,10 +1218,10 @@ codeunit 6973 "Create Expense Categories"
         XMoraleTaxDescTxt: Label 'Sales tax, VAT or similar consumption tax charged on morale-related food, beverage, or service expenses for internal employee events.', MaxLength = 250;
 
         // MEALS subcategory descriptions
-        XMealsFoodDescTxt: Label 'Expenses for food consumed by employees during working hours or business travel. Includes breakfasts, lunches, dinners, or catered meals provided for business purposes.', MaxLength = 250;
-        XMealsSoftDrinkDescTxt: Label 'Expenses for non-alcoholic beverages consumed with employee meals during business activities or business travel.', MaxLength = 250;
-        XMealsAlcoholDescTxt: Label 'Expenses for alcoholic drinks consumed in connection with employee meals during business travel or approved business meals.', MaxLength = 250;
-        XMealsTipsDescTxt: Label 'Tips or gratuities paid in connection with employee meals during business travel or work-related dining.', MaxLength = 250;
+        XMealsFoodDescTxt: Label 'Expenses for food, including prepared meals, groceries, snacks, or similar food products.', MaxLength = 250;
+        XMealsSoftDrinkDescTxt: Label 'Expenses for non-alcoholic beverages such as water, soft drinks, juice, or coffee.', MaxLength = 250;
+        XMealsAlcoholDescTxt: Label 'Expenses for alcoholic beverages such as beer, wine, or spirits.', MaxLength = 250;
+        XMealsTipsDescTxt: Label 'Expenses for tips or gratuities paid for food or beverage service.', MaxLength = 250;
 
         // AIRLINE subcategory descriptions
         XAirlineSubDescTxt: Label 'Base airfare for commercial air travel. Includes ticket price covering passenger, route, fare class, and mandatory airline charges, excluding optional fees or upgrades.', MaxLength = 250;
@@ -1252,7 +1252,7 @@ codeunit 6973 "Create Expense Categories"
         XInternetSubDescTxt: Label 'Expenses for internet or data access incurred during business travel, such as roaming data charges, or temporary internet services.', MaxLength = 250;
 
         // MISC subcategory description
-        XMiscSubDescTxt: Label 'Business-related expenses that do not clearly fit any other defined category and require individual review for policy compliance.', MaxLength = 250;
+        XMiscSubDescTxt: Label 'Expenses for goods or services that do not fall into any other defined expense category.', MaxLength = 250;
 
         // PARKING subcategory description
         XParkingSubDescTxt: Label 'Expenses for parking incurred during business travel or work activities, including street parking, garages, airport parking, or parking meters.', MaxLength = 250;
@@ -1261,12 +1261,12 @@ codeunit 6973 "Create Expense Categories"
         XPassportSubDescTxt: Label 'Fees for obtaining or renewing passports, visas, or other travel documents required for business travel.', MaxLength = 250;
 
         // PERSONAL subcategory description
-        XPersonalSubDescTxt: Label 'Expenses of a personal or non-business nature that are not eligible for reimbursement under company policy.', MaxLength = 250;
+        XPersonalSubDescTxt: Label 'Expenses for general retail goods such as clothing, personal-care products, or consumer electronics that are not covered by a more specific category.', MaxLength = 250;
 
         // PHARMACY subcategory descriptions
-        XPharmacyDrugsDescTxt: Label 'Expenses for medicines, drugs, or supplements purchased during business travel or for work-related health needs.', MaxLength = 250;
+        XPharmacyDrugsDescTxt: Label 'Expenses for medicines, drugs, or supplements, including prescription and over-the-counter products.', MaxLength = 250;
         XPharmacyBandagesDescTxt: Label 'Expenses for first-aid or medical supplies such as bandages, gauze, plasters, or similar healthcare consumables.', MaxLength = 250;
-        XPharmacyOtherDescTxt: Label 'Other pharmacy-related purchases not classified as drugs or bandages, including health or medical items related to travel or work.', MaxLength = 250;
+        XPharmacyOtherDescTxt: Label 'Expenses for other health-related products not covered by drugs or bandages.', MaxLength = 250;
 
         // RENTALCARS subcategory descriptions
         XRentalCarUsageDescTxt: Label 'Base rental charges for renting a car for business travel, excluding insurance, fuel, fines, or additional services.', MaxLength = 250;

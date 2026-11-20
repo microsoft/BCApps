@@ -9057,6 +9057,7 @@ codeunit 137079 "SCM Production Order III"
         LibraryManufacturing.CalculateSubcontractOrder(WorkCenter);
 #pragma warning restore AL0432
     end;
+
 #endif
 
     local procedure CreateWorkCenter(var WorkCenter: Record "Work Center"; IsSubcontracted: Boolean)

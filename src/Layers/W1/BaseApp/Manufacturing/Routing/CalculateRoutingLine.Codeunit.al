@@ -1247,6 +1247,7 @@ codeunit 99000774 "Calculate Routing Line"
     var
         ProdOrderCapNeed: Record "Prod. Order Capacity Need";
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
+        QtyReadyToStartMgt: Codeunit "Qty. Ready to Start Mgt.";
         ExpectedOperOutput: Decimal;
         ActualOperOutput: Decimal;
         TotalQtyPerOperation: Decimal;
@@ -1336,6 +1337,7 @@ codeunit 99000774 "Calculate Routing Line"
         OnCalculateRoutingLineOnAfterCalcMaxLotSize(ProdOrderQty, ProdOrderRoutingLine, TotalScrap, MaxLotSize);
 
         ProdOrderRoutingLine."Input Quantity" := MaxLotSize;
+        ProdOrderRoutingLine."Quantity Ready to Start" := QtyReadyToStartMgt.CalcQtyReadyToStart(ProdOrderRoutingLine);
 
         if ActualOperOutput > 0 then
             TotalQtyPerOperation :=
@@ -2157,6 +2159,7 @@ codeunit 99000774 "Calculate Routing Line"
     var
         ProdOrderCapacityNeed: Record "Prod. Order Capacity Need";
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
+        QtyReadyToStartMgt: Codeunit "Qty. Ready to Start Mgt.";
         ActualOperOutput: Decimal;
         TotalQtyPerOperation: Decimal;
         TotalCapacityPerOperation: Decimal;
@@ -2225,6 +2228,7 @@ codeunit 99000774 "Calculate Routing Line"
           ProdOrderRoutingLine."Fixed Scrap Qty. (Accum.)";
 
         ProdOrderRoutingLine."Input Quantity" := MaxLotSize;
+        ProdOrderRoutingLine."Quantity Ready to Start" := QtyReadyToStartMgt.CalcQtyReadyToStart(ProdOrderRoutingLine);
 
         if ActualOperOutput > 0 then
             TotalQtyPerOperation :=

@@ -1,5 +1,5 @@
 {
-    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/fb27afbcab20378ab0ac0978e7efe4131bdc0962/Actions/.Modules/settings.schema.json",
+    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/957ea1ea2e286bc966ac24c9f24035dbd30d72ed/Actions/.Modules/settings.schema.json",
     "projectName":  "Apps CA",
     "country":  "CA",
     "appFolders":  [
@@ -195,6 +195,7 @@
                         "../../../src/Apps/W1/MicrosoftFabricMirroring/test",
                         "../../../src/Apps/W1/OnboardingSignals/test",
                         "../../../src/Apps/W1/Onprem Permissions/test",
+                        "../../../src/Apps/W1/PayablesAgent/test",
                         "../../../src/Apps/W1/PaymentPractices/Test",
                         "../../../src/Apps/W1/PaymentPractices/Test Library",
                         "../../../src/Apps/W1/PayPalPaymentsStandard/test",
@@ -226,6 +227,7 @@
                         "../../../src/Layers/W1/Tests/BCPT-SampleTests",
                         "../../../src/Layers/W1/Tests/Cash Flow",
                         "../../../src/Layers/W1/Tests/Company Creation",
+                        "../../../src/Layers/W1/Tests/Concurrent Posting",
                         "../../../src/Layers/W1/Tests/Cost Accounting",
                         "../../../src/Layers/W1/Tests/CRM integration",
                         "../../../src/Layers/W1/Tests/Data Exchange",
