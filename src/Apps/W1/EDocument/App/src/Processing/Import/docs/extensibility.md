@@ -30,6 +30,26 @@ Built-in examples:
 
 Country apps follow the same pattern. XRechnung and OIOUBL extend `E-Doc. Read into Draft`, implement `IStructuredFormatReader`, populate purchase staging, and return either `Purchase Invoice` or `Purchase Credit Memo`.
 
+## Persist a purchase draft from an external reader
+
+A purchase `IStructuredFormatReader` implementation can parse its source data into temporary `E-Document Purchase Header` and `E-Document Purchase Line` records and use public codeunit `E-Doc. Purchase Draft Writer` to persist the standard draft. This is the supported persistence entry point; it delegates to the internal `E-Doc. Purchase Draft Utility` used by the first-party readers.
+
+```al
+var
+    TempPurchaseHeader: Record "E-Document Purchase Header" temporary;
+    TempPurchaseLines: Record "E-Document Purchase Line" temporary;
+    PurchaseDraftWriter: Codeunit "E-Doc. Purchase Draft Writer";
+begin
+    // Populate TempPurchaseHeader fields and insert parsed lines into TempPurchaseLines.
+    PurchaseDraftWriter.PersistDraft(EDocument, TempPurchaseHeader, TempPurchaseLines);
+    exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
+end;
+```
+
+The reader must supply an existing incoming E-Document, the current values of the temporary header, and any parsed lines inserted into the temporary line buffer. Each temporary line must have a unique key so it can be inserted; the writer persists only the records visible through the line buffer's current filters, and persisted line numbers are assigned by the standard utility in the temporary record's current key order. The utility replaces the entire existing draft for that E-Document, including when the supplied line buffer is empty. Re-reading deletes previous lines with their deletion triggers, which also removes their purchase-order matches. It does not preserve user edits or matching decisions from the previous draft.
+
+Use this method during the read-into-draft step, not as an append operation or as a substitute for Prepare Draft / Finish Draft. The writer is a low-level staging persistence facade, matching the internal utility used by first-party readers. It does not inspect, advance, or reset the import-processing status: the normal `IStructuredFormatReader.ReadIntoDraft` pipeline and `E-Doc. Import` orchestration own lifecycle transitions and undo actions. Direct use after preparation (`Draft ready`) or finalization (`Processed`) can invalidate downstream matching, mappings, or created documents, so callers should use the standard E-Document rerun/reset orchestration before replacing drafts. Do not call the writer as a substitute for lifecycle management. Changes to individual draft fields may be made through the published staging tables, but such edits do not automatically reset processing status either. The subsequent standard stages still resolve vendors, purchase orders, items, VAT, and purchase document creation. The same purchase staging mechanism applies to invoice and credit memo readers; return the appropriate `E-Doc. Process Draft` value for the document type.
+
 ## Add a new file type or structuring mechanism
 
 *Updated: 2026-07-29 -- Updated PDF default to MLLM and clarified reader override behavior from structured data.*

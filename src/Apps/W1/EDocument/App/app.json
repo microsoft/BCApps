@@ -100,6 +100,10 @@
     {
       "from": 6530,
       "to": 6539
+    },
+    {
+      "from": 6540,
+      "to": 6540
     }
   ],
   "resourceExposurePolicy": {

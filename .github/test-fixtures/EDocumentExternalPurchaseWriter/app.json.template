@@ -1,0 +1,22 @@
+{
+  "id": "15bc3799-b0e2-43fb-9e04-cded017d9160",
+  "name": "E-Document Purchase Writer External Consumer",
+  "publisher": "Microsoft",
+  "version": "30.0.0.0",
+  "platform": "30.0.0.0",
+  "application": "30.0.0.0",
+  "dependencies": [
+    {
+      "id": "e1d97edc-c239-46b4-8d84-6368bdf67c8b",
+      "name": "E-Document Core",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
+  "idRanges": [
+    {
+      "from": 50100,
+      "to": 50109
+    }
+  ]
+}
