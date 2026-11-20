@@ -19,6 +19,7 @@ codeunit 137275 "SCM Inventory Journals"
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibrarySales: Codeunit "Library - Sales";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryRandom: Codeunit "Library - Random";
@@ -1914,6 +1915,170 @@ codeunit 137275 "SCM Inventory Journals"
         ItemReclassJournal.Close();
     end;
 
+    [Test]
+    procedure NegativeAdjustmentPostsAtLocationWithFilterCharacter()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Item Journal]
+        // [SCENARIO 653899] A negative adjustment posts at a location whose code contains a filter character
+        Initialize();
+        Quantity := 10;
+
+        // [GIVEN] Item "I" has quantity 10 at location "L" whose code contains ">"
+        LibraryInventory.CreateItem(Item);
+        CreateLocationWithCode(Location, 'LOC>LOC1');
+        CreateAndPostItemJournal(ItemLedgerEntryType::"Positive Adjmt.", Item."No.", '', Location.Code, '', Quantity);
+
+        // [WHEN] A negative adjustment of 1 is posted for item "I" at location "L"
+        CreateAndPostItemJournal(ItemLedgerEntryType::"Negative Adjmt.", Item."No.", '', Location.Code, '', 1);
+
+        // [THEN] The exact item and location have quantity 9
+        VerifyItemInventory(Item."No.", '', Location.Code, Quantity - 1);
+    end;
+
+    [Test]
+    procedure NegativeAdjustmentPostsForVariantWithFilterCharacter()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Item Journal]
+        // [SCENARIO 653899] A negative adjustment posts for a variant whose code contains a filter character
+        Initialize();
+        Quantity := 10;
+
+        // [GIVEN] Item "I" has quantity 10 for variant "V" whose code contains ">"
+        LibraryInventory.CreateItem(Item);
+        CreateItemVariantWithCode(ItemVariant, Item."No.", 'VAR>VAR1');
+        CreateAndPostItemJournal(ItemLedgerEntryType::"Positive Adjmt.", Item."No.", ItemVariant.Code, '', '', Quantity);
+
+        // [WHEN] A negative adjustment of 1 is posted for item "I" and variant "V"
+        CreateAndPostItemJournal(ItemLedgerEntryType::"Negative Adjmt.", Item."No.", ItemVariant.Code, '', '', 1);
+
+        // [THEN] The exact item and variant have quantity 9
+        VerifyItemInventory(Item."No.", ItemVariant.Code, '', Quantity - 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('AvailabilityConfirmationHandlerNo')]
+    procedure BlankLocationDoesNotBorrowUnreservedInventoryFromAnotherLocation()
+    var
+        Item: Record Item;
+        OtherLocation: Record Location;
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Item Journal]
+        // [SCENARIO 653899] Availability for a blank location excludes inventory at another location
+        Initialize();
+        Quantity := 10;
+
+        // [GIVEN] Item "I" has 10 reserved units at the blank location and 10 free units at location "L"
+        LibraryInventory.CreateItem(Item);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(OtherLocation);
+        CreateAndPostItemJournal(ItemLedgerEntryType::"Positive Adjmt.", Item."No.", '', '', '', Quantity);
+        CreateAndPostItemJournal(ItemLedgerEntryType::"Positive Adjmt.", Item."No.", '', OtherLocation.Code, '', Quantity);
+        CreateReservedSalesDemand(Item."No.", '', '', Quantity);
+
+        // [WHEN] Posting a negative adjustment of 5 at the blank location is declined at the availability warning
+        asserterror CreateAndPostItemJournal(ItemLedgerEntryType::"Negative Adjmt.", Item."No.", '', '', '', Quantity / 2);
+
+        // [THEN] Posting is cancelled rather than borrowing the free inventory at location "L"
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    [HandlerFunctions('AvailabilityConfirmationHandlerNo')]
+    procedure BlankVariantDoesNotBorrowUnreservedInventoryFromAnotherVariant()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        Location: Record Location;
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Item Journal]
+        // [SCENARIO 653899] Availability for a blank variant excludes inventory of another variant
+        Initialize();
+        Quantity := 10;
+
+        // [GIVEN] Item "I" has 10 reserved blank-variant units and 10 free units of variant "V" at location "L"
+        LibraryInventory.CreateItem(Item);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        CreateAndPostItemJournal(ItemLedgerEntryType::"Positive Adjmt.", Item."No.", '', Location.Code, '', Quantity);
+        CreateAndPostItemJournal(ItemLedgerEntryType::"Positive Adjmt.", Item."No.", ItemVariant.Code, Location.Code, '', Quantity);
+        CreateReservedSalesDemand(Item."No.", '', Location.Code, Quantity);
+
+        // [WHEN] Posting a negative adjustment of 5 for the blank variant is declined at the availability warning
+        asserterror CreateAndPostItemJournal(ItemLedgerEntryType::"Negative Adjmt.", Item."No.", '', Location.Code, '', Quantity / 2);
+
+        // [THEN] Posting is cancelled rather than borrowing the free inventory of variant "V"
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure MixedLocationAndVariantLinesStayInTheirExactScopes()
+    var
+        Item: Record Item;
+        ItemVariant: array[2] of Record "Item Variant";
+        Location: array[2] of Record Location;
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Item Journal]
+        // [SCENARIO 653899] A batch with different locations and variants keeps each quantity in its exact scope
+        Initialize();
+        Quantity := 10;
+
+        // [GIVEN] Item "I" has quantity 10 in each of two distinct location and variant scopes
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemVariant(ItemVariant[1], Item."No.");
+        LibraryInventory.CreateItemVariant(ItemVariant[2], Item."No.");
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location[1]);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location[2]);
+        CreateAndPostItemJournal(
+          ItemLedgerEntryType::"Positive Adjmt.", Item."No.", ItemVariant[1].Code, Location[1].Code, '', Quantity);
+        CreateAndPostItemJournal(
+          ItemLedgerEntryType::"Positive Adjmt.", Item."No.", ItemVariant[2].Code, Location[2].Code, '', Quantity);
+
+        // [WHEN] One negative adjustment for each exact scope is posted in the same batch
+        PostMixedScopeNegativeAdjustments(Item."No.", ItemVariant, Location);
+
+        // [THEN] Each exact item, location and variant scope has quantity 9
+        VerifyItemInventory(Item."No.", ItemVariant[1].Code, Location[1].Code, Quantity - 1);
+        VerifyItemInventory(Item."No.", ItemVariant[2].Code, Location[2].Code, Quantity - 1);
+    end;
+
+    [Test]
+    procedure PositiveAdjustmentWithFilterCharacterAndOrdinaryOutboundRemainSupported()
+    var
+        Item: Record Item;
+        FilterLocation: Record Location;
+        OrdinaryLocation: Record Location;
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Item Journal]
+        // [SCENARIO 653899] Positive adjustment and ordinary outbound posting retain their existing behavior
+        Initialize();
+        Quantity := 10;
+
+        // [GIVEN] Item "I", a filter-character location "F", and an ordinary location "L"
+        LibraryInventory.CreateItem(Item);
+        CreateLocationWithCode(FilterLocation, 'LOC>POS1');
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(OrdinaryLocation);
+
+        // [WHEN] A positive adjustment is posted at "F", and stock plus an outbound adjustment are posted at "L"
+        CreateAndPostItemJournal(ItemLedgerEntryType::"Positive Adjmt.", Item."No.", '', FilterLocation.Code, '', Quantity);
+        CreateAndPostItemJournal(ItemLedgerEntryType::"Positive Adjmt.", Item."No.", '', OrdinaryLocation.Code, '', Quantity);
+        CreateAndPostItemJournal(ItemLedgerEntryType::"Negative Adjmt.", Item."No.", '', OrdinaryLocation.Code, '', 1);
+
+        // [THEN] Positive adjustment at "F" and ordinary outbound posting at "L" have exact quantities
+        VerifyItemInventory(Item."No.", '', FilterLocation.Code, Quantity);
+        VerifyItemInventory(Item."No.", '', OrdinaryLocation.Code, Quantity - 1);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2642,6 +2807,60 @@ codeunit 137275 "SCM Inventory Journals"
         ItemJournalLine.FindFirst();
     end;
 
+    local procedure CreateItemVariantWithCode(var ItemVariant: Record "Item Variant"; ItemNo: Code[20]; VariantCode: Code[10])
+    begin
+        LibraryInventory.CreateItemVariant(ItemVariant, ItemNo);
+        ItemVariant.Rename(ItemNo, VariantCode);
+    end;
+
+    local procedure CreateLocationWithCode(var Location: Record Location; LocationCode: Code[10])
+    begin
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Location.Rename(LocationCode);
+    end;
+
+    local procedure CreateReservedSalesDemand(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; Quantity: Decimal)
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        LibrarySales.CreateSalesDocumentWithItem(
+          SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '', ItemNo, Quantity, LocationCode, WorkDate());
+        SalesLine.Validate("Variant Code", VariantCode);
+        SalesLine.Modify(true);
+        LibrarySales.AutoReserveSalesLine(SalesLine);
+    end;
+
+    local procedure PostMixedScopeNegativeAdjustments(ItemNo: Code[20]; ItemVariant: array[2] of Record "Item Variant"; Location: array[2] of Record Location)
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemJournalTemplate: Record "Item Journal Template";
+        i: Integer;
+    begin
+        SelectAndClearItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Type::Item);
+        for i := 1 to ArrayLen(ItemVariant) do begin
+            LibraryInventory.CreateItemJournalLine(
+              ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+              ItemLedgerEntryType::"Negative Adjmt.", ItemNo, 1);
+            ItemJournalLine.Validate("Variant Code", ItemVariant[i].Code);
+            ItemJournalLine.Validate("Location Code", Location[i].Code);
+            ItemJournalLine.Modify(true);
+        end;
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+    end;
+
+    local procedure VerifyItemInventory(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; ExpectedQuantity: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Variant Code", VariantCode);
+        ItemLedgerEntry.SetRange("Location Code", LocationCode);
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(ExpectedQuantity, ItemLedgerEntry.Quantity, 'The inventory quantity in the exact location and variant scope is incorrect.');
+    end;
+
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure ItemTrackingPageHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
@@ -2854,6 +3073,12 @@ codeunit 137275 "SCM Inventory Journals"
     begin
         Assert.IsTrue(StrPos(ConfirmMessage, AvailabilityWarning) > 0, ConfirmMessage);
         Reply := true
+    end;
+
+    [ConfirmHandler]
+    procedure AvailabilityConfirmationHandlerNo(ConfirmMessage: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
     end;
 
     [ConfirmHandler]
