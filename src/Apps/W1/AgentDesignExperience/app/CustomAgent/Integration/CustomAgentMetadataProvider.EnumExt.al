@@ -12,6 +12,6 @@ enumextension 4351 "Custom Agent Metadata Provider" extends "Agent Metadata Prov
     value(4377; "Custom Agent")
     {
         Caption = 'Agent';
-        Implementation = IAgentFactory = "Custom Agent Metadata Provider", IAgentMetadata = "Custom Agent Metadata Provider";
+        Implementation = IAgentFactory = "Custom Agent Metadata Provider", IAgentMetadata = "Custom Agent Metadata Provider", IAgentManualTaskCreation = "Custom Agent Metadata Provider";
     }
 }
