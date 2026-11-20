@@ -62,6 +62,7 @@ codeunit 6974 "Cancel Posted Expense Report"
     var
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         CorpCardPostMgt: Codeunit "EA Corp Card Post Mgt";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
         ReversalTransactionNo: Integer;
     begin
         if PostedExpenseReportHeader.Canceled then
@@ -90,6 +91,8 @@ codeunit 6974 "Cancel Posted Expense Report"
 
         PostedExpenseReportHeader.Canceled := true;
         PostedExpenseReportHeader.Modify();
+
+        ExpenseActivityLogMgt.LogPostedExpenseReportCanceledEvent(PostedExpenseReportHeader);
     end;
 
     local procedure ReverseGLTransaction(PostedExpenseReportHeader: Record "Posted Expense Report Header"): Integer
