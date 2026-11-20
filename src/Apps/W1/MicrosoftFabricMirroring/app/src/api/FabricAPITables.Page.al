@@ -69,4 +69,15 @@ page 48502 "Fabric API Tables"
         ActionContext.AddEntityKey(TenantFabricTables.FieldNo(SystemId), TenantFabricTables.SystemId);
         ActionContext.SetResultCode(WebServiceActionResultCode::Created);
     end;
+
+    [ServiceEnabled]
+    [Caption('Remove a table from Fabric mirroring')]
+    [Scope('Cloud')]
+    procedure RemoveTable(var ActionContext: WebServiceActionContext)
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        FabricPlatformMgt.RemoveTable(Rec."Table ID");
+        ActionContext.SetResultCode(WebServiceActionResultCode::Deleted);
+    end;
 }
