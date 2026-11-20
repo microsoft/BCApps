@@ -17,6 +17,8 @@ codeunit 133754 "Custom Agent Test"
     TestType = UnitTest;
     TestPermissions = Disabled;
 
+    // [FEATURE] [Custom Agent] [Manual Task Creation]
+
     var
         AgentDesignerTestLib: Codeunit "Agent Designer Test Lib.";
         Any: Codeunit Any;
@@ -37,6 +39,7 @@ codeunit 133754 "Custom Agent Test"
         AgentRec: Record Agent;
         CustomAgentSetup: Record "Custom Agent Setup";
     begin
+        LibraryVariableStorage.Clear();
         AgentRec.SetRange("Agent Metadata Provider", AgentRec."Agent Metadata Provider"::"Custom Agent");
         AgentRec.SetFilter("User Name", TestAgentPrefixTxt + '*');
         if (AgentRec.Count() = 2) and Initialized then
@@ -88,6 +91,7 @@ codeunit 133754 "Custom Agent Test"
         Agent: Codeunit Agent;
         CustomAgentSetup: Codeunit "Custom Agent Setup";
     begin
+        // [SCENARIO] Opening the editor for an inactive agent requires confirmation.
         // [GIVEN] An inactive custom agent
         Initialize();
         Agent.Deactivate(TestAgentId1);
@@ -109,6 +113,7 @@ codeunit 133754 "Custom Agent Test"
         Agent: Codeunit Agent;
         CustomAgentSetup: Codeunit "Custom Agent Setup";
     begin
+        // [SCENARIO] Archived agents cannot open the instruction editor.
         // [GIVEN] An archived custom agent
         Initialize();
         Agent.Deactivate(TestAgentId2);
@@ -131,12 +136,16 @@ codeunit 133754 "Custom Agent Test"
         ManualTaskCreation: Interface IAgentManualTaskCreation;
         Files: List of [FileUpload];
     begin
+        // [SCENARIO] The timeline task menu can open Test Agent for the selected custom agent.
+        // [GIVEN] An active custom agent and the Test Agent menu option
         Initialize();
         ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
         LibraryVariableStorage.Enqueue(2);
 
+        // [WHEN] Manual task creation is invoked through the metadata provider interface
         ManualTaskCreation.CreateManualAgentTask(TestAgentId1, Files);
 
+        // [THEN] The page handler verifies the expected agent context and all inputs are consumed
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -149,14 +158,18 @@ codeunit 133754 "Custom Agent Test"
         Files: List of [FileUpload];
         TaskCount: Integer;
     begin
+        // [SCENARIO] Cancelling the timeline task menu opens no page and creates no task.
+        // [GIVEN] A custom agent and a cancelled menu choice
         Initialize();
         ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
         AgentTask.SetRange("Agent User Security ID", TestAgentId1);
         TaskCount := AgentTask.Count();
         LibraryVariableStorage.Enqueue(0);
 
+        // [WHEN] Manual task creation is invoked
         ManualTaskCreation.CreateManualAgentTask(TestAgentId1, Files);
 
+        // [THEN] No page is opened and the task count is unchanged
         LibraryVariableStorage.AssertEmpty();
         Assert.AreEqual(TaskCount, AgentTask.Count(), 'Canceling the task creation menu must not create a task or open a page.');
     end;
@@ -170,14 +183,18 @@ codeunit 133754 "Custom Agent Test"
         Files: List of [FileUpload];
         TaskCount: Integer;
     begin
+        // [SCENARIO] The Create task option opens the simple task page without submitting on cancellation.
+        // [GIVEN] A custom agent and the Create task menu option
         Initialize();
         ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
         AgentTask.SetRange("Agent User Security ID", TestAgentId1);
         TaskCount := AgentTask.Count();
         LibraryVariableStorage.Enqueue(1);
 
+        // [WHEN] Manual task creation opens the task page and its handler cancels
         ManualTaskCreation.CreateManualAgentTask(TestAgentId1, Files);
 
+        // [THEN] The custom-agent navigation action is visible and no task is created
         LibraryVariableStorage.AssertEmpty();
         Assert.AreEqual(TaskCount, AgentTask.Count(), 'Canceling the new task page must not create a task.');
     end;
@@ -191,14 +208,18 @@ codeunit 133754 "Custom Agent Test"
         Files: List of [FileUpload];
         TaskCount: Integer;
     begin
+        // [SCENARIO] Opening Test Agent from the simple task page preserves the unsubmitted draft.
+        // [GIVEN] A custom agent and the Create task menu option
         Initialize();
         ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
         AgentTask.SetRange("Agent User Security ID", TestAgentId1);
         TaskCount := AgentTask.Count();
         LibraryVariableStorage.Enqueue(1);
 
+        // [WHEN] The task-page handler enters a draft and opens Test Agent
         ManualTaskCreation.CreateManualAgentTask(TestAgentId1, Files);
 
+        // [THEN] The editor has the expected agent context, the draft is preserved, and no task is submitted
         LibraryVariableStorage.AssertEmpty();
         Assert.AreEqual(TaskCount, AgentTask.Count(), 'Opening Test agent must not submit the task draft.');
     end;
@@ -213,6 +234,8 @@ codeunit 133754 "Custom Agent Test"
         Agent: Codeunit Agent;
         AgentNewTaskMessage: Page "Agent New Task Message";
     begin
+        // [SCENARIO] The simple task page hides Test Agent navigation for other metadata providers.
+        // [GIVEN] An agent using a non-custom metadata provider
         Initialize();
         AgentTask."Agent User Security ID" := Agent.Create(
             Enum::"Agent Metadata Provider"::"Designer Test Agent",
@@ -222,8 +245,10 @@ codeunit 133754 "Custom Agent Test"
         AgentNewTaskMessage.SetAgentTask(AgentTask, true);
         AgentNewTaskMessage.LookupMode(true);
 
+        // [WHEN] The simple task page is opened for that agent
         AgentNewTaskMessage.RunModal();
 
+        // [THEN] The page handler verifies that the Test Agent action is hidden
         OtherAgent.Get(AgentTask."Agent User Security ID");
         OtherAgent.Delete();
     end;
@@ -236,6 +261,8 @@ codeunit 133754 "Custom Agent Test"
         ManualTaskCreation: Interface IAgentManualTaskCreation;
         Files: List of [FileUpload];
     begin
+        // [SCENARIO] Creating a simple task for an inactive agent requires confirmation.
+        // [GIVEN] An inactive custom agent and a declined confirmation
         Initialize();
         Agent.Deactivate(TestAgentId1);
         ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
@@ -243,8 +270,10 @@ codeunit 133754 "Custom Agent Test"
         LibraryVariableStorage.Enqueue('inactive');
         LibraryVariableStorage.Enqueue(false);
 
+        // [WHEN] The Create task menu option is selected
         ManualTaskCreation.CreateManualAgentTask(TestAgentId1, Files);
 
+        // [THEN] The confirmation is shown and no task page is opened
         LibraryVariableStorage.AssertEmpty();
         Agent.Activate(TestAgentId1);
     end;
@@ -257,14 +286,18 @@ codeunit 133754 "Custom Agent Test"
         ManualTaskCreation: Interface IAgentManualTaskCreation;
         Files: List of [FileUpload];
     begin
+        // [SCENARIO] Archived agents cannot create manual tasks.
+        // [GIVEN] An archived custom agent and the Create task menu option
         Initialize();
         Agent.Deactivate(TestAgentId2);
         Agent.Archive(TestAgentId2);
         ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
         LibraryVariableStorage.Enqueue(1);
 
+        // [WHEN] Manual task creation is invoked
         asserterror ManualTaskCreation.CreateManualAgentTask(TestAgentId2, Files);
 
+        // [THEN] The archived-agent error is raised and no task page is opened
         Assert.ExpectedError(ArchivedAgentCannotBeTestedErr);
         LibraryVariableStorage.AssertEmpty();
         Initialized := false;
@@ -484,7 +517,13 @@ codeunit 133754 "Custom Agent Test"
 
     [PageHandler]
     procedure AgentInstructionEditorPageHandler(var AgentInstructionEditor: TestPage "Agent Instruction Editor")
+    var
+        CustomAgentSetup: Record "Custom Agent Setup";
     begin
+        CustomAgentSetup.Get(TestAgentId1);
+        Assert.IsTrue(AgentInstructionEditor.GoToRecord(CustomAgentSetup), 'The instruction editor must show the selected agent setup.');
+        CustomAgentSetup.Get(TestAgentId2);
+        Assert.IsFalse(AgentInstructionEditor.GoToRecord(CustomAgentSetup), 'The instruction editor must exclude other agents from its context.');
         AgentInstructionEditor.Close();
     end;
 
