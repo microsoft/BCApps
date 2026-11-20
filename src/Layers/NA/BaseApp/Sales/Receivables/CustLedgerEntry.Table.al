@@ -1780,22 +1780,29 @@ table 21 "Cust. Ledger Entry"
         else begin
             // Journal and service invoices have VAT entries, but no posted sales invoice lines.
             SetInvoiceVATEntryFilters(VATEntry, DocumentNo);
-            VATEntry.SetLoadFields("VAT Bus. Posting Group", "VAT Prod. Posting Group");
+            VATEntry.SetLoadFields("Document Type", "Unrealized VAT Entry No.", "VAT Bus. Posting Group", "VAT Prod. Posting Group");
             if VATEntry.FindSet() then
                 repeat
-                    InsertTempVATPostingSetup(
-                      TempVATPostingSetup, VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
+                    if IsOriginalInvoiceVATEntry(VATEntry) then
+                        InsertTempVATPostingSetup(
+                          TempVATPostingSetup, VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
                 until VATEntry.Next() = 0;
         end;
     end;
 
     local procedure SetInvoiceVATEntryFilters(var VATEntry: Record "VAT Entry"; DocumentNo: Code[20])
     begin
+        // Use indexed filters, then check the unindexed original-invoice fields while iterating.
         VATEntry.SetRange("Transaction No.", Rec."Transaction No.");
         VATEntry.SetRange("Document No.", DocumentNo);
         VATEntry.SetRange(Type, VATEntry.Type::Sale);
-        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
-        VATEntry.SetRange("Unrealized VAT Entry No.", 0);
+    end;
+
+    local procedure IsOriginalInvoiceVATEntry(VATEntry: Record "VAT Entry"): Boolean
+    begin
+        exit(
+          (VATEntry."Document Type" = VATEntry."Document Type"::Invoice) and
+          (VATEntry."Unrealized VAT Entry No." = 0));
     end;
 
     local procedure InsertTempVATPostingSetupFromCreditMemo(var TempVATPostingSetup: Record "VAT Posting Setup"; DocumentNo: Code[20])
@@ -1849,11 +1856,13 @@ table 21 "Cust. Ledger Entry"
             SetInvoiceVATEntryFilters(VATEntry, Rec."Document No.");
             VATEntry.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
             VATEntry.SetRange("VAT Prod. Posting Group", VATProdPostingGroup);
-            VATEntry.SetLoadFields("Unrealized Amount", "Unrealized Base");
+            VATEntry.SetLoadFields("Document Type", "Unrealized VAT Entry No.", "Unrealized Amount", "Unrealized Base");
             if VATEntry.FindSet() then
                 repeat
-                    InvoiceVATEntryFound := true;
-                    InvoicePartAmount -= VATEntry."Unrealized Amount" + VATEntry."Unrealized Base";
+                    if IsOriginalInvoiceVATEntry(VATEntry) then begin
+                        InvoiceVATEntryFound := true;
+                        InvoicePartAmount -= VATEntry."Unrealized Amount" + VATEntry."Unrealized Base";
+                    end;
                 until VATEntry.Next() = 0;
             if not InvoiceVATEntryFound then
                 InvoicePartAmount := BaseInvoicePartAmount;
@@ -1869,6 +1878,8 @@ table 21 "Cust. Ledger Entry"
         CreditMemoGroupAppliedAmount: Decimal;
     begin
         Clear(CreditMemoAppliedAmounts);
+        DetailedCustLedgEntry.SetLoadFields("Applied Cust. Ledger Entry No.", Unapplied, "Application No.", "Transaction No.", "Amount (LCY)");
+        AppliedDetailedCustLedgEntry.SetLoadFields("Cust. Ledger Entry No.", Unapplied, "Amount (LCY)");
         // The current application's details are inserted after invoice VAT realization.
         DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", Rec."Entry No.");
         DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::Application);
@@ -1916,11 +1927,13 @@ table 21 "Cust. Ledger Entry"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         PreviousAppliedAmount: Decimal;
     begin
+        AppliedCustLedgerEntry.SetLoadFields("Document Type", "Document No.", "Currency Code");
         AppliedCustLedgerEntry.Get(AppliedCustLedgerEntryNo);
         if (AppliedCustLedgerEntry."Document Type" <> AppliedCustLedgerEntry."Document Type"::"Credit Memo") or
            (AppliedCustLedgerEntry."Currency Code" <> '')
         then
             exit;
+        SalesCrMemoHeader.SetLoadFields("Cust. Ledger Entry No.");
         if not SalesCrMemoHeader.Get(AppliedCustLedgerEntry."Document No.") then
             exit;
         if SalesCrMemoHeader."Cust. Ledger Entry No." <> AppliedCustLedgerEntry."Entry No." then
