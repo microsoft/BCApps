@@ -4606,7 +4606,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CreditMemoVATProdPostingGroup: Code[20];
         InvoiceVATBusPostingGroup: Code[20];
         InvoiceVATProdPostingGroup: Code[20];
+        CreditMemoAppliedAmounts: Dictionary of [Code[20], Decimal];
         InvoiceVATGroupKey: Text;
+        HistorySettledAmount: Decimal;
         CurrentGroupSettledAmount: Decimal;
         PreviousGroupSettledAmount: Decimal;
     begin
@@ -4673,19 +4675,38 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         // A credit memo can settle the invoice amount without covering every VAT group, so completion is decided per group.
                         // Several credit memo groups can map to one invoice group; include the shares already realized in this application.
                         InvoiceVATGroupKey := InvoiceVATBusPostingGroup + '|' + InvoiceVATProdPostingGroup;
-                        CurrentGroupSettledAmount := Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor());
+                        PaidAmountByVAT :=
+                          CustLedgEntry2.GetAppliedAmountByVATPostingGroup(
+                            PaidAmount + Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
+                            InvoicePartAmountByVAT, InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup,
+                            TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded, CreditMemoAppliedAmounts);
+                        // Allocate this application as the difference between cumulative rounded group amounts.
+                        HistorySettledAmount := 0;
+                        if CreditMemoAppliedAmounts.Get(CreditMemoDocumentNo, HistorySettledAmount) then begin
+                            HistorySettledAmount := Abs(HistorySettledAmount);
+                            if SettledAmount < 0 then
+                                HistorySettledAmount := -HistorySettledAmount;
+                        end;
+                        CurrentGroupSettledAmount :=
+                          Round(
+                            CustLedgEntry2.GetCreditMemoPartAmountByVAT(
+                              CreditMemoDocumentNo, TempAppliedVATPostingSetup."VAT Bus. Posting Group", TempAppliedVATPostingSetup."VAT Prod. Posting Group",
+                              SettledAmount + HistorySettledAmount, CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup,
+                              CreditMemoVATGroupAmounts, CreditMemoTotalAmount, CreditMemoAmountsLoaded) /
+                            CustLedgEntry2.GetAdjustedCurrencyFactor()) -
+                          Round(
+                            CustLedgEntry2.GetCreditMemoPartAmountByVAT(
+                              CreditMemoDocumentNo, TempAppliedVATPostingSetup."VAT Bus. Posting Group", TempAppliedVATPostingSetup."VAT Prod. Posting Group",
+                              HistorySettledAmount, CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup,
+                              CreditMemoVATGroupAmounts, CreditMemoTotalAmount, CreditMemoAmountsLoaded) /
+                            CustLedgEntry2.GetAdjustedCurrencyFactor());
                         if CurrentSettledByInvoiceVATGroup.Get(InvoiceVATGroupKey, PreviousGroupSettledAmount) then
                             CurrentSettledByInvoiceVATGroup.Set(InvoiceVATGroupKey, PreviousGroupSettledAmount + CurrentGroupSettledAmount)
                         else begin
                             PreviousGroupSettledAmount := 0;
                             CurrentSettledByInvoiceVATGroup.Add(InvoiceVATGroupKey, CurrentGroupSettledAmount);
                         end;
-                        PaidAmountByVAT :=
-                          CustLedgEntry2.GetAppliedAmountByVATPostingGroup(
-                            PaidAmount + Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
-                            InvoicePartAmountByVAT, InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup,
-                            TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded) -
-                          CurrentGroupSettledAmount - PreviousGroupSettledAmount;
+                        PaidAmountByVAT := PaidAmountByVAT - CurrentGroupSettledAmount - PreviousGroupSettledAmount;
                     end else
                         // Rounded VAT/base realizations can differ from actual payments at final settlement.
                         if Abs(PaidAmount) = Abs(CustLedgEntry2."Amount (LCY)") then

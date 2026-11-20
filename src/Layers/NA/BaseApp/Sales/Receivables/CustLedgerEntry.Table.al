@@ -1860,13 +1860,15 @@ table 21 "Cust. Ledger Entry"
         end;
     end;
 
-    internal procedure GetAppliedAmountByVATPostingGroup(PaidAmountBeforeApplication: Decimal; InvoicePartAmount: Decimal; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; var TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary; var InvoiceVATGroupsLoaded: Boolean): Decimal
+    internal procedure GetAppliedAmountByVATPostingGroup(PaidAmountBeforeApplication: Decimal; InvoicePartAmount: Decimal; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; var TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary; var InvoiceVATGroupsLoaded: Boolean; var CreditMemoAppliedAmounts: Dictionary of [Code[20], Decimal]): Decimal
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         AppliedDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        CreditMemoDocumentNo: Code[20];
         CreditMemoAppliedAmount: Decimal;
         CreditMemoGroupAppliedAmount: Decimal;
     begin
+        Clear(CreditMemoAppliedAmounts);
         // The current application's details are inserted after invoice VAT realization.
         DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", Rec."Entry No.");
         DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::Application);
@@ -1885,17 +1887,22 @@ table 21 "Cust. Ledger Entry"
                                 if not AppliedDetailedCustLedgEntry.Unapplied and
                                    (AppliedDetailedCustLedgEntry."Cust. Ledger Entry No." <> Rec."Entry No.")
                                 then
-                                    CollectAppliedCreditMemoVATGroupAmount(
+                                    AddAppliedCreditMemoAmount(
                                       AppliedDetailedCustLedgEntry."Cust. Ledger Entry No.", AppliedDetailedCustLedgEntry."Amount (LCY)",
-                                      VATBusPostingGroup, VATProdPostingGroup, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded,
-                                      CreditMemoAppliedAmount, CreditMemoGroupAppliedAmount);
+                                      CreditMemoAppliedAmounts);
                             until AppliedDetailedCustLedgEntry.Next() = 0;
                     end else
-                        CollectAppliedCreditMemoVATGroupAmount(
+                        AddAppliedCreditMemoAmount(
                           DetailedCustLedgEntry."Applied Cust. Ledger Entry No.", -DetailedCustLedgEntry."Amount (LCY)",
-                          VATBusPostingGroup, VATProdPostingGroup, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded,
-                          CreditMemoAppliedAmount, CreditMemoGroupAppliedAmount);
+                          CreditMemoAppliedAmounts);
             until DetailedCustLedgEntry.Next() = 0;
+
+        // Allocate each credit memo's cumulative applied amount once, so partial applications cannot accumulate rounding differences.
+        foreach CreditMemoDocumentNo in CreditMemoAppliedAmounts.Keys() do
+            CollectAppliedCreditMemoVATGroupAmount(
+              CreditMemoDocumentNo, CreditMemoAppliedAmounts.Get(CreditMemoDocumentNo),
+              VATBusPostingGroup, VATProdPostingGroup, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded,
+              CreditMemoAppliedAmount, CreditMemoGroupAppliedAmount);
 
         // Payments and journal credit memos still settle every invoice group proportionally.
         exit(
@@ -1903,20 +1910,11 @@ table 21 "Cust. Ledger Entry"
           (PaidAmountBeforeApplication - CreditMemoAppliedAmount) * InvoicePartAmount / Rec."Original Amt. (LCY)");
     end;
 
-    local procedure CollectAppliedCreditMemoVATGroupAmount(AppliedCustLedgerEntryNo: BigInteger; AppliedAmount: Decimal; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; var TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary; var InvoiceVATGroupsLoaded: Boolean; var CreditMemoAppliedAmount: Decimal; var CreditMemoGroupAppliedAmount: Decimal)
+    local procedure AddAppliedCreditMemoAmount(AppliedCustLedgerEntryNo: BigInteger; AppliedAmount: Decimal; var CreditMemoAppliedAmounts: Dictionary of [Code[20], Decimal])
     var
         AppliedCustLedgerEntry: Record "Cust. Ledger Entry";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
-        CreditMemoVATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]];
-        CreditMemoVATProdGroupAmounts: Dictionary of [Code[20], Decimal];
-        DocumentVATBusPostingGroup: Code[20];
-        DocumentVATProdPostingGroup: Code[20];
-        InvoiceVATBusPostingGroup: Code[20];
-        InvoiceVATProdPostingGroup: Code[20];
-        CreditMemoVATBusPostingGroup: Code[20];
-        CreditMemoVATProdPostingGroup: Code[20];
-        CreditMemoAmount: Decimal;
-        CreditMemoAmountsLoaded: Boolean;
+        PreviousAppliedAmount: Decimal;
     begin
         AppliedCustLedgerEntry.Get(AppliedCustLedgerEntryNo);
         if (AppliedCustLedgerEntry."Document Type" <> AppliedCustLedgerEntry."Document Type"::"Credit Memo") or
@@ -1928,8 +1926,27 @@ table 21 "Cust. Ledger Entry"
         if SalesCrMemoHeader."Cust. Ledger Entry No." <> AppliedCustLedgerEntry."Entry No." then
             exit;
 
+        if CreditMemoAppliedAmounts.Get(AppliedCustLedgerEntry."Document No.", PreviousAppliedAmount) then
+            CreditMemoAppliedAmounts.Set(AppliedCustLedgerEntry."Document No.", PreviousAppliedAmount + AppliedAmount)
+        else
+            CreditMemoAppliedAmounts.Add(AppliedCustLedgerEntry."Document No.", AppliedAmount);
+    end;
+
+    local procedure CollectAppliedCreditMemoVATGroupAmount(CreditMemoDocumentNo: Code[20]; AppliedAmount: Decimal; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; var TempInvoiceVATPostingSetup: Record "VAT Posting Setup" temporary; var InvoiceVATGroupsLoaded: Boolean; var CreditMemoAppliedAmount: Decimal; var CreditMemoGroupAppliedAmount: Decimal)
+    var
+        CreditMemoVATGroupAmounts: Dictionary of [Code[20], Dictionary of [Code[20], Decimal]];
+        CreditMemoVATProdGroupAmounts: Dictionary of [Code[20], Decimal];
+        DocumentVATBusPostingGroup: Code[20];
+        DocumentVATProdPostingGroup: Code[20];
+        InvoiceVATBusPostingGroup: Code[20];
+        InvoiceVATProdPostingGroup: Code[20];
+        CreditMemoVATBusPostingGroup: Code[20];
+        CreditMemoVATProdPostingGroup: Code[20];
+        CreditMemoAmount: Decimal;
+        CreditMemoAmountsLoaded: Boolean;
+    begin
         LoadCreditMemoVATGroupAmounts(
-          AppliedCustLedgerEntry."Document No.", CreditMemoVATGroupAmounts, CreditMemoAmount, CreditMemoAmountsLoaded);
+          CreditMemoDocumentNo, CreditMemoVATGroupAmounts, CreditMemoAmount, CreditMemoAmountsLoaded);
         if CreditMemoVATGroupAmounts.Count() = 0 then
             exit;
 
@@ -1938,7 +1955,7 @@ table 21 "Cust. Ledger Entry"
             CreditMemoVATProdGroupAmounts := CreditMemoVATGroupAmounts.Get(DocumentVATBusPostingGroup);
             foreach DocumentVATProdPostingGroup in CreditMemoVATProdGroupAmounts.Keys() do
                 if GetInvoiceVATPostingGroupForCreditMemoVATGroup(
-                     AppliedCustLedgerEntry."Document No.", DocumentVATBusPostingGroup, DocumentVATProdPostingGroup,
+                     CreditMemoDocumentNo, DocumentVATBusPostingGroup, DocumentVATProdPostingGroup,
                      InvoiceVATBusPostingGroup, InvoiceVATProdPostingGroup, TempInvoiceVATPostingSetup, InvoiceVATGroupsLoaded,
                      CreditMemoVATGroupAmounts, CreditMemoAmount, CreditMemoAmountsLoaded)
                 then
@@ -1946,7 +1963,7 @@ table 21 "Cust. Ledger Entry"
                         CreditMemoGroupAppliedAmount +=
                           Round(
                             GetCreditMemoPartAmountByVAT(
-                              AppliedCustLedgerEntry."Document No.", DocumentVATBusPostingGroup, DocumentVATProdPostingGroup,
+                              CreditMemoDocumentNo, DocumentVATBusPostingGroup, DocumentVATProdPostingGroup,
                               AppliedAmount, CreditMemoVATBusPostingGroup, CreditMemoVATProdPostingGroup,
                               CreditMemoVATGroupAmounts, CreditMemoAmount, CreditMemoAmountsLoaded));
         end;

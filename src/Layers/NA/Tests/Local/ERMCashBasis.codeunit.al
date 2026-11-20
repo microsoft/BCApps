@@ -1382,6 +1382,97 @@
     end;
 
     [Test]
+    procedure RepeatedPartialApplicationsOfOneCreditMemoRealizeAllGroupVAT()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
+        CreditMemoCustLedgerEntry: Record "Cust. Ledger Entry";
+        InvoiceVATEntry: Record "VAT Entry";
+        CustomerNo: Code[20];
+        InvoiceNo: Code[20];
+        CreditMemoNo: Code[20];
+        ApplicationAmounts: array[3] of Decimal;
+        LineIndex: Integer;
+        ApplicationIndex: Integer;
+    begin
+        // [SCENARIO 648925] Allocations of one credit memo applied in several parts cannot leave rounding remainders in any VAT group.
+        Initialize();
+
+        // [GIVEN] A journal invoice for 340 with two 16% entries (232 gross) and one 8% entry (108 gross).
+        CreateCashBasisVATPostingSetup(VATPostingSetup[1], 16);
+        VATPostingSetup[2]."VAT Bus. Posting Group" := VATPostingSetup[1]."VAT Bus. Posting Group";
+        CreateCashBasisVATPostingSetup(VATPostingSetup[2], 8);
+        CustomerNo := CreateCustomer('', VATPostingSetup[1]."VAT Bus. Posting Group");
+        CreateGenJournalBatch(GenJournalBatch, GenJournalBatch."Template Type"::General);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+          GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Customer, CustomerNo, 340);
+        InvoiceNo := GenJournalLine."Document No.";
+        for LineIndex := 1 to 2 do begin
+            LibraryERM.CreateGeneralJnlLine(
+              GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+              GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::"G/L Account",
+              LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup[1], GenJournalLine."Gen. Posting Type"::Sale), -116);
+            GenJournalLine.Validate("Document No.", InvoiceNo);
+            GenJournalLine.Modify(true);
+        end;
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+          GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::"G/L Account",
+          LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup[2], GenJournalLine."Gen. Posting Type"::Sale), -108);
+        GenJournalLine.Validate("Document No.", InvoiceNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        LibraryERM.FindCustomerLedgerEntry(InvoiceCustLedgerEntry, InvoiceCustLedgerEntry."Document Type"::Invoice, InvoiceNo);
+
+        // [GIVEN] A posted credit memo for 340 with the same group amounts (232 and 108).
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", CustomerNo);
+        SalesHeader.Validate("Prices Including VAT", true);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(
+          SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(VATPostingSetup[1]."VAT Prod. Posting Group"), 1);
+        SalesLine.Validate("Unit Price", 232);
+        SalesLine.Modify(true);
+        LibrarySales.CreateSalesLine(
+          SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(VATPostingSetup[2]."VAT Prod. Posting Group"), 1);
+        SalesLine.Validate("Unit Price", 108);
+        SalesLine.Modify(true);
+        CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [WHEN] The credit memo is applied to the invoice as 100, 100 and 140.
+        ApplicationAmounts[1] := 100;
+        ApplicationAmounts[2] := 100;
+        ApplicationAmounts[3] := 140;
+        for ApplicationIndex := 1 to ArrayLen(ApplicationAmounts) do begin
+            LibraryERM.FindCustomerLedgerEntry(
+              CreditMemoCustLedgerEntry, CreditMemoCustLedgerEntry."Document Type"::"Credit Memo", CreditMemoNo);
+            LibraryERM.SetApplyCustomerEntry(CreditMemoCustLedgerEntry, -ApplicationAmounts[ApplicationIndex]);
+            InvoiceCustLedgerEntry.Get(InvoiceCustLedgerEntry."Entry No.");
+            LibraryERM.SetAppliestoIdCustomer(InvoiceCustLedgerEntry);
+            LibraryERM.PostCustLedgerApplication(CreditMemoCustLedgerEntry);
+        end;
+
+        // [THEN] The invoice is closed and every original VAT entry is fully realized.
+        InvoiceCustLedgerEntry.Get(InvoiceCustLedgerEntry."Entry No.");
+        InvoiceCustLedgerEntry.CalcFields("Remaining Amount");
+        InvoiceCustLedgerEntry.TestField("Remaining Amount", 0);
+        InvoiceVATEntry.SetRange("Transaction No.", InvoiceCustLedgerEntry."Transaction No.");
+        InvoiceVATEntry.SetRange("Document No.", InvoiceNo);
+        InvoiceVATEntry.SetRange("Document Type", InvoiceVATEntry."Document Type"::Invoice);
+        InvoiceVATEntry.SetRange("Unrealized VAT Entry No.", 0);
+        Assert.RecordCount(InvoiceVATEntry, 3);
+        InvoiceVATEntry.FindSet();
+        repeat
+            InvoiceVATEntry.TestField("Remaining Unrealized Amount", 0);
+            InvoiceVATEntry.TestField("Remaining Unrealized Base", 0);
+        until InvoiceVATEntry.Next() = 0;
+    end;
+
+    [Test]
     procedure ApplyingInvoiceToHalfJournalCrMemoRealizesProportionalVAT()
     begin
         // [SCENARIO 648925] An applying LCY invoice realizes half of each VAT group against a journal credit memo.
