@@ -12,16 +12,16 @@ pageextension 2025 "Image Analysis Setup Ext" extends "Image Analysis Setup"
     {
         addbefore("Api Uri")
         {
-            field("Enable Image-Based Attribute Recognition"; "Image-Based Attribute Recognition Enabled")
+            field("Enable Image-Based Attribute Recognition"; Rec."Image-Based Attribute Recognition Enabled")
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies whether to use the Image Analyzer extension to suggest attributes that it detects in images of items and contact persons.';
 
                 trigger OnValidate()
                 begin
-                    if "Image-Based Attribute Recognition Enabled" then begin
-                        "Image-Based Attribute Recognition Enabled" := false;
-                        Modify();
+                    if Rec."Image-Based Attribute Recognition Enabled" then begin
+                        Rec."Image-Based Attribute Recognition Enabled" := false;
+                        Rec.Modify();
                         Commit();
                         Page.RunModal(Page::"Image Analyzer Wizard");
                         Rec.Get();
@@ -30,7 +30,7 @@ pageextension 2025 "Image Analysis Setup Ext" extends "Image Analysis Setup"
                 end;
             }
 
-            field("Confidence Threshold"; "Confidence Threshold")
+            field("Confidence Threshold"; Rec."Confidence Threshold")
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the confidence score threshold for results from Microsoft Cognitive Services. Results with confidence below the threshold are considered inaccurate, and are not used. A typical threshold is 80%.';

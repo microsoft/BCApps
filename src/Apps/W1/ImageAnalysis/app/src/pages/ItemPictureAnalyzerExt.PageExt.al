@@ -44,7 +44,7 @@ pageextension 2026 "Item Picture Analyzer Ext" extends "Item Card"
 
     trigger OnAfterGetCurrRecord()
     begin
-        HasPicture := Picture.Count() = 1;
+        HasPicture := Rec.Picture.Count() = 1;
     end;
 
     var
