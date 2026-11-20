@@ -11,6 +11,33 @@ codeunit 10984 "Factur-X Report Integration"
     InherentPermissions = X;
     InherentEntitlements = X;
 
+    var
+        ServiceCode: Code[20];
+        XMLAttachmentAdded: Boolean;
+
+    procedure Initialize(EDocumentServiceCode: Code[20])
+    begin
+        ServiceCode := EDocumentServiceCode;
+        XMLAttachmentAdded := false;
+    end;
+
+    procedure HasXMLAttachment(): Boolean
+    begin
+        exit(XMLAttachmentAdded);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export Factur-X Document", OnGetFacturXServiceCode, '', false, false)]
+    local procedure GetFacturXServiceCode(var EDocumentServiceCode: Code[20])
+    begin
+        EDocumentServiceCode := ServiceCode;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export Factur-X Document", OnAfterAddXMLAttachmentToRenderingPayload, '', false, false)]
+    local procedure MarkXMLAttachmentAdded()
+    begin
+        XMLAttachmentAdded := true;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export Factur-X Document", OnIsFacturXFRPrintProcess, '', false, false)]
     local procedure EnableOnIsFacturXFRPrintProcess(var Result: Boolean)
     begin

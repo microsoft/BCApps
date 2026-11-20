@@ -8,6 +8,7 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Message;
+using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Reporting;
@@ -38,6 +39,8 @@ codeunit 6108 "E-Document Processing"
         EDocTelemetryCategoryLbl: Label 'E-Document', Locked = true;
         EDocTelemetryIdLbl: Label 'E-Doc %1', Locked = true;
         EDocTok: Label 'W1 E-Document', Locked = true;
+        SelfBillingSourceRequiredErr: Label 'A self-billing purchase document is required.';
+        SelfBillingSourceTypeErr: Label 'Source table %1 does not match self-billing document type %2.', Comment = '%1 = Source table caption, %2 = E-Document type';
 
     /// <summary>
     /// Inserts E-Document Service Status record. Throws runtime error if record does exists.
@@ -233,12 +236,289 @@ codeunit 6108 "E-Document Processing"
     procedure IsSelfBilledCreditMemo(PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."): Boolean
     var
         PurchInvHeader: Record "Purch. Inv. Header";
+        SourceDocumentHeader: RecordRef;
     begin
-        if PurchCrMemoHdr."Applies-to Doc. Type" <> PurchCrMemoHdr."Applies-to Doc. Type"::Invoice then
+        SourceDocumentHeader.GetTable(PurchCrMemoHdr);
+        exit(TryGetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader));
+    end;
+
+    /// <summary>
+    /// Recognizes native self-billing sources, including unposted purchase sources
+    /// used by format checks. Export validation must use CheckSelfBillingSource.
+    /// </summary>
+    procedure IsSelfBillingSource(SourceDocumentHeader: RecordRef): Boolean
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+    begin
+        case SourceDocumentHeader.Number() of
+            Database::"Purchase Header":
+                begin
+                    SourceDocumentHeader.SetTable(PurchaseHeader);
+                    if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::"Credit Memo" then
+                        exit(PurchaseHeader."Self-Billing Invoice");
+                end;
+            Database::"Purch. Inv. Header":
+                begin
+                    SourceDocumentHeader.SetTable(PurchInvHeader);
+                    exit(PurchInvHeader."Self-Billing Invoice");
+                end;
+        end;
+        exit(TryGetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader));
+    end;
+
+    /// <summary>
+    /// Finds the original self-billed invoice for an applied purchase credit.
+    /// Returns false and clears the output when no eligible original exists.
+    /// </summary>
+    procedure TryGetSelfBillingInvoiceReference(SourceDocumentHeader: RecordRef; var PurchInvHeader: Record "Purch. Inv. Header"): Boolean
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        InvoiceNo: Code[20];
+    begin
+        Clear(PurchInvHeader);
+        case SourceDocumentHeader.Number() of
+            Database::"Purchase Header":
+                begin
+                    SourceDocumentHeader.SetTable(PurchaseHeader);
+                    if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::"Credit Memo" then
+                        exit(false);
+                    if PurchaseHeader."Applies-to Doc. Type" <> PurchaseHeader."Applies-to Doc. Type"::Invoice then
+                        exit(false);
+                    InvoiceNo := PurchaseHeader."Applies-to Doc. No.";
+                end;
+            Database::"Purch. Cr. Memo Hdr.":
+                begin
+                    SourceDocumentHeader.SetTable(PurchCrMemoHeader);
+                    if PurchCrMemoHeader."Applies-to Doc. Type" <> PurchCrMemoHeader."Applies-to Doc. Type"::Invoice then
+                        exit(false);
+                    InvoiceNo := PurchCrMemoHeader."Applies-to Doc. No.";
+                end;
+            else
+                exit(false);
+        end;
+        if InvoiceNo <> '' then
+            if PurchInvHeader.Get(InvoiceNo) then
+                if PurchInvHeader."Self-Billing Invoice" then
+                    exit(true);
+        Clear(PurchInvHeader);
+        exit(false);
+    end;
+
+    /// <summary>
+    /// Gets the required original self-billed invoice, reporting native field errors.
+    /// Format-specific requirements such as a mandatory reference date remain in the format.
+    /// </summary>
+    procedure GetSelfBillingInvoiceReference(SourceDocumentHeader: RecordRef; var PurchInvHeader: Record "Purch. Inv. Header")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+    begin
+        case SourceDocumentHeader.Number() of
+            Database::"Purchase Header":
+                begin
+                    SourceDocumentHeader.SetTable(PurchaseHeader);
+                    PurchaseHeader.TestField("Document Type", PurchaseHeader."Document Type"::"Credit Memo");
+                    PurchaseHeader.TestField("Applies-to Doc. Type", PurchaseHeader."Applies-to Doc. Type"::Invoice);
+                    PurchaseHeader.TestField("Applies-to Doc. No.");
+                    PurchInvHeader.Get(PurchaseHeader."Applies-to Doc. No.");
+                end;
+            Database::"Purch. Cr. Memo Hdr.":
+                begin
+                    SourceDocumentHeader.SetTable(PurchCrMemoHeader);
+                    PurchCrMemoHeader.TestField("Applies-to Doc. Type", PurchCrMemoHeader."Applies-to Doc. Type"::Invoice);
+                    PurchCrMemoHeader.TestField("Applies-to Doc. No.");
+                    PurchInvHeader.Get(PurchCrMemoHeader."Applies-to Doc. No.");
+                end;
+            else
+                Error(SelfBillingSourceRequiredErr);
+        end;
+        PurchInvHeader.TestField("Self-Billing Invoice", true);
+    end;
+
+    /// <summary>
+    /// Validates the exact posted source/type pair. Other E-Document types are unaffected.
+    /// </summary>
+    procedure CheckSelfBillingSource(SourceDocumentHeader: RecordRef; DocumentType: Enum "E-Document Type")
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+    begin
+        case DocumentType of
+            DocumentType::"Self-Billed Purchase Invoice":
+                begin
+                    if SourceDocumentHeader.Number() <> Database::"Purch. Inv. Header" then
+                        Error(SelfBillingSourceTypeErr, SourceDocumentHeader.Caption(), DocumentType);
+                    SourceDocumentHeader.SetTable(PurchInvHeader);
+                    PurchInvHeader.TestField("Self-Billing Invoice", true);
+                end;
+            DocumentType::"Self-Billed Purch. Cr. Memo":
+                begin
+                    if SourceDocumentHeader.Number() <> Database::"Purch. Cr. Memo Hdr." then
+                        Error(SelfBillingSourceTypeErr, SourceDocumentHeader.Caption(), DocumentType);
+                    GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader);
+                end;
+        end;
+    end;
+
+    /// <summary>
+    /// Returns the self-billed type of an eligible posted purchase source.
+    /// Does not reinterpret purchase orders or unposted document types.
+    /// </summary>
+    procedure GetSelfBillingDocumentType(SourceDocumentHeader: RecordRef) DocumentType: Enum "E-Document Type"
+    begin
+        case SourceDocumentHeader.Number() of
+            Database::"Purch. Inv. Header":
+                DocumentType := DocumentType::"Self-Billed Purchase Invoice";
+            Database::"Purch. Cr. Memo Hdr.":
+                DocumentType := DocumentType::"Self-Billed Purch. Cr. Memo";
+            else
+                Error(SelfBillingSourceRequiredErr);
+        end;
+        CheckSelfBillingSource(SourceDocumentHeader, DocumentType);
+    end;
+
+    /// <summary>
+    /// Resolves the legal seller and pay-to vendor separately from the supplied source.
+    /// Does not replace posted fields with current master-data values.
+    /// </summary>
+    procedure GetSelfBillingParties(SourceDocumentHeader: RecordRef; var SellerVendorNo: Code[20]; var PayToVendorNo: Code[20])
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+    begin
+        if SourceDocumentHeader.Number() = Database::"Purchase Header" then begin
+            SourceDocumentHeader.SetTable(PurchaseHeader);
+            if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::"Credit Memo" then
+                GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader)
+            else
+                PurchaseHeader.TestField("Self-Billing Invoice", true);
+        end else
+            GetSelfBillingDocumentType(SourceDocumentHeader);
+
+        SellerVendorNo := SourceDocumentHeader.Field(PurchaseHeader.FieldNo("Buy-from Vendor No.")).Value();
+        PayToVendorNo := SourceDocumentHeader.Field(PurchaseHeader.FieldNo("Pay-to Vendor No.")).Value();
+    end;
+
+    /// <summary>Gets the Buy-from seller for a native self-billing source.</summary>
+    procedure GetSelfBillingVendor(SourceDocumentHeader: RecordRef; var Vendor: Record Vendor)
+    var
+        SellerVendorNo: Code[20];
+        PayToVendorNo: Code[20];
+    begin
+        GetSelfBillingParties(SourceDocumentHeader, SellerVendorNo, PayToVendorNo);
+        Vendor.Get(SellerVendorNo);
+    end;
+
+    internal procedure HasSelfBillingParticipants(VendorNo: Code[20]): Boolean
+    var
+        ServiceParticipant: Codeunit "Service Participant";
+    begin
+        if VendorNo = '' then
             exit(false);
-        if not PurchInvHeader.Get(PurchCrMemoHdr."Applies-to Doc. No.") then
+        if ServiceParticipant.GetParticipantIdCount(Enum::"E-Document Source Type"::Vendor, VendorNo) = 0 then
             exit(false);
-        exit(PurchInvHeader."Self-Billing Invoice");
+        exit(ServiceParticipant.GetParticipantIdCount(Enum::"E-Document Source Type"::Company, '') > 0);
+    end;
+
+    /// <summary>
+    /// Evaluates only the format's initiation setup policy, never native eligibility
+    /// or the service's independent supported-type/export-evaluator restrictions.
+    /// </summary>
+    procedure HasSelfBillingSetup(EDocumentService: Record "E-Document Service"; SourceDocumentHeader: RecordRef; DocumentType: Enum "E-Document Type"): Boolean
+    var
+        SelfBillingFormatPolicy: Interface ISelfBillingFormatPolicy;
+    begin
+        if DocumentType <> GetSelfBillingDocumentType(SourceDocumentHeader) then
+            Error(SelfBillingSourceTypeErr, SourceDocumentHeader.Caption(), DocumentType);
+        SelfBillingFormatPolicy := EDocumentService."Document Format";
+        exit(SelfBillingFormatPolicy.HasRequiredSetup(EDocumentService, SourceDocumentHeader, DocumentType));
+    end;
+
+    /// <summary>
+    /// Preserves the legacy page/posting predicate and additionally recognizes
+    /// explicitly configured format policies that do not need participant rows.
+    /// </summary>
+    procedure CanCreateSelfBilledEDocument(PostedRecord: Variant): Boolean
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+        EDocumentService: Record "E-Document Service";
+        Workflow: Record Workflow;
+        EDocExport: Codeunit "E-Doc. Export";
+        WorkflowProcessing: Codeunit "E-Document WorkFlow Processing";
+        SourceDocumentHeader: RecordRef;
+        DocumentType: Enum "E-Document Type";
+        SellerVendorNo: Code[20];
+        PayToVendorNo: Code[20];
+    begin
+        SourceDocumentHeader.GetTable(PostedRecord);
+        if not IsSelfBillingSource(SourceDocumentHeader) then
+            exit(false);
+        DocumentType := GetSelfBillingDocumentType(SourceDocumentHeader);
+        GetSelfBillingParties(SourceDocumentHeader, SellerVendorNo, PayToVendorNo);
+        if HasSelfBillingParticipants(SellerVendorNo) then
+            exit(true);
+
+        DocumentSendingProfile := GetDocSendingProfileForDocRef(SourceDocumentHeader);
+        if DocumentSendingProfile."Electronic Document" <> DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow" then
+            exit(false);
+        if not Workflow.Get(DocumentSendingProfile."Electronic Service Flow") then
+            exit(false);
+        if not Workflow.Enabled then
+            exit(false);
+        if not WorkflowProcessing.GetServicesFromEntryPointResponseInWorkflow(Workflow, EDocumentService) then
+            exit(false);
+        if EDocumentService.FindSet() then
+            repeat
+                if EDocExport.IsDocumentSupported(EDocumentService, SourceDocumentHeader, DocumentType) then
+                    if HasSelfBillingSetup(EDocumentService, SourceDocumentHeader, DocumentType) then
+                        exit(true);
+            until EDocumentService.Next() = 0;
+        exit(false);
+    end;
+
+    /// <summary>
+    /// Creates through the existing pipeline with format setup policies applied
+    /// per service. Use for automatic initiation; legacy creation/retry APIs stay unchanged.
+    /// </summary>
+    internal procedure CreateSelfBilledEDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type"; CheckDocument: Boolean): Boolean
+    var
+        EDocExport: Codeunit "E-Doc. Export";
+        SourceDocumentHeader: RecordRef;
+    begin
+        SourceDocumentHeader.GetTable(PostedRecord);
+        if DocumentType <> GetSelfBillingDocumentType(SourceDocumentHeader) then
+            Error(SelfBillingSourceTypeErr, SourceDocumentHeader.Caption(), DocumentType);
+        if DocumentSendingProfile."Electronic Document" <> DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow" then
+            exit(false);
+        exit(EDocExport.CreateSelfBilledEDocument(SourceDocumentHeader, DocumentSendingProfile, DocumentType, CheckDocument));
+    end;
+
+    /// <summary>Creates from a posted page using policy-filtered checks and services.</summary>
+    procedure CreateSelfBilledEDocumentFromPostedPage(PostedRecord: Variant; DocumentType: Enum "E-Document Type"): Boolean
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+        EDocumentHelper: Codeunit "E-Document Helper";
+        SourceDocumentHeader: RecordRef;
+        ElectronicDocumentErr: Label 'Document sending profile %1 is not setup to send electronic documents.', Comment = '%1 = Document sending profile code';
+    begin
+        SourceDocumentHeader.GetTable(PostedRecord);
+        CheckSelfBillingSource(SourceDocumentHeader, DocumentType);
+        if not EDocumentHelper.IsElectronicDocument(SourceDocumentHeader, DocumentSendingProfile) then
+            Error(ElectronicDocumentErr, DocumentSendingProfile.Code);
+        exit(CreateSelfBilledEDocument(PostedRecord, DocumentSendingProfile, DocumentType, true));
+    end;
+
+    /// <summary>
+    /// Inserts missing outgoing self-billed capabilities without changing existing
+    /// rows. Call only when initializing a new service or explicitly opting in.
+    /// </summary>
+    procedure RegisterDefaultSelfBillingTypes(EDocumentServiceCode: Code[20])
+    var
+        SupportedType: Record "E-Doc. Service Supported Type";
+    begin
+        SupportedType.InsertDefaultIfMissing(EDocumentServiceCode, Enum::"E-Document Type"::"Self-Billed Purchase Invoice", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        SupportedType.InsertDefaultIfMissing(EDocumentServiceCode, Enum::"E-Document Type"::"Self-Billed Purch. Cr. Memo", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
     end;
 
     procedure GetDocSendingProfileForDocRef(var RecRef: RecordRef): Record "Document Sending Profile";

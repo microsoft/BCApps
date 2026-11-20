@@ -6,7 +6,7 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 
-codeunit 6198 "Default Export Eligibility" implements IExportEligibilityEvaluator
+codeunit 6198 "Default Export Eligibility" implements IExportEligibilityEvaluator, ISelfBillingFormatPolicy
 {
     /// <summary>
     /// Default implementation that allows all documents to be exported.
@@ -17,4 +17,14 @@ codeunit 6198 "Default Export Eligibility" implements IExportEligibilityEvaluato
         exit(true);
     end;
 
+    procedure HasRequiredSetup(EDocumentService: Record "E-Document Service"; SourceDocumentHeader: RecordRef; DocumentType: Enum "E-Document Type"): Boolean
+    var
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        SellerVendorNo: Code[20];
+        PayToVendorNo: Code[20];
+    begin
+        EDocumentProcessing.CheckSelfBillingSource(SourceDocumentHeader, DocumentType);
+        EDocumentProcessing.GetSelfBillingParties(SourceDocumentHeader, SellerVendorNo, PayToVendorNo);
+        exit(EDocumentProcessing.HasSelfBillingParticipants(SellerVendorNo));
+    end;
 }
