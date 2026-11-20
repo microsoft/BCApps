@@ -61,5 +61,152 @@
         "HelpURL": "",
         "VideoURL": "",
         "ADOSliceIds": [620951]
+    },
+    {
+        "FeatureName": "Set mileage rates by date and vehicle type",
+        "Description": "Configure mileage rates with starting and ending dates and, where needed, different rates for vehicle types. Mileage expenses use the matching vehicle-specific rate, with the generic rate as a fallback when no specific rate is available.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [638119, 638122]
+    },
+    {
+        "FeatureName": "Strengthen expense approval controls",
+        "Description": "Set approval limits, route higher-value expense reports to another approver, and configure alternate approvers for planned or temporary cover. You can also require receipt itemization so approval policies have the detail they need.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [626975, 629913, 640938]
+    },
+    {
+        "FeatureName": "Create expense reports for travelers from approved requests",
+        "Description": "Manage travel requests with multiple travelers and an expense location. When a request is approved, Business Central creates an expense report for each traveler, retaining the link to the trip and its approval history.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [626966]
+    },
+    {
+        "FeatureName": "Match purchase invoices with more control over receipts",
+        "Description": "Review purchase order prices and receipt dates while matching incoming e-document lines. Set receipt-on-invoice defaults for vendors and override individual purchase order lines, then review matched orders, receipts and warnings from the invoice draft.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [625392]
+    },
+    {
+        "FeatureName": "See the payment journal total before posting",
+        "Description": "Use Batch Total (LCY) on the Payment Journal to see the total amount of the lines currently shown. The total follows your filters and updates when amounts change, helping you review the selected payments before posting.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [425446]
+    },
+    {
+        "FeatureName": "Show currency symbols or codes with amounts",
+        "Description": "Make amounts easier to read by displaying a currency symbol or ISO code before or after the value. Configure local-currency defaults in General Ledger Setup and let foreign currencies follow that position or use their own setting.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": ""
+    },
+    {
+        "FeatureName": "Build and share financial reports more easily",
+        "Description": "Available from Business Central 29.1. Preview a row or column definition with a chosen counterpart before using it in a financial report. New lines reuse the preceding line's type settings, and scheduled report emails can use your own subject. Report packages also use their package code when saved as PDF.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [622650]
+    },
+    {
+        "FeatureName": "Carry customer references from subscription contracts to invoices",
+        "Description": "Set an External Document No. on a customer subscription contract and carry that reference to sales documents created for the contract and the resulting posted invoice. Reduce repeated entry of the customer's invoice reference.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": ""
+    },
+    {
+        "FeatureName": "Exchange French e-invoice lifecycle and payment messages",
+        "Description": "Accept or refuse incoming French e-invoices and follow lifecycle messages for payments and reversals. Review message history, VAT breakdowns and payment occurrences, and retry failed processing through the configured e-document service.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [637593]
+    },
+    {
+        "FeatureName": "Account for bonded locations when calculating excise duty",
+        "Description": "Classify locations for excise handling and choose whether a tax type suspends duty while goods remain in bond. Include supported transfer and consumption movements when calculating excise journal lines, with duty treatment based on the configured locations.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [626292]
+    },
+    {
+        "FeatureName": "Send self-billed purchase documents as e-documents",
+        "Description": "Create and send self-billed e-documents from posted purchase invoices and related purchase credit memos. Use the configured e-document service with the required self-billing agreement and participant identifiers.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [580429]
+    },
+    {
+        "FeatureName": "Process vendor credit notes from PDFs",
+        "Description": "Recognize a vendor credit note received as a PDF and create a purchase credit memo instead of an invoice. Review the draft, select the original invoice to apply it to, and use the same document flow with the Payables Agent where configured.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [650500]
+    },
+    {
+        "FeatureName": "Follow e-documents from documents and ledger entries",
+        "Description": "See the linked e-document's status and message history on supported document and ledger pages. Open the electronic document directly from those pages or from document navigation to investigate processing without searching for it separately.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": ""
+    },
+    {
+        "FeatureName": "Exchange detailed delivery dates and order responses through Peppol",
+        "Description": "Include requested delivery dates at header and line level on purchase orders. Send order responses that describe confirmed quantities, changes, backorders and promised delivery dates, including conditional acceptance when the seller changes the order.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [580269]
+    },
+    {
+        "FeatureName": "Include SEPA direct debit details in German e-invoices",
+        "Description": "Use payment-method mappings when exporting XRechnung and ZUGFeRD e-invoices. For supported direct debit payments, include the mandate reference, creditor identifier and customer bank details, with checks for missing setup before export.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": ""
+    },
+    {
+        "FeatureName": "Use electronic seal certificates for VeriFactu",
+        "Description": "Use an electronic seal certificate for VeriFactu submissions and cancellations. Business Central detects the certificate type, shows it in setup and selects the corresponding AEAT endpoint, while retaining the existing personal and representative certificate path.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": ""
+    },
+    {
+        "FeatureName": "Use Czech layouts for draft and pro forma sales invoices",
+        "Description": "Choose the Czech RDLC layouts for the standard draft and pro forma sales invoice reports. Print localized document, address and tax details using the new report layouts.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [640925]
+    },
+    {
+        "FeatureName": "Use accelerated depreciation in fixed asset accounting",
+        "Description": "Set up linked accounting and accelerated depreciation books, calculate the difference, and post the corresponding fixed asset entries. Review accelerated depreciation amounts in the standard fixed asset workflows and reports.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [602816]
+    },
+    {
+        "FeatureName": "Print spend requests with their posted entries",
+        "Description": "Print selected spend requests using the populated Word layout. Include request details, planned amounts and related posted G/L entries to give requesters a single view of the request and the spending recorded against it.",
+        "Category": "Finance",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [616928]
     }
 ]
