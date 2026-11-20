@@ -319,6 +319,27 @@ codeunit 139628 "E-Doc. Receive Test"
     end;
 
     [Test]
+    procedure ReceivePeppolInvoice_CanonicalNamespacePrefixes()
+    begin
+        // [SCENARIO] V1 PEPPOL import extracts values when the canonical namespace prefixes are used
+        VerifyPEPPOLNamespacePrefixImport(EDocReceiveFiles.GetLineRoundingDocument());
+    end;
+
+    [Test]
+    procedure ReceivePeppolInvoice_AlternateNamespacePrefixes()
+    begin
+        // [SCENARIO] V1 PEPPOL import extracts values when alternate UBL 2 namespace prefixes are used
+        VerifyPEPPOLNamespacePrefixImport(EDocReceiveFiles.GetAlternateNamespaceDocument());
+    end;
+
+    [Test]
+    procedure ReceivePeppolInvoice_SwappedNamespacePrefixes()
+    begin
+        // [SCENARIO] V1 PEPPOL import extracts values when cac and cbc prefixes are bound to the opposite namespaces
+        VerifyPEPPOLNamespacePrefixImport(EDocReceiveFiles.GetSwappedNamespaceDocument());
+    end;
+
+    [Test]
     procedure ReceiveSinglePurchaseInvoice_PEPPOLDataExch_WithAttachment()
     var
         EDocService: Record "E-Document Service";
@@ -1585,6 +1606,60 @@ codeunit 139628 "E-Doc. Receive Test"
     [MessageHandler]
     procedure MessageHandler(Message: Text[1024])
     begin
+    end;
+
+    local procedure VerifyPEPPOLNamespacePrefixImport(Document: Text)
+    var
+        EDocService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        EDocServicePage: TestPage "E-Document Service";
+    begin
+        // [GIVEN] A V1 PEPPOL service and vendor configured for receiving the XML document
+        Initialize();
+        BindSubscription(EDocImplState);
+
+        LibraryEDoc.CreateTestReceiveServiceForEDoc(EDocService, Enum::"Service Integration"::Mock);
+        EDocService."Document Format" := "E-Document Format"::"PEPPOL BIS 3.0";
+        EDocService."Import Process" := EDocService."Import Process"::"Version 1.0";
+        EDocService."Lookup Account Mapping" := false;
+        EDocService."Lookup Item GTIN" := false;
+        EDocService."Lookup Item Reference" := false;
+        EDocService."Resolve Unit Of Measure" := false;
+        EDocService."Validate Line Discount" := false;
+        EDocService."Verify Totals" := false;
+        EDocService."Validate Receiving Company" := false;
+        EDocService."Use Batch Processing" := false;
+        EDocService.Modify();
+
+        LibraryPurchase.CreateVendorWithVATRegNo(Vendor);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
+        Vendor."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
+        Vendor."VAT Registration No." := VATRegistrationLbl;
+        Vendor."Receive E-Document To" := Vendor."Receive E-Document To"::"Purchase Invoice";
+        Vendor."Country/Region Code" := CountryRegion.Code;
+        Vendor.Modify();
+
+        LibraryVariableStorage.Clear();
+        LibraryVariableStorage.Enqueue(Document);
+        LibraryVariableStorage.Enqueue(1);
+        EDocImplState.SetVariableStorage(LibraryVariableStorage);
+
+        // [WHEN] The document is received through the V1 PEPPOL import process
+        EDocServicePage.OpenView();
+        EDocServicePage.Filter.SetFilter(Code, EDocService.Code);
+        EDocServicePage.Receive.Invoke();
+
+        // [THEN] Header and line values are extracted independently of namespace prefix aliases
+        EDocument.FindLast();
+        Assert.AreEqual('INV-ROUNDING-001', EDocument."Incoming E-Document No.", 'Invoice ID was not extracted.');
+        Assert.AreEqual(11.20, EDocument."Amount Excl. VAT", 'Tax-exclusive amount was not extracted.');
+        Assert.AreEqual(13.55, EDocument."Amount Incl. VAT", 'Payable amount was not extracted.');
+
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.IsTrue(EDocumentPurchaseLine.FindFirst(), 'Expected an extracted invoice line.');
+        Assert.AreEqual(11.20, EDocumentPurchaseLine."Sub Total", 'Invoice line amount was not extracted.');
     end;
 
     local procedure Initialize()
