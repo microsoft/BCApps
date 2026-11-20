@@ -17,6 +17,7 @@ codeunit 148355 EAReceiptMatchTests
     var
         Assert: Codeunit Assert;
         CorpCardTestLib: Codeunit EACorpCardTestLib;
+        LibraryERM: Codeunit "Library - ERM";
         LibraryExpense: Codeunit "Library - Expense";
         ReceiptExpenseMatch: Codeunit "EA Receipt Expense Match";
 
@@ -205,6 +206,32 @@ codeunit 148355 EAReceiptMatchTests
         Expense.TestField("Expense Date", WorkDate());
         Expense.TestField("Reimbursement Type", Expense."Reimbursement Type"::"Credit Card");
         Expense.TestField("Payment Method Code", PaymentMethodCode);
+    end;
+
+    [Test]
+    procedure ClearingCategoryOnManualExpenseKeepsCurrency()
+    var
+        Expense: Record Expense;
+        CorpCard: Record "EA Corp Card";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO] Clearing the category on a manual expense resets the amount but keeps the currency.
+        Initialize();
+
+        // [GIVEN] A manual expense of 20 in a foreign currency.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 2, 1);
+        CorpCard.Get('CORPCARD-0001');
+        LibraryExpense.CreateExpense(Expense, CorpCard."Expense User No.", 'AIRLINE', '', '', false, CurrencyCode, 20, false);
+
+        // [WHEN] The category is cleared.
+        Expense.Validate("Expense Category", '');
+        Expense.Modify(true);
+
+        // [THEN] The amount is reset and the currency is kept.
+        Expense.Get(Expense."No.");
+        Expense.TestField(Source, Expense.Source::Manual);
+        Expense.TestField(Amount, 0);
+        Expense.TestField("Currency Code", CurrencyCode);
     end;
 
     local procedure Initialize()

@@ -44,7 +44,6 @@ codeunit 7438 "EA Receipt Expense Match"
         Expense: Record Expense;
         Score: Decimal;
         BestScore: Decimal;
-        HasCandidate: Boolean;
     begin
         if IsNullGuid(ExpenseUserSystemId) then
             Error(ExpenseUserRequiredErr);
@@ -63,14 +62,15 @@ codeunit 7438 "EA Receipt Expense Match"
         if not Expense.FindSet() then
             exit;
 
-        repeat
+        BestScore := CalculateMatchScore(ExpenseDate, MerchantName, Expense);
+        ExpenseSystemId := Expense.SystemId;
+        while Expense.Next() <> 0 do begin
             Score := CalculateMatchScore(ExpenseDate, MerchantName, Expense);
-            if (not HasCandidate) or (Score > BestScore) then begin
+            if Score > BestScore then begin
                 BestScore := Score;
                 ExpenseSystemId := Expense.SystemId;
-                HasCandidate := true;
             end;
-        until Expense.Next() = 0;
+        end;
     end;
 
     local procedure SetCandidateFilters(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseDate: Date; DateWindow: Integer; Amount: Decimal; CurrencyCode: Code[10])
