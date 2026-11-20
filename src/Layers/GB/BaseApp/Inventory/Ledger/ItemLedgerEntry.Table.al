@@ -38,7 +38,7 @@ table 32 "Item Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -106,7 +106,7 @@ table 32 "Item Ledger Entry"
             ToolTip = 'Specifies how many units of the item on the line have been invoiced.';
             DecimalPlaces = 0 : 5;
         }
-        field(20; "Item Register No."; Integer)
+        field(20; "Item Register No."; BigInteger)
         {
             Caption = 'Item Register No.';
             Editable = false;
@@ -708,7 +708,7 @@ table 32 "Item Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Ledger Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -716,7 +716,7 @@ table 32 "Item Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Ledger Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -903,7 +903,7 @@ table 32 "Item Ledger Entry"
         DimMgt.ShowDimensionSet("Dimension Set ID", StrSubstNo('%1 %2', TableCaption(), "Entry No."));
     end;
 
-    procedure CalculateRemQuantity(ItemLedgEntryNo: Integer; PostingDate: Date) RemQty: Decimal
+    procedure CalculateRemQuantity(ItemLedgEntryNo: BigInteger; PostingDate: Date) RemQty: Decimal
     var
         ItemApplicationEntry: Record "Item Application Entry";
         IsHandled: Boolean;
@@ -951,13 +951,14 @@ table 32 "Item Ledger Entry"
         OnAfterVerifyOnInventory(Rec, ErrorMessageText);
     end;
 
-    procedure CalculateRemInventoryValue(ItemLedgEntryNo: Integer; ItemLedgEntryQty: Decimal; RemQty: Decimal; IncludeExpectedCost: Boolean; PostingDate: Date): Decimal
+#pragma warning disable AS0024
+    procedure CalculateRemInventoryValue(ItemLedgEntryNo: BigInteger; ItemLedgEntryQty: Decimal; RemQty: Decimal; IncludeExpectedCost: Boolean; PostingDate: Date): Decimal
     begin
         exit(
           CalculateRemInventoryValue(ItemLedgEntryNo, ItemLedgEntryQty, RemQty, IncludeExpectedCost, 0D, PostingDate));
     end;
 
-    procedure CalculateRemInventoryValue(ItemLedgEntryNo: Integer; ItemLedgEntryQty: Decimal; RemQty: Decimal; IncludeExpectedCost: Boolean; ValuationDate: Date; PostingDate: Date) AdjustedCost: Decimal
+    procedure CalculateRemInventoryValue(ItemLedgEntryNo: BigInteger; ItemLedgEntryQty: Decimal; RemQty: Decimal; IncludeExpectedCost: Boolean; ValuationDate: Date; PostingDate: Date) AdjustedCost: Decimal
     var
         ValueEntry: Record "Value Entry";
     begin
@@ -996,6 +997,7 @@ table 32 "Item Ledger Entry"
                 until ValueEntry.Next() = 0;
         end;
     end;
+#pragma warning restore AS0024
 
     local procedure FilterCostEntryTypeExceptRevaluationAndRounding(var ValueEntry: Record "Value Entry")
     begin
@@ -1014,7 +1016,7 @@ table 32 "Item Ledger Entry"
         CheckTrackingDoesNotExist(RecId, FldCaption, '', 0, false);
     end;
 
-    internal procedure CheckTrackingDoesNotExist(RecId: RecordId; FldCaption: Text; SourceItemNo: Code[20]; ApplicationEntryNo: Integer; IsCreditDocument: Boolean)
+    internal procedure CheckTrackingDoesNotExist(RecId: RecordId; FldCaption: Text; SourceItemNo: Code[20]; ApplicationEntryNo: BigInteger; IsCreditDocument: Boolean)
     var
         ItemTrackingLines: Page "Item Tracking Lines";
         IsHandled: Boolean;
@@ -1037,7 +1039,7 @@ table 32 "Item Ledger Entry"
         RecId: RecordId;
         FldCaption: Text;
         SourceItemNo: Code[20];
-        ApplicationEntryNo: Integer;
+        ApplicationEntryNo: BigInteger;
         IsCreditDocument: Boolean): Boolean
     var
         PurchaseLine: Record "Purchase Line";
@@ -1264,7 +1266,7 @@ table 32 "Item Ledger Entry"
     /// </summary>
     /// <param name="EntryNo">The entry no. of the entry we are comparing to</param>
     /// <returns>Boolean</returns>
-    internal procedure EntryNoHasSameSign(EntryNo: integer): Boolean
+    internal procedure EntryNoHasSameSign(EntryNo: BigInteger): Boolean
     begin
         if (Rec."Entry No." >= 0) and (EntryNo >= 0) then
             exit(true);
@@ -1359,7 +1361,7 @@ table 32 "Item Ledger Entry"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalculateRemQuantity(ItemLedgerEntry: Record "Item Ledger Entry"; ItemLedgEntryNo: Integer; PostingDate: Date; var RemQty: Decimal; var IsHandled: Boolean)
+    local procedure OnBeforeCalculateRemQuantity(ItemLedgerEntry: Record "Item Ledger Entry"; ItemLedgEntryNo: BigInteger; PostingDate: Date; var RemQty: Decimal; var IsHandled: Boolean)
     begin
     end;
 

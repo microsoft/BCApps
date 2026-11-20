@@ -45,8 +45,8 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         PurchInvLine: Record "Purch. Inv. Line";
         PurchaseReturnHeader: Record "Purchase Header";
         PurchaseReturnLine: Record "Purchase Line";
-        OriginalPurchaseEntryNo: Integer;
-        OriginalSalesEntryNo: Integer;
+        OriginalPurchaseEntryNo: BigInteger;
+        OriginalSalesEntryNo: BigInteger;
         LotNo: Code[50];
         PostedCreditMemoNo: Code[20];
         PostingDate: Date;
@@ -154,8 +154,8 @@ codeunit 137031 "SCM Costing Purchase Returns I"
         SalesReturnLine: Record "Sales Line";
         PurchaseReturnHeader: Record "Purchase Header";
         PurchaseReturnLine: Record "Purchase Line";
-        OriginalPurchaseEntryNo: Integer;
-        OriginalSalesEntryNo: Integer;
+        OriginalPurchaseEntryNo: BigInteger;
+        OriginalSalesEntryNo: BigInteger;
         PackageNo: Code[50];
         PostingDate: Date;
     begin

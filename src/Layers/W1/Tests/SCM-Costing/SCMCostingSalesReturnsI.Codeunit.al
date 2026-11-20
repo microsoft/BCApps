@@ -37,7 +37,7 @@ codeunit 137012 "SCM Costing Sales Returns I"
         SalesLine: Record "Sales Line";
         SalesReturnHeader: Record "Sales Header";
         SalesReturnLine: Record "Sales Line";
-        OriginalSalesEntryNo: Integer;
+        OriginalSalesEntryNo: BigInteger;
         LotNos: array[3] of Code[50];
         i: Integer;
         PostingDate: Date;
@@ -123,7 +123,7 @@ codeunit 137012 "SCM Costing Sales Returns I"
         SalesLine: Record "Sales Line";
         SalesReturnHeader: Record "Sales Header";
         SalesReturnLine: Record "Sales Line";
-        OriginalSalesEntryNo: Integer;
+        OriginalSalesEntryNo: BigInteger;
         LotNo: Code[50];
         PostingDate: Date;
     begin
@@ -201,7 +201,7 @@ codeunit 137012 "SCM Costing Sales Returns I"
         SalesReturnLine: Record "Sales Line";
         CopyDocumentMgt: Codeunit "Copy Document Mgt.";
         PostedInvoiceNo: Code[20];
-        OriginalSalesEntryNos: array[2] of Integer;
+        OriginalSalesEntryNos: array[2] of BigInteger;
         LotNos: array[2] of Code[50];
         LinesNotCopied: Integer;
         MissingExCostRevLink: Boolean;
@@ -314,7 +314,7 @@ codeunit 137012 "SCM Costing Sales Returns I"
         SalesLine: Record "Sales Line";
         SalesReturnHeader: Record "Sales Header";
         SalesReturnLine: Record "Sales Line";
-        OriginalSalesEntryNo: Integer;
+        OriginalSalesEntryNo: BigInteger;
         LotNo: Code[50];
         SerialNos: array[2] of Code[50];
         i: Integer;

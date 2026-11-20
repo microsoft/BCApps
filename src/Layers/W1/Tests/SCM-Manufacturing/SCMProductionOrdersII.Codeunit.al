@@ -7630,7 +7630,7 @@ codeunit 137072 "SCM Production Orders II"
         ProdOrderLine: Record "Prod. Order Line";
         ProductionOrder: Record "Production Order";
         UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
-        OriginalConsumptionEntryNo: Integer;
+        OriginalConsumptionEntryNo: BigInteger;
     begin
         // [FEATURE] [Item Tracking Code Change]
         // [SCENARIO] Reverse production consumption is blocked after lot tracking is enabled for a historically untracked component.

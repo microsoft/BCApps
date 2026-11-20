@@ -98,7 +98,8 @@ tableextension 11703 "Sales Header CZL" extends "Sales Header"
         field(11720; "Bank Account Code CZL"; Code[20])
         {
             Caption = 'Bank Account Code';
-            TableRelation = if ("Document Type" = filter(Quote | Order | Invoice | "Blanket Order")) "Bank Account" else
+            TableRelation =
+            if ("Document Type" = filter(Quote | Order | Invoice | "Blanket Order")) "Bank Account" else
             if ("Document Type" = filter("Credit Memo" | "Return Order")) "Customer Bank Account".Code where("Customer No." = field("Bill-to Customer No."));
             DataClassification = CustomerContent;
 
@@ -181,6 +182,7 @@ tableextension 11703 "Sales Header CZL" extends "Sales Header"
             Editable = false;
             TableRelation = "SWIFT Code";
             DataClassification = CustomerContent;
+            ValidateTableRelation = false;
         }
         field(11750; "Additional Currency Factor CZL"; Decimal)
         {
@@ -231,13 +233,8 @@ tableextension 11703 "Sales Header CZL" extends "Sales Header"
         {
             Caption = 'Registration No. (Obsolete)';
             DataClassification = CustomerContent;
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
             ObsoleteReason = 'Replaced by standard "Registration Number" field.';
         }
 #endif
@@ -307,7 +304,6 @@ tableextension 11703 "Sales Header CZL" extends "Sales Header"
             "VAT Currency Factor CZL" := 0;
             exit;
         end;
-
         if ("Currency Factor" <> xRec."Currency Factor") and
            ("Currency Factor" <> "VAT Currency Factor CZL") and
            ("VAT Reporting Date" = xRec."VAT Reporting Date") and
@@ -332,7 +328,6 @@ tableextension 11703 "Sales Header CZL" extends "Sales Header"
         OnBeforeUpdateAddCurrencyFactorCZL(Rec, IsUpdated, CurrencyExchangeRate);
         if IsUpdated then
             exit;
-
         if GeneralLedgerSetup.IsAdditionalCurrencyEnabledCZL() then begin
             if "Posting Date" <> 0D then
                 CurrencyDate := "Posting Date"
@@ -356,13 +351,11 @@ tableextension 11703 "Sales Header CZL" extends "Sales Header"
         OnBeforeUpdateVATCurrencyFactorCZL(Rec, IsUpdated, CurrencyExchangeRate);
         if IsUpdated then
             exit;
-
         if "Currency Code" <> '' then begin
             if "VAT Reporting Date" <> 0D then
                 CurrencyDate := "VAT Reporting Date"
             else
                 CurrencyDate := WorkDate();
-
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, "Currency Code") then
                 "VAT Currency Factor CZL" := CurrencyExchangeRate.ExchangeRate(CurrencyDate, "Currency Code")
             else
@@ -383,7 +376,6 @@ tableextension 11703 "Sales Header CZL" extends "Sales Header"
         OnBeforeConfirmUpdateAddCurrencyFactorCZL(Rec, xRec, HideValidationDialog, IsHandled, ForceConfirm);
         if IsHandled then
             exit;
-
         if GetHideValidationDialog() or not GuiAllowed or ForceConfirm then
             IsConfirmedCZL := true
         else
@@ -452,19 +444,16 @@ tableextension 11703 "Sales Header CZL" extends "Sales Header"
     begin
         if "Document Type" in ["Document Type"::"Blanket Order", "Document Type"::"Credit Memo", "Document Type"::Quote, "Document Type"::"Return Order"] then
             exit;
-
         if "Payment Method Code" = '' then
             exit;
 
         SalesReceivablesSetup.Get();
-
         if not SalesReceivablesSetup."Print QR Payment CZL" then
             exit;
 
         PaymentMethod.Get("Payment Method Code");
         if not PaymentMethod."Print QR Payment CZL" then
             exit;
-
         if "Bank Account Code CZL" = '' then begin
             CompanyInformation.Get();
             if CompanyInformation.IBAN <> '' then

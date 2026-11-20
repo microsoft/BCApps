@@ -257,7 +257,8 @@ table 6918 "Expense VAT Specification"
     begin
         if "VAT Bus. Posting Group" = '' then begin
             ExpenseAgentSetup.Get();
-            ExpenseAgentSetup.TestField("Default VAT Bus. Posting Group");
+            if Source <> Source::Agent then
+                ExpenseAgentSetup.TestField("Default VAT Bus. Posting Group");
             "VAT Bus. Posting Group" := ExpenseAgentSetup."Default VAT Bus. Posting Group";
         end;
     end;

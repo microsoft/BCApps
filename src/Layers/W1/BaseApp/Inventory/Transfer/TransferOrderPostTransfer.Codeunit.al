@@ -7,6 +7,7 @@ namespace Microsoft.Inventory.Transfer;
 using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
@@ -116,7 +117,7 @@ codeunit 5856 "TransferOrder-Post Transfer"
         InventorySetup.Get();
         InventorySetup.TestField("Posted Direct Trans. Nos.");
 
-        if InventorySetup.UseLegacyPosting() and InventorySetup."Automatic Cost Posting" then begin
+        if InventorySetup.UseLegacyPosting() and InventorySetup."Automatic Cost Posting" and not GLSetup.UseConcurrentPosting() then begin
             GLEntry.LockTable();
             GLEntry.GetLastEntryNo();
         end;
@@ -211,6 +212,7 @@ codeunit 5856 "TransferOrder-Post Transfer"
         TempHandlingSpecification: Record "Tracking Specification" temporary;
         TempWhseShptHeader: Record "Warehouse Shipment Header" temporary;
         GLEntry: Record "G/L Entry";
+        GLSetup: Record "General Ledger Setup";
         WhseShptHeader: Record "Warehouse Shipment Header";
         WhseShptLine: Record "Warehouse Shipment Line";
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
@@ -219,7 +221,7 @@ codeunit 5856 "TransferOrder-Post Transfer"
         ReserveTransLine: Codeunit "Transfer Line-Reserve";
         WhsePostShipment: Codeunit "Whse.-Post Shipment";
         WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line";
-        PostponedValueEntries: List of [Integer];
+        PostponedValueEntries: List of [BigInteger];
         ItemsToAdjust: List of [Code[20]];
         SourceCode: Code[10];
         HideValidationDialog: Boolean;

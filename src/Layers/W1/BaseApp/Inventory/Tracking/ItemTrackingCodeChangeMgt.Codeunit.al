@@ -446,7 +446,7 @@ codeunit 7047 "Item Tracking Code Change Mgt."
         ItemTrackingCodeChangeLog.Insert(true);
     end;
 
-    internal procedure IsLinkedApplicationAcrossTrackingPeriods(ItemNo: Code[20]; ItemLedgerEntryNo: Integer): Boolean
+    internal procedure IsLinkedApplicationAcrossTrackingPeriods(ItemNo: Code[20]; ItemLedgerEntryNo: BigInteger): Boolean
     var
         Item: Record Item;
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -464,7 +464,7 @@ codeunit 7047 "Item Tracking Code Change Mgt."
     internal procedure IsReturnApplicationAcrossTrackingPeriods(
         ItemLedgerEntry: Record "Item Ledger Entry";
         AppliedItemLedgerEntry: Record "Item Ledger Entry";
-        AppliedItemLedgerEntryNo: Integer): Boolean
+        AppliedItemLedgerEntryNo: BigInteger): Boolean
     begin
         if AppliedItemLedgerEntryNo <> AppliedItemLedgerEntry."Entry No." then
             exit(false);
@@ -492,7 +492,7 @@ codeunit 7047 "Item Tracking Code Change Mgt."
             ItemLedgerEntry."Item No.", AppliedItemLedgerEntry."Entry No."));
     end;
 
-    internal procedure GetTrackingCodeForLinkedApplication(ItemNo: Code[20]; ItemLedgerEntryNo: Integer; var ItemTrackingCode: Code[10]): Boolean
+    internal procedure GetTrackingCodeForLinkedApplication(ItemNo: Code[20]; ItemLedgerEntryNo: BigInteger; var ItemTrackingCode: Code[10]): Boolean
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
     begin
