@@ -17,6 +17,7 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryERM: Codeunit "Library - ERM";
+        LibrarySales: Codeunit "Library - Sales";
         LibraryJob: Codeunit "Library - Job";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibrarySmallBusiness: Codeunit "Library - Small Business";
@@ -36,6 +37,8 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         ConfirmDialogErr: Label 'Expected confirm dialog was not shown';
         QuantityMustBeRevertedErr: Label 'Quantity Received and Invoiced must be reverted to 0';
         QuantityMustBeRestoredErr: Label 'Qty. to Receive and Invoice must be restored to original values';
+        ItemChargeMustBeReversedErr: Label 'The item charge must be fully reversed on the original posted document.';
+        UnsupportedItemChargeTargetErr: Label 'Unsupported item charge target %1.', Comment = '%1 = applies-to document type';
 
     [Test]
     [Scope('OnPrem')]
@@ -1205,6 +1208,262 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         Assert.AreEqual(Quantity, PurchaseLine."Qty. to Invoice", QuantityMustBeRestoredErr);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CancelInvoiceWithItemChargeAssignedToSalesShipment()
+    begin
+        VerifyCancelInvoiceWithItemCharge("Purchase Applies-to Document Type"::"Sales Shipment");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CancelInvoiceWithItemChargeAssignedToPurchaseReceipt()
+    begin
+        VerifyCancelInvoiceWithItemCharge("Purchase Applies-to Document Type"::Receipt);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CancelInvoiceWithItemChargeAssignedToTransferReceipt()
+    begin
+        VerifyCancelInvoiceWithItemCharge("Purchase Applies-to Document Type"::"Transfer Receipt");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CancelInvoiceWithItemChargeAssignedToPurchaseReturnShipment()
+    begin
+        VerifyCancelInvoiceWithItemCharge("Purchase Applies-to Document Type"::"Return Shipment");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CancelInvoiceWithItemChargeAssignedToSalesReturnReceipt()
+    begin
+        VerifyCancelInvoiceWithItemCharge("Purchase Applies-to Document Type"::"Return Receipt");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CancelInvoiceWithUnequalItemChargesAssignedToMixedTargets()
+    var
+        Vendor: Record Vendor;
+        PurchaseInvoice: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ItemLedgerEntry: array[6] of Record "Item Ledger Entry";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        AppliesToDocType: array[6] of Enum "Purchase Applies-to Document Type";
+        CreditMemoNo: Code[20];
+        SharedDocumentNo: Code[20];
+        ExpectedCost: Decimal;
+        ItemQuantity: Decimal;
+        TargetIndex: Integer;
+    begin
+        // [SCENARIO 653898] Cancellation reverses unequal charges on all five target types, including an inbound sales shipment.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateItemChargeInvoice(PurchaseInvoice, PurchaseLine, Vendor."No.", 21);
+
+        AppliesToDocType[1] := "Purchase Applies-to Document Type"::Receipt;
+        AppliesToDocType[2] := "Purchase Applies-to Document Type"::"Transfer Receipt";
+        AppliesToDocType[3] := "Purchase Applies-to Document Type"::"Return Shipment";
+        AppliesToDocType[4] := "Purchase Applies-to Document Type"::"Sales Shipment";
+        AppliesToDocType[5] := "Purchase Applies-to Document Type"::"Return Receipt";
+        AppliesToDocType[6] := "Purchase Applies-to Document Type"::"Sales Shipment";
+        for TargetIndex := 1 to ArrayLen(ItemLedgerEntry) do begin
+            SharedDocumentNo := '';
+            if TargetIndex = 4 then
+                SharedDocumentNo := ItemLedgerEntry[1]."Document No.";
+            ItemQuantity := 1;
+            if TargetIndex = 6 then
+                ItemQuantity := -1;
+            CreatePostedItemChargeTarget(
+                ItemLedgerEntry[TargetIndex], Vendor, AppliesToDocType[TargetIndex], SharedDocumentNo, ItemQuantity);
+            AssignItemChargeToPostedEntry(PurchaseLine, ItemLedgerEntry[TargetIndex], AppliesToDocType[TargetIndex], TargetIndex);
+        end;
+
+        // Different document types must stay separate even when their document and line numbers match.
+        Assert.AreEqual(ItemLedgerEntry[1]."Document No.", ItemLedgerEntry[4]."Document No.", ItemChargeMustBeReversedErr);
+        Assert.AreEqual(ItemLedgerEntry[1]."Document Line No.", ItemLedgerEntry[4]."Document Line No.", ItemChargeMustBeReversedErr);
+        Assert.IsTrue(ItemLedgerEntry[6].Positive, ItemChargeMustBeReversedErr);
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseInvoice, true, true));
+
+        CreditMemoNo := CancelItemChargeInvoice(PurchInvHeader);
+
+        for TargetIndex := 1 to ArrayLen(ItemLedgerEntry) do begin
+            ExpectedCost := TargetIndex * PurchaseLine."Direct Unit Cost";
+            if (AppliesToDocType[TargetIndex] = "Purchase Applies-to Document Type"::"Sales Shipment") and
+               not ItemLedgerEntry[TargetIndex].Positive
+            then
+                ExpectedCost := -ExpectedCost;
+            VerifyItemChargeReversed(
+                ItemLedgerEntry[TargetIndex], PurchaseLine."No.", PurchInvHeader."No.", CreditMemoNo, ExpectedCost,
+                ItemLedgerEntry[TargetIndex].Positive);
+        end;
+    end;
+
+    local procedure VerifyCancelInvoiceWithItemCharge(AppliesToDocType: Enum "Purchase Applies-to Document Type")
+    var
+        Vendor: Record Vendor;
+        PurchaseInvoice: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        CreditMemoNo: Code[20];
+        ExpectedCost: Decimal;
+    begin
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        CreatePostedItemChargeTarget(ItemLedgerEntry, Vendor, AppliesToDocType, '', 1);
+        CreateItemChargeInvoice(PurchaseInvoice, PurchaseLine, Vendor."No.", 1);
+        AssignItemChargeToPostedEntry(PurchaseLine, ItemLedgerEntry, AppliesToDocType, 1);
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseInvoice, true, true));
+
+        CreditMemoNo := CancelItemChargeInvoice(PurchInvHeader);
+
+        ExpectedCost := PurchaseLine."Direct Unit Cost";
+        if AppliesToDocType = AppliesToDocType::"Sales Shipment" then
+            ExpectedCost := -ExpectedCost;
+        VerifyItemChargeReversed(
+            ItemLedgerEntry, PurchaseLine."No.", PurchInvHeader."No.", CreditMemoNo, ExpectedCost, ItemLedgerEntry.Positive);
+    end;
+
+    local procedure CreatePostedItemChargeTarget(var ItemLedgerEntry: Record "Item Ledger Entry"; Vendor: Record Vendor; AppliesToDocType: Enum "Purchase Applies-to Document Type"; SharedDocumentNo: Code[20]; ItemQuantity: Decimal)
+    var
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        CreateItemWithCost(Item, 1);
+        CreatePurchaseOrderForItem(Vendor, Item, 1, PurchaseHeader, PurchaseLine);
+        if AppliesToDocType = AppliesToDocType::"Transfer Receipt" then begin
+            LibraryInventory.CreateTransferHeader(TransferHeader);
+            PurchaseLine.Validate("Location Code", TransferHeader."Transfer-from Code");
+            PurchaseLine.Modify(true);
+        end;
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Purchase Receipt");
+        ItemLedgerEntry.FindLast();
+        case AppliesToDocType of
+            AppliesToDocType::Receipt:
+                ;
+            AppliesToDocType::"Transfer Receipt":
+                begin
+                    LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 1);
+                    LibraryInventory.PostTransferHeader(TransferHeader, true, true);
+                    ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Transfer Receipt");
+                end;
+            AppliesToDocType::"Return Shipment":
+                begin
+                    LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Return Order", Vendor."No.");
+                    LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+                    PurchaseLine.Validate("Appl.-to Item Entry", ItemLedgerEntry."Entry No.");
+                    PurchaseLine.Modify(true);
+                    LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+                    ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Purchase Return Shipment");
+                end;
+            AppliesToDocType::"Sales Shipment", AppliesToDocType::"Return Receipt":
+                begin
+                    LibrarySales.CreateSalesDocumentWithItem(
+                        SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '', Item."No.", ItemQuantity, '', WorkDate());
+                    if SharedDocumentNo <> '' then begin
+                        SalesHeader.Validate("Shipping No.", SharedDocumentNo);
+                        SalesHeader.Modify(true);
+                    end;
+                    LibrarySales.PostSalesDocument(SalesHeader, true, false);
+                    ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Sales Shipment");
+                    if AppliesToDocType = AppliesToDocType::"Return Receipt" then begin
+                        ItemLedgerEntry.FindLast();
+                        LibrarySales.CreateSalesDocumentWithItem(
+                            SalesHeader, SalesLine, SalesHeader."Document Type"::"Return Order",
+                            SalesHeader."Sell-to Customer No.", Item."No.", 1, '', WorkDate());
+                        SalesLine.Validate("Appl.-from Item Entry", ItemLedgerEntry."Entry No.");
+                        SalesLine.Modify(true);
+                        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+                        ItemLedgerEntry.SetRange("Document Type", ItemLedgerEntry."Document Type"::"Sales Return Receipt");
+                    end;
+                end;
+            else
+                Error(UnsupportedItemChargeTargetErr, AppliesToDocType);
+        end;
+        ItemLedgerEntry.FindLast();
+    end;
+
+    local procedure CreateItemChargeInvoice(var PurchaseInvoice: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; VendorNo: Code[20]; Quantity: Decimal)
+    var
+        ItemCharge: Record "Item Charge";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseInvoice, PurchaseInvoice."Document Type"::Invoice, VendorNo);
+        LibraryPurchase.CreateItemChargePurchaseLine(PurchaseLine, ItemCharge, PurchaseInvoice, Quantity, 10);
+        VATPostingSetup.Get(PurchaseLine."VAT Bus. Posting Group", PurchaseLine."VAT Prod. Posting Group");
+        if VATPostingSetup."Purchase VAT Account" = '' then begin
+            VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+            VATPostingSetup.Modify(true);
+        end;
+    end;
+
+    local procedure AssignItemChargeToPostedEntry(PurchaseLine: Record "Purchase Line"; ItemLedgerEntry: Record "Item Ledger Entry"; AppliesToDocType: Enum "Purchase Applies-to Document Type"; Quantity: Decimal)
+    var
+        ItemCharge: Record "Item Charge";
+        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+    begin
+        ItemCharge.Get(PurchaseLine."No.");
+        LibraryPurchase.CreateItemChargeAssignment(
+            ItemChargeAssignmentPurch, PurchaseLine, ItemCharge, AppliesToDocType, ItemLedgerEntry."Document No.",
+            ItemLedgerEntry."Document Line No.", ItemLedgerEntry."Item No.", Quantity, PurchaseLine."Unit Cost");
+        ItemChargeAssignmentPurch.Insert(true);
+    end;
+
+    local procedure CancelItemChargeInvoice(var PurchInvHeader: Record "Purch. Inv. Header"): Code[20]
+    var
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+    begin
+        Assert.IsTrue(CorrectPostedPurchInvoice.CancelPostedInvoice(PurchInvHeader), ItemChargeMustBeReversedErr);
+        LibrarySmallBusiness.FindPurchCorrectiveCrMemo(PurchCrMemoHeader, PurchInvHeader);
+        exit(PurchCrMemoHeader."No.");
+    end;
+
+    local procedure VerifyItemChargeReversed(ItemLedgerEntry: Record "Item Ledger Entry"; ItemChargeNo: Code[20]; InvoiceNo: Code[20]; CreditMemoNo: Code[20]; ExpectedCost: Decimal; Inventoriable: Boolean)
+    var
+        OriginalCost: Decimal;
+        ReversedCost: Decimal;
+    begin
+        OriginalCost := GetPostedItemChargeCost(
+            ItemLedgerEntry."Entry No.", ItemChargeNo, "Item Ledger Document Type"::"Purchase Invoice", InvoiceNo, Inventoriable);
+        Assert.AreEqual(ExpectedCost, OriginalCost, ItemChargeMustBeReversedErr);
+        ReversedCost := GetPostedItemChargeCost(
+            ItemLedgerEntry."Entry No.", ItemChargeNo, "Item Ledger Document Type"::"Purchase Credit Memo", CreditMemoNo, Inventoriable);
+        Assert.AreEqual(-OriginalCost, ReversedCost, ItemChargeMustBeReversedErr);
+    end;
+
+    local procedure GetPostedItemChargeCost(ItemLedgerEntryNo: Integer; ItemChargeNo: Code[20]; DocumentType: Enum "Item Ledger Document Type"; DocumentNo: Code[20]; Inventoriable: Boolean): Decimal
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntryNo);
+        ValueEntry.SetRange("Item Charge No.", ItemChargeNo);
+        ValueEntry.SetRange("Document Type", DocumentType);
+        ValueEntry.SetRange("Document No.", DocumentNo);
+        ValueEntry.FindFirst();
+        ValueEntry.TestField(Inventoriable, Inventoriable);
+        ValueEntry.CalcSums("Cost Amount (Actual)", "Cost Amount (Non-Invtbl.)");
+        if Inventoriable then begin
+            Assert.AreEqual(0, ValueEntry."Cost Amount (Non-Invtbl.)", ItemChargeMustBeReversedErr);
+            exit(ValueEntry."Cost Amount (Actual)");
+        end;
+        Assert.AreEqual(0, ValueEntry."Cost Amount (Actual)", ItemChargeMustBeReversedErr);
+        exit(ValueEntry."Cost Amount (Non-Invtbl.)");
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1633,4 +1892,3 @@ codeunit 137025 "SCM Purchase Correct Invoice"
         PurchaseCreditMemo.Close();
     end;
 }
-

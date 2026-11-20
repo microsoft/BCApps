@@ -88,6 +88,7 @@ codeunit 5805 "Item Charge Assgnt. (Purch.)"
         if TempToItemChargeAssignmentPurch.FindSet() then
             repeat
                 if (TempToItemChargeAssignmentPurch."Item Charge No." <> ToItemChargeAssignmentPurch."Item Charge No.") or
+                   (TempToItemChargeAssignmentPurch."Applies-to Doc. Type" <> ToItemChargeAssignmentPurch."Applies-to Doc. Type") or
                    (TempToItemChargeAssignmentPurch."Applies-to Doc. No." <> ToItemChargeAssignmentPurch."Applies-to Doc. No.") or
                    (TempToItemChargeAssignmentPurch."Applies-to Doc. Line No." <> ToItemChargeAssignmentPurch."Applies-to Doc. Line No.")
                 then begin
@@ -1137,4 +1138,3 @@ codeunit 5805 "Item Charge Assgnt. (Purch.)"
     begin
     end;
 }
-
