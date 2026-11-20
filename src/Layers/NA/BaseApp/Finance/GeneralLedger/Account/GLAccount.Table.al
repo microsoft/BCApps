@@ -1390,7 +1390,6 @@ table 15 "G/L Account"
 
         GLAccountSubAccount.SetFilter("No.", '>%1', "No.");
         GLAccountSubAccount.SetRange(Indentation, Indentation, Indentation + 1);
-        GLAccountSubAccount.SetFilter("Account Category", '%1|%2', "Account Category"::" ", xRec."Account Category");
 
         if not GLAccountSubAccount.FindSet() then
             exit;
@@ -1401,8 +1400,10 @@ table 15 "G/L Account"
             then
                 exit;
 
-            GLAccountSubAccount.Validate("Account Category", "Account Category");
-            GLAccountSubAccount.Modify();
+            if GLAccountSubAccount."Account Category" in ["Account Category"::" ", xRec."Account Category"] then begin
+                GLAccountSubAccount.Validate("Account Category", "Account Category");
+                GLAccountSubAccount.Modify();
+            end;
         until GLAccountSubAccount.Next() = 0;
     end;
 

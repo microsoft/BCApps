@@ -620,6 +620,70 @@ codeunit 134020 "ERM Accounts"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure AccountCategoryPropagationStopsAtDifferentCategorySibling()
+    var
+        GLAccount: array[6] of Record "G/L Account";
+        AccountNoPrefix: Code[17];
+    begin
+        // [FEATURE] [AI test 0.3] [G/L Account] [Account Category]
+        // [SCENARIO 659628] Category propagation stops at a differently categorized sibling Begin-Total account
+        Initialize();
+
+        // [GIVEN] Begin-Total account "P" with child "C" followed by sibling group "S" and outside account "O"
+        AccountNoPrefix := CopyStr(DelChr(LibraryUtility.GenerateGUID(), '=', '{}-'), 1, MaxStrLen(AccountNoPrefix));
+        CreateGLAccountForCategoryPropagation(GLAccount[1], AccountNoPrefix + '010', GLAccount[1]."Account Type"::"Begin-Total", 0, GLAccount[1]."Account Category"::" ");
+        CreateGLAccountForCategoryPropagation(GLAccount[2], AccountNoPrefix + '020', GLAccount[2]."Account Type"::Posting, 1, GLAccount[2]."Account Category"::" ");
+        CreateGLAccountForCategoryPropagation(GLAccount[3], AccountNoPrefix + '030', GLAccount[3]."Account Type"::"Begin-Total", 0, GLAccount[3]."Account Category"::Liabilities);
+        CreateGLAccountForCategoryPropagation(GLAccount[4], AccountNoPrefix + '040', GLAccount[4]."Account Type"::Posting, 1, GLAccount[4]."Account Category"::" ");
+        CreateGLAccountForCategoryPropagation(GLAccount[5], AccountNoPrefix + '050', GLAccount[5]."Account Type"::"End-Total", 0, GLAccount[5]."Account Category"::" ");
+        CreateGLAccountForCategoryPropagation(GLAccount[6], AccountNoPrefix + '060', GLAccount[6]."Account Type"::Posting, 0, GLAccount[6]."Account Category"::" ");
+
+        // [WHEN] Account Category is changed on parent "P"
+        GLAccount[1].Validate("Account Category", GLAccount[1]."Account Category"::Assets);
+        GLAccount[1].Modify(true);
+
+        // [THEN] Child "C" inherits the category and sibling group "S" and outside account "O" remain unchanged
+        VerifyGLAccountCategory(GLAccount[2]."No.", GLAccount[2]."Account Category"::Assets);
+        VerifyGLAccountCategory(GLAccount[3]."No.", GLAccount[3]."Account Category"::Liabilities);
+        VerifyGLAccountCategory(GLAccount[4]."No.", GLAccount[4]."Account Category"::" ");
+        VerifyGLAccountCategory(GLAccount[5]."No.", GLAccount[5]."Account Category"::" ");
+        VerifyGLAccountCategory(GLAccount[6]."No.", GLAccount[6]."Account Category"::" ");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AccountCategoryPropagationStopsAtPreviousCategorySibling()
+    var
+        GLAccount: array[6] of Record "G/L Account";
+        AccountNoPrefix: Code[17];
+    begin
+        // [FEATURE] [AI test 0.3] [G/L Account] [Account Category]
+        // [SCENARIO 659628] Category propagation keeps the existing matching-category sibling boundary
+        Initialize();
+
+        // [GIVEN] Expense Begin-Total account "P" with child "C" followed by Expense sibling group "S" and outside account "O"
+        AccountNoPrefix := CopyStr(DelChr(LibraryUtility.GenerateGUID(), '=', '{}-'), 1, MaxStrLen(AccountNoPrefix));
+        CreateGLAccountForCategoryPropagation(GLAccount[1], AccountNoPrefix + '010', GLAccount[1]."Account Type"::"Begin-Total", 0, GLAccount[1]."Account Category"::Expense);
+        CreateGLAccountForCategoryPropagation(GLAccount[2], AccountNoPrefix + '020', GLAccount[2]."Account Type"::Posting, 1, GLAccount[2]."Account Category"::" ");
+        CreateGLAccountForCategoryPropagation(GLAccount[3], AccountNoPrefix + '030', GLAccount[3]."Account Type"::"Begin-Total", 0, GLAccount[3]."Account Category"::Expense);
+        CreateGLAccountForCategoryPropagation(GLAccount[4], AccountNoPrefix + '040', GLAccount[4]."Account Type"::Posting, 1, GLAccount[4]."Account Category"::" ");
+        CreateGLAccountForCategoryPropagation(GLAccount[5], AccountNoPrefix + '050', GLAccount[5]."Account Type"::"End-Total", 0, GLAccount[5]."Account Category"::" ");
+        CreateGLAccountForCategoryPropagation(GLAccount[6], AccountNoPrefix + '060', GLAccount[6]."Account Type"::Posting, 0, GLAccount[6]."Account Category"::" ");
+
+        // [WHEN] Account Category is changed on parent "P"
+        GLAccount[1].Validate("Account Category", GLAccount[1]."Account Category"::Income);
+        GLAccount[1].Modify(true);
+
+        // [THEN] Child "C" inherits the category and sibling group "S" and outside account "O" remain unchanged
+        VerifyGLAccountCategory(GLAccount[2]."No.", GLAccount[2]."Account Category"::Income);
+        VerifyGLAccountCategory(GLAccount[3]."No.", GLAccount[3]."Account Category"::Expense);
+        VerifyGLAccountCategory(GLAccount[4]."No.", GLAccount[4]."Account Category"::" ");
+        VerifyGLAccountCategory(GLAccount[5]."No.", GLAccount[5]."Account Category"::" ");
+        VerifyGLAccountCategory(GLAccount[6]."No.", GLAccount[6]."Account Category"::" ");
+    end;
+
+    [Test]
     procedure GLBalanceByDimWrongDateFilterUI()
     var
         GLBalancebyDimension: TestPage "G/L Balance by Dimension";
@@ -761,6 +825,25 @@ codeunit 134020 "ERM Accounts"
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Accounts");
+    end;
+
+    local procedure CreateGLAccountForCategoryPropagation(var GLAccount: Record "G/L Account"; AccountNo: Code[20]; AccountType: Enum "G/L Account Type"; Indentation: Integer; AccountCategory: Enum "G/L Account Category")
+    begin
+        GLAccount.Init();
+        GLAccount.Validate("No.", AccountNo);
+        GLAccount.Validate(Name, AccountNo);
+        GLAccount.Validate("Account Type", AccountType);
+        GLAccount.Validate(Indentation, Indentation);
+        GLAccount.Validate("Account Category", AccountCategory);
+        GLAccount.Insert(true);
+    end;
+
+    local procedure VerifyGLAccountCategory(GLAccountNo: Code[20]; ExpectedAccountCategory: Enum "G/L Account Category")
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        GLAccount.Get(GLAccountNo);
+        Assert.AreEqual(ExpectedAccountCategory, GLAccount."Account Category", GLAccount.FieldCaption("Account Category"));
     end;
 
     local procedure CreateAnalysisView(AccountFilter: Code[20]): Code[10]
