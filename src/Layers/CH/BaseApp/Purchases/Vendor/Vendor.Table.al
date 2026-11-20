@@ -1,4 +1,5 @@
 // ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -815,6 +816,7 @@ table 23 Vendor
         field(91; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            OptimizeForTextSearch = true;
             ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code"
             else
