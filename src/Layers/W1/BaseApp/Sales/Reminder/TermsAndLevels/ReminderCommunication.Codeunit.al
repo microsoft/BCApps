@@ -535,6 +535,34 @@ codeunit 1890 "Reminder Communication"
     end;
 
     internal procedure TransferReminderText()
+    begin
+        TransferReminderText(true);
+    end;
+
+    internal procedure TransferReminderTermsTranslations()
+    begin
+        TransferReminderTermsTranslations(true);
+    end;
+
+    internal procedure TransferReminderTermsLineFeeDescription()
+    begin
+        TransferReminderTermsLineFeeDescription(true);
+    end;
+
+    internal procedure TransferReminderLevelLineFeeDescription()
+    begin
+        TransferReminderLevelLineFeeDescription(true);
+    end;
+
+    internal procedure MigrateLegacyCommunicationData()
+    begin
+        TransferReminderText(false);
+        TransferReminderTermsTranslations(false);
+        TransferReminderTermsLineFeeDescription(false);
+        TransferReminderLevelLineFeeDescription(false);
+    end;
+
+    local procedure TransferReminderText(OverwriteExisting: Boolean)
     var
         ReminderLevels: Record "Reminder Level";
         ReminderText: Record "Reminder Text";
@@ -544,8 +572,11 @@ codeunit 1890 "Reminder Communication"
         Language: Codeunit Language;
         TypeHelper: Codeunit "Type Helper";
         ReadStream: InStream;
+        CreatedEmailTextIds: Dictionary of [Guid, Boolean];
+        AttachmentTextId: Guid;
+        EmailTextId: Guid;
         DefaultLanguageCode: Code[10];
-        LocalGuid: Guid;
+        EmailTextCreated: Boolean;
     begin
         if ReminderText.IsEmpty() then
             exit;
@@ -554,66 +585,61 @@ codeunit 1890 "Reminder Communication"
         repeat
             Clear(ReminderAttachmentText);
             Clear(ReminderEmailText);
-            Clear(LocalGuid);
             Clear(ReadStream);
-            // Check if there are existing texts for the reminder level
             if ReminderLevels.Get(ReminderText."Reminder Terms Code", ReminderText."Reminder Level") then begin
+                ResolveCommunicationIds(ReminderLevels."Reminder Attachment Text", ReminderLevels."Reminder Email Text", AttachmentTextId, EmailTextId);
+                EnsureReminderAttachmentText(
+                    ReminderAttachmentText, AttachmentTextId, DefaultLanguageCode,
+                    Enum::"Reminder Text Source Type"::"Reminder Level", ReminderLevels.SystemId);
+                EmailTextCreated :=
+                    EnsureReminderEmailText(
+                        ReminderEmailText, EmailTextId, DefaultLanguageCode,
+                        Enum::"Reminder Text Source Type"::"Reminder Level", ReminderLevels.SystemId);
+                if EmailTextCreated and not CreatedEmailTextIds.ContainsKey(EmailTextId) then
+                    CreatedEmailTextIds.Add(EmailTextId, true);
+                SetReminderLevelCommunicationIds(ReminderLevels, AttachmentTextId, EmailTextId);
 
-                if not IsNullGuid(ReminderLevels."Reminder Attachment Text") then
-                    LocalGuid := ReminderLevels."Reminder Attachment Text";
-                if not IsNullGuid(ReminderLevels."Reminder Email Text") then
-                    LocalGuid := ReminderLevels."Reminder Email Text";
-                if IsNullGuid(LocalGuid) then
-                    LocalGuid := CreateGuid();
-                // If not then create the default ones
-                if not ReminderAttachmentText.Get(LocalGuid, DefaultLanguageCode) then
-                    ReminderAttachmentText.SetDefaultContentForNewLanguage(LocalGuid, DefaultLanguageCode, Enum::"Reminder Text Source Type"::"Reminder Level", ReminderLevels.SystemId);
-
-                if not ReminderEmailText.Get(LocalGuid, DefaultLanguageCode) then
-                    ReminderEmailText.SetDefaultContentForNewLanguage(LocalGuid, DefaultLanguageCode, Enum::"Reminder Text Source Type"::"Reminder Level", ReminderLevels.SystemId);
-                if ReminderAttachmentText.Get(LocalGuid, DefaultLanguageCode) and ReminderEmailText.Get(LocalGuid, DefaultLanguageCode) then
-                    // And then personalized them with the customer data
-                    case ReminderText.Position of
-                        Enum::"Reminder Text Position"::Beginning:
-                            begin
-                                ReminderAttachmentTextLine.Init();
-                                ReminderAttachmentTextLine.Id := ReminderAttachmentText.Id;
-                                ReminderAttachmentTextLine."Language Code" := ReminderAttachmentText."Language Code";
-                                ReminderAttachmentTextLine.Position := ReminderAttachmentTextLine.Position::"Beginning Line";
-                                ReminderAttachmentTextLine."Line No." := ReminderText."Line No.";
-                                ReminderAttachmentTextLine.Text := ReminderText.Text;
-                                OnTransferReminderTextOnBeforeInsertBeginningReminderAttachmentTextLine(ReminderText, ReminderAttachmentTextLine);
-                                ReminderAttachmentTextLine.Insert(true);
-                            end;
-                        Enum::"Reminder Text Position"::Ending:
-                            begin
-                                ReminderAttachmentTextLine.Init();
-                                ReminderAttachmentTextLine.Id := ReminderAttachmentText.Id;
-                                ReminderAttachmentTextLine."Language Code" := ReminderAttachmentText."Language Code";
-                                ReminderAttachmentTextLine.Position := ReminderAttachmentTextLine.Position::"Ending Line";
-                                ReminderAttachmentTextLine."Line No." := ReminderText."Line No.";
-                                ReminderAttachmentTextLine.Text := ReminderText.Text;
-                                OnTransferReminderTextOnBeforeInsertEndingReminderAttachmentTextLine(ReminderText, ReminderAttachmentTextLine);
-                                ReminderAttachmentTextLine.Insert(true);
-                            end;
-                        Enum::"Reminder Text Position"::"Email Body":
-                            if ReminderText."Email Text".HasValue() then begin
-                                ReminderText.CalcFields("Email Text");
+                case ReminderText.Position of
+                    Enum::"Reminder Text Position"::Beginning:
+                        begin
+                            InitializeReminderAttachmentTextLine(
+                                ReminderAttachmentTextLine, ReminderAttachmentText, ReminderText,
+                                ReminderAttachmentTextLine.Position::"Beginning Line");
+                            OnTransferReminderTextOnBeforeInsertBeginningReminderAttachmentTextLine(ReminderText, ReminderAttachmentTextLine);
+                            UpsertReminderAttachmentTextLine(ReminderAttachmentTextLine, OverwriteExisting);
+                        end;
+                    Enum::"Reminder Text Position"::Ending:
+                        begin
+                            InitializeReminderAttachmentTextLine(
+                                ReminderAttachmentTextLine, ReminderAttachmentText, ReminderText,
+                                ReminderAttachmentTextLine.Position::"Ending Line");
+                            OnTransferReminderTextOnBeforeInsertEndingReminderAttachmentTextLine(ReminderText, ReminderAttachmentTextLine);
+                            UpsertReminderAttachmentTextLine(ReminderAttachmentTextLine, OverwriteExisting);
+                        end;
+                    Enum::"Reminder Text Position"::"Email Body":
+                        if ReminderText."Email Text".HasValue() then begin
+                            ReminderText.CalcFields("Email Text");
+                            if OverwriteExisting or CreatedEmailTextIds.ContainsKey(EmailTextId) or (ReminderEmailText.GetBodyText() = '') then begin
                                 ReminderText."Email Text".CreateInStream(ReadStream);
-                                ReminderEmailText.SetBodyText(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(ReadStream, TypeHelper.LFSeparator(), ReminderText.FieldName("Email Text")));
+                                ReminderEmailText.SetBodyText(
+                                    TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(
+                                        ReadStream, TypeHelper.LFSeparator(), ReminderText.FieldName("Email Text")));
                             end;
-                    end;
+                        end;
+                end;
             end;
         until ReminderText.Next() = 0;
     end;
 
-    internal procedure TransferReminderTermsTranslations()
+    local procedure TransferReminderTermsTranslations(OverwriteExisting: Boolean)
     var
         ReminderTerms: Record "Reminder Terms";
         ReminderTermsTranslations: Record "Reminder Terms Translation";
         ReminderAttachmentText: Record "Reminder Attachment Text";
         ReminderEmailText: Record "Reminder Email Text";
-        LocalGuid: Guid;
+        AttachmentTextId: Guid;
+        EmailTextId: Guid;
+        AttachmentTextCreated: Boolean;
     begin
         if ReminderTermsTranslations.IsEmpty() then
             exit;
@@ -621,19 +647,17 @@ codeunit 1890 "Reminder Communication"
         repeat
             Clear(ReminderAttachmentText);
             Clear(ReminderEmailText);
-            Clear(LocalGuid);
             if ReminderTerms.Get(ReminderTermsTranslations."Reminder Terms Code") then begin
-                if not IsNullGuid(ReminderTerms."Reminder Attachment Text") then
-                    LocalGuid := ReminderTerms."Reminder Attachment Text";
-                if not IsNullGuid(ReminderTerms."Reminder Email Text") then
-                    LocalGuid := ReminderTerms."Reminder Email Text";
-                if IsNullGuid(LocalGuid) then
-                    LocalGuid := CreateGuid();
-                if not ReminderAttachmentText.Get(LocalGuid, ReminderTermsTranslations."Language Code") then
-                    ReminderAttachmentText.SetDefaultContentForNewLanguage(LocalGuid, ReminderTermsTranslations."Language Code", Enum::"Reminder Text Source Type"::"Reminder Term", ReminderTerms.SystemId);
-                if not ReminderEmailText.Get(LocalGuid, ReminderTermsTranslations."Language Code") then
-                    ReminderEmailText.SetDefaultContentForNewLanguage(LocalGuid, ReminderTermsTranslations."Language Code", Enum::"Reminder Text Source Type"::"Reminder Term", ReminderTerms.SystemId);
-                if ReminderAttachmentText.Get(LocalGuid, ReminderTermsTranslations."Language Code") then begin
+                ResolveCommunicationIds(ReminderTerms."Reminder Attachment Text", ReminderTerms."Reminder Email Text", AttachmentTextId, EmailTextId);
+                AttachmentTextCreated :=
+                    EnsureReminderAttachmentText(
+                        ReminderAttachmentText, AttachmentTextId, ReminderTermsTranslations."Language Code",
+                        Enum::"Reminder Text Source Type"::"Reminder Term", ReminderTerms.SystemId);
+                EnsureReminderEmailText(
+                    ReminderEmailText, EmailTextId, ReminderTermsTranslations."Language Code",
+                    Enum::"Reminder Text Source Type"::"Reminder Term", ReminderTerms.SystemId);
+                SetReminderTermsCommunicationIds(ReminderTerms, AttachmentTextId, EmailTextId);
+                if OverwriteExisting or AttachmentTextCreated or (ReminderAttachmentText."Inline Fee Description" = '') then begin
                     ReminderAttachmentText."Inline Fee Description" := CopyStr(ReminderTermsTranslations."Note About Line Fee on Report", 1, 100);
                     ReminderAttachmentText.Modify(true);
                 end;
@@ -641,14 +665,16 @@ codeunit 1890 "Reminder Communication"
         until ReminderTermsTranslations.Next() = 0;
     end;
 
-    internal procedure TransferReminderTermsLineFeeDescription()
+    local procedure TransferReminderTermsLineFeeDescription(OverwriteExisting: Boolean)
     var
         ReminderTerms: Record "Reminder Terms";
         ReminderAttachmentText: Record "Reminder Attachment Text";
         ReminderEmailText: Record "Reminder Email Text";
         Language: Codeunit Language;
-        LocalGuid: Guid;
+        AttachmentTextId: Guid;
+        EmailTextId: Guid;
         DefaultLanguageCode: Code[10];
+        AttachmentTextCreated: Boolean;
     begin
         if ReminderTerms.IsEmpty() then
             exit;
@@ -657,32 +683,32 @@ codeunit 1890 "Reminder Communication"
         repeat
             Clear(ReminderAttachmentText);
             Clear(ReminderEmailText);
-            Clear(LocalGuid);
-            if not IsNullGuid(ReminderTerms."Reminder Attachment Text") then
-                LocalGuid := ReminderTerms."Reminder Attachment Text";
-            if not IsNullGuid(ReminderTerms."Reminder Email Text") then
-                LocalGuid := ReminderTerms."Reminder Email Text";
-            if IsNullGuid(LocalGuid) then
-                LocalGuid := CreateGuid();
-            if not ReminderAttachmentText.Get(LocalGuid, DefaultLanguageCode) then
-                ReminderAttachmentText.SetDefaultContentForNewLanguage(LocalGuid, DefaultLanguageCode, Enum::"Reminder Text Source Type"::"Reminder Term", ReminderTerms.SystemId);
-            if not ReminderEmailText.Get(LocalGuid, DefaultLanguageCode) then
-                ReminderEmailText.SetDefaultContentForNewLanguage(LocalGuid, DefaultLanguageCode, Enum::"Reminder Text Source Type"::"Reminder Term", ReminderTerms.SystemId);
-            if ReminderAttachmentText.Get(LocalGuid, DefaultLanguageCode) then begin
+            ResolveCommunicationIds(ReminderTerms."Reminder Attachment Text", ReminderTerms."Reminder Email Text", AttachmentTextId, EmailTextId);
+            AttachmentTextCreated :=
+                EnsureReminderAttachmentText(
+                    ReminderAttachmentText, AttachmentTextId, DefaultLanguageCode,
+                    Enum::"Reminder Text Source Type"::"Reminder Term", ReminderTerms.SystemId);
+            EnsureReminderEmailText(
+                ReminderEmailText, EmailTextId, DefaultLanguageCode,
+                Enum::"Reminder Text Source Type"::"Reminder Term", ReminderTerms.SystemId);
+            SetReminderTermsCommunicationIds(ReminderTerms, AttachmentTextId, EmailTextId);
+            if OverwriteExisting or AttachmentTextCreated or (ReminderAttachmentText."Inline Fee Description" = '') then begin
                 ReminderAttachmentText."Inline Fee Description" := CopyStr(ReminderTerms."Note About Line Fee on Report", 1, 100);
                 ReminderAttachmentText.Modify(true);
             end;
         until ReminderTerms.Next() = 0;
     end;
 
-    internal procedure TransferReminderLevelLineFeeDescription()
+    local procedure TransferReminderLevelLineFeeDescription(OverwriteExisting: Boolean)
     var
         ReminderLevel: Record "Reminder Level";
         ReminderAttachmentText: Record "Reminder Attachment Text";
         ReminderEmailText: Record "Reminder Email Text";
         Language: Codeunit Language;
-        LocalGuid: Guid;
+        AttachmentTextId: Guid;
+        EmailTextId: Guid;
         DefaultLanguageCode: Code[10];
+        AttachmentTextCreated: Boolean;
     begin
         if ReminderLevel.IsEmpty() then
             exit;
@@ -691,22 +717,105 @@ codeunit 1890 "Reminder Communication"
         repeat
             Clear(ReminderAttachmentText);
             Clear(ReminderEmailText);
-            Clear(LocalGuid);
-            if not IsNullGuid(ReminderLevel."Reminder Attachment Text") then
-                LocalGuid := ReminderLevel."Reminder Attachment Text";
-            if not IsNullGuid(ReminderLevel."Reminder Email Text") then
-                LocalGuid := ReminderLevel."Reminder Email Text";
-            if IsNullGuid(LocalGuid) then
-                LocalGuid := CreateGuid();
-            if not ReminderAttachmentText.Get(LocalGuid, DefaultLanguageCode) then
-                ReminderAttachmentText.SetDefaultContentForNewLanguage(LocalGuid, DefaultLanguageCode, Enum::"Reminder Text Source Type"::"Reminder Level", ReminderLevel.SystemId);
-            if not ReminderEmailText.Get(LocalGuid, DefaultLanguageCode) then
-                ReminderEmailText.SetDefaultContentForNewLanguage(LocalGuid, DefaultLanguageCode, Enum::"Reminder Text Source Type"::"Reminder Level", ReminderLevel.SystemId);
-            if ReminderAttachmentText.Get(LocalGuid, DefaultLanguageCode) then begin
+            ResolveCommunicationIds(ReminderLevel."Reminder Attachment Text", ReminderLevel."Reminder Email Text", AttachmentTextId, EmailTextId);
+            AttachmentTextCreated :=
+                EnsureReminderAttachmentText(
+                    ReminderAttachmentText, AttachmentTextId, DefaultLanguageCode,
+                    Enum::"Reminder Text Source Type"::"Reminder Level", ReminderLevel.SystemId);
+            EnsureReminderEmailText(
+                ReminderEmailText, EmailTextId, DefaultLanguageCode,
+                Enum::"Reminder Text Source Type"::"Reminder Level", ReminderLevel.SystemId);
+            SetReminderLevelCommunicationIds(ReminderLevel, AttachmentTextId, EmailTextId);
+            if OverwriteExisting or AttachmentTextCreated or (ReminderAttachmentText."Inline Fee Description" = '') then begin
                 ReminderAttachmentText."Inline Fee Description" := CopyStr(ReminderLevel."Add. Fee per Line Description", 1, 100);
                 ReminderAttachmentText.Modify(true);
             end;
         until ReminderLevel.Next() = 0;
+    end;
+
+    local procedure ResolveCommunicationIds(CurrentAttachmentTextId: Guid; CurrentEmailTextId: Guid; var AttachmentTextId: Guid; var EmailTextId: Guid)
+    begin
+        AttachmentTextId := CurrentAttachmentTextId;
+        EmailTextId := CurrentEmailTextId;
+        if IsNullGuid(AttachmentTextId) then
+            AttachmentTextId := EmailTextId;
+        if IsNullGuid(AttachmentTextId) then
+            AttachmentTextId := CreateGuid();
+        if IsNullGuid(EmailTextId) then
+            EmailTextId := AttachmentTextId;
+    end;
+
+    local procedure EnsureReminderAttachmentText(var ReminderAttachmentText: Record "Reminder Attachment Text"; AttachmentTextId: Guid; LanguageCode: Code[10]; SourceType: Enum "Reminder Text Source Type"; SourceSystemId: Guid): Boolean
+    begin
+        if ReminderAttachmentText.Get(AttachmentTextId, LanguageCode) then
+            exit(false);
+
+        ReminderAttachmentText.SetDefaultContentForNewLanguage(AttachmentTextId, LanguageCode, SourceType, SourceSystemId);
+        ReminderAttachmentText.Get(AttachmentTextId, LanguageCode);
+        exit(true);
+    end;
+
+    local procedure EnsureReminderEmailText(var ReminderEmailText: Record "Reminder Email Text"; EmailTextId: Guid; LanguageCode: Code[10]; SourceType: Enum "Reminder Text Source Type"; SourceSystemId: Guid): Boolean
+    begin
+        if ReminderEmailText.Get(EmailTextId, LanguageCode) then
+            exit(false);
+
+        ReminderEmailText.SetDefaultContentForNewLanguage(EmailTextId, LanguageCode, SourceType, SourceSystemId);
+        ReminderEmailText.Get(EmailTextId, LanguageCode);
+        exit(true);
+    end;
+
+    local procedure SetReminderTermsCommunicationIds(var ReminderTerms: Record "Reminder Terms"; AttachmentTextId: Guid; EmailTextId: Guid)
+    begin
+        if (ReminderTerms."Reminder Attachment Text" = AttachmentTextId) and
+           (ReminderTerms."Reminder Email Text" = EmailTextId)
+        then
+            exit;
+
+        ReminderTerms."Reminder Attachment Text" := AttachmentTextId;
+        ReminderTerms."Reminder Email Text" := EmailTextId;
+        ReminderTerms.Modify(true);
+    end;
+
+    local procedure SetReminderLevelCommunicationIds(var ReminderLevel: Record "Reminder Level"; AttachmentTextId: Guid; EmailTextId: Guid)
+    begin
+        if (ReminderLevel."Reminder Attachment Text" = AttachmentTextId) and
+           (ReminderLevel."Reminder Email Text" = EmailTextId)
+        then
+            exit;
+
+        ReminderLevel."Reminder Attachment Text" := AttachmentTextId;
+        ReminderLevel."Reminder Email Text" := EmailTextId;
+        ReminderLevel.Modify(true);
+    end;
+
+    local procedure InitializeReminderAttachmentTextLine(var ReminderAttachmentTextLine: Record "Reminder Attachment Text Line"; ReminderAttachmentText: Record "Reminder Attachment Text"; ReminderText: Record "Reminder Text"; Position: Option "Beginning Line","Ending Line")
+    begin
+        Clear(ReminderAttachmentTextLine);
+        ReminderAttachmentTextLine.Id := ReminderAttachmentText.Id;
+        ReminderAttachmentTextLine."Language Code" := ReminderAttachmentText."Language Code";
+        ReminderAttachmentTextLine.Position := Position;
+        ReminderAttachmentTextLine."Line No." := ReminderText."Line No.";
+        ReminderAttachmentTextLine.Text := ReminderText.Text;
+    end;
+
+    local procedure UpsertReminderAttachmentTextLine(ReminderAttachmentTextLine: Record "Reminder Attachment Text Line"; OverwriteExisting: Boolean)
+    var
+        ExistingReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
+    begin
+        if not ExistingReminderAttachmentTextLine.Get(
+             ReminderAttachmentTextLine.Id, ReminderAttachmentTextLine."Language Code",
+             ReminderAttachmentTextLine.Position, ReminderAttachmentTextLine."Line No.")
+        then begin
+            ReminderAttachmentTextLine.Insert(true);
+            exit;
+        end;
+
+        if not OverwriteExisting or (ExistingReminderAttachmentTextLine.Text = ReminderAttachmentTextLine.Text) then
+            exit;
+
+        ExistingReminderAttachmentTextLine.Text := ReminderAttachmentTextLine.Text;
+        ExistingReminderAttachmentTextLine.Modify(true);
     end;
 
     local procedure FindEmailSubject(var IssuedReminderHeader: Record "Issued Reminder Header"; var EmailSubject: Text[250]): Boolean
