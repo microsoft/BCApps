@@ -2464,26 +2464,29 @@ codeunit 148339 "Spend Request Test"
     var
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
         TravelRequestsAPI: Page "Travel Requests API";
         ActionContext: WebServiceActionContext;
     begin
         // [SCENARIO] The submission page procedure releases the request and records its submitter.
         Initialize();
 
-        // [GIVEN] A releasable travel request with the Expense Agent enabled.
+        // [GIVEN] A releasable travel request with an assigned approver and the Expense Agent enabled.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
         TravelRequestsAPI.SetRecord(SpendRequest);
 
         // [WHEN] The page procedure is invoked directly, without an HTTP request.
         TravelRequestsAPI.SubmitTravelRequest(ActionContext, ExpenseUser."No.");
 
-        // [THEN] The request is released with its submission audit fields.
+        // [THEN] The request is released with its submission audit fields and assigned to its approver.
         Assert.AreEqual(Format(WebServiceActionResultCode::Updated), Format(ActionContext.GetResultCode()), TravelRequestActionResultMsg);
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, 'The travel request should be released through the page action.');
         Assert.AreEqual(ExpenseUser."No.", SpendRequest."Submitted By Expense User No.", 'The submitting expense user should be recorded.');
         Assert.AreNotEqual(0DT, SpendRequest."Submitted At", 'The page action submission date and time should be recorded.');
+        Assert.AreEqual(ApproverExpenseUser."No.", SpendRequest."Approver Expense User No.", 'The submitted travel request should be assigned to its approver.');
     end;
 
     [Test]
@@ -3621,7 +3624,7 @@ codeunit 148339 "Spend Request Test"
         TravelRequestApproval: Codeunit "Travel Request Approval";
         RejectReason: Text;
     begin
-        // [SCENARIO] The travel request lifecycle records creation, submission, rejection, resubmission, and approval.
+        // [SCENARIO 641538] The travel request lifecycle records creation, submission, rejection, reopening, resubmission, and approval.
         Initialize();
 
         // [GIVEN] A releasable travel request with an assigned approver and the agent enabled.
@@ -3641,7 +3644,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
         ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
         ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
-        Assert.RecordCount(ExpenseActivityLogEntry, 6);
+        Assert.RecordCount(ExpenseActivityLogEntry, 7);
         ExpenseActivityLogEntry.FindSet();
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Created, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser);
         Assert.AreEqual(SpendRequest.SystemCreatedAt, ExpenseActivityLogEntry."Occurred At", 'The creation entry must use the travel request creation timestamp.');
@@ -3653,6 +3656,8 @@ codeunit 148339 "Spend Request Test"
         ExpenseActivityLogEntry.Next();
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Rejected, Enum::"Expense Activity Actor Role"::Approver, ApproverExpenseUser);
         Assert.AreEqual(RejectReason, ExpenseActivityLogEntry.Comment, 'The rejection entry must preserve the rejection reason.');
+        ExpenseActivityLogEntry.Next();
+        AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::ReopenedByApprover, Enum::"Expense Activity Actor Role"::Approver, ApproverExpenseUser);
         ExpenseActivityLogEntry.Next();
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Resubmitted, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser);
         ExpenseActivityLogEntry.Next();
@@ -4036,7 +4041,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
-        // [SCENARIO] A travel request released directly in the client, without a logged submission, starts its history with the Created entry when it is rejected.
+        // [SCENARIO 641538] Rejecting a directly released travel request logs creation, rejection, and reopening in order.
         Initialize();
 
         // [GIVEN] A released travel request without activity entries, an assigned approver, and the agent enabled.
@@ -4048,16 +4053,19 @@ codeunit 148339 "Spend Request Test"
         // [WHEN] The travel request is rejected.
         TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", 'Missing details.');
 
-        // [THEN] The history starts with the Created entry by the requester, followed by the rejection, and both are in the requester's history.
+        // [THEN] Creation, rejection, and reopening are ordered and included in the requester's history.
         ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
         ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
         ExpenseActivityLogEntry.SetRange("Source Record System ID", SpendRequest.SystemId);
-        Assert.RecordCount(ExpenseActivityLogEntry, 2);
+        Assert.RecordCount(ExpenseActivityLogEntry, 3);
         ExpenseActivityLogEntry.FindSet();
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Created, Enum::"Expense Activity Actor Role"::Submitter, ExpenseUser);
         VerifyInUserHistory(ExpenseActivityLogEntry, ExpenseUser, Enum::"Expense Activity Actor Role"::Submitter);
         ExpenseActivityLogEntry.Next();
         AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::Rejected, Enum::"Expense Activity Actor Role"::Approver, ApproverExpenseUser);
+        VerifyInUserHistory(ExpenseActivityLogEntry, ExpenseUser, Enum::"Expense Activity Actor Role"::Submitter);
+        ExpenseActivityLogEntry.Next();
+        AssertTravelRequestActivity(ExpenseActivityLogEntry, SpendRequest, Enum::"Expense Activity Event Type"::ReopenedByApprover, Enum::"Expense Activity Actor Role"::Approver, ApproverExpenseUser);
         VerifyInUserHistory(ExpenseActivityLogEntry, ExpenseUser, Enum::"Expense Activity Actor Role"::Submitter);
     end;
 
@@ -4066,6 +4074,7 @@ codeunit 148339 "Spend Request Test"
     var
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         TravelRequestApproval: Codeunit "Travel Request Approval";
         ReleaseSpendRequest: Codeunit "Release Spend Request";
@@ -4076,6 +4085,7 @@ codeunit 148339 "Spend Request Test"
         // [GIVEN] A submitted and reopened travel request with activity entries.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
         TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.");
         ReleaseSpendRequest.PerformManualReopen(SpendRequest);
         ExpenseActivityLogEntry.SetRange("Source Table ID", Database::"Spend Request");
@@ -4185,7 +4195,7 @@ codeunit 148339 "Spend Request Test"
         TravelRequestApproval: Codeunit "Travel Request Approval";
         TravelRequestCard: TestPage "Travel Request Card";
     begin
-        // [SCENARIO] Releasing a rejected travel request from the card starts a new approval without the decision and comment of the previous one.
+        // [SCENARIO] Releasing a rejected travel request from the card, with the agent disabled, approves it without the decision and comment of the previous approval.
         Initialize();
 
         // [GIVEN] A travel request that was submitted with a comment and rejected, which reopens it.
@@ -4195,21 +4205,70 @@ codeunit 148339 "Spend Request Test"
         TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.", 'First submission comment.');
         TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", 'Missing details.');
 
+        // [GIVEN] The agent is disabled, because the Release action is available only without the agent.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(false);
+
         // [WHEN] The travel request is released from the card.
         TravelRequestCard.OpenEdit();
         TravelRequestCard.GoToRecord(SpendRequest);
         TravelRequestCard.Release.Invoke();
         TravelRequestCard.Close();
 
-        // [THEN] The travel request is released, and the rejection details and the submitter comment are cleared.
+        // [THEN] The travel request is approved automatically, and the rejection details and the submitter comment are cleared.
         SpendRequest.Get(SpendRequest."No.");
-        SpendRequest.TestField(Status, SpendRequest.Status::Released);
+        SpendRequest.TestField(Status, SpendRequest.Status::Approved);
         SpendRequest.TestField("Rejection Reason", '');
         SpendRequest.TestField("Approval Expense User No.", '');
-        SpendRequest.TestField("Approved/Rejected At", 0DT);
-        SpendRequest.TestField("Approved/Rejected by User Name", '');
         SpendRequest.TestField("Submitter Comment", '');
-        Assert.IsTrue(IsNullGuid(SpendRequest."Approved/Rejected by User ID"), 'A released travel request must not keep the user who rejected it.');
+    end;
+
+    [Test]
+    procedure ReleaseActionRespectsAgentSetupAndStatus()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        TravelRequestCard: TestPage "Travel Request Card";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 641538] The Release action is available only when the agent is disabled and the request is not released.
+        Initialize();
+
+        // [GIVEN] An open travel request with all release prerequisites satisfied and the agent disabled.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(false);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+
+        // [WHEN] The travel request card is opened.
+        TravelRequestCard.OpenEdit();
+        TravelRequestCard.GoToRecord(SpendRequest);
+
+        // [THEN] The Release action is enabled.
+        Assert.IsTrue(TravelRequestCard.Release.Enabled(), 'Release must be enabled for an open request when the agent is disabled.');
+        TravelRequestCard.Close();
+
+        // [GIVEN] The travel request is already released.
+        SpendRequest.Status := SpendRequest.Status::Released;
+        SpendRequest.Modify();
+
+        // [WHEN] The travel request card is reopened.
+        TravelRequestCard.OpenEdit();
+        TravelRequestCard.GoToRecord(SpendRequest);
+
+        // [THEN] The Release action is disabled.
+        Assert.IsFalse(TravelRequestCard.Release.Enabled(), 'Release must be disabled for a released request.');
+        TravelRequestCard.Close();
+
+        // [GIVEN] The travel request is open and the agent is enabled.
+        SpendRequest.Status := SpendRequest.Status::Open;
+        SpendRequest.Modify();
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+
+        // [WHEN] The travel request card is reopened.
+        TravelRequestCard.OpenEdit();
+        TravelRequestCard.GoToRecord(SpendRequest);
+
+        // [THEN] The Release action is disabled.
+        Assert.IsFalse(TravelRequestCard.Release.Enabled(), 'Release must be disabled when the agent is enabled.');
+        TravelRequestCard.Close();
     end;
 
     local procedure SetExpenseAgentUser()
@@ -4530,7 +4589,9 @@ codeunit 148339 "Spend Request Test"
     local procedure CreateApprover(var ApproverExpenseUser: Record "Expense User")
     begin
         LibraryExpense.CreateExpenseUser(ApproverExpenseUser);
+        // Enabling approval in the client also grants unlimited approval, so approval limits do not escalate the travel request.
         ApproverExpenseUser."Can Approve" := true;
+        ApproverExpenseUser."Unlimited Approval" := true;
         ApproverExpenseUser."User Id For Approvals" := CopyStr(UserId(), 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
         ApproverExpenseUser.Modify(true);
     end;

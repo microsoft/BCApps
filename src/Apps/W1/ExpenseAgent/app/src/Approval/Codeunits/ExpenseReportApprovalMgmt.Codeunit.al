@@ -483,7 +483,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
                 LogComment);
     end;
 
-    local procedure IsApproverEligible(ExpenseUser: Record "Expense User"): Boolean
+    internal procedure IsApproverEligible(ExpenseUser: Record "Expense User"): Boolean
     begin
         exit(ExpenseUser."Can Approve" and (ExpenseUser."User Id For Approvals" <> ''));
     end;
@@ -608,7 +608,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         exit(ExpenseReportHeader."Interim Approver No.");
     end;
 
-    local procedure IsCoverageEnded(PrimaryApproverNo: Code[20]; AlternateApproverNo: Code[20]): Boolean
+    internal procedure IsCoverageEnded(PrimaryApproverNo: Code[20]; AlternateApproverNo: Code[20]): Boolean
     var
         ExpenseAlternateApprover: Record "Expense Alternate Approver";
     begin
@@ -718,7 +718,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         exit('');
     end;
 
-    local procedure GetNextApproverNo(CurrentApproverNo: Code[20]): Code[20]
+    internal procedure GetNextApproverNo(CurrentApproverNo: Code[20]): Code[20]
     var
         ExpenseUser: Record "Expense User";
         ExpenseApprovalSetup: Record "Expense Approval Setup";

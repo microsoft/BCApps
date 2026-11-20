@@ -233,6 +233,31 @@ page 7134 "Travel Requests API"
                     Caption = 'Rejection Reason';
                     Editable = false;
                 }
+                field(assignedApproverExpenseUserNo; Rec."Approver Expense User No.")
+                {
+                    Caption = 'Approver Expense User No.';
+                    Editable = false;
+                }
+                field(approverExpenseUserName; Rec."Approver Expense User Name")
+                {
+                    Caption = 'Approver Expense User Name';
+                    Editable = false;
+                }
+                field(alternateApproverNo; Rec."Alternate Approver No.")
+                {
+                    Caption = 'Alternate Approver No.';
+                    Editable = false;
+                }
+                field(alternateApproverName; Rec."Alternate Approver Name")
+                {
+                    Caption = 'Alternate Approver Name';
+                    Editable = false;
+                }
+                field(primaryApproverNo; Rec."Primary Approver No.")
+                {
+                    Caption = 'Primary Approver No.';
+                    Editable = false;
+                }
                 part(travelRequestDetails; "Travel Request Details API")
                 {
                     Caption = 'Travel Request Details';
@@ -328,6 +353,24 @@ page 7134 "Travel Requests API"
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
         TravelRequestApproval.Reject(Rec, ApproverExpenseUserNo, RejectReason);
+        SetActionResponse(ActionContext);
+    end;
+
+    [ServiceEnabled]
+    procedure RecallTravelRequest(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20])
+    var
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        TravelRequestApproval.Recall(Rec, SubmitterExpenseUserNo);
+        SetActionResponse(ActionContext);
+    end;
+
+    [ServiceEnabled]
+    procedure AssignAlternateApprover(var ActionContext: WebServiceActionContext; ActorExpenseUserNo: Code[20])
+    var
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        TravelRequestApproval.AssignAlternateApprover(Rec, ActorExpenseUserNo);
         SetActionResponse(ActionContext);
     end;
 

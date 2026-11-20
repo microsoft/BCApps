@@ -198,6 +198,14 @@ codeunit 6908 "Expense Event Subscriber"
         AutoApproveSpendRequestWhenAgentDisabled(SpendRequest);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Spend Request", OnAfterReopen, '', false, false)]
+    local procedure OnAfterReopenSpendRequest(var SpendRequest: Record "Spend Request")
+    var
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        TravelRequestApproval.ClearApprovalRoutingOnReopen(SpendRequest);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Spend Request", OnAfterClose, '', false, false)]
     local procedure OnAfterCloseSpendRequest(var SpendRequest: Record "Spend Request")
     var
