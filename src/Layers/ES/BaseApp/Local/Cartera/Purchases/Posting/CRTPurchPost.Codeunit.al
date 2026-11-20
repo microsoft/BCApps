@@ -51,12 +51,6 @@ codeunit 17701 "CRT Purch.-Post"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterCheckPostRestrictions', '', true, true)]
-    local procedure OnAfterCheckPostRestrictions(var PurchaseHeader: Record "Purchase Header")
-    begin
-        TestPurchEffects(PurchaseHeader);
-    end;
-
     internal procedure TestPurchEffects(PurchHeader: Record "Purchase Header")
     var
         VendLedgEntry: Record "Vendor Ledger Entry";

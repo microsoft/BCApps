@@ -4,12 +4,34 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
+using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 
 codeunit 17700 "CRT Gen. Journal Line"
 {
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Check Line", OnAfterTestDocumentNo, '', true, false)]
+    local procedure OnAfterTestDocumentNo(var GenJournalLine: Record "Gen. Journal Line")
+    var
+        CarteraSetup: Record "Cartera Setup";
+        PaymentTerms: Record "Payment Terms";
+        DocumentPost: Codeunit "Document-Post";
+    begin
+        if (GenJournalLine."Document Type" = GenJournalLine."Document Type"::Invoice) and
+           (GenJournalLine."Document Date" <> 0D) and (GenJournalLine."Payment Terms Code" <> '')
+        then
+            if PaymentTerms.Get(GenJournalLine."Payment Terms Code") then
+                PaymentTerms.VerifyMaxNoDaysTillDueDate(
+                    GenJournalLine."Due Date", GenJournalLine."Document Date", GenJournalLine.FieldCaption("Due Date"));
+
+        if ((GenJournalLine."Document Type" in [GenJournalLine."Document Type"::Bill, GenJournalLine."Document Type"::Invoice, GenJournalLine."Document Type"::"Credit Memo"]) or
+            (GenJournalLine."Applies-to Doc. Type" in [GenJournalLine."Applies-to Doc. Type"::Bill, GenJournalLine."Applies-to Doc. Type"::Invoice])) and
+           CarteraSetup.ReadPermission
+        then
+            DocumentPost.CheckGenJnlLine(GenJournalLine);
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnLookUpAppliesToDocCustOnAfterUpdateDocumentTypeAndAppliesTo, '', true, false)]
     local procedure OnLookUpAppliesToDocCustOnAfterUpdateDocumentTypeAndAppliesTo(var GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
@@ -48,7 +70,7 @@ codeunit 17700 "CRT Gen. Journal Line"
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnValidatePaymentTermsCodeOnElseCase, '', true, false)]
     local procedure OnValidatePaymentTermsCodeOnElseCase(var Rec: Record "Gen. Journal Line"; var PaymentTerms: Record "Payment Terms"; var IsHandled: Boolean)
     begin
-        if not (Rec."Document Type" = Rec."Document Type"::Bill) then
+        if IsHandled or (Rec."Document Type" <> Rec."Document Type"::Bill) then
             exit;
 
         if (Rec."Payment Terms Code" <> '') and (Rec."Document Date" <> 0D) then begin
@@ -57,5 +79,6 @@ codeunit 17700 "CRT Gen. Journal Line"
             Rec.AdjustDueDate(99991231D);
         end else
             Rec."Due Date" := Rec."Document Date";
+        IsHandled := true;
     end;
 }

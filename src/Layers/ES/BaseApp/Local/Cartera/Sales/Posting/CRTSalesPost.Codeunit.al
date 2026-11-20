@@ -53,12 +53,6 @@ codeunit 17702 "CRT Sales-Post"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterCheckPostRestrictions', '', true, true)]
-    local procedure OnAfterCheckPostRestrictions(var SalesHeader: Record "Sales Header")
-    begin
-        TestSalesEffects(SalesHeader);
-    end;
-
     internal procedure TestSalesEffects(SalesHeader: Record "Sales Header")
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
