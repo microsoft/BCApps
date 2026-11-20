@@ -554,8 +554,8 @@ codeunit 7304 "Whse. Jnl.-Register Batch"
         Item: Record Item;
     begin
         Item.Get(ItemNo);
-        Item.SetFilter("Location Filter", LocationCode);
-        Item.SetFilter("Variant Filter", VariantCode);
+        Item.SetRange("Location Filter", LocationCode);
+        Item.SetRange("Variant Filter", VariantCode);
         Item.CalcFields("Reserved Qty. on Inventory");
         exit(Item."Reserved Qty. on Inventory")
     end;

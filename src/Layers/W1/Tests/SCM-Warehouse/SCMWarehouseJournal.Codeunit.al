@@ -4240,6 +4240,41 @@ codeunit 137153 "SCM Warehouse - Journal"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure RegisterOutboundWhseJournalAtLocationWithFilterCharacter()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        Location: Record Location;
+        WarehouseJournalLine: Record "Warehouse Journal Line";
+        WarehouseJournalTemplate: Record "Warehouse Journal Template";
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Warehouse Item Journal]
+        // [SCENARIO 653899] An outbound warehouse journal registers at a location whose code contains a filter character
+        Initialize();
+        Quantity := 10;
+
+        // [GIVEN] Full WMS location "L" whose code contains ">" and item "I"
+        LibraryWarehouse.CreateFullWMSLocation(Location, 1);
+        Location.Rename('LOC>LOC1');
+        FindBin(Bin, Location.Code, true);
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Warehouse and item ledger inventory of 10 is synchronized for item "I" in bin "B"
+        CreateWarehouseJournalAndRegister(
+          WarehouseJournalLine, Bin, WarehouseJournalTemplate.Type::Item, Item."No.", Quantity, false);
+        CalculateAndPostWhseAdjustment(Item);
+
+        // [WHEN] A warehouse negative adjustment of 1 is registered for item "I" at location "L"
+        CreateWarehouseJournalAndRegister(
+          WarehouseJournalLine, Bin, WarehouseJournalTemplate.Type::Item, Item."No.", -1, false);
+
+        // [THEN] Registration completes and all expected handlers have been consumed
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

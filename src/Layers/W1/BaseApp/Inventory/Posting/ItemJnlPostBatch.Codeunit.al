@@ -865,8 +865,8 @@ codeunit 23 "Item Jnl.-Post Batch"
                 QtyinItemJnlLine := CalcRequiredQty(TempSKU, ItemJnlLine2);
                 if QtyinItemJnlLine < 0 then begin
                     Item.Get(TempSKU."Item No.");
-                    Item.SetFilter("Location Filter", TempSKU."Location Code");
-                    Item.SetFilter("Variant Filter", TempSKU."Variant Code");
+                    Item.SetRange("Location Filter", TempSKU."Location Code");
+                    Item.SetRange("Variant Filter", TempSKU."Variant Code");
                     Item.CalcFields("Reserved Qty. on Inventory", "Net Change");
                     AvailableQty := Item."Net Change" - Item."Reserved Qty. on Inventory";
                     OnCheckItemAvailabilityOnAfterSetAvailableQty(TempSKU, ItemJnlLine2, AvailableQty);
