@@ -45,12 +45,12 @@ codeunit 5632 "FA Jnl.-Post Line"
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         CurrentPostingRole: Enum "Derogatory Posting Role";
-        CurrentDerogatorySourceEntryNo: Integer;
-        SourceUntilDateCustom1EntryNo: Integer;
-        SourceUntilDateDepreciationEntryNo: Integer;
-        SourceAcqCostCustom1EntryNo: Integer;
-        SourceAcqCostDepreciationEntryNo: Integer;
-        SourceSalvageEntryNo: Integer;
+        CurrentDerogatorySourceEntryNo: BigInteger;
+        SourceUntilDateCustom1EntryNo: BigInteger;
+        SourceUntilDateDepreciationEntryNo: BigInteger;
+        SourceAcqCostCustom1EntryNo: BigInteger;
+        SourceAcqCostDepreciationEntryNo: BigInteger;
+        SourceSalvageEntryNo: BigInteger;
         FANo: Code[20];
         BudgetNo: Code[20];
         DeprBookCode: Code[10];
@@ -79,7 +79,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         FAJnlPostLineWithContext(FAJnlLine, CheckLine, CurrentPostingRole::Source, 0);
     end;
 
-    local procedure FAJnlPostLineWithContext(FAJnlLine: Record "FA Journal Line"; CheckLine: Boolean; PostingRole: Enum "Derogatory Posting Role"; DerogatorySourceEntryNo: Integer)
+    local procedure FAJnlPostLineWithContext(FAJnlLine: Record "FA Journal Line"; CheckLine: Boolean; PostingRole: Enum "Derogatory Posting Role"; DerogatorySourceEntryNo: BigInteger)
     var
         IsHandled: Boolean;
     begin
@@ -141,7 +141,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         end;
     end;
 
-    procedure GenJnlPostLineContinue(GenJnlLine: Record "Gen. Journal Line"; FAAmount: Decimal; VATAmount: Decimal; NextTransactionNo: Integer; NextGLEntryNo: Integer; GLRegisterNo: Integer)
+    procedure GenJnlPostLineContinue(GenJnlLine: Record "Gen. Journal Line"; FAAmount: Decimal; VATAmount: Decimal; NextTransactionNo: BigInteger; NextGLEntryNo: BigInteger; GLRegisterNo: BigInteger)
     begin
         CurrentPostingRole := CurrentPostingRole::Source;
         CurrentDerogatorySourceEntryNo := 0;
@@ -289,7 +289,7 @@ codeunit 5632 "FA Jnl.-Post Line"
     local procedure PostDerogatoryCounterpart(SourceFAJournalLine: Record "FA Journal Line")
     var
         DerogatoryFAJournalLine: Record "FA Journal Line";
-        SourceEntryNo: Integer;
+        SourceEntryNo: BigInteger;
     begin
         if SourceFAJournalLine."FA Posting Type" = SourceFAJournalLine."FA Posting Type"::Maintenance then
             SourceEntryNo := InsertedMaintenanceLedgEntry."Entry No."
@@ -309,7 +309,7 @@ codeunit 5632 "FA Jnl.-Post Line"
     local procedure PostDerogatoryCounterpart(SourceGenJournalLine: Record "Gen. Journal Line")
     var
         DerogatoryFAJournalLine: Record "FA Journal Line";
-        SourceEntryNo: Integer;
+        SourceEntryNo: BigInteger;
     begin
         if SourceGenJournalLine."FA Posting Type" = SourceGenJournalLine."FA Posting Type"::Maintenance then
             SourceEntryNo := InsertedMaintenanceLedgEntry."Entry No."
@@ -330,7 +330,7 @@ codeunit 5632 "FA Jnl.-Post Line"
 
     local procedure PostDisposalEntry(var FALedgEntry: Record "FA Ledger Entry")
     var
-        MaxDisposalNo: Integer;
+        MaxDisposalNo: BigInteger;
         SalesEntryNo: BigInteger;
         DisposalType: Option FirstDisposal,SecondDisposal,ErrorDisposal,LastErrorDisposal;
         OldDisposalMethod: Option " ",Net,Gross;
@@ -523,7 +523,7 @@ codeunit 5632 "FA Jnl.-Post Line"
             SourceSalvageEntryNo := InsertedSalvageFALedgerEntry."Entry No.";
     end;
 
-    local procedure GetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; PostingType: Enum "FA Ledger Entry FA Posting Type"): Integer
+    local procedure GetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; PostingType: Enum "FA Ledger Entry FA Posting Type"): BigInteger
     begin
         case Type of
             Type::UntilDate:
@@ -543,7 +543,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         end;
     end;
 
-    local procedure SetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; PostingType: Enum "FA Ledger Entry FA Posting Type"; EntryNo: Integer)
+    local procedure SetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; PostingType: Enum "FA Ledger Entry FA Posting Type"; EntryNo: BigInteger)
     begin
         case Type of
             Type::UntilDate:
@@ -808,7 +808,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         end;
     end;
 
-    procedure GetNextMatchingFALedgEntry(SourceFAJournalLine: Record "FA Journal Line"; FromEntryNo: Integer; DepreciationBookCode: Code[10]): Integer
+    procedure GetNextMatchingFALedgEntry(SourceFAJournalLine: Record "FA Journal Line"; FromEntryNo: BigInteger; DepreciationBookCode: Code[10]): BigInteger
     var
         FALedgerEntry: Record "FA Ledger Entry";
     begin
