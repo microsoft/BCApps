@@ -281,3 +281,4 @@ table 45 "G/L Register"
     begin
     end;
 }
+
