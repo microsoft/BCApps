@@ -16,6 +16,11 @@ codeunit 130051 "Business Skill Builder Test"
     TestPermissions = Disabled;
     RequiredTestIsolation = Codeunit;
 
+    trigger OnRun()
+    begin
+        // [FEATURE] [Business Skills] [Builder]
+    end;
+
     /// <summary>
     /// Creation allocates an inactive read-only skill owned by the calling app.
     /// </summary>
@@ -23,10 +28,13 @@ codeunit 130051 "Business Skill Builder Test"
     procedure CreateDefaultsToInactive()
     var
         Skill: Record "Business Skill";
+        BusSkillContentVersion: Record "Bus Skill Content Version";
         Builder: Codeunit "Business Skill Builder";
+        History: Codeunit "Business Skill Content History";
         CurrentModule: ModuleInfo;
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Creation allocates an inactive read-only skill owned by the calling app.
         // [GIVEN] A fresh builder with overridden content and an explicit version.
         Initialize();
         Builder.Initialize('TEST', 'Initial title', SecretStrSubstNo('Initial instructions'))
@@ -51,6 +59,8 @@ codeunit 130051 "Business Skill Builder Test"
         Assert.AreEqual('v1', Skill.Version, 'The version supplied by the app must persist.');
         Assert.IsTrue(Skill."Read-Only", 'The builder must default to read-only.');
         Assert.IsTrue(BusinessSkillImpl.IsSkillAvailableForCurrentCompany(SkillId), 'The skill must apply to the current company.');
+        History.RecordContentVersion(Skill);
+        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'Neither creation nor explicit history capture may record app-owned history.');
     end;
 
     /// <summary>
@@ -67,6 +77,7 @@ codeunit 130051 "Business Skill Builder Test"
         DeleteError: Text;
         ExpectedDeleteErrorLbl: Label 'You cannot delete this skill because its owning extension, ''%1'', is still installed. Uninstall the extension to delete the skill, or deactivate the skill to stop it being used.', Locked = true;
     begin
+        // [SCENARIO] Deletion denied by an installed owning app identifies the extension and the available alternatives.
         // [GIVEN] A skill owned by the installed test library, not the calling test app.
         Initialize();
         Skill.Get(LibraryBusinessSkill.CreateAppOwnedSkill('FOREIGN-OWNER', 'Foreign skill', SecretStrSubstNo('Instructions')));
@@ -87,11 +98,11 @@ codeunit 130051 "Business Skill Builder Test"
         Assert.IsFalse(BusinessSkillImpl.CanDeleteSkill(Skill), 'Both permission-check overloads must reject the same caller.');
         Assert.IsTrue(Skill.Get(Skill.ID), 'A foreign caller must not delete the skill through the public facade.');
         BusSkillContentVersion.SetRange("Skill ID", Skill.ID);
-        Assert.AreEqual(1, BusSkillContentVersion.Count(), 'Rejected deletion must preserve the skill history.');
+        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'Rejected app-owned deletion must not create history.');
     end;
 
     /// <summary>
-    /// The public facade preserves the calling app identity and deletes its skill and history together.
+    /// The public facade preserves the calling app identity when deleting its skill without history.
     /// </summary>
     [Test]
     procedure PublicFacadeDeletesCallingAppsSkill()
@@ -103,19 +114,20 @@ codeunit 130051 "Business Skill Builder Test"
         CurrentModule: ModuleInfo;
         SkillId: BigInteger;
     begin
-        // [GIVEN] An inactive skill and history owned by the calling test app.
+        // [SCENARIO] The public facade preserves the calling app identity when deleting its skill without history.
+        // [GIVEN] An inactive skill owned by the calling test app.
         Initialize();
         SkillId := Builder.Initialize('OWNER-DELETE', 'Owned skill', SecretStrSubstNo('Instructions')).Create();
         Skill.Get(SkillId);
         NavApp.GetCurrentModuleInfo(CurrentModule);
         Assert.AreEqual(CurrentModule.Id, Skill."Owning App ID", 'The builder must retain the calling app identity.');
         BusSkillContentVersion.SetRange("Skill ID", SkillId);
-        Assert.AreEqual(1, BusSkillContentVersion.Count(), 'Creation must record the initial content history.');
+        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'App-owned creation must not record history.');
 
         // [WHEN] The owning app deletes through the public facade.
         BusinessSkill.Delete(SkillId);
 
-        // [THEN] The additional implementation frame does not replace the caller or skip history cleanup.
+        // [THEN] The additional implementation frame does not replace the caller.
         Assert.IsFalse(Skill.Get(SkillId), 'The owning app must be able to delete its skill.');
         Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'The deleted skill must have no remaining history.');
     end;
@@ -133,6 +145,7 @@ codeunit 130051 "Business Skill Builder Test"
         BusinessSkill: Codeunit "Business Skill";
         Revision: BigInteger;
     begin
+        // [SCENARIO] The public content update selects the caller's locked inactive skill and preserves no-op and version-only rules.
         Initialize();
         Skill.Get(Builder.Initialize('OWNER-UPDATE', 'Owned skill', SecretStrSubstNo('First')).Create());
         ForeignSkill.Get(LibraryBusinessSkill.CreateAppOwnedSkill('OWNER-UPDATE', 'Foreign skill', SecretStrSubstNo('Foreign')));
@@ -156,7 +169,7 @@ codeunit 130051 "Business Skill Builder Test"
         Skill.Get(Skill.ID);
         Assert.AreEqual('release-2', Skill.Version, 'A rejected version-only update must not change the stored version.');
         BusSkillContentVersion.SetRange("Skill ID", Skill.ID);
-        Assert.AreEqual(2, BusSkillContentVersion.Count(), 'Only changed content must append history.');
+        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'App-owned content updates must not append history.');
     end;
 
     /// <summary>
@@ -174,6 +187,7 @@ codeunit 130051 "Business Skill Builder Test"
         Revision: BigInteger;
         ForeignRevision: BigInteger;
     begin
+        // [SCENARIO] Metadata updates select the calling app's skill and preserve its definition, history and lifecycle state.
         // [GIVEN] Locked inactive skills with the same code owned by different apps.
         Initialize();
         Skill.Get(Builder.Initialize('METADATA', 'Original title', SecretStrSubstNo('Instructions')).SetDescription('Original description').Create());
@@ -195,7 +209,7 @@ codeunit 130051 "Business Skill Builder Test"
         Assert.IsTrue(Skill."Read-Only", 'Metadata must preserve the content lock.');
         AssertContentEquals(SecretStrSubstNo('Instructions'), BusinessSkill.GetContent(Skill), 'Metadata must preserve content.');
         BusSkillContentVersion.SetRange("Skill ID", Skill.ID);
-        Assert.AreEqual(1, BusSkillContentVersion.Count(), 'Metadata must not append content history.');
+        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'App-owned metadata must not create content history.');
         ForeignSkill.Get(ForeignSkill.ID);
         Assert.AreEqual(ForeignRevision, ForeignSkill.SystemRowVersion, 'A matching code in another app must not be modified.');
 
@@ -217,6 +231,7 @@ codeunit 130051 "Business Skill Builder Test"
         BusinessSkill: Codeunit "Business Skill";
         Revision: BigInteger;
     begin
+        // [SCENARIO] Metadata updates reject missing, foreign and manual targets and cannot invalidate an active skill.
         // [GIVEN] An active owned skill, a foreign skill and a manual skill.
         Initialize();
         Skill.Get(Builder.Initialize('ACTIVE-METADATA', 'Active title', SecretStrSubstNo('Instructions')).SetActive(true).Create());
@@ -251,6 +266,7 @@ codeunit 130051 "Business Skill Builder Test"
         CurrentModule: ModuleInfo;
         DeleteError: Text;
     begin
+        // [SCENARIO] The installed owning app can still delete its skill and receives no stale denial message.
         // [GIVEN] A skill owned by the calling test app and a previous denial message.
         NavApp.GetCurrentModuleInfo(CurrentModule);
         TempSkill."Owning App ID" := CurrentModule.Id;
@@ -273,6 +289,7 @@ codeunit 130051 "Business Skill Builder Test"
         Skill: Record "Business Skill";
         Builder: Codeunit "Business Skill Builder";
     begin
+        // [SCENARIO] Uninitialized and consumed builders fail explicitly and can be reused only after Clear.
         // [GIVEN] An uninitialized builder.
         Initialize();
         asserterror Builder.Create();
@@ -306,6 +323,7 @@ codeunit 130051 "Business Skill Builder Test"
         Skill: Record "Business Skill";
         Builder: Codeunit "Business Skill Builder";
     begin
+        // [SCENARIO] App-owned skills default an omitted creation version to v1.0.
         // [GIVEN] A builder without a version.
         Initialize();
         Builder.Initialize('TEST', 'Title', SecretStrSubstNo('Instructions'));
@@ -330,6 +348,7 @@ codeunit 130051 "Business Skill Builder Test"
         SkillId: BigInteger;
         SystemId: Guid;
     begin
+        // [SCENARIO] Manual builders create generated identities and reuse saved skills by code or numeric ID.
         // [GIVEN] A new manual skill with no caller-supplied code.
         Initialize();
         SkillId := Builder.Initialize('', 'Manual skill', SecretStrSubstNo('First')).SetManual(true).Create();
@@ -371,6 +390,7 @@ codeunit 130051 "Business Skill Builder Test"
         Skill: Record "Business Skill";
         BuilderImpl: Codeunit "Business Skill Builder Impl.";
     begin
+        // [SCENARIO] A missing saved selector cannot silently create a different manual identity.
         // [GIVEN] An empty catalog and a builder targeting a saved manual code.
         Initialize();
         BuilderImpl.Initialize(Skill."Owning App ID", 'MISSING', 'Manual skill', SecretStrSubstNo('Instructions'));
@@ -382,11 +402,76 @@ codeunit 130051 "Business Skill Builder Test"
         Clear(BuilderImpl);
         BuilderImpl.Initialize(Skill."Owning App ID", '', 'Manual skill', SecretStrSubstNo('Instructions'));
         BuilderImpl.SetManual(true);
-        asserterror BuilderImpl.CreateOrUpdate(0);
+        asserterror BuilderImpl.CreateOrUpdate(-1);
         Assert.ExpectedError('does not exist');
 
         // [THEN] Neither selector allocates a different identity.
         Assert.IsTrue(Skill.IsEmpty(), 'A missing saved selector must not create a new skill.');
+    end;
+
+    /// <summary>
+    /// A zero numeric selector creates a manual skill with generated identity and initial history.
+    /// </summary>
+    [Test]
+    procedure ZeroIdCreatesManualSkill()
+    var
+        Skill: Record "Business Skill";
+        Version: Record "Bus Skill Content Version";
+        BuilderImpl: Codeunit "Business Skill Builder Impl.";
+        SkillId: BigInteger;
+    begin
+        // [SCENARIO] A zero numeric selector creates a manual skill with generated identity and initial history.
+        Initialize();
+        BuilderImpl.Initialize(Skill."Owning App ID", '', 'New manual skill', SecretStrSubstNo('Instructions'));
+        BuilderImpl.SetManual(true);
+
+        SkillId := BuilderImpl.CreateOrUpdate(0);
+
+        Assert.AreNotEqual(0, SkillId, 'Creation must return the generated numeric ID.');
+        Skill.Get(SkillId);
+        AssertManualSkillIdentifier(Skill);
+        AssertContentEquals(SecretStrSubstNo('Instructions'), BusinessSkillImpl.GetContent(Skill), 'Creation must persist content.');
+        Version.SetRange("Skill ID", SkillId);
+        Assert.AreEqual(1, Version.Count(), 'Manual creation must record initial history.');
+        Commit();
+        asserterror BuilderImpl.CreateOrUpdate(0);
+        Assert.ExpectedError('only one skill');
+        Assert.AreEqual(1, Skill.Count(), 'A consumed builder must not create another skill.');
+    end;
+
+    /// <summary>
+    /// A zero numeric selector creates app-owned content, never updating an existing code.
+    /// </summary>
+    [Test]
+    procedure ZeroIdCreatesAppOwnedSkillInsteadOfUpserting()
+    var
+        Skill: Record "Business Skill";
+        Version: Record "Bus Skill Content Version";
+        BuilderImpl: Codeunit "Business Skill Builder Impl.";
+        CurrentModule: ModuleInfo;
+        SkillId: BigInteger;
+    begin
+        // [SCENARIO] A zero numeric selector creates app-owned content, never updating an existing code.
+        Initialize();
+        NavApp.GetCurrentModuleInfo(CurrentModule);
+        BuilderImpl.Initialize(CurrentModule.Id, 'ZERO-ID', 'Original title', SecretStrSubstNo('Original'));
+
+        SkillId := BuilderImpl.CreateOrUpdate(0);
+
+        Skill.Get(SkillId);
+        Assert.IsFalse(Skill.Manual, 'Creation must preserve app ownership.');
+        Assert.AreEqual(CurrentModule.Id, Skill."Owning App ID", 'Creation must retain the calling app.');
+        Assert.IsTrue(Version.IsEmpty(), 'App-owned creation must not record history.');
+        Commit();
+        Clear(BuilderImpl);
+        BuilderImpl.Initialize(CurrentModule.Id, 'ZERO-ID', 'Changed title', SecretStrSubstNo('Original'));
+        asserterror BuilderImpl.CreateOrUpdate(0);
+        Assert.ExpectedError('already exists');
+        Skill.Get(SkillId);
+        Assert.AreEqual('Original title', Skill.Title, 'A zero selector must not upsert an existing code.');
+        Assert.AreEqual(1, Skill.Count(), 'Duplicate creation must not add another skill.');
+        asserterror BuilderImpl.CreateOrUpdate(-1);
+        Assert.ExpectedError('does not exist');
     end;
 
     /// <summary>
@@ -398,6 +483,7 @@ codeunit 130051 "Business Skill Builder Test"
         Skill: Record "Business Skill";
         Builder: Codeunit "Business Skill Builder";
     begin
+        // [SCENARIO] Manual creation rejects caller-supplied codes and explicitly locked content.
         // [GIVEN] A manual builder with a code that only the platform may generate.
         Initialize();
         Builder.Initialize('SUPPLIED', 'Manual skill', SecretStrSubstNo('Instructions')).SetManual(true);
@@ -426,6 +512,7 @@ codeunit 130051 "Business Skill Builder Test"
         SkillId: BigInteger;
         OriginalRevision: BigInteger;
     begin
+        // [SCENARIO] Omitted optional setters preserve saved values, while explicit empty and false values are applied.
         // [GIVEN] An active unlocked skill with optional metadata.
         Initialize();
         SkillId := Builder.Initialize('OPTIONAL', 'Title', SecretStrSubstNo('Instructions')).SetDescription('Description')
@@ -472,6 +559,7 @@ codeunit 130051 "Business Skill Builder Test"
         BuilderImpl: Codeunit "Business Skill Builder Impl.";
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Version-only requests are rejected while the owning app can explicitly unlock its skill.
         // [GIVEN] An unlocked app-owned skill and a locked app-owned skill.
         Initialize();
         SkillId := Builder.Initialize('VERSION-ONLY', 'Title', SecretStrSubstNo('Instructions')).SetContentLocked(false).Create();
@@ -499,7 +587,7 @@ codeunit 130051 "Business Skill Builder Test"
         Assert.AreEqual('v1.0', LockedSkill.Version, 'Unlocking must preserve the content version.');
         AssertContentEquals(SecretStrSubstNo('Instructions'), BusinessSkillImpl.GetContent(LockedSkill), 'Unlocking must preserve content.');
         BusSkillContentVersion.SetRange("Skill ID", LockedSkill.ID);
-        Assert.AreEqual(1, BusSkillContentVersion.Count(), 'Unlocking must not append content history.');
+        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'Unlocking app-owned content must not create history.');
     end;
 
     /// <summary>
@@ -514,6 +602,7 @@ codeunit 130051 "Business Skill Builder Test"
         BuilderImpl: Codeunit "Business Skill Builder Impl.";
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Metadata-only upserts preserve the version, while changed instructions require an explicit new version.
         // [GIVEN] An app-owned editable skill with an explicit release version.
         Initialize();
         SkillId := Builder.Initialize('UPSERT', 'Original title', SecretStrSubstNo('Original instructions'))
@@ -532,7 +621,7 @@ codeunit 130051 "Business Skill Builder Test"
         Assert.AreEqual('Updated description', Skill.Description, 'The description must be updated.');
         Assert.AreEqual('release-1', Skill.Version, 'Metadata must not default or replace an existing version.');
         BusSkillContentVersion.SetRange("Skill ID", SkillId);
-        Assert.AreEqual(1, BusSkillContentVersion.Count(), 'Metadata must not append instruction history.');
+        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'App-owned metadata must not create history.');
         Commit();
         Clear(BuilderImpl);
 
@@ -546,7 +635,7 @@ codeunit 130051 "Business Skill Builder Test"
         Skill.Get(SkillId);
         AssertContentEquals(SecretStrSubstNo('Original instructions'), BusinessSkillImpl.GetContent(Skill), 'Rejected instructions must not persist.');
         Assert.AreEqual('release-1', Skill.Version, 'Rejected instructions must not change the version.');
-        Assert.AreEqual(1, BusSkillContentVersion.Count(), 'Rejected instructions must not append history.');
+        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'Rejected app-owned instructions must not create history.');
     end;
 
     /// <summary>
@@ -558,6 +647,7 @@ codeunit 130051 "Business Skill Builder Test"
         Skill: Record "Business Skill";
         Builder: Codeunit "Business Skill Builder";
     begin
+        // [SCENARIO] App-owned identifiers do not use a reserved manual prefix.
         // [GIVEN] An app-owned skill whose identifier starts with M-.
         Initialize();
         Builder.Initialize('M-1', 'Title', SecretStrSubstNo('Instructions')).SetContentVersion('1');
@@ -578,6 +668,7 @@ codeunit 130051 "Business Skill Builder Test"
         Skill: Record "Business Skill";
         Builder: Codeunit "Business Skill Builder";
     begin
+        // [SCENARIO] Active content validation rejects incomplete instructions without creating a skill.
         // [GIVEN] An active skill without instructions.
         Initialize();
         Builder.Initialize('TEST', 'Title', SecretStrSubstNo('')).SetContentVersion('1').SetActive(true);
@@ -600,6 +691,7 @@ codeunit 130051 "Business Skill Builder Test"
         Skill: Record "Business Skill";
         BusSkillContentVersion: Record "Bus Skill Content Version";
     begin
+        // [SCENARIO] Creation does not commit the caller's transaction.
         // [GIVEN] An empty committed fixture.
         Initialize();
         Commit();
@@ -624,6 +716,7 @@ codeunit 130051 "Business Skill Builder Test"
         Builder: Codeunit "Business Skill Builder";
         SkillId: BigInteger;
     begin
+        // [SCENARIO] The owning app can update locked content and explicitly unlock it without changing unrelated properties.
         // [GIVEN] A published-content style skill protected by the builder default.
         Initialize();
         SkillId := Builder.Initialize('LOCKED', 'Original title', SecretStrSubstNo('Original instructions'))
@@ -643,7 +736,7 @@ codeunit 130051 "Business Skill Builder Test"
         Skill."Read-Only" := false;
         Skill.Modify(true);
 
-        // [THEN] Content and version change together, and unlocking does not append another history entry.
+        // [THEN] Content and version change together without creating app-owned history.
         Skill.Get(SkillId);
         Assert.AreEqual('Changed title', Skill.Title, 'Read-only instructions must not prevent metadata edits.');
         Assert.AreEqual('Changed description', Skill.Description, 'Read-only instructions must not prevent metadata edits.');
@@ -652,7 +745,7 @@ codeunit 130051 "Business Skill Builder Test"
         Assert.IsFalse(Skill."Read-Only", 'The owning app must be able to unlock its skill.');
         Assert.AreEqual(Skill.Status::Active, Skill.Status, 'Content and lock changes must preserve status.');
         BusSkillContentVersion.SetRange("Skill ID", SkillId);
-        Assert.AreEqual(2, BusSkillContentVersion.Count(), 'Only the content change must append history.');
+        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'App-owned content and lock changes must not create history.');
     end;
 
     /// <summary>
@@ -665,6 +758,7 @@ codeunit 130051 "Business Skill Builder Test"
         Builder: Codeunit "Business Skill Builder";
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Content protection does not restrict activation or deactivation.
         // [GIVEN] An inactive read-only skill.
         Initialize();
         SkillId := Builder.Initialize('LOCKED', 'Title', SecretStrSubstNo('Instructions')).SetContentVersion('1').Create();
@@ -689,17 +783,14 @@ codeunit 130051 "Business Skill Builder Test"
         Skill: Record "Business Skill";
         BusSkillContentVersion: Record "Bus Skill Content Version";
         Builder: Codeunit "Business Skill Builder";
-        BusinessSkillContentHistory: Codeunit "Business Skill Content History";
         SkillId: BigInteger;
-        OriginalEntryNo: Integer;
     begin
+        // [SCENARIO] Editable app-owned skills change their text only together with a new version supplied by the app.
         // [GIVEN] Explicitly editable app content with a dotted initial version.
         Initialize();
         SkillId := Builder.Initialize('EDITABLE', 'Title', SecretStrSubstNo('First instructions'))
             .SetContentLocked(false).SetContentVersion('1.0').Create();
         BusSkillContentVersion.SetRange("Skill ID", SkillId);
-        BusSkillContentVersion.FindFirst();
-        OriginalEntryNo := BusSkillContentVersion."Entry No.";
 
         // [WHEN] Editing metadata and saving unchanged instructions.
         Skill.Get(SkillId);
@@ -712,7 +803,7 @@ codeunit 130051 "Business Skill Builder Test"
         Skill.Get(SkillId);
         Assert.IsFalse(Skill."Read-Only", 'Explicit editable creation must persist.');
         Assert.AreEqual('1.0', Skill.Version, 'Metadata and unchanged instructions must not change Version.');
-        Assert.AreEqual(1, BusSkillContentVersion.Count(), 'Metadata and no-op saves must not append history.');
+        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'App-owned metadata and no-op saves must not create history.');
         Commit();
 
         // [WHEN] Instructions change without a new version.
@@ -725,14 +816,8 @@ codeunit 130051 "Business Skill Builder Test"
         BusinessSkillImpl.SetContent(SkillId, SecretStrSubstNo('Second instructions'), '1.1');
         Skill.Get(SkillId);
         Assert.AreEqual('1.1', Skill.Version, 'The version supplied by the app must persist.');
-        Commit();
-
-        // [THEN] Restoring history is an instruction change that also needs a version from the app.
-        asserterror BusinessSkillContentHistory.RestoreVersion(OriginalEntryNo);
-        Assert.ExpectedError('Specify a new version');
-        Skill.Get(SkillId);
-        AssertContentEquals(SecretStrSubstNo('Second instructions'), BusinessSkillImpl.GetContent(Skill), 'Rejected restoration must keep the current content.');
-        Assert.AreEqual(2, BusSkillContentVersion.Count(), 'Each real instruction change must append one history row.');
+        AssertContentEquals(SecretStrSubstNo('Second instructions'), BusinessSkillImpl.GetContent(Skill), 'Changed instructions must persist.');
+        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'App-owned instruction changes must not create history.');
     end;
 
     /// <summary>
@@ -749,6 +834,7 @@ codeunit 130051 "Business Skill Builder Test"
         NextVersion: Text[50];
         OversizedVersion: Text;
     begin
+        // [SCENARIO] Versions use the full field length and longer versions are rejected.
         // [GIVEN] An app-owned skill with a version occupying the entire field.
         Initialize();
         InitialVersion := CopyStr(PadStr('release', 50, 'x'), 1, 50);
@@ -760,12 +846,18 @@ codeunit 130051 "Business Skill Builder Test"
         NextVersion := CopyStr(PadStr('next', 50, 'y'), 1, 50);
         BusinessSkillImpl.SetContent(SkillId, SecretStrSubstNo('Second'), NextVersion);
 
-        // [THEN] The skill and its history keep the full version.
+        // [THEN] The skill keeps the full version without creating app-owned history.
         Skill.Get(SkillId);
         Assert.AreEqual(NextVersion, Skill.Version, 'The new version must persist without truncation.');
         BusSkillContentVersion.SetRange("Skill ID", SkillId);
-        BusSkillContentVersion.FindLast();
-        Assert.AreEqual(NextVersion, BusSkillContentVersion."Content Version", 'History must capture the full version.');
+        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'App-owned version changes must not create history.');
+
+        Clear(Builder);
+        Skill.Get(Builder.Initialize('', 'Manual version', SecretStrSubstNo('Manual content')).SetManual(true).SetContentVersion(NextVersion).Create());
+        BusSkillContentVersion.SetRange("Skill ID", Skill.ID);
+        BusSkillContentVersion.FindFirst();
+        Assert.AreEqual(NextVersion, BusSkillContentVersion."Content Version", 'Manual history must retain the full version without truncation.');
+        Commit();
 
         // [WHEN] A version exceeds the field length.
         Clear(Builder);
@@ -774,7 +866,7 @@ codeunit 130051 "Business Skill Builder Test"
 
         // [THEN] The builder rejects it.
         asserterror Builder.SetContentVersion(OversizedVersion);
-        Assert.ExpectedError('50');
+        Assert.ExpectedError('The content version cannot exceed 50 characters.');
     end;
 
     /// <summary>
@@ -787,6 +879,7 @@ codeunit 130051 "Business Skill Builder Test"
         Builder: Codeunit "Business Skill Builder";
         SecondBuilder: Codeunit "Business Skill Builder";
     begin
+        // [SCENARIO] The skill ID of an app-owned skill is unique within its owning app.
         // [GIVEN] One app-owned skill under a known skill ID.
         Initialize();
         Builder.Initialize('SHARED', 'Title', SecretStrSubstNo('Instructions')).SetContentVersion('1').Create();
@@ -813,6 +906,7 @@ codeunit 130051 "Business Skill Builder Test"
         SkillIds: List of [BigInteger];
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Manual and editable app-owned identities cannot be changed after creation.
         // [GIVEN] A manual skill and an explicitly editable app-owned skill.
         Initialize();
         SkillIds.Add(LibraryBusinessSkill.CreateSkill('Manual identity', SecretStrSubstNo('Instructions')));
@@ -859,6 +953,7 @@ codeunit 130051 "Business Skill Builder Test"
         FirstSkill: Record "Business Skill";
         Skill: Record "Business Skill";
     begin
+        // [SCENARIO] Manual creation derives padded identifiers from record IDs and cannot claim programmatic read-only protection.
         // [GIVEN] No skills.
         Initialize();
 
@@ -891,6 +986,7 @@ codeunit 130051 "Business Skill Builder Test"
         SecondCopy: Record "Business Skill";
         Builder: Codeunit "Business Skill Builder";
     begin
+        // [SCENARIO] Repeated copies retain content, but start fresh manual versions and independent identities.
         // [GIVEN] Protected app content with explicit version and description.
         Initialize();
         SourceSkill.Get(Builder.Initialize('SOURCE', 'Title', SecretStrSubstNo('Original instructions'))
@@ -919,7 +1015,7 @@ codeunit 130051 "Business Skill Builder Test"
     end;
 
     /// <summary>
-    /// A copy takes the latest content version of the source and starts its own history.
+    /// A copy takes current app-owned content even if stale history remains, and starts its own manual history.
     /// </summary>
     [Test]
     procedure CopyUsesLatestContentVersion()
@@ -929,10 +1025,16 @@ codeunit 130051 "Business Skill Builder Test"
         Builder: Codeunit "Business Skill Builder";
         SourceId: BigInteger;
     begin
-        // [GIVEN] An app-owned skill with two content versions.
+        // [SCENARIO] A copy takes current app-owned content even if stale history remains, and starts its own manual history.
+        // [GIVEN] App-owned content updated without history, with a stale historical row.
         Initialize();
         SourceId := Builder.Initialize('HISTORY', 'Title', SecretStrSubstNo('First')).SetContentLocked(false).SetContentVersion('1').Create();
         BusinessSkillImpl.SetContent(SourceId, SecretStrSubstNo('Second'), '2');
+        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'App-owned creation and updates must not create history.');
+        BusSkillContentVersion."Skill ID" := SourceId;
+        BusSkillContentVersion."Content Version" := '1';
+        BusSkillContentVersion.SetContent(SecretStrSubstNo('First'));
+        BusSkillContentVersion.Insert(true);
 
         // [WHEN] Copying the skill.
         Copy.Get(BusinessSkillImpl.CopySkill(SourceId));
@@ -956,6 +1058,7 @@ codeunit 130051 "Business Skill Builder Test"
         Copy: Record "Business Skill";
         SourceId: BigInteger;
     begin
+        // [SCENARIO] Copying manual content preserves instructions without claiming app ownership.
         // [GIVEN] Manually created content.
         Initialize();
         SourceId := LibraryBusinessSkill.CreateSkill('Manual title', SecretStrSubstNo('Manual instructions'));
@@ -982,6 +1085,7 @@ codeunit 130051 "Business Skill Builder Test"
         Port: Codeunit "Business Skill Port";
         Xml: SecretText;
     begin
+        // [SCENARIO] Manual copies round-trip their version through XML and receive a new identity.
         // [GIVEN] An exportable copy of read-only app content.
         Initialize();
         SourceSkill.Get(Builder.Initialize('SOURCE', 'Title', SecretStrSubstNo('Instructions')).SetContentVersion('release').Create());
@@ -1016,6 +1120,7 @@ codeunit 130051 "Business Skill Builder Test"
         Port: Codeunit "Business Skill Port";
         AppSkillId: BigInteger;
     begin
+        // [SCENARIO] App-owned content cannot be exported by a mixed skill selection.
         // [GIVEN] A mixed selection of app-owned and manual content.
         Initialize();
         AppSkillId := Builder.Initialize('APP', 'App skill', SecretStrSubstNo('Instructions')).SetContentLocked(false).SetContentVersion('1').Create();
@@ -1044,6 +1149,7 @@ codeunit 130051 "Business Skill Builder Test"
         Port: Codeunit "Business Skill Port";
         Xml: Text;
     begin
+        // [SCENARIO] XML cannot carry an owning app, and preceding manual imports roll back with the invalid row.
         // [GIVEN] A document with a manual row followed by a row that names an owning app.
         Initialize();
         Xml := '<BusinessSkill><Skills>' +
@@ -1071,6 +1177,7 @@ codeunit 130051 "Business Skill Builder Test"
         Builder: Codeunit "Business Skill Builder";
         SourceId: BigInteger;
     begin
+        // [SCENARIO] A caller failure after copying rolls back the copy.
         // [GIVEN] A committed protected source.
         Initialize();
         SourceId := Builder.Initialize('SOURCE', 'Title', SecretStrSubstNo('Instructions')).SetContentVersion('1').Create();
@@ -1085,70 +1192,10 @@ codeunit 130051 "Business Skill Builder Test"
     end;
 
     /// <summary>
-    /// Copy opens editable content while the protected source stays read-only and unchanged.
+    /// App-owned history left by an earlier implementation cannot be restored.
     /// </summary>
     [Test]
-    [HandlerFunctions('DeclineCopyActivation')]
-    procedure CardCopiesProtectedSkillToEditableContent()
-    var
-        Source: Record "Business Skill";
-        SkillCopy: Record "Business Skill";
-        Builder: Codeunit "Business Skill Builder";
-        SkillCard: TestPage "Business Skill Card";
-        CopyCard: TestPage "Business Skill Card";
-    begin
-        // [GIVEN] An active protected skill with a known version and owning app.
-        Initialize();
-        Source.Get(Builder.Initialize('CARD', 'Protected source', SecretStrSubstNo('Original')).SetContentVersion('2.4').SetActive(true).Create());
-        Commit();
-        SkillCard.OpenEdit();
-        SkillCard.GoToRecord(Source);
-        Assert.IsTrue(SkillCard.Title.Editable(), 'Read-only instructions must not disable title editing.');
-        Assert.IsTrue(SkillCard.Description.Editable(), 'Read-only instructions must not disable description editing.');
-        Assert.IsFalse(SkillCard.SkillContentEditor.SkillContent.Editable(), 'Protected instructions must not be editable.');
-        SkillCard."Read-Only".AssertEquals(true);
-        Assert.IsFalse(SkillCard."Read-Only".Editable(), 'Protection must not be unlocked from the card.');
-        Assert.IsTrue(SkillCard.Activate.Enabled(), 'Protected skills must still allow activation.');
-        Assert.IsTrue(SkillCard.Deactivate.Enabled(), 'Protected skills must still allow deactivation.');
-        Assert.IsFalse(SkillCard.Export.Enabled(), 'An app-owned skill must not offer export.');
-        SkillCard.Version.AssertEquals('2.4');
-        Assert.IsFalse(SkillCard.Version.Editable(), 'App-owned versions must not be editable.');
-
-        // [WHEN] Copy is invoked and the resulting manual copy is edited.
-        CopyCard.Trap();
-        SkillCard.CopyToEdit.Invoke();
-        Assert.IsTrue(CopyCard.Title.Editable(), 'A copied title must be editable.');
-        Assert.IsTrue(CopyCard.SkillContentEditor.SkillContent.Editable(), 'Copied instructions must be editable.');
-        CopyCard."Read-Only".AssertEquals(false);
-        Assert.IsTrue(CopyCard.Export.Enabled(), 'A manual copy must offer export.');
-        CopyCard.Version.AssertEquals('v1.0');
-        Assert.IsTrue(CopyCard.Version.Editable(), 'Manual copies must allow version edits.');
-        CopyCard.Title.SetValue('Edited copy');
-        CopyCard.SkillContentEditor.SkillContent.SetValue('Changed copy');
-        CopyCard.Close();
-        SkillCard.Close();
-
-        // [THEN] Only the copy changes, and its first instruction edit advances its version.
-        SkillCopy.FindLast();
-        Assert.AreEqual('Edited copy', SkillCopy.Title, 'The copied title must persist.');
-        Assert.AreEqual('v1.1', SkillCopy.Version, 'The first copy edit must advance its own initial version.');
-        Source.Get(Source.ID);
-        AssertContentEquals(SecretStrSubstNo('Original'), BusinessSkillImpl.GetContent(Source), 'Editing a copy must not change the source.');
-        Assert.AreEqual('2.4', Source.Version, 'Editing a copy must not change the source version.');
-    end;
-
-    [ConfirmHandler]
-    procedure DeclineCopyActivation(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Assert.IsTrue(Question.Contains('activate it'), 'Only the inactive-copy activation prompt is expected.');
-        Reply := false;
-    end;
-
-    /// <summary>
-    /// App-owned history restoration still requires a new content version.
-    /// </summary>
-    [Test]
-    procedure AppOwnedHistoryRestorationRequiresNewVersion()
+    procedure AppOwnedHistoryRestorationIsRejected()
     var
         Skill: Record "Business Skill";
         BusSkillContentVersion: Record "Bus Skill Content Version";
@@ -1156,6 +1203,7 @@ codeunit 130051 "Business Skill Builder Test"
         BusinessSkillContentHistory: Codeunit "Business Skill Content History";
         EarlierEntryNo: Integer;
     begin
+        // [SCENARIO] App-owned history left by an earlier implementation cannot be restored.
         // [GIVEN] A protected skill with an earlier instruction entry.
         Initialize();
         Skill.Get(Builder.Initialize('HISTORY', 'Protected history', SecretStrSubstNo('Current')).SetContentVersion('4').Create());
@@ -1173,11 +1221,13 @@ codeunit 130051 "Business Skill Builder Test"
         // [WHEN] An earlier instruction entry is restored.
         asserterror BusinessSkillContentHistory.RestoreVersion(EarlierEntryNo);
 
-        // [THEN] Missing version validation retains the current instructions and version.
-        Assert.ExpectedError('Specify a new version');
+        // [THEN] The manual-only guard retains the current instructions and version.
+        Assert.ExpectedError('Manual must be equal to');
         Skill.Get(Skill.ID);
         AssertContentEquals(SecretStrSubstNo('Current'), BusinessSkillImpl.GetContent(Skill), 'Rejected restoration must not change protected instructions.');
         Assert.AreEqual('4', Skill.Version, 'Rejected restoration must not change the version.');
+        BusSkillContentVersion.SetRange("Skill ID", Skill.ID);
+        Assert.AreEqual(2, BusSkillContentVersion.Count(), 'Rejection must neither purge nor append historical rows.');
     end;
 
     /// <summary>
@@ -1190,6 +1240,7 @@ codeunit 130051 "Business Skill Builder Test"
         Port: Codeunit "Business Skill Port";
         Xml: Text;
     begin
+        // [SCENARIO] XML omitting optional metadata receives defaults, not values from the preceding skill.
         // [GIVEN] One manual skill with a version followed by a row without a version.
         Initialize();
         Xml := '<BusinessSkill><Skills>' +
@@ -1212,42 +1263,6 @@ codeunit 130051 "Business Skill Builder Test"
     end;
 
     /// <summary>
-    /// Manual version edits persist through the card without creating instruction history.
-    /// </summary>
-    [Test]
-    procedure ManualCardVersionEditPersistsWithoutContentHistory()
-    var
-        Skill: Record "Business Skill";
-        BusSkillContentVersion: Record "Bus Skill Content Version";
-        SkillCard: TestPage "Business Skill Card";
-    begin
-        // [GIVEN] Active manual content with one instruction history entry.
-        Initialize();
-        Skill.Get(LibraryBusinessSkill.CreateSkill('Manual version', SecretStrSubstNo('Instructions')));
-        BusSkillContentVersion.SetRange("Skill ID", Skill.ID);
-        SkillCard.OpenEdit();
-        SkillCard.GoToRecord(Skill);
-        Assert.IsTrue(SkillCard.Version.Editable(), 'Manual versions must be editable on the card.');
-
-        // [WHEN] Only the version is changed.
-        SkillCard.Version.SetValue('release-7');
-        SkillCard.Close();
-
-        // [THEN] The value persists independently of instructions and becomes the next edit baseline.
-        Skill.Get(Skill.ID);
-        Assert.AreEqual('release-7', Skill.Version, 'The optimistic card save must persist version-only changes.');
-        AssertContentEquals(SecretStrSubstNo('Instructions'), BusinessSkillImpl.GetContent(Skill), 'A version edit must not change instructions.');
-        Assert.AreEqual(1, BusSkillContentVersion.Count(), 'A version edit must not append instruction history.');
-        BusSkillContentVersion.FindFirst();
-        Assert.AreEqual('v1.0', BusSkillContentVersion."Content Version", 'Changing the current version must not rewrite the historical version.');
-        BusinessSkillImpl.SetContent(Skill.ID, SecretStrSubstNo('Changed instructions'));
-        Skill.Get(Skill.ID);
-        Assert.AreEqual('release-8', Skill.Version, 'Instruction edits must advance the manually selected version.');
-        BusSkillContentVersion.FindLast();
-        Assert.AreEqual('release-8', BusSkillContentVersion."Content Version", 'History must capture the automatically advanced version.');
-    end;
-
-    /// <summary>
     /// Explicit manual versions survive an atomic save together with changed instructions.
     /// </summary>
     [Test]
@@ -1256,6 +1271,7 @@ codeunit 130051 "Business Skill Builder Test"
         Skill: Record "Business Skill";
         BusSkillContentVersion: Record "Bus Skill Content Version";
     begin
+        // [SCENARIO] Explicit manual versions survive an atomic save together with changed instructions.
         // [GIVEN] A current manual skill snapshot.
         Initialize();
         Skill.Get(LibraryBusinessSkill.CreateSkill('Combined edit', SecretStrSubstNo('Original instructions')));
@@ -1274,47 +1290,6 @@ codeunit 130051 "Business Skill Builder Test"
         Assert.AreEqual('v1.0', BusSkillContentVersion."Content Version", 'The original history entry must retain its original version.');
         BusSkillContentVersion.FindLast();
         Assert.AreEqual('custom-release', BusSkillContentVersion."Content Version", 'History must capture the explicit version saved with the instructions.');
-    end;
-
-    /// <summary>
-    /// Editable app-owned content gets its versions from the app and cannot edit them directly.
-    /// </summary>
-    [Test]
-    procedure AppOwnedVersionsAreSuppliedByApp()
-    var
-        Skill: Record "Business Skill";
-        BusSkillContentVersion: Record "Bus Skill Content Version";
-        Builder: Codeunit "Business Skill Builder";
-        SkillCard: TestPage "Business Skill Card";
-    begin
-        // [GIVEN] App-owned content that permits instruction edits.
-        Initialize();
-        Skill.Get(Builder.Initialize('APP-VERSION', 'App version', SecretStrSubstNo('Original'))
-            .SetContentLocked(false).SetActive(true).SetContentVersion('1.0').Create());
-        BusSkillContentVersion.SetRange("Skill ID", Skill.ID);
-        BusSkillContentVersion.FindFirst();
-        Assert.AreEqual('1.0', BusSkillContentVersion."Content Version", 'Initial app-owned history must capture the builder version.');
-        SkillCard.OpenEdit();
-        SkillCard.GoToRecord(Skill);
-        Assert.IsFalse(SkillCard.Version.Editable(), 'Editable app content must still have a protected version field.');
-        Assert.IsFalse(SkillCard.SkillContentEditor.SkillContent.Editable(), 'The native editor cannot supply an app-owned instruction version.');
-        SkillCard.Close();
-        Commit();
-
-        // [WHEN] Directly overriding the app-owned version through management.
-        Skill.Get(Skill.ID);
-        Skill.Version := 'manual-release';
-        asserterror BusinessSkillImpl.UpdateSkillRecord(Skill.ID, Skill, BusinessSkillImpl.GetContent(Skill));
-
-        // [THEN] Direct edits fail, while text changes with a version from the app persist.
-        Assert.ExpectedError('Only manually owned skills can change the version directly.');
-        Skill.Get(Skill.ID);
-        Assert.AreEqual('1.0', Skill.Version, 'Rejected overrides must leave the app version unchanged.');
-        BusinessSkillImpl.SetContent(Skill.ID, SecretStrSubstNo('Updated'), '1.1');
-        Skill.Get(Skill.ID);
-        Assert.AreEqual('1.1', Skill.Version, 'The version supplied by the app must persist.');
-        BusSkillContentVersion.FindLast();
-        Assert.AreEqual('1.1', BusSkillContentVersion."Content Version", 'App-owned history must capture the version supplied by the app.');
     end;
 
     local procedure AssertManualSkillIdentifier(Skill: Record "Business Skill")

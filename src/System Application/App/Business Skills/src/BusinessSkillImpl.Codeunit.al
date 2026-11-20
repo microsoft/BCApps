@@ -7,6 +7,7 @@ namespace System.AI.BusinessSkills;
 
 using System;
 using System.Agents;
+using System.Utilities;
 
 /// <summary>
 /// Governs skill creation, content updates and lifecycle.
@@ -247,19 +248,28 @@ codeunit 4163 "Business Skill Impl."
     end;
 
     /// <summary>
-    /// Deletes an inactive skill for the caller captured by an internal entry point or public facade.
+    /// Deletes an inactive skill and its manual history for the caller captured by an internal entry point or public facade.
     /// </summary>
+    [CommitBehavior(CommitBehavior::Ignore)]
     procedure DeleteSkill(SkillId: BigInteger; CallerAppId: Guid)
     var
         BusinessSkill: Record "Business Skill";
+        ActiveSkillError: ErrorInfo;
         DeleteError: Text;
     begin
         BusinessSkill.Get(SkillId);
-        if BusinessSkill.Status = BusinessSkill.Status::Active then
-            Error(DeleteActiveSkillErr);
+        if BusinessSkill.Status = BusinessSkill.Status::Active then begin
+            ActiveSkillError.Message := DeleteActiveSkillErr;
+            ActiveSkillError.RecordId := BusinessSkill.RecordId();
+            ActiveSkillError.PageNo := Page::"Business Skill Card";
+            ActiveSkillError.AddNavigationAction(OpenSkillLbl);
+            Error(ActiveSkillError);
+        end;
         if not CanDeleteSkill(BusinessSkill, CallerAppId, DeleteError) then
             Error(DeleteError);
         BusinessSkill.Delete(true);
+        if BusinessSkill.Manual then
+            BusinessSkillContentHistory.DeleteHistory(SkillId);
     end;
 
     /// <summary>
@@ -417,6 +427,25 @@ codeunit 4163 "Business Skill Impl."
     end;
 
     /// <summary>
+    /// Downloads current stored content independently of manual content history.
+    /// </summary>
+    procedure DownloadContent(SkillId: BigInteger)
+    var
+        BusinessSkill: Record "Business Skill";
+        TempBlob: Codeunit "Temp Blob";
+        Input: InStream;
+        Output: OutStream;
+        FileName: Text;
+    begin
+        BusinessSkill.Get(SkillId);
+        TempBlob.CreateOutStream(Output, GetEncoding());
+        WriteText(Output, GetContent(BusinessSkill));
+        TempBlob.CreateInStream(Input, GetEncoding());
+        FileName := StrSubstNo(ContentFileNameLbl, SkillId);
+        DownloadFromStream(Input, DownloadContentLbl, '', TextFilesFilterLbl, FileName);
+    end;
+
+    /// <summary>
     /// Returns the content already loaded or assigned on the record buffer without reloading it.
     /// </summary>
     procedure GetContentFromBuffer(var Skill: Record "Business Skill"): SecretText
@@ -539,6 +568,10 @@ codeunit 4163 "Business Skill Impl."
         ProgrammaticVersionRequiredErr: Label 'Specify a new version when you change the content of an app-owned skill.';
         ProgrammaticVersionRequiresContentErr: Label 'The version of an app-owned skill can change only together with its content.';
         DeleteActiveSkillErr: Label 'Deactivate the skill before you delete it.';
+        OpenSkillLbl: Label 'Open skill';
+        ContentFileNameLbl: Label 'Skill-%1.txt', Comment = '%1 = Skill ID', Locked = true;
+        DownloadContentLbl: Label 'Download skill content';
+        TextFilesFilterLbl: Label 'Text Files (*.txt)|*.txt', Locked = true;
         DeleteInstalledOwnerErr: Label 'You cannot delete this skill because its owning extension, ''%1'', is still installed. Uninstall the extension to delete the skill, or deactivate the skill to stop it being used.', Comment = '%1 = name of the installed extension that owns the skill';
         DeleteNotAllowedErr: Label 'You do not have permission to delete this skill.';
         SkillIdentityImmutableErr: Label 'The skill ID, owning app ID, owning app publisher and Manual flag cannot be changed after the skill is created.';

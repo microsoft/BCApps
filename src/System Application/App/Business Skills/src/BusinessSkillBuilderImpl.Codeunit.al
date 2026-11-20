@@ -46,12 +46,14 @@ codeunit 4162 "Business Skill Builder Impl."
         ContentLockedSpecified := true;
     end;
 
-    procedure SetContentVersion(ContentVersion: Text[50])
+    procedure SetContentVersion(ContentVersion: Text)
     begin
         VerifyReady();
         if ContentVersion = '' then
             Error(VersionRequiredErr);
-        TempBusinessSkill.Version := ContentVersion;
+        if StrLen(ContentVersion) > MaxStrLen(TempBusinessSkill.Version) then
+            Error(ContentVersionTooLongErr, MaxStrLen(TempBusinessSkill.Version));
+        TempBusinessSkill.Version := CopyStr(ContentVersion, 1, MaxStrLen(TempBusinessSkill.Version));
         ContentVersionSpecified := true;
     end;
 
@@ -84,7 +86,7 @@ codeunit 4162 "Business Skill Builder Impl."
         ActiveSpecified := true;
     end;
 
-    [CommitBehavior(CommitBehavior::Error)]
+    [CommitBehavior(CommitBehavior::Ignore)]
     procedure Create(): BigInteger
     var
         Skill: Record "Business Skill";
@@ -110,7 +112,7 @@ codeunit 4162 "Business Skill Builder Impl."
         exit(Skill.ID);
     end;
 
-    [CommitBehavior(CommitBehavior::Error)]
+    [CommitBehavior(CommitBehavior::Ignore)]
     procedure CreateOrUpdate(): BigInteger
     var
         Skill: Record "Business Skill";
@@ -130,11 +132,16 @@ codeunit 4162 "Business Skill Builder Impl."
         exit(Update(Skill));
     end;
 
-    [CommitBehavior(CommitBehavior::Error)]
+    /// <summary>
+    /// Creates a new skill for zero, or updates the existing nonzero ID without changing its identity.
+    /// </summary>
+    [CommitBehavior(CommitBehavior::Ignore)]
     procedure CreateOrUpdate(SkillId: BigInteger): BigInteger
     var
         Skill: Record "Business Skill";
     begin
+        if SkillId = 0 then
+            exit(Create());
         VerifyReady();
         VerifyOwnership();
         Skill.Get(SkillId);
@@ -223,6 +230,7 @@ codeunit 4162 "Business Skill Builder Impl."
         NotInitializedErr: Label 'Initialize the business skill builder before using it.';
         OneShotErr: Label 'A business skill builder instance can create only one skill. Clear the variable before creating another skill.';
         VersionRequiredErr: Label 'Set a new version of the skill before changing its instructions.';
+        ContentVersionTooLongErr: Label 'The content version cannot exceed %1 characters.', Comment = '%1 = maximum content version length';
         ManualSkillNotFoundErr: Label 'The manual skill was not found. Use an empty skill code to create a new manual skill.';
         SkillIdentityMismatchErr: Label 'The selected skill does not match the builder''s skill code and ownership.';
 }

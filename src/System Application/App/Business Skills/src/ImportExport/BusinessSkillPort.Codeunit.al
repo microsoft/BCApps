@@ -87,7 +87,7 @@ codeunit 4167 "Business Skill Port"
         exit(ImportFromStream(InStr));
     end;
 
-    [CommitBehavior(CommitBehavior::Error)]
+    [CommitBehavior(CommitBehavior::Ignore)]
     procedure ImportFromStream(var InStr: InStream): Text
     var
         ImportPort: XmlPort "Business Skill Import";

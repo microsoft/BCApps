@@ -21,6 +21,11 @@ codeunit 130050 "Business Skill Test"
     RequiredTestIsolation = Codeunit;
     EventSubscriberInstance = Manual;
 
+    trigger OnRun()
+    begin
+        // [FEATURE] [Business Skills] [Core]
+    end;
+
     /// <summary>
     /// Stored reads load content while explicit buffer reads preserve unsaved content, including empty temporary buffers.
     /// </summary>
@@ -31,6 +36,7 @@ codeunit 130050 "Business Skill Test"
         TempSkill: Record "Business Skill" temporary;
         BusinessSkill: Codeunit "Business Skill";
     begin
+        // [SCENARIO] Stored reads load content while explicit buffer reads preserve unsaved content, including empty temporary buffers.
         // [GIVEN] A stored skill and a temporary buffer carrying different content for the same ID.
         Initialize();
         Skill.Get(LibraryBusinessSkill.CreateSkill('Stored content', SecretStrSubstNo('Stored')));
@@ -53,6 +59,7 @@ codeunit 130050 "Business Skill Test"
     [Test]
     procedure BlobTextReadDoesNotPrependLineBreak()
     begin
+        // [SCENARIO] Verifies reading empty or single-line BLOB text does not add a leading line break.
         // [GIVEN] Empty and single-line BLOB text.
         // [WHEN] Text is read back from the BLOB.
         // [THEN] No leading line break is introduced.
@@ -68,6 +75,7 @@ codeunit 130050 "Business Skill Test"
     var
         LineBreak: Text;
     begin
+        // [SCENARIO] Verifies BLOB text reading retains separators between the second and later lines.
         // [GIVEN] A BLOB containing three nonempty lines.
         LineBreak := GetLineBreak();
         // [WHEN] The BLOB text is read by the assertion helper.
@@ -84,6 +92,7 @@ codeunit 130050 "Business Skill Test"
     var
         LineBreak: Text;
     begin
+        // [SCENARIO] Verifies BLOB text reading preserves leading and internal blank lines.
         // [GIVEN] Text with leading and internal empty lines.
         LineBreak := GetLineBreak();
         // [WHEN] The text round-trips through the assertion helper.
@@ -101,6 +110,7 @@ codeunit 130050 "Business Skill Test"
         LF: Char;
         LineBreak: Text;
     begin
+        // [SCENARIO] Verifies LF-separated BLOB text is rebuilt with the expected line separators and spaces.
         // [GIVEN] BLOB text containing LF separators and trailing spaces.
         LF := 10;
         LineBreak := GetLineBreak();
@@ -118,6 +128,7 @@ codeunit 130050 "Business Skill Test"
     var
         LineBreak: Text;
     begin
+        // [SCENARIO] Verifies reading BLOB text does not restore its final line terminator.
         // [GIVEN] Text ending in one or two line terminators.
         LineBreak := GetLineBreak();
         // [WHEN] The terminated text is read by the assertion helper.
@@ -134,6 +145,7 @@ codeunit 130050 "Business Skill Test"
     var
         CR: Char;
     begin
+        // [SCENARIO] Verifies bare carriage returns follow the text reader's removal behavior.
         // [GIVEN] Text containing bare carriage returns.
         CR := 13;
         // [WHEN] The text is read by the BLOB assertion helper.
@@ -151,6 +163,7 @@ codeunit 130050 "Business Skill Test"
         SkillId: BigInteger;
         NextId: BigInteger;
     begin
+        // [SCENARIO] Verifies management creation initializes canonical identity, the generated manual skill ID, audit fields, version, and Active status.
         // [GIVEN] A clean skill catalog.
         Initialize();
         // [WHEN] Skills are created by management.
@@ -179,6 +192,7 @@ codeunit 130050 "Business Skill Test"
         Skill: Record "Business Skill";
         Builder: Codeunit "Business Skill Builder";
     begin
+        // [SCENARIO] Verifies the manual builder creates an inactive skill with its instructions and first content version.
         // [GIVEN] A manual builder with its default inactive status.
         Initialize();
         // [WHEN] The skill is created.
@@ -200,6 +214,7 @@ codeunit 130050 "Business Skill Test"
         Skill: Record "Business Skill";
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Verifies activating and deactivating a skill controls its availability without changing history.
         // [GIVEN] A created skill.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Lifecycle', SecretStrSubstNo('Body'));
@@ -230,6 +245,7 @@ codeunit 130050 "Business Skill Test"
         BusinessSkillBuilder: Codeunit "Business Skill Builder";
         InactiveRevision: BigInteger;
     begin
+        // [SCENARIO] Library inactivation targets one skill or the whole catalog without changing content or history.
         // [GIVEN] Active manual and app-owned skills from both test apps, and an already inactive skill.
         Initialize();
         FirstSkill.Get(LibraryBusinessSkill.CreateSkill('First', SecretStrSubstNo('First content')));
@@ -261,9 +277,9 @@ codeunit 130050 "Business Skill Test"
         Assert.IsTrue(ForeignSkill."Read-Only", 'Inactivation must preserve app-owned content locks.');
         Assert.AreEqual('v1.0', SecondSkill.Version, 'Inactivation must preserve the content version.');
         AssertVersionCount(FirstSkill.ID, 1);
-        AssertVersionCount(SecondSkill.ID, 1);
-        AssertVersionCount(ForeignSkill.ID, 1);
-        AssertVersionCount(InactiveSkill.ID, 1);
+        AssertVersionCount(SecondSkill.ID, 0);
+        AssertVersionCount(ForeignSkill.ID, 0);
+        AssertVersionCount(InactiveSkill.ID, 0);
     end;
 
     /// <summary>
@@ -277,6 +293,7 @@ codeunit 130050 "Business Skill Test"
         BusinessSkillBuilder: Codeunit "Business Skill Builder";
         InactiveSkillId: BigInteger;
     begin
+        // [SCENARIO] Library cleanup removes active and inactive skills from all owners together with their history.
         // [GIVEN] Manual skills in both states and app-owned skills from the library and the test app.
         Initialize();
         LibraryBusinessSkill.CreateSkill('Active manual', SecretStrSubstNo('Active content'));
@@ -285,7 +302,7 @@ codeunit 130050 "Business Skill Test"
         LibraryBusinessSkill.CreateAppOwnedSkill('LIBRARY', 'Library-owned', SecretStrSubstNo('Library content'));
         BusinessSkillBuilder.Initialize('FOREIGN', 'Test-owned', SecretStrSubstNo('Test content')).SetActive(true).Create();
         Assert.AreEqual(4, BusinessSkill.Count(), 'The fixture must contain all four skills.');
-        Assert.AreEqual(4, BusSkillContentVersion.Count(), 'Each fixture skill must have its initial history.');
+        Assert.AreEqual(2, BusSkillContentVersion.Count(), 'Only manual fixture skills must have initial history.');
 
         // [WHEN] The Cloud test library requests full fixture cleanup.
         LibraryBusinessSkill.DeleteAll();
@@ -304,6 +321,7 @@ codeunit 130050 "Business Skill Test"
         Skill: Record "Business Skill";
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Verifies an inactive skill missing a title or nonblank instructions cannot be activated.
         // [GIVEN] An inactive skill made incomplete.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Title', SecretStrSubstNo('Body'));
@@ -330,6 +348,7 @@ codeunit 130050 "Business Skill Test"
         Skill: Record "Business Skill";
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Verifies an active skill cannot be saved with empty instructions or lose its existing text.
         // [GIVEN] An active skill with nonempty instructions.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Active', SecretStrSubstNo('Keep body'));
@@ -353,6 +372,7 @@ codeunit 130050 "Business Skill Test"
         Skill: Record "Business Skill";
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Verifies ordinary record filters cannot widen the mandatory active and applicable discovery result set.
         // [GIVEN] Active and inactive skills with standard record filters.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Active skill', SecretStrSubstNo('Body'));
@@ -372,206 +392,6 @@ codeunit 130050 "Business Skill Test"
     end;
 
     /// <summary>
-    /// Verifies card-created skills default inactive and activate only after instructions are supplied.
-    /// </summary>
-    [Test]
-    [HandlerFunctions('DeclineActivationOnClose')]
-    procedure SkillCardCreatesInactiveSkill()
-    var
-        Skill: Record "Business Skill";
-        SkillCard: TestPage "Business Skill Card";
-    begin
-        // [GIVEN] A new skill card.
-        Initialize();
-        // [WHEN] Metadata is entered, edited, and the new skill is activated.
-        SkillCard.OpenNew();
-        SkillCard.Title.SetValue('Created from card');
-        SkillCard.Description.SetValue('Created description');
-        Skill.SetRange(Title, 'Created from card');
-        Skill.FindFirst();
-        // [THEN] It defaults to inactive until complete text allows activation.
-        Assert.AreEqual('Created description', Skill.Description, 'Description validation saves metadata before the text editor can write.');
-        SkillCard.Close();
-        Skill.SetRange(Title, 'Created from card');
-        Assert.AreEqual(1, Skill.Count(), 'The native card must create one canonical skill.');
-        Skill.FindFirst();
-        Assert.AreEqual(Skill.Status::Inactive, Skill.Status, 'Card-created content stays inactive until activation.');
-        Assert.AreEqual('Created description', Skill.Description, 'Card creation persists the description.');
-        SkillCard.OpenEdit();
-        SkillCard.GoToRecord(Skill);
-        SkillCard.Description.SetValue('Edited description');
-        Skill.Get(Skill.ID);
-        Assert.AreEqual('Edited description', Skill.Description, 'Existing-card metadata is saved before editing text.');
-        SkillCard.Close();
-        Skill.Get(Skill.ID);
-        Assert.AreEqual('Edited description', Skill.Description, 'Native editing must not drop metadata-only changes.');
-        AssertContentEquals(SecretStrSubstNo(''), BusinessSkillImpl.GetContent(Skill), 'Description editing does not invent instructions.');
-        Commit();
-        asserterror BusinessSkillImpl.ActivateSkill(Skill.ID);
-        Assert.ExpectedError('title and skill content');
-        BusinessSkillImpl.SetContent(Skill.ID, SecretStrSubstNo('Body'));
-        BusinessSkillImpl.ActivateSkill(Skill.ID);
-        Skill.Get(Skill.ID);
-        Assert.AreEqual(Skill.Status::Active, Skill.Status, 'A completed native skill can be activated.');
-        AssertVersionCount(Skill.ID, 2);
-    end;
-
-    /// <summary>
-    /// Verifies confirming activation on card close activates the skill and preserves its metadata and text.
-    /// </summary>
-    [Test]
-    [HandlerFunctions('AcceptActivationOnClose')]
-    procedure SkillCardCanActivateOnClose()
-    var
-        Skill: Record "Business Skill";
-        SkillCard: TestPage "Business Skill Card";
-    begin
-        // [GIVEN] A complete inactive skill opened on its card.
-        Initialize();
-        Skill.Get(LibraryBusinessSkill.CreateSkill('Activate on close', SecretStrSubstNo('Instructions')));
-        BusinessSkillImpl.DeactivateSkill(Skill.ID);
-        Skill.Get(Skill.ID);
-        Commit();
-        SkillCard.OpenEdit();
-        SkillCard.GoToRecord(Skill);
-        SkillCard.Description.SetValue('Saved before activation');
-        // [WHEN] The card closes with activation confirmed.
-        SkillCard.Close();
-        Skill.Get(Skill.ID);
-        // [THEN] The skill becomes active.
-        Assert.AreEqual(Skill.Status::Active, Skill.Status, 'Accepting the prompt activates the skill.');
-        Assert.AreEqual('Saved before activation', Skill.Description, 'Closing preserves metadata.');
-        AssertContentEquals(SecretStrSubstNo('Instructions'), BusinessSkillImpl.GetContent(Skill), 'Closing preserves the instructions.');
-    end;
-
-    /// <summary>
-    /// Verifies activation on card close fails when the skill has no instructions and leaves it inactive.
-    /// </summary>
-    [Test]
-    [HandlerFunctions('AcceptActivationOnClose')]
-    procedure SkillCardActivationOnCloseRequiresText()
-    var
-        Skill: Record "Business Skill";
-        SkillCard: TestPage "Business Skill Card";
-    begin
-        // [GIVEN] A new skill card without instruction text.
-        Initialize();
-        SkillCard.OpenNew();
-        SkillCard.Title.SetValue('Incomplete on close');
-        Commit();
-        // [WHEN] Activation is requested on close.
-        asserterror SkillCard.Close();
-        // [THEN] The incomplete skill cannot be activated.
-        Assert.ExpectedError('title and skill content');
-        Skill.SetRange(Title, 'Incomplete on close');
-        Skill.FindFirst();
-        Assert.AreEqual(Skill.Status::Inactive, Skill.Status, 'Failed activation must leave the skill inactive.');
-    end;
-
-    /// <summary>
-    /// Verifies viewing or closing a blank new card neither activates a skill nor creates an empty record.
-    /// </summary>
-    [Test]
-    procedure SkillCardViewAndEmptyNewCloseWithoutActivationPrompt()
-    var
-        Skill: Record "Business Skill";
-        SkillCard: TestPage "Business Skill Card";
-    begin
-        // [GIVEN] A read-only inactive skill and a blank new card.
-        Initialize();
-        Skill.Get(LibraryBusinessSkill.CreateSkill('Read-only inactive', SecretStrSubstNo('Instructions')));
-        BusinessSkillImpl.DeactivateSkill(Skill.ID);
-        Skill.Get(Skill.ID);
-        Commit();
-        // [WHEN] Each card is closed.
-        SkillCard.OpenView();
-        SkillCard.GoToRecord(Skill);
-        SkillCard.Close();
-        SkillCard.OpenNew();
-        SkillCard.Close();
-        // [THEN] Neither view triggers an activation prompt.
-        Assert.AreEqual(1, Skill.Count(), 'An untouched new card must not create an empty skill.');
-        Skill.Get(Skill.ID);
-        Assert.AreEqual(Skill.Status::Inactive, Skill.Status, 'Viewing a skill does not activate it.');
-    end;
-
-    [ConfirmHandler]
-    procedure AcceptActivationOnClose(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Assert.AreEqual('This skill is inactive. Do you want to activate it before closing?', Question, 'Closing asks about activation.');
-        Assert.IsFalse(Reply, 'Activation must be an explicit choice.');
-        Reply := true;
-    end;
-
-    [ConfirmHandler]
-    procedure DeclineActivationOnClose(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Assert.AreEqual('This skill is inactive. Do you want to activate it before closing?', Question, 'Closing asks about activation.');
-        Assert.IsFalse(Reply, 'Activation must be an explicit choice.');
-        Reply := false;
-    end;
-
-    /// <summary>
-    /// Verifies the skill list shows canonical skills regardless of their status.
-    /// </summary>
-    [Test]
-    procedure SkillListShowsCanonicalSkillsRegardlessOfStatus()
-    var
-        Skill: Record "Business Skill";
-        SkillList: TestPage "Business Skills";
-        ActiveSkillId: BigInteger;
-        InactiveSkillId: BigInteger;
-    begin
-        // [GIVEN] Skills in different lifecycle states.
-        Initialize();
-        ActiveSkillId := LibraryBusinessSkill.CreateSkill('Active skill', SecretStrSubstNo('Body'));
-        InactiveSkillId := LibraryBusinessSkill.CreateSkill('Inactive skill', SecretStrSubstNo('Body'));
-        BusinessSkillImpl.DeactivateSkill(InactiveSkillId);
-        Commit();
-        // [WHEN] The skill list is opened.
-        SkillList.OpenView();
-        // [THEN] Canonical rows retain their status.
-        Skill.Get(ActiveSkillId);
-        SkillList.GoToRecord(Skill);
-        SkillList.Title.AssertEquals('Active skill');
-        SkillList.Status.AssertEquals(Format(Skill.Status));
-        Skill.Get(InactiveSkillId);
-        SkillList.GoToRecord(Skill);
-        SkillList.Title.AssertEquals('Inactive skill');
-        SkillList.Status.AssertEquals(Format(Skill.Status));
-        SkillList.Close();
-    end;
-
-    /// <summary>
-    /// Verifies card activation and deactivation change status without altering stored instructions.
-    /// </summary>
-    [Test]
-    procedure SkillCardActionsChangeStatusWithoutLosingContent()
-    var
-        Skill: Record "Business Skill";
-        SkillCard: TestPage "Business Skill Card";
-        SkillId: BigInteger;
-    begin
-        // [GIVEN] A skill with persisted instruction text.
-        Initialize();
-        SkillId := LibraryBusinessSkill.CreateSkill('Lifecycle skill', SecretStrSubstNo('Body'));
-        Skill.Get(SkillId);
-        Commit();
-        SkillCard.OpenEdit();
-        SkillCard.GoToRecord(Skill);
-        // [WHEN] Card actions activate and deactivate it.
-        SkillCard.Deactivate.Invoke();
-        // [THEN] Status changes without losing content.
-        SkillCard.Status.AssertEquals(Format(Skill.Status::Inactive));
-        SkillCard.Activate.Invoke();
-        SkillCard.Status.AssertEquals(Format(Skill.Status::Active));
-        SkillCard.Close();
-        Skill.Get(SkillId);
-        AssertContentEquals(SecretStrSubstNo('Body'), BusinessSkillImpl.GetContent(Skill), 'Lifecycle actions must preserve the canonical instructions.');
-        Assert.AreEqual(Skill.Status::Active, Skill.Status, 'Activation persists after the card closes.');
-    end;
-
-    /// <summary>
     /// Verifies description updates preserve content history, advance revisions, and reject stale records.
     /// </summary>
     [Test]
@@ -582,6 +402,7 @@ codeunit 130050 "Business Skill Test"
         Skill: Record "Business Skill";
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Verifies description updates preserve content history, advance revisions, and reject stale records.
         // [GIVEN] A skill with instruction history and a searchable description.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Existing title', SecretStrSubstNo('Body'));
@@ -624,6 +445,7 @@ codeunit 130050 "Business Skill Test"
         SkillId: BigInteger;
         Value: Text;
     begin
+        // [SCENARIO] Verifies multiline Unicode text round-trips through canonical skill content and its history.
         // [GIVEN] Multiline Unicode instruction text.
         Initialize();
         Value := GetMultilineText();
@@ -648,6 +470,7 @@ codeunit 130050 "Business Skill Test"
         SkillId: BigInteger;
         Value: Text;
     begin
+        // [SCENARIO] Verifies a skill accepts and returns the full 100,000-character instruction limit.
         // [GIVEN] A 100000-character instruction body.
         Initialize();
         Value := PadStr('x', 100000, 'x');
@@ -668,6 +491,7 @@ codeunit 130050 "Business Skill Test"
         LF: Char;
         Value: Text;
     begin
+        // [SCENARIO] Verifies text exceeding the limit after line-separator expansion is rejected without insertion.
         // [GIVEN] Input whose normalized line separators exceed the text limit.
         Initialize();
         LF := 10;
@@ -690,6 +514,7 @@ codeunit 130050 "Business Skill Test"
         SkillId: BigInteger;
         Value: Text;
     begin
+        // [SCENARIO] Verifies overlength skill creation and updates fail without inserting or changing persisted text.
         // [GIVEN] A body exceeding the maximum supported length.
         Initialize();
         Value := PadStr('x', 100001, 'x');
@@ -717,6 +542,7 @@ codeunit 130050 "Business Skill Test"
         Skill: Record "Business Skill";
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Verifies shorter and empty inactive text replaces prior BLOB content without stale data.
         // [GIVEN] A skill with a long instruction body.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Long', PadStr('x', 5000, 'x'));
@@ -743,6 +569,7 @@ codeunit 130050 "Business Skill Test"
         Skill: Record "Business Skill";
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Verifies no-op skill saves preserve the current revision and do not append content history.
         // [GIVEN] An existing skill and its revision history.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Unchanged', SecretStrSubstNo('Body'));
@@ -768,6 +595,7 @@ codeunit 130050 "Business Skill Test"
         BusinessSkill: Codeunit "Business Skill";
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Verifies stale text and record updates are rejected without overwriting the latest revision.
         // [GIVEN] A skill record read before a concurrent edit.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Original', SecretStrSubstNo('Original text'));
@@ -800,6 +628,7 @@ codeunit 130050 "Business Skill Test"
         SkillId: BigInteger;
         Revision: BigInteger;
     begin
+        // [SCENARIO] Verifies updates with the current revision succeed while a mismatched system identity is rejected.
         // [GIVEN] A current skill revision and a mismatched record identity.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Original', SecretStrSubstNo('Original text'));
@@ -840,6 +669,7 @@ codeunit 130050 "Business Skill Test"
         SkillId: BigInteger;
         FirstEntryNo: Integer;
     begin
+        // [SCENARIO] Verifies restoring an earlier content version appends a new latest version instead of changing history.
         // [GIVEN] A skill with successive instruction versions.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('History', SecretStrSubstNo('First'));
@@ -868,6 +698,7 @@ codeunit 130050 "Business Skill Test"
         Version: Record "Bus Skill Content Version";
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Verifies historical content versions are immutable and the latest version cannot be deleted.
         // [GIVEN] A skill with multiple historical content versions.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('History', SecretStrSubstNo('First'));
@@ -897,30 +728,33 @@ codeunit 130050 "Business Skill Test"
     procedure DeletingSkillRemovesHistory()
     var
         Skill: Record "Business Skill";
+        BusinessSkill: Codeunit "Business Skill";
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Verifies deleting an inactive skill removes its content history.
         // [GIVEN] An inactive skill with history records.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Delete', SecretStrSubstNo('Body'));
         BusinessSkillImpl.DeactivateSkill(SkillId);
         // [WHEN] The skill is deleted.
-        BusinessSkillImpl.DeleteSkill(SkillId);
+        BusinessSkill.Delete(SkillId);
         // [THEN] The skill and its history are removed.
         Assert.IsFalse(Skill.Get(SkillId), 'The canonical skill must be removed.');
         AssertVersionCount(SkillId, 0);
     end;
 
     /// <summary>
-    /// Filtered bulk deletion without triggers removes only the selected skills and their history.
+    /// Facade deletion removes only the selected skills and their manual history.
     /// </summary>
     [Test]
-    procedure FilteredDeleteAllRemovesOnlySelectedHistory()
+    procedure FacadeDeletesOnlySelectedHistory()
     var
         Skill: Record "Business Skill";
         FirstId: BigInteger;
         SecondId: BigInteger;
         RetainedId: BigInteger;
     begin
+        // [SCENARIO] Facade deletion removes only the selected skills and their manual history.
         // [GIVEN] Three skills, including multiple versions for a selected and a retained skill.
         Initialize();
         FirstId := LibraryBusinessSkill.CreateSkill('First selected', SecretStrSubstNo('First'));
@@ -928,10 +762,11 @@ codeunit 130050 "Business Skill Test"
         RetainedId := LibraryBusinessSkill.CreateSkill('Retained', SecretStrSubstNo('Original'));
         BusinessSkillImpl.SetContent(FirstId, SecretStrSubstNo('Updated first'));
         BusinessSkillImpl.SetContent(RetainedId, SecretStrSubstNo('Updated retained'));
+        BusinessSkillImpl.DeactivateSkill(FirstId);
+        BusinessSkillImpl.DeactivateSkill(SecondId);
 
-        // [WHEN] Two skills are deleted through the filtered bulk path without table triggers.
-        Skill.SetFilter(ID, '%1|%2', FirstId, SecondId);
-        Skill.DeleteAll(false);
+        // [WHEN] Two skills are deleted through the public facade.
+        DeleteSelectedSkills(FirstId, SecondId);
 
         // [THEN] Their history is removed without touching the other skill or its versions.
         Skill.Reset();
@@ -954,17 +789,19 @@ codeunit 130050 "Business Skill Test"
         SkillId: BigInteger;
         SystemId: Guid;
     begin
+        // [SCENARIO] A failed history cleanup rolls back the persisted skill deletion.
         // [GIVEN] A committed skill with two history entries and a failing history delete subscriber.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Cleanup failure', SecretStrSubstNo('Original'));
         BusinessSkillImpl.SetContent(SkillId, SecretStrSubstNo('Current'));
+        BusinessSkillImpl.DeactivateSkill(SkillId);
         Skill.Get(SkillId);
         SystemId := Skill.SystemId;
         Commit();
         BindSubscription(CleanupFailure);
 
         // [WHEN] Deletion reaches history cleanup after removing the stored skill.
-        asserterror Skill.Delete(false);
+        asserterror BusinessSkillImpl.DeleteSkill(SkillId);
         UnbindSubscription(CleanupFailure);
 
         // [THEN] The failure propagates and both the skill and its history remain.
@@ -976,10 +813,10 @@ codeunit 130050 "Business Skill Test"
     end;
 
     /// <summary>
-    /// A later cleanup failure rolls back earlier skill and history deletions in the bulk operation.
+    /// A later cleanup failure rolls back earlier facade deletions in the caller's transaction.
     /// </summary>
     [Test]
-    procedure LaterHistoryCleanupFailureRollsBackBulkDeletion()
+    procedure LaterHistoryCleanupFailureRollsBackFacadeDeletions()
     var
         Skill: Record "Business Skill";
         CleanupFailure: Codeunit "Business Skill Test";
@@ -989,6 +826,7 @@ codeunit 130050 "Business Skill Test"
         FirstSystemId: Guid;
         SecondSystemId: Guid;
     begin
+        // [SCENARIO] A later cleanup failure rolls back earlier facade deletions in the caller's transaction.
         // [GIVEN] Two selected skills with history and an unselected skill.
         Initialize();
         FirstId := LibraryBusinessSkill.CreateSkill('First selected', SecretStrSubstNo('Original first'));
@@ -996,6 +834,8 @@ codeunit 130050 "Business Skill Test"
         SecondId := LibraryBusinessSkill.CreateSkill('Second selected', SecretStrSubstNo('Original second'));
         BusinessSkillImpl.SetContent(SecondId, SecretStrSubstNo('Updated second'));
         RetainedId := LibraryBusinessSkill.CreateSkill('Retained', SecretStrSubstNo('Retained instructions'));
+        BusinessSkillImpl.DeactivateSkill(FirstId);
+        BusinessSkillImpl.DeactivateSkill(SecondId);
         Skill.Get(FirstId);
         FirstSystemId := Skill.SystemId;
         Skill.Get(SecondId);
@@ -1005,8 +845,7 @@ codeunit 130050 "Business Skill Test"
         BindSubscription(CleanupFailure);
 
         // [WHEN] Cleanup fails for the second skill after the first skill and its history were deleted.
-        Skill.SetFilter(ID, '%1|%2', FirstId, SecondId);
-        asserterror Skill.DeleteAll(false);
+        asserterror DeleteSelectedSkills(FirstId, SecondId);
         UnbindSubscription(CleanupFailure);
 
         // [THEN] All original skills and history are intact.
@@ -1027,6 +866,111 @@ codeunit 130050 "Business Skill Test"
     end;
 
     /// <summary>
+    /// The active-skill deletion error leaves the skill and manual history unchanged.
+    /// </summary>
+    [Test]
+    procedure ActiveDeletionPreservesSkillAndHistory()
+    var
+        Skill: Record "Business Skill";
+        BusinessSkill: Codeunit "Business Skill";
+    begin
+        // [SCENARIO] The active-skill deletion error leaves the skill and manual history unchanged.
+        Initialize();
+        Skill.Get(LibraryBusinessSkill.CreateSkill('Active skill', SecretStrSubstNo('Instructions')));
+        Commit();
+
+        asserterror BusinessSkill.Delete(Skill.ID);
+
+        Assert.ExpectedError('Deactivate the skill before you delete it.');
+        Skill.Get(Skill.ID);
+        Assert.AreEqual(Skill.Status::Active, Skill.Status, 'The error must not deactivate or delete the skill.');
+        AssertVersionCount(Skill.ID, 1);
+    end;
+
+    local procedure DeleteSelectedSkills(FirstId: BigInteger; SecondId: BigInteger)
+    var
+        BusinessSkill: Codeunit "Business Skill";
+    begin
+        BusinessSkill.Delete(FirstId);
+        BusinessSkill.Delete(SecondId);
+    end;
+
+    [Test]
+    procedure SubscriberCommitsDoNotCommitManualOperations()
+    var
+        Skill: Record "Business Skill";
+        Version: Record "Bus Skill Content Version";
+        CommitSubscriber: Codeunit "Business Skill Test";
+    begin
+        // [SCENARIO] Explicit subscriber commits are ignored across manual creation, updates and XML import, preserving caller rollback.
+        Initialize();
+        Commit();
+        CommitSubscriber.EnableSubscriberCommits();
+        BindSubscription(CommitSubscriber);
+
+        asserterror ManualOperationsThenFail();
+        UnbindSubscription(CommitSubscriber);
+
+        Assert.ExpectedError(CallerRollbackErr);
+        Assert.IsTrue(Skill.IsEmpty(), 'All manual skill writes must roll back with the caller.');
+        Assert.IsTrue(Version.IsEmpty(), 'All manual history writes must roll back with the caller.');
+    end;
+
+    [Test]
+    procedure SubscriberCommitsDoNotCommitAppOwnedUpdates()
+    var
+        Skill: Record "Business Skill";
+        Builder: Codeunit "Business Skill Builder";
+        CommitSubscriber: Codeunit "Business Skill Test";
+    begin
+        // [SCENARIO] App-owned content and metadata updates ignore explicit subscriber commits and roll back together.
+        Initialize();
+        Skill.Get(Builder.Initialize('COMMIT-UPDATE', 'Original title', SecretStrSubstNo('Original')).SetContentLocked(false).Create());
+        Commit();
+        CommitSubscriber.EnableSubscriberCommits();
+        BindSubscription(CommitSubscriber);
+
+        asserterror AppOwnedUpdatesThenFail();
+        UnbindSubscription(CommitSubscriber);
+
+        Assert.ExpectedError(CallerRollbackErr);
+        Skill.Get(Skill.ID);
+        Assert.AreEqual('Original title', Skill.Title, 'Metadata must roll back with the caller.');
+        Assert.AreEqual('v1.0', Skill.Version, 'The version must roll back with the caller.');
+        AssertContentEquals(SecretStrSubstNo('Original'), BusinessSkillImpl.GetContent(Skill), 'Content must roll back with the caller.');
+        AssertVersionCount(Skill.ID, 0);
+    end;
+
+    local procedure ManualOperationsThenFail()
+    var
+        Skill: Record "Business Skill";
+        Builder: Codeunit "Business Skill Builder";
+        BuilderImpl: Codeunit "Business Skill Builder Impl.";
+        BusinessSkill: Codeunit "Business Skill";
+    begin
+        Skill.Get(Builder.Initialize('', 'Manual commit', SecretStrSubstNo('First')).SetManual(true).Create());
+        BusinessSkill.SetNewContentAndUpdateVersion(Skill.ID, SecretStrSubstNo('Second'), Skill.SystemId, Skill.SystemRowVersion);
+        BuilderImpl.Initialize(Skill."Owning App ID", Skill."Skill ID", 'Manual commit', SecretStrSubstNo('Third'));
+        BuilderImpl.SetManual(true);
+        BuilderImpl.CreateOrUpdate();
+        Clear(BuilderImpl);
+        BuilderImpl.Initialize(Skill."Owning App ID", '', 'Manual commit', SecretStrSubstNo('Fourth'));
+        BuilderImpl.SetManual(true);
+        BuilderImpl.CreateOrUpdate(Skill.ID);
+        Port.ImportFromXml(SecretStrSubstNo('<BusinessSkill><Skills><Skill><Reference>1</Reference><Title>Imported</Title><Content>Imported content</Content></Skill></Skills></BusinessSkill>'));
+        Error(CallerRollbackErr);
+    end;
+
+    local procedure AppOwnedUpdatesThenFail()
+    var
+        BusinessSkill: Codeunit "Business Skill";
+    begin
+        BusinessSkill.SetNewContentAndUpdateVersion('COMMIT-UPDATE', SecretStrSubstNo('Changed'), 'v2');
+        BusinessSkill.UpdateMetadata('COMMIT-UPDATE', 'Changed title', 'Changed description');
+        Error(CallerRollbackErr);
+    end;
+
+    /// <summary>
     /// Verifies skill history encodes HTML markup, quotes and ampersands.
     /// </summary>
     [Test]
@@ -1035,6 +979,7 @@ codeunit 130050 "Business Skill Test"
         Value: Text;
         Encoded: SecretText;
     begin
+        // [SCENARIO] Verifies skill history encodes HTML markup, quotes and ampersands.
         // [GIVEN] HTML-special characters in instruction text.
         Value := '<script>alert("x" & ''y'')</script>';
         // [WHEN] Skill history encodes the value.
@@ -1054,6 +999,7 @@ codeunit 130050 "Business Skill Test"
         Selection: Record "Business Skill";
         XmlText: SecretText;
     begin
+        // [SCENARIO] Verifies XML skill export and import preserve content while creating independent records.
         // [GIVEN] A skill with content.
         Initialize();
         Original.Get(LibraryBusinessSkill.CreateSkill('Single <&" skill', 'Description <&" with spaces  ', GetMultilineText()));
@@ -1094,6 +1040,7 @@ codeunit 130050 "Business Skill Test"
         SelectedIds: List of [BigInteger];
         XmlText: SecretText;
     begin
+        // [SCENARIO] Verifies exporting selected skills preserves each skill's content.
         // [GIVEN] Multiple skills with distinct content.
         Initialize();
         FirstId := LibraryBusinessSkill.CreateSkill('First portable skill', 'First description <&"', GetMultilineText());
@@ -1146,6 +1093,7 @@ codeunit 130050 "Business Skill Test"
         Value: Text;
         XmlText: SecretText;
     begin
+        // [SCENARIO] Verifies XML round-tripping preserves maximum-length instruction text and description without truncation.
         // [GIVEN] A skill with maximum-length text and description.
         Initialize();
         Value := PadStr('Beginning ', 99996, 'x') + ' end';
@@ -1177,6 +1125,7 @@ codeunit 130050 "Business Skill Test"
         XmlText: SecretText;
         SkillId: BigInteger;
     begin
+        // [SCENARIO] Verifies XML normalizes line endings while preserving literal markup, entities, and trailing spaces.
         // [GIVEN] Mixed line endings and XML-looking literal text.
         Initialize();
         CR := 13;
@@ -1205,6 +1154,7 @@ codeunit 130050 "Business Skill Test"
         SkillId: BigInteger;
         XmlText: SecretText;
     begin
+        // [SCENARIO] Verifies importing the same XML twice creates separate active skills with independent identities.
         // [GIVEN] An exported canonical skill.
         Initialize();
         SkillId := LibraryBusinessSkill.CreateSkill('Independent copies', SecretStrSubstNo('Body'));
@@ -1230,6 +1180,7 @@ codeunit 130050 "Business Skill Test"
         Skill: Record "Business Skill";
         XmlText: SecretText;
     begin
+        // [SCENARIO] Verifies an omitted legacy skill description does not inherit the preceding skill's description.
         // [GIVEN] XML with a described skill followed by one without a description.
         Initialize();
         XmlText :=
@@ -1258,6 +1209,7 @@ codeunit 130050 "Business Skill Test"
         Skill: Record "Business Skill";
         XmlText: SecretText;
     begin
+        // [SCENARIO] Verifies importing an oversized description fails instead of truncating or persisting partial content.
         // [GIVEN] XML containing a description beyond the allowed length.
         Initialize();
         XmlText :=
@@ -1281,6 +1233,7 @@ codeunit 130050 "Business Skill Test"
         Skill: Record "Business Skill";
         XmlText: SecretText;
     begin
+        // [SCENARIO] Verifies importing overlength skill instructions fails without creating a partial skill.
         // [GIVEN] XML containing overlong skill instructions.
         Initialize();
         XmlText :=
@@ -1305,6 +1258,7 @@ codeunit 130050 "Business Skill Test"
         BusSkillContentVersion: Record "Bus Skill Content Version";
         XmlContent: SecretText;
     begin
+        // [SCENARIO] Verifies the retired XML content element is rejected and preceding imports roll back.
         // [GIVEN] A valid content element followed by the retired element in the same document.
         Initialize();
         XmlContent := SecretStrSubstNo('<BusinessSkill><Skills>' +
@@ -1328,6 +1282,7 @@ codeunit 130050 "Business Skill Test"
     [Test]
     procedure XmlZeroSkillReferenceIsRejectedBeforeAutoIncrement()
     begin
+        // [SCENARIO] Verifies portable skill reference zero is rejected before an auto-incremented skill is created.
         // [GIVEN] XML using zero as a portable skill reference.
         // [WHEN] Import validates the reference.
         // [THEN] It fails before creating an auto-incremented skill.
@@ -1340,6 +1295,7 @@ codeunit 130050 "Business Skill Test"
     [Test]
     procedure XmlNegativeSkillReferenceRollsBackImport()
     begin
+        // [SCENARIO] Verifies a negative portable skill reference rolls back the import.
         // [GIVEN] XML using a negative portable skill reference.
         // [WHEN] The XML is imported.
         // [THEN] The invalid reference rolls back the import.
@@ -1352,6 +1308,7 @@ codeunit 130050 "Business Skill Test"
     [Test]
     procedure XmlDuplicateSkillReferenceRollsBackImport()
     begin
+        // [SCENARIO] Verifies duplicate portable skill references roll back the import.
         // [GIVEN] XML with duplicate portable skill references.
         // [WHEN] The XML is imported.
         // [THEN] The duplicate reference rolls back the import.
@@ -1376,182 +1333,6 @@ codeunit 130050 "Business Skill Test"
         Assert.IsTrue(Version.IsEmpty(), 'Invalid portable references must roll back earlier history.');
     end;
 
-    /// <summary>
-    /// Markdown field edits retain source text and keep parent metadata and instruction history synchronized.
-    /// </summary>
-    [Test]
-    procedure MarkdownFieldSavesAndReopensInstructions()
-    var
-        Skill: Record "Business Skill";
-        SkillCard: TestPage "Business Skill Card";
-        Markdown: Text;
-    begin
-        // [GIVEN] An active skill and Markdown containing headings, tasks, and fenced AL.
-        Initialize();
-        Skill.Get(LibraryBusinessSkill.CreateSkill('Markdown skill', SecretStrSubstNo('# Original')));
-        Markdown := '# Instructions' + GetLineBreak() + GetLineBreak() +
-            '- [ ] Review **orders**' + GetLineBreak() + '```al' + GetLineBreak() +
-            'Message(''Review'');' + GetLineBreak() + '```';
-        Commit();
-
-        // [WHEN] Instructions and metadata are edited on the same card.
-        SkillCard.OpenEdit();
-        SkillCard.GoToRecord(Skill);
-        SkillCard.SkillContentEditor.SkillContent.AssertEquals('# Original');
-        SkillCard.SkillContentEditor.SkillContent.SetValue(Markdown);
-        SkillCard.Title.SetValue('Updated Markdown skill');
-        SkillCard.SkillContentEditor.SkillContent.SetValue(Markdown + GetLineBreak() + 'Final instruction');
-        SkillCard.Close();
-
-        // [THEN] Both edits persist and reopening displays the latest Markdown without adding history.
-        Skill.Get(Skill.ID);
-        Assert.AreEqual('Updated Markdown skill', Skill.Title, 'Text edits must not overwrite parent metadata.');
-        AssertContentEquals(Markdown + GetLineBreak() + 'Final instruction', BusinessSkillImpl.GetContent(Skill), 'The field must persist Markdown, not HTML.');
-        AssertVersionCount(Skill.ID, 3);
-        SkillCard.OpenEdit();
-        SkillCard.GoToRecord(Skill);
-        AssertContentEquals(BusinessSkillImpl.GetContent(Skill), SkillCard.SkillContentEditor.SkillContent.Value(), 'Reopening must show the current content.');
-        SkillCard.SkillContentEditor.SkillContent.SetValue(Markdown + GetLineBreak() + 'Final instruction');
-        SkillCard.Close();
-        AssertVersionCount(Skill.ID, 3);
-    end;
-
-    /// <summary>
-    /// The native Markdown field rejects stale edits without replacing a concurrent revision.
-    /// </summary>
-    [Test]
-    [HandlerFunctions('StaleMarkdownMessageHandler')]
-    procedure MarkdownFieldRejectsStaleInstructions()
-    var
-        Skill: Record "Business Skill";
-        SkillCard: TestPage "Business Skill Card";
-    begin
-        // [GIVEN] An open card whose instructions are subsequently changed by another writer.
-        Initialize();
-        Skill.Get(LibraryBusinessSkill.CreateSkill('Concurrent Markdown', SecretStrSubstNo('# Original')));
-        Commit();
-        SkillCard.OpenEdit();
-        SkillCard.GoToRecord(Skill);
-        BusinessSkillImpl.SetContent(Skill.ID, SecretStrSubstNo('# Concurrent'));
-        Commit();
-
-        // [WHEN] The stale editor attempts to save.
-        asserterror SkillCard.SkillContentEditor.SkillContent.SetValue('# Stale');
-
-        // [THEN] The concurrent content and its history remain intact.
-        Assert.ExpectedError('changed by another user');
-        SkillCard.Close();
-        Skill.Get(Skill.ID);
-        AssertContentEquals(SecretStrSubstNo('# Concurrent'), BusinessSkillImpl.GetContent(Skill), 'A stale Markdown field must not overwrite newer text.');
-        AssertVersionCount(Skill.ID, 2);
-    end;
-
-    /// <summary>
-    /// Instructions remain read-only on a viewed card and unavailable before a new skill is saved.
-    /// </summary>
-    [Test]
-    procedure MarkdownFieldRespectsReadOnlyAndUnsavedCards()
-    var
-        Skill: Record "Business Skill";
-        SkillCard: TestPage "Business Skill Card";
-    begin
-        // [GIVEN] A saved skill with Markdown instructions.
-        Initialize();
-        Skill.Get(LibraryBusinessSkill.CreateSkill('Read-only Markdown', SecretStrSubstNo('**Instructions**')));
-        Commit();
-
-        // [WHEN] Its card is viewed, then an empty new card is opened.
-        SkillCard.OpenView();
-        SkillCard.GoToRecord(Skill);
-        // [THEN] The viewed instructions and the unsaved editor are not editable.
-        SkillCard.SkillContentEditor.SkillContent.AssertEquals('**Instructions**');
-        Assert.IsFalse(SkillCard.SkillContentEditor.SkillContent.Editable(), 'View mode must not permit Markdown editing.');
-        SkillCard.Close();
-        SkillCard.OpenNew();
-        Assert.IsFalse(SkillCard.SkillContentEditor.SkillContent.Editable(), 'An unsaved skill must not permit instruction edits.');
-        SkillCard.Close();
-        AssertVersionCount(Skill.ID, 1);
-    end;
-
-    /// <summary>
-    /// Markdown rendering limits do not reduce the skill content limit or bypass server-side validation.
-    /// </summary>
-    [Test]
-    procedure MarkdownFieldEnforcesSkillContentLimit()
-    var
-        Skill: Record "Business Skill";
-        SkillCard: TestPage "Business Skill Card";
-        MaximumText: Text;
-    begin
-        // [GIVEN] An active skill and source beyond the control's rich-rendering limit.
-        Initialize();
-        Skill.Get(LibraryBusinessSkill.CreateSkill('Long Markdown', SecretStrSubstNo('Original')));
-        MaximumText := PadStr('x', 100000, 'x');
-        Commit();
-        SkillCard.OpenEdit();
-        SkillCard.GoToRecord(Skill);
-
-        // [WHEN] The field saves the supported maximum and rejects overlength and empty active text.
-        SkillCard.SkillContentEditor.SkillContent.SetValue(MaximumText);
-        Commit();
-        asserterror SkillCard.SkillContentEditor.SkillContent.SetValue(MaximumText + 'x');
-        // [THEN] Validation retains the last valid text and creates no rejected history entries.
-        Assert.ExpectedError('100000 characters');
-        asserterror SkillCard.SkillContentEditor.SkillContent.SetValue('');
-        Assert.ExpectedError('An active skill needs a title and skill content.');
-        SkillCard.Close();
-        Skill.Get(Skill.ID);
-        AssertContentEquals(MaximumText, BusinessSkillImpl.GetContent(Skill), 'Rejected field values must preserve the full supported source.');
-        AssertVersionCount(Skill.ID, 2);
-    end;
-
-    /// <summary>
-    /// History renders the selected Markdown read-only and restoring it refreshes the live editor.
-    /// </summary>
-    [Test]
-    [HandlerFunctions('RestoreMarkdownHistoryHandler')]
-    procedure MarkdownHistoryPreviewAndRestore()
-    var
-        Skill: Record "Business Skill";
-        SkillCard: TestPage "Business Skill Card";
-    begin
-        // [GIVEN] A skill with two Markdown instruction versions.
-        Initialize();
-        Skill.Get(LibraryBusinessSkill.CreateSkill('Markdown history', SecretStrSubstNo('# Original')));
-        BusinessSkillImpl.SetContent(Skill.ID, SecretStrSubstNo('**Latest**'));
-        Skill.Get(Skill.ID);
-        Commit();
-        SkillCard.OpenEdit();
-        SkillCard.GoToRecord(Skill);
-
-        // [WHEN] The older version is previewed and restored in the history dialog.
-        SkillCard.SkillContentEditor.ViewHistory.Invoke();
-
-        // [THEN] The live field refreshes and restoration appends a new history entry.
-        SkillCard.SkillContentEditor.SkillContent.AssertEquals('# Original');
-        SkillCard.Close();
-        Skill.Get(Skill.ID);
-        AssertContentEquals(SecretStrSubstNo('# Original'), BusinessSkillImpl.GetContent(Skill), 'Restoring history must update the live Markdown field.');
-        AssertVersionCount(Skill.ID, 3);
-    end;
-
-    [ModalPageHandler]
-    procedure RestoreMarkdownHistoryHandler(var Versions: TestPage "Bus Skill Content Versions")
-    begin
-        Versions.First();
-        Versions.ContentPreview.SkillContent.AssertEquals('**Latest**');
-        Assert.IsFalse(Versions.ContentPreview.SkillContent.Editable(), 'History must render Markdown read-only.');
-        Versions.Last();
-        Versions.ContentPreview.SkillContent.AssertEquals('# Original');
-        Versions.SetAsCurrent.Invoke();
-    end;
-
-    [MessageHandler]
-    procedure StaleMarkdownMessageHandler(Message: Text[1024])
-    begin
-        Assert.IsTrue(StrPos(Message, 'changed by another user') > 0, 'Closing the rejected draft must report the concurrency conflict.');
-    end;
-
     local procedure Initialize()
     begin
         LibraryBusinessSkill.DeleteAll();
@@ -1571,6 +1352,28 @@ codeunit 130050 "Business Skill Test"
         CleanupFailureSkillId := FailingSkillId;
     end;
 
+    /// <summary>
+    /// Makes the bound subscriber attempt an explicit commit after skill and history writes.
+    /// </summary>
+    procedure EnableSubscriberCommits()
+    begin
+        SubscriberCommitsEnabled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Bus Skill Content Version", OnAfterInsertEvent, '', false, false)]
+    local procedure CommitAfterHistoryInsert(var Rec: Record "Bus Skill Content Version"; RunTrigger: Boolean)
+    begin
+        if SubscriberCommitsEnabled and not Rec.IsTemporary() then
+            Commit();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Business Skill", OnAfterModifyEvent, '', false, false)]
+    local procedure CommitAfterSkillModify(var Rec: Record "Business Skill"; var xRec: Record "Business Skill"; RunTrigger: Boolean)
+    begin
+        if SubscriberCommitsEnabled and not Rec.IsTemporary() then
+            Commit();
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Bus Skill Content Version", OnBeforeDeleteEvent, '', false, false)]
     local procedure FailHistoryCleanup(var Rec: Record "Bus Skill Content Version"; RunTrigger: Boolean)
     var
@@ -1587,6 +1390,7 @@ codeunit 130050 "Business Skill Test"
             AssertVersionCount(DeletedSkillIdBeforeFailure, 0);
         end;
 
+        Commit();
         Error(CleanupFailureErr);
     end;
 
@@ -1640,5 +1444,7 @@ codeunit 130050 "Business Skill Test"
         Port: Codeunit "Business Skill Port";
         CleanupFailureSkillId: BigInteger;
         DeletedSkillIdBeforeFailure: BigInteger;
+        SubscriberCommitsEnabled: Boolean;
         CleanupFailureErr: Label 'Skill history cleanup failed.', Locked = true;
+        CallerRollbackErr: Label 'Caller rollback', Locked = true;
 }

@@ -8,7 +8,7 @@ namespace System.AI.BusinessSkills;
 using System.Security.AccessControl;
 
 /// <summary>
-/// Read-only history of a business skill's content. Lets the user preview earlier versions, restore one
+/// Read-only history of a manual business skill's content. Lets the user preview earlier versions, restore one
 /// as the current content, download or delete versions. The latest (current) version cannot be deleted.
 /// </summary>
 page 4162 "Bus Skill Content Versions"
@@ -145,9 +145,15 @@ page 4162 "Bus Skill Content Versions"
     }
 
     trigger OnOpenPage()
+    var
+        BusinessSkill: Record "Business Skill";
     begin
+        BusinessSkill.Get(SkillId);
+        BusinessSkill.TestField(Manual, true);
         Rec.SetCurrentKey("Skill ID", "Entry No.");
+        Rec.FilterGroup(2);
         Rec.SetRange("Skill ID", SkillId);
+        Rec.FilterGroup(0);
         Rec.Ascending(false);
         if Rec.FindFirst() then;
     end;

@@ -48,9 +48,9 @@ codeunit 4161 "Business Skill Builder"
     end;
 
     /// <summary>
-    /// Sets the initial content version of the skill.
+    /// Sets the initial content version of the skill, up to 50 characters.
     /// </summary>
-    procedure SetContentVersion(ContentVersion: Text[50]): Codeunit "Business Skill Builder"
+    procedure SetContentVersion(ContentVersion: Text): Codeunit "Business Skill Builder"
     begin
         BuilderImpl.SetContentVersion(ContentVersion);
         exit(this);

@@ -62,7 +62,7 @@ page 4163 "Business Skill Content Part"
                 Caption = 'View history';
                 ToolTip = 'View earlier versions of the skill content and restore one if needed.';
                 Image = History;
-                Visible = SkillId <> 0;
+                Visible = IsManualSkill;
 
                 trigger OnAction()
                 var
@@ -86,15 +86,8 @@ page 4163 "Business Skill Content Part"
                 Visible = SkillId <> 0;
 
                 trigger OnAction()
-                var
-                    BusSkillContentVersion: Record "Bus Skill Content Version";
-                    BusinessSkillContentHistory: Codeunit "Business Skill Content History";
                 begin
-                    BusSkillContentVersion.SetCurrentKey("Skill ID", "Entry No.");
-                    BusSkillContentVersion.SetRange("Skill ID", SkillId);
-                    BusSkillContentVersion.Ascending(false);
-                    if BusSkillContentVersion.FindFirst() then
-                        BusinessSkillContentHistory.DownloadVersion(BusSkillContentVersion);
+                    BusinessSkillImpl.DownloadContent(SkillId);
                 end;
             }
         }
@@ -130,6 +123,7 @@ page 4163 "Business Skill Content Part"
     procedure SetReadOnlyContent(NewContent: SecretText)
     begin
         SkillId := 0;
+        IsManualSkill := false;
         IsReadOnly := true;
         SkillContentValue := NewContent.Unwrap();
         CurrPage.Update(false);
@@ -143,7 +137,9 @@ page 4163 "Business Skill Content Part"
         Clear(SkillSystemId);
         Clear(SkillRevision);
         Clear(SkillContentValue);
+        IsManualSkill := false;
         if Skill.Get(SkillId) then begin
+            IsManualSkill := Skill.Manual;
             SkillSystemId := Skill.SystemId;
             SkillRevision := Skill.SystemRowVersion;
             SkillContentValue := BusinessSkillImpl.GetContent(Skill).Unwrap();
@@ -158,5 +154,6 @@ page 4163 "Business Skill Content Part"
         [NonDebuggable]
         SkillContentValue: Text;
         IsReadOnly: Boolean;
+        IsManualSkill: Boolean;
         ReadOnlyModeErr: Label 'This skill content is read-only.';
 }

@@ -13,8 +13,10 @@ native pages, and XML import/export in
 
 `Business Skill Impl.` owns lifecycle and content validation, encoding, and length
 helpers. History capture, restoration, and version-deletion guards live in
-`Business Skill Content History`. The platform deletion subscriber is not currently
-registered, so deleting a skill leaves its history behind. Both implementations are internal;
+`Business Skill Content History`. History is recorded and displayed only for manual
+skills. Page deletion and the public `Delete` facade remove manual history in the same
+transaction as the skill. No deletion-event subscriber is registered; raw
+`Record.Delete/DeleteAll` calls bypass this cleanup. Both implementations are internal;
 consumers must not duplicate validation or history writes. Related objects are grouped
 under `src/History` and `src/ImportExport`.
 The platform `Business Skill` virtual table and `Business Skill Status` enum
@@ -37,8 +39,10 @@ app's manifest App ID. Duplicate owner/code pairs fail. `Create` returns the
 numeric skill ID, not the skill code.
 Clear the builder variable before initializing it for another skill.
 
-The public builder is creation-only. Upsert helpers remain internal, as do
-native page updates that preserve the page's SystemId/SystemRowVersion baseline.
+The public builder is creation-only. Upsert helpers remain internal. The numeric
+`CreateOrUpdate(0)` overload creates a new skill and returns its generated ID;
+nonzero IDs must already exist and match the builder's identity.
+Native page updates preserve the page's SystemId/SystemRowVersion baseline.
 Do not replace a page update with a fresh-read upsert.
 
 Use `Business Skill.SetNewContentAndUpdateVersion(SkillCode, Content, ContentVersion)`
@@ -90,8 +94,19 @@ Native storage fields and the NST contract are unchanged.
   Execute does not grant TableData access to the virtual table.
 - Public deletion captures the calling app before delegating. Installed owners
   may delete only their own inactive skills; manual and orphaned deletion requires
-  the existing management permission. Automatic content-history cleanup on skill
-  deletion is not enabled; deleted skills leave their history entries behind.
+  the existing management permission. Active-skill deletion reports an error with
+  an **Open skill** action; it does not automatically deactivate the skill.
+  Both native pages reuse the same deletion operation as the facade, including
+  manual-history cleanup and rollback if cleanup fails. Raw table deletes remain
+  outside that cleanup contract.
+- Programmatic creation and updates do not record history. Existing programmatic
+  history is neither migrated nor purged, but cannot be opened through the history
+  page or restored. Copying app-owned content and downloading current content read
+  the stored skill BLOB rather than depending on history. Manual copy/import/restore
+  retain their version-history behavior.
+- Atomic mutation entry points use `CommitBehavior::Ignore`: nested explicit commits
+  are suppressed, not performed. A stricter caller `Error` scope still applies.
+  Implicit `Codeunit.Run` commits are not covered by this attribute.
 - Content uses the existing UTF-8 normalization and version rules. The platform
   authorizes app-owned content/version and lock changes; AL does not reject them
   solely because Read-Only is set. Owner updates while locked and explicit owner
@@ -121,11 +136,9 @@ invocation result; end-to-end SecretText support is therefore not complete.
 
 ## Build and tests
 
-The standalone module does not subscribe to the internal platform deletion event.
-Restoring automatic history cleanup requires matching System symbols with its app
-identity `47f31a2d-b5f8-4b35-956a-59e8edebd13b` in the internal-event friend list.
-Keep the event internal. The deletion-history and cleanup-rollback regressions
-require that integration and are not satisfied by the current implementation.
+The standalone module does not subscribe to a platform deletion event. Page/facade
+manual-history cleanup needs no additional System-symbol friendship. Event-based
+cleanup for raw table deletion is deferred.
 
 Compile aggregate System Application, then the independent `Business Skills Test
 Library` under `src/Tools/Test Framework/Test Libraries/LibraryBusinessSkill`,
@@ -143,9 +156,10 @@ Application's `internalsVisibleTo` entry. The helper retains the fixture's indir
 table permissions and reuses the builders and lifecycle implementation. The
 platform skill table remains OnPrem-scoped; no public destructive API is added.
 
-Core tests are 130050-130051; the shared fixture is 130055. Discovery/search tests
-are BusinessIQ codeunit 140282. Cross-app ownership
-uses the separately packaged test library. Runtime tests require current packages
+Core and builder tests are 130050-130051; native UI scenarios are isolated in
+130052. All three are integration test codeunits; the shared fixture is 130055.
+Discovery/search tests are BusinessIQ codeunit 140282. Cross-app ownership uses
+the separately packaged test library. Runtime tests require current packages
 on an explicitly approved test environment: fixture cleanup deletes skills and
 history, and HTTP fixtures can commit changes. Compilation alone does not qualify
 runtime behavior.

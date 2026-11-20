@@ -8,11 +8,11 @@ namespace System.AI.BusinessSkills;
 using System.Utilities;
 
 /// <summary>
-/// Maintains the version history of a business skill's content and provides the read/write helpers used
+/// Maintains the version history of a manual business skill's content and provides the read/write helpers used
 /// by the skill-content editor part and history page.
 /// </summary>
 /// <remarks>
-/// The skill's own BLOB remains the source of truth for the current content; every change is mirrored
+/// The skill's own BLOB remains the source of truth for the current content; manual content changes are mirrored
 /// into an append-only <see cref="Bus Skill Content Version"/> entry (deduplicated so an unchanged
 /// save does not create a new version). The latest entry always matches the current skill content.
 /// </remarks>
@@ -28,10 +28,24 @@ codeunit 4166 "Business Skill Content History"
     procedure RestoreVersion(EntryNo: Integer)
     var
         BusSkillContentVersion: Record "Bus Skill Content Version";
+        BusinessSkill: Record "Business Skill";
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
         BusSkillContentVersion.Get(EntryNo);
+        BusinessSkill.Get(BusSkillContentVersion."Skill ID");
+        BusinessSkill.TestField(Manual, true);
         BusinessSkillImpl.SetContent(BusSkillContentVersion."Skill ID", BusSkillContentVersion.GetContent());
+    end;
+
+    /// <summary>
+    /// Removes a deleted manual skill's history, including its latest version.
+    /// </summary>
+    procedure DeleteHistory(SkillId: BigInteger)
+    var
+        BusSkillContentVersion: Record "Bus Skill Content Version";
+    begin
+        BusSkillContentVersion.SetRange("Skill ID", SkillId);
+        BusSkillContentVersion.DeleteAll(false);
     end;
 
     /// <summary>
@@ -57,7 +71,7 @@ codeunit 4166 "Business Skill Content History"
     end;
 
     /// <summary>
-    /// Records the saved content as a new version unless it equals the latest version.
+    /// Records saved manual content as a new version unless it equals the latest version.
     /// </summary>
     procedure RecordContentVersion(var BusinessSkill: Record "Business Skill")
     var
@@ -69,14 +83,18 @@ codeunit 4166 "Business Skill Content History"
     end;
 
     /// <summary>
-    /// Records the supplied content as a new version unless it equals the latest version.
+    /// Records the supplied content for a manual skill unless it equals the latest version.
     /// </summary>
     procedure RecordContentVersion(SkillId: BigInteger; NewContent: SecretText; ContentVersion: Text[50])
     var
+        BusinessSkill: Record "Business Skill";
         LatestBusSkillContentVersion: Record "Bus Skill Content Version";
         BusSkillContentVersion: Record "Bus Skill Content Version";
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
+        BusinessSkill.Get(SkillId);
+        if not BusinessSkill.Manual then
+            exit;
         if GetLatestVersion(SkillId, LatestBusSkillContentVersion) then
             if BusinessSkillImpl.ContentEquals(LatestBusSkillContentVersion.GetContent(), NewContent) then
                 exit;
@@ -87,15 +105,16 @@ codeunit 4166 "Business Skill Content History"
     end;
 
     /// <summary>
-    /// Returns the latest version for copying, falling back to the skill's content when no history exists.
+    /// Returns the latest manual version for copying, or stored content for app-owned skills or missing history.
     /// </summary>
     procedure GetLatestContent(var BusinessSkill: Record "Business Skill"): SecretText
     var
         LatestBusSkillContentVersion: Record "Bus Skill Content Version";
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
     begin
-        if GetLatestVersion(BusinessSkill.ID, LatestBusSkillContentVersion) then
-            exit(LatestBusSkillContentVersion.GetContent());
+        if BusinessSkill.Manual then
+            if GetLatestVersion(BusinessSkill.ID, LatestBusSkillContentVersion) then
+                exit(LatestBusSkillContentVersion.GetContent());
         exit(BusinessSkillImpl.GetContent(BusinessSkill));
     end;
 

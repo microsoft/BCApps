@@ -55,7 +55,7 @@ codeunit 4160 "Business Skill"
     end;
 
     /// <summary>
-    /// Deletes an inactive skill subject to owning-app and management-permission checks.
+    /// Deletes an inactive skill and its manual history subject to owning-app and management-permission checks.
     /// </summary>
     procedure Delete(SkillId: BigInteger)
     var
@@ -80,7 +80,7 @@ codeunit 4160 "Business Skill"
     /// Updates manual content only if the expected identity and revision still match, without committing.
     /// Changed content automatically advances the version and appends history. Identical content does not write.
     /// </summary>
-    [CommitBehavior(CommitBehavior::Error)]
+    [CommitBehavior(CommitBehavior::Ignore)]
     internal procedure SetNewContentAndUpdateVersion(SkillId: BigInteger; Content: SecretText; ExpectedSystemId: Guid; ExpectedRevision: BigInteger)
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
@@ -91,9 +91,9 @@ codeunit 4160 "Business Skill"
     /// <summary>
     /// Updates the calling app's skill identified by its code, preserving its status and other metadata.
     /// Changed content requires a nonblank version different from the saved version. Version-only changes fail.
-    /// Identical content and version do not write or append history.
+    /// Identical content and version do not write. App-owned content does not create history.
     /// </summary>
-    [CommitBehavior(CommitBehavior::Error)]
+    [CommitBehavior(CommitBehavior::Ignore)]
     procedure SetNewContentAndUpdateVersion(SkillCode: Code[100]; Content: SecretText; ContentVersion: Text[50])
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
@@ -107,7 +107,7 @@ codeunit 4160 "Business Skill"
     /// Updates the calling app's skill display name and description without changing its content, version, history, status or lock.
     /// Normal table and management permissions apply. Identical metadata does not write.
     /// </summary>
-    [CommitBehavior(CommitBehavior::Error)]
+    [CommitBehavior(CommitBehavior::Ignore)]
     procedure UpdateMetadata(SkillCode: Code[100]; DisplayName: Text[250]; Description: Text[2048])
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
