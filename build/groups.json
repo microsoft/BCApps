@@ -4869,6 +4869,27 @@
     ]
   },
   {
+    "name": "Depreciation Differences FI Demo Data Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "Contoso Coffee Demo Dataset (FR)",
     "groups": [
       {
