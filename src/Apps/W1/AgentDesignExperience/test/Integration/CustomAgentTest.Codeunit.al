@@ -133,19 +133,20 @@ codeunit 133754 "Custom Agent Test"
         Initialize();
         MetadataProvider := MetadataProvider::"Custom Agent";
         AgentExperimental := MetadataProvider;
-        Assert.IsFalse(AgentExperimental.IsOptInFeatureEnabled(TestAgentId1, Enum::"Agent Opt In Feature"::BusinessIQ), 'Business Skills must be disabled by default.');
+        Assert.IsTrue(AgentExperimental.IsOptInFeatureEnabled(TestAgentId1, Enum::"Agent Opt In Feature"::BusinessIQ), 'Business Skills must be enabled by default for new agents.');
+        Assert.IsTrue(AgentExperimental.IsOptInFeatureEnabled(TestAgentId2, Enum::"Agent Opt In Feature"::BusinessIQ), 'Business Skills must be enabled by default for each new agent.');
 
         CustomAgentSetup.Get(TestAgentId1);
+        CustomAgentSetup."Use Business Skills" := false;
+        CustomAgentSetup.Modify(true);
+
+        Assert.IsFalse(AgentExperimental.IsOptInFeatureEnabled(TestAgentId1, Enum::"Agent Opt In Feature"::BusinessIQ), 'The saved disabled setting must override the default.');
+        Assert.IsTrue(AgentExperimental.IsOptInFeatureEnabled(TestAgentId2, Enum::"Agent Opt In Feature"::BusinessIQ), 'Disabling Business Skills must not affect other agents.');
+
         CustomAgentSetup."Use Business Skills" := true;
         CustomAgentSetup.Modify(true);
 
         Assert.IsTrue(AgentExperimental.IsOptInFeatureEnabled(TestAgentId1, Enum::"Agent Opt In Feature"::BusinessIQ), 'Enabling Business Skills must opt the configured agent in.');
-        Assert.IsFalse(AgentExperimental.IsOptInFeatureEnabled(TestAgentId2, Enum::"Agent Opt In Feature"::BusinessIQ), 'Enabling Business Skills must not affect other agents.');
-
-        CustomAgentSetup."Use Business Skills" := false;
-        CustomAgentSetup.Modify(true);
-
-        Assert.IsFalse(AgentExperimental.IsOptInFeatureEnabled(TestAgentId1, Enum::"Agent Opt In Feature"::BusinessIQ), 'Disabling Business Skills must opt the agent out.');
         Assert.IsFalse(AgentExperimental.IsOptInFeatureEnabled(CreateGuid(), Enum::"Agent Opt In Feature"::BusinessIQ), 'Agents without configuration must not opt in to Business Skills.');
     end;
 

@@ -207,11 +207,13 @@ page 4350 "Custom Agent Setup"
 
                 group(AgentSkillsGroup)
                 {
-                    Caption = 'Agent skills';
+                    Caption = 'Use business skills';
+                    InstructionalText = 'Skills offer specialized guidance that the agent reads when relevant.';
 
                     field(UseBusinessSkills; Rec."Use Business Skills")
                     {
                         ApplicationArea = All;
+                        ShowCaption = false;
 
                         trigger OnValidate()
                         begin

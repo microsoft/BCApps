@@ -51,6 +51,7 @@ table 4350 "Custom Agent Setup"
         {
             Caption = 'Use business skills';
             ToolTip = 'Specifies whether the agent uses Business Skills in addition to its instructions.';
+            InitValue = true;
         }
         field(5000; "Instruction has Tasks"; Boolean)
         {
