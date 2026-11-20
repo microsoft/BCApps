@@ -637,7 +637,7 @@ table 38 "Purchase Header"
                 IsHandled: Boolean;
             begin
                 IsHandled := false;
-                OnBeforeValidatePaymentTermsCode(Rec, xRec, CurrFieldNo, UpdateDocumentDate, IsHandled);
+                OnBeforeValidatePaymentTermsCode(Rec, UpdateDocumentDate, IsHandled);
                 if IsHandled then
                     exit;
 
@@ -8929,7 +8929,7 @@ table 38 "Purchase Header"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidatePaymentTermsCode(var PurchaseHeader: Record "Purchase Header"; var xPurchaseHeader: Record "Purchase Header"; CallingFieldNo: Integer; UpdateDocumentDate: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeValidatePaymentTermsCode(var PurchaseHeader: Record "Purchase Header"; UpdateDocumentDate: Boolean; var IsHandled: Boolean)
     begin
     end;
 

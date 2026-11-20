@@ -20,8 +20,9 @@ codeunit 8848 "Purchase Installment History"
         EditErr: Label 'Changing posted installment payment conditions is not supported.';
         AutomaticApplicationErr: Label 'Automatic application to global installments is supported only for vendor payments. Select other applications using Applies-to ID.';
         ReconciliationSelectionErr: Label 'Invoice %1 has more than one open installment. Select the vendor ledger entries manually on payment reconciliation statement line %2.', Comment = '%1 = Invoice number, %2 = Statement line number';
+        IncompleteBackfillMsg: Label 'Installment invoice grouping could not be completed because a posted invoice or vendor ledger anchor is missing or inconsistent. The upgrade tag was not set.', Locked = true;
 
-    internal procedure SetInvoiceGroup(PlanID: Guid; InvoiceEntryNo: Integer)
+    internal procedure SetInvoiceGroup(PlanID: Guid; InvoiceEntryNo: BigInteger)
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
@@ -41,6 +42,43 @@ codeunit 8848 "Purchase Installment History"
                     VendorLedgerEntry.Modify();
                 end;
             until VendorLedgerEntry.Next() = 0;
+    end;
+
+    internal procedure BackfillInvoiceGroups() Complete: Boolean
+    var
+        Plan: Record "Purchase Installment Plan";
+    begin
+        Complete := true;
+        Plan.SetRange(Status, Plan.Status::Posted);
+        if Plan.FindSet() then
+            repeat
+                if not BackfillInvoiceGroup(Plan) then
+                    Complete := false;
+            until Plan.Next() = 0;
+        if not Complete then
+            Session.LogMessage('PurchaseInstallmentGroupBackfillIncomplete', IncompleteBackfillMsg, Verbosity::Warning,
+                DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'AL SaaS Upgrade');
+    end;
+
+    local procedure BackfillInvoiceGroup(Plan: Record "Purchase Installment Plan"): Boolean
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        AnchorEntry: Record "Vendor Ledger Entry";
+    begin
+        if IsNullGuid(Plan.ID) then
+            exit(false);
+        if not PurchInvHeader.Get(Plan."Posted Invoice No.") then
+            exit(false);
+        if (PurchInvHeader.SystemId <> Plan."Posted Invoice SystemId") or
+           (PurchInvHeader."Installment Plan ID" <> Plan.ID)
+        then
+            exit(false);
+        if not AnchorEntry.Get(PurchInvHeader."Vendor Ledger Entry No.") then
+            exit(false);
+        if AnchorEntry."Installment Plan ID" <> Plan.ID then
+            exit(false);
+        SetInvoiceGroup(Plan.ID, AnchorEntry."Entry No.");
+        exit(true);
     end;
 
     procedure ShowSchedule(PurchInvHeader: Record "Purch. Inv. Header")
@@ -186,7 +224,7 @@ codeunit 8848 "Purchase Installment History"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Applied Payment Entry", 'OnApplyFromBankStmtMatchingBufOnBeforeInsert', '', false, false)]
-    local procedure CheckAutomaticReconciliation(BankAccReconLine: Record "Bank Acc. Reconciliation Line"; BankStmtMatchingBuffer: Record "Bank Statement Matching Buffer"; EntryNo: Integer)
+    local procedure CheckAutomaticReconciliation(BankAccReconLine: Record "Bank Acc. Reconciliation Line"; BankStmtMatchingBuffer: Record "Bank Statement Matching Buffer"; EntryNo: BigInteger)
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         OpenInstallment: Record "Vendor Ledger Entry";

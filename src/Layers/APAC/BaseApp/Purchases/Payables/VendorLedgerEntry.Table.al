@@ -771,7 +771,7 @@ table 25 "Vendor Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the number of payables in the installment plan.';
         }
-        field(8843; "Invoice Entry No."; Integer)
+        field(8843; "Invoice Entry No."; BigInteger)
         {
             Caption = 'Invoice Entry No.';
             Editable = false;

@@ -716,6 +716,7 @@ codeunit 139555 "Aged Accounts Excel Reports"
         CustomerVariant := Customer;
         InstallmentAgingDate := AsOfDate;
         RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Accounts Rec Excel");
+        Assert.AreNotEqual('', RequestPageXml, 'The aging request page must return report parameters.');
         LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Accounts Rec Excel", CustomerVariant, RequestPageXml);
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
         Assert.AreEqual(ExpectedCount, LibraryReportDataset.RowCount(), 'Aging must retain each outstanding installment exactly once, including entries closed after the cutoff.');

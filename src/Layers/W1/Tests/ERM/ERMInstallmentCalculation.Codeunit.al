@@ -9,6 +9,11 @@ codeunit 134491 "ERM Installment Calculation"
     Subtype = Test;
     TestPermissions = NonRestrictive;
 
+    trigger OnRun()
+    begin
+        // [FEATURE] [Payment Installments] [Calculation]
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
@@ -123,7 +128,7 @@ codeunit 134491 "ERM Installment Calculation"
         GracePeriod: DateFormula;
     begin
         // [FEATURE] [Installments] [Calculation]
-        // [SCENARIO] Each installment's discount eligibility includes the grace period and is recalculated by posting date.
+        // [SCENARIO] Each installment's own discount remains eligible through the last posting-date grace day.
         // [GIVEN] Two installments with different discount percentages and dates, and a five-day grace period.
         AddPercentageRule(TempPlanLine, 10000, 50, '<30D>');
         SetDiscount(TempPlanLine, 2, '<10D>');
@@ -141,8 +146,26 @@ codeunit 134491 "ERM Installment Calculation"
         Assert.AreEqual(1, TempPlanLine."Original Pmt. Disc. Possible", 'The last grace day must remain eligible.');
         TempPlanLine.Next();
         Assert.AreEqual(0.5, TempPlanLine."Original Pmt. Disc. Possible", 'Each line must use its own discount percentage.');
+    end;
 
-        // [WHEN] The schedule is recalculated one day later.
+    [Test]
+    procedure RecalculationAfterGracePeriodClearsOnlyExpiredDiscount()
+    var
+        TempPlanLine: Record "Installment Calculation Line" temporary;
+        GracePeriod: DateFormula;
+    begin
+        // [FEATURE] [Installments] [Calculation]
+        // [SCENARIO] Recalculation clears an expired discount without removing a later installment's eligibility.
+        // [GIVEN] A schedule calculated while both line-specific discounts are still eligible.
+        AddPercentageRule(TempPlanLine, 10000, 50, '<30D>');
+        SetDiscount(TempPlanLine, 2, '<10D>');
+        AddPercentageRule(TempPlanLine, 20000, 50, '<60D>');
+        SetDiscount(TempPlanLine, 1, '<15D>');
+        Evaluate(GracePeriod, '<5D>');
+        InstallmentCalculation.Calculate(
+            TempPlanLine, DMY2Date(1, 1, 2026), DMY2Date(16, 1, 2026), 100, 100, 0.01, 0.01, GracePeriod);
+
+        // [WHEN] The schedule is recalculated one day after the first installment's grace period.
         InstallmentCalculation.Calculate(
             TempPlanLine, DMY2Date(1, 1, 2026), DMY2Date(17, 1, 2026), 100, 100, 0.01, 0.01, GracePeriod);
 

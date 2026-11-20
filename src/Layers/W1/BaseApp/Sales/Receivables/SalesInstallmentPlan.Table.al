@@ -38,6 +38,7 @@ table 8842 "Sales Installment Plan"
         field(6; "Payment Terms Code"; Code[10])
         {
             Caption = 'Payment Terms Code';
+            TableRelation = "Payment Terms";
         }
         field(7; "Document Date"; Date)
         {

@@ -28,6 +28,11 @@ codeunit 134493 "ERM Installment Posting"
     TestPermissions = NonRestrictive;
     EventSubscriberInstance = Manual;
 
+    trigger OnRun()
+    begin
+        // [FEATURE] [Payment Installments] [Sales] [Posting]
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
@@ -48,6 +53,8 @@ codeunit 134493 "ERM Installment Posting"
         OrdinaryTerms: Record "Payment Terms";
         InstallmentTermsCode: Code[10];
     begin
+        // [SCENARIO] Disabled global rules neither create a sales schedule nor restrict ordinary journal use.
+        // [GIVEN] An ordinary sales invoice and disabled global installment rules.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         InstallmentTermsCode := SalesHeader."Payment Terms Code";
         LibraryERM.CreatePaymentTerms(OrdinaryTerms);
@@ -55,8 +62,10 @@ codeunit 134493 "ERM Installment Posting"
         SalesHeader.Modify(true);
         LibraryInstallments.SetFeatureEnabled(false);
 
+        // [WHEN] Installment payment terms are selected while the feature is disabled.
         SalesHeader.Validate("Payment Terms Code", InstallmentTermsCode);
         SalesHeader.Modify(true);
+        // [THEN] No global plan is created and ordinary customer journal validation accepts the terms.
         Assert.IsTrue(IsNullGuid(SalesHeader."Installment Plan ID"), 'Disabled global rules must not create a sales installment plan.');
         GenJournalLine."Account Type" := GenJournalLine."Account Type"::Customer;
         GenJournalLine."Document Type" := GenJournalLine."Document Type"::Invoice;
@@ -81,6 +90,8 @@ codeunit 134493 "ERM Installment Posting"
         LibraryDimension: Codeunit "Library - Dimension";
         SalesInstallmentMgt: Codeunit "Sales Installment Mgt.";
     begin
+        // [SCENARIO] Installment posting splits receivables without multiplying discounted revenue, profit, or VAT.
+        // [GIVEN] A previewed installment invoice with dimensions, an invoice discount, and negative profit.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         LibraryDimension.CreateDimWithDimValue(DimensionValue);
         SalesHeader.Validate(
@@ -94,8 +105,10 @@ codeunit 134493 "ERM Installment Posting"
         Plan.Get(SalesHeader."Installment Plan ID");
         SalesInstallmentMgt.CalculatePreview(SalesHeader, TempPreviewLine);
 
+        // [WHEN] The invoice is posted.
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
+        // [THEN] The posted schedule matches the preview and financial totals are allocated or posted exactly once.
         VerifyPostedSchedule(SalesInvoiceHeader, Plan.ID);
         TempPreviewLine.FindSet();
         repeat
@@ -135,14 +148,18 @@ codeunit 134493 "ERM Installment Posting"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         CurrencyFactor: Decimal;
     begin
+        // [SCENARIO] Foreign-currency posting allocates LCY residuals independently while retaining original currency factors.
+        // [GIVEN] An installment invoice whose document and LCY amounts have different rounding residuals.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 0.3, 0.3));
         SalesLine.Validate("Unit Price", 100.03);
         SalesLine.Modify(true);
         Plan.Get(SalesHeader."Installment Plan ID");
         CurrencyFactor := SalesHeader."Currency Factor";
 
+        // [WHEN] The foreign-currency invoice is posted.
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
+        // [THEN] The final LCY residual is independent of the rounded document amount and every entry retains both factors.
         VerifyPostedSchedule(SalesInvoiceHeader, Plan.ID);
         PlanLine.SetRange("Plan ID", Plan.ID);
         PlanLine.FindLast();
@@ -250,6 +267,8 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalLine: Record "Gen. Journal Line";
         TempPlanLine: Record "Sales Installment Plan Line" temporary;
     begin
+        // [SCENARIO] Each posting amount is allocated independently, including negative profit and final-line residuals.
+        // [GIVEN] Three installment rules and journal totals requiring distinct rounding residuals.
         LibraryInstallments.Initialize();
         LibraryInstallments.CreateTemporaryRules(TempPlanLine);
         GenJournalLine."Document Date" := WorkDate();
@@ -261,8 +280,10 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalLine."Profit (LCY)" := -10.01;
         GenJournalLine."Inv. Discount (LCY)" := 0.05;
 
+        // [WHEN] Installment posting amounts are calculated.
         InstallmentPosting.CalculatePostingLines(GenJournalLine, TempPlanLine);
 
+        // [THEN] Every total reconciles and the final installment absorbs each amount's own residual.
         TempPlanLine.CalcSums(Amount, "Amount (LCY)", "Source Currency Amount", "Sales (LCY)", "Profit (LCY)", "Inv. Discount (LCY)");
         Assert.AreEqual(100.01, TempPlanLine.Amount, 'Document amounts must reconcile.');
         Assert.AreEqual(200.03, TempPlanLine."Amount (LCY)", 'LCY amounts must reconcile independently.');
@@ -283,6 +304,8 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalLine: Record "Gen. Journal Line";
         TempPlanLine: Record "Sales Installment Plan Line" temporary;
     begin
+        // [SCENARIO] An installment rounded to zero LCY has no payment discount.
+        // [GIVEN] Three installment rules and a positive document amount worth only 0.01 LCY.
         LibraryInstallments.Initialize();
         LibraryInstallments.CreateTemporaryRules(TempPlanLine);
         GenJournalLine."Document Date" := WorkDate();
@@ -290,8 +313,10 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalLine.Amount := 100;
         GenJournalLine."Amount (LCY)" := 0.01;
 
+        // [WHEN] Installment posting amounts are calculated.
         InstallmentPosting.CalculatePostingLines(GenJournalLine, TempPlanLine);
 
+        // [THEN] A zero-LCY installment has no discount and the final installment takes the LCY residual.
         TempPlanLine.FindFirst();
         Assert.AreEqual(0, TempPlanLine."Amount (LCY)", 'A positive document installment may round to zero LCY.');
         Assert.AreEqual(0, TempPlanLine."Original Pmt. Disc. Possible", 'Native zero-LCY discount exclusion must be preserved.');
@@ -310,6 +335,8 @@ codeunit 134493 "ERM Installment Posting"
         PlanID: Guid;
         PostingNo: Code[20];
     begin
+        // [SCENARIO] Failed installment posting rolls back completely and can be retried without duplicate invoices.
+        // [GIVEN] A draft invoice and an injected failure after posting its second installment.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         PreparePostingAttempt(SalesHeader);
         PlanID := SalesHeader."Installment Plan ID";
@@ -319,17 +346,21 @@ codeunit 134493 "ERM Installment Posting"
         BindSubscription(PostingObserver);
         SalesPost.SetSuppressCommit(true);
 
+        // [WHEN] Posting reaches the injected failure.
         asserterror SalesPost.Run(SalesHeader);
 
+        // [THEN] Financial entries and posted snapshot state roll back, leaving the original draft.
         Assert.ExpectedError(ForcedFailureErr);
         UnbindSubscription(PostingObserver);
         VerifyDraftAfterRollback(PlanID, PostingNo);
 
+        // [WHEN] Posting is retried without the failing subscriber.
         SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
         Clear(SalesPost);
         SalesPost.SetSuppressCommit(true);
         SalesPost.Run(SalesHeader);
 
+        // [THEN] Exactly one complete posted invoice and schedule are created.
         SalesInvoiceHeader.Get(PostingNo);
         VerifyPostedSchedule(SalesInvoiceHeader, PlanID);
         SalesInvoiceHeader.SetRange("Installment Plan ID", PlanID);
@@ -345,6 +376,8 @@ codeunit 134493 "ERM Installment Posting"
         PlanID: Guid;
         PostingNo: Code[20];
     begin
+        // [SCENARIO] Posting preview leaves no posted installment state or financial entries.
+        // [GIVEN] A draft installment invoice prepared for posting in preview mode.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         PreparePostingAttempt(SalesHeader);
         PlanID := SalesHeader."Installment Plan ID";
@@ -352,8 +385,10 @@ codeunit 134493 "ERM Installment Posting"
         Commit();
         SalesPost.SetPreviewMode(true);
 
+        // [WHEN] The posting preview runs.
         asserterror SalesPost.Run(SalesHeader);
 
+        // [THEN] Preview completion rolls back every installment and preserves the draft snapshot.
         Assert.ExpectedError('Preview mode.');
         VerifyDraftAfterRollback(PlanID, PostingNo);
     end;
@@ -371,6 +406,8 @@ codeunit 134493 "ERM Installment Posting"
         SalesPost: Codeunit "Sales-Post";
         PostedNo: Code[20];
     begin
+        // [SCENARIO] Adding reusable rules does not retroactively split an ordinary invoice or leak prior posting context.
+        // [GIVEN] A reused posting codeunit and an ordinary invoice whose terms gain installment rules after selection.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         PreparePostingAttempt(SalesHeader);
         SalesPost.SetSuppressCommit(true);
@@ -389,8 +426,10 @@ codeunit 134493 "ERM Installment Posting"
         PreparePostingAttempt(SalesHeader);
         PostedNo := SalesHeader."Posting No.";
 
+        // [WHEN] The ordinary follow-up invoice is posted without reselecting its terms.
         SalesPost.Run(SalesHeader);
 
+        // [THEN] It retains one self-grouped native receivable without an installment plan.
         CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
         CustLedgerEntry.SetRange("Document No.", PostedNo);
         Assert.AreEqual(1, CustLedgerEntry.Count(), 'The ordinary follow-up invoice must post once.');
@@ -411,12 +450,16 @@ codeunit 134493 "ERM Installment Posting"
         PlanLine: Record "Sales Installment Plan Line";
         PlanID: Guid;
     begin
+        // [SCENARIO] Posted schedule ownership and conditions cannot be changed through record operations.
+        // [GIVEN] A posted installment schedule and a separate draft plan.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         PlanID := SalesHeader."Installment Plan ID";
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         Commit();
 
+        // [WHEN] Attempts are made to reset its status, rename the plan, or move a posted line.
+        // [THEN] Every attempt is rejected as a change to an immutable posted schedule.
         Plan.Get(PlanID);
         Plan.Status := Plan.Status::Draft;
         asserterror Plan.Modify(false);
@@ -445,6 +488,8 @@ codeunit 134493 "ERM Installment Posting"
         SourcePlanID: Guid;
         PostedNo: Code[20];
     begin
+        // [SCENARIO] Copying a posted invoice creates an independent draft from frozen rules without posted amounts or links.
+        // [GIVEN] A posted installment invoice whose reusable rules have changed and a target sales invoice.
         LibraryInstallments.CreateInvoice(SourceHeader, SalesLine, '');
         SourcePlanID := SourceHeader."Installment Plan ID";
         Rule.Get(SourceHeader."Payment Terms Code", 10000);
@@ -454,8 +499,10 @@ codeunit 134493 "ERM Installment Posting"
         LibraryInstallments.CreateInvoice(TargetHeader, SalesLine, '');
         CopyDocumentMgt.SetProperties(true, false, false, false, true, false, false);
 
+        // [WHEN] The posted invoice is copied to the target.
         CopyDocumentMgt.CopySalesDoc("Sales Document Type From"::"Posted Invoice", PostedNo, TargetHeader);
 
+        // [THEN] The target owns a fresh draft with frozen source rules and the posted source remains unchanged.
         TargetHeader.Get(TargetHeader."Document Type", TargetHeader."No.");
         Assert.AreNotEqual(SourcePlanID, TargetHeader."Installment Plan ID", 'A copy must never share posted ownership.');
         Plan.Get(TargetHeader."Installment Plan ID");
@@ -480,6 +527,8 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
     begin
+        // [SCENARIO] Direct journals cannot silently post installment terms as a single customer receivable.
+        // [GIVEN] A customer invoice journal line carrying global installment terms.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
@@ -491,8 +540,10 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalLine.Modify(true);
         Commit();
 
+        // [WHEN] The customer-account journal line is posted.
         asserterror GenJnlPostLine.RunWithCheck(GenJournalLine);
 
+        // [THEN] Posting requires the supported standalone sales invoice flow.
         Assert.ExpectedError('full standalone sales invoices only');
         GenJournalLine."Account Type" := GenJournalLine."Account Type"::"G/L Account";
         GenJournalLine."Account No." := SalesLine."No.";
@@ -501,8 +552,10 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalLine.Amount := -100;
         GenJournalLine."Amount (LCY)" := -100;
 
+        // [WHEN] The same posting is attempted with the customer as the balancing account.
         asserterror GenJnlPostLine.RunWithCheck(GenJournalLine);
 
+        // [THEN] The unsupported balancing-account flow is rejected too.
         Assert.ExpectedError('full standalone sales invoices only');
     end;
 
@@ -538,6 +591,8 @@ codeunit 134493 "ERM Installment Posting"
         CustomerNo: Code[20];
         PostedNo: Code[20];
     begin
+        // [SCENARIO] A shared invoice document number cannot implicitly choose an installment for payment.
+        // [GIVEN] A posted installment invoice and a receipt identifying only its document number.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         CustomerNo := SalesHeader."Bill-to Customer No.";
         PostedNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
@@ -547,8 +602,10 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalLine."Applies-to Doc. Type" := GenJournalLine."Applies-to Doc. Type"::Invoice;
         GenJournalLine."Applies-to Doc. No." := PostedNo;
 
+        // [WHEN] The receipt is posted.
         asserterror GenJnlPostLine.RunWithCheck(GenJournalLine);
 
+        // [THEN] Posting requires individual installment selection using Applies-to ID.
         Assert.ExpectedError('Select individual installment entries using Applies-to ID');
     end;
 
@@ -562,6 +619,8 @@ codeunit 134493 "ERM Installment Posting"
         PlanID: Guid;
         ApplicationID: Code[50];
     begin
+        // [SCENARIO] An explicitly selected payment closes only its target installment.
+        // [GIVEN] A posted invoice with its final installment selected by Applies-to ID for the full remaining amount.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         PlanID := SalesHeader."Installment Plan ID";
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
@@ -573,8 +632,10 @@ codeunit 134493 "ERM Installment Posting"
         CustLedgerEntry."Applies-to ID" := ApplicationID;
         CustLedgerEntry."Amount to Apply" := CustLedgerEntry."Remaining Amount";
         CustLedgerEntry.Modify(true);
+        // [WHEN] The selected receipt is posted.
         PostPaymentWithAppliesToID(CustLedgerEntry, ApplicationID, CustLedgerEntry."Remaining Amount", WorkDate());
 
+        // [THEN] Only the selected final installment closes and the other two remain open.
         CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
         Assert.IsFalse(CustLedgerEntry.Open, 'Only the explicitly selected installment must be paid.');
         OtherCustLedgerEntry.SetRange("Installment Plan ID", PlanID);
@@ -747,6 +808,8 @@ codeunit 134493 "ERM Installment Posting"
         PlanID: Guid;
         SourceID: Guid;
     begin
+        // [SCENARIO] Logical invoice balances and API status reflect every installment, not only the final anchor.
+        // [GIVEN] An API-enabled installment invoice without payment discounts.
         BindSubscription(APIMockEvents);
         APIMockEvents.SetIsAPIEnabled(true);
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
@@ -761,16 +824,22 @@ codeunit 134493 "ERM Installment Posting"
         until PlanLine.Next() = 0;
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         VerifyInvoiceBalance(SalesInvoiceHeader, 125, false);
+        // [WHEN] The first and final anchor installments are settled.
         LibraryInstallments.PayInstallment(PlanID, 1, 41.67);
         VerifyInvoiceBalance(SalesInvoiceHeader, 83.33, false);
         LibraryInstallments.PayInstallment(PlanID, 3, 41.66);
+        // [THEN] The middle obligation keeps the invoice Open with its original API identity.
         VerifyInvoiceBalance(SalesInvoiceHeader, 41.67, false);
         Aggregate.Get(SalesInvoiceHeader."No.", true);
         Assert.AreEqual(SourceID, Aggregate.Id, 'The API identity must remain the original draft identity.');
         Assert.AreEqual(Aggregate.Status::Open, Aggregate.Status, 'Paying the anchor must not mark the invoice paid.');
+        // [WHEN] The middle installment is partly paid.
         LibraryInstallments.PayInstallment(PlanID, 2, 10);
+        // [THEN] The invoice remains open for its residual balance.
         VerifyInvoiceBalance(SalesInvoiceHeader, 31.67, false);
+        // [WHEN] The remaining non-anchor balance is settled.
         LibraryInstallments.PayInstallment(PlanID, 2, 31.67);
+        // [THEN] The logical invoice closes and API status becomes Paid.
         VerifyInvoiceBalance(SalesInvoiceHeader, 0, true);
         Aggregate.Get(SalesInvoiceHeader."No.", true);
         Assert.AreEqual(Aggregate.Status::Paid, Aggregate.Status, 'A non-anchor settlement must refresh API status.');
@@ -789,6 +858,8 @@ codeunit 134493 "ERM Installment Posting"
         SummaryDueDate: Date;
         EntryDueDate: Date;
     begin
+        // [SCENARIO] Harmless customer entry edits preserve invoice summary dates while posted payment condition changes are rejected.
+        // [GIVEN] A posted installment invoice and a middle entry with changed hold and application selections.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         SummaryDueDate := SalesInvoiceHeader."Due Date";
@@ -800,18 +871,24 @@ codeunit 134493 "ERM Installment Posting"
         CustLedgerEntry."Applies-to ID" := LibraryUtility.GenerateGUID();
         CustLedgerEntry."Amount to Apply" := 10;
 
+        // [WHEN] The ordinary customer entry edit is saved.
         CustEntryEdit.Run(CustLedgerEntry);
 
+        // [THEN] The logical invoice summary due date is preserved.
         SalesInvoiceHeader.Get(SalesInvoiceHeader."No.");
         Assert.AreEqual(SummaryDueDate, SalesInvoiceHeader."Due Date", 'Entry edits must not replace the invoice summary date.');
         CustLedgerEntry."Due Date" := EntryDueDate + 1;
+        // [WHEN] A posted installment due date is changed through the edit codeunit.
         asserterror CustEntryEdit.Run(CustLedgerEntry);
+        // [THEN] The change is rejected before detailed entry dates are altered.
         Assert.ExpectedError('Changing posted installment payment conditions is not supported');
         DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
         DetailedCustLedgEntry.FindFirst();
         Assert.AreEqual(EntryDueDate, DetailedCustLedgEntry."Initial Entry Due Date", 'The edit must fail before changing detailed entries.');
         CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
+        // [WHEN] Direct due-date validation is attempted instead.
         asserterror CustLedgerEntry.Validate("Due Date", EntryDueDate + 1);
+        // [THEN] The same posted-condition restriction applies.
         Assert.ExpectedError('Changing posted installment payment conditions is not supported');
     end;
 
@@ -825,18 +902,24 @@ codeunit 134493 "ERM Installment Posting"
         SalesInvHeaderEdit: Codeunit "Sales Inv. Header - Edit";
         AnchorDueDate: Date;
     begin
+        // [SCENARIO] Posted invoice header edits preserve the anchor installment's own payment conditions.
+        // [GIVEN] A posted installment invoice with a changed posting description.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         CustLedgerEntry.Get(SalesInvoiceHeader."Cust. Ledger Entry No.");
         AnchorDueDate := CustLedgerEntry."Due Date";
         SalesInvoiceHeader."Posting Description" := LibraryUtility.GenerateGUID();
 
+        // [WHEN] The harmless header edit is saved.
         SalesInvHeaderEdit.Run(SalesInvoiceHeader);
 
+        // [THEN] The anchor installment keeps its original due date.
         CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
         Assert.AreEqual(AnchorDueDate, CustLedgerEntry."Due Date", 'A harmless header edit must not change the final installment.');
         SalesInvoiceHeader."Due Date" += 1;
+        // [WHEN] The posted header's due date is changed.
         asserterror SalesInvHeaderEdit.Run(SalesInvoiceHeader);
+        // [THEN] The posted installment condition change is rejected.
         Assert.ExpectedError('Changing posted installment payment conditions is not supported');
     end;
 
@@ -1086,13 +1169,78 @@ codeunit 134493 "ERM Installment Posting"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         PaymentServiceSetup: Record "Payment Service Setup";
     begin
+        // [SCENARIO] Payment-service changes are unavailable for global installment invoices.
+        // [GIVEN] A posted installment invoice.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        // [WHEN] Payment-service eligibility is checked.
+        // [THEN] The action is not offered.
         Assert.IsFalse(PaymentServiceSetup.CanChangePaymentService(SalesInvoiceHeader), 'Payment-service actions must not be offered for global plans.');
 
+        // [WHEN] A payment-service change is requested directly.
         asserterror PaymentServiceSetup.ChangePaymentServicePostedInvoice(SalesInvoiceHeader);
 
+        // [THEN] The unsupported change is rejected.
         Assert.ExpectedError('Payment services are not supported for global installment invoices');
+    end;
+
+    [Test]
+    procedure SalesInstallmentRetainsBigIntegerLedgerEntryNumbers()
+    var
+        PlanLine: Record "Sales Installment Plan Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        AppliedCustomerEntries: Page "Applied Customer Entries";
+        EntryNo: BigInteger;
+        DetailedEntryNo: BigInteger;
+    begin
+        // [SCENARIO] Recording, grouping and selecting a sales installment preserves an entry number beyond the Integer range.
+        // [GIVEN] A customer installment and its initial detailed entry have a large ledger entry number.
+        if CustLedgerEntry.FindLast() then
+            EntryNo := CustLedgerEntry."Entry No.";
+        if EntryNo < 2147483647 then
+            EntryNo := 2147483647;
+        EntryNo += 1;
+        if DetailedCustLedgEntry.FindLast() then
+            DetailedEntryNo := DetailedCustLedgEntry."Entry No.";
+        DetailedEntryNo += 1;
+        PlanLine."Plan ID" := CreateGuid();
+        PlanLine."Line No." := 10000;
+        PlanLine."Installment No." := 1;
+        PlanLine.Amount := 100;
+        PlanLine."Amount (LCY)" := 100;
+        PlanLine.Insert();
+        CustLedgerEntry.Init();
+        CustLedgerEntry."Entry No." := EntryNo;
+        CustLedgerEntry."Installment Plan ID" := PlanLine."Plan ID";
+        CustLedgerEntry."Installment No." := PlanLine."Installment No.";
+        CustLedgerEntry."No. of Installments" := 1;
+        CustLedgerEntry.Insert();
+        DetailedCustLedgEntry.Init();
+        DetailedCustLedgEntry."Entry No." := DetailedEntryNo;
+        DetailedCustLedgEntry."Cust. Ledger Entry No." := EntryNo;
+        DetailedCustLedgEntry."Entry Type" := DetailedCustLedgEntry."Entry Type"::"Initial Entry";
+        DetailedCustLedgEntry.Amount := PlanLine.Amount;
+        DetailedCustLedgEntry."Amount (LCY)" := PlanLine."Amount (LCY)";
+        DetailedCustLedgEntry.Insert();
+
+        // [WHEN] The posted installment is recorded and its invoice group is restored.
+        InstallmentPosting.RecordPostedLine(PlanLine, CustLedgerEntry, 1);
+        CustLedgerEntry."Invoice Entry No." := 0;
+        CustLedgerEntry.Modify();
+        DetailedCustLedgEntry."Invoice Entry No." := 0;
+        DetailedCustLedgEntry.Modify();
+        SalesInstallmentHistory.SetInvoiceGroup(PlanLine."Plan ID", EntryNo);
+        AppliedCustomerEntries.SetInvoiceEntryNo(EntryNo);
+
+        // [THEN] The plan relation and both ledger group anchors retain the full entry number.
+        PlanLine.Get(PlanLine."Plan ID", PlanLine."Line No.");
+        PlanLine.TestField("Cust. Ledger Entry No.", EntryNo);
+        PlanLine.Validate("Cust. Ledger Entry No.", EntryNo);
+        CustLedgerEntry.Get(EntryNo);
+        CustLedgerEntry.TestField("Invoice Entry No.", EntryNo);
+        DetailedCustLedgEntry.Get(DetailedEntryNo);
+        DetailedCustLedgEntry.TestField("Invoice Entry No.", EntryNo);
     end;
 
     [Test]
@@ -1104,6 +1252,8 @@ codeunit 134493 "ERM Installment Posting"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin
+        // [SCENARIO] Invoice grouping backfill repairs existing installment links idempotently without changing financial amounts.
+        // [GIVEN] A valid posted schedule whose customer and detailed entries have missing invoice grouping anchors.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         CustLedgerEntry.SetRange("Installment Plan ID", SalesInvoiceHeader."Installment Plan ID");
@@ -1115,9 +1265,11 @@ codeunit 134493 "ERM Installment Posting"
             DetailedCustLedgEntry.ModifyAll("Invoice Entry No.", 0);
         until CustLedgerEntry.Next() = 0;
 
+        // [WHEN] Invoice grouping backfill is run twice.
         Assert.IsTrue(SalesInstallmentHistory.BackfillInvoiceGroups(), 'Valid posted plans must complete the backfill.');
         Assert.IsTrue(SalesInstallmentHistory.BackfillInvoiceGroups(), 'Repeating a completed backfill must succeed.');
 
+        // [THEN] Every entry shares the correct final anchor and original invoice amounts are unchanged.
         VerifyInvoiceBalance(SalesInvoiceHeader, 125, false);
         CustLedgerEntry.FindSet();
         repeat
@@ -1137,10 +1289,14 @@ codeunit 134493 "ERM Installment Posting"
         SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
     begin
+        // [SCENARIO] Backfill reports an incomplete plan when its posted invoice is missing rather than raising an error.
+        // [GIVEN] A posted installment plan whose invoice header has been deleted.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         SalesInvoiceHeader.Delete();
 
+        // [WHEN] Invoice grouping backfill runs.
+        // [THEN] It reports incomplete work without failing.
         Assert.IsFalse(SalesInstallmentHistory.BackfillInvoiceGroups(), 'A missing posted invoice must leave the backfill incomplete.');
     end;
 
@@ -1152,11 +1308,15 @@ codeunit 134493 "ERM Installment Posting"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin
+        // [SCENARIO] Backfill reports an incomplete plan when its ledger anchor is missing rather than raising an error.
+        // [GIVEN] A posted installment invoice whose anchor ledger entry has been deleted.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         CustLedgerEntry.Get(SalesInvoiceHeader."Cust. Ledger Entry No.");
         CustLedgerEntry.Delete();
 
+        // [WHEN] Invoice grouping backfill runs.
+        // [THEN] It reports incomplete work without failing.
         Assert.IsFalse(SalesInstallmentHistory.BackfillInvoiceGroups(), 'A missing ledger anchor must leave the backfill incomplete.');
     end;
 
@@ -1167,12 +1327,16 @@ codeunit 134493 "ERM Installment Posting"
         SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
     begin
+        // [SCENARIO] Backfill rejects a posted invoice whose identity no longer matches the original plan.
+        // [GIVEN] A posted installment invoice replaced by a header with the same number but a new SystemId.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         SalesInvoiceHeader.Delete();
         Clear(SalesInvoiceHeader.SystemId);
         SalesInvoiceHeader.Insert();
 
+        // [WHEN] Invoice grouping backfill runs.
+        // [THEN] The mismatched identity leaves work incomplete without raising an error.
         Assert.IsFalse(SalesInstallmentHistory.BackfillInvoiceGroups(), 'A replaced posted invoice must leave the backfill incomplete.');
     end;
 
@@ -1186,6 +1350,8 @@ codeunit 134493 "ERM Installment Posting"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin
+        // [SCENARIO] Backfill skips an invalid invoice anchor but continues repairing other valid plans.
+        // [GIVEN] One invoice points to another plan's anchor and that valid second plan has missing grouping links.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
@@ -1201,8 +1367,10 @@ codeunit 134493 "ERM Installment Posting"
             DetailedCustLedgEntry.ModifyAll("Invoice Entry No.", 0);
         until CustLedgerEntry.Next() = 0;
 
+        // [WHEN] Invoice grouping backfill processes both plans.
         Assert.IsFalse(SalesInstallmentHistory.BackfillInvoiceGroups(), 'A mismatched anchor must leave the backfill incomplete.');
 
+        // [THEN] The overall result is incomplete but the valid invoice's grouped balance is restored.
         VerifyInvoiceBalance(OtherSalesInvoiceHeader, 125, false);
     end;
 
@@ -1217,6 +1385,8 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalBatch: Record "Gen. Journal Batch";
         PostLateGenJournalLines: Codeunit "Post Late Gen. Journal Lines";
     begin
+        // [SCENARIO] Late journal posting rejects installment invoices before modifying application fields.
+        // [GIVEN] A receipt journal line referring to a posted installment invoice's preassigned number.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
         SalesInvoiceHeader."Your Reference" := 'LATE';
@@ -1231,8 +1401,10 @@ codeunit 134493 "ERM Installment Posting"
         GenJournalLine.Modify(true);
         Commit();
 
+        // [WHEN] Late journal posting tries to resolve and apply the receipt.
         asserterror PostLateGenJournalLines.Run();
 
+        // [THEN] Posting is rejected with journal application fields and invoice balance unchanged.
         Assert.ExpectedError('Late journal posting is not supported for global installment invoices');
         GenJournalLine.Get(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", GenJournalLine."Line No.");
         Assert.AreEqual('', GenJournalLine."Applies-to Doc. No.", 'The guard must run before setting journal application fields.');
@@ -1250,6 +1422,8 @@ codeunit 134493 "ERM Installment Posting"
         CreditEntry: Record "Cust. Ledger Entry";
         CreditNo: Code[20];
     begin
+        // [SCENARIO] A native full corrective credit remains one ordinary credit while settling all invoice installments.
+        // [GIVEN] An unpaid posted installment invoice and its native corrective credit copy without plan ownership.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
@@ -1257,8 +1431,10 @@ codeunit 134493 "ERM Installment Posting"
             CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, CorrectionHeader),
             'An unpaid installment invoice must support a native corrective credit copy.');
         Assert.IsTrue(IsNullGuid(CorrectionHeader."Installment Plan ID"), 'A credit memo must not own or borrow an installment schedule.');
+        // [WHEN] The corrective credit is posted.
         CreditNo := LibrarySales.PostSalesDocument(CorrectionHeader, true, true);
 
+        // [THEN] One native credit closes against all original obligations and the logical invoice is fully settled.
         LibraryERM.FindCustomerLedgerEntry(CreditEntry, CreditEntry."Document Type"::"Credit Memo", CreditNo);
         Assert.IsTrue(IsNullGuid(CreditEntry."Installment Plan ID"), 'The credit must remain one native customer entry.');
         Assert.IsFalse(CreditEntry.Open, 'The full credit must close against all original installments.');

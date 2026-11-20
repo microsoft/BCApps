@@ -116,7 +116,7 @@ table 8841 "Sales Installment Plan Line"
             AutoFormatExpression = '';
             AutoFormatType = 1;
         }
-        field(22; "Cust. Ledger Entry No."; Integer)
+        field(22; "Cust. Ledger Entry No."; BigInteger)
         {
             Caption = 'Cust. Ledger Entry No.';
             TableRelation = "Cust. Ledger Entry";

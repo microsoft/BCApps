@@ -18,6 +18,11 @@ codeunit 134498 "ERM Installment Forecast"
     Subtype = Test;
     TestPermissions = NonRestrictive;
 
+    trigger OnRun()
+    begin
+        // [FEATURE] [Payment Installments] [Cash Flow Forecast]
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
@@ -35,18 +40,24 @@ codeunit 134498 "ERM Installment Forecast"
         ForecastEntry: Record "Cash Flow Forecast Entry";
         Index: Integer;
     begin
+        // [SCENARIO] Cash flow forecasting and registration retain each installment as a separate dated receivable.
+        // [GIVEN] A posted invoice has three open installments totaling 125 and a configured cash flow forecast.
         LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
         ConfigureForecast(Forecast);
 
         for Index := 1 to 2 do begin
+            // [WHEN] The forecast is filled without and then with grouping by document type.
             FillForecast(Forecast, Index = 2);
 
+            // [THEN] All three installments retain their own due dates and remaining amounts.
             VerifyOpenInstallments(Forecast, Invoice, 3, 125);
         end;
 
+        // [WHEN] The forecast worksheet lines for the invoice are registered.
         FilterInvoiceLines(Line, Forecast, Invoice);
         LibraryCashFlow.PostJournalLines(Line);
 
+        // [THEN] Registration retains three separately dated forecast entries totaling 125.
         ForecastEntry.SetRange("Cash Flow Forecast No.", Forecast."No.");
         ForecastEntry.SetRange("Source Type", ForecastEntry."Source Type"::Receivables);
         ForecastEntry.SetRange("Document No.", Invoice."No.");
@@ -65,19 +76,25 @@ codeunit 134498 "ERM Installment Forecast"
         Invoice: Record "Sales Invoice Header";
         Forecast: Record "Cash Flow Forecast";
     begin
+        // [SCENARIO] Cash flow forecasts omit settled installments and use only unpaid portions of open installments.
+        // [GIVEN] The first installment is settled and the final installment is partly paid.
         LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 41.67);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 3, 10);
         ConfigureForecast(Forecast);
 
+        // [WHEN] Receivable forecast lines are suggested.
         FillForecast(Forecast, false);
 
+        // [THEN] Only two obligations remain, totaling 73.33.
         VerifyOpenInstallments(Forecast, Invoice, 2, 73.33);
+        // [WHEN] All remaining obligations are paid and the forecast is refreshed.
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 2, 41.67);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 3, 31.66);
 
         FillForecast(Forecast, false);
 
+        // [THEN] No invoice obligation remains in the forecast.
         VerifyOpenInstallments(Forecast, Invoice, 0, 0);
     end;
 
@@ -89,13 +106,17 @@ codeunit 134498 "ERM Installment Forecast"
         Line: Record "Cash Flow Worksheet Line";
         CreditNo: Code[20];
     begin
+        // [SCENARIO] Selected credits reduce forecast balances without introducing a mirrored credit schedule.
+        // [GIVEN] An invoice with a payment of 10 and a selected installment credit of 20.
         LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 3, 10);
         CreditNo := LibraryInstallments.CreditInstallment(Invoice, 2, 20, WorkDate());
         ConfigureForecast(Forecast);
 
+        // [WHEN] Receivable forecast lines are suggested.
         FillForecast(Forecast, false);
 
+        // [THEN] Three obligations total 95 and the fully applied credit creates no separate forecast obligation.
         VerifyOpenInstallments(Forecast, Invoice, 3, 95);
         Line.SetRange("Cash Flow Forecast No.", Forecast."No.");
         Line.SetRange("Source Type", Line."Source Type"::Receivables);
@@ -114,6 +135,8 @@ codeunit 134498 "ERM Installment Forecast"
         RemainingLCY: Decimal;
         Index: Integer;
     begin
+        // [SCENARIO] Foreign-currency forecasts use remaining ledger LCY rather than revaluing at the current exchange rate.
+        // [GIVEN] Partly settled foreign-currency installments and an exchange rate changed after posting.
         CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate() - 1, 0.3, 0.3);
         LibraryInstallments.CreatePostedInvoice(Invoice, CurrencyCode, false);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 10);
@@ -126,8 +149,10 @@ codeunit 134498 "ERM Installment Forecast"
         LibraryERM.CreateExchangeRate(CurrencyCode, WorkDate(), 0.6, 0.6);
         ConfigureForecast(Forecast);
 
+        // [WHEN] Receivable forecast lines are suggested at the changed rate.
         FillForecast(Forecast, false);
 
+        // [THEN] The two open obligations reconcile to their existing remaining ledger LCY.
         VerifyOpenInstallments(Forecast, Invoice, 2, RemainingLCY);
     end;
 
@@ -142,13 +167,17 @@ codeunit 134498 "ERM Installment Forecast"
         ExpectedAmount: Decimal;
         Index: Integer;
     begin
+        // [SCENARIO] Forecast discounts follow each installment's own eligible discount date and amount.
+        // [GIVEN] Three discounted installments and a forecast configured to consider payment discounts.
         LibraryInstallments.CreatePostedInvoice(Invoice, '', true);
         ConfigureForecast(Forecast);
         Forecast.Validate("Consider Discount", true);
         Forecast.Modify(true);
 
+        // [WHEN] Receivable forecast lines are suggested.
         FillForecast(Forecast, false);
 
+        // [THEN] Obligations remain separate and only eligible individual discounts reduce their total to 123.75.
         FilterInvoiceLines(Line, Forecast, Invoice);
         Assert.AreEqual(3, Line.Count(), 'Discount forecasting must retain all three obligations.');
         for Index := 1 to 3 do begin
@@ -181,6 +210,8 @@ codeunit 134498 "ERM Installment Forecast"
         Entry: Record "Cust. Ledger Entry";
         Index: Integer;
     begin
+        // [SCENARIO] Customer cash flow terms affect installment forecast dates only when explicitly enabled.
+        // [GIVEN] An installment invoice and customer cash flow terms specifying 45 days.
         LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
         LibraryERM.CreatePaymentTerms(Terms);
         Evaluate(Terms."Due Date Calculation", '<45D>');
@@ -191,14 +222,18 @@ codeunit 134498 "ERM Installment Forecast"
         Customer.Modify(true);
         ConfigureForecast(Forecast);
 
+        // [WHEN] The forecast is suggested without enabling the customer terms override.
         FillForecast(Forecast, false);
 
+        // [THEN] All three obligations retain their individual due dates and original total.
         VerifyOpenInstallments(Forecast, Invoice, 3, 125);
+        // [WHEN] Customer cash flow terms are enabled and the forecast is refreshed.
         Forecast.Validate("Consider CF Payment Terms", true);
         Forecast.Modify(true);
 
         FillForecast(Forecast, false);
 
+        // [THEN] All three forecast dates move to 45 days without merging balances or changing ledger due dates.
         FilterInvoiceLines(Line, Forecast, Invoice);
         Line.SetRange("Cash Flow Date", CalcDate('<45D>', Invoice."Document Date"));
         Assert.AreEqual(3, Line.Count(), 'An explicitly enabled native customer forecast override must apply without merging installments.');
@@ -208,11 +243,13 @@ codeunit 134498 "ERM Installment Forecast"
             LibraryInstallments.GetInstallment(Entry, Invoice."Installment Plan ID", Index);
             Entry.TestField("Due Date", CalcDate(StrSubstNo('<%1D>', Index * 30), Invoice."Document Date"));
         end;
+        // [WHEN] The override is disabled and the forecast is refreshed.
         Forecast.Validate("Consider CF Payment Terms", false);
         Forecast.Modify(true);
 
         FillForecast(Forecast, false);
 
+        // [THEN] The forecast returns to the original installment dates and balances.
         VerifyOpenInstallments(Forecast, Invoice, 3, 125);
     end;
 
@@ -226,6 +263,8 @@ codeunit 134498 "ERM Installment Forecast"
         Line: Record "Cash Flow Worksheet Line";
         Entry: Record "Cust. Ledger Entry";
     begin
+        // [SCENARIO] Moving overdue forecast dates to the work date never rewrites installment ledger due dates.
+        // [GIVEN] A posted invoice with one overdue and two future installments.
         LibraryInstallments.CreateInvoice(Header, SalesLine, '');
         Header.Validate("Document Date", WorkDate() - 45);
         Header.Validate("External Document No.", LibraryUtility.GenerateGUID());
@@ -233,14 +272,18 @@ codeunit 134498 "ERM Installment Forecast"
         Invoice.Get(LibrarySales.PostSalesDocument(Header, true, true));
         ConfigureForecast(Forecast);
 
+        // [WHEN] The forecast is suggested with its default date settings.
         FillForecast(Forecast, false);
 
+        // [THEN] All installments retain their original forecast dates.
         VerifyOpenInstallments(Forecast, Invoice, 3, 125);
+        // [WHEN] Moving overdue forecast dates to the work date is enabled.
         Forecast.Validate("Overdue CF Dates to Work Date", true);
         Forecast.Modify(true);
 
         FillForecast(Forecast, false);
 
+        // [THEN] Only the overdue forecast line moves; ledger due dates and future forecast dates are preserved.
         FilterInvoiceLines(Line, Forecast, Invoice);
         Assert.AreEqual(3, Line.Count(), 'Moving an overdue forecast date must not duplicate the invoice.');
         Line.SetRange("Cash Flow Date", WorkDate());

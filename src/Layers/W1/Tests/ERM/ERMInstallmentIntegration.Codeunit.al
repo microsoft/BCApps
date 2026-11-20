@@ -7,6 +7,8 @@ namespace Microsoft.Foundation.PaymentTerms;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Integration.Entity;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -18,6 +20,11 @@ codeunit 134499 "ERM Installment Integration"
 {
     Subtype = Test;
     TestPermissions = NonRestrictive;
+
+    trigger OnRun()
+    begin
+        // [FEATURE] [Payment Installments] [Integration]
+    end;
 
     var
         Assert: Codeunit Assert;
@@ -37,11 +44,15 @@ codeunit 134499 "ERM Installment Integration"
         PermissionsMock: Codeunit "Permissions Mock";
         RemainingAmount: Decimal;
     begin
+        // [SCENARIO] A read-only user can inspect the complete posted schedule and current balances.
+        // [GIVEN] A posted installment invoice with a partially paid final installment.
         LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 3, 10);
+        // [WHEN] The caller is restricted to the standard read role.
         PermissionsMock.Start();
         LibraryLowerPermissions.SetRead();
 
+        // [THEN] All three obligations remain readable and their balances total 115.
         Plan.Get(Invoice."Installment Plan ID");
         Assert.AreEqual(Invoice.SystemId, Plan."Posted Invoice SystemId", 'A reader must resolve the owning posted invoice.');
         Line.SetRange("Plan ID", Plan.ID);
@@ -63,15 +74,71 @@ codeunit 134499 "ERM Installment Integration"
         Plan: Record "Sales Installment Plan";
         PermissionsMock: Codeunit "Permissions Mock";
     begin
+        // [SCENARIO] Read permission does not allow changes to an invoice-owned draft schedule.
+        // [GIVEN] A draft installment plan and a caller restricted to the read role.
         LibraryInstallments.CreateInvoice(Header, SalesLine, '');
         Plan.Get(Header."Installment Plan ID");
         PermissionsMock.Start();
         LibraryLowerPermissions.SetRead();
         Plan."Document Date" += 1;
 
+        // [WHEN] The caller tries to change the plan's document date.
         asserterror Plan.Modify(false);
 
+        // [THEN] Table permissions reject the change.
         Assert.ExpectedError('Sorry, the current permissions prevented the action. (TableData');
+    end;
+
+    [Test]
+    procedure SalesPreviewRejectsMissingSourceReadPermission()
+    var
+        Header: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Plan: Record "Sales Installment Plan";
+        TempPlanLine: Record "Sales Installment Plan Line" temporary;
+        SalesInstallmentMgt: Codeunit "Sales Installment Mgt.";
+        PermissionsMock: Codeunit "Permissions Mock";
+    begin
+        // [SCENARIO] A caller without source read permission cannot obtain a temporary sales schedule.
+        // [GIVEN] A saved installment invoice and a caller with execute permissions only.
+        LibraryInstallments.CreateInvoice(Header, SalesLine, '');
+        PermissionsMock.Start();
+        PermissionsMock.Set('All Objects');
+        Assert.IsFalse(Plan.ReadPermission(), 'The caller must not have read permission on the source plan.');
+
+        // [WHEN] The caller requests a temporary preview.
+        asserterror SalesInstallmentMgt.CalculatePreview(Header, TempPlanLine);
+
+        // [THEN] An explicit source-table permission error is raised before any schedule data is returned.
+        Assert.ExpectedError('You do not have permission to read the');
+        Assert.ExpectedError(Plan.TableCaption());
+        Assert.IsTrue(TempPlanLine.IsEmpty(), 'A denied preview must not populate the temporary schedule.');
+    end;
+
+    [Test]
+    procedure PurchasePreviewRejectsMissingSourceReadPermission()
+    var
+        Header: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Plan: Record "Purchase Installment Plan";
+        TempPlanLine: Record "Purchase Installment Plan Line" temporary;
+        PurchaseInstallmentMgt: Codeunit "Purchase Installment Mgt.";
+        PermissionsMock: Codeunit "Permissions Mock";
+    begin
+        // [SCENARIO] A caller without source read permission cannot obtain a temporary purchase schedule.
+        // [GIVEN] A saved installment invoice and a caller with execute permissions only.
+        LibraryInstallments.CreatePurchaseInvoice(Header, PurchaseLine, '');
+        PermissionsMock.Start();
+        PermissionsMock.Set('All Objects');
+        Assert.IsFalse(Plan.ReadPermission(), 'The caller must not have read permission on the source plan.');
+
+        // [WHEN] The caller requests a temporary preview.
+        asserterror PurchaseInstallmentMgt.CalculatePreview(Header, TempPlanLine);
+
+        // [THEN] An explicit source-table permission error is raised before any schedule data is returned.
+        Assert.ExpectedError('You do not have permission to read the');
+        Assert.ExpectedError(Plan.TableCaption());
+        Assert.IsTrue(TempPlanLine.IsEmpty(), 'A denied preview must not populate the temporary schedule.');
     end;
 
     [Test]
@@ -87,6 +154,8 @@ codeunit 134499 "ERM Installment Integration"
         APIMockEvents: Codeunit "API Mock Events";
         ApplicationID: Code[50];
     begin
+        // [SCENARIO] A standard journal posting role can settle the last non-anchor installment and refresh invoice API status.
+        // [GIVEN] Only the middle installment remains open and is selected for a customer receipt.
         BindSubscription(APIMockEvents);
         APIMockEvents.SetIsAPIEnabled(true);
         LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
@@ -109,8 +178,10 @@ codeunit 134499 "ERM Installment Integration"
         PermissionsMock.Start();
         LibraryLowerPermissions.SetJournalsPost();
 
+        // [WHEN] The selected receipt is posted under the journal posting role.
         LibraryERM.PostGeneralJnlLine(JournalLine);
 
+        // [THEN] The logical invoice closes and its API status becomes Paid without elevated plan writes.
         Invoice.CalcFields("Remaining Amount", Closed);
         Assert.AreEqual(0, Invoice."Remaining Amount", 'The standard journal role must settle the remaining obligation.');
         Assert.IsTrue(Invoice.Closed, 'The grouped invoice must close under the standard journal posting role.');
@@ -140,6 +211,8 @@ codeunit 134499 "ERM Installment Integration"
         OriginalAmount: Decimal;
         RemainingAmount: Decimal;
     begin
+        // [SCENARIO] Payments across multiple twelve-installment invoices preserve invoice grouping and original allocations.
+        // [GIVEN] Ten invoices for one customer each contain twelve separately identified obligations.
         BindSubscription(APIMockEvents);
         APIMockEvents.SetIsAPIEnabled(true);
         LibraryInstallments.CreateInvoice(Header, SalesLine, '');
@@ -168,11 +241,13 @@ codeunit 134499 "ERM Installment Integration"
             until Line.Next() = 0;
         end;
 
+        // [WHEN] Each invoice's final installment is settled and its first installment is partly paid.
         for InvoiceIndex := 1 to ArrayLen(Invoices) do begin
             LibraryInstallments.PayInstallment(Invoices[InvoiceIndex]."Installment Plan ID", 12, 10.38);
             LibraryInstallments.PayInstallment(Invoices[InvoiceIndex]."Installment Plan ID", 1, 5);
         end;
 
+        // [THEN] Each invoice stays open with its own residual balance and all original obligations remain unchanged.
         for InvoiceIndex := 1 to ArrayLen(Invoices) do begin
             Invoices[InvoiceIndex].CalcFields("Remaining Amount", Closed);
             Assert.AreEqual(109.62, Invoices[InvoiceIndex]."Remaining Amount", 'Each invoice must retain only its own residual balance.');

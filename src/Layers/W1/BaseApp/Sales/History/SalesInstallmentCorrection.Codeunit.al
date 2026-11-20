@@ -44,6 +44,7 @@ codeunit 8845 "Sales Installment Correction"
         CustLedgerEntry.SetRange("Installment Plan ID", Plan.ID);
         if (InstallmentCount = 0) or (CustLedgerEntry.Count() <> InstallmentCount) then
             Error(OwnershipErr);
+        CustLedgerEntry.SetAutoCalcFields("Original Amount", "Original Amt. (LCY)", "Remaining Amount");
         PlanLine.FindSet();
         repeat
             Sequence += 1;
@@ -58,7 +59,6 @@ codeunit 8845 "Sales Installment Correction"
             CustLedgerEntry.TestField("Customer No.", SalesInvoiceHeader."Bill-to Customer No.");
             CustLedgerEntry.TestField("Currency Code", SalesInvoiceHeader."Currency Code");
             CustLedgerEntry.TestField("Due Date", PlanLine."Due Date");
-            CustLedgerEntry.CalcFields("Original Amount", "Original Amt. (LCY)", "Remaining Amount");
             CustLedgerEntry.TestField("Original Amount", PlanLine.Amount);
             CustLedgerEntry.TestField("Original Amt. (LCY)", PlanLine."Amount (LCY)");
             if RequireUnpaid then begin
@@ -96,9 +96,9 @@ codeunit 8845 "Sales Installment Correction"
         CheckInvoice(SalesInvoiceHeader, true);
         ApplicationID := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ApplicationID));
         CustLedgerEntry.SetRange("Installment Plan ID", SalesInvoiceHeader."Installment Plan ID");
+        CustLedgerEntry.SetAutoCalcFields("Remaining Amount");
         CustLedgerEntry.FindSet(true);
         repeat
-            CustLedgerEntry.CalcFields("Remaining Amount");
             CustLedgerEntry."Applies-to ID" := ApplicationID;
             CustLedgerEntry."Amount to Apply" := CustLedgerEntry."Remaining Amount";
             CustLedgerEntry."Accepted Payment Tolerance" := 0;

@@ -18,6 +18,11 @@ codeunit 134497 "ERM Installment Collections"
     Subtype = Test;
     TestPermissions = NonRestrictive;
 
+    trigger OnRun()
+    begin
+        // [FEATURE] [Payment Installments] [Collections]
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
@@ -35,12 +40,16 @@ codeunit 134497 "ERM Installment Collections"
         ReminderLine: Record "Reminder Line";
         Entry: Record "Cust. Ledger Entry";
     begin
+        // [SCENARIO] Reminders demand only the unpaid portion of installments already due.
+        // [GIVEN] A three-installment invoice with a partial payment against its first obligation.
         CreatePostedInvoice(Invoice, '', false);
         ConfigureReminders(Invoice."Bill-to Customer No.");
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 10);
 
+        // [WHEN] Overdue-only reminder lines are suggested before the second installment falls due.
         SuggestReminder(ReminderHeader, Invoice, CalcDate('<45D>', Invoice."Document Date"), true);
 
+        // [THEN] Only the first installment's remaining 31.67 is demanded; future balances are unchanged.
         FilterReminderLines(ReminderLine, ReminderHeader."No.");
         Assert.AreEqual(1, ReminderLine.Count(), 'Future installments must not be demanded.');
         ReminderLine.FindFirst();
@@ -61,9 +70,13 @@ codeunit 134497 "ERM Installment Collections"
         Entry: Record "Cust. Ledger Entry";
         ReminderIssue: Codeunit "Reminder-Issue";
     begin
+        // [SCENARIO] Informational future balances do not incur fees or advance installment reminder levels.
+        // [GIVEN] An unpaid invoice with only its first installment overdue.
         CreatePostedInvoice(Invoice, '', false);
         ConfigureReminders(Invoice."Bill-to Customer No.");
+        // [WHEN] Reminder suggestion includes installments not yet due.
         SuggestReminder(ReminderHeader, Invoice, CalcDate('<45D>', Invoice."Document Date"), false);
+        // [THEN] Future installments appear only as informational balances with no fee or reminder level.
         FilterReminderLines(ReminderLine, ReminderHeader."No.");
         ReminderLine.SetRange("Line Type", ReminderLine."Line Type"::"Not Due");
         Assert.AreEqual(2, ReminderLine.Count(), 'Future installments may appear only as native informational lines.');
@@ -75,16 +88,20 @@ codeunit 134497 "ERM Installment Collections"
             ReminderLine.TestField(Amount, 0);
         until ReminderLine.Next() = 0;
 
+        // [WHEN] The reminder is issued.
         ReminderIssue.Set(ReminderHeader, false, ReminderHeader."Document Date");
         LibraryERM.RunReminderIssue(ReminderIssue);
 
+        // [THEN] Only the overdue installment advances to the first issued reminder level.
         GetInstallment(Entry, Invoice."Installment Plan ID", 1);
         Entry.TestField("Last Issued Reminder Level", 1);
         GetInstallment(Entry, Invoice."Installment Plan ID", 2);
         Entry.TestField("Last Issued Reminder Level", 0);
         GetInstallment(Entry, Invoice."Installment Plan ID", 3);
         Entry.TestField("Last Issued Reminder Level", 0);
+        // [WHEN] Reminders are suggested after the second installment becomes overdue.
         SuggestReminder(ReminderHeader, Invoice, CalcDate('<75D>', Invoice."Document Date"), true);
+        // [THEN] The first and second installments have independent reminder levels.
         FilterReminderLines(ReminderLine, ReminderHeader."No.");
         Assert.AreEqual(2, ReminderLine.Count(), 'Only the first two installments are overdue.');
         GetInstallment(Entry, Invoice."Installment Plan ID", 1);
@@ -96,8 +113,10 @@ codeunit 134497 "ERM Installment Collections"
         ReminderLine.FindFirst();
         ReminderLine.TestField("No. of Reminders", 1);
         VerifyRemaining(Invoice."Installment Plan ID", 3, 41.66);
+        // [WHEN] The first installment is settled and reminders are suggested again.
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 41.67);
         SuggestReminder(ReminderHeader, Invoice, CalcDate('<80D>', Invoice."Document Date"), true);
+        // [THEN] Only the second installment is still demanded.
         FilterReminderLines(ReminderLine, ReminderHeader."No.");
         Assert.AreEqual(1, ReminderLine.Count(), 'A settled installment must no longer be collected.');
         ReminderLine.FindFirst();
@@ -118,6 +137,8 @@ codeunit 134497 "ERM Installment Collections"
         Entry: Record "Cust. Ledger Entry";
         FinanceChargeMake: Codeunit "FinChrgMemo-Make";
     begin
+        // [SCENARIO] Finance charges use each overdue installment's remaining balance, not the invoice total.
+        // [GIVEN] A partly paid first installment and 12 percent open-entry finance charge terms.
         CreatePostedInvoice(Invoice, '', false);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 10);
         LibraryERM.CreateFinanceChargeTerms(Terms);
@@ -142,9 +163,11 @@ codeunit 134497 "ERM Installment Collections"
         Header.Validate("Document Date", CalcDate('<45D>', Invoice."Document Date"));
         Header.Modify(true);
 
+        // [WHEN] Finance charges are suggested before the other installments are due.
         FinanceChargeMake.SuggestLines(Header, Entry);
         Assert.IsTrue(FinanceChargeMake.Code(), 'Native finance charge suggestion must succeed.');
 
+        // [THEN] Only the overdue balance of 31.67 incurs interest of 3.80.
         Line.SetRange("Finance Charge Memo No.", Header."No.");
         Line.SetRange(Type, Line.Type::"Customer Ledger Entry");
         Assert.AreEqual(1, Line.Count(), 'Future installments must not incur interest.');
@@ -155,6 +178,7 @@ codeunit 134497 "ERM Installment Collections"
         Line.TestField(Amount, 3.80);
         VerifyRemaining(Invoice."Installment Plan ID", 2, 41.67);
         VerifyRemaining(Invoice."Installment Plan ID", 3, 41.66);
+        // [WHEN] The first installment is settled and charges are suggested after the second falls due.
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 31.67);
         Header.Validate("Document Date", CalcDate('<75D>', Invoice."Document Date"));
         Header.Modify(true);
@@ -162,6 +186,7 @@ codeunit 134497 "ERM Installment Collections"
         Entry.Reset();
         FinanceChargeMake.SuggestLines(Header, Entry);
         Assert.IsTrue(FinanceChargeMake.Code(), 'Native finance charge resuggestion must succeed.');
+        // [THEN] Only the second installment's remaining 41.67 incurs interest of 5.
         Assert.AreEqual(1, Line.Count(), 'Settled and future installments must not incur open-entry interest.');
         Line.FindFirst();
         GetInstallment(Entry, Invoice."Installment Plan ID", 2);
@@ -185,6 +210,8 @@ codeunit 134497 "ERM Installment Collections"
         RemainingTotal: Decimal;
         RowCount: Integer;
     begin
+        // [SCENARIO] Customer statements retain separately due balances without multiplying logical invoice totals.
+        // [GIVEN] An invoice of 125 with 10 paid against its first installment.
         CreatePostedInvoice(Invoice, '', false);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 10);
         Customer.Get(Invoice."Bill-to Customer No.");
@@ -195,8 +222,10 @@ codeunit 134497 "ERM Installment Collections"
             Invoice."Posting Date", CalcDate('<45D>', Invoice."Document Date"));
         Blob.CreateOutStream(Output);
 
+        // [WHEN] A statement is generated while only the first installment is overdue.
         Statement.SaveAs('', ReportFormat::Xml, Output);
 
+        // [THEN] Three rows total 125 originally and 115 remaining, with only 31.67 overdue.
         Blob.CreateInStream(Input);
         LibraryReportDataset.LoadFromInStream(Input);
         LibraryReportDataset.SetXmlNodeList(
@@ -228,6 +257,8 @@ codeunit 134497 "ERM Installment Collections"
         Amounts: array[3] of Decimal;
         Index: Integer;
     begin
+        // [SCENARIO] An invoice reference and receipt amount cannot silently choose among open installments.
+        // [GIVEN] Three open installments sharing one invoice reference and receipts matching equal, residual, or total amounts.
         CreatePostedInvoice(Invoice, '', false);
         ConfigureMatchingRules();
         Amounts[1] := 41.67;
@@ -238,8 +269,10 @@ codeunit 134497 "ERM Installment Collections"
             Commit();
             MatchPayments.SetApplyEntries(true);
 
+            // [WHEN] Automatic reconciliation tries to select obligations using the shared reference.
             asserterror MatchPayments.Code(Line);
 
+            // [THEN] Manual selection is required and no applications or balance changes survive.
             Assert.ExpectedError(ManualSelectionErr);
             Applied.FilterAppliedPmtEntry(Line);
             Assert.IsTrue(Applied.IsEmpty(), 'Neither equal amounts, a unique residual, nor a full invoice reference may choose installments automatically.');
@@ -263,6 +296,8 @@ codeunit 134497 "ERM Installment Collections"
         MatchPayments: Codeunit "Match Bank Payments";
         ExternalNo: Code[35];
     begin
+        // [SCENARIO] A shared external reference cannot choose an invoice or installment for reconciliation.
+        // [GIVEN] Two installment invoices share an external reference matching one receipt.
         ExternalNo := LibraryUtility.GenerateGUID();
         CreatePostedInvoice(Invoice, ExternalNo, false);
         CreatePostedInvoice(OtherInvoice, ExternalNo, false);
@@ -271,8 +306,10 @@ codeunit 134497 "ERM Installment Collections"
         Commit();
         MatchPayments.SetApplyEntries(true);
 
+        // [WHEN] Automatic reconciliation attempts to match that reference.
         asserterror MatchPayments.Code(Line);
 
+        // [THEN] Explicit selection is required and neither invoice is applied or reduced.
         Assert.ExpectedError(ManualSelectionErr);
         Applied.FilterAppliedPmtEntry(Line);
         Assert.IsTrue(Applied.IsEmpty(), 'A shared external reference must not choose an invoice or installment.');
@@ -290,6 +327,8 @@ codeunit 134497 "ERM Installment Collections"
         Applied: Record "Applied Payment Entry";
         BankPost: Codeunit "Bank Acc. Reconciliation Post";
     begin
+        // [SCENARIO] Manually reconciling selected installments preserves payments on unselected obligations.
+        // [GIVEN] A partly paid final installment and a receipt explicitly selecting the first two installments.
         CreatePostedInvoice(Invoice, '', false);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 3, 10);
         CreateReconciliation(Header, Line, Invoice."No.", 83.34);
@@ -300,8 +339,10 @@ codeunit 134497 "ERM Installment Collections"
         Applied.FilterAppliedPmtEntry(Line);
         Assert.AreEqual(2, Applied.Count(), 'A multi-installment receipt must identify both selected entries.');
 
+        // [WHEN] The reconciliation is posted.
         BankPost.Run(Header);
 
+        // [THEN] Only the selected installments close and the final installment retains its remaining 31.66.
         VerifyRemaining(Invoice."Installment Plan ID", 1, 0);
         VerifyRemaining(Invoice."Installment Plan ID", 2, 0);
         VerifyRemaining(Invoice."Installment Plan ID", 3, 31.66);
@@ -321,6 +362,8 @@ codeunit 134497 "ERM Installment Collections"
         MatchPayments: Codeunit "Match Bank Payments";
         BankPost: Codeunit "Bank Acc. Reconciliation Post";
     begin
+        // [SCENARIO] Native automatic reconciliation remains available when only one installment is open.
+        // [GIVEN] The first two installments are settled and a receipt matches the last obligation.
         CreatePostedInvoice(Invoice, '', false);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 41.67);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 2, 41.67);
@@ -328,14 +371,18 @@ codeunit 134497 "ERM Installment Collections"
         CreateReconciliation(Header, Line, Invoice."No.", 41.66);
         MatchPayments.SetApplyEntries(true);
 
+        // [WHEN] Automatic reconciliation matches the receipt.
         MatchPayments.Code(Line);
 
+        // [THEN] Exactly the final installment is selected.
         Applied.FilterAppliedPmtEntry(Line);
         Assert.AreEqual(1, Applied.Count(), 'The last open installment has no intra-invoice allocation ambiguity.');
         Applied.FindFirst();
         GetInstallment(Entry, Invoice."Installment Plan ID", 3);
         Applied.TestField("Applies-to Entry No.", Entry."Entry No.");
+        // [WHEN] The matched reconciliation is posted.
         BankPost.Run(Header);
+        // [THEN] The final obligation and logical invoice are closed.
         VerifyRemaining(Invoice."Installment Plan ID", 3, 0);
         Invoice.CalcFields("Remaining Amount", Closed);
         Invoice.TestField("Remaining Amount", 0);
@@ -354,18 +401,24 @@ codeunit 134497 "ERM Installment Collections"
         MatchPayments: Codeunit "Match Bank Payments";
         BankPost: Codeunit "Bank Acc. Reconciliation Post";
     begin
+        // [SCENARIO] Ordinary invoices retain native automatic matching and settlement.
+        // [GIVEN] A non-installment invoice and a receipt for its full amount.
         CreatePostedInvoice(Invoice, '', true);
         ConfigureMatchingRules();
         CreateReconciliation(Header, Line, Invoice."No.", 125);
         MatchPayments.SetApplyEntries(true);
 
+        // [WHEN] Automatic reconciliation matches the receipt.
         MatchPayments.Code(Line);
 
+        // [THEN] Its single native ledger entry is selected.
         Applied.FilterAppliedPmtEntry(Line);
         Assert.AreEqual(1, Applied.Count(), 'Ordinary invoices must retain native automatic matching.');
         Applied.FindFirst();
         Applied.TestField("Applies-to Entry No.", Invoice."Cust. Ledger Entry No.");
+        // [WHEN] The reconciliation is posted.
         BankPost.Run(Header);
+        // [THEN] The ordinary invoice entry has no remaining balance and is closed.
         Entry.Get(Invoice."Cust. Ledger Entry No.");
         Entry.CalcFields("Remaining Amount");
         Entry.TestField("Remaining Amount", 0);

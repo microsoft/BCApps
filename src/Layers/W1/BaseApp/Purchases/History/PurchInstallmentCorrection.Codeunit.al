@@ -43,6 +43,7 @@ codeunit 8849 "Purch. Installment Correction"
         VendorLedgerEntry.SetRange("Installment Plan ID", Plan.ID);
         if (InstallmentCount = 0) or (VendorLedgerEntry.Count() <> InstallmentCount) then
             Error(OwnershipErr);
+        VendorLedgerEntry.SetAutoCalcFields("Original Amount", "Original Amt. (LCY)", "Remaining Amount");
         PlanLine.FindSet();
         repeat
             Sequence += 1;
@@ -57,7 +58,6 @@ codeunit 8849 "Purch. Installment Correction"
             VendorLedgerEntry.TestField("Vendor No.", PurchInvHeader."Pay-to Vendor No.");
             VendorLedgerEntry.TestField("Currency Code", PurchInvHeader."Currency Code");
             VendorLedgerEntry.TestField("Due Date", PlanLine."Due Date");
-            VendorLedgerEntry.CalcFields("Original Amount", "Original Amt. (LCY)", "Remaining Amount");
             VendorLedgerEntry.TestField("Original Amount", -PlanLine.Amount);
             VendorLedgerEntry.TestField("Original Amt. (LCY)", -PlanLine."Amount (LCY)");
             if RequireUnpaid then begin
@@ -94,9 +94,9 @@ codeunit 8849 "Purch. Installment Correction"
         CheckInvoice(PurchInvHeader, true);
         ApplicationID := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ApplicationID));
         VendorLedgerEntry.SetRange("Installment Plan ID", PurchInvHeader."Installment Plan ID");
+        VendorLedgerEntry.SetAutoCalcFields("Remaining Amount");
         VendorLedgerEntry.FindSet(true);
         repeat
-            VendorLedgerEntry.CalcFields("Remaining Amount");
             VendorLedgerEntry."Applies-to ID" := ApplicationID;
             VendorLedgerEntry."Amount to Apply" := VendorLedgerEntry."Remaining Amount";
             VendorLedgerEntry."Accepted Payment Tolerance" := 0;

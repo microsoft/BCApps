@@ -72,6 +72,7 @@ permissionset 5289 "D365 ACC. PAYABLE"
                   tabledata "Exch. Rate Adjmt. Reg." = Rimd,
                   tabledata "Exch. Rate Adjmt. Ledg. Entry" = Rimd,
                   tabledata "General Ledger Setup" = RM,
+                  tabledata "G/L Correspondence" = Rimd,
                   tabledata "Sales Installment Plan" = Rimd,
                   tabledata "Purchase Installment Plan" = Rimd,
                   tabledata "Sales Installment Plan Line" = Rimd,

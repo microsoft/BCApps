@@ -22,6 +22,11 @@ codeunit 134496 "ERM Installment Correction"
     TestPermissions = NonRestrictive;
     EventSubscriberInstance = Manual;
 
+    trigger OnRun()
+    begin
+        // [FEATURE] [Payment Installments] [Sales] [Correction]
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
@@ -42,10 +47,14 @@ codeunit 134496 "ERM Installment Correction"
         CancelledDocument: Record "Cancelled Document";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
     begin
+        // [SCENARIO] Native cancellation settles every installment and reverses the invoice's accounting exactly once.
+        // [GIVEN] An unpaid posted installment invoice.
         CreatePostedInvoice(SalesInvoiceHeader, SalesLine, false);
 
+        // [WHEN] The invoice is cancelled through the standard correction codeunit.
         Assert.IsTrue(CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvoiceHeader), 'Native cancellation must succeed.');
 
+        // [THEN] One linked credit closes all installments and reverses the original financial postings.
         Assert.IsTrue(
             CancelledDocument.FindSalesCancelledInvoice(SalesInvoiceHeader."No."),
             'Cancellation must retain the native invoice-to-credit relationship.');
@@ -68,14 +77,18 @@ codeunit 134496 "ERM Installment Correction"
         Rule: Record "Payment Term Installment";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
     begin
+        // [SCENARIO] Correcting an unpaid invoice creates an independent replacement using its frozen installment rules.
+        // [GIVEN] A posted installment invoice whose reusable payment terms have subsequently changed.
         CreatePostedInvoice(SalesInvoiceHeader, SalesLine, true);
         Rule.Get(SalesInvoiceHeader."Payment Terms Code", 10000);
         Evaluate(Rule."Due Date Calculation", '<90D>');
         Rule.Modify(true);
         Commit();
 
+        // [WHEN] Native correction cancels the invoice and creates a replacement draft.
         CorrectPostedSalesInvoice.CancelPostedInvoiceCreateNewInvoice(SalesInvoiceHeader, ReplacementHeader);
 
+        // [THEN] The replacement owns a new draft plan with the original frozen rules, not the changed reusable terms.
         Assert.AreNotEqual(SalesInvoiceHeader."Installment Plan ID", ReplacementHeader."Installment Plan ID", 'A replacement must own a new schedule.');
         Plan.Get(ReplacementHeader."Installment Plan ID");
         Assert.AreEqual(Plan.Status::Draft, Plan.Status, 'The replacement schedule must start as a draft.');
@@ -86,8 +99,10 @@ codeunit 134496 "ERM Installment Correction"
             OriginalPlanLine."Due Date Calculation", ReplacementPlanLine."Due Date Calculation",
             'Correction must copy the frozen rules, not changed reusable terms.');
         Assert.AreEqual(0, ReplacementPlanLine."Discount %", 'Replacement terms must retain the original snapshot.');
+        // [WHEN] The replacement invoice is posted.
         ReplacementInvoice.Get(LibrarySales.PostSalesDocument(ReplacementHeader, true, true));
 
+        // [THEN] Original obligations are closed and new independently linked replacement obligations remain open.
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 1, 0);
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 2, 0);
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 3, 0);
@@ -115,6 +130,8 @@ codeunit 134496 "ERM Installment Correction"
         OriginalDiscount: Decimal;
         CreditNo: Code[20];
     begin
+        // [SCENARIO] Selected installment credits and their unapplication preserve earlier payments and original discount terms.
+        // [GIVEN] A partly paid invoice and a credit explicitly selecting 20 from its middle installment.
         CreatePostedInvoice(SalesInvoiceHeader, SalesLine, false);
         LibraryInstallments.PayInstallment(SalesInvoiceHeader."Installment Plan ID", 3, 10);
         CreateCreditCopy(SalesInvoiceHeader, CreditHeader);
@@ -125,8 +142,10 @@ codeunit 134496 "ERM Installment Correction"
         GetInstallment(InvoiceEntry, SalesInvoiceHeader."Installment Plan ID", 2);
         OriginalDiscount := InvoiceEntry."Remaining Pmt. Disc. Possible";
 
+        // [WHEN] The selected credit is posted.
         CreditNo := LibrarySales.PostSalesDocument(CreditHeader, true, true);
 
+        // [THEN] Only the selected balance is credited and no cash payment discount is realized.
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 1, 41.67);
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 2, 21.67);
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 3, 31.66);
@@ -139,8 +158,10 @@ codeunit 134496 "ERM Installment Correction"
         Parameters."Document No." := CreditNo;
         Parameters."Posting Date" := WorkDate();
 
+        // [WHEN] The credit application is unapplied.
         CustEntryApplyPostedEntries.PostUnApplyCustomerCommit(DetailedEntry, Parameters, false);
 
+        // [THEN] The middle obligation and native credit reopen while earlier payments and discount snapshots are preserved.
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 1, 41.67);
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 2, 41.67);
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 3, 31.66);
@@ -161,12 +182,16 @@ codeunit 134496 "ERM Installment Correction"
         ReplacementHeader: Record "Sales Header";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
     begin
+        // [SCENARIO] Installments do not bypass native restrictions on cancelling or correcting paid invoices.
+        // [GIVEN] An invoice with a partial payment on its final installment.
         CreatePostedInvoice(SalesInvoiceHeader, SalesLine, true);
         LibraryInstallments.PayInstallment(SalesInvoiceHeader."Installment Plan ID", 3, 10);
         Commit();
 
+        // [WHEN] Native cancellation is requested.
         asserterror CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvoiceHeader);
 
+        // [THEN] Cancellation is rejected without changing the remaining balance.
         Assert.ExpectedError('fully or partially paid');
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 3, 31.66);
         LibraryInstallments.PayInstallment(SalesInvoiceHeader."Installment Plan ID", 1, 41.67);
@@ -174,8 +199,10 @@ codeunit 134496 "ERM Installment Correction"
         LibraryInstallments.PayInstallment(SalesInvoiceHeader."Installment Plan ID", 3, 31.66);
         Commit();
 
+        // [WHEN] All installments have been settled and native correction is requested.
         asserterror CorrectPostedSalesInvoice.CancelPostedInvoiceCreateNewInvoice(SalesInvoiceHeader, ReplacementHeader);
 
+        // [THEN] Correction is still rejected and all installments remain settled.
         Assert.ExpectedError('fully or partially paid');
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 1, 0);
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 2, 0);
@@ -191,6 +218,8 @@ codeunit 134496 "ERM Installment Correction"
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         SalesPost: Codeunit "Sales-Post";
     begin
+        // [SCENARIO] A partial corrective credit cannot implicitly choose an installment allocation order.
+        // [GIVEN] An unpaid installment invoice copied to a reduced credit without selecting individual entries.
         CreatePostedInvoice(SalesInvoiceHeader, SalesLine, true);
         Assert.IsTrue(
             CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, CreditHeader),
@@ -201,8 +230,10 @@ codeunit 134496 "ERM Installment Correction"
         Commit();
         SalesPost.SetSuppressCommit(true);
 
+        // [WHEN] The partial credit is posted.
         asserterror SalesPost.Run(CreditHeader);
 
+        // [THEN] Explicit installment selection is required and every original balance is unchanged.
         Assert.ExpectedError('Select individual installment entries using Applies-to ID');
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 1, 41.67);
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 2, 41.67);
@@ -223,6 +254,8 @@ codeunit 134496 "ERM Installment Correction"
         SalesPost: Codeunit "Sales-Post";
         PostingNo: Code[20];
     begin
+        // [SCENARIO] Failure during corrective application rolls back the credit and all affected installment state.
+        // [GIVEN] A full corrective credit and an injected failure during installment application.
         CreatePostedInvoice(SalesInvoiceHeader, SalesLine, true);
         Assert.IsTrue(
             CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(SalesInvoiceHeader, CreditHeader),
@@ -235,8 +268,10 @@ codeunit 134496 "ERM Installment Correction"
         Observer.SetApplicationFailure(SalesInvoiceHeader."Installment Plan ID");
         BindSubscription(Observer);
 
+        // [WHEN] Corrective credit posting reaches the injected failure.
         asserterror SalesPost.Run(CreditHeader);
 
+        // [THEN] Original balances, application selections, credit headers, and financial entries roll back together.
         Assert.ExpectedError(ForcedFailureErr);
         UnbindSubscription(Observer);
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 1, 41.67);
@@ -263,6 +298,8 @@ codeunit 134496 "ERM Installment Correction"
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         Observer: Codeunit "ERM Installment Correction";
     begin
+        // [SCENARIO] Cancellation tracking failure cannot leave a posted credit when date-ordered number series are used.
+        // [GIVEN] An unpaid invoice, date-ordered credit numbering, and an injected cancellation-tracking failure.
         CreatePostedInvoice(SalesInvoiceHeader, SalesLine, true);
         SalesSetup.Get();
         NoSeries.Get(SalesSetup."Posted Credit Memo Nos.");
@@ -272,8 +309,10 @@ codeunit 134496 "ERM Installment Correction"
         Observer.SetTrackingFailure(SalesInvoiceHeader."Installment Plan ID");
         BindSubscription(Observer);
 
+        // [WHEN] Native corrective posting reaches the tracking failure.
         asserterror CorrectPostedSalesInvoice.Run(SalesInvoiceHeader);
 
+        // [THEN] The credit, cancellation relationship, and changes to installment balances are rolled back.
         Assert.ExpectedError(ForcedFailureErr);
         UnbindSubscription(Observer);
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 1, 41.67);
@@ -295,12 +334,16 @@ codeunit 134496 "ERM Installment Correction"
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         InvoiceNotification: Notification;
     begin
+        // [SCENARIO] Applied-entry notifications include payments on non-anchor installments without duplication.
+        // [GIVEN] Partial payments against the first and second installments of one invoice.
         CreatePostedInvoice(SalesInvoiceHeader, SalesLine, true);
         LibraryInstallments.PayInstallment(SalesInvoiceHeader."Installment Plan ID", 1, 10);
         LibraryInstallments.PayInstallment(SalesInvoiceHeader."Installment Plan ID", 2, 10);
         InvoiceNotification.Id := CreateGuid();
         InvoiceNotification.SetData(SalesInvoiceHeader.FieldName("No."), SalesInvoiceHeader."No.");
 
+        // [WHEN] Applied entries are opened from the invoice notification.
+        // [THEN] AppliedEntriesHandler finds both payments exactly once.
         CorrectPostedSalesInvoice.ShowAppliedEntries(InvoiceNotification);
     end;
 
@@ -312,6 +355,8 @@ codeunit 134496 "ERM Installment Correction"
         GenJournalLine: Record "Gen. Journal Line";
         InstallmentPosting: Codeunit "Installment Posting";
     begin
+        // [SCENARIO] A customer credit journal cannot impersonate the supported posted sales credit flow.
+        // [GIVEN] A system-created customer credit journal line carrying installment payment terms.
         CreatePostedInvoice(SalesInvoiceHeader, SalesLine, true);
         GenJournalLine."Account Type" := GenJournalLine."Account Type"::Customer;
         GenJournalLine."Account No." := SalesInvoiceHeader."Bill-to Customer No.";
@@ -320,8 +365,10 @@ codeunit 134496 "ERM Installment Correction"
         GenJournalLine."Payment Terms Code" := SalesInvoiceHeader."Payment Terms Code";
         GenJournalLine."System-Created Entry" := true;
 
+        // [WHEN] Installment journal eligibility is checked.
         asserterror InstallmentPosting.CheckJournalLine(GenJournalLine);
 
+        // [THEN] The unsupported direct journal flow is rejected.
         Assert.ExpectedError('Global installments currently support full standalone sales invoices only');
     end;
 

@@ -110,7 +110,7 @@ table 8844 "Purchase Installment Plan Line"
             AutoFormatExpression = '';
             AutoFormatType = 1;
         }
-        field(21; "Vendor Ledger Entry No."; Integer)
+        field(21; "Vendor Ledger Entry No."; BigInteger)
         {
             Caption = 'Vendor Ledger Entry No.';
             TableRelation = "Vendor Ledger Entry";

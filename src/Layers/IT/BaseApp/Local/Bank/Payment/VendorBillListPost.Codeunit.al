@@ -44,9 +44,9 @@ codeunit 12173 "Vendor Bill List - Post"
         BalanceAmountLCY: Decimal;
 
 #if not CLEAN30
-        Text12100: Label 'Meanwhile %1 has been modified for %2 %3 %4 %5. New amount is %6. Please recreate the bill list.';
+        Text12100: Label 'Meanwhile %1 has been modified for %2 %3 %4 %5. New amount is %6. Please recreate the bill list.', Comment = '%1 = Remaining Amount field caption, %2 = Document No. field caption, %3 = Document No., %4 = Document Occurrence field caption, %5 = Document Occurrence, %6 = absolute remaining amount';
 #endif
-        ModifiedRemainingAmountErr: Label 'Meanwhile %1 has been modified for %2 %3. New amount is %4. Please recreate the bill list.';
+        ModifiedRemainingAmountErr: Label 'Meanwhile %1 has been modified for %2 %3. New amount is %4. Please recreate the bill list.', Comment = '%1 = Remaining Amount field caption, %2 = Document No. field caption, %3 = Document No., %4 = absolute remaining amount';
         Text1130000: Label 'Do you want to post the lines?';
         Text1130011: Label 'Posting Vendor Bill...\\';
         Text1130012: Label 'Post Line #1##########\';

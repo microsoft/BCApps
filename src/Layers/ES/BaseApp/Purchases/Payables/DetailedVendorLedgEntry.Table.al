@@ -265,7 +265,7 @@ table 380 "Detailed Vendor Ledg. Entry"
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
-        field(8843; "Invoice Entry No."; Integer)
+        field(8843; "Invoice Entry No."; BigInteger)
         {
             Caption = 'Invoice Entry No.';
             Editable = false;

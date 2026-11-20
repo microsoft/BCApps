@@ -64,7 +64,7 @@ page 8844 "Posted Purch. Inst. Schedule"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the original posted installment amount in local currency.';
                 }
-                field(RemainingAmount; VendorLedgerEntry."Remaining Amount")
+                field(RemainingAmount; RemainingAmount)
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatExpression = CurrencyCode;
@@ -72,13 +72,15 @@ page 8844 "Posted Purch. Inst. Schedule"
                     Caption = 'Remaining Amount';
                     ToolTip = 'Specifies the current unpaid amount from the linked vendor ledger entry.';
                 }
-                field(RemainingAmountLCY; VendorLedgerEntry."Remaining Amt. (LCY)")
+                field(RemainingAmountLCY; RemainingAmountLCY)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatExpression = '';
+                    AutoFormatType = 1;
                     Caption = 'Remaining Amount (LCY)';
                     ToolTip = 'Specifies the current unpaid local currency amount, including exchange rate adjustments.';
                 }
-                field(Open; VendorLedgerEntry.Open)
+                field(Open; TempVendorLedgerEntry.Open)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Open';
@@ -142,23 +144,57 @@ page 8844 "Posted Purch. Inst. Schedule"
         Plan.TestField(Status, Plan.Status::Posted);
         InvoiceNo := Plan."Posted Invoice No.";
         CurrencyCode := Plan."Currency Code";
+        PlanID := Plan.ID;
         Rec.SetRange("Plan ID", Plan.ID);
         Rec.FilterGroup(0);
     end;
 
+    trigger OnFindRecord(Which: Text): Boolean
+    begin
+        LoadLedgerEntries();
+        exit(Rec.Find(Which));
+    end;
+
     trigger OnAfterGetRecord()
     begin
-        VendorLedgerEntry.Get(Rec."Vendor Ledger Entry No.");
-        VendorLedgerEntry.TestField("Installment Plan ID", Rec."Plan ID");
-        VendorLedgerEntry.TestField("Installment No.", Rec."Installment No.");
-        VendorLedgerEntry.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
+        TempVendorLedgerEntry.Get(Rec."Vendor Ledger Entry No.");
+        TempVendorLedgerEntry.TestField("Installment Plan ID", Rec."Plan ID");
+        TempVendorLedgerEntry.TestField("Installment No.", Rec."Installment No.");
+        RemainingAmount := RemainingAmounts.Get(Rec."Vendor Ledger Entry No.");
+        RemainingAmountLCY := RemainingAmountsLCY.Get(Rec."Vendor Ledger Entry No.");
     end;
 
     var
         FeatureKeyManagement: Codeunit "Feature Key Management";
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary;
         InvoiceNo: Code[20];
         CurrencyCode: Code[10];
+        PlanID: Guid;
+        RemainingAmount: Decimal;
+        RemainingAmountLCY: Decimal;
+        RemainingAmounts: Dictionary of [BigInteger, Decimal];
+        RemainingAmountsLCY: Dictionary of [BigInteger, Decimal];
+
+    local procedure LoadLedgerEntries()
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        TempVendorLedgerEntry.Reset();
+        TempVendorLedgerEntry.DeleteAll();
+        Clear(RemainingAmounts);
+        Clear(RemainingAmountsLCY);
+        VendorLedgerEntry.SetCurrentKey("Installment Plan ID", "Installment No.");
+        VendorLedgerEntry.SetRange("Installment Plan ID", PlanID);
+        VendorLedgerEntry.SetAutoCalcFields("Remaining Amount", "Remaining Amt. (LCY)");
+        if VendorLedgerEntry.FindSet() then
+            repeat
+                TempVendorLedgerEntry := VendorLedgerEntry;
+                TempVendorLedgerEntry.Insert();
+                // FlowField values are not persisted in temporary records.
+                RemainingAmounts.Add(VendorLedgerEntry."Entry No.", VendorLedgerEntry."Remaining Amount");
+                RemainingAmountsLCY.Add(VendorLedgerEntry."Entry No.", VendorLedgerEntry."Remaining Amt. (LCY)");
+            until VendorLedgerEntry.Next() = 0;
+    end;
 
     local procedure ShowVendorEntry()
     var

@@ -24,7 +24,7 @@ codeunit 8843 "Sales Installment History"
         LatePostingErr: Label 'Late journal posting is not supported for global installment invoices.';
         IncompleteBackfillMsg: Label 'Installment invoice grouping could not be completed because a posted invoice or customer ledger anchor is missing or inconsistent. The upgrade tag was not set.', Locked = true;
 
-    internal procedure SetInvoiceGroup(PlanID: Guid; InvoiceEntryNo: Integer)
+    internal procedure SetInvoiceGroup(PlanID: Guid; InvoiceEntryNo: BigInteger)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
@@ -59,7 +59,7 @@ codeunit 8843 "Sales Installment History"
             until Plan.Next() = 0;
         if not Complete then
             Session.LogMessage('InstallmentGroupBackfillIncomplete', IncompleteBackfillMsg, Verbosity::Warning,
-                DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'AL SaaS Upgrade');
+                DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'AL SaaS Upgrade');
     end;
 
     local procedure BackfillInvoiceGroup(Plan: Record "Sales Installment Plan"): Boolean
@@ -266,7 +266,7 @@ codeunit 8843 "Sales Installment History"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Applied Payment Entry", 'OnApplyFromBankStmtMatchingBufOnBeforeInsert', '', false, false)]
-    local procedure CheckAutomaticReconciliation(BankAccReconLine: Record "Bank Acc. Reconciliation Line"; BankStmtMatchingBuffer: Record "Bank Statement Matching Buffer"; EntryNo: Integer)
+    local procedure CheckAutomaticReconciliation(BankAccReconLine: Record "Bank Acc. Reconciliation Line"; BankStmtMatchingBuffer: Record "Bank Statement Matching Buffer"; EntryNo: BigInteger)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         OpenInstallment: Record "Cust. Ledger Entry";

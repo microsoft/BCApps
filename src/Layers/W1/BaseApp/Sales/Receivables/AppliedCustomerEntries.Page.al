@@ -335,13 +335,13 @@ page 61 "Applied Customer Entries"
         DimVisible1: Boolean;
         DimVisible2: Boolean;
         HasDocumentAttachment: Boolean;
-        InvoiceEntryNo: Integer;
+        InvoiceEntryNo: BigInteger;
 
 #pragma warning disable AA0074
         Text000: Label 'Document';
 #pragma warning restore AA0074
 
-    internal procedure SetInvoiceEntryNo(NewInvoiceEntryNo: Integer)
+    internal procedure SetInvoiceEntryNo(NewInvoiceEntryNo: BigInteger)
     begin
         InvoiceEntryNo := NewInvoiceEntryNo;
     end;

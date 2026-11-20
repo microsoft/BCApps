@@ -1112,7 +1112,7 @@ table 21 "Cust. Ledger Entry"
             Editable = false;
             ToolTip = 'Specifies the number of receivables in the installment plan.';
         }
-        field(8843; "Invoice Entry No."; Integer)
+        field(8843; "Invoice Entry No."; BigInteger)
         {
             Caption = 'Invoice Entry No.';
             Editable = false;

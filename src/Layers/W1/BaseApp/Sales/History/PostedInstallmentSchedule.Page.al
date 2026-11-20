@@ -65,7 +65,7 @@ page 8842 "Posted Installment Schedule"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the original posted installment amount in local currency.';
                 }
-                field(RemainingAmount; CustLedgerEntry."Remaining Amount")
+                field(RemainingAmount; RemainingAmount)
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatExpression = CurrencyCode;
@@ -73,13 +73,15 @@ page 8842 "Posted Installment Schedule"
                     Caption = 'Remaining Amount';
                     ToolTip = 'Specifies the current unpaid amount from the linked customer ledger entry.';
                 }
-                field(RemainingAmountLCY; CustLedgerEntry."Remaining Amt. (LCY)")
+                field(RemainingAmountLCY; RemainingAmountLCY)
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatExpression = '';
+                    AutoFormatType = 1;
                     Caption = 'Remaining Amount (LCY)';
                     ToolTip = 'Specifies the current unpaid local currency amount, including exchange rate adjustments.';
                 }
-                field(Open; CustLedgerEntry.Open)
+                field(Open; TempCustLedgerEntry.Open)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Open';
@@ -143,23 +145,57 @@ page 8842 "Posted Installment Schedule"
         Plan.TestField(Status, Plan.Status::Posted);
         InvoiceNo := Plan."Posted Invoice No.";
         CurrencyCode := Plan."Currency Code";
+        PlanID := Plan.ID;
         Rec.SetRange("Plan ID", Plan.ID);
         Rec.FilterGroup(0);
     end;
 
+    trigger OnFindRecord(Which: Text): Boolean
+    begin
+        LoadLedgerEntries();
+        exit(Rec.Find(Which));
+    end;
+
     trigger OnAfterGetRecord()
     begin
-        CustLedgerEntry.Get(Rec."Cust. Ledger Entry No.");
-        CustLedgerEntry.TestField("Installment Plan ID", Rec."Plan ID");
-        CustLedgerEntry.TestField("Installment No.", Rec."Installment No.");
-        CustLedgerEntry.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
+        TempCustLedgerEntry.Get(Rec."Cust. Ledger Entry No.");
+        TempCustLedgerEntry.TestField("Installment Plan ID", Rec."Plan ID");
+        TempCustLedgerEntry.TestField("Installment No.", Rec."Installment No.");
+        RemainingAmount := RemainingAmounts.Get(Rec."Cust. Ledger Entry No.");
+        RemainingAmountLCY := RemainingAmountsLCY.Get(Rec."Cust. Ledger Entry No.");
     end;
 
     var
         FeatureKeyManagement: Codeunit "Feature Key Management";
-        CustLedgerEntry: Record "Cust. Ledger Entry";
+        TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary;
         InvoiceNo: Code[20];
         CurrencyCode: Code[10];
+        PlanID: Guid;
+        RemainingAmount: Decimal;
+        RemainingAmountLCY: Decimal;
+        RemainingAmounts: Dictionary of [BigInteger, Decimal];
+        RemainingAmountsLCY: Dictionary of [BigInteger, Decimal];
+
+    local procedure LoadLedgerEntries()
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        TempCustLedgerEntry.Reset();
+        TempCustLedgerEntry.DeleteAll();
+        Clear(RemainingAmounts);
+        Clear(RemainingAmountsLCY);
+        CustLedgerEntry.SetCurrentKey("Installment Plan ID", "Installment No.");
+        CustLedgerEntry.SetRange("Installment Plan ID", PlanID);
+        CustLedgerEntry.SetAutoCalcFields("Remaining Amount", "Remaining Amt. (LCY)");
+        if CustLedgerEntry.FindSet() then
+            repeat
+                TempCustLedgerEntry := CustLedgerEntry;
+                TempCustLedgerEntry.Insert();
+                // FlowField values are not persisted in temporary records.
+                RemainingAmounts.Add(CustLedgerEntry."Entry No.", CustLedgerEntry."Remaining Amount");
+                RemainingAmountsLCY.Add(CustLedgerEntry."Entry No.", CustLedgerEntry."Remaining Amt. (LCY)");
+            until CustLedgerEntry.Next() = 0;
+    end;
 
     local procedure ShowCustomerEntry()
     var

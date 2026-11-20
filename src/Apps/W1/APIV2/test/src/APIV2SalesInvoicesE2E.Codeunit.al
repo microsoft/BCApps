@@ -1221,7 +1221,10 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         PublicID: Guid;
         EntryNo: Integer;
     begin
+        // [SCENARIO] Unapplying and reapplying a later installment payment updates the invoice API without changing its identity.
         Initialize();
+
+        // [GIVEN] A posted invoice with three installments is available through the sales invoice API.
         BindSubscription(APIMockEvents);
         APIMockEvents.SetIsAPIEnabled(true);
         LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
@@ -1230,21 +1233,34 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         EntryNo := Entry."Entry No.";
         VerifyInstallmentInvoiceAPI(PublicID, Invoice."No.", 125, 'Open');
 
+        // [WHEN] The first and last installments are paid.
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 41.67);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 3, 41.66);
+
+        // [THEN] The invoice remains open with only the second installment outstanding.
         VerifyInstallmentInvoiceAPI(PublicID, Invoice."No.", 41.67, 'Open');
+
+        // [WHEN] The second installment is paid.
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 2, 41.67);
+
+        // [THEN] The API reports the invoice as paid with no remaining balance.
         VerifyInstallmentInvoiceAPI(PublicID, Invoice."No.", 0, 'Paid');
+
+        // [GIVEN] The payment application for the second installment is selected for unapplication.
         DetailedEntry.Get(CustEntryApplyPostedEntries.FindLastApplEntry(EntryNo));
         LibraryERM.FindCustomerLedgerEntry(PaymentEntry, PaymentEntry."Document Type"::Payment, DetailedEntry."Document No.");
         TempParameters."Document No." := DetailedEntry."Document No.";
         TempParameters."Posting Date" := WorkDate();
 
+        // [WHEN] The payment application for the second installment is undone.
         CustEntryApplyPostedEntries.PostUnApplyCustomerCommit(DetailedEntry, TempParameters, false);
 
+        // [THEN] The same invoice reopens with the second installment outstanding and its original ledger entry preserved.
         VerifyInstallmentInvoiceAPI(PublicID, Invoice."No.", 41.67, 'Open');
         LibraryInstallments.GetInstallment(Entry, Invoice."Installment Plan ID", 2);
         Assert.AreEqual(EntryNo, Entry."Entry No.", 'Unapply must preserve the original non-anchor entry.');
+
+        // [WHEN] The payment is reapplied to the second installment.
         PaymentEntry.Get(PaymentEntry."Entry No.");
         PaymentEntry.CalcFields("Remaining Amount");
         LibraryERM.SetApplyCustomerEntry(PaymentEntry, PaymentEntry."Remaining Amount");
@@ -1253,6 +1269,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         Entry.SetRecFilter();
         LibraryERM.SetAppliestoIdCustomer(Entry);
         LibraryERM.PostCustLedgerApplication(PaymentEntry);
+
+        // [THEN] The API reports the same invoice as paid again with no remaining balance.
         VerifyInstallmentInvoiceAPI(PublicID, Invoice."No.", 0, 'Paid');
         UnbindSubscription(APIMockEvents);
     end;
@@ -1265,6 +1283,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         APIMockEvents: Codeunit "API Mock Events";
         PublicID: Guid;
     begin
+        // [SCENARIO] The invoice API combines a selected installment credit with an earlier payment without changing invoice identity.
+        // [GIVEN] An installment invoice has an earlier partial payment and an Open API balance of 115.
         Initialize();
         BindSubscription(APIMockEvents);
         APIMockEvents.SetIsAPIEnabled(true);
@@ -1273,8 +1293,10 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 3, 10);
         VerifyInstallmentInvoiceAPI(PublicID, Invoice."No.", 115, 'Open');
 
+        // [WHEN] A credit of 20 is applied to the middle installment.
         LibraryInstallments.CreditInstallment(Invoice, 2, 20, WorkDate());
 
+        // [THEN] The same API invoice remains Open with a remaining balance of 95.
         VerifyInstallmentInvoiceAPI(PublicID, Invoice."No.", 95, 'Open');
         UnbindSubscription(APIMockEvents);
     end;
@@ -1291,20 +1313,29 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         OriginalID: Guid;
         ReplacementID: Guid;
     begin
+        // [SCENARIO] Correcting an installment invoice preserves its canceled API identity and gives the replacement its own identity.
         Initialize();
+
+        // [GIVEN] A posted installment invoice is open and available through the sales invoice API.
         BindSubscription(APIMockEvents);
         APIMockEvents.SetIsAPIEnabled(true);
         LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
         OriginalID := Invoice."Draft Invoice SystemId";
         VerifyInstallmentInvoiceAPI(OriginalID, Invoice."No.", 125, 'Open');
 
+        // [WHEN] The invoice is canceled and a replacement invoice is created.
         CorrectPostedSalesInvoice.CancelPostedInvoiceCreateNewInvoice(Invoice, Replacement);
 
+        // [THEN] The replacement has its own identity and installment schedule, while the original API invoice is canceled.
         ReplacementID := Replacement.SystemId;
         Assert.AreNotEqual(OriginalID, ReplacementID, 'The replacement must have its own public invoice identity.');
         Assert.AreNotEqual(Invoice."Installment Plan ID", Replacement."Installment Plan ID", 'The replacement must own its schedule.');
         VerifyInstallmentInvoiceAPI(OriginalID, Invoice."No.", 0, 'Canceled');
+
+        // [WHEN] The replacement invoice is posted.
         ReplacementInvoice.Get(LibrarySales.PostSalesDocument(Replacement, true, true));
+
+        // [THEN] Its API identity resolves to the open replacement, and the original identity still resolves to the canceled invoice.
         VerifyInstallmentInvoiceAPI(ReplacementID, ReplacementInvoice."No.", 125, 'Open');
         VerifyInstallmentInvoiceAPI(OriginalID, Invoice."No.", 0, 'Canceled');
         UnbindSubscription(APIMockEvents);

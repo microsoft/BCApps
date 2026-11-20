@@ -27,6 +27,7 @@ codeunit 8841 "Sales Installment Mgt."
         ViewScheduleLbl: Label 'View Installment Schedule';
         PlanLinkErr: Label 'The installment plan must belong to this invoice and match its payment terms. Change the payment terms to replace or remove the plan.';
         DiscountPolicyErr: Label 'Installment preview with payment discounts does not yet support Pmt. Disc. Excl. VAT or Adjust for Payment Disc. in General Ledger Setup.';
+        ReadPermissionErr: Label 'You do not have permission to read the %1 table.', Comment = '%1 = Table caption';
 
     procedure ShowSchedule(var SalesHeader: Record "Sales Header")
     var
@@ -52,6 +53,7 @@ codeunit 8841 "Sales Installment Mgt."
     procedure CalculatePreview(var SalesHeader: Record "Sales Header"; var TempPlanLine: Record "Sales Installment Plan Line" temporary)
     var
         Plan: Record "Sales Installment Plan";
+        PlanLine: Record "Sales Installment Plan Line";
         Currency: Record Currency;
         GLSetup: Record "General Ledger Setup";
         TempSalesLine: Record "Sales Line" temporary;
@@ -64,6 +66,10 @@ codeunit 8841 "Sales Installment Mgt."
         ProfitPct: Decimal;
         TotalAdjCostLCY: Decimal;
     begin
+        if not Plan.ReadPermission() then
+            Error(ReadPermissionErr, Plan.TableCaption());
+        if not PlanLine.ReadPermission() then
+            Error(ReadPermissionErr, PlanLine.TableCaption());
         FeatureKeyManagement.CheckPaymentInstallmentsEnabled();
         if not TempPlanLine.IsTemporary() then
             Error(TemporaryResultErr);

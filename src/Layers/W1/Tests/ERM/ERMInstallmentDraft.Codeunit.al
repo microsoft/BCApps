@@ -16,6 +16,11 @@ codeunit 134492 "ERM Installment Draft"
     Subtype = Test;
     TestPermissions = NonRestrictive;
 
+    trigger OnRun()
+    begin
+        // [FEATURE] [Payment Installments] [Sales] [Draft]
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";

@@ -23,6 +23,16 @@ page 8840 "Payment Term Installments"
         {
             repeater(Lines)
             {
+                field("Payment Terms Code"; Rec."Payment Terms Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                }
+                field("Line No."; Rec."Line No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                }
                 field("Allocation Type"; Rec."Allocation Type")
                 {
                     ApplicationArea = Basic, Suite;
