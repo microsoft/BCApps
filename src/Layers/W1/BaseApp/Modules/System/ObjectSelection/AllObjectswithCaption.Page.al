@@ -101,7 +101,6 @@ page 9174 "All Objects with Caption"
         AllObjWithCaption."Object Type" := ObjectType;
         if Evaluate(ObjectID, ObjectIDText) then
             AllObjWithCaption."Object ID" := ObjectID;
-
         if Page.RunModal(Page::"All Objects with Caption", AllObjWithCaption) <> ACTION::LookupOK then
             exit(false);
 
