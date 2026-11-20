@@ -11,17 +11,24 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     var
-        TestCU: Codeunit "Depr. Diff. Calculation FI";
+#if not CLEAN30
+        TestCU: Codeunit "Depr. Diff. Demo Data FI Tests";
+#endif
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+#if not CLEAN30
+        FeatureEnabled: Boolean;
+#endif
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure ContosoDemoGeneratorInitializesExtensionAccounts()
     var
+        CreateGLAccountFI: Codeunit "Create FI GL Accounts";
         ContosoDemoToolPage: TestPage "Contoso Demo Tool";
     begin
         // [FEATURE] [AI test 1.0]
@@ -42,7 +49,8 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
 #endif
 
         // [THEN] All five posting groups have extension accounts instead of legacy accounts.
-        VerifyContosoPostingGroupAccounts(true);
+        VerifyContosoPostingGroupAccounts(
+            CreateGLAccountFI.Changeindepreciationreserve4(), CreateGLAccountFI.Depreciationdifference3(), '', '');
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
@@ -51,6 +59,7 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure ContosoDemoGeneratorInitializesLegacyAccountsWhenFeatureDisabled()
     var
+        CreateGLAccountFI: Codeunit "Create FI GL Accounts";
         ContosoDemoToolPage: TestPage "Contoso Demo Tool";
     begin
         // [FEATURE] [AI test 1.0]
@@ -67,7 +76,8 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
         UnbindSubscription(TestCU);
 
         // [THEN] All five posting groups have legacy accounts and empty extension accounts.
-        VerifyContosoPostingGroupAccounts(false);
+        VerifyContosoPostingGroupAccounts(
+            '', '', CreateGLAccountFI.Changeindepreciationreserve4(), CreateGLAccountFI.Depreciationdifference3());
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 #endif
@@ -137,7 +147,9 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
         PostingGroupCodes.Add(CreateFAPostingGroup.Vehicles());
     end;
 
-    local procedure VerifyContosoPostingGroupAccounts(UseExtensionFields: Boolean)
+    local procedure VerifyContosoPostingGroupAccounts(
+        ExpectedDepreciationDifferenceAccount: Code[20]; ExpectedDepreciationDifferenceBalAccount: Code[20];
+        ExpectedLegacyDepreciationDifferenceAccount: Code[20]; ExpectedLegacyDepreciationDifferenceBalAccount: Code[20])
     var
         FAPostingGroup: Record "FA Posting Group";
         GLAccount: Record "G/L Account";
@@ -160,7 +172,14 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
             Assert.AreEqual(CreateGLAccount.DerogatoryAccount(), FAPostingGroup."Derogatory Account (Decrease)", 'The derogatory decrease account must remain initialized.');
             Assert.AreEqual(CreateGLAccount.DerogExpenseAccForCredit(), FAPostingGroup."Derog. Bal. Account (Decrease)", 'The derogatory balancing account must remain initialized.');
             Assert.AreEqual(CreateGLAccount.DerogExpenseAccForDebit(), FAPostingGroup."Derogatory Expense Acc.", 'The derogatory expense account must remain initialized.');
-            TestCU.VerifyDemoPostingGroupAccounts(FAPostingGroup, DeprDifferenceAccount, DeprDifferenceBalAccount, UseExtensionFields);
+            Assert.AreEqual(ExpectedDepreciationDifferenceAccount, FAPostingGroup."Deprec. Difference Account", 'The extension depreciation difference account must match the feature state.');
+            Assert.AreEqual(ExpectedDepreciationDifferenceBalAccount, FAPostingGroup."Deprec. Difference Bal Acct", 'The extension depreciation difference balancing account must match the feature state.');
+#if not CLEAN30
+#pragma warning disable AL0432
+            Assert.AreEqual(ExpectedLegacyDepreciationDifferenceAccount, FAPostingGroup."Depr. Difference Acc.", 'The legacy depreciation difference account must match the feature state.');
+            Assert.AreEqual(ExpectedLegacyDepreciationDifferenceBalAccount, FAPostingGroup."Depr. Difference Bal. Acc.", 'The legacy depreciation difference balancing account must match the feature state.');
+#pragma warning restore AL0432
+#endif
         end;
     end;
 
@@ -170,6 +189,17 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
         UnbindSubscription(TestCU);
         TestCU.SetFeatureEnabledValue(Enabled);
         BindSubscription(TestCU);
+    end;
+
+    procedure SetFeatureEnabledValue(Enabled: Boolean)
+    begin
+        FeatureEnabled := Enabled;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"FI Depreciation Diff. Feature", OnAfterCheckFeatureEnabled, '', false, false)]
+    local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
+    begin
+        IsEnabled := FeatureEnabled;
     end;
 #endif
 }
