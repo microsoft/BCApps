@@ -244,6 +244,13 @@ page 4404 "SOA Email Message"
                     end;
                 }
             }
+            part(Attachments; "SOA Email Attachments")
+            {
+                ApplicationArea = All;
+                Caption = 'Attachments';
+                SubPageLink = "Task ID" = field("Task ID");
+                Editable = false;
+            }
             group(PreviousMessages)
             {
                 Caption = 'Previous Messages';
@@ -267,13 +274,6 @@ page 4404 "SOA Email Message"
                         CurrPage.Update(false);
                     end;
                 }
-            }
-            part(Attachments; "SOA Email Attachments")
-            {
-                ApplicationArea = All;
-                Caption = 'Attachments';
-                SubPageLink = "Task ID" = field("Task ID");
-                Editable = false;
             }
         }
     }
