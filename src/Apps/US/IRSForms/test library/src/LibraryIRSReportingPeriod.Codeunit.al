@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Finance.GeneralLedger.Ledger;
+using System.Environment;
 
 codeunit 148000 "Library IRS Reporting Period"
 {
@@ -74,5 +75,28 @@ codeunit 148000 "Library IRS Reporting Period"
         IRSReportingPeriod: Codeunit "IRS Reporting Period";
     begin
         IRSReportingPeriod.CopyReportingPeriodSetup(FromPeriodNo, ToPeriodNo);
+    end;
+
+    procedure CopyPeriodSetup(FromPeriodNo: Code[20]; ToPeriodNo: Code[20]; var TempSelectedCompany: Record Company temporary)
+    var
+        IRSReportingPeriod: Codeunit "IRS Reporting Period";
+    begin
+        IRSReportingPeriod.CopyReportingPeriodSetup(FromPeriodNo, ToPeriodNo, TempSelectedCompany);
+    end;
+
+    procedure ReconcileAnnualSetup(PeriodNo: Code[20]; TargetCompany: Text): Text
+    var
+        IRSFormsData: Codeunit "IRS Forms Data";
+        Details: Text;
+    begin
+        IRSFormsData.ReconcileAnnualSetup(PeriodNo, TargetCompany, Details);
+        exit(Details);
+    end;
+
+    procedure UpdateDataForNewTaxYear(FromPeriodNo: Code[20]; ToPeriodNo: Code[20])
+    var
+        IRSReportingPeriod: Codeunit "IRS Reporting Period";
+    begin
+        IRSReportingPeriod.UpdateDataForNewTaxYear(FromPeriodNo, ToPeriodNo, false);
     end;
 }

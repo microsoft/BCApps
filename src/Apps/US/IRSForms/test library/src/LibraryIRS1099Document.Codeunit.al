@@ -21,10 +21,131 @@ codeunit 148001 "Library IRS 1099 Document"
         LibraryJournals: Codeunit "Library - Journals";
         LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
+        Supplemental: Codeunit "IRS 1099 Supplemental";
 
     procedure CreateFormDocuments(ReportingDate: Date)
     begin
         CreateFormDocuments(ReportingDate, ReportingDate, '', '');
+    end;
+
+    procedure CreateSupplementalDocument(var DocHeader: Record "IRS 1099 Form Doc. Header"; FormNo: Code[20])
+    var
+        IRS1099Form: Record "IRS 1099 Form";
+        FormBox: Record "IRS 1099 Form Box";
+        DocLine: Record "IRS 1099 Form Doc. Line";
+        PeriodNo: Code[20];
+        ParentBoxNo: Code[20];
+    begin
+        PeriodNo := '2026';
+        LibraryIRSReportingPeriod.CreateSpecificReportingPeriod(PeriodNo, DMY2Date(1, 1, 2026), DMY2Date(31, 12, 2026));
+        IRS1099Form."Period No." := PeriodNo;
+        IRS1099Form."No." := FormNo;
+        IRS1099Form.Insert(true);
+        if FormNo = 'NEC' then
+            ParentBoxNo := 'NEC-01'
+        else
+            ParentBoxNo := 'MISC-03';
+        FormBox."Period No." := PeriodNo;
+        FormBox."Form No." := FormNo;
+        FormBox."No." := ParentBoxNo;
+        FormBox.Insert(true);
+        DocHeader.Init();
+        DocHeader."Period No." := PeriodNo;
+        DocHeader."Vendor No." := LibraryPurchase.CreateVendorNo();
+        DocHeader."Form No." := FormNo;
+        DocHeader.Insert(true);
+        MockFormDocumentLineForVendor(DocLine, DocHeader.ID, PeriodNo, DocHeader."Vendor No.", FormNo, ParentBoxNo);
+        DocLine.Validate(Amount, 5000);
+        DocLine.Modify(true);
+        if FormNo = 'NEC' then begin
+            CreateSupplementalDefinition(PeriodNo, FormNo, 'NEC-01B');
+            CreateSupplementalDefinition(PeriodNo, FormNo, 'NEC-01C');
+            CreateSupplementalDefinition(PeriodNo, FormNo, 'NEC-01D');
+        end else begin
+            CreateSupplementalDefinition(PeriodNo, FormNo, 'MISC-13A');
+            CreateSupplementalDefinition(PeriodNo, FormNo, 'MISC-13B');
+            CreateSupplementalDefinition(PeriodNo, FormNo, 'MISC-14');
+        end;
+    end;
+
+    procedure CreateSupplementalDefinition(PeriodNo: Code[20]; FormNo: Code[20]; BoxNo: Code[20])
+    var
+        ReportingPeriod: Record "IRS Reporting Period";
+        IRS1099SupplBox: Record "IRS 1099 Suppl. Box";
+    begin
+        IRS1099SupplBox."Period No." := PeriodNo;
+        IRS1099SupplBox."Form No." := FormNo;
+        IRS1099SupplBox."No." := BoxNo;
+        ReportingPeriod.Get(PeriodNo);
+        Supplemental.GetMapping(Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9), FormNo, BoxNo, IRS1099SupplBox."Parent Form Box No.",
+            IRS1099SupplBox."XML Element Name", IRS1099SupplBox."Value Type");
+        IRS1099SupplBox.Description := BoxNo;
+        IRS1099SupplBox.Insert(true);
+    end;
+
+    procedure FilterAvailableSupplementalBoxes(var IRS1099SupplBox: Record "IRS 1099 Suppl. Box"; DocumentID: Integer)
+    begin
+        Supplemental.FilterAvailableDefinitions(IRS1099SupplBox, DocumentID);
+    end;
+
+    procedure ReleaseDocument(var DocHeader: Record "IRS 1099 Form Doc. Header")
+    var
+        FormDocument: Codeunit "IRS 1099 Form Document";
+    begin
+        FormDocument.Release(DocHeader);
+    end;
+
+    procedure UpdateTransmission(var Transmission: Record "Transmission IRIS")
+    var
+        ProcessTransmission: Codeunit "Process Transmission IRIS";
+    begin
+        ProcessTransmission.Update(Transmission);
+    end;
+
+    procedure GetDocumentUpdateCandidates(var TempDocLine: Record "IRS 1099 Form Doc. Line" temporary; var TempDetails: Record "IRS 1099 Form Doc. Line Detail" temporary; PeriodNo: Code[20])
+    var
+        ProcessTransmission: Codeunit "Process Transmission IRIS";
+    begin
+        Assert.IsTrue(StrLen(PeriodNo) <= 4, 'Transmission update fixtures require a four-character reporting period.');
+        ProcessTransmission.GetIRS1099FormDocsToUpdate(TempDocLine, TempDetails, CopyStr(PeriodNo, 1, 4));
+    end;
+
+    procedure IsSupplementalReportable(SupplLine: Record "IRS 1099 Doc. Suppl. Line"): Boolean
+    begin
+        exit(Supplemental.IsReportable(SupplLine));
+    end;
+
+    procedure GetStatementDataset(DocHeader: Record "IRS 1099 Form Doc. Header") Lines: JsonArray
+    var
+        TempReportLine: Record "IRS 1099 Report Line";
+        Dataset: Codeunit "IRS 1099 Dataset";
+        Line: JsonObject;
+    begin
+        Dataset.Get1099Dataset(DocHeader, TempReportLine);
+        if TempReportLine.FindSet() then
+            repeat
+                Clear(Line);
+                Line.Add('name', TempReportLine.Name);
+                Line.Add('value', TempReportLine.Value);
+                Lines.Add(Line);
+            until TempReportLine.Next() = 0;
+    end;
+
+    procedure RecalculateIncludeIn1099(DocumentID: Integer)
+    begin
+        Supplemental.RecalculateIncludeIn1099(DocumentID);
+    end;
+
+    procedure ApplyDocumentCreationCandidates(var TempDocLine: Record "IRS 1099 Form Doc. Line" temporary; var TempDetails: Record "IRS 1099 Form Doc. Line Detail" temporary) NewDocumentIDs: List of [Integer]
+    var
+        ProcessTransmission: Codeunit "Process Transmission IRIS";
+    begin
+        exit(ProcessTransmission.UpdateIRS1099FormDocuments(TempDocLine, TempDetails));
+    end;
+
+    procedure GetSupplementalExplanation(SupplLine: Record "IRS 1099 Doc. Suppl. Line"): Text
+    begin
+        exit(Supplemental.GetExclusionExplanation(SupplLine));
     end;
 
     procedure CreateFormDocuments(StartingDate: Date; EndingDate: Date)

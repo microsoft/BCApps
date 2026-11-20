@@ -58,6 +58,7 @@ table 10050 "Transmission IRIS"
 
     var
         CannotDeleteTransmissionErr: Label 'A transmission with status other than None cannot be deleted.';
+        SchemaSource: Text;
 
     trigger OnDelete()
     var
@@ -85,5 +86,15 @@ table 10050 "Transmission IRIS"
 
         Rec.Init();
         Rec."Document ID" := DocID;
+    end;
+
+    internal procedure SetSchemaSource(Source: Text)
+    begin
+        SchemaSource := Source;
+    end;
+
+    internal procedure GetSchemaSource(): Text
+    begin
+        exit(SchemaSource);
     end;
 }

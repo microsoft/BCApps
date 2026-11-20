@@ -11,14 +11,25 @@ using Microsoft.Purchases.Vendor;
 using System.Telemetry;
 using System.Utilities;
 
+/// <summary>
+/// Builds shared IRIS transmission XML parts for schema implementations.
+/// </summary>
+/// <remarks>
+/// Use fresh or cleared generator and XML-helper instances for each transmission.
+/// Call PrepareTransmission first, build the manifest and submissions, then call FinishTransmission.
+/// Keep the same generator and XML-helper instances throughout the operation.
+/// </remarks>
 codeunit 10033 "Generate Xml File IRIS"
 {
-    Access = Internal;
+    Access = Public;
 
     var
         Helper: Codeunit "Helper IRIS";
         IRSFormsFacade: Codeunit "IRS Forms Facade";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        TaxYearGlobal: Text[4];
+        SoftwareIdGlobal: Text;
+        TCCGlobal: Text;
         SubmissionIdGlobal: Integer;
         RecordIdGlobal: Integer;
         TotalSubmissionCountGlobal: Integer;
@@ -41,78 +52,86 @@ codeunit 10033 "Generate Xml File IRIS"
         SubmissionIdEmtpyErr: Label 'Submission ID is missing for the 1099 form document with ID %1.', Comment = '%1 - IRS 1099 Form Doc. ID';
         RecordIdEmtpyErr: Label 'Record ID is missing for the 1099 form document with ID %1. \Reopen the document or clear the Needs Correction flag to exclude it from the correction transmission. \If you use two-step correction, release the document before step 2.', Comment = '%1 - IRS 1099 Form Doc. ID';
 
-    procedure CreateTransmission(var Transmission: Record "Transmission IRIS"; TransmissionType: Enum "Transmission Type IRIS"; var UniqueTransmissionId: Text[100]; var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var TempBlob: Codeunit "Temp Blob")
+    /// <summary>
+    /// Selects and validates documents, initializes XML and returns a new transmission ID.
+    /// </summary>
+    /// <remarks>Clear both codeunit instances before calling. Preparation may ask for tax-year mapping confirmation.</remarks>
+    /// <param name="XmlHelper">The XML-helper instance to share with the schema implementation.</param>
+    /// <param name="TempDocHeader">Cleared and populated with the selected documents.</param>
+    procedure PrepareTransmission(var XmlHelper: Codeunit "Helper IRIS"; Transmission: Record "Transmission IRIS"; TransmissionType: Enum "Transmission Type IRIS"; CorrectionToZeroMode: Boolean; VersionText: Text; VerifiedTaxYear: Boolean; var UniqueTransmissionId: Text[100]; var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary)
     var
-        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
         ProcessTransmission: Codeunit "Process Transmission IRIS";
+        Supplemental: Codeunit "IRS 1099 Supplemental";
         PrevTransmissionStatus: Enum "Transmission Status IRIS";
-        FormType: Text;
     begin
+        Helper := XmlHelper;
+        CorrectionToZeroModeGlobal := CorrectionToZeroMode;
+        TaxYearGlobal := Transmission."Period No.";
+        SoftwareIdGlobal := Helper.GetSoftwareId(TaxYearGlobal);
+        Helper.ConfirmTaxYearMapping(VersionText, TaxYearGlobal, VerifiedTaxYear);
+        TCCGlobal := IRSFormsFacade.GetTCC();
+
         if CorrectionToZeroModeGlobal then
             if TransmissionType <> Enum::"Transmission Type IRIS"::"C" then
                 Error(CorrectionToZeroModeErr);
 
-        IRS1099FormDocHeader.SetRange("IRIS Transmission Document ID", Transmission."Document ID");
-        IRS1099FormDocHeader.SetFilter(Status, ProcessTransmission.GetFormDocToSendStatusFilter());
+        DocHeader.SetRange("IRIS Transmission Document ID", Transmission."Document ID");
+        DocHeader.SetFilter(Status, ProcessTransmission.GetFormDocToSendStatusFilter());
         case TransmissionType of
             Enum::"Transmission Type IRIS"::"R":
                 begin
                     PrevTransmissionStatus := Transmission.Status;
-                    if PrevTransmissionStatus = Enum::"Transmission Status IRIS"::"Partially Accepted" then
-                        IRS1099FormDocHeader.SetRange("IRIS Submission Status", Enum::"Transmission Status IRIS"::Rejected);    // replace only rejected submissions for partially accepted transmission
+                    if PrevTransmissionStatus <> Enum::"Transmission Status IRIS"::Rejected then
+                        DocHeader.SetRange("IRIS Submission Status", Enum::"Transmission Status IRIS"::Rejected);    // replace only rejected submissions for partially accepted transmission
                 end;
             Enum::"Transmission Type IRIS"::"C":
-                IRS1099FormDocHeader.SetRange("IRIS Needs Correction", true);
+                DocHeader.SetRange("IRIS Needs Correction", true);
         end;
 
-        if not IRS1099FormDocHeader.FindSet() then
-            Error(NoDocumentsSelectedErr, TransmissionType, IRS1099FormDocHeader.GetFilters());
+        if not DocHeader.FindSet() then
+            Error(NoDocumentsSelectedErr, TransmissionType, DocHeader.GetFilters());
 
-        TempIRS1099FormDocHeader.Reset();
-        TempIRS1099FormDocHeader.DeleteAll();
+        TempDocHeader.Reset();
+        TempDocHeader.DeleteAll();
         repeat
-            TempIRS1099FormDocHeader := IRS1099FormDocHeader;
-            TempIRS1099FormDocHeader.Insert();
-        until IRS1099FormDocHeader.Next() = 0;
+            Supplemental.ValidateSupplementalLines(DocHeader.ID);
+            TempDocHeader := DocHeader;
+            TempDocHeader.Insert();
+        until DocHeader.Next() = 0;
 
-        UniqueTransmissionId := Helper.CreateUniqueTransmissionIdentifier();
+        UniqueTransmissionId := Helper.CreateUniqueTransmissionIdentifier(TCCGlobal);
         TransmissionTypeGlobal := TransmissionType;
         InitSubmissionAndRecordIds(Transmission."Document ID");
 
         InitTransmissionDocElement();
-        AddIRTransmissionManifest(Transmission, UniqueTransmissionId, TransmissionType);
+    end;
 
-        // add IRSubmission1Grp for each form type: DIV, INT, MISC, NEC
-        foreach FormType in "Form Type IRIS".Names() do begin
-            TempIRS1099FormDocHeader.Reset();
-            TempIRS1099FormDocHeader.SetRange("Form No.", FormType);
-            if not TempIRS1099FormDocHeader.IsEmpty() then
-                AddIRSubmission1Grp(TempIRS1099FormDocHeader);
-        end;
+    /// <summary>
+    /// Completes the XML and saves submission and record IDs to the actual document headers.
+    /// </summary>
+    /// <remarks>Call after all submissions are complete. Does not submit to IRS or commit the transaction.</remarks>
+    /// <param name="TempBlob">An empty blob that receives the completed XML.</param>
+    procedure FinishTransmission(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var TempBlob: Codeunit "Temp Blob")
+    var
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
         Helper.UpdateSingleXmlNode('TotalIssuerFormCnt', Format(TotalSubmissionCountGlobal));
         Helper.UpdateSingleXmlNode('TotalRecipientFormCnt', Format(TotalRecordCountGlobal));
 
         Helper.WriteXMLDocToTempBlob(TempBlob);
 
         // save SubmissionId and RecordId to use them later for replacements
-        TempIRS1099FormDocHeader.Reset();
-        TempIRS1099FormDocHeader.FindSet();
+        TempDocHeader.Reset();
+        TempDocHeader.FindSet();
         repeat
-            IRS1099FormDocHeader.Get(TempIRS1099FormDocHeader.ID);
-            IRS1099FormDocHeader."IRIS Submission ID" := TempIRS1099FormDocHeader."IRIS Submission ID";
-            IRS1099FormDocHeader."IRIS Record ID" := TempIRS1099FormDocHeader."IRIS Record ID";
-            IRS1099FormDocHeader.Modify();
-        until TempIRS1099FormDocHeader.Next() = 0;
+            DocHeader.Get(TempDocHeader.ID);
+            DocHeader."IRIS Submission ID" := TempDocHeader."IRIS Submission ID";
+            DocHeader."IRIS Record ID" := TempDocHeader."IRIS Record ID";
+            DocHeader.Modify();
+        until TempDocHeader.Next() = 0;
 
         FeatureTelemetry.LogUptake('0000P83', Helper.GetIRISFeatureName(), Enum::"Feature Uptake Status"::"Used");
-    end;
-
-    /// <summary>
-    /// Set the special correction mode to indicate that all the amounts in the correction transmission should be set to zero.
-    /// </summary>
-    procedure SetCorrectionToZeroMode(CorrectionToZeroMode: Boolean)
-    begin
-        CorrectionToZeroModeGlobal := CorrectionToZeroMode;
     end;
 
     local procedure InitTransmissionDocElement()
@@ -125,21 +144,24 @@ codeunit 10033 "Generate Xml File IRIS"
         Helper.Initialize(GetStatusRootNodeNameTxt);
     end;
 
-    local procedure AddIRTransmissionManifest(var Transmission: Record "Transmission IRIS"; UniqueTransmissionId: Text; TransmissionType: Enum "Transmission Type IRIS")
+    /// <summary>
+    /// Adds the transmission manifest using the supplied schema version and prior-year indicator.
+    /// </summary>
+    procedure AddIRTransmissionManifest(Transmission: Record "Transmission IRIS"; UniqueTransmissionId: Text; VersionText: Text; PriorYearDataIndicator: Text)
     var
         PrevTransmissionStatus: Enum "Transmission Status IRIS";
     begin
         Helper.AddParentXmlNode('IRTransmissionManifest');
-        Helper.AppendXmlNode('SchemaVersionNum', '2.0.3');
+        Helper.AppendXmlNode('SchemaVersionNum', VersionText);
         Helper.AppendXmlNode('UniqueTransmissionId', UniqueTransmissionId);
-        Helper.AppendXmlNode('TaxYr', Transmission."Period No.");
-        Helper.AppendXmlNode('PriorYearDataInd', '0');
-        Helper.AppendXmlNode('TransmissionTypeCd', Helper.GetTransmissionTypeName(TransmissionType));
+        Helper.AppendXmlNode('TaxYr', TaxYearGlobal);
+        Helper.AppendXmlNode('PriorYearDataInd', PriorYearDataIndicator);
+        Helper.AppendXmlNode('TransmissionTypeCd', Helper.GetTransmissionTypeName(TransmissionTypeGlobal));
         Helper.AppendXmlNode('TestCd', GetTestFileIndicator());
 
         // add OriginalReceiptId when the whole transmission is replaced
         PrevTransmissionStatus := Transmission.Status;
-        if (TransmissionType = Enum::"Transmission Type IRIS"::"R") and
+        if (TransmissionTypeGlobal = Enum::"Transmission Type IRIS"::"R") and
            (PrevTransmissionStatus = Enum::"Transmission Status IRIS"::Rejected)
         then
             Helper.AppendXmlNode('OriginalReceiptId', Transmission."Original Receipt ID");
@@ -147,7 +169,7 @@ codeunit 10033 "Generate Xml File IRIS"
         AddTransmitterInfo();
 
         Helper.AppendXmlNode('VendorCd', 'I');
-        Helper.AppendXmlNode('SoftwareId', IRSFormsFacade.GetSoftwareId());
+        Helper.AppendXmlNode('SoftwareId', SoftwareIdGlobal);
 
 
         Helper.AppendXmlNode('TotalIssuerFormCnt', 'N');            // updated after all forms are added
@@ -176,7 +198,7 @@ codeunit 10033 "Generate Xml File IRIS"
         GetMicrosoftData(TIN, CompanyName, StreetAddress, CityName, StateCode, PostCode, ContactName, ContactEmail, ContactPhone);
         Helper.AppendXmlNode('TIN', Helper.FormatTIN(TIN));
         Helper.AppendXmlNode('TINSubmittedTypeCd', 'BUSINESS_TIN');
-        Helper.AppendXmlNode('TransmitterControlCd', IRSFormsFacade.GetTCC());
+        Helper.AppendXmlNode('TransmitterControlCd', TCCGlobal);
         Helper.AppendXmlNode('ForeignEntityInd', '0');
 
         AddBusinessName(CompanyName);
@@ -195,82 +217,82 @@ codeunit 10033 "Generate Xml File IRIS"
         Helper.CloseParentXmlNode();
     end;
 
-    local procedure AddIRSubmission1Grp(var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary)
-    var
-        VendorList: List of [Text];
-    begin
-        // one submission must be used for one form type and one tax year
-        Helper.AddParentXmlNode('IRSubmission1Grp');
-
-        VendorList := GetVendorList(TempIRS1099FormDocHeader);
-        AddIRSubmission1Header(GetNextSubmissionId(TempIRS1099FormDocHeader."IRIS Submission ID"), TempIRS1099FormDocHeader, VendorList.Count());
-        AddIRSubmission1Detail(TempIRS1099FormDocHeader, VendorList);
-
-        Helper.CloseParentXmlNode();
-    end;
-
-    local procedure AddIRSubmission1Header(SubmissionId: Text[20]; var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary; RecipientFormCount: Integer)
+    /// <summary>
+    /// Opens a submission header, adds its issuer and returns its submission ID.
+    /// </summary>
+    procedure StartSubmissionHeader(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary) SubmissionId: Text[20]
     var
         Transmission: Record "Transmission IRIS";
         PrevTransmissionStatus: Enum "Transmission Status IRIS";
         OriginalUniqueSubmissionId: Text;
     begin
+        SubmissionId := GetNextSubmissionId(TempDocHeader."IRIS Submission ID");
         Helper.AddParentXmlNode('IRSubmission1Header');
 
         Helper.AppendXmlNode('SubmissionId', SubmissionId);
 
-        Transmission.Get(TempIRS1099FormDocHeader."IRIS Transmission Document ID");
+        Transmission.Get(TempDocHeader."IRIS Transmission Document ID");
         PrevTransmissionStatus := Transmission.Status;
         if (TransmissionTypeGlobal = Enum::"Transmission Type IRIS"::"R") and
-           (PrevTransmissionStatus = Enum::"Transmission Status IRIS"::"Partially Accepted")
+           (PrevTransmissionStatus <> Enum::"Transmission Status IRIS"::Rejected)
         then begin
-            if TempIRS1099FormDocHeader."IRIS Submission ID" = '' then
-                Error(SubmissionIdEmtpyErr, TempIRS1099FormDocHeader.ID);
-            OriginalUniqueSubmissionId := StrSubstNo('%1|%2', Transmission."Receipt ID", TempIRS1099FormDocHeader."IRIS Submission ID");
+            if TempDocHeader."IRIS Submission ID" = '' then
+                Error(SubmissionIdEmtpyErr, TempDocHeader.ID);
+            OriginalUniqueSubmissionId := StrSubstNo('%1|%2', TempDocHeader."IRIS Last Receipt ID", TempDocHeader."IRIS Submission ID");
             Helper.AppendXmlNode('OriginalUniqueSubmissionId', OriginalUniqueSubmissionId);
         end;
 
-        Helper.AppendXmlNode('TaxYr', TempIRS1099FormDocHeader."Period No.");
+        Helper.AppendXmlNode('TaxYr', TempDocHeader."Period No.");
 
         AddIssuerDetails();
-        AddContactPersonInformationGrp();
+    end;
 
-        Helper.AppendXmlNode('FormTypeCd', GetFormTypeCode(TempIRS1099FormDocHeader."Form No."));
+    /// <summary>
+    /// Adds the form type and recipient count to the open submission header.
+    /// </summary>
+    procedure AddSubmissionFormInfo(TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; RecipientFormCount: Integer)
+    begin
+        Helper.AppendXmlNode('FormTypeCd', GetFormTypeCode(TempDocHeader."Form No."));
         Helper.AppendXmlNode('ParentFormTypeCd', '1096');
         Helper.AppendXmlNode('CFSFElectionInd', '0');
         Helper.AppendXmlNode('TotalReportedRcpntFormCnt', Format(RecipientFormCount));
-
-        AddIRSubmission1FormTotals(TempIRS1099FormDocHeader);
-
-        Helper.CloseParentXmlNode();
-
-        // update SubmissionId for temporary IRS 1099 Document records
-        if TempIRS1099FormDocHeader.FindSet() then
-            repeat
-                TempIRS1099FormDocHeader."IRIS Submission ID" := CopyStr(SubmissionId, 1, MaxStrLen(TempIRS1099FormDocHeader."IRIS Submission ID"));
-                TempIRS1099FormDocHeader.Modify();
-            until TempIRS1099FormDocHeader.Next() = 0;
     end;
 
-    local procedure AddIRSubmission1FormTotals(var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary)
+    /// <summary>
+    /// Sets the submission ID on the filtered temporary document headers.
+    /// </summary>
+    procedure SaveSubmissionId(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; SubmissionId: Text[20])
+    begin
+        // update SubmissionId for temporary IRS 1099 Document records
+        if TempDocHeader.FindSet() then
+            repeat
+                TempDocHeader."IRIS Submission ID" := CopyStr(SubmissionId, 1, MaxStrLen(TempDocHeader."IRIS Submission ID"));
+                TempDocHeader.Modify();
+            until TempDocHeader.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Adds ordered financial and supplied supplemental totals for the filtered documents.
+    /// </summary>
+    /// <param name="FormBoxAmtXmlElemNamesValues">Supplemental XML values on entry; financial totals are added before writing.</param>
+    procedure AddSubmissionTotals(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var FormBoxAmtXmlElemNamesValues: Dictionary of [Text, Text])
     var
         FormType: Enum "Form Type IRIS";
         FormTotalAmounts: Dictionary of [Text, Decimal];
         TotalReportedAmt: Decimal;
         FederalIncomeTaxWithheldAmt: Decimal;
         Form1099TotalAmtGrpTagName: Text;
-        FormBoxAmtXmlElemNamesValues: Dictionary of [Text, Text];
         AmtXmlElemNames: List of [Text];
         AmtXmlElemName: Text;
         AmtXmlElemValue: Text;
     begin
-        if not Evaluate(FormType, TempIRS1099FormDocHeader."Form No.") then
+        if not Evaluate(FormType, TempDocHeader."Form No.") then
             exit;
 
         Helper.AddParentXmlNode('IRSubmission1FormTotals');
 
-        CalcFormTotalAmounts(TempIRS1099FormDocHeader, FormTotalAmounts, TotalReportedAmt, FederalIncomeTaxWithheldAmt);
-        GetFormBoxAmtXmlElemNamesAndValues(TempIRS1099FormDocHeader, FormTotalAmounts, FormBoxAmtXmlElemNamesValues);
+        CalcFormTotalAmounts(TempDocHeader, FormTotalAmounts, TotalReportedAmt, FederalIncomeTaxWithheldAmt);
+        GetFormBoxAmtXmlElemNamesAndValues(TempDocHeader, FormTotalAmounts, FormBoxAmtXmlElemNamesValues);
         FormBoxAmtXmlElemNamesValues.Add('TotalReportedAmt', Helper.FormatDecimal(TotalReportedAmt));
 
         Form1099TotalAmtGrpTagName := GetForm1099TotalAmtGrpTagName(FormType);
@@ -278,7 +300,7 @@ codeunit 10033 "Generate Xml File IRIS"
         Helper.AddParentXmlNode(Form1099TotalAmtGrpTagName);
 
         // elements with total amounts must be added in a specific order
-        AmtXmlElemNames := Helper.GetTotalAmountsXmlElementsOrder(TempIRS1099FormDocHeader."Period No.", FormType);
+        AmtXmlElemNames := Helper.GetTotalAmountsXmlElementsOrder(TempDocHeader."Period No.", FormType);
         foreach AmtXmlElemName in AmtXmlElemNames do
             if FormBoxAmtXmlElemNamesValues.Get(AmtXmlElemName, AmtXmlElemValue) then
                 Helper.AppendXmlNode(AmtXmlElemName, AmtXmlElemValue);
@@ -315,16 +337,27 @@ codeunit 10033 "Generate Xml File IRIS"
         Helper.CloseParentXmlNode();
     end;
 
-    local procedure AddContactPersonInformationGrp()
+    /// <summary>
+    /// Reads company contact information and applies the contact customization event.
+    /// </summary>
+    procedure GetContactCompanyInformation(var CompanyInformation: Record "Company Information")
     var
-        CompanyInformation: Record "Company Information";
         "Generate Xml File IRIS Events": codeunit "Generate Xml File IRIS Events";
+    begin
+        CompanyInformation.Get();
+        "Generate Xml File IRIS Events".RunOnAddContactPersonInformationGrpOnAfterGetCompanyInformationSetup(CompanyInformation);
+    end;
+
+    /// <summary>
+    /// Adds contact XML when the formatted contact name is not empty.
+    /// </summary>
+    /// <remarks>The schema implementation must validate its required contact fields before calling.</remarks>
+    procedure AddContactPersonInformationGrp(CompanyInformation: Record "Company Information")
+    var
         ContactPerson: Text;
         PhoneNo: Text;
         Email: Text;
     begin
-        CompanyInformation.Get();
-        "Generate Xml File IRIS Events".RunOnAddContactPersonInformationGrpOnAfterGetCompanyInformationSetup(CompanyInformation);
         ContactPerson := Helper.FormatContactPersonName(CompanyInformation."Contact Person");
         PhoneNo := Helper.FormatPhoneNumber(CompanyInformation."Phone No.");
         Email := CompanyInformation."E-Mail";
@@ -340,57 +373,52 @@ codeunit 10033 "Generate Xml File IRIS"
         Helper.CloseParentXmlNode();
     end;
 
-    local procedure AddIRSubmission1Detail(var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary; VendorList: List of [Text])
-    var
-        VendorNo: Text;
-    begin
-        Helper.AddParentXmlNode('IRSubmission1Detail');
-
-        foreach VendorNo in VendorList do begin
-            TempIRS1099FormDocHeader.SetRange("Vendor No.", VendorNo);
-            AddForm1099Detail(TempIRS1099FormDocHeader);
-        end;
-
-        Helper.CloseParentXmlNode();
-    end;
-
-    local procedure AddForm1099Detail(var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary)
+    /// <summary>
+    /// Opens a recipient form detail and returns its record ID.
+    /// </summary>
+    /// <returns>True if a document with a supported form type and an existing vendor was found.</returns>
+    procedure StartFormDetail(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var RecordId: Text[20]): Boolean
     var
         Vendor: Record Vendor;
         FormType: Enum "Form Type IRIS";
-        RecordId: Text[20];
         Form1099DetailTagName: Text;
-        TotalAmounts: Dictionary of [Text, Decimal];
-        FormBoxAmtXmlElemNamesValues: Dictionary of [Text, Text];
-        AmtXmlElemNames: List of [Text];
-        AmtXmlElemName: Text;
-        AmtXmlElemValue: Text;
     begin
-        if not TempIRS1099FormDocHeader.FindFirst() then
-            exit;
-        if not Evaluate(FormType, TempIRS1099FormDocHeader."Form No.") then
-            exit;
-        if not Vendor.Get(TempIRS1099FormDocHeader."Vendor No.") then
-            exit;
+        if not TempDocHeader.FindFirst() then
+            exit(false);
+        if not Evaluate(FormType, TempDocHeader."Form No.") then
+            exit(false);
+        if not Vendor.Get(TempDocHeader."Vendor No.") then
+            exit(false);
 
         Form1099DetailTagName := GetForm1099DetailTagName(FormType);
         Helper.AddParentXmlNode(Form1099DetailTagName);
 
-        RecordId := GetNextRecordId(TempIRS1099FormDocHeader."IRIS Record ID");
-        Helper.AppendXmlNode('TaxYr', TempIRS1099FormDocHeader."Period No.");
+        RecordId := GetNextRecordId(TempDocHeader."IRIS Record ID");
+        Helper.AppendXmlNode('TaxYr', TempDocHeader."Period No.");
         Helper.AppendXmlNode('RecordId', RecordId);
         Helper.AppendXmlNode('VoidInd', '0');
         Helper.AppendXmlNode('CorrectedInd', GetCorrectedInd(TransmissionTypeGlobal));
 
-        if TransmissionTypeGlobal = "Transmission Type IRIS"::"C" then
-            AddPrevSubmittedRecRecipientGrp(TempIRS1099FormDocHeader);
+        exit(true);
+    end;
 
+    /// <summary>
+    /// Writes recipient details and adds financial XML values for the filtered documents.
+    /// </summary>
+    procedure AddRecipientAndFormValues(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var FormBoxAmtXmlElemNamesValues: Dictionary of [Text, Text])
+    var
+        Vendor: Record Vendor;
+        FormType: Enum "Form Type IRIS";
+        TotalAmounts: Dictionary of [Text, Decimal];
+    begin
+        Vendor.Get(TempDocHeader."Vendor No.");
+        Evaluate(FormType, TempDocHeader."Form No.");
         AddRecipientDetails(Vendor);
 
         Helper.AppendXmlNode('RecipientAccountNum', Helper.GetVendorBankAccountNo(Vendor));
 
-        CalcFormTotalAmounts(TempIRS1099FormDocHeader, TotalAmounts);
-        GetFormBoxAmtXmlElemNamesAndValues(TempIRS1099FormDocHeader, TotalAmounts, FormBoxAmtXmlElemNamesValues);
+        CalcFormTotalAmounts(TempDocHeader, TotalAmounts);
+        GetFormBoxAmtXmlElemNamesAndValues(TempDocHeader, TotalAmounts, FormBoxAmtXmlElemNamesValues);
 
         case FormType of
             FormType::"DIV":
@@ -402,22 +430,39 @@ codeunit 10033 "Generate Xml File IRIS"
             FormType::"NEC":
                 AddForm1099NECDetailsPart();
             else
-                Helper.AddOtherForm1099DetailsPart(TempIRS1099FormDocHeader);
+                Helper.AddOtherForm1099DetailsPart(TempDocHeader);
         end;
+    end;
 
-        AmtXmlElemNames := Helper.GetDetailAmountsXmlElementsOrder(TempIRS1099FormDocHeader."Period No.", FormType);
+    /// <summary>
+    /// Writes ordered values, closes the form detail and saves its ID to the filtered temporary headers.
+    /// </summary>
+    procedure FinishFormDetail(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; RecordId: Text[20]; FormBoxAmtXmlElemNamesValues: Dictionary of [Text, Text]; OccupationCodes: List of [Text])
+    var
+        FormType: Enum "Form Type IRIS";
+        AmtXmlElemNames: List of [Text];
+        AmtXmlElemName: Text;
+        AmtXmlElemValue: Text;
+        OccupationCode: Text;
+    begin
+        Evaluate(FormType, TempDocHeader."Form No.");
+        AmtXmlElemNames := Helper.GetDetailAmountsXmlElementsOrder(TempDocHeader."Period No.", FormType);
         foreach AmtXmlElemName in AmtXmlElemNames do
-            if FormBoxAmtXmlElemNamesValues.Get(AmtXmlElemName, AmtXmlElemValue) then
-                Helper.AppendXmlNode(AmtXmlElemName, AmtXmlElemValue);
+            if AmtXmlElemName = 'TreasuryTippedOccupationCd' then
+                foreach OccupationCode in OccupationCodes do
+                    Helper.AppendXmlNode(AmtXmlElemName, OccupationCode)
+            else
+                if FormBoxAmtXmlElemNamesValues.Get(AmtXmlElemName, AmtXmlElemValue) then
+                    Helper.AppendXmlNode(AmtXmlElemName, AmtXmlElemValue);
 
         Helper.CloseParentXmlNode();
 
         // update RecordId for temporary IRS 1099 Document records
-        if TempIRS1099FormDocHeader.FindSet() then
+        if TempDocHeader.FindSet() then
             repeat
-                TempIRS1099FormDocHeader."IRIS Record ID" := CopyStr(RecordId, 1, MaxStrLen(TempIRS1099FormDocHeader."IRIS Record ID"));
-                TempIRS1099FormDocHeader.Modify();
-            until TempIRS1099FormDocHeader.Next() = 0;
+                TempDocHeader."IRIS Record ID" := CopyStr(RecordId, 1, MaxStrLen(TempDocHeader."IRIS Record ID"));
+                TempDocHeader.Modify();
+            until TempDocHeader.Next() = 0;
     end;
 
     local procedure AddForm1099DIVDetailsPart(var Vendor: Record Vendor)
@@ -443,7 +488,11 @@ codeunit 10033 "Generate Xml File IRIS"
         Helper.AppendXmlNode('SecondTINNoticeInd', '0');
     end;
 
-    local procedure AddPrevSubmittedRecRecipientGrp(var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary)
+    /// <summary>
+    /// Adds the accepted receipt, submission and record reference for a correction.
+    /// </summary>
+    /// <param name="OtherIntakeSystemIndicator">The intake-system indicator, or empty to omit that element.</param>
+    procedure AddPrevSubmittedRecRecipientGrp(TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary; OtherIntakeSystemIndicator: Text)
     var
         Transmission: Record "Transmission IRIS";
         PrevAcceptedReceiptId: Text[100];
@@ -466,6 +515,7 @@ codeunit 10033 "Generate Xml File IRIS"
             Error(RecordIdEmtpyErr, TempIRS1099FormDocHeader.ID);
 
         UniqueRecordId := StrSubstNo('%1|%2|%3', PrevAcceptedReceiptId, TempIRS1099FormDocHeader."IRIS Submission ID", TempIRS1099FormDocHeader."IRIS Record ID");
+        Helper.AppendXmlNode('OtherIntakeSystemInd', OtherIntakeSystemIndicator);
         Helper.AppendXmlNode('UniqueRecordId', UniqueRecordId);
 
         Helper.CloseParentXmlNode();
@@ -664,7 +714,10 @@ codeunit 10033 "Generate Xml File IRIS"
         IRS1099FormDocLine.SetRange("Include In 1099", true);
     end;
 
-    local procedure GetVendorList(var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary): List of [Text]
+    /// <summary>
+    /// Returns distinct vendor numbers from the filtered temporary document headers.
+    /// </summary>
+    procedure GetVendorList(var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary): List of [Text]
     var
         VendorNos: Dictionary of [Text, Text];
     begin
@@ -730,8 +783,6 @@ codeunit 10033 "Generate Xml File IRIS"
         XmlElemName: Text;
         XmlElemValue: Text;
     begin
-        Clear(XmlElemNamesValues);
-
         // get xml element names for form boxes ('DIV-01' -> 'DividendIncomeAmt')
         FormBoxAmtXmlElemNames := Helper.GetFormBoxAmountXmlElementNames(TempIRS1099FormDocHeader."Period No.", TempIRS1099FormDocHeader."Form No.");
 
@@ -826,6 +877,9 @@ codeunit 10033 "Generate Xml File IRIS"
         IRSFormsFacade.GetContactInfo(ContactName, ContactEmail, ContactPhone);
     end;
 
+    /// <summary>
+    /// Creates status-request XML for a receipt ID or unique transmission ID.
+    /// </summary>
     procedure CreateGetStatusRequest(SearchParamType: Enum "Search Param Type IRIS"; SearchId: Text; var TempBlob: Codeunit "Temp Blob")
     var
         CustomDimensions: Dictionary of [Text, Text];
@@ -845,6 +899,9 @@ codeunit 10033 "Generate Xml File IRIS"
         FeatureTelemetry.LogUsage('0000PAE', Helper.GetIRISFeatureName(), CreateGetStatusRequestEventTxt, CustomDimensions);
     end;
 
+    /// <summary>
+    /// Creates acknowledgment-request XML for a receipt ID or unique transmission ID.
+    /// </summary>
     procedure CreateAcknowledgementRequest(SearchParamType: Enum "Search Param Type IRIS"; SearchId: Text; var TempBlob: Codeunit "Temp Blob")
     var
         CustomDimensions: Dictionary of [Text, Text];

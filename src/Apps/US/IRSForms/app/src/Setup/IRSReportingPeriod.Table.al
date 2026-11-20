@@ -39,6 +39,26 @@ table 10031 "IRS Reporting Period"
         field(4; Description; Text[250])
         {
         }
+        field(5; "IRIS XML Schema Version Test"; Enum "XML Schema Version IRIS")
+        {
+            Caption = 'IRIS XML Schema Version TEST';
+            ToolTip = 'Specifies the XML schema override for new TEST transmissions. Leave empty to use the configured TEST version.';
+
+            trigger OnValidate()
+            begin
+                ValidateSchemaOverride("IRIS XML Schema Version Test");
+            end;
+        }
+        field(6; "IRIS XML Schema Version Live"; Enum "XML Schema Version IRIS")
+        {
+            Caption = 'IRIS XML Schema Version Production';
+            ToolTip = 'Specifies the XML schema override for new production transmissions. Leave empty to use the configured production version.';
+
+            trigger OnValidate()
+            begin
+                ValidateSchemaOverride("IRIS XML Schema Version Live");
+            end;
+        }
         field(100; "Forms In Period"; Integer)
         {
             CalcFormula = count("IRS 1099 Form" where("Period No." = field("No.")));
@@ -73,13 +93,41 @@ table 10031 "IRS Reporting Period"
         IRS1099Form: Record "IRS 1099 Form";
         IRS1099VendorFormBoxSetup: Record "IRS 1099 Vendor Form Box Setup";
         IRS1099VendorFormBoxAdj: Record "IRS 1099 Vendor Form Box Adj.";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        PeriodIsUsedErr: Label 'Reporting period %1 is used by 1099 form documents and cannot be deleted.', Comment = '%1 = reporting period';
     begin
+        DocHeader.SetRange("Period No.", "No.");
+        if not DocHeader.IsEmpty() then
+            Error(PeriodIsUsedErr, "No.");
         IRS1099Form.SetRange("Period No.", "No.");
         IRS1099Form.DeleteAll(true);
         IRS1099VendorFormBoxSetup.SetRange("Period No.", "No.");
         IRS1099VendorFormBoxSetup.DeleteAll(true);
         IRS1099VendorFormBoxAdj.SetRange("Period No.", "No.");
         IRS1099VendorFormBoxAdj.DeleteAll(true);
+    end;
+
+    internal procedure GetSchemaOverride(TestEnvironment: Boolean): Enum "XML Schema Version IRIS"
+    begin
+        if TestEnvironment then
+            exit("IRIS XML Schema Version Test");
+        exit("IRIS XML Schema Version Live");
+    end;
+
+    internal procedure SetSchemaOverride(TestEnvironment: Boolean; SchemaVersion: Enum "XML Schema Version IRIS")
+    begin
+        if TestEnvironment then
+            Validate("IRIS XML Schema Version Test", SchemaVersion)
+        else
+            Validate("IRIS XML Schema Version Live", SchemaVersion);
+    end;
+
+    local procedure ValidateSchemaOverride(SchemaVersion: Enum "XML Schema Version IRIS")
+    var
+        Helper: Codeunit "Helper IRIS";
+    begin
+        if SchemaVersion <> SchemaVersion::" " then
+            Helper.CheckSchemaVersionSupported(SchemaVersion);
     end;
 
     local procedure CheckNoConnectedFormDocuments(ChangedFieldCaption: Text)

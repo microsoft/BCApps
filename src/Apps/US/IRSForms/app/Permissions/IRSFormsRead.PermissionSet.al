@@ -19,6 +19,8 @@ permissionset 10030 "IRS Forms - Read"
                   tabledata "IRS 1099 Form Doc. Header" = R,
                   tabledata "IRS 1099 Form" = R,
                   tabledata "IRS 1099 Form Box" = R,
+                  tabledata "IRS 1099 Suppl. Box" = R,
+                  tabledata "IRS 1099 Doc. Suppl. Line" = R,
                   tabledata "IRS 1099 Form Report" = R,
                   tabledata "IRS 1099 Form Instruction" = R,
                   tabledata "IRS 1099 Vendor Form Box Adj." = R,
