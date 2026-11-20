@@ -29,6 +29,8 @@ codeunit 133754 "Custom Agent Test"
         Initialized: Boolean;
         TestAgentPrefixTxt: Label 'TEST_AGENT', Locked = true;
         ArchivedAgentCannotBeTestedErr: Label 'archived and can no longer be tested', Locked = true;
+        DraftTaskTitleTxt: Label 'Task draft', Locked = true;
+        DraftMessageTxt: Label 'Draft message', Locked = true;
 
     local procedure Initialize()
     var
@@ -123,20 +125,111 @@ codeunit 133754 "Custom Agent Test"
     end;
 
     [Test]
-    [HandlerFunctions('AgentInstructionEditorPageHandler')]
-    procedure TestCreateManualAgentTaskOpensInstructionEditor()
+    [HandlerFunctions('TaskCreationMenuHandler,AgentInstructionEditorPageHandler')]
+    procedure TestCreateManualAgentTaskCanOpenTestAgent()
     var
         ManualTaskCreation: Interface IAgentManualTaskCreation;
         Files: List of [FileUpload];
     begin
         Initialize();
         ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
+        LibraryVariableStorage.Enqueue(2);
 
         ManualTaskCreation.CreateManualAgentTask(TestAgentId1, Files);
+
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
+    [HandlerFunctions('TaskCreationMenuHandler')]
+    procedure TestCancelManualTaskCreationMenuDoesNothing()
+    var
+        AgentTask: Record "Agent Task";
+        ManualTaskCreation: Interface IAgentManualTaskCreation;
+        Files: List of [FileUpload];
+        TaskCount: Integer;
+    begin
+        Initialize();
+        ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
+        AgentTask.SetRange("Agent User Security ID", TestAgentId1);
+        TaskCount := AgentTask.Count();
+        LibraryVariableStorage.Enqueue(0);
+
+        ManualTaskCreation.CreateManualAgentTask(TestAgentId1, Files);
+
+        LibraryVariableStorage.AssertEmpty();
+        Assert.AreEqual(TaskCount, AgentTask.Count(), 'Canceling the task creation menu must not create a task or open a page.');
+    end;
+
+    [Test]
+    [HandlerFunctions('TaskCreationMenuHandler,AgentNewTaskMessagePageHandler')]
+    procedure TestCreateManualAgentTaskOpensNewTaskPage()
+    var
+        AgentTask: Record "Agent Task";
+        ManualTaskCreation: Interface IAgentManualTaskCreation;
+        Files: List of [FileUpload];
+        TaskCount: Integer;
+    begin
+        Initialize();
+        ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
+        AgentTask.SetRange("Agent User Security ID", TestAgentId1);
+        TaskCount := AgentTask.Count();
+        LibraryVariableStorage.Enqueue(1);
+
+        ManualTaskCreation.CreateManualAgentTask(TestAgentId1, Files);
+
+        LibraryVariableStorage.AssertEmpty();
+        Assert.AreEqual(TaskCount, AgentTask.Count(), 'Canceling the new task page must not create a task.');
+    end;
+
+    [Test]
+    [HandlerFunctions('TaskCreationMenuHandler,OpenTestAgentFromTaskPageHandler,AgentInstructionEditorPageHandler')]
+    procedure TestNewTaskPageOpensTestAgentWithoutSubmittingDraft()
+    var
+        AgentTask: Record "Agent Task";
+        ManualTaskCreation: Interface IAgentManualTaskCreation;
+        Files: List of [FileUpload];
+        TaskCount: Integer;
+    begin
+        Initialize();
+        ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
+        AgentTask.SetRange("Agent User Security ID", TestAgentId1);
+        TaskCount := AgentTask.Count();
+        LibraryVariableStorage.Enqueue(1);
+
+        ManualTaskCreation.CreateManualAgentTask(TestAgentId1, Files);
+
+        LibraryVariableStorage.AssertEmpty();
+        Assert.AreEqual(TaskCount, AgentTask.Count(), 'Opening Test agent must not submit the task draft.');
+    end;
+
+    [Test]
+    [HandlerFunctions('OtherAgentNewTaskPageHandler')]
+    procedure TestNewTaskPageHidesTestAgentForOtherProviders()
+    var
+        OtherAgent: Record Agent;
+        AgentTask: Record "Agent Task";
+        TempAgentAccessControl: Record "Agent Access Control" temporary;
+        Agent: Codeunit Agent;
+        AgentNewTaskMessage: Page "Agent New Task Message";
+    begin
+        Initialize();
+        AgentTask."Agent User Security ID" := Agent.Create(
+            Enum::"Agent Metadata Provider"::"Designer Test Agent",
+            CopyStr(Any.AlphanumericText(50), 1, 50),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            TempAgentAccessControl);
+        AgentNewTaskMessage.SetAgentTask(AgentTask, true);
+        AgentNewTaskMessage.LookupMode(true);
+
+        AgentNewTaskMessage.RunModal();
+
+        OtherAgent.Get(AgentTask."Agent User Security ID");
+        OtherAgent.Delete();
+    end;
+
+    [Test]
+    [HandlerFunctions('TaskCreationMenuHandler,ConfirmHandler')]
     procedure TestCreateManualAgentTaskForInactiveAgentShowsConfirmation()
     var
         Agent: Codeunit Agent;
@@ -146,6 +239,7 @@ codeunit 133754 "Custom Agent Test"
         Initialize();
         Agent.Deactivate(TestAgentId1);
         ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
+        LibraryVariableStorage.Enqueue(1);
         LibraryVariableStorage.Enqueue('inactive');
         LibraryVariableStorage.Enqueue(false);
 
@@ -156,6 +250,7 @@ codeunit 133754 "Custom Agent Test"
     end;
 
     [Test]
+    [HandlerFunctions('TaskCreationMenuHandler')]
     procedure TestCreateManualAgentTaskForArchivedAgentIsBlocked()
     var
         Agent: Codeunit Agent;
@@ -166,10 +261,12 @@ codeunit 133754 "Custom Agent Test"
         Agent.Deactivate(TestAgentId2);
         Agent.Archive(TestAgentId2);
         ManualTaskCreation := Enum::"Agent Metadata Provider"::"Custom Agent";
+        LibraryVariableStorage.Enqueue(1);
 
         asserterror ManualTaskCreation.CreateManualAgentTask(TestAgentId2, Files);
 
         Assert.ExpectedError(ArchivedAgentCannotBeTestedErr);
+        LibraryVariableStorage.AssertEmpty();
         Initialized := false;
     end;
 
@@ -389,6 +486,39 @@ codeunit 133754 "Custom Agent Test"
     procedure AgentInstructionEditorPageHandler(var AgentInstructionEditor: TestPage "Agent Instruction Editor")
     begin
         AgentInstructionEditor.Close();
+    end;
+
+    [StrMenuHandler]
+    procedure TaskCreationMenuHandler(Options: Text[1024]; var Choice: Integer; Instruction: Text[1024])
+    begin
+        Choice := LibraryVariableStorage.DequeueInteger();
+    end;
+
+    [ModalPageHandler]
+    procedure AgentNewTaskMessagePageHandler(var AgentNewTaskMessage: TestPage "Agent New Task Message")
+    begin
+        Assert.IsTrue(AgentNewTaskMessage.TestAgent.Visible(), 'The Test agent action must be visible for custom agents.');
+        AgentNewTaskMessage.Cancel().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure OpenTestAgentFromTaskPageHandler(var AgentNewTaskMessage: TestPage "Agent New Task Message")
+    begin
+        AgentNewTaskMessage.TitleText.SetValue(DraftTaskTitleTxt);
+        AgentNewTaskMessage.MessageText.SetValue(DraftMessageTxt);
+
+        AgentNewTaskMessage.TestAgent.Invoke();
+
+        AgentNewTaskMessage.TitleText.AssertEquals(DraftTaskTitleTxt);
+        AgentNewTaskMessage.MessageText.AssertEquals(DraftMessageTxt);
+        AgentNewTaskMessage.Cancel().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure OtherAgentNewTaskPageHandler(var AgentNewTaskMessage: TestPage "Agent New Task Message")
+    begin
+        Assert.IsFalse(AgentNewTaskMessage.TestAgent.Visible(), 'The Test agent action must be hidden for other agent providers.');
+        AgentNewTaskMessage.Cancel().Invoke();
     end;
 
     [ConfirmHandler]

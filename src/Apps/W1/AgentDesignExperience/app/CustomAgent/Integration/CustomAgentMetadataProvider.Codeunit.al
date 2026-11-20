@@ -99,10 +99,20 @@ codeunit 4358 "Custom Agent Metadata Provider" implements IAgentMetadata, IAgent
 
     procedure CreateManualAgentTask(AgentUserId: Guid; Files: List of [FileUpload])
     begin
-        CustomAgentSetup.OpenEditInstructionsPage(AgentUserId);
+        if not GuiAllowed() then
+            exit;
+
+        case StrMenu(TaskCreationOptionsQst, 2, TaskCreationInstructionQst) of
+            1:
+                CustomAgentSetup.OpenCreateTaskPage(AgentUserId);
+            2:
+                CustomAgentSetup.OpenEditInstructionsPage(AgentUserId);
+        end;
     end;
 
     var
         CustomAgentSetup: Codeunit "Custom Agent Setup";
         CustomAgentInitialLbl: Label 'A', MaxLength = 4;
+        TaskCreationOptionsQst: Label 'Create task,Create in Test Agent page', Comment = 'Comma-separated options for creating a task or opening the test agent page. Preserve the order and do not add commas within an option.';
+        TaskCreationInstructionQst: Label 'Choose how to create a task for this agent.';
 }
