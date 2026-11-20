@@ -15,9 +15,12 @@ jobs:
     outputs:
       officialBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Get Official Branches
         id: getOfficialBranches
-        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        uses: ./.github/actions/GetGitBranches
         with:
           include: "['releases/*']"
 
@@ -32,10 +35,13 @@ jobs:
         branch: ${{ fromJson(needs.GetBranches.outputs.officialBranches) }}
       fail-fast: false
     steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Submit Stability Job
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
-        uses: microsoft/BCApps/.github/actions/RunAutomation@main
+        uses: ./.github/actions/RunAutomation
         with:
           automations: SubmitStabilityJob
           targetBranch: ${{ matrix.branch }}
