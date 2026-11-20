@@ -23,7 +23,7 @@ page 7420 "EA Card Expense Matches API"
     DeleteAllowed = false;
     Extensible = false;
     AboutTitle = 'Card Expense Matches';
-    AboutText = 'Matches a receipt to a corporate card expense. POST the extracted receipt data through expenseUsers({id})/cardExpenseMatches. Without expenseId, the best card-created expense that still needs a receipt is returned. With expenseId, only that expense is checked and returned if the receipt fits it. An empty GUID means no match. Nothing is written.';
+    AboutText = 'Matches extracted receipt data to a corporate card expense of an expense user that is still waiting for a receipt. It only reads data and never changes an expense.';
 
     layout
     {
@@ -89,9 +89,6 @@ page 7420 "EA Card Expense Matches API"
         UserFilter: Text;
         OriginalFilterGroup: Integer;
     begin
-        if not IsNullGuid(Rec."Expense User SystemId") then
-            exit(Rec."Expense User SystemId");
-
         OriginalFilterGroup := Rec.FilterGroup();
         Rec.FilterGroup(4);
         UserFilter := Rec.GetFilter("Expense User SystemId");

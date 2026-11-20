@@ -830,6 +830,9 @@ table 6900 Expense
         key(CorporateCard; "Corporate Card Id")
         {
         }
+        key(ExpenseUserStatus; "Expense User No.", Status)
+        {
+        }
     }
     fieldgroups
     {
