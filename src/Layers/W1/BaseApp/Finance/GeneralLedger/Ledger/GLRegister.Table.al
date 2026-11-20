@@ -146,6 +146,9 @@ table 45 "G/L Register"
         {
             Caption = 'Posting Date';
             ClosingDates = true;
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This field was added to the W1 G/L Register table unintentionally. It is retained only for schema compatibility.';
+            ObsoleteTag = '29.1';
         }
     }
 
@@ -163,6 +166,9 @@ table 45 "G/L Register"
         }
         key(Key4; "Posting Date")
         {
+            ObsoleteState = Pending;
+            ObsoleteReason = 'The Posting Date field is obsolete. This key is retained only for compatibility.';
+            ObsoleteTag = '29.1';
         }
         key(key6; "From Entry No.", "To Entry No.")
         {
