@@ -49,6 +49,8 @@ The custom dev ALTool must be the newly built minimal codeunit-renewal candidate
 
 The adapter passes `--renewsession` for one fresh session per ordered codeunit group, preserving method fixture state within that group. `--renewsession-per-method` is a separate, mutually exclusive stricter mode and is not used by this experiment. Committed database state is not reset by either renewal mode.
 
+When the optional Application Test Library app is installed, its own `DefaultTestHandler` initializes `Library - Random` with `SetSeed(1)` before each native procedure and before every data-driven case. The first case deliberately has both boundaries; later cases reset at their case boundary. `ListTestCases` runs before the procedure boundary and is not covered by this initialization. Case initialization precedes `GetTestCase`, so explicit seeds chosen in that provider or the test body are preserved, with no reset between them. The generic Test Runner has no dependency on this optional app. Native random initialization does not invoke legacy permission or notification resets; the existing BCH reset remains unchanged.
+
 Historical BCH main test outcomes are an observational per-test baseline, not causal proof. Keep run SHA, platform/application versions, common identities, failures, skips and exclusions separate from results for this candidate. No native run or successful CI result is implied by preparing this branch.
 
 ## GDL development (layers and views)

@@ -1,7 +1,7 @@
 /// <summary>
 /// Provides pseudo-random number generation functions for test data creation.
 /// </summary>
-codeunit 130440 "Library - Random"
+codeunit 130440 "Library - Random" implements System.Testability.ITestHandler
 {
 
     SingleInstance = true;
@@ -13,6 +13,16 @@ codeunit 130440 "Library - Random"
     var
         Seed: Integer;
         SeedSet: Boolean;
+
+    procedure OnBeforeTestProcedureRun(Context: TestHandlerContext)
+    begin
+        SetSeed(1);
+    end;
+
+    procedure OnBeforeTestCaseRun(Context: TestHandlerContext)
+    begin
+        SetSeed(1);
+    end;
 
     procedure RandDec(Range: Integer; Decimals: Integer): Decimal
     begin
