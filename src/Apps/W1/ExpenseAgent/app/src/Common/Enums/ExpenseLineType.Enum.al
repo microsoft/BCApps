@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Specifies the type of account that an expense report line is posted to.
+/// </summary>
 enum 6978 "Expense Line Type"
 {
-    Access = Internal;
     AssignmentCompatibility = true;
 
     value(0; " ") { Caption = ' '; }
