@@ -118,15 +118,13 @@ codeunit 1860 "C5 Data Migration Mgt."
         end;
 
 
-        with GeneralLedgerSetup do begin
-            if not Get() then begin
-                Init();
-                Insert();
-            end;
-
-            if ("LCY Code" = '') or (LegacyEntriesToMigrateNb > 0) then
-                Page.RunModal(Page::"C5 Company Settings");
+        if not GeneralLedgerSetup.Get() then begin
+            GeneralLedgerSetup.Init();
+            GeneralLedgerSetup.Insert();
         end;
+
+        if (GeneralLedgerSetup."LCY Code" = '') or (LegacyEntriesToMigrateNb > 0) then
+            Page.RunModal(Page::"C5 Company Settings");
 
         C5MigrDashboardMgt.InitMigrationStatus(ItemsToMigrateNb, CustomersToMigrateNb, VendorsToMigrateNb, ChartOfAccountToMigrateNb, LegacyEntriesToMigrateNb);
 
@@ -160,4 +158,3 @@ codeunit 1860 "C5 Data Migration Mgt."
     end;
 
 }
-

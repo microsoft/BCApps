@@ -107,26 +107,24 @@ codeunit 1871 "C5 LedTrans Migrator"
     begin
         if LineAmount = 0 then
             exit;
-        with GenJournalLine do begin
-            SetCurrentKey("Line No.");
-            SetAscending("Line No.", true);
-            if FindLast() then
-                LineNo := "Line No." + 1;
-            Init();
-            Validate("Journal Template Name", GenJournalBatch."Journal Template Name");
-            Validate("Journal Batch Name", GenJournalBatch.Name);
-            Validate("Account Type", "Account Type"::"G/L Account");
-            Validate("Account No.", C5LedTableMigrator.FillWithLeadingZeros(Account));
-            // Description is filled with the Account Description on the validate above replace it only if not empty
-            if DescriptionText <> '' then
-                Validate(Description, CopyStr(DescriptionText, 1, MaxStrLen(Description)));
-            Validate("Document No.", DocumentNo);
-            Validate("Line No.", LineNo);
-            Validate(Amount, LineAmount);
-            Validate("Posting Date", PostingDate);
-            Validate("Due Date", DueDate);
-            Insert(true);
-        end;
+        GenJournalLine.SetCurrentKey("Line No.");
+        GenJournalLine.SetAscending("Line No.", true);
+        if GenJournalLine.FindLast() then
+            LineNo := GenJournalLine."Line No." + 1;
+        GenJournalLine.Init();
+        GenJournalLine.Validate("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.Validate("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine.Validate("Account Type", GenJournalLine."Account Type"::"G/L Account");
+        GenJournalLine.Validate("Account No.", C5LedTableMigrator.FillWithLeadingZeros(Account));
+        // Description is filled with the Account Description on the validate above replace it only if not empty
+        if DescriptionText <> '' then
+            GenJournalLine.Validate(Description, CopyStr(DescriptionText, 1, MaxStrLen(GenJournalLine.Description)));
+        GenJournalLine.Validate("Document No.", CopyStr(DocumentNo, 1, MaxStrLen(GenJournalLine."Document No.")));
+        GenJournalLine.Validate("Line No.", LineNo);
+        GenJournalLine.Validate(Amount, LineAmount);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Validate("Due Date", DueDate);
+        GenJournalLine.Insert(true);
     end;
 
     local procedure SetGenJournalLineDimensions(var GenJournalLine: Record "Gen. Journal Line"; C5LedTrans: Record "C5 LedTrans")
