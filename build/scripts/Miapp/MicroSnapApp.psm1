@@ -29,7 +29,10 @@ function Invoke-MiSnapApp
 
         Write-Host "Validating propagation for $($Files.Count) file(s)..."
 
-        [string[]] $actualFiles = $Files | select -Unique
+        [string[]] $actualFiles = $Files `
+            | % { Expand-MiappExclusionFile $_ } `
+            | ? { $_ } `
+            | select -Unique
         [string[]] $expectedFiles = $actualFiles | % { GetBranchedObjectFileNames "$(Get-GitRoot)/$_" } | select -Unique
         [string[]] $missingFiles = $expectedFiles | ? { $actualFiles -inotcontains $_ }
 
@@ -40,6 +43,34 @@ function Invoke-MiSnapApp
         }
 
         Write-Host -ForegroundColor Green "SUCCESS: No missing files"
+    }
+}
+
+<#
+.SYNOPSIS
+Expands a committed Miapp exclusion snapshot into the file paths it excludes.
+
+.DESCRIPTION
+When a file lives under `MiappConfig.ExclusionDir` (the `.miappsnap` snapshot folder),
+it is a JSON list of paths that were explicitly excluded from propagation via
+'Invoke-Miapp'. Those paths are returned so they are treated as already integrated and
+not reported as missing. Any other file is returned unchanged. This mirrors the original
+NAV GitMiapp behavior that was lost when the verification step was ported to git.
+#>
+function Expand-MiappExclusionFile {
+    [CmdletBinding()]
+    [OutputType([string[]], [string])]
+    param(
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $File
+    )
+
+    [string] $parentPath = Get-CanonicalParentPath "$(Get-GitRoot)/$File" -RelativeToRepoRoot
+    if ($parentPath -ieq $MiappConfig.ExclusionDir) {
+        Get-ExclusionList "$(Get-GitRoot)/$File"
+    } else {
+        $File
     }
 }
 
