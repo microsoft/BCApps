@@ -7,6 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.HumanResources.Employee;
 using System.Automation;
 
@@ -63,11 +64,12 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         ExpenseLedgerEntry: Record "Expense Ledger Entry";
         ReversingExpenseLedgerEntry: Record "Expense Ledger Entry";
         CancelPostedExpReport: Codeunit "Cancel Posted Expense Report";
-        OriginalEntryNo: Integer;
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+        OriginalEntryNo: BigInteger;
         OriginalAmount: Decimal;
     begin
         // [SCENARIO 636777] Cancelling a posted expense report marks the original Expense Ledger Entry as Reversed
-        // and creates a mirror entry with negated amount and Reversed = true.
+        // and creates a mirror entry with negated amount and Reversed = true, including entry numbers above the Integer range.
         Initialize();
 
         // [GIVEN] Posted expense report with an Expense Ledger Entry.
@@ -78,6 +80,9 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         ExpenseLedgerEntry.SetRange(Reversed, false);
 #pragma warning restore AA0210
         ExpenseLedgerEntry.FindFirst();
+        OriginalEntryNo := 2147483647;
+        ExpenseLedgerEntry.Rename(OriginalEntryNo + 1);
+        SequenceNoMgt.RebaseSeqNo(Database::"Expense Ledger Entry");
         OriginalEntryNo := ExpenseLedgerEntry."Entry No.";
         OriginalAmount := ExpenseLedgerEntry.Amount;
 
@@ -87,7 +92,9 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         // [THEN] Original Expense Ledger Entry is Reversed.
         ExpenseLedgerEntry.Get(OriginalEntryNo);
         Assert.IsTrue(ExpenseLedgerEntry.Reversed, 'Original Expense Ledger Entry should be marked Reversed.');
-        Assert.AreNotEqual(0, ExpenseLedgerEntry."Reversed by Entry No.", 'Reversed by Entry No. should be set.');
+        Assert.IsTrue(
+            ExpenseLedgerEntry."Reversed by Entry No." > OriginalEntryNo,
+            'Reversed by Entry No. must exceed the original BigInteger entry number.');
 
         // [THEN] A mirror Expense Ledger Entry exists with negated amount and Reversed = true.
         ReversingExpenseLedgerEntry.Get(ExpenseLedgerEntry."Reversed by Entry No.");
