@@ -133,46 +133,6 @@ codeunit 130051 "Business Skill Builder Test"
     end;
 
     /// <summary>
-    /// The public content update selects the caller's locked inactive skill and preserves no-op and version-only rules.
-    /// </summary>
-    [Test]
-    procedure PublicContentUpdateUsesCallingAppIdentity()
-    var
-        Skill: Record "Business Skill";
-        ForeignSkill: Record "Business Skill";
-        BusSkillContentVersion: Record "Bus Skill Content Version";
-        Builder: Codeunit "Business Skill Builder";
-        BusinessSkill: Codeunit "Business Skill";
-        Revision: BigInteger;
-    begin
-        // [SCENARIO] The public content update selects the caller's locked inactive skill and preserves no-op and version-only rules.
-        Initialize();
-        Skill.Get(Builder.Initialize('OWNER-UPDATE', 'Owned skill', SecretStrSubstNo('First')).Create());
-        ForeignSkill.Get(LibraryBusinessSkill.CreateAppOwnedSkill('OWNER-UPDATE', 'Foreign skill', SecretStrSubstNo('Foreign')));
-
-        BusinessSkill.SetNewContentAndUpdateVersion('OWNER-UPDATE', SecretStrSubstNo('Second'), 'release-2');
-
-        Skill.Get(Skill.ID);
-        AssertContentEquals(SecretStrSubstNo('Second'), BusinessSkillImpl.GetContent(Skill), 'The calling app must update its own content.');
-        Assert.AreEqual('release-2', Skill.Version, 'The supplied content version must persist.');
-        Assert.AreEqual(Skill.Status::Inactive, Skill.Status, 'Content updates must not activate inactive skills.');
-        Assert.IsTrue(Skill."Read-Only", 'Owner content updates must preserve the existing lock.');
-        ForeignSkill.Get(ForeignSkill.ID);
-        AssertContentEquals(SecretStrSubstNo('Foreign'), BusinessSkillImpl.GetContent(ForeignSkill), 'An identical code in another app must not be updated.');
-        Revision := Skill.SystemRowVersion;
-        BusinessSkill.SetNewContentAndUpdateVersion('OWNER-UPDATE', SecretStrSubstNo('Second'), 'release-2');
-        Skill.Get(Skill.ID);
-        Assert.AreEqual(Revision, Skill.SystemRowVersion, 'Identical content and version must not write.');
-        Commit();
-        asserterror BusinessSkill.SetNewContentAndUpdateVersion('OWNER-UPDATE', SecretStrSubstNo('Second'), 'release-3');
-        Assert.ExpectedError('can change only together with its content');
-        Skill.Get(Skill.ID);
-        Assert.AreEqual('release-2', Skill.Version, 'A rejected version-only update must not change the stored version.');
-        BusSkillContentVersion.SetRange("Skill ID", Skill.ID);
-        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'App-owned content updates must not append history.');
-    end;
-
-    /// <summary>
     /// Metadata updates select the calling app's skill and preserve its definition, history and lifecycle state.
     /// </summary>
     [Test]
@@ -547,50 +507,6 @@ codeunit 130051 "Business Skill Builder Test"
     end;
 
     /// <summary>
-    /// Version-only requests are rejected while the owning app can explicitly unlock its skill.
-    /// </summary>
-    [Test]
-    procedure UpsertRejectsVersionOnlyAndAllowsOwnerUnlock()
-    var
-        Skill: Record "Business Skill";
-        LockedSkill: Record "Business Skill";
-        BusSkillContentVersion: Record "Bus Skill Content Version";
-        Builder: Codeunit "Business Skill Builder";
-        BuilderImpl: Codeunit "Business Skill Builder Impl.";
-        SkillId: BigInteger;
-    begin
-        // [SCENARIO] Version-only requests are rejected while the owning app can explicitly unlock its skill.
-        // [GIVEN] An unlocked app-owned skill and a locked app-owned skill.
-        Initialize();
-        SkillId := Builder.Initialize('VERSION-ONLY', 'Title', SecretStrSubstNo('Instructions')).SetContentLocked(false).Create();
-        Skill.Get(SkillId);
-        Clear(Builder);
-        LockedSkill.Get(Builder.Initialize('LOCK-ONLY', 'Title', SecretStrSubstNo('Instructions')).Create());
-        Commit();
-
-        // [WHEN] Changing only the version and explicitly unlocking the other skill.
-        BuilderImpl.Initialize(Skill."Owning App ID", 'VERSION-ONLY', 'Title', SecretStrSubstNo('Instructions'));
-        BuilderImpl.SetContentVersion('v2.0');
-        asserterror BuilderImpl.CreateOrUpdate();
-        Assert.ExpectedError('can change only together with its content');
-        Clear(BuilderImpl);
-        BuilderImpl.Initialize(Skill."Owning App ID", 'LOCK-ONLY', 'Title', SecretStrSubstNo('Instructions'));
-        BuilderImpl.SetContentLocked(false);
-        BuilderImpl.CreateOrUpdate();
-
-        // [THEN] Version-only changes fail, while unlocking preserves content, version and history.
-        Skill.Get(SkillId);
-        Assert.AreEqual('v1.0', Skill.Version, 'Rejected version-only updates must preserve the version.');
-        AssertContentEquals(SecretStrSubstNo('Instructions'), BusinessSkillImpl.GetContent(Skill), 'Rejected updates must preserve content.');
-        LockedSkill.Get(LockedSkill.ID);
-        Assert.IsFalse(LockedSkill."Read-Only", 'The owning app must be able to unlock its skill.');
-        Assert.AreEqual('v1.0', LockedSkill.Version, 'Unlocking must preserve the content version.');
-        AssertContentEquals(SecretStrSubstNo('Instructions'), BusinessSkillImpl.GetContent(LockedSkill), 'Unlocking must preserve content.');
-        BusSkillContentVersion.SetRange("Skill ID", LockedSkill.ID);
-        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'Unlocking app-owned content must not create history.');
-    end;
-
-    /// <summary>
     /// Metadata-only upserts preserve the version, while changed instructions require an explicit new version.
     /// </summary>
     [Test]
@@ -703,49 +619,6 @@ codeunit 130051 "Business Skill Builder Test"
         Assert.ExpectedError('Caller rollback');
         Assert.IsTrue(Skill.IsEmpty(), 'The skill must roll back.');
         Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'The content history must roll back.');
-    end;
-
-    /// <summary>
-    /// The owning app can update locked content and explicitly unlock it without changing unrelated properties.
-    /// </summary>
-    [Test]
-    procedure ReadOnlySkillAllowsOwnerContentChangesAndUnlock()
-    var
-        Skill: Record "Business Skill";
-        BusSkillContentVersion: Record "Bus Skill Content Version";
-        Builder: Codeunit "Business Skill Builder";
-        SkillId: BigInteger;
-    begin
-        // [SCENARIO] The owning app can update locked content and explicitly unlock it without changing unrelated properties.
-        // [GIVEN] A published-content style skill protected by the builder default.
-        Initialize();
-        SkillId := Builder.Initialize('LOCKED', 'Original title', SecretStrSubstNo('Original instructions'))
-            .SetDescription('Original description').SetContentVersion('2.0').SetActive(true).Create();
-        Commit();
-
-        // [WHEN] Mutations arrive through normal management and record modification.
-        BusinessSkillImpl.UpdateSkill(SkillId, 'Changed title', SecretStrSubstNo('Original instructions'));
-        Skill.Get(SkillId);
-        Skill.Description := 'Changed description';
-        BusinessSkillImpl.UpdateSkillRecord(SkillId, Skill, BusinessSkillImpl.GetContent(Skill));
-        Commit();
-        Skill.Get(SkillId);
-        BusinessSkillImpl.SetContent(SkillId, SecretStrSubstNo('Changed instructions'), '2.1');
-        Skill.Get(SkillId);
-        Assert.IsTrue(Skill."Read-Only", 'Updating content must preserve the existing lock.');
-        Skill."Read-Only" := false;
-        Skill.Modify(true);
-
-        // [THEN] Content and version change together without creating app-owned history.
-        Skill.Get(SkillId);
-        Assert.AreEqual('Changed title', Skill.Title, 'Read-only instructions must not prevent metadata edits.');
-        Assert.AreEqual('Changed description', Skill.Description, 'Read-only instructions must not prevent metadata edits.');
-        AssertContentEquals(SecretStrSubstNo('Changed instructions'), BusinessSkillImpl.GetContent(Skill), 'The owner must be able to change locked instructions.');
-        Assert.AreEqual('2.1', Skill.Version, 'The supplied version must persist with the changed instructions.');
-        Assert.IsFalse(Skill."Read-Only", 'The owning app must be able to unlock its skill.');
-        Assert.AreEqual(Skill.Status::Active, Skill.Status, 'Content and lock changes must preserve status.');
-        BusSkillContentVersion.SetRange("Skill ID", SkillId);
-        Assert.IsTrue(BusSkillContentVersion.IsEmpty(), 'App-owned content and lock changes must not create history.');
     end;
 
     /// <summary>

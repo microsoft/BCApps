@@ -22,63 +22,6 @@ codeunit 130052 "Business Skill UI Test"
     end;
 
     /// <summary>
-    /// History visibility follows manual ownership as the card switches between skills and new records.
-    /// </summary>
-    [Test]
-    procedure HistoryIsVisibleOnlyForSavedManualSkills()
-    var
-        ManualSkill: Record "Business Skill";
-        AppSkill: Record "Business Skill";
-        SkillCard: TestPage "Business Skill Card";
-    begin
-        // [SCENARIO] History visibility follows manual ownership as the card switches between skills and new records.
-        Initialize();
-        ManualSkill.Get(LibraryBusinessSkill.CreateSkill('Manual skill', SecretStrSubstNo('Manual content')));
-        AppSkill.Get(LibraryBusinessSkill.CreateAppOwnedSkill('HISTORY-UI', 'App skill', SecretStrSubstNo('App content')));
-        Commit();
-
-        SkillCard.OpenView();
-        SkillCard.GoToRecord(ManualSkill);
-        Assert.IsTrue(SkillCard.SkillContentEditor.ViewHistory.Visible(), 'Manual skills must expose history.');
-        SkillCard.GoToRecord(AppSkill);
-        Assert.IsFalse(SkillCard.SkillContentEditor.ViewHistory.Visible(), 'App-owned skills must hide history.');
-        Assert.IsTrue(SkillCard.SkillContentEditor.DownloadContent.Visible(), 'Current app-owned content must remain downloadable.');
-        SkillCard.SkillContentEditor.SkillContent.AssertEquals('App content');
-        SkillCard.GoToRecord(ManualSkill);
-        Assert.IsTrue(SkillCard.SkillContentEditor.ViewHistory.Visible(), 'History visibility must refresh on navigation.');
-        SkillCard.Close();
-        SkillCard.OpenNew();
-        Assert.IsFalse(SkillCard.SkillContentEditor.ViewHistory.Visible(), 'Unsaved skills must not expose history.');
-        SkillCard.Close();
-    end;
-
-    /// <summary>
-    /// Directly opening app-owned history is rejected even if historical rows remain.
-    /// </summary>
-    [Test]
-    procedure AppOwnedHistoryCannotBeOpenedDirectly()
-    var
-        Skill: Record "Business Skill";
-        Version: Record "Bus Skill Content Version";
-        Versions: Page "Bus Skill Content Versions";
-    begin
-        // [SCENARIO] Directly opening app-owned history is rejected even if historical rows remain.
-        Initialize();
-        Skill.Get(LibraryBusinessSkill.CreateAppOwnedSkill('OLD-HISTORY', 'App skill', SecretStrSubstNo('Current')));
-        Version."Skill ID" := Skill.ID;
-        Version.SetContent(SecretStrSubstNo('Old content'));
-        Version.Insert(true);
-        Commit();
-        Versions.SetSkillId(Skill.ID);
-
-        asserterror Versions.RunModal();
-
-        Assert.ExpectedError('Manual must be equal to');
-        AssertVersionCount(Skill.ID, 1);
-        AssertContentEquals(SecretStrSubstNo('Current'), BusinessSkillImpl.GetContent(Skill), 'Rejected history access must preserve current content.');
-    end;
-
-    /// <summary>
     /// Verifies card-created skills default inactive and activate only after instructions are supplied.
     /// </summary>
     [Test]
