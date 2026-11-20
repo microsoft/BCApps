@@ -217,6 +217,7 @@ permissionset 30104 "Shpfy - Objects"
 #endif
         codeunit "Shpfy GQL Locations" = X,
         codeunit "Shpfy GQL Market Catalogs" = X,
+        codeunit "Shpfy GQL MarketShipMethods" = X,
         codeunit "Shpfy GQL MarkOrderAsPaid" = X,
         codeunit "Shpfy GQL MetafieldDefinitions" = X,
         codeunit "Shpfy GQL MetafieldsSet" = X,
@@ -240,6 +241,7 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy GQL NextGetFulfillments" = X,
         codeunit "Shpfy GQL NextInvEntries" = X,
         codeunit "Shpfy GQL NextMarketCatalogs" = X,
+        codeunit "Shpfy GQL NextMarketShipMeth" = X,
         codeunit "Shpfy GQL NextOpenFFOrderLines" = X,
         codeunit "Shpfy GQL NextOpenOrdToImport" = X,
         codeunit "Shpfy GQL NextOrderLines" = X,

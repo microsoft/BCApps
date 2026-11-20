@@ -736,4 +736,14 @@ enum 30111 "Shpfy GraphQL Type" implements "Shpfy IGraphQL"
         Caption = 'Has Fulfillment Service';
         Implementation = "Shpfy IGraphQL" = "Shpfy GQL HasFFService";
     }
+    value(148; GetMarketShippingMethods)
+    {
+        Caption = 'Get Market Shipping Methods';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL MarketShipMethods";
+    }
+    value(149; GetNextMarketShippingMethods)
+    {
+        Caption = 'Get Next Market Shipping Methods';
+        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextMarketShipMeth";
+    }
 }
