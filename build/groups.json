@@ -183,6 +183,26 @@
     ]
   },
   {
+    "name": "Business Skills Test Library",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "TestLibraries"
+      }
+    ]
+  },
+  {
     "name": "Application Test Library",
     "groups": [
       {
