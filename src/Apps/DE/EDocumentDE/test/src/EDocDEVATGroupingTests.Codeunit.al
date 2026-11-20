@@ -12,6 +12,7 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using System.Utilities;
@@ -26,7 +27,8 @@ codeunit 148504 "E-Doc DE VAT Grouping Tests"
         tabledata "Sales Invoice Header" = RIM,
         tabledata "Sales Invoice Line" = RIM,
         tabledata "Sales Cr.Memo Header" = RI,
-        tabledata "Sales Cr.Memo Line" = RI;
+        tabledata "Sales Cr.Memo Line" = RI,
+        tabledata "Value Entry" = RI;
 
     var
         Assert: Codeunit Assert;
@@ -396,6 +398,10 @@ codeunit 148504 "E-Doc DE VAT Grouping Tests"
         if WithDiscount then begin
             AssertAllowance(Document, IsCII, 'E', 10);
             AssertAllowance(Document, IsCII, 'Z', 10);
+            if not IsCII then begin
+                AssertDiscountBaseAndPercent(Document, FirstCategory, 150, Round(100 * Discount / 150, 0.00001));
+                AssertDiscountBaseAndPercent(Document, SecondCategory, 200, 100 * Discount / 200);
+            end;
         end;
         AssertPayable(Document, IsCII, 350 - 2 * Discount);
     end;
@@ -413,6 +419,378 @@ codeunit 148504 "E-Doc DE VAT Grouping Tests"
         AssertBreakdown(Document, IsCII, 'S', 19, 200, 38);
         AssertNodeCount(Document, BreakdownPath(IsCII), 2);
         AssertPayable(Document, IsCII, 345);
+    end;
+
+    [Test]
+    procedure ReviewS1UBLInvoiceDifferentCategoryCharge()
+    begin
+        VerifyAssignedItemCharge(false, false, 20, false, false, false);
+    end;
+
+    [Test]
+    procedure ReviewS1UBLInvoiceDifferentCategoryAllowance()
+    begin
+        VerifyAssignedItemCharge(false, false, -20, false, false, false);
+    end;
+
+    [Test]
+    procedure ReviewS1UBLInvoiceResolvedDifferentCategory()
+    begin
+        VerifyAssignedItemCharge(false, false, 20, false, true, false);
+    end;
+
+    [Test]
+    procedure ReviewS1UBLInvoiceResolvedSameCategory()
+    begin
+        VerifyAssignedItemCharge(false, false, 20, true, true, false);
+    end;
+
+    [Test]
+    procedure ReviewS1UBLInvoiceForcedLineDifferentCategory()
+    begin
+        VerifyAssignedItemCharge(false, false, 20, false, false, true);
+    end;
+
+    [Test]
+    procedure ReviewS2UBLInvoiceZeroDiscountBase()
+    begin
+        VerifyZeroDiscountBase(false, false);
+    end;
+
+    [Test]
+    procedure ReviewS1UBLCreditMemoDifferentCategoryCharge()
+    begin
+        VerifyAssignedItemCharge(false, true, 20, false, false, false);
+    end;
+
+    [Test]
+    procedure ReviewS1UBLCreditMemoDifferentCategoryAllowance()
+    begin
+        VerifyAssignedItemCharge(false, true, -20, false, false, false);
+    end;
+
+    [Test]
+    procedure ReviewS1UBLCreditMemoResolvedDifferentCategory()
+    begin
+        VerifyAssignedItemCharge(false, true, 20, false, true, false);
+    end;
+
+    [Test]
+    procedure ReviewS1UBLCreditMemoResolvedSameCategory()
+    begin
+        VerifyAssignedItemCharge(false, true, 20, true, true, false);
+    end;
+
+    [Test]
+    procedure ReviewS1UBLCreditMemoForcedLineDifferentCategory()
+    begin
+        VerifyAssignedItemCharge(false, true, 20, false, false, true);
+    end;
+
+    [Test]
+    procedure ReviewS2UBLCreditMemoZeroDiscountBase()
+    begin
+        VerifyZeroDiscountBase(false, true);
+    end;
+
+    [Test]
+    procedure ReviewS1CIIInvoiceDifferentCategoryCharge()
+    begin
+        VerifyAssignedItemCharge(true, false, 20, false, false, false);
+    end;
+
+    [Test]
+    procedure ReviewS1CIIInvoiceDifferentCategoryAllowance()
+    begin
+        VerifyAssignedItemCharge(true, false, -20, false, false, false);
+    end;
+
+    [Test]
+    procedure ReviewS1CIIInvoiceResolvedDifferentCategory()
+    begin
+        VerifyAssignedItemCharge(true, false, 20, false, true, false);
+    end;
+
+    [Test]
+    procedure ReviewS1CIIInvoiceResolvedSameCategory()
+    begin
+        VerifyAssignedItemCharge(true, false, 20, true, true, false);
+    end;
+
+    [Test]
+    procedure ReviewS1CIIInvoiceForcedLineDifferentCategory()
+    begin
+        VerifyAssignedItemCharge(true, false, 20, false, false, true);
+    end;
+
+    [Test]
+    procedure ReviewS2CIIInvoiceZeroDiscountBase()
+    begin
+        VerifyZeroDiscountBase(true, false);
+    end;
+
+    [Test]
+    procedure ReviewS1CIICreditMemoDifferentCategoryCharge()
+    begin
+        VerifyAssignedItemCharge(true, true, 20, false, false, false);
+    end;
+
+    [Test]
+    procedure ReviewS1CIICreditMemoDifferentCategoryAllowance()
+    begin
+        VerifyAssignedItemCharge(true, true, -20, false, false, false);
+    end;
+
+    [Test]
+    procedure ReviewS1CIICreditMemoResolvedDifferentCategory()
+    begin
+        VerifyAssignedItemCharge(true, true, 20, false, true, false);
+    end;
+
+    [Test]
+    procedure ReviewS1CIICreditMemoResolvedSameCategory()
+    begin
+        VerifyAssignedItemCharge(true, true, 20, true, true, false);
+    end;
+
+    [Test]
+    procedure ReviewS1CIICreditMemoForcedLineDifferentCategory()
+    begin
+        VerifyAssignedItemCharge(true, true, 20, false, false, true);
+    end;
+
+    [Test]
+    procedure ReviewS2CIICreditMemoZeroDiscountBase()
+    begin
+        VerifyZeroDiscountBase(true, true);
+    end;
+
+    local procedure VerifyAssignedItemCharge(IsCII: Boolean; IsCreditMemo: Boolean; ChargeAmount: Decimal; SameCategory: Boolean; UseSetupCategory: Boolean; ForceLineMapping: Boolean)
+    var
+        Header: Record "Sales Invoice Header";
+        TargetLine: Record "Sales Invoice Line";
+        ChargeLine: Record "Sales Invoice Line";
+        CreditHeader: Record "Sales Cr.Memo Header";
+        CreditChargeLine: Record "Sales Cr.Memo Line";
+        CreditTargetLine: Record "Sales Cr.Memo Line";
+        Service: Record "E-Document Service";
+        Mapping: Codeunit "E-Doc. Item Charge Mapping";
+        Structure: Enum "Item Charge E-Doc. Structure";
+        Document: XmlDocument;
+        ChargeCategory: Code[10];
+        LinePath, ChargePath: Text;
+        ExpectedLineAmount: Decimal;
+    begin
+        CreateFixture(Header);
+        CompleteReviewHeader(Header);
+        ChargeCategory := 'Z';
+        if SameCategory then
+            ChargeCategory := 'E';
+        // In the fallback cases the target category is blank and resolves from VAT Posting Setup.
+        // For the different-category case both source fields are blank, but resolve to E and Z.
+        AddLine(Header, 10000, 'E', 0, 100, 0, false, UseSetupCategory);
+        AddLine(Header, 20000, ChargeCategory, 0, ChargeAmount, 0, true, UseSetupCategory and not SameCategory);
+        AssignItemCharge(Header, 10000, 20000, ForceLineMapping);
+        if IsCreditMemo then
+            CopyToCreditMemo(Header);
+        Service."Item Charge E-Invoice Mapping" := Service."Item Charge E-Invoice Mapping"::Automatic;
+        // Prove that the real mapper found the assigned line. No subscriber forces a test result.
+        if IsCreditMemo then begin
+            CreditHeader.Get(Header."No.");
+            CreditChargeLine.Get(Header."No.", 20000);
+            Structure := Mapping.GetItemChargeStructure(Service, CreditHeader, CreditChargeLine, CreditTargetLine);
+            Assert.AreEqual(10000, CreditTargetLine."Line No.", 'The real mapper must resolve the assigned credit-memo line.');
+        end else begin
+            ChargeLine.Get(Header."No.", 20000);
+            Structure := Mapping.GetItemChargeStructure(Service, Header, ChargeLine, TargetLine);
+            Assert.AreEqual(10000, TargetLine."Line No.", 'The real mapper must resolve the assigned invoice line.');
+        end;
+        Assert.AreEqual(Structure::"Line Allowance/Charge".AsInteger(), Structure.AsInteger(), 'Fixture must exercise the real line-level mapping path.');
+        ExportFixture(Header, IsCII, IsCreditMemo, Document);
+        ExpectedLineAmount := 100;
+        AssertReviewDeliveryAddress(Document, IsCII);
+        if SameCategory then
+            ExpectedLineAmount += ChargeAmount;
+        LinePath := DocumentLinePath(IsCII);
+        AssertNodeCount(Document, LinePath, 1);
+        if IsCII then begin
+            AssertDecimal(Document, LinePath + '/*[local-name()="SpecifiedLineTradeSettlement"]/*[local-name()="SpecifiedTradeSettlementLineMonetarySummation"]/*[local-name()="LineTotalAmount"]', ExpectedLineAmount);
+            AssertNodeCount(Document, LinePath + '/*[local-name()="SpecifiedLineTradeSettlement"]/*[local-name()="ApplicableTradeTax"][*[local-name()="CategoryCode"]="E"]', 1);
+            ChargePath := LinePath + '/*[local-name()="SpecifiedLineTradeSettlement"]/*[local-name()="SpecifiedTradeAllowanceCharge"]';
+        end else begin
+            AssertDecimal(Document, LinePath + '/*[local-name()="LineExtensionAmount"]', ExpectedLineAmount);
+            AssertNodeCount(Document, LinePath + '/*[local-name()="Item"]/*[local-name()="ClassifiedTaxCategory"][*[local-name()="ID"]="E"]', 1);
+            ChargePath := LinePath + '/*[local-name()="AllowanceCharge"]';
+        end;
+        if SameCategory then begin
+            AssertNodeCount(Document, ChargePath, 1);
+            if IsCII then
+                AssertDecimal(Document, ChargePath + '/*[local-name()="ActualAmount"]', Abs(ChargeAmount))
+            else
+                AssertDecimal(Document, ChargePath + '/*[local-name()="Amount"]', Abs(ChargeAmount));
+            AssertNodeCount(Document, DocumentChargePath(IsCII), 0);
+            AssertBreakdown(Document, IsCII, 'E', 0, 100 + ChargeAmount, 0);
+            AssertNodeCount(Document, BreakdownPath(IsCII), 1);
+        end else begin
+            AssertNodeCount(Document, ChargePath, 0);
+            AssertNodeCount(Document, DocumentChargePath(IsCII), 1);
+            AssertAllowance(Document, IsCII, 'Z', Abs(ChargeAmount));
+            if ChargeAmount > 0 then
+                AssertNodeCount(Document, DocumentChargePath(IsCII) + '[.//*[local-name()="ChargeIndicator"][.="true" or *="true"]]', 1)
+            else
+                AssertNodeCount(Document, DocumentChargePath(IsCII) + '[.//*[local-name()="ChargeIndicator"][.="false" or *="false"]]', 1);
+            AssertBreakdown(Document, IsCII, 'E', 0, 100, 0);
+            AssertBreakdown(Document, IsCII, 'Z', 0, ChargeAmount, 0);
+            AssertNodeCount(Document, BreakdownPath(IsCII), 2);
+        end;
+        AssertPayable(Document, IsCII, 100 + ChargeAmount);
+    end;
+
+    local procedure AssignItemCharge(Header: Record "Sales Invoice Header"; TargetLineNo: Integer; ChargeLineNo: Integer; ForceLineMapping: Boolean)
+    var
+        TargetLine: Record "Sales Invoice Line";
+        ChargeLine: Record "Sales Invoice Line";
+        Item: Record Item;
+        ItemCharge: Record "Item Charge";
+        ValueEntry: Record "Value Entry";
+        EntryNo: Integer;
+    begin
+        Item."No." := Header."No.";
+        Item.Description := 'Assigned item-charge regression item';
+        Item.Insert();
+        TargetLine.Get(Header."No.", TargetLineNo);
+        TargetLine.Type := TargetLine.Type::Item;
+        TargetLine."No." := Item."No.";
+        TargetLine.Modify();
+        ChargeLine.Get(Header."No.", ChargeLineNo);
+        ItemCharge.Get(ChargeLine."No.");
+        ItemCharge."E-Invoice Mapping" := ItemCharge."E-Invoice Mapping"::Automatic;
+        if ForceLineMapping then
+            ItemCharge."E-Invoice Mapping" := ItemCharge."E-Invoice Mapping"::"Line Allowance/Charge";
+        ItemCharge.Modify();
+        // Minimal isolated value-entry links used by the real mapper, not a posting or costing test.
+        ValueEntry.LockTable();
+        if ValueEntry.FindLast() then
+            EntryNo := ValueEntry."Entry No.";
+        EntryNo += 1;
+        ValueEntry.Init();
+        ValueEntry."Entry No." := EntryNo;
+        ValueEntry."Item Ledger Entry No." := EntryNo;
+        ValueEntry."Document No." := Header."No.";
+        ValueEntry."Document Line No." := TargetLineNo;
+        ValueEntry."Item Charge No." := '';
+        ValueEntry.Insert();
+        ValueEntry."Entry No." := EntryNo + 1;
+        ValueEntry."Document Line No." := ChargeLineNo;
+        ValueEntry."Item Charge No." := ChargeLine."No.";
+        ValueEntry.Insert();
+    end;
+
+    local procedure VerifyZeroDiscountBase(IsCII: Boolean; IsCreditMemo: Boolean)
+    var
+        Header: Record "Sales Invoice Header";
+        Document: XmlDocument;
+        Path: Text;
+    begin
+        CreateFixture(Header);
+        CompleteReviewHeader(Header);
+        AddLine(Header, 10000, 'E', 0, 90, 10, false, false);
+        AddLine(Header, 20000, 'E', 0, -100, 0, true, false);
+        AddLine(Header, 30000, 'Z', 0, 200, 0, false, false);
+        // The E net base is -10; adding its discount of 10 gives a zero percentage denominator.
+        ExportFixture(Header, IsCII, IsCreditMemo, Document);
+        AssertReviewDeliveryAddress(Document, IsCII);
+        AssertBreakdown(Document, IsCII, 'E', 0, -10, 0);
+        AssertBreakdown(Document, IsCII, 'Z', 0, 200, 0);
+        AssertNodeCount(Document, BreakdownPath(IsCII), 2);
+        AssertNodeCount(Document, DocumentLinePath(IsCII), 2);
+        AssertNodeCount(Document, DocumentChargePath(IsCII), 2);
+        if IsCII then begin
+            Path := DocumentChargePath(true) + '[*[local-name()="Reason"]="Document discount"]';
+            AssertNodeCount(Document, Path, 1);
+            AssertDecimal(Document, Path + '/*[local-name()="ActualAmount"]', 10);
+            AssertDecimal(Document, '//*[local-name()="SpecifiedTradeSettlementHeaderMonetarySummation"]/*[local-name()="LineTotalAmount"]', 300);
+            AssertDecimal(Document, '//*[local-name()="SpecifiedTradeSettlementHeaderMonetarySummation"]/*[local-name()="AllowanceTotalAmount"]', 110);
+        end else begin
+            Path := DocumentChargePath(false) + '[*[local-name()="AllowanceChargeReason"]="Document discount"]';
+            AssertNodeCount(Document, Path, 1);
+            AssertDecimal(Document, Path + '/*[local-name()="Amount"]', 10);
+            AssertNodeCount(Document, Path + '/*[local-name()="BaseAmount" or local-name()="MultiplierFactorNumeric"]', 0);
+            AssertNodeCount(Document, Path + '/*[local-name()="TaxCategory"][*[local-name()="ID"]="E"]', 1);
+            AssertDecimal(Document, '/*/*[local-name()="LegalMonetaryTotal"]/*[local-name()="LineExtensionAmount"]', 300);
+            AssertDecimal(Document, '/*/*[local-name()="LegalMonetaryTotal"]/*[local-name()="AllowanceTotalAmount"]', 110);
+        end;
+        AssertPayable(Document, IsCII, 190);
+    end;
+
+    local procedure CompleteReviewHeader(var Header: Record "Sales Invoice Header")
+    begin
+        // Full document validation also requires complete delivery and order-reference fixture data.
+        // CII reads Sell-to fields; UBL reads Ship-to fields for the delivery address.
+        Header."Sell-to Address" := Header."Bill-to Address";
+        Header."Sell-to City" := Header."Bill-to City";
+        Header."Sell-to Post Code" := Header."Bill-to Post Code";
+        Header."Sell-to Country/Region Code" := Header."Bill-to Country/Region Code";
+        Header."Ship-to Name" := Header."Bill-to Name";
+        Header."Ship-to Address" := Header."Bill-to Address";
+        Header."Ship-to City" := Header."Bill-to City";
+        Header."Ship-to Post Code" := Header."Bill-to Post Code";
+        Header."Ship-to Country/Region Code" := Header."Bill-to Country/Region Code";
+        Header."Order No." := 'VAT-XML-ORDER';
+        Header.Modify();
+    end;
+
+    local procedure AssertReviewDeliveryAddress(Document: XmlDocument; IsCII: Boolean)
+    var
+        Path: Text;
+    begin
+        if IsCII then begin
+            Path := '//*[local-name()="ApplicableHeaderTradeDelivery"]/*[local-name()="ShipToTradeParty"]/*[local-name()="PostalTradeAddress"]';
+            AssertNodeCount(Document, Path + '/*[local-name()="LineOne" and .="Test Street 2"]', 1);
+            AssertNodeCount(Document, Path + '/*[local-name()="CityName" and .="Berlin"]', 1);
+            AssertNodeCount(Document, Path + '/*[local-name()="PostcodeCode" and .="10115"]', 1);
+            AssertNodeCount(Document, Path + '/*[local-name()="CountryID" and .="DE"]', 1);
+        end else begin
+            Path := '/*/*[local-name()="Delivery"]/*[local-name()="DeliveryLocation"]/*[local-name()="Address"]';
+            AssertNodeCount(Document, Path + '/*[local-name()="StreetName" and .="Test Street 2"]', 1);
+            AssertNodeCount(Document, Path + '/*[local-name()="CityName" and .="Berlin"]', 1);
+            AssertNodeCount(Document, Path + '/*[local-name()="PostalZone" and .="10115"]', 1);
+            AssertNodeCount(Document, Path + '/*[local-name()="Country"]/*[local-name()="IdentificationCode" and .="DE"]', 1);
+        end;
+    end;
+
+    local procedure DocumentLinePath(IsCII: Boolean): Text
+    begin
+        if IsCII then
+            exit('//*[local-name()="IncludedSupplyChainTradeLineItem"]');
+        exit('/*/*[local-name()="InvoiceLine" or local-name()="CreditNoteLine"]');
+    end;
+
+    local procedure DocumentChargePath(IsCII: Boolean): Text
+    begin
+        if IsCII then
+            exit('//*[local-name()="ApplicableHeaderTradeSettlement"]/*[local-name()="SpecifiedTradeAllowanceCharge"]');
+        exit('/*/*[local-name()="AllowanceCharge"]');
+    end;
+
+    local procedure CopyToCreditMemo(Header: Record "Sales Invoice Header")
+    var
+        CreditHeader: Record "Sales Cr.Memo Header";
+        InvoiceLine: Record "Sales Invoice Line";
+        CreditLine: Record "Sales Cr.Memo Line";
+    begin
+        if CreditHeader.Get(Header."No.") then
+            exit;
+        CreditHeader.TransferFields(Header);
+        CreditHeader."Return Order No." := Header."Order No.";
+        CreditHeader.Insert();
+        InvoiceLine.SetRange("Document No.", Header."No.");
+        if InvoiceLine.FindSet() then
+            repeat
+                CreditLine.Init();
+                CreditLine.TransferFields(InvoiceLine);
+                CreditLine.Insert();
+            until InvoiceLine.Next() = 0;
     end;
 
     local procedure CreateFixture(var Header: Record "Sales Invoice Header")
@@ -530,23 +908,14 @@ codeunit 148504 "E-Doc DE VAT Grouping Tests"
     local procedure ExportFixture(Header: Record "Sales Invoice Header"; IsCII: Boolean; IsCreditMemo: Boolean; var Document: XmlDocument)
     var
         CreditHeader: Record "Sales Cr.Memo Header";
-        InvoiceLine: Record "Sales Invoice Line";
-        CreditLine: Record "Sales Cr.Memo Line";
         TempBlob: Codeunit "Temp Blob";
         Output: OutStream;
         Input: InStream;
     begin
         TempBlob.CreateOutStream(Output, TextEncoding::UTF8);
         if IsCreditMemo then begin
-            CreditHeader.TransferFields(Header);
-            CreditHeader.Insert();
-            InvoiceLine.SetRange("Document No.", Header."No.");
-            if InvoiceLine.FindSet() then
-                repeat
-                    CreditLine.Init();
-                    CreditLine.TransferFields(InvoiceLine);
-                    CreditLine.Insert();
-                until InvoiceLine.Next() = 0;
+            CopyToCreditMemo(Header);
+            CreditHeader.Get(Header."No.");
             if IsCII then
                 ExportZUGFeRD.CreateXML(CreditHeader, Output)
             else
@@ -597,6 +966,16 @@ codeunit 148504 "E-Doc DE VAT Grouping Tests"
             AssertNodeCount(Document, Path, 1);
             AssertDecimal(Document, Path + '/*[local-name()="Amount"]', Amount);
         end;
+    end;
+
+    local procedure AssertDiscountBaseAndPercent(Document: XmlDocument; Category: Text; Basis: Decimal; Percent: Decimal)
+    var
+        Path: Text;
+    begin
+        Path := '/*/*[local-name()="AllowanceCharge"][*[local-name()="TaxCategory"]/*[local-name()="ID"]="' + Category + '"]';
+        AssertNodeCount(Document, Path, 1);
+        AssertDecimal(Document, Path + '/*[local-name()="BaseAmount"]', Basis);
+        AssertDecimal(Document, Path + '/*[local-name()="MultiplierFactorNumeric"]', Percent);
     end;
 
     local procedure AssertPayable(Document: XmlDocument; IsCII: Boolean; Amount: Decimal)

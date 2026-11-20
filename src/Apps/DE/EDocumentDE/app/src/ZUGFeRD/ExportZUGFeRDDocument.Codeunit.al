@@ -1630,6 +1630,13 @@ codeunit 13917 "Export ZUGFeRD Document"
             // A line level allowance/charge needs an invoice line to live in. Without one it degrades to document level, so that the charge is never lost.
             if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesInvLine, TargetSalesInvLine."Line No.") then
                 Structure := Structure::"Document Allowance/Charge";
+            // Line allowances/charges inherit the target line's VAT category in the XML.
+            // Preserve a different resolved category by reporting the charge at document level.
+            if Structure = Structure::"Line Allowance/Charge" then
+                if GetTaxCategoryID(ChargeSalesInvLine."Tax Category", ChargeSalesInvLine."VAT Bus. Posting Group", ChargeSalesInvLine."VAT Prod. Posting Group") <>
+                   GetTaxCategoryID(TargetSalesInvLine."Tax Category", TargetSalesInvLine."VAT Bus. Posting Group", TargetSalesInvLine."VAT Prod. Posting Group")
+                then
+                    Structure := Structure::"Document Allowance/Charge";
             ItemChargeStructures.Add(ChargeSalesInvLine."Line No.", Structure.AsInteger());
             if Structure = Structure::"Line Allowance/Charge" then
                 AddLineLevelItemCharge(TargetSalesInvLine."Line No.", ChargeSalesInvLine."Line No.", ChargeSalesInvLine.Amount);
@@ -1662,6 +1669,13 @@ codeunit 13917 "Export ZUGFeRD Document"
             // A line level allowance/charge needs a credit memo line to live in. Without one it degrades to document level, so that the charge is never lost.
             if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesCrMemoLine, TargetSalesCrMemoLine."Line No.") then
                 Structure := Structure::"Document Allowance/Charge";
+            // Line allowances/charges inherit the target line's VAT category in the XML.
+            // Preserve a different resolved category by reporting the charge at document level.
+            if Structure = Structure::"Line Allowance/Charge" then
+                if GetTaxCategoryID(ChargeSalesCrMemoLine."Tax Category", ChargeSalesCrMemoLine."VAT Bus. Posting Group", ChargeSalesCrMemoLine."VAT Prod. Posting Group") <>
+                   GetTaxCategoryID(TargetSalesCrMemoLine."Tax Category", TargetSalesCrMemoLine."VAT Bus. Posting Group", TargetSalesCrMemoLine."VAT Prod. Posting Group")
+                then
+                    Structure := Structure::"Document Allowance/Charge";
             ItemChargeStructures.Add(ChargeSalesCrMemoLine."Line No.", Structure.AsInteger());
             if Structure = Structure::"Line Allowance/Charge" then
                 AddLineLevelItemCharge(TargetSalesCrMemoLine."Line No.", ChargeSalesCrMemoLine."Line No.", ChargeSalesCrMemoLine.Amount);

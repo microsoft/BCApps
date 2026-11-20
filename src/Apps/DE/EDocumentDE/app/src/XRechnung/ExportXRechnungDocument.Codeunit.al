@@ -451,6 +451,8 @@ codeunit 13916 "Export XRechnung Document"
     var
         VATKey: Text;
         InvDiscountAmount: Decimal;
+        DiscountBaseAmount: Decimal;
+        DiscountPercent: Decimal;
         VATEXCode: Text;
         VATClauseDescription: Text;
     begin
@@ -462,12 +464,16 @@ codeunit 13916 "Export XRechnung Document"
                 VATKey := GetVATBreakdownKey(SalesInvLine."Tax Category", SalesInvLine."VAT Bus. Posting Group", SalesInvLine."VAT Prod. Posting Group", SalesInvLine."VAT %");
                 if LineDiscAmount.ContainsKey(VATKey) and LineAmount.ContainsKey(VATKey) then begin
                     if LineDiscAmount.Get(VATKey) <> 0 then begin
+                        DiscountBaseAmount := Round(LineAmount.Get(VATKey), RoundingPrecision) + Round(LineDiscAmount.Get(VATKey), RoundingPrecision);
+                        DiscountPercent := 0;
+                        if DiscountBaseAmount <> 0 then
+                            DiscountPercent := 100 * LineDiscAmount.Get(VATKey) / DiscountBaseAmount;
                         PeppolVATHelper.GetVATClauseInfo(SalesInvLine."VAT Bus. Posting Group", SalesInvLine."VAT Prod. Posting Group", DocumentLanguageCode, VATEXCode, VATClauseDescription);
                         InsertAllowanceCharge(
                                    RootXMLNode, 'Document discount',
                                    GetTaxCategoryID(SalesInvLine."Tax Category", SalesInvLine."VAT Bus. Posting Group", SalesInvLine."VAT Prod. Posting Group"),
-                                   LineDiscAmount.Get(VATKey), Round(LineAmount.Get(VATKey), RoundingPrecision) + Round(LineDiscAmount.Get(VATKey), RoundingPrecision),
-                                   CurrencyCode, SalesInvLine."VAT %", 100 * LineDiscAmount.Get(VATKey) / (Round(LineAmount.Get(VATKey), RoundingPrecision) + Round(LineDiscAmount.Get(VATKey), RoundingPrecision)), true, VATEXCode, VATClauseDescription);
+                                   LineDiscAmount.Get(VATKey), DiscountBaseAmount,
+                                   CurrencyCode, SalesInvLine."VAT %", DiscountPercent, true, VATEXCode, VATClauseDescription);
                     end;
                     LineDiscAmount.Remove(VATKey);
                 end;
@@ -479,6 +485,8 @@ codeunit 13916 "Export XRechnung Document"
     var
         VATKey: Text;
         InvDiscountAmount: Decimal;
+        DiscountBaseAmount: Decimal;
+        DiscountPercent: Decimal;
         VATEXCode: Text;
         VATClauseDescription: Text;
     begin
@@ -490,12 +498,16 @@ codeunit 13916 "Export XRechnung Document"
                 VATKey := GetVATBreakdownKey(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group", SalesCrMemoLine."VAT %");
                 if LineDiscAmount.ContainsKey(VATKey) and LineAmount.ContainsKey(VATKey) then begin
                     if LineDiscAmount.Get(VATKey) <> 0 then begin
+                        DiscountBaseAmount := Round(LineAmount.Get(VATKey), RoundingPrecision) + Round(LineDiscAmount.Get(VATKey), RoundingPrecision);
+                        DiscountPercent := 0;
+                        if DiscountBaseAmount <> 0 then
+                            DiscountPercent := 100 * LineDiscAmount.Get(VATKey) / DiscountBaseAmount;
                         PeppolVATHelper.GetVATClauseInfo(SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group", DocumentLanguageCode, VATEXCode, VATClauseDescription);
                         InsertAllowanceCharge(
                                    RootXMLNode, 'Document discount',
                                    GetTaxCategoryID(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group"),
-                                   LineDiscAmount.Get(VATKey), Round(LineAmount.Get(VATKey), RoundingPrecision) + Round(LineDiscAmount.Get(VATKey), RoundingPrecision),
-                                   CurrencyCode, SalesCrMemoLine."VAT %", 100 * LineDiscAmount.Get(VATKey) / (Round(LineAmount.Get(VATKey), RoundingPrecision) + Round(LineDiscAmount.Get(VATKey), RoundingPrecision)), true, VATEXCode, VATClauseDescription);
+                                   LineDiscAmount.Get(VATKey), DiscountBaseAmount,
+                                   CurrencyCode, SalesCrMemoLine."VAT %", DiscountPercent, true, VATEXCode, VATClauseDescription);
                     end;
                     LineDiscAmount.Remove(VATKey);
                 end;
@@ -529,6 +541,13 @@ codeunit 13916 "Export XRechnung Document"
             // A line level allowance/charge needs an invoice line to live in. Without one it degrades to document level, so that the charge is never lost.
             if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesInvLine, TargetSalesInvLine."Line No.") then
                 Structure := Structure::"Document Allowance/Charge";
+            // Line allowances/charges inherit the target line's VAT category in the XML.
+            // Preserve a different resolved category by reporting the charge at document level.
+            if Structure = Structure::"Line Allowance/Charge" then
+                if GetTaxCategoryID(ChargeSalesInvLine."Tax Category", ChargeSalesInvLine."VAT Bus. Posting Group", ChargeSalesInvLine."VAT Prod. Posting Group") <>
+                   GetTaxCategoryID(TargetSalesInvLine."Tax Category", TargetSalesInvLine."VAT Bus. Posting Group", TargetSalesInvLine."VAT Prod. Posting Group")
+                then
+                    Structure := Structure::"Document Allowance/Charge";
             ItemChargeStructures.Add(ChargeSalesInvLine."Line No.", Structure.AsInteger());
             if Structure = Structure::"Line Allowance/Charge" then
                 AddLineLevelItemCharge(TargetSalesInvLine."Line No.", ChargeSalesInvLine."Line No.", ChargeSalesInvLine.Amount);
@@ -561,6 +580,13 @@ codeunit 13916 "Export XRechnung Document"
             // A line level allowance/charge needs a credit memo line to live in. Without one it degrades to document level, so that the charge is never lost.
             if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesCrMemoLine, TargetSalesCrMemoLine."Line No.") then
                 Structure := Structure::"Document Allowance/Charge";
+            // Line allowances/charges inherit the target line's VAT category in the XML.
+            // Preserve a different resolved category by reporting the charge at document level.
+            if Structure = Structure::"Line Allowance/Charge" then
+                if GetTaxCategoryID(ChargeSalesCrMemoLine."Tax Category", ChargeSalesCrMemoLine."VAT Bus. Posting Group", ChargeSalesCrMemoLine."VAT Prod. Posting Group") <>
+                   GetTaxCategoryID(TargetSalesCrMemoLine."Tax Category", TargetSalesCrMemoLine."VAT Bus. Posting Group", TargetSalesCrMemoLine."VAT Prod. Posting Group")
+                then
+                    Structure := Structure::"Document Allowance/Charge";
             ItemChargeStructures.Add(ChargeSalesCrMemoLine."Line No.", Structure.AsInteger());
             if Structure = Structure::"Line Allowance/Charge" then
                 AddLineLevelItemCharge(TargetSalesCrMemoLine."Line No.", ChargeSalesCrMemoLine."Line No.", ChargeSalesCrMemoLine.Amount);
@@ -1551,9 +1577,11 @@ codeunit 13916 "Export XRechnung Document"
         AllowanceChargeElement := XmlElement.Create('AllowanceCharge', XmlNamespaceCAC);
         AllowanceChargeElement.Add(XmlElement.Create('ChargeIndicator', XmlNamespaceCBC, 'false'));
         AllowanceChargeElement.Add(XmlElement.Create('AllowanceChargeReason', XmlNamespaceCBC, AllowanceChargeReason));
-        AllowanceChargeElement.Add(XmlElement.Create('MultiplierFactorNumeric', XmlNamespaceCBC, FormatFiveDecimal(MultiplierFactorNumeric)));
+        if BaseAmount <> 0 then
+            AllowanceChargeElement.Add(XmlElement.Create('MultiplierFactorNumeric', XmlNamespaceCBC, FormatFiveDecimal(MultiplierFactorNumeric)));
         AllowanceChargeElement.Add(XmlElement.Create('Amount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(Amount, AlwaysIncludeTwoDecimalPlacesForAmountFields)));
-        AllowanceChargeElement.Add(XmlElement.Create('BaseAmount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(BaseAmount, AlwaysIncludeTwoDecimalPlacesForAmountFields)));
+        if BaseAmount <> 0 then
+            AllowanceChargeElement.Add(XmlElement.Create('BaseAmount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(BaseAmount, AlwaysIncludeTwoDecimalPlacesForAmountFields)));
         if InsertTaxCat then
             InsertTaxCategory(AllowanceChargeElement, TaxCategory, Percent, VATEXCode, VATClauseDescription);
         RootXMLNode.Add(AllowanceChargeElement);
