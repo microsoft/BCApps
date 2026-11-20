@@ -24,7 +24,7 @@ page 7421 "EA Pending Card Expenses API"
     DeleteAllowed = false;
     Extensible = false;
     AboutTitle = 'Pending Card Expenses';
-    AboutText = 'Lists the expenses of an expense user that were created from corporate card transactions and are still waiting for a receipt and an expense report. Read it through expenseUsers({id})/pendingCardExpenses; use the expenses endpoint to change an expense or attach its receipt.';
+    AboutText = 'Lists the expenses of an expense user that were created from corporate card transactions and are still waiting for a receipt and an expense report.';
 
     layout
     {

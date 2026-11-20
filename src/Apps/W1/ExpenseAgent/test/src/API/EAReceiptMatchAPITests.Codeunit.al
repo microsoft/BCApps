@@ -51,9 +51,8 @@ codeunit 148354 "EA Receipt Match API Tests"
         Expense: Record Expense;
         OtherExpense: Record Expense;
         ResponseText: Text;
-        NoMatchResponseText: Text;
     begin
-        // [SCENARIO] Posting receipt data with an expenseId checks only that card expense.
+        // [SCENARIO] Posting receipt data with an expenseId returns that card expense when the receipt fits it.
         Initialize();
 
         // [GIVEN] Two card expenses of 20 waiting for a receipt.
@@ -67,13 +66,28 @@ codeunit 148354 "EA Receipt Match API Tests"
 
         // [THEN] The second expense is returned.
         Assert.AreEqual(OtherExpense.SystemId, GetExpenseId(ResponseText), 'The API must return the checked card expense.');
+        CompleteTest();
+    end;
 
-        // [WHEN] Receipt data of 21 is posted with the id of the second expense.
+    [Test]
+    procedure CardExpenseMatchesAPIReturnsEmptyWhenGivenCardExpenseDoesNotFit()
+    var
+        Expense: Record Expense;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] Posting receipt data with an expenseId returns an empty id when the receipt does not fit that card expense.
+        Initialize();
+
+        // [GIVEN] A card expense of 20 waiting for a receipt.
+        CreateCardExpense(Expense);
+        Commit();
+
+        // [WHEN] Receipt data of 21 is posted with the id of the expense.
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
-            GetUserScopedURL(Expense, CardExpenseMatchesServiceNameTok), CreateReceiptRequest(WorkDate(), 21, OtherExpense.SystemId), NoMatchResponseText, 201);
+            GetUserScopedURL(Expense, CardExpenseMatchesServiceNameTok), CreateReceiptRequest(WorkDate(), 21, Expense.SystemId), ResponseText, 201);
 
         // [THEN] An empty expense id is returned.
-        Assert.IsTrue(IsNullGuid(GetExpenseId(NoMatchResponseText)), 'A receipt that does not fit the checked expense must return an empty id.');
+        Assert.IsTrue(IsNullGuid(GetExpenseId(ResponseText)), 'A receipt that does not fit the checked expense must return an empty id.');
         CompleteTest();
     end;
 
