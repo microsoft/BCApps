@@ -3447,6 +3447,71 @@ codeunit 137055 "SCM Warehouse Pick"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerTrue')]
+    [Scope('OnPrem')]
+    procedure BasicWarehousePickAfterShipmentDeletedStockPartiallyReturnedToStorage()
+    var
+        Location: Record Location;
+        PickBin: Record Bin;
+        FirstShipmentBin: Record Bin;
+        SecondShipmentBin: Record Bin;
+        Item: Record Item;
+        FirstSalesHeader: Record "Sales Header";
+        SecondSalesHeader: Record "Sales Header";
+        FirstSalesLine: Record "Sales Line";
+        SecondSalesLine: Record "Sales Line";
+        FirstWarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        SecondWarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
+        TempWarehouseActivityLine: Record "Warehouse Activity Line" temporary;
+        WarehouseAvailabilityMgt: Codeunit "Warehouse Availability Mgt.";
+        LotNo: Code[50];
+    begin
+        // [SCENARIO 653921] After a partial return from an alternate shipment bin, only the stock still staged keeps its picked credit.
+        Initialize();
+
+        // [GIVEN] A basic FEFO warehouse with an empty default shipment bin and alternate shipment bins SD1 and SD2; 100 units of a lot in COOL1.
+        CreateBasicLocationWithAlternateShipmentBins(Location, PickBin, FirstShipmentBin, SecondShipmentBin);
+        CreateLotItemWithInventoryInBin(Item, LotNo, Location.Code, PickBin.Code, 100);
+
+        // [GIVEN] The first order for 60 is picked into SD1 and becomes reserved.
+        CreateSalesOrderAndRegisterPickToBin(
+            FirstSalesHeader, FirstSalesLine, FirstWarehouseShipmentHeader, Item."No.", Location.Code, 60, FirstShipmentBin.Code, LotNo, PickBin);
+
+        // [GIVEN] The first shipment is deleted and only 50 of its 60 units are reclassified back to COOL1; 10 remain in SD1.
+        DeleteWarehouseShipment(FirstWarehouseShipmentHeader);
+        ReclassifyLotBetweenBins(Item."No.", Location.Code, FirstShipmentBin.Code, PickBin.Code, LotNo, CalcDate('<1M>', WorkDate()), 50);
+        VerifyQuantityOnBin(Location.Code, PickBin.Code, Item."No.", LotNo, 90);
+        VerifyQuantityOnBin(Location.Code, FirstShipmentBin.Code, Item."No.", LotNo, 10);
+        FirstSalesLine.Find();
+        FirstSalesLine.CalcFields("Reserved Qty. (Base)");
+        FirstSalesLine.TestField("Reserved Qty. (Base)", 60);
+
+        // [GIVEN] A second order for 50 into SD2, more than the 40 free units in COOL1.
+        CreateSalesOrderWithShipmentToBin(SecondSalesHeader, SecondSalesLine, SecondWarehouseShipmentHeader, Item."No.", Location.Code, 50, SecondShipmentBin.Code);
+
+        // [THEN] Picked credit is limited to the 10 units still staged in SD1.
+        TempTrackingSpecification."Lot No." := LotNo;
+        Assert.AreEqual(
+            10,
+            WarehouseAvailabilityMgt.CalcReservQtyOnPicksShipsWithItemTracking(
+                TempWarehouseActivityLine, TempTrackingSpecification, Location.Code, Item."No.", ''),
+            'Picked credit must not exceed the quantity still staged in the alternate shipment bin.');
+
+        // [WHEN] Create Pick is run for the second order.
+        LibraryWarehouse.CreatePick(SecondWarehouseShipmentHeader);
+
+        // [THEN] Only the 40 free units are picked from COOL1 to SD2; the 50 returned reserved units stay untouched.
+        VerifyRepickLotLines(SecondSalesLine, LotNo, PickBin, 40, SecondShipmentBin.Code);
+        FirstSalesLine.Find();
+        FirstSalesLine.CalcFields("Reserved Qty. (Base)");
+        FirstSalesLine.TestField("Reserved Qty. (Base)", 60);
+        VerifyQuantityOnBin(Location.Code, PickBin.Code, Item."No.", LotNo, 90);
+        VerifyQuantityOnBin(Location.Code, FirstShipmentBin.Code, Item."No.", LotNo, 10);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure BasicWarehousePickAfterLaterOrderPickedAndShippedFromSharedBin()
     var
