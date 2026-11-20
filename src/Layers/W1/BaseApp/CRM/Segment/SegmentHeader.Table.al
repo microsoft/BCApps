@@ -637,7 +637,7 @@ table 5076 "Segment Header"
         exit(SegLine.Find('-'));
     end;
 
-    procedure ReuseLogged(LoggedSegEntryNo: Integer)
+    procedure ReuseLogged(LoggedSegEntryNo: BigInteger)
     var
         LoggedSeg: Record "Logged Segment";
         InteractLogEntry: Record "Interaction Log Entry";

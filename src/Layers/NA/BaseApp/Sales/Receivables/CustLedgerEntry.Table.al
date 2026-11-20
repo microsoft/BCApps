@@ -47,7 +47,7 @@ table 21 "Cust. Ledger Entry"
         /// <summary>
         /// Specifies the unique sequential number assigned to this customer ledger entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -425,7 +425,7 @@ table 21 "Cust. Ledger Entry"
         /// <summary>
         /// Specifies the entry number of the customer ledger entry that closed this entry through application.
         /// </summary>
-        field(44; "Closed by Entry No."; Integer)
+        field(44; "Closed by Entry No."; BigInteger)
         {
             Caption = 'Closed by Entry No.';
             TableRelation = "Cust. Ledger Entry";
@@ -512,7 +512,7 @@ table 21 "Cust. Ledger Entry"
         /// <summary>
         /// Specifies the transaction number that links all entries posted in the same posting operation.
         /// </summary>
-        field(53; "Transaction No."; Integer)
+        field(53; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
             TableRelation = "G/L Transaction";
@@ -831,7 +831,7 @@ table 21 "Cust. Ledger Entry"
         /// <summary>
         /// Specifies the entry number of the correcting entry that reversed this original entry.
         /// </summary>
-        field(88; "Reversed by Entry No."; Integer)
+        field(88; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
@@ -841,7 +841,7 @@ table 21 "Cust. Ledger Entry"
         /// <summary>
         /// Specifies the entry number of the original entry that was reversed by this correcting entry.
         /// </summary>
-        field(89; "Reversed Entry No."; Integer)
+        field(89; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
@@ -863,7 +863,7 @@ table 21 "Cust. Ledger Entry"
             TableRelation = "Payment Terms";
             ToolTip = 'Specifies the payment terms that determine the due date and payment discount date for the entry.';
         }
-        field(95; "G/L Register No."; Integer)
+        field(95; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             Editable = false;
@@ -1300,7 +1300,7 @@ table 21 "Cust. Ledger Entry"
     /// </summary>
     /// <returns>The entry number of the last customer ledger entry.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"Cust. Ledger Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

@@ -24,10 +24,10 @@ codeunit 48520 "Fabric Platform Mgt"
         RequiredLogTableErr: Label 'Table %1 is required for Fabric logging and cannot be removed from the export selection.', Comment = '%1 = table id';
         CompanyInvalidErr: Label 'Company %1 does not exist.', Comment = '%1 = company name';
         CompanyExistsErr: Label 'Company %1 is already selected for export.', Comment = '%1 = company name';
-        EnableRequestedMsg: Label 'Enable was requested. The platform runs asynchronously; open Export Summary to follow progress.';
-        StartRequestedMsg: Label 'Start was requested. The platform runs asynchronously; open Export Summary to follow progress.';
-        StopRequestedMsg: Label 'Stop was requested. The platform runs asynchronously; open Export Summary to follow progress.';
-        DisableRequestedMsg: Label 'Reset was requested. The platform runs asynchronously; open Export Summary to follow progress.';
+        EnableRequestedMsg: Label 'Enable was requested. The platform runs asynchronously; open Fabric Synchronization Overview to follow progress.';
+        StartRequestedMsg: Label 'Start was requested. The platform runs asynchronously; open Fabric Synchronization Overview to follow progress.';
+        StopRequestedMsg: Label 'Stop was requested. The platform runs asynchronously; open Fabric Synchronization Overview to follow progress.';
+        DisableRequestedMsg: Label 'Reset was requested. The platform runs asynchronously; open Fabric Synchronization Overview to follow progress.';
         EnableOnCooldownErr: Label 'Enable was already requested recently. Try again in %1 minute(s).', Comment = '%1 = minutes remaining';
         SyncAlreadyRunningMsg: Label 'A synchronization run is already in progress. Use Stop synchronization before starting a new run.';
         ResetBlockedWhileRunningErr: Label 'A synchronization run is in progress. Stop the synchronization before resetting a table.';

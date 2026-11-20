@@ -408,9 +408,9 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                 case OrderHeader."Processed Currency Handling" of
                     "Shpfy Currency Handling"::"Shop Currency":
                         if SalesHeader."Prices Including VAT" then
-                            SalesLine.Validate("Unit Price", RefundShippingLine."Presentment Subtotal Amount" + RefundShippingLine."Tax Amount")
+                            SalesLine.Validate("Unit Price", RefundShippingLine."Subtotal Amount" + RefundShippingLine."Tax Amount")
                         else
-                            SalesLine.Validate("Unit Price", RefundShippingLine."Presentment Subtotal Amount");
+                            SalesLine.Validate("Unit Price", RefundShippingLine."Subtotal Amount");
                     "Shpfy Currency Handling"::"Presentment Currency":
                         if SalesHeader."Prices Including VAT" then
                             SalesLine.Validate("Unit Price", RefundShippingLine."Presentment Subtotal Amount" + RefundShippingLine."Presentment Tax Amount")
