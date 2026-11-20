@@ -40,23 +40,11 @@ codeunit 7438 "EA Receipt Expense Match"
     /// </summary>
     internal procedure FindMatchingExpense(ExpenseUserSystemId: Guid; ExpenseDate: Date; Amount: Decimal; CurrencyCode: Code[10]; MerchantName: Text[100]) ExpenseSystemId: Guid
     var
-        ExpenseUser: Record "Expense User";
         Expense: Record Expense;
         Score: Decimal;
         BestScore: Decimal;
     begin
-        if IsNullGuid(ExpenseUserSystemId) then
-            Error(ExpenseUserRequiredErr);
-        if ExpenseDate = 0D then
-            Error(ExpenseDateRequiredErr);
-        if Amount = 0 then
-            Error(AmountRequiredErr);
-
-        ExpenseUser.SetLoadFields("No.");
-        if not ExpenseUser.GetBySystemId(ExpenseUserSystemId) then
-            Error(ExpenseUserNotFoundErr, ExpenseUserSystemId);
-
-        SetCandidateFilters(Expense, ExpenseUser."No.", ExpenseDate, GetDateWindow(), Amount, CurrencyCode);
+        SetCandidateFilters(Expense, GetExpenseUserNo(ExpenseUserSystemId, ExpenseDate, Amount), ExpenseDate, GetDateWindow(), Amount, CurrencyCode);
 
         Expense.SetLoadFields(SystemId, "Expense Date", "Merchant Name");
         if not Expense.FindSet() then
@@ -71,6 +59,39 @@ codeunit 7438 "EA Receipt Expense Match"
                 ExpenseSystemId := Expense.SystemId;
             end;
         end;
+    end;
+
+    /// <summary>
+    /// Returns ExpenseSystemId when that expense is a pending card expense the receipt belongs to, or an empty GUID otherwise.
+    /// Uses the same rules as FindMatchingExpense; the merchant name only ranks candidates, so it is not checked.
+    /// </summary>
+    internal procedure CheckMatchingExpense(ExpenseUserSystemId: Guid; ExpenseSystemId: Guid; ExpenseDate: Date; Amount: Decimal; CurrencyCode: Code[10]): Guid
+    var
+        Expense: Record Expense;
+        EmptyGuid: Guid;
+    begin
+        SetCandidateFilters(Expense, GetExpenseUserNo(ExpenseUserSystemId, ExpenseDate, Amount), ExpenseDate, GetDateWindow(), Amount, CurrencyCode);
+        Expense.SetRange(SystemId, ExpenseSystemId);
+        if Expense.IsEmpty() then
+            exit(EmptyGuid);
+        exit(ExpenseSystemId);
+    end;
+
+    local procedure GetExpenseUserNo(ExpenseUserSystemId: Guid; ExpenseDate: Date; Amount: Decimal): Code[20]
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        if IsNullGuid(ExpenseUserSystemId) then
+            Error(ExpenseUserRequiredErr);
+        if ExpenseDate = 0D then
+            Error(ExpenseDateRequiredErr);
+        if Amount = 0 then
+            Error(AmountRequiredErr);
+
+        ExpenseUser.SetLoadFields("No.");
+        if not ExpenseUser.GetBySystemId(ExpenseUserSystemId) then
+            Error(ExpenseUserNotFoundErr, ExpenseUserSystemId);
+        exit(ExpenseUser."No.");
     end;
 
     local procedure SetCandidateFilters(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseDate: Date; DateWindow: Integer; Amount: Decimal; CurrencyCode: Code[10])

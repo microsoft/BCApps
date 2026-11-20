@@ -234,6 +234,56 @@ codeunit 148355 EAReceiptMatchTests
         Expense.TestField("Currency Code", CurrencyCode);
     end;
 
+    [Test]
+    procedure CheckReturnsExpenseWhenReceiptFits()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] Checking a receipt against a given card expense returns that expense when the receipt fits it.
+        Initialize();
+
+        // [GIVEN] A card expense of 20 waiting for a receipt.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+
+        // [WHEN] A receipt of 20 dated within the window is checked against the expense.
+        // [THEN] The expense is returned.
+        Assert.AreEqual(Expense.SystemId, CheckMatch(Expense, Expense.SystemId, WorkDate() + 2, 20), 'The receipt must fit the card expense.');
+    end;
+
+    [Test]
+    procedure CheckReturnsEmptyWhenAmountDiffers()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] Checking a receipt with another amount against a given card expense returns no match.
+        Initialize();
+
+        // [GIVEN] A card expense of 20 waiting for a receipt.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+
+        // [WHEN] A receipt of 21 is checked against the expense.
+        // [THEN] No expense is returned.
+        Assert.IsTrue(IsNullGuid(CheckMatch(Expense, Expense.SystemId, WorkDate(), 21)), 'A different amount must not fit.');
+    end;
+
+    [Test]
+    procedure CheckReturnsEmptyForOtherUsersExpense()
+    var
+        Expense: Record Expense;
+        OtherExpense: Record Expense;
+    begin
+        // [SCENARIO] A receipt cannot be checked against another expense user's card expense.
+        Initialize();
+
+        // [GIVEN] A card expense for the expense user and a card expense with the same values for another expense user.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        CreateCardExpense(OtherExpense, 'CORPCARD-0002', WorkDate(), 'CONTOSO COFFEE');
+
+        // [WHEN] The receipt is checked for the expense user against the other user's expense.
+        // [THEN] No expense is returned.
+        Assert.IsTrue(IsNullGuid(CheckMatch(Expense, OtherExpense.SystemId, WorkDate(), 20)), 'Another user''s expense must not fit.');
+    end;
+
     local procedure Initialize()
     begin
         CorpCardTestLib.InitializeCorpCardData();
@@ -246,6 +296,15 @@ codeunit 148355 EAReceiptMatchTests
     begin
         ExpenseUser.Get(Expense."Expense User No.");
         exit(ReceiptExpenseMatch.FindMatchingExpense(ExpenseUser.SystemId, ReceiptDate, ReceiptAmount, '', Expense."Merchant Name"));
+    end;
+
+    // Checks the receipt for the expense user of Expense against the expense identified by ExpenseSystemId.
+    local procedure CheckMatch(Expense: Record Expense; ExpenseSystemId: Guid; ReceiptDate: Date; ReceiptAmount: Decimal): Guid
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        ExpenseUser.Get(Expense."Expense User No.");
+        exit(ReceiptExpenseMatch.CheckMatchingExpense(ExpenseUser.SystemId, ExpenseSystemId, ReceiptDate, ReceiptAmount, ''));
     end;
 
     local procedure CreateCardExpense(var Expense: Record Expense; CardId: Code[50]; ExpenseDate: Date; MerchantName: Text[100])

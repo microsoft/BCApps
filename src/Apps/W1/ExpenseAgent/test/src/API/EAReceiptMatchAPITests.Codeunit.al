@@ -46,6 +46,38 @@ codeunit 148354 "EA Receipt Match API Tests"
     end;
 
     [Test]
+    procedure CardExpenseMatchesAPIChecksGivenCardExpense()
+    var
+        Expense: Record Expense;
+        OtherExpense: Record Expense;
+        ResponseText: Text;
+        NoMatchResponseText: Text;
+    begin
+        // [SCENARIO] Posting receipt data with an expenseId checks only that card expense.
+        Initialize();
+
+        // [GIVEN] Two card expenses of 20 waiting for a receipt.
+        CreateCardExpense(Expense);
+        CreateCardExpense(OtherExpense);
+        Commit();
+
+        // [WHEN] Receipt data of 20 is posted with the id of the second expense.
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            GetUserScopedURL(Expense, CardExpenseMatchesServiceNameTok), CreateReceiptRequest(WorkDate(), 20, OtherExpense.SystemId), ResponseText, 201);
+
+        // [THEN] The second expense is returned.
+        Assert.AreEqual(OtherExpense.SystemId, GetExpenseId(ResponseText), 'The API must return the checked card expense.');
+
+        // [WHEN] Receipt data of 21 is posted with the id of the second expense.
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            GetUserScopedURL(Expense, CardExpenseMatchesServiceNameTok), CreateReceiptRequest(WorkDate(), 21, OtherExpense.SystemId), NoMatchResponseText, 201);
+
+        // [THEN] An empty expense id is returned.
+        Assert.IsTrue(IsNullGuid(GetExpenseId(NoMatchResponseText)), 'A receipt that does not fit the checked expense must return an empty id.');
+        CompleteTest();
+    end;
+
+    [Test]
     procedure PendingCardExpensesAPIListsOnlyExpensesWaitingForReceipt()
     var
         PendingExpense: Record Expense;
@@ -122,12 +154,21 @@ codeunit 148354 "EA Receipt Match API Tests"
 
     local procedure CreateReceiptRequest(ReceiptDate: Date; ReceiptAmount: Decimal): Text
     var
+        EmptyGuid: Guid;
+    begin
+        exit(CreateReceiptRequest(ReceiptDate, ReceiptAmount, EmptyGuid));
+    end;
+
+    local procedure CreateReceiptRequest(ReceiptDate: Date; ReceiptAmount: Decimal; ExpenseSystemId: Guid): Text
+    var
         Request: JsonObject;
         RequestText: Text;
     begin
         Request.Add('expenseDate', Format(ReceiptDate, 0, 9));
         Request.Add('amount', ReceiptAmount);
         Request.Add('merchantName', 'Contoso Coffee');
+        if not IsNullGuid(ExpenseSystemId) then
+            Request.Add('expenseId', LowerCase(DelChr(Format(ExpenseSystemId), '=', '{}')));
         Request.WriteTo(RequestText);
         exit(RequestText);
     end;

@@ -48,7 +48,7 @@ table 7420 "EA Card Expense Match Buffer"
         field(20; "Expense SystemId"; Guid)
         {
             Caption = 'Expense System Id';
-            ToolTip = 'Specifies the card expense that matches the receipt, or an empty GUID when there is no match.';
+            ToolTip = 'Specifies the card expense to check the receipt against. Leave blank to find the best match. Returns the matching card expense, or an empty GUID when there is no match.';
         }
     }
 

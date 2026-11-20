@@ -23,7 +23,7 @@ page 7420 "EA Card Expense Matches API"
     DeleteAllowed = false;
     Extensible = false;
     AboutTitle = 'Card Expense Matches';
-    AboutText = 'Finds the corporate card expense that a receipt belongs to. POST the extracted receipt data through expenseUsers({id})/cardExpenseMatches; expenseId returns the matching card-created expense that still needs a receipt, or an empty GUID when there is no match. Nothing is written.';
+    AboutText = 'Matches a receipt to a corporate card expense. POST the extracted receipt data through expenseUsers({id})/cardExpenseMatches. Without expenseId, the best card-created expense that still needs a receipt is returned. With expenseId, only that expense is checked and returned if the receipt fits it. An empty GUID means no match. Nothing is written.';
 
     layout
     {
@@ -55,7 +55,6 @@ page 7420 "EA Card Expense Matches API"
                 field(expenseId; Rec."Expense SystemId")
                 {
                     Caption = 'Expense Id';
-                    Editable = false;
                 }
             }
         }
@@ -74,8 +73,12 @@ page 7420 "EA Card Expense Matches API"
     begin
         Rec.Id := CreateGuid();
         Rec."Expense User SystemId" := GetScopedExpenseUserSystemId();
-        Rec."Expense SystemId" := ReceiptExpenseMatch.FindMatchingExpense(
-            Rec."Expense User SystemId", Rec."Expense Date", Rec.Amount, Rec."Currency Code", Rec."Merchant Name");
+        if IsNullGuid(Rec."Expense SystemId") then
+            Rec."Expense SystemId" := ReceiptExpenseMatch.FindMatchingExpense(
+                Rec."Expense User SystemId", Rec."Expense Date", Rec.Amount, Rec."Currency Code", Rec."Merchant Name")
+        else
+            Rec."Expense SystemId" := ReceiptExpenseMatch.CheckMatchingExpense(
+                Rec."Expense User SystemId", Rec."Expense SystemId", Rec."Expense Date", Rec.Amount, Rec."Currency Code");
         Rec.Insert();
         exit(false);
     end;

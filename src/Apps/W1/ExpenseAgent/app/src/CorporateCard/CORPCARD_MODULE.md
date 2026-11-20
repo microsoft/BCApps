@@ -151,7 +151,7 @@ The primary workflow codeunits in the `CorporateCard/Codeunits` folder include:
 | 7447 | EA Corp Card Selection Mgt | Validates employee-card ownership, eligibility, and selection; formats compact card labels | ValidateExpenseCard, ValidateReportLine, LookupCard, LookupReportLineCard, GetCardDisplay |
 | 7448 | EA Corp Card Expense Match | Matches selected-card expenses across lifecycle states and links feed provenance without reposting | MatchExistingExpense, LinkExpense |
 | 7449 | EA Corp Card Liability Mgt | Transfers and reverses an already-posted manual expense liability | TransferLiability, ReverseLiability |
-| 7438 | EA Receipt Expense Match | Read-only matching of extracted receipt data to a card-created expense waiting for a receipt | SetPendingCardExpenseFilters, FindMatchingExpense |
+| 7438 | EA Receipt Expense Match | Read-only matching of extracted receipt data to a card-created expense waiting for a receipt | SetPendingCardExpenseFilters, FindMatchingExpense, CheckMatchingExpense |
 
 ### Corporate Card Pages and Page Extensions
 
@@ -572,7 +572,14 @@ Recommended client flow for a matched expense:
 
 When there is no match, the client creates the expense as usual.
 
-When the user picks a transaction from `pendingCardExpenses` and attaches a receipt to it, the client does not call `cardExpenseMatches`; the user's choice is trusted. It uses steps 2–4 above on the chosen expense.
+When the user picks a transaction from `pendingCardExpenses` and submits a receipt for it, the client can check that the extracted receipt really fits that expense by posting the same data with its `expenseId`:
+
+```http
+POST .../expenseUsers({expenseUserId})/cardExpenseMatches
+{ "expenseId": "{expenseId}", "expenseDate": "2026-06-01", "amount": 42.50, "currencyCode": "EUR" }
+```
+
+Only that expense is checked, with the same rules as above (merchant name is not required). The response `expenseId` is the same expense when the receipt fits, or an empty GUID when it does not. On a fit the client continues with steps 2–4 above on that expense.
 
 ### Upgrade Behavior
 
