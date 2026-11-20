@@ -1,0 +1,47 @@
+{
+  "@odata.count": 1,
+  "value": [
+    {
+      "id": "test-message-id-recipients-001",
+      "conversationId": "test-conversation-id-recipients-001",
+      "subject": "Test Email With Recipients",
+      "receivedDateTime": "2026-04-21T10:00:00Z",
+      "sentDateTime": "2026-04-21T09:55:00Z",
+      "sender": {
+        "emailAddress": {
+          "name": "Test Sender",
+          "address": "sender@test.com"
+        }
+      },
+      "toRecipients": [
+        {
+          "emailAddress": {
+            "name": "Test User",
+            "address": "testuser@test.com"
+          }
+        },
+        {
+          "emailAddress": {
+            "name": "Second To",
+            "address": "second.to@test.com"
+          }
+        }
+      ],
+      "ccRecipients": [
+        {
+          "emailAddress": {
+            "name": "Cc Recipient",
+            "address": "cc.recipient@test.com"
+          }
+        }
+      ],
+      "body": {
+        "contentType": "HTML",
+        "content": "<p>Body</p>"
+      },
+      "hasAttachments": false,
+      "isRead": false,
+      "isDraft": false
+    }
+  ]
+}
