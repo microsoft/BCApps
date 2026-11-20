@@ -575,13 +575,21 @@ codeunit 148356 EACorpCardImportBasicTests
     procedure CachedLcyAmountIsRoundedWithoutReconversion()
     var
         CorpCardTrans: Record "EA Corp Card Trans";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        OriginalAmountRoundingPrecision: Decimal;
     begin
         InitializeForeignTransactionForRounding(CorpCardTrans);
-        CorpCardTrans."Amount (LCY)" := 14.7275;
+        GeneralLedgerSetup.Get();
+        OriginalAmountRoundingPrecision := GeneralLedgerSetup."Amount Rounding Precision";
+        GeneralLedgerSetup."Amount Rounding Precision" := 0.1;
+        GeneralLedgerSetup.Modify(true);
+        CorpCardTrans."Amount (LCY)" := 14.7775;
         CorpCardTrans.Insert(false);
 
         CorpCardTrans.Get(CorpCardTrans."Entry No.");
-        Assert.AreEqual(14.73, CorpCardTrans.GetAmountInCurrency(''), 'A historical unrounded LCY amount must be rounded without conversion at the current exchange rate.');
+        Assert.AreEqual(14.8, CorpCardTrans.GetAmountInCurrency(''), 'A historical unrounded LCY amount must use configured LCY precision without reconversion at the current exchange rate.');
+        GeneralLedgerSetup."Amount Rounding Precision" := OriginalAmountRoundingPrecision;
+        GeneralLedgerSetup.Modify(true);
     end;
 
     local procedure InitializeForeignTransactionForRounding(var CorpCardTrans: Record "EA Corp Card Trans")

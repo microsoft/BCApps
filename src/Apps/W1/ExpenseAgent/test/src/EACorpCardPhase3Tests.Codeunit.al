@@ -496,8 +496,15 @@ codeunit 148353 EACorpCardPhase3Tests
         ExpenseCountBeforeImport := Expense.Count();
         SetProviderSourcePayload(CorpCardXmlProviderCodeTok, GetXmlPayloadWithoutCardId(), MissingCardIdXmlFileNameTok);
 
-        RunImportAndGetLastStatement(CorpCardXmlProviderCodeTok, CorpCardStatement);
+        BindSubscription(EACorpCardTestLib);
+        asserterror EACorpCardTestLib.RunFileImport(CorpCardXmlProviderCodeTok);
+        UnbindSubscription(EACorpCardTestLib);
 
+        Assert.ExpectedError('All 1 transaction lines');
+        CorpCardStatement.SetRange("Provider Code", CorpCardXmlProviderCodeTok);
+        Assert.IsTrue(CorpCardStatement.FindLast(), 'The rejected import must retain its statement.');
+        Assert.AreEqual(CorpCardStatement.Status::Failed, CorpCardStatement.Status, 'An import without an identifiable card must fail.');
+        EACorpCardTestLib.AssertNoSourceFile(CorpCardStatement);
         Assert.AreEqual(0, CorpCardStatement.Imported, 'A transaction without an explicit card identifier must not be imported.');
         Assert.AreEqual(1, CorpCardStatement.Exceptions, 'A transaction without an explicit card identifier must create an exception.');
         Assert.AreEqual(1, CorpCardStatement.Rejected, 'A transaction without an explicit card identifier must be rejected.');
