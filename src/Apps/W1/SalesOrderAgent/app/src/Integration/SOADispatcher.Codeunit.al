@@ -10,6 +10,7 @@ using System.Agents;
 using System.AI;
 using System.Azure.Identity;
 using System.Environment;
+using System.Environment.Consumption;
 using System.Security.User;
 using System.Telemetry;
 using System.Utilities;
@@ -20,7 +21,7 @@ codeunit 4586 "SOA Dispatcher"
     TableNo = "SOA Setup";
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Agent Task Timeline" = r, tabledata "Agent Task Timeline Step" = r, tabledata "Agent Task Log Entry" = r;
+    Permissions = tabledata "User AI Consumption Data" = r;
 
     var
         SOAImpl: Codeunit "SOA Impl";
@@ -144,13 +145,13 @@ codeunit 4586 "SOA Dispatcher"
         InactivityPeriodStart: DateTime;
         NoRecentUserLogin: Boolean;
     begin
-        InactivityPeriodStart := CurrentDateTime() - SOASetupCU.GetUnattendedPeriodDays() * 24 * 60 * 60 * 1000 / (14 * 24 * 60) * 1;
+        InactivityPeriodStart := CurrentDateTime() - SOASetupCU.GetUnattendedPeriodDays() * 24 * 60 * 60 * 1000 / (14 * 24 * 60) * 5;
 
         // Only interactive (user and device) sessions update the login information of the company.
         NoRecentUserLogin := not UserLoginTimeTracker.AnyUserLoggedInSinceDate(DT2Date(InactivityPeriodStart));
         if not NoRecentUserLogin then
             // "Activated At" is refreshed every time the setup is saved, unlike SystemModifiedAt which changes on each sync.
-            if (Setup."Activated At" >= InactivityPeriodStart) or UserConfirmedAgentActionSince(Setup, InactivityPeriodStart) then
+            if (Setup."Activated At" >= InactivityPeriodStart) or ItemAvailabilityCheckedSince(Setup, InactivityPeriodStart) then
                 exit(false);
 
         Agent.Deactivate(Setup."User Security ID");
@@ -165,34 +166,15 @@ codeunit 4586 "SOA Dispatcher"
         exit(true);
     end;
 
-    local procedure UserConfirmedAgentActionSince(var Setup: Record "SOA Setup"; FromDateTime: DateTime): Boolean
+    local procedure ItemAvailabilityCheckedSince(var Setup: Record "SOA Setup"; FromDateTime: DateTime): Boolean
     var
-        AgentTaskTimeline: Record "Agent Task Timeline";
-        AgentTaskTimelineStep: Record "Agent Task Timeline Step";
-        AgentTaskLogEntry: Record "Agent Task Log Entry";
+        UserAIConsumptionData: Record "User AI Consumption Data";
     begin
-        // Only timelines with a step in the period can contain a recent user confirmation.
-        AgentTaskTimeline.SetRange("Agent User Security ID", Setup."User Security ID");
-        AgentTaskTimeline.SetFilter("Last Step Timestamp", '>=%1', FromDateTime);
-        AgentTaskTimeline.SetLoadFields("Task ID");
-        if not AgentTaskTimeline.FindSet() then
-            exit(false);
-
-        AgentTaskTimelineStep.SetRange("Last Log Entry Type", AgentTaskTimelineStep."Last Log Entry Type"::"User Intervention");
-        AgentTaskTimelineStep.SetLoadFields("Task ID", "Last Log Entry ID");
-        AgentTaskLogEntry.SetLoadFields(SystemCreatedAt);
-        repeat
-            AgentTaskTimelineStep.SetRange("Task ID", AgentTaskTimeline."Task ID");
-            if AgentTaskTimelineStep.FindSet() then
-                repeat
-                    // A step whose last log entry is a user intervention is one the user confirmed; its log entry tells when.
-                    if AgentTaskLogEntry.Get(AgentTaskTimelineStep."Task ID", AgentTaskTimelineStep."Last Log Entry ID") then
-                        if AgentTaskLogEntry.SystemCreatedAt >= FromDateTime then
-                            exit(true);
-                until AgentTaskTimelineStep.Next() = 0;
-        until AgentTaskTimeline.Next() = 0;
-
-        exit(false);
+        // Logged by "SOA Billing" when the agent checks item availability. The unique ID ends with the operation ordinal, which, unlike captions, is language independent.
+        UserAIConsumptionData.SetRange("User Id", Setup."User Security ID");
+        UserAIConsumptionData.SetFilter("Consumption DateTime", '>=%1', FromDateTime);
+        UserAIConsumptionData.SetFilter("Unique Id", '*-%1', Format("SOA Billing Operation"::"Item Availability".AsInteger(), 0, 9));
+        exit(not UserAIConsumptionData.IsEmpty());
     end;
 
     local procedure UpdateLastSync(var Setup: Record "SOA Setup"; DT: DateTime)

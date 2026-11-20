@@ -890,6 +890,6 @@ page 4400 "SOA Setup"
         InboxFolderIdTok: Label 'inbox', Locked = true;
         NoFolderSelectedInboxWarningQst: Label 'There is no mail folder selected, so the agent will process emails from the inbox (%1 emails since %2). Do you want to continue?', Comment = '%1=email count, %2=start date';
         AgentArchivedNotificationMsg: Label 'This agent is archived, so its settings are read-only. Its tasks and logs remain available for auditing.';
-        AgentAutoDeactivatedNotificationMsg: Label 'The agent was automatically deactivated on %1 to avoid unnecessary costs, because no one signed in to this company for %2 days, or no one responded to the agent''s requests and its settings weren''t changed for %2 days. To continue processing emails, activate the agent.', Comment = '%1 = date and time of deactivation, %2 = number of days';
+        AgentAutoDeactivatedNotificationMsg: Label 'The agent was automatically deactivated on %1 to avoid unnecessary costs, because no one signed in to this company for %2 days, or the agent didn''t check item availability and its settings weren''t changed for %2 days. To continue processing emails, activate the agent.', Comment = '%1 = date and time of deactivation, %2 = number of days';
         OrderPromisingSetupMissingQst: Label '%1 is not fully configured and is required to include capable-to-promise items.\\Do you want to set it up now?', Comment = '%1 = Order Promising Setup caption';
 }
