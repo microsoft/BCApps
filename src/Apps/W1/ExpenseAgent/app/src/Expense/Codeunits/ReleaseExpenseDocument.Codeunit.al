@@ -20,9 +20,12 @@ codeunit 6980 "Release Expense Document"
 
     var
         Expense: Record Expense;
+        NoReceiptDeclarationNotCurrentErr: Label 'The no receipt declaration for expense %1 is missing or no longer current. Create the declaration again before releasing the expense.', Comment = '%1 = Expense No.';
+        NoReceiptWithOriginalReceiptErr: Label 'Expense %1 has both an original receipt and a no receipt declaration. Cancel the no receipt declaration before releasing the expense.', Comment = '%1 = Expense No.';
 
     local procedure "Code"()
     var
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
         if Expense.Status = Expense.Status::Released then
@@ -36,6 +39,13 @@ codeunit 6980 "Release Expense Document"
 
         Expense.ApplyRule(false, true);
         CorpCardSelectionMgt.ValidateExpenseCard(Expense, true);
+
+        if Expense."No Receipt Type" = Expense."No Receipt Type"::"Lost Receipt" then begin
+            if NoReceiptDeclarationMgt.HasOriginalReceipt(Expense) then
+                Error(NoReceiptWithOriginalReceiptErr, Expense."No.");
+            if not NoReceiptDeclarationMgt.HasCurrentDeclaration(Expense) then
+                Error(NoReceiptDeclarationNotCurrentErr, Expense."No.");
+        end;
 
         Expense.Status := Expense.Status::Released;
         Expense.Modify(true);

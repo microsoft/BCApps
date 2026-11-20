@@ -97,6 +97,7 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Travel Request', Locked = true;
     }
+
     /// <summary>
     /// Credit card feed APIs are supported by this backend, independently of provider setup or mandatory card selection.
     /// </summary>
@@ -106,9 +107,17 @@ enum 6984 "Expense Capability"
     }
 
     /// <summary>
+    /// No receipt declarations and category thresholds are enabled by company policy.
+    /// </summary>
+    value(10; NoReceipt)
+    {
+        Caption = 'No Receipt', Locked = true;
+    }
+
+    /// <summary>
     /// Expense reports expose their active approver and can be filtered by that approver.
     /// </summary>
-    value(10; ActiveApproverRouting)
+    value(11; ActiveApproverRouting)
     {
         Caption = 'Active Approver Routing', Locked = true;
     }

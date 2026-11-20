@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using System.TestLibraries.Environment;
 
-codeunit 148367 "Expense Report UI Test"
+codeunit 148368 "Expense Report UI Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
