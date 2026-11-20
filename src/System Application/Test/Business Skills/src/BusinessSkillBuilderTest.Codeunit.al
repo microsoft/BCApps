@@ -21,6 +21,10 @@ codeunit 130051 "Business Skill Builder Test"
         // [FEATURE] [Business Skills] [Builder]
     end;
 
+    // TODO: Restore PublicContentUpdateUsesCallingAppIdentity, ReadOnlySkillAllowsOwnerContentChangesAndUnlock,
+    // and UpsertRejectsVersionOnlyAndAllowsOwnerUnlock after uptake of the native owner-lock policy fix.
+    // Restore from commit 7b6ed794dd, preserving all behavioral assertions.
+
     /// <summary>
     /// Creation allocates an inactive read-only skill owned by the calling app.
     /// </summary>
