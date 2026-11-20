@@ -4,10 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Family;
@@ -2312,6 +2314,69 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseOrder.Close();
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmOnlyUndoShipment,HandleTransferOrder,HandleCreateTransferOrderMsg')]
+    [Scope('OnPrem')]
+    procedure UndoWIPReturnShipmentDoesNotReverseDirectReturnWithSameDocumentNo()
+    var
+        DirectTransLine: Record "Direct Trans. Line";
+        PurchaseHeader: Record "Purchase Header";
+        ReturnTransferHeader: Record "Transfer Header";
+        ReturnTransferLine: Record "Transfer Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        ProdOrderNo: Code[20];
+        SubcLocationCode: Code[10];
+        DirectQty: Decimal;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 655848] Undo of a WIP return shipment reverses only that shipment's WIP, even when a posted direct return shares its document and line number.
+        Initialize();
+
+        // [GIVEN] WIP quantity "Q" shipped and received at the subcontractor location.
+        CreateWIPOnlyTransfer(PurchaseHeader, TransferHeader, TransferLine);
+        ProdOrderNo := TransferLine."Subc. Prod. Order No.";
+        SubcLocationCode := TransferHeader."Transfer-to Code";
+        Quantity := TransferLine.Quantity;
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, false, true);
+
+        // [GIVEN] Posted direct transfers and posted transfer shipments use separate number series that produce the same numbers.
+        SetOverlappingPostedDirectTransferAndShipmentNos();
+
+        // [GIVEN] Direct return of "D" < "Q" from the subcontractor is posted.
+        DirectQty := LibraryRandom.RandIntInRange(1, Quantity - 1);
+        CreateWIPReturnTransfer(PurchaseHeader, ProdOrderNo, ReturnTransferHeader, ReturnTransferLine);
+        ReturnTransferHeader.TestField("Direct Transfer", true);
+        ReturnTransferLine.Validate(Quantity, DirectQty);
+        ReturnTransferLine.Validate("Qty. to Ship", DirectQty);
+        ReturnTransferLine.Modify(true);
+        Codeunit.Run(Codeunit::"TransferOrder-Post Transfer", ReturnTransferHeader);
+
+        // [GIVEN] Remaining "Q - D" is returned through an in-transit location and shipped.
+        CreateAndUpdateTransferRoute(SubcLocationCode, TransferHeader."Transfer-from Code");
+        CreateWIPReturnTransfer(PurchaseHeader, ProdOrderNo, ReturnTransferHeader, ReturnTransferLine);
+        ReturnTransferHeader.TestField("Direct Transfer", false);
+        LibraryWarehouse.PostTransferOrder(ReturnTransferHeader, true, false);
+        Assert.AreEqual(0, GetWIPQtyBase(ProdOrderNo, SubcLocationCode, false), 'Both returns must have left the subcontractor.');
+
+        // [GIVEN] The posted direct return line and the return shipment line share document and line number.
+#pragma warning disable AA0210
+        TransferShipmentLine.SetRange("Transfer Order No.", ReturnTransferHeader."No.");
+#pragma warning restore AA0210
+        TransferShipmentLine.FindFirst();
+        DirectTransLine.Get(TransferShipmentLine."Document No.", TransferShipmentLine."Line No.");
+        Assert.AreEqual(DirectQty, DirectTransLine.Quantity, 'The colliding posted direct transfer line must be the direct return.');
+
+        // [WHEN] Undo the return shipment.
+        LibraryInventory.UndoTransferShipments(ReturnTransferHeader."No.");
+
+        // [THEN] Only "Q - D" is restored at the subcontractor and nothing is in transit; the direct return stays posted.
+        Assert.AreEqual(Quantity - DirectQty, GetWIPQtyBase(ProdOrderNo, SubcLocationCode, false), 'Undo must restore only the undone shipment quantity at the subcontractor.');
+        Assert.AreEqual(0, GetWIPQtyBase(ProdOrderNo, ReturnTransferHeader."In-Transit Code", true), 'Undo must reverse the in-transit WIP.');
+    end;
+
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
@@ -2372,6 +2437,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         SubcontractingMgmtLibrary.SetupInventorySetup();
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        LibrarySetupStorage.Save(Database::"Inventory Setup");
 
         IsInitialized := true;
         Commit();
@@ -2575,6 +2641,44 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         exit(WIPLedgerEntry."Quantity (Base)");
     end;
 
+    local procedure CreateWIPReturnTransfer(PurchaseHeader: Record "Purchase Header"; ProdOrderNo: Code[20]; var ReturnTransferHeader: Record "Transfer Header"; var ReturnTransferLine: Record "Transfer Line")
+    var
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+        PurchaseOrder.CreateReturnFromSubcontractor.Invoke();
+        PurchaseOrder.Close();
+        ReturnTransferLine.Reset();
+        ReturnTransferLine.SetRange("Subc. Prod. Order No.", ProdOrderNo);
+#pragma warning disable AA0210
+        ReturnTransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        ReturnTransferLine.SetRange("Subc. Return Order", true);
+        ReturnTransferLine.FindFirst();
+        ReturnTransferHeader.Get(ReturnTransferLine."Document No.");
+    end;
+
+    local procedure SetOverlappingPostedDirectTransferAndShipmentNos()
+    var
+        InventorySetup: Record "Inventory Setup";
+        DirectTransNoSeries: Record "No. Series";
+        ShipmentNoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        Prefix: Code[10];
+    begin
+        Prefix := LibraryUtility.GenerateGUID();
+        LibraryUtility.CreateNoSeries(DirectTransNoSeries, true, false, false);
+        LibraryUtility.CreateNoSeriesLine(NoSeriesLine, DirectTransNoSeries.Code, Prefix + '0001', Prefix + '9999');
+        LibraryUtility.CreateNoSeries(ShipmentNoSeries, true, false, false);
+        LibraryUtility.CreateNoSeriesLine(NoSeriesLine, ShipmentNoSeries.Code, Prefix + '0001', Prefix + '9999');
+
+        InventorySetup.Get();
+        InventorySetup.Validate("Posted Direct Trans. Nos.", DirectTransNoSeries.Code);
+        InventorySetup.Validate("Posted Transfer Shpt. Nos.", ShipmentNoSeries.Code);
+        InventorySetup.Modify(true);
+    end;
+
     [PageHandler]
     procedure CaptureReturnOrderCard(var TransferOrder: TestPage "Transfer Order")
     begin
@@ -2616,6 +2720,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";

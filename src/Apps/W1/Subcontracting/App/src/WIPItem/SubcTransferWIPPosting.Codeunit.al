@@ -218,7 +218,7 @@ codeunit 20541 "Subc. Transfer WIP Posting"
         if not TransShptLine."Transfer WIP Item" then
             exit;
 
-        ReverseWIPLedgerEntriesForUndoneShipment(TransShptLine, DocLineNo);
+        CreateWIPLedgerEntryForUndoneShipment(TransShptLine, DocLineNo);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnBeforeShowReservation, '', false, false)]
@@ -391,61 +391,58 @@ codeunit 20541 "Subc. Transfer WIP Posting"
                 DirectTransLine."Line No.");
     end;
 
-    local procedure ReverseWIPLedgerEntriesForUndoneShipment(TransferShipmentLine: Record "Transfer Shipment Line"; CorrectionLineNo: Integer)
+    // Mirrors CreateWIPLedgerEntryForShipment for the undone shipment line instead of searching the ledger:
+    // receipts and direct transfers post entries with the same document type and can share the posted document and line number.
+    local procedure CreateWIPLedgerEntryForUndoneShipment(TransferShipmentLine: Record "Transfer Shipment Line"; CorrectionLineNo: Integer)
     var
-        SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
-        ReversalWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
-        TempSubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry" temporary;
+        TransferLine: Record "Transfer Line";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        QuantityBase: Decimal;
     begin
-        SubcontractorWIPLedgerEntry.SetCurrentKey("Document No.", "Posting Date");
-        SubcontractorWIPLedgerEntry.SetRange("Document No.", TransferShipmentLine."Document No.");
-        SubcontractorWIPLedgerEntry.SetRange("Document Type", "WIP Document Type"::"Transfer Order");
-        SubcontractorWIPLedgerEntry.SetRange("Document Line No.", TransferShipmentLine."Line No.");
-        SubcontractorWIPLedgerEntry.SetRange("Item No.", TransferShipmentLine."Item No.");
-        SubcontractorWIPLedgerEntry.SetRange("Prod. Order No.", TransferShipmentLine."Subc. Prod. Order No.");
-        if not SubcontractorWIPLedgerEntry.FindSet() then
-            exit;
+        TransferLine.Get(TransferShipmentLine."Transfer Order No.", TransferShipmentLine."Trans. Order Line No.");
+        TransferShipmentHeader.SetLoadFields("Posting Date");
+        TransferShipmentHeader.Get(TransferShipmentLine."Document No.");
+        QuantityBase := TransferLine.CalcBaseQty(TransferShipmentLine.Quantity);
 
-        // Collect first so the inserted reversal entries are never picked up by the loop.
-        repeat
-            if IsShipmentWIPLedgerEntry(SubcontractorWIPLedgerEntry, TransferShipmentLine) then begin
-                TempSubcontractorWIPLedgerEntry := SubcontractorWIPLedgerEntry;
-                TempSubcontractorWIPLedgerEntry.Insert();
-            end;
-        until SubcontractorWIPLedgerEntry.Next() = 0;
+        if IsUsedAsSubcontractingLocation(TransferShipmentLine."Transfer-from Code") then
+            CreateAndInsertWIPLedgerEntry(
+                TransferLine,
+                "WIP Ledger Entry Type"::"Positive Adjustment",
+                TransferShipmentLine."Transfer-from Code",
+                false,
+                true,
+                QuantityBase,
+                TransferShipmentHeader."Posting Date",
+                TransferShipmentLine."Document No.",
+                CorrectionLineNo);
 
-        if not TempSubcontractorWIPLedgerEntry.FindSet() then
-            exit;
-        repeat
-            ReversalWIPLedgerEntry := TempSubcontractorWIPLedgerEntry;
-            ReversalWIPLedgerEntry."Quantity (Base)" := -TempSubcontractorWIPLedgerEntry."Quantity (Base)";
-            if ReversalWIPLedgerEntry."Quantity (Base)" > 0 then
-                ReversalWIPLedgerEntry."Entry Type" := "WIP Ledger Entry Type"::"Positive Adjustment"
-            else
-                ReversalWIPLedgerEntry."Entry Type" := "WIP Ledger Entry Type"::"Negative Adjustment";
-            ReversalWIPLedgerEntry."Document Line No." := CorrectionLineNo;
-            InsertWIPItemLedgerEntry(ReversalWIPLedgerEntry);
-        until TempSubcontractorWIPLedgerEntry.Next() = 0;
-    end;
-
-    // Receipts post WIP entries with the same document type and may share the document number,
-    // so keep only the shipment legs: +qty in transit and -qty at the transfer-from location.
-    local procedure IsShipmentWIPLedgerEntry(SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry"; TransferShipmentLine: Record "Transfer Shipment Line"): Boolean
-    begin
-        if SubcontractorWIPLedgerEntry."In Transit" then
-            exit((SubcontractorWIPLedgerEntry."Location Code" = TransferShipmentLine."In-Transit Code") and (SubcontractorWIPLedgerEntry."Quantity (Base)" > 0));
-        exit((SubcontractorWIPLedgerEntry."Location Code" = TransferShipmentLine."Transfer-from Code") and (SubcontractorWIPLedgerEntry."Quantity (Base)" < 0));
+        if TransferShipmentLine."In-Transit Code" <> '' then
+            CreateAndInsertWIPLedgerEntry(
+                TransferLine,
+                "WIP Ledger Entry Type"::"Negative Adjustment",
+                TransferShipmentLine."In-Transit Code",
+                true,
+                true,
+                -QuantityBase,
+                TransferShipmentHeader."Posting Date",
+                TransferShipmentLine."Document No.",
+                CorrectionLineNo);
     end;
 
     local procedure CreateAndInsertWIPLedgerEntry(var TransferLine: Record "Transfer Line"; EntryType: Enum "WIP Ledger Entry Type"; LocationCode: Code[10]; InTransit: Boolean; IsShipment: Boolean; QuantityBase: Decimal; DocumentNo: Code[20]; DocumentLineNo: Integer)
     var
         TransferHeader: Record "Transfer Header";
-        SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
     begin
         TransferHeader.SetLoadFields("Posting Date");
         TransferHeader.Get(TransferLine."Document No.");
+        CreateAndInsertWIPLedgerEntry(TransferLine, EntryType, LocationCode, InTransit, IsShipment, QuantityBase, TransferHeader."Posting Date", DocumentNo, DocumentLineNo);
+    end;
 
-        InitWIPItemLedgerEntry(SubcontractorWIPLedgerEntry, TransferHeader."Posting Date");
+    local procedure CreateAndInsertWIPLedgerEntry(var TransferLine: Record "Transfer Line"; EntryType: Enum "WIP Ledger Entry Type"; LocationCode: Code[10]; InTransit: Boolean; IsShipment: Boolean; QuantityBase: Decimal; PostingDate: Date; DocumentNo: Code[20]; DocumentLineNo: Integer)
+    var
+        SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+    begin
+        InitWIPItemLedgerEntry(SubcontractorWIPLedgerEntry, PostingDate);
         SubcontractorWIPLedgerEntry."Entry Type" := EntryType;
         SubcontractorWIPLedgerEntry."Location Code" := LocationCode;
         SubcontractorWIPLedgerEntry."In Transit" := InTransit;
