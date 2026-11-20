@@ -1,0 +1,47 @@
+{
+  "id": "282fd427-770a-4ab9-be03-df6eaf8a9b96",
+  "name": "Ceridian Payroll Tests",
+  "publisher": "Microsoft",
+  "brief": "Tests for the Ceridian Payroll extension.",
+  "description": "Tests for the Ceridian Payroll extension.",
+  "version": "30.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?LinkId=829784",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?LinkId=829784",
+  "logo": "ExtensionLogo.png",
+  "dependencies": [
+    {
+      "id": "30828ce4-53e3-407f-ba80-13ce8d79d110",
+      "name": "Ceridian Payroll",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "30.0.0.0",
+  "application": "30.0.0.0",
+  "idRanges": [
+    {
+      "from": 139547,
+      "to": 139547
+    }
+  ],
+  "target": "Cloud",
+  "resourceExposurePolicy": {
+    "allowDebugging": false,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ]
+}
