@@ -397,6 +397,7 @@ table 6912 "Expense Ledger Entry"
     /// </remarks>
     /// <param name="ExpenseLedgerEntry">The expense ledger entry being prepared.</param>
     /// <param name="GenJnlLine">The general journal line that the entry is created from.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromGenJnlLine(var ExpenseLedgerEntry: Record "Expense Ledger Entry"; GenJnlLine: Record "Gen. Journal Line")
     begin
@@ -410,6 +411,7 @@ table 6912 "Expense Ledger Entry"
     /// </remarks>
     /// <param name="ExpenseLedgerEntry">The expense ledger entry being prepared.</param>
     /// <param name="PostedExpenseReportLine">The posted expense report line that the entry is created from.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyFromPostedExpenseReportLine(var ExpenseLedgerEntry: Record "Expense Ledger Entry"; PostedExpenseReportLine: Record "Posted Expense Report Line")
     begin

@@ -150,6 +150,73 @@ codeunit 148354 "Expense Extension Events Test"
         Assert.AreEqual(BaseRate, ExpenseExtEventsSubscr.GetCapturedBaseRate(), 'The event must receive the base rate.');
     end;
 
+    [Test]
+    procedure SubscriberCommitIsIgnoredWhenAddingExpenseToReport()
+    var
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseExtEventsSubscr: Codeunit "Expense Ext. Events Subscr.";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+        StatusBefore: Enum "Expense Status";
+    begin
+        // [SCENARIO] A Commit in an OnAfterCopyExpenseFieldsToReportLine subscriber is ignored, so a later error rolls back the whole operation.
+        Initialize();
+
+        // [GIVEN] A released expense and an expense report for the same expense user.
+        CreateReleasedExpense(Expense);
+        StatusBefore := Expense.Status;
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
+        Commit();
+
+        // [GIVEN] A subscriber that commits and then raises an error.
+        ExpenseExtEventsSubscr.SetCommitAndErrorOnCopyToReportLine();
+        BindSubscription(ExpenseExtEventsSubscr);
+
+        // [WHEN] The expense is added to the expense report.
+        asserterror CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
+        UnbindSubscription(ExpenseExtEventsSubscr);
+
+        // [THEN] The subscriber error is raised, no report line is stored and the expense is unchanged.
+        Assert.ExpectedError(ExpenseExtEventsSubscr.GetSubscriberErrorText());
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        Assert.RecordIsEmpty(ExpenseReportLine);
+        Expense.Get(Expense."No.");
+        Assert.AreEqual(StatusBefore, Expense.Status, 'The expense status must not change.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure SubscriberCommitIsIgnoredWhenPostingExpenseReport()
+    var
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        ExpenseExtEventsSubscr: Codeunit "Expense Ext. Events Subscr.";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+    begin
+        // [SCENARIO] A Commit in an OnBeforePostExpenseGenJournalLine subscriber is ignored, so a later error rolls back the posting.
+        Initialize();
+
+        // [GIVEN] A released expense report.
+        CreateReleasedExpenseReport(ExpenseReportHeader, Expense);
+        Commit();
+
+        // [GIVEN] A subscriber that commits and then raises an error while the posted documents are already inserted.
+        ExpenseExtEventsSubscr.SetCommitAndErrorOnPostGenJnlLine();
+        BindSubscription(ExpenseExtEventsSubscr);
+
+        // [WHEN] The expense report is posted.
+        asserterror ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
+        UnbindSubscription(ExpenseExtEventsSubscr);
+
+        // [THEN] The subscriber error is raised, no posted expense report exists and the expense report is kept.
+        Assert.ExpectedError(ExpenseExtEventsSubscr.GetSubscriberErrorText());
+        PostedExpenseReportHeader.SetRange("Expense User No.", Expense."Expense User No.");
+        Assert.RecordIsEmpty(PostedExpenseReportHeader);
+        Assert.IsTrue(ExpenseReportHeader.Get(ExpenseReportHeader."No."), 'The expense report must not be deleted.');
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;
