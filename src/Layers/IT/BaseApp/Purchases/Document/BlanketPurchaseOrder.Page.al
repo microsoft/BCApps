@@ -899,7 +899,7 @@ page 509 "Blanket Purchase Order"
                                   Type = const("Blanket Order"),
                                   Code = field("No.");
                     ToolTip = 'View the list of related payments.';
-                    ObsoleteReason = 'Replaced by CLEAN30 version';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
                 }

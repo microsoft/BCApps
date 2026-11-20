@@ -24,7 +24,7 @@ table 12170 "Payment Lines"
     ObsoleteState = Removed;
     ObsoleteTag = '33.0';
 #endif
-    ObsoleteReason = 'Replaced by global installment rules and plans when the Payment Installments feature is enabled.';
+    ObsoleteReason = 'Replaced by global Payment Installments feature.';
 
     fields
     {

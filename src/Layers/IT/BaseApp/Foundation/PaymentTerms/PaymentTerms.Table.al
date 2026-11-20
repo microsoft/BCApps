@@ -181,7 +181,7 @@ table 3 "Payment Terms"
     end;
 
 #if not CLEAN30
-    [Obsolete('This procedure is obsolete and will be removed in future versions.')]
+    [Obsolete('Replaced by global Payment Installments feature.')]
     [Scope('OnPrem')]
     procedure FilterPaymentLines()
     begin

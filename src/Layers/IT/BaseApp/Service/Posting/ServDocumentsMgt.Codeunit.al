@@ -2395,7 +2395,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
 #if not CLEAN30
-    [ObsoleteReason = 'Replaced by CLEAN30 version']
+    [Obsolete('Replaced by global Payment Installments feature.')]
     [Scope('OnPrem')]
     procedure FinalizeDeletePmtTermLines()
     begin

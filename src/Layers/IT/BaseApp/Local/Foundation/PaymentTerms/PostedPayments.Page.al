@@ -16,7 +16,7 @@ page 12172 "Posted Payments"
     Editable = false;
     PageType = List;
     SourceTable = "Posted Payment Lines";
-    ObsoleteReason = 'Replaced by CLEAN30 version';
+    ObsoleteReason = 'Replaced by global Payment Installments feature.';
     ObsoleteState = Pending;
     ObsoleteTag = '30.0';
 

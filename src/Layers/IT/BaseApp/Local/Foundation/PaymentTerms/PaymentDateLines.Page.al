@@ -18,7 +18,7 @@ page 12171 "Payment Date Lines"
     DelayedInsert = true;
     PageType = List;
     SourceTable = "Payment Lines";
-    ObsoleteReason = 'Replaced by CLEAN30 version';
+    ObsoleteReason = 'Replaced by global Payment Installments feature.';
     ObsoleteState = Pending;
     ObsoleteTag = '30.0';
 

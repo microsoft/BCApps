@@ -625,7 +625,7 @@ table 846 "Cash Flow Worksheet Line"
     begin
     end;
 #else
-    [Obsolete('Use OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentDiscount with PaymentTerms instead of PaymentLines.')]
+    [Obsolete('Replaced by global Payment Installments feature.')]
     [IntegrationEvent(true, false)]
     local procedure OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentDiscount(CFDiscountDate: Date; PaymentLines: record "Payment Lines"; var IsHandled: boolean)
     begin
@@ -633,7 +633,7 @@ table 846 "Cash Flow Worksheet Line"
 #endif
 
 #if not CLEAN30
-    [Obsolete('Use OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentDiscount with PaymentTerms instead of PaymentLines.')]
+    [Obsolete('Replaced by global Payment Installments feature.')]
     [IntegrationEvent(false, false)]
     local procedure OnInsertNewLinesForUnpostedDocumentsOnBeforeInsert(var CashFlowWorksheetLine: Record "Cash Flow Worksheet Line"; PaymentLines: Record "Payment Lines")
     begin

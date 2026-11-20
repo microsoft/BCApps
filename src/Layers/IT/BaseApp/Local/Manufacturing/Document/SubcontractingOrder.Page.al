@@ -432,7 +432,7 @@ page 12152 "Subcontracting Order"
                                   Type = field("Document Type"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
-                    ObsoleteReason = 'This action is obsolete and will be removed in future versions.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
                 }

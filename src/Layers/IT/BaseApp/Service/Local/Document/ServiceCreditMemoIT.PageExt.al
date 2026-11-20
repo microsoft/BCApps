@@ -145,7 +145,7 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
                                 Type = field("Document Type"),
                                 Code = field("No.");
                 ToolTip = 'View the related payments.';
-                ObsoleteReason = 'Replaced by CLEAN30 version';
+                ObsoleteReason = 'Replaced by global Payment Installments feature.';
                 ObsoleteState = Pending;
                 ObsoleteTag = '30.0';
             }

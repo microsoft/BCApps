@@ -141,7 +141,7 @@ table 475 "Vendor Payment Buffer"
             ObsoleteState = Removed;
             ObsoleteTag = '33.0';
 #endif
-            ObsoleteReason = 'Replaced by global installment plans and ledger entry application.';
+            ObsoleteReason = 'Replaced by global Payment Installments feature.';
         }
     }
 

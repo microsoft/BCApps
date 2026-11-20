@@ -189,7 +189,7 @@ pageextension 12446 "Service Invoice IT" extends "Service Invoice"
                                 Type = field("Document Type"),
                                 Code = field("No.");
                 ToolTip = 'View the related payments.';
-                ObsoleteReason = 'This action is obsolete in the current version.';
+                ObsoleteReason = 'Replaced by global Payment Installments feature.';
                 ObsoleteState = Pending;
                 ObsoleteTag = '30.0';
             }

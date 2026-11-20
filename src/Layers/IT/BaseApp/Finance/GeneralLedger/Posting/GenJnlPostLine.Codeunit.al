@@ -8633,7 +8633,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
 #if not CLEAN30
-    [Obsolete('Use the new payment terms handling procedures instead.', '2024-06-01')]
+    [Obsolete('Replaced by global Payment Installments feature.', '2024-06-01')]
     [Scope('OnPrem')]
     procedure InitPaymentTerms(GenJnlLine: Record "Gen. Journal Line")
     var
@@ -12401,7 +12401,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
 #if not CLEAN30
-    [Obsolete('This event will be removed in the future.')]
+    [Obsolete('Replaced by global Payment Installments feature.')]
     [IntegrationEvent(false, false)]
     local procedure OnPostVendOnBeforeLoopPaymentTermsLine(var GenJournalLine: Record "Gen. Journal Line"; var PaymentLines: Record "Payment Lines"; var TotalAmountLCY: Decimal; var TotalAmount2: Decimal; var RemainingAmountLCY: Decimal; var TotalSalesPurchLCY: Decimal; var RemainingSalesPurchLCY: Decimal; var TotalProfitLCY: Decimal; var RemainingProfitLCY: Decimal)
     begin
@@ -12409,7 +12409,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
 #endif
 
 #if not CLEAN30
-    [Obsolete('This event will be removed in the future.')]
+    [Obsolete('Replaced by global Payment Installments feature.')]
     [IntegrationEvent(false, false)]
     local procedure OnPostVendOnBeforeTempDtldCVLedgEntryBufInit(var GenJournalLine: Record "Gen. Journal Line"; var VendorLedgerEntry: Record "Vendor Ledger Entry"; var PaymentLines: Record "Payment Lines"; var TotalAmount2: Decimal; var TotalAmountLCY: Decimal; var EntryAmount: Decimal; var EntryAmountLCY: Decimal; Iterations: Integer; NoOfPayments: Integer; AmountRoundingPrecision: Decimal)
     begin
@@ -12417,7 +12417,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
 #endif
 
 #if not CLEAN30
-    [Obsolete('This event will be removed in the future.')]
+    [Obsolete('Replaced by global Payment Installments feature.')]
     [IntegrationEvent(false, false)]
     local procedure OnPostCustOnBeforeTempDtldCVLedgEntryBufInit(var GenJournalLine: Record "Gen. Journal Line"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var PaymentLines: Record "Payment Lines"; var TotalAmount2: Decimal; var TotalAmountLCY: Decimal; var EntryAmount: Decimal; var EntryAmountLCY: Decimal; Iterations: Integer; NoOfPayments: Integer; AmountRoundingPrecision: Decimal)
     begin
@@ -12425,7 +12425,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
 #endif
 
 #if not CLEAN30
-    [Obsolete('This event will be removed in the future.')]
+    [Obsolete('Replaced by global Payment Installments feature.')]
     [IntegrationEvent(false, false)]
     local procedure OnPostCustOnBeforeLoopPaymentTermsLine(var GenJournalLine: Record "Gen. Journal Line"; var PaymentLines: Record "Payment Lines"; var TotalAmountLCY: Decimal; var TotalAmount2: Decimal; var RemainingAmountLCY: Decimal; var TotalSalesPurchLCY: Decimal; var RemainingSalesPurchLCY: Decimal; var TotalProfitLCY: Decimal; var RemainingProfitLCY: Decimal)
     begin
@@ -12443,7 +12443,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
 #if not CLEAN30
-    [Obsolete('This event will be removed in the future.')]
+    [Obsolete('Replaced by global Payment Installments feature.')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitPaymentTerms(var PaymentLines: Record "Payment Lines"; var GenJournalLine: Record "Gen. Journal Line"; var NoOfPayments: Integer; var IsHandled: Boolean)
     begin

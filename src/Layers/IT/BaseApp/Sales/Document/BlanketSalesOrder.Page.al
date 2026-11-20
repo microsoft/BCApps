@@ -1071,7 +1071,7 @@ page 507 "Blanket Sales Order"
                                   Type = const("Blanket Order"),
                                   Code = field("No.");
                     ToolTip = 'View the list of related payments.';
-                    ObsoleteReason = 'This action is obsolete in the current version.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
                 }

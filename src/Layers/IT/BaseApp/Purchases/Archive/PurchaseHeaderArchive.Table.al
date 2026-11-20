@@ -1029,7 +1029,7 @@ table 5109 "Purchase Header Archive"
             ObsoleteState = Removed;
             ObsoleteTag = '33.0';
 #endif
-            ObsoleteReason = 'Replaced by global installment plans and ledger entry application.';
+            ObsoleteReason = 'Replaced by global Payment Installments feature.';
         }
         field(12172; "Bank Account"; Code[20])
         {

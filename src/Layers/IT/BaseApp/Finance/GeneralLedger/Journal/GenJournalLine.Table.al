@@ -4226,7 +4226,7 @@ table 81 "Gen. Journal Line"
             ObsoleteState = Removed;
             ObsoleteTag = '33.0';
 #endif
-            ObsoleteReason = 'Replaced by global installment plans and ledger entry application.';
+            ObsoleteReason = 'Replaced by global Payment Installments feature.';
         }
         field(12172; "Bank Receipt"; Boolean)
         {
@@ -5796,7 +5796,7 @@ table 81 "Gen. Journal Line"
     end;
 
 #if not CLEAN30
-    [Obsolete('This procedure is obsolete because of replacement by Payment Installements feature.', '30.0')]
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [Scope('OnPrem')]
     procedure InsertPaymentLines()
     begin
@@ -5805,7 +5805,7 @@ table 81 "Gen. Journal Line"
 #endif
 
 #if not CLEAN30
-    [Obsolete('This procedure is obsolete because of replacement by Payment Installements feature.', '30.0')]
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     procedure InsertPaymentTermsLines()
     begin
         GenJnlTemplate.Get("Journal Template Name");
@@ -5827,7 +5827,7 @@ table 81 "Gen. Journal Line"
 #endif
 
 #if not CLEAN30
-    [Obsolete('This procedure is obsolete because of replacement by Payment Installements feature.', '30.0')]
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     procedure DeleteSalesPaymentLines()
     begin
         PaymentSales.Reset();
@@ -5842,7 +5842,7 @@ table 81 "Gen. Journal Line"
 #endif
 
 #if not CLEAN30
-    [Obsolete('This procedure is obsolete because of replacement by Payment Installements feature.', '30.0')]
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [Scope('OnPrem')]
     procedure PurchasePayment()
     begin
@@ -5851,7 +5851,7 @@ table 81 "Gen. Journal Line"
 #endif
 
 #if not CLEAN30
-    [Obsolete('This procedure is obsolete because of replacement by Payment Installements feature.', '30.0')]
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     procedure CreatePurchasePaymentLine();
     var
         Vend: Record Vendor;
@@ -5932,7 +5932,7 @@ table 81 "Gen. Journal Line"
 #endif
 
 #if not CLEAN30
-    [Obsolete('This procedure is obsolete because of replacement by Payment Installements feature.', '30.0')]
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     procedure CreateSalesPaymentLine()
     begin
         PaymentSales.Init();
@@ -11146,7 +11146,7 @@ table 81 "Gen. Journal Line"
     end;
 
 #if not CLEAN30
-    [Obsolete('This event is obsolete because the payment export process has changed.', '30.0')]
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCreatePurchasePaymentLineOnAfterCalculateDueDate(var PaymentPurchase: Record "Payment Lines"; PaymentTermsLine: Record "Payment Lines"; GenJournalLine: Record "Gen. Journal Line")
     begin

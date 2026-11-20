@@ -115,7 +115,7 @@ pageextension 12454 "Posted Service Credit Memo IT" extends "Posted Service Cred
                                 Type = const("Credit Memo"),
                                 Code = field("No.");
                 ToolTip = 'View the related payments.';
-                ObsoleteReason = 'Replaced by CLEAN30 version';
+                ObsoleteReason = 'Replaced by global Payment Installments feature.';
                 ObsoleteState = Pending;
                 ObsoleteTag = '30.0';
             }

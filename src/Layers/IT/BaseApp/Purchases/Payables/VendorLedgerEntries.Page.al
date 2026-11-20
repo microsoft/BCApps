@@ -337,7 +337,7 @@ page 29 "Vendor Ledger Entries"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the sequence number of a vendor bill that is based on a single purchase invoice with multiple due dates.';
                     Visible = false;
-                    ObsoleteReason = 'This field is obsolete because document occurrences are no longer used.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
                 }

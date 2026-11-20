@@ -916,7 +916,7 @@ page 254 "Purchase Journal"
                               "Journal Template Name" = field("Journal Template Name"),
                               "Journal Line No." = field("Line No.");
                 ToolTip = 'View the related payments.';
-                ObsoleteReason = 'This action is obsolete in the current version.';
+                ObsoleteReason = 'Replaced by global Payment Installments feature.';
                 ObsoleteState = Pending;
                 ObsoleteTag = '30.0';
             }
@@ -1512,7 +1512,7 @@ page 254 "Purchase Journal"
 #if not CLEAN30
                 actionref("&Payments_Promoted"; "&Payments")
                 {
-                    ObsoleteReason = 'This action is obsolete in the current version.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
                 }

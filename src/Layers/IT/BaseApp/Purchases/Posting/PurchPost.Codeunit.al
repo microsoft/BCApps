@@ -10589,7 +10589,7 @@ codeunit 90 "Purch.-Post"
     end;
 
 #if not CLEAN30
-    [Obsolete('This event is no longer used.', '30.0')]
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeInsertPostedPayments(PurchaseHeader: Record "Purchase Header"; PaymentTermsLines: Record "Payment Lines"; var PostedPayments: Record "Posted Payment Lines")
     begin
@@ -10597,7 +10597,7 @@ codeunit 90 "Purch.-Post"
 #endif
 
 #if not CLEAN30
-    [Obsolete('This event is no longer used.', '30.0')]
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeInsertPaymentJournalLine(PurchaseHeader: Record "Purchase Header"; PaymentTermsLine: Record "Payment Lines"; var PaymentJournalLine: Record "Payment Lines")
     begin

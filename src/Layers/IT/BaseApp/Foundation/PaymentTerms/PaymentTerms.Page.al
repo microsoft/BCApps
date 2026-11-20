@@ -32,7 +32,7 @@ page 4 "Payment Terms"
                 {
                     ApplicationArea = Basic, Suite;
                     ObsoleteState = Pending;
-                    ObsoleteReason = 'Replaced by global installment rules when the Payment Installments feature is enabled.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
                     ObsoleteTag = '30.0';
                     ToolTip = 'Specifies the number of installments allowed for this payment term.';
                     Visible = not PaymentInstallmentsEnabled;
@@ -89,7 +89,7 @@ page 4 "Payment Terms"
                 Caption = '&Calculation';
                 Image = Calculate;
                 ObsoleteState = Pending;
-                ObsoleteReason = 'Replaced by the Installment Lines action when the Payment Installments feature is enabled.';
+                ObsoleteReason = 'Replaced by global Payment Installments feature.';
                 ObsoleteTag = '30.0';
                 RunObject = Page "Payment Terms Lines";
                 RunPageLink = Type = const("Payment Terms"),
@@ -235,7 +235,7 @@ page 4 "Payment Terms"
                 actionref("&Calculation_Promoted"; "&Calculation")
                 {
                     ObsoleteState = Pending;
-                    ObsoleteReason = 'Replaced by the Installment Lines action when the Payment Installments feature is enabled.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
                     ObsoleteTag = '30.0';
                 }
 #endif

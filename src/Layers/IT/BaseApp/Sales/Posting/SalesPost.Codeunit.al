@@ -13030,13 +13030,13 @@ codeunit 80 "Sales-Post"
     end;
 
 #if not CLEAN30
-    [Obsolete('This action is obsolete in the current version.', '30.0')]
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedPaymentOnBeforeInsertPostedPayments(SalesHeader: Record "Sales Header"; PaymentTermsLine: Record "Payment Lines"; var PostedPayments: Record "Posted Payment Lines")
     begin
     end;
 
-    [Obsolete('This action is obsolete in the current version.', '30.0')]
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedPaymentOnBeforeInsertPaymentJournalLine(SalesHeader: Record "Sales Header"; PaymentTermsLine: Record "Payment Lines"; var PaymentJournalLine: Record "Payment Lines")
     begin

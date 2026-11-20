@@ -820,7 +820,7 @@ page 138 "Posted Purchase Invoice"
                                   Type = const(Invoice),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
-                    ObsoleteReason = 'Replaced by CLEAN30 version';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
                 }

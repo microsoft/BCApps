@@ -13,7 +13,7 @@ page 12170 "Payment Terms Lines"
     DelayedInsert = true;
     PageType = List;
     SourceTable = "Payment Lines";
-    ObsoleteReason = 'This page is obsolete and will be removed in future versions.';
+    ObsoleteReason = 'Replaced by global Payment Installments feature.';
     ObsoleteState = Pending;
     ObsoleteTag = '30.0';
 

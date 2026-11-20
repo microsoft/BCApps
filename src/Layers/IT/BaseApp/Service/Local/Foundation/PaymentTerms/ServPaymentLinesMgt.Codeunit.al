@@ -11,7 +11,7 @@ using Microsoft.Service.History;
 
 codeunit 12192 "Serv. Payment Lines Mgt."
 {
-    ObsoleteReason = 'Replaced by CLEAN30 version'
+    ObsoleteReason = 'Replaced by global Payment Installments feature.';
     ObsoleteState = Pending;
     ObsoleteTag = '30.0';
 
