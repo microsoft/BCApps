@@ -322,6 +322,10 @@ page 30101 "Shpfy Shop Card"
                     ShowMandatory = true;
                     ApplicationArea = All;
                 }
+                field("Auto Create Alternative VAT Registration for Customers"; Rec."Auto Create Alt. VAT Reg. Cust")
+                {
+                    ApplicationArea = All;
+                }
                 field(DefaultCustomer; Rec."Default Customer No.")
                 {
                     ApplicationArea = All;
@@ -373,6 +377,10 @@ page 30101 "Shpfy Shop Card"
                     ApplicationArea = All;
                 }
                 field("Auto Create Unknown Companies"; Rec."Auto Create Unknown Companies")
+                {
+                    ApplicationArea = All;
+                }
+                field("Auto Create Alternative VAT Registration for Companies"; Rec."Auto Create Alt. VAT Reg. Co.")
                 {
                     ApplicationArea = All;
                 }
