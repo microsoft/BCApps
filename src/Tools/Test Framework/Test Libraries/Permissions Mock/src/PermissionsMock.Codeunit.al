@@ -31,6 +31,9 @@ codeunit 131006 "Permissions Mock"
     /// </summary>
     procedure Start()
     begin
+        if Started then
+            exit;
+
         PermissionTestHelper := PermissionTestHelper.PermissionTestHelper();
         Started := true;
     end;
@@ -111,5 +114,6 @@ codeunit 131006 "Permissions Mock"
     begin
         exit(Started);
     end;
+
 }
 

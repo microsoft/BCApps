@@ -108,8 +108,10 @@ codeunit 130454 "Test Runner - Mgt"
 
         Skip := false;
         OnBeforeTestMethodRun(TestMethodLineFunction, CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions, Skip);
-        if Skip then
+        if Skip then begin
+            StartStopPermissionMock();
             exit(false);
+        end;
 
         exit(true);
     end;
