@@ -648,6 +648,9 @@ table 6906 "Expense Report Header"
         key(SpendRequestNo; "Spend Request No.", "Expense User No.")
         {
         }
+        key(ApproverStatus; "Approver Expense User No.", Status)
+        {
+        }
     }
 
     fieldgroups

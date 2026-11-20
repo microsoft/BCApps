@@ -56,8 +56,8 @@ codeunit 6941 "EA Http Client"
         CanaryBaseUrlSecretNameTok: Label 'EABaseUrlCanary', Locked = true;
         ExpenseAgentSetupMissingTxt: Label 'Expense Agent setup is missing. The service request was not sent.', Locked = true;
         ExpenseAppBaseUrlOnPremTxt: Label 'http://localhost:5173/', Locked = true;
-        ExpenseAppBaseUrlProdTxt: Label 'https://app.expenses.dynamics.com/', Locked = true;
-        ExpenseAppBaseUrlTieTxt: Label 'https://app.expenses.dynamics-tie.com/', Locked = true;
+        ExpenseAppBaseUrlProdTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2365219', Locked = true;
+        ExpenseAppBaseUrlTieTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2365220', Locked = true;
 
     internal procedure GetExpenseAppBaseUrl(): Text
     var
