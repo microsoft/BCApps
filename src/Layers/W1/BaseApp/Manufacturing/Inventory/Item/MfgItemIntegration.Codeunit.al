@@ -29,6 +29,7 @@ codeunit 99000795 "Mfg. Item Integration"
         CannotModifyUnitOfMeasureErr: Label 'You cannot modify %1 %2 for item %3 because non-zero %5 with %2 exists in %4.', Comment = '%1 Table name (Item Unit of measure), %2 Value of Measure (KG, PCS...), %3 Item ID, %4 Entry Table Name, %5 Field Caption';
         CannotRenameItemErr: Label 'You cannot rename %1 in a %2, because it is used in %3.', Comment = '%1 = Item No. caption, %2 = Table caption, %3 = Reference Table caption';
         CannotDeleteDefaultLocationErr: Label 'You cannot delete location %1 because it is the %2 in %3. Clear or change that field before deleting the location.', Comment = '%1 = Location Code, %2 = Default Location Code field caption, %3 = Manufacturing Setup table caption';
+        CannotMakeDefaultLocationInTransitErr: Label 'You cannot use location %1 as an in-transit location because it is the %2 in %3. Clear or change that field first.', Comment = '%1 = Location Code, %2 = Default Location Code field caption, %3 = Manufacturing Setup table caption';
 
     // Item
 
@@ -346,8 +347,18 @@ codeunit 99000795 "Mfg. Item Integration"
 
     [EventSubscriber(ObjectType::Table, Database::Location, 'OnAfterValidateEvent', 'Use As In-Transit', true, false)]
     local procedure LocationOnAfterValidateEventUseAsInTransit(var Rec: Record Location)
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
     begin
         if Rec."Use As In-Transit" then begin
+            if not Rec.IsTemporary() then
+                if ManufacturingSetup.Get() then
+                    if (ManufacturingSetup."Default Location Code" <> '') and
+                       (ManufacturingSetup."Default Location Code" = Rec.Code)
+                    then
+                        Error(
+                            CannotMakeDefaultLocationInTransitErr, Rec.Code,
+                            ManufacturingSetup.FieldCaption("Default Location Code"), ManufacturingSetup.TableCaption());
             Rec.TestField("Prod. Consump. Whse. Handling", "Prod. Consump. Whse. Handling"::"No Warehouse Handling");
             Rec.TestField("Prod. Output Whse. Handling", "Prod. Output Whse. Handling"::"No Warehouse Handling");
         end;

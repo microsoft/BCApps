@@ -5217,6 +5217,64 @@ codeunit 137404 "SCM Manufacturing"
     end;
 
     [Test]
+    procedure DefaultLocationCannotBecomeInTransit()
+    var
+        Location: Record Location;
+        ManufacturingSetup: Record "Manufacturing Setup";
+        Fixture: Codeunit "SCM Production Orders";
+    begin
+        // [SCENARIO] An unused manufacturing default cannot become an in-transit location.
+        Initialize();
+        // [GIVEN] A configured default with no warehouse-handling requirements.
+        LibraryWarehouse.CreateLocation(Location);
+        Fixture.ConfigureDefaultLocation(Location.Code, '');
+        Commit();
+        // [WHEN] The location is changed to an in-transit location.
+        asserterror Location.Validate("Use As In-Transit", true);
+        // [THEN] The error identifies the setup reference and the saved default remains usable.
+        Assert.ExpectedError(Location.Code);
+        Assert.ExpectedError(ManufacturingSetup.FieldCaption("Default Location Code"));
+        Location.Get(Location.Code);
+        Location.TestField("Use As In-Transit", false);
+        ManufacturingSetup.Get();
+        ManufacturingSetup.TestField("Default Location Code", Location.Code);
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure DefaultLocationInTransitAfterSetupChange()
+    var
+        Location: Record Location;
+        ReplacementLocation: Record Location;
+        ManufacturingSetup: Record "Manufacturing Setup";
+        Fixture: Codeunit "SCM Production Orders";
+        NewDefaultCode: Code[10];
+        Iteration: Integer;
+    begin
+        // [SCENARIO] Clearing or changing the manufacturing default permits the former default to become in-transit.
+        Initialize();
+        LibraryWarehouse.CreateLocation(ReplacementLocation);
+        for Iteration := 1 to 2 do begin
+            // [GIVEN] A default location whose setup reference is cleared or changed.
+            LibraryWarehouse.CreateLocation(Location);
+            Fixture.ConfigureDefaultLocation(Location.Code, '');
+            NewDefaultCode := '';
+            if Iteration = 2 then
+                NewDefaultCode := ReplacementLocation.Code;
+            Fixture.ConfigureDefaultLocation(NewDefaultCode, '');
+            // [WHEN] The former default is changed to an in-transit location.
+            Location.Validate("Use As In-Transit", true);
+            Location.Modify(true);
+            // [THEN] The transition is saved without changing the new setup reference.
+            Location.Get(Location.Code);
+            Location.TestField("Use As In-Transit", true);
+            ManufacturingSetup.Get();
+            ManufacturingSetup.TestField("Default Location Code", NewDefaultCode);
+        end;
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
     procedure DefaultLocationNewReleased()
     var
         Item: Record Item;
