@@ -6,12 +6,13 @@
 namespace System.Agents.Designer.CustomAgent;
 
 using System.Agents;
+using System.Agents.Internal;
 
 enumextension 4351 "Custom Agent Metadata Provider" extends "Agent Metadata Provider"
 {
     value(4377; "Custom Agent")
     {
         Caption = 'Agent';
-        Implementation = IAgentFactory = "Custom Agent Metadata Provider", IAgentMetadata = "Custom Agent Metadata Provider";
+        Implementation = IAgentFactory = "Custom Agent Metadata Provider", IAgentMetadata = "Custom Agent Metadata Provider", IAgentExperimental = "Custom Agent Metadata Provider";
     }
 }
