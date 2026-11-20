@@ -1014,7 +1014,7 @@ codeunit 7017 "Price List Management"
     local procedure MarkLineAsDraft(var Rec: Record "Price List Line"; var xRec: Record "Price List Line")
     begin
         if Rec.Status = Rec.Status::Active then
-            if xRec.Find() and (xRec.Status = Rec.Status) then
+            if xRec.Status = Rec.Status then
                 if IsAllowedEditingActivePrice(Rec."Price Type") then
                     Rec.Status := Rec.Status::Draft;
     end;
