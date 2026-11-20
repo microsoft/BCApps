@@ -16,6 +16,7 @@ page 7421 "EA Pending Card Expenses API"
     EntitySetCaption = 'Pending Card Expenses';
     SourceTable = Expense;
     ODataKeyFields = SystemId;
+    DelayedInsert = true;
     DataAccessIntent = ReadOnly;
     Editable = false;
     InsertAllowed = false;

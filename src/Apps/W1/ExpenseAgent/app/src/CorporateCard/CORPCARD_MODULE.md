@@ -550,7 +550,7 @@ To list corporate-card-created expenses awaiting a receipt and an expense report
 GET .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseUserId})/pendingCardExpenses
 ```
 
-The list uses the same pending rules as receipt matching: source `CorporateCard`, linked to a card transaction, no receipt, status `Open`, and not on an expense report. It is read-only; change an expense or attach its receipt through `expenses({id})`.
+The list uses the same pending rules as receipt matching: source `CorporateCard`, linked to a card transaction, no receipt, no **No Receipt Type** (expenses marked *Lost Receipt* or *Receipt not needed* are excluded), status `Open`, and not on an expense report. It is read-only; change an expense or attach its receipt through `expenses({id})`.
 
 ### Receipt Matching (Card Expense Matches API)
 
