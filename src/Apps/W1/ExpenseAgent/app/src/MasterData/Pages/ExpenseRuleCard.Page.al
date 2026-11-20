@@ -93,9 +93,10 @@ page 6901 "Expense Rule Card"
     local procedure SetMerchantRequirementsEnabled()
     var
         ExpenseCategory: Record "Expense Category";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
     begin
         MerchantRequirementsEnabled := true;
         if ExpenseCategory.Get(Rec."Expense Category Code") then
-            MerchantRequirementsEnabled := ExpenseCategory."Expense Detail Required" <> ExpenseCategory."Expense Detail Required"::Mileage;
+            MerchantRequirementsEnabled := ExpenseRuleValidation.IsMerchantReceiptRequirementApplicable(ExpenseCategory."Expense Detail Required");
     end;
 }

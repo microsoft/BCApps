@@ -514,7 +514,8 @@ table 472 "Job Queue Entry"
         RequestPagesOptionsDeletedMsg: Label 'You have cleared the report parameters. Select the check box in the field to show the report request page again.';
         ExpiresBeforeStartErr: Label '%1 must be later than %2.', Comment = '%1 = Expiration Date, %2=Start date';
         UserSessionJobsCannotBeRecurringErr: Label 'You cannot set up recurring user session job queue entries.';
-        LastJobQueueLogEntryNo: Integer;
+        LastJobQueueLogEntryNo: BigInteger;
+        ExecutedSystemTaskId: Guid;
         ObjNotFoundErr: Label 'There is no Object with ID %1.', Comment = '%1=Object Id.';
         NoPermissionsErr: Label 'You are not allowed to schedule background tasks. Ask your system administrator to give you permission to do so. Specifically, you need Insert, Modify and Delete Permissions for the %1 table.', Comment = '%1 Table Name';
 
@@ -644,6 +645,18 @@ table 472 "Job Queue Entry"
         end;
 
         OnAfterFinalizeRun(Rec);
+    end;
+
+    /// <summary>
+    /// Finalizes the run of the scheduled task that has just executed this entry.
+    /// The executed task is removed by the platform once it completes, so it is not cancelled when the next run is scheduled.
+    /// </summary>
+    /// <param name="ExecutedTaskId">The ID of the scheduled task that executed this entry.</param>
+    internal procedure FinalizeRun(ExecutedTaskId: Guid)
+    begin
+        ExecutedSystemTaskId := ExecutedTaskId;
+        FinalizeRun();
+        Clear(ExecutedSystemTaskId);
     end;
 
     procedure GetLastLogEntryNo(): Integer
@@ -827,7 +840,9 @@ table 472 "Job Queue Entry"
         Success: Boolean;
     begin
         if not IsNullGuid("System Task ID") then begin
-            if ScheduledTask.Get("System Task ID") then begin
+            // The task executing this entry is removed by the platform when it completes; cancelling it would only send a redundant notification.
+            // A different ID means the entry was rescheduled concurrently, and that task must still be cancelled.
+            if ("System Task ID" <> ExecutedSystemTaskId) and ScheduledTask.Get("System Task ID") then begin
                 Success := TASKSCHEDULER.CancelTask("System Task ID");
                 if EmitTelemetry then
                     JobQueueTelemetry.SendTraceOnJobQueueEntryScheduledTaskCancelled(Rec, Success);

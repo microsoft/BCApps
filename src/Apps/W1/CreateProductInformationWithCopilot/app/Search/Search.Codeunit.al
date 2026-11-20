@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,6 +13,9 @@ using System.Telemetry;
 
 codeunit 7333 "Search"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Copilot item substitution suggestions are discontinued. Use modern search on the Items list instead.';
+    ObsoleteTag = '30.0';
     Access = Internal;
 
     [TryFunction]
@@ -244,13 +248,14 @@ codeunit 7333 "Search"
     local procedure GetConfidence(Score: Decimal): Enum "Search Confidence"
     begin
         Score := Round(Score * 100, 1);
-        if Score > 85 then
+        if Score >= 55 then
             exit("Search Confidence"::High);
-        if Score > 83 then
+        if Score >= 45 then
             exit("Search Confidence"::Medium);
-        if Score > 79 then
+        if Score >= 25 then
             exit("Search Confidence"::Low);
 
         exit("Search Confidence"::None);
     end;
 }
+#endif

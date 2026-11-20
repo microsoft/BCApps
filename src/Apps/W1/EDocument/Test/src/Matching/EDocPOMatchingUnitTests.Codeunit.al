@@ -859,6 +859,46 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
     end;
 
     [Test]
+    [HandlerFunctions('SendNotificationHandler')]
+    procedure PriceDifferenceWarningClearedWhenUnitCostCorrectedOnDraftPage()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        EDocumentPurchaseDraft: TestPage "E-Document Purchase Draft";
+    begin
+        // [SCENARIO] Correcting the unit cost of a draft line to the order's unit cost clears its price difference warning on the draft page
+        Initialize();
+
+        // [GIVEN] A matching difference of 5% and a draft line invoicing 10 units at 110 matched to a received order line of 10 units at 100
+        SetMatchingDifferencePct(5);
+        CreateMatchedAmountDraftLine(EDocumentPurchaseHeader, EDocumentPurchaseLine, Item, 10, 110, 0);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseLine := AddOrderLineWithCost(PurchaseHeader, Item."No.", 10, 100, 0);
+        PurchaseLine."Quantity Received" := 10;
+        PurchaseLine.Modify();
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+
+        // [GIVEN] The draft is open and the line shows the price difference warning; the line amount differs from the draft's Sub Total, so the Sub Total mismatch notification is shown too
+        EDocument.Get(EDocumentPurchaseHeader."E-Document Entry No.");
+        EDocumentPurchaseDraft.Trap();
+        Page.Run(Page::"E-Document Purchase Draft", EDocument);
+        EDocumentPurchaseDraft.Lines.First();
+        Assert.AreEqual('Price difference', EDocumentPurchaseDraft.Lines.MatchWarnings.Value(), 'The line must show the price difference warning before the unit cost is corrected.');
+
+        // [WHEN] The unit cost on the line is changed to the order's unit cost
+        EDocumentPurchaseDraft.Lines."Direct Unit Cost".SetValue(100);
+
+        // [THEN] The line no longer shows the price difference warning
+        Assert.AreEqual('No warnings', EDocumentPurchaseDraft.Lines.MatchWarnings.Value(), 'The price difference warning must be cleared after the unit cost is corrected.');
+        EDocumentPurchaseDraft.Close();
+        SetMatchingDifferencePct(0);
+    end;
+
+    [Test]
     procedure AmountMismatchHonorsAbsoluteDiscountOnDraftLine()
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
@@ -3572,4 +3612,9 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         exit(EDocPurchaseLinePOMatch.Count());
     end;
 
+    [SendNotificationHandler]
+    procedure SendNotificationHandler(var Notification: Notification): Boolean
+    begin
+        exit(true);
+    end;
 }

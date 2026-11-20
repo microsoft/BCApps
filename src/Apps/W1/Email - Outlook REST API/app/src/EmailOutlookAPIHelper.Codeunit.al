@@ -409,7 +409,6 @@ codeunit 4509 "Email - Outlook API Helper"
         Body: Text;
         SenderName: Text;
         SenderEmail: Text;
-        HasAttachments: Boolean;
         HTMLBody: Boolean;
         IsRead: Boolean;
         IsDraft: Boolean;
@@ -419,12 +418,11 @@ codeunit 4509 "Email - Outlook API Helper"
         ExternalMessageId := GetTextFromJsonObject(EmailJsonObject, 'id');
         ConversationId := GetTextFromJsonObject(EmailJsonObject, 'conversationId');
         Subject := GetTextFromJsonObject(EmailJsonObject, 'subject');
-        HasAttachments := GetBooleanFromJsonObject(EmailJsonObject, 'hasAttachments');
         IsRead := GetBooleanFromJsonObject(EmailJsonObject, 'isRead');
         IsDraft := GetBooleanFromJsonObject(EmailJsonObject, 'isDraft');
 
         if Email.FindRetrievedEmail(OutlookAccount.Id, ExternalMessageId, EmailInbox) then begin
-            if HasAttachments and Filters."Load Attachments" then
+            if Filters."Load Attachments" then
                 LoadMissingAttachments(EmailInbox."Message Id", EmailJsonObject);
             exit;
         end;
@@ -445,8 +443,7 @@ codeunit 4509 "Email - Outlook API Helper"
         SetMessageRecipients(EmailJsonObject, 'toRecipients', Enum::"Email Recipient Type"::"To", EmailMessage);
         SetMessageRecipients(EmailJsonObject, 'ccRecipients', Enum::"Email Recipient Type"::Cc, EmailMessage);
 
-        if HasAttachments then
-            AddAttachmentsToMessage(EmailJsonObject, EmailMessage, false);
+        AddAttachmentsToMessage(EmailJsonObject, EmailMessage, false);
 
         if Filters."Load Headers" then
             SetMessageHeaders(EmailJsonObject, EmailMessage);

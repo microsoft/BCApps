@@ -59,9 +59,10 @@ codeunit 139852 "APIV2 - Purch. Order Lines E2E"
             Page::"APIV2 - Purchase Orders",
             OrderServiceNameTxt,
             OrderServiceLinesNameTxt);
-        asserterror LibraryGraphMgt.GetFromWebService(ResponseText, TargetURL);
+        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 404);
 
-        // [THEN] the response text should be empty
+        // [THEN] the URL is rejected as not found because the lines can only be reached through a parent document, and the response text is empty
+        Assert.ExpectedError('Response code is 404 (NotFound)');
         Assert.AreEqual('', ResponseText, 'Response JSON should be blank');
     end;
 
