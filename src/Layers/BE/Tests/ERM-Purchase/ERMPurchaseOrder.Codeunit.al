@@ -9634,6 +9634,8 @@ codeunit 134327 "ERM Purchase Order"
         PurchaseLineOrder: Record "Purchase Line";
         PurchaseHeaderCrMemo: Record "Purchase Header";
         PurchaseLineCrMemo: Record "Purchase Line";
+        PurchInvLine: Record "Purch. Inv. Line";
+        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
         VendorNo: Code[20];
         InvoiceNo: Code[20];
     begin
@@ -9665,6 +9667,21 @@ codeunit 134327 "ERM Purchase Order"
         // [THEN] In total 2 whole PCS are returned and nothing remains received or invoiced on the order.
         VerifyItemReturnedQty(Item."No.", -2);
         VerifyOrderLineRestoredQty(PurchaseLineOrder, 0, 0);
+
+        // [THEN] The 3.60 invoice is credited at the BOX price: 1.80 for 0.3 BOX and 2.00 for the remaining 1 PCS = 0.33333 BOX.
+        // The total of 3.80 exceeds the invoice because the invoice rounded 1.8 PCS up to 2 PCS while keeping the 0.6 BOX price.
+        PurchInvLine.SetRange("Document No.", InvoiceNo);
+        PurchInvLine.SetRange(Type, PurchInvLine.Type::Item);
+        PurchInvLine.SetRange("No.", Item."No.");
+        PurchInvLine.FindFirst();
+        PurchInvLine.TestField(Amount, 3.6);
+        PurchCrMemoLine.SetRange(Type, PurchCrMemoLine.Type::Item);
+        PurchCrMemoLine.SetRange("No.", Item."No.");
+        Assert.RecordCount(PurchCrMemoLine, 2);
+        PurchCrMemoLine.FindSet();
+        PurchCrMemoLine.TestField(Amount, 1.8);
+        PurchCrMemoLine.Next();
+        PurchCrMemoLine.TestField(Amount, 2);
     end;
 
     [Test]
