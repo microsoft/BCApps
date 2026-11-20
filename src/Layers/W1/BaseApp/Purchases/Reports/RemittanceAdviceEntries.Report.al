@@ -278,8 +278,10 @@ report 400 "Remittance Advice - Entries"
                             LineDiscount := CurrExchRate.ExchangeAmtFCYToFCY("Posting Date", '', "Currency Code", "Pmt. Disc. Rcd.(LCY)");
 
                     "Vendor Ledger Entry".Amount += LineDiscount;
-                    if "Document Type" = "Document Type"::Refund then
+                    if "Document Type" = "Document Type"::Refund then begin
                         "Vendor Ledger Entry".Amount -= LineAmount;
+                        LineAmount := -LineAmount;
+                    end;
 
                     LAmountWDiscCur := -LineAmount - LineDiscount;
                 end;

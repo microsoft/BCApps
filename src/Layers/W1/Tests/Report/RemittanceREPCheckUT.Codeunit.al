@@ -17,6 +17,7 @@ codeunit 133771 "Remittance REP Check UT"
         Assert: Codeunit Assert;
         EntryNoElementTok: Label 'EntryNo_VendLedgEntry2', Locked = true;
         DocTypeElementTok: Label 'DocType_VendLedgEntry2', Locked = true;
+        LineAmtLineDiscCurrElementTok: Label 'LineAmtLineDiscCurr', Locked = true;
         LineAmountElementTok: Label 'LAmountWDiscCur', Locked = true;
         TotalAmountElementTok: Label 'Amount_VendLedgEntry', Locked = true;
 
@@ -228,8 +229,131 @@ codeunit 133771 "Remittance REP Check UT"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists(EntryNoElementTok, RefundVendorLedgerEntry."Entry No.");
         LibraryReportDataset.AssertElementWithValueExists(DocTypeElementTok, Format(RefundVendorLedgerEntry."Document Type"));
-        LibraryReportDataset.AssertElementWithValueExists(LineAmountElementTok, -RefundAmount);
+        LibraryReportDataset.AssertElementWithValueExists(LineAmountElementTok, RefundAmount);
         LibraryReportDataset.AssertElementWithValueExists(TotalAmountElementTok, -RefundAmount);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('RemittanceAdviceEntriesRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure RefundAndInvoiceHaveOppositeSignsOnRemittanceAdviceEntries()
+    var
+        InvoiceVendorLedgerEntry: Record "Vendor Ledger Entry";
+        PaymentVendorLedgerEntry: Record "Vendor Ledger Entry";
+        RefundVendorLedgerEntry: Record "Vendor Ledger Entry";
+        InvoiceAmount: Decimal;
+        RefundAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Report] [Remittance Advice - Entries]
+        // [SCENARIO 651787] A refund line has the opposite sign from an invoice line on remittance advice
+        Initialize();
+
+        // [GIVEN] Payment "P" applies to invoice "I" and includes refund "R" with the same document number
+        InvoiceAmount := 19500;
+        RefundAmount := 700;
+        CreatePaymentWithInvoiceAndRefund(
+            PaymentVendorLedgerEntry, InvoiceVendorLedgerEntry, RefundVendorLedgerEntry, InvoiceAmount, RefundAmount);
+
+        // [WHEN] Report 400 is run for payment "P"
+        REPORT.Run(REPORT::"Remittance Advice - Entries");
+
+        // [THEN] Invoice "I" is negative and refund "R" is positive in the line amount dataset column
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists(LineAmtLineDiscCurrElementTok, -InvoiceAmount);
+        LibraryReportDataset.AssertElementWithValueExists(LineAmtLineDiscCurrElementTok, RefundAmount);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('RemittanceAdviceEntriesRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure RefundAdviceLineAmountsMatchTotalOnRemittanceAdviceEntries()
+    var
+        InvoiceVendorLedgerEntry: Record "Vendor Ledger Entry";
+        PaymentVendorLedgerEntry: Record "Vendor Ledger Entry";
+        RefundVendorLedgerEntry: Record "Vendor Ledger Entry";
+        InvoiceAmount: Decimal;
+        RefundAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Report] [Remittance Advice - Entries]
+        // [SCENARIO 651787] Invoice and refund line amounts reconcile to the remittance advice total
+        Initialize();
+
+        // [GIVEN] Payment "P" applies to invoice "I" and includes refund "R" with the same document number
+        InvoiceAmount := 19500;
+        RefundAmount := 700;
+        CreatePaymentWithInvoiceAndRefund(
+            PaymentVendorLedgerEntry, InvoiceVendorLedgerEntry, RefundVendorLedgerEntry, InvoiceAmount, RefundAmount);
+
+        // [WHEN] Report 400 is run for payment "P"
+        REPORT.Run(REPORT::"Remittance Advice - Entries");
+
+        // [THEN] The signed lines are -19500 and +700 and the total is 18800
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists(LineAmountElementTok, -InvoiceAmount);
+        LibraryReportDataset.AssertElementWithValueExists(LineAmountElementTok, RefundAmount);
+        LibraryReportDataset.AssertElementWithValueExists(TotalAmountElementTok, InvoiceAmount - RefundAmount);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('RemittanceAdviceEntriesRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure SingleInvoiceLineAmountMatchesTotalOnRemittanceAdviceEntries()
+    var
+        InvoiceVendorLedgerEntry: Record "Vendor Ledger Entry";
+        PaymentVendorLedgerEntry: Record "Vendor Ledger Entry";
+        InvoiceAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Report] [Remittance Advice - Entries]
+        // [SCENARIO 651787] A single invoice line reconciles to the remittance advice total
+        Initialize();
+
+        // [GIVEN] Payment "P" applies to one invoice "I"
+        InvoiceAmount := 1368.90;
+        CreatePaymentWithInvoice(PaymentVendorLedgerEntry, InvoiceVendorLedgerEntry, InvoiceAmount);
+
+        // [WHEN] Report 400 is run for payment "P"
+        REPORT.Run(REPORT::"Remittance Advice - Entries");
+
+        // [THEN] Invoice "I" is negative and its magnitude equals the total
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists(LineAmountElementTok, -InvoiceAmount);
+        LibraryReportDataset.AssertElementWithValueExists(TotalAmountElementTok, InvoiceAmount);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('RemittanceAdviceEntriesRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure MultipleInvoiceLineAmountsMatchTotalOnRemittanceAdviceEntries()
+    var
+        FirstInvoiceVendorLedgerEntry: Record "Vendor Ledger Entry";
+        PaymentVendorLedgerEntry: Record "Vendor Ledger Entry";
+        SecondInvoiceVendorLedgerEntry: Record "Vendor Ledger Entry";
+        FirstInvoiceAmount: Decimal;
+        SecondInvoiceAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Report] [Remittance Advice - Entries]
+        // [SCENARIO 651787] Multiple invoice lines reconcile to the remittance advice total
+        Initialize();
+
+        // [GIVEN] Payment "P" applies to invoices "I1" and "I2"
+        FirstInvoiceAmount := 8132;
+        SecondInvoiceAmount := 8245.76;
+        CreatePaymentWithTwoInvoices(
+            PaymentVendorLedgerEntry, FirstInvoiceVendorLedgerEntry, SecondInvoiceVendorLedgerEntry,
+            FirstInvoiceAmount, SecondInvoiceAmount);
+
+        // [WHEN] Report 400 is run for payment "P"
+        REPORT.Run(REPORT::"Remittance Advice - Entries");
+
+        // [THEN] Invoices "I1" and "I2" are negative and their magnitude equals the total
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists(LineAmountElementTok, -FirstInvoiceAmount);
+        LibraryReportDataset.AssertElementWithValueExists(LineAmountElementTok, -SecondInvoiceAmount);
+        LibraryReportDataset.AssertElementWithValueExists(TotalAmountElementTok, FirstInvoiceAmount + SecondInvoiceAmount);
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -396,6 +520,93 @@ codeunit 133771 "Remittance REP Check UT"
         CreateVendorLedgerEntry(RefundVendorLedgerEntry, '', VendorNo, RefundVendorLedgerEntry."Document Type"::Refund);  // Blank value for Applies To ID.
         RefundVendorLedgerEntry."Document No." := DocumentNo;
         RefundVendorLedgerEntry.Modify();
+    end;
+
+    local procedure CreatePaymentWithInvoice(var PaymentVendorLedgerEntry: Record "Vendor Ledger Entry"; var InvoiceVendorLedgerEntry: Record "Vendor Ledger Entry"; InvoiceAmount: Decimal)
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        DocumentNo: Code[20];
+        VendorNo: Code[20];
+    begin
+        VendorNo := CreateVendor();
+        DocumentNo := LibraryUTUtility.GetNewCode();
+        CreateVendorLedgerEntry(PaymentVendorLedgerEntry, '', VendorNo, PaymentVendorLedgerEntry."Document Type"::Payment);
+        PaymentVendorLedgerEntry."Document No." := DocumentNo;
+        PaymentVendorLedgerEntry.Modify();
+        CreateVendorLedgerEntry(InvoiceVendorLedgerEntry, '', VendorNo, InvoiceVendorLedgerEntry."Document Type"::Invoice);
+        InvoiceVendorLedgerEntry."Document No." := LibraryUTUtility.GetNewCode();
+        InvoiceVendorLedgerEntry.Modify();
+
+        CreateDetailedVendorLedgerEntryWithAmount(
+            PaymentVendorLedgerEntry, PaymentVendorLedgerEntry."Entry No.", DetailedVendorLedgEntry."Entry Type"::"Initial Entry",
+            DetailedVendorLedgEntry."Document Type"::Payment, DocumentNo, InvoiceAmount);
+        CreateDetailedVendorLedgerEntryWithAmount(
+            InvoiceVendorLedgerEntry, PaymentVendorLedgerEntry."Entry No.", DetailedVendorLedgEntry."Entry Type"::Application,
+            DetailedVendorLedgEntry."Document Type"::Payment, DocumentNo, InvoiceAmount);
+        LibraryVariableStorage.Enqueue(PaymentVendorLedgerEntry."Entry No.");
+    end;
+
+    local procedure CreatePaymentWithInvoiceAndRefund(var PaymentVendorLedgerEntry: Record "Vendor Ledger Entry"; var InvoiceVendorLedgerEntry: Record "Vendor Ledger Entry"; var RefundVendorLedgerEntry: Record "Vendor Ledger Entry"; InvoiceAmount: Decimal; RefundAmount: Decimal)
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        DocumentNo: Code[20];
+    begin
+        CreatePaymentWithInvoice(PaymentVendorLedgerEntry, InvoiceVendorLedgerEntry, InvoiceAmount);
+        DocumentNo := PaymentVendorLedgerEntry."Document No.";
+        CreateVendorLedgerEntry(
+            RefundVendorLedgerEntry, '', PaymentVendorLedgerEntry."Vendor No.", RefundVendorLedgerEntry."Document Type"::Refund);
+        RefundVendorLedgerEntry."Document No." := DocumentNo;
+        RefundVendorLedgerEntry.Modify();
+        CreateDetailedVendorLedgerEntryWithAmount(
+            RefundVendorLedgerEntry, RefundVendorLedgerEntry."Entry No.", DetailedVendorLedgEntry."Entry Type"::Application,
+            DetailedVendorLedgEntry."Document Type"::Refund, DocumentNo, RefundAmount);
+    end;
+
+    local procedure CreatePaymentWithTwoInvoices(var PaymentVendorLedgerEntry: Record "Vendor Ledger Entry"; var FirstInvoiceVendorLedgerEntry: Record "Vendor Ledger Entry"; var SecondInvoiceVendorLedgerEntry: Record "Vendor Ledger Entry"; FirstInvoiceAmount: Decimal; SecondInvoiceAmount: Decimal)
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        DocumentNo: Code[20];
+    begin
+        CreatePaymentWithInvoice(
+            PaymentVendorLedgerEntry, FirstInvoiceVendorLedgerEntry, FirstInvoiceAmount + SecondInvoiceAmount);
+        DocumentNo := PaymentVendorLedgerEntry."Document No.";
+        CreateVendorLedgerEntry(
+            SecondInvoiceVendorLedgerEntry, '', PaymentVendorLedgerEntry."Vendor No.",
+            SecondInvoiceVendorLedgerEntry."Document Type"::Invoice);
+        SecondInvoiceVendorLedgerEntry."Document No." := LibraryUTUtility.GetNewCode();
+        SecondInvoiceVendorLedgerEntry.Modify();
+
+        DeleteDetailedVendorLedgerEntries(FirstInvoiceVendorLedgerEntry."Entry No.");
+        CreateDetailedVendorLedgerEntryWithAmount(
+            FirstInvoiceVendorLedgerEntry, PaymentVendorLedgerEntry."Entry No.", DetailedVendorLedgEntry."Entry Type"::Application,
+            DetailedVendorLedgEntry."Document Type"::Payment, DocumentNo, FirstInvoiceAmount);
+        CreateDetailedVendorLedgerEntryWithAmount(
+            SecondInvoiceVendorLedgerEntry, PaymentVendorLedgerEntry."Entry No.", DetailedVendorLedgEntry."Entry Type"::Application,
+            DetailedVendorLedgEntry."Document Type"::Payment, DocumentNo, SecondInvoiceAmount);
+    end;
+
+    local procedure CreateDetailedVendorLedgerEntryWithAmount(VendorLedgerEntry: Record "Vendor Ledger Entry"; AppliedVendorLedgerEntryNo: Integer; EntryType: Enum "Detailed CV Ledger Entry Type"; DocumentType: Enum "Gen. Journal Document Type"; DocumentNo: Code[20]; Amount: Decimal)
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        DetailedVendorLedgEntry."Entry No." := SelectDetailedVendorLedgerEntryNo();
+        DetailedVendorLedgEntry."Vendor Ledger Entry No." := VendorLedgerEntry."Entry No.";
+        DetailedVendorLedgEntry."Document Type" := DocumentType;
+        DetailedVendorLedgEntry."Document No." := DocumentNo;
+        DetailedVendorLedgEntry."Entry Type" := EntryType;
+        DetailedVendorLedgEntry.Amount := Amount;
+        DetailedVendorLedgEntry."Amount (LCY)" := Amount;
+        DetailedVendorLedgEntry."Applied Vend. Ledger Entry No." := AppliedVendorLedgerEntryNo;
+        DetailedVendorLedgEntry."Initial Document Type" := VendorLedgerEntry."Document Type";
+        DetailedVendorLedgEntry.Insert(true);
+    end;
+
+    local procedure DeleteDetailedVendorLedgerEntries(VendorLedgerEntryNo: Integer)
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        DetailedVendorLedgEntry.SetRange("Vendor Ledger Entry No.", VendorLedgerEntryNo);
+        DetailedVendorLedgEntry.DeleteAll();
     end;
 
     [RequestPageHandler]
