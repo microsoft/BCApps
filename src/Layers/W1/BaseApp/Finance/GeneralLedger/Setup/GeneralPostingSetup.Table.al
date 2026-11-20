@@ -1283,9 +1283,8 @@ table 252 "General Posting Setup"
         GLSetup.Get();
         PmtToleranceVisible := (GLSetup."Payment Tolerance %" > 0) or (GLSetup."Max. Payment Tolerance Amount" <> 0);
 
-#if not CLEAN30
         PmtDiscountVisible := PaymentTerms.UsePaymentDiscount();
-#endif
+
         SalesSetup.Get();
         SalesLineDiscVisible :=
           SalesSetup."Discount Posting" in [SalesSetup."Discount Posting"::"All Discounts",
