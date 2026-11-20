@@ -48,6 +48,94 @@ codeunit 18196 "GST Sales Tests"
         PriceListLineVerifyErr: Label '%1 is incorrect in %2.', Comment = '%1 and %2 = Field Caption and Table Caption';
 
     [Test]
+    procedure QRCodeImagesMatchLegacyRendering()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        SourceText: Text;
+    begin
+        // [SCENARIO] QR images retain the legacy rendering settings and replace any previous image.
+        // Expected image hashes were captured from the original QRCodeProvider overload.
+        VerifyQRCodeImage(
+            TempBlob, 'Hello, World!', 30330,
+            '7CAB9AB9D3F33E53CA06895AF1CA958F102992F3174150FE322C8FC6856C4C27');
+        VerifyQRCodeImage(
+            TempBlob, 'upi://pay?pa=merchant@example&pn=Test%20Merchant&tr=INV-2026-0001&am=1234.56&cu=INR', 72954,
+            '0664BA96CADAE05507C525D8EAB85F42C6D6402D82FA9A2C2D38527B0AA83A7C');
+        VerifyQRCodeImage(
+            TempBlob, 'eyJhbGciOiJSUzI1NiJ9.eyJJc3MiOiJUZXN0IiwiRG9jTm8iOiJJTlYtMDAwMSJ9.c3ludGhldGljLXNpZ25hdHVyZQ', 72954,
+            '9B371105CF328E9ECE66BCE1E886B5BB2D2F9633386D6EA1F612F14835E3939F');
+
+        SourceText := 'caf?-?';
+        SourceText[4] := 233;
+        SourceText[6] := 163;
+        VerifyQRCodeImage(
+            TempBlob, SourceText, 30330,
+            '65E546DA1A8C38EB550236B39DB65DA7CE166714216CAEB94A4C0611E9C861DD');
+
+        SourceText := '?-??-?';
+        SourceText[1] := 8364;
+        SourceText[3] := 2325;
+        SourceText[4] := 2367;
+        SourceText[6] := 28450;
+        VerifyQRCodeImage(
+            TempBlob, SourceText, 30330,
+            'D31D4AD73BAE3B7BF72DFFBFFC36DDA1570D774A3BD2E2BF8E89EEEC03A7EEDD');
+    end;
+
+    [Test]
+    procedure QRCodeImageAtMaximumByteCapacity()
+    var
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] Low error correction retains the legacy 2953-byte capacity.
+        VerifyQRCodeImage(
+            TempBlob, PadStr('', 2953, 'a'), 1232154,
+            '45AFCFEC5EA2380E9E105CC1E09CC8271797BC2AD4B158C031A32C3DE2599657');
+    end;
+
+    [Test]
+    procedure EmptyQRCodeInputClearsPreviousImage()
+    begin
+        VerifyQRCodeFailureClearsImage('', 'Cannot create barcode.');
+    end;
+
+    [Test]
+    procedure OversizedQRCodeInputClearsPreviousImage()
+    begin
+        VerifyQRCodeFailureClearsImage(PadStr('', 2954, 'a'), 'Cannot accommodate input length.');
+    end;
+
+    local procedure VerifyQRCodeImage(var TempBlob: Codeunit "Temp Blob"; SourceText: Text; ExpectedLength: Integer; ExpectedHash: Text)
+    var
+        QRGenerator: Codeunit "QR Generator";
+        CryptographyManagement: Codeunit "Cryptography Management";
+        ImageInStream: InStream;
+        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
+    begin
+        Assert.IsTrue(QRGenerator.GenerateQRCodeImage(SourceText, TempBlob), GetLastErrorText());
+        Assert.AreEqual(ExpectedLength, TempBlob.Length(), 'QR image length differs from the legacy image.');
+        TempBlob.CreateInStream(ImageInStream);
+        Assert.AreEqual(
+            ExpectedHash, CryptographyManagement.GenerateHash(ImageInStream, HashAlgorithmType::SHA256),
+            'QR image bytes differ from the legacy image.');
+    end;
+
+    local procedure VerifyQRCodeFailureClearsImage(SourceText: Text; ExpectedErrorText: Text)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        QRGenerator: Codeunit "QR Generator";
+    begin
+        VerifyQRCodeImage(
+            TempBlob, 'Hello, World!', 30330,
+            '7CAB9AB9D3F33E53CA06895AF1CA958F102992F3174150FE322C8FC6856C4C27');
+
+        ClearLastError();
+        Assert.IsFalse(QRGenerator.GenerateQRCodeImage(SourceText, TempBlob), 'Invalid QR input must fail.');
+        Assert.ExpectedError(ExpectedErrorText);
+        Assert.IsFalse(TempBlob.HasValue(), 'A failed generation must not retain the previous QR image.');
+    end;
+
+    [Test]
     procedure CompanyInformationPANError()
     var
         CompanyInformation: Record "Company Information";
