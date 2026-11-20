@@ -713,6 +713,7 @@ table 6930 "Expense Agent Setup"
         }
         field(106; "Allow No Receipt"; Boolean)
         {
+            Access = Internal;
             Caption = 'Allow No Receipt';
             ToolTip = 'Specifies whether users can replace a missing original receipt with a system-generated no receipt declaration.';
         }
