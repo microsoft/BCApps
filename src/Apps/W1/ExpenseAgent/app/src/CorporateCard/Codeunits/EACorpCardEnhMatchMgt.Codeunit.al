@@ -201,7 +201,7 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
     /// Calculates string similarity using Levenshtein distance.
     /// Returns value between 0.0 and 1.0 where 1.0 = exact match.
     /// </summary>
-    local procedure CalculateSimilarity(Text1: Text; Text2: Text): Decimal
+    internal procedure CalculateSimilarity(Text1: Text; Text2: Text): Decimal
     var
         Len1: Integer;
         Len2: Integer;
