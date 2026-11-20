@@ -25,6 +25,7 @@ page 4394 "Custom Agent Markdown Part"
                 {
                     ApplicationArea = All;
                     Caption = 'Instructions';
+                    ShowCaption = false;
                     ToolTip = 'Specifies what the agent should do, its tone, and the rules and guidelines it must follow. Use visual formatting or edit the Markdown source.';
                     ExtendedDatatype = Markdown;
                     MultiLine = true;

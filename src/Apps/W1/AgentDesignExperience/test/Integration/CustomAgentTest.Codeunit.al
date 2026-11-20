@@ -18,6 +18,8 @@ codeunit 133754 "Custom Agent Test"
     TestType = UnitTest;
     TestPermissions = Disabled;
 
+    // [FEATURE] [Custom Agent]
+
     var
         AgentDesignerTestLib: Codeunit "Agent Designer Test Lib.";
         Any: Codeunit Any;
@@ -36,6 +38,7 @@ codeunit 133754 "Custom Agent Test"
         AgentRec: Record Agent;
         CustomAgentSetup: Record "Custom Agent Setup";
     begin
+        LibraryVariableStorage.Clear();
         AgentRec.SetRange("Agent Metadata Provider", AgentRec."Agent Metadata Provider"::"Custom Agent");
         AgentRec.SetFilter("User Name", TestAgentPrefixTxt + '*');
         if (AgentRec.Count() = 2) and Initialized then
@@ -87,6 +90,7 @@ codeunit 133754 "Custom Agent Test"
         Agent: Codeunit Agent;
         CustomAgentSetup: Codeunit "Custom Agent Setup";
     begin
+        // [SCENARIO] Opening the editor for an inactive agent requires confirmation.
         // [GIVEN] An inactive custom agent
         Initialize();
         Agent.Deactivate(TestAgentId1);
@@ -108,6 +112,7 @@ codeunit 133754 "Custom Agent Test"
         Agent: Codeunit Agent;
         CustomAgentSetup: Codeunit "Custom Agent Setup";
     begin
+        // [SCENARIO] Archived agents cannot open the instruction editor.
         // [GIVEN] An archived custom agent
         Initialize();
         Agent.Deactivate(TestAgentId2);
@@ -130,22 +135,28 @@ codeunit 133754 "Custom Agent Test"
         MetadataProvider: Enum "Agent Metadata Provider";
         AgentExperimental: Interface IAgentExperimental;
     begin
+        // [SCENARIO] New agents use Business Skills by default and honor independent saved settings.
+        // [GIVEN] Two new custom agents
         Initialize();
         MetadataProvider := MetadataProvider::"Custom Agent";
         AgentExperimental := MetadataProvider;
         Assert.IsTrue(AgentExperimental.IsOptInFeatureEnabled(TestAgentId1, Enum::"Agent Opt In Feature"::BusinessIQ), 'Business Skills must be enabled by default for new agents.');
         Assert.IsTrue(AgentExperimental.IsOptInFeatureEnabled(TestAgentId2, Enum::"Agent Opt In Feature"::BusinessIQ), 'Business Skills must be enabled by default for each new agent.');
 
+        // [WHEN] Business Skills are disabled for the first agent
         CustomAgentSetup.Get(TestAgentId1);
         CustomAgentSetup."Use Business Skills" := false;
         CustomAgentSetup.Modify(true);
 
+        // [THEN] The saved value is used without affecting other agents
         Assert.IsFalse(AgentExperimental.IsOptInFeatureEnabled(TestAgentId1, Enum::"Agent Opt In Feature"::BusinessIQ), 'The saved disabled setting must override the default.');
         Assert.IsTrue(AgentExperimental.IsOptInFeatureEnabled(TestAgentId2, Enum::"Agent Opt In Feature"::BusinessIQ), 'Disabling Business Skills must not affect other agents.');
 
+        // [WHEN] Business Skills are enabled again
         CustomAgentSetup."Use Business Skills" := true;
         CustomAgentSetup.Modify(true);
 
+        // [THEN] The configured agent opts in, while missing agents do not
         Assert.IsTrue(AgentExperimental.IsOptInFeatureEnabled(TestAgentId1, Enum::"Agent Opt In Feature"::BusinessIQ), 'Enabling Business Skills must opt the configured agent in.');
         Assert.IsFalse(AgentExperimental.IsOptInFeatureEnabled(CreateGuid(), Enum::"Agent Opt In Feature"::BusinessIQ), 'Agents without configuration must not opt in to Business Skills.');
     end;
@@ -155,28 +166,43 @@ codeunit 133754 "Custom Agent Test"
     var
         CustomAgentSetup: Record "Custom Agent Setup";
         InstructionsLog: Record "Custom Agent Instructions Log";
-        CustomAgentInstructions: Codeunit "Custom Agent Instructions";
         InstructionsEditor: Page "Agent Instruction Editor";
         Editor: TestPage "Agent Instruction Editor";
+        OriginalInstructions: Text;
+        OriginalVersion: Text[100];
         Markdown: Text;
         HistoryCount: Integer;
     begin
+        // [SCENARIO] Editing instructions preserves the previous version and reopening adds no history.
+        // [GIVEN] A custom agent with saved instructions and history
         Initialize();
+        CustomAgentSetup.Get(TestAgentId1);
+        OriginalInstructions := CustomAgentSetup.GetInstructions(TestAgentId1);
+        OriginalVersion := CustomAgentSetup."Instructions Version";
+        InstructionsLog.SetRange("User Security ID", TestAgentId1);
+        HistoryCount := InstructionsLog.Count();
         Markdown := GetMarkdownInstructions();
         InstructionsEditor.SetUserSecurityId(TestAgentId1);
         Editor.Trap();
         InstructionsEditor.Run();
 
+        // [WHEN] Instructions are edited in the Test Agent page
         Assert.IsTrue(Editor.InstructionsPart.InstructionsText.Editable(), 'The test agent instructions must be editable.');
         Editor.InstructionsPart.InstructionsText.SetValue(Markdown);
         Editor.Close();
 
+        // [THEN] The new instructions are saved without overwriting the previous history entry
         CustomAgentSetup.Get(TestAgentId1);
         Assert.AreEqual(Markdown, CustomAgentSetup.GetInstructions(TestAgentId1), 'The native field must save Markdown source without HTML encoding.');
-        CustomAgentInstructions.MarkCurrentInstructionsAsReadOnly(CustomAgentSetup);
-        InstructionsLog.SetRange("User Security ID", TestAgentId1);
+        Assert.AreEqual(HistoryCount + 1, InstructionsLog.Count(), 'Editing instructions must create a new history entry automatically.');
+        InstructionsLog.SetRange("Instruction Version", OriginalVersion);
+        InstructionsLog.FindFirst();
+        Assert.AreEqual(OriginalInstructions, InstructionsLog.GetInstructions(), 'Editing instructions must preserve the previous version.');
+        Assert.IsTrue(InstructionsLog."Read-Only Instructions", 'The previous version must be read-only.');
+        InstructionsLog.SetRange("Instruction Version");
         HistoryCount := InstructionsLog.Count();
 
+        // [WHEN] The editor is reopened without changing instructions
         Clear(InstructionsEditor);
         InstructionsEditor.SetUserSecurityId(TestAgentId1);
         Editor.Trap();
@@ -184,7 +210,64 @@ codeunit 133754 "Custom Agent Test"
         Editor.InstructionsPart.InstructionsText.AssertEquals(Markdown);
         Editor.Close();
 
+        // [THEN] Reopening does not create a duplicate history entry
         Assert.AreEqual(HistoryCount, InstructionsLog.Count(), 'Opening the editor must not rewrite instructions or add history.');
+    end;
+
+    [Test]
+    [HandlerFunctions('EditAgentSetupInstructionsHandler,EditTemporaryInstructionsHandler')]
+    procedure TestSetupInstructionChangesCreateHistoryOnlyOnUpdate()
+    var
+        CustomAgentSetup: Record "Custom Agent Setup";
+        InstructionsLog: Record "Custom Agent Instructions Log";
+        SetupPage: Page "Custom Agent Setup";
+        OriginalInstructions: Text;
+        OriginalVersion: Text[100];
+        Markdown: Text;
+        HistoryCount: Integer;
+    begin
+        // [SCENARIO] Updating setup records instruction history, while cancelling discards staged edits.
+        // [GIVEN] A configured agent with existing instructions and history
+        Initialize();
+        CustomAgentSetup.Get(TestAgentId1);
+        OriginalInstructions := CustomAgentSetup.GetInstructions(TestAgentId1);
+        OriginalVersion := CustomAgentSetup."Instructions Version";
+        InstructionsLog.SetRange("User Security ID", TestAgentId1);
+        HistoryCount := InstructionsLog.Count();
+        Markdown := GetMarkdownInstructions();
+
+        // [WHEN] Edited instructions are accepted in the dialog and the setup is updated
+        CustomAgentSetup.SetRange("User Security ID", TestAgentId1);
+        SetupPage.SetTableView(CustomAgentSetup);
+        LibraryVariableStorage.Enqueue(OriginalInstructions);
+        LibraryVariableStorage.Enqueue(Markdown);
+        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue(true);
+        SetupPage.RunModal();
+
+        // [THEN] The new instructions are saved and the previous version is preserved
+        Assert.AreEqual(Markdown, CustomAgentSetup.GetInstructions(TestAgentId1), 'Updating setup must save the accepted instructions.');
+        Assert.AreEqual(HistoryCount + 1, InstructionsLog.Count(), 'Updating setup must create a new history entry.');
+        InstructionsLog.SetRange("Instruction Version", OriginalVersion);
+        InstructionsLog.FindFirst();
+        Assert.AreEqual(OriginalInstructions, InstructionsLog.GetInstructions(), 'Updating setup must preserve the previous instructions.');
+        Assert.IsTrue(InstructionsLog."Read-Only Instructions", 'The previous version must be read-only.');
+        InstructionsLog.SetRange("Instruction Version");
+        HistoryCount := InstructionsLog.Count();
+
+        // [WHEN] Another edit is accepted in the dialog but the setup is cancelled
+        Clear(SetupPage);
+        SetupPage.SetTableView(CustomAgentSetup);
+        LibraryVariableStorage.Enqueue(Markdown);
+        LibraryVariableStorage.Enqueue('# Cancelled setup instructions');
+        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue(false);
+        SetupPage.RunModal();
+
+        // [THEN] Neither saved instructions nor history change
+        Assert.AreEqual(Markdown, CustomAgentSetup.GetInstructions(TestAgentId1), 'Cancelling setup must discard staged instruction edits.');
+        Assert.AreEqual(HistoryCount, InstructionsLog.Count(), 'Cancelling setup must not create history.');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -196,10 +279,13 @@ codeunit 133754 "Custom Agent Test"
         OriginalInstructions: Text;
         AcceptedInstructions: Text;
     begin
+        // [SCENARIO] Temporary instruction edits are saved only when the caller applies them.
+        // [GIVEN] A custom agent with saved instructions
         Initialize();
         CustomAgentSetup.Get(TestAgentId1);
         OriginalInstructions := CustomAgentSetup.GetInstructions(TestAgentId1);
 
+        // [WHEN] New instructions are accepted in a temporary dialog
         InstructionsDialog.SetIsTemporary(true);
         InstructionsDialog.SetUserSecurityId(TestAgentId1);
         InstructionsDialog.SetInstructions('# Staged instructions');
@@ -207,10 +293,12 @@ codeunit 133754 "Custom Agent Test"
         LibraryVariableStorage.Enqueue(GetMarkdownInstructions());
         LibraryVariableStorage.Enqueue(true);
         InstructionsDialog.RunModal();
+        // [THEN] The edited text is returned without changing persistent instructions
         AcceptedInstructions := InstructionsDialog.GetInstructions();
         Assert.AreEqual(GetMarkdownInstructions(), AcceptedInstructions, 'OK must return the edited Markdown to the caller.');
         Assert.AreEqual(OriginalInstructions, CustomAgentSetup.GetInstructions(TestAgentId1), 'Temporary editing must not save before the caller applies the changes.');
 
+        // [WHEN] Another temporary edit is cancelled
         Clear(InstructionsDialog);
         InstructionsDialog.SetIsTemporary(true);
         InstructionsDialog.SetUserSecurityId(TestAgentId1);
@@ -218,9 +306,12 @@ codeunit 133754 "Custom Agent Test"
         LibraryVariableStorage.Enqueue('# Cancelled instructions');
         LibraryVariableStorage.Enqueue(false);
         InstructionsDialog.RunModal();
+        // [THEN] Saved instructions remain unchanged
         Assert.AreEqual(OriginalInstructions, CustomAgentSetup.GetInstructions(TestAgentId1), 'Cancelling temporary edits must leave saved instructions unchanged.');
 
+        // [WHEN] The caller applies the previously accepted instructions
         CustomAgentSetup.SetInstructions(AcceptedInstructions);
+        // [THEN] The accepted Markdown is saved unchanged
         Assert.AreEqual(AcceptedInstructions, CustomAgentSetup.GetInstructions(TestAgentId1), 'The caller must be able to apply the accepted Markdown unchanged.');
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -232,13 +323,18 @@ codeunit 133754 "Custom Agent Test"
         InstructionsDialog: Page "Custom Ag. Instructions Dialog";
         Markdown: Text;
     begin
+        // [SCENARIO] Read-only previews preserve long Markdown without allowing edits.
+        // [GIVEN] Instructions longer than the native editor limit
+        Initialize();
         Markdown := GetMarkdownInstructions() + PadStr('x', 30001, 'x');
         InstructionsDialog.SetReadOnlyMode(true);
         InstructionsDialog.SetInstructions(Markdown);
         LibraryVariableStorage.Enqueue(Markdown);
 
+        // [WHEN] The instructions are previewed
         InstructionsDialog.RunModal();
 
+        // [THEN] The complete source is retained
         Assert.AreEqual(Markdown, InstructionsDialog.GetInstructions(), 'Previewing instructions must not truncate or rewrite existing source.');
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -249,18 +345,18 @@ codeunit 133754 "Custom Agent Test"
     var
         CustomAgentSetup: Record "Custom Agent Setup";
         InstructionsLog: Record "Custom Agent Instructions Log";
-        CustomAgentInstructions: Codeunit "Custom Agent Instructions";
         InstructionsEditor: Page "Agent Instruction Editor";
         Editor: TestPage "Agent Instruction Editor";
         Markdown: Text;
     begin
+        // [SCENARIO] Restoring an earlier version preserves Markdown and refreshes the editor.
+        // [GIVEN] An agent with two different instruction versions
         Initialize();
         Markdown := GetMarkdownInstructions();
         CustomAgentSetup.Get(TestAgentId1);
         InstructionsLog.SetRange("User Security ID", TestAgentId1);
         InstructionsLog.DeleteAll();
         CustomAgentSetup.SetInstructions(Markdown);
-        CustomAgentInstructions.MarkCurrentInstructionsAsReadOnly(CustomAgentSetup);
         CustomAgentSetup.SetInstructions('# Latest instructions');
         Commit();
 
@@ -271,8 +367,10 @@ codeunit 133754 "Custom Agent Test"
         LibraryVariableStorage.Enqueue('This will replace the current instructions.');
         LibraryVariableStorage.Enqueue(true);
         LibraryVariableStorage.Enqueue('The instructions have been successfully applied to the agent.');
+        // [WHEN] The earlier version is restored from history
         Editor.ViewHistory.Invoke();
 
+        // [THEN] Both the editor and saved instructions contain the restored Markdown
         Editor.InstructionsPart.InstructionsText.AssertEquals(Markdown);
         Editor.Close();
         Assert.AreEqual(Markdown, CustomAgentSetup.GetInstructions(TestAgentId1), 'History restore must preserve indentation, line breaks, and trailing spaces.');
@@ -288,31 +386,46 @@ codeunit 133754 "Custom Agent Test"
         LineFeed: Char;
         ExpectedInstructions: TextBuilder;
         Markdown: Text;
+        InstructionsVersion: Text[100];
     begin
+        // [SCENARIO] Paragraph-break changes create history, but unchanged text does not.
+        // [GIVEN] Instructions containing one line break
         Initialize();
         LineFeed := 10;
         CustomAgentSetup.Get(TestAgentId1);
         InstructionsLog.SetRange("User Security ID", TestAgentId1);
         InstructionsLog.DeleteAll();
         CustomAgentSetup.SetInstructions('First paragraph' + Format(LineFeed) + 'Second paragraph');
-        CustomAgentInstructions.MarkCurrentInstructionsAsReadOnly(CustomAgentSetup);
         Markdown := 'First paragraph' + Format(LineFeed) + Format(LineFeed) + 'Second paragraph';
         ExpectedInstructions.AppendLine('First paragraph');
         ExpectedInstructions.AppendLine();
         ExpectedInstructions.Append('Second paragraph');
 
+        // [WHEN] A paragraph break is added
         CustomAgentSetup.SetInstructions(Markdown);
 
+        // [THEN] A new history entry preserves the paragraph break
         Assert.AreEqual(2, InstructionsLog.Count(), 'A Markdown paragraph-break change must create a history entry.');
         InstructionsLog.SetRange("Instruction Version", CustomAgentSetup."Instructions Version");
         InstructionsLog.FindFirst();
         Assert.AreEqual(ExpectedInstructions.ToText(), InstructionsLog.GetInstructions(), 'History must preserve the new paragraph break.');
         InstructionsLog.SetRange("Instruction Version");
-        CustomAgentInstructions.MarkCurrentInstructionsAsReadOnly(CustomAgentSetup);
+        InstructionsVersion := CustomAgentSetup."Instructions Version";
 
+        // [WHEN] The current version is marked read-only and the same LF source is saved again
+        CustomAgentInstructions.MarkCurrentInstructionsAsReadOnly(CustomAgentSetup);
         CustomAgentSetup.SetInstructions(Markdown);
 
+        // [THEN] Neither the history count nor the current version changes
         Assert.AreEqual(2, InstructionsLog.Count(), 'Reading LF text with normalized line endings must not create duplicate history.');
+        Assert.AreEqual(InstructionsVersion, CustomAgentSetup."Instructions Version", 'Saving unchanged instructions must retain the current version.');
+
+        // [WHEN] The same instructions are saved with normalized line endings
+        CustomAgentSetup.SetInstructions(ExpectedInstructions.ToText());
+
+        // [THEN] Line-ending normalization does not create another version
+        Assert.AreEqual(2, InstructionsLog.Count(), 'Normalizing line endings must not create duplicate history.');
+        Assert.AreEqual(InstructionsVersion, CustomAgentSetup."Instructions Version", 'Normalizing line endings must retain the current version.');
     end;
 
     [Test]
@@ -323,6 +436,8 @@ codeunit 133754 "Custom Agent Test"
         Editor: TestPage "Agent Instruction Editor";
         Instructions: Text;
     begin
+        // [SCENARIO] Empty instruction edits are rejected without losing the previous valid source.
+        // [GIVEN] An editor containing long valid Markdown
         Initialize();
         Instructions := GetMarkdownInstructions() + PadStr('x', 30001, 'x');
         InstructionsEditor.SetUserSecurityId(TestAgentId1);
@@ -331,7 +446,9 @@ codeunit 133754 "Custom Agent Test"
         Editor.InstructionsPart.InstructionsText.SetValue(Instructions);
         Commit();
 
+        // [WHEN] Instructions are replaced with whitespace
         asserterror Editor.InstructionsPart.InstructionsText.SetValue('   ');
+        // [THEN] The edit is rejected and the last valid instructions remain saved
         Assert.ExpectedError('Instructions cannot be empty.');
         Editor.Close();
 
@@ -565,6 +682,29 @@ codeunit 133754 "Custom Agent Test"
         Instructions.AppendLine('Keep this hard break.  ');
         Instructions.Append('Final instruction.  ');
         exit(Instructions.ToText());
+    end;
+
+    [ModalPageHandler]
+    procedure EditAgentSetupInstructionsHandler(var SetupPage: TestPage "Custom Agent Setup")
+    var
+        CustomAgentSetup: Record "Custom Agent Setup";
+        InstructionsLog: Record "Custom Agent Instructions Log";
+        OriginalInstructions: Text;
+        HistoryCount: Integer;
+    begin
+        CustomAgentSetup.Get(TestAgentId1);
+        OriginalInstructions := CustomAgentSetup.GetInstructions(TestAgentId1);
+        InstructionsLog.SetRange("User Security ID", TestAgentId1);
+        HistoryCount := InstructionsLog.Count();
+
+        SetupPage.EditInstructions.DrillDown();
+
+        Assert.AreEqual(OriginalInstructions, CustomAgentSetup.GetInstructions(TestAgentId1), 'Accepting the instruction dialog must not save before setup is updated.');
+        Assert.AreEqual(HistoryCount, InstructionsLog.Count(), 'Accepting the instruction dialog must not create history before setup is updated.');
+        if LibraryVariableStorage.DequeueBoolean() then
+            SetupPage.OK().Invoke()
+        else
+            SetupPage.Cancel().Invoke();
     end;
 
     [ModalPageHandler]

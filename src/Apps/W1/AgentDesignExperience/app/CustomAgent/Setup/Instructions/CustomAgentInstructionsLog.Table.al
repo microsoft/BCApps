@@ -33,6 +33,7 @@ table 4352 "Custom Agent Instructions Log"
         {
             Caption = 'Instructions';
             ToolTip = 'Specifies the instructions for the agent.';
+            DataClassification = CustomerContent;
         }
         field(4; "Instruction Version"; Text[100])
         {

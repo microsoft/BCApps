@@ -28,6 +28,7 @@ table 4350 "Custom Agent Setup"
         {
             ToolTip = 'Specifies the instructions of the agent.';
             Caption = 'Instructions';
+            DataClassification = CustomerContent;
         }
         field(3; "Initials"; Code[4])
         {
