@@ -25,7 +25,6 @@ codeunit 148368 "Expense Ext. Events Subscr."
         CopyFromPostedLineCount: Integer;
         BeforePostExpenseReportCount: Integer;
         AfterPostExpenseReportCount: Integer;
-        PerDiemCalculationCount: Integer;
 
     procedure SetMarkerText(NewMarkerText: Text[20])
     begin
@@ -92,11 +91,6 @@ codeunit 148368 "Expense Ext. Events Subscr."
         exit(AfterPostExpenseReportCount);
     end;
 
-    procedure GetPerDiemCalculationCount(): Integer
-    begin
-        exit(PerDiemCalculationCount);
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Expense Report", 'OnAfterCopyExpenseFieldsToReportLine', '', false, false)]
     local procedure HandleOnAfterCopyExpenseFieldsToReportLine(Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line")
     begin
@@ -110,8 +104,6 @@ codeunit 148368 "Expense Ext. Events Subscr."
     local procedure HandleOnBeforePostExpenseGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line")
     begin
         BeforePostGenJnlLineCount += 1;
-        if MarkerText <> '' then
-            GenJournalLine."External Document No." := MarkerText;
         if GenJnlLineDescriptionMarker <> '' then
             GenJournalLine.Description := GenJnlLineDescriptionMarker;
     end;
@@ -120,8 +112,6 @@ codeunit 148368 "Expense Ext. Events Subscr."
     local procedure HandleOnAfterCopyFromGenJnlLine(var ExpenseLedgerEntry: Record "Expense Ledger Entry"; GenJnlLine: Record "Gen. Journal Line")
     begin
         CopyFromGenJnlLineCount += 1;
-        if MarkerText <> '' then
-            ExpenseLedgerEntry.Description := MarkerText;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Expense Ledger Entry", 'OnAfterCopyFromPostedExpenseReportLine', '', false, false)]
@@ -147,7 +137,6 @@ codeunit 148368 "Expense Ext. Events Subscr."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Expense Per Diem Calculation", 'OnAfterCalculatePerDiemForSingleDay', '', false, false)]
     local procedure HandleOnAfterCalculatePerDiemForSingleDay(CurrentDate: Date; BaseRate: Decimal; TripStartDateTime: DateTime; TripEndDateTime: DateTime; ExpenseAgentSetup: Record "Expense Agent Setup"; var PerDiemAmount: Decimal)
     begin
-        PerDiemCalculationCount += 1;
         CapturedBaseRate := BaseRate;
         PerDiemAmount := PerDiemAmountOverride;
     end;
