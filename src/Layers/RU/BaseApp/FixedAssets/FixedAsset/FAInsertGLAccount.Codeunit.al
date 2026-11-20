@@ -90,8 +90,8 @@ codeunit 5601 "FA Insert G/L Account"
         FADeprBook: Record "FA Depreciation Book";
         FAGetGLAccNo: Codeunit "FA Get G/L Account No.";
         DepreciationCalc: Codeunit "Depreciation Calculation";
-        NextEntryNo: Integer;
-        GLEntryNo: Integer;
+        NextEntryNo: BigInteger;
+        GLEntryNo: BigInteger;
         TotalAllocAmount: Decimal;
         NewAmount: Decimal;
         TotalPercent: Decimal;
@@ -100,7 +100,7 @@ codeunit 5601 "FA Insert G/L Account"
         NoOfEmptyLines: Integer;
         NoOfEmptyLines2: Integer;
         OrgGenJnlLine: Boolean;
-        DisposalEntryNo: Integer;
+        DisposalEntryNo: BigInteger;
         GainLossAmount: Decimal;
         DisposalAmount: Decimal;
         BookValueEntry: Boolean;
@@ -147,7 +147,7 @@ codeunit 5601 "FA Insert G/L Account"
         FAPostingGr.Reset();
         FAPostingGr.GetPostingGroup(PostingGrCode, DeprBookCode);
         OnInsertBufferBalAccOnAfterGetFAPostingGroup(FAPostingGr);
-        GLAccNo := GetGLAccNoFromFAPostingGroup(FAPostingGr, FAPostingType);
+        GLAccNo := GetGLAccNoFromFAPostingGroup(FAPostingGr, FAPostingType, AllocAmount);
 
         DimensionSetIDArr[1] := DimSetID;
 
@@ -405,7 +405,7 @@ codeunit 5601 "FA Insert G/L Account"
         GenJnlLine.Modify(true);
     end;
 
-    local procedure GetGLAccNoFromFAPostingGroup(FAPostingGr: Record "FA Posting Group"; FAPostingType: Enum "FA Posting Group Account Type") GLAccNo: Code[20]
+    local procedure GetGLAccNoFromFAPostingGroup(FAPostingGr: Record "FA Posting Group"; FAPostingType: Enum "FA Posting Group Account Type"; AllocAmount: Decimal) GLAccNo: Code[20]
     var
         FieldErrorText: Text[50];
         IsHandled: Boolean;
@@ -501,6 +501,19 @@ codeunit 5601 "FA Insert G/L Account"
                     FAPostingGr.CalcFields("Allocated Book Value % (Loss)");
                     if FAPostingGr."Allocated Book Value % (Loss)" > 100 then
                         FAPostingGr.FieldError("Allocated Book Value % (Loss)", FieldErrorText);
+                end;
+            FAPostingType::Derogatory:
+                begin
+                    if AllocAmount > 0 then begin
+                        FAPostingGr.TestField("Derogatory Expense Acc.");
+                        GLAccNo := FAPostingGr."Derogatory Expense Acc."
+                    end else begin
+                        FAPostingGr.TestField("Derog. Bal. Account (Decrease)");
+                        GLAccNo := FAPostingGr."Derog. Bal. Account (Decrease)";
+                    end;
+                    FAPostingGr.CalcFields("Allocated Derogatory Pct.");
+                    if FAPostingGr."Allocated Derogatory Pct." > 100 then
+                        FAPostingGr.FieldError("Allocated Derogatory Pct.", FieldErrorText);
                 end;
         end;
 
@@ -858,8 +871,8 @@ codeunit 5601 "FA Insert G/L Account"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterRun(var FALedgerEntry: Record "FA Ledger Entry"; var TempFAGLPostingBuffer: Record "FA G/L Posting Buffer" temporary; var NumberOfEntries: Integer; var OrgGenJnlLine: Boolean; var NetDisp: Boolean;
-                                var FAGLPostingBuffer: Record "FA G/L Posting Buffer"; var DisposalEntry: Boolean; var BookValueEntry: Boolean; var NextEntryNo: Integer;
-                                var GLEntryNo: Integer; var DisposalEntryNo: Integer;
+                                var FAGLPostingBuffer: Record "FA G/L Posting Buffer"; var DisposalEntry: Boolean; var BookValueEntry: Boolean; var NextEntryNo: BigInteger;
+                                var GLEntryNo: BigInteger; var DisposalEntryNo: BigInteger;
                                 var DisposalAmount: Decimal; var GainLossAmount: Decimal; var FAPostingGroup2: Record "FA Posting Group")
     begin
     end;
@@ -880,7 +893,7 @@ codeunit 5601 "FA Insert G/L Account"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFillAllocationBuffer(var TempFAGLPostingBuffer: Record "FA G/L Posting Buffer" temporary; var NextEntryNo: Integer; var GLEntryNo: Integer; var NumberOfEntries: Integer; var OrgGenJnlLine: Boolean; var NetDisp: Boolean; GLAccNo: Code[20]; FAPostingType: Option Acquisition,Depr,WriteDown,Appr,Custom1,Custom2,Disposal,Maintenance,Gain,Loss,"Book Value Gain","Book Value Loss"; AllocAmount: Decimal; DeprBookCode: Code[10]; PostingGrCode: Code[20]; GlobalDim1Code: Code[20]; GlobalDim2Code: Code[20]; DimSetID: Integer; AutomaticEntry: Boolean; Correction: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeFillAllocationBuffer(var TempFAGLPostingBuffer: Record "FA G/L Posting Buffer" temporary; var NextEntryNo: BigInteger; var GLEntryNo: BigInteger; var NumberOfEntries: Integer; var OrgGenJnlLine: Boolean; var NetDisp: Boolean; GLAccNo: Code[20]; FAPostingType: Option Acquisition,Depr,WriteDown,Appr,Custom1,Custom2,Disposal,Maintenance,Gain,Loss,"Book Value Gain","Book Value Loss"; AllocAmount: Decimal; DeprBookCode: Code[10]; PostingGrCode: Code[20]; GlobalDim1Code: Code[20]; GlobalDim2Code: Code[20]; DimSetID: Integer; AutomaticEntry: Boolean; Correction: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -951,8 +964,8 @@ codeunit 5601 "FA Insert G/L Account"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFAInsertGLAccount(var FALedgerEntry: Record "FA Ledger Entry"; var TempFAGLPostBuf: Record "FA G/L Posting Buffer" temporary;
-                                              var FAGLPostBuf: Record "FA G/L Posting Buffer"; var DisposalEntry: Boolean; var BookValueEntry: Boolean; var NextEntryNo: Integer;
-                                              var GLEntryNo: Integer; var OrgGenJnlLine: Boolean; var NetDisp: Boolean; var NumberOfEntries: Integer; var DisposalEntryNo: Integer;
+                                              var FAGLPostBuf: Record "FA G/L Posting Buffer"; var DisposalEntry: Boolean; var BookValueEntry: Boolean; var NextEntryNo: BigInteger;
+                                              var GLEntryNo: BigInteger; var OrgGenJnlLine: Boolean; var NetDisp: Boolean; var NumberOfEntries: Integer; var DisposalEntryNo: BigInteger;
                                               var DisposalAmount: Decimal; var GainLossAmount: Decimal; var FAPostingGr2: Record "FA Posting Group"; var IsHandled: Boolean)
     begin
     end;
@@ -1007,7 +1020,7 @@ codeunit 5601 "FA Insert G/L Account"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertBufferBalAcc(FAGLPostingBuffer: Record "FA G/L Posting Buffer"; var TempFAGLPostingBuffer: Record "FA G/L Posting Buffer" temporary;
-                                              GLEntryNo: Integer; var NextEntryNo: Integer; var NumberOfEntries: Integer;
+                                              GLEntryNo: BigInteger; var NextEntryNo: BigInteger; var NumberOfEntries: Integer;
                                               OrgGenJnlLine: Boolean; NetDisp: Boolean; FAPostingType: Enum "FA Posting Group Account Type")
     begin
     end;

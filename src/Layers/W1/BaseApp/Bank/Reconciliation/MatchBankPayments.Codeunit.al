@@ -700,7 +700,7 @@ codeunit 1255 "Match Bank Payments"
     local procedure RemoveAppliedEntriesFromTempLEMatchingBuffer(var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary)
     var
         AppliedPaymentEntry: Record "Applied Payment Entry";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         AppliedPaymentEntry.SetFilter("Match Confidence", '%1|%2', AppliedPaymentEntry."Match Confidence"::Accepted, AppliedPaymentEntry."Match Confidence"::Manual);
         if AppliedPaymentEntry.FindSet() then
@@ -714,7 +714,7 @@ codeunit 1255 "Match Bank Payments"
     local procedure RemoveAppliedEntriesFromDirectDebMatchingBuffer(var TempDirectDebitCollectionEntryBuffer: Record "Direct Debit Collection Buffer" temporary)
     var
         AppliedPaymentEntry: Record "Applied Payment Entry";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         AppliedPaymentEntry.SetFilter("Match Confidence", '%1|%2', AppliedPaymentEntry."Match Confidence"::Accepted, AppliedPaymentEntry."Match Confidence"::Manual);
         if AppliedPaymentEntry.FindSet() then
@@ -870,7 +870,7 @@ codeunit 1255 "Match Bank Payments"
     /// <param name="AppliesToEntryNo">Specific customer ledger entry number to evaluate for matching.</param>
     /// <param name="NoOfLedgerEntriesWithinTolerance">Returns count of customer entries within amount tolerance.</param>
     /// <param name="NoOfLedgerEntriesOutsideTolerance">Returns count of customer entries outside amount tolerance.</param>
-    procedure MatchSingleLineCustomer(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: Integer; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
+    procedure MatchSingleLineCustomer(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: BigInteger; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
     var
         MinAmount: Decimal;
         MaxAmount: Decimal;
@@ -909,7 +909,7 @@ codeunit 1255 "Match Bank Payments"
     /// <param name="AppliesToEntryNo">Specific vendor ledger entry number to evaluate for matching.</param>
     /// <param name="NoOfLedgerEntriesWithinTolerance">Returns count of vendor entries within amount tolerance.</param>
     /// <param name="NoOfLedgerEntriesOutsideTolerance">Returns count of vendor entries outside amount tolerance.</param>
-    procedure MatchSingleLineVendor(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: Integer; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
+    procedure MatchSingleLineVendor(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: BigInteger; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
     var
         MinAmount: Decimal;
         MaxAmount: Decimal;
@@ -948,7 +948,7 @@ codeunit 1255 "Match Bank Payments"
     /// <param name="AppliesToEntryNo">Specific employee ledger entry number to evaluate for matching.</param>
     /// <param name="NoOfLedgerEntriesWithinTolerance">Returns count of employee entries within amount tolerance.</param>
     /// <param name="NoOfLedgerEntriesOutsideTolerance">Returns count of employee entries outside amount tolerance.</param>
-    procedure MatchSingleLineEmployee(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: Integer; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
+    procedure MatchSingleLineEmployee(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: BigInteger; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
     var
         MinAmount: Decimal;
         MaxAmount: Decimal;
@@ -987,7 +987,7 @@ codeunit 1255 "Match Bank Payments"
     /// <param name="AppliesToEntryNo">Specific bank account ledger entry number to evaluate for matching.</param>
     /// <param name="NoOfLedgerEntriesWithinTolerance">Returns count of bank account entries within amount tolerance.</param>
     /// <param name="NoOfLedgerEntriesOutsideTolerance">Returns count of bank account entries outside amount tolerance.</param>
-    procedure MatchSingleLineBankAccountLedgerEntry(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: Integer; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
+    procedure MatchSingleLineBankAccountLedgerEntry(var BankPmtApplRule: Record "Bank Pmt. Appl. Rule"; BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliesToEntryNo: BigInteger; var NoOfLedgerEntriesWithinTolerance: Integer; var NoOfLedgerEntriesOutsideTolerance: Integer)
     var
         MinAmount: Decimal;
         MaxAmount: Decimal;
@@ -1420,7 +1420,7 @@ codeunit 1255 "Match Bank Payments"
         Score: Integer;
         AccountType: Enum "Gen. Journal Account Type";
         AccountNo: Code[20];
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         TextMapperMatched: Boolean;
     begin
         TextMapperMatched := false;
@@ -2169,7 +2169,7 @@ codeunit 1255 "Match Bank Payments"
         exit(not AppliedPaymentEntry.IsEmpty);
     end;
 
-    local procedure EntryAlreadyApplied(TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; TempBankAccReconciliationLine: Record "Bank Acc. Reconciliation Line" temporary; EntryNo: Integer): Boolean
+    local procedure EntryAlreadyApplied(TempBankStatementMatchingBuffer: Record "Bank Statement Matching Buffer" temporary; TempBankAccReconciliationLine: Record "Bank Acc. Reconciliation Line" temporary; EntryNo: BigInteger): Boolean
     var
         AppliedPaymentEntry: Record "Applied Payment Entry";
     begin
@@ -2514,7 +2514,7 @@ codeunit 1255 "Match Bank Payments"
     var
         PaymentMatchingDetails: Record "Payment Matching Details";
         BankPmtApplRule: Record "Bank Pmt. Appl. Rule";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         MinRangeValue: Integer;
         MaxRangeValue: Integer;
     begin
@@ -2588,7 +2588,7 @@ codeunit 1255 "Match Bank Payments"
           BankAccReconciliationLine.GetAppliesToID());
     end;
 
-    procedure SetApplicationDataInCVLedgEntry(AccountType: Enum "Gen. Journal Account Type"; EntryNo: Integer;
+    procedure SetApplicationDataInCVLedgEntry(AccountType: Enum "Gen. Journal Account Type"; EntryNo: BigInteger;
                                                                AppliesToID: Code[50])
     var
         BankAccReconLine: Record "Bank Acc. Reconciliation Line";
@@ -2606,7 +2606,7 @@ codeunit 1255 "Match Bank Payments"
         end;
     end;
 
-    local procedure SetCustAppicationData(EntryNo: Integer; AppliesToID: Code[50])
+    local procedure SetCustAppicationData(EntryNo: BigInteger; AppliesToID: Code[50])
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
     begin
@@ -2618,7 +2618,7 @@ codeunit 1255 "Match Bank Payments"
         CODEUNIT.Run(CODEUNIT::"Cust. Entry-Edit", CustLedgEntry);
     end;
 
-    local procedure SetVendAppicationData(EntryNo: Integer; AppliesToID: Code[50])
+    local procedure SetVendAppicationData(EntryNo: BigInteger; AppliesToID: Code[50])
     var
         VendLedgEntry: Record "Vendor Ledger Entry";
     begin
@@ -2630,7 +2630,7 @@ codeunit 1255 "Match Bank Payments"
         CODEUNIT.Run(CODEUNIT::"Vend. Entry-Edit", VendLedgEntry);
     end;
 
-    local procedure SetEmployeeAppicationData(EntryNo: Integer; AppliesToID: Code[50])
+    local procedure SetEmployeeAppicationData(EntryNo: BigInteger; AppliesToID: Code[50])
     var
         EmployeeLedgEntry: Record "Employee Ledger Entry";
     begin

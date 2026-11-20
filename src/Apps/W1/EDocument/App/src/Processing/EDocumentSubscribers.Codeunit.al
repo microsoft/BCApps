@@ -78,6 +78,14 @@ codeunit 6103 "E-Document Subscribers"
         LogAfterValidate(Rec."Entry No", NullGuid, 'Vendor No.');
     end;
 
+    [EventSubscriber(ObjectType::Page, Page::"E-Document Purchase Draft", OnAfterValidateEvent, "Applies-to Vendor Inv. No.", false, false)]
+    local procedure OnAfterValidateDraftPageAppliesToVendorInvNo(var Rec: Record "E-Document"; var xRec: Record "E-Document")
+    var
+        NullGuid: Guid;
+    begin
+        LogAfterValidate(Rec."Entry No", NullGuid, 'Applies-to Vendor Inv. No.');
+    end;
+
     [EventSubscriber(ObjectType::Page, Page::"E-Document Purchase Draft", OnAfterValidateEvent, "Invoice Discount", false, false)]
     local procedure OnAfterValidateDraftPageDiscount(var Rec: Record "E-Document"; var xRec: Record "E-Document")
     var
@@ -553,7 +561,7 @@ codeunit 6103 "E-Document Subscribers"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnAfterPostGLAcc', '', false, false)]
-    local procedure OnAfterPostGLAcc(var GenJnlLine: Record "Gen. Journal Line"; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextEntryNo: Integer; var NextTransactionNo: Integer; Balancing: Boolean; var GLEntry: Record "G/L Entry"; VATPostingSetup: Record "VAT Posting Setup")
+    local procedure OnAfterPostGLAcc(var GenJnlLine: Record "Gen. Journal Line"; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextEntryNo: BigInteger; var NextTransactionNo: BigInteger; Balancing: Boolean; var GLEntry: Record "G/L Entry"; VATPostingSetup: Record "VAT Posting Setup")
     var
         EDocument: Record "E-Document";
     begin
@@ -703,11 +711,6 @@ codeunit 6103 "E-Document Subscribers"
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Line - Field");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"ED Purchase Line Field Setup");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. PO Matching Setup");
-#if not CLEAN27
-#pragma warning disable AL0432
-        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EDoc Historical Matching Setup");
-#pragma warning restore AL0432
-#endif
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Vendor Assign. History");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Record Link");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Notification");

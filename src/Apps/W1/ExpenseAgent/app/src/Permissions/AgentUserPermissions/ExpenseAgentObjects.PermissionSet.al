@@ -21,6 +21,7 @@ permissionset 6952 "Expense Agent - Objects"
                   page "Expense Activity Log API" = X,
                   page "Expense Agent Access Ctrl API" = X,
                   page "Expense Agent Setup API" = X,
+                  page "Exp. Alternate Approvers API" = X,
                   page "Expense Approval Setup API" = X,
                   page "Expense Attachments API" = X,
                   page "Expense Categories API" = X,
@@ -43,6 +44,8 @@ permissionset 6952 "Expense Agent - Objects"
                   page "Expense Users API" = X,
                   page "Expense VAT Spec. API" = X,
                   page "Expenses API" = X,
+                  page "Expense Corporate Cards API" = X,
+                  codeunit "EA Corp Card Selection Mgt" = X,
                   page "Employees API" = X,
                   page "Expense Picture" = X,
                   page "Exp. Rep. Line Attachments API" = X,
@@ -87,6 +90,7 @@ permissionset 6952 "Expense Agent - Objects"
 
                   table Expense = X,
                   table "Expense Approval Setup" = X,
+                  table "Expense Alternate Approver" = X,
                   table "Expense Capabilities Buffer" = X,
                   table "Expense Activity Log Entry" = X,
                   table "Expense Project Buf" = X,
@@ -129,12 +133,15 @@ permissionset 6952 "Expense Agent - Objects"
                   table "EA Outbox Email" = X,
                   table "Tenant Feedback Setting" = X,
                   table Traveler = X,
+                  table "Expense Activities Cue" = X,
                   table "Posted Exp. Rep. Line Item" = X,
                   table "Posted Exp. Rep. Line Particip" = X,
                   table "Posted Exp. Rep. Line Per Diem" = X,
                   table "Posted Expense Report Header" = X,
                   table "Posted Expense Report Line" = X,
                   table "Posted Exp. Rep. Line VAT Spec" = X,
+
+                  Report "No Receipt Declaration" = X,
 
                   codeunit "Cancel Posted Expense Report" = X,
                   codeunit "Create Expense Report" = X,
@@ -147,6 +154,7 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Activity Log Mgt." = X,
                   codeunit "Exp. Policies To Eval Builder" = X,
                   codeunit "Expense Consumption Handler" = X,
+                  codeunit "Expense Agent Quota Impl." = X,
                   codeunit "Expense Currency" = X,
                   codeunit "Expense Doc No Visibility" = X,
                   codeunit "Expense Doc. Att. Subscribers" = X,
@@ -167,11 +175,13 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Rule Validation" = X,
                   codeunit "Expense Total Caption Class" = X,
                   codeunit "Travel Request Approval" = X,
+                  codeunit "Travel Req. Linked Reports" = X,
                   codeunit "Expense Vendor Matching" = X,
                   codeunit "Exp. Attach. Buffer Handler" = X,
                   codeunit "Exp. Preview Post. Subscriber" = X,
                   codeunit "Exp. Preview Posting Handler" = X,
                   codeunit "Import Expense User" = X,
+                  codeunit "No Receipt Declaration Mgt." = X,
                   codeunit "Release Exp. Report Document" = X,
 #if not CLEAN29
 #pragma warning disable AL0432 // Object is obsoleted
@@ -179,5 +189,4 @@ permissionset 6952 "Expense Agent - Objects"
 #pragma warning restore AL0432
 #endif
                   codeunit "Release Expense Document" = X;
-
 }

@@ -449,7 +449,7 @@ report 1001 "Inventory Valuation"
                 CurrReport.Skip();
     end;
 
-    local procedure GetOutboundItemEntry(ItemLedgerEntryNo: Integer): Boolean
+    local procedure GetOutboundItemEntry(ItemLedgerEntryNo: BigInteger): Boolean
     var
         ItemApplnEntry: Record "Item Application Entry";
         ItemLedgEntry: Record "Item Ledger Entry";

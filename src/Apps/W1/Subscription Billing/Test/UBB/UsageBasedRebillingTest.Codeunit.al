@@ -247,6 +247,50 @@ codeunit 139694 "Usage Based Rebilling Test"
         Assert.AreEqual(2, BillingLine.Count(), 'Expected two billing lines to be created, but found a different count.');
     end;
 
+    [Test]
+    procedure SubscriptionQuantityIsIncreasedOnceOnRebillingWithCustomerAndVendorLine()
+    var
+        RebillingUsageDataBilling: Record "Usage Data Billing";
+        UsageDataBillingMetadata: Record "Usage Data Billing Metadata";
+        InitialUsageDataImport: Record "Usage Data Import";
+        RebillingUsageDataImport: Record "Usage Data Import";
+        QuantityBeforeRebilling: Decimal;
+    begin
+        // [SCENARIO] A rebilling import billed through a customer and a vendor Subscription Line adds the rebilled quantity to the Subscription exactly once.
+        // [GIVEN] A Subscription with a customer and a vendor Subscription Line (Usage Quantity), whose initial usage data was processed and invoiced
+        ResetAll();
+        Initialize();
+        SetupServiceObjectAndContracts(SubscriptionStartingDate);
+        CreateInitialImport(InitialUsageDataImport);
+        ProcessData(InitialUsageDataImport, "Processing Step"::"Process Usage Data Billing");
+        InitialUsageDataImport.SetStatus("Processing Status"::Closed);
+        UsageDataBilling.Reset();
+        UsageDataBilling.SetRange("Usage Data Import Entry No.", InitialUsageDataImport."Entry No.");
+        UsageDataBilling.FindSet();
+        repeat
+            UsageDataBillingMetadata.SetRange("Usage Data Billing Entry No.", UsageDataBilling."Entry No.");
+            UsageDataBillingMetadata.ModifyAll(Invoiced, true, false);
+        until UsageDataBilling.Next() = 0;
+        ServiceObject.Get(ServiceObject."No.");
+        QuantityBeforeRebilling := ServiceObject.Quantity;
+
+        // [WHEN] A rebilling import with quantity 10 is processed
+        CreateRebillingImport(RebillingUsageDataImport);
+        ProcessData(RebillingUsageDataImport, "Processing Step"::"Process Usage Data Billing");
+
+        // [THEN] The rebilling import is billed through both the customer and the vendor Subscription Line
+        RebillingUsageDataBilling.SetRange("Usage Data Import Entry No.", RebillingUsageDataImport."Entry No.");
+        RebillingUsageDataBilling.SetRange(Rebilling, true);
+        RebillingUsageDataBilling.SetRange(Partner, "Service Partner"::Customer);
+        Assert.RecordIsNotEmpty(RebillingUsageDataBilling);
+        RebillingUsageDataBilling.SetRange(Partner, "Service Partner"::Vendor);
+        Assert.RecordIsNotEmpty(RebillingUsageDataBilling);
+
+        // [THEN] The Subscription quantity is increased by the rebilled quantity only once
+        ServiceObject.Get(ServiceObject."No.");
+        Assert.AreEqual(QuantityBeforeRebilling + 10, ServiceObject.Quantity, 'The rebilled quantity must be added to the Subscription quantity exactly once.');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Usage Based Rebilling Test");

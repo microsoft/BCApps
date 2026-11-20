@@ -1,1 +1,9 @@
-[]
+[
+    {
+        "FeatureName": "Edit with Copilot",
+        "Description": "Delegate real work to Copilot, such as creating or updating records or running actions in Business Central.",
+        "Category": "Other",
+        "HelpURL": "https://aka.ms/editBCwithCopilot",
+        "VideoURL": ""
+    }
+]

@@ -61,9 +61,10 @@ codeunit 139835 "APIV2 - Sales Order Lines E2E"
             Page::"APIV2 - Sales Orders",
             OrderServiceNameTxt,
             OrderServiceLinesNameTxt);
-        asserterror LibraryGraphMgt.GetFromWebService(ResponseText, TargetURL);
+        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 404);
 
-        // [THEN] the response text should be empty
+        // [THEN] the URL is rejected as not found because the lines can only be reached through a parent document, and the response text is empty
+        Assert.ExpectedError('Response code is 404 (NotFound)');
         Assert.AreEqual('', ResponseText, 'Response JSON should be blank');
     end;
 
@@ -867,6 +868,8 @@ codeunit 139835 "APIV2 - Sales Order Lines E2E"
 
         Assert.AreNotEqual('', OrderId, 'ID should not be empty');
         LibraryInventory.CreateItem(Item);
+        LibraryGraphDocumentTools.EnsureVATPostingSetupExists(
+            SalesLine."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
 
         OrderLineJSON := StrSubstNo('{"itemId":"%1"}', LibraryGraphMgt.StripBrackets(Item.SystemId));
         Commit();

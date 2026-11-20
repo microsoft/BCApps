@@ -4,14 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
@@ -62,6 +65,41 @@ codeunit 139983 "Subc. Management Library"
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor.Validate("Subc. Location Code", Location.Code);
         Vendor.Modify();
+    end;
+
+    /// <summary>
+    /// Creates a posted transfer shipment header and line for use in tests.
+    /// </summary>
+    /// <param name="TransferShipmentHeader">Returns the created transfer shipment header.</param>
+    /// <param name="TransferShipmentLine">Returns the created transfer shipment line.</param>
+    procedure CreatePostedTransferShipment(var TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line")
+    var
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        TransferShipmentHeader.Init();
+        TransferShipmentHeader."No." :=
+            CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(TransferShipmentHeader."No."));
+        TransferShipmentHeader.Insert();
+
+        TransferShipmentLine.Init();
+        TransferShipmentLine."Document No." := TransferShipmentHeader."No.";
+        TransferShipmentLine."Line No." := 10000;
+        TransferShipmentLine.Description :=
+            CopyStr(LibraryRandom.RandText(MaxStrLen(TransferShipmentLine.Description)), 1, MaxStrLen(TransferShipmentLine.Description));
+        TransferShipmentLine.Quantity := LibraryRandom.RandDec(10, 2);
+        TransferShipmentLine.Insert();
+    end;
+
+    /// <summary>
+    /// Deletes a posted transfer shipment header and line created for a test.
+    /// </summary>
+    /// <param name="TransferShipmentHeader">The transfer shipment header to delete.</param>
+    /// <param name="TransferShipmentLine">The transfer shipment line to delete.</param>
+    procedure DeletePostedTransferShipment(var TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line")
+    begin
+        TransferShipmentLine.Delete();
+        TransferShipmentHeader.Delete();
     end;
 
     procedure CreateSubContractingPrice(var SubcontractorPrices: Record "Subcontractor Price"; WorkCenterNo: Code[20]; VendorNo: Code[20]; ItemNo: Code[20]; StandardTaskCode: Code[10]; VariantCode: Code[10]; StartDate: Date; UnitOfMeasureCode: Code[10]; MinimumQuantity: Decimal; CurrencyCode: Code[10])
@@ -323,6 +361,16 @@ codeunit 139983 "Subc. Management Library"
     end;
 
     procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center")
+    begin
+        CalculateSubcontractOrder(WorkCenter, false);
+    end;
+
+    /// <summary>
+    /// Runs Calculate Subcontracts for the filtered work centers without a request page.
+    /// </summary>
+    /// <param name="WorkCenter">The work centers to calculate, with their filters.</param>
+    /// <param name="OnlyOperationsReadyToStart">Specifies whether the readiness gate is switched on for the run.</param>
+    procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center"; OnlyOperationsReadyToStart: Boolean)
     var
         ManufacturingSetup: Record "Manufacturing Setup";
         RequisitionLine: Record "Requisition Line";
@@ -334,6 +382,7 @@ codeunit 139983 "Subc. Management Library"
 
         RequisitionLineForSubcontractOrder(RequisitionLine);
         SubcCalculateSubcontracts.SetWkShLine(RequisitionLine);
+        SubcCalculateSubcontracts.SetOnlyOperationsReadyToStart(OnlyOperationsReadyToStart);
         SubcCalculateSubcontracts.SetTableView(WorkCenter);
         SubcCalculateSubcontracts.UseRequestPage(false);
         SubcCalculateSubcontracts.RunModal();
@@ -401,23 +450,126 @@ codeunit 139983 "Subc. Management Library"
     /// <param name="ProdOrderNo">The production order number to find.</param>
     /// <param name="RequisitionLine">Returns the calculated requisition line.</param>
     procedure CalculateSubcontractsAndFindReqLine(RequisitionWkshName: Record "Requisition Wksh. Name"; ProdOrderNo: Code[20]; var RequisitionLine: Record "Requisition Line")
+    begin
+        CalculateSubcontracts(RequisitionWkshName, '');
+        FindRequisitionLineForProdOrder(RequisitionWkshName, ProdOrderNo, RequisitionLine);
+    end;
+
+    /// <summary>
+    /// Calculates subcontracts for a worksheet, optionally for one work center only.
+    /// </summary>
+    /// <param name="RequisitionWkshName">The subcontracting worksheet to calculate.</param>
+    /// <param name="WorkCenterNo">The work center to calculate; blank calculates all work centers.</param>
+    procedure CalculateSubcontracts(RequisitionWkshName: Record "Requisition Wksh. Name"; WorkCenterNo: Code[20])
     var
+        RequisitionLine: Record "Requisition Line";
+        WorkCenter: Record "Work Center";
         SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
     begin
-        Clear(RequisitionLine);
         RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
         RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
 
         SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        if WorkCenterNo <> '' then begin
+            WorkCenter.SetRange("No.", WorkCenterNo);
+            SubcCalculateSubContract.SetTableView(WorkCenter);
+        end;
         SubcCalculateSubContract.UseRequestPage(false);
         SubcCalculateSubContract.RunModal();
+    end;
 
+    /// <summary>
+    /// Finds the first requisition line of a worksheet for a production order and keeps its filters.
+    /// </summary>
+    /// <param name="RequisitionWkshName">The worksheet to search.</param>
+    /// <param name="ProdOrderNo">The production order number to find.</param>
+    /// <param name="RequisitionLine">Returns the filtered requisition line.</param>
+    procedure FindRequisitionLineForProdOrder(RequisitionWkshName: Record "Requisition Wksh. Name"; ProdOrderNo: Code[20]; var RequisitionLine: Record "Requisition Line")
+    begin
+        Clear(RequisitionLine);
         RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
 #pragma warning disable AA0210
         RequisitionLine.SetRange("Prod. Order No.", ProdOrderNo);
 #pragma warning restore AA0210
         RequisitionLine.FindFirst();
+    end;
+
+    /// <summary>
+    /// Creates a released production order for a new item whose routing has one subcontracting operation.
+    /// </summary>
+    /// <param name="ProductionOrder">Returns the refreshed released production order.</param>
+    /// <param name="WorkCenter">Returns the subcontracting work center with its subcontractor.</param>
+    procedure CreateReleasedProdOrderWithSubcontractingOperation(var ProductionOrder: Record "Production Order"; var WorkCenter: Record "Work Center")
+    var
+        Item: Record Item;
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
+    begin
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Validate("Routing No.", CreateCertifiedSingleOperationRouting(WorkCenter."No."));
+        Item.Modify(true);
+
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, WorkDate());
+    end;
+
+    local procedure CreateCertifiedSingleOperationRouting(WorkCenterNo: Code[20]): Code[20]
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
+    begin
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryMfgManagement.CreateRoutingLine(RoutingLine, RoutingHeader, WorkCenterNo, '10', 0, 1);
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+        exit(RoutingHeader."No.");
+    end;
+
+    /// <summary>
+    /// Adds a new dimension that exists in no default dimension to every line of a production order.
+    /// </summary>
+    /// <param name="ProductionOrder">The production order whose lines receive the dimension.</param>
+    /// <param name="DimensionValue">Returns the new dimension value.</param>
+    procedure AddNewDimensionToProdOrderLines(ProductionOrder: Record "Production Order"; var DimensionValue: Record "Dimension Value")
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        LibraryDimension: Codeunit "Library - Dimension";
+    begin
+        LibraryDimension.CreateDimWithDimValue(DimensionValue);
+        ProdOrderLine.SetLoadFields("Dimension Set ID");
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindSet(true);
+        repeat
+            ProdOrderLine."Dimension Set ID" :=
+                LibraryDimension.CreateDimSet(ProdOrderLine."Dimension Set ID", DimensionValue."Dimension Code", DimensionValue.Code);
+            ProdOrderLine.Modify(false);
+        until ProdOrderLine.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Changes the vendor of a requisition line to another subcontractor and back, which rebuilds its dimensions twice.
+    /// </summary>
+    /// <param name="RequisitionLine">The requisition line whose vendor is changed and restored.</param>
+    procedure ChangeVendorAndBack(var RequisitionLine: Record "Requisition Line")
+    var
+        OtherVendor: Record Vendor;
+        OriginalVendorNo: Code[20];
+    begin
+        OriginalVendorNo := RequisitionLine."Vendor No.";
+        CreateSubcontractor(OtherVendor);
+        RequisitionLine.Validate("Vendor No.", OtherVendor."No.");
+        RequisitionLine.Validate("Vendor No.", OriginalVendorNo);
+        RequisitionLine.Modify(true);
     end;
 
     /// <summary>
@@ -460,5 +612,150 @@ codeunit 139983 "Subc. Management Library"
         PurchaseLineComp.SetRange("Document No.", DocumentNo);
         PurchaseLineComp.SetRange(Type, "Purchase Line Type"::Item);
         PurchaseLineComp.SetRange("No.", ComponentItemNo);
+    end;
+
+    /// <summary>
+    /// Creates an accepted purchase suggestion with the New action message for one unit of an item.
+    /// </summary>
+    /// <param name="RequisitionLine">Returns the created requisition line.</param>
+    /// <param name="TemplateName">The worksheet template of the line.</param>
+    /// <param name="BatchName">The worksheet batch of the line.</param>
+    /// <param name="VendorNo">The vendor of the suggestion.</param>
+    /// <param name="ItemNo">The item of the suggestion.</param>
+    procedure CreatePurchaseSuggestion(var RequisitionLine: Record "Requisition Line"; TemplateName: Code[10]; BatchName: Code[10]; VendorNo: Code[20]; ItemNo: Code[20])
+    var
+        LibraryPlanning: Codeunit "Library - Planning";
+    begin
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, TemplateName, BatchName);
+        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
+        RequisitionLine.Validate("No.", ItemNo);
+        RequisitionLine.Validate("Vendor No.", VendorNo);
+        RequisitionLine.Validate(Quantity, 1);
+        RequisitionLine."Replenishment System" := RequisitionLine."Replenishment System"::Purchase;
+        RequisitionLine."Ref. Order Type" := RequisitionLine."Ref. Order Type"::Purchase;
+        RequisitionLine."Action Message" := RequisitionLine."Action Message"::New;
+        RequisitionLine."Accept Action Message" := true;
+        RequisitionLine.Modify(true);
+    end;
+
+    /// <summary>
+    /// Creates an open purchase order for a vendor.
+    /// </summary>
+    /// <param name="PurchaseHeader">Returns the created purchase order.</param>
+    /// <param name="VendorNo">The buy-from vendor of the order.</param>
+    procedure CreateOpenPurchaseOrder(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20])
+    begin
+        Clear(PurchaseHeader);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, VendorNo);
+    end;
+
+    /// <summary>
+    /// Creates a worksheet batch with an accepted purchase suggestion that is assigned to an open purchase order of its vendor.
+    /// </summary>
+    /// <param name="RequisitionLine">Returns the assigned suggestion.</param>
+    /// <param name="PurchaseHeader">Returns the assigned purchase order.</param>
+    procedure CreateTargetedPurchaseSuggestion(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header")
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        CreatePurchaseSuggestion(RequisitionLine, ReqWkshTemplate.Name, RequisitionWkshName.Name, Vendor."No.", Item."No.");
+        RequisitionLine."Ref. Order No." := PurchaseHeader."No.";
+        RequisitionLine.Modify(true);
+    end;
+
+    /// <summary>
+    /// Creates a further suggestion in the batch of an existing line that is assigned to a new open purchase order of the same vendor.
+    /// </summary>
+    /// <param name="RequisitionLine">Returns the assigned suggestion.</param>
+    /// <param name="PurchaseHeader">Returns the new purchase order.</param>
+    /// <param name="FirstLine">The existing line that provides the batch and the vendor.</param>
+    procedure CreateSuggestionTargetingNewOrder(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header"; FirstLine: Record "Requisition Line")
+    var
+        Item: Record Item;
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        LibraryInventory.CreateItem(Item);
+        CreateOpenPurchaseOrder(PurchaseHeader, FirstLine."Vendor No.");
+        CreatePurchaseSuggestion(RequisitionLine, FirstLine."Worksheet Template Name", FirstLine."Journal Batch Name", FirstLine."Vendor No.", Item."No.");
+        RequisitionLine."Ref. Order No." := PurchaseHeader."No.";
+        RequisitionLine.Modify(true);
+    end;
+
+    /// <summary>
+    /// Creates a worksheet batch with a New purchase suggestion that has production context, and a compatible open purchase order.
+    /// </summary>
+    /// <param name="RequisitionLine">Returns the suggestion that a purchase order can be assigned to.</param>
+    /// <param name="PurchaseHeader">Returns the compatible open purchase order.</param>
+    procedure CreateAssignablePurchaseSuggestion(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header")
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+    begin
+        CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        CreateAssignablePurchaseSuggestionInBatch(RequisitionLine, PurchaseHeader, RequisitionWkshName);
+    end;
+
+    /// <summary>
+    /// Creates a New purchase suggestion that has production context in a worksheet batch, and a compatible open purchase order.
+    /// </summary>
+    /// <param name="RequisitionLine">Returns the suggestion that a purchase order can be assigned to.</param>
+    /// <param name="PurchaseHeader">Returns the compatible open purchase order.</param>
+    /// <param name="RequisitionWkshName">The worksheet batch of the suggestion.</param>
+    procedure CreateAssignablePurchaseSuggestionInBatch(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header"; RequisitionWkshName: Record "Requisition Wksh. Name")
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        LibraryInventory: Codeunit "Library - Inventory";
+    begin
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateOpenPurchaseOrder(PurchaseHeader, Vendor."No.");
+        CreatePurchaseSuggestion(RequisitionLine, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name, Vendor."No.", Item."No.");
+        RequisitionLine."Prod. Order No." := 'PRODTGT';
+        RequisitionLine."Prod. Order Line No." := 10000;
+        RequisitionLine."Operation No." := '10';
+        RequisitionLine.Modify();
+    end;
+
+    /// <summary>
+    /// Simulates posted output on an operation of a production order line and recalculates the Quantity Ready to Start of the next operations.
+    /// </summary>
+    /// <param name="ProdOrderLine">The production order line whose routing operation receives the output.</param>
+    /// <param name="OperationNo">The operation number that receives the output.</param>
+    /// <param name="OutputQty">The output quantity in the base unit of measure.</param>
+    procedure MockOutputForOperation(ProdOrderLine: Record "Prod. Order Line"; OperationNo: Code[10]; OutputQty: Decimal)
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        LibraryUtility: Codeunit "Library - Utility";
+        QtyReadyToStartMgt: Codeunit "Qty. Ready to Start Mgt.";
+    begin
+        ProdOrderRoutingLine.SetLoadFields("Next Operation No.", "Routing Status", "Work Center No.");
+        ProdOrderRoutingLine.Get(
+            ProdOrderLine.Status, ProdOrderLine."Prod. Order No.", ProdOrderLine."Routing Reference No.", ProdOrderLine."Routing No.", OperationNo);
+
+        CapacityLedgerEntry.Init();
+        CapacityLedgerEntry."Entry No." := LibraryUtility.GetNewRecNo(CapacityLedgerEntry, CapacityLedgerEntry.FieldNo("Entry No."));
+        CapacityLedgerEntry."Order Type" := CapacityLedgerEntry."Order Type"::Production;
+        CapacityLedgerEntry."Order No." := ProdOrderLine."Prod. Order No.";
+        CapacityLedgerEntry."Order Line No." := ProdOrderLine."Line No.";
+        CapacityLedgerEntry."Routing No." := ProdOrderLine."Routing No.";
+        CapacityLedgerEntry."Routing Reference No." := ProdOrderLine."Routing Reference No.";
+        CapacityLedgerEntry."Operation No." := OperationNo;
+        CapacityLedgerEntry."Work Center No." := ProdOrderRoutingLine."Work Center No.";
+        CapacityLedgerEntry."Item No." := ProdOrderLine."Item No.";
+        CapacityLedgerEntry."Posting Date" := WorkDate();
+        CapacityLedgerEntry."Output Quantity" := OutputQty;
+        CapacityLedgerEntry.Insert();
+
+        QtyReadyToStartMgt.UpdateSuccessorsQtyReadyToStart(ProdOrderRoutingLine);
     end;
 }

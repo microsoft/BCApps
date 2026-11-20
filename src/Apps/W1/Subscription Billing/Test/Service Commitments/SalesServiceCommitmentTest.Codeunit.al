@@ -2020,6 +2020,41 @@ codeunit 139915 "Sales Service Commitment Test"
     end;
 
     [Test]
+    [HandlerFunctions('GetListOfProposedSrvCommitmentsModalPageHandler')]
+    procedure ServiceCommitmentPackageSelectionHidesPriceGroupPackagesForCustomerWithoutPriceGroup()
+    var
+        CustomerPriceGroup: Record "Customer Price Group";
+        SubscriptionPackage: array[2] of Record "Subscription Package";
+    begin
+        // [SCENARIO 655942] A Customer without a Customer Price Group is only offered Subscription Packages without a Price Group
+        Initialize();
+        SubscriptionPackage[1].DeleteAll(false);
+
+        // [GIVEN] Customer without Customer Price Group
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Item assigned to Package 1 with a Price Group and to Package 2 without a Price Group
+        LibrarySales.CreateCustomerPriceGroup(CustomerPriceGroup);
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, "Item Service Commitment Type"::"Sales with Service Commitment");
+        ContractTestLibrary.CreateServiceCommitmentTemplate(ServiceCommitmentTemplate, '12M', 100, "Invoicing Via"::Contract, "Calculation Base Type"::"Item Price", false);
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, SubscriptionPackage[1]);
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, SubscriptionPackage[2]);
+        ContractTestLibrary.UpdateServiceCommitmentPackageWithPriceGroup(SubscriptionPackage[1], CustomerPriceGroup.Code);
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, SubscriptionPackage[1].Code);
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, SubscriptionPackage[2].Code);
+
+        // [GIVEN] Sales Quote for the Customer
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Quote, Customer."No.");
+
+        // [WHEN] Sales Line with the Item is created
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, "Sales Line Type"::Item, Item."No.", 1); // GetListOfProposedSrvCommitmentsModalPageHandler
+
+        // [THEN] Only the Package without Price Group is offered for selection
+        Assert.AreEqual(SubscriptionPackage[2].Code, LibraryVariableStorage.DequeueText(), 'Subscription Package without Price Group should be available for selection');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [HandlerFunctions('AssignServiceCommitmentsCountingModalPageHandler,StrMenuHandler')]
     procedure SubscriptionPackagesAreOfferedForSalesLineCreatedAfterExplodeBOM()
     var

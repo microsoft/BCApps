@@ -7,11 +7,21 @@ namespace Microsoft.Finance.AuditFileExport;
 using System.IO;
 using System.Utilities;
 
-codeunit 5315 "Data Handling SIE" implements "Audit File Export Data Handling"
+codeunit 5315 "Data Handling SIE" implements "Audit File Export Data Handling", "Audit File Export Page Visibility"
 {
     var
         MasterDataTxt: label 'Master Data';
         CustomDataTxt: label 'Master Data and G/L Entries';
+
+    procedure GetUIVisibility(var FieldVisibility: Dictionary of [Text, Boolean]; var ActionVisibility: Dictionary of [Text, Boolean])
+    begin
+        FieldVisibility.Set('SplitByMonth', false);
+        FieldVisibility.Set('SplitByDate', false);
+        FieldVisibility.Set('CreateMultipleZipFiles', false);
+        FieldVisibility.Set('LatestDataCheckDateTime', false);
+        FieldVisibility.Set('DataCheckStatus', false);
+        ActionVisibility.Set('DataCheck', false);
+    end;
 
     procedure LoadStandardAccounts(StandardAccountType: Enum "Standard Account Type") Result: Boolean;
     var

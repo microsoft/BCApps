@@ -7,6 +7,7 @@ namespace Microsoft.Inventory.Document;
 using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Analysis;
@@ -97,7 +98,7 @@ codeunit 5851 "Invt. Doc.-Post Shipment"
 
         InvtDocHeader.TestField(Status, InvtDocHeader.Status::Released);
 
-        if InvtSetup.UseLegacyPosting() and InvtSetup."Automatic Cost Posting" then begin
+        if InvtSetup.UseLegacyPosting() and InvtSetup."Automatic Cost Posting" and not GLSetup.UseConcurrentPosting() then begin
             GLEntry.LockTable();
             GLEntry.GetLastEntryNo();
         end;
@@ -251,13 +252,14 @@ codeunit 5851 "Invt. Doc.-Post Shipment"
         ItemJnlLine: Record "Item Journal Line";
         TempValueEntryRelation: Record "Value Entry Relation" temporary;
         GLEntry: Record "G/L Entry";
+        GLSetup: Record "General Ledger Setup";
         WMSMgmt: Codeunit "WMS Management";
         WhseJnlPostLine: Codeunit "Whse. Jnl.-Register Line";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
         DimMgt: Codeunit DimensionManagement;
         ReserveInvtDocLine: Codeunit "Invt. Doc. Line-Reserve";
-        PostponedValueEntries: List of [Integer];
+        PostponedValueEntries: List of [BigInteger];
         ItemsToAdjust: List of [Code[20]];
         SourceCode: Code[10];
         HideValidationDialog: Boolean;

@@ -47,12 +47,12 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnPostConsumption', '', true, false)]
     local procedure OnPostConsumption(
         var ItemJnlLine: Record "Item Journal Line"; GlobalItemTrackingSetup: Record "Item Tracking Setup"; var TempSplitItemJnlLine: Record "Item Journal Line" temporary;
-        var ProdOrderCompModified: Boolean; ItemLedgEntryNo: Integer; var sender: Codeunit "Item Jnl.-Post Line")
+        var ProdOrderCompModified: Boolean; ItemLedgEntryNo: BigInteger; var sender: Codeunit "Item Jnl.-Post Line")
     begin
         PostConsumption(ItemJnlLine, GlobalItemTrackingSetup, TempSplitItemJnlLine, ProdOrderCompModified, ItemLedgEntryNo, sender);
     end;
 
-    local procedure PostConsumption(var ItemJnlLine: Record "Item Journal Line"; GlobalItemTrackingSetup: Record "Item Tracking Setup"; var TempSplitItemJnlLine: Record "Item Journal Line" temporary; var ProdOrderCompModified: Boolean; ItemLedgEntryNo: Integer; var sender: Codeunit "Item Jnl.-Post Line")
+    local procedure PostConsumption(var ItemJnlLine: Record "Item Journal Line"; GlobalItemTrackingSetup: Record "Item Tracking Setup"; var TempSplitItemJnlLine: Record "Item Journal Line" temporary; var ProdOrderCompModified: Boolean; ItemLedgEntryNo: BigInteger; var sender: Codeunit "Item Jnl.-Post Line")
     var
         ProdOrderComp: Record "Prod. Order Component";
         TempHandlingSpecification: Record "Tracking Specification" temporary;
@@ -205,7 +205,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         OnAfterCheckItemTrackingOfComp(TempHandlingSpecification, ItemJnlLine);
     end;
 
-    local procedure InsertConsumpEntry(var ItemJnlLine: Record "Item Journal Line"; var ProdOrderComp: Record "Prod. Order Component"; ProdOrderCompLineNo: Integer; QtyBase: Decimal; ModifyProdOrderComp: Boolean; ItemLedgEntryNo: Integer; var TempSplitItemJnlLine: Record "Item Journal Line" temporary; var sender: Codeunit "Item Jnl.-Post Line")
+    local procedure InsertConsumpEntry(var ItemJnlLine: Record "Item Journal Line"; var ProdOrderComp: Record "Prod. Order Component"; ProdOrderCompLineNo: Integer; QtyBase: Decimal; ModifyProdOrderComp: Boolean; ItemLedgEntryNo: BigInteger; var TempSplitItemJnlLine: Record "Item Journal Line" temporary; var sender: Codeunit "Item Jnl.-Post Line")
     var
         PostWhseJnlLine: Boolean;
     begin
@@ -318,7 +318,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertConsumpEntry(var WarehouseJournalLine: Record "Warehouse Journal Line"; var ProdOrderComponent: Record "Prod. Order Component"; QtyBase: Decimal; PostWhseJnlLine: Boolean; var ItemJnlLine: Record "Item Journal Line"; ItemLedgEntryNo: Integer)
+    local procedure OnAfterInsertConsumpEntry(var WarehouseJournalLine: Record "Warehouse Journal Line"; var ProdOrderComponent: Record "Prod. Order Component"; QtyBase: Decimal; PostWhseJnlLine: Boolean; var ItemJnlLine: Record "Item Journal Line"; ItemLedgEntryNo: BigInteger)
     begin
     end;
 
@@ -594,6 +594,9 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         else
             sender.InsertCapLedgEntry(ItemJnlLine, CapLedgEntry, ValuedQty, ValuedQty);
 
+        if ItemJnlLine."Operation No." <> '' then
+            UpdateSuccessorsQtyReadyToStart(ItemJnlLine);
+
         ShouldFlushOperation := ItemJnlLine."Output Quantity" >= 0;
         OnBeforeCallFlushOperation(ItemJnlLine, ShouldFlushOperation);
         if ShouldFlushOperation then
@@ -657,6 +660,21 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         LastOperation := (not NextOperationExist(ProdOrderRtngLine));
         OnPostOutputOnBeforeProdOrderRtngLineModify(ProdOrderRtngLine, ProdOrderLine, ItemJnlLine, LastOperation);
         ProdOrderRtngLine.Modify();
+    end;
+
+    local procedure UpdateSuccessorsQtyReadyToStart(ItemJnlLine: Record "Item Journal Line")
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        QtyReadyToStartMgt: Codeunit "Qty. Ready to Start Mgt.";
+    begin
+        ProdOrderRoutingLine.SetLoadFields("Next Operation No.", "Routing Status");
+        if not ProdOrderRoutingLine.Get(
+             ProdOrderRoutingLine.Status::Released, ItemJnlLine."Order No.",
+             ItemJnlLine."Routing Reference No.", ItemJnlLine."Routing No.", ItemJnlLine."Operation No.")
+        then
+            exit;
+
+        QtyReadyToStartMgt.UpdateSuccessorsQtyReadyToStart(ProdOrderRoutingLine);
     end;
 
     local procedure NextOperationExist(var ProdOrderRtngLine: Record "Prod. Order Routing Line"): Boolean
@@ -756,7 +774,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         TotalRunTime := CapLedgerEntry."Run Time";
     end;
 
-    local procedure UpdateProdOrderLine(var ItemJnlLine: Record "Item Journal Line"; var ProdOrderLine: Record "Prod. Order Line"; ReTrack: Boolean; ItemLedgEntryNo: Integer)
+    local procedure UpdateProdOrderLine(var ItemJnlLine: Record "Item Journal Line"; var ProdOrderLine: Record "Prod. Order Line"; ReTrack: Boolean; ItemLedgEntryNo: BigInteger)
     var
         ReservMgt: Codeunit "Reservation Management";
     begin
@@ -812,7 +830,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         sender.SetCalledFromInvtPutawayPick(false);
 
         GetProdOrderRoutingLine(ProdOrderRoutingLine, ItemJnlLineSaved);
-        OnFlushOperationOnBeforeCheckRoutingLinkCode(ProdOrder, ProdOrderLine, ProdOrderRoutingLine, ItemJnlLine, LastOperation);
+        OnFlushOperationOnBeforeCheckRoutingLinkCode(ProdOrder, ProdOrderLine, ProdOrderRoutingLine, ItemJnlLine, LastOperation, sender);
         if ProdOrderRoutingLine."Routing Link Code" <> '' then begin
             ProdOrderComp.SetCurrentKey(Status, "Prod. Order No.", "Routing Link Code", "Flushing Method");
             ProdOrderComp.SetRange("Flushing Method", ProdOrderComp."Flushing Method"::Forward, ProdOrderComp."Flushing Method"::"Pick + Backward");
@@ -1185,7 +1203,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProdOrderLineModify(var ProdOrderLine: Record "Prod. Order Line"; ItemJournalLine: Record "Item Journal Line"; ItemLedgEntryNo: Integer)
+    local procedure OnBeforeProdOrderLineModify(var ProdOrderLine: Record "Prod. Order Line"; ItemJournalLine: Record "Item Journal Line"; ItemLedgEntryNo: BigInteger)
     begin
     end;
 
@@ -1195,7 +1213,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnFlushOperationOnBeforeCheckRoutingLinkCode(var ProductionOrder: Record "Production Order"; var ProdOrderLine: Record "Prod. Order Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemJournalLine: Record "Item Journal Line"; LastOperation: Boolean)
+    local procedure OnFlushOperationOnBeforeCheckRoutingLinkCode(var ProductionOrder: Record "Production Order"; var ProdOrderLine: Record "Prod. Order Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemJournalLine: Record "Item Journal Line"; LastOperation: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
     end;
 
@@ -1313,7 +1331,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetupSplitJnlLineOnSetDisableItemTracking', '', true, false)]
     local procedure OnSetupSplitJnlLineOnSetDisableItemTracking(var ItemJournalLine: Record "Item Journal Line"; var DisableItemTracking: Boolean)
     begin
-        DisableItemTracking := not ItemJournalLine.ItemPosting();
+        DisableItemTracking := not ItemJournalLine.ItemPosting() or IsCapacityReversalWithoutOutput(ItemJournalLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetupSplitJnlLineOnCheckOperationNo', '', true, false)]
@@ -1348,7 +1366,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterInitItemLedgEntry', '', true, false)]
-    local procedure OnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: Integer)
+    local procedure OnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: BigInteger)
     begin
         NewItemLedgEntry."Prod. Order Comp. Line No." := ItemJournalLine."Prod. Order Comp. Line No.";
     end;
@@ -1400,5 +1418,13 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         ReversedCapacityLedgerEntry.Reversed := true;
         ReversedCapacityLedgerEntry."Reversed by Entry No." := CapLedgEntry."Entry No.";
         ReversedCapacityLedgerEntry.Modify();
+    end;
+
+    local procedure IsCapacityReversalWithoutOutput(ItemJournalLine: Record "Item Journal Line"): Boolean
+    begin
+        exit(
+            (ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output) and
+            (ItemJournalLine."Rev. Capacity Ledger Entry No." <> 0) and
+            (ItemJournalLine."Output Quantity" = 0));
     end;
 }

@@ -58,7 +58,7 @@ codeunit 132612 "Signed Xml Module Test"
         SignedXml.InitializeSignedXml(SignedXmlDocument);
         SignedXml.LoadXml(SignatureElement);
 
-        GetSignatureKeyXmlString(XmlString);
+        GetSignaturePublicKeyXmlString(XmlString);
         LibraryAssert.IsTrue(SignedXml.CheckSignature(XmlString), 'Failed to verify the xml signature.');
     end;
 
@@ -94,7 +94,7 @@ codeunit 132612 "Signed Xml Module Test"
         ReferenceTypeTok: Label 'http://uri.etsi.org/01903#SignedProperties', Locked = true;
     begin
         XmlDocument.ReadFrom('<XmlData Id="ID01">This is a document</XmlData>', XmlToSign);
-        GetSignatureKeyXmlString(KeyText);
+        GenerateSigningKeyXmlString(KeyText);
         SignatureKey.FromXmlString(KeyText);
 
         SignedXml.InitializeSignedXml(XmlToSign);
@@ -131,7 +131,7 @@ codeunit 132612 "Signed Xml Module Test"
         C14NTransformUriTok: Label 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315', Locked = true;
     begin
         XmlDocument.ReadFrom('<XmlData Id="ID01">This is a document</XmlData>', XmlToSign);
-        GetSignatureKeyXmlString(KeyText);
+        GenerateSigningKeyXmlString(KeyText);
         SignatureKey.FromXmlString(KeyText);
 
         SignedXml.InitializeSignedXml(XmlToSign);
@@ -162,7 +162,7 @@ codeunit 132612 "Signed Xml Module Test"
         XmlDocument.ReadFrom('<TestXml Id="ID01">XML to sign</TestXml>', XmlToSign);
         SignedXml.InitializeSignedXml(XmlToSign);
 
-        GetSignatureKeyXmlString(SigningKey);
+        GenerateSigningKeyXmlString(SigningKey);
         SignedXml.SetSigningKey(SigningKey);
         SignedXml.InitializeReference('#ID01');
 
@@ -182,7 +182,7 @@ codeunit 132612 "Signed Xml Module Test"
         XmlDocument.ReadFrom('<TestXml Id="ID01">XML to sign</TestXml>', XmlToSign);
         SignedXml.InitializeSignedXml(XmlToSign);
 
-        GetSignatureKeyXmlString(SigningKey);
+        GenerateSigningKeyXmlString(SigningKey);
         SignedXml.SetSigningKey(SigningKey, Enum::SignatureAlgorithm::RSA);
         SignedXml.InitializeReference('#ID01');
 
@@ -196,10 +196,12 @@ codeunit 132612 "Signed Xml Module Test"
     procedure SignXmlDocumentAddKeyInfoInSignature()
     var
         SignatureKey: Codeunit "Signature Key";
+        CertificateRequest: Codeunit CertificateRequest;
         XmlDoc: XmlDocument;
         DataElement: XmlElement;
         PrivateKey: SecretText;
         CertPassword: SecretText;
+        CertBase64Data: Text;
         Signature: XmlElement;
         NamespaceMgr: XmlNamespaceManager;
         KeyInfoNode: XmlNode;
@@ -211,8 +213,11 @@ codeunit 132612 "Signed Xml Module Test"
         XmlDoc.GetRoot(DataElement);
         SignedXml.InitializeSignedXml(DataElement);
         
-        // [GIVEN] Set signing key on the SignedXml instance
-        GetSignatureKeyXmlString(PrivateKey);
+        // [GIVEN] Generate a signing key and a certificate with the matching public key
+        CertificateRequest.InitializeRSA(2048, true, PrivateKey);
+        CertificateRequest.InitializeCertificateRequestUsingRSA('CN=Signed Xml Module Test', Enum::"Hash Algorithm"::SHA256, Enum::"RSA Signature Padding"::Pkcs1);
+        CertificateRequest.CreateSelfSigned(CreateDateTime(Today(), 000000T), CreateDateTime(Today() + 1, 000000T), Enum::"X509 Content Type"::Cert, CertBase64Data);
+        LibraryAssert.AreNotEqual('', CertBase64Data, 'The self-signed test certificate was not created.');
         SignatureKey.FromXmlString(PrivateKey);
         SignedXml.SetSigningKey(SignatureKey);
 
@@ -223,13 +228,14 @@ codeunit 132612 "Signed Xml Module Test"
         SignedXml.InitializeKeyInfo();
 
         // [WHEN] Add a key info clause from the X509 certificate and generate signature
-        SignedXml.AddKeyInfoClauseFromX509Certificate(GetCertificateData(), CertPassword);
+        SignedXml.AddKeyInfoClauseFromX509Certificate(CertBase64Data, CertPassword);
         SignedXml.ComputeSignature();
 
         // [THEN] The signature contains the X509Data element
         Signature := SignedXml.GetXml();
         NamespaceMgr.AddNamespace('ns', 'http://www.w3.org/2000/09/xmldsig#');
         LibraryAssert.IsTrue(Signature.SelectSingleNode('./ns:KeyInfo/ns:X509Data/ns:X509Certificate', NamespaceMgr, KeyInfoNode), 'The XML signature must contain the X509Data element.');
+        LibraryAssert.IsTrue(SignedXml.CheckSignature(CertBase64Data, CertPassword, true), 'Failed to verify the XML signature with the generated certificate.');
     end;
 
     local procedure GetSignatureElement(SignedXmlDocument: XmlDocument; var SignatureElement: XmlElement)
@@ -325,20 +331,23 @@ codeunit 132612 "Signed Xml Module Test"
             SignedXmlDocument);
     end;
 
-    local procedure GetSignatureKeyXmlString(var SecretXmlString: SecretText)
+    local procedure GenerateSigningKeyXmlString(var SecretXmlString: SecretText)
+    var
+        RSA: Codeunit RSA;
+    begin
+        RSA.InitializeRSA(2048);
+        SecretXmlString := RSA.ToSecretXmlString(true);
+    end;
+
+    local procedure GetSignaturePublicKeyXmlString(var SecretXmlString: SecretText)
     var
         XmlString: Text;
     begin
+        // Public key of the pre-signed XML returned by GetValidSignedXml
         XmlString :=
             '<RSAKeyValue>' +
             '<Modulus>xgEGvHk+U/RY0j9l3MP7o+S2a6uf4XaRBhu1ztdCHz8tMG8Kj4/qJmgsSZQD17sRctHGBTUJWp4CLtBwCf0zAGVzySwUkcHSu1/2mZ/w7Nr0TQHKeWr/j8pvXH534DKEvugr21DAHbi4c654eLUL+JW/wJJYqJh7qHM3W3Fh7ys=</Modulus>' +
             '<Exponent>AQAB</Exponent>' +
-            '<P>/KDieObcq+Os3DgLemqOz3n1S4luULvj8X6B5mZg1dlEKnjOV7WYODve1QUroDrN/qriHQAui6LWJf+jfhOMtw==</P>' +
-            '<Q>yKWD2JNCrAgtjk2bfF1HYt24tq8+q7x2ek3/cUhqwInkrZqOFokex3+yBB879TuUOadvBXndgMHHcJQKSAJlLQ==</Q>' +
-            '<DP>XRuGnHyptAhTe06EnHeNbtZKG67pI4Q8PJMdmSb+ZZKP1v9zPUxGb+NQ+z3OmF1T8ppUf8/DV9+KAbM4NI1L/Q==</DP>' +
-            '<DQ>dGBsBKYFObrUkYE5+fwwd4uao3sponqBTZcH3jDemiZg2MCYQUHu9E+AdRuYrziLVJVks4xniVLb1tRG0lVxUQ==</DQ>' +
-            '<InverseQ>SfjdGT81HDJSzTseigrM+JnBKPPrzpeEp0RbTP52Lm23YARjLCwmPMMdAwYZsvqeTuHEDQcOHxLHWuyN/zgP2A==</InverseQ>' +
-            '<D>XzxrIwgmBHeIqUe5FOBnDsOZQlyAQA+pXYjCf8Rll2XptFwUdkzAUMzWUGWTG5ZspA9l8Wc7IozRe/bhjMxuVK5yZhPDKbjqRdWICA95Jd7fxlIirHOVMQRdzI7xNKqMNQN05MLJfsEHUYtOLhZE+tfhJTJnnmB7TMwnJgc4O5E=</D>' +
             '</RSAKeyValue>';
         SecretXmlString := XmlString;
     end;

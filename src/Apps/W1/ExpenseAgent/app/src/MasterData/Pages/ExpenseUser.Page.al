@@ -137,6 +137,13 @@ page 6949 "Expense User"
                     end;
 
                 }
+                field("Alternate Approver Name"; AlternateApproverName)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Alternate Approver Name';
+                    Editable = false;
+                    ToolTip = 'Specifies the name of the active alternate approver for the expense user.';
+                }
                 field("Welcome Email Status"; Rec."Welcome Email Status")
                 {
                     ApplicationArea = Basic, Suite;
@@ -176,7 +183,7 @@ page 6949 "Expense User"
             action(CreateEmployee)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Create Employee';
+                Caption = 'Create employee';
                 Image = Create;
                 ToolTip = 'Checks for an existing employee by email and creates an employee if no match exists.';
                 Visible = IsCreateEmployeeVisible;
@@ -188,7 +195,7 @@ page 6949 "Expense User"
             }
             action("Send Welcome Email")
             {
-                Caption = 'Send Welcome Email';
+                Caption = 'Send welcome email';
                 ApplicationArea = Basic, Suite;
                 Image = Email;
                 ToolTip = 'Sends a welcome email to the expense user.';
@@ -221,6 +228,30 @@ page 6949 "Expense User"
                     ExpenseApprovalMgmt.OpenApprovalSetupPage(Rec);
                 end;
             }
+            action("Alternate Approvers")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Alternate Approvers';
+                Image = UserSetup;
+                RunObject = Page "Expense Alternate Approvers";
+                RunPageLink = "Primary Approver No." = field("No.");
+                RunPageMode = Edit;
+                Visible = Rec."Can Approve";
+                ToolTip = 'Configure planned alternate approvers and their coverage dates.';
+            }
+            action(CorporateCards)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Corporate Cards';
+                Image = Card;
+                AccessByPermission = tabledata "EA Corp Card" = R;
+                Enabled = Rec."No." <> '';
+                RunObject = Page "EA Corp Card Cards";
+                RunPageLink = "Expense User No." = field("No.");
+                RunPageView = sorting("Expense User No.");
+                RunPageMode = Edit;
+                ToolTip = 'Opens the Corporate Cards page filtered to this expense user.';
+            }
         }
 
         area(Promoted)
@@ -235,11 +266,17 @@ page 6949 "Expense User"
                     actionref(ApprovalSetup_Promoted; ApprovalSetup)
                     {
                     }
+                    actionref(AlternateApprovers_Promoted; "Alternate Approvers")
+                    {
+                    }
                 }
                 actionref(CreateEmployee_Promoted; CreateEmployee)
                 {
                 }
                 actionref(SendWelcomeEmail_Promoted; "Send Welcome Email")
+                {
+                }
+                actionref(CorporateCards_Promoted; CorporateCards)
                 {
                 }
             }
@@ -277,6 +314,7 @@ page 6949 "Expense User"
         NoFieldVisible: Boolean;
         IsCreateEmployeeVisible: Boolean;
         IsDeletingExpenseUser: Boolean;
+        AlternateApproverName: Text[100];
         CloseWithoutEmployeeNoQst: Label '%1 is blank. The expense user will not be linked to an employee.\\Are you sure you want to exit?', Comment = '%1 = Employee No. field caption';
 
     local procedure SetCodeFieldVisible()
@@ -288,11 +326,17 @@ page 6949 "Expense User"
 
     local procedure SetControlAppearance()
     var
+        ExpenseUser: Record "Expense User";
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.SetLoadFields("Create Emp. for Expense Users");
         ExpenseAgentSetup.GetRecordOnce();
 
         IsCreateEmployeeVisible := ExpenseAgentSetup."Create Emp. for Expense Users";
+
+        AlternateApproverName := '';
+        if ExpenseUser.Get(ExpenseReportApprovalMgmt.GetActiveAlternateApproverNo(Rec."No.", WorkDate())) then
+            AlternateApproverName := ExpenseUser."Name";
     end;
 }

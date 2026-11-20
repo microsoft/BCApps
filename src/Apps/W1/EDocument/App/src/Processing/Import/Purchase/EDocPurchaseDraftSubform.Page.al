@@ -73,6 +73,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                     trigger OnValidate()
                     begin
+                        RefreshPOMatchWarnings();
                         CurrPage.Update(true);
                     end;
                 }
@@ -84,6 +85,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                     trigger OnValidate()
                     begin
+                        RefreshPOMatchWarnings();
                         CurrPage.Update(true);
                     end;
                 }
@@ -114,6 +116,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                     trigger OnValidate()
                     begin
+                        RefreshPOMatchWarnings();
                         CurrPage.Update(true);
                     end;
                 }
@@ -130,6 +133,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     trigger OnValidate()
                     begin
                         UpdateCalculatedAmounts(true);
+                        RefreshPOMatchWarnings();
                         CurrPage.Update(true);
                     end;
                 }
@@ -140,6 +144,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     trigger OnValidate()
                     begin
                         UpdateCalculatedAmounts(true);
+                        RefreshPOMatchWarnings();
                         CurrPage.Update(true);
                     end;
                 }
@@ -151,6 +156,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     trigger OnValidate()
                     begin
                         UpdateCalculatedAmounts(true);
+                        RefreshPOMatchWarnings();
                         CurrPage.Update(true);
                     end;
                 }
@@ -216,6 +222,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                 group("Order Matching")
                 {
                     Caption = 'Order matching';
+                    Visible = not IsCreditMemo;
                     action(MatchToOrderLine)
                     {
                         ApplicationArea = All;
@@ -466,6 +473,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         LineAmount: Decimal;
         DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings, VATProdPostGroupIsVisible : Boolean;
         EDocumentFinalized: Boolean;
+        IsCreditMemo: Boolean;
         AgentDrivenLineMatchingEnabled: Boolean;
         HistoryCantBeRetrievedErr: Label 'The purchase invoice that matched historically with this line can''t be opened.';
         EDocumentFinalizedErr: Label 'You cannot change the order matching of a finalized e-document.';
@@ -570,6 +578,12 @@ page 6183 "E-Doc. Purchase Draft Subform"
         EDocumentNotification.RefreshAndShowSubTotalMismatchAfterLineEdit(Rec);
     end;
 
+    local procedure RefreshPOMatchWarnings()
+    begin
+        CurrPage.SaveRecord();
+        UpdatePOMatching();
+    end;
+
     local procedure SetHasAdditionalColumns()
     var
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
@@ -610,7 +624,14 @@ page 6183 "E-Doc. Purchase Draft Subform"
     end;
 
     local procedure UpdatePOMatching()
+    var
+        EDocument: Record "E-Document";
     begin
+        IsCreditMemo := false;
+        EDocument.SetLoadFields("Document Type", "Process Draft Impl.");
+        if EDocument.Get(EDocumentPurchaseHeader."E-Document Entry No.") then
+            IsCreditMemo := (EDocument."Document Type" = EDocument."Document Type"::"Purchase Credit Memo") or
+                (EDocument."Process Draft Impl." = EDocument."Process Draft Impl."::"Purchase Credit Memo");
         EDocumentFinalized := EDocumentPurchaseHeader.IsFinalized();
         IsEDocumentMatchedToAnyPOLine := EDocPOMatching.IsEDocumentMatchedToAnyPOLine(EDocumentPurchaseHeader);
         if EDocumentFinalized then begin

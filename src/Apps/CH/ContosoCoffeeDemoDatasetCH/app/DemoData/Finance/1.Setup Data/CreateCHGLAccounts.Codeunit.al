@@ -131,6 +131,9 @@ codeunit 11580 "Create CH GL Accounts"
     var
         CreateGLAccount: Codeunit "Create G/L Account";
     begin
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogatoryAccountName(), '2960');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForDebitName(), '6890');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForCreditName(), '8900');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.ASSETSName(), '1');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.CurrentAssetsName(), '10');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.LiquidAssetsName(), '100');

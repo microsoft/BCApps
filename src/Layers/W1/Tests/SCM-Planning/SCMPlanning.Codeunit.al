@@ -34,6 +34,7 @@ codeunit 137020 "SCM Planning"
         SalesHeaderMustNotBeFoundErr: Label 'Sales Header must not be found.';
         ActionMessageShouldBeNewErr: Label 'Action Message should be New';
         PlannedQtyShouldNotExceedSafetyStockErr: Label 'Planned quantity should not exceed safety stock quantity.';
+        ReorderQtyMustBePositiveErr: Label 'must be greater than 0 when %1 is %2', Comment = '%1 = Reordering Policy field caption, %2 = Reordering Policy value';
 
     local procedure GlobalSetup()
     begin
@@ -4818,6 +4819,140 @@ codeunit 137020 "SCM Planning"
     end;
 
     [Test]
+    [HandlerFunctions('CalculatePlanPlanWkshRequestPageHandlerWithStopAndShowFirstError')]
+    [Scope('OnPrem')]
+    procedure FixedReorderPlanningWhenReorderQtyNegativeAndStopAndShowFirstError()
+    var
+        Item: Record Item;
+    begin
+        // [SCENARIO 651103] Planning with Fixed Reorder Qty. and a negative Reorder Quantity reports a clear error instead of an internal one.
+        Initialize();
+
+        // [GIVEN] Item with Reordering Policy = Fixed Reorder Qty., Reorder Point = 20 and Reorder Quantity = -5 stored before the field got MinValue = 0
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Fixed Reorder Qty.");
+        Item.Validate("Reorder Point", LibraryRandom.RandIntInRange(10, 20));
+        Item."Reorder Quantity" := -LibraryRandom.RandInt(10);
+        Item.Modify(true);
+        Commit();
+
+        // [WHEN] Calculate Regenerative Plan with Stop and Show First Error enabled
+        asserterror CalcRegenPlanWithStopAndShowFirstError(Item, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+
+        // [THEN] Error 'Reorder Quantity must be greater than 0 when Reordering Policy is Fixed Reorder Qty. in Item No.=...'
+        Assert.ExpectedError(Item.FieldCaption("Reorder Quantity"));
+        Assert.ExpectedError(
+            StrSubstNo(ReorderQtyMustBePositiveErr, Item.FieldCaption("Reordering Policy"), Item."Reordering Policy"));
+    end;
+
+    [Test]
+    [HandlerFunctions('CalculatePlanPlanWkshRequestPageHandlerWithResiliency,MessageHandlers,PlanningErrorLogModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure FixedReorderPlanningWhenSKUReorderQtyNegativeLogsPlanningError()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        PlanningErrorLog: Record "Planning Error Log";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        // [SCENARIO 651103] Planning with resiliency logs the actual negative Reorder Quantity of an SKU with Fixed Reorder Qty.
+        Initialize();
+
+        // [GIVEN] SKU with Reordering Policy = Fixed Reorder Qty., Reorder Point = 10 and Reorder Quantity = -5 stored before the field got MinValue = 0
+        LibraryInventory.CreateItem(Item);
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit, Location.Code, Item."No.", '');
+        StockkeepingUnit.Validate("Replenishment System", StockkeepingUnit."Replenishment System"::Purchase);
+        StockkeepingUnit.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        StockkeepingUnit.Validate("Reordering Policy", StockkeepingUnit."Reordering Policy"::"Fixed Reorder Qty.");
+        StockkeepingUnit.Validate("Reorder Point", LibraryRandom.RandIntInRange(10, 20));
+        StockkeepingUnit."Reorder Quantity" := -LibraryRandom.RandInt(10);
+        StockkeepingUnit.Modify(true);
+        Commit();
+
+        // [WHEN] Calculate Regenerative Plan with planning resiliency
+        CalcRegenPlanWithRequestPage(Item, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+
+        // [THEN] Planning Error Log has one entry for the SKU that shows the negative Reorder Quantity
+#pragma warning disable AA0210
+        PlanningErrorLog.SetRange("Item No.", Item."No.");
+#pragma warning restore AA0210
+        Assert.RecordCount(PlanningErrorLog, 1);
+        PlanningErrorLog.FindFirst();
+        Assert.IsTrue(
+            StrPos(PlanningErrorLog."Error Description", Format(StockkeepingUnit."Reorder Quantity")) > 0,
+            'The planning error must show the negative Reorder Quantity.');
+        Assert.AreEqual(Database::"Stockkeeping Unit", PlanningErrorLog."Table ID", 'The error must refer to the stockkeeping unit.');
+        Assert.AreEqual(StockkeepingUnit.GetPosition(), PlanningErrorLog."Table Position", 'The error must identify the stockkeeping unit.');
+
+        // [THEN] No planning lines are created for the item
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", Item."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // Planning commits the error log; remove it so later tests on the same worksheet batch don't get the "continue from where it left off" confirmation.
+        PlanningErrorLog.DeleteAll();
+    end;
+
+    [Test]
+    [HandlerFunctions('CalculatePlanPlanWkshRequestPageHandlerWithResiliency,MessageHandlers,PlanningErrorLogModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure FixedReorderPlanningWhenItemReorderQtyNegativeLogsPlanningErrorAndPlansOtherItems()
+    var
+        InvalidItem: Record Item;
+        ValidItem: Record Item;
+        PlanningErrorLog: Record "Planning Error Log";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        // [SCENARIO 651103] Planning with resiliency logs the actual negative Reorder Quantity of an item with Fixed Reorder Qty. and still plans other items.
+        Initialize();
+
+        // [GIVEN] Item "A" with Reordering Policy = Fixed Reorder Qty., Reorder Point = 10 and Reorder Quantity = -5 stored before the field got MinValue = 0
+        LibraryInventory.CreateItem(InvalidItem);
+        InvalidItem.Validate("Reordering Policy", InvalidItem."Reordering Policy"::"Fixed Reorder Qty.");
+        InvalidItem.Validate("Reorder Point", LibraryRandom.RandIntInRange(10, 20));
+        InvalidItem."Reorder Quantity" := -LibraryRandom.RandInt(10);
+        InvalidItem.Modify(true);
+
+        // [GIVEN] Item "B" with Reordering Policy = Fixed Reorder Qty., Reorder Point = 10 and Reorder Quantity = 30, and no inventory
+        LibraryInventory.CreateItem(ValidItem);
+        ValidItem.Validate("Reordering Policy", ValidItem."Reordering Policy"::"Fixed Reorder Qty.");
+        ValidItem.Validate("Reorder Point", LibraryRandom.RandIntInRange(10, 20));
+        ValidItem.Validate("Reorder Quantity", LibraryRandom.RandIntInRange(30, 50));
+        ValidItem.Modify(true);
+        Commit();
+
+        // [WHEN] Calculate Regenerative Plan for both items with planning resiliency
+        CalcRegenPlanWithRequestPage(
+            StrSubstNo('%1|%2', InvalidItem."No.", ValidItem."No."), CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+
+        // [THEN] Planning Error Log has one entry for item "A" that shows the negative Reorder Quantity
+#pragma warning disable AA0210
+        PlanningErrorLog.SetRange("Item No.", InvalidItem."No.");
+#pragma warning restore AA0210
+        Assert.RecordCount(PlanningErrorLog, 1);
+        PlanningErrorLog.FindFirst();
+        Assert.IsTrue(
+            StrPos(PlanningErrorLog."Error Description", Format(InvalidItem."Reorder Quantity")) > 0,
+            'The planning error must show the negative Reorder Quantity.');
+        Assert.AreEqual(Database::Item, PlanningErrorLog."Table ID", 'The error must refer to the item.');
+        Assert.AreEqual(InvalidItem.GetPosition(), PlanningErrorLog."Table Position", 'The error must identify the item.');
+
+        // [THEN] No planning lines are created for item "A"
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", InvalidItem."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // [THEN] Item "B" is planned and gets a supply suggestion
+        RequisitionLine.SetRange("No.", ValidItem."No.");
+        Assert.RecordIsNotEmpty(RequisitionLine);
+
+        // Planning commits the error log; remove it so later tests on the same worksheet batch don't get the "continue from where it left off" confirmation.
+        PlanningErrorLog.DeleteAll();
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure PlanningWithLeadTimeCalculationDoesNotSuggestAboveMaxQty()
     var
@@ -5424,14 +5559,25 @@ codeunit 137020 "SCM Planning"
     end;
 
     local procedure CalcRegenPlanWithStopAndShowFirstError(Item: Record Item; FromDate: Date; ToDate: Date)
+    begin
+        CalcRegenPlanWithRequestPage(Item, FromDate, ToDate);
+    end;
+
+    local procedure CalcRegenPlanWithRequestPage(Item: Record Item; FromDate: Date; ToDate: Date)
+    begin
+        CalcRegenPlanWithRequestPage(Item."No.", FromDate, ToDate);
+    end;
+
+    local procedure CalcRegenPlanWithRequestPage(ItemNoFilter: Text; FromDate: Date; ToDate: Date)
     var
+        Item: Record Item;
         RequisitionWkshName: Record "Requisition Wksh. Name";
         CalculatePlanPlanWksh: Report "Calculate Plan - Plan. Wksh.";
     begin
         LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::Planning);
         CalculatePlanPlanWksh.InitializeRequest(FromDate, ToDate, true);
         CalculatePlanPlanWksh.SetTemplAndWorksheet(RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name, true);
-        Item.SetRange("No.", Item."No.");
+        Item.SetFilter("No.", ItemNoFilter);
         CalculatePlanPlanWksh.SetTableView(Item);
         CalculatePlanPlanWksh.UseRequestPage(true);
         CalculatePlanPlanWksh.Run();
@@ -5652,6 +5798,13 @@ codeunit 137020 "SCM Planning"
         CalculatePlanPlanWksh.OK().Invoke();
     end;
 
+    [RequestPageHandler]
+    procedure CalculatePlanPlanWkshRequestPageHandlerWithResiliency(var CalculatePlanPlanWksh: TestRequestPage "Calculate Plan - Plan. Wksh.")
+    begin
+        CalculatePlanPlanWksh.NoPlanningResiliency.SetValue(false);
+        CalculatePlanPlanWksh.OK().Invoke();
+    end;
+
     [ConfirmHandler]
     procedure AutomaticReservationConfirmHandler(ConfirmMessage: Text[1024]; var Reply: Boolean)
     begin
@@ -5662,6 +5815,12 @@ codeunit 137020 "SCM Planning"
     procedure ReservationModalPageHandler(var ReservationPage: TestPage Reservation)
     begin
         ReservationPage.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure PlanningErrorLogModalPageHandler(var PlanningErrorLog: TestPage "Planning Error Log")
+    begin
+        PlanningErrorLog.OK().Invoke();
     end;
 }
 

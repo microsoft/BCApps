@@ -33,6 +33,7 @@ using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Integration.Inventory;
+using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Utilities;
@@ -2286,6 +2287,22 @@ codeunit 139940 "Qlty. Inspection Utility"
         exit(QltyPersonLookup.GetBasicPersonDetailsFromInspectionLine(QltyInspectionLine, FullName, JobTitle, EmailAddress, PhoneNo, SourceRecordId));
     end;
 
+    /// <summary>
+    /// Wrapper for QltyReportMgmt.ResolveFinishedByPerson.
+    /// Resolves the name and contact details shown on reports for the user who finished an inspection.
+    /// </summary>
+    /// <param name="FinishedByUserId">The user ID to resolve</param>
+    /// <param name="FinishedByUserName">Output: The resolved friendly name, or the user ID when no name is available</param>
+    /// <param name="FinishedByTitle">Output: The resolved title</param>
+    /// <param name="FinishedByEmail">Output: The resolved email address</param>
+    /// <param name="FinishedByPhone">Output: The resolved phone number</param>
+    internal procedure ResolveFinishedByPerson(FinishedByUserId: Code[50]; var FinishedByUserName: Text; var FinishedByTitle: Text; var FinishedByEmail: Text; var FinishedByPhone: Text)
+    var
+        QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
+    begin
+        QltyReportMgmt.ResolveFinishedByPerson(FinishedByUserId, FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone);
+    end;
+
     #endregion Qlty. Misc Helpers Additional Wrappers
 
     #region Qlty. Traversal Wrappers
@@ -3330,6 +3347,16 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
     begin
         exit(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(RaiseErrorIfNoRuleIsFound, IsManualCreation, TargetRecordRef, OptionalItem, OptionalSpecificTemplate, TempQltyInspectionGenRule));
+    end;
+
+    /// <summary>
+    /// Wrapper for QltyInspecGenRuleMgmt.InsertItemCategoryGenerationRule
+    /// </summary>
+    internal procedure InsertItemCategoryGenerationRule(EntryNo: Integer; SortOrder: Integer; Intent: Enum "Qlty. Gen. Rule Intent"; TemplateCode: Code[20]; SourceTableNo: Integer; ConditionFilter: Text[400]; Description: Text[100]; ActivationTrigger: Enum "Qlty. Gen. Rule Act. Trigger"; ItemCategoryCode: Code[20])
+    var
+        QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
+    begin
+        QltyInspecGenRuleMgmt.InsertItemCategoryGenerationRule(EntryNo, SortOrder, Intent, TemplateCode, SourceTableNo, ConditionFilter, Description, ActivationTrigger, ItemCategoryCode);
     end;
 
     #endregion Qlty. Inspec. Gen. Rule Mgmt. Wrappers
