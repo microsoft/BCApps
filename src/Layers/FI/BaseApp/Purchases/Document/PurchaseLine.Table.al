@@ -9545,10 +9545,13 @@ table 39 "Purchase Line"
         if PurchHeader."Document Type" <> PurchHeader."Document Type"::Invoice then begin
             OutstandingAmountExclTax := CalculateOutstandingAmountExclTax();
             "Prepayment VAT Difference" := 0;
-            if not PrePaymentLineAmountEntered then begin
-                "Prepmt. Line Amount" := Round((OutstandingAmountExclTax) * "Prepayment %" / 100, Currency."Amount Rounding Precision");
-                "Prepmt. Line Amount" := "Prepmt. Line Amount" + "Prepmt Amt Deducted";
-            end;
+            if not PrePaymentLineAmountEntered then
+                if IsFullyPrepaidWithUnchangedAmount() then
+                    "Prepmt. Line Amount" := "Prepmt. Amt. Inv."
+                else begin
+                    "Prepmt. Line Amount" := Round((OutstandingAmountExclTax) * "Prepayment %" / 100, Currency."Amount Rounding Precision");
+                    "Prepmt. Line Amount" := "Prepmt. Line Amount" + "Prepmt Amt Deducted";
+                end;
             PrePaymentLineAmountEntered := false;
         end;
 
@@ -10347,6 +10350,13 @@ table 39 "Purchase Line"
 
         if Abs("Quantity (Base)") > Abs(xPurchaseLine."Quantity (Base)") then
             FieldError(Quantity, StrSubstNo(CorrectiveCreditMemoQtyIncreaseErr, xPurchaseLine.Quantity));
+    end;
+
+    local procedure IsFullyPrepaidWithUnchangedAmount(): Boolean
+    begin
+        exit(
+          ("Prepayment %" = 100) and ("Prepmt. Amt. Inv." <> 0) and
+          ("Line Amount" - "Inv. Discount Amount" = "Prepmt. Amt. Inv."));
     end;
 
     [IntegrationEvent(false, false)]

@@ -179,7 +179,7 @@ pageextension 20529 "Subc. Trans. Order Sub." extends "Transfer Order Subform"
     internal procedure SetIsSubcontracting(IsSubcontractingRelated: Boolean)
     begin
         HasSubcontractingContext := IsSubcontractingRelated;
-        CurrPage.Update();
+        CurrPage.Update(false);
     end;
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)

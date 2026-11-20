@@ -94,11 +94,11 @@ page 6991 "Expense Agent Setup Wizard"
 
                     group(WebAppAccessSection)
                     {
-                        Caption = 'Enable access via web';
+                        Caption = 'Enable access via web and mobile app';
                         field(EnableWebAppAccess; true)
                         {
                             ShowCaption = false;
-                            ToolTip = 'Specifies whether registered users can submit and review expenses through the Expense app.';
+                            ToolTip = 'Specifies whether registered users can submit and review expenses through the Expense web app and the Expense mobile app.';
                             Editable = false;
                         }
                         field(ExpenseDashboardLink; ExpenseDashboardLinkTxt)
@@ -970,6 +970,14 @@ page 6991 "Expense Agent Setup Wizard"
                             EditPerDiemPartialSettings();
                         end;
                     }
+                }
+            }
+            group(receipts)
+            {
+                Caption = 'Receipts';
+
+                field(NoReceipt; Rec."Allow No Receipt")
+                {
                 }
             }
             group(CanaryGroup)
