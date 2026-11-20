@@ -153,13 +153,11 @@ codeunit 133735 "PA Infotip Source Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    procedure InfotipSources_MissingTaskAndOutcomeFail()
+    procedure InfotipSources_MissingTaskFails()
     var
-        Header: Record "Purchase Header";
         Sources: JsonArray;
-        WorkItemId: Guid;
     begin
-        // [SCENARIO 618671] Missing tasks or native outcomes fail explicitly rather than returning an empty snapshot.
+        // [SCENARIO 618671] A missing task fails explicitly.
         Initialize();
 
         // [WHEN] Sources are requested for a missing task.
@@ -168,6 +166,16 @@ codeunit 133735 "PA Infotip Source Tests"
         // [THEN] The missing task is reported.
         Assert.ExpectedError('does not work on a Payables Agent work item');
         Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure InfotipSources_MissingWorkItemFails()
+    var
+        Sources: JsonArray;
+    begin
+        // [SCENARIO 618671] A missing work item fails explicitly rather than yielding an empty snapshot.
+        Initialize();
 
         // [WHEN] Sources are requested for a missing work item.
         asserterror Fixtures.GetWorkItemInfotipSources(CreateGuid(), Sources);
@@ -175,6 +183,17 @@ codeunit 133735 "PA Infotip Source Tests"
         // [THEN] The missing work item is reported rather than yielding an empty snapshot.
         Assert.ExpectedError('does not exist');
         Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure InfotipSources_MissingOutcomeFails()
+    var
+        Sources: JsonArray;
+        WorkItemId: Guid;
+    begin
+        // [SCENARIO 618671] A native work item without an outcome fails explicitly.
+        Initialize();
 
         // [GIVEN] A native work item without a stored outcome.
         WorkItemId := CreateNativeWorkItem();
@@ -185,8 +204,20 @@ codeunit 133735 "PA Infotip Source Tests"
         // [THEN] The missing outcome is reported.
         Assert.ExpectedError('has no existing unposted purchase outcome');
         Assert.ExpectedErrorCode('Dialog');
+    end;
 
-        // [GIVEN] A fresh native work item after the expected error rolled back the previous setup.
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure InfotipSources_DeletedOutcomeFails()
+    var
+        Header: Record "Purchase Header";
+        Sources: JsonArray;
+        WorkItemId: Guid;
+    begin
+        // [SCENARIO 618671] A deleted native outcome fails explicitly rather than returning an empty snapshot.
+        Initialize();
+
+        // [GIVEN] A native work item.
         WorkItemId := CreateNativeWorkItem();
 
         // [GIVEN] Invoice "PI" is stored as the outcome and then deleted.
