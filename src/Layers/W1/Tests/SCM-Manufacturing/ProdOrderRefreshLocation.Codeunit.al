@@ -49,48 +49,16 @@ codeunit 137439 "Prod. Order Refresh Location"
     end;
 
     [Test]
-    procedure RefreshLocationWarningHonorsSelectionFilters()
-    var
-        SelectedOrder: Record "Production Order";
-        UnselectedOrder: Record "Production Order";
-        OtherStatusOrder: Record "Production Order";
-        ProductionOrder: Record "Production Order";
-        Location: Record Location;
-    begin
-        // [SCENARIO] Warning preflight does not prompt for orders outside the report's status or location filters.
-        Initialize();
-        // [GIVEN] A selected order with a location and blank-location orders excluded by status or location.
-        CreateOrderForRefresh(SelectedOrder);
-        CreateOrderForRefresh(UnselectedOrder);
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        SelectedOrder.Validate("Location Code", Location.Code);
-        SelectedOrder.Modify(true);
-        OtherStatusOrder := SelectedOrder;
-        OtherStatusOrder.Status := OtherStatusOrder.Status::Planned;
-        OtherStatusOrder."Location Code" := '';
-        OtherStatusOrder.Insert();
-        ProductionOrder.SetRange(Status, SelectedOrder.Status);
-        ProductionOrder.SetRange("Location Code", Location.Code);
-        ProductionOrder.SetFilter("No.", '%1|%2', SelectedOrder."No.", UnselectedOrder."No.");
-        // [WHEN] Only the populated-location order is selected for refresh.
-        RunRefresh(ProductionOrder, false);
-        // [THEN] Only that order refreshes and no warning is shown for excluded orders.
-        VerifyRefreshed(SelectedOrder, true);
-        VerifyRefreshed(UnselectedOrder, false);
-        VerifyRefreshed(OtherStatusOrder, false);
-    end;
-
-    [Test]
-    procedure RefreshBlankLocationWithDialogsHidden()
+    procedure RefreshBlankLocationWithoutRequestPage()
     var
         ProductionOrder: Record "Production Order";
     begin
-        // [SCENARIO] Callers hiding validation dialogs can refresh blank-location orders without interaction.
+        // [SCENARIO] Suppressing the request page bypasses the warning without hiding validation dialogs.
         Initialize();
         // [GIVEN] A blank-location order.
         CreateOrderForRefresh(ProductionOrder);
-        // [WHEN] Refresh is called with validation dialogs hidden.
-        RunRefresh(ProductionOrder, true);
+        // [WHEN] Refresh is called without a request page or hidden validation dialogs.
+        RunRefresh(ProductionOrder, false);
         // [THEN] Lines are created without displaying the warning.
         VerifyRefreshed(ProductionOrder, true);
     end;

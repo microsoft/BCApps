@@ -5437,6 +5437,11 @@ codeunit 137069 "SCM Production Orders"
         SetupStorage.Restore();
     end;
 
+    /// <summary>
+    /// Resets and enables location capture for this instance; callers must bind and unbind its subscriptions.
+    /// </summary>
+    /// <param name="ConfiguredLocationCode">The setup default whose validation must be detected.</param>
+    /// <param name="ExpectedInsertLocationCode">The expected location at native header insertion, including blank.</param>
     procedure StartDefaultLocationCapture(ConfiguredLocationCode: Code[10]; ExpectedInsertLocationCode: Code[10])
     begin
         DefaultLocationConfiguredCode := ConfiguredLocationCode;
@@ -5447,6 +5452,9 @@ codeunit 137069 "SCM Production Orders"
         DefaultLocationCaptureEnabled := true;
     end;
 
+    /// <summary>
+    /// Stops capture and verifies that native insertion occurred at the expected location without validating the setup default.
+    /// </summary>
     procedure AssertDefaultLocationCapture()
     begin
         DefaultLocationCaptureEnabled := false;
@@ -5474,6 +5482,12 @@ codeunit 137069 "SCM Production Orders"
             DefaultLocationCapturedValidations += 1;
     end;
 
+    /// <summary>
+    /// Sets the manufacturing output and component defaults and disables mandatory inventory locations.
+    /// Callers must save and restore the affected setup records.
+    /// </summary>
+    /// <param name="LocationCode">The finished-output default, or blank to disable defaulting.</param>
+    /// <param name="ComponentsLocationCode">The component supply location, or blank to use native precedence.</param>
     procedure ConfigureDefaultLocation(LocationCode: Code[10]; ComponentsLocationCode: Code[10])
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -5488,6 +5502,12 @@ codeunit 137069 "SCM Production Orders"
         InventorySetup.Modify(true);
     end;
 
+    /// <summary>
+    /// Creates a production item with a certified one-unit component BOM and a certified work-center routing.
+    /// </summary>
+    /// <param name="Item">Returns the manufactured parent item.</param>
+    /// <param name="Component">Returns its single component item.</param>
+    /// <param name="FlushingMethod">The component's flushing method.</param>
     procedure CreateDefaultLocationItem(var Item: Record Item; var Component: Record Item; FlushingMethod: Enum "Flushing Method")
     var
         ProductionBOMHeader: Record "Production BOM Header";
@@ -5524,6 +5544,14 @@ codeunit 137069 "SCM Production Orders"
         Item.Modify(true);
     end;
 
+    /// <summary>
+    /// Creates a new order by applying the setup default before header insertion and source selection.
+    /// </summary>
+    /// <param name="ProductionOrder">Returns the initialized production order.</param>
+    /// <param name="OrderStatus">The initial simulated, planned, firm-planned or released status.</param>
+    /// <param name="SourceType">The source type to validate after insertion.</param>
+    /// <param name="SourceNo">The item, family or sales document identifying the source.</param>
+    /// <param name="Quantity">The order quantity.</param>
     procedure CreateDefaultLocationInitializedOrder(var ProductionOrder: Record "Production Order"; OrderStatus: Enum "Production Order Status"; SourceType: Enum "Prod. Order Source Type"; SourceNo: Code[20]; Quantity: Decimal)
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -5550,6 +5578,14 @@ codeunit 137069 "SCM Production Orders"
         ProductionOrder.Modify(true);
     end;
 
+    /// <summary>
+    /// Creates and refreshes an item-sourced order at an explicit location without opting in to setup defaulting.
+    /// </summary>
+    /// <param name="ProductionOrder">Returns the created order.</param>
+    /// <param name="OrderStatus">The order's initial status.</param>
+    /// <param name="ItemNo">The manufactured item.</param>
+    /// <param name="LocationCode">The authoritative output location, including blank.</param>
+    /// <param name="Quantity">The order quantity.</param>
     procedure CreateDefaultLocationOrder(var ProductionOrder: Record "Production Order"; OrderStatus: Enum "Production Order Status"; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal)
     begin
         LibraryManufacturing.CreateProductionOrder(ProductionOrder, OrderStatus, ProductionOrder."Source Type"::Item, ItemNo, Quantity);
@@ -5558,6 +5594,14 @@ codeunit 137069 "SCM Production Orders"
         LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
     end;
 
+    /// <summary>
+    /// Creates a sales order with a blank header location and an item line at the specified source location.
+    /// </summary>
+    /// <param name="SalesHeader">Returns the sales order header.</param>
+    /// <param name="SalesLine">Returns its item line.</param>
+    /// <param name="ItemNo">The item to sell.</param>
+    /// <param name="LocationCode">The sales line's authoritative location, including blank.</param>
+    /// <param name="Quantity">The sales quantity.</param>
     procedure CreateDefaultLocationSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal)
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -5571,6 +5615,10 @@ codeunit 137069 "SCM Production Orders"
         SalesLine.Modify(true);
     end;
 
+    /// <summary>
+    /// Creates native released item-order production supply for a sales line with validation dialogs hidden.
+    /// </summary>
+    /// <param name="SalesLine">The sales demand passed to the native production-order creation routine.</param>
     procedure CreateDefaultLocationSalesOrder(var SalesLine: Record "Sales Line")
     var
         CreateProdOrderFromSale: Codeunit "Create Prod. Order from Sale";
@@ -5580,6 +5628,11 @@ codeunit 137069 "SCM Production Orders"
             SalesLine, Enum::"Production Order Status"::Released, Enum::"Create Production Order Type"::ItemOrder);
     end;
 
+    /// <summary>
+    /// Finds and asserts exactly one released production order for the source.
+    /// </summary>
+    /// <param name="ProductionOrder">Returns the matching order with the released-status and source filters applied.</param>
+    /// <param name="SourceNo">The production order's source number.</param>
     procedure FindDefaultLocationOrder(var ProductionOrder: Record "Production Order"; SourceNo: Code[20])
     begin
         ProductionOrder.Reset();
@@ -5589,6 +5642,14 @@ codeunit 137069 "SCM Production Orders"
         ProductionOrder.FindFirst();
     end;
 
+    /// <summary>
+    /// Verifies persisted header, output-line and single-component locations and the fixture's one-to-one quantities.
+    /// </summary>
+    /// <param name="ProductionOrder">The persisted order to reload and verify.</param>
+    /// <param name="ItemNo">The expected output item.</param>
+    /// <param name="HeaderLocationCode">The expected header and output location, including blank.</param>
+    /// <param name="ComponentLocationCode">The expected component supply location, including blank.</param>
+    /// <param name="Quantity">The expected output, output base and component quantities.</param>
     procedure AssertDefaultLocationRelations(ProductionOrder: Record "Production Order"; ItemNo: Code[20]; HeaderLocationCode: Code[10]; ComponentLocationCode: Code[10]; Quantity: Decimal)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -5613,6 +5674,12 @@ codeunit 137069 "SCM Production Orders"
         ProdOrderComponent.TestField("Expected Quantity", Quantity);
     end;
 
+    /// <summary>
+    /// Verifies the paired sales-demand and production-supply reservation entries retain the sales location.
+    /// </summary>
+    /// <param name="SalesLine">The reserved sales demand.</param>
+    /// <param name="ProductionOrder">The expected production supply.</param>
+    /// <param name="Quantity">The positive reserved quantity in base units.</param>
     procedure AssertDefaultLocationReservation(SalesLine: Record "Sales Line"; ProductionOrder: Record "Production Order"; Quantity: Decimal)
     var
         ReservationEntry: Record "Reservation Entry";
@@ -5639,6 +5706,12 @@ codeunit 137069 "SCM Production Orders"
         SupplyEntry.TestField("Quantity (Base)", Quantity);
     end;
 
+    /// <summary>
+    /// Posts a positive item adjustment at the specified location using the item journal batch.
+    /// </summary>
+    /// <param name="ItemNo">The item to put on inventory.</param>
+    /// <param name="LocationCode">The stock location, including blank.</param>
+    /// <param name="Quantity">The positive stock quantity in the item's base unit of measure.</param>
     procedure PostDefaultLocationStock(ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal)
     var
         ItemJournalLine: Record "Item Journal Line";
@@ -5647,6 +5720,12 @@ codeunit 137069 "SCM Production Orders"
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
     end;
 
+    /// <summary>
+    /// Posts real output for the order's single matching line and verifies its finished quantity.
+    /// </summary>
+    /// <param name="ProductionOrder">The released order receiving output.</param>
+    /// <param name="ItemNo">The expected output item.</param>
+    /// <param name="Quantity">The output and expected finished quantity.</param>
     procedure PostDefaultLocationOutput(ProductionOrder: Record "Production Order"; ItemNo: Code[20]; Quantity: Decimal)
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -5663,6 +5742,14 @@ codeunit 137069 "SCM Production Orders"
         ProdOrderLine.TestField("Finished Quantity", Quantity);
     end;
 
+    /// <summary>
+    /// Verifies production ledger entries exist and their entire signed quantity remains at the expected location.
+    /// </summary>
+    /// <param name="ItemNo">The posted output or component item.</param>
+    /// <param name="OrderNo">The production order number.</param>
+    /// <param name="LocationCode">The expected persisted location, including blank.</param>
+    /// <param name="EntryType">The output or consumption entry type.</param>
+    /// <param name="Quantity">The signed total quantity, negative for consumption.</param>
     procedure AssertDefaultLocationLedger(ItemNo: Code[20]; OrderNo: Code[20]; LocationCode: Code[10]; EntryType: Enum "Item Ledger Entry Type"; Quantity: Decimal)
     var
         ItemLedgerEntry: Record "Item Ledger Entry";

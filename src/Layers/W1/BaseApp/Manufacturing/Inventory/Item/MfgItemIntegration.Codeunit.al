@@ -28,6 +28,7 @@ codeunit 99000795 "Mfg. Item Integration"
         CannotDeleteProdOrderErr: Label 'You cannot delete item variant %1 because there are one or more outstanding production orders that include this item.', Comment = '%1 - variant code';
         CannotModifyUnitOfMeasureErr: Label 'You cannot modify %1 %2 for item %3 because non-zero %5 with %2 exists in %4.', Comment = '%1 Table name (Item Unit of measure), %2 Value of Measure (KG, PCS...), %3 Item ID, %4 Entry Table Name, %5 Field Caption';
         CannotRenameItemErr: Label 'You cannot rename %1 in a %2, because it is used in %3.', Comment = '%1 = Item No. caption, %2 = Table caption, %3 = Reference Table caption';
+        CannotDeleteDefaultLocationErr: Label 'You cannot delete location %1 because it is the %2 in %3. Clear or change that field before deleting the location.', Comment = '%1 = Location Code, %2 = Default Location Code field caption, %3 = Manufacturing Setup table caption';
 
     // Item
 
@@ -359,6 +360,23 @@ codeunit 99000795 "Mfg. Item Integration"
             Rec."Prod. Consump. Whse. Handling" := "Prod. Consump. Whse. Handling"::"Warehouse Pick (mandatory)";
             Rec."Prod. Output Whse. Handling" := "Prod. Output Whse. Handling"::"No Warehouse Handling";
         end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::Location, 'OnBeforeDeleteEvent', '', true, false)]
+    local procedure CheckDefaultLocationBeforeDelete(var Rec: Record Location; RunTrigger: Boolean)
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        if Rec.IsTemporary() or (not RunTrigger) then
+            exit;
+
+        if ManufacturingSetup.Get() then
+            if (ManufacturingSetup."Default Location Code" <> '') and
+               (ManufacturingSetup."Default Location Code" = Rec.Code)
+            then
+                Error(
+                    CannotDeleteDefaultLocationErr, Rec.Code,
+                    ManufacturingSetup.FieldCaption("Default Location Code"), ManufacturingSetup.TableCaption());
     end;
 
     [EventSubscriber(ObjectType::Table, Database::Location, 'OnAfterDeleteEvent', '', true, false)]

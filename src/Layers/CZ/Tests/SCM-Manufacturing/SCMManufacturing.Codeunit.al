@@ -5145,6 +5145,82 @@ codeunit 137404 "SCM Manufacturing"
     end;
 
     [Test]
+    procedure DefaultLocationCannotBeDeleted()
+    var
+        Location: Record Location;
+        ManufacturingSetup: Record "Manufacturing Setup";
+        Fixture: Codeunit "SCM Production Orders";
+    begin
+        // [SCENARIO] An unused location cannot be deleted while configured as the manufacturing default.
+        Initialize();
+        // [GIVEN] A default location with no production orders, stock or warehouse dependencies.
+        LibraryWarehouse.CreateLocation(Location);
+        Fixture.ConfigureDefaultLocation(Location.Code, '');
+        Commit();
+        // [WHEN] The configured location is deleted.
+        asserterror Location.Delete(true);
+        // [THEN] The error identifies the setup field and preserves both the location and its reference.
+        Assert.ExpectedError(Location.Code);
+        Assert.ExpectedError(ManufacturingSetup.FieldCaption("Default Location Code"));
+        Assert.IsTrue(Location.Get(Location.Code), 'The configured default location must remain.');
+        ManufacturingSetup.Get();
+        ManufacturingSetup.TestField("Default Location Code", Location.Code);
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure DefaultLocationDeletionAfterSetupChange()
+    var
+        Location: Record Location;
+        ReplacementLocation: Record Location;
+        Fixture: Codeunit "SCM Production Orders";
+        NewDefaultCode: Code[10];
+        Iteration: Integer;
+    begin
+        // [SCENARIO] Clearing or changing the setup default permits deletion of the former default location.
+        Initialize();
+        LibraryWarehouse.CreateLocation(ReplacementLocation);
+        for Iteration := 1 to 2 do begin
+            // [GIVEN] A default location whose setup reference is cleared or changed.
+            LibraryWarehouse.CreateLocation(Location);
+            Fixture.ConfigureDefaultLocation(Location.Code, '');
+            NewDefaultCode := '';
+            if Iteration = 2 then
+                NewDefaultCode := ReplacementLocation.Code;
+            Fixture.ConfigureDefaultLocation(NewDefaultCode, '');
+            // [WHEN] The former default location is deleted.
+            Location.Delete(true);
+            // [THEN] The unused location is removed.
+            Assert.IsFalse(Location.Get(Location.Code), 'The former default location must be deletable.');
+        end;
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
+    procedure NonDefaultLocationCanBeDeleted()
+    var
+        DefaultLocation: Record Location;
+        OtherLocation: Record Location;
+        ManufacturingSetup: Record "Manufacturing Setup";
+        Fixture: Codeunit "SCM Production Orders";
+    begin
+        // [SCENARIO] A configured manufacturing default does not prevent deletion of another unused location.
+        Initialize();
+        // [GIVEN] A configured default and a different unused location.
+        LibraryWarehouse.CreateLocation(DefaultLocation);
+        LibraryWarehouse.CreateLocation(OtherLocation);
+        Fixture.ConfigureDefaultLocation(DefaultLocation.Code, '');
+        // [WHEN] The other location is deleted.
+        OtherLocation.Delete(true);
+        // [THEN] Only that location is removed and the default remains valid.
+        Assert.IsFalse(OtherLocation.Get(OtherLocation.Code), 'An unrelated unused location must be deletable.');
+        DefaultLocation.Get(DefaultLocation.Code);
+        ManufacturingSetup.Get();
+        ManufacturingSetup.TestField("Default Location Code", DefaultLocation.Code);
+        LibrarySetupStorage.Restore();
+    end;
+
+    [Test]
     procedure DefaultLocationNewReleased()
     var
         Item: Record Item;

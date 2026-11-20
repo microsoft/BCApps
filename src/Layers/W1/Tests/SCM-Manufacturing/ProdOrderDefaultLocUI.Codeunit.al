@@ -238,7 +238,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
     end;
 
     [Test]
-    [HandlerFunctions('RefreshLocationWarningHandler')]
+    [HandlerFunctions('RefreshProductionOrderRequestPageHandler,RefreshLocationWarningHandler')]
     procedure RefreshBlankLocationAccepted()
     var
         ProductionOrder: Record "Production Order";
@@ -260,7 +260,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
     end;
 
     [Test]
-    [HandlerFunctions('RefreshLocationWarningHandler')]
+    [HandlerFunctions('RefreshProductionOrderRequestPageHandler,RefreshLocationWarningHandler')]
     procedure RefreshBlankLocationDeclinedInBatch()
     var
         FirstOrder: Record "Production Order";
@@ -285,6 +285,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
     end;
 
     [Test]
+    [HandlerFunctions('RefreshProductionOrderRequestPageHandler')]
     procedure RefreshBlankLocationWarningDisabled()
     var
         ProductionOrder: Record "Production Order";
@@ -301,7 +302,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
     end;
 
     [Test]
-    [HandlerFunctions('RefreshLocationWarningHandler')]
+    [HandlerFunctions('RefreshProductionOrderRequestPageHandler,RefreshLocationWarningHandler')]
     procedure RefreshBlankLocationWarningReenabled()
     var
         ProductionOrder: Record "Production Order";
@@ -321,7 +322,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
     end;
 
     [Test]
-    [HandlerFunctions('RefreshLocationWarningHandler,ManufacturingSetupHandler')]
+    [HandlerFunctions('RefreshProductionOrderRequestPageHandler,RefreshLocationWarningHandler,ManufacturingSetupHandler')]
     procedure RefreshOpenSetupStopsEntireBatch()
     var
         FirstOrder: Record "Production Order";
@@ -343,6 +344,87 @@ codeunit 137438 "Prod. Order Default Loc. UI"
         Assert.IsTrue(ManufacturingSetupOpened, 'Manufacturing Setup must open from the warning.');
         VerifyRefreshed(FirstOrder, false);
         VerifyRefreshed(SecondOrder, false);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('RefreshProductionOrderRequestPageHandler')]
+    procedure RefreshLocationWarningHonorsSelectionFilters()
+    var
+        SelectedOrder: Record "Production Order";
+        UnselectedOrder: Record "Production Order";
+        OtherStatusOrder: Record "Production Order";
+        ProductionOrder: Record "Production Order";
+        Location: Record Location;
+    begin
+        // [SCENARIO] Warning preflight does not prompt for orders outside the report's status or location filters.
+        InitializeRefreshWarning();
+        // [GIVEN] A selected order with a location and blank-location orders excluded by status or location.
+        CreateOrderForRefresh(SelectedOrder);
+        CreateOrderForRefresh(UnselectedOrder);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        SelectedOrder.Validate("Location Code", Location.Code);
+        SelectedOrder.Modify(true);
+        OtherStatusOrder := SelectedOrder;
+        OtherStatusOrder.Status := OtherStatusOrder.Status::Planned;
+        OtherStatusOrder."Location Code" := '';
+        OtherStatusOrder.Insert();
+        ProductionOrder.SetRange(Status, SelectedOrder.Status);
+        ProductionOrder.SetRange("Location Code", Location.Code);
+        ProductionOrder.SetFilter("No.", '%1|%2', SelectedOrder."No.", UnselectedOrder."No.");
+        // [WHEN] Only the populated-location order is selected for interactive refresh.
+        RunRefresh(ProductionOrder, false);
+        // [THEN] Only that order refreshes and no warning is shown for excluded orders.
+        VerifyRefreshed(SelectedOrder, true);
+        VerifyRefreshed(UnselectedOrder, false);
+        VerifyRefreshed(OtherStatusOrder, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('RefreshProductionOrderRequestPageHandler')]
+    procedure RefreshBlankLocationWithDialogsHidden()
+    var
+        ProductionOrder: Record "Production Order";
+    begin
+        // [SCENARIO] Hiding validation dialogs bypasses the warning even when the request page opens.
+        InitializeRefreshWarning();
+        // [GIVEN] A blank-location order with the warning enabled.
+        CreateOrderForRefresh(ProductionOrder);
+        // [WHEN] Interactive refresh is called with validation dialogs hidden.
+        RunRefresh(ProductionOrder, true);
+        // [THEN] Lines are created without displaying the warning.
+        VerifyRefreshed(ProductionOrder, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('RefreshProductionOrderRequestPageHandler,RefreshLocationWarningHandler')]
+    procedure RefreshWithoutRequestPageAfterInteractiveRun()
+    var
+        FirstOrder: Record "Production Order";
+        SecondOrder: Record "Production Order";
+        RefreshProductionOrder: Report "Refresh Production Order";
+    begin
+        // [SCENARIO] Reusing a report without a request page does not retain the prior run's interactive warning.
+        InitializeRefreshWarning();
+        // [GIVEN] One report instance has interactively refreshed a blank-location order.
+        CreateOrderForRefresh(FirstOrder);
+        CreateOrderForRefresh(SecondOrder);
+        EnqueueRefreshWarning(FirstOrder, true, 'Continue');
+        Commit();
+        FirstOrder.SetRecFilter();
+        RefreshProductionOrder.SetTableView(FirstOrder);
+        RefreshProductionOrder.InitializeRequest(1, true, true, true, false);
+        RefreshProductionOrder.SetHideValidationDialog(false);
+        RefreshProductionOrder.UseRequestPage(true);
+        RefreshProductionOrder.RunModal();
+        // [WHEN] The same instance refreshes another blank-location order without a request page.
+        SecondOrder.SetRecFilter();
+        RefreshProductionOrder.SetTableView(SecondOrder);
+        RefreshProductionOrder.UseRequestPage(false);
+        RefreshProductionOrder.RunModal();
+        // [THEN] Both orders refresh and only the interactive run displays a warning.
+        VerifyRefreshed(FirstOrder, true);
+        VerifyRefreshed(SecondOrder, true);
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -408,7 +490,7 @@ codeunit 137438 "Prod. Order Default Loc. UI"
         RefreshProductionOrder.SetTableView(OrderFilter);
         RefreshProductionOrder.InitializeRequest(1, true, true, true, false);
         RefreshProductionOrder.SetHideValidationDialog(HideDialogs);
-        RefreshProductionOrder.UseRequestPage(false);
+        RefreshProductionOrder.UseRequestPage(true);
         RefreshProductionOrder.RunModal();
     end;
 
@@ -427,6 +509,12 @@ codeunit 137438 "Prod. Order Default Loc. UI"
             ProdOrderLine.FindFirst();
             ProdOrderLine.TestField("Location Code", LocationCode);
         end;
+    end;
+
+    [RequestPageHandler]
+    procedure RefreshProductionOrderRequestPageHandler(var RefreshProductionOrder: TestRequestPage "Refresh Production Order")
+    begin
+        RefreshProductionOrder.OK().Invoke();
     end;
 
     [ModalPageHandler]
