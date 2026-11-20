@@ -148,6 +148,17 @@ codeunit 3326 "PA Test Fixtures"
     internal procedure GetTaskInfotipSources(AgentTaskId: BigInteger; var Sources: JsonArray)
     var
         WorkItem: Codeunit "PA Work Item";
+    begin
+        Clear(Sources);
+        if not WorkItem.LoadByAgentTaskId(AgentTaskId) then
+            Error(TaskNotFoundErr, AgentTaskId);
+        GetWorkItemInfotipSources(WorkItem.GetId(), Sources);
+    end;
+
+    // Source discovery uses stored identity; task ownership is checked by the task facade.
+    internal procedure GetWorkItemInfotipSources(WorkItemId: Guid; var Sources: JsonArray)
+    var
+        WorkItem: Codeunit "PA Work Item";
         DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
         DiscoveredSources: JsonArray;
         Source: JsonToken;
@@ -155,17 +166,20 @@ codeunit 3326 "PA Test Fixtures"
         TableId, SystemId: JsonToken;
         SourceKey: Text;
         SeenSources: List of [Text];
+        WorkItemNotFoundErr: Label 'Payables Agent work item %1 does not exist.', Locked = true;
     begin
         Clear(Sources);
-        if not WorkItem.LoadByAgentTaskId(AgentTaskId) then
-            Error(TaskNotFoundErr, AgentTaskId);
-        case Versions.GetVersion(WorkItem.GetId()) of
+        case Versions.GetVersion(WorkItemId) of
             1:
-                DraftBasedFixtures.GetTaskInfotipSources(WorkItem, DiscoveredSources);
+                DraftBasedFixtures.GetWorkItemInfotipSources(WorkItemId, DiscoveredSources);
             2:
-                GetNativeInfotipSources(WorkItem, DiscoveredSources);
+                begin
+                    if not WorkItem.Load(WorkItemId) then
+                        Error(WorkItemNotFoundErr, WorkItemId);
+                    GetNativeInfotipSources(WorkItem, DiscoveredSources);
+                end;
             else
-                Error(TaskNotFoundErr, AgentTaskId);
+                Error(WorkItemNotFoundErr, WorkItemId);
         end;
 
         foreach Source in DiscoveredSources do begin
@@ -562,6 +576,16 @@ codeunit 3326 "PA Test Fixtures"
         StoredWorkItem."Admission Status" := "PA Work Item Admission Status"::Received;
         StoredWorkItem.Insert();
         exit(WorkItem.Load(StoredWorkItem.SystemId));
+    end;
+
+    // Arrange persisted source data without exercising runtime outcome registration.
+    internal procedure SetWorkItemOutcomeForTest(WorkItemId: Guid; OutcomeId: RecordId)
+    var
+        StoredWorkItem: Record "Payables Agent Work Item";
+    begin
+        StoredWorkItem.GetBySystemId(WorkItemId);
+        StoredWorkItem.Outcome := OutcomeId;
+        StoredWorkItem.Modify();
     end;
 
     internal procedure LoadConfiguration(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters"; CreateAgentUser: Boolean)

@@ -92,7 +92,7 @@ codeunit 3347 "PA Draft Based Test Fixtures"
         exit(true);
     end;
 
-    internal procedure GetTaskInfotipSources(WorkItem: Codeunit "PA Work Item"; var Sources: JsonArray)
+    internal procedure GetWorkItemInfotipSources(WorkItemId: Guid; var Sources: JsonArray)
     var
         EDocument: Record "E-Document";
         DraftHeader: Record "E-Document Purchase Header";
@@ -103,7 +103,7 @@ codeunit 3347 "PA Draft Based Test Fixtures"
         TempTarget: Record "Purchase Line" temporary;
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
     begin
-        EDocument.GetBySystemId(WorkItem.GetId());
+        EDocument.GetBySystemId(WorkItemId);
         DraftHeader.Get(EDocument."Entry No");
         AddInfotipSource(DraftHeader, DraftHeader."Sales Invoice No.", Sources);
         if DraftHeader."[BC] Vendor No." <> '' then begin
@@ -206,7 +206,7 @@ codeunit 3347 "PA Draft Based Test Fixtures"
         exit(true);
     end;
 
-    internal procedure CreateMatchedDraftForTest(VendorNo: Code[20]; PurchaseLineSystemId: Guid): Text
+    internal procedure CreateMatchedDraftForTest(VendorNo: Code[20]; PurchaseLineSystemId: Guid): Guid
     var
         EDocument: Record "E-Document";
         DraftHeader: Record "E-Document Purchase Header";
@@ -234,18 +234,17 @@ codeunit 3347 "PA Draft Based Test Fixtures"
             WorkingMatch."Receipt Line SystemId" := CreateGuid();
             WorkingMatch.Insert();
         end;
-        exit(Format(EDocument."Entry No"));
+        exit(EDocument.SystemId);
     end;
 
-    internal procedure FinalizeDraftMatchesForTest(AgentTaskId: BigInteger)
+    internal procedure FinalizeDraftMatchesForTest(WorkItemId: Guid)
     var
         EDocument: Record "E-Document";
         DraftLine: Record "E-Document Purchase Line";
         WorkingMatch: Record "E-Doc. Purchase Line PO Match";
         FinalizedMatch: Record "E-Doc. Finalized PO Match";
     begin
-        if not GetEDocument(AgentTaskId, EDocument) then
-            Error(TaskNotDraftBasedErr, AgentTaskId);
+        EDocument.GetBySystemId(WorkItemId);
         DraftLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         DraftLine.FindSet();
         repeat

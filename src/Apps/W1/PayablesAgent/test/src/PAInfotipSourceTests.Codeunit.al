@@ -9,9 +9,9 @@ using Microsoft.Agent.PayablesAgent;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
-using System.Agents;
 
 codeunit 133735 "PA Infotip Source Tests"
+// [FEATURE] [AI test 1.0] [Payables Agent] [Infotip Sources]
 {
     Subtype = Test;
     TestType = UnitTest;
@@ -31,11 +31,11 @@ codeunit 133735 "PA Infotip Source Tests"
         DraftFixtures: Codeunit "PA Draft Based Test Fixtures";
         Sources: JsonArray;
         Source: JsonToken;
-        AgentTaskId: BigInteger;
+        WorkItemId: Guid;
         WorkingSources, FinalizedSources: Text;
     begin
-        // [FEATURE] [AI test 1.0] [Payables Agent] [Infotip Sources]
         // [SCENARIO 618671] Working and finalized draft matches expose the same deduplicated source records.
+        Initialize();
 
         // [GIVEN] Vendor "V" and two draft lines sharing the same purchase-line target.
         Vendor."No." := NewDocumentNo();
@@ -43,11 +43,11 @@ codeunit 133735 "PA Infotip Source Tests"
         Vendor.Insert();
         CreatePurchaseLine(PurchaseLine, "Purchase Document Type"::Invoice, NewDocumentNo(), 70000);
 
-        // [GIVEN] The task is inserted with the existing draft's correlation ID.
-        AgentTaskId := CreateTask(DraftFixtures.CreateMatchedDraftForTest(Vendor."No.", PurchaseLine.SystemId));
+        // [GIVEN] The stored draft is identified without creating an agent task.
+        WorkItemId := DraftFixtures.CreateMatchedDraftForTest(Vendor."No.", PurchaseLine.SystemId);
 
         // [WHEN] Sources are collected before finalization.
-        Fixtures.GetTaskInfotipSources(AgentTaskId, Sources);
+        Fixtures.GetWorkItemInfotipSources(WorkItemId, Sources);
 
         // [THEN] Each actual source appears once with its actual description.
         Assert.AreEqual(5, Sources.Count(), 'Header, vendor, two draft lines and one deduplicated surviving target');
@@ -67,8 +67,8 @@ codeunit 133735 "PA Infotip Source Tests"
         Sources.WriteTo(WorkingSources);
 
         // [WHEN] Working matches are transferred to finalized matches and sources are collected again.
-        DraftFixtures.FinalizeDraftMatchesForTest(AgentTaskId);
-        Fixtures.GetTaskInfotipSources(AgentTaskId, Sources);
+        DraftFixtures.FinalizeDraftMatchesForTest(WorkItemId);
+        Fixtures.GetWorkItemInfotipSources(WorkItemId, Sources);
 
         // [THEN] Source identities, descriptions and ordering are unchanged.
         Sources.WriteTo(FinalizedSources);
@@ -85,16 +85,15 @@ codeunit 133735 "PA Infotip Source Tests"
         OrderLine: Record "Purchase Line";
         ReceiptOrderLine: Record "Purchase Line";
         ReceiptLine: Record "Purch. Rcpt. Line";
-        WorkItem: Codeunit "PA Work Item";
         Sources: JsonArray;
         Source: JsonToken;
-        AgentTaskId: BigInteger;
+        WorkItemId: Guid;
     begin
-        // [FEATURE] [AI test 1.0] [Payables Agent] [Infotip Sources]
         // [SCENARIO 618671] Native sources include a receipt-only order target without duplicating a repeated direct target.
+        Initialize();
 
         // [GIVEN] Invoice "PI" has two direct links to order line "A" and a receipt-only link to order line "B".
-        AgentTaskId := CreateNativeTask(WorkItem);
+        WorkItemId := CreateNativeWorkItem();
         Vendor."No." := NewDocumentNo();
         Vendor.Name := 'Native source vendor';
         Vendor.Insert();
@@ -127,10 +126,10 @@ codeunit 133735 "PA Infotip Source Tests"
         Line."Order No." := OrderLine."Document No.";
         Line."Order Line No." := OrderLine."Line No.";
         Line.Modify();
-        WorkItem.RegisterOutcome(Header.RecordId());
+        Fixtures.SetWorkItemOutcomeForTest(WorkItemId, Header.RecordId());
 
         // [WHEN] Sources are collected for the native outcome.
-        Fixtures.GetTaskInfotipSources(AgentTaskId, Sources);
+        Fixtures.GetWorkItemInfotipSources(WorkItemId, Sources);
 
         // [THEN] The header, vendor, three invoice lines and both distinct order targets are returned once.
         Assert.AreEqual(7, Sources.Count(), 'Native header, actual vendor, three lines and two distinct deduplicated order targets');
@@ -157,69 +156,66 @@ codeunit 133735 "PA Infotip Source Tests"
     procedure InfotipSources_MissingTaskAndOutcomeFail()
     var
         Header: Record "Purchase Header";
-        WorkItem: Codeunit "PA Work Item";
         Sources: JsonArray;
-        AgentTaskId: BigInteger;
+        WorkItemId: Guid;
     begin
-        // [FEATURE] [AI test 1.0] [Payables Agent] [Infotip Sources]
         // [SCENARIO 618671] Missing tasks or native outcomes fail explicitly rather than returning an empty snapshot.
+        Initialize();
 
         // [WHEN] Sources are requested for a missing task.
         asserterror Fixtures.GetTaskInfotipSources(0, Sources);
 
         // [THEN] The missing task is reported.
         Assert.ExpectedError('does not work on a Payables Agent work item');
+        Assert.ExpectedErrorCode('Dialog');
 
-        // [GIVEN] A native task without a registered outcome.
-        AgentTaskId := CreateNativeTask(WorkItem);
+        // [WHEN] Sources are requested for a missing work item.
+        asserterror Fixtures.GetWorkItemInfotipSources(CreateGuid(), Sources);
 
-        // [WHEN] Sources are requested for that task.
-        asserterror Fixtures.GetTaskInfotipSources(AgentTaskId, Sources);
+        // [THEN] The missing work item is reported rather than yielding an empty snapshot.
+        Assert.ExpectedError('does not exist');
+        Assert.ExpectedErrorCode('Dialog');
+
+        // [GIVEN] A native work item without a stored outcome.
+        WorkItemId := CreateNativeWorkItem();
+
+        // [WHEN] Sources are requested for that work item.
+        asserterror Fixtures.GetWorkItemInfotipSources(WorkItemId, Sources);
 
         // [THEN] The missing outcome is reported.
         Assert.ExpectedError('has no existing unposted purchase outcome');
+        Assert.ExpectedErrorCode('Dialog');
 
-        // [GIVEN] A fresh native task after the expected error rolled back the previous setup.
-        AgentTaskId := CreateNativeTask(WorkItem);
+        // [GIVEN] A fresh native work item after the expected error rolled back the previous setup.
+        WorkItemId := CreateNativeWorkItem();
 
-        // [GIVEN] Invoice "PI" is registered as the outcome and then deleted.
+        // [GIVEN] Invoice "PI" is stored as the outcome and then deleted.
         Header."Document Type" := Header."Document Type"::Invoice;
         Header."No." := NewDocumentNo();
         Header.Insert();
-        WorkItem.RegisterOutcome(Header.RecordId());
+        Fixtures.SetWorkItemOutcomeForTest(WorkItemId, Header.RecordId());
         Header.Delete();
 
         // [WHEN] Sources are requested for the deleted outcome.
-        asserterror Fixtures.GetTaskInfotipSources(AgentTaskId, Sources);
+        asserterror Fixtures.GetWorkItemInfotipSources(WorkItemId, Sources);
 
         // [THEN] The missing outcome is reported without a successful empty snapshot.
         Assert.ExpectedError('has no existing unposted purchase outcome');
+        Assert.ExpectedErrorCode('Dialog');
         Assert.AreEqual(0, Sources.Count(), 'Missing sources must not become a successful empty snapshot');
     end;
 
-    local procedure CreateNativeTask(var WorkItem: Codeunit "PA Work Item"): BigInteger
-    var
-        AgentTaskId: BigInteger;
+    local procedure Initialize()
     begin
-        Assert.IsTrue(Fixtures.ReceiveUpload('invoice.pdf', WorkItem), 'Create a native work item without agent execution');
-        AgentTaskId := CreateTask(WorkItem.GetAgentTaskExternalId());
-        WorkItem.AssociateAgentTask(AgentTaskId);
-        exit(AgentTaskId);
+        Clear(Fixtures);
     end;
 
-    local procedure CreateTask(ExternalId: Text): BigInteger
+    local procedure CreateNativeWorkItem(): Guid
     var
-        Agent: Record Agent;
-        AgentTask: Record "Agent Task";
+        WorkItem: Codeunit "PA Work Item";
     begin
-        Agent."User Security ID" := CreateGuid();
-        Agent."Agent Metadata Provider" := "Agent Metadata Provider"::"Payables Agent";
-        Agent.Insert();
-        AgentTask."Agent User Security ID" := Agent."User Security ID";
-        AgentTask."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(AgentTask."Company Name"));
-        AgentTask."External ID" := CopyStr(ExternalId, 1, MaxStrLen(AgentTask."External ID"));
-        AgentTask.Insert();
-        exit(AgentTask.ID);
+        Assert.IsTrue(Fixtures.ReceiveUpload('invoice.pdf', WorkItem), 'Create a native work item without agent execution');
+        exit(WorkItem.GetId());
     end;
 
     local procedure CreatePurchaseLine(var Line: Record "Purchase Line"; DocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20]; LineNo: Integer)
