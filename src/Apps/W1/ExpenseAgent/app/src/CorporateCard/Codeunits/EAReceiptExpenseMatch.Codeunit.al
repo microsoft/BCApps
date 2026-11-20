@@ -28,6 +28,7 @@ codeunit 7438 "EA Receipt Expense Match"
         Expense.SetRange(Source, Expense.Source::CorporateCard);
         Expense.SetFilter("Credit Card Feed No.", '<>%1', 0);
         Expense.SetRange("Receipt Attached", false);
+        Expense.SetRange("No Receipt Type", Expense."No Receipt Type"::" ");
         Expense.SetRange(Status, Expense.Status::Open);
         Expense.SetRange("Expense Report No.", '');
     end;

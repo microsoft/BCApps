@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Receipt Matching] [API]
-codeunit 148368 "EA Receipt Match API Tests"
+codeunit 148354 "EA Receipt Match API Tests"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
@@ -31,6 +31,8 @@ codeunit 148368 "EA Receipt Match API Tests"
     begin
         // [SCENARIO] Posting extracted receipt data under the expense user returns the matching card expense.
         Initialize();
+
+        // [GIVEN] A card expense of 20 waiting for a receipt.
         CreateCardExpense(Expense);
         Commit();
 
@@ -48,6 +50,7 @@ codeunit 148368 "EA Receipt Match API Tests"
     var
         PendingExpense: Record Expense;
         ExpenseWithReceipt: Record Expense;
+        LostReceiptExpense: Record Expense;
         Response: JsonObject;
         Rows: JsonToken;
         Row: JsonToken;
@@ -57,16 +60,21 @@ codeunit 148368 "EA Receipt Match API Tests"
     begin
         // [SCENARIO] The pending list contains card expenses that still need a receipt.
         Initialize();
+
+        // [GIVEN] A card expense waiting for a receipt, one with a receipt and one declared as lost receipt.
         CreateCardExpense(PendingExpense);
         CreateCardExpense(ExpenseWithReceipt);
         ExpenseWithReceipt."Receipt Attached" := true;
         ExpenseWithReceipt.Modify();
+        CreateCardExpense(LostReceiptExpense);
+        LostReceiptExpense."No Receipt Type" := LostReceiptExpense."No Receipt Type"::"Lost Receipt";
+        LostReceiptExpense.Modify();
         Commit();
 
         // [WHEN] The list is read through expenseUsers({id})/pendingCardExpenses.
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, GetUserScopedURL(PendingExpense, PendingCardExpensesServiceNameTok), 200);
 
-        // [THEN] Only the expense without a receipt is listed.
+        // [THEN] Only the expense still waiting for a receipt is listed.
         Response.ReadFrom(ResponseText);
         Response.Get('value', Rows);
         Assert.AreEqual(1, Rows.AsArray().Count(), 'Only the pending card expense must be listed.');

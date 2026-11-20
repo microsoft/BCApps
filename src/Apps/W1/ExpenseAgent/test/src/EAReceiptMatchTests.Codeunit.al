@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Receipt Matching]
-codeunit 148367 EAReceiptMatchTests
+codeunit 148355 EAReceiptMatchTests
 {
     Subtype = Test;
     TestType = IntegrationTest;
@@ -27,6 +27,8 @@ codeunit 148367 EAReceiptMatchTests
     begin
         // [SCENARIO] A receipt with the same amount and currency matches the card expense that is still waiting for a receipt.
         Initialize();
+
+        // [GIVEN] A card expense of 20 waiting for a receipt.
         CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
 
         // [WHEN] A receipt dated within the date window is matched.
@@ -35,16 +37,34 @@ codeunit 148367 EAReceiptMatchTests
     end;
 
     [Test]
-    procedure ReceiptWithDifferentAmountOrDateOutsideWindowDoesNotMatch()
+    procedure ReceiptWithDifferentAmountDoesNotMatch()
     var
         Expense: Record Expense;
     begin
-        // [SCENARIO] Amount must match exactly and the receipt date must be within the date window.
+        // [SCENARIO] The receipt amount must match the card expense amount exactly.
         Initialize();
+
+        // [GIVEN] A card expense of 20 waiting for a receipt.
         CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
 
-        // [THEN] No expense is returned for a different amount or a date outside the 7-day window.
+        // [WHEN] A receipt of 21 on the same date is matched.
+        // [THEN] No expense is returned.
         Assert.IsTrue(IsNullGuid(FindMatch(Expense, WorkDate(), 21)), 'A different amount must not match.');
+    end;
+
+    [Test]
+    procedure ReceiptDateOutsideWindowDoesNotMatch()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] The receipt date must be within the date window of the card expense.
+        Initialize();
+
+        // [GIVEN] A card expense of 20 waiting for a receipt.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+
+        // [WHEN] A receipt of 20 dated 8 days later, outside the 7-day window, is matched.
+        // [THEN] No expense is returned.
         Assert.IsTrue(IsNullGuid(FindMatch(Expense, WorkDate() + 8, 20)), 'A date outside the window must not match.');
     end;
 
@@ -55,12 +75,51 @@ codeunit 148367 EAReceiptMatchTests
     begin
         // [SCENARIO] Card expenses that already have a receipt are not candidates.
         Initialize();
+
+        // [GIVEN] A card expense that already has a receipt.
         CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
         Expense."Receipt Attached" := true;
         Expense.Modify();
 
+        // [WHEN] A receipt with the same amount and date is matched.
         // [THEN] No expense is returned.
         Assert.IsTrue(IsNullGuid(FindMatch(Expense, WorkDate(), 20)), 'An expense with a receipt must not match.');
+    end;
+
+    [Test]
+    procedure ReceiptDoesNotMatchLostReceiptCardExpense()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] Card expenses declared as lost receipt are not candidates.
+        Initialize();
+
+        // [GIVEN] A card expense declared as lost receipt.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        Expense."No Receipt Type" := Expense."No Receipt Type"::"Lost Receipt";
+        Expense.Modify();
+
+        // [WHEN] A receipt with the same amount and date is matched.
+        // [THEN] No expense is returned.
+        Assert.IsTrue(IsNullGuid(FindMatch(Expense, WorkDate(), 20)), 'A lost receipt expense must not match.');
+    end;
+
+    [Test]
+    procedure ReceiptDoesNotMatchReceiptNotNeededCardExpense()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] Card expenses that do not need a receipt are not candidates.
+        Initialize();
+
+        // [GIVEN] A card expense marked as receipt not needed.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        Expense."No Receipt Type" := Expense."No Receipt Type"::"Receipt not needed";
+        Expense.Modify();
+
+        // [WHEN] A receipt with the same amount and date is matched.
+        // [THEN] No expense is returned.
+        Assert.IsTrue(IsNullGuid(FindMatch(Expense, WorkDate(), 20)), 'An expense that does not need a receipt must not match.');
     end;
 
     [Test]
@@ -70,8 +129,11 @@ codeunit 148367 EAReceiptMatchTests
     begin
         // [SCENARIO] Only card-created expenses are candidates; a manual expense already has its own receipt flow.
         Initialize();
+
+        // [GIVEN] A manual expense without a receipt linked to a card transaction.
         CreateLinkedManualExpense(Expense);
 
+        // [WHEN] A receipt with the same amount and date is matched.
         // [THEN] No expense is returned.
         Assert.IsTrue(IsNullGuid(FindMatch(Expense, Expense."Expense Date", Expense.Amount)), 'A manual expense must not match.');
     end;
@@ -85,11 +147,14 @@ codeunit 148367 EAReceiptMatchTests
     begin
         // [SCENARIO] Only the expense user's own card expenses are candidates.
         Initialize();
+
+        // [GIVEN] A card expense waiting for a receipt and another expense user with their own card.
         CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
         OtherCorpCard.Get('CORPCARD-0002');
         OtherExpenseUser.Get(OtherCorpCard."Expense User No.");
 
-        // [THEN] Matching for another user returns no expense.
+        // [WHEN] The receipt is matched for the other expense user.
+        // [THEN] No expense is returned.
         Assert.IsTrue(
             IsNullGuid(ReceiptExpenseMatch.FindMatchingExpense(OtherExpenseUser.SystemId, WorkDate(), 20, '', 'CONTOSO COFFEE')),
             'Another user''s expense must not match.');
@@ -103,9 +168,12 @@ codeunit 148367 EAReceiptMatchTests
     begin
         // [SCENARIO] When several card expenses qualify, the closest date and most similar merchant win.
         Initialize();
+
+        // [GIVEN] Two card expenses of 20: one 3 days earlier from another merchant, one on the receipt date from the same merchant.
         CreateCardExpense(FartherExpense, 'CORPCARD-0001', WorkDate() - 3, 'FABRIKAM TAXI');
         CreateCardExpense(CloserExpense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
 
+        // [WHEN] The receipt is matched.
         // [THEN] The expense with the same date and merchant is returned.
         Assert.AreEqual(CloserExpense.SystemId, FindMatch(CloserExpense, WorkDate(), 20), 'The closest candidate must match.');
     end;
@@ -119,6 +187,8 @@ codeunit 148367 EAReceiptMatchTests
     begin
         // [SCENARIO] A pending card expense gets its category from the user; amount, currency, date and card payment come from the card and stay unchanged.
         Initialize();
+
+        // [GIVEN] A card expense waiting for a receipt and an employee-paid category.
         CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
         PaymentMethodCode := Expense."Payment Method Code";
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
