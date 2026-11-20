@@ -142,6 +142,16 @@ table 45 "G/L Register"
             FieldClass = FlowField;
             ToolTip = 'Specifies the number of general ledger transactions in this register.';
         }
+        field(10700; "Posting Date"; Date)
+        {
+            Caption = 'Posting Date';
+            ClosingDates = true;
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This field was added to the W1 G/L Register table unintentionally. It is retained only for schema compatibility.';
+#if not CLEANSCHEMA30
+            ObsoleteTag = '29.1';
+#endif
+        }
     }
 
     keys
@@ -156,14 +166,22 @@ table 45 "G/L Register"
         key(Key3; "Source Code", "Journal Batch Name", "Creation Date")
         {
         }
-        key(key4; "From Entry No.", "To Entry No.")
+        key(Key4; "Posting Date")
+        {
+            ObsoleteState = Pending;
+            ObsoleteReason = 'The Posting Date field is obsolete. This key is retained only for compatibility.';
+#if not CLEANSCHEMA30
+            ObsoleteTag = '29.1';
+#endif
+        }
+        key(key6; "From Entry No.", "To Entry No.")
         {
             IncludedFields = "Creation Date", SystemCreatedAt;
         }
-        key(key5; "Source Code", "Journal Batch Name", SystemCreatedAt)
+        key(key7; "Source Code", "Journal Batch Name", SystemCreatedAt)
         {
         }
-        key(key6; SystemCreatedAt)
+        key(key8; SystemCreatedAt)
         {
         }
     }
