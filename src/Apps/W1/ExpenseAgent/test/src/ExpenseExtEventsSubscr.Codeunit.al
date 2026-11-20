@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Journal;
 
-codeunit 148368 "Expense Ext. Events Subscr."
+codeunit 148355 "Expense Ext. Events Subscr."
 {
     EventSubscriberInstance = Manual;
 

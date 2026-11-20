@@ -13,7 +13,7 @@ using System.Security.AccessControl;
 using System.Security.User;
 using System.TestLibraries.Utilities;
 
-codeunit 148367 "Expense Extension Events Test"
+codeunit 148354 "Expense Extension Events Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
