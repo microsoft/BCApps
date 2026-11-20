@@ -275,6 +275,11 @@ codeunit 4400 "SOA Setup"
         exit(15);
     end;
 
+    internal procedure GetUnattendedPeriodDays(): Integer
+    begin
+        exit(14);
+    end;
+
     internal procedure UpdateAgent(var AgentSetupBuffer: Record "Agent Setup Buffer"; var TempSOASetup: Record "SOA Setup" temporary; Schedule: Boolean)
     var
         ExistingSOASetup: Record "SOA Setup";
