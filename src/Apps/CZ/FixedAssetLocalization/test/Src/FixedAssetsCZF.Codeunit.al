@@ -6,6 +6,7 @@ codeunit 148087 "Fixed Assets CZF"
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
+        LibraryFiscalYear: Codeunit "Library - Fiscal Year";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryFixedAssetCZF: Codeunit "Library - Fixed Asset CZF";
@@ -18,6 +19,7 @@ codeunit 148087 "Fixed Assets CZF"
         FAJournalTemplate: Record "FA Journal Template";
         FAJournalBatch: Record "FA Journal Batch";
         FAJournalSetup: Record "FA Journal Setup";
+        GeneralPostingSetup: Record "General Posting Setup";
         DepreciationBook: Record "Depreciation Book";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
     begin
@@ -35,6 +37,8 @@ codeunit 148087 "Fixed Assets CZF"
           FAJournalBatch."Journal Template Name", FAJournalBatch.Name);
         UpdateFASetup(DepreciationBook.Code);
         UpdateHumanResourcesSetup();
+        LibraryFiscalYear.CreateFiscalYear();
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
 
         isInitialized := true;
         Commit();
